@@ -16,6 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
+from .parameter import _validate_non_negative, _validate_with_unit
 from .utils import aszarr, vectorize_redshift_method
 
 # isort: split
@@ -114,12 +115,14 @@ class FLRW(Cosmology):
     """
 
     H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.",
-                   unit="km/(s Mpc)")
-    Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.")
-    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.")
+                   unit="km/(s Mpc)", fvalidate="scalar")
+    Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.",
+                    fvalidate="non-negative")
+    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                     fvalidate="float")
     Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
-                      unit="Kelvin", fmt="0.4g")
-    Neff = Parameter(doc="Number of effective neutrino species.")
+                      unit="Kelvin", fmt="0.4g", fvalidate="scalar")
+    Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
     m_nu = Parameter(doc="Mass of neutrino species.",
                      unit="eV", equivalencies=u.mass_energy(), fmt="")
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
@@ -127,39 +130,18 @@ class FLRW(Cosmology):
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                  Ob0=None, *, name=None, meta=None):
         super().__init__(name=name, meta=meta)
-        cls = self.__class__
 
-        # all densities are in units of the critical density
-        self._Om0 = float(Om0)
-        if self._Om0 < 0.0:
-            raise ValueError("Matter density can not be negative")
-        self._Ode0 = float(Ode0)
-        if Ob0 is not None:
-            self._Ob0 = float(Ob0)
-            if self._Ob0 < 0.0:
-                raise ValueError("Baryonic density can not be negative")
-            if self._Ob0 > self._Om0:
-                raise ValueError("Baryonic density can not be larger than "
-                                 "total matter density")
-            self._Odm0 = self._Om0 - self._Ob0
-        else:
-            self._Ob0 = None
-            self._Odm0 = None
+        # Assign (and validate) Parameters
+        self.H0 = H0
+        self.Om0 = Om0
+        self.Ode0 = Ode0
+        self.Tcmb0 = Tcmb0
+        self.Neff = Neff
+        self.m_nu = m_nu  # (reset later, this is just for unit validation)
+        self.Ob0 = Ob0  # (must be after Om0)
 
-        self._Neff = float(Neff)
-        if self._Neff < 0.0:
-            raise ValueError("Effective number of neutrinos can "
-                             "not be negative")
-
-        # Tcmb may have units
-        self._Tcmb0 = Tcmb0 << cls.Tcmb0.unit
-        if not self._Tcmb0.isscalar:
-            raise ValueError("Tcmb0 is a non-scalar quantity")
-
-        # Hubble parameter at z=0, km/s/Mpc
-        self._H0 = H0 << cls.H0.unit
-        if not self._H0.isscalar:
-            raise ValueError("H0 is a non-scalar quantity")
+        # Derived quantities
+        self._Odm0 = None if Ob0 is None else (self._Om0 - self._Ob0)
 
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
         self._h = self._H0.value / 100.
@@ -174,6 +156,9 @@ class FLRW(Cosmology):
         cd0value = critdens_const * H0_s ** 2
         self._critical_density0 = u.Quantity(cd0value, u.g / u.cm ** 3)
 
+        # -------------------
+        # neutrinos
+
         # Load up neutrino masses.
         self._nneutrinos = floor(self._Neff)
 
@@ -187,14 +172,12 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            with u.add_enabled_equivalencies(cls.m_nu.equivalencies):
-                m_nu = m_nu << cls.m_nu.unit
-
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
             # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
+            m_nu = self._m_nu
             if m_nu.isscalar:
                 # Assume all neutrinos have the same mass
                 if m_nu.value == 0:
@@ -231,8 +214,7 @@ class FLRW(Cosmology):
         # as a special case for efficiency
         if self._Tcmb0.value > 0:
             # Compute photon density from Tcmb
-            self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 /\
-                self._critical_density0.value
+            self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 / self._critical_density0.value
 
             # Compute Neutrino temperature
             # The constant in front is (4/11)^1/3 -- see any
@@ -262,6 +244,21 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
 
+        # now set m_nu Parameter
+        if self._nneutrinos == 0 or self._Tnu0.value == 0:
+            self._m_nu = None
+        else:
+            if not self._massivenu:  # only massless
+                m = np.zeros(self._nmasslessnu)
+            elif self._nmasslessnu == 0:  # only massive
+                m = self._massivenu_mass
+            else:  # a mix -- the most complicated case
+                m = np.append(np.zeros(self._nmasslessnu),
+                              self._massivenu_mass.value)
+            self._m_nu = m << self._m_nu.unit
+
+        # -------------------
+
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
@@ -269,6 +266,23 @@ class FLRW(Cosmology):
         #  more efficient scalar versions of inv_efunc.
         self._inv_efunc_scalar = self.inv_efunc
         self._inv_efunc_scalar_args = ()
+
+    # ---------------------------------------------------------------
+    # Parameter details
+
+    @Ob0.validator
+    def Ob0(self, param, value):
+        """Validate baryon density to None or positive float > matter density."""
+        if value is None:
+            return value
+
+        value = _validate_non_negative(self, param, value)
+        if value > self.Om0:
+            raise ValueError("baryonic density can not be larger than total matter density.")
+        return value
+
+    # ---------------------------------------------------------------
+    # properties
 
     @property
     def Odm0(self):
@@ -291,24 +305,6 @@ class FLRW(Cosmology):
         if self._Tnu0.value == 0:
             return False
         return self._massivenu
-
-    @m_nu.getter
-    @lazyproperty
-    def m_nu(self):
-        """Mass of neutrino species."""
-        unit = self.__class__.m_nu.unit  # eV
-        if self._Tnu0.value == 0:
-            return None
-        if not self._massivenu:
-            # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), unit)
-        if self._nmasslessnu == 0:
-            # Only massive
-            return u.Quantity(self._massivenu_mass, unit)
-        # A mix -- the most complicated case
-        numass = np.append(np.zeros(self._nmasslessnu),
-                           self._massivenu_mass.value)
-        return u.Quantity(numass, unit)
 
     @property
     def h(self):
@@ -339,6 +335,8 @@ class FLRW(Cosmology):
     def Onu0(self):
         """Omega nu; the density/critical density of neutrinos at z=0."""
         return self._Onu0
+
+    # ---------------------------------------------------------------
 
     @abstractmethod
     def w(self, z):
@@ -1425,16 +1423,19 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
+    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                     derived=True)  # no longer a Parameter
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        if "Ode0" in cls._init_signature.parameters:
+            raise TypeError("subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`")
+
     def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
+        super().__init__(*args, **kw)  # guaranteed not to have `Ode0`
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
-
-    @property  # no longer a Parameter
-    def Ode0(self):
-        """Omega dark energy; dark energy density/critical density at z=0."""
-        return self._Ode0
 
     def __equiv__(self, other):
         """flat-FLRW equivalence. Use ``.is_equivalent()`` for actual check!
@@ -1468,12 +1469,11 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # check all parameters in other match those in 'self' and 'other' has
         # no extra parameters (case (2)) except for 'Ode0' and that other
         params_eq = (
-            not (set(self.__parameters__) - set(other.__parameters__) - {"Ode0"}) # no extra params
+            set(self.__all_parameters__) == set(other.__all_parameters__) # no extra params
             and all(np.all(getattr(self, k) == getattr(other, k))  # params equal
-                     for k in self.__parameters__)
+                    for k in self.__all_parameters__)
             # flatness conditions
-            and other.Ok0 == 0.0
-            and other.Ode0 == 1.0 - other.Om0 - other.Ogamma0 - other.Onu0
+            and other.Ok0 == 0.0  # `Ode0` is checked in __all_parameters__
         )
 
         return params_eq
@@ -2195,13 +2195,13 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state.")
+    w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
+        self.w0 = w0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2523,15 +2523,16 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.")
-    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.")
+    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
+    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
+                   fvalidate="float")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
-        self._wa = float(wa)
+        self.w0 = w0
+        self.wa = wa
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2788,21 +2789,23 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.")
-    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.")
+    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float")
+    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
+                   fvalidate="float")
     zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
 
-    def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0, Tcmb0=0.0*u.K,
-                 Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
+    def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0 * cu.redshift,
+                 Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *,
+                 name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._wp = float(wp)
-        self._wa = float(wa)
-        self._zp = zp << self.__class__.zp.unit
+        self.wp = wp
+        self.wa = wa
+        self.zp = zp
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
-        apiv = 1.0 / (1.0 + self._zp)
+        apiv = 1.0 / (1.0 + self._zp.value)
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -2842,7 +2845,7 @@ class wpwaCDM(FLRW):
         units where c=1. Here this is :math:`w(z) = w_p + w_a (a_p - a)` where
         :math:`a = 1/1+z` and :math:`a_p = 1 / 1 + z_p`.
         """
-        apiv = 1.0 / (1.0 + self._zp)
+        apiv = 1.0 / (1.0 + self._zp.value)
         return self._wp + self._wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
     def de_density_scale(self, z):
@@ -2873,7 +2876,7 @@ class wpwaCDM(FLRW):
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        apiv = 1. / (1. + self._zp)
+        apiv = 1. / (1. + self._zp.value)
         return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * \
             np.exp(-3. * self._wa * z / zp1)
 
@@ -2947,15 +2950,15 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.")
-    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.")
+    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
+    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.", fvalidate="float")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wz=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
-        self._wz = float(wz)
+        self.w0 = w0
+        self.wz = wz
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.

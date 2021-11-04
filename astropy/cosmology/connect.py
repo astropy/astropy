@@ -3,7 +3,9 @@
 import copy
 import warnings
 
+from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
+from astropy.units import add_enabled_units
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["CosmologyRead", "CosmologyWrite",
@@ -87,7 +89,9 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = self.registry.read(self._cls, *args, **kwargs)
+        with add_enabled_units(cu):
+            cosmo = self.registry.read(self._cls, *args, **kwargs)
+
         return cosmo
 
 

@@ -4,6 +4,7 @@
 import pytest
 
 # LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, realizations
@@ -29,6 +30,14 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmology`` for an example.
     """
+
+    @pytest.fixture
+    def add_cu(self):
+        # TODO! autoenable 'cu' if cosmology is imported?
+        with u.add_enabled_units(cu):
+            yield
+
+    # ===============================================================
 
     def test_to_ecsv_bad_index(self, read, write, tmp_path):
         """Test if argument ``index`` is incorrect"""
@@ -61,7 +70,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
     # -----------------------
 
     @pytest.mark.parametrize("in_meta", [True, False])
-    def test_to_ecsv_in_meta(self, cosmo_cls, write, in_meta, tmp_path):
+    def test_to_ecsv_in_meta(self, cosmo_cls, write, in_meta, tmp_path, add_cu):
         """Test where the cosmology class is placed."""
         fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
         write(fp, format='ascii.ecsv', cosmology_in_meta=in_meta)
@@ -77,7 +86,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
     # -----------------------
 
-    def test_tofrom_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path):
+    def test_tofrom_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):
         """Test cosmology -> ascii.ecsv -> cosmology."""
         fp = tmp_path / "test_tofrom_ecsv_instance.ecsv"
 
@@ -132,7 +141,8 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         got = read(fp)
         assert got == cosmo
 
-    def test_fromformat_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read, write, tmp_path):
+    def test_fromformat_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read, write,
+                                                   tmp_path, add_cu):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -163,7 +173,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    def test_tofrom_ecsv_mutlirow(self, cosmo, read, write, tmp_path):
+    def test_tofrom_ecsv_mutlirow(self, cosmo, read, write, tmp_path, add_cu):
         """Test if table has multiple rows."""
         fp = tmp_path / "test_tofrom_ecsv_mutlirow.ecsv"
 

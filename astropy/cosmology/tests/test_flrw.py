@@ -5,17 +5,21 @@
 ##############################################################################
 # IMPORTS
 
+# STDLIB
 import abc
 
+# THIRD PARTY
 import pytest
 
 import numpy as np
 
+# LOCAL
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
+from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_core import CosmologySubclassTest as CosmologyTest
@@ -71,6 +75,136 @@ class TestFLRW(CosmologyTest):
 
     # ===============================================================
     # Method & Attribute Tests
+
+    # ---------------------------------------------------------------
+    # Parameters
+
+    def test_H0(self, cosmo_cls, cosmo):
+        """Test Parameter ``H0``."""
+        # on the class
+        assert isinstance(cosmo_cls.H0, Parameter)
+        assert "Hubble constant" in cosmo_cls.H0.__doc__
+        assert cosmo_cls.H0.unit == u.Unit("km/(s Mpc)")
+
+        # validation
+        assert cosmo_cls.H0.validate(cosmo, 1) == 1 * u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.validate(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit("km/(s Mpc)")
+        with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
+            cosmo_cls.H0.validate(cosmo, [1, 2])
+
+        # on the instance
+        assert cosmo.H0 is cosmo._H0
+        assert cosmo.H0 == 70 * (u.km / u.s / u.Mpc)
+
+    def test_Om0(self, cosmo_cls, cosmo):
+        """Test Parameter ``Om0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Om0, Parameter)
+        assert "Omega matter" in cosmo_cls.Om0.__doc__
+        assert cosmo_cls.Tcmb0.format_spec == "0.4g"
+
+        # validation
+        assert cosmo_cls.Om0.validate(cosmo, 1) == 1
+        assert cosmo_cls.Om0.validate(cosmo, 10 * u.one) == 10
+        with pytest.raises(ValueError, match="Om0 cannot be negative"):
+            cosmo_cls.Om0.validate(cosmo, -1)
+
+        # on the instance
+        assert cosmo.Om0 is cosmo._Om0
+        assert isinstance(cosmo.Om0, float)  # from fset
+        assert cosmo.Om0 == 0.27
+
+    def test_Ode0(self, cosmo_cls, cosmo):
+        """Test Parameter ``Ode0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Ode0, Parameter)
+        assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
+
+        # validation
+        assert cosmo_cls.Ode0.validate(cosmo, 1) == 1
+        assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10
+
+        # on the instance
+        assert cosmo.Ode0 is cosmo._Ode0
+        assert isinstance(cosmo.Ode0, float)  # from setter
+
+    def test_Tcmb0(self, cosmo_cls, cosmo):
+        """Test Parameter ``Tcmb0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Tcmb0, Parameter)
+        assert "Temperature of the CMB" in cosmo_cls.Tcmb0.__doc__
+        assert cosmo_cls.Tcmb0.unit == u.K
+
+        # validation
+        assert cosmo_cls.Tcmb0.validate(cosmo, 1) == 1 * u.K
+        assert cosmo_cls.Tcmb0.validate(cosmo, 10 * u.K) == 10 * u.K
+        with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
+            cosmo_cls.Tcmb0.validate(cosmo, [1, 2])
+
+        # on the instance
+        assert cosmo.Tcmb0 is cosmo._Tcmb0
+        assert cosmo.Tcmb0 == 3 * u.K
+
+    def test_Neff(self, cosmo_cls, cosmo):
+        """Test Parameter ``Neff``."""
+        # on the class
+        assert isinstance(cosmo_cls.Neff, Parameter)
+        assert "Number of effective neutrino species" in cosmo_cls.Neff.__doc__
+
+        # validation
+        assert cosmo_cls.Neff.validate(cosmo, 1) == 1
+        assert cosmo_cls.Neff.validate(cosmo, 10 * u.one) == 10
+        with pytest.raises(ValueError, match="Neff cannot be negative"):
+            cosmo_cls.Neff.validate(cosmo, -1)
+
+        # on the instance
+        assert cosmo.Neff is cosmo._Neff
+        assert cosmo.Neff == 3.04
+
+    def test_m_nu(self, cosmo_cls, cosmo):
+        """Test Parameter ``m_nu``."""
+        # on the class
+        assert isinstance(cosmo_cls.m_nu, Parameter)
+        assert "Mass of neutrino species" in cosmo_cls.m_nu.__doc__
+        assert cosmo_cls.m_nu.unit == u.eV
+        assert cosmo_cls.m_nu.equivalencies == u.mass_energy()
+        assert cosmo_cls.m_nu.format_spec == ""
+
+        # on the instance
+        # assert cosmo.m_nu is cosmo._m_nu
+        assert u.allclose(cosmo.m_nu, [0.0, 0.0, 0.0] * u.eV)
+
+        # set differently depending on the other inputs
+        if cosmo.Tnu0.value == 0:
+            assert cosmo.m_nu is None
+        elif not cosmo._massivenu:  # only massless
+            assert u.allclose(cosmo.m_nu, 0 * u.eV)
+        elif self._nmasslessnu == 0:  # only massive
+            assert cosmo.m_nu == cosmo._massivenu_mass
+        else:  # a mix -- the most complicated case
+            assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
+            assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
+
+    def test_Ob0(self, cosmo_cls, cosmo):
+        """Test Parameter ``Ob0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Ob0, Parameter)
+        assert "Omega baryon;" in cosmo_cls.Ob0.__doc__
+
+        # validation
+        assert cosmo_cls.Ob0.validate(cosmo, None) is None
+        assert cosmo_cls.Ob0.validate(cosmo, 0.1) == 0.1
+        assert cosmo_cls.Ob0.validate(cosmo, 0.1 * u.one) == 0.1
+        with pytest.raises(ValueError, match="Ob0 cannot be negative"):
+            cosmo_cls.Ob0.validate(cosmo, -1)
+        with pytest.raises(ValueError, match="baryonic density can not be larger"):
+            cosmo_cls.Ob0.validate(cosmo, cosmo.Om0 + 1)
+
+        # on the instance
+        assert cosmo.Ob0 is cosmo._Ob0
+        assert cosmo.Ob0 is None
+
+    # ---------------------------------------------------------------
 
     def test_init(self, cosmo_cls):
         """Test initialization."""
@@ -138,6 +272,8 @@ class TestFLRW(CosmologyTest):
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
+    # ---------------------------------------------------------------
+
     def test_efunc_vs_invefunc(self, cosmo):
         """
         Test that efunc and inv_efunc give inverse values.
@@ -185,6 +321,24 @@ class FLRWSubclassTest(TestFLRW):
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest):
     """Tests for :class:`astropy.cosmology.FlatFLRWMixin`."""
+
+    # ---------------------------------------------------------------
+    # class-level
+
+    def test_init_subclass(self, cosmo_cls):
+        """Test initializing subclass, mostly that can't have Ode0 in init."""
+        super().test_init_subclass(cosmo_cls)
+
+        with pytest.raises(TypeError, match="subclasses of"):
+
+            class HASOde0SubClass(cosmo_cls):
+                def __init__(self, Ode0):
+                    pass
+
+            _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
+
+    # ---------------------------------------------------------------
+    # instance-level
 
     def test_init(self, cosmo_cls):
         super().test_init(cosmo_cls)
