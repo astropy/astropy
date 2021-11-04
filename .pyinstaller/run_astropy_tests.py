@@ -86,6 +86,11 @@ SKIP_TESTS = ['test_exception_logging_origin',
               'test_pkg_finder',
               'test_wcsapi_extension',
               'test_find_current_module_bundle',
+              'test_minversion',
+              'test_imports',
+              'test_generate_config',
+              'test_generate_config2',
+              'test_create_config_file',
               'test_download_parallel_fills_cache']
 
 # Run the tests!
