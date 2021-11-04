@@ -1,0 +1,1 @@
+Fix bug preventing ASDF serialization of bounding box for models with only one input.
