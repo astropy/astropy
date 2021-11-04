@@ -437,7 +437,7 @@ an exception like::
 As explained in the :ref:`note on working with large files <fits-large-files>`,
 because ``astropy`` uses mmap by default to read the data in a FITS file, even
 if you correctly close a file with :meth:`HDUList.close
-<astropy.io.fits.hdulist.HDUList.close>` a handle is kept open to that file so
+<astropy.io.fits.HDUList.close>` a handle is kept open to that file so
 that the memory-mapped data array can still continue to be read transparently.
 
 The way ``numpy`` supports mmap is such that the file mapping is not closed
