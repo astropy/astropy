@@ -3,16 +3,14 @@
 
 import io
 import os
-import sys
 import subprocess
+import sys
 
 import pytest
 
-from astropy.config import (configuration, set_temp_config, paths,
-                            create_config_file)
+from astropy.config import configuration, create_config_file, paths, set_temp_config
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
 
 OLD_CONFIG = {}
 
@@ -227,7 +225,7 @@ def test_create_config_file(tmp_path, caplog):
 
 def test_configitem():
 
-    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     ci = ConfigItem(34, 'this is a Description')
 
@@ -268,7 +266,7 @@ def test_configitem():
 
 def test_configitem_types():
 
-    from astropy.config.configuration import ConfigNamespace, ConfigItem
+    from astropy.config.configuration import ConfigItem, ConfigNamespace
 
     ci1 = ConfigItem(34)
     ci2 = ConfigItem(34.3)
@@ -309,7 +307,7 @@ def test_configitem_types():
 
 def test_configitem_options(tmpdir):
 
-    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     cio = ConfigItem(['op1', 'op2', 'op3'])
 
@@ -373,7 +371,7 @@ def test_config_noastropy_fallback(monkeypatch):
 
 def test_configitem_setters():
 
-    from astropy.config.configuration import ConfigNamespace, ConfigItem
+    from astropy.config.configuration import ConfigItem, ConfigNamespace
 
     class Conf(ConfigNamespace):
         tstnm12 = ConfigItem(42, 'this is another Description')
@@ -441,7 +439,7 @@ class TestAliasRead:
 
 def test_configitem_unicode(tmpdir):
 
-    from astropy.config.configuration import ConfigNamespace, ConfigItem, get_config
+    from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     cio = ConfigItem('ასტრონომიის')
 
