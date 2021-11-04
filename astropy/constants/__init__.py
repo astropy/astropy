@@ -18,16 +18,16 @@ import warnings
 from astropy.utils import find_current_module
 
 # Hack to make circular imports with units work
+# isort: split
 from astropy import units
+
 del units
 
-# These lines import some namespaces into the top level
-from .constant import Constant, EMConstant  # noqa
-from . import si  # noqa
 from . import cgs  # noqa
-from .config import codata, iaudata  # noqa
-
+from . import si  # noqa
 from . import utils as _utils  # noqa
+from .config import codata, iaudata  # noqa
+from .constant import Constant, EMConstant  # noqa
 
 # for updating the constants module docstring
 _lines = [
