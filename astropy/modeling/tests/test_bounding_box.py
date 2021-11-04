@@ -4,20 +4,20 @@ import pytest
 import numpy as np
 import unittest.mock as mk
 
-from astropy.modeling.bounding_box import (_BaseInterval, Interval, _ignored_interval,
+from astropy.modeling.bounding_box import (_BaseInterval, _Interval, _ignored_interval,
                                            _BoundingDomain, ModelBoundingBox,
-                                           _BaseSelectorArgument, SelectorArgument, SelectorArguments,
+                                           _BaseSelectorArgument, _SelectorArgument, _SelectorArguments,
                                            CompoundBoundingBox)
 from astropy.modeling.models import Gaussian1D, Gaussian2D, Shift, Scale, Identity
 from astropy.modeling.core import Model, fix_inputs
 import astropy.units as u
 
 
-class TestInterval:
+class Test_Interval:
     def test_create(self):
         lower = mk.MagicMock()
         upper = mk.MagicMock()
-        interval = Interval(lower, upper)
+        interval = _Interval(lower, upper)
         assert isinstance(interval, _BaseInterval)
         assert interval.lower == lower
         assert interval.upper == upper
@@ -27,7 +27,7 @@ class TestInterval:
             f"Interval(lower={lower}, upper={upper})"
 
     def test_copy(self):
-        interval = Interval(0.5, 1.5)
+        interval = _Interval(0.5, 1.5)
         copy = interval.copy()
 
         assert interval == copy
@@ -45,7 +45,7 @@ class TestInterval:
         message = "An interval must be some sort of sequence of length 2"
         lower = mk.MagicMock()
         upper = mk.MagicMock()
-        interval = Interval(lower, upper)
+        interval = _Interval(lower, upper)
 
         # Passes (2,)
         interval._validate_shape((1, 2))
@@ -113,10 +113,10 @@ class TestInterval:
 
     def test__validate_bounds(self):
         # Passes
-        assert Interval._validate_bounds(1, 2) == (1, 2)
-        assert Interval._validate_bounds(1*u.m, 2*u.m) == (1*u.m, 2*u.m)
+        assert _Interval._validate_bounds(1, 2) == (1, 2)
+        assert _Interval._validate_bounds(1*u.m, 2*u.m) == (1*u.m, 2*u.m)
 
-        interval = Interval._validate_bounds(np.array([-2.5, -3.5]), np.array([2.5, 3.5]))
+        interval = _Interval._validate_bounds(np.array([-2.5, -3.5]), np.array([2.5, 3.5]))
         assert (interval.lower == np.array([-2.5, -3.5])).all()
         assert (interval.upper == np.array([2.5, 3.5])).all()
 
@@ -124,47 +124,47 @@ class TestInterval:
         with pytest.warns(RuntimeWarning,
                           match="Invalid interval: upper bound 1 is strictly "
                           r"less than lower bound 2\."):
-            Interval._validate_bounds(2, 1)
+            _Interval._validate_bounds(2, 1)
         with pytest.warns(RuntimeWarning,
                           match=r"Invalid interval: upper bound 1\.0 m is strictly "
                           r"less than lower bound 2\.0 m\."):
-            Interval._validate_bounds(2*u.m, 1*u.m)
+            _Interval._validate_bounds(2*u.m, 1*u.m)
 
     def test_validate(self):
         # Passes
-        assert Interval.validate((1, 2)) == (1, 2)
-        assert Interval.validate([1, 2]) == (1, 2)
-        assert Interval.validate((1*u.m, 2*u.m)) == (1*u.m, 2*u.m)
-        assert Interval.validate([1*u.m, 2*u.m]) == (1*u.m, 2*u.m)
+        assert _Interval.validate((1, 2)) == (1, 2)
+        assert _Interval.validate([1, 2]) == (1, 2)
+        assert _Interval.validate((1*u.m, 2*u.m)) == (1*u.m, 2*u.m)
+        assert _Interval.validate([1*u.m, 2*u.m]) == (1*u.m, 2*u.m)
 
-        assert Interval.validate(((1, 2),)) == (1, 2)
-        assert Interval.validate(([1, 2],)) == (1, 2)
-        assert Interval.validate([(1, 2)]) == (1, 2)
-        assert Interval.validate([[1, 2]]) == (1, 2)
-        assert Interval.validate(((1*u.m, 2*u.m),)) == (1*u.m, 2*u.m)
-        assert Interval.validate(([1*u.m, 2*u.m],)) == (1*u.m, 2*u.m)
-        assert Interval.validate([(1*u.m, 2*u.m)]) == (1*u.m, 2*u.m)
-        assert Interval.validate([[1*u.m, 2*u.m]]) == (1*u.m, 2*u.m)
+        assert _Interval.validate(((1, 2),)) == (1, 2)
+        assert _Interval.validate(([1, 2],)) == (1, 2)
+        assert _Interval.validate([(1, 2)]) == (1, 2)
+        assert _Interval.validate([[1, 2]]) == (1, 2)
+        assert _Interval.validate(((1*u.m, 2*u.m),)) == (1*u.m, 2*u.m)
+        assert _Interval.validate(([1*u.m, 2*u.m],)) == (1*u.m, 2*u.m)
+        assert _Interval.validate([(1*u.m, 2*u.m)]) == (1*u.m, 2*u.m)
+        assert _Interval.validate([[1*u.m, 2*u.m]]) == (1*u.m, 2*u.m)
 
-        interval = Interval.validate((np.array([-2.5, -3.5]),
+        interval = _Interval.validate((np.array([-2.5, -3.5]),
                                       np.array([2.5, 3.5])))
         assert (interval.lower == np.array([-2.5, -3.5])).all()
         assert (interval.upper == np.array([2.5, 3.5])).all()
-        interval = Interval.validate((np.array([-2.5, -3.5, -4.5]),
+        interval = _Interval.validate((np.array([-2.5, -3.5, -4.5]),
                                      np.array([2.5, 3.5, 4.5])))
         assert (interval.lower == np.array([-2.5, -3.5, -4.5])).all()
         assert (interval.upper == np.array([2.5, 3.5, 4.5])).all()
 
         # Fail shape
         with pytest.raises(ValueError):
-            Interval.validate((1, 2, 3))
+            _Interval.validate((1, 2, 3))
 
         # Fail bounds
         with pytest.warns(RuntimeWarning):
-            Interval.validate((2, 1))
+            _Interval.validate((2, 1))
 
     def test_outside(self):
-        interval = Interval.validate((0, 1))
+        interval = _Interval.validate((0, 1))
 
         assert (interval.outside(np.linspace(-1, 2, 13)) ==
                 [True, True, True, True,
@@ -172,7 +172,7 @@ class TestInterval:
                  True, True, True, True]).all()
 
     def test_domain(self):
-        interval = Interval.validate((0, 1))
+        interval = _Interval.validate((0, 1))
         assert (interval.domain(0.25) == np.linspace(0, 1, 5)).all()
 
     def test__ignored_interval(self):
@@ -555,7 +555,7 @@ class TestModelBoundingBox:
         assert bounding_box.intervals.keys() == copy.intervals.keys()
 
     def test_intervals(self):
-        intervals = {0: Interval(1, 2)}
+        intervals = {0: _Interval(1, 2)}
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
@@ -583,7 +583,7 @@ class TestModelBoundingBox:
         assert bounding_box.ignored == ignored
 
     def test__get_name(self):
-        intervals = {0: Interval(1, 2)}
+        intervals = {0: _Interval(1, 2)}
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
@@ -597,7 +597,7 @@ class TestModelBoundingBox:
         assert model.inputs.__getitem__.call_args_list == [mk.call(index)]
 
     def test_named_intervals(self):
-        intervals = {idx: Interval(idx, idx + 1) for idx in range(4)}
+        intervals = {idx: _Interval(idx, idx + 1) for idx in range(4)}
         model = mk.MagicMock()
         model.n_inputs = 4
         model.inputs = [mk.MagicMock() for _ in range(4)]
@@ -614,7 +614,7 @@ class TestModelBoundingBox:
             assert intervals[index] == named[name]
 
     def test_ignored_inputs(self):
-        intervals = {idx: Interval(idx, idx + 1) for idx in range(4)}
+        intervals = {idx: _Interval(idx, idx + 1) for idx in range(4)}
         model = mk.MagicMock()
         ignored = list(range(4, 8))
         model.n_inputs = 8
@@ -633,7 +633,7 @@ class TestModelBoundingBox:
                 assert index < 4
 
     def test___repr__(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -647,7 +647,7 @@ class TestModelBoundingBox:
             "    order='C'\n" +\
             ")"
 
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'])
 
@@ -662,7 +662,7 @@ class TestModelBoundingBox:
             ")"
 
     def test__get_index(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -730,12 +730,12 @@ class TestModelBoundingBox:
             bounding_box._validate_ignored([np.int64(3)])
 
     def test___len__(self):
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian1D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert len(bounding_box) == 1 == len(bounding_box._intervals)
 
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert len(bounding_box) == 2 == len(bounding_box._intervals)
@@ -744,7 +744,7 @@ class TestModelBoundingBox:
         assert len(bounding_box) == 0 == len(bounding_box._intervals)
 
     def test___contains__(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -775,7 +775,7 @@ class TestModelBoundingBox:
         assert 2 not in bounding_box
 
     def test___getitem__(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -813,7 +813,7 @@ class TestModelBoundingBox:
         assert bounding_box[1] == _ignored_interval
 
     def test__get_order(self):
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian1D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -847,14 +847,14 @@ class TestModelBoundingBox:
         assert bounding_box.bounding_box('F') == (-np.inf, np.inf)
 
         # 1D
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian1D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.bounding_box() == (-1, 1)
         assert bounding_box.bounding_box(mk.MagicMock()) == (-1, 1)
 
         # > 1D
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.bounding_box() == ((-4, 4), (-1, 1))
@@ -862,7 +862,7 @@ class TestModelBoundingBox:
         assert bounding_box.bounding_box('F') == ((-1, 1), (-4, 4))
 
     def test___eq__(self):
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian1D()
         bounding_box = ModelBoundingBox.validate(model.copy(), intervals.copy())
 
@@ -872,10 +872,10 @@ class TestModelBoundingBox:
 
         assert not (bounding_box == mk.MagicMock())
         assert not (bounding_box == (-2, 2))
-        assert not (bounding_box == ModelBoundingBox.validate(model, {0: Interval(-2, 2)}))
+        assert not (bounding_box == ModelBoundingBox.validate(model, {0: _Interval(-2, 2)}))
 
         # Respect ordering
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box_1 = ModelBoundingBox.validate(model, intervals)
         bounding_box_2 = ModelBoundingBox.validate(model, intervals, order='F')
@@ -905,18 +905,18 @@ class TestModelBoundingBox:
         # Set interval using key
         assert 0 not in bounding_box.intervals
         assert 0 in bounding_box.ignored
-        bounding_box['x'] = Interval(-1, 1)
+        bounding_box['x'] = _Interval(-1, 1)
         assert 0 in bounding_box.intervals
         assert 0 not in bounding_box.ignored
-        assert isinstance(bounding_box['x'], Interval)
+        assert isinstance(bounding_box['x'], _Interval)
         assert bounding_box['x'] == (-1, 1)
 
         assert 1 not in bounding_box.intervals
         assert 1 in bounding_box.ignored
-        bounding_box['y'] = Interval(-4, 4)
+        bounding_box['y'] = _Interval(-4, 4)
         assert 1 in bounding_box.intervals
         assert 1 not in bounding_box.ignored
-        assert isinstance(bounding_box['y'], Interval)
+        assert isinstance(bounding_box['y'], _Interval)
         assert bounding_box['y'] == (-4, 4)
 
         del bounding_box['x']
@@ -925,18 +925,18 @@ class TestModelBoundingBox:
         # Set interval using index
         assert 0 not in bounding_box.intervals
         assert 0 in bounding_box.ignored
-        bounding_box[0] = Interval(-1, 1)
+        bounding_box[0] = _Interval(-1, 1)
         assert 0 in bounding_box.intervals
         assert 0 not in bounding_box.ignored
-        assert isinstance(bounding_box[0], Interval)
+        assert isinstance(bounding_box[0], _Interval)
         assert bounding_box[0] == (-1, 1)
 
         assert 1 not in bounding_box.intervals
         assert 1 in bounding_box.ignored
-        bounding_box[1] = Interval(-4, 4)
+        bounding_box[1] = _Interval(-4, 4)
         assert 1 in bounding_box.intervals
         assert 1 not in bounding_box.ignored
-        assert isinstance(bounding_box[1], Interval)
+        assert isinstance(bounding_box[1], _Interval)
         assert bounding_box[1] == (-4, 4)
 
         del bounding_box[0]
@@ -949,7 +949,7 @@ class TestModelBoundingBox:
         bounding_box['x'] = (-1, 1)
         assert 0 in bounding_box.intervals
         assert 0 not in bounding_box.ignored
-        assert isinstance(bounding_box['x'], Interval)
+        assert isinstance(bounding_box['x'], _Interval)
         assert bounding_box['x'] == (-1, 1)
 
         assert 1 not in bounding_box.intervals
@@ -957,7 +957,7 @@ class TestModelBoundingBox:
         bounding_box['y'] = (-4, 4)
         assert 1 in bounding_box.intervals
         assert 1 not in bounding_box.ignored
-        assert isinstance(bounding_box['y'], Interval)
+        assert isinstance(bounding_box['y'], _Interval)
         assert bounding_box['y'] == (-4, 4)
 
         del bounding_box['x']
@@ -969,7 +969,7 @@ class TestModelBoundingBox:
         bounding_box[0] = (-1, 1)
         assert 0 in bounding_box.intervals
         assert 0 not in bounding_box.ignored
-        assert isinstance(bounding_box[0], Interval)
+        assert isinstance(bounding_box[0], _Interval)
         assert bounding_box[0] == (-1, 1)
 
         assert 1 not in bounding_box.intervals
@@ -977,7 +977,7 @@ class TestModelBoundingBox:
         bounding_box[1] = (-4, 4)
         assert 1 in bounding_box.intervals
         assert 1 not in bounding_box.ignored
-        assert isinstance(bounding_box[1], Interval)
+        assert isinstance(bounding_box[1], _Interval)
         assert bounding_box[1] == (-4, 4)
 
         # Model set support
@@ -986,17 +986,17 @@ class TestModelBoundingBox:
         # USING Intervals directly
         # Set interval using key
         assert 'x' not in bounding_box
-        bounding_box['x'] = Interval(np.array([-1, -2]), np.array([1, 2]))
+        bounding_box['x'] = _Interval(np.array([-1, -2]), np.array([1, 2]))
         assert 'x' in bounding_box
-        assert isinstance(bounding_box['x'], Interval)
+        assert isinstance(bounding_box['x'], _Interval)
         assert (bounding_box['x'].lower == np.array([-1, -2])).all()
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
         # Set interval using index
         bounding_box._intervals = {}
         assert 0 not in bounding_box
-        bounding_box[0] = Interval(np.array([-1, -2]), np.array([1, 2]))
+        bounding_box[0] = _Interval(np.array([-1, -2]), np.array([1, 2]))
         assert 0 in bounding_box
-        assert isinstance(bounding_box[0], Interval)
+        assert isinstance(bounding_box[0], _Interval)
         assert (bounding_box[0].lower == np.array([-1, -2])).all()
         assert (bounding_box[0].upper == np.array([1, 2])).all()
         # USING tuples
@@ -1005,7 +1005,7 @@ class TestModelBoundingBox:
         assert 'x' not in bounding_box
         bounding_box['x'] = (np.array([-1, -2]), np.array([1, 2]))
         assert 'x' in bounding_box
-        assert isinstance(bounding_box['x'], Interval)
+        assert isinstance(bounding_box['x'], _Interval)
         assert (bounding_box['x'].lower == np.array([-1, -2])).all()
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
         # Set interval using index
@@ -1013,12 +1013,12 @@ class TestModelBoundingBox:
         assert 0 not in bounding_box
         bounding_box[0] = (np.array([-1, -2]), np.array([1, 2]))
         assert 0 in bounding_box
-        assert isinstance(bounding_box[0], Interval)
+        assert isinstance(bounding_box[0], _Interval)
         assert (bounding_box[0].lower == np.array([-1, -2])).all()
         assert (bounding_box[0].upper == np.array([1, 2])).all()
 
     def test___delitem__(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -1061,7 +1061,7 @@ class TestModelBoundingBox:
         bounding_box = ModelBoundingBox({}, model)
 
         # Input name keys
-        intervals = {'x': Interval(-1, 1), 'y': Interval(-4, 4)}
+        intervals = {'x': _Interval(-1, 1), 'y': _Interval(-4, 4)}
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         bounding_box._validate_dict(intervals)
@@ -1073,7 +1073,7 @@ class TestModelBoundingBox:
 
         # Input index
         bounding_box._intervals = {}
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         assert 0 not in bounding_box
         assert 1 not in bounding_box
         bounding_box._validate_dict(intervals)
@@ -1087,7 +1087,7 @@ class TestModelBoundingBox:
         model = Gaussian1D([0.1, 0.2], [0, 0], [5, 7], n_models=2)
         bounding_box = ModelBoundingBox({}, model)
         # name keys
-        intervals = {'x': Interval(np.array([-1, -2]), np.array([1, 2]))}
+        intervals = {'x': _Interval(np.array([-1, -2]), np.array([1, 2]))}
         assert 'x' not in bounding_box
         bounding_box._validate_dict(intervals)
         assert 'x' in bounding_box
@@ -1095,7 +1095,7 @@ class TestModelBoundingBox:
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
         # input index
         bounding_box._intervals = {}
-        intervals = {0: Interval(np.array([-1, -2]), np.array([1, 2]))}
+        intervals = {0: _Interval(np.array([-1, -2]), np.array([1, 2]))}
         assert 0 not in bounding_box
         bounding_box._validate_dict(intervals)
         assert 0 in bounding_box
@@ -1152,11 +1152,11 @@ class TestModelBoundingBox:
     def test__n_inputs(self):
         model = Gaussian2D()
 
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box._n_inputs == 2
 
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'])
         assert bounding_box._n_inputs == 1
 
@@ -1193,7 +1193,7 @@ class TestModelBoundingBox:
 
         # Pass Dict
         bounding_box._intervals = {}
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         assert 0 not in bounding_box
         assert 1 not in bounding_box
         bounding_box._validate_iterable(intervals)
@@ -1206,7 +1206,7 @@ class TestModelBoundingBox:
         # Pass with ignored
         bounding_box._intervals = {}
         bounding_box._ignored = [1]
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         assert 0 not in bounding_box.intervals
         bounding_box._validate_iterable(intervals)
         assert 0 in bounding_box.intervals
@@ -1225,14 +1225,14 @@ class TestModelBoundingBox:
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         bounding_box._ignored = [1]
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         with pytest.raises(ValueError) as err:
             bounding_box._validate_iterable(intervals)
         assert str(err.value) ==\
             "Found 2 intervals, but must have exactly 1."
         assert len(bounding_box.intervals) == 0
         bounding_box._ignored = []
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         with pytest.raises(ValueError) as err:
             bounding_box._validate_iterable(intervals)
         assert str(err.value) ==\
@@ -1268,7 +1268,7 @@ class TestModelBoundingBox:
 
         # Pass Dict
         bounding_box._intervals = {}
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         bounding_box._validate(intervals)
@@ -1279,7 +1279,7 @@ class TestModelBoundingBox:
         assert len(bounding_box.intervals) == 2
 
         # Pass single with ignored
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         bounding_box = ModelBoundingBox({}, model, ignored=[1])
 
         assert 0 not in bounding_box.intervals
@@ -1333,7 +1333,7 @@ class TestModelBoundingBox:
         assert len(bounding_box.intervals) == 2
 
         # Pass Dict
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         bounding_box = ModelBoundingBox.validate(model, intervals, order='F', **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 0 in bounding_box
@@ -1355,7 +1355,7 @@ class TestModelBoundingBox:
         assert bounding_box.order == 'F'
 
         # Pass single ignored
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'], **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 'x' in bounding_box
@@ -1407,12 +1407,12 @@ class TestModelBoundingBox:
         assert new_bounding_box.ignored == [1]
 
     def test_dimension(self):
-        intervals = {0: Interval(-1, 1)}
+        intervals = {0: _Interval(-1, 1)}
         model = Gaussian1D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.dimension == 1 == len(bounding_box._intervals)
 
-        intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.dimension == 2 == len(bounding_box._intervals)
@@ -1421,7 +1421,7 @@ class TestModelBoundingBox:
         assert bounding_box.dimension == 0 == len(bounding_box._intervals)
 
     def test_domain(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -1443,7 +1443,7 @@ class TestModelBoundingBox:
             bounding_box.domain(0.25, order)
 
     def test__outside(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -1492,7 +1492,7 @@ class TestModelBoundingBox:
         assert all_out and isinstance(all_out, bool)
 
     def test__valid_index(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -1543,7 +1543,7 @@ class TestModelBoundingBox:
         assert all_out and isinstance(all_out, bool)
 
     def test_prepare_inputs(self):
-        intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
@@ -1605,101 +1605,80 @@ class TestModelBoundingBox:
         assert all_out and isinstance(all_out, bool)
 
 
-class TestSelectorArgument:
+class Test_SelectorArgument:
     def test_create(self):
         index = mk.MagicMock()
         ignore = mk.MagicMock()
-        model = Gaussian2D()
-        argument = SelectorArgument(index, ignore, model)
+        argument = _SelectorArgument(index, ignore)
 
         assert isinstance(argument, _BaseSelectorArgument)
         assert argument.index == index
         assert argument.ignore == ignore
         assert argument == (index, ignore)
-        assert (argument._model.parameters == Gaussian2D().parameters).all()
-
-    def test_copy(self):
-        argument = SelectorArgument('x', True, Gaussian2D())
-        copy = argument.copy()
-
-        assert argument == copy
-        assert id(argument) != id(copy)
-
-        # Same integer values have will have same id
-        assert argument.index == copy.index
-        assert id(argument.index) == id(copy.index)
-
-        # Same boolean values have will have same id
-        assert argument.ignore == copy.ignore
-        assert id(argument.ignore) == id(copy.ignore)
-
-        # model is not copied to prevent infinite recursion
-        assert argument._model == copy._model
-        assert id(argument._model) == id(copy._model)
 
     def test_validate(self):
         model = Gaussian2D()
 
         # default integer
-        assert SelectorArgument.validate(model, 0) == (0, True)
-        assert SelectorArgument.validate(model, 1) == (1, True)
+        assert _SelectorArgument.validate(model, 0) == (0, True)
+        assert _SelectorArgument.validate(model, 1) == (1, True)
 
         # default string
-        assert SelectorArgument.validate(model, 'x') == (0, True)
-        assert SelectorArgument.validate(model, 'y') == (1, True)
+        assert _SelectorArgument.validate(model, 'x') == (0, True)
+        assert _SelectorArgument.validate(model, 'y') == (1, True)
 
         ignore = mk.MagicMock()
         # non-default integer
-        assert SelectorArgument.validate(model, 0, ignore) == (0, ignore)
-        assert SelectorArgument.validate(model, 1, ignore) == (1, ignore)
+        assert _SelectorArgument.validate(model, 0, ignore) == (0, ignore)
+        assert _SelectorArgument.validate(model, 1, ignore) == (1, ignore)
 
         # non-default string
-        assert SelectorArgument.validate(model, 'x', ignore) == (0, ignore)
-        assert SelectorArgument.validate(model, 'y', ignore) == (1, ignore)
+        assert _SelectorArgument.validate(model, 'x', ignore) == (0, ignore)
+        assert _SelectorArgument.validate(model, 'y', ignore) == (1, ignore)
 
         # Fail
         with pytest.raises(ValueError):
-            SelectorArgument.validate(model, 'z')
+            _SelectorArgument.validate(model, 'z')
         with pytest.raises(ValueError):
-            SelectorArgument.validate(model, mk.MagicMock())
+            _SelectorArgument.validate(model, mk.MagicMock())
         with pytest.raises(IndexError):
-            SelectorArgument.validate(model, 2)
+            _SelectorArgument.validate(model, 2)
 
     def test_get_selector(self):
         # single inputs
         inputs = [idx + 17 for idx in range(3)]
         for index in range(3):
-            assert SelectorArgument(index, mk.MagicMock(), Gaussian2D()).get_selector(*inputs) == inputs[index]
+            assert _SelectorArgument(index, mk.MagicMock()).get_selector(*inputs) == inputs[index]
 
         # numpy array of single inputs
         inputs = [np.array([idx + 11]) for idx in range(3)]
         for index in range(3):
-            assert SelectorArgument(index, mk.MagicMock(), Gaussian2D()).get_selector(*inputs) == inputs[index]
+            assert _SelectorArgument(index, mk.MagicMock()).get_selector(*inputs) == inputs[index]
         inputs = [np.asanyarray(idx + 13) for idx in range(3)]
         for index in range(3):
-            assert SelectorArgument(index, mk.MagicMock(), Gaussian2D()).get_selector(*inputs) == inputs[index]
+            assert _SelectorArgument(index, mk.MagicMock()).get_selector(*inputs) == inputs[index]
 
         # multi entry numpy array
         inputs = [np.array([idx + 27, idx - 31]) for idx in range(3)]
         for index in range(3):
-            assert SelectorArgument(index, mk.MagicMock(), Gaussian2D()).get_selector(*inputs) == tuple(inputs[index])
+            assert _SelectorArgument(index, mk.MagicMock()).get_selector(*inputs) == tuple(inputs[index])
 
     def test_name(self):
         model = Gaussian2D()
         for index in range(model.n_inputs):
-            assert SelectorArgument(index, mk.MagicMock(), Gaussian2D()).name == model.inputs[index]
+            assert _SelectorArgument(index, mk.MagicMock()).name(model) == model.inputs[index]
 
-    def test___repr__(self):
+    def test_pretty_repr(self):
         model = Gaussian2D()
 
-        assert SelectorArgument(0, False, Gaussian2D()).__repr__() ==\
+        assert _SelectorArgument(0, False).pretty_repr(model) ==\
             "Argument(name='x', ignore=False)"
-        assert SelectorArgument(0, True, Gaussian2D()).__repr__() ==\
+        assert _SelectorArgument(0, True).pretty_repr(model) ==\
             "Argument(name='x', ignore=True)"
 
-        assert SelectorArgument(1, False, Gaussian2D()).__repr__() ==\
+        assert _SelectorArgument(1, False).pretty_repr(model) ==\
             "Argument(name='y', ignore=False)"
-        assert SelectorArgument(1, True, Gaussian2D()).__repr__() ==\
+        assert _SelectorArgument(1, True).pretty_repr(model) ==\
             "Argument(name='y', ignore=True)"
 
     def test_get_fixed_value(self):
@@ -1707,276 +1686,244 @@ class TestSelectorArgument:
         values = {0: 5, 'y': 7}
 
         # Get index value
-        assert SelectorArgument(0, mk.MagicMock(), model).get_fixed_value(values) == 5
+        assert _SelectorArgument(0, mk.MagicMock()).get_fixed_value(model, values) == 5
 
         # Get name value
-        assert SelectorArgument(1, mk.MagicMock(), model).get_fixed_value(values) == 7
+        assert _SelectorArgument(1, mk.MagicMock()).get_fixed_value(model, values) == 7
 
         # Fail
         values = {0: 5}
         with pytest.raises(RuntimeError) as err:
-            SelectorArgument(1, True, model).get_fixed_value(values)
+            _SelectorArgument(1, True).get_fixed_value(model, values)
         assert str(err.value) == \
             "Argument(name='y', ignore=True) was not found in {0: 5}"
 
     def test_is_argument(self):
-        argument = SelectorArgument.validate(Gaussian2D(), 0)
+        model = Gaussian2D()
+        argument = _SelectorArgument.validate(model, 0)
 
         # Is true
-        assert argument.is_argument(0) == True
-        assert argument.is_argument('x') == True
+        assert argument.is_argument(model, 0) == True
+        assert argument.is_argument(model, 'x') == True
 
         # Is false
-        assert argument.is_argument(1) == False
-        assert argument.is_argument('y') == False
+        assert argument.is_argument(model, 1) == False
+        assert argument.is_argument(model, 'y') == False
 
         # Fail
         with pytest.raises(ValueError):
-            argument.is_argument('z')
+            argument.is_argument(model, 'z')
         with pytest.raises(ValueError):
-            argument.is_argument(mk.MagicMock())
+            argument.is_argument(model, mk.MagicMock())
         with pytest.raises(IndexError):
-            argument.is_argument(2)
+            argument.is_argument(model, 2)
 
     def test_named_tuple(self):
         model = Gaussian2D()
         for index in range(model.n_inputs):
             ignore = mk.MagicMock()
-            assert SelectorArgument(index, ignore, Gaussian2D()).named_tuple == \
+            assert _SelectorArgument(index, ignore).named_tuple(model) == \
                 (model.inputs[index], ignore)
 
 
-class TestSelectorArguments:
+class Test_SelectorArguments:
     def test_create(self):
-        model = Gaussian2D()
-        arguments = SelectorArguments((SelectorArgument(0, True, model), SelectorArgument(1, False, model)), model)
-        assert isinstance(arguments, SelectorArguments)
-        assert (arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)))
+        assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
         assert arguments._kept_ignore == []
 
         kept_ignore = mk.MagicMock()
-        arguments = SelectorArguments((SelectorArgument(0, True, model), SelectorArgument(1, False, model)), model, kept_ignore)
-        assert isinstance(arguments, SelectorArguments)
-        assert (arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)), kept_ignore)
+        assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
         assert arguments._kept_ignore == kept_ignore
 
-    def test_copy(self):
-        arguments = SelectorArguments.validate(Gaussian2D(), (('x', True), ('y', False)), [1, 2, 3])
-        copy = arguments.copy()
-
-        assert arguments == copy
-        assert id(arguments) != id(copy)
-
-        # model is not copied to prevent infinite recursion
-        assert arguments._model == copy._model
-        assert id(arguments._model) == id(copy._model)
-
-        assert arguments._kept_ignore == copy._kept_ignore
-        assert id(arguments._kept_ignore) != id(copy._kept_ignore)
-
-        # Check argument objects
-        for index, argument in enumerate(arguments):
-            assert argument == copy[index]
-            assert id(argument) != id(copy[index])
-
-            # Same integer values have will have same id
-            assert argument.index == copy[index].index
-            assert id(argument.index) == id(copy[index].index)
-
-            # Same boolean values have will have same id
-            assert argument.ignore == copy[index].ignore
-            assert id(argument.ignore) == id(copy[index].ignore)
-
-            # model is not copied to prevent infinite recursion
-            assert argument._model == copy[index]._model
-            assert id(argument._model) == id(copy[index]._model)
-        assert len(arguments) == len(copy)
-
-    def test___repr__(self):
+    def test_pretty_repr(self):
         model = Gaussian2D()
-        arguments = SelectorArguments((SelectorArgument(0, True, model), SelectorArgument(1, False, model)), model)
+        arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)))
 
-        assert arguments.__repr__() ==\
+        assert arguments.pretty_repr(model) ==\
             "SelectorArguments(\n" +\
             "    Argument(name='x', ignore=True)\n" +\
             "    Argument(name='y', ignore=False)\n" +\
             ")"
 
     def test_ignore(self):
-        model = Gaussian2D()
-        assert SelectorArguments((SelectorArgument(0, True, model),
-                               SelectorArgument(1, True, model)), model).ignore == [0, 1]
-        assert SelectorArguments((SelectorArgument(0, True, model),
-                               SelectorArgument(1, True, model)), model, [13, 4]).ignore == [0, 1, 13, 4]
-        assert SelectorArguments((SelectorArgument(0, True, model),
-                               SelectorArgument(1, False, model)), model).ignore == [0]
-        assert SelectorArguments((SelectorArgument(0, False, model),
-                               SelectorArgument(1, True, model)), model).ignore == [1]
-        assert SelectorArguments((SelectorArgument(0, False, model),
-                               SelectorArgument(1, False, model)), model).ignore == []
-        assert SelectorArguments((SelectorArgument(0, False, model),
-                               SelectorArgument(1, False, model)), model, [17, 14]).ignore == [17, 14]
+        assert _SelectorArguments((_SelectorArgument(0, True),
+                               _SelectorArgument(1, True))).ignore == [0, 1]
+        assert _SelectorArguments((_SelectorArgument(0, True),
+                               _SelectorArgument(1, True)), [13, 4]).ignore == [0, 1, 13, 4]
+        assert _SelectorArguments((_SelectorArgument(0, True),
+                               _SelectorArgument(1, False))).ignore == [0]
+        assert _SelectorArguments((_SelectorArgument(0, False),
+                               _SelectorArgument(1, True))).ignore == [1]
+        assert _SelectorArguments((_SelectorArgument(0, False),
+                               _SelectorArgument(1, False))).ignore == []
+        assert _SelectorArguments((_SelectorArgument(0, False),
+                               _SelectorArgument(1, False)), [17, 14]).ignore == [17, 14]
 
     def test_validate(self):
         # Integer key and passed ignore
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
-        assert isinstance(arguments, SelectorArguments)
-        assert (arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
+        assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
         assert arguments.kept_ignore == []
 
         # Default ignore
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0,), (1,)))
-        assert isinstance(arguments, SelectorArguments)
-        assert (arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments.validate(Gaussian2D(), ((0,), (1,)))
+        assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, True))
         assert arguments.kept_ignore == []
 
         # String key and passed ignore
-        arguments = SelectorArguments.validate(Gaussian2D(), (('x', True), ('y', False)))
-        assert isinstance(arguments, SelectorArguments)
-        assert (arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments.validate(Gaussian2D(), (('x', True), ('y', False)))
+        assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
         assert arguments.kept_ignore == []
 
         # Test kept_ignore option
-        new_arguments= SelectorArguments.validate(Gaussian2D(), arguments, [11, 5, 8])
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments, [11, 5, 8])
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True), (1, False))
         assert new_arguments.kept_ignore == [11, 5, 8]
 
         arguments._kept_ignore = [13, 17, 14]
-        new_arguments= SelectorArguments.validate(Gaussian2D(), arguments)
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments)
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True), (1, False))
         assert new_arguments.kept_ignore == [13, 17, 14]
 
         # Invalid, bad argument
         with pytest.raises(ValueError):
-            SelectorArguments.validate(Gaussian2D(), ((0, True), ('z', False)))
+            _SelectorArguments.validate(Gaussian2D(), ((0, True), ('z', False)))
         with pytest.raises(ValueError):
-            SelectorArguments.validate(Gaussian2D(), ((mk.MagicMock(), True), (1, False)))
+            _SelectorArguments.validate(Gaussian2D(), ((mk.MagicMock(), True), (1, False)))
         with pytest.raises(IndexError):
-            SelectorArguments.validate(Gaussian2D(), ((0, True), (2, False)))
+            _SelectorArguments.validate(Gaussian2D(), ((0, True), (2, False)))
 
         # Invalid, repeated argument
         with pytest.raises(ValueError) as err:
-            SelectorArguments.validate(Gaussian2D(), ((0, True), (0, False)))
+            _SelectorArguments.validate(Gaussian2D(), ((0, True), (0, False)))
         assert str(err.value) == \
             "Input: 'x' has been repeated."
 
         # Invalid, no arguments
         with pytest.raises(ValueError) as err:
-            SelectorArguments.validate(Gaussian2D(), ())
+            _SelectorArguments.validate(Gaussian2D(), ())
         assert str(err.value) == \
             "There must be at least one selector argument."
 
     def test_get_selector(self):
         inputs = [idx + 19 for idx in range(4)]
 
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((0, True), (1, False))).get_selector(*inputs) ==\
             tuple(inputs[:2])
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((1, True), (0, False))).get_selector(*inputs) ==\
             tuple(inputs[:2][::-1])
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((1, False),)).get_selector(*inputs) ==\
             (inputs[1],)
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((0, True),)).get_selector(*inputs) ==\
             (inputs[0],)
 
     def test_is_selector(self):
         # Is Selector
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((0, True), (1, False))).is_selector((0.5, 2.5))
-        assert SelectorArguments.validate(Gaussian2D(),
+        assert _SelectorArguments.validate(Gaussian2D(),
                                        ((0, True),)).is_selector((0.5,))
 
         # Is not selector
-        assert not SelectorArguments.validate(Gaussian2D(),
+        assert not _SelectorArguments.validate(Gaussian2D(),
                                            ((0, True), (1, False))).is_selector((0.5, 2.5, 3.5))
-        assert not SelectorArguments.validate(Gaussian2D(),
+        assert not _SelectorArguments.validate(Gaussian2D(),
                                            ((0, True), (1, False))).is_selector((0.5,))
-        assert not SelectorArguments.validate(Gaussian2D(),
+        assert not _SelectorArguments.validate(Gaussian2D(),
                                            ((0, True), (1, False))).is_selector(0.5)
-        assert not SelectorArguments.validate(Gaussian2D(),
+        assert not _SelectorArguments.validate(Gaussian2D(),
                                            ((0, True),)).is_selector((0.5, 2.5))
-        assert not SelectorArguments.validate(Gaussian2D(),
+        assert not _SelectorArguments.validate(Gaussian2D(),
                                            ((0, True),)).is_selector(2.5)
 
     def test_get_fixed_values(self):
-        assert SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).get_fixed_values({0: 11, 1: 7}) \
+        model = Gaussian2D()
+
+        assert _SelectorArguments.validate(model,
+                                       ((0, True), (1, False))).get_fixed_values(model, {0: 11, 1: 7}) \
             == (11, 7)
-        assert SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).get_fixed_values({0: 5, 'y': 47}) \
+        assert _SelectorArguments.validate(model,
+                                       ((0, True), (1, False))).get_fixed_values(model, {0: 5, 'y': 47}) \
             == (5, 47)
-        assert SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).get_fixed_values({'x': 2, 'y': 9}) \
+        assert _SelectorArguments.validate(model,
+                                       ((0, True), (1, False))).get_fixed_values(model, {'x': 2, 'y': 9}) \
             == (2, 9)
-        assert SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).get_fixed_values({'x': 12, 1: 19}) \
+        assert _SelectorArguments.validate(model,
+                                       ((0, True), (1, False))).get_fixed_values(model, {'x': 12, 1: 19}) \
             == (12, 19)
 
     def test_is_argument(self):
+        model = Gaussian2D()
+
         # Is true
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
-        assert arguments.is_argument(0) == True
-        assert arguments.is_argument('x') == True
-        assert arguments.is_argument(1) == True
-        assert arguments.is_argument('y') == True
+        arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
+        assert arguments.is_argument(model, 0) == True
+        assert arguments.is_argument(model, 'x') == True
+        assert arguments.is_argument(model, 1) == True
+        assert arguments.is_argument(model, 'y') == True
 
         # Is true and false
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True),))
-        assert arguments.is_argument(0) == True
-        assert arguments.is_argument('x') == True
-        assert arguments.is_argument(1) == False
-        assert arguments.is_argument('y') == False
+        arguments = _SelectorArguments.validate(model, ((0, True),))
+        assert arguments.is_argument(model, 0) == True
+        assert arguments.is_argument(model, 'x') == True
+        assert arguments.is_argument(model, 1) == False
+        assert arguments.is_argument(model, 'y') == False
 
-        arguments = SelectorArguments.validate(Gaussian2D(), ((1, False),))
-        assert arguments.is_argument(0) == False
-        assert arguments.is_argument('x') == False
-        assert arguments.is_argument(1) == True
-        assert arguments.is_argument('y') == True
+        arguments = _SelectorArguments.validate(model, ((1, False),))
+        assert arguments.is_argument(model, 0) == False
+        assert arguments.is_argument(model, 'x') == False
+        assert arguments.is_argument(model, 1) == True
+        assert arguments.is_argument(model, 'y') == True
 
     def test_selector_index(self):
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
-        assert arguments.selector_index(0) == 0
-        assert arguments.selector_index('x') == 0
-        assert arguments.selector_index(1) == 1
-        assert arguments.selector_index('y') == 1
+        model = Gaussian2D()
 
-        arguments = SelectorArguments.validate(Gaussian2D(), ((1, True), (0, False)))
-        assert arguments.selector_index(0) == 1
-        assert arguments.selector_index('x') == 1
-        assert arguments.selector_index(1) == 0
-        assert arguments.selector_index('y') == 0
+        arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
+        assert arguments.selector_index(model, 0) == 0
+        assert arguments.selector_index(model, 'x') == 0
+        assert arguments.selector_index(model, 1) == 1
+        assert arguments.selector_index(model, 'y') == 1
+
+        arguments = _SelectorArguments.validate(model, ((1, True), (0, False)))
+        assert arguments.selector_index(model, 0) == 1
+        assert arguments.selector_index(model, 'x') == 1
+        assert arguments.selector_index(model, 1) == 0
+        assert arguments.selector_index(model, 'y') == 0
 
         # Error
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True),))
+        arguments = _SelectorArguments.validate(model, ((0, True),))
         with pytest.raises(ValueError) as err:
-            arguments.selector_index('y')
+            arguments.selector_index(model, 'y')
         assert str(err.value) ==\
             "y does not correspond to any selector argument."
 
     def test_add_ignore(self):
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), ))
+        model = Gaussian2D()
+
+        arguments = _SelectorArguments.validate(model, ((0, True), ))
         assert arguments == ((0, True),)
         assert arguments._kept_ignore == []
 
-        new_arguments0 = arguments.add_ignore(1)
+        new_arguments0 = arguments.add_ignore(model, 1)
         assert new_arguments0 == arguments
         assert new_arguments0._kept_ignore == [1]
         assert arguments._kept_ignore == []
 
         assert arguments._kept_ignore == []
-        new_arguments1 = new_arguments0.add_ignore('y')
+        new_arguments1 = new_arguments0.add_ignore(model, 'y')
         assert new_arguments1 == arguments == new_arguments0
         assert new_arguments0._kept_ignore == [1]
         assert new_arguments1._kept_ignore == [1, 1]
@@ -1984,44 +1931,44 @@ class TestSelectorArguments:
 
         # Error
         with pytest.raises(ValueError) as err:
-            arguments.add_ignore(0)
+            arguments.add_ignore(model, 0)
         assert str(err.value) ==\
             "0: is a selector argument and cannot be ignored."
 
     def test_reduce(self):
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
+        model = Gaussian2D()
 
-        new_arguments = arguments.reduce(0)
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
+
+        new_arguments = arguments.reduce(model, 0)
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((1, False),)
         assert new_arguments._kept_ignore == [0]
         assert arguments._kept_ignore == []
 
-        new_arguments = arguments.reduce('x')
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        new_arguments = arguments.reduce(model, 'x')
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((1, False),)
         assert new_arguments._kept_ignore == [0]
         assert arguments._kept_ignore == []
 
-        new_arguments = arguments.reduce(1)
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        new_arguments = arguments.reduce(model, 1)
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True),)
         assert new_arguments._kept_ignore == [1]
         assert arguments._kept_ignore == []
 
-        new_arguments = arguments.reduce('y')
-        assert isinstance(new_arguments, SelectorArguments)
-        assert (new_arguments._model.parameters == Gaussian2D().parameters).all()
+        new_arguments = arguments.reduce(model, 'y')
+        assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True),)
         assert new_arguments._kept_ignore == [1]
         assert arguments._kept_ignore == []
 
     def test_named_tuple(self):
-        arguments = SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
-        assert arguments.named_tuple == (('x', True), ('y', False))
+        model = Gaussian2D()
+
+        arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
+        assert arguments.named_tuple(model) == (('x', True), ('y', False))
 
 
 class TestCompoundBoundingBox:
@@ -2046,7 +1993,6 @@ class TestCompoundBoundingBox:
         assert bounding_box._order == 'test'
 
     def test_copy(self):
-
         bounding_box = CompoundBoundingBox.validate(Gaussian2D(), {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
                                                     ((0, True),), mk.MagicMock())
         copy = bounding_box.copy()
@@ -2077,10 +2023,6 @@ class TestCompoundBoundingBox:
             # Same boolean values have will have same id
             assert argument.ignore == copy.selector_args[index].ignore
             assert id(argument.ignore) == id(copy.selector_args[index].ignore)
-
-            # model is not copied to prevent infinite recursion
-            assert argument._model == copy.selector_args[index]._model
-            assert id(argument._model) == id(copy.selector_args[index]._model)
         assert len(bounding_box.selector_args) == len(copy.selector_args)
 
         # Check bounding_boxes
@@ -2290,9 +2232,9 @@ class TestCompoundBoundingBox:
         assert bounding_box_1 == bounding_box_2
 
         # Not equal selector_args
-        bounding_box_2._selector_args = SelectorArguments.validate(Gaussian2D(), ((0, False),))
+        bounding_box_2._selector_args = _SelectorArguments.validate(Gaussian2D(), ((0, False),))
         assert not bounding_box_1 == bounding_box_2
-        bounding_box_2._selector_args = SelectorArguments.validate(Gaussian2D(), ((0, True),))
+        bounding_box_2._selector_args = _SelectorArguments.validate(Gaussian2D(), ((0, True),))
         assert bounding_box_1 == bounding_box_2
 
         # Not equal create_selector
@@ -2406,7 +2348,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
 
         inputs = [mk.MagicMock() for _ in range(3)]
-        with mk.patch.object(SelectorArguments, 'get_selector',
+        with mk.patch.object(_SelectorArguments, 'get_selector',
                              autospec=True) as mkSelector:
             with mk.patch.object(CompoundBoundingBox, '__getitem__',
                                  autospec=True) as mkGet:

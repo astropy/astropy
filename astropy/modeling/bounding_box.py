@@ -18,14 +18,13 @@ import warnings
 import numpy as np
 
 
-__all__ = ['Interval', 'ModelBoundingBox', 'SelectorArgument',
-           'SelectorArguments', 'CompoundBoundingBox']
+__all__ = ['ModelBoundingBox', 'CompoundBoundingBox']
 
 
 _BaseInterval = namedtuple('_BaseInterval', "lower upper")
 
 
-class Interval(_BaseInterval):
+class _Interval(_BaseInterval):
     """
     A single input's bounding box interval.
 
@@ -49,8 +48,11 @@ class Interval(_BaseInterval):
         Contructs a discretization of the points inside the interval.
     """
 
+    def __repr__(self):
+        return f"Interval(lower={self.lower}, upper={self.upper})"
+
     def copy(self):
-        return Interval(copy.deepcopy(self.lower), copy.deepcopy(self.upper))
+        return copy.deepcopy(self)
 
     @staticmethod
     def _validate_shape(interval):
@@ -128,7 +130,7 @@ class Interval(_BaseInterval):
 
 
 # The interval where all ignored inputs can be found.
-_ignored_interval = Interval.validate((-np.inf, np.inf))
+_ignored_interval = _Interval.validate((-np.inf, np.inf))
 
 
 class _BoundingDomain(abc.ABC):
@@ -536,7 +538,7 @@ class ModelBoundingBox(_BoundingDomain):
         Contructs a discretization of the points inside the bounding_box
     """
 
-    def __init__(self, intervals: Dict[int, Interval], model,
+    def __init__(self, intervals: Dict[int, _Interval], model,
                  ignored: List[int] = None, order: str = 'C'):
         super().__init__(model)
         self._order = order
@@ -548,18 +550,18 @@ class ModelBoundingBox(_BoundingDomain):
             self._validate(intervals, order=order)
 
     def copy(self, ignored=None):
-        intervals = {copy.deepcopy(index): interval.copy()
+        intervals = {index: interval.copy()
                      for index, interval in self._intervals.items()}
 
         if ignored is None:
             ignored = self._ignored.copy()
 
         return ModelBoundingBox(intervals, self._model,
-                           ignored=ignored,
-                           order=copy.deepcopy(self._order))
+                                ignored=ignored,
+                                order=self._order)
 
     @property
-    def intervals(self) -> Dict[int, Interval]:
+    def intervals(self) -> Dict[int, _Interval]:
         """Return bounding_box labeled using input positions"""
         return self._intervals
 
@@ -576,7 +578,7 @@ class ModelBoundingBox(_BoundingDomain):
         return get_name(self._model, index)
 
     @property
-    def named_intervals(self) -> Dict[str, Interval]:
+    def named_intervals(self) -> Dict[str, _Interval]:
         """Return bounding_box labeled using input names"""
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
 
@@ -688,7 +690,7 @@ class ModelBoundingBox(_BoundingDomain):
         if index in self._ignored:
             self._ignored.remove(index)
 
-        self._intervals[index] = Interval.validate(value)
+        self._intervals[index] = _Interval.validate(value)
 
     def __delitem__(self, key):
         """Delete stored interval"""
@@ -906,7 +908,7 @@ class ModelBoundingBox(_BoundingDomain):
 _BaseSelectorArgument = namedtuple('_BaseSelectorArgument', "index ignore")
 
 
-class SelectorArgument(_BaseSelectorArgument):
+class _SelectorArgument(_BaseSelectorArgument):
     """
     Contains a single CompoundBoundingBox slicing input.
 
@@ -917,9 +919,6 @@ class SelectorArgument(_BaseSelectorArgument):
 
     ignore : bool
         Whether or not this input will be ignored by the bounding box.
-
-    model:  `~astropy.modeling.Model`
-        The Model this argument is for.
 
     Methods
     -------
@@ -934,16 +933,10 @@ class SelectorArgument(_BaseSelectorArgument):
         Gets the slicing value from a fix_inputs set of values.
     """
 
-    _model = None
-
-    def __new__(cls, index, ignore, model):
+    def __new__(cls, index, ignore):
         self = super().__new__(cls, index, ignore)
-        self._model = model
 
         return self
-
-    def copy(self):
-        return SelectorArgument(copy.deepcopy(self.index), copy.deepcopy(self.ignore), self._model)
 
     @classmethod
     def validate(cls, model, argument, ignored: bool = True):
@@ -963,7 +956,7 @@ class SelectorArgument(_BaseSelectorArgument):
         -------
         Validated selector_argument
         """
-        return cls(get_index(model, argument), ignored, model)
+        return cls(get_index(model, argument), ignored)
 
     def get_selector(self, *inputs):
         """
@@ -982,21 +975,36 @@ class SelectorArgument(_BaseSelectorArgument):
                 return tuple(_selector)
         return _selector
 
-    @property
-    def name(self) -> str:
-        return get_name(self._model, self.index)
+    def name(self, model) -> str:
+        """
+        Get the name of the input described by this selector argument
 
-    def __repr__(self):
-        return f"Argument(name='{self.name}', ignore={self.ignore})"
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model this selector argument is for.
+        """
+        return get_name(model, self.index)
 
-    def get_fixed_value(self, values: dict):
+    def pretty_repr(self, model):
+        """
+        Get a pretty-print representation of this object
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model this selector argument is for.
+        """
+        return f"Argument(name='{self.name(model)}', ignore={self.ignore})"
+
+    def get_fixed_value(self, model, values: dict):
         """
         Gets the value fixed input corresponding to this argument
 
         Parameters
         ----------
         model : `~astropy.modeling.Model`
-            The model this is an argument for
+            The Model this selector argument is for.
 
         values : dict
             Dictionary of fixed inputs.
@@ -1004,29 +1012,40 @@ class SelectorArgument(_BaseSelectorArgument):
         if self.index in values:
             return values[self.index]
         else:
-            if self.name in values:
-                return values[self.name]
+            if self.name(model) in values:
+                return values[self.name(model)]
             else:
-                raise RuntimeError(f"{self} was not found in {values}")
+                raise RuntimeError(f"{self.pretty_repr(model)} was not found in {values}")
 
-    def is_argument(self, argument) -> bool:
+    def is_argument(self, model, argument) -> bool:
         """
         Determine if passed argument is described by this selector argument
 
         Parameters
         ----------
+        model : `~astropy.modeling.Model`
+            The Model this selector argument is for.
+
         argument : int or str
             A representation of which evaluation input is being used
         """
 
-        return self.index == get_index(self._model, argument)
+        return self.index == get_index(model, argument)
 
-    @property
-    def named_tuple(self):
-        return (self.name, self.ignore)
+    def named_tuple(self, model):
+        """
+        Get a tuple representation of this argument using the input
+        name from the model.
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model this selector argument is for.
+        """
+        return (self.name(model), self.ignore)
 
 
-class SelectorArguments(tuple):
+class _SelectorArguments(tuple):
     """
     Contains the CompoundBoundingBox slicing description
 
@@ -1034,9 +1053,6 @@ class SelectorArguments(tuple):
     ----------
     input_ :
         The SelectorArgument values
-
-    model : `~astropy.modeling.Model`
-        The Model this is the SelectorArguments for.
 
     Methods
     -------
@@ -1053,12 +1069,10 @@ class SelectorArguments(tuple):
         Gets the selector from a fix_inputs set of values.
     """
 
-    _model = None
     _kept_ignore = None
 
-    def __new__(cls, input_: Tuple[SelectorArgument], model, kept_ignore: List = None):
+    def __new__(cls, input_: Tuple[_SelectorArgument], kept_ignore: List = None):
         self = super().__new__(cls, input_)
-        self._model = model
 
         if kept_ignore is None:
             self._kept_ignore = []
@@ -1067,17 +1081,19 @@ class SelectorArguments(tuple):
 
         return self
 
-    def copy(self):
-        input_ = tuple([selector_arg.copy() for selector_arg in self])
+    def pretty_repr(self, model):
+        """
+        Get a pretty-print representation of this object
 
-        return SelectorArguments(input_, self._model,
-                                 kept_ignore=copy.deepcopy(self._kept_ignore))
-
-    def __repr__(self):
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+        """
         parts = ['SelectorArguments(']
         for argument in self:
             parts.append(
-                f"    {argument}"
+                f"    {argument.pretty_repr(model)}"
             )
         parts.append(')')
 
@@ -1093,6 +1109,7 @@ class SelectorArguments(tuple):
 
     @property
     def kept_ignore(self):
+        """The arguments to persist in ignoring"""
         return self._kept_ignore
 
     @classmethod
@@ -1103,15 +1120,17 @@ class SelectorArguments(tuple):
         Parameters
         ----------
         model : `~astropy.modeling.Model`
-            The model for which this will be an argument for.
+            The Model these selector arguments are for.
+
         arguments :
             The individual argument informations
+
         kept_ignore :
             Arguments to persist as ignored
         """
         inputs = []
         for argument in arguments:
-            _input = SelectorArgument.validate(model, *argument)
+            _input = _SelectorArgument.validate(model, *argument)
             if _input.index in [this.index for this in inputs]:
                 raise ValueError(f"Input: '{get_name(model, _input.index)}' has been repeated.")
             inputs.append(_input)
@@ -1119,13 +1138,13 @@ class SelectorArguments(tuple):
         if len(inputs) == 0:
             raise ValueError("There must be at least one selector argument.")
 
-        if isinstance(arguments, SelectorArguments):
+        if isinstance(arguments, _SelectorArguments):
             if kept_ignore is None:
                 kept_ignore = []
 
             kept_ignore.extend(arguments.kept_ignore)
 
-        return cls(tuple(inputs), model, kept_ignore)
+        return cls(tuple(inputs), kept_ignore)
 
     def get_selector(self, *inputs):
         """
@@ -1149,78 +1168,107 @@ class SelectorArguments(tuple):
         """
         return isinstance(_selector, tuple) and len(_selector) == len(self)
 
-    def get_fixed_values(self, values: dict):
+    def get_fixed_values(self, model, values: dict):
         """
         Gets the value fixed input corresponding to this argument
 
         Parameters
         ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+
         values : dict
             Dictionary of fixed inputs.
         """
-        return tuple([argument.get_fixed_value(values) for argument in self])
+        return tuple([argument.get_fixed_value(model, values) for argument in self])
 
-    def is_argument(self, argument) -> bool:
+    def is_argument(self, model, argument) -> bool:
         """
         Determine if passed argument is one of the selector arguments
 
         Parameters
         ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+
         argument : int or str
             A representation of which evaluation input is being used
         """
 
         for selector_arg in self:
-            if selector_arg.is_argument(argument):
+            if selector_arg.is_argument(model, argument):
                 return True
         else:
             return False
 
-    def selector_index(self, argument):
+    def selector_index(self, model, argument):
         """
         Get the index of the argument passed in the selector tuples
 
         Parameters
         ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+
         argument : int or str
             A representation of which argument is being used
         """
 
         for index, selector_arg in enumerate(self):
-            if selector_arg.is_argument(argument):
+            if selector_arg.is_argument(model, argument):
                 return index
         else:
             raise ValueError(f"{argument} does not correspond to any selector argument.")
 
-    def reduce(self, argument):
+    def reduce(self, model, argument):
         """
         Reduce the selector arguments by the argument given
 
         Parameters
         ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+
         argument : int or str
             A representation of which argument is being used
         """
 
         arguments = list(self)
-        kept_ignore = [arguments.pop(self.selector_index(argument)).index]
+        kept_ignore = [arguments.pop(self.selector_index(model, argument)).index]
         kept_ignore.extend(self._kept_ignore)
 
-        return SelectorArguments.validate(self._model, tuple(arguments), kept_ignore)
+        return _SelectorArguments.validate(model, tuple(arguments), kept_ignore)
 
-    def add_ignore(self, argument):
-        """Add non-slicing argument to selector arguments ignore"""
+    def add_ignore(self, model, argument):
+        """
+        Add argument to the kept_ignore list
 
-        if self.is_argument(argument):
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+
+        argument : int or str
+            A representation of which argument is being used
+        """
+
+        if self.is_argument(model, argument):
             raise ValueError(f"{argument}: is a selector argument and cannot be ignored.")
 
-        kept_ignore = [get_index(self._model, argument)]
+        kept_ignore = [get_index(model, argument)]
 
-        return SelectorArguments.validate(self._model, self, kept_ignore)
+        return _SelectorArguments.validate(model, self, kept_ignore)
 
-    @property
-    def named_tuple(self):
-        return tuple([selector_arg.named_tuple for selector_arg in self])
+    def named_tuple(self, model):
+        """
+        Get a tuple of selector argument tuples using input names
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The Model these selector arguments are for.
+        """
+        return tuple([selector_arg.named_tuple(model) for selector_arg in self])
 
 
 class CompoundBoundingBox(_BoundingDomain):
@@ -1235,9 +1283,9 @@ class CompoundBoundingBox(_BoundingDomain):
             values -> ModelBoundingBox
 
     model : `~astropy.modeling.Model`
-        The Model this bounding_box is for.
+        The Model this compound bounding_box is for.
 
-    selector_args : SelectorArguments
+    selector_args : _SelectorArguments
         A description of how to extract the selectors from model inputs.
 
     create_selector : optional
@@ -1256,22 +1304,22 @@ class CompoundBoundingBox(_BoundingDomain):
         Contructs a valid complex bounding_box
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
-                 selector_args: SelectorArguments, create_selector: Callable = None, order: str = 'C'):
+                 selector_args: _SelectorArguments, create_selector: Callable = None, order: str = 'C'):
         super().__init__(model)
         self._order = order
 
         self._create_selector = create_selector
-        self._selector_args = SelectorArguments.validate(model, selector_args)
+        self._selector_args = _SelectorArguments.validate(model, selector_args)
 
         self._bounding_boxes = {}
         self._validate(bounding_boxes)
 
     def copy(self):
-        bounding_boxes = {copy.deepcopy(selector): bbox.copy(self.selector_args.ignore)
+        bounding_boxes = {selector: bbox.copy(self.selector_args.ignore)
                           for selector, bbox in self._bounding_boxes.items()}
 
         return CompoundBoundingBox(bounding_boxes, self._model,
-                                   selector_args=self._selector_args.copy(),
+                                   selector_args=self._selector_args,
                                    create_selector=copy.deepcopy(self._create_selector),
                                    order=self._order)
 
@@ -1287,7 +1335,7 @@ class CompoundBoundingBox(_BoundingDomain):
         parts.append('    }')
 
         # selector_args
-        selector_args_repr = self.selector_args.__repr__().split('\n')
+        selector_args_repr = self.selector_args.pretty_repr(self._model).split('\n')
         parts.append(f"    selector_args = {selector_args_repr.pop(0)}")
         for part in selector_args_repr:
             parts.append(f"        {part}")
@@ -1300,15 +1348,19 @@ class CompoundBoundingBox(_BoundingDomain):
         return self._bounding_boxes
 
     @property
-    def selector_args(self) -> SelectorArguments:
+    def selector_args(self) -> _SelectorArguments:
         return self._selector_args
 
     @selector_args.setter
     def selector_args(self, value):
-        self._selector_args = SelectorArguments.validate(self._model, value)
+        self._selector_args = _SelectorArguments.validate(self._model, value)
 
         warnings.warn("Overriding selector_args may cause problems you should re-validate "
                       "the compound bounding box before use!", RuntimeWarning)
+
+    @property
+    def named_selector_tuple(self) -> tuple:
+        return self._selector_args.named_tuple(self._model)
 
     @property
     def create_selector(self):
@@ -1426,7 +1478,7 @@ class CompoundBoundingBox(_BoundingDomain):
         return bounding_box.prepare_inputs(input_shape, inputs)
 
     def _matching_bounding_boxes(self, argument, value) -> Dict[Any, ModelBoundingBox]:
-        selector_index = self.selector_args.selector_index(argument)
+        selector_index = self.selector_args.selector_index(self._model, argument)
         matching = {}
         for selector_key, bbox in self._bounding_boxes.items():
             if selector_key[selector_index] == value:
@@ -1454,7 +1506,7 @@ class CompoundBoundingBox(_BoundingDomain):
             return matching_bounding_boxes[()]
         else:
             return CompoundBoundingBox(matching_bounding_boxes, self._model,
-                                       self.selector_args.reduce(argument))
+                                       self.selector_args.reduce(self._model, argument))
 
     def _fix_input_bbox_arg(self, argument, value):
         bounding_boxes = {}
@@ -1463,7 +1515,7 @@ class CompoundBoundingBox(_BoundingDomain):
                                                         _keep_ignored=True)
 
         return CompoundBoundingBox(bounding_boxes, self._model,
-                                   self.selector_args.add_ignore(argument))
+                                   self.selector_args.add_ignore(self._model, argument))
 
     def fix_inputs(self, model, fixed_inputs: dict):
         """
@@ -1481,7 +1533,7 @@ class CompoundBoundingBox(_BoundingDomain):
         argument = fixed_input_keys.pop()
         value = fixed_inputs[argument]
 
-        if self.selector_args.is_argument(argument):
+        if self.selector_args.is_argument(self._model, argument):
             bbox = self._fix_input_selector_arg(argument, value)
         else:
             bbox = self._fix_input_bbox_arg(argument, value)
@@ -1493,7 +1545,7 @@ class CompoundBoundingBox(_BoundingDomain):
             bbox = bbox.fix_inputs(model, new_fixed_inputs)
 
         if isinstance(bbox, CompoundBoundingBox):
-            selector_args = bbox.selector_args.named_tuple
+            selector_args = bbox.named_selector_tuple
             bbox_dict = bbox
         elif isinstance(bbox, ModelBoundingBox):
             selector_args = None
