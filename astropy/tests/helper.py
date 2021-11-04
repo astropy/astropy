@@ -222,7 +222,7 @@ def treat_deprecations_as_exceptions():
     for module in list(sys.modules.values()):
         try:
             del module.__warningregistry__
-        except AttributeError:
+        except Exception:
             pass
 
     if not _deprecations_as_exceptions:
