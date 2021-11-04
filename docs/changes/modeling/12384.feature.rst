@@ -1,0 +1,2 @@
+Enable direct use of the ``ignored`` feature of ``ModelBoundingBox`` by users in
+addition to its use as part of enabling ``CompoundBoundingBox``.
