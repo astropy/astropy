@@ -181,6 +181,17 @@ packages that use the full bugfix/maintenance branch approach.)
    Push to GitHub and open a pull request for merging this into the release branch,
    e.g. v5.0.x.
 
+   In cases where an LTS branch and a different release branch are being maintained,
+   the changelog should be rendered on both branches separately, and only the
+   rendering from the non-LTS release branch should be forward-ported to main.
+
+   .. note::
+
+      We render the changelog on the latest release branch and forward-port it
+      rather than rendering on main and backporting, since the latter would
+      render all news fragments into the changelog rather than only the ones
+      intended for the e.g. v5.0.x release branch.
+
 #. Once the changelog pull request is merged, update your release branch to
    match the upstream version, then (on the release branch), tag the merge
    commit for the changelog changes with ``v<version>``, being certain to sign
