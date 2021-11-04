@@ -6,8 +6,8 @@ for a complete listing of constants defined in Astropy.
 
 import numpy as np
 
-from .constant import Constant
 from .config import codata
+from .constant import Constant
 
 # ASTRONOMICAL CONSTANTS
 

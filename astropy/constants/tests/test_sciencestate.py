@@ -1,7 +1,7 @@
 import pytest
 
-from astropy import physical_constants, astronomical_constants
 import astropy.constants as const
+from astropy import astronomical_constants, physical_constants
 
 
 def test_version_match():

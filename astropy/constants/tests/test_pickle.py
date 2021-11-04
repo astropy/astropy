@@ -3,7 +3,7 @@
 import pytest
 
 from astropy import constants as const
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa
 
 originals = [const.Constant('h_fake', 'Not Planck',
                             0.0, 'J s', 0.0, 'fakeref',
