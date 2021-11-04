@@ -224,7 +224,7 @@ image were already in memory. This works the same way for tables. For most
 cases this is your best bet for working with large files.
 
 To ensure use of memory mapping, add the ``memmap=True`` argument to
-`fits.open <astropy.io.fits.open>`_. Likewise, using ``memmap=False`` will
+:func:`fits.open <astropy.io.fits.open>`. Likewise, using ``memmap=False`` will
 force data to be read entirely into memory.
 
 The default can also be controlled through a configuration option called
@@ -436,10 +436,9 @@ an exception like::
 
 As explained in the :ref:`note on working with large files <fits-large-files>`,
 because ``astropy`` uses mmap by default to read the data in a FITS file, even
-if you correctly close a file with
-`HDUList.close <astropy.io.fits.HDUList.close>`_ a handle is kept open to that
-file so that the memory-mapped data array can still continue to be read
-transparently.
+if you correctly close a file with :meth:`HDUList.close
+<astropy.io.fits.hdulist.HDUList.close>` a handle is kept open to that file so
+that the memory-mapped data array can still continue to be read transparently.
 
 The way ``numpy`` supports mmap is such that the file mapping is not closed
 until the overlying `~numpy.ndarray` object has no references to it and is freed
