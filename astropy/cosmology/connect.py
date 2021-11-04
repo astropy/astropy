@@ -216,7 +216,8 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
+        with add_enabled_units(cu):
+            cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
         return cosmo
 
 
