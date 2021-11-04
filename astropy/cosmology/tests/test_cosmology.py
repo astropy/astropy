@@ -58,20 +58,6 @@ def test_init():
         default_cosmology.validate(4)
 
 
-def test_immutability():
-    """Test immutability of cosmologies."""
-    cosmo = flrw.FlatLambdaCDM(70, 0.3)
-
-    for attr in [*cosmo.__parameters__, "name"]:
-        with pytest.raises(AttributeError):
-            setattr(cosmo, attr, None)
-
-    # The metadata is NOT immutable
-    assert "a" not in cosmo.meta
-    cosmo.meta["a"] = 1
-    assert "a" in cosmo.meta
-
-
 def test_basic():
     cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
                                Ob0=0.05, name="test", meta={"a": "b"})
