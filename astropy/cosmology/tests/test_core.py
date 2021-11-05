@@ -21,6 +21,7 @@ from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable, Table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
@@ -334,3 +335,18 @@ class FlatCosmologyMixinTest:
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
         """
         CosmologySubclassTest.test_is_equivalent(self, cosmo)
+
+
+# -----------------------------------------------------------------------------
+
+
+def test_flrw_moved_deprecation():
+    """Test the deprecation warning about the move of FLRW classes."""
+    from astropy.cosmology import flrw
+
+    # it's deprecated to import `flrw/*` from `core.py`
+    with pytest.warns(AstropyDeprecationWarning):
+        from astropy.cosmology.core import FLRW
+
+    # but they are the same object
+    assert FLRW is flrw.FLRW
