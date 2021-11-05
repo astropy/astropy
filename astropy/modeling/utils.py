@@ -10,14 +10,21 @@ from inspect import signature
 
 import numpy as np
 import warnings
-from astropy.utils import isiterable
 
 from astropy import units as u
+from astropy.utils.decorators import deprecated
 
-
+__doctest_skip__ = ['AliasDict']
 __all__ = ['AliasDict', 'poly_map_domain', 'comb', 'ellipse_extent']
 
 
+deprecation_msg = """
+AliasDict is deprecated because it no longer serves a function anywhere
+inside astropy.
+"""
+
+
+@deprecated('5.0', deprecation_msg)
 class AliasDict(MutableMapping):
     """
     Creates a `dict` like object that wraps an existing `dict` or other
@@ -342,18 +349,6 @@ def get_inputs_and_params(func):
             params.append(param)
 
     return inputs, params
-
-
-def _parameter_with_unit(parameter, unit):
-    if parameter.unit is None:
-        return parameter.value * unit
-    return parameter.quantity.to(unit)
-
-
-def _parameter_without_unit(value, old_unit, new_unit):
-    if old_unit is None:
-        return value
-    return value * old_unit.to(new_unit)
 
 
 def _combine_equivalency_dict(keys, eq1=None, eq2=None):
