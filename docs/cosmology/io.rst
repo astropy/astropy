@@ -72,7 +72,7 @@ To see a list of the available read/write file formats:
 
 This list will include both built-in and registered 3rd-party formats.
 "myformat" is from an `example 3rd-party package
-<https://github.com/astropy/astropy/tree/main/docs/cosmology/mypackage>`_.
+<https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage>`_.
 
 When a subclass of ``Cosmology`` is used to read a file, the subclass will
 provide a keyword argument ``cosmology=<class>`` to the registered read
@@ -111,7 +111,7 @@ To see the a list of the available conversion formats:
 This list will include both built-in and registered 3rd-party formats.
 For instance, in the above, "mapping" is built-in while "mypackage" and
 is from an `example 3rd-party package
-<https://github.com/astropy/astropy/tree/main/docs/cosmology/mypackage>`_.
+<https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage>`_.
 
 :meth:`~astropy.cosmology.Cosmology.to_format` /
 :meth:`~astropy.cosmology.Cosmology.from_format` parse a Cosmology to/from
