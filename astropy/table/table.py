@@ -194,7 +194,7 @@ def _get_names_from_list_of_dict(rows):
 
     names = set()
     for row in rows:
-        if not isinstance(row, dict):
+        if not isinstance(row, Mapping):
             return None
         names.update(row)
     return list(names)
@@ -867,7 +867,7 @@ class Table:
             # For a Row object transform to an equivalent dict.
             values = {name: values[name] for name in values.colnames}
 
-        if not isinstance(values, dict):
+        if not isinstance(values, Mapping):
             # If not a dict map, assume iterable and map to dict if the right length
             if len(values) != len(self.columns):
                 raise ValueError(f'sequence of {attr} values must match number of columns')
@@ -2989,15 +2989,10 @@ class Table:
         if index < 0:
             index += N
 
-        def _is_mapping(obj):
-            """Minimal checker for mapping (dict-like) interface for obj"""
-            attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
-            return all(hasattr(obj, attr) for attr in attrs)
-
-        if _is_mapping(vals) or vals is None:
+        if isinstance(vals, Mapping) or vals is None:
             # From the vals and/or mask mappings create the corresponding lists
             # that have entries for each table column.
-            if mask is not None and not _is_mapping(mask):
+            if mask is not None and not isinstance(mask, Mapping):
                 raise TypeError("Mismatch between type of vals and mask")
 
             # Now check that the mask is specified for the same keys as the
@@ -3032,7 +3027,7 @@ class Table:
             mask = mask_list
 
         if isiterable(vals):
-            if mask is not None and (not isiterable(mask) or _is_mapping(mask)):
+            if mask is not None and (not isiterable(mask) or isinstance(mask, Mapping)):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
@@ -3386,7 +3381,7 @@ class Table:
             If a certain column is not in the dict given, it will remain the
             same.
         '''
-        if isinstance(decimals, dict):
+        if isinstance(decimals, Mapping):
             decimal_values = decimals.values()
             column_names = decimals.keys()
         elif isinstance(decimals, int):
