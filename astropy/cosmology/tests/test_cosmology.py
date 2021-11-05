@@ -15,14 +15,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
-def test_flrw_moved_deprecation():
-    """Test the  deprecation warning about the move of FLRW classes."""
-    with pytest.warns(AstropyDeprecationWarning):
-        from astropy.cosmology.core import FLRW
-
-    assert FLRW is flrw.FLRW
-
-
 def test_init():
     """ Tests to make sure the code refuses inputs it is supposed to"""
     with pytest.raises(ValueError):
