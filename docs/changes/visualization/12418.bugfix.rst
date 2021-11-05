@@ -1,0 +1,1 @@
+Fixed calling ``.tight_layout()`` on a WCSAxes.
