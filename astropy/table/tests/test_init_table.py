@@ -10,6 +10,28 @@ from astropy.table import Column, TableColumns, Table, MaskedColumn
 import astropy.units as u
 
 
+class DictLike(Mapping):
+    """A minimal mapping-like object that does not subclass dict.
+
+    This is used to test code that expects dict-like but without actually
+    inheriting from dict.
+    """
+    def __init__(self, *args, **kwargs):
+        self._data = dict(*args, **kwargs)
+
+    def __getitem__(self, item):
+        return self._data[item]
+
+    def __setitem__(self, item, value):
+        self._data[item] = value
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+
 class TestTableColumnsInit():
     def test_init(self):
         """Test initialisation with lists, tuples, dicts of arrays
@@ -178,6 +200,8 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
     def _setup(self, table_type):
         self.data = [{'a': 1, 'b': 2, 'c': 3},
                      {'a': 3, 'b': 4, 'c': 5}]
+        self.data_ragged = [{'a': 1, 'b': 2},
+                            {'a': 2, 'c': 4}]
 
     def test_names(self, table_type):
         self._setup(table_type)
@@ -190,8 +214,8 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
         assert t.colnames == ['c', 'b', 'a']
 
     def test_missing_data_init_from_dict(self, table_type):
-        dat = [{'a': 1, 'b': 2},
-               {'a': 2, 'c': 4}]
+        self._setup(table_type)
+        dat = self.data_ragged
         for rows in [False, True]:
             t = table_type(rows=dat) if rows else table_type(dat)
 
@@ -204,6 +228,17 @@ class TestInitFromListOfDicts(BaseInitFromListLike):
             assert type(t['a']) is (MaskedColumn if t.masked else Column)
             assert type(t['b']) is MaskedColumn
             assert type(t['c']) is MaskedColumn
+
+
+class TestInitFromListOfMapping(TestInitFromListOfDicts):
+    """Test that init from a Mapping that is not a dict subclass works"""
+    def _setup(self, table_type):
+        self.data = [DictLike(a=1, b=2, c=3),
+                     DictLike(a=3, b=4, c=5)]
+        self.data_ragged = [DictLike(a=1, b=2),
+                            DictLike(a=2, c=4)]
+        # Make sure data rows are not a dict subclass
+        assert not isinstance(self.data[0], dict)
 
 
 @pytest.mark.usefixtures('table_type')
