@@ -1,23 +1,38 @@
+# We need to import this here and run metadata.version to make sure
+# metadata.version('numpy') works correctly in the astropy code itself.
+from importlib import metadata
+metadata.version('numpy')
+
 import os
 import sys
 import pytest
 import shutil
+import erfa  # noqa
 import astropy  # noqa
 
-ROOT = os.path.join(os.path.dirname(__file__), '../')
-
-# Make sure we don't allow any arguments to be passed - some tests call
-# sys.executable which becomes this script when producing a pyinstaller
-# bundle, but we should just error in this case since this is not the
-# regular Python interpreter.
-if len(sys.argv) > 1:
-    print("Extra arguments passed, exiting early")
-    sys.exit(1)
+if len(sys.argv) == 3 and sys.argv[1] == '--astropy-root':
+    ROOT = sys.argv[2]
+else:
+    # Make sure we don't allow any arguments to be passed - some tests call
+    # sys.executable which becomes this script when producing a pyinstaller
+    # bundle, but we should just error in this case since this is not the
+    # regular Python interpreter.
+    if len(sys.argv) > 1:
+        print("Extra arguments passed, exiting early")
+        sys.exit(1)
 
 for root, dirnames, files in os.walk(os.path.join(ROOT, 'astropy')):
+
+    # NOTE: we can't simply use
+    # test_root = root.replace('astropy', 'astropy_tests')
+    # as we only want to change the one which is for the module, so instead
+    # we search for the last occurrence and replace that.
+    pos = root.rfind('astropy')
+    test_root = root[:pos] + 'astropy_tests' + root[pos + 7:]
+
     # Copy over the astropy 'tests' directories and their contents
     for dirname in dirnames:
-        final_dir = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), dirname), ROOT)
+        final_dir = os.path.relpath(os.path.join(test_root, dirname), ROOT)
         # We only copy over 'tests' directories, but not astropy/tests (only
         # astropy/tests/tests) since that is not just a directory with tests.
         if dirname == 'tests' and not root.endswith('astropy'):
@@ -34,12 +49,27 @@ for root, dirnames, files in os.walk(os.path.join(ROOT, 'astropy')):
     # Copy over all conftest.py files
     for file in files:
         if file == 'conftest.py':
-            final_file = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), file), ROOT)
+            final_file = os.path.relpath(os.path.join(test_root, file), ROOT)
             shutil.copy2(os.path.join(root, file), final_file)
 
 # Add the top-level __init__.py file
 with open(os.path.join('astropy_tests', '__init__.py'), 'w') as f:
     f.write("#")
+
+# Remove test file that tries to import all sub-packages at collection time
+os.remove(os.path.join('astropy_tests', 'utils', 'iers', 'tests', 'test_leap_second.py'))
+
+# Remove convolution tests for now as there are issues with the loading of the C extension.
+# FIXME: one way to fix this would be to migrate the convolution C extension away from using
+# ctypes and using the regular extension mechanism instead.
+shutil.rmtree(os.path.join('astropy_tests', 'convolution'))
+os.remove(os.path.join('astropy_tests', 'modeling', 'tests', 'test_convolution.py'))
+os.remove(os.path.join('astropy_tests', 'modeling', 'tests', 'test_core.py'))
+os.remove(os.path.join('astropy_tests', 'visualization', 'tests', 'test_lupton_rgb.py'))
+
+# FIXME: The following tests rely on the fully qualified name of classes which
+# don't seem to be the same.
+os.remove(os.path.join('astropy_tests', 'table', 'mixins', 'tests', 'test_registry.py'))
 
 # Copy the top-level conftest.py
 shutil.copy2(os.path.join(ROOT, 'astropy', 'conftest.py'),
@@ -60,6 +90,11 @@ SKIP_TESTS = ['test_exception_logging_origin',
               'test_pkg_finder',
               'test_wcsapi_extension',
               'test_find_current_module_bundle',
+              'test_minversion',
+              'test_imports',
+              'test_generate_config',
+              'test_generate_config2',
+              'test_create_config_file',
               'test_download_parallel_fills_cache']
 
 # Run the tests!
