@@ -1005,9 +1005,9 @@ def test_read_big_table(tmpdir):
     t.write(filename, format='ascii.csv', overwrite=True)
     t = None
 
-    print("Counting the number of lines in the csv, it should be {}"
-          " + 1 (header).".format(NB_ROWS))
-    assert sum(1 for line in open(filename)) == NB_ROWS + 1
+    print("Counting the number of lines in the csv, it should be {NB_ROWS} + 1 (header).")
+    with open(filename, 'r') as f:
+        assert sum(1 for line in f) == NB_ROWS + 1
 
     print("Reading the file with astropy.")
     t = Table.read(filename, format='ascii.csv', fast_reader=True)
@@ -1023,20 +1023,20 @@ def test_read_big_table2(tmpdir):
     # (2**32 // 2) : max value for int
     # // 10 : we use a value for rows that have 10 chars (1e9)
     # + 5 : add a few lines so the length cannot be stored by an int
-    NB_ROWS = (2**32 // 2) // 10 + 5
+    NB_ROWS = 2**32 // 2 // 10 + 5
     filename = str(tmpdir.join("big_table.csv"))
 
     print(f"Creating a {NB_ROWS} rows table.")
-    data = np.full(2**32 // 2 // 10 + 5, int(1e9), dtype=np.int32)
+    data = np.full(NB_ROWS, int(1e9), dtype=np.int32)
     t = Table(data=[data], names=['a'], copy=False)
 
     print(f"Saving the table to {filename}")
     t.write(filename, format='ascii.csv', overwrite=True)
     t = None
 
-    print("Counting the number of lines in the csv, it should be {}"
-          " + 1 (header).".format(NB_ROWS))
-    assert sum(1 for line in open(filename)) == NB_ROWS + 1
+    print("Counting the number of lines in the csv, it should be {NB_ROWS} + 1 (header).")
+    with open(filename, 'r') as f:
+        assert sum(1 for line in f) == NB_ROWS + 1
 
     print("Reading the file with astropy.")
     t = Table.read(filename, format='ascii.csv', fast_reader=True)
