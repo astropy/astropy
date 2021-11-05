@@ -1,0 +1,3 @@
+Fixed an issue where initializing from a list of dict-like rows (Mappings) did
+not work unless the row values were instances of ``dict``. Now any object that
+is an instance of the more general ``collections.abc.Mapping`` will work.
