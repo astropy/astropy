@@ -6,10 +6,8 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 import pytest
 import unittest.mock as mk
-from numpy.testing import assert_allclose
 
 import numpy as np
-
 from numpy.testing import assert_allclose
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
@@ -1123,6 +1121,51 @@ class TestSpline1D:
             assert name == f"coeff{idx}"
             self.check_parameter(spl, "coeff", name, idx, value, False)
 
+    @staticmethod
+    def check_base_spline(spl, t, c, k):
+        """Check the base spline form"""
+        if t is None:
+            assert spl._t is None
+        else:
+            assert_allclose(spl._t, t)
+
+        if c is None:
+            assert spl._c is None
+        else:
+            assert_allclose(spl._c, c)
+
+        assert spl.degree == k
+        assert spl._bounding_box is None
+
+    def check_spline_fit(self, fit_spl, spline, fitter, atol_fit, atol_truth):
+        """Check the spline fit"""
+        assert_allclose(fit_spl.t, spline._eval_args[0])
+        assert_allclose(fit_spl.c, spline._eval_args[1])
+        assert_allclose(fitter.fit_info['spline']._eval_args[0], spline._eval_args[0])
+        assert_allclose(fitter.fit_info['spline']._eval_args[1],  spline._eval_args[1])
+
+        assert_allclose(spline.get_residual(), fitter.fit_info['resid'])
+
+        assert_allclose(fit_spl(self.x), spline(self.x))
+        assert_allclose(fit_spl(self.x), fitter.fit_info['spline'](self.x))
+
+        assert_allclose(fit_spl(self.x), self.y, atol=atol_fit)
+        assert_allclose(fit_spl(self.x), self.truth, atol=atol_truth)
+
+    def check_bbox(self, spl, fit_spl, fitter, w, **kwargs):
+        """Check the spline fit with bbox option"""
+        bbox = [self.x[0], self.x[-1]]
+        bbox_spl = fitter(spl, self.x, self.y, weights=w, bbox=bbox, **kwargs)
+        assert bbox_spl.bounding_box == tuple(bbox)
+        assert_allclose(fit_spl.t, bbox_spl.t)
+        assert_allclose(fit_spl.c, bbox_spl.c)
+
+    def check_knots_warning(self, fitter, knots, k, w, **kwargs):
+        """Check that the knots warning is raised"""
+        spl = Spline1D(knots=knots, degree=k)
+        with pytest.warns(AstropyUserWarning):
+            fitter(spl, self.x, self.y, weights=w, **kwargs)
+
     @pytest.mark.parametrize('w', wieght_tests)
     @pytest.mark.parametrize('k', degree_tests)
     def test_interpolate_fitter(self, w, k):
@@ -1130,47 +1173,26 @@ class TestSpline1D:
         assert fitter.fit_info == {'resid': None, 'spline': None}
 
         spl = Spline1D(degree=k)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
+        self.check_base_spline(spl, None, None, k)
 
         fit_spl = fitter(spl, self.x, self.y, weights=w)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
+        self.check_base_spline(spl, None, None, k)
 
         assert len(fit_spl.t) == (len(self.x) + k + 1) == len(fit_spl._knot_names)
         self.check_knots_created(fit_spl, k)
         self.check_coeffs_created(fit_spl)
+        assert fit_spl._bounding_box is None
 
         from scipy.interpolate import InterpolatedUnivariateSpline, UnivariateSpline
         spline = InterpolatedUnivariateSpline(self.x, self.y, w=w, k=k)
         assert isinstance(fitter.fit_info['spline'], UnivariateSpline)
 
-        assert (fit_spl.t == spline._eval_args[0]).all()
-        assert (fit_spl.c == spline._eval_args[1]).all()
-        assert (fitter.fit_info['spline']._eval_args[0] == spline._eval_args[0]).all()
-        assert (fitter.fit_info['spline']._eval_args[1] == spline._eval_args[1]).all()
+        assert spline.get_residual() == 0
+        self.check_spline_fit(fit_spl, spline, fitter, 0, 1)
+        self.check_bbox(spl, fit_spl, fitter, w)
 
-        assert spline.get_residual() == fitter.fit_info['resid'] == 0
-        assert (fit_spl(self.x) == spline(self.x)).all()
-        assert (fit_spl(self.x) == fitter.fit_info['spline'](self.x)).all()
-
-        assert_allclose(fit_spl(self.x), self.y)
-        assert_allclose(fit_spl(self.x), self.truth, atol=1)
-
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, weights=w, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
-
-        # test warning
         knots = np.linspace(self.x[0], self.x[-1], len(self.x) + k + 1)
-        spl = Spline1D(knots=knots, degree=k)
-        with pytest.warns(AstropyUserWarning):
-            fitter(spl, self.x, self.y, weights=w)
+        self.check_knots_warning(fitter, knots, k, w)
 
     @pytest.mark.parametrize('w', wieght_tests)
     @pytest.mark.parametrize('k', degree_tests)
@@ -1180,15 +1202,10 @@ class TestSpline1D:
         assert fitter.fit_info == {'resid': None, 'spline': None}
 
         spl = Spline1D(degree=k)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
-        assert spl._bounding_box is None
+        self.check_base_spline(spl, None, None, k)
 
         fit_spl = fitter(spl, self.x, self.y, s=s, weights=w)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
+        self.check_base_spline(spl, None, None, k)
 
         self.check_knots_created(fit_spl, k)
         self.check_coeffs_created(fit_spl)
@@ -1198,30 +1215,12 @@ class TestSpline1D:
         spline = UnivariateSpline(self.x, self.y, w=w, k=k, s=s)
         assert isinstance(fitter.fit_info['spline'], UnivariateSpline)
 
-        assert (fit_spl.t == spline._eval_args[0]).all()
-        assert (fit_spl.c == spline._eval_args[1]).all()
-        assert (fitter.fit_info['spline']._eval_args[0] == spline._eval_args[0]).all()
-        assert (fitter.fit_info['spline']._eval_args[1] == spline._eval_args[1]).all()
-
-        assert spline.get_residual() == fitter.fit_info['resid']
-        assert (fit_spl(self.x) == spline(self.x)).all()
-        assert (fit_spl(self.x) == fitter.fit_info['spline'](self.x)).all()
-
-        assert_allclose(fit_spl(self.x), self.y, atol=1)
-        assert_allclose(fit_spl(self.x), self.truth, atol=1)
-
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, weights=w, s=s, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
+        self.check_spline_fit(fit_spl, spline, fitter, 1, 1)
+        self.check_bbox(spl, fit_spl, fitter, w, s=s)
 
         # test warning
         knots = fit_spl.t.copy()
-        spl = Spline1D(knots=knots, degree=k)
-        with pytest.warns(AstropyUserWarning):
-            fitter(spl, self.x, self.y, weights=w, s=s)
+        self.check_knots_warning(fitter, knots, k, w, s=s)
 
     @pytest.mark.parametrize('w', wieght_tests)
     @pytest.mark.parametrize('k', degree_tests)
@@ -1235,17 +1234,12 @@ class TestSpline1D:
 
         # With knots preset
         spl = Spline1D(knots=knots, degree=k, bounds=[self.x[0], self.x[-1]])
-        assert (spl.t == t).all()
-        assert (spl.c == c).all()
+        self.check_base_spline(spl, t, c, k)
         assert (spl.t_interior == knots).all()
-        assert spl.degree == k
-        assert spl._bounding_box is None
 
         fit_spl = fitter(spl, self.x, self.y, weights=w)
-        assert (spl.t == t).all()
-        assert (spl.c == c).all()
+        self.check_base_spline(spl, t, c, k)
         assert (spl.t_interior == knots).all()
-        assert spl.degree == k
 
         assert len(fit_spl.t) == len(t) == len(fit_spl._knot_names)
         self.check_knots_created(fit_spl, k)
@@ -1256,26 +1250,10 @@ class TestSpline1D:
         spline = LSQUnivariateSpline(self.x, self.y, knots, w=w, k=k)
         assert isinstance(fitter.fit_info['spline'], UnivariateSpline)
 
-        assert (fit_spl.t == spline._eval_args[0]).all()
-        assert (fit_spl.c == spline._eval_args[1]).all()
-        assert (fitter.fit_info['spline']._eval_args[0] == spline._eval_args[0]).all()
-        assert (fitter.fit_info['spline']._eval_args[1] == spline._eval_args[1]).all()
-
-        assert spline.get_residual() == fitter.fit_info['resid']
         assert_allclose(spline.get_residual(), 0.1, atol=1)
         assert_allclose(fitter.fit_info['spline'].get_residual(), 0.1, atol=1)
-        assert (fit_spl(self.x) == spline(self.x)).all()
-        assert (fit_spl(self.x) == fitter.fit_info['spline'](self.x)).all()
-
-        assert_allclose(fit_spl(self.x), self.y, atol=1)
-        assert_allclose(fit_spl(self.x), self.truth, atol=1)
-
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, weights=w, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
+        self.check_spline_fit(fit_spl, spline, fitter, 1, 1)
+        self.check_bbox(spl, fit_spl, fitter, w)
 
         # Pass knots via fitter function
         with pytest.warns(AstropyUserWarning):
@@ -1296,15 +1274,10 @@ class TestSpline1D:
         assert fitter.fit_info == {'fp': None, 'ier': None, 'msg': None}
 
         spl = Spline1D(degree=k)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
-        assert spl._bounding_box is None
+        self.check_base_spline(spl, None, None, k)
 
         fit_spl = fitter(spl, self.x, self.y, s=s, weights=w)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
+        self.check_base_spline(spl, None, None, k)
 
         self.check_knots_created(fit_spl, k)
         self.check_coeffs_created(fit_spl)
@@ -1313,25 +1286,20 @@ class TestSpline1D:
         from scipy.interpolate import splrep, BSpline
         tck, spline_fp, spline_ier, spline_msg = splrep(self.x, self.y,
                                                         w=w, k=k, s=s, full_output=1)
-        assert (fit_spl.t == tck[0]).all()
-        assert (fit_spl.c == tck[1]).all()
+        assert_allclose(fit_spl.t, tck[0])
+        assert_allclose(fit_spl.c, tck[1])
 
         assert fitter.fit_info['fp'] == spline_fp
         assert fitter.fit_info['ier'] == spline_ier
         assert fitter.fit_info['msg'] == spline_msg
 
         spline = BSpline(*tck)
-        assert (fit_spl(self.x) == spline(self.x)).all()
+        assert_allclose(fit_spl(self.x), spline(self.x))
 
         assert_allclose(fit_spl(self.x), self.y, atol=1)
         assert_allclose(fit_spl(self.x), self.truth, atol=1)
 
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, s=s, weights=w, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
+        self.check_bbox(spl, fit_spl, fitter, w, s=s)
 
     @pytest.mark.parametrize('w', wieght_tests)
     @pytest.mark.parametrize('k', degree_tests)
@@ -1345,17 +1313,12 @@ class TestSpline1D:
 
         # With knots preset
         spl = Spline1D(knots=knots, degree=k, bounds=[self.x[0], self.x[-1]])
-        assert (spl.t == t).all()
-        assert (spl.c == c).all()
+        self.check_base_spline(spl, t, c, k)
         assert (spl.t_interior == knots).all()
-        assert spl.degree == k
-        assert spl._bounding_box is None
 
         fit_spl = fitter(spl, self.x, self.y, weights=w)
-        assert (spl.t == t).all()
-        assert (spl.c == c).all()
+        self.check_base_spline(spl, t, c, k)
         assert (spl.t_interior == knots).all()
-        assert spl.degree == k
 
         self.check_knots_created(fit_spl, k)
         self.check_coeffs_created(fit_spl)
@@ -1364,25 +1327,20 @@ class TestSpline1D:
         from scipy.interpolate import splrep, BSpline
         tck, spline_fp, spline_ier, spline_msg = splrep(self.x, self.y,
                                                         w=w, k=k, t=knots, full_output=1)
-        assert (fit_spl.t == tck[0]).all()
-        assert (fit_spl.c == tck[1]).all()
+        assert_allclose(fit_spl.t, tck[0])
+        assert_allclose(fit_spl.c, tck[1])
 
         assert fitter.fit_info['fp'] == spline_fp
         assert fitter.fit_info['ier'] == spline_ier
         assert fitter.fit_info['msg'] == spline_msg
 
         spline = BSpline(*tck)
-        assert (fit_spl(self.x) == spline(self.x)).all()
+        assert_allclose(fit_spl(self.x), spline(self.x))
 
         assert_allclose(fit_spl(self.x), self.y, atol=1)
         assert_allclose(fit_spl(self.x), self.truth, atol=1)
 
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, weights=w, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
+        self.check_bbox(spl, fit_spl, fitter, w)
 
         # test warning
         with pytest.warns(AstropyUserWarning):
@@ -1390,16 +1348,10 @@ class TestSpline1D:
 
         # With no knots present
         spl = Spline1D(degree=k)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
-        assert spl._bounding_box is None
+        self.check_base_spline(spl, None, None, k)
 
         fit_spl = fitter(spl, self.x, self.y, t=knots, weights=w)
-        assert spl._t is None
-        assert spl._c is None
-        assert spl.degree == k
-        assert spl._bounding_box is None
+        self.check_base_spline(spl, None, None, k)
 
         self.check_knots_created(fit_spl, k)
         self.check_coeffs_created(fit_spl)
@@ -1407,21 +1359,16 @@ class TestSpline1D:
 
         from scipy.interpolate import splrep, BSpline
         tck = splrep(self.x, self.y, w=w, k=k, t=knots)
-        assert (fit_spl.t == tck[0]).all()
-        assert (fit_spl.c == tck[1]).all()
+        assert_allclose(fit_spl.t, tck[0])
+        assert_allclose(fit_spl.c, tck[1])
 
         spline = BSpline(*tck)
-        assert (fit_spl(self.x) == spline(self.x)).all()
+        assert_allclose(fit_spl(self.x), spline(self.x))
 
         assert_allclose(fit_spl(self.x), self.y, atol=1)
         assert_allclose(fit_spl(self.x), self.truth, atol=1)
 
-        # test bbox
-        bbox = [self.x[0], self.x[-1]]
-        bbox_spl = fitter(spl, self.x, self.y, t=knots, weights=w, bbox=bbox)
-        assert bbox_spl.bounding_box == tuple(bbox)
-        assert (fit_spl.t == bbox_spl.t).all()
-        assert (fit_spl.c == bbox_spl.c).all()
+        self.check_bbox(spl, fit_spl, fitter, w, t=knots)
 
     def generate_spline(self, w=None, bbox=[None]*2, k=None, s=None, t=None):
         if k is None:
@@ -1439,8 +1386,8 @@ class TestSpline1D:
 
         spl = Spline1D()
         spl.bspline = bspline
-        assert (spl.t == bspline.t).all()
-        assert (spl.c == bspline.c).all()
+        assert_allclose(spl.t, bspline.t)
+        assert_allclose(spl.c, bspline.c)
         assert spl.degree == bspline.k
 
         # 1st derivative
@@ -1451,8 +1398,8 @@ class TestSpline1D:
         assert_allclose(d_bspline(self.xs, nu=3), bspline(self.xs, nu=4))
 
         der = spl.derivative()
-        assert (der.t == d_bspline.t).all()
-        assert (der.c == d_bspline.c).all()
+        assert_allclose(der.t, d_bspline.t)
+        assert_allclose(der.c, d_bspline.c)
         assert der.degree == d_bspline.k == 2
         assert_allclose(der.evaluate(self.xs),       spl.evaluate(self.xs, nu=1))
         assert_allclose(der.evaluate(self.xs, nu=1), spl.evaluate(self.xs, nu=2))
@@ -1466,8 +1413,8 @@ class TestSpline1D:
         assert_allclose(d_bspline(self.xs, nu=2), bspline(self.xs, nu=4))
 
         der = spl.derivative(nu=2)
-        assert (der.t == d_bspline.t).all()
-        assert (der.c == d_bspline.c).all()
+        assert_allclose(der.t, d_bspline.t)
+        assert_allclose(der.c, d_bspline.c)
         assert der.degree == d_bspline.k == 1
         assert_allclose(der.evaluate(self.xs),       spl.evaluate(self.xs, nu=2))
         assert_allclose(der.evaluate(self.xs, nu=1), spl.evaluate(self.xs, nu=3))
@@ -1479,8 +1426,8 @@ class TestSpline1D:
         assert_allclose(d_bspline(self.xs, nu=1), bspline(self.xs, nu=4))
 
         der = spl.derivative(nu=3)
-        assert (der.t == d_bspline.t).all()
-        assert (der.c == d_bspline.c).all()
+        assert_allclose(der.t, d_bspline.t)
+        assert_allclose(der.c, d_bspline.c)
         assert der.degree == d_bspline.k == 0
         assert_allclose(der.evaluate(self.xs),       spl.evaluate(self.xs, nu=3))
         assert_allclose(der.evaluate(self.xs, nu=1), spl.evaluate(self.xs, nu=4))
@@ -1507,8 +1454,8 @@ class TestSpline1D:
         assert_allclose(bspline(self.xs, nu=4), a_bspline(self.xs, nu=5))
 
         anti = spl.antiderivative()
-        assert (anti.t == a_bspline.t).all()
-        assert (anti.c == a_bspline.c).all()
+        assert_allclose(anti.t, a_bspline.t)
+        assert_allclose(anti.c, a_bspline.c)
         assert anti.degree == a_bspline.k == 4
         assert_allclose(spl.evaluate(self.xs),       anti.evaluate(self.xs, nu=1))
         assert_allclose(spl.evaluate(self.xs, nu=1), anti.evaluate(self.xs, nu=2))
@@ -1525,8 +1472,8 @@ class TestSpline1D:
         assert_allclose(bspline(self.xs, nu=4), a_bspline(self.xs, nu=6))
 
         anti = spl.antiderivative(nu=2)
-        assert (anti.t == a_bspline.t).all()
-        assert (anti.c == a_bspline.c).all()
+        assert_allclose(anti.t, a_bspline.t)
+        assert_allclose(anti.c, a_bspline.c)
         assert anti.degree == a_bspline.k == 5
         assert_allclose(spl.evaluate(self.xs),       anti.evaluate(self.xs, nu=2))
         assert_allclose(spl.evaluate(self.xs, nu=1), anti.evaluate(self.xs, nu=3))
