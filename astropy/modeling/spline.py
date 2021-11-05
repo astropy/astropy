@@ -260,39 +260,6 @@ class Spline1D(_Spline):
     >>> t = [-1, 0, 1]
     >>> fitter = fitting.SplineExactKnotsFitter()
     >>> spl = fitter(Spline1D(), x, y, t=t)
-
-    .. plot::
-        :include-source:
-
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from astropy.modeling.models import Spline1D
-        from astropy.modeling.fitting import (SplineInterpolateFitter,
-                                              SplineSmoothingFitter,
-                                              SplineExactKnotsFitter)
-
-        x = np.linspace(-3, 3, 50)
-        y = np.exp(-x**2) + 0.1 * np.random.randn(50)
-        xs = np.linspace(-3, 3, 1000)
-        t = [-1, 0, 1]
-        spl = Spline1D()
-
-        fitter = SplineInterpolateFitter()
-        spl1 = fitter(spl, x, y)
-
-        fitter = SplineSmoothingFitter()
-        spl2 = fitter(spl, x, y, s=0.5)
-
-        fitter = SplineExactKnotsFitter()
-        spl3 = fitter(spl, x, y, t=t)
-
-        plt.plot(x, y, 'ro', label="Data")
-        plt.plot(xs, spl1(xs), 'b-', label="Interpolating")
-        plt.plot(xs, spl2(xs), 'g-', label="Smoothing")
-        plt.plot(xs, spl3(xs), 'k-', label="Exact Knots")
-        plt.legend()
-        plt.show()
-
     """
 
     n_inputs = 1
@@ -417,6 +384,7 @@ class Spline1D(_Spline):
 
     @property
     def user_knots(self):
+        """If the knots have been supplied by the user"""
         return self._user_knots
 
     @user_knots.setter
