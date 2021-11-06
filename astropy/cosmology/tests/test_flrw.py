@@ -7,6 +7,7 @@
 
 # STDLIB
 import abc
+import copy
 
 # THIRD PARTY
 import pytest
@@ -14,7 +15,9 @@ import pytest
 import numpy as np
 
 # LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
+import astropy.constants as const
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
@@ -23,7 +26,7 @@ from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_core import CosmologySubclassTest as CosmologyTest
-from .test_core import FlatCosmologyMixinTest
+from .test_core import FlatCosmologyMixinTest, ParameterTestMixin
 
 ##############################################################################
 # TESTS
@@ -46,55 +49,38 @@ def test_optional_deps_functions():
 ##############################################################################
 
 
-class TestFLRW(CosmologyTest):
-    """Test :class:`astropy.cosmology.FLRW`."""
-
-    def setup_class(self):
-        """
-        Setup for testing.
-        FLRW is abstract, so tests are done on a subclass.
-        """
-
-        class SubFLRW(FLRW):
-            def w(self, z):
-                return super().w(z)
-
-        self.cls = SubFLRW
-        # H0, Om0, Ode0
-        self.cls_args = (70 * u.km / u.s / u.Mpc, 0.27 * u.one, 0.689 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
-
-    def teardown_class(self):
-        super().teardown_class(self)
-        _COSMOLOGY_CLASSES.pop("TestFLRW.setup_class.<locals>.SubFLRW", None)
-
-    @pytest.fixture
-    def nonflatcosmo(self):
-        """A non-flat cosmology used in equivalence tests."""
-        return LambdaCDM(70, 0.4, 0.8)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    # ---------------------------------------------------------------
-    # Parameters
+class ParameterH0TestMixin(ParameterTestMixin):
 
     def test_H0(self, cosmo_cls, cosmo):
         """Test Parameter ``H0``."""
+        unit = u.Unit("km/(s Mpc)")
+
         # on the class
         assert isinstance(cosmo_cls.H0, Parameter)
         assert "Hubble constant" in cosmo_cls.H0.__doc__
-        assert cosmo_cls.H0.unit == u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.unit == unit
 
         # validation
-        assert cosmo_cls.H0.validate(cosmo, 1) == 1 * u.Unit("km/(s Mpc)")
-        assert cosmo_cls.H0.validate(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.validate(cosmo, 1) == 1 * unit
+        assert cosmo_cls.H0.validate(cosmo, 10 * unit) == 10 * unit
         with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
             cosmo_cls.H0.validate(cosmo, [1, 2])
 
         # on the instance
         assert cosmo.H0 is cosmo._H0
-        assert cosmo.H0 == 70 * (u.km / u.s / u.Mpc)
+        assert cosmo.H0 == self._cls_args["H0"]
+        assert isinstance(cosmo.H0, u.Quantity) and cosmo.H0.unit == unit
+
+    def test_init_H0(self, cosmo_cls):
+        """Test initialization for values of ``H0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["H0"] = u.Quantity([70, 100], u.km / u.s / u.Mpc)
+        with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class ParameterOm0TestMixin(ParameterTestMixin):
 
     def test_Om0(self, cosmo_cls, cosmo):
         """Test Parameter ``Om0``."""
@@ -111,8 +97,19 @@ class TestFLRW(CosmologyTest):
 
         # on the instance
         assert cosmo.Om0 is cosmo._Om0
-        assert isinstance(cosmo.Om0, float)  # from fset
-        assert cosmo.Om0 == 0.27
+        assert cosmo.Om0 == self._cls_args["Om0"]
+        assert isinstance(cosmo.Om0, float)
+
+    def test_init_Om0(self, cosmo_cls):
+        """Test initialization for values of ``Om0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["Om0"] = -0.27
+        with pytest.raises(ValueError, match="Om0 cannot be negative."):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class ParameterOde0TestMixin(ParameterTestMixin):
 
     def test_Ode0(self, cosmo_cls, cosmo):
         """Test Parameter ``Ode0``."""
@@ -121,12 +118,27 @@ class TestFLRW(CosmologyTest):
         assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
 
         # validation
-        assert cosmo_cls.Ode0.validate(cosmo, 1) == 1
-        assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10
+        assert cosmo_cls.Ode0.validate(cosmo, 1.1) == 1.1
+        assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10.0
+        with pytest.raises(TypeError, match="only dimensionless"):
+            cosmo_cls.Ode0.validate(cosmo, 10 * u.km)
 
         # on the instance
+        # if Ode0 is a parameter, test its value
         assert cosmo.Ode0 is cosmo._Ode0
-        assert isinstance(cosmo.Ode0, float)  # from setter
+        assert cosmo.Ode0 == self._cls_args["Ode0"]
+        assert isinstance(cosmo.Ode0, float)
+
+    def test_init_Ode0(self, cosmo_cls):
+        """Test initialization for values of ``Ode0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["Ode0"] = 10 * u.km
+        with pytest.raises(TypeError, match="only dimensionless"):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class ParameterTcmb0TestMixin(ParameterTestMixin):
 
     def test_Tcmb0(self, cosmo_cls, cosmo):
         """Test Parameter ``Tcmb0``."""
@@ -143,7 +155,19 @@ class TestFLRW(CosmologyTest):
 
         # on the instance
         assert cosmo.Tcmb0 is cosmo._Tcmb0
-        assert cosmo.Tcmb0 == 3 * u.K
+        assert cosmo.Tcmb0 == self.cls_kwargs["Tcmb0"]
+        assert isinstance(cosmo.Tcmb0, u.Quantity) and cosmo.Tcmb0.unit == u.K
+
+    def test_init_Tcmb0(self, cosmo_cls):
+        """Test initialization for values of ``Tcmb0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["Tcmb0"] = u.Quantity([0.0, 2], u.K)
+        with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class ParameterNeffTestMixin(ParameterTestMixin):
 
     def test_Neff(self, cosmo_cls, cosmo):
         """Test Parameter ``Neff``."""
@@ -159,7 +183,19 @@ class TestFLRW(CosmologyTest):
 
         # on the instance
         assert cosmo.Neff is cosmo._Neff
-        assert cosmo.Neff == 3.04
+        assert cosmo.Neff == self.cls_kwargs.get("Neff", 3.04)
+        assert isinstance(cosmo.Neff, float)
+
+    def test_init_Neff(self, cosmo_cls):
+        """Test initialization for values of ``Neff``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["Neff"] = -1
+        with pytest.raises(ValueError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class Parameterm_nuTestMixin(ParameterTestMixin):
 
     def test_m_nu(self, cosmo_cls, cosmo):
         """Test Parameter ``m_nu``."""
@@ -185,6 +221,36 @@ class TestFLRW(CosmologyTest):
             assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
             assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
 
+    def test_init_m_nu(self, cosmo_cls):
+        """Test initialization for values of ``m_nu``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        # negative m_nu
+        tba = copy.deepcopy(ba)
+        tba.arguments["m_nu"] = u.Quantity([-0.3, 0.2, 0.1], u.eV)
+        with pytest.raises(ValueError):
+            cosmo_cls(*tba.args, **tba.kwargs)
+
+        # mismatch with Neff and Tcmb0
+        tba = copy.deepcopy(ba)
+        tba.arguments["Tcmb0"] = 3
+        tba.arguments["Neff"] = 2
+        tba.arguments["m_nu"] = u.Quantity([0.15, 0.2, 0.1], u.eV)
+        with pytest.raises(ValueError):
+            cosmo_cls(*tba.args, **tba.kwargs)
+
+        # wrong number of neutrinos
+        tba = copy.deepcopy(ba)
+        tba.arguments["Tcmb0"] = 3
+        tba.arguments["m_nu"] = u.Quantity([-0.3, 0.2], u.eV)  # 2, expecting 3
+        with pytest.raises(ValueError):
+            cosmo_cls(*tba.args, **tba.kwargs)
+
+        # TODO! transfer tests for initializing neutrinos
+
+
+class ParameterOb0TestMixin(ParameterTestMixin):
+
     def test_Ob0(self, cosmo_cls, cosmo):
         """Test Parameter ``Ob0``."""
         # on the class
@@ -204,12 +270,71 @@ class TestFLRW(CosmologyTest):
         assert cosmo.Ob0 is cosmo._Ob0
         assert cosmo.Ob0 is None
 
-    # ---------------------------------------------------------------
+    def test_init_Ob0(self, cosmo_cls):
+        """Test initialization for values of ``Ob0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        # negative Ob0
+        tba = copy.deepcopy(ba)
+        tba.arguments["Ob0"] = -0.04
+        with pytest.raises(ValueError, match="Ob0 cannot be negative"):
+            cosmo_cls(*tba.args, **tba.kwargs)
+
+        # Ob0 > Om0
+        tba.arguments["Ob0"] = tba.arguments["Om0"] + 0.1
+        with pytest.raises(ValueError, match="baryonic density can not be larger"):
+            cosmo_cls(*tba.args, **tba.kwargs)
+
+        # no baryons specified
+        tba = copy.deepcopy(ba)
+        tba.arguments.pop("Ob0", None)
+        cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        with pytest.raises(ValueError):
+            cosmo.Ob(1)
+
+        # also means DM fraction is un
+        with pytest.raises(ValueError):
+            cosmo.Odm(1)
+
+
+class TestFLRW(CosmologyTest,
+               ParameterH0TestMixin, ParameterOm0TestMixin, ParameterOde0TestMixin,
+               ParameterTcmb0TestMixin, ParameterNeffTestMixin, Parameterm_nuTestMixin,
+               ParameterOb0TestMixin):
+    """Test :class:`astropy.cosmology.FLRW`."""
+
+    def setup_class(self):
+        """
+        Setup for testing.
+        FLRW is abstract, so tests are done on a subclass.
+        """
+
+        class SubFLRW(FLRW):
+            def w(self, z):
+                return super().w(z)
+
+        self.cls = SubFLRW
+        # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.689 * u.one)
+        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+
+    def teardown_class(self):
+        super().teardown_class(self)
+        _COSMOLOGY_CLASSES.pop("TestFLRW.setup_class.<locals>.SubFLRW", None)
+
+    @pytest.fixture
+    def nonflatcosmo(self):
+        """A non-flat cosmology used in equivalence tests."""
+        return LambdaCDM(70, 0.4, 0.8)
+
+    # ===============================================================
+    # Method & Attribute Tests
 
     def test_init(self, cosmo_cls):
         """Test initialization."""
         super().test_init(cosmo_cls)
 
+        # TODO! tests for initializing calculated values, e.g. `h`
         # TODO! transfer tests for initializing neutrinos
 
     # ---------------------------------------------------------------
@@ -318,8 +443,32 @@ class FLRWSubclassTest(TestFLRW):
 
 # -----------------------------------------------------------------------------
 
+class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
 
-class FlatFLRWMixinTest(FlatCosmologyMixinTest):
+    def test_Ode0(self, cosmo_cls, cosmo):
+        """Test no-longer-Parameter ``Ode0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Ode0, Parameter)
+        assert cosmo_cls.Ode0.derived == True
+        assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
+
+        # on the instance
+        assert cosmo.Ode0 is cosmo._Ode0
+        assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0)
+
+    def test_init_Ode0(self, cosmo_cls):
+        """Test initialization for values of ``Ode0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0)
+
+        # Ode0 is not in the signature
+        with pytest.raises(TypeError, match="Ode0"):
+            cosmo_cls(*ba.args, **ba.kwargs, Ode0=1)
+
+
+class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
     """Tests for :class:`astropy.cosmology.FlatFLRWMixin`."""
 
     # ---------------------------------------------------------------
@@ -393,7 +542,7 @@ class TestLambdaCDM(FLRWSubclassTest):
     def setup_class(self):
         """Setup for testing."""
         self.cls = LambdaCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27, Ode0=0.73)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_repr(self, cosmo_cls, cosmo):
@@ -415,7 +564,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
     def setup_class(self):
         """Setup for testing."""
         self.cls = FlatLambdaCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_repr(self, cosmo_cls, cosmo):
@@ -431,13 +580,35 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
 # -----------------------------------------------------------------------------
 
 
-class TestwCDM(FLRWSubclassTest):
+class Parameterw0TestMixin(ParameterTestMixin):
+
+    def test_w0(self, cosmo_cls, cosmo):
+        """Test Parameter ``w0``."""
+        # on the class
+        assert isinstance(cosmo_cls.w0, Parameter)
+        assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
+        assert cosmo_cls.w0.unit is None
+
+        # on the instance
+        assert cosmo.w0 is cosmo._w0
+        assert cosmo.w0 == -1.0
+
+    def test_init_w0(self, cosmo_cls):
+        """Test initialization for values of ``w0``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["w0"] = 10 * u.km
+        with pytest.raises(TypeError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
     """Test :class:`astropy.cosmology.wCDM`."""
 
     def setup_class(self):
         """Setup for testing."""
         self.cls = wCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27, Ode0=0.73)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_clone_change_param(self, cosmo):
@@ -473,7 +644,7 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
     def setup_class(self):
         """Setup for testing."""
         self.cls = FlatwCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_repr(self, cosmo_cls, cosmo):
@@ -489,13 +660,35 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
 # -----------------------------------------------------------------------------
 
 
-class Testw0waCDM(FLRWSubclassTest):
+class ParameterwaTestMixin(ParameterTestMixin):
+
+    def test_wa(self, cosmo_cls, cosmo):
+        """Test Parameter ``wa``."""
+        # on the class
+        assert isinstance(cosmo_cls.wa, Parameter)
+        assert "Negative derivative" in cosmo_cls.wa.__doc__
+        assert cosmo_cls.wa.unit is None
+
+        # on the instance
+        assert cosmo.wa is cosmo._wa
+        assert cosmo.wa == 0.0
+
+    def test_init_wa(self, cosmo_cls):
+        """Test initialization for values of ``wa``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["wa"] = 10 * u.km
+        with pytest.raises(TypeError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
     """Test :class:`astropy.cosmology.w0waCDM`."""
 
     def setup_class(self):
         """Setup for testing."""
         self.cls = w0waCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27, Ode0=0.73)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_clone_change_param(self, cosmo):
@@ -532,7 +725,7 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
     def setup_class(self):
         """Setup for testing."""
         self.cls = Flatw0waCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_repr(self, cosmo_cls, cosmo):
@@ -548,13 +741,58 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
 # -----------------------------------------------------------------------------
 
 
-class TestwpwaCDM(FLRWSubclassTest):
+class ParameterwpTestMixin(ParameterTestMixin):
+
+    def test_wp(self, cosmo_cls, cosmo):
+        """Test Parameter ``wp``."""
+        # on the class
+        assert isinstance(cosmo_cls.wp, Parameter)
+        assert "at the pivot" in cosmo_cls.wp.__doc__
+        assert cosmo_cls.wp.unit is None
+
+        # on the instance
+        assert cosmo.wp is cosmo._wp
+        assert cosmo.wp == -1.0
+
+    def test_init_wp(self, cosmo_cls):
+        """Test initialization for values of ``wp``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["wp"] = 10 * u.km
+        with pytest.raises(TypeError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class ParameterzpTestMixin(ParameterTestMixin):
+
+    def test_zp(self, cosmo_cls, cosmo):
+        """Test Parameter ``zp``."""
+        # on the class
+        assert isinstance(cosmo_cls.zp, Parameter)
+        assert "pivot redshift" in cosmo_cls.zp.__doc__
+        assert cosmo_cls.zp.unit == cu.redshift
+
+        # on the instance
+        assert cosmo.zp is cosmo._zp
+        assert cosmo.zp == 0 * cu.redshift
+
+    def test_init_zp(self, cosmo_cls):
+        """Test initialization for values of ``zp``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["zp"] = 10 * u.km
+        with pytest.raises(u.UnitConversionError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class TestwpwaCDM(FLRWSubclassTest,
+                  ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin):
     """Test :class:`astropy.cosmology.wpwaCDM`."""
 
     def setup_class(self):
         """Setup for testing."""
         self.cls = wpwaCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27, Ode0=0.73)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_clone_change_param(self, cosmo):
@@ -586,13 +824,35 @@ class TestwpwaCDM(FLRWSubclassTest):
 # -----------------------------------------------------------------------------
 
 
-class Testw0wzCDM(FLRWSubclassTest):
+class ParameterwzTestMixin(ParameterTestMixin):
+
+    def test_wz(self, cosmo_cls, cosmo):
+        """Test Parameter ``wz``."""
+        # on the class
+        assert isinstance(cosmo_cls.wz, Parameter)
+        assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
+        assert cosmo_cls.wz.unit is None
+
+        # on the instance
+        assert cosmo.wz is cosmo._wz
+        assert cosmo.wz == 0.0
+
+    def test_init_wz(self, cosmo_cls):
+        """Test initialization for values of ``wz``."""
+        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+
+        ba.arguments["wz"] = 10 * u.km
+        with pytest.raises(TypeError):
+            cosmo_cls(*ba.args, **ba.kwargs)
+
+
+class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
     """Test :class:`astropy.cosmology.w0wzCDM`."""
 
     def setup_class(self):
         """Setup for testing."""
         self.cls = w0wzCDM
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27, Ode0=0.73)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     def test_clone_change_param(self, cosmo):

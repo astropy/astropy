@@ -15,41 +15,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
-def test_init():
-    """ Tests to make sure the code refuses inputs it is supposed to"""
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=-0.27)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Neff=-1)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27,
-                                   Tcmb0=u.Quantity([0.0, 2], u.K))
-    with pytest.raises(ValueError):
-        h0bad = u.Quantity([70, 100], u.km / u.s / u.Mpc)
-        cosmo = flrw.FlatLambdaCDM(H0=h0bad, Om0=0.27)
-    with pytest.raises(ValueError):
-        bad_mnu = u.Quantity([-0.3, 0.2, 0.1], u.eV)
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.2, Tcmb0=3, m_nu=bad_mnu)
-    with pytest.raises(ValueError):
-        bad_mnu = u.Quantity([0.15, 0.2, 0.1], u.eV)
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.2, Tcmb0=3, Neff=2, m_nu=bad_mnu)
-    with pytest.raises(ValueError):
-        bad_mnu = u.Quantity([-0.3, 0.2], u.eV)  # 2, expecting 3
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.2, Tcmb0=3, m_nu=bad_mnu)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=-0.04)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=0.4)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27)
-        cosmo.Ob(1)
-    with pytest.raises(ValueError):
-        cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27)
-        cosmo.Odm(1)
-    with pytest.raises(TypeError):
-        default_cosmology.validate(4)
-
-
 def test_basic():
     cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
                                Ob0=0.05, name="test", meta={"a": "b"})
