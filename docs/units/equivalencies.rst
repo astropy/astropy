@@ -641,21 +641,7 @@ Examples
 
 .. EXAMPLE START: Using Equivalencies in Larger Pieces of Code
 
-To enable radians to be treated as a dimensionless unit with the
-:func:`~astropy.units.set_enabled_equivalencies` function:
-
-  >>> u.set_enabled_equivalencies(u.dimensionless_angles())
-  <astropy.units.core._UnitContext object at ...>
-  >>> u.deg.to('')  # doctest: +FLOAT_CMP
-  0.017453292519943295
-
-Here, any list of equivalencies could be used, or you could add, for example,
-:func:`~astropy.units.equivalencies.spectral` and
-:func:`~astropy.units.equivalencies.spectral_density` (since these return
-lists, they should indeed be combined by adding them together).
-
-The disadvantage of the above approach is that you may forget to turn the
-default off (done by giving an empty argument). To automate this, use
+To enable radians to be treated as a dimensionless unit use
 :func:`~astropy.units.set_enabled_equivalencies` as a `context manager
 <https://docs.python.org/3/reference/datamodel.html#context-managers>`_::
 
@@ -664,5 +650,25 @@ default off (done by giving an empty argument). To automate this, use
   ...    c = np.exp(1j*phase)
   >>> c  # doctest: +FLOAT_CMP
   <Quantity -1.+1.2246468e-16j>
+
+To permanently and globally enable radians to be treated as a dimensionless
+unit use :func:`~astropy.units.set_enabled_equivalencies` not as a context
+manager:
+
+.. doctest-skip::
+
+  >>> u.set_enabled_equivalencies(u.dimensionless_angles())
+  <astropy.units.core._UnitContext object at ...>
+  >>> u.deg.to('')  # doctest: +FLOAT_CMP
+  0.017453292519943295
+
+The disadvantage of the above approach is that you may forget to turn the
+default off (done by giving an empty argument).
+
+:func:`~astropy.units.set_enabled_equivalencies` accepts any list of
+equivalencies, so you could add, for example,
+:func:`~astropy.units.equivalencies.spectral` and
+:func:`~astropy.units.equivalencies.spectral_density` (since these return
+lists, they should indeed be combined by adding them together).
 
 .. EXAMPLE END
