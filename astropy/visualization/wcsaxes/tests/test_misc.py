@@ -77,17 +77,13 @@ COORDSYS= 'icrs    '
 
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
 def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
-    ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white', grid_type=grid_type)
 
-    if MATPLOTLIB_DEV and grid_type == 'contours':
-        ctx = pytest.raises(AttributeError, match='dpi')
-    else:
-        ctx = nullcontext()
-
-    with pytest.warns(None) as warning_lines, ctx:
-        plt.savefig(tmpdir.join('test.png').strpath)
+    with pytest.warns(None) as warning_lines:
+        fig.savefig(tmpdir.join('test.png').strpath)
 
     # There should be no warnings raised if some pixels are outside WCS
     # (since this is normal).
