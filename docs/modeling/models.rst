@@ -208,19 +208,29 @@ it is set. This function will also produce postage stamp images of the model if
 no other input array is passed. To instead extract postage stamps from the data
 array itself, see :ref:`cutout_images`.
 
-Using the Bounding Box
-++++++++++++++++++++++
+Using the standard Bounding Box
++++++++++++++++++++++++++++++++
 
-For basic usage, see `Model.bounding_box <astropy.modeling.Model.bounding_box>`.  By default no
-`~astropy.modeling.Model.bounding_box` is set, except on model subclasses where
-a ``bounding_box`` property or method is explicitly defined. The default is then
-the minimum rectangular region symmetric about the position that fully contains
-the model. If the model does not have a finite extent, the containment criteria
-are noted in the documentation. For example, see
+For basic usage, see `Model.bounding_box <astropy.modeling.Model.bounding_box>`.
+By default no `~astropy.modeling.Model.bounding_box` is set, except on model
+subclasses where a ``bounding_box`` property or method is explicitly defined.
+The default is then the minimum rectangular region symmetric about the position
+that fully contains the model. If the model does not have a finite extent,
+the containment criteria are noted in the documentation. For example, see
 ``Gaussian2D.bounding_box``.
 
-`Model.bounding_box <astropy.modeling.Model.bounding_box>` can be set by the
-user to any callable. This is particularly useful for models created
+.. warning::
+
+    Accessing the `Model.bounding_box <astropy.modeling.Model.bounding_box>`
+    property when it has not been set, or does not have a default will
+    result in a ``NotImplementedError``. If this behavior is undesireable,
+    then one can instead use the `Model.get_bounding_box <astropy.modeling.Model.get_bounding_box>`
+    method instead. This method will return the bounding box if one exists
+    (by setting or default) otherwise it will return ``None`` instead
+    of raising an error.
+
+A `Model.bounding_box <astropy.modeling.Model.bounding_box>` default can be
+set by the user to any callable. This is particularly useful for models created
 with `~astropy.modeling.custom_model` or as a `~astropy.modeling.core.CompoundModel`::
 
     >>> from astropy.modeling import custom_model
@@ -231,14 +241,13 @@ with `~astropy.modeling.custom_model` or as a `~astropy.modeling.core.CompoundMo
     ...
     >>> class Ellipsoid3D(custom_model(ellipsoid)):
     ...     # A 3D ellipsoid model
-    ...     @property
     ...     def bounding_box(self):
     ...         return ((self.z0 - self.c, self.z0 + self.c),
     ...                 (self.y0 - self.b, self.y0 + self.b),
     ...                 (self.x0 - self.a, self.x0 + self.a))
     ...
-    >>> model = Ellipsoid3D()
-    >>> model.bounding_box
+    >>> model1 = Ellipsoid3D()
+    >>> model1.bounding_box
     ModelBoundingBox(
         intervals={
             x0: Interval(lower=-2.0, upper=2.0)
@@ -253,12 +262,106 @@ By default models are evaluated on any inputs. By passing a flag they can be eva
 only on inputs within the bounding box. For inputs outside of the bounding_box a ``fill_value`` is
 returned (``np.nan`` by default)::
 
-    >>> model(-5, 1, 1)
+    >>> model1(-5, 1, 1)
     0.0
-    >>> model(-5, 1, 1, with_bounding_box=True)
+    >>> model1(-5, 1, 1, with_bounding_box=True)
     nan
-    >>> model(-5, 1, 1, with_bounding_box=True, fill_value=-1)
+    >>> model1(-5, 1, 1, with_bounding_box=True, fill_value=-1)
     -1.0
+
+`Model.bounding_box <astropy.modeling.Model.bounding_box>` can be set on any
+model instance via the usage of the property setter. For example for a single
+input model one needs to only set a tuple of the lower and upper bounds ::
+
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> model2 = Polynomial1D(2)
+    >>> model2.bounding_box = (-1, 1)
+    >>> model2.bounding_box
+    ModelBoundingBox(
+        intervals={
+            x: Interval(lower=-1, upper=1)
+        }
+        model=Polynomial1D(inputs=('x',))
+        order='C'
+    )
+    >>> model2(-2)
+    0.0
+    >>> model2(-2, with_bounding_box=True)
+    nan
+    >>> model2(-2, with_bounding_box=True, fill_value=47)
+    47.0
+
+For multi-input models, `Model.bounding_box <astropy.modeling.Model.bounding_box>`
+can be set on any model instance by specifying a tuple of lower/upper bound tuples ::
+
+    >>> from astropy.modeling.models import Polynomial2D
+    >>> model3 = Polynomial2D(2)
+    >>> model3.bounding_box = ((-2, 2), (-1, 1))
+    >>> model3.bounding_box
+    ModelBoundingBox(
+        intervals={
+            x: Interval(lower=-1, upper=1)
+            y: Interval(lower=-2, upper=2)
+        }
+        model=Polynomial2D(inputs=('x', 'y'))
+        order='C'
+    )
+    >>> model3(-2, 0)
+    0.0
+    >>> model3(-2, 0, with_bounding_box=True)
+    nan
+    >>> model3(-2, 0, with_bounding_box=True, fill_value=7)
+    7.0
+
+Note that if one wants to directly recover the tuple used to formulate
+a bounding box, then one can use the
+`ModelBoundingBox.bounding_box() <astropy.modeling.bounding_box.ModelBoundingBox.bounding_box>`
+method ::
+
+    >>> model1.bounding_box.bounding_box()
+    ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
+    >>> model2.bounding_box.bounding_box()
+    (-1, 1)
+    >>> model3.bounding_box.bounding_box()
+    ((-2, 2), (-1, 1))
+
+.. warning::
+
+    When setting multi-dimensional bounding boxes it is important to
+    remember that by default the tuple of tuples is assumed to be ``'C'`` ordered,
+    which means that the bound tuples will be ordered in the reverse order
+    to their respective input order. That is if the inputs are in the order
+    ``('x', 'y', 'z')`` then the bounds will need to be listed in ``('z', 'y', 'x')``
+    order.
+
+The if one does not want to work directly with the default ``'C'`` ordered
+bounding boxes. It is possible to use the alternate ``'F'`` ordering, which
+orders the bounding box tuple in the same order as the inputs. To do this
+one can use the `bind_bounding_box <astropy.modeling.bind_bounding_box>`
+function, and passing the ``order='F'`` keyword argument ::
+
+    >>> from astropy.modeling import bind_bounding_box
+    >>> model4 = Polynomial2D(3)
+    >>> bind_bounding_box(model4, ((-1, 1), (-2, 2)), order='F')
+    >>> model4.bounding_box
+    ModelBoundingBox(
+        intervals={
+            x: Interval(lower=-1, upper=1)
+            y: Interval(lower=-2, upper=2)
+        }
+        model=Polynomial2D(inputs=('x', 'y'))
+        order='F'
+    )
+    >>> model4(-2, 0)
+    0.0
+    >>> model4(-2, 0, with_bounding_box=True)
+    nan
+    >>> model4(-2, 0, with_bounding_box=True, fill_value=12)
+    12.0
+    >>> model4.bounding_box.bounding_box()
+    ((-1, 1), (-2, 2))
+    >>> model4.bounding_box.bounding_box(order='C')
+    ((-2, 2), (-1, 1))
 
 .. warning::
 
@@ -267,6 +370,182 @@ returned (``np.nan`` by default)::
     For the other operators bounding boxes for compound models must be assigned
     explicitly.  A future release will determine the appropriate bounding box
     for a compound model where possible.
+
+Using the Compound Bounding Box
++++++++++++++++++++++++++++++++
+
+Sometimes it is useful to have multiple bounding boxes for the same model,
+which are selectable when the model is evaluated. In this case, one should
+consider using a `CompoundBoundingBox <astropy.modeling.bounding_box.CompoundBoundingBox>`.
+
+A common use case for this may be if the model has a single "discrete"
+selector input (for example ``'slit_id'``), which among other things,
+determines what bounding box should be applied to the other inputs. To
+do this one needs to first define a dictionary of bounding box tuples,
+with dictionary keys being the specific values of the selector input
+corresponding to that specific bounding box ::
+
+    >>> from astropy.modeling.models import Shift, Identity
+    >>> model1 = Shift(1) & Shift(2) & Identity(1)
+    >>> model1.inputs = ('x', 'y', 'slit_id')
+    >>> bboxes = {
+    ...     0: ((0, 1), (1, 2)),
+    ...     1: ((2, 3), (3, 4))
+    ... }
+
+In order for the compound bounding box to function one must specify a list
+of selector arguments, where the elements of this list are tuples of the input's
+name and whether or not the bounding box should be applied to the selector argument
+or not. In this case, it makes sense for the selector argument to be ignored ::
+
+    >>> from astropy.modeling.core import bind_compound_bounding_box
+    >>> selector_args = [('slit_id', True)]
+    >>> bind_compound_bounding_box(model1, bboxes, selector_args, order='F')
+    >>> model1.bounding_box
+    CompoundBoundingBox(
+        bounding_boxes={
+            (0,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=0, upper=1)
+                        y: Interval(lower=1, upper=2)
+                    }
+                    ignored=['slit_id']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_id'))
+                    order='F'
+                )
+            (1,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=2, upper=3)
+                        y: Interval(lower=3, upper=4)
+                    }
+                    ignored=['slit_id']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_id'))
+                    order='F'
+                )
+        }
+        selector_args = SelectorArguments(
+                Argument(name='slit_id', ignore=True)
+            )
+    )
+    >>> model1(0.5, 1.5, 0, with_bounding_box=True)
+    (1.5, 3.5, 0.0)
+    >>> model1(0.5, 1.5, 1, with_bounding_box=True)
+    (nan, nan, nan)
+
+Multiple selector arguments can also be used, in this case the keys of the
+dictionary of bounding boxes need to be specified as tuples of values ::
+
+    >>> model2 = Shift(1) & Shift(2) & Identity(2)
+    >>> model2.inputs = ('x', 'y', 'slit_x', 'slit_y')
+    >>> bboxes = {
+    ...     (0, 0): ((0, 1), (1, 2)),
+    ...     (0, 1): ((2, 3), (3, 4)),
+    ...     (1, 0): ((4, 5), (5, 6)),
+    ...     (1, 1): ((6, 7), (7, 8)),
+    ... }
+    >>> selector_args = [('slit_x', True), ('slit_y', True)]
+    >>> bind_compound_bounding_box(model2, bboxes, selector_args, order='F')
+    >>> model2.bounding_box
+    CompoundBoundingBox(
+        bounding_boxes={
+            (0, 0) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=0, upper=1)
+                        y: Interval(lower=1, upper=2)
+                    }
+                    ignored=['slit_x', 'slit_y']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
+                    order='F'
+                )
+            (0, 1) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=2, upper=3)
+                        y: Interval(lower=3, upper=4)
+                    }
+                    ignored=['slit_x', 'slit_y']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
+                    order='F'
+                )
+            (1, 0) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=4, upper=5)
+                        y: Interval(lower=5, upper=6)
+                    }
+                    ignored=['slit_x', 'slit_y']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
+                    order='F'
+                )
+            (1, 1) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=6, upper=7)
+                        y: Interval(lower=7, upper=8)
+                    }
+                    ignored=['slit_x', 'slit_y']
+                    model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
+                    order='F'
+                )
+        }
+        selector_args = SelectorArguments(
+                Argument(name='slit_x', ignore=True)
+                Argument(name='slit_y', ignore=True)
+            )
+    )
+    >>> model2(0.5, 1.5, 0, 0, with_bounding_box=True)
+    (1.5, 3.5, 0.0, 0.0)
+    >>> model2(0.5, 1.5, 1, 1, with_bounding_box=True)
+    (nan, nan, nan, nan)
+
+Note that one can also specify the ordering for all the bounding boxes
+comprising the compound bounding using the ``order`` keyword argument.
+
+Another use case for this maybe a if one wants to use multiple bounding
+boxes for the same model, where the user chooses the bounding box when
+evaluating the model. In this case, one must still choose a selector
+argument as a fall back default for bounding box selection; however, this
+argument should not be ignored by the bounding box::
+
+    >>> from astropy.modeling.models import Polynomial2D
+    >>> from astropy.modeling import bind_compound_bounding_box
+    >>> model = Polynomial2D(3)
+    >>> bboxes = {
+    ...     0: ((0, 1), (1, 2)),
+    ...     1: ((2, 3), (3, 4))
+    ... }
+    >>> selector_args = [('x', False)]
+    >>> bind_compound_bounding_box(model, bboxes, selector_args, order='F')
+    >>> model.bounding_box
+        CompoundBoundingBox(
+        bounding_boxes={
+            (0,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=0, upper=1)
+                        y: Interval(lower=1, upper=2)
+                    }
+                    model=Polynomial2D(inputs=('x', 'y'))
+                    order='F'
+                )
+            (1,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=2, upper=3)
+                        y: Interval(lower=3, upper=4)
+                    }
+                    model=Polynomial2D(inputs=('x', 'y'))
+                    order='F'
+                )
+        }
+        selector_args = SelectorArguments(
+                Argument(name='x', ignore=False)
+            )
+    )
+
+For the user to select the bounding box on evaluation, instead of
+specifying, ``with_bounding_box=True`` as the keyword argument; the user
+instead specifies ``with_bounding_box=<bounding_key>`` ::
+
+    >>> model(0.5, 1.5, with_bounding_box=0)
+    0.0
+    >>> model(0.5, 1.5, with_bounding_box=1)
+    nan
 
 Efficient evaluation with `Model.render() <astropy.modeling.Model.render>`
 --------------------------------------------------------------------------
