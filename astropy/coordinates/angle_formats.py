@@ -412,38 +412,29 @@ def degrees_to_dms(d):
 def dms_to_degrees(d, m, s=None):
     """
     Convert degrees, arcminute, arcsecond to a float degrees value.
-	
-    # solutions to fix the issue #12239
-	
+    # solutions to fix the issue #12239 .
     solution 1 :
-	if d=0 , get the sign from m , if m=0, get sign from s
-	
-	solution 2 :
-	take sign =1.0 as  another argument
-	Sign is by default positive and represented by sign = 1.0 .
-	For negative sign, sign = -1.0 , if given by user
-	dont use any sign in d,m,s  if sign argument is present.
-    
-    """
+    if d=0 , get the sign from m , if m=0, get sign from s.
 
+    solution 2 :
+    Take sign =1.0 as  another argument.
+    Sign is by default positive and represented by sign = 1.0 .
+    For negative sign, sign = -1.0 , if given by user.
+    Dont use any sign in d,m,s  if sign argument is present.
+    """
     _check_minute_range(m)
     _check_second_range(s)
-
-    # code for  solution 1 : 
+    # code for  solution 1 :
     # value of sign by default
-    sign = 1.0 ;
-
+    sign = 1.0;
     # determine sign
     if (d!=0):
-        sign = np.copysign(1.0, d)
-
+	sign = np.copysign(1.0, d)
     # code  for solution 1 :
-
-    if ( ( (d==0) )  and (m!=0)):
-        sign = np.copysign(1.0, m);
-    elif ( ( (d==0) and (m==0) )  and (s!=0)):
-        sign = np.copysign(1.0, s)
-
+    if (( (d==0)) and (m!=0)):
+	sign = np.copysign(1.0, m);
+    elif (((d==0) and (m==0)) and (s!=0)):
+	sign = np.copysign(1.0, s)
 
     try:
         d = np.floor(np.abs(d))
