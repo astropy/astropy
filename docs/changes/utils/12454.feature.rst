@@ -1,0 +1,3 @@
+The NaN-aware numpy functions such as ``np.nansum`` now work on Masked
+arrays, with masked values being treated as NaN, but without raising
+warnings or exceptions.
