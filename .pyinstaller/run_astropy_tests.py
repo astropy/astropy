@@ -1,13 +1,16 @@
 # We need to import this here and run metadata.version to make sure
 # metadata.version('numpy') works correctly in the astropy code itself.
 from importlib import metadata
+
 metadata.version('numpy')
 
 import os
-import sys
-import pytest
 import shutil
+import sys
+
 import erfa  # noqa
+import pytest
+
 import astropy  # noqa
 
 if len(sys.argv) == 3 and sys.argv[1] == '--astropy-root':
