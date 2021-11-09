@@ -23,6 +23,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.0-mixin-registry`
 * :ref:`whatsnew-5.0-parquet-tables`
 * :ref:`whatsnew-5.0-mrt-format-tables`
+* :ref:`whatsnew-5.0-masked-quantity-columns`
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -260,6 +261,19 @@ coordinate data. It also ensures that columns with units are written with the
 correct unit convention.
 
 For details see the :ref:`cds_mrt_format` section.
+
+.. _whatsnew-5.0-masked-quantity-columns:
+
+Support for masked quantity columns, including masked FITS columns with units
+=============================================================================
+
+Masked quantities are now fully supported in tables.  This includes ``QTable``
+automatically converting ``MaskedColumn`` instances to ``MaskedQuantity``,
+and ``Table`` doing the reverse.
+
+A consequence of this is that when FITS tables are read into a ``QTable``, any
+missing entries will be masked. Hence, when such columns have units, all ``NaN``
+values will now be masked.
 
 Full change log
 ===============
