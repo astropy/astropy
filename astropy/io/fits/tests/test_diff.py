@@ -10,7 +10,6 @@ from astropy.io.fits.hdu.base import NonstandardExtHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.io import fits
 
@@ -805,20 +804,6 @@ class TestDiff(FitsTestCase):
         with open(outpath) as fout:
             assert fout.read() == report_as_string, (
                 "overwritten output file is not identical to report string")
-
-    def test_file_output_overwrite_vs_clobber(self):
-        """Verify uses of clobber and overwrite."""
-
-        outpath = self.temp('diff_output.txt')
-        ha = Header([('A', 1), ('B', 2), ('C', 3)])
-        hb = ha.copy()
-        hb['C'] = 4
-        diffobj = HeaderDiff(ha, hb)
-        diffobj.report(fileobj=outpath)
-        with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                          r'deprecated in version 2\.0 and will be removed in '
-                          r'version 5\.1\. Use argument "overwrite" instead\.'):
-            diffobj.report(fileobj=outpath, clobber=True)
 
     def test_rawdatadiff_nodiff(self):
         a = np.arange(100, dtype='uint8').reshape(10, 10)

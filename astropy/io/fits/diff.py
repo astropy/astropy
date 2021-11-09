@@ -23,7 +23,6 @@ from astropy import __version__
 
 from .card import Card, BLANK_CARD
 from .header import Header
-from astropy.utils.decorators import deprecated_renamed_argument
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
@@ -121,11 +120,6 @@ class _BaseDiff:
         return not any(getattr(self, attr) for attr in self.__dict__
                        if attr.startswith('diff_'))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def report(self, fileobj=None, indent=0, overwrite=False):
         """
         Generates a text report on the differences (if any) between two
@@ -147,9 +141,6 @@ class _BaseDiff:
             If ``True``, overwrite the output file if it exists. Raises an
             ``OSError`` if ``False`` and the output file exists. Default is
             ``False``.
-
-            .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Returns
         -------

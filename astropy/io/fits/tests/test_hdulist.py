@@ -13,7 +13,7 @@ import numpy as np
 from astropy.io.fits.hdu.base import _ValidHDU, _NonstandardHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
-from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filenames
 
 from . import FitsTestCase
@@ -891,14 +891,10 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdulist[0] in hdulist
             assert fits.ImageHDU() not in hdulist
 
-    def test_overwrite_vs_clobber(self):
+    def test_overwrite(self):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
         hdulist.writeto(self.temp('test_overwrite.fits'))
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
-        with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                          r'deprecated in version 2\.0 and will be removed in '
-                          r'version 5\.1\. Use argument "overwrite" instead\.'):
-            hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
 
     def test_invalid_hdu_key_in_contains(self):
         """

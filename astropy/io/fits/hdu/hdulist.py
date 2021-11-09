@@ -22,7 +22,6 @@ from astropy.io.fits.util import (_free_space_check, _get_array_mmap, _is_int,
 from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.decorators import deprecated_renamed_argument
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
@@ -893,11 +892,6 @@ class HDUList(list, _Verify):
                 n = hdr['NAXIS']
                 hdr.set('EXTEND', True, after='NAXIS' + str(n))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def writeto(self, fileobj, output_verify='exception', overwrite=False,
                 checksum=False):
         """
@@ -920,9 +914,6 @@ class HDUList(list, _Verify):
             If ``True``, overwrite the output file if it exists. Raises an
             ``OSError`` if ``False`` and the output file exists. Default is
             ``False``.
-
-            .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
