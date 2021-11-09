@@ -22,6 +22,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.0-dask-in-table`
 * :ref:`whatsnew-5.0-mixin-registry`
 * :ref:`whatsnew-5.0-parquet-tables`
+* :ref:`whatsnew-5.0-mrt-format-tables`
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -239,6 +240,8 @@ The :ref:`table_io` now supports reading and writing files in the Parquet_ forma
 Apache Parquet is a columnar storage format related to the Hadoop ecosystem which supports a wide variety of data processing frameworks and programming languages.
 A key benefit of Parquet files is that each column is stored independently, and thus reading a subset of columns is fast and efficient.
 For more details see the :ref:`table_io_parquet` section.
+
+.. _whatsnew-5.0-mrt-format-tables:
 
 Support for reading and writing tables to MRT format
 =====================================================
