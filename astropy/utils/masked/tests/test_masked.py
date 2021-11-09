@@ -873,6 +873,12 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_min.unmasked, expected_data)
         assert not np.any(ma_min.mask)
 
+    def test_min_with_masked_nan(self):
+        ma = Masked([3., np.nan, 2.], mask=[False, True, False])
+        ma_min = ma.min()
+        assert_array_equal(ma_min.unmasked, np.array(2.))
+        assert not ma_min.mask
+
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_max(self, axis):
         ma_max = self.ma.max(axis)
