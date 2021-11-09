@@ -44,7 +44,8 @@ from .parameters import (Parameter, InputParameterError,
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'CompoundModel', 'fix_inputs', 'custom_model', 'ModelDefinitionError']
+           'CompoundModel', 'fix_inputs', 'custom_model', 'ModelDefinitionError',
+           'bind_bounding_box', 'bind_compound_bounding_box']
 
 
 def _model_oper(oper, **kwargs):
@@ -930,7 +931,15 @@ class Model(metaclass=_ModelMeta):
 
     def get_bounding_box(self, with_bbox=True):
         """
-        Return the ``bounding_box`` of a model if it exists.
+        Return the ``bounding_box`` of a model if it exists or ``None``
+        otherwise.
+
+        Parameters
+        ----------
+        with_bbox :
+            The value of the ``with_bounding_box`` keyword argument
+            when calling the model. Default is `True` for usage when
+            looking up the model's ``bounding_box`` without risk of error.
         """
         bbox = None
 
@@ -1337,7 +1346,7 @@ class Model(metaclass=_ModelMeta):
     def bounding_box(self):
         r"""
         A `tuple` of length `n_inputs` defining the bounding box limits, or
-        `None` for no bounding box.
+        raise `NotImplementedError` for no bounding_box.
 
         The default limits are given by a ``bounding_box`` property or method
         defined in the class body of a specific model.  If not defined then
@@ -1346,7 +1355,7 @@ class Model(metaclass=_ModelMeta):
         manually to an array-like object of shape ``(model.n_inputs, 2)``. For
         further usage, see :ref:`astropy:bounding-boxes`
 
-        The limits are ordered according to the `numpy` indexing
+        The limits are ordered according to the `numpy` ``'C'`` indexing
         convention, and are the reverse of the model input order,
         e.g. for inputs ``('x', 'y', 'z')``, ``bounding_box`` is defined:
 
@@ -3932,6 +3941,19 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
 
 
 def bind_bounding_box(modelinstance, bounding_box, order='C'):
+    """
+    Set a validated bounding box to a model instance.
+
+    Parameters
+    ----------
+    modelinstance : `~astropy.modeling.Model` instance
+        This is the model that the validated bounding box will be set on.
+    bounding_box : tuple
+        A bounding box tuple, see :ref:`astropy:bounding-boxes` for details
+    order : str, optional
+        The ordering of the bounding box tuple, can be either ``'C'`` or
+        ``'F'``.
+    """
     modelinstance.bounding_box = ModelBoundingBox.validate(modelinstance,
                                                            bounding_box,
                                                            order=order)
@@ -3939,8 +3961,33 @@ def bind_bounding_box(modelinstance, bounding_box, order='C'):
 
 def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
                                create_selector=None, order='C'):
+    """
+    Add a validated compound bounding box to a model instance.
+
+    Parameters
+    ----------
+    modelinstance : `~astropy.modeling.Model` instance
+        This is the model that the validated compound bounding box will be set on.
+    bounding_boxes : dict
+        A dictionary of bounding box tuples, see :ref:`astropy:bounding-boxes`
+        for details.
+    selector_args : list
+        List of selector argument tuples to define selection for compound
+        bounding box, see :ref:`astropy:bounding-boxes` for details.
+    create_selector : callable, optional
+        An optional callable with interface (selector_value, model) which
+        can generate a bounding box based on a selector value and model if
+        there is no bounding box in the compound bounding box listed under
+        that selector value. Default is ``None``, meaning new bounding
+        box entries will not be automatically generated.
+    order : str, optional
+        The ordering of the bounding box tuple, can be either ``'C'`` or
+        ``'F'``.
+    """
     modelinstance.bounding_box = CompoundBoundingBox.validate(modelinstance,
-                                                              bounding_boxes, selector_args, create_selector,
+                                                              bounding_boxes,
+                                                              selector_args,
+                                                              create_selector,
                                                               order=order)
 
 

@@ -1245,6 +1245,8 @@ def test_compound_model_copy_user_attribute():
 
 
 def test_model_mixed_array_scalar_bounding_box():
+    """Regression test for issue #12319"""
+
     model = models.Gaussian2D()
     bbox = ModelBoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
     model.bounding_box = bbox
@@ -1257,6 +1259,8 @@ def test_model_mixed_array_scalar_bounding_box():
 
 
 def test_compound_model_mixed_array_scalar_bounding_box():
+    """Regression test for issue #12319"""
+
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
     bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
