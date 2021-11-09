@@ -1,0 +1,2 @@
+``SpectralQuantity`` and ``SpectralCoord`` ``.to_value`` method can now be called without
+``unit`` argument in order to maintain a consistent interface with ``Quantity.to_value``
