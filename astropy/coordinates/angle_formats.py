@@ -429,12 +429,12 @@ def dms_to_degrees(d, m, s=None):
     sign = 1.0;
     # determine sign
     if (d!=0):
-	sign = np.copysign(1.0, d)
+        sign = np.copysign(1.0, d)
     # code  for solution 1 :
     if (( (d==0)) and (m!=0)):
-	sign = np.copysign(1.0, m);
+        sign = np.copysign(1.0, m);
     elif (((d==0) and (m==0)) and (s!=0)):
-	sign = np.copysign(1.0, s)
+        sign = np.copysign(1.0, s)
 
     try:
         d = np.floor(np.abs(d))
