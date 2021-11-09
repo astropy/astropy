@@ -412,13 +412,22 @@ def degrees_to_dms(d):
 def dms_to_degrees(d, m, s=None):
     """
     Convert degrees, arcminute, arcsecond to a float degrees value.
-    """
-
+     """
     _check_minute_range(m)
     _check_second_range(s)
+    
+    # if d is a scaler
+    d = np.atleast_1d(d)
+    m = np.atleast_1d(m)
+    s = np.atleast_1d(s)
+    dmss = np.array([d,m,s]).T
+    sign = [1 for dms in dmss]
+    for k in range(0,dmss.size/3):
+        # looking for first non zero
+        for i in dmss[k]:
+            if i!=0:
+                sign[k] = np.copysign(1,i); break;
 
-    # determine sign
-    sign = np.copysign(1.0, d)
 
     try:
         d = np.floor(np.abs(d))
