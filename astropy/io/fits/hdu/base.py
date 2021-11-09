@@ -21,7 +21,6 @@ from astropy.io.fits.verify import _Verify, _ErrList
 
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.decorators import deprecated_renamed_argument
 
 
 __all__ = [
@@ -338,11 +337,6 @@ class _BaseHDU:
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
@@ -367,9 +361,6 @@ class _BaseHDU:
             If ``True``, overwrite the output file if it exists. Raises an
             ``OSError`` if ``False`` and the output file exists. Default is
             ``False``.
-
-            .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
@@ -1572,20 +1563,12 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def writeto(self, name, output_verify='exception', overwrite=False,
                 checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
-
-        .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         from .hdulist import HDUList

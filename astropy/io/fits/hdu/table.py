@@ -29,7 +29,6 @@ from astropy.io.fits.util import _is_int, _str_to_num
 
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.decorators import deprecated_renamed_argument
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -1052,11 +1051,6 @@ class BinTableHDU(_TableBaseHDU):
           image.
       """)
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def dump(self, datafile=None, cdfile=None, hfile=None, overwrite=False):
         """
         Dump the table HDU to a file in ASCII format.  The table may be dumped
@@ -1082,9 +1076,6 @@ class BinTableHDU(_TableBaseHDU):
             If ``True``, overwrite the output file if it exists. Raises an
             ``OSError`` if ``False`` and the output file exists. Default is
             ``False``.
-
-            .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         Notes
         -----
