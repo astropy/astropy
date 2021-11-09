@@ -69,7 +69,6 @@ from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.decorators import deprecated_renamed_argument
 
 try:
     from dask.array import Array as DaskArray
@@ -401,10 +400,6 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist.close(closed=closed)
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                             message='"clobber" was deprecated in version 2.0 '
-                                     'and will be removed in version 5.1. Use '
-                                     'argument "overwrite" instead.')
 def writeto(filename, data, header=None, output_verify='exception',
             overwrite=False, checksum=False):
     """
@@ -435,9 +430,6 @@ def writeto(filename, data, header=None, output_verify='exception',
         If ``True``, overwrite the output file if it exists. Raises an
         ``OSError`` if ``False`` and the output file exists. Default is
         ``False``.
-
-        .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     checksum : bool, optional
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
@@ -914,10 +906,6 @@ def printdiff(inputa, inputb, *args, **kwargs):
         print(FITSDiff(inputa, inputb, **kwargs).report())
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                             message='"clobber" was deprecated in version 2.0 '
-                                     'and will be removed in version 5.1. Use '
-                                     'argument "overwrite" instead.')
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
               overwrite=False):
     """
@@ -951,9 +939,6 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
         If ``True``, overwrite the output file if it exists. Raises an
         ``OSError`` if ``False`` and the output file exists. Default is
         ``False``.
-
-        .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
     Notes
     -----

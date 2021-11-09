@@ -21,7 +21,7 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
 from astropy.utils.data import download_file, _is_url
-from astropy.utils.decorators import classproperty, deprecated_renamed_argument
+from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
@@ -104,11 +104,6 @@ class _File:
     Represents a FITS file on disk (or in some other file-like object).
     """
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
                  cache=True):
         self.strict_memmap = bool(memmap)

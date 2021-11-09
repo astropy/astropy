@@ -2662,7 +2662,7 @@ class TestTableFunctions(FitsTestCase):
             t3.teardown_class()
         del t3
 
-    def test_dump_clobber_vs_overwrite(self):
+    def test_dump_overwrite(self):
         with fits.open(self.data('table.fits')) as hdul:
             tbhdu = hdul[1]
             datafile = self.temp('data.txt')
@@ -2675,10 +2675,6 @@ class TestTableFunctions(FitsTestCase):
             with pytest.raises(OSError, match=msg):
                 tbhdu.dump(datafile, cdfile, hfile)
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
-            with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                              r'deprecated in version 2\.0 and will be removed in '
-                              r'version 5\.1\. Use argument "overwrite" instead\.'):
-                tbhdu.dump(datafile, cdfile, hfile, clobber=True)
 
     def test_pseudo_unsigned_ints(self):
         """
