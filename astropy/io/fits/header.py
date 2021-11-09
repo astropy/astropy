@@ -15,7 +15,6 @@ from ._utils import parse_header
 
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.decorators import deprecated_renamed_argument
 
 
 BLOCK_SIZE = 2880  # the FITS block size
@@ -701,11 +700,6 @@ class Header:
             s += ' ' * _pad_length(len(s))
         return s
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def tofile(self, fileobj, sep='', endcard=True, padding=True,
                overwrite=False):
         r"""
@@ -738,9 +732,6 @@ class Header:
             If ``True``, overwrite the output file if it exists. Raises an
             ``OSError`` if ``False`` and the output file exists. Default is
             ``False``.
-
-            .. versionchanged:: 1.3
-               ``overwrite`` replaces the deprecated ``clobber`` argument.
         """
 
         close_file = fileobj_closed(fileobj)
@@ -782,11 +773,6 @@ class Header:
 
         return cls.fromfile(fileobj, sep='\n', endcard=endcard, padding=False)
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
     def totextfile(self, fileobj, endcard=False, overwrite=False):
         """
         Write the header as text to a file or a file-like object.
@@ -795,9 +781,6 @@ class Header:
 
             >>> Header.tofile(fileobj, sep='\\n', endcard=False,
             ...               padding=False, overwrite=overwrite)
-
-        .. versionchanged:: 1.3
-           ``overwrite`` replaces the deprecated ``clobber`` argument.
 
         See Also
         --------
