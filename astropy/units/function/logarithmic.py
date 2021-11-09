@@ -138,7 +138,7 @@ class DexUnit(LogUnit):
         If not given, dimensionless.
 
     function_unit :  `~astropy.units.Unit` or `string`
-        By default, this is ``dex`, but this allows one to use an equivalent
+        By default, this is ``dex``, but this allows one to use an equivalent
         unit such as ``0.5 dex``.
     """
 
