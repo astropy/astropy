@@ -4,8 +4,8 @@ This file contains pytest configuration settings that are astropy-specific
 (i.e.  those that would not necessarily be shared by affiliated packages
 making use of astropy's test runner).
 """
-import os
 import builtins
+import os
 import sys
 import tempfile
 import warnings
