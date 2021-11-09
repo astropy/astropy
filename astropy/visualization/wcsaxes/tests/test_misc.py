@@ -531,3 +531,11 @@ def test_wcs_type_transform_regression():
 
     high_wcs = HighLevelWCSWrapper(sliced_wcs)
     ax.get_transform(sliced_wcs)
+
+
+def test_multiple_draws_grid_contours(tmpdir):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS())
+    ax.grid(color='black', grid_type='contours')
+    fig.savefig(tmpdir / 'plot.png')
+    fig.savefig(tmpdir / 'plot.png')
