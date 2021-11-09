@@ -1,0 +1,2 @@
+Fix compatibility with Matplotlib 3.5 when using the ``grid_type='contours'``
+mode for drawing grid lines.

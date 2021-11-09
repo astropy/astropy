@@ -432,6 +432,14 @@ class WCSAxes(Axes):
     def draw(self, renderer, **kwargs):
         """Draw the axes."""
 
+        # Before we do any drawing, we need to remove any existing grid lines
+        # drawn with contours, otherwise if we try and remove the contours
+        # part way through drawing, we end up with the issue mentioned in
+        # https://github.com/astropy/astropy/issues/12446
+        for coords in self._all_coords:
+            for coord in coords:
+                coord._clear_grid_contour()
+
         # In Axes.draw, the following code can result in the xlim and ylim
         # values changing, so we need to force call this here to make sure that
         # the limits are correct before we update the patch.
