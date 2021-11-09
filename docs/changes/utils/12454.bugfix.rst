@@ -1,0 +1,2 @@
+Ensure that when taking the minimum or maximum of a ``Masked`` array,
+any masked NaN values are ignored.
