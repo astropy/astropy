@@ -297,5 +297,8 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         return result
 
-    def to_value(self, *args, **kwargs):
-        return self.to(*args, **kwargs).value
+    def to_value(self, unit=None, *args, **kwargs):
+        if unit is None:
+            return self.view(np.ndarray)
+
+        return self.to(unit, *args, **kwargs).value
