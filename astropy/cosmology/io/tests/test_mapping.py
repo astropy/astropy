@@ -45,6 +45,11 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         params = to_format('mapping', cls=map_cls)
         assert isinstance(params, map_cls)  # test type
 
+    def test_from_not_mapping(self, cosmo, from_format):
+        """Test incorrect map type in ``from_mapping()``."""
+        with pytest.raises((TypeError, ValueError)):
+            from_format("NOT A MAP", format="mapping")
+
     def test_tofrom_mapping_instance(self, cosmo, to_format, from_format):
         """Test cosmology -> Mapping -> cosmology."""
         # ------------
