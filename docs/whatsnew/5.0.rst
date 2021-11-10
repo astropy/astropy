@@ -23,7 +23,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.0-mrt-format-tables`
 * :ref:`whatsnew-5.0-masked-quantity-columns`
 
-In addition to these major changes, Astropy v4.3 includes a large number of
+In addition to these major changes, Astropy v5.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
@@ -418,4 +418,4 @@ The people who have contributed to the code for this release are:
   *  sashmish  *
   *  srirajshukla  *
 
-Where a * indicates that this release contains their first contribution to
+Where a * indicates that this release contains their first contribution to Astropy.
