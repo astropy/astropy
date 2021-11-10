@@ -28,11 +28,11 @@ In addition to these major changes, Astropy v5.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* 2695 commits have been added since 4.3
-* 115 issues have been closed since 4.3
-* 205 pull requests have been merged since 4.3
-* 97 people have contributed since 4.3
-* 49 of which are new contributors
+* 1301 commits have been added since 4.3
+* 138 issues have been closed since 4.3
+* 249 pull requests have been merged since 4.3
+* 54 people have contributed since 4.3
+* 18 of which are new contributors
 
 .. _whatsnew-5.0-cosmology-io:
 
@@ -358,96 +358,53 @@ The people who have contributed to the code for this release are:
   *  Akshat Dixit  *
   *  Akshat1Nar  *
   *  Albert Y. Shih
-  *  Andrej Rode  *
-  *  Bhavya Khandelwal  *
   *  Brett Morris
-  *  Brian Soto
   *  Brigitta Sipőcz
-  *  Bruce Merry
-  *  Chiara Marmo  *
   *  Christoph Gohlke
   *  Conor MacBride  *
-  *  Daniel Ryan  *
+  *  Daniel Ryan
   *  Daria Cara
   *  David Stansby
   *  Derek Homeier
   *  E. Madison Bray
   *  E. Rykoff  *
   *  Ed Slavich
-  *  Eero Vaher  *
+  *  Eero Vaher
   *  Emir  *
   *  Erik Tollerud
   *  Gabriel Perren
-  *  Geert Barentsen
-  *  Gyanendra Shukla  *
   *  Hans Moritz Günther
-  *  Jakob Maljaars  *
-  *  James Davies
-  *  James Tocknell  *
-  *  James Turner
-  *  Jane Rigby
+  *  James Tocknell
   *  Jason Segnini  *
   *  Jero Bado
-  *  Jose Sabater  *
-  *  Juan Luis Cano Rodríguez
-  *  Julien Woillez
-  *  Karl Wessel  *
   *  Larry Bradley
-  *  Laura Hayes  *
   *  Laurie Stephey  *
   *  Leo Singer
-  *  Ludwig Schwardt
-  *  Léni Gauffier  *
-  *  Maik Nijhuis  *
   *  Markus Demleitner  *
   *  Marten van Kerkwijk
   *  Matteo Bachetti
-  *  Matthias Bussonnier  *
   *  Maximilian Nöthe
   *  Michael Brewer  *
   *  Mihai Cara
   *  Nadia Dencheva
   *  Nathaniel Starkman
-  *  Nicholas Earl
-  *  Nick Murphy
-  *  Nikita Tewary  *
   *  Ole Streicher
-  *  Param Patidar  *
-  *  Perry Greenfield
   *  Pey Lian Lim
-  *  Pushkar Kopparla  *
-  *  Ricardo Fonseca
-  *  Richard R  *
-  *  Rik van Lieshout  *
   *  Roy Smart  *
   *  Sam Van Kooten  *
-  *  Shankar Kulumani  *
   *  Simon Conseil
-  *  Steve Guest  *
-  *  Steven Bamford
-  *  Stuart Littlefair
   *  Stuart Mumford
-  *  Suyog Garg  *
+  *  Suyog Garg
   *  Thomas Robitaille
-  *  Tim Gates  *
-  *  Tim Jenness
   *  Tom Aldcroft
-  *  Tom Donaldson
   *  Volodymyr Savchenko  *
-  *  William Jamieson  *
+  *  William Jamieson
   *  Zé Vinicius
   *  athul  *
-  *  bhavyakh  *
   *  diegoasterio  *
-  *  homeboy445  *
   *  iamsoto  *
-  *  ikkamens  *
   *  luz paz  *
-  *  maggiesam  *
   *  odidev  *
-  *  orionlee  *
-  *  sashmish  *
-  *  srirajshukla  *
 
 Where a * indicates that this release contains their first contribution to
 Astropy.
