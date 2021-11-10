@@ -3,15 +3,18 @@
 
 __all__ = ['quantity_input', 'dequantity_input']
 
+import inspect
 from numbers import Number
 from collections.abc import Sequence
-import inspect
+from functools import wraps
 
 import numpy as np
 
-from astropy.utils.decorators import wraps
-from .core import Unit, add_enabled_equivalencies
-from .physical import get_physical_type
+from . import _typing as T
+from .core import (Unit, UnitBase, UnitsError,
+                   add_enabled_equivalencies, dimensionless_unscaled)
+from .function.core import FunctionUnitBase
+from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
 from .structured import StructuredUnit
 from .unitspec import UnitSpec, NullUnitSpec, UnitSpecBase
@@ -73,6 +76,45 @@ def _is_physicaltypelike(target):
     return True
 
 
+def _parse_annotation(target):
+
+    if target in (None, inspect._empty):
+        return None
+
+    # check if unit-like
+    try:
+        unit = Unit(target)
+    except (TypeError, ValueError):
+        try:
+            ptype = get_physical_type(target)
+        except (TypeError, ValueError, KeyError):  # KeyError for Enum
+            if isinstance(target, str):
+                raise ValueError(f"invalid unit or physical type {target!r}.") from None
+        else:
+            return ptype
+    else:
+        return unit
+
+    # could be a type hint
+    origin = T.get_origin(target)
+    if origin is T.Union:
+        return [_parse_annotation(t) for t in T.get_args(target)]
+    elif origin is not T.Annotated:  # can't be Quantity[]
+        return False
+
+    # parse type hint
+    cls, *annotations = T.get_args(target)
+    if not issubclass(cls, Quantity) or not annotations:
+        return False
+
+    # get unit from type hint
+    unit, *rest = annotations
+    if not isinstance(unit, (UnitBase, PhysicalType)):
+        return None
+
+    return unit
+
+
 def _parse_target(target, error=False):
     """Parse unit / physical type target.
 
@@ -103,6 +145,7 @@ def _parse_target(target, error=False):
     elif isinstance(target, UnitSpecBase):
         spec = target
     # determine it's a unit
+
     elif _is_unitlike(target, allow_structured=False):
         spec = Unit(target)
     # determine if PhysicalType-like
@@ -277,7 +320,6 @@ class QuantityInput:
             self._update_wrapper(wrapper, equivalencies=equivalencies,
                                  strict_dimensionless=strict_dimensionless)
 
-
         update_wrapper.__doc__ = update_wrapper.__doc__.format(wrapped_function)
         wrapper.update_wrapper = update_wrapper
 
@@ -353,7 +395,7 @@ class QuantityInput:
         elif anote is inspect.Parameter.empty:  # no dec arg nor annotation
             name = target = None
         else:  # annotation (becomes `None` if not recognized)
-            target = _parse_target(anote, error=False)
+            target = _parse_annotation(anote)
 
         # target -> Unitspec, composite thereof, or None (no target)
         if isinstance(target, UnitSpecBase) or target is None:
