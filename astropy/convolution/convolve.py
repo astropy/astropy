@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
-import os
 import ctypes
+import os
 import warnings
 from functools import partial
 
 import numpy as np
-from numpy.ctypeslib import ndpointer, load_library
+from numpy.ctypeslib import load_library, ndpointer
 
-from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.console import human_file_size
 from astropy import units as u
-from astropy.nddata import support_nddata
-from astropy.modeling.core import CompoundModel
-from astropy.modeling.core import SPECIAL_OPERATORS
 from astropy.modeling.convolution import Convolution
+from astropy.modeling.core import SPECIAL_OPERATORS, CompoundModel
+from astropy.nddata import support_nddata
+from astropy.utils.console import human_file_size
+from astropy.utils.exceptions import AstropyUserWarning
+
+from .core import MAX_NORMALIZATION, Kernel, Kernel1D, Kernel2D
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 LIBRARY_PATH = os.path.dirname(__file__)
