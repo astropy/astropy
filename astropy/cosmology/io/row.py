@@ -4,9 +4,9 @@ import copy
 
 import numpy as np
 
-from astropy.table import Row
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.table import Row
 
 from .mapping import from_mapping
 

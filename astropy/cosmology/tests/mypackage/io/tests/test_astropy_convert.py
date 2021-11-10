@@ -4,13 +4,9 @@
 Test that the conversion interface with Astropy works as expected.
 """
 
-# STDLIB
 import os
 
-# THIRD PARTY
 import pytest
-
-# LOCAL
 from mypackage.cosmology import MyCosmology, myplanck
 
 # skip all tests in module if import is missing

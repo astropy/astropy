@@ -4,13 +4,9 @@
 Test that the interface with Astropy works as expected.
 """
 
-# STDLIB
 import os
 
-# THIRD PARTY
 import pytest
-
-# LOCAL
 from mypackage.cosmology import myplanck
 from mypackage.io import file_reader
 

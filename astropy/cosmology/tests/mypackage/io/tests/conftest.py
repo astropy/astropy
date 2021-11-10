@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# THIRD PARTY
 import pytest
-
-# LOCAL
 from mypackage.io import ASTROPY_GE_5
 
 
