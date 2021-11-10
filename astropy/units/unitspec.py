@@ -4,6 +4,7 @@
 import abc
 from numbers import Number
 from collections.abc import ItemsView
+from inspect import _empty
 from types import MappingProxyType
 
 import numpy as np
@@ -39,21 +40,25 @@ class UnitSpecBase(metaclass=abc.ABCMeta):
         Not used.
     """
 
-    def __init__(self, target, qcls=Quantity, bound=True, **kw):
-        self.target = target
-        self.qcls = qcls
-        self.bound = bound
+    def __init_subclass__(cls, action, **kwargs):
+        # check registry
+        if action in _ACTION_USPEC_REGISTRY:
+            raise KeyError(f"`{action}` already in registry.")
 
-    @classmethod
-    def _get_action(cls, kls=None):
-        # needed for `UnitSpec.__init_subclass__`, where `kls` is is passed by
-        # the wrap of `_get_action` by `classproperty`
-        return _USPEC_ACTION_REGISTRY[kls or cls]
+        if action is not _empty:  # optionally register
+            # register subclass and action
+            _ACTION_USPEC_REGISTRY[action] = cls
+            _USPEC_ACTION_REGISTRY[cls] = action
 
     @classproperty
     def action(cls):
         """Get action associated with unit specification."""
-        return cls._get_action()
+        return _USPEC_ACTION_REGISTRY[cls]
+
+    def __init__(self, target, qcls=Quantity, bound=True, **kw):
+        self.target = target
+        self.qcls = qcls
+        self.bound = bound
 
     @abc.abstractmethod
     def __call__(self, value, **kwargs):
@@ -84,10 +89,11 @@ class UnitSpecBase(metaclass=abc.ABCMeta):
         return CompoundUnitSpec(self, other)
 
     def __repr__(self):
-        return f"{self.__class__.__qualname__}({self.target}, qcls={self.qcls.__name__})"
+        return (f"{self.__class__.__qualname__}({self.target},"
+                f" qcls={self.qcls.__name__}, bound={self.bound})")
 
 
-class CompoundUnitSpec(UnitSpecBase):
+class CompoundUnitSpec(UnitSpecBase, action=_empty):
 
     def __init__(self, *specs):
         # TODO! flatten specs to allow for CompoundUnitSpec(CompoundUnitSpec())
@@ -102,9 +108,12 @@ class CompoundUnitSpec(UnitSpecBase):
             except (UnitConversionError, TypeError):
                 pass
             else:
-                return out
+                break
+        else:
+            # TODO! better error message
+            raise TypeError("All unitspecs failed")  # TODO! better error message
 
-        raise TypeError("All unitspecs failed")  # TODO! better error message
+        return out
 
     # =====================
 
@@ -129,82 +138,88 @@ class CompoundUnitSpec(UnitSpecBase):
 # =============================================================================
 
 
-class UnitSpec(UnitSpecBase):
-    """Unit Specification.
+# TODO! this as a class? Make it the base of the non-compound chain?
+# Subclasses return themselves, UnitSpec returns a subclass.
+def UnitSpec(target, action=None, qcls=Quantity, bound=True, **kwargs):
+    # First check if target is a UnitSpec. This class doesn't convert, so
+    # those pass thru directly. Note: UnitSpec subclasses can do whatever.
+    if isinstance(target, UnitSpecBase):
+        return target
 
-    Parameters
-    ----------
-    target : `UnitSpecBase` or None or Any
-    action : str or None, optional
-        The action to take on the target.
-    qcls : `~astropy.units.Quantity` or subclass type
-        The Quantity class. This can be used to enforce, e.g.
-        `~astropy.coordinates.Angle` quantities.
-    """
+    if action not in _ACTION_USPEC_REGISTRY:
+        raise KeyError(f"action {action!r} must be one of {_ACTION_USPEC_REGISTRY.keys()}")
 
-    def __init_subclass__(cls, action, **kwargs):
-        # check registry
-        if action in _ACTION_USPEC_REGISTRY:
-            raise KeyError(f"`{action}` already in registry.")
+    cls = _ACTION_USPEC_REGISTRY[action]
+    uspec = cls(target, qcls=qcls, bound=bound, **kwargs)
+    return uspec
 
-        # register subclass and action
-        _ACTION_USPEC_REGISTRY[action] = cls
-        _USPEC_ACTION_REGISTRY[cls] = action
-
-        # reimplement UnitSpecBase action
-        cls.action = classproperty(UnitSpecBase._get_action)
-
-    def __new__(cls, target=None, action=None, qcls=Quantity, **kw):
-        # First check if target is a UnitSpec. This class doesn't convert, so
-        # those pass thru directly. Note: UnitSpec subclasses can do whatever.
-        if isinstance(target, UnitSpecBase):
-            return target
-
-        # second check it's a valid action...
-        elif action not in _ACTION_USPEC_REGISTRY:
-            raise KeyError(f"action {action!r} must be one of {_ACTION_USPEC_REGISTRY.keys()}")
-
-        # if so, create the UnitSpec for that action.
-        self = super().__new__(cls)
-        if cls is UnitSpec:
-            # UnitSpec wraps its subclasses so only UnitSpec need ever be imported.
-            # Need to determine which subclass to wrap
-            self._uspec = _ACTION_USPEC_REGISTRY[action](target, qcls=qcls)
-            self.__doc__ = self._uspec.__doc__  # update docstring
-            # self.__call__.__doc__ = self._uspec.__call__.__doc__
-
-        return self
-
-    def __call__(self, value, **kwargs):
-        """Calls the wrapped UnitSpec."""
-        # pass through to wrapped UnitSpec
-        return self._uspec(value, **kwargs)
-
-    @property
-    def action(self):
-        """Unit Specification."""
-        return self._uspec.action
-
-    @action.setter
-    def action(self, value):
-        if value != self._uspec.action:
-            self._uspec = self._ACTION_USPEC_REGISTRY[value](self.target, qcls=self.qcls)
-
-    # =====================
-
-    def __repr__(self):
-        if self.__class__ is UnitSpec:
-            return f"[UnitSpec]{self._uspec}"
-
-        # can / should be overridden by subclasses. This is just a default.
-        return (f"{self.__class__.__qualname__}({self.target!r}, qcls={self.qcls.__qualname__}, "
-                f"action={self.action!r}, bound={self.bound})")
+# class UnitSpec(UnitSpecBase, action=_empty):
+#     """Unit Specification.
+#
+#     Should not be subclassed.
+#
+#     Parameters
+#     ----------
+#     target : `UnitSpecBase` or None or Any
+#     action : str or None, optional
+#         The action to take on the target.
+#     qcls : `~astropy.units.Quantity` or subclass type
+#         The Quantity class. This can be used to enforce, e.g.
+#         `~astropy.coordinates.Angle` quantities.
+#     """
+#
+#     def __new__(cls, target=None, action=None, qcls=Quantity, bound=True, **kw):
+#         if cls is not UnitSpec:
+#             raise TypeError("UnitSpec cannot be subclassed.")
+#
+#         # First check if target is a UnitSpec. This class doesn't convert, so
+#         # those pass thru directly. Note: UnitSpec subclasses can do whatever.
+#         if isinstance(target, UnitSpecBase):
+#             return target
+#
+#         return super().__new__(cls)
+#
+#     def __init__(self, target, action=None, qcls=Quantity, bound=True, **kw):
+#         # second check it's a valid action...
+#         if action not in _ACTION_USPEC_REGISTRY:
+#             raise KeyError(f"action {action!r} must be one of {_ACTION_USPEC_REGISTRY.keys()}")
+#
+#         # UnitSpec wraps its subclasses so only UnitSpec need ever be imported.
+#         # Need to determine which subclass to wrap
+#         uspec = _ACTION_USPEC_REGISTRY[action](target, qcls=qcls, bound=bound, **kw)
+#         object.__setattr__(self, "_uspec", uspec)
+#         self.__doc__ = self._uspec.__doc__  # update docstring
+#         # self.__call__.__doc__ = self._uspec.__call__.__doc__
+#
+#     def __call__(self, value, **kwargs):
+#         """Calls the wrapped UnitSpec."""
+#         # pass through to wrapped UnitSpec
+#         return self._uspec(value, **kwargs)
+#
+#     @property
+#     def action(self):
+#         """Unit Specification."""
+#         return self._uspec.action
+#
+#     def __getattr__(self, attr):
+#         return getattr(self._uspec, attr)
+#
+#     # def __setattr__(self, attr, val):
+#     #     setattr(self._uspec, attr, val)
+#
+#     def __dir__(self):
+#         return sorted(set(object.__dir__(self)).union(set(dir(self._uspec))))
+#
+#     # =====================
+#
+#     def __repr__(self):
+#         return "[UnitSpec]" + repr(self._uspec).replace("UnitSpec", "")
 
 
 # -----------------------------------------------------------------------------
 
 
-class NullUnitSpec(UnitSpec, action=None):
+class NullUnitSpec(UnitSpecBase, action=None):
     """Null Unit Specification. Returns value on call.
 
     Examples
@@ -229,8 +244,10 @@ class NullUnitSpec(UnitSpec, action=None):
     >>> UnitSpec(None)
     [UnitSpec]NullUnitSpec()
     """
-    
-    def __init__(self, *args, **kwargs):
+
+    def __init__(self, target=None, *args, **kwargs):
+        if target is not None:
+            raise ValidateError("NullUnitSpec can only have target=None.")
         pass
 
     def __call__(self, value):
@@ -244,7 +261,7 @@ class NullUnitSpec(UnitSpec, action=None):
 # -----------------------------------------------------------------------------
 
 
-class ValidatePhysicalType(UnitSpec, action="validate"):
+class UnitSpecValidatePhysicalType(UnitSpecBase, action="validate"):
     """UnitSpec to validate physical type.
 
     Parameters
@@ -269,7 +286,7 @@ class ValidatePhysicalType(UnitSpec, action="validate"):
     >>> uspec = UnitSpec("length", action="validate")
     >>> uspec
     [UnitSpec]ValidatePhysicalType(PhysicalType('length'), qcls=Quantity,
-                                   action='validate', strict=False)
+                                   action='validate', bound=True)
     """
 
     def __init__(self, physical_type, qcls=Quantity, bound=True, strict_dimensionless=False, **kw):
@@ -315,11 +332,16 @@ class ValidatePhysicalType(UnitSpec, action="validate"):
 
         return value
 
+    def __repr__(self):
+        return (f"{self.__class__.__qualname__}({self.target},"
+                f" qcls={self.qcls.__name__}, bound={self.bound},"
+                f" strict_dimensionless={self.strict_dimensionless})")
+
 
 # -----------------------------------------------------------------------------
 
 
-class ConvertToUnit(UnitSpec, action="to unit"):
+class UnitSpecConvertToUnit(UnitSpecBase, action="to unit"):
     """Convert input to target unit.
 
     Parameters
@@ -351,7 +373,7 @@ class ConvertToUnit(UnitSpec, action="to unit"):
         return self.qcls(value, unit=self.target, copy=False)
 
 
-class ConvertToValue(ConvertToUnit, action="to value"):
+class UnitSpecConvertToValue(UnitSpecConvertToUnit, action="to value"):
     """Convert input to value in target units.
 
     Parameters
@@ -364,12 +386,12 @@ class ConvertToValue(ConvertToUnit, action="to value"):
 
     def __call__(self, value, bound=None, **kw):
         """Convert input to value in target units.
-    
+
         Parameters
         ----------
         value
         bound : bool
-    
+
         Returns
         -------
         `~astropy.units.Quantity`
@@ -377,9 +399,9 @@ class ConvertToValue(ConvertToUnit, action="to value"):
         return super().__call__(value, bound=bound, **kw).to_value()
 
 
-class AssignUnits(ConvertToUnit, action="from value"):
+class UnitSpecAssignUnits(UnitSpecConvertToUnit, action="from value"):
     """Assign input target units.
-    
+
     Equivalent to UnitSpec 'to unit', with strictness set to False.
 
     Parameters
@@ -389,20 +411,24 @@ class AssignUnits(ConvertToUnit, action="from value"):
     qcls : type
     """
 
-    def __init__(self, unit, qcls=Quantity, **kw):
-        kw.pop("bound", None)  # make sure not present
-        super().__init__(unit, qcls=qcls, bound=True, **kw)
+    def __init__(self, unit, qcls=Quantity, bound=True, **kw):
+        super().__init__(unit, qcls=qcls, bound=bound, **kw)
 
-    def __call__(self, value, **kw):
+    def __call__(self, value, bound=None, **kw):
         """Assign input target units.
-    
+
         Parameters
         ----------
         value
-    
+
         Returns
         -------
         `~astropy.units.Quantity`
         """
-        kw.pop("bound", None)  # make sure not present
-        return self.qcls(value, unit=self.target, copy=False)
+        # only apply type bound check if it's like qcls
+        # numbers and 'raw' input are *assigned* units, not checked.
+        if hasattr(value, "unit"):  # TODO? is this a sufficient check, or too general?
+            self._check_bound(value, bound=bound)
+
+        kw.setdefault("copy", False)
+        return self.qcls(value, unit=self.target, **kw)
