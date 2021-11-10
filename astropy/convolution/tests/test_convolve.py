@@ -1,21 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-import numpy as np
-import numpy.ma as ma
+import itertools
 from contextlib import nullcontext
 
+import pytest
+
+import numpy as np
+import numpy.ma as ma
+from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp
+
+from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY  # noqa
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy import units as u
-from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_PANDAS  # noqa
-
-from numpy.testing import (assert_array_almost_equal_nulp,
-                           assert_array_almost_equal,
-                           assert_allclose)
-
-import itertools
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
 VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))

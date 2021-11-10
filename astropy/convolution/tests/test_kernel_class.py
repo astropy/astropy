@@ -3,20 +3,20 @@
 import itertools
 
 import pytest
+
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy.convolution.convolve import convolve, convolve_fft
-from astropy.convolution.kernels import (
-    Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
-    Trapezoid1DKernel, TrapezoidDisk2DKernel, RickerWavelet1DKernel,
-    Tophat2DKernel, RickerWavelet2DKernel, AiryDisk2DKernel, Ring2DKernel,
-    CustomKernel, Model1DKernel, Model2DKernel, Kernel1D, Kernel2D)
-
+from astropy.convolution.kernels import (AiryDisk2DKernel, Box1DKernel, Box2DKernel, CustomKernel,
+                                         Gaussian1DKernel, Gaussian2DKernel, Kernel1D, Kernel2D,
+                                         Model1DKernel, Model2DKernel, RickerWavelet1DKernel,
+                                         RickerWavelet2DKernel, Ring2DKernel, Tophat2DKernel,
+                                         Trapezoid1DKernel, TrapezoidDisk2DKernel)
 from astropy.convolution.utils import KernelSizeError
 from astropy.modeling.models import Box2D, Gaussian1D, Gaussian2D
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 WIDTHS_ODD = [3, 5, 7, 9]
 WIDTHS_EVEN = [2, 4, 8, 16]
