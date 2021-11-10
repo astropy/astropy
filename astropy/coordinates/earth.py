@@ -1,29 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from warnings import warn
 import collections
-import socket
 import json
-import urllib.request
+import socket
 import urllib.error
 import urllib.parse
+import urllib.request
+from warnings import warn
 
-import numpy as np
 import erfa
 
-from astropy import units as u
+import numpy as np
+
 from astropy import constants as consts
+from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
 from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .angles import Angle, Longitude, Latitude
-from .representation import (BaseRepresentation, CartesianRepresentation,
-                             CartesianDifferential)
-from .matrix_utilities import matrix_transpose
+from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
-
+from .matrix_utilities import matrix_transpose
+from .representation import BaseRepresentation, CartesianDifferential, CartesianRepresentation
 
 __all__ = ['EarthLocation', 'BaseGeodeticRepresentation',
            'WGS84GeodeticRepresentation', 'WGS72GeodeticRepresentation',
@@ -731,8 +730,8 @@ class EarthLocation(u.Quantity):
             The GCRS velocity of the object
         """
         # Local import to prevent circular imports.
-        from .builtin_frames.intermediate_rotation_transforms import (
-            cirs_to_itrs_mat, gcrs_to_cirs_mat)
+        from .builtin_frames.intermediate_rotation_transforms import (cirs_to_itrs_mat,
+                                                                      gcrs_to_cirs_mat)
 
         # Get gcrs_posvel by transforming via CIRS (slightly faster than TETE).
         return self._get_gcrs_posvel(obstime,

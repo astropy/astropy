@@ -6,15 +6,16 @@
 import pickle
 
 import pytest
+
 import numpy as np
 
-from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
-from astropy.coordinates.angles import Longitude, Latitude
-from astropy.units import allclose as quantity_allclose
-from astropy import units as u
-from astropy.time import Time
 from astropy import constants
+from astropy import units as u
+from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
+from astropy.time import Time
+from astropy.units import allclose as quantity_allclose
 
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):

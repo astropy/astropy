@@ -12,13 +12,14 @@ updating the ``location.json`` file.
 
 
 import json
-from difflib import get_close_matches
 from collections.abc import Mapping
+from difflib import get_close_matches
 
-from astropy.utils.data import get_pkg_data_contents, get_file_contents
+from astropy import units as u
+from astropy.utils.data import get_file_contents, get_pkg_data_contents
+
 from .earth import EarthLocation
 from .errors import UnknownSiteException
-from astropy import units as u
 
 
 class SiteRegistry(Mapping):

@@ -2,15 +2,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+
 import numpy as np
 from numpy import testing as npt
 
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-
 from astropy import units as u
-
 from astropy.coordinates import matching
-
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 """
@@ -24,6 +22,7 @@ Note that this requires scipy.
 def test_matching_function():
     from astropy.coordinates import ICRS
     from astropy.coordinates.matching import match_coordinates_3d
+
     # this only uses match_coordinates_3d because that's the actual implementation
 
     cmatch = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree)
@@ -128,8 +127,8 @@ def test_python_kdtree(monkeypatch):
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
 def test_matching_method():
     from astropy.coordinates import ICRS, SkyCoord
-    from astropy.utils import NumpyRNGContext
     from astropy.coordinates.matching import match_coordinates_3d, match_coordinates_sky
+    from astropy.utils import NumpyRNGContext
 
     with NumpyRNGContext(987654321):
         cmatch = ICRS(np.random.rand(20) * 360.*u.degree,
@@ -158,7 +157,7 @@ def test_matching_method():
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around():
     from astropy.coordinates import ICRS, SkyCoord
-    from astropy.coordinates.matching import search_around_sky, search_around_3d
+    from astropy.coordinates.matching import search_around_3d, search_around_sky
 
     coo1 = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
     coo2 = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
@@ -239,7 +238,7 @@ def test_search_around():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_search_around_scalar():
-    from astropy.coordinates import SkyCoord, Angle
+    from astropy.coordinates import Angle, SkyCoord
 
     cat = SkyCoord([1, 2, 3], [-30, 45, 8], unit="deg")
     target = SkyCoord('1.1 -30.1', unit="deg")
@@ -290,7 +289,7 @@ def test_match_catalog_empty():
 @pytest.mark.filterwarnings(
     r'ignore:invalid value encountered in.*:RuntimeWarning')
 def test_match_catalog_nan():
-    from astropy.coordinates import SkyCoord, Galactic
+    from astropy.coordinates import Galactic, SkyCoord
 
     sc1 = SkyCoord(1, 2, unit="deg")
     sc_with_nans = SkyCoord(1, np.nan, unit="deg")

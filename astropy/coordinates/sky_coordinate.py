@@ -1,30 +1,28 @@
-import re
 import copy
-import warnings
 import operator
+import re
+import warnings
 
-import numpy as np
 import erfa
 
-from astropy.utils.compat.misc import override__dir__
+import numpy as np
+
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from astropy.utils.data_info import MixinInfo
-from astropy.utils import ShapedLikeNDArray
 from astropy.table import QTable
 from astropy.time import Time
+from astropy.utils import ShapedLikeNDArray
+from astropy.utils.compat.misc import override__dir__
+from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .distances import Distance
 from .angles import Angle
-from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        GenericFrame)
+from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
 from .builtin_frames import ICRS, SkyOffsetFrame
+from .distances import Distance
 from .representation import (RadialDifferential, SphericalDifferential,
-                             SphericalRepresentation,
-                             UnitSphericalCosLatDifferential,
-                             UnitSphericalDifferential,
-                             UnitSphericalRepresentation)
+                             SphericalRepresentation, UnitSphericalCosLatDifferential,
+                             UnitSphericalDifferential, UnitSphericalRepresentation)
 from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
                                      _parse_coordinate_data)
 

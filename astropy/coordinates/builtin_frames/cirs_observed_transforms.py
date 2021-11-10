@@ -4,20 +4,20 @@
 Contains the transformation functions for getting to "observed" systems from CIRS.
 """
 
-import numpy as np
 import erfa
+
+import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.representation import SphericalRepresentation, UnitSphericalRepresentation
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
-from astropy.coordinates.representation import (SphericalRepresentation,
-                                                UnitSphericalRepresentation)
 
-from .cirs import CIRS
+from ..erfa_astrom import erfa_astrom
 from .altaz import AltAz
+from .cirs import CIRS
 from .hadec import HADec
 from .utils import PIOVER2
-from ..erfa_astrom import erfa_astrom
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)

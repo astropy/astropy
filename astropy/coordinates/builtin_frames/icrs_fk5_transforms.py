@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                                  matrix_product,
-                                                  matrix_transpose)
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.matrix_utilities import matrix_product, matrix_transpose, rotation_matrix
 from astropy.coordinates.transformations import DynamicMatrixTransform
 
 from .fk5 import FK5

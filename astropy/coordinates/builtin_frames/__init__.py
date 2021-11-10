@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# isort: skip_file
+
 """
 This package contains the coordinate frames implemented by astropy.
 

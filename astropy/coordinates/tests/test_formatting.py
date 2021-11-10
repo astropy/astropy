@@ -6,8 +6,8 @@ test_sky_coord
 """
 
 
-from astropy.coordinates.angles import Angle
 from astropy import units as u
+from astropy.coordinates.angles import Angle
 
 
 def test_to_string_precision():

@@ -1,9 +1,11 @@
+import pytest
+
+from astropy.coordinates.builtin_frames.utils import (get_offset_sun_from_barycenter,
+                                                      get_polar_motion)
+from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
-from astropy.coordinates.builtin_frames.utils import get_polar_motion, get_offset_sun_from_barycenter
-from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.utils.exceptions import AstropyWarning
-import pytest
 
 
 def test_polar_motion_unsupported_dates():

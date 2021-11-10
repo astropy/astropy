@@ -4,27 +4,28 @@
 from copy import deepcopy
 
 import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.tests.helper import (assert_quantity_allclose as
-                                  assert_allclose_quantity)
-from astropy.utils import isiterable
-from astropy.utils.exceptions import DuplicateRepresentationWarning
-from astropy.coordinates.angles import Longitude, Latitude, Angle
+from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import rotation_matrix
-from astropy.coordinates.representation import (
-    REPRESENTATION_CLASSES, DIFFERENTIAL_CLASSES, DUPLICATE_REPRESENTATIONS,
-    BaseRepresentation, SphericalRepresentation, UnitSphericalRepresentation,
-    SphericalCosLatDifferential, CartesianRepresentation, RadialRepresentation,
-    RadialDifferential, CylindricalRepresentation,
-    PhysicsSphericalRepresentation, CartesianDifferential,
-    SphericalDifferential, CylindricalDifferential,
-    PhysicsSphericalDifferential, UnitSphericalDifferential,
-    UnitSphericalCosLatDifferential)
-
+from astropy.coordinates.representation import (DIFFERENTIAL_CLASSES, DUPLICATE_REPRESENTATIONS,
+                                                REPRESENTATION_CLASSES, BaseRepresentation,
+                                                CartesianDifferential, CartesianRepresentation,
+                                                CylindricalDifferential, CylindricalRepresentation,
+                                                PhysicsSphericalDifferential,
+                                                PhysicsSphericalRepresentation, RadialDifferential,
+                                                RadialRepresentation, SphericalCosLatDifferential,
+                                                SphericalDifferential, SphericalRepresentation,
+                                                UnitSphericalCosLatDifferential,
+                                                UnitSphericalDifferential,
+                                                UnitSphericalRepresentation)
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
+from astropy.utils import isiterable
+from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 # create matrices for use in testing ``.transform()`` methods
 matrices = {
@@ -1657,8 +1658,8 @@ def test_minimal_subclass():
 
 
 def test_duplicate_warning():
-    from astropy.coordinates.representation import DUPLICATE_REPRESENTATIONS
-    from astropy.coordinates.representation import REPRESENTATION_CLASSES
+    from astropy.coordinates.representation import (DUPLICATE_REPRESENTATIONS,
+                                                    REPRESENTATION_CLASSES)
 
     with pytest.warns(DuplicateRepresentationWarning):
         class UnitSphericalRepresentation(BaseRepresentation):

@@ -3,14 +3,14 @@
 
 """Test replacements for ERFA functions atciqz and aticq."""
 
-import pytest
 import erfa
+import pytest
 
+import astropy.units as u
+from astropy.coordinates import SphericalRepresentation
+from astropy.coordinates.builtin_frames.utils import atciqz, aticq, get_jd12
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-import astropy.units as u
-from astropy.coordinates.builtin_frames.utils import get_jd12, atciqz, aticq
-from astropy.coordinates import SphericalRepresentation
 
 # Hard-coded random values
 sph = SphericalRepresentation(lon=[15., 214.] * u.deg,
