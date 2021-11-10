@@ -1,14 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import math
-import numpy as np
+
 import pytest
 
-from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
-from astropy.modeling import models, fitting
-from astropy.utils.misc import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+import numpy as np
 from numpy.testing import assert_allclose, assert_almost_equal
+
+from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
+from astropy.modeling import fitting, models
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.misc import NumpyRNGContext
 
 
 class TestConvolve1DModels:
