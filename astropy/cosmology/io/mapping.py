@@ -81,7 +81,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                       Tcmb0=0 K, Neff=3.05, m_nu=None, Ob0=0.049)
     """
-    params = copy.deepcopy(map)  # so can pop
+    params = dict(map)  # so we are guaranteed to have a poppable map
 
     # get cosmology
     # 1st from argument. Allows for override of the cosmology, if on file.

@@ -31,19 +31,24 @@ class ToFromRowTestMixin(IOTestMixinBase):
     """
 
     @pytest.mark.parametrize("in_meta", [True, False])
-    def test_to_row_in_meta(self, cosmo, in_meta):
+    def test_to_row_in_meta(self, cosmo_cls, cosmo, in_meta):
         """Test where the cosmology class is placed."""
         row = cosmo.to_format('astropy.row', cosmology_in_meta=in_meta)
 
         # if it's in metadata, it's not a column. And vice versa.
         if in_meta:
-            assert row.meta["cosmology"] == cosmo.__class__.__qualname__
+            assert row.meta["cosmology"] == cosmo_cls.__qualname__
             assert "cosmology" not in row.colnames  # not also a column
         else:
-            assert row["cosmology"] == cosmo.__class__.__qualname__
+            assert row["cosmology"] == cosmo_cls.__qualname__
             assert "cosmology" not in row.meta
 
     # -----------------------
+
+    def test_from_not_row(self, cosmo, from_format):
+        """Test not passing a Row to the Row parser."""
+        with pytest.raises(AttributeError):
+            from_format("NOT A ROW", format="astropy.row")
 
     def test_tofrom_row_instance(self, cosmo, to_format, from_format):
         """Test cosmology -> astropy.row -> cosmology."""
