@@ -22,6 +22,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.0-parquet-tables`
 * :ref:`whatsnew-5.0-mrt-format-tables`
 * :ref:`whatsnew-5.0-masked-quantity-columns`
+* :ref:`whatsnew-5.0-skycoord-to-table`
 
 In addition to these major changes, Astropy v5.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -306,6 +307,36 @@ A consequence of this is that when FITS tables are read into a ``QTable``, any
 missing entries will be masked. Hence, when such columns have units, all ``NaN``
 values will now be masked.
 
+.. _whatsnew-5.0-skycoord-to-table:
+
+Converting |SkyCoord| to |QTable|
+=================================
+
+Astropy v5.0 adds the :meth:`~astropy.coordinates.SkyCoord.to_table` method to
+|SkyCoord| objects, which creates a |QTable| from the |SkyCoord|::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.time import Time
+    >>> sc = SkyCoord(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg,
+    ...               obstime=Time([2000, 2010], format='jyear'))
+    >>> t =  sc.to_table()
+    >>> t
+    <QTable length=2>
+       ra     dec   obstime
+      deg     deg
+    float64 float64   Time
+    ------- ------- -------
+       40.0     0.0  2000.0
+       70.0   -20.0  2010.0
+
+Information about the coordinate frame is stored in the metadata of the table::
+
+    >>> t.meta
+    {'representation_type': 'spherical', 'frame': 'icrs'}
+
+For more details see :ref:`skycoord-table-conversion`.
+
 Full change log
 ===============
 
@@ -418,4 +449,5 @@ The people who have contributed to the code for this release are:
   *  sashmish  *
   *  srirajshukla  *
 
-Where a * indicates that this release contains their first contribution to Astropy.
+Where a * indicates that this release contains their first contribution to
+Astropy.
