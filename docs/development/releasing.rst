@@ -70,7 +70,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
    You should then run the script in the root of the astropy repository as follows::
 
-      xonsh generate_releaserst.xsh 4.3 v4.3.dev \
+      xonsh generate_releaserst.xsh 4.3 v5.0.dev \
                                     --project-name=astropy \
                                     --pretty-project-name=astropy \
                                     --pat=<a GitHub personal access token>
