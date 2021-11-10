@@ -393,17 +393,11 @@ class Test_with_redshift:
 # they are not in ``astropy.units.equivalencies``, so the following fails
 @pytest.mark.skipif(not HAS_ASDF, reason="requires ASDF")
 @pytest.mark.parametrize("equiv", [cu.with_H0])
-def test_equivalencies_asdf(tmpdir, equiv):
+def test_equivalencies_asdf(tmpdir, equiv, recwarn):
     from asdf.tests import helpers
 
     tree = {"equiv": equiv()}
-    with (
-        pytest.warns(AstropyDeprecationWarning, match="`with_H0`")
-        if equiv.__name__ == "with_H0"
-        else contextlib.nullcontext()
-    ):
-
-        helpers.assert_roundtrip_tree(tree, tmpdir)
+    helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_equivalency_context_manager():
