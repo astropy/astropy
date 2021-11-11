@@ -1421,7 +1421,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     """
 
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                     derived=True)  # no longer a Parameter
+                     derived=True, fvalidate="float")  # no longer a Parameter
 
     def __init_subclass__(cls):
         super().__init_subclass__()
