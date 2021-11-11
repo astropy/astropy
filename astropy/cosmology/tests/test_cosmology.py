@@ -18,9 +18,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarni
 def test_basic():
     cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
                                Ob0=0.05, name="test", meta={"a": "b"})
-    assert allclose(cosmo.Om0, 0.27)
-    assert allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
-    assert allclose(cosmo.Ob0, 0.05)
     assert allclose(cosmo.Odm0, 0.27 - 0.05)
     # This next test will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
@@ -31,21 +28,14 @@ def test_basic():
                     1.0, rtol=1e-6)
     assert allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +
                     cosmo.Onu(1), 1.0, rtol=1e-6)
-    assert allclose(cosmo.Tcmb0, 2.0 * u.K)
     assert allclose(cosmo.Tnu0, 1.4275317 * u.K, rtol=1e-5)
-    assert allclose(cosmo.Neff, 3.04)
     assert allclose(cosmo.h, 0.7)
-    assert allclose(cosmo.H0, 70.0 * u.km / u.s / u.Mpc)
-    assert cosmo.name == "test"
     assert cosmo.meta == {"a": "b"}
 
     # Make sure setting them as quantities gives the same results
     H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
     T = u.Quantity(2.0, u.K)
     cosmo = flrw.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04, Ob0=0.05)
-    assert allclose(cosmo.Om0, 0.27)
-    assert allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
-    assert allclose(cosmo.Ob0, 0.05)
     assert allclose(cosmo.Odm0, 0.27 - 0.05)
     assert allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
     assert allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
@@ -54,11 +44,8 @@ def test_basic():
                     1.0, rtol=1e-6)
     assert allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +
                     cosmo.Onu(1), 1.0, rtol=1e-6)
-    assert allclose(cosmo.Tcmb0, 2.0 * u.K)
     assert allclose(cosmo.Tnu0, 1.4275317 * u.K, rtol=1e-5)
-    assert allclose(cosmo.Neff, 3.04)
     assert allclose(cosmo.h, 0.7)
-    assert allclose(cosmo.H0, 70.0 * u.km / u.s / u.Mpc)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -75,9 +62,7 @@ def test_units():
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
     assert cosmo.lookback_time(1.0).unit == u.Gyr
     assert cosmo.lookback_distance(1.0).unit == u.Mpc
-    assert cosmo.H0.unit == u.km / u.Mpc / u.s
     assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
-    assert cosmo.Tcmb0.unit == u.K
     assert cosmo.Tcmb(1.0).unit == u.K
     assert cosmo.Tcmb([0.0, 1.0]).unit == u.K
     assert cosmo.Tnu0.unit == u.K
