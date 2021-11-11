@@ -27,7 +27,7 @@ tofrom_formats = [("mapping", dict), ("astropy.table", QTable)]
 ###############################################################################
 
 
-class ReadWriteTestMixin:
+class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -103,18 +103,6 @@ class ReadWriteTestMixin:
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-    @pytest.mark.skip("TODO: generalize over all save formats for this test.")
-    def test_readwrite_from_subclass_partial_info(self, cosmo, tmpdir):
-        """
-        Test writing from an instance and reading from that class.
-        This requires partial information.
-
-        .. todo::
-
-            - generalize over all save formats for this test.
-            - remove the method defined in subclass
-        """
-
 
 class TestCosmologyReadWrite(ReadWriteTestMixin):
     """Test the classes CosmologyRead/Write."""
@@ -122,6 +110,10 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
     @pytest.fixture(params=cosmo_instances)
     def cosmo(self, request):
         return getattr(cosmology.realizations, request.param)
+
+    @pytest.fixture
+    def cosmo_cls(self, cosmo):
+        return cosmo.__class__
 
     # ==============================================================
 
@@ -203,14 +195,9 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 # To/From_Format Tests
 
 
-class ToFromFormatTestMixin(
-    # convert
-    test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
-    test_row.ToFromRowTestMixin, test_table.ToFromTableTestMixin,
-    test_yaml.ToFromYAMLTestMixin,
-    # read/write
-    test_ecsv.ReadWriteECSVTestMixin,
-):
+class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
+                            test_row.ToFromRowTestMixin, test_table.ToFromTableTestMixin,
+                            test_yaml.ToFromYAMLTestMixin):
     """
     Tests for a Cosmology[To/From]Format on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
