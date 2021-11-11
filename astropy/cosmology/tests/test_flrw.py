@@ -439,7 +439,6 @@ class TestFLRW(CosmologyTest,
                 return super().w(z)
 
         self.cls = SubFLRW
-        # H0, Om0, Ode0
         self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.689 * u.one)
         self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
@@ -483,12 +482,12 @@ class TestFLRW(CosmologyTest,
         assert c.__class__ == cosmo.__class__
         assert c.name == cosmo.name + " (modified)"
         assert c.H0.value == 100
-        for n in ("Om0", "Ode0", "Tcmb0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"H0"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -499,12 +498,12 @@ class TestFLRW(CosmologyTest,
         assert c.H0.value == 100
         assert c.Tcmb0.value == 2.8
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
-        for n in ("Om0", "Ode0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"H0", "Tcmb0"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)
@@ -768,12 +767,12 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
         # `w` params
         c = cosmo.clone(w0=0.1)
         assert c.w0 == 0.1
-        for n in ("H0", "Om0", "Ode0", "Tcmb0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"w0"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
@@ -867,12 +866,12 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
         c = cosmo.clone(w0=0.1, wa=0.2)
         assert c.w0 == 0.1
         assert c.wa == 0.2
-        for n in ("H0", "Om0", "Ode0", "Tcmb0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"w0", "wa"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
@@ -1008,12 +1007,12 @@ class TestwpwaCDM(FLRWSubclassTest,
         assert c.wp == 0.1
         assert c.wa == 0.2
         assert c.zp == 14
-        for n in ("H0", "Om0", "Ode0", "Tcmb0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"wp", "wa", "zp"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
@@ -1085,12 +1084,12 @@ class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
         c = cosmo.clone(w0=0.1, wz=0.2)
         assert c.w0 == 0.1
         assert c.wz == 0.2
-        for n in ("H0", "Om0", "Ode0", "Tcmb0", "Neff", "m_nu", "Ok0", "Ob0"):
+        for n in (set(cosmo.__parameters__) - {"w0", "wz"}):
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
-                continue
-            assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+            else:
+                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
