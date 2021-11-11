@@ -158,14 +158,6 @@ def test_distance_broadcast():
 
 def test_equality():
     """Test equality and equivalence."""
-    # Equality
-    assert Planck18 == Planck18
-    assert Planck13 != Planck18
-
-    # just wrong
-    assert Planck18 != 2
-    assert 2 != Planck18
-
     # mismatched signatures, both directions.
     newcosmo = flrw.w0waCDM(**Planck18._init_arguments, Ode0=0.6)
     assert newcosmo != Planck18
