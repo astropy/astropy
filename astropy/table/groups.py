@@ -4,10 +4,10 @@ import platform
 import warnings
 
 import numpy as np
-from .index import get_index_by_names
 
 from astropy.utils.exceptions import AstropyUserWarning
 
+from .index import get_index_by_names
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
@@ -33,8 +33,8 @@ def _table_group_by(table, keys):
     -------
     grouped_table : Table object with groups attr set accordingly
     """
-    from .table import Table
     from .serialize import represent_mixins_as_columns
+    from .table import Table
 
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, str):
@@ -125,8 +125,8 @@ def column_group_by(column, keys):
     -------
     grouped_column : Column object with groups attr set accordingly
     """
-    from .table import Table
     from .serialize import represent_mixins_as_columns
+    from .table import Table
 
     if isinstance(keys, Table):
         keys = represent_mixins_as_columns(keys)

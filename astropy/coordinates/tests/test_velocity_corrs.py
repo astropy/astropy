@@ -3,14 +3,14 @@ import pytest
 
 import numpy as np
 
-from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
-from astropy.time import Time
-from astropy.coordinates import EarthLocation, SkyCoord, Angle, Distance
-from astropy.coordinates.sites import get_builtin_sites
-from astropy.utils.data import download_file
 from astropy.constants import c as speed_of_light
+from astropy.coordinates import Angle, Distance, EarthLocation, SkyCoord
+from astropy.coordinates.sites import get_builtin_sites
 from astropy.table import Table
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time
+from astropy.utils.data import download_file
 
 
 @pytest.mark.parametrize('kind', ['heliocentric', 'barycentric'])
@@ -251,6 +251,7 @@ def _get_barycorr_bvcs(coos, loc, injupyter=False):
     the tests.
     """
     import barycorr
+
     from astropy.utils.console import ProgressBar
 
     bvcs = []
@@ -376,6 +377,7 @@ def _get_barycorr_bvcs_withvels(coos, loc, injupyter=False):
     the tests.
     """
     import barycorr
+
     from astropy.utils.console import ProgressBar
 
     bvcs = []

@@ -1,6 +1,7 @@
-import numpy as np
 import pytest
 from matplotlib.lines import Path
+
+import numpy as np
 
 from astropy.visualization.wcsaxes.grid_paths import get_lon_lat_path
 

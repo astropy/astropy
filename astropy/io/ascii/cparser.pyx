@@ -2,20 +2,21 @@
 #cython: language_level=3
 
 import csv
-import os
 import math
-import multiprocessing
 import mmap
+import multiprocessing
+import os
 import queue as Queue
 import warnings
 
 import numpy as np
+
 cimport numpy as np
+
 from numpy import ma
+
+from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyBuffer_Release, PyObject_GetBuffer
 from libc cimport stdio
-from cpython.buffer cimport PyBUF_SIMPLE
-from cpython.buffer cimport Py_buffer
-from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
 from ...utils.exceptions import AstropyWarning

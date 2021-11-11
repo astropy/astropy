@@ -3,17 +3,16 @@
 from contextlib import ExitStack
 
 import pytest
+
 import numpy as np
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.time import Time
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.utils.compat import NUMPY_LT_1_19
-
-from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
-                                 CartesianRepresentation)
+from astropy.coordinates import FK4, FK5, ICRS, Angle, CartesianRepresentation, Galactic, SkyCoord
 from astropy.coordinates.angle_formats import dms_to_degrees, hms_to_hours
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
+from astropy.utils.compat import NUMPY_LT_1_19
 
 
 def test_angle_arrays():

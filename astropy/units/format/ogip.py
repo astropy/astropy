@@ -17,16 +17,16 @@ FITS files
 <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
+import copy
 import keyword
 import math
 import os
-import copy
 import warnings
 from fractions import Fraction
 
-from . import core, generic, utils
-
 from astropy.utils import parsing
+
+from . import core, generic, utils
 
 
 class OGIP(generic.Generic):

@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# isort: skip_file
 
 """
 This subpackage contains classes and functions for celestial coordinates

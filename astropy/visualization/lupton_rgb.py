@@ -8,8 +8,8 @@ For details, see : https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 """
 
 import numpy as np
-from . import ZScaleInterval
 
+from . import ZScaleInterval
 
 __all__ = ['make_lupton_rgb']
 

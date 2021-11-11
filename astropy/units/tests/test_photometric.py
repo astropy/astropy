@@ -8,9 +8,7 @@ with magnidues are in `test_logarithmic.py`
 """
 
 from astropy.tests.helper import assert_quantity_allclose
-
-from astropy.units import Magnitude, mgy, nmgy, ABflux, STflux, zero_point_flux, Jy
-from astropy.units import erg, cm, s, AA
+from astropy.units import AA, ABflux, Jy, Magnitude, STflux, cm, erg, mgy, nmgy, s, zero_point_flux
 
 
 def test_maggies():

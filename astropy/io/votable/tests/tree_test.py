@@ -3,10 +3,10 @@ import io
 
 import pytest
 
-from astropy.io.votable.exceptions import W07, W08, W21, W41
 from astropy.io.votable import tree
+from astropy.io.votable.exceptions import W07, W08, W21, W41
 from astropy.io.votable.table import parse
-from astropy.io.votable.tree import VOTableFile, Resource
+from astropy.io.votable.tree import Resource, VOTableFile
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 

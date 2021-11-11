@@ -19,6 +19,7 @@ from astropy.io import fits
 
 ##############################################################################
 # Download a FITS file:
+# isort: split
 
 from astropy.utils.data import get_pkg_data_filename
 

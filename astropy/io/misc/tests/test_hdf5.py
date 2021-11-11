@@ -1,24 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+
 import numpy as np
 
-from astropy.table import Table, QTable, NdarrayMixin, Column
-from astropy.table.table_helpers import simple_table
-
 from astropy import units as u
-
-from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
-                                 SphericalRepresentation, CartesianRepresentation,
-                                 SphericalCosLatDifferential)
+from astropy.coordinates import (Angle, CartesianRepresentation, EarthLocation, Latitude,
+                                 Longitude, SkyCoord, SphericalCosLatDifferential,
+                                 SphericalRepresentation)
+from astropy.io.misc.hdf5 import meta_path
+from astropy.table import Column, NdarrayMixin, QTable, Table
+from astropy.table.table_helpers import simple_table
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
-from astropy.io.misc.hdf5 import meta_path
 from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
+
 if HAS_H5PY:
     import h5py
 

@@ -3,6 +3,8 @@
 
 In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
+
+isort:skip_file
 """
 from .converters import *
 # By importing helpers, all the unit conversion functions needed for

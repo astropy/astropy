@@ -6,13 +6,12 @@ from matplotlib.backend_bases import KeyEvent
 import numpy as np
 
 import astropy.units as u
-from astropy.coordinates import FK5, SkyCoord
+from astropy.coordinates import FK5, SkyCoord, galactocentric_frame_defaults
 from astropy.io import fits
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
-from astropy.coordinates import galactocentric_frame_defaults
 
 from .test_images import BaseImageTests
 

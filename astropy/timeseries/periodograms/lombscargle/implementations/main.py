@@ -9,13 +9,12 @@ __all__ = ['lombscargle', 'available_methods']
 
 import numpy as np
 
-from .slow_impl import lombscargle_slow
-from .fast_impl import lombscargle_fast
-from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
-from .fastchi2_impl import lombscargle_fastchi2
 from .cython_impl import lombscargle_cython
-
+from .fast_impl import lombscargle_fast
+from .fastchi2_impl import lombscargle_fastchi2
+from .scipy_impl import lombscargle_scipy
+from .slow_impl import lombscargle_slow
 
 METHODS = {'slow': lombscargle_slow,
            'fast': lombscargle_fast,

@@ -5,11 +5,10 @@ import warnings
 import pytest
 
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose
-
-from astropy.modeling.models import Mapping, Pix2Sky_TAN, Gaussian1D
 from astropy.modeling import models
 from astropy.modeling.core import _ModelMeta
+from astropy.modeling.models import Gaussian1D, Mapping, Pix2Sky_TAN
+from astropy.tests.helper import assert_quantity_allclose
 
 
 def test_gaussian1d_bounding_box():

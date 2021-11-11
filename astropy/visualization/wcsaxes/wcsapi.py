@@ -2,13 +2,13 @@
 
 import numpy as np
 
-from astropy.coordinates import SkyCoord, ICRS, BaseCoordinateFrame
 from astropy import units as u
+from astropy.coordinates import ICRS, BaseCoordinateFrame, SkyCoord
 from astropy.wcs import WCS
 from astropy.wcs.utils import local_partial_pixel_derivatives
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
-from .frame import RectangularFrame, EllipticalFrame, RectangularFrame1D
+from .frame import EllipticalFrame, RectangularFrame, RectangularFrame1D
 from .transforms import CurvedTransform
 
 __all__ = ['transform_coord_meta_from_wcs', 'WCSWorld2PixelTransform',

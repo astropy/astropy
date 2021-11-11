@@ -1,10 +1,12 @@
 # Load the WCS information from a fits header, and use it
 # to convert pixel coordinates to world coordinates.
 
+import sys
+
 import numpy as np
+
 from astropy import wcs
 from astropy.io import fits
-import sys
 
 
 def load_wcs_from_file(filename):

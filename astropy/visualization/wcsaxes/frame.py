@@ -4,12 +4,11 @@
 import abc
 from collections import OrderedDict
 
-import numpy as np
-
-
 from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
+
+import numpy as np
 
 __all__ = ['RectangularFrame1D', 'Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 

@@ -8,8 +8,8 @@ the io registry cannot be displayed. These functions are registered into
 via these methods.
 """  # this is shown in the docs.
 
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 
 from .mapping import from_mapping

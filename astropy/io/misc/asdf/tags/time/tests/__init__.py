@@ -1,4 +1,5 @@
 import pytest
+
 from astropy.io.misc.asdf.tests import ASDF_ENTRY_INSTALLED
 
 if not ASDF_ENTRY_INSTALLED:

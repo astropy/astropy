@@ -8,12 +8,10 @@ https://docs.scipy.org/doc/scipy/reference/special.html
 import numpy as np
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
-from . import UFUNC_HELPERS
-from .helpers import (get_converter,
-                      helper_dimensionless_to_dimensionless,
-                      helper_cbrt,
-                      helper_two_arg_dimensionless)
 
+from . import UFUNC_HELPERS
+from .helpers import (get_converter, helper_cbrt, helper_dimensionless_to_dimensionless,
+                      helper_two_arg_dimensionless)
 
 # ufuncs that require dimensionless input and give dimensionless output.
 dimensionless_to_dimensionless_sps_ufuncs = (
@@ -52,7 +50,7 @@ def helper_degree_to_dimensionless(f, unit):
 
 
 def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
-    from astropy.units.si import degree, arcmin, arcsec, radian
+    from astropy.units.si import arcmin, arcsec, degree, radian
     try:
         return [get_converter(unit1, degree),
                 get_converter(unit2, arcmin),

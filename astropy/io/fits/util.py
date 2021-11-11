@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import gzip
-import itertools
 import io
+import itertools
 import mmap
 import operator
 import os
@@ -15,14 +15,12 @@ import threading
 import warnings
 import weakref
 from contextlib import contextmanager, suppress
-from functools import wraps
-
-from astropy.utils import data
-
 from distutils.version import LooseVersion
+from functools import wraps
 
 import numpy as np
 
+from astropy.utils import data
 from astropy.utils.exceptions import AstropyUserWarning
 
 path_like = (str, os.PathLike)

@@ -1,9 +1,10 @@
-import numpy as np
 import pytest
+
+import numpy as np
+
 from astropy.io import ascii
-from astropy.io.ascii.qdp import _read_table_qdp, _write_table_qdp
-from astropy.io.ascii.qdp import _get_lines_from_file
-from astropy.table import Table, Column, MaskedColumn
+from astropy.io.ascii.qdp import _get_lines_from_file, _read_table_qdp, _write_table_qdp
+from astropy.table import Column, MaskedColumn, Table
 from astropy.utils.exceptions import AstropyUserWarning
 
 

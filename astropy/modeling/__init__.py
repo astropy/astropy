@@ -7,8 +7,7 @@ and fitting with parameter constraints. It has some predefined models
 and fitting routines.
 """
 
-from . import fitting
-from . import models
+from . import fitting, models
 from .core import *
 from .parameters import *
 from .separable import *

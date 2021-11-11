@@ -2,12 +2,13 @@
 
 
 import pytest
+
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import (SphericalRepresentation, Longitude, Latitude,
-                                 SphericalDifferential)
+from astropy.coordinates import Latitude, Longitude, SphericalDifferential, SphericalRepresentation
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
+
 from .test_representation import representation_equal
 
 

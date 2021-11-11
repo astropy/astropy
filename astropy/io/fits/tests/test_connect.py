@@ -3,31 +3,26 @@ import pathlib
 import warnings
 
 import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
-                                    python_to_tdisp)
-
-from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU, ImageHDU, table_to_hdu
-
-from astropy.io import fits
-
 from astropy import units as u
-from astropy.table import Table, QTable, NdarrayMixin, Column
+from astropy.coordinates import (Angle, CartesianRepresentation, EarthLocation, Latitude,
+                                 Longitude, SkyCoord, SphericalCosLatDifferential,
+                                 SphericalRepresentation)
+from astropy.io import fits
+from astropy.io.fits import BinTableHDU, HDUList, ImageHDU, PrimaryHDU, table_to_hdu
+from astropy.io.fits.column import _fortran_to_python_format, _parse_tdisp_format, python_to_tdisp
+from astropy.table import Column, NdarrayMixin, QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.format.fits import UnitScaleError
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import (AstropyUserWarning,
-                                      AstropyDeprecationWarning)
-from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
-
-from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
-                                 SphericalRepresentation, CartesianRepresentation,
-                                 SphericalCosLatDifferential)
-from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
 def equal_data(a, b):

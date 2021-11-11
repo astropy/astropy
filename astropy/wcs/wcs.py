@@ -27,31 +27,29 @@
 #
 #    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
 
+import builtins
 # STDLIB
 import copy
-import uuid
 import io
 import itertools
 import os
 import re
 import textwrap
+import uuid
 import warnings
-import builtins
 
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
 from astropy import log
-from astropy.io import fits
-from . import docstrings
-from . import _wcs
-
 from astropy import units as u
+from astropy.io import fits
 from astropy.utils.compat import possible_filename
-from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, AstropyWarning
 
+from . import _wcs, docstrings
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 

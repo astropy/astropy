@@ -3,10 +3,9 @@ import warnings
 
 import numpy as np
 
-from astropy.io import registry, fits
-from astropy.table import Table, MaskedColumn
+from astropy.io import fits, registry
+from astropy.table import MaskedColumn, Table
 from astropy.time import Time, TimeDelta
-
 from astropy.timeseries.sampled import TimeSeries
 
 __all__ = ["kepler_fits_reader"]

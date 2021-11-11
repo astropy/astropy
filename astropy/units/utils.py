@@ -13,7 +13,6 @@ from fractions import Fraction
 import numpy as np
 from numpy import finfo
 
-
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
 # give a little margin since often multiple calculations happened

@@ -4,25 +4,24 @@ import os
 import warnings
 from textwrap import dedent
 
-import pytest
-import numpy as np
-
 import matplotlib.pyplot as plt
+import pytest
 from matplotlib.transforms import Affine2D, IdentityTransform
 
-from astropy.io import fits
+import numpy as np
+
 from astropy import units as u
-from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.time import Time
 from astropy.units import Quantity
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.utils.data import get_pkg_data_filename
-from astropy.wcs import WCS
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
-from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
-                                                  transform_coord_meta_from_wcs,
-                                                  apply_slices)
+from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform, apply_slices,
+                                                  transform_coord_meta_from_wcs)
+from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 
 
 @pytest.fixture

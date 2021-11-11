@@ -2,20 +2,19 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
-# pylint: disable=invalid-name, no-member
-import numpy as np
 import pytest
 
+# pylint: disable=invalid-name, no-member
+import numpy as np
+
 from astropy import units as u
-from astropy.units import UnitsError
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils import NumpyRNGContext
-from astropy.modeling import fitting
-from astropy.modeling import models
+from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.units import UnitsError
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should

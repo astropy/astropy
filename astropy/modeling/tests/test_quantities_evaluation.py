@@ -5,17 +5,16 @@ Tests that relate to evaluating models with quantity parameters
 """
 # pylint: disable=invalid-name, no-member
 
-import numpy as np
 import pytest
+
+import numpy as np
 from numpy.testing import assert_allclose
 
-
-from astropy.modeling.core import Model
-from astropy.modeling.models import Gaussian1D, Shift, Scale, Pix2Sky_TAN
 from astropy import units as u
-from astropy.units import UnitsError
+from astropy.modeling.core import Model
+from astropy.modeling.models import Gaussian1D, Pix2Sky_TAN, Scale, Shift
 from astropy.tests.helper import assert_quantity_allclose
-
+from astropy.units import UnitsError
 
 # We start off by taking some simple cases where the units are defined by
 # whatever the model is initialized with, and we check that the model evaluation

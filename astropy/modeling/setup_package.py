@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-from os.path import join
 from collections import defaultdict
-
-from setuptools import Extension
+from os.path import join
 
 from extension_helpers import import_file
+from setuptools import Extension
 
 wcs_setup_package = import_file(join('astropy', 'wcs', 'setup_package.py'))
 

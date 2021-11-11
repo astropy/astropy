@@ -7,9 +7,7 @@ another set of [0:1] values with a transformation
 
 import numpy as np
 
-from .transform import BaseTransform
-from .transform import CompositeTransform
-
+from .transform import BaseTransform, CompositeTransform
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",

@@ -7,34 +7,32 @@ but will deal with unit conversions internally.
 """
 
 
+import numbers
+import operator
 # Standard library
 import re
-import numbers
-from fractions import Fraction
-import operator
 import warnings
+from fractions import Fraction
 
 import numpy as np
 
-# AstroPy
-from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
-from .structured import StructuredUnit
-from .utils import is_effectively_unity
-from .format.latex import Latex
+from astropy import config as _config
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.misc import override__dir__
+from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import minversion
 from astropy.utils.misc import isiterable
-from astropy.utils.data_info import ParentDtypeInfo
-from astropy import config as _config
-from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
-                              check_output)
-from .quantity_helper.function_helpers import (
-    SUBCLASS_SAFE_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS,
-    UNSUPPORTED_FUNCTIONS)
 
+# AstroPy
+from .core import (Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
+                   dimensionless_unscaled, get_current_unit_registry)
+from .format.latex import Latex
+from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
+from .quantity_helper.function_helpers import (DISPATCHED_FUNCTIONS, FUNCTION_HELPERS,
+                                               SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
+from .structured import StructuredUnit
+from .utils import is_effectively_unity
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
            "QuantityInfoBase", "QuantityInfo", "allclose", "isclose"]

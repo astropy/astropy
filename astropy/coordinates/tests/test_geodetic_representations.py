@@ -2,17 +2,14 @@
 
 """Test geodetic representations"""
 import pytest
+
 from numpy.testing import assert_array_equal
 
-from astropy.coordinates.representation import CartesianRepresentation
-
-from astropy.coordinates.earth import (
-    WGS84GeodeticRepresentation,
-    GRS80GeodeticRepresentation,
-    WGS72GeodeticRepresentation)
-
-from astropy.units import allclose as quantity_allclose
 from astropy import units as u
+from astropy.coordinates.earth import (GRS80GeodeticRepresentation, WGS72GeodeticRepresentation,
+                                       WGS84GeodeticRepresentation)
+from astropy.coordinates.representation import CartesianRepresentation
+from astropy.units import allclose as quantity_allclose
 
 
 def test_cartesian_wgs84geodetic_roundtrip():

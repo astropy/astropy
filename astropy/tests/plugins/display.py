@@ -4,11 +4,11 @@
 # a deprecation phase.
 
 import warnings
+
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 try:
-    from pytest_astropy_header.display import (PYTEST_HEADER_MODULES,
-                                               TESTED_VERSIONS)
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
     PYTEST_HEADER_MODULES = {}
     TESTED_VERSIONS = {}

@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import warnings
 from copy import deepcopy
+from functools import wraps
 from inspect import signature
 from itertools import islice
-import warnings
-from functools import wraps
 
 from astropy.utils.exceptions import AstropyUserWarning
 

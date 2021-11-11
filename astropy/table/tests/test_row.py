@@ -3,11 +3,13 @@
 import sys
 
 import pytest
+
 import numpy as np
 
 from astropy import table
-from astropy.table import Row
 from astropy import units as u
+from astropy.table import Row
+
 from .conftest import MaskedTable
 
 

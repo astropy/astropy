@@ -162,3 +162,16 @@ write_to = "astropy/_version.py"
         changelog_missing_long = "There isn't a changelog file in this pull request. Please add a changelog file to the `changelog/` directory following the instructions in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)."
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
+
+
+[tool.isort]
+line_length = 99
+multi_line_output = 0
+balanced_wrapping = "True"
+include_trailing_comma = "False"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "NUMPY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+known_third_party = ["erfa", "packaging", "pytest", "yaml"]
+known_numpy = ["numpy"]
+known_first_party = ["astropy"]
+skip_glob = "*/astropy/extern/*"

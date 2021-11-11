@@ -11,7 +11,9 @@ import numpy.ma as ma
 from numpy.lib.recfunctions import drop_fields
 
 cimport cython
+
 cimport numpy as np
+
 DTYPE = int
 ctypedef np.intp_t DTYPE_t
 

@@ -13,14 +13,12 @@ import pytest
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import (ICRS, CartesianDifferential, CartesianRepresentation, Galactic,
+                                 PrecessedGeocentric, RadialDifferential, SkyCoord,
+                                 SphericalCosLatDifferential, SphericalDifferential,
+                                 SphericalRepresentation, UnitSphericalCosLatDifferential,
+                                 UnitSphericalDifferential, UnitSphericalRepresentation)
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.coordinates import (
-    SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-    SphericalCosLatDifferential, UnitSphericalRepresentation,
-    UnitSphericalDifferential, UnitSphericalCosLatDifferential,
-    RadialDifferential, CartesianRepresentation,
-    CartesianDifferential, Galactic, PrecessedGeocentric)
-
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 

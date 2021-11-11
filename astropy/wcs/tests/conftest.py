@@ -6,7 +6,7 @@ import numpy as np
 
 from astropy import wcs
 
-from . helper import SimModelTAB
+from .helper import SimModelTAB
 
 
 @pytest.fixture(scope='module')

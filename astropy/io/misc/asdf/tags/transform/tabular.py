@@ -6,8 +6,9 @@ from numpy.testing import assert_array_equal
 
 from astropy import modeling
 from astropy import units as u
-from .basic import TransformType
 from astropy.modeling.bounding_box import ModelBoundingBox
+
+from .basic import TransformType
 
 __all__ = ['TabularType']
 

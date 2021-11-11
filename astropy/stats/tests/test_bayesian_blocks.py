@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.stats import bayesian_blocks, RegularEvents
+from astropy.stats import RegularEvents, bayesian_blocks
 
 
 def test_single_change_point(rseed=0):

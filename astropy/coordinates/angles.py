@@ -11,9 +11,10 @@ from collections import namedtuple
 
 import numpy as np
 
-from . import angle_formats as form
 from astropy import units as u
 from astropy.utils import isiterable
+
+from . import angle_formats as form
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 

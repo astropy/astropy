@@ -5,8 +5,8 @@ Unified I/O Registry.
 
 from . import base, compat, core, interface
 from .base import *
-from .compat import *
-from .compat import _identifiers, _readers, _writers  # for backwards compat
+from .compat import *  # for backwards compat
+from .compat import _identifiers, _readers, _writers
 from .core import *
 from .interface import *
 

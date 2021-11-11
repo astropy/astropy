@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+
 import numpy as np
 
-from astropy.table import Table, Column, QTable, table_helpers, NdarrayMixin, unique
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy import time
+from astropy import coordinates, time
 from astropy import units as u
-from astropy import coordinates
+from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 def sort_eq(list1, list2):

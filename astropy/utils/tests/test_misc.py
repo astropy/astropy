@@ -7,10 +7,11 @@ import urllib.error
 from datetime import datetime
 
 import pytest
+
 import numpy as np
 
-from astropy.utils import data, misc
 from astropy.io import fits
+from astropy.utils import data, misc
 
 
 def test_isiterable():

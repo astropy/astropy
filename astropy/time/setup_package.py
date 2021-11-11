@@ -3,6 +3,7 @@
 # Copied from astropy/convolution/setup_package.py
 
 import os
+
 from setuptools import Extension
 
 import numpy

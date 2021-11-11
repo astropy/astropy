@@ -22,8 +22,10 @@ import os
 # ``HDUList`` class is a subclass of Python's builtin `list`. and can be
 # created from scratch. For example, to create a FITS file with
 # three extensions:
+# isort: split
 
 from astropy.io import fits
+
 new_hdul = fits.HDUList()
 new_hdul.append(fits.ImageHDU())
 new_hdul.append(fits.ImageHDU())

@@ -4,22 +4,24 @@ This module contains convenience functions for retrieving solar system
 ephemerides from jplephem.
 """
 
-from urllib.parse import urlparse
 import os.path
+from urllib.parse import urlparse
 
-import numpy as np
 import erfa
 
-from .sky_coordinate import SkyCoord
+import numpy as np
+
+from astropy import units as u
+from astropy.constants import c as speed_of_light
+from astropy.utils import indent
 from astropy.utils.data import download_file
 from astropy.utils.decorators import classproperty, deprecated
 from astropy.utils.state import ScienceState
-from astropy.utils import indent
-from astropy import units as u
-from astropy.constants import c as speed_of_light
-from .representation import CartesianRepresentation, CartesianDifferential
+
 from .builtin_frames import GCRS, ICRS, ITRS, TETE
 from .builtin_frames.utils import get_jd12
+from .representation import CartesianDifferential, CartesianRepresentation
+from .sky_coordinate import SkyCoord
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
            "get_body_barycentric_posvel", "solar_system_ephemeris"]

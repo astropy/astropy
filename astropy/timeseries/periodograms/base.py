@@ -1,6 +1,8 @@
 import abc
+
 import numpy as np
-from astropy.timeseries import TimeSeries, BinnedTimeSeries
+
+from astropy.timeseries import BinnedTimeSeries, TimeSeries
 
 __all__ = ['BasePeriodogram']
 

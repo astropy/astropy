@@ -2,7 +2,6 @@
 
 # THIRD PARTY
 import pytest
-
 # LOCAL
 from mypackage.io import ASTROPY_GE_5
 

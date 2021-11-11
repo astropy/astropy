@@ -7,6 +7,7 @@ import typing
 
 # THIRD PARTY
 import pytest
+
 import numpy as np
 
 # LOCAL

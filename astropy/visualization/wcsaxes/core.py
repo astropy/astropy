@@ -1,26 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from functools import partial
 from collections import defaultdict
-
-import numpy as np
+from functools import partial
 
 from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
+import numpy as np
+
 import astropy.units as u
-from astropy.coordinates import SkyCoord, BaseCoordinateFrame
+from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
-from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
-from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import RectangularFrame, RectangularFrame1D
+from .transforms import CoordinateTransform
+from .utils import get_coord_meta, transform_contour_set_inplace
 from .wcsapi import IDENTITY, transform_coord_meta_from_wcs
-
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
@@ -199,7 +198,7 @@ class WCSAxes(Axes):
         # has a 'getpixel' attribute - this is what Matplotlib's AxesImage does
 
         try:
-            from PIL.Image import Image, FLIP_TOP_BOTTOM
+            from PIL.Image import FLIP_TOP_BOTTOM, Image
         except ImportError:
             # We don't need to worry since PIL is not installed, so user cannot
             # have passed RGB image.

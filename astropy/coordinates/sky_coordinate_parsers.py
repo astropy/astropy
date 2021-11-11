@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
 import re
 from collections.abc import Sequence
-import inspect
 
 import numpy as np
 
-from astropy.units import Unit, IrreducibleUnit
 from astropy import units as u
+from astropy.units import IrreducibleUnit, Unit
 
-from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        _get_repr_cls, _get_diff_cls)
+from .baseframe import BaseCoordinateFrame, _get_diff_cls, _get_repr_cls, frame_transform_graph
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)

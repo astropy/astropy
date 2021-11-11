@@ -11,6 +11,7 @@ are based on reference [1]_, which is also the basis for the R package
 """
 
 import numpy as np
+
 from astropy.units import Quantity
 
 __all__ = ['circmean', 'circstd', 'circvar', 'circmoment', 'circcorrcoef',

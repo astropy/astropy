@@ -4,8 +4,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import (rotation_matrix, angle_axis,
-                                                  is_O3, is_rotation)
+from astropy.coordinates.matrix_utilities import angle_axis, is_O3, is_rotation, rotation_matrix
 
 
 def test_rotation_matrix():

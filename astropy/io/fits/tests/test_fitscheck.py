@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+
 import pytest
-from . import FitsTestCase
-from astropy.io.fits.scripts import fitscheck
-from astropy.io import fits
-from astropy.utils.exceptions import AstropyUserWarning
+
 from astropy import __version__ as version
+from astropy.io import fits
+from astropy.io.fits.scripts import fitscheck
+from astropy.utils.exceptions import AstropyUserWarning
+
+from . import FitsTestCase
 
 
 class TestFitscheck(FitsTestCase):

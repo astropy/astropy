@@ -5,9 +5,11 @@
 Optimization algorithms used in `~astropy.modeling.fitting`.
 """
 
-import warnings
 import abc
+import warnings
+
 import numpy as np
+
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["Optimization", "SLSQP", "Simplex"]

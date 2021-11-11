@@ -24,11 +24,12 @@ import math
 
 import numpy as np
 
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 from astropy import units as u
+from astropy.coordinates.matrix_utilities import matrix_product, rotation_matrix
+
 from .core import Model
 from .parameters import Parameter
-from .utils import _to_radian, _to_orig_unit
+from .utils import _to_orig_unit, _to_radian
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
            'EulerAngleRotation', 'RotationSequence3D', 'SphericalRotationSequence']

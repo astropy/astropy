@@ -7,6 +7,7 @@ Tests for miscellaneous functionality in the `funcs` module
 
 
 import pytest
+
 import numpy as np
 from numpy import testing as npt
 
@@ -33,7 +34,7 @@ def test_sun():
 
 
 def test_constellations(recwarn):
-    from astropy.coordinates import ICRS, FK5, SkyCoord
+    from astropy.coordinates import FK5, ICRS, SkyCoord
     from astropy.coordinates.funcs import get_constellation
 
     inuma = ICRS(9*u.hour, 65*u.deg)
@@ -64,7 +65,7 @@ def test_constellations(recwarn):
 
 
 def test_concatenate():
-    from astropy.coordinates import FK5, SkyCoord, ICRS
+    from astropy.coordinates import FK5, ICRS, SkyCoord
     from astropy.coordinates.funcs import concatenate
 
     # Just positions
@@ -100,8 +101,8 @@ def test_concatenate():
 
 
 def test_concatenate_representations():
-    from astropy.coordinates.funcs import concatenate_representations
     from astropy.coordinates import representation as r
+    from astropy.coordinates.funcs import concatenate_representations
 
     reps = [r.CartesianRepresentation([1, 2, 3.]*u.kpc),
             r.SphericalRepresentation(lon=1*u.deg, lat=2.*u.deg,
@@ -164,8 +165,8 @@ def test_concatenate_representations():
 
 
 def test_concatenate_representations_different_units():
-    from astropy.coordinates.funcs import concatenate_representations
     from astropy.coordinates import representation as r
+    from astropy.coordinates.funcs import concatenate_representations
 
     reps = [r.CartesianRepresentation([1, 2, 3.]*u.pc),
             r.CartesianRepresentation([1, 2, 3.]*u.kpc)]

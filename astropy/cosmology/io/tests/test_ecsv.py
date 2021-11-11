@@ -10,10 +10,10 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
-from astropy.table import QTable, Table, vstack
 from astropy.cosmology.parameters import available
+from astropy.table import QTable, Table, vstack
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import IOFormatTestBase, IOTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")

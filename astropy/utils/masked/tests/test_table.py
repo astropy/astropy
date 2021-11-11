@@ -1,18 +1,17 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
 
-from astropy import units as u
-from astropy.table import QTable, hstack, vstack, join
+import numpy as np
+from numpy.testing import assert_array_equal
 
-from astropy.utils.masked import Masked
+from astropy import units as u
+from astropy.table import QTable, hstack, join, vstack
 from astropy.utils.compat.optional_deps import HAS_H5PY
+from astropy.utils.masked import Masked
 
 from .test_masked import assert_masked_equal
-
 
 FILE_FORMATS = ['ecsv', 'fits']
 if HAS_H5PY:

@@ -4,11 +4,12 @@
 Test Structured units and quantities.
 """
 import pytest
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
+from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
 from astropy.utils.masked import Masked
 
 

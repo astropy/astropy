@@ -4,16 +4,16 @@
 import types
 
 import pytest
-import numpy as np
-from numpy.testing import assert_allclose
-from numpy.random import default_rng
 
+import numpy as np
+from numpy.random import default_rng
+from numpy.testing import assert_allclose
+
+from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-from astropy.modeling import models
-from astropy.modeling import fitting
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 class TestNonLinearConstraints:

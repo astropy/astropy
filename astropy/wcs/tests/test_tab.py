@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-
 import pytest
 from packaging.version import Version
+
+import numpy as np
+
 from astropy import wcs
-from astropy.wcs import _wcs  # noqa
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from astropy.wcs import _wcs  # noqa
 
-from . helper import SimModelTAB
-
+from .helper import SimModelTAB
 
 _WCSLIB_VER = Version(_wcs.__version__)
 

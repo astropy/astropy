@@ -1,24 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import functools
-
+import os
 from io import BytesIO
 from textwrap import dedent
 
 import pytest
+
 import numpy as np
 from numpy import ma
 
-from astropy.table import Table, MaskedColumn
 from astropy.io import ascii
-from astropy.io.ascii.core import ParameterError, FastOptionsError, InconsistentTableError
-from astropy.io.ascii.fastbasic import (
-    FastBasic, FastCsv, FastTab, FastCommentedHeader, FastRdb, FastNoHeader)
+from astropy.io.ascii.core import FastOptionsError, InconsistentTableError, ParameterError
+from astropy.io.ascii.fastbasic import (FastBasic, FastCommentedHeader, FastCsv,
+                                        FastNoHeader, FastRdb, FastTab)
+from astropy.table import MaskedColumn, Table
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
-from .common import assert_equal, assert_almost_equal, assert_true
 
+from .common import assert_almost_equal, assert_equal, assert_true
 
 StringIO = lambda x: BytesIO(x.encode('ascii'))  # noqa
 CI = os.environ.get('CI', False)

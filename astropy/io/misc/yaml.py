@@ -58,14 +58,14 @@ Example
 
 import base64
 
-import numpy as np
 import yaml
 
-from astropy.time import Time, TimeDelta
-from astropy import units as u
-from astropy import coordinates as coords
-from astropy.table import SerializedColumn
+import numpy as np
 
+from astropy import coordinates as coords
+from astropy import units as u
+from astropy.table import SerializedColumn
+from astropy.time import Time, TimeDelta
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
 

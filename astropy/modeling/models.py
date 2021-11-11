@@ -6,18 +6,17 @@ Creates a common namespace for all pre-defined models.
 
 # pylint: disable=unused-wildcard-import, unused-import, wildcard-import
 
-from .core import custom_model, hide_inverse, fix_inputs # pylint: disable=W0611
+from . import math_functions as math
+from .core import custom_model, fix_inputs, hide_inverse  # pylint: disable=W0611
+from .functional_models import *
 from .mappings import *
+from .physical_models import *
+from .polynomial import *
+from .powerlaws import *
 from .projections import *
 from .rotations import *
-from .polynomial import *
-from .functional_models import *
-from .physical_models import *
-from .powerlaws import *
 from .spline import *
 from .tabular import *
-from . import math_functions as math
-
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list

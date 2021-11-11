@@ -40,13 +40,13 @@ Example uses of fitscheck:
 """
 
 
-import sys
-import logging
 import argparse
+import logging
+import sys
 import warnings
 
-from astropy.io import fits
 from astropy import __version__
+from astropy.io import fits
 
 log = logging.getLogger('fitscheck')
 

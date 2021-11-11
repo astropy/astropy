@@ -6,7 +6,7 @@ Redistribution license restrictions apply.
 """
 
 import collections
-from collections import OrderedDict, Counter
+from collections import Counter, OrderedDict
 from collections.abc import Sequence
 
 import numpy as np

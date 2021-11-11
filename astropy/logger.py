@@ -9,16 +9,16 @@
 """
 
 import inspect
+import logging
 import os
 import sys
-import logging
 import warnings
 from contextlib import contextmanager
 
-from . import config as _config
 from . import conf as _conf
+from . import config as _config
 from .utils import find_current_module
-from .utils.exceptions import AstropyWarning, AstropyUserWarning
+from .utils.exceptions import AstropyUserWarning, AstropyWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
 

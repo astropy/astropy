@@ -2,13 +2,14 @@
 
 import numpy as np
 
-from .implementations import lombscargle, available_methods
-from .implementations.mle import periodic_fit, design_matrix
-from . import _statistics
 from astropy import units
-from astropy.time import Time, TimeDelta
 from astropy import units as u
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.base import BasePeriodogram
+
+from . import _statistics
+from .implementations import available_methods, lombscargle
+from .implementations.mle import design_matrix, periodic_fit
 
 
 def has_units(obj):

@@ -25,8 +25,9 @@ transformation using a sky position and barycentric radial-velocity.
 ################################################################################
 # Make print work the same in all versions of Python and import the required
 # Astropy packages:
-import astropy.units as u
+# isort:split
 import astropy.coordinates as coord
+import astropy.units as u
 
 ################################################################################
 # Use the latest convention for the Galactocentric coordinates

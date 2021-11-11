@@ -4,11 +4,11 @@
 import json
 import os
 
-# THIRD PARTY
-import numpy as np
-
 # LOCAL
 from mypackage.cosmology import MyCosmology
+
+# THIRD PARTY
+import numpy as np
 
 
 def file_reader(filename):

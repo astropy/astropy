@@ -15,14 +15,15 @@ Handles a "generic" string format for units
 """
 
 import re
+import unicodedata
 import warnings
 from fractions import Fraction
-import unicodedata
+
+from astropy.utils import classproperty, parsing
+from astropy.utils.misc import did_you_mean
 
 from . import core, utils
 from .base import Base
-from astropy.utils import classproperty, parsing
-from astropy.utils.misc import did_you_mean
 
 
 def _to_string(cls, unit):

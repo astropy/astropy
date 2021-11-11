@@ -10,7 +10,6 @@ here, but rather in the particular subpackage.
 # here, leading to circular import problems.
 from erfa import ErfaError, ErfaWarning  # noqa
 
-
 __all__ = [
     'AstropyWarning',
     'AstropyUserWarning',

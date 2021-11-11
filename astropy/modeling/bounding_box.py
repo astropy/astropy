@@ -7,16 +7,14 @@ This module is to contain an improved bounding box
 
 import abc
 import copy
-
-from collections import namedtuple
-from typing import Dict, List, Tuple, Callable, Any
-
-from astropy.utils import isiterable
-from astropy.units import Quantity
-
 import warnings
+from collections import namedtuple
+from typing import Any, Callable, Dict, List, Tuple
+
 import numpy as np
 
+from astropy.units import Quantity
+from astropy.utils import isiterable
 
 __all__ = ['ModelBoundingBox', 'CompoundBoundingBox']
 

@@ -40,10 +40,9 @@ import operator
 
 import numpy as np
 
-from astropy.units.core import (
-    UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_20
+from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.utils import isiterable
+from astropy.utils.compat import NUMPY_LT_1_20
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it

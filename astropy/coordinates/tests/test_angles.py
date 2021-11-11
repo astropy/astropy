@@ -5,15 +5,15 @@
 import threading
 import warnings
 
-import numpy as np
 import pytest
+
+import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates.angles import Longitude, Latitude, Angle
-from astropy.coordinates.errors import (
-    IllegalSecondError, IllegalMinuteError, IllegalHourError,
-    IllegalSecondWarning, IllegalMinuteWarning)
+from astropy.coordinates.angles import Angle, Latitude, Longitude
+from astropy.coordinates.errors import (IllegalHourError, IllegalMinuteError, IllegalMinuteWarning,
+                                        IllegalSecondError, IllegalSecondWarning)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -1011,9 +1011,9 @@ def test_angle_with_cds_units_enabled():
     Especially the example in
     https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
     """
-    from astropy.units import cds
     # the problem is with the parser, so remove it temporarily
     from astropy.coordinates.angle_formats import _AngleParser
+    from astropy.units import cds
     del _AngleParser._thread_local._parser
     with cds.enable():
         Angle('5d')

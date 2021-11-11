@@ -4,17 +4,16 @@
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.decorators import format_doc
-from astropy.coordinates.baseframe import frame_transform_graph, base_doc
-from astropy.coordinates.attributes import TimeAttribute
-from astropy.coordinates.transformations import (
-    FunctionTransformWithFiniteDifference, DynamicMatrixTransform)
-from astropy.coordinates.representation import (CartesianRepresentation,
-                                                UnitSphericalRepresentation)
 from astropy.coordinates import earth_orientation as earth
+from astropy.coordinates.attributes import TimeAttribute
+from astropy.coordinates.baseframe import base_doc, frame_transform_graph
+from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
+from astropy.coordinates.transformations import (DynamicMatrixTransform,
+                                                 FunctionTransformWithFiniteDifference)
+from astropy.utils.decorators import format_doc
 
+from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_B1950
-from .baseradec import doc_components, BaseRADecFrame
 
 __all__ = ['FK4', 'FK4NoETerms']
 

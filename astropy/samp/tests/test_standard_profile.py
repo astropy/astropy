@@ -3,16 +3,14 @@ import tempfile
 
 import pytest
 
-from astropy.utils.data import get_pkg_data_filename
-
-from astropy.samp.hub import SAMPHubServer
-from astropy.samp.integrated_client import SAMPIntegratedClient
-from astropy.samp.errors import SAMPProxyError
-
 # By default, tests should not use the internet.
 from astropy.samp import conf
+from astropy.samp.errors import SAMPProxyError
+from astropy.samp.hub import SAMPHubServer
+from astropy.samp.integrated_client import SAMPIntegratedClient
+from astropy.utils.data import get_pkg_data_filename
 
-from .test_helpers import random_params, Receiver, assert_output, TEST_REPLY
+from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
 
 
 def setup_module(module):

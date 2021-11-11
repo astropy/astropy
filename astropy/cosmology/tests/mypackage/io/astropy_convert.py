@@ -21,14 +21,14 @@ to a ``mypackage`` object.
 
 """
 
+# LOCAL
+from mypackage.cosmology import MyCosmology
+
 # THIRD PARTY
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FLRW, Cosmology, FlatLambdaCDM
 from astropy.cosmology.connect import convert_registry
-
-# LOCAL
-from mypackage.cosmology import MyCosmology
 
 __doctest_skip__ = ['*']
 

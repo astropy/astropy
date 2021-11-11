@@ -6,12 +6,11 @@ import pickle
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
-                                      sharedmethod, classproperty, lazyproperty,
-                                      format_doc, deprecated_renamed_argument)
+from astropy.utils.decorators import (classproperty, deprecated, deprecated_attribute,
+                                      deprecated_renamed_argument, format_doc,
+                                      lazyproperty, sharedmethod, wraps)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyPendingDeprecationWarning,
-                                      AstropyUserWarning)
+                                      AstropyPendingDeprecationWarning, AstropyUserWarning)
 
 
 class NewDeprecationWarning(AstropyDeprecationWarning):

@@ -20,11 +20,10 @@ import numpy as np
 
 from astropy import units as u
 
-from .core import Model
-from .parameters import Parameter, InputParameterError
 from . import _projections
-from .utils import _to_radian, _to_orig_unit
-
+from .core import Model
+from .parameters import InputParameterError, Parameter
+from .utils import _to_orig_unit, _to_radian
 
 projcodes = [
     'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',

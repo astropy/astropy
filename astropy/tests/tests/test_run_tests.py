@@ -4,7 +4,6 @@
 
 # test helper.run_tests function
 from astropy import test as run_tests
-
 from astropy.tests import helper
 
 

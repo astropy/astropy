@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.utils.decorators import format_doc
-from astropy.coordinates.representation import CartesianRepresentation, CartesianDifferential
-from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.attributes import TimeAttribute
+from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
+from astropy.coordinates.representation import CartesianDifferential, CartesianRepresentation
+from astropy.utils.decorators import format_doc
+
 from .utils import DEFAULT_OBSTIME
 
 __all__ = ['ITRS']

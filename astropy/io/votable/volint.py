@@ -5,8 +5,9 @@ Script support for validating a VO file.
 
 
 def main(args=None):
-    from . import table
     import argparse
+
+    from . import table
 
     parser = argparse.ArgumentParser(
         description=("Check a VOTable file for compliance to the "

@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from setuptools import Extension
 from os.path import join
+
+from setuptools import Extension
 
 
 def get_extensions(build_type='release'):

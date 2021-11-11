@@ -6,20 +6,18 @@ expense of accuracy.
 """
 import warnings
 
-import numpy as np
 import erfa
 
-from astropy.time import Time
-from astropy.utils.state import ScienceState
+import numpy as np
+
 import astropy.units as u
+from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.state import ScienceState
 
-from .builtin_frames.utils import (
-    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion,
-    pav2pv
-)
+from .builtin_frames.utils import (get_cip, get_jd12, get_polar_motion,
+                                   pav2pv, prepare_earth_position_vel)
 from .matrix_utilities import rotation_matrix
-
 
 __all__ = []
 

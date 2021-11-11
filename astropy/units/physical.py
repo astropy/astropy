@@ -5,14 +5,11 @@
 import numbers
 import warnings
 
-from . import core
-from . import si
-from . import astrophys
-from . import cgs
-from . import imperial  # Need this for backward namespace compat, see issues 11975 and 11977  # noqa
-from . import misc
-from . import quantity
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+from . import \
+    imperial  # Need this for backward namespace compat, see issues 11975 and 11977  # noqa
+from . import astrophys, cgs, core, misc, quantity, si
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 

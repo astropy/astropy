@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Tests for spline models and fitters"""
-# pylint: disable=invalid-name
-from astropy.utils.exceptions import AstropyUserWarning
+import unittest.mock as mk
 
 import pytest
-import unittest.mock as mk
 
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-
-from astropy.utils.exceptions import (AstropyUserWarning,)
-from astropy.modeling.core import (FittableModel, ModelDefinitionError)
-from astropy.modeling.spline import (_Spline, Spline1D, _SplineFitter)
-from astropy.modeling.fitting import (SplineInterpolateFitter, SplineSmoothingFitter,
-                                      SplineExactKnotsFitter, SplineSplrepFitter)
+from astropy.modeling.core import FittableModel, ModelDefinitionError
+from astropy.modeling.fitting import (SplineExactKnotsFitter, SplineInterpolateFitter,
+                                      SplineSmoothingFitter, SplineSplrepFitter)
 from astropy.modeling.parameters import Parameter
+from astropy.modeling.spline import Spline1D, _Spline, _SplineFitter
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+# pylint: disable=invalid-name
+from astropy.utils.exceptions import AstropyUserWarning
 
 npts = 50
 nknots = 10
@@ -1283,7 +1281,7 @@ class TestSpline1D:
         self.check_coeffs_created(fit_spl)
         assert fit_spl._bounding_box is None
 
-        from scipy.interpolate import splrep, BSpline
+        from scipy.interpolate import BSpline, splrep
         tck, spline_fp, spline_ier, spline_msg = splrep(self.x, self.y,
                                                         w=w, k=k, s=s, full_output=1)
         assert_allclose(fit_spl.t, tck[0])
@@ -1324,7 +1322,7 @@ class TestSpline1D:
         self.check_coeffs_created(fit_spl)
         assert fit_spl._bounding_box is None
 
-        from scipy.interpolate import splrep, BSpline
+        from scipy.interpolate import BSpline, splrep
         tck, spline_fp, spline_ier, spline_msg = splrep(self.x, self.y,
                                                         w=w, k=k, t=knots, full_output=1)
         assert_allclose(fit_spl.t, tck[0])
@@ -1357,7 +1355,7 @@ class TestSpline1D:
         self.check_coeffs_created(fit_spl)
         assert fit_spl._bounding_box is None
 
-        from scipy.interpolate import splrep, BSpline
+        from scipy.interpolate import BSpline, splrep
         tck = splrep(self.x, self.y, w=w, k=k, t=knots)
         assert_allclose(fit_spl.t, tck[0])
         assert_allclose(fit_spl.c, tck[1])
@@ -1374,7 +1372,7 @@ class TestSpline1D:
         if k is None:
             k = 3
 
-        from scipy.interpolate import splrep, BSpline
+        from scipy.interpolate import BSpline, splrep
 
         tck = splrep(self.x, self.y, w=w, xb=bbox[0], xe=bbox[1],
                      k=k, s=s, t=t)

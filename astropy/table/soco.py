@@ -7,6 +7,7 @@ Index engine for Tables.
 
 from collections import OrderedDict
 from itertools import starmap
+
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 if HAS_SORTEDCONTAINERS:

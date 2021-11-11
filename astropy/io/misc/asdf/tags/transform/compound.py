@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from asdf import tagged
 from asdf.tests.helpers import assert_tree_match
-from .basic import TransformType
-from astropy.modeling.core import Model, CompoundModel
-from astropy.modeling.models import Identity, Mapping, Const1D
 
+from astropy.modeling.core import CompoundModel, Model
+from astropy.modeling.models import Const1D, Identity, Mapping
+
+from .basic import TransformType
 
 __all__ = ['CompoundType', 'RemapAxesType']
 

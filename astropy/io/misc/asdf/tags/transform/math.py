@@ -4,11 +4,11 @@
 from numpy.testing import assert_array_equal
 
 from astropy import modeling
-from astropy.modeling.math_functions import __all__ as math_classes
-from astropy.modeling.math_functions import *
 from astropy.modeling import math_functions
-from .basic import TransformType
+from astropy.modeling.math_functions import *
+from astropy.modeling.math_functions import __all__ as math_classes
 
+from .basic import TransformType
 
 __all__ = ['NpUfuncType']
 

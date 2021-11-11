@@ -2,6 +2,7 @@
 import functools
 
 import pytest
+
 import numpy as np
 
 from astropy.time import Time

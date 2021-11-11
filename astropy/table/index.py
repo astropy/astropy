@@ -31,9 +31,10 @@ Notes
 """
 
 from copy import deepcopy
+
 import numpy as np
 
-from .bst import MinValue, MaxValue
+from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
 
 
@@ -65,8 +66,9 @@ class Index:
     '''
     def __init__(self, columns, engine=None, unique=False):
         # Local imports to avoid import problems.
-        from .table import Table, Column
         from astropy.time import Time
+
+        from .table import Column, Table
 
         if columns is not None:
             columns = list(columns)

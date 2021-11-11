@@ -2,13 +2,14 @@
 
 import functools
 
-import numpy as np
 import pytest
 
+import numpy as np
+
 from astropy import units as u
-from astropy.utils import iers
-from astropy.time import Time
 from astropy.table import Table
+from astropy.time import Time
+from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_H5PY
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,

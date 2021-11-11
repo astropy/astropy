@@ -4,9 +4,10 @@ import os
 import sys
 
 if __name__ == '__main__':
-    from setuptools import setup, Extension
+    from setuptools import Extension, setup
 
     import numpy as np
+
     from astropy import wcs
 
     if sys.platform == 'win32':

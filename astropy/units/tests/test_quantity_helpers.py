@@ -2,8 +2,9 @@
 Test ``allclose`` and ``isclose``.
 ``allclose`` was ``quantity_allclose`` in ``astropy.tests.helper``.
 """
-import numpy as np
 import pytest
+
+import numpy as np
 
 from astropy import units as u
 

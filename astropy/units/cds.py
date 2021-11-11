@@ -31,9 +31,10 @@ def _initialize_module():
     # Local imports to avoid polluting top-level namespace
     import numpy as np
 
-    from . import core
     from astropy import units as u
     from astropy.constants import si as _si
+
+    from . import core
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
@@ -166,6 +167,7 @@ _initialize_module()
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
+
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
 
@@ -182,7 +184,8 @@ def enable():
     units only temporarily.
     """
     # Local import to avoid cyclical import
-    from .core import set_enabled_units
     # Local import to avoid polluting namespace
     import inspect
+
+    from .core import set_enabled_units
     return set_enabled_units(inspect.getmodule(enable))

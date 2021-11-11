@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
 import pytest
 
+import numpy as np
+
 from astropy import units as u
-from astropy.coordinates import SkyCoord, ICRS, Galactic, FK4, FK5, Longitude
+from astropy.coordinates import FK4, FK5, ICRS, Galactic, Longitude, SkyCoord
 
 asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
-
 
 # These tests are cribbed directly from the Examples section of
 # https://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html

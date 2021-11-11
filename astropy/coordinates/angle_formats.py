@@ -23,11 +23,11 @@ from warnings import warn
 
 import numpy as np
 
-from .errors import (IllegalHourWarning, IllegalHourError,
-                     IllegalMinuteWarning, IllegalMinuteError,
-                     IllegalSecondWarning, IllegalSecondError)
-from astropy.utils import format_exception, parsing
 from astropy import units as u
+from astropy.utils import format_exception, parsing
+
+from .errors import (IllegalHourError, IllegalHourWarning, IllegalMinuteError,
+                     IllegalMinuteWarning, IllegalSecondError, IllegalSecondWarning)
 
 
 class _AngleParser:

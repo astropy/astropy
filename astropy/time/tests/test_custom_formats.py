@@ -4,9 +4,9 @@ from datetime import date
 from itertools import count
 
 import pytest
+from erfa import DJM0
 
 import numpy as np
-from erfa import DJM0
 
 from astropy.time import Time, TimeFormat
 from astropy.time.utils import day_frac

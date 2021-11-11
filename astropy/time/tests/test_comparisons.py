@@ -3,10 +3,11 @@
 import operator
 
 import pytest
+
 import numpy as np
 
-from astropy.time import Time, TimeDelta
 import astropy.units as u
+from astropy.time import Time, TimeDelta
 
 
 class TestTimeComparisons:

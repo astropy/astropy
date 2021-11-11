@@ -3,11 +3,10 @@
 
 from numpy.testing import assert_array_equal
 
-
 from astropy.modeling import functional_models, physical_models
-from .basic import TransformType
-from . import _parameter_to_value
 
+from . import _parameter_to_value
+from .basic import TransformType
 
 __all__ = ['BlackBody', 'Drude1DType', 'Plummer1DType']
 

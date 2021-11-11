@@ -7,6 +7,7 @@ import pickle
 import re
 
 import pytest
+
 import numpy as np
 from numpy import char as chararray
 
@@ -17,13 +18,13 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
+from astropy.io.fits.column import NUMPY2FITS, Delayed
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import UnitsWarning
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from astropy.io.fits.column import Delayed, NUMPY2FITS
-from astropy.io.fits.util import decode_ascii
-from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
 
 
@@ -2628,8 +2629,8 @@ class TestTableFunctions(FitsTestCase):
         leaks are fixed.
         """
 
-        from .test_core import TestCore
         from .test_connect import TestMultipleHDU
+        from .test_core import TestCore
 
         t1 = TestCore()
         t1.setup()

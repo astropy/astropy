@@ -22,6 +22,7 @@ import abc
 import numpy as np
 
 from astropy import units as u
+
 from .core import Model
 
 try:

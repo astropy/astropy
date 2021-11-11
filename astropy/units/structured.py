@@ -9,8 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase, UNITY
-
+from .core import UNITY, Unit, UnitBase
 
 __all__ = ['StructuredUnit']
 

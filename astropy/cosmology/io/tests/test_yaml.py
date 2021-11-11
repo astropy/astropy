@@ -17,7 +17,7 @@ from astropy.cosmology.parameters import available
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 from astropy.table import QTable, vstack
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import IOFormatTestBase, IOTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 # cosmo_instances.append("TestToFromYAML.setup.<locals>.CosmologyWithKwargs")

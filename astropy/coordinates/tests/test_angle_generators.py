@@ -1,15 +1,14 @@
 """Unit tests for the astropy.coordinates.angle_utilities module"""
 
-import numpy as np
 import pytest
 
+import numpy as np
+
 import astropy.units as u
+from astropy.coordinates.angle_utilities import (golden_spiral_grid,
+                                                 uniform_spherical_random_surface,
+                                                 uniform_spherical_random_volume)
 from astropy.utils import NumpyRNGContext
-from astropy.coordinates.angle_utilities import (
-    golden_spiral_grid,
-    uniform_spherical_random_surface,
-    uniform_spherical_random_volume
-)
 
 
 def test_golden_spiral_grid_input():

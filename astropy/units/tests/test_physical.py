@@ -8,10 +8,9 @@ import pickle
 import pytest
 
 from astropy import units as u
-from astropy.units import physical
 from astropy.constants import hbar
+from astropy.units import physical
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
 
 unit_physical_type_pairs = [
     (u.m, "length"),

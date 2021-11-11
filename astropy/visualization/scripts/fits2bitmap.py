@@ -2,9 +2,9 @@
 
 import os
 
-from astropy.visualization.mpl_normalize import simple_norm
 from astropy import log
 from astropy.io.fits import getdata
+from astropy.visualization.mpl_normalize import simple_norm
 
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',

@@ -6,21 +6,22 @@ This is a set of regression tests for vo.
 
 # STDLIB
 import difflib
+import gzip
 import io
 import pathlib
 import sys
-import gzip
 from unittest import mock
 
 # THIRD-PARTY
 import pytest
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
+from astropy.io.votable import tree
+from astropy.io.votable.exceptions import W39, VOTableSpecError, VOWarning
 # LOCAL
 from astropy.io.votable.table import parse, parse_single_table, validate
-from astropy.io.votable import tree
-from astropy.io.votable.exceptions import VOTableSpecError, VOWarning, W39
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
 
@@ -678,7 +679,7 @@ class TestThroughBinary2(TestParse):
 
 
 def table_from_scratch():
-    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import Field, Resource, Table, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -837,7 +838,7 @@ def test_from_scratch_example():
 
 
 def _run_test_from_scratch_example():
-    from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
+    from astropy.io.votable.tree import Field, Resource, Table, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()

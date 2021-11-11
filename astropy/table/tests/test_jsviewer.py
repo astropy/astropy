@@ -1,14 +1,12 @@
-from os.path import abspath, dirname, join
 import textwrap
+from os.path import abspath, dirname, join
 
 import pytest
 
-from astropy.coordinates import SkyCoord
-from astropy.time import Time
-
-from astropy.table.table import Table
 from astropy import extern
-
+from astropy.coordinates import SkyCoord
+from astropy.table.table import Table
+from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 

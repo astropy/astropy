@@ -4,9 +4,9 @@
 from numpy.testing import assert_array_equal
 
 from astropy.modeling import powerlaws
-from .basic import TransformType
-from . import _parameter_to_value
 
+from . import _parameter_to_value
+from .basic import TransformType
 
 __all__ = ['PowerLaw1DType', 'BrokenPowerLaw1DType',
            'SmoothlyBrokenPowerLaw1DType', 'ExponentialCutoffPowerLaw1DType',

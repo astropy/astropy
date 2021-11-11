@@ -15,8 +15,8 @@ TODO: This module should eventually be removed once backwards compatibility
 is no longer supported.
 """
 from warnings import warn
-from astropy.utils.exceptions import AstropyDeprecationWarning
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 warn("The ``disable_internet`` module is no longer provided by astropy. It "
      "is now available as ``pytest_remotedata.disable_internet``. However, "

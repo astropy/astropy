@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import numpy as np
-
 from matplotlib.lines import Path
+
+import numpy as np
 
 from astropy.coordinates.angle_utilities import angular_separation
 

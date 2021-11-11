@@ -4,11 +4,13 @@ import os
 import time
 
 import pytest
+
 import numpy as np
+
+from astropy.io import fits
 
 from . import FitsTestCase
 from .test_table import comparerecords
-from astropy.io import fits
 
 
 class TestGroupsFunctions(FitsTestCase):

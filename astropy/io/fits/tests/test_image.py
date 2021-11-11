@@ -6,17 +6,18 @@ import re
 import time
 
 import pytest
+
 import numpy as np
 from numpy.testing import assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.data import get_pkg_data_filename
+from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-from .test_table import comparerecords
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
+from .test_table import comparerecords
 
 
 class TestImageFunctions(FitsTestCase):

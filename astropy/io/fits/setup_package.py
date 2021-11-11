@@ -3,13 +3,12 @@
 import os
 import sys
 from collections import defaultdict
-
-from setuptools import Extension
 from glob import glob
 
-import numpy
+from extension_helpers import get_compiler, pkg_config
+from setuptools import Extension
 
-from extension_helpers import pkg_config, get_compiler
+import numpy
 
 
 def _get_compression_extension():

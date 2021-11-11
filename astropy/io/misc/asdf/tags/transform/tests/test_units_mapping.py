@@ -5,8 +5,8 @@ asdf = pytest.importorskip("asdf")
 
 from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy.modeling.models import UnitsMapping
 from astropy import units as u
+from astropy.modeling.models import UnitsMapping
 
 
 def assert_model_roundtrip(model, tmpdir):

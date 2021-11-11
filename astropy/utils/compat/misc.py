@@ -6,10 +6,9 @@ everything in `__all__` will be imported into `astropy.utils.compat` and can
 be accessed from there.
 """
 
-import sys
 import functools
+import sys
 from contextlib import suppress
-
 
 __all__ = ['override__dir__', 'suppress',
            'possible_filename', 'namedtuple_asdict']

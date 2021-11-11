@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.utils.decorators import format_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                                            EarthLocationAttribute)
+from astropy.coordinates.attributes import EarthLocationAttribute, TimeAttribute
 from astropy.coordinates.baseframe import base_doc
-from .baseradec import doc_components, BaseRADecFrame
+from astropy.utils.decorators import format_doc
+
+from .baseradec import BaseRADecFrame, doc_components
 from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 
 __all__ = ['CIRS']

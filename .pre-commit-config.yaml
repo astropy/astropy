@@ -12,10 +12,12 @@ repos:
   - id: trailing-whitespace
     exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
 
-# - repo: https://github.com/timothycrosley/isort
-#   rev: 5.9.2
-#   hooks:
-#   - id: isort
+- repo: https://github.com/pycqa/isort
+  rev: 5.8.0
+  hooks:
+    - id: isort
+      name: isort (python)
+      additional_dependencies: ["toml"]
 # - repo: https://github.com/asottile/pyupgrade
 #   rev: v2.21.0
 #   hooks:

@@ -4,10 +4,11 @@ from collections import OrderedDict, UserDict
 from collections.abc import Mapping
 
 import pytest
+
 import numpy as np
 
-from astropy.table import Column, TableColumns, Table, MaskedColumn
 import astropy.units as u
+from astropy.table import Column, MaskedColumn, Table, TableColumns
 
 
 class DictLike(Mapping):

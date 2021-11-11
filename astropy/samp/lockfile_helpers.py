@@ -9,15 +9,12 @@ import os
 import socket
 import stat
 import warnings
+import xmlrpc.client as xmlrpc
 from contextlib import suppress
 from urllib.parse import urlparse
-import xmlrpc.client as xmlrpc
-
-from astropy.config.paths import _find_home
-
 
 from astropy import log
-
+from astropy.config.paths import _find_home
 from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning

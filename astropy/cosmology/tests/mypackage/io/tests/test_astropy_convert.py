@@ -9,7 +9,6 @@ import os
 
 # THIRD PARTY
 import pytest
-
 # LOCAL
 from mypackage.cosmology import MyCosmology, myplanck
 

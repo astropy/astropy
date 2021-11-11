@@ -5,13 +5,14 @@ Functions, including ufuncs, are tested in test_functions.py
 """
 import operator
 
-import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
 
+import numpy as np
+from numpy.testing import assert_array_equal
+
 from astropy import units as u
-from astropy.units import Quantity
 from astropy.coordinates import Longitude
+from astropy.units import Quantity
 from astropy.utils.masked import Masked, MaskedNDArray
 
 

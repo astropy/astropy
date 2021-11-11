@@ -1,10 +1,11 @@
+import copy
 import json
 import textwrap
-import copy
 from collections import OrderedDict
 
-import numpy as np
 import yaml
+
+import numpy as np
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 

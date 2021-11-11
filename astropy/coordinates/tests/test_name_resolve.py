@@ -8,17 +8,15 @@ import time
 import urllib.request
 
 import pytest
+from pytest_remotedata.disable_internet import no_internet
+
 import numpy as np
 
-from astropy.coordinates.name_resolve import (get_icrs_coordinates,
-                                              NameResolveError,
-                                              sesame_database, _parse_response,
-                                              sesame_url)
-from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.config import paths
 from astropy import units as u
-
-from pytest_remotedata.disable_internet import no_internet
+from astropy.config import paths
+from astropy.coordinates.name_resolve import (NameResolveError, _parse_response,
+                                              get_icrs_coordinates, sesame_database, sesame_url)
+from astropy.coordinates.sky_coordinate import SkyCoord
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669

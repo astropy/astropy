@@ -5,14 +5,15 @@ algorithms contained within Jean Meeus, 'Astronomical Algorithms',
 second edition, 1998, Willmann-Bell.
 """
 
-import numpy as np
-from numpy.polynomial.polynomial import polyval
 import erfa
 
-from astropy.utils import deprecated
+import numpy as np
+from numpy.polynomial.polynomial import polyval
 
 from astropy import units as u
-from . import ICRS, SkyCoord, GeocentricTrueEcliptic
+from astropy.utils import deprecated
+
+from . import ICRS, GeocentricTrueEcliptic, SkyCoord
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["calc_moon"]

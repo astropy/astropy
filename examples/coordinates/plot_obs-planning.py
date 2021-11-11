@@ -34,9 +34,12 @@ package.
 # Import numpy and matplotlib. For the latter, use a nicer set of plot
 # parameters and set up support for plotting/converting quantities.
 
-import numpy as np
 import matplotlib.pyplot as plt
+
+import numpy as np
+
 from astropy.visualization import astropy_mpl_style, quantity_support
+
 plt.style.use(astropy_mpl_style)
 quantity_support()
 
@@ -46,8 +49,8 @@ quantity_support()
 # coordinate transformations
 
 import astropy.units as u
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 
 ##############################################################################
 # `astropy.coordinates.SkyCoord.from_name` uses Simbad to resolve object
@@ -110,6 +113,7 @@ plt.show()
 # evenly spaced times between noon on July 12 and noon on July 13:
 
 from astropy.coordinates import get_sun
+
 delta_midnight = np.linspace(-12, 12, 1000)*u.hour
 times_July12_to_13 = midnight + delta_midnight
 frame_July12_to_13 = AltAz(obstime=times_July12_to_13, location=bear_mountain)
@@ -122,6 +126,7 @@ sunaltazs_July12_to_13 = get_sun(times_July12_to_13).transform_to(frame_July12_t
 # to get a precise location of the moon.
 
 from astropy.coordinates import get_moon
+
 moon_July12_to_13 = get_moon(times_July12_to_13)
 moonaltazs_July12_to_13 = moon_July12_to_13.transform_to(frame_July12_to_13)
 

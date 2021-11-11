@@ -2,9 +2,8 @@
 
 import time
 
-from astropy.samp.hub import SAMPHubServer
-
 from astropy.samp import conf
+from astropy.samp.hub import SAMPHubServer
 
 
 def setup_module(module):

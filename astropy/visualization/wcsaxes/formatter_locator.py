@@ -11,13 +11,13 @@
 import re
 import warnings
 
-import numpy as np
-
 from matplotlib import rcParams
 
+import numpy as np
+
 from astropy import units as u
-from astropy.units import UnitsError
 from astropy.coordinates import Angle
+from astropy.units import UnitsError
 
 DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
 HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')

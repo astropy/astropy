@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import numpy as np
-
 from matplotlib import rcParams
 from matplotlib.text import Text
+
+import numpy as np
 
 from .frame import RectangularFrame
 

@@ -7,6 +7,7 @@ Ported from the astroML project: https://www.astroml.org/
 """
 
 import numpy as np
+
 from . import bayesian_blocks
 
 __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',

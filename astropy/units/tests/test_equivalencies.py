@@ -4,14 +4,15 @@
 
 # THIRD-PARTY
 import pytest
+
 import numpy as np
 from numpy.testing import assert_allclose
 
 # LOCAL
-from astropy import units as u
-from astropy.units.equivalencies import Equivalency
 from astropy import constants
+from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.equivalencies import Equivalency
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 

@@ -4,17 +4,15 @@
 
 import numpy as np
 
-from astropy.units import UnitsError, UnitConversionError, Unit
 from astropy import log
-
-from .nddata import NDData
-from .nduncertainty import NDUncertainty
-
-from .mixins.ndslicing import NDSlicingMixin
-from .mixins.ndarithmetic import NDArithmeticMixin
-from .mixins.ndio import NDIOMixin
+from astropy.units import Unit, UnitConversionError, UnitsError
 
 from .flag_collection import FlagCollection
+from .mixins.ndarithmetic import NDArithmeticMixin
+from .mixins.ndio import NDIOMixin
+from .mixins.ndslicing import NDSlicingMixin
+from .nddata import NDData
+from .nduncertainty import NDUncertainty
 
 __all__ = ['NDDataArray']
 

@@ -5,7 +5,7 @@ import copy
 import numpy as np
 
 import astropy.units as u
-from astropy.coordinates import CartesianRepresentation, SphericalRepresentation, ITRS
+from astropy.coordinates import ITRS, CartesianRepresentation, SphericalRepresentation
 from astropy.utils import unbroadcast
 
 from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE

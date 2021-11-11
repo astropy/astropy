@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from astropy.coordinates import Angle, Latitude, Longitude
-
 from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
-
 
 __all__ = ['AngleType', 'LatitudeType', 'LongitudeType']
 

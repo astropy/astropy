@@ -5,23 +5,21 @@ file.
 """
 
 
-# STDLIB
-from xml.parsers.expat import ExpatError
 import hashlib
+import http.client
 import os
+import pickle
 import shutil
 import socket
 import subprocess
-import warnings
-import pickle
-import urllib.request
 import urllib.error
-import http.client
+import urllib.request
+import warnings
+# STDLIB
+from xml.parsers.expat import ExpatError
 
 # VO
-from astropy.io.votable import table
-from astropy.io.votable import exceptions
-from astropy.io.votable import xmlutil
+from astropy.io.votable import exceptions, table, xmlutil
 
 
 class Result:

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import pytest
+
 import numpy as np
 
 from astropy.convolution import convolve_models_fft
