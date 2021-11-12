@@ -1,0 +1,2 @@
+Ensure that scalar ``QuantityDistribution`` unit conversion in ufuncs
+works properly again.
