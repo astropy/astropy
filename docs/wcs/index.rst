@@ -13,7 +13,7 @@ between one set of coordinates and another. A common application is to
 map the pixels in an image onto the celestial sphere. Another common
 application is to map pixels to wavelength in a spectrum.
 
-astropy.wcs contains utilities for managing World Coordinate System
+`astropy.wcs` contains utilities for managing World Coordinate System
 (WCS) transformations defined in several elaborate `FITS WCS standard`_ conventions.
 These transformations work both forward (from pixel to world) and backward
 (from world to pixel).
@@ -26,8 +26,8 @@ with other packages which support the
 allowing for a more flexible approach to the problem and avoiding the `limitations
 of the FITS WCS standard <https://ui.adsabs.harvard.edu/abs/2015A%26C....12..133T/abstract>`_.
 
-The ``Low Level API`` is the original `astropy.wcs` API. It ties applications to
-the `astropy.wcs` package and limits the transformations to the three distinct
+The ``Low Level API`` is the original `astropy.wcs` API and originally developed as ``pywcs``.
+It ties applications to the `astropy.wcs` package and limits the transformations to the three distinct
 types supported by it:
 
 - Core WCS, as defined in the `FITS WCS standard`_, based on Mark
