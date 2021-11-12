@@ -2552,7 +2552,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (np.ndarray, float, int, complex)):
+    if isinstance(value, (np.ndarray, float, int, complex, np.void)):
         return value
 
     avalue = np.array(value)
