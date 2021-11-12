@@ -7,6 +7,8 @@ Uncertainties and Distributions (`astropy.uncertainty`)
 Introduction
 ============
 
+.. note:: This subpackage is still in development.
+
 ``astropy`` provides a |Distribution| object to represent statistical
 distributions in a form that acts as a drop-in replacement for a |Quantity|
 object or a regular |ndarray|. Used in this manner, |Distribution| provides
