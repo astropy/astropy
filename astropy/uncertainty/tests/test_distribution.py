@@ -449,3 +449,12 @@ def test_distr_cannot_view_new_dtype():
 
     with pytest.raises(ValueError, match='with a new dtype'):
         ad.view(np.dtype('f8'), Distribution)
+
+
+def test_scalar_quantity_distribution():
+    # Regression test for gh-12336
+    angles = Distribution([90., 30., 0.] * u.deg)
+    sin_angles = np.sin(angles)  # This failed in 4.3.
+    assert isinstance(sin_angles, Distribution)
+    assert isinstance(sin_angles, u.Quantity)
+    assert_array_equal(sin_angles, Distribution(np.sin([90., 30., 0.]*u.deg)))
