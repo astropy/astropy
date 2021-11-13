@@ -39,26 +39,37 @@ smaller improvements and bug fixes, which are described in the
 Support for reading, writing, and converting ``Cosmology``
 ==========================================================
 
-Four new methods -- ``read``, ``write``, ``to_format``, ``from_format`` -- have
-been added to the ``Cosmology`` class, enabling reading from and writing to
+Four new methods --
+:meth:`~astropy.cosmology.Cosmology.read`,
+:meth:`~astropy.cosmology.Cosmology.write`,
+:meth:`~astropy.cosmology.Cosmology.from_format`,
+:meth:`~astropy.cosmology.Cosmology.to_format`
+-- have
+been added to the :class:`~astropy.cosmology.Cosmology` class,
+enabling reading from and writing to
 files and converting between different Python objects.
 The methods use Astropy's Unified I/O registry so custom formats can be
 registered. For further details see :ref:`cosmology_io`.
 
-For writing the representation of a ``Cosmology`` to a file, the
+For writing the representation of a :class:`~astropy.cosmology.Cosmology` to a file, the
 `ECSV <https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_ table
 format is available. Astropy is encouraging the use of this format as a
 standard interoperable way of storing and communicating cosmology parameters.
+For example, to write out cosmological parameters:
 
     >>> from astropy.cosmology import Cosmology, Planck18
     >>> Planck18.write('planck18.ecsv', format="ascii.ecsv")
-    >>> # and reading back
+
+and to read them back in:
+
     >>> cosmo = Cosmology.read('planck18.ecsv', format="ascii.ecsv")
     >>> cosmo == Planck18
     True
 
-The transformations between ``Cosmology`` and `dict`, ``QTable``, and ``Model``
-are pre-registered, e.g. enabling::
+The :meth:`~astropy.cosmology.Cosmology.to_format` method can be
+used to convert cosmologies to other types such as `dict`,
+:class:`~astropy.table.QTable`, and :class:`~astropy.modeling.Model`.
+For example:
 
     >>> ct = Planck18.to_format("astropy.table")
     >>> ct
@@ -77,15 +88,15 @@ Models can be created from any redshift method of a Cosmology:
         Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
         name='Planck18')>
 
-For details, e.g. how to parse a QTable to a Cosmology, see :ref:`cosmology_io`.
-
+For details, e.g. how to parse a :class:`~astropy.table.QTable` to a
+:class:`~astropy.cosmology.Cosmology`, see :ref:`cosmology_io`.
 
 .. _whatsnew-5.0-cosmology-units:
 
 ``Cosmology`` units module
 ==========================
 
-A new module -- ``cosmology.units`` -- is added to the cosmology subpackage for
+A new module -- :mod:`astropy.cosmology.units` -- has been added to the cosmology subpackage for
 defining and collecting cosmological units and equivalencies.
 The unit ``littleh`` and equivalency ``with_H0`` are deprecated from the main
 ``astropy.units`` subpackage and moved to ``cosmology.units``.
@@ -120,28 +131,11 @@ also added.
       >>> z.to(u.Mpc, equivalency)
       <Quantity 14004.03157418 Mpc>
 
-``with_redshift`` is actually a composite of other equivalencies:
-``redshift_distance``, ``redshift_hubble``, and ``redshift_temperature``,
+:func:`~astropy.cosmology.units.with_redshift` is actually a composite
+of other equivalencies: :func:`~astropy.cosmology.units.redshift_distance`,
+:func:`~astropy.cosmology.units.redshift_hubble`,
+and :func:`~astropy.cosmology.units.redshift_temperature`,
 which may be used separately.
-
-Further details are available in an addition to the docs.
-
-
-.. _whatsnew-5.0-io-unified:
-
-New Unified I/O architecture
-============================
-
-I/O registry submodule has switched to a class-based architecture, allowing for
-the creation of custom registries. The three supported registry types are:
-
-* read-only : :class:`~astropy.io.registry.UnifiedInputRegistry`
-* write-only : :class:`~astropy.io.registry.UnifiedOutputRegistry`
-* read/write : :class:`~astropy.io.registry.UnifiedIORegistry`
-
-For backward compatibility all the methods on the read/write have corresponding
-module-level functions, which work with a default global read/write registry.
-
 
 .. _whatsnew-5.0-modeling-new-models:
 
@@ -161,7 +155,7 @@ The following models have now been added:
 * :class:`~astropy.modeling.functional_models.ArcTangent1D`: a one-dimensional
   inverse tangent model.
 
-A new module -- ``modeling.spline`` -- has been added to the modeling subpackage
+A new module -- :mod:`astropy.modeling.spline` -- has been added to the modeling subpackage
 for defining spline models for astropy. Currently this only contains a one-dimensional
 spline model: :class:`~astropy.modeling.spline.Spline1D`. Since splines have
 unique fitting requirements four fitters have been introduced:
@@ -176,6 +170,7 @@ unique fitting requirements four fitters have been introduced:
   to fit a spline using the `scipy.interpolate.splrep` function.
 
 .. plot::
+   :include-source:
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -299,11 +294,12 @@ For details see the :ref:`cds_mrt_format` section.
 Support for masked quantity columns, including masked FITS columns with units
 =============================================================================
 
-Masked quantities are now fully supported in tables.  This includes ``QTable``
-automatically converting ``MaskedColumn`` instances to ``MaskedQuantity``,
-and ``Table`` doing the reverse.
+Masked quantities are now fully supported in tables.  This includes :class:`~astropy.table.QTable`
+automatically converting :class:`~astropy.table.MaskedColumn` instances to
+``MaskedQuantity``,
+and :class:`~astropy.table.Table` doing the reverse.
 
-A consequence of this is that when FITS tables are read into a ``QTable``, any
+A consequence of this is that when FITS tables are read into a :class:`~astropy.table.QTable`, any
 missing entries will be masked. Hence, when such columns have units, all ``NaN``
 values will now be masked.
 
@@ -336,6 +332,21 @@ Information about the coordinate frame is stored in the metadata of the table::
     {'representation_type': 'spherical', 'frame': 'icrs'}
 
 For more details see :ref:`skycoord-table-conversion`.
+
+.. _whatsnew-5.0-io-unified:
+
+New Unified I/O architecture
+============================
+
+The :mod:`~astropy.io.registry` submodule has switched to a class-based architecture, allowing for
+the creation of custom registries. The three supported registry types are:
+
+* read-only : :class:`~astropy.io.registry.UnifiedInputRegistry`
+* write-only : :class:`~astropy.io.registry.UnifiedOutputRegistry`
+* read/write : :class:`~astropy.io.registry.UnifiedIORegistry`
+
+For backward compatibility all the methods on the read/write have corresponding
+module-level functions, which work with a default global read/write registry.
 
 Full change log
 ===============
