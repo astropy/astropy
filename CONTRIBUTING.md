@@ -8,25 +8,29 @@ When opening an issue to report a problem, please try to provide a minimal code
 example that reproduces the issue along with details of the operating
 system and the Python, NumPy, and `astropy` versions you are using.
 
-Contributing
-------------
+Contributing Code and Documentation
+-----------------------------------
 
-So you are interested in contributing code to the Astropy Project? Excellent!
-We love contributions! Astropy is open source, built on open source,
-and we'd love to have you hang out in our community.
+So you are interested in contributing to the Astropy Project?  Excellent!
+We love contributions! Astropy is open source, built on open source, and
+we'd love to have you hang out in our community.
 
-**Imposter syndrome disclaimer**: We want your help. No, really.
+Anti Imposter Syndrome Reassurance
+----------------------------------
+
+We want your help. No, really.
 
 There may be a little voice inside your head that is telling you that you're not
 ready to be an open source contributor; that your skills aren't nearly good
 enough to contribute. What could you possibly offer a project like this one?
 
-We assure you - the little voice in your head is wrong. If you can write code at
-all, you can contribute code to open source. Contributing to open source
-projects is a fantastic way to advance one's coding skills. Writing perfect code
-isn't the measure of a good developer (that would disqualify all of us!); it's
-trying to create something, making mistakes, and learning from those
-mistakes. That's how we all improve, and we are happy to help others learn.
+We assure you - the little voice in your head is wrong. If you can write code or
+documentation, you can contribute code to open source.
+Contributing to open source projects is a fantastic way to advance one's coding
+and open source workflow skills. Writing perfect code isn't the measure of a good
+developer (that would disqualify all of us!); it's trying to create something,
+making mistakes, and learning from those mistakes. That's how we all improve,
+and we are happy to help others learn.
 
 Being an open source contributor doesn't just mean writing code, either. You can
 help out by writing documentation, tests, or even giving feedback about the
@@ -35,18 +39,21 @@ process). Some of these contributions may be the most valuable to the project as
 a whole, because you're coming to the project with fresh eyes, so you can see
 the errors and assumptions that seasoned contributors have glossed over.
 
-Note: This disclaimer was originally written by
+Note: This text was originally written by
 [Adrienne Lowe](https://github.com/adriennefriend) for a
 [PyCon talk](https://www.youtube.com/watch?v=6Uj746j9Heo), and was adapted by
 Astropy based on its use in the README file for the
 [MetPy project](https://github.com/Unidata/MetPy).
 
-### How to Contribute, Best Practices
+How to Contribute, Best Practices
+---------------------------------
 
-All contributions to Astropy are done via [pull requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) from GitHub users'
-"forks" (i.e., copies) of the [astropy repository](https://github.com/astropy/astropy). If you
-are new to this style of development, you will want to read over our
-[development workflow](https://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
+Most contributions to Astropy are done via [pull
+requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests)
+from GitHub users' forks of the [astropy
+repository](https://github.com/astropy/astropy). If you are new to this
+style of development, you will want to read over our [development
+workflow](https://docs.astropy.org/en/latest/development/workflow/development_workflow.html).
 
 You may also/instead be interested in contributing to an
 [astropy affiliated package](https://www.astropy.org/affiliated/).
@@ -97,46 +104,14 @@ include the following:
   issues) need to be mentioned. If in doubt, ask the core maintainer reviewing
   your changes.
 
-Other Tips
-----------
-
-- Behind the scenes, we conduct a number of tests or checks with new pull requests.
-  This is a technique that is called continuous integration, and we use GitHub Actions
-  and CircleCI. To prevent the automated tests from running, you can add ``[ci skip]``
-  to your commit message. This is useful if your PR is a work in progress (WIP) and
-  you are not yet ready for the tests to run. For example:
-
-      $ git commit -m "WIP widget [ci skip]"
-
-  - If you already made the commit without including this string, you can edit
-    your existing commit message by running:
-
-        $ git commit --amend
-
-- Unfortunately, GitHub Actions ignores ``[ci skip]`` for a PR, so we recommend
-  you only push your commits to GitHub when you are ready for the CI to run.
-  Please do not push a lot of commits for every small WIP changes.
-
-- If your commit makes substantial changes to the documentation but none of
-  those changes include code snippets, then you can use ``[ci skip]``,
-  which will skip all CI except RTD, where the documentation is built.
-
-- When contributing trivial documentation fixes (i.e., fixes to typos, spelling,
-  grammar) that don't contain any special markup and are not associated with
-  code changes, please include the string ``[ci skip]`` in your commit
-  message.
-
-      $ git commit -m "Fixed typo [ci skip]"
-
-- ``[ci skip]`` and ``[skip ci]`` are the same and can be used interchangeably.
-
 Checklist for Contributed Code
 ------------------------------
 
-A pull request for a new feature will be reviewed to see if it meets the
-following requirements. For any pull request, an `astropy` maintainer can help
-to make sure that the pull request meets the requirements for inclusion in the
-package.
+Before being merged, a pull request for a new feature will be reviewed to see if
+it meets the following requirements. If you are unsure about how to meet all of these
+requirements, please submit the PR and ask for help and/or guidance. An Astropy
+maintainer will collaborate with you to make sure that the pull request meets the
+requirements for inclusion in the package:
 
 **Scientific Quality** (when applicable)
   * Is the submission relevant to astronomy?
@@ -185,3 +160,32 @@ package.
   * Do all the GitHub Actions and CircleCI tests pass? If not, are they allowed to fail?
   * If applicable, has an entry been added into the changelog?
   * Can you check out the pull request and repeat the examples and tests?
+
+Other Tips
+----------
+
+- Behind the scenes, we conduct a number of tests or checks with new pull requests.
+  This is a technique that is called continuous integration, and we use GitHub Actions
+  and CircleCI. To prevent the automated tests from running, you can add ``[ci skip]``
+  to your commit message. This is useful if your PR is a work in progress (WIP) and
+  you are not yet ready for the tests to run. For example:
+
+      $ git commit -m "WIP widget [ci skip]"
+
+  - If you already made the commit without including this string, you can edit
+    your existing commit message by running:
+
+        $ git commit --amend
+
+- If your commit makes substantial changes to the documentation but none of
+  those changes include code snippets, then you can use ``[ci skip]``,
+  which will skip all CI except RTD, where the documentation is built.
+
+- When contributing trivial documentation fixes (i.e., fixes to typos, spelling,
+  grammar) that don't contain any special markup and are not associated with
+  code changes, please include the string ``[ci skip]`` in your commit
+  message.
+
+      $ git commit -m "Fixed typo [ci skip]"
+
+- ``[ci skip]`` and ``[skip ci]`` are the same and can be used interchangeably.
