@@ -377,8 +377,9 @@ The people who have contributed to the code for this release are:
   *  Daria Cara
   *  David Stansby
   *  Derek Homeier
-  *  E. Madison Bray
-  *  E. Rykoff  *
+  *  Diego Asterio de Zaballa
+  *  E\. Madison Bray
+  *  E\. Rykoff  *
   *  Ed Slavich
   *  Eero Vaher
   *  Emir  *
@@ -412,7 +413,6 @@ The people who have contributed to the code for this release are:
   *  William Jamieson
   *  Zé Vinicius
   *  athul  *
-  *  diegoasterio  *
   *  iamsoto  *
   *  luz paz  *
   *  odidev  *
