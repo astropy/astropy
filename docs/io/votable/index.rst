@@ -12,7 +12,8 @@ Introduction
 ============
 
 The `astropy.io.votable` sub-package converts VOTable XML files to and
-from ``numpy`` record arrays.
+from ``numpy`` record arrays. This subpackage was originally developed
+as ``vo.table``.
 
 Getting Started
 ===============
