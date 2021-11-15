@@ -64,7 +64,7 @@ Combining Units and Quantities
 
 .. EXAMPLE START: Combining Units and Quantities
 
-A |QTable| can be used to store data as :ref:`user-defined units 
+A |QTable| can be used to store data as :ref:`user-defined units
 <astropy:defining_units>` in a FITS file.
 
   >>> import numpy as np

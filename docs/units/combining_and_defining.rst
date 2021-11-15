@@ -100,7 +100,7 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
     kmph         | 0.277778 m / s  |         ,
   ]
 
-Enabling custom units is also required in order to :ref:`parse and read new 
+Enabling custom units is also required in order to :ref:`parse and read new
 defined units from FITS files. <astropy:combining_units_and_quantities>`
 
 .. EXAMPLE END
