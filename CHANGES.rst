@@ -13,7 +13,8 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Added missing coordinate transformations where the starting and ending frames are the same (i.e., loopback transformations). [#10909]
+- Added missing coordinate transformations where the starting and ending frames
+  are the same (i.e., loopback transformations). [#10909]
 
 - Allow negation, multiplication and division also of representations that
   include a differential (e.g., ``SphericalRepresentation`` with a
@@ -91,8 +92,9 @@ astropy.cosmology
   A new method, ``is_equivalent``, is added to check Cosmology equivalence, so
   a ``FlatLambdaCDM`` and flat ``LambdaCDM`` are equivalent. [#12136]
 
-- Replaced ``z = np.asarray(z)`` with ``z=u.Quantity(z, u.dimensionless_unscaled).value`` in Cosmology methods.
-  Input of values with incorrect units raises a UnitConversionError or TypeError. [#12145]
+- Replaced ``z = np.asarray(z)`` with ``z=u.Quantity(z, u.dimensionless_unscaled).value``
+  in Cosmology methods. Input of values with incorrect units raises a UnitConversionError
+  or TypeError. [#12145]
 
 - Cosmology Parameters allow for custom value setters.
   Values can be set once, but will error if set a second time.
@@ -254,7 +256,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- ``astropy.wcs.utils.obsgeo_to_frame`` has been added to convert the obsgeo coordinate array on ``astropy.wcs.WCS`` objects to an ``ITRS`` coordinate frame instance. [#11716]
+- ``astropy.wcs.utils.obsgeo_to_frame`` has been added to convert the obsgeo coordinate
+  array on ``astropy.wcs.WCS`` objects to an ``ITRS`` coordinate frame instance. [#11716]
 
 - Updated bundled ``WCSLIB`` to version 7.7 with several bugfixes. [#12034]
 
@@ -351,7 +354,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Refactored how ``astropy.modeling.Model`` handles model evaluation in order to better organize the code. [#11931]
+- Refactored how ``astropy.modeling.Model`` handles model evaluation in order to better
+  organize the code. [#11931]
 
 - Removed the following deprecated modeling features:
       ``astropy.modeling.utils.ExpressionTree`` class,
@@ -424,13 +428,17 @@ astropy.utils
   ``utils.console.ProgressBar``, including an ``update()`` method and
   iterator support. [#11772]
 
-- Removed deprecated ``check_hashes`` in ``check_download_cache()``. The function also no longer returns anything. [#12293]
+- Removed deprecated ``check_hashes`` in ``check_download_cache()``. The function also
+  no longer returns anything. [#12293]
 
-- Removed unused ``download_cache_lock_attempts`` configuration item in ``astropy.utils.data``. Deprecation was not possible. [#12293]
+- Removed unused ``download_cache_lock_attempts`` configuration item in
+  ``astropy.utils.data``. Deprecation was not possible. [#12293]
 
 - Removed deprecated ``hexdigest`` keyword from ``import_file_to_cache()``. [#12293]
 
-- Setting ``remote_timeout`` configuration item in ``astropy.utils.data`` to 0 will no longer disable download from the Internet; Set ``allow_internet`` configuration item to ``False`` instead. [#12293]
+- Setting ``remote_timeout`` configuration item in ``astropy.utils.data`` to 0 will
+  no longer disable download from the Internet; Set ``allow_internet`` configuration
+  item to ``False`` instead. [#12293]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -464,7 +472,8 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
-- Passing an ``array`` argument for any Kernel1D or Kernel2D subclasses (with the exception of CustomKernel) will now raise a ``TypeError``. [#11969]
+- Passing an ``array`` argument for any Kernel1D or Kernel2D subclasses (with the
+  exception of CustomKernel) will now raise a ``TypeError``. [#11969]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -478,10 +487,13 @@ astropy.coordinates
 
 - Fixed bug where Angle, Latitude and Longitude with NaN values could not be printed. [#11943]
 
-- Fixed a bug with the transformation from ``PrecessedGeocentric`` to ``GCRS`` where changes in ``obstime``, ``obsgeoloc``, or ``obsgeovel`` were ignored.
-  This bug would also affect loopback transformations from one ``PrecessedGeocentric`` frame to another ``PrecessedGeocentric`` frame. [#12152]
+- Fixed a bug with the transformation from ``PrecessedGeocentric`` to ``GCRS``
+  where changes in ``obstime``, ``obsgeoloc``, or ``obsgeovel`` were ignored.
+  This bug would also affect loopback transformations from one ``PrecessedGeocentric``
+  frame to another ``PrecessedGeocentric`` frame. [#12152]
 
-- Fixed a bug with the transformations between ``TEME`` and ``ITRS`` or between ``TEME`` and itself where a change in ``obstime`` was ignored. [#12152]
+- Fixed a bug with the transformations between ``TEME`` and ``ITRS`` or between ``TEME``
+  and itself where a change in ``obstime`` was ignored. [#12152]
 
 - Avoid unnecessary transforms through CIRS for AltAz and HADec and
   use ICRS as intermediate frame for these transformations instead. [#12203]
@@ -489,7 +501,9 @@ astropy.coordinates
 - Fixed a bug where instantiating a representation with a longitude component
   could mutate input provided for that component even when copying is specified. [#12307]
 
-- Wrapping an ``Angle`` array will now ignore NaN values instead of attempting to wrap them, which would produce unexpected warnings/errors when working with coordinates and representations due to internal broadcasting. [#12317]
+- Wrapping an ``Angle`` array will now ignore NaN values instead of attempting to wrap
+  them, which would produce unexpected warnings/errors when working with coordinates
+  and representations due to internal broadcasting. [#12317]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -507,9 +521,11 @@ astropy.io.fits
 
 - Add support for reading and writing int8 images [#11996]
 
-- Ensure header passed to ``astropy.io.fits.CompImageHDU`` does not need to contain standard cards that can be automatically generated, such as ``BITPIX`` and ``NAXIS``. [#12061]
+- Ensure header passed to ``astropy.io.fits.CompImageHDU`` does not need to contain
+  standard cards that can be automatically generated, such as ``BITPIX`` and ``NAXIS``. [#12061]
 
-- Fixed a bug where ``astropy.io.fits.HDUDiff`` would ignore the ``ignore_blank_cards`` keyword argument. [#12122]
+- Fixed a bug where ``astropy.io.fits.HDUDiff`` would ignore the ``ignore_blank_cards``
+  keyword argument. [#12122]
 
 - Open uncompressed file even if extension says it's compressed [#12135]
 
@@ -525,7 +541,8 @@ astropy.io.misc
 
 - Update ASDF tag versions in ExtensionType subclasses to match ASDF Standard 1.5.0. [#11986]
 
-- Fix ASDF serialization of model inputs and outputs and add relevant assertion to test helper. [#12381]
+- Fix ASDF serialization of model inputs and outputs and add relevant assertion to
+  test helper. [#12381]
 
 - Fix bug preventing ASDF serialization of bounding box for models with only one input. [#12385]
 
@@ -588,7 +605,8 @@ astropy.table
   tables are sliced, writing will still be as requested on
   ``info.serialize_method``. [#11917]
 
-- ``table.conf.replace_warnings`` and ``table.jsviewer.conf.css_urls`` configuration items now have correct ``'string_list'`` type. [#12037]
+- ``table.conf.replace_warnings`` and ``table.jsviewer.conf.css_urls`` configuration
+  items now have correct ``'string_list'`` type. [#12037]
 
 - Fixed an issue where initializing from a list of dict-like rows (Mappings) did
   not work unless the row values were instances of ``dict``. Now any object that
@@ -617,7 +635,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
-- Fixed a bug in ``get_readable_fileobj`` that prevented the unified file read interface from closing ASCII files. [#11809]
+- Fixed a bug in ``get_readable_fileobj`` that prevented the unified file read
+  interface from closing ASCII files. [#11809]
 
 - The function ``astropy.utils.decorators.deprecated_attribute()`` no longer
   ignores its ``message``, ``alternative``, and ``pending`` arguments. [#12184]
@@ -631,7 +650,8 @@ astropy.visualization
 - The tick labelling for radians has been fixed to remove a redundant ``.0`` in
   the label for integer multiples of pi at 2pi and above. [#12221]
 
-- Fix a bug where non-``astropy.wcs.WCS`` WCS instances were not accepted in ``WCSAxes.get_transform``. [#12286]
+- Fix a bug where non-``astropy.wcs.WCS`` WCS instances were not accepted in
+  ``WCSAxes.get_transform``. [#12286]
 
 - Fix compatibility with Matplotlib 3.5 when using the ``grid_type='contours'``
   mode for drawing grid lines. [#12447]
@@ -639,7 +659,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
-- Enabled ``SlicedLowLevelWCS.pixel_to_world_values`` to handle slices including non- ``int`` integers, e.g. ``numpy.int64``. [#11980]
+- Enabled ``SlicedLowLevelWCS.pixel_to_world_values`` to handle slices including
+  non-``int`` integers, e.g. ``numpy.int64``. [#11980]
 
 
 Other Changes and Additions
