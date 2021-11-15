@@ -13,7 +13,7 @@ Introduction
 ASCII data table formats via built-in :ref:`extension_reader_classes`. The
 emphasis is on flexibility and convenience of use, although readers can
 optionally use a less flexible C-based engine for reading and writing for
-improved performance.
+improved performance. This subpackage was originally developed as ``asciitable``.
 
 The following shows a few of the ASCII formats that are available, while the
 section on `Supported formats`_ contains the full list.
