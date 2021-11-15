@@ -179,7 +179,6 @@ Project details
 .. toctree::
    :maxdepth: 1
 
-   stability
    whatsnew/index
    lts_policy
    known_issues
