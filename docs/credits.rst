@@ -59,7 +59,6 @@ Core Package Contributors
 * Bernardo Sulzbach
 * Bernie Simon
 * Bhavya Khandelwal
-* bhavyakh
 * Bili Dong
 * Bogdan Nicula
 * Bojan Nikolic
@@ -111,7 +110,7 @@ Core Package Contributors
 * Derek Homeier
 * Devin Crichton
 * Diego Alonso
-* diegoasterio
+* Diego Asterio de Zaballa
 * disha
 * Dominik Klaes
 * Douglas Burke
