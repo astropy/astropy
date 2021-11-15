@@ -1,3 +1,0 @@
-Fixed a bug in ``biweight_midvariance`` and ``biweight_scale`` where
-output data units would be dropped for constant data and where the
-result was a scalar NaN.

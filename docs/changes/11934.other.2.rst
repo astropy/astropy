@@ -1,1 +1,0 @@
-Minimum version of required Matplotlib is now 3.1.

@@ -1,1 +1,0 @@
-Fix the computation of the DATASUM in a ``CompImageHDU`` when the data is >1D.

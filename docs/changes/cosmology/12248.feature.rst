@@ -1,1 +1,0 @@
-The WMAP1 and WMAP3 are accessible as builtin cosmologies.
