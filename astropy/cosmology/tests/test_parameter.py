@@ -6,7 +6,9 @@
 # IMPORTS
 
 # STDLIB
+import ast
 import inspect
+import sys
 
 # THIRD PARTY
 import pytest
@@ -172,10 +174,10 @@ class ParameterTestMixin:
 
     def test_Parameter_repr(self, cosmo_cls, all_parameter):
         """Test Parameter repr."""
-        r = repr(getattr(cosmo_cls, all_parameter.name))
+        r = repr(all_parameter)
+        assert all_parameter.name in r
 
-        assert all_parameter._attr_name in r
-        assert hex(id(all_parameter)) in r
+        # all the rest are tested in TestParameter
 
     # ===============================================================
     # Usage Tests
@@ -442,6 +444,37 @@ class TestParameter(ParameterTestMixin):
 
         # misc
         assert p1 != 2  # show doesn't error 
+
+    # -------------------------------------------
+
+    def test_Parameter_repr(self, cosmo_cls, param):
+        """Test Parameter repr."""
+        super().test_Parameter_repr(cosmo_cls, param)
+
+        r = repr(param)
+
+        assert "Parameter(" in r
+        for subs in ("name='Example parameter'", "derived=False", 'unit=Unit("m")',
+                     'equivalencies=[(Unit("kg"), Unit("J")',
+                     "doc='Description of example parameter.'", "fmt='.3g'"):
+            assert subs in r, subs
+
+        # fvalidate is a little tricker b/c one of them is custom!
+        if param.fvalidate in param._registry_validators.values():  # not custom
+            assert "fvalidate='default'" in r
+        else:
+            assert "fvalidate='<" in r  # some function
+
+    @pytest.mark.skipif(sys.version_info < (3, 9), reason="unparse needs py3.9+")
+    def test_Parameter_repr_parses(self, param):
+        """Since ``eval`` is unsafe, this just tests parse-ability."""
+        p = Parameter(doc="A description of this parameter.", derived=True,
+                      name="Some Parameter")
+
+        r = repr(p)
+        expr = ast.parse(r, mode="eval")
+
+        assert ast.unparse(expr) == r
 
     # ==============================================================
 
