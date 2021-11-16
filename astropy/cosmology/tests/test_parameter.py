@@ -428,6 +428,21 @@ class TestParameter(ParameterTestMixin):
         with pytest.raises(TypeError):
             param.clone(not_a_valid_parameter=True)
 
+    # -------------------------------------------
+
+    def test_Parameter_equality(self):
+        """Test Parameter equality. Determined from the @property."""
+        p1 = Parameter(name="H0")
+        p2 = Parameter(name="H0")
+        assert p1 == p2
+
+        # not equal parameters
+        p3 = Parameter(name="not H0")
+        assert p3 != p1
+
+        # misc
+        assert p1 != 2  # show doesn't error 
+
     # ==============================================================
 
     def test_Parameter_doesnt_change_with_generic_class(self):

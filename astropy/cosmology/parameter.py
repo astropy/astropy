@@ -247,6 +247,17 @@ class Parameter:
         # all initialization failues, like incorrect input are handled by
         return type(self)(**kw)
 
+    def __eq__(self, other):
+        """Check Parameter equality. Only equal to other parameters."""
+        if not isinstance(other, Parameter):
+            return NotImplemented
+        # check equality on all @property
+        tocheck = (n for n in dir(self.__class__)  # sieve for @property
+                   if isinstance(getattr(self.__class__, n), property))
+        for n in tocheck:  # pass to ``other.__eq__`` if fails check
+            if not hasattr(other, n) or (getattr(self, n) != getattr(other, n)):
+                return NotImplemented
+        return True  # everything passed!
     def __repr__(self):
         return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
 
