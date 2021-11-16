@@ -40,6 +40,17 @@ def test_blackbody_sefanboltzman_law():
     assert_quantity_allclose(b.bolometric_flux, 133.02471751812573 * u.W / (u.m * u.m))
 
 
+def test_blackbody_input_units():
+    SLAM = u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)
+    SNU = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+
+    b_lam = BlackBody(3000*u.K, scale=1*SLAM)
+    assert(b_lam.input_units['x'] == u.AA)
+
+    b_nu = BlackBody(3000*u.K, scale=1*SNU)
+    assert(b_nu.input_units['x'] == u.Hz)
+
+
 def test_blackbody_return_units():
     # return of evaluate has no units when temperature has no units
     b = BlackBody(1000.0 * u.K, scale=1.0)
@@ -145,6 +156,18 @@ def test_blackbody_array_temperature():
     multibb = BlackBody(np.ones(4) * u.K)
     flux = multibb(np.ones((3, 4)) * u.mm)
     assert flux.shape == (3, 4)
+
+
+def test_blackbody_dimensionless():
+    """Test support for dimensionless (but not unscaled) units for scale"""
+    T = 3000 * u.K
+    r = 1e14 * u.cm
+    DL = 100 * u.Mpc
+    scale = np.pi * (r / DL)**2
+
+    bb1 = BlackBody(temperature=T, scale=scale)
+    bb2 = BlackBody(temperature=T, scale=scale.to_value(u.dimensionless_unscaled))
+    assert(bb1.bolometric_flux == bb2.bolometric_flux)
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000E15 * u.M_sun, 3.976819741e+45 * u.kg))
