@@ -128,9 +128,11 @@ class Masked(NDArrayShapeMethods):
         """Get the masked wrapper for a given data class.
 
         If the data class does not exist yet but is a subclass of any of the
-        registered base data classes, it is automatically generated.
+        registered base data classes, it is automatically generated
+        (except we skip `~numpy.ma.MaskedArray` subclasses, since then the
+        masking mechanisms would interfere).
         """
-        if issubclass(data_cls, Masked):
+        if issubclass(data_cls, (Masked, np.ma.MaskedArray)):
             return data_cls
 
         masked_cls = cls._masked_classes.get(data_cls)
@@ -517,6 +519,16 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         allows assignment.
         """
         return MaskedIterator(self)
+
+    @property
+    def _baseclass(self):
+        """Work-around for MaskedArray initialization.
+
+        Allows the base class to be inferred correctly when a masked instance
+        is used to initialize (or viewed as) a `~numpy.ma.MaskedArray`.
+
+        """
+        return self._data_cls
 
     def view(self, dtype=None, type=None):
         """New view of the masked array.

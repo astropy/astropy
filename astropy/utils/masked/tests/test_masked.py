@@ -1180,3 +1180,28 @@ class TestMaskedRecarray(MaskedArraySetup):
         mra.field(attr, self.msa['b'])
         assert_array_equal(mra.a.unmasked, self.msa['b'].unmasked)
         assert_array_equal(mra.a.mask, self.msa['b'].mask)
+
+
+class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
+    def test_masked_array_from_masked(self):
+        """Check that we can initialize a MaskedArray properly."""
+        np_ma = np.ma.MaskedArray(self.ma)
+        assert type(np_ma) is np.ma.MaskedArray
+        assert type(np_ma.data) is self._data_cls
+        assert type(np_ma.mask) is np.ndarray
+        assert_array_equal(np_ma.data, self.a)
+        assert_array_equal(np_ma.mask, self.mask_a)
+
+    def test_view_as_masked_array(self):
+        """Test that we can be viewed as a MaskedArray."""
+        np_ma = self.ma.view(np.ma.MaskedArray)
+        assert type(np_ma) is np.ma.MaskedArray
+        assert type(np_ma.data) is self._data_cls
+        assert type(np_ma.mask) is np.ndarray
+        assert_array_equal(np_ma.data, self.a)
+        assert_array_equal(np_ma.mask, self.mask_a)
+
+
+class TestMaskedQuantityInteractionWithNumpyMA(
+        TestMaskedArrayInteractionWithNumpyMA, QuantitySetup):
+    pass
