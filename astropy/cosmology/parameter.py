@@ -258,8 +258,18 @@ class Parameter:
             if not hasattr(other, n) or (getattr(self, n) != getattr(other, n)):
                 return NotImplemented
         return True  # everything passed!
+
     def __repr__(self):
-        return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
+        """String representation.
+
+        ``eval(repr())`` should work, depending if contents like ``fvalidate``
+        can be similarly round-tripped.
+        """
+        s = (f"Parameter(name={self.name!r}, derived={self.derived!r}, "
+             f"unit={self.unit!r}, equivalencies={self.equivalencies!r}, "
+             f"fvalidate={self._validate_repr!r}, fmt={self.format_spec!r}, "
+             f"doc={self.__doc__!r})")
+        return s
 
 
 # ===================================================================
