@@ -166,7 +166,13 @@ def test_blackbody_dimensionless():
     scale = np.pi * (r / DL)**2
 
     bb1 = BlackBody(temperature=T, scale=scale)
+    # even though we passed scale with units, we should be able to evaluate with unitless
+    bb1.evaluate(0.5, T.value, scale.to_value(u.dimensionless_unscaled))
+
     bb2 = BlackBody(temperature=T, scale=scale.to_value(u.dimensionless_unscaled))
+    bb2.evaluate(0.5, T.value, scale.to_value(u.dimensionless_unscaled))
+
+    # bolometric flux for both cases should be equivalent
     assert(bb1.bolometric_flux == bb2.bolometric_flux)
 
 
