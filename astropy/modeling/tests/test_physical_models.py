@@ -170,6 +170,27 @@ def test_blackbody_dimensionless():
     assert(bb1.bolometric_flux == bb2.bolometric_flux)
 
 
+@pytest.mark.skipif("not HAS_SCIPY")
+def test_blackbody_dimensionless_fit():
+    T = 3000 * u.K
+    r = 1e14 * u.cm
+    DL = 100 * u.Mpc
+    scale = np.pi * (r / DL)**2
+
+    bb1 = BlackBody(temperature=T, scale=scale)
+    bb2 = BlackBody(temperature=T, scale=scale.to_value(u.dimensionless_unscaled))
+
+    fitter = LevMarLSQFitter()
+
+    wav = np.array([0.5, 5, 10]) * u.micron
+    fnu = np.array([1, 10, 5]) * u.Jy / u.sr
+
+    bb1_fit = fitter(bb1, wav, fnu, maxiter=1000)
+    bb2_fit = fitter(bb2, wav, fnu, maxiter=1000)
+
+    assert(bb1_fit.temperature == bb2_fit.temperature)
+
+
 @pytest.mark.parametrize("mass", (2.0000000000000E15 * u.M_sun, 3.976819741e+45 * u.kg))
 def test_NFW_evaluate(mass):
     """Evaluation, density, and radii validation of NFW model."""
