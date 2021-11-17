@@ -9,6 +9,7 @@ on:
   pull_request:
 
 env:
+  CI: "true"
   ARCH_ON_CI: "normal"
   IS_CRON: "false"
 

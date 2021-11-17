@@ -11,7 +11,8 @@ on:
       - synchronize
       - labeled
 env:
-  IS_CRON: 'true'
+  CI: "true"
+  IS_CRON: "true"
 
 jobs:
   tests:

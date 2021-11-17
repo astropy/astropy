@@ -12,6 +12,7 @@ on:
       - labeled
 
 env:
+  CI: "true"
   ARCH_ON_CI: "normal"
   IS_CRON: "true"
 
