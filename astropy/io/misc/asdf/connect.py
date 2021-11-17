@@ -110,6 +110,7 @@ def asdf_identify(origin, filepath, fileobj, *args, **kwargs):
     return filepath is not None and filepath.endswith('.asdf')
 
 
-io_registry.register_reader('asdf', Table, read_table)
-io_registry.register_writer('asdf', Table, write_table)
-io_registry.register_identifier('asdf', Table, asdf_identify)
+def register_asdf():
+    io_registry.register_reader('asdf', Table, read_table)
+    io_registry.register_writer('asdf', Table, write_table)
+    io_registry.register_identifier('asdf', Table, asdf_identify)

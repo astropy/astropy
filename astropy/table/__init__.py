@@ -62,11 +62,10 @@ from .serialize import SerializedColumn, represent_mixins_as_columns  # noqa: E4
 from astropy.io import registry  # noqa: E402
 
 with registry.delay_doc_updates(Table):
-    # Import routines that connect readers/writers to astropy.table
-    from .jsviewer import JSViewer
+
+    # Load all entry points that define readers/writers for Table
+    registry.load_all_entry_points('astropy_io_registry_table')
+
+    # We need to manually import io.ascii here because it is harder to use
+    # entry points to define a single registration function there.
     import astropy.io.ascii.connect
-    import astropy.io.fits.connect
-    import astropy.io.misc.connect
-    import astropy.io.votable.connect
-    import astropy.io.misc.asdf.connect
-    import astropy.io.misc.pandas.connect  # noqa: F401

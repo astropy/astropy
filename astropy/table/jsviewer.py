@@ -197,4 +197,5 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                 overwrite=overwrite)
 
 
-io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
+def register_jsviewer():
+    io_registry.register_writer('jsviewer', Table, write_table_jsviewer)

@@ -111,13 +111,15 @@ def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     return write_method(filespec, **write_kwargs)
 
 
-for pandas_fmt, defaults in PANDAS_FMTS.items():
-    fmt = PANDAS_PREFIX + pandas_fmt  # Full format specifier
+def register_pandas():
 
-    if 'read' in defaults:
-        func = functools.partial(_pandas_read, fmt)
-        io_registry.register_reader(fmt, Table, func)
+    for pandas_fmt, defaults in PANDAS_FMTS.items():
+        fmt = PANDAS_PREFIX + pandas_fmt  # Full format specifier
 
-    if 'write' in defaults:
-        func = functools.partial(_pandas_write, fmt)
-        io_registry.register_writer(fmt, Table, func)
+        if 'read' in defaults:
+            func = functools.partial(_pandas_read, fmt)
+            io_registry.register_reader(fmt, Table, func)
+
+        if 'write' in defaults:
+            func = functools.partial(_pandas_write, fmt)
+            io_registry.register_writer(fmt, Table, func)
