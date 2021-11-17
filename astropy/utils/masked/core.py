@@ -1017,6 +1017,18 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # For inplace, the mask will have been set already.
         return out
 
+    def __array_wrap__(self, obj, context=None, return_scalar=False):
+        if context is None:
+            # Functions like np.ediff1d call __array_wrap__ to turn the array
+            # into self's subclass.
+            return self.from_unmasked(*self._get_data_and_mask(obj))
+
+        raise NotImplementedError(
+            "__array_wrap__ should not be used with a context any more since all use "
+            "should go through array_function. Please raise an issue on "
+            "https://github.com/astropy/astropy"
+        )
+
     # Below are ndarray methods that need to be overridden as masked elements
     # need to be skipped and/or an initial value needs to be set.
     def _reduce_defaults(self, kwargs, initial_func=None):

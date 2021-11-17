@@ -17,6 +17,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units import Quantity
+from astropy.utils import minversion
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
 from astropy.utils.masked.core import Masked
 
@@ -598,15 +599,24 @@ class TestStructuredUfuncs:
 
 def test_erfa_no_warnings_on_masked_entries():
     # Erfa warns for invalid inputs for some routines.
-    ihour1 = [25, 10]
-    with pytest.warns(erfa.ErfaWarning, match="ihour outside range"):
+    msg = 'ERFA function "tf2d" yielded {count} of "ihour outside range 0-23"'
+    ihour1 = [25, 26, 10]
+    with pytest.warns(erfa.ErfaWarning, match=msg.format(count=2)):
         res1 = erfa.tf2d("+", ihour1, 0, 0.0)
     # But will not if they are masked.
-    mask = [True, False]
+    mask = [True, True, False]
     ihour2 = Masked(ihour1, mask)
     res2 = erfa.tf2d("+", ihour2, 0, 0.0)
     assert_array_equal(res2.unmasked, res1)
     assert_array_equal(res2.mask, mask)
+    # And will count correctly.
+    mask = [True, False, False]
+    ihour3 = Masked(ihour1, mask)
+    count = 1 if minversion(erfa, "2.0.1.1", inclusive=False) else "—"
+    with pytest.warns(erfa.ErfaWarning, match=msg.format(count=count)):
+        res3 = erfa.tf2d("+", ihour3, 0, 0.0)
+    assert_array_equal(res3.unmasked, res1)
+    assert_array_equal(res3.mask, mask)
 
 
 def test_erfa_no_exceptions_on_masked_entries():
