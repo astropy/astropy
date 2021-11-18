@@ -31,6 +31,7 @@ import configparser
 from datetime import datetime
 from importlib import metadata
 
+import doctest
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
@@ -131,6 +132,12 @@ for line in metadata.requires('astropy'):
 with open("common_links.txt", "r") as cl:
     rst_epilog += cl.read().format(minimum_python=__minimum_python_version__,
                                    **min_versions)
+
+# Manually register doctest options since matplotlib 3.5 messed up allowing them
+# from pytest-doctestplus
+IGNORE_OUTPUT = doctest.register_optionflag('IGNORE_OUTPUT')
+REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
+FLOAT_CMP = doctest.register_optionflag('FLOAT_CMP')
 
 # Whether to create cross-references for the parameter types in the
 # Parameters, Other Parameters, Returns and Yields sections of the docstring.

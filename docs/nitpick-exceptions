@@ -58,6 +58,7 @@ py:obj Transform
 py:obj Patch
 py:obj Figure
 py:obj AbstractPathEffect
+py:obj ScaleBase
 py:obj matplotlib.axis.Axes.get_window_extent
 py:obj matplotlib.spines.get_window_extent
 
