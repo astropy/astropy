@@ -50,7 +50,7 @@ astropy.cosmology
   This equivalency is enabled by default. [#11786]
 
 - Add equality operator for comparing Cosmology instances. Comparison is done on
-  all immutable fields (this excluded 'meta').
+  all immutable fields (this excludes 'meta').
 
   Now the following will work:
 
@@ -92,7 +92,7 @@ astropy.cosmology
   A new method, ``is_equivalent``, is added to check Cosmology equivalence, so
   a ``FlatLambdaCDM`` and flat ``LambdaCDM`` are equivalent. [#12136]
 
-- Replaced ``z = np.asarray(z)`` with ``z=u.Quantity(z, u.dimensionless_unscaled).value``
+- Replaced ``z = np.asarray(z)`` with ``z = u.Quantity(z, u.dimensionless_unscaled).value``
   in Cosmology methods. Input of values with incorrect units raises a UnitConversionError
   or TypeError. [#12145]
 
@@ -138,8 +138,8 @@ astropy.io.ascii
 
 - When writing, the input data are no longer copied, improving performance.
   Metadata that might be changed, such as format and serialization
-  information, is copied, hence users can continue on there being no
-  changes to the input data. [#11919]
+  information, is copied, hence users can continue to count on no
+  changes being made to the input data. [#11919]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -154,7 +154,8 @@ astropy.modeling
 
 - Extensive refactor of ``BoundingBox`` for better usability and maintainability. [#11930]
 
-- Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``. [#11942]
+- Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``, which allows more flexibility in 
+  defining bounding boxes for models that are applied to iamges with many slices. [#11942]
 
 - Improved parameter support for ``astropy.modeling.core.custom_model`` created models. [#11984]
 
@@ -201,7 +202,7 @@ astropy.time
   and adds a rigorous correction for polar motion. The ``TIO`` adjustment is approximately
   3 microseconds per century from ``J2000`` and the polar motion correction is at most
   about +/-50 nanoseconds. For models ``IAU1982`` and ``IAU1994``, no such adjustments are
-  made. [#11680]
+  made as they pre-date the TIO concept. [#11680]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
@@ -688,7 +689,7 @@ Other Changes and Additions
   attribute is passed. [#12174]
 
 - When ``astropy`` raises an ``OSError`` because a file it was told to write
-  already exists, then the error message now always suggests the use of the
+  already exists, the error message now always suggests the use of the
   ``overwrite=True`` argument. The wording is now consistent for all I/O formats. [#12179]
 
 - ``astropy`` now requires ``packaging``. [#12199]
