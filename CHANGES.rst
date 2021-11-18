@@ -154,7 +154,7 @@ astropy.modeling
 
 - Extensive refactor of ``BoundingBox`` for better usability and maintainability. [#11930]
 
-- Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``, which allows more flexibility in 
+- Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``, which allows more flexibility in
   defining bounding boxes for models that are applied to iamges with many slices. [#11942]
 
 - Improved parameter support for ``astropy.modeling.core.custom_model`` created models. [#11984]
