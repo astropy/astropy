@@ -1,1 +1,0 @@
-Update ASDF tag versions in ExtensionType subclasses to match ASDF Standard 1.5.0.
