@@ -220,6 +220,7 @@ class AstropyDumper(yaml.SafeDumper):
 
 AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
+AstropyDumper.add_multi_representer(u.StructuredUnit, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
 AstropyDumper.add_representer(Time, _time_representer)
