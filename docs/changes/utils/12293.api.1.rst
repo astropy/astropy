@@ -1,1 +1,0 @@
-Removed deprecated ``check_hashes`` in ``check_download_cache()``. The function also no longer returns anything.

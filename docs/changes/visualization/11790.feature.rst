@@ -1,1 +1,0 @@
-Added a feature so that SphericalCircle will accept center parameter as a SkyCoord object.

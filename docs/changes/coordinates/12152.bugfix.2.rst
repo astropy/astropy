@@ -1,1 +1,0 @@
-Fixed a bug with the transformations between ``TEME`` and ``ITRS`` or between ``TEME`` and itself where a change in ``obstime`` was ignored.

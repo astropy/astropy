@@ -1,3 +1,0 @@
-``z_at_value`` now works with arrays for all arguments (except ``func``,
-``verbose``, and ``method``). Consequently, ``coordinates.Distance.z`` can
-be used when Distance is an array.

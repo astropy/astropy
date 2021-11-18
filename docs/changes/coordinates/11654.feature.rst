@@ -1,3 +1,0 @@
-``transform`` methods are added to ``BaseDifferential`` and ``CartesianDifferential``.
-All transform methods on Representations now delegate transforming differentials
-to the differential objects.

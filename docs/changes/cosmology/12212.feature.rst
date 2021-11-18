@@ -1,3 +1,0 @@
-A new equivalency is added between redshift and distance -- comoving, lookback,
-and luminosity. This equivalency is also available in the catch-all equivalency
-``with_redshift``.

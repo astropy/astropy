@@ -1,2 +1,0 @@
-Cosmology instance conversion to dict now accepts keyword argument ``cls`` to
-determine dict type, e.g. ``OrderedDict``.

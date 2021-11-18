@@ -1,2 +1,0 @@
-The ``separable`` property is now correctly set on models constructed with
-``astropy.modeling.custom_model``.

@@ -1,2 +1,0 @@
-Added new way to specify the dtype for tables that are read: ``converters``
-can specify column names with wildcards.

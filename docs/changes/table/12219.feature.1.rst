@@ -1,3 +1,0 @@
-Added a new registry for mixin handlers, which can be used
-to automatically convert array-like Python objects into
-mixin columns when assigned to a table column.

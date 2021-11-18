@@ -1,1 +1,0 @@
-The milli- prefix has been added to ``astropy.units.Angstrom``.
