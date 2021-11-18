@@ -316,6 +316,13 @@ astropy.cosmology
 - Cosmology base class constructor now only accepts arguments ``name`` and ``meta``.
   Subclasses should add relevant arguments and not pass them to the base class. [#12191]
 
+astropy.io
+^^^^^^^^^^
+
+- When ``astropy`` raises an ``OSError`` because a file it was told to write
+  already exists, the error message now always suggests the use of the
+  ``overwrite=True`` argument. The wording is now consistent for all I/O formats. [#12179]
+
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -687,10 +694,6 @@ Other Changes and Additions
 
 - Speed up ``minversion()`` in cases where a module with a ``__version__``
   attribute is passed. [#12174]
-
-- When ``astropy`` raises an ``OSError`` because a file it was told to write
-  already exists, the error message now always suggests the use of the
-  ``overwrite=True`` argument. The wording is now consistent for all I/O formats. [#12179]
 
 - ``astropy`` now requires ``packaging``. [#12199]
 
