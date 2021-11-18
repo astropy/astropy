@@ -340,9 +340,11 @@ example above, but with 200x fewer samples:
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
 
->>> np.cov(n1.distribution, n2.distribution) # doctest: +FLOAT_CMP
-array([[1.04667972, 0.19391617],
-       [0.19391617, 1.50899902]])
+The impression one gets from the plot is confirmed from the covariance matrix::
+
+  >>> np.cov(n1.distribution, n2.distribution) # doctest: +FLOAT_CMP
+  array([[1.04667972, 0.19391617],
+         [0.19391617, 1.50899902]])
 
 The covariance structure is much less apparent by eye, and this is reflected
 in significant discrepancies between the input and output covariance matrix.
