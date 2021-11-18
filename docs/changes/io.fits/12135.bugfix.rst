@@ -1,1 +1,0 @@
-Open uncompressed file even if extension says it's compressed

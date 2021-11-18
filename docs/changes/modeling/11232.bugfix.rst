@@ -1,2 +1,0 @@
-Added ``Parameter`` descriptions to the implemented models which were earlier
-missing.

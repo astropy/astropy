@@ -1,1 +1,0 @@
-Enabled ``SlicedLowLevelWCS.pixel_to_world_values`` to handle slices including non- ``int`` integers, e.g. ``numpy.int64``.

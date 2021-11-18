@@ -1,2 +1,0 @@
-The ``read/write`` and ``to/from_format`` Unified I/O registries are separated
-and apply only to ``Cosmology``.

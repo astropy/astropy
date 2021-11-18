@@ -1,2 +1,0 @@
-Prevent zero-byte writes for FITS binary tables to
-speed up writes on the Lustre filesystem.
