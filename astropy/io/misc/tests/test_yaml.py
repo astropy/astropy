@@ -33,10 +33,11 @@ def test_numpy_types(c):
     assert c == cy
 
 
-@pytest.mark.parametrize('c', [u.m, u.m / u.s, u.hPa, u.dimensionless_unscaled])
+@pytest.mark.parametrize('c', [u.m, u.m / u.s, u.hPa, u.dimensionless_unscaled,
+                               u.Unit('m, (cm, um)')])
 def test_unit(c):
     cy = load(dump(c))
-    if isinstance(c, u.CompositeUnit):
+    if isinstance(c, (u.CompositeUnit, u.StructuredUnit)):
         assert c == cy
     else:
         assert c is cy
