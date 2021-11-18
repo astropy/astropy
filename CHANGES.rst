@@ -155,13 +155,12 @@ astropy.modeling
 - Extensive refactor of ``BoundingBox`` for better usability and maintainability. [#11930]
 
 - Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``, which allows more flexibility in
-  defining bounding boxes for models that are applied to iamges with many slices. [#11942]
+  defining bounding boxes for models that are applied to images with many slices. [#11942]
 
 - Improved parameter support for ``astropy.modeling.core.custom_model`` created models. [#11984]
 
-- Added ``Cosine1D`` model to ``astropy.modeling.models``. [#12158]
-
 - Added the following trigonometric models and linked them to their appropriate inverse models:
+    * ``Cosine1D`` [#12158]
     * ``Tangent1D``
     * ``ArcSine1D``
     * ``ArcCosine1D``
@@ -562,7 +561,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Added ``Parameter`` descriptions to the implemented models which were earlier
+- Added ``Parameter`` descriptions to the implemented models which were
   missing. [#11232]
 
 - The ``separable`` property is now correctly set on models constructed with
