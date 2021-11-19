@@ -3,3 +3,4 @@ object and change any constructor argument.
 A supporting equality method is added, and ``repr`` is enhanced to be able to
 roundtrip -- ``eval(repr(Parameter()))`` -- if the Parameter's arguments can
 similarly roundtrip.
+Parameter's arguments are made keyword-only.

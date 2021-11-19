@@ -77,13 +77,12 @@ class ParameterTestMixin:
         # setting all kwargs
         parameter = Parameter(fvalidate="float", doc="DOCSTRING",
                               unit="km", equivalencies=[u.mass_energy()],
-                              fmt=".4f", derived=True, name="init")
+                              fmt=".4f", derived=True)
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
         assert parameter.format_spec == ".4f"
         assert parameter.derived is True
-        assert parameter.name == "init"
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
@@ -99,7 +98,7 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_derived")
 
         # __set_name__
-        assert hasattr(all_parameter, "_name")
+        assert hasattr(all_parameter, "_attr_name")
         assert hasattr(all_parameter, "_attr_name_private")
 
     def test_Parameter_fvalidate(self, all_parameter):
@@ -111,7 +110,7 @@ class ParameterTestMixin:
         """Test :attr:`astropy.cosmology.Parameter.name`."""
         assert hasattr(all_parameter, "name")
         assert isinstance(all_parameter.name, str)
-        assert all_parameter.name is all_parameter._name
+        assert all_parameter.name is all_parameter._attr_name
 
     def test_Parameter_unit(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
@@ -138,7 +137,7 @@ class ParameterTestMixin:
         assert all_parameter.derived is all_parameter._derived
 
         # test value
-        if all_parameter._attr_name in cosmo_cls.__parameters__:
+        if all_parameter.name in cosmo_cls.__parameters__:
             assert all_parameter.derived is False
         else:
             assert all_parameter.derived is True
@@ -149,12 +148,12 @@ class ParameterTestMixin:
     def test_Parameter_descriptor_get(self, cosmo_cls, cosmo, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.__get__`."""
         # from class
-        parameter = getattr(cosmo_cls, all_parameter._attr_name)
+        parameter = getattr(cosmo_cls, all_parameter.name)
         assert isinstance(parameter, Parameter)
         assert parameter is all_parameter
 
         # from instance
-        parameter = getattr(cosmo, all_parameter._attr_name)
+        parameter = getattr(cosmo, all_parameter.name)
         assert np.all(parameter == getattr(cosmo, all_parameter._attr_name_private))
 
     def test_Parameter_descriptor_set(self, cosmo, all_parameter):
@@ -170,15 +169,6 @@ class ParameterTestMixin:
     # validate value
     # tested later.
 
-    # -------------------------------------------
-
-    def test_Parameter_repr(self, cosmo_cls, all_parameter):
-        """Test Parameter repr."""
-        r = repr(all_parameter)
-        assert all_parameter.name in r
-
-        # all the rest are tested in TestParameter
-
     # ===============================================================
     # Usage Tests
 
@@ -189,9 +179,9 @@ class ParameterTestMixin:
 
         # the reverse: check that if it is a Parameter, it's listed.
         # note have to check the more inclusive ``__all_parameters__``
-        assert all_parameter._attr_name in cosmo_cls.__all_parameters__
+        assert all_parameter.name in cosmo_cls.__all_parameters__
         if not all_parameter.derived:
-            assert all_parameter._attr_name in cosmo_cls.__parameters__
+            assert all_parameter.name in cosmo_cls.__parameters__
 
     def test_parameter_related_attributes_on_Cosmology(self, cosmo_cls):
         """Test `astropy.cosmology.Parameter`-related on Cosmology."""
@@ -253,8 +243,7 @@ class TestParameter(ParameterTestMixin):
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(name="Example parameter",
-                              doc="Description of example parameter.",
+            param = Parameter(doc="Description of example parameter.",
                               unit=u.m, equivalencies=u.mass_energy())
 
             def __init__(self, param=15):
@@ -321,7 +310,7 @@ class TestParameter(ParameterTestMixin):
         """Test :attr:`astropy.cosmology.Parameter.name`."""
         super().test_Parameter_name(param)
 
-        assert param.name == "Example parameter"
+        assert param.name == "param"
 
     def test_Parameter_unit(self, param):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
@@ -355,7 +344,7 @@ class TestParameter(ParameterTestMixin):
         super().test_Parameter_descriptor_get(cosmo_cls, cosmo, param)
 
         # from instance
-        value = getattr(cosmo, param._attr_name)
+        value = getattr(cosmo, param.name)
         assert value == 15 * u.m
 
     # -------------------------------------------
@@ -433,13 +422,16 @@ class TestParameter(ParameterTestMixin):
     # -------------------------------------------
 
     def test_Parameter_equality(self):
-        """Test Parameter equality. Determined from the @property."""
-        p1 = Parameter(name="H0")
-        p2 = Parameter(name="H0")
+        """
+        Test Parameter equality.
+        Determined from the processed initialization args (including defaults).
+        """
+        p1 = Parameter(unit="km / (s Mpc)")
+        p2 = Parameter(unit="km / (s Mpc)")
         assert p1 == p2
 
         # not equal parameters
-        p3 = Parameter(name="not H0")
+        p3 = Parameter(unit="km / s")
         assert p3 != p1
 
         # misc
@@ -449,32 +441,25 @@ class TestParameter(ParameterTestMixin):
 
     def test_Parameter_repr(self, cosmo_cls, param):
         """Test Parameter repr."""
-        super().test_Parameter_repr(cosmo_cls, param)
-
         r = repr(param)
 
         assert "Parameter(" in r
-        for subs in ("name='Example parameter'", "derived=False", 'unit=Unit("m")',
-                     'equivalencies=[(Unit("kg"), Unit("J")',
-                     "doc='Description of example parameter.'", "fmt='.3g'"):
+        for subs in ("derived=False", 'unit=Unit("m")', 'equivalencies=[(Unit("kg"), Unit("J")',
+                     "fmt='.3g'", "doc='Description of example parameter.'"):
             assert subs in r, subs
 
-        # fvalidate is a little tricker b/c one of them is custom!
+        # `fvalidate` is a little tricker b/c one of them is custom!
         if param.fvalidate in param._registry_validators.values():  # not custom
             assert "fvalidate='default'" in r
         else:
-            assert "fvalidate='<" in r  # some function
+            assert "fvalidate=<" in r  # Some function, don't care about details.
 
-    @pytest.mark.skipif(sys.version_info < (3, 9), reason="unparse needs py3.9+")
-    def test_Parameter_repr_parses(self, param):
-        """Since ``eval`` is unsafe, this just tests parse-ability."""
-        p = Parameter(doc="A description of this parameter.", derived=True,
-                      name="Some Parameter")
+    def test_Parameter_repr_roundtrip(self, param):
+        """Test ``eval(repr(Parameter))`` can round trip to ``Parameter``."""
+        P = Parameter(doc="A description of this parameter.", derived=True)
+        NP = eval(repr(P))  # Evaluate string representation back into a param.
 
-        r = repr(p)
-        expr = ast.parse(r, mode="eval")
-
-        assert ast.unparse(expr) == r
+        assert P == NP
 
     # ==============================================================
 
