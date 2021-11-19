@@ -117,8 +117,8 @@ Core Package Contributors
 * Drew Leonard
 * Duncan Macleod
 * Dylan Gregersen
-* E. Madison Bray
-* E. Rykoff
+* E\. Madison Bray
+* E\. Rykoff
 * Ed Slavich
 * Edward Betts
 * Edward Slavich
@@ -170,8 +170,8 @@ Core Package Contributors
 * iamsoto
 * ikkamens
 * Inada Naoki
-* J. Goutin
-* J. Xavier Prochaska
+* J\. Goutin
+* J\. Xavier Prochaska
 * Jake VanderPlas
 * Jakob Maljaars
 * James Davies
@@ -414,7 +414,7 @@ Core Package Contributors
 * Sushobhana Patra
 * Suyog Garg
 * Swapnil Sharma
-* T. Carl Beery
+* T\. Carl Beery
 * Tanuj Rastogi
 * Thomas Erben
 * Thomas Robitaille
