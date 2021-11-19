@@ -1,0 +1,2 @@
+Supported versions of JPL ephemeris files can now be accessed from the
+``astropy.coordinates.solar_system.KNOWN_JPL_EPHEMERIS`` variable.
