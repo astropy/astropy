@@ -4223,7 +4223,7 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=False, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=False, subok=True, dtype=col.dtype)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "
