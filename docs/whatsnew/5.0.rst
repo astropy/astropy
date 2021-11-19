@@ -15,7 +15,6 @@ In particular, this release includes:
 
 * :ref:`whatsnew-5.0-cosmology-io`
 * :ref:`whatsnew-5.0-cosmology-units`
-* :ref:`whatsnew-5.0-io-unified`
 * :ref:`whatsnew-5.0-modeling-new-models`
 * :ref:`whatsnew-5.0-dask-in-table`
 * :ref:`whatsnew-5.0-mixin-registry`
@@ -23,14 +22,15 @@ In particular, this release includes:
 * :ref:`whatsnew-5.0-mrt-format-tables`
 * :ref:`whatsnew-5.0-masked-quantity-columns`
 * :ref:`whatsnew-5.0-skycoord-to-table`
+* :ref:`whatsnew-5.0-io-unified`
 
 In addition to these major changes, Astropy v5.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* 1301 commits have been added since 4.3
-* 138 issues have been closed since 4.3
-* 249 pull requests have been merged since 4.3
+* 1323 commits have been added since 4.3
+* 146 issues have been closed since 4.3
+* 258 pull requests have been merged since 4.3
 * 54 people have contributed since 4.3
 * 18 of which are new contributors
 
@@ -377,7 +377,7 @@ The people who have contributed to the code for this release are:
   *  Daria Cara
   *  David Stansby
   *  Derek Homeier
-  *  Diego Asterio de Zaballa
+  *  Diego Asterio de Zaballa  *
   *  E\. Madison Bray
   *  E\. Rykoff  *
   *  Ed Slavich
