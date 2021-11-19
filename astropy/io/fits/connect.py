@@ -40,6 +40,9 @@ REMOVE_KEYWORDS = [
 # Column-specific keywords regex
 COLUMN_KEYWORD_REGEXP = "(" + "|".join(KEYWORD_NAMES) + ")[0-9]+"
 
+# Translation from 'datatype' in SERIALIZED-COLUMNS to `dtype`
+DATA_TYPES = {'string': 'str'}
+
 
 def is_column_keyword(keyword):
     return re.match(COLUMN_KEYWORD_REGEXP, keyword) is not None
@@ -111,8 +114,7 @@ def _decode_mixins(tbl):
             if attr in col:
                 setattr(tbl[col["name"]].info, attr, col[attr])
 
-    # Construct new table with mixins, using tbl.meta['__serialized_columns__']
-    # as guidance.
+    # Construct new table with mixins, using tbl.meta['__serialized_columns__'] as rules.
     tbl = serialize._construct_mixins_from_columns(tbl)
 
     return tbl
