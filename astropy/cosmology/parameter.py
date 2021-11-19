@@ -213,7 +213,7 @@ class Parameter:
     # -------------------------------------------
 
     def clone(self, **kw):
-        """Clone `Parameter`.
+        """Clone this `Parameter`, changing any constructor argument.
 
         Parameters
         ----------
@@ -228,9 +228,9 @@ class Parameter:
         Parameter(name=None, derived=False, unit=None, equivalencies=[],
                   fvalidate='default', fmt='.3g', doc=None)
 
-        >>> p.clone(unit="km")
-        Parameter(name=None, derived=False, unit=Unit("km"), equivalencies=[],
-                  fvalidate='default', fmt='.3g', doc=None)
+        >>> p.clone(name="cloned", unit="km")
+        Parameter(name='cloned', derived=False, unit=Unit("km"),
+                  equivalencies=[], fvalidate='default', fmt='.3g', doc=None)
         """
         kw.setdefault("doc", self.__doc__)
         kw.setdefault("fmt", self.format_spec)
@@ -244,11 +244,31 @@ class Parameter:
                      else self.fvalidate)
         kw.setdefault("fvalidate", fvalidate)
 
-        # all initialization failues, like incorrect input are handled by
+        # all initialization failures, like incorrect input are handled by init
         return type(self)(**kw)
 
     def __eq__(self, other):
-        """Check Parameter equality. Only equal to other parameters."""
+        """Check Parameter equality. Only equal to other Parameter objects.
+
+        Returns
+        -------
+        NotImplemented or True
+            `True` if equal, `NotImplemented` otherwise. This allows `other` to
+            be check for equality with ``other.__eq__``.
+
+        Examples
+        --------
+        >>> p1, p2 = Parameter(name="H0"), Parameter(name="H0")
+        >>> p1 == p2
+        True
+
+        >>> p3 = Parameter(name="not H0")
+        >>> p3 == p1
+        False
+
+        >>> p1 != 2
+        True
+        """
         if not isinstance(other, Parameter):
             return NotImplemented
         # check equality on all @property

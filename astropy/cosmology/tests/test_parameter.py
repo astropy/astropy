@@ -443,7 +443,7 @@ class TestParameter(ParameterTestMixin):
         assert p3 != p1
 
         # misc
-        assert p1 != 2  # show doesn't error 
+        assert p1 != 2  # show doesn't error
 
     # -------------------------------------------
 
