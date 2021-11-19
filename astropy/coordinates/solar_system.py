@@ -26,6 +26,7 @@ __all__ = ["get_body", "get_moon", "get_body_barycentric",
 
 
 DEFAULT_JPL_EPHEMERIS = 'de430'
+KNOWN_JPL_EPHEMERIS = ['de430', 'de432s', 'de440', 'de440s']
 
 """List of kernel pairs needed to calculate positions of a given object."""
 BODY_NAME_TO_KERNEL_SPEC = {
@@ -75,12 +76,12 @@ One can check which bodies are covered by a given ephemeris using::
 
 
 class solar_system_ephemeris(ScienceState):
-    """Default ephemerides for calculating positions of Solar-System bodies.
+    f"""Default ephemerides for calculating positions of Solar-System bodies.
 
     This can be one of the following::
 
     - 'builtin': polynomial approximations to the orbital elements.
-    - 'de430', 'de432s', 'de440', 'de440s': short-cuts for recent JPL dynamical models.
+    - {KNOWN_JPL_EPHEMERIS}: short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
     - PATH: (str) File path to a SPK ephemeris in SPICE binary (.bsp) format.
@@ -162,7 +163,7 @@ def _get_kernel(value):
     if value.lower() == 'jpl':
         value = DEFAULT_JPL_EPHEMERIS
 
-    if value.lower() in ('de430', 'de432s', 'de440', 'de440s'):
+    if value.lower() in KNOWN_JPL_EPHEMERIS:
         value = ('https://naif.jpl.nasa.gov/pub/naif/generic_kernels'
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
 
