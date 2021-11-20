@@ -1,3 +1,0 @@
-Masked quantities are now fully supported in tables.  This includes ``QTable``
-automatically converting ``MaskedColumn`` instances to ``MaskedQuantity``,
-and ``Table`` doing the reverse.

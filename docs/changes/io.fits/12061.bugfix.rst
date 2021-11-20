@@ -1,1 +1,0 @@
-Ensure header passed to ``astropy.io.fits.CompImageHDU`` does not need to contain standard cards that can be automatically generated, such as ``BITPIX`` and ``NAXIS``.

@@ -1,3 +1,0 @@
-The function ``astropy.cosmology.utils.vectorize_if_needed()`` is deprecated.
-A new function ``astropy.cosmology.utils.vectorize_redshift_method()`` is added
-as replacement.

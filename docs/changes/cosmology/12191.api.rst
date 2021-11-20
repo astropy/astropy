@@ -1,2 +1,0 @@
-Cosmology base class constructor now only accepts arguments ``name`` and ``meta``.
-Subclasses should add relevant arguments and not pass them to the base class.
