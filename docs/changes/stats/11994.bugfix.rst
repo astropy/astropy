@@ -1,2 +1,0 @@
-Fixed a bug in sigma clipping where the bounds would not be returned for
-completely empty or masked data.

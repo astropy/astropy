@@ -1,1 +1,0 @@
-Added fittable spline models to ``modeling``.

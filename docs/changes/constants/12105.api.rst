@@ -1,1 +1,0 @@
-Removed deprecated ``astropy.constants.set_enabled_constants`` context manager.

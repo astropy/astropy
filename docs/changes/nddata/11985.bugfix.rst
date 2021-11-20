@@ -1,2 +1,0 @@
-Ensure that the ``wcs=`` argument to ``NDData`` is always parsed into a high
-level WCS object.

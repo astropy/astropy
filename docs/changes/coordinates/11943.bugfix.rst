@@ -1,1 +1,0 @@
-Fixed bug where Angle, Latitude and Longitude with NaN values could not be printed.

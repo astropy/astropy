@@ -1,1 +1,0 @@
-Made PyYaml >= 3.13 a strict runtime dependency.
