@@ -54,7 +54,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
     Subclasses should define tests for:
 
-    - ``.test_clone_change_param()``
+    - ``test_clone_change_param()``
     - ``test_repr()``
     """
 
@@ -74,8 +74,12 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
                 self._Tcmb0 = Tcmb0
 
         self.cls = SubCosmology
-        self.cls_args = (70 * (u.km / u.s / u.Mpc), 2.7 * u.K)
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K)
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
+
+    @property
+    def cls_args(self):
+        return tuple(self._cls_args.values())
 
     def teardown_class(self):
         _COSMOLOGY_CLASSES.pop("TestCosmology.setup_class.<locals>.SubCosmology", None)
