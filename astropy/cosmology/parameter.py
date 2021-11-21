@@ -13,15 +13,23 @@ class Parameter:
 
     Parameters
     ----------
-    fvalidate : callable[[object, object, Any], Any] or str, optional
+    name : str or None (optional, keyword-only)
+        The common name of the parameter. If `None` (default) the name will be
+        the |Cosmology| class parameter attribute.
+    derived : bool (optional, keyword-only)
+        Whether the Parameter is 'derived', default `False`.
+        Derived parameters behave similarly to normal parameters, but are not
+        sorted by the |Cosmology| signature (probably not there) and are not
+        included in all methods. For reference, see ``Ode0`` in
+        ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
+        independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
+    fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)
         Function to validate the Parameter value from instances of the
         cosmology class. If "default", uses default validator to assign units
         (with equivalencies), if Parameter has units.
         For other valid string options, see ``Parameter._registry_validators``.
         'fvalidate' can also be set through a decorator with
         :meth:`~astropy.cosmology.Parameter.validator`.
-    doc : str or None, optional
-        Parameter description.
     unit : unit-like or None (optional, keyword-only)
         The `~astropy.units.Unit` for the Parameter. If None (default) no
         unit as assumed.
@@ -31,13 +39,8 @@ class Parameter:
         `format` specification, used when making string representation
         of the containing Cosmology.
         See https://docs.python.org/3/library/string.html#formatspec
-    derived : bool (optional, keyword-only)
-        Whether the Parameter is 'derived', default `False`.
-        Derived parameters behave similarly to normal parameters, but are not
-        sorted by the |Cosmology| signature (probably not there) and are not
-        included in all methods. For reference, see ``Ode0`` in
-        ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
-        independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
+    doc : str or None (optional, keyword-only)
+        Parameter description.
 
     Examples
     --------
@@ -46,12 +49,23 @@ class Parameter:
 
     _registry_validators = {}
 
-    def __init__(self, fvalidate="default", doc=None, *,
-                 unit=None, equivalencies=[], fmt=".3g", derived=False):
+    def __init__(self, fvalidate="default", doc=None, *, name=None,
+                 derived=False, unit=None, equivalencies=[], fmt=".3g"):
+
+        self._name = name
+        self._fmt = str(fmt)  # @property is `format_spec`
+        self._derived = derived
+        self.__doc__ = doc
+
+        # units stuff
+        self._unit = u.Unit(unit) if unit is not None else None
+        self._equivalencies = equivalencies
+
         # parse registered fvalidate
         if callable(fvalidate):
-            pass
+            self._validate_repr = repr(fvalidate)
         elif fvalidate in self._registry_validators:
+            self._validate_repr = fvalidate  # don't need repr()
             fvalidate = self._registry_validators[fvalidate]
         elif isinstance(fvalidate, str):
             raise ValueError("`fvalidate`, if str, must be in "
@@ -59,27 +73,19 @@ class Parameter:
         else:
             raise TypeError("`fvalidate` must be a function or "
                             f"{self._registry_validators.keys()}")
-
-        self.__doc__ = doc
         self._fvalidate = fvalidate
 
-        # units stuff
-        self._unit = u.Unit(unit) if unit is not None else None
-        self._equivalencies = equivalencies
-
-        # misc
-        self._fmt = str(fmt)
-        self._derived = derived
-
     def __set_name__(self, cosmo_cls, name):
-        # attribute name
+        # name
         self._attr_name = name
         self._attr_name_private = "_" + name
+        if self._name is None:  # set if not set in __init__
+            self._name = name
 
     @property
     def name(self):
         """Parameter name."""
-        return self._attr_name
+        return self._name
 
     @property
     def unit(self):
@@ -142,11 +148,7 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fvalidate``.
         """
-        desc = type(self)(fvalidate=fvalidate,
-                          doc=self.__doc__, fmt=self.format_spec,
-                          unit=self.unit, equivalencies=self.equivalencies,
-                          derived=self.derived)
-        return desc
+        return self.clone(fvalidate=fvalidate)
 
     def validate(self, cosmology, value):
         """Run the validator on this Parameter.
@@ -209,6 +211,41 @@ class Parameter:
         return register
 
     # -------------------------------------------
+
+    def clone(self, **kw):
+        """Clone `Parameter`.
+
+        Parameters
+        ----------
+        **kw
+            Passed to constructor. The current values, eg. ``fvalidate`` are
+            used as the default values, so an empty ``**kw`` is an exact copy.
+
+        Examples
+        --------
+        >>> p = Parameter()
+        >>> p
+        Parameter(name=None, derived=False, unit=None, equivalencies=[],
+                  fvalidate='default', fmt='.3g', doc=None)
+
+        >>> p.clone(unit="km")
+        Parameter(name=None, derived=False, unit=Unit("km"), equivalencies=[],
+                  fvalidate='default', fmt='.3g', doc=None)
+        """
+        kw.setdefault("doc", self.__doc__)
+        kw.setdefault("fmt", self.format_spec)
+        kw.setdefault("unit", self.unit)
+        kw.setdefault("equivalencies", self.equivalencies)
+        kw.setdefault("derived", self.derived)
+        kw.setdefault("name", self.name)
+        # validator is always turned into a function, but for ``repr`` we want
+        # to know if it's originally a string.
+        fvalidate = (self._validate_repr if self._validate_repr in self._registry_validators
+                     else self.fvalidate)
+        kw.setdefault("fvalidate", fvalidate)
+
+        # all initialization failues, like incorrect input are handled by
+        return type(self)(**kw)
 
     def __repr__(self):
         return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
