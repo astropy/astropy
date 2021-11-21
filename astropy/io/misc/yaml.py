@@ -125,7 +125,7 @@ def _ndarray_representer(dumper, obj):
     data_b64 = base64.b64encode(obj.tobytes())
 
     out = dict(buffer=data_b64,
-               dtype=str(obj.dtype),
+               dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
                shape=obj.shape,
                order=order)
 
@@ -133,9 +133,27 @@ def _ndarray_representer(dumper, obj):
 
 
 def _ndarray_constructor(loader, node):
-    map = loader.construct_mapping(node)
+    # Convert mapping to a dict useful for initializing ndarray.
+    # Need deep=True since for structured dtype, the contents
+    # include lists and tuples, which need recursion via
+    # construct_sequence.
+    map = loader.construct_mapping(node, deep=True)
     map['buffer'] = base64.b64decode(map['buffer'])
     return np.ndarray(**map)
+
+
+def _void_representer(dumper, obj):
+    data_b64 = base64.b64encode(obj.tobytes())
+    out = dict(buffer=data_b64,
+               dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr)
+    return dumper.represent_mapping('!numpy.void', out)
+
+
+def _void_constructor(loader, node):
+    # Interpret as node as an array scalar and then index to change to void.
+    map = loader.construct_mapping(node, deep=True)
+    map['buffer'] = base64.b64decode(map['buffer'])
+    return np.ndarray(shape=(), **map)[()]
 
 
 def _quantity_representer(tag):
@@ -223,6 +241,7 @@ AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.StructuredUnit, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
+AstropyDumper.add_representer(np.void, _void_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
 AstropyDumper.add_representer(coords.SkyCoord, _skycoord_representer)
@@ -249,6 +268,7 @@ AstropyLoader.add_constructor('tag:yaml.org,2002:python/unicode',
                                 AstropyLoader._construct_python_unicode)
 AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
 AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
+AstropyLoader.add_constructor('!numpy.void', _void_constructor)
 AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
 AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
 AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
