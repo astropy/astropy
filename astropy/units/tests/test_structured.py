@@ -5,6 +5,7 @@ Test Structured units and quantities.
 """
 import pytest
 import numpy as np
+import numpy.lib.recfunctions as rfn
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
@@ -578,6 +579,26 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         assert z.unit == self.pv_unit
         assert z.shape == self.pv.shape
         assert_array_equal(z, func(self.pv) << self.pv_unit)
+
+    def test_structured_to_unstructured(self):
+        # can't unstructure something with incompatible units
+        with pytest.raises(u.UnitConversionError, match="'km / s'"):
+            rfn.structured_to_unstructured(self.q_pv)
+
+        # it works if all the units are equal
+        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, eV)"))
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [0, 0, 0.6] * u.eV)
+
+        # also if the units are convertible
+        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, keV)"))
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [0, 0, 600] * u.eV)
+
+        # and if the dtype is nested
+        struct = [(5, (400.0, 3e6))] * u.Unit('m, (cm, um)')
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [[5, 4, 3]] * u.m)
 
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
