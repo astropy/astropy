@@ -11,7 +11,7 @@ import pytest
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, TOSUPPORT_FUNCTIONS)
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, TBD_FUNCTIONS)
 from astropy.utils.compat import NUMPY_LT_1_20
 
 
@@ -2034,6 +2034,53 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(w, wx)
 
 
+class TestRecFunctions(metaclass=CoverageMeta):
+
+    def test_structured_to_unstructured(self):
+        # can't unstructure something with incompatible units
+        with pytest.raises(u.UnitConversionError, match="'m'"):
+            rfn.structured_to_unstructured(u.Quantity((0, 0.6), u.Unit("(eV, m)")))
+
+        # it works if all the units are equal
+        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, eV)"))
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [0, 0, 0.6] * u.eV)
+
+        # also if the units are convertible
+        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, keV)"))
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [0, 0, 600] * u.eV)
+
+        struct = u.Quantity((0, 0, 1.7827e-33), u.Unit("(eV, eV, g)"))
+        with u.add_enabled_equivalencies(u.mass_energy()):
+            unstruct = rfn.structured_to_unstructured(struct)
+        u.allclose(unstruct, [0, 0, 1.0000214] * u.eV)
+
+        # and if the dtype is nested
+        struct = [(5, (400.0, 3e6))] * u.Unit('m, (cm, um)')
+        unstruct = rfn.structured_to_unstructured(struct)
+        assert_array_equal(unstruct, [[5, 4, 3]] * u.m)
+
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_structured.TestStructuredQuantityFunctions.test_structured_to_unstructured``
+
+    def test_unstructured_to_structured(self):
+        unstruct = [1, 2, 3] * u.m
+        dtype=np.dtype([("f1", float), ("f2", float), ("f3", float)])
+
+        # it works
+        struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
+        assert struct.unit == u.Unit("(m, m, m)")
+        assert_array_equal(rfn.structured_to_unstructured(struct), unstruct)
+
+        # can't structure something that's already structured
+        with pytest.raises(ValueError, match="arr must have at least one dimension"):
+            rfn.unstructured_to_structured(struct, dtype=dtype)
+
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_structured.TestStructuredQuantityFunctions.test_unstructured_to_structured``
+
+
 untested_functions = set()
 if NUMPY_LT_1_20:
     financial_functions = {f for f in all_wrapped_functions.values()
@@ -2088,4 +2135,4 @@ class TestFunctionHelpersCompleteness:
     # untested_function is created using all_wrapped_functions
     @needs_array_function
     def test_ignored_are_untested(self):
-        assert IGNORED_FUNCTIONS == (untested_functions - TOSUPPORT_FUNCTIONS)
+        assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions

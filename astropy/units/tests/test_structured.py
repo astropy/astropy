@@ -12,8 +12,6 @@ from astropy import units as u
 from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
 from astropy.utils.masked import Masked
 
-from .test_quantity_non_ufuncs import CoverageMeta
-
 
 class StructuredTestBase:
     @classmethod
@@ -561,7 +559,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q_pv_t['pv'] == (1., 0.5) * self.pv_unit)
 
 
-class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits, metaclass=CoverageMeta):
+class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
     @classmethod
     def setup_class(self):
         super().setup_class()
@@ -587,33 +585,17 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits, metaclass=Cov
         with pytest.raises(u.UnitConversionError, match="'km / s'"):
             rfn.structured_to_unstructured(self.q_pv)
 
-        # it works if all the units are equal
-        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, eV)"))
-        unstruct = rfn.structured_to_unstructured(struct)
-        assert_array_equal(unstruct, [0, 0, 0.6] * u.eV)
-
-        # also if the units are convertible
-        struct = u.Quantity((0, 0, 0.6), u.Unit("(eV, eV, keV)"))
-        unstruct = rfn.structured_to_unstructured(struct)
-        assert_array_equal(unstruct, [0, 0, 600] * u.eV)
-
-        # and if the dtype is nested
-        struct = [(5, (400.0, 3e6))] * u.Unit('m, (cm, um)')
-        unstruct = rfn.structured_to_unstructured(struct)
-        assert_array_equal(unstruct, [[5, 4, 3]] * u.m)
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_quantity_non_ufuncs.TestRecFunctions.test_structured_to_unstructured``
 
     def test_unstructured_to_structured(self):
         # can't structure something that's already structured
-        unstruct = [1, 2, 3] * u.m
-        dtype=np.dtype([("f1", int), ("f2", int), ("f3", int)])
+        dtype = np.dtype([("f1", float), ("f2", float)])
+        with pytest.raises(ValueError, match="The length of the last dimension"):
+            rfn.unstructured_to_structured(self.q_pv, dtype=self.q_pv.dtype)
 
-        # it works
-        struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
-        assert struct.unit == u.Unit("(m, m, m)")
-        assert_array_equal(rfn.structured_to_unstructured(struct), unstruct)
-
-        with pytest.raises(ValueError, match="arr must have at least one dimension"):
-            rfn.unstructured_to_structured(struct, dtype=dtype)
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_quantity_non_ufuncs.TestRecFunctions.test_unstructured_to_structured``
 
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
