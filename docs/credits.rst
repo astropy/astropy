@@ -2,15 +2,6 @@
 Authors and Credits
 *******************
 
-Astropy Project Coordinators
-============================
-
-* Tom Aldcroft
-* Kelle Cruz
-* Thomas Robitaille
-* Erik Tollerud
-
-
 Core Package Contributors
 =========================
 
