@@ -40,9 +40,6 @@ REMOVE_KEYWORDS = [
 # Column-specific keywords regex
 COLUMN_KEYWORD_REGEXP = "(" + "|".join(KEYWORD_NAMES) + ")[0-9]+"
 
-# Translation from 'datatype' in SERIALIZED-COLUMNS to `dtype`
-DATA_TYPES = {'string': 'str'}
-
 
 def is_column_keyword(keyword):
     return re.match(COLUMN_KEYWORD_REGEXP, keyword) is not None
