@@ -1,1 +1,0 @@
-Convert UNDEFINED to None when iterating over card values.

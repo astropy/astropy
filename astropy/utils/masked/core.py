@@ -895,11 +895,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     def min(self, axis=None, out=None, **kwargs):
         return super().min(axis=axis, out=out,
-                           **self._reduce_defaults(kwargs, np.max))
+                           **self._reduce_defaults(kwargs, np.nanmax))
 
     def max(self, axis=None, out=None, **kwargs):
         return super().max(axis=axis, out=out,
-                           **self._reduce_defaults(kwargs, np.min))
+                           **self._reduce_defaults(kwargs, np.nanmin))
 
     def nonzero(self):
         unmasked_nonzero = self.unmasked.nonzero()

@@ -68,12 +68,8 @@ when it should not be or vice versa.
 UNSUPPORTED_FUNCTIONS = set()
 """Set of numpy functions that are not supported for masked arrays.
 
-For most, masked input simply makes no sense, but for others it may
-have been lack of time.  For instance, for the ``nanfunctions``, one
-could imagine replacing masked entries with ``np.nan``, but this works
-only for real and complex.
-
-Issues or PRs for support for functions are very welcome.
+For most, masked input simply makes no sense, but for others it may have
+been lack of time.  Issues or PRs for support for functions are welcome.
 """
 
 # Almost all from np.core.fromnumeric defer to methods so are OK.
@@ -140,10 +136,6 @@ IGNORED_FUNCTIONS |= {
     np.dot, np.vdot, np.inner, np.tensordot, np.cross,
     np.einsum, np.einsum_path,
 }
-
-# In principle, could just fill with np.nan, but then, so can the user.
-IGNORED_FUNCTIONS |= set(getattr(np, nanfuncname)
-                         for nanfuncname in np.lib.nanfunctions.__all__)
 
 # Really should do these...
 IGNORED_FUNCTIONS |= set(getattr(np, setopsname)
@@ -619,8 +611,7 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
 
 
 @dispatched_function
-def quantile(a, q, axis=None, out=None, overwrite_input=False,
-             interpolation='linear', keepdims=False):
+def quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
     if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
         raise NotImplementedError
@@ -630,9 +621,9 @@ def quantile(a, q, axis=None, out=None, overwrite_input=False,
     if not np.lib.function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
+    keepdims = kwargs.pop('keepdims', False)
     r, k = np.lib.function_base._ureduce(
-        a, func=_masked_quantile, q=q, axis=axis, out=out,
-        interpolation=interpolation, overwrite_input=overwrite_input)
+        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
     return (r.reshape(k) if keepdims else r) if out is None else out
 
 
@@ -951,6 +942,53 @@ def array2string(a, max_line_width=None, precision=None,
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
     # Override to avoid special treatment of array scalars.
     return array2string(a, max_line_width, precision, suppress_small, ' ', "")
+
+
+# For the nanfunctions, we just treat any nan as an additional mask.
+_nanfunc_fill_values = {'nansum': 0, 'nancumsum': 0,
+                        'nanprod': 1, 'nancumprod': 1}
+
+
+def masked_nanfunc(nanfuncname):
+    np_func = getattr(np, nanfuncname[3:])
+    fill_value = _nanfunc_fill_values.get(nanfuncname, None)
+
+    def nanfunc(a, *args, **kwargs):
+        from astropy.utils.masked import Masked
+
+        a, mask = Masked._get_data_and_mask(a)
+        if issubclass(a.dtype.type, np.inexact):
+            nans = np.isnan(a)
+            mask = nans if mask is None else (nans | mask)
+
+        if mask is not None:
+            a = Masked(a, mask)
+            if fill_value is not None:
+                a = a.filled(fill_value)
+
+        return np_func(a, *args, **kwargs)
+
+    doc = f"Like `numpy.{nanfuncname}`, skipping masked values as well.\n\n"
+    if fill_value is not None:
+        # sum, cumsum, prod, cumprod
+        doc += (f"Masked/NaN values are replaced with {fill_value}. "
+                "The output is not masked.")
+    elif "arg" in nanfuncname:
+        doc += ("No exceptions are raised for fully masked/NaN slices.\n"
+                "Instead, these give index 0.")
+    else:
+        doc += ("No warnings are given for fully masked/NaN slices.\n"
+                "Instead, they are masked in the output.")
+
+    nanfunc.__doc__ = doc
+    nanfunc.__name__ = nanfuncname
+
+    return nanfunc
+
+
+for nanfuncname in np.lib.nanfunctions.__all__:
+    globals()[nanfuncname] = dispatched_function(masked_nanfunc(nanfuncname),
+                                                 helps=getattr(np, nanfuncname))
 
 
 # Add any dispatched or helper function that has a docstring to

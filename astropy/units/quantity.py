@@ -402,8 +402,7 @@ class Quantity(np.ndarray):
         # Quantity does not (yet) properly extend the NumPy generics types,
         # introduced in numpy v1.22+, instead just including the unit info as
         # metadata using Annotated.
-        if not NUMPY_LT_1_22:
-            cls = super().__class_getitem__((cls, *shape_dtype))
+        # TODO: ensure we do interact with NDArray.__class_getitem__.
         return Annotated.__class_getitem__((cls, unit))
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,

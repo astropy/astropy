@@ -926,14 +926,15 @@ class CoordinateHelper:
         else:
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
+    def _clear_grid_contour(self):
+        if hasattr(self, '_grid') and self._grid:
+            for line in self._grid.collections:
+                line.remove()
+
     def _update_grid_contour(self):
 
         if self.coord_index is None:
             return
-
-        if hasattr(self, '_grid') and self._grid:
-            for line in self._grid.collections:
-                line.remove()
 
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()

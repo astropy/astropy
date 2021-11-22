@@ -82,7 +82,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         """Test when Model is not the correct class."""
         model = Gaussian1D(amplitude=10, mean=14)
 
-        with pytest.raises(TypeError, match="`model` must be"):
+        with pytest.raises(AttributeError):
             from_format(model)
 
     def test_toformat_model_not_method(self, to_format):

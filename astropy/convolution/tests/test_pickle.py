@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
+
 import numpy as np
 
 from astropy import convolution as conv
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa
 
 
 @pytest.mark.parametrize(("name", "args", "kwargs", "xfail"),

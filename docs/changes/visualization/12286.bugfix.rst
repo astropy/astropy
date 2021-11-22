@@ -1,1 +1,0 @@
-Fix a bug where non-``astropy.wcs.WCS`` WCS instances were not accepted in ``WCSAxes.get_transform``.

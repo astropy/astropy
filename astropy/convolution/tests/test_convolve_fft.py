@@ -4,12 +4,13 @@ import itertools
 from contextlib import nullcontext
 
 import pytest
-import numpy as np
-from numpy.testing import assert_allclose, assert_array_equal, assert_array_almost_equal_nulp
 
-from astropy.convolution.convolve import convolve_fft, convolve
-from astropy.utils.exceptions import AstropyUserWarning
+import numpy as np
+from numpy.testing import assert_allclose, assert_array_almost_equal_nulp, assert_array_equal
+
 from astropy import units as u
+from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
 VALID_DTYPE_MATRIX = list(itertools.product(VALID_DTYPES, VALID_DTYPES))

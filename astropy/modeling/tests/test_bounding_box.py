@@ -10,6 +10,7 @@ from astropy.modeling.bounding_box import (_BaseInterval, _Interval, _ignored_in
                                            CompoundBoundingBox)
 from astropy.modeling.models import Gaussian1D, Gaussian2D, Shift, Scale, Identity
 from astropy.modeling.core import Model, fix_inputs
+from astropy.coordinates import SpectralCoord
 import astropy.units as u
 
 
@@ -187,6 +188,16 @@ class Test_Interval:
             assert num < _ignored_interval[1]
 
             assert not (_ignored_interval.outside(np.array([num]))).all()
+
+    def test_validate_with_SpectralCoord(self):
+        """Regression test for issue #12439"""
+
+        lower = SpectralCoord(1, u.um)
+        upper = SpectralCoord(10, u.um)
+
+        interval = _Interval.validate((lower, upper))
+        assert interval.lower == lower
+        assert interval.upper == upper
 
 
 class Test_BoundingDomain:

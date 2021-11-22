@@ -1,3 +1,0 @@
-Adds new ``HADec`` built-in frame with transformations to/from ``ICRS`` and ``CIRS``.
-This frame complements ``AltAz`` to give observed coordinates (hour angle and declination)
-in the ``ITRS`` for an equatorially mounted telescope.

@@ -1,2 +1,0 @@
-Fixed a bug with the transformation from ``PrecessedGeocentric`` to ``GCRS`` where changes in ``obstime``, ``obsgeoloc``, or ``obsgeovel`` were ignored.
-This bug would also affect loopback transformations from one ``PrecessedGeocentric`` frame to another ``PrecessedGeocentric`` frame.

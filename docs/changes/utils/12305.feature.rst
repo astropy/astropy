@@ -1,2 +1,0 @@
-The ``astropy.utils.deprecated_renamed_argument()`` decorator now supports
-custom warning messages.

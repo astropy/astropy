@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import ctypes
+
 import numpy as np
 
 from astropy.modeling.core import FittableModel, custom_model
@@ -284,6 +285,7 @@ def discretize_integrate_1D(model, x_range):
     Discretize model by integrating numerically the model over the bin.
     """
     from scipy.integrate import quad
+
     # Set up grid
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
     values = np.array([])
@@ -299,6 +301,7 @@ def discretize_integrate_2D(model, x_range, y_range):
     Discretize model by integrating the model over the pixel.
     """
     from scipy.integrate import dblquad
+
     # Set up grid
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
     y = np.arange(y_range[0] - 0.5, y_range[1] + 0.5)

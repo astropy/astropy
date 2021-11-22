@@ -10,7 +10,7 @@ Introduction
 The `~astropy.nddata` package provides classes to represent images and other
 gridded data, some essential functions for manipulating images, and the
 infrastructure for package developers who wish to include support for the
-image classes.
+image classes. This subpackage was developed based on `APE 7`_.
 
 .. _astropy_nddata_getting_started:
 
