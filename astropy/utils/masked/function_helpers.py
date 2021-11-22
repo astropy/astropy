@@ -611,8 +611,7 @@ def _masked_quantile(a, q, axis=None, out=None, **kwargs):
 
 
 @dispatched_function
-def quantile(a, q, axis=None, out=None, overwrite_input=False,
-             interpolation='linear', keepdims=False):
+def quantile(a, q, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
     if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
         raise NotImplementedError
@@ -622,9 +621,9 @@ def quantile(a, q, axis=None, out=None, overwrite_input=False,
     if not np.lib.function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
+    keepdims = kwargs.pop('keepdims', False)
     r, k = np.lib.function_base._ureduce(
-        a, func=_masked_quantile, q=q, axis=axis, out=out,
-        interpolation=interpolation, overwrite_input=overwrite_input)
+        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
     return (r.reshape(k) if keepdims else r) if out is None else out
 
 
