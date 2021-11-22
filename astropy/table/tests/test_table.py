@@ -163,6 +163,13 @@ class TestSetTableColumn(SetupData):
         assert np.all(t["bb"] == 3)
         assert t["bb"].unit == u.m
 
+        if table_types.Table.__name__ == 'QTable':
+            assert np.all(t['aa'].value == np.array([1, 2, 3]))
+            assert np.all(t['bb'].value == 3)
+        else:
+            assert np.all(t['aa'] == np.array([1, 2, 3]))
+            assert np.all(t['bb'] == 3)
+
     def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
         self._setup(table_types)
@@ -208,6 +215,12 @@ class TestSetTableColumn(SetupData):
         t["g"] = 3 * u.m
         assert np.all(t["g"].data == 3)
         assert t["g"].unit == u.m
+
+        # Add a column from an integer Quantity
+        t['g'] = u.Quantity([1, 2, 3], unit=u.m, dtype=np.int16)
+        assert np.all(t['g'].value == np.array([1, 2, 3]))
+        assert t['g'].unit == u.m
+        assert t['g'].dtype == np.int16
 
     def test_set_new_unmasked_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
@@ -322,6 +335,38 @@ class TestNewFromColumns:
         assert t.colnames == ["c", "d"]
         t = table_types.Table([c, d])
         assert t.colnames == ["c", "col1"]
+
+    def test_from_quantities(self, table_types):
+        cols = [table_types.Column(name='a', data=u.Quantity([1, 2], unit=u.m, dtype=np.int64)),
+                table_types.Column(name='b', data=u.Quantity([4, 5], unit=u.s, dtype=np.float32)),
+                table_types.Column(name='c', data=u.Quantity([7, 8], unit=u.kg, dtype=np.uint16))]
+        t = table_types.Table(cols)
+        assert t.dtype == [('a', np.int64), ('b', np.float32), ('c', np.uint16)]
+        assert t['a'].unit == u.m
+        assert t['b'].unit == u.s
+        assert t['c'].unit == u.kg
+        if table_types.Table.__name__ == 'QTable':
+            assert np.all(t['a'].value == np.array([1, 2], dtype=np.int64))
+            assert np.all(t['b'].value == np.array([4, 5], dtype=np.float32))
+            assert np.all(t['c'].value == np.array([7, 8], dtype=np.uint16))
+        else:
+            assert np.all(t['a'] == np.array([1, 2], dtype=np.int64))
+            assert np.all(t['b'] == np.array([4, 5], dtype=np.float32))
+            assert np.all(t['c'] == np.array([7, 8], dtype=np.uint16))
+
+    def test_from_table_quantities(self, table_types):
+        cols = [table_types.Column(name='a', data=u.Quantity([1, 2], unit=u.pc, dtype=np.uint64)),
+                table_types.Column(name='b', data=u.Quantity([4, 5], unit=u.Hz, dtype=np.float32))]
+        t = table_types.Table(Table(cols))
+        assert t.dtype == [('a', np.uint64), ('b', np.float32)]
+        assert t['a'].unit == u.pc
+        assert t['b'].unit == u.Hz
+        if table_types.Table.__name__ == 'QTable':
+            assert np.all(t['a'].value == np.array([1, 2], dtype=np.uint64))
+            assert np.all(t['b'].value == np.array([4, 5], dtype=np.float32))
+        else:
+            assert np.all(t['a'] == np.array([1, 2], dtype=np.uint64))
+            assert np.all(t['b'] == np.array([4, 5], dtype=np.float32))
 
 
 @pytest.mark.usefixtures("table_types")
