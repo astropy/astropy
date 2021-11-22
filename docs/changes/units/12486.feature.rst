@@ -1,0 +1,1 @@
+Let ``numpy.lib.structured_to_unstructured`` work with structured quantities.

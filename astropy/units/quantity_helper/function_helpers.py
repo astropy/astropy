@@ -39,6 +39,7 @@ import functools
 import operator
 
 import numpy as np
+from numpy.lib import recfunctions
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
@@ -1042,3 +1043,23 @@ def eig(a, *args, **kwargs):
     from astropy.units import dimensionless_unscaled
 
     return (a.value,)+args, kwargs, (a.unit, dimensionless_unscaled), None
+
+
+@function_helper(module=np.lib.recfunctions)
+def structured_to_unstructured(arr, *args, **kwargs):
+    """
+    Convert a structured quantity to an unstructured one.
+    This only works if all the units are compatible.
+    """
+    from astropy.units import StructuredUnit
+
+    target_unit = arr.unit.values()[0]
+
+    def replace_unit(x):
+        if isinstance(x, StructuredUnit):
+            return x._recursively_apply(replace_unit)
+        else:
+            return target_unit
+
+    to_unit = arr.unit._recursively_apply(replace_unit)
+    return (arr.to_value(to_unit), ) + args, kwargs, target_unit, None
