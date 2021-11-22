@@ -1,0 +1,3 @@
+``astropy.wcs.Celprm`` and ``astropy.wcs.Prjprm`` have been added
+to allow access to lower level WCSLIB functionality and to allow direct
+access to the ``cel`` and ``prj`` members of ``Wcsprm``.

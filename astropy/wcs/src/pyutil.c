@@ -232,6 +232,7 @@ PyObject* WcsExc_InvalidSubimageSpecification;
 PyObject* WcsExc_NonseparableSubimageCoordinateSystem;
 PyObject* WcsExc_NoWcsKeywordsFound;
 PyObject* WcsExc_InvalidTabularParameters;
+PyObject* WcsExc_InvalidPrjParameters;
 
 /* This is an array mapping the wcs status codes to Python exception
  * types.  The exception string is stored as part of wcslib itself in
@@ -276,6 +277,7 @@ _define_exceptions(
   DEFINE_EXCEPTION(NonseparableSubimageCoordinateSystem);
   DEFINE_EXCEPTION(NoWcsKeywordsFound);
   DEFINE_EXCEPTION(InvalidTabularParameters);
+  DEFINE_EXCEPTION(InvalidPrjParameters);
   return 0;
 }
 
@@ -423,26 +425,24 @@ set_string(
       goto end;
     }
   } else {
-    PyErr_SetString(PyExc_TypeError, "value must be bytes or unicode");
+    PyErr_SetString(PyExc_TypeError, "'value' must be bytes or unicode.");
     goto end;
   }
 
-  if (len > maxlen) {
+  if (len >= maxlen) {
     PyErr_Format(
         PyExc_ValueError,
-        "'%s' must be less than %u characters",
+        "'%s' length must be less than %u characters.",
         propname,
-        (unsigned int)maxlen);
+        (unsigned int) maxlen);
     goto end;
   }
 
-  strncpy(dest, buffer, (size_t)maxlen);
-
+  strncpy(dest, buffer, (size_t)len + 1);
   result = 0;
 
  end:
   Py_XDECREF(ascii_obj);
-
   return result;
 }
 

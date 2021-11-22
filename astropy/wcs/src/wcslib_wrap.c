@@ -7,6 +7,8 @@
 
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_auxprm_wrap.h"
+#include "astropy_wcs/wcslib_prjprm_wrap.h"
+#include "astropy_wcs/wcslib_celprm_wrap.h"
 #include "astropy_wcs/wcslib_tabprm_wrap.h"
 #include "astropy_wcs/wcslib_wtbarr_wrap.h"
 #include "astropy_wcs/wcslib_units_wrap.h"
@@ -19,6 +21,8 @@
 #include <wcsmath.h>
 #include <wcsprintf.h>
 #include <wcsunits.h>
+#include <cel.h>
+#include <prj.h>
 #include <tab.h>
 #include <wtbarr.h>
 #include <stdio.h>
@@ -4014,6 +4018,15 @@ PyWcsprm_get_aux(
   return result;
 }
 
+
+static PyObject*
+PyWcsprm_get_cel(
+    PyWcsprm* self,
+    /*@unused@*/ void* closure) {
+
+  return (PyObject *)PyCelprm_cnew((PyObject *)self, &(self->x.cel), NULL);
+}
+
 /***************************************************************************
  * PyWcsprm definition structures
  */
@@ -4021,6 +4034,7 @@ PyWcsprm_get_aux(
 static PyGetSetDef PyWcsprm_getset[] = {
   {"alt", (getter)PyWcsprm_get_alt, (setter)PyWcsprm_set_alt, (char *)doc_alt},
   {"aux", (getter)PyWcsprm_get_aux, NULL, (char *)doc_aux},
+  {"cel", (getter)PyWcsprm_get_cel, NULL, (char *)doc_cel},
   {"axis_types", (getter)PyWcsprm_get_axis_types, NULL, (char *)doc_axis_types},
   {"bepoch", (getter)PyWcsprm_get_bepoch, (setter)PyWcsprm_set_bepoch, (char *)doc_bepoch},
   {"cd", (getter)PyWcsprm_get_cd, (setter)PyWcsprm_set_cd, (char *)doc_cd},
@@ -4174,9 +4188,35 @@ PyTypeObject PyWcsprmType = {
 };
 
 #define CONSTANT(a) PyModule_AddIntConstant(m, #a, a)
+#define CONSTANT2(n, v) PyModule_AddIntConstant(m, n, v)
 
 #define XSTRINGIFY(s) STRINGIFY(s)
 #define STRINGIFY(s) #s
+
+int add_prj_codes(PyObject* module)
+{
+    int k;
+    PyObject* code;
+    PyObject* list = PyList_New(prj_ncode);
+    if (list == NULL) {
+        return -1;
+    }
+
+    for (k = 0; k < prj_ncode; k++) {
+        code = PyUnicode_FromString(prj_codes[k]);
+        if (PyList_SetItem(list, k, code)) {
+            Py_DECREF(code);
+            Py_DECREF(list);
+            return -1;
+        }
+    }
+
+    if (PyModule_AddObject(module, "PRJ_CODES", list)) {
+        Py_DECREF(list);
+        return -1;
+    }
+    return 0;
+}
 
 int
 _setup_wcsprm_type(
@@ -4251,5 +4291,15 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDO_EFMT)      ||
     CONSTANT(WCSCOMPARE_ANCILLARY) ||
     CONSTANT(WCSCOMPARE_TILING) ||
-    CONSTANT(WCSCOMPARE_CRPIX));
+    CONSTANT(WCSCOMPARE_CRPIX)  ||
+    CONSTANT2("PRJ_PVN", PVN)       ||
+    add_prj_codes(m) ||
+    CONSTANT2("PRJ_ZENITHAL", ZENITHAL)                   ||
+    CONSTANT2("PRJ_CYLINDRICAL", CYLINDRICAL)             ||
+    CONSTANT2("PRJ_PSEUDOCYLINDRICAL", PSEUDOCYLINDRICAL) ||
+    CONSTANT2("PRJ_CONVENTIONAL", CONVENTIONAL)           ||
+    CONSTANT2("PRJ_CONIC", CONIC)                         ||
+    CONSTANT2("PRJ_POLYCONIC", POLYCONIC)                 ||
+    CONSTANT2("PRJ_QUADCUBE", QUADCUBE)                   ||
+    CONSTANT2("PRJ_HEALPIX", HEALPIX));
 }
