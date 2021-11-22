@@ -3,6 +3,7 @@ import itertools
 import inspect
 
 import numpy as np
+import numpy.lib.recfunctions as rfn
 from numpy.testing import assert_array_equal
 
 import pytest
@@ -10,7 +11,7 @@ import pytest
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
+    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, TOSUPPORT_FUNCTIONS)
 from astropy.utils.compat import NUMPY_LT_1_20
 
 
@@ -32,7 +33,7 @@ def get_wrapped_functions(*modules):
     return wrapped_functions
 
 
-all_wrapped_functions = get_wrapped_functions(np, np.fft, np.linalg)
+all_wrapped_functions = get_wrapped_functions(np, np.fft, np.linalg, np.lib.recfunctions)
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -2051,6 +2052,15 @@ poly_functions = {
     }
 untested_functions |= poly_functions
 
+rec_functions = {
+    rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
+    rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
+    rfn.repack_fields, rfn.apply_along_fields, rfn.assign_fields_by_name,
+    rfn.merge_arrays, rfn.stack_arrays, rfn.find_duplicates,
+    rfn.recursive_fill_fields, rfn.require_fields,
+}
+untested_functions |= rec_functions
+
 
 @needs_array_function
 def test_testing_completeness():
@@ -2078,4 +2088,4 @@ class TestFunctionHelpersCompleteness:
     # untested_function is created using all_wrapped_functions
     @needs_array_function
     def test_ignored_are_untested(self):
-        assert IGNORED_FUNCTIONS == untested_functions
+        assert IGNORED_FUNCTIONS == (untested_functions - TOSUPPORT_FUNCTIONS)
