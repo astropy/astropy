@@ -1,0 +1,2 @@
+Store ``Quantity.dtype`` with ``_represent_as_dict`` so it is conserved in ``io.fits``
+and other serializations; also keep ``dtype`` on instantiation from ``Column``.
