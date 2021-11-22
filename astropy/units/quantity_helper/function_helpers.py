@@ -39,7 +39,7 @@ import functools
 import operator
 
 import numpy as np
-from numpy.lib import recfunctions
+from numpy.lib import recfunctions as rfn
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
@@ -108,6 +108,15 @@ UNSUPPORTED_FUNCTIONS |= {
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
 
+# TODO! support whichever of these functions it makes sense to support
+TOSUPPORT_FUNCTIONS = {
+    rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
+    rfn.apply_along_fields, rfn.assign_fields_by_name, rfn.merge_arrays,
+    rfn.find_duplicates, rfn.recursive_fill_fields, rfn.require_fields,
+    rfn.repack_fields, rfn.stack_arrays
+}
+UNSUPPORTED_FUNCTIONS |= TOSUPPORT_FUNCTIONS
+
 # The following are not just unsupported, but so unlikely to be thought
 # to be supported that we ignore them in testing.  (Kept in a separate
 # variable so that we can check consistency in the test routine -
@@ -119,7 +128,10 @@ IGNORED_FUNCTIONS = {
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
-    np.polymul, np.polysub, np.polyval, np.roots, np.vander}
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+    # record array functions
+    rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
+}
 if NUMPY_LT_1_20:
     # financial
     IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
@@ -1063,3 +1075,35 @@ def structured_to_unstructured(arr, *args, **kwargs):
 
     to_unit = arr.unit._recursively_apply(replace_unit)
     return (arr.to_value(to_unit), ) + args, kwargs, target_unit, None
+
+
+def _build_structured_unit(dtype, unit):
+    """Build structured unit from dtype
+
+    Parameters
+    ----------
+    dtype : `numpy.dtype`
+    unit : `astropy.units.Unit`
+
+    Returns
+    -------
+    `astropy.units.Unit` or tuple
+    """
+    if dtype.fields is None:
+        return unit
+
+    us = [_build_structured_unit(v[0], unit) for v in dtype.fields.values()]
+    return tuple(us)
+
+
+@function_helper(module=np.lib.recfunctions)
+def unstructured_to_structured(arr, dtype, *args, **kwargs):
+    """
+    Convert a structured quantity to an unstructured one.
+    This only works if all the units are compatible.
+    """
+    from astropy.units import StructuredUnit
+
+    target_unit = StructuredUnit(_build_structured_unit(dtype, arr.unit))
+
+    return (arr.to_value(arr.unit), dtype) + args, kwargs, target_unit, None

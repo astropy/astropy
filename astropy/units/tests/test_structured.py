@@ -12,6 +12,8 @@ from astropy import units as u
 from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
 from astropy.utils.masked import Masked
 
+from .test_quantity_non_ufuncs import CoverageMeta
+
 
 class StructuredTestBase:
     @classmethod
@@ -559,7 +561,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q_pv_t['pv'] == (1., 0.5) * self.pv_unit)
 
 
-class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
+class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits, metaclass=CoverageMeta):
     @classmethod
     def setup_class(self):
         super().setup_class()
@@ -599,6 +601,19 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         struct = [(5, (400.0, 3e6))] * u.Unit('m, (cm, um)')
         unstruct = rfn.structured_to_unstructured(struct)
         assert_array_equal(unstruct, [[5, 4, 3]] * u.m)
+
+    def test_unstructured_to_structured(self):
+        # can't structure something that's already structured
+        unstruct = [1, 2, 3] * u.m
+        dtype=np.dtype([("f1", int), ("f2", int), ("f3", int)])
+
+        # it works
+        struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
+        assert struct.unit == u.Unit("(m, m, m)")
+        assert_array_equal(rfn.structured_to_unstructured(struct), unstruct)
+
+        with pytest.raises(ValueError, match="arr must have at least one dimension"):
+            rfn.unstructured_to_structured(struct, dtype=dtype)
 
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
