@@ -135,7 +135,7 @@ def aszarr(z):
         return z
     elif hasattr(z, "shape"):  # ducktypes NumPy array
         if hasattr(z, "unit"):  # Quantity Column
-            return z.to(cu.redshift).value  # for speed only use enabled equivs
+            return (z << cu.redshift).value  # for speed only use enabled equivs
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
