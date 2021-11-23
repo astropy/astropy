@@ -39,7 +39,9 @@ class MetaTestMixin:
         assert isinstance(cosmo_cls.meta, MetaData)
 
     def test_meta_on_instance(self, cosmo):
-        assert isinstance(cosmo.meta, dict)
+        assert isinstance(cosmo.meta, dict)  # test type
+        # value set at initialization
+        assert cosmo.meta == self.cls_kwargs.get("meta", {})
 
     def test_meta_mutable(self, cosmo):
         """The metadata is NOT immutable on a cosmology"""
@@ -241,8 +243,9 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # correct
         assert cosmo == cosmo
         # different name <= not equal, but equivalent
-        assert cosmo != cosmo.clone(name="test_equality")
-        assert cosmo.__equiv__(cosmo.clone(name="test_equality"))
+        newcosmo = cosmo.clone(name="test_equality")
+        assert (cosmo != newcosmo) and (newcosmo != cosmo)
+        assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
 
     # ---------------------------------------------------------------
 

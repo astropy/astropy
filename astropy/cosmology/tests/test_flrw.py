@@ -21,7 +21,8 @@ import astropy.constants as const
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
+from astropy.cosmology.flrw import (a_B_c2, critdens_const, ellipkinc,
+                                    H0units_to_invs, hyp2f1, quad)
 from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -462,6 +463,137 @@ class TestFLRW(CosmologyTest,
         # TODO! transfer tests for initializing neutrinos
 
     # ---------------------------------------------------------------
+
+    def test_Odm0(self, cosmo_cls, cosmo):
+        """Test property ``Odm0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Odm0, property)
+        assert cosmo_cls.Odm0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.Odm0 is cosmo._Odm0
+        # Odm0 can be None, if Ob0 is None. Otherwise DM = matter - baryons.
+        if cosmo.Ob0 is None:
+            assert cosmo.Odm0 is None
+        else:
+            assert np.allclose(cosmo.Odm0, cosmo.Om0 - cosmo.Ob0)
+
+    def test_Ok0(self, cosmo_cls, cosmo):
+        """Test property ``Ok0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Ok0, property)
+        assert cosmo_cls.Ok0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.Ok0 is cosmo._Ok0
+        assert np.allclose(cosmo.Ok0, 1.0 - (cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0))
+
+    def test_Tnu0(self, cosmo_cls, cosmo):
+        """Test property ``Tnu0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Tnu0, property)
+        assert cosmo_cls.Tnu0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.Tnu0 is cosmo._Tnu0
+        assert cosmo.Tnu0.unit == u.K
+        assert u.allclose(cosmo.Tnu0, 0.7137658555036082 * cosmo.Tcmb0, rtol=1e-5)
+
+    def test_has_massive_nu(self, cosmo_cls, cosmo):
+        """Test property ``has_massive_nu``."""
+        # on the class
+        assert isinstance(cosmo_cls.has_massive_nu, property)
+        assert cosmo_cls.has_massive_nu.fset is None  # immutable
+
+        # on the instance
+        if cosmo.Tnu0 == 0:
+            assert cosmo.has_massive_nu is False
+        else:
+            assert cosmo.has_massive_nu is cosmo._massivenu
+
+    def test_h(self, cosmo_cls, cosmo):
+        """Test property ``h``."""
+        # on the class
+        assert isinstance(cosmo_cls.h, property)
+        assert cosmo_cls.h.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.h is cosmo._h
+        assert np.allclose(cosmo.h, cosmo.H0.value / 100.0)
+
+    def test_hubble_time(self, cosmo_cls, cosmo):
+        """Test property ``hubble_time``."""
+        # on the class
+        assert isinstance(cosmo_cls.hubble_time, property)
+        assert cosmo_cls.hubble_time.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.hubble_time is cosmo._hubble_time
+        assert u.allclose(cosmo.hubble_time, (1 / cosmo.H0) << u.Gyr)
+
+    def test_hubble_distance(self, cosmo_cls, cosmo):
+        """Test property ``hubble_distance``."""
+        # on the class
+        assert isinstance(cosmo_cls.hubble_distance, property)
+        assert cosmo_cls.hubble_distance.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.hubble_distance is cosmo._hubble_distance
+        assert cosmo.hubble_distance == (const.c / cosmo._H0).to(u.Mpc)
+
+    def test_critical_density0(self, cosmo_cls, cosmo):
+        """Test property ``critical_density0``."""
+        # on the class
+        assert isinstance(cosmo_cls.critical_density0, property)
+        assert cosmo_cls.critical_density0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.critical_density0 is cosmo._critical_density0
+        assert cosmo.critical_density0.unit == u.g / u.cm ** 3
+
+        cd0value = critdens_const * (cosmo.H0.value * H0units_to_invs) ** 2
+        assert cosmo.critical_density0.value == cd0value
+
+    def test_Ogamma0(self, cosmo_cls, cosmo):
+        """Test property ``Ogamma0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Ogamma0, property)
+        assert cosmo_cls.Ogamma0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.Ogamma0 is cosmo._Ogamma0
+        # Ogamma cor \propto T^4/rhocrit
+        expect = a_B_c2 * cosmo.Tcmb0.value ** 4 / cosmo.critical_density0.value
+        assert np.allclose(cosmo.Ogamma0, expect)
+        # check absolute equality to 0 if Tcmb0 is 0
+        if cosmo.Tcmb0 == 0:
+            assert cosmo.Ogamma0 == 0
+
+    def test_Onu0(self, cosmo_cls, cosmo):
+        """Test property ``Onu0``."""
+        # on the class
+        assert isinstance(cosmo_cls.Onu0, property)
+        assert cosmo_cls.Onu0.fset is None  # immutable
+
+        # on the instance
+        assert cosmo.Onu0 is cosmo._Onu0
+        # neutrino temperature <= photon temperature since the neutrinos
+        # decouple first.
+        if cosmo.has_massive_nu:  # Tcmb0 > 0 & has massive
+            # check the expected formula
+            assert cosmo.Onu0 ==  cosmo.Ogamma0 * cosmo.nu_relative_density(0)
+            # a sanity check on on the ratio of neutrinos to photons
+            # technically it could be 1, but not for any of the tested cases.
+            assert cosmo.nu_relative_density(0) <= 1
+        elif cosmo.Tcmb0 == 0:
+            assert cosmo.Onu0 == 0
+        else:
+            # check the expected formula
+            assert cosmo.Onu0 == 0.22710731766 * cosmo._Neff * cosmo.Ogamma0
+            # and check compatibility with nu_relative_density
+            assert np.allclose(cosmo.nu_relative_density(0), 0.22710731766 * cosmo._Neff)
+
+    # ---------------------------------------------------------------
     # from Cosmology
 
     def test_clone_change_param(self, cosmo):
@@ -626,6 +758,13 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         cosmo = cosmo_cls(*self.cls_args, **self.cls_kwargs)
         assert cosmo._Ode0 == 1.0 - cosmo._Om0 - cosmo._Ogamma0 - cosmo._Onu0
         assert cosmo._Ok0 == 0.0
+
+    def test_Ok0(self, cosmo_cls, cosmo):
+        """Test property ``Ok0``."""
+        super().test_Ok0(cosmo_cls, cosmo)
+
+        # for flat cosmologies, Ok0 is not *close* to 0, it *is* 0
+        assert cosmo.Ok0 == 0.0
 
     def test_is_equivalent(self, cosmo, nonflatcosmo):
         """Test :meth:`astropy.cosmology.FLRW.is_equivalent`."""
