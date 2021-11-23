@@ -128,7 +128,7 @@ def inf_like(x):
 
 def aszarr(z):
     """
-    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity|.
+    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity| / |Column|.
     Allows for any ndarray ducktype by checking for attribute "shape".
     """
     if isinstance(z, (Number, np.generic)):  # scalars
