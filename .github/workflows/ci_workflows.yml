@@ -56,47 +56,37 @@ jobs:
 
           # NOTE: this 2nd coverage test is needed for tests and code that
           #       run only with minimal dependencies.
-          - name: Python 3.9 with minimal dependencies and full coverage
+          - name: Python 3.10 with minimal dependencies and full coverage
             os: ubuntu-latest
-            python: 3.9
-            toxenv: py39-test-cov
-
-          - name: Python 3.10 with minimal dependencies
-            os: ubuntu-latest
-            python: '3.10.0-alpha - 3.10.0'
-            toxenv: py310-test-devdeps
+            python: '3.10'
+            toxenv: py310-test-cov
 
           # NOTE: In the build below we also check that tests do not open and
           # leave open any files. This has a performance impact on running the
           # tests, hence why it is not enabled by default.
-          - name: Python 3.8 with all optional dependencies
+          - name: Python 3.9 with all optional dependencies
             os: ubuntu-latest
-            python: 3.8
-            toxenv: py38-test-alldeps
+            python: 3.9
+            toxenv: py39-test-alldeps
             toxargs: -v --develop
             toxposargs: --open-files
 
           - name: Python 3.8 with oldest supported version of all dependencies
             os: ubuntu-18.04
             python: 3.8
-            toxenv: py38-test-oldestdeps
-
-          - name: Python 3.8 with numpy 1.18 and full coverage
-            os: ubuntu-latest
-            python: 3.8
-            toxenv: py38-test-alldeps-numpy118-cov-clocale
+            toxenv: py38-test-oldestdeps-alldeps-cov-clocale
             toxposargs: --remote-data=astropy
 
-          - name: Python 3.8 with all optional dependencies (Windows)
+          - name: Python 3.9 with all optional dependencies (Windows)
             os: windows-latest
-            python: 3.8
-            toxenv: py38-test-alldeps
+            python: 3.9
+            toxenv: py39-test-alldeps
             toxposargs: --durations=50
 
-          - name: Python 3.8 with all optional dependencies (MacOS X)
+          - name: Python 3.9 with all optional dependencies (MacOS X)
             os: macos-latest
-            python: 3.8
-            toxenv: py38-test-alldeps
+            python: 3.9
+            toxenv: py39-test-alldeps
             toxposargs: --durations=50
 
     steps:
