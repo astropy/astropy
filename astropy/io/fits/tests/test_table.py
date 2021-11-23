@@ -2133,28 +2133,27 @@ class TestTableFunctions(FitsTestCase):
         assert comparerecords(s2, s3)
         assert comparerecords(s3, s4)
 
-    def test_dump_load_round_trip(self):
+    @pytest.mark.parametrize('tablename', ['table.fits', 'tb.fits'])
+    def test_dump_load_round_trip(self, tablename):
         """
         A simple test of the dump/load methods; dump the data, column, and
         header files and try to reload the table from them.
         """
 
-        hdul = fits.open(self.data('table.fits'))
-        tbhdu = hdul[1]
-        datafile = self.temp('data.txt')
-        cdfile = self.temp('coldefs.txt')
-        hfile = self.temp('header.txt')
+        with fits.open(self.data(tablename)) as hdul:
+            tbhdu = hdul[1]
+            datafile = self.temp('data.txt')
+            cdfile = self.temp('coldefs.txt')
+            hfile = self.temp('header.txt')
 
-        tbhdu.dump(datafile, cdfile, hfile)
+            tbhdu.dump(datafile, cdfile, hfile)
 
-        new_tbhdu = fits.BinTableHDU.load(datafile, cdfile, hfile)
+            new_tbhdu = fits.BinTableHDU.load(datafile, cdfile, hfile)
 
-        assert comparerecords(tbhdu.data, new_tbhdu.data)
+            assert comparerecords(tbhdu.data, new_tbhdu.data)
 
-        # Double check that the headers are equivalent
-        assert str(tbhdu.header) == str(new_tbhdu.header)
-
-        hdul.close()
+            # Double check that the headers are equivalent
+            assert str(tbhdu.header) == str(new_tbhdu.header)
 
     def test_dump_load_array_colums(self):
         """
