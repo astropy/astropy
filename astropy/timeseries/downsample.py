@@ -115,7 +115,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
                 # `nbins` defaults to the number needed to fit all points
                 time_bin_size = time_duration / n_bins * u.s
         else:
-            time_bin_end = ts_sorted.time[-1]
+            time_bin_end = np.maximum(ts_sorted.time[-1], time_bin_start[-1])
 
     if time_bin_start.isscalar:
         if time_bin_size is not None:
@@ -171,6 +171,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # Figure out which bin each row falls in by sorting with respect
     # to the bin end times
     indices = np.searchsorted(bin_end, ts_sorted.time[keep])
+
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
         indices_start = np.searchsorted(ts_sorted.time[keep],

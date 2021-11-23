@@ -177,17 +177,15 @@ def test_downsample():
         assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
 
 
-def test_downsample_empty_bins():
+@pytest.mark.parametrize("time,time_bin_start,time_bin_end",
+                        [(INPUT_TIME[:2], INPUT_TIME[2:], None),
+                         (INPUT_TIME[3:], INPUT_TIME[:2], INPUT_TIME[1:3])])
+def test_downsample_empty_bins(time, time_bin_start, time_bin_end):
     """Regression test: allow downsampling even if all bins fall before or beyond
     the time span of the data."""
     # Place all bins *beyond* the time span of the data
-    ts = TimeSeries(time=INPUT_TIME[0:2], data=[[1, 2]], names=['a'])
-    down1 = aggregate_downsample(ts, time_bin_start=INPUT_TIME[2:])
-    assert len(down1) == len(INPUT_TIME[2:])
-    assert down1['a'].mask.all()
-
-    # Place all bins *before* the time span of the data
-    ts = TimeSeries(time=INPUT_TIME[3:], data=[[1, 2]], names=['a'])
-    down2 = aggregate_downsample(ts, time_bin_start=INPUT_TIME[:2], time_bin_end=INPUT_TIME[1:3])
-    assert len(down2) == len(INPUT_TIME[:2])
-    assert down2['a'].mask.all()
+    ts = TimeSeries(time=time, data=[np.ones(len(time))], names=['a'])
+    down = aggregate_downsample(ts, time_bin_start=time_bin_start, time_bin_end=time_bin_end)
+    assert len(down) == len(time_bin_start)
+    assert down['a'].mask.all()
+    assert all(down['time_bin_size'] >= 0)  # bin lengths shall never be negative
