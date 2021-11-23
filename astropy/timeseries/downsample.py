@@ -18,7 +18,9 @@ def reduceat(array, indices, function):
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
     It will check if the input function has a reduceat and call that if it does.
     """
-    if hasattr(function, 'reduceat'):
+    if len(indices) == 0:
+        return np.array([])
+    elif hasattr(function, 'reduceat'):
         return np.array(function.reduceat(array, indices))
     else:
         result = []
@@ -68,7 +70,8 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
         The number of bins to use. Defaults to the number needed to fit all
         the original points. If both ``time_bin_start`` and ``time_bin_size``
         are provided and are scalar values, this determines the total bins
-        within that interval.
+        within that interval. If ``time_bin_start`` is an iterable, this
+        parameter will be ignored.
     aggregate_func : callable, optional
         The function to use for combining points in the same bin. Defaults
         to np.nanmean.
@@ -149,8 +152,9 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     bin_start = binned.time_bin_start
     bin_end = binned.time_bin_end
 
-    # Assign `n_bins` since it is needed later
-    if n_bins is None:
+    # Set `n_bins` to match the length of `time_bin_start` if
+    # `n_bins` is unspecified or if `time_bin_start` is an iterable
+    if n_bins is None or not time_bin_start.isscalar:
         n_bins = len(bin_start)
 
     # Find the subset of the table that is inside the union of all bins
@@ -168,13 +172,16 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # to the bin end times
     indices = np.searchsorted(bin_end, ts_sorted.time[keep])
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
-    if np.all(bin_start[1:] >= bin_end[:-1]):
+    if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
         indices_start = np.searchsorted(ts_sorted.time[keep],
                                         np.minimum(bin_start, ts_sorted.time[-1]))
         indices[indices_start] = np.arange(len(indices_start))
 
     # Determine rows where values are defined
-    groups = np.hstack([0, np.nonzero(np.diff(indices))[0] + 1])
+    if len(indices):
+        groups = np.hstack([0, np.nonzero(np.diff(indices))[0] + 1])
+    else:
+        groups = np.array([])
 
     # Find unique indices to determine which rows in the final time series
     # will not be empty.

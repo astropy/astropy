@@ -98,6 +98,12 @@ def test_nbins():
     down_nbins = aggregate_downsample(ts, n_bins=2)
     assert_equal(down_nbins.time_bin_start.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000'])
 
+    # Regression test: the value of `n_bins`` should be ignored if `time_bin_start` is an array
+    n_times = len(INPUT_TIME)
+    for n_bins in [0, n_times - 1, n_times, n_times + 1]:
+        down_nbins = aggregate_downsample(ts, time_bin_start=INPUT_TIME, n_bins=n_bins)
+        assert len(down_nbins) == n_times
+
 
 def test_downsample():
     ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=['a'])
@@ -169,3 +175,19 @@ def test_downsample():
                                                  time_bin_end=Time(['2016-03-22T12:30:34',
                                                               '2016-03-22T12:30:36.000']))
         assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
+
+
+def test_downsample_empty_bins():
+    """Regression test: allow downsampling even if all bins fall before or beyond
+    the time span of the data."""
+    # Place all bins *beyond* the time span of the data
+    ts = TimeSeries(time=INPUT_TIME[0:2], data=[[1, 2]], names=['a'])
+    down1 = aggregate_downsample(ts, time_bin_start=INPUT_TIME[2:])
+    assert len(down1) == len(INPUT_TIME[2:])
+    assert down1['a'].mask.all()
+
+    # Place all bins *before* the time span of the data
+    ts = TimeSeries(time=INPUT_TIME[3:], data=[[1, 2]], names=['a'])
+    down2 = aggregate_downsample(ts, time_bin_start=INPUT_TIME[:2], time_bin_end=INPUT_TIME[1:3])
+    assert len(down2) == len(INPUT_TIME[:2])
+    assert down2['a'].mask.all()
