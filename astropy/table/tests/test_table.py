@@ -341,15 +341,18 @@ class TestNewFromColumns:
                 table_types.Column(name='b', data=u.Quantity([4, 5], unit=u.s, dtype=np.float32)),
                 table_types.Column(name='c', data=u.Quantity([7, 8], unit=u.kg, dtype=np.uint16))]
         t = table_types.Table(cols)
-        assert t.dtype == [('a', np.int64), ('b', np.float32), ('c', np.uint16)]
         assert t['a'].unit == u.m
         assert t['b'].unit == u.s
         assert t['c'].unit == u.kg
         if table_types.Table.__name__ == 'QTable':
+            assert t.dtype == [('a', np.float64), ('b', np.float32), ('c', np.float64)]
+            t = table_types.Table(cols, dtype=[np.int8, np.float64, np.uint8])
+            assert t.dtype == [('a', np.int8), ('b', np.float64), ('c', np.uint8)]
             assert np.all(t['a'].value == np.array([1, 2], dtype=np.int64))
             assert np.all(t['b'].value == np.array([4, 5], dtype=np.float32))
             assert np.all(t['c'].value == np.array([7, 8], dtype=np.uint16))
         else:
+            assert t.dtype == [('a', np.int64), ('b', np.float32), ('c', np.uint16)]
             assert np.all(t['a'] == np.array([1, 2], dtype=np.int64))
             assert np.all(t['b'] == np.array([4, 5], dtype=np.float32))
             assert np.all(t['c'] == np.array([7, 8], dtype=np.uint16))
@@ -357,14 +360,18 @@ class TestNewFromColumns:
     def test_from_table_quantities(self, table_types):
         cols = [table_types.Column(name='a', data=u.Quantity([1, 2], unit=u.pc, dtype=np.uint64)),
                 table_types.Column(name='b', data=u.Quantity([4, 5], unit=u.Hz, dtype=np.float32))]
+        tt = Table(cols)
         t = table_types.Table(Table(cols))
-        assert t.dtype == [('a', np.uint64), ('b', np.float32)]
         assert t['a'].unit == u.pc
         assert t['b'].unit == u.Hz
         if table_types.Table.__name__ == 'QTable':
+            assert t.dtype == [('a', np.float64), ('b', np.float32)]
+            t = table_types.Table(Table(cols), dtype=tt.dtype)
+            assert t.dtype == [('a', np.uint64), ('b', np.float32)]
             assert np.all(t['a'].value == np.array([1, 2], dtype=np.uint64))
             assert np.all(t['b'].value == np.array([4, 5], dtype=np.float32))
         else:
+            assert t.dtype == [('a', np.uint64), ('b', np.float32)]
             assert np.all(t['a'] == np.array([1, 2], dtype=np.uint64))
             assert np.all(t['b'] == np.array([4, 5], dtype=np.float32))
 
