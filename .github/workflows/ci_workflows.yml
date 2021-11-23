@@ -58,7 +58,7 @@ jobs:
           #       run only with minimal dependencies.
           - name: Python 3.10 with minimal dependencies and full coverage
             os: ubuntu-latest
-            python: '3.10.0-alpha - 3.10.0'
+            python: '3.10'
             toxenv: py310-test-cov
 
           # NOTE: In the build below we also check that tests do not open and
