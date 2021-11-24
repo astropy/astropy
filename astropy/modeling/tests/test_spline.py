@@ -1144,6 +1144,16 @@ class TestSpline1D:
         assert_allclose(fitter.fit_info['spline']._eval_args[0], spline._eval_args[0])
         assert_allclose(fitter.fit_info['spline']._eval_args[1],  spline._eval_args[1])
 
+        # check that _parameters are correct
+        assert len(fit_spl._parameters) == len(fit_spl.t) + len(fit_spl.c)
+        assert_allclose(fit_spl._parameters[:len(fit_spl.t)], fit_spl.t)
+        assert_allclose(fit_spl._parameters[len(fit_spl.t):], fit_spl.c)
+
+        # check that parameters are correct
+        assert len(fit_spl.parameters) == len(fit_spl.t) + len(fit_spl.c)
+        assert_allclose(fit_spl.parameters[:len(fit_spl.t)], fit_spl.t)
+        assert_allclose(fit_spl.parameters[len(fit_spl.t):], fit_spl.c)
+
         assert_allclose(spline.get_residual(), fitter.fit_info['resid'])
 
         assert_allclose(fit_spl(self.x), spline(self.x))
