@@ -98,7 +98,7 @@ def test_nbins():
     down_nbins = aggregate_downsample(ts, n_bins=2)
     assert_equal(down_nbins.time_bin_start.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000'])
 
-    # Regression test: the value of `n_bins`` should be ignored if `time_bin_start` is an array
+    # Regression test for #12527: ignore `n_bins` if `time_bin_start` is an array
     n_times = len(INPUT_TIME)
     for n_bins in [0, n_times - 1, n_times, n_times + 1]:
         down_nbins = aggregate_downsample(ts, time_bin_start=INPUT_TIME, n_bins=n_bins)
@@ -180,9 +180,9 @@ def test_downsample():
 @pytest.mark.parametrize("time,time_bin_start,time_bin_end",
                         [(INPUT_TIME[:2], INPUT_TIME[2:], None),
                          (INPUT_TIME[3:], INPUT_TIME[:2], INPUT_TIME[1:3])])
-def test_downsample_empty_bins(time, time_bin_start, time_bin_end):
-    """Regression test: allow downsampling even if all bins fall before or beyond
-    the time span of the data."""
+def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
+    """Regression test for #12527: allow downsampling even if all bins fall
+    before or beyond the time span of the data."""
     # Place all bins *beyond* the time span of the data
     ts = TimeSeries(time=time, data=[np.ones(len(time))], names=['a'])
     down = aggregate_downsample(ts, time_bin_start=time_bin_start, time_bin_end=time_bin_end)
