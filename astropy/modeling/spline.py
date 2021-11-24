@@ -136,6 +136,7 @@ class _Spline(FittableModel):
         def _setter(value, model: "_Spline", index: int, attr: str):
             getattr(model, attr)[index] = value
             return value
+
         getter = functools.partial(_getter, index=index, attr=attr)
         setter = functools.partial(_setter, index=index, attr=attr)
 
@@ -184,6 +185,14 @@ class _Spline(FittableModel):
     def _init_spline(self, knots, coeffs, bounds=None):
         self._init_data(knots, coeffs, bounds)
         self._init_parameters()
+
+        # fill _parameters and related attributes
+        self._initialize_parameters((), {})
+        self._initialize_slices()
+
+        # Calling this will properly fill the _parameter vector, which is
+        #   used directly sometimes without being properly filled.
+        _ = self.parameters
 
     def _init_tck(self, degree):
         self._c = None
@@ -354,6 +363,10 @@ class Spline1D(_Spline):
             self.c = value[1]
         else:
             self._init_spline(value[0], value[1])
+
+        # Calling this will properly fill the _parameter vector, which is
+        #   used directly sometimes without being properly filled.
+        _ = self.parameters
 
     @property
     def bspline(self):
