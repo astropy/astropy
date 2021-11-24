@@ -421,12 +421,12 @@ def dms_to_degrees(d, m, s=None):
     m = np.atleast_1d(m)
     s = np.atleast_1d(s)
     dmss = np.array([d,m,s]).T
-
-    for dms in dmss:
+    sign = [1 for dms in dmss]
+    for k in range(0,dmss.size()):
         # looking for first non zero
-        for i in dms:
+        for i in dmss[k]:
             if i!=0:
-                sign = np.copysign(1,i); break;
+                sign[k] = np.copysign(1,i); break;
 
 
     try:
