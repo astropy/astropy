@@ -422,7 +422,7 @@ def dms_to_degrees(d, m, s=None):
     s = np.atleast_1d(s)
     dmss = np.array([d,m,s]).T
     sign = [1 for dms in dmss]
-    for k in range(0,dmss.size()):
+    for k in range(0,dmss.size/3):
         # looking for first non zero
         for i in dmss[k]:
             if i!=0:
