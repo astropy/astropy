@@ -128,14 +128,14 @@ def inf_like(x):
 
 def aszarr(z):
     """
-    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity|.
+    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity| / |Column|.
     Allows for any ndarray ducktype by checking for attribute "shape".
     """
     if isinstance(z, (Number, np.generic)):  # scalars
         return z
     elif hasattr(z, "shape"):  # ducktypes NumPy array
-        if hasattr(z, "unit"):  # Quantity
-            return z.to_value(cu.redshift)  # for speed only use enabled equivs
+        if hasattr(z, "unit"):  # Quantity Column
+            return (z << cu.redshift).value  # for speed only use enabled equivs
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
