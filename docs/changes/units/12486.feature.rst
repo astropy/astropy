@@ -1,0 +1,2 @@
+``structured_to_unstructured`` and ``unstructured_to_structured`` in
+``numpy.lib.recfunctions`` now work with Quantity.
