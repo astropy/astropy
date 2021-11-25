@@ -112,7 +112,7 @@ def _decode_mixins(tbl):
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
-                    character_as_bytes=True, unit_parse_strict='silent'):
+                    character_as_bytes=True, unit_parse_strict='warn'):
     """
     Read a Table object from an FITS file
 

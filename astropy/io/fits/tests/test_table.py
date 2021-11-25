@@ -3529,7 +3529,10 @@ def test_unit_parse_strict(tmp_path):
     with fits.open(path, mode='update') as hdul:
         hdul[1].header['TUNIT1'] = invalid_unit
 
-    t = Table.read(path)
+    # default is "warn"
+    with pytest.warns(UnitsWarning):
+        t = Table.read(path)
+
     assert isinstance(t['a'].unit, UnrecognizedUnit)
 
     t = Table.read(path, unit_parse_strict='silent')
