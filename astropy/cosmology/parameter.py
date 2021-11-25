@@ -13,24 +13,6 @@ class Parameter:
 
     Parameters
     ----------
-    fvalidate : callable[[object, object, Any], Any] or str, optional
-        Function to validate the Parameter value from instances of the
-        cosmology class. If "default", uses default validator to assign units
-        (with equivalencies), if Parameter has units.
-        For other valid string options, see ``Parameter._registry_validators``.
-        'fvalidate' can also be set through a decorator with
-        :meth:`~astropy.cosmology.Parameter.validator`.
-    doc : str or None, optional
-        Parameter description.
-    unit : unit-like or None (optional, keyword-only)
-        The `~astropy.units.Unit` for the Parameter. If None (default) no
-        unit as assumed.
-    equivalencies : `~astropy.units.Equivalency` or sequence thereof
-        Unit equivalencies for this Parameter.
-    fmt : str (optional, keyword-only)
-        `format` specification, used when making string representation
-        of the containing Cosmology.
-        See https://docs.python.org/3/library/string.html#formatspec
     derived : bool (optional, keyword-only)
         Whether the Parameter is 'derived', default `False`.
         Derived parameters behave similarly to normal parameters, but are not
@@ -38,6 +20,24 @@ class Parameter:
         included in all methods. For reference, see ``Ode0`` in
         ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
         independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
+    unit : unit-like or None (optional, keyword-only)
+        The `~astropy.units.Unit` for the Parameter. If None (default) no
+        unit as assumed.
+    equivalencies : `~astropy.units.Equivalency` or sequence thereof
+        Unit equivalencies for this Parameter.
+    fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)
+        Function to validate the Parameter value from instances of the
+        cosmology class. If "default", uses default validator to assign units
+        (with equivalencies), if Parameter has units.
+        For other valid string options, see ``Parameter._registry_validators``.
+        'fvalidate' can also be set through a decorator with
+        :meth:`~astropy.cosmology.Parameter.validator`.
+    fmt : str (optional, keyword-only)
+        `format` specification, used when making string representation
+        of the containing Cosmology.
+        See https://docs.python.org/3/library/string.html#formatspec
+    doc : str or None (optional, keyword-only)
+        Parameter description.
 
     Examples
     --------
@@ -46,9 +46,24 @@ class Parameter:
 
     _registry_validators = {}
 
-    def __init__(self, fvalidate="default", doc=None, *,
-                 unit=None, equivalencies=[], fmt=".3g", derived=False):
-        # parse registered fvalidate
+    def __init__(self, *, derived=False, unit=None, equivalencies=[],
+                 fvalidate="default", fmt=".3g", doc=None):
+
+        # attribute name on container cosmology class.
+        # really set in __set_name__, but if Parameter is not init'ed as a
+        # descriptor this ensures that the attributes exist.
+        self._attr_name = self._attr_name_private = None
+
+        self._derived = derived
+        self._fmt = str(fmt)  # @property is `format_spec`
+        self.__doc__ = doc
+
+        # units stuff
+        self._unit = u.Unit(unit) if unit is not None else None
+        self._equivalencies = equivalencies
+
+        # Parse registered `fvalidate`
+        self._fvalidate_in = fvalidate  # Always store input fvalidate.
         if callable(fvalidate):
             pass
         elif fvalidate in self._registry_validators:
@@ -59,20 +74,10 @@ class Parameter:
         else:
             raise TypeError("`fvalidate` must be a function or "
                             f"{self._registry_validators.keys()}")
-
-        self.__doc__ = doc
         self._fvalidate = fvalidate
 
-        # units stuff
-        self._unit = u.Unit(unit) if unit is not None else None
-        self._equivalencies = equivalencies
-
-        # misc
-        self._fmt = str(fmt)
-        self._derived = derived
-
     def __set_name__(self, cosmo_cls, name):
-        # attribute name
+        # attribute name on container cosmology class
         self._attr_name = name
         self._attr_name_private = "_" + name
 
@@ -142,11 +147,7 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fvalidate``.
         """
-        desc = type(self)(fvalidate=fvalidate,
-                          doc=self.__doc__, fmt=self.format_spec,
-                          unit=self.unit, equivalencies=self.equivalencies,
-                          derived=self.derived)
-        return desc
+        return self.clone(fvalidate=fvalidate)
 
     def validate(self, cosmology, value):
         """Run the validator on this Parameter.
@@ -210,8 +211,100 @@ class Parameter:
 
     # -------------------------------------------
 
+    def _get_init_arguments(self, processed=False):
+        """Initialization arguments.
+
+        Parameters
+        ----------
+        interpreted : bool
+            Whether to more closely reproduce the input arguments (`False`,
+            default) or the processed arguments (`True`). The former is better
+            for string representations and round-tripping with ``eval(repr())``.
+
+        Returns
+        -------
+        dict[str, Any]
+        """
+        # The keys are added in this order because `repr` prints them in order.
+        kw = {"derived": self.derived,
+              "unit": self.unit,
+              "equivalencies": self.equivalencies,
+              # Validator is always turned into a function, but for ``repr`` it's nice
+              # to know if it was originally a string.
+              "fvalidate": self.fvalidate if processed else self._fvalidate_in,
+              "fmt": self.format_spec,
+              "doc": self.__doc__}
+        return kw
+
+    def clone(self, **kw):
+        """Clone this `Parameter`, changing any constructor argument.
+
+        Parameters
+        ----------
+        **kw
+            Passed to constructor. The current values, eg. ``fvalidate`` are
+            used as the default values, so an empty ``**kw`` is an exact copy.
+
+        Examples
+        --------
+        >>> p = Parameter()
+        >>> p
+        Parameter(derived=False, unit=None, equivalencies=[],
+                  fvalidate='default', fmt='.3g', doc=None)
+
+        >>> p.clone(unit="km")
+        Parameter(derived=False, unit=Unit("km"), equivalencies=[],
+                  fvalidate='default', fmt='.3g', doc=None)
+        """
+        # Start with defaults, update from kw.
+        kwargs = {**self._get_init_arguments(), **kw}
+        # All initialization failures, like incorrect input are handled by init
+        cloned = type(self)(**kwargs)
+        # Transfer over the __set_name__ stuff. If `clone` is used to make a
+        # new descriptor, __set_name__ will be called again, overwriting this.
+        cloned._attr_name = self._attr_name
+        cloned._attr_name_private = self._attr_name_private
+
+        return cloned
+
+    def __eq__(self, other):
+        """Check Parameter equality. Only equal to other Parameter objects.
+
+        Returns
+        -------
+        NotImplemented or True
+            `True` if equal, `NotImplemented` otherwise. This allows `other` to
+            be check for equality with ``other.__eq__``.
+
+        Examples
+        --------
+        >>> p1, p2 = Parameter(unit="km"), Parameter(unit="km")
+        >>> p1 == p2
+        True
+
+        >>> p3 = Parameter(unit="km / s")
+        >>> p3 == p1
+        False
+
+        >>> p1 != 2
+        True
+        """
+        if not isinstance(other, Parameter):
+            return NotImplemented
+        # Check equality on all `_init_arguments` & `name`.
+        # Need to compare the processed arguments because the inputs are many-
+        # to-one, e.g. `fvalidate` can be a string or the equivalent function.
+        return ((self._get_init_arguments(True) == other._get_init_arguments(True))
+                and (self.name == other.name))
+
     def __repr__(self):
-        return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
+        """String representation.
+
+        ``eval(repr())`` should work, depending if contents like ``fvalidate``
+        can be similarly round-tripped.
+        """
+        return "Parameter({})".format(", ".join(f"{k}={v!r}" for k, v in
+                                                self._get_init_arguments().items()))
 
 
 # ===================================================================

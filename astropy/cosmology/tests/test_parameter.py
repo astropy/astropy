@@ -6,7 +6,9 @@
 # IMPORTS
 
 # STDLIB
+import ast
 import inspect
+import sys
 
 # THIRD PARTY
 import pytest
@@ -70,6 +72,7 @@ class ParameterTestMixin:
         assert parameter.equivalencies == []
         assert parameter.format_spec == ".3g"
         assert parameter.derived is False
+        assert parameter.name is None
 
         # setting all kwargs
         parameter = Parameter(fvalidate="float", doc="DOCSTRING",
@@ -166,15 +169,6 @@ class ParameterTestMixin:
     # validate value
     # tested later.
 
-    # -------------------------------------------
-
-    def test_Parameter_repr(self, cosmo_cls, all_parameter):
-        """Test Parameter repr."""
-        r = repr(getattr(cosmo_cls, all_parameter.name))
-
-        assert all_parameter._attr_name in r
-        assert hex(id(all_parameter)) in r
-
     # ===============================================================
     # Usage Tests
 
@@ -249,7 +243,7 @@ class TestParameter(ParameterTestMixin):
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(doc="example parameter",
+            param = Parameter(doc="Description of example parameter.",
                               unit=u.m, equivalencies=u.mass_energy())
 
             def __init__(self, param=15):
@@ -293,7 +287,7 @@ class TestParameter(ParameterTestMixin):
         super().test_Parameter_instance_attributes(param)
 
         # property
-        assert param.__doc__ == "example parameter"
+        assert param.__doc__ == "Description of example parameter."
 
         # custom from init
         assert param._unit == u.m
@@ -405,6 +399,67 @@ class TestParameter(ParameterTestMixin):
             assert param.__class__._registry_validators["newvalidator"] is func
         finally:
             param.__class__._registry_validators.pop("newvalidator", None)
+
+    # -------------------------------------------
+
+    def test_Parameter_clone(self, param):
+        """Test :meth:`astropy.cosmology.Parameter.clone`."""
+        # this implicitly relies on `__eq__` testing properly. Which is tested.
+
+        # basic test that nothing changes
+        assert param.clone() == param
+        assert param.clone() is not param  # but it's not a 'singleton'
+
+        # passing kwargs will change stuff
+        newparam = param.clone(unit="km/(yr sr)")
+        assert newparam.unit == u.km / u.yr / u.sr
+        assert param.unit != u.km / u.yr / u.sr  # original is unchanged
+
+        # expected failure for not-an-argument
+        with pytest.raises(TypeError):
+            param.clone(not_a_valid_parameter=True)
+
+    # -------------------------------------------
+
+    def test_Parameter_equality(self):
+        """
+        Test Parameter equality.
+        Determined from the processed initialization args (including defaults).
+        """
+        p1 = Parameter(unit="km / (s Mpc)")
+        p2 = Parameter(unit="km / (s Mpc)")
+        assert p1 == p2
+
+        # not equal parameters
+        p3 = Parameter(unit="km / s")
+        assert p3 != p1
+
+        # misc
+        assert p1 != 2  # show doesn't error
+
+    # -------------------------------------------
+
+    def test_Parameter_repr(self, cosmo_cls, param):
+        """Test Parameter repr."""
+        r = repr(param)
+
+        assert "Parameter(" in r
+        for subs in ("derived=False", 'unit=Unit("m")', 'equivalencies=[(Unit("kg"), Unit("J")',
+                     "fmt='.3g'", "doc='Description of example parameter.'"):
+            assert subs in r, subs
+
+        # `fvalidate` is a little tricker b/c one of them is custom!
+        if param.fvalidate in param._registry_validators.values():  # not custom
+            assert "fvalidate='default'" in r
+        else:
+            assert "fvalidate=<" in r  # Some function, don't care about details.
+
+    def test_Parameter_repr_roundtrip(self, param):
+        """Test ``eval(repr(Parameter))`` can round trip to ``Parameter``."""
+        P = Parameter(doc="A description of this parameter.", derived=True)
+        NP = eval(repr(P))  # Evaluate string representation back into a param.
+
+        assert P == NP
 
     # ==============================================================
 
