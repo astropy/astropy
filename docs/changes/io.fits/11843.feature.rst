@@ -1,0 +1,4 @@
+Add option ``unit_parse_strict`` to `~astropy.io.fits.connect.read_table_fits`
+to enable warnings or errors about invalid FITS units when using `~astropy.table.Table.read`.
+The default for this new option is ``"warn"``, which means warnings are now raised for
+columns with invalid units.
