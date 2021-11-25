@@ -1420,8 +1420,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                     derived=True, fvalidate="float")  # no longer a Parameter
+    Ode0 = FLRW.Ode0.clone(derived=True)  # same as FLRW, but now a derived param.
 
     def __init_subclass__(cls):
         super().__init_subclass__()
