@@ -5,6 +5,7 @@ Test Structured units and quantities.
 """
 import pytest
 import numpy as np
+import numpy.lib.recfunctions as rfn
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
@@ -578,6 +579,23 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         assert z.unit == self.pv_unit
         assert z.shape == self.pv.shape
         assert_array_equal(z, func(self.pv) << self.pv_unit)
+
+    def test_structured_to_unstructured(self):
+        # can't unstructure something with incompatible units
+        with pytest.raises(u.UnitConversionError, match="'km / s'"):
+            rfn.structured_to_unstructured(self.q_pv)
+
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_quantity_non_ufuncs.TestRecFunctions.test_structured_to_unstructured``
+
+    def test_unstructured_to_structured(self):
+        # can't structure something that's already structured
+        dtype = np.dtype([("f1", float), ("f2", float)])
+        with pytest.raises(ValueError, match="The length of the last dimension"):
+            rfn.unstructured_to_structured(self.q_pv, dtype=self.q_pv.dtype)
+
+        # For the other tests of ``structured_to_unstructured``, see
+        # ``test_quantity_non_ufuncs.TestRecFunctions.test_unstructured_to_structured``
 
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
