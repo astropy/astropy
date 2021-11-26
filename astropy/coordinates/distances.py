@@ -100,11 +100,16 @@ class Distance(u.SpecificTypeQuantity):
                 distmod=None, parallax=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0, allow_negative=False):
 
-        if z is not None:
-            if value is not None or distmod is not None:
-                raise ValueError('Should given only one of `value`, `z` '
-                                 'or `distmod` in Distance constructor.')
+        n_not_none = sum(x is not None for x in [value, z, distmod, parallax])
+        if n_not_none == 0:
+            raise ValueError('None of `value`, `z`, `distmod`, or `parallax` '
+                             'were given to Distance constructor')
+        elif n_not_none > 1:
+            raise ValueError('Should given only one of `value`, `z`, '
+                             '`distmod`, or `parallax` in Distance '
+                             'constructor.')
 
+        if z is not None:
             if cosmology is None:
                 from astropy.cosmology import default_cosmology
                 cosmology = default_cosmology.get()
@@ -118,13 +123,6 @@ class Distance(u.SpecificTypeQuantity):
             if cosmology is not None:
                 raise ValueError('A `cosmology` was given but `z` was not '
                                  'provided in Distance constructor')
-
-            value_msg = ('Should given only one of `value`, `z`, `distmod`, or '
-                         '`parallax` in Distance constructor.')
-            n_not_none = np.sum([x is not None
-                                 for x in [value, z, distmod, parallax]])
-            if n_not_none > 1:
-                raise ValueError(value_msg)
 
             if distmod is not None:
                 value = cls._distmod_to_pc(distmod)
@@ -170,11 +168,6 @@ class Distance(u.SpecificTypeQuantity):
                                          "through, with negative parallaxes "
                                          "instead becoming NaN, use the "
                                          "`allow_negative=True` argument.")
-
-            elif value is None:
-                raise ValueError('None of `value`, `z`, `distmod`, or '
-                                 '`parallax` were given to Distance '
-                                 'constructor')
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(

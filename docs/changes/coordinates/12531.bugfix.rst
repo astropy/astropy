@@ -1,0 +1,2 @@
+Trying to create an instance of ``astropy.coordinates.Distance`` by providing
+both ``z`` and ``parallax`` now raises the expected ``ValueError``.
