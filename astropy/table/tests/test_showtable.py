@@ -1,5 +1,6 @@
 import os
 import re
+import pytest
 
 from astropy.table.scripts import showtable
 
@@ -53,8 +54,13 @@ def test_fits(capsys):
 
 
 def test_fits_hdu(capsys):
-    showtable.main([os.path.join(FITS_ROOT, 'data/zerowidth.fits'),
-                    '--hdu', 'AIPS OF'])
+    from astropy.units import UnitsWarning
+    with pytest.warns(UnitsWarning):
+        showtable.main([
+            os.path.join(FITS_ROOT, 'data/zerowidth.fits'),
+            '--hdu', 'AIPS OF',
+        ])
+
     out, err = capsys.readouterr()
     assert out.startswith(
         '   TIME    SOURCE ID ANTENNA NO. SUBARRAY FREQ ID ANT FLAG STATUS 1\n'

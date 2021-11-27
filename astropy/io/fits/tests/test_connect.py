@@ -234,7 +234,8 @@ class TestSingleTable:
         hdu.columns[0].unit = 'RADIANS'
         hdu.columns[1].unit = 'spam'
         hdu.columns[2].unit = 'millieggs'
-        t = Table.read(hdu)
+        with pytest.warns(u.UnitsWarning, match="did not parse as fits unit"):
+            t = Table.read(hdu)
         assert equal_data(t, self.data)
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
@@ -657,7 +658,8 @@ def test_unit_warnings_read_write(tmpdir):
         t1.write(filename, overwrite=True)
     assert len(w) == 1
 
-    Table.read(filename, hdu=1)
+    with pytest.warns(u.UnitsWarning, match="'not-a-unit' did not parse as fits unit") as w:
+        Table.read(filename, hdu=1)
 
 
 def test_convert_comment_convention(tmpdir):
