@@ -323,8 +323,13 @@ def test_read():
 
 @pytest.mark.remote_data(source='astropy')
 def test_kepler_astropy():
+    from astropy.units import UnitsWarning
+
     filename = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
-    timeseries = TimeSeries.read(filename, format='kepler.fits')
+
+    with pytest.warns(UnitsWarning):
+        timeseries = TimeSeries.read(filename, format='kepler.fits')
+
     assert timeseries["time"].format == 'isot'
     assert timeseries["time"].scale == 'tdb'
     assert timeseries["sap_flux"].unit.to_string() == 'electron / s'

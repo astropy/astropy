@@ -49,7 +49,7 @@ source::
 We can then use the |TimeSeries| class to read in this file::
 
     >>> from astropy.timeseries import TimeSeries
-    >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA
+    >>> ts = TimeSeries.read(filename, format='kepler.fits')  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
 
 Time series are specialized kinds of |Table| objects::
 
