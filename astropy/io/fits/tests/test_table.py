@@ -2133,6 +2133,34 @@ class TestTableFunctions(FitsTestCase):
         assert comparerecords(s2, s3)
         assert comparerecords(s3, s4)
 
+    def test_dump(self):
+        """
+        A simple test of the dump method.
+        """
+
+        datastr = (
+            '"                    1" "abc" "     3.70000007152557" "                    0"\n'
+            '"                    2" "xy " "     6.69999971389771" "                    1"\n'
+        )
+        cdstr = (
+            'c1 1J I11              "" "" -2147483647      "" ""\n'
+            'c2 3A A3               "" "" "" "" ""\n'
+            'c3 1E G15.7            "" "" "" 3                0.4             \n'
+            'c4 1L L6               "" "" "" "" ""\n'
+        )
+
+        with fits.open(self.data('tb.fits')) as hdul:
+            tbhdu = hdul[1]
+            datafile = self.temp('data.txt')
+            cdfile = self.temp('coldefs.txt')
+
+            tbhdu.dump(datafile, cdfile)
+
+            with open(datafile) as data:
+                assert data.read() == datastr
+            with open(cdfile) as coldefs:
+                assert coldefs.read() == cdstr
+
     @pytest.mark.parametrize('tablename', ['table.fits', 'tb.fits'])
     def test_dump_load_round_trip(self, tablename):
         """
@@ -2153,7 +2181,9 @@ class TestTableFunctions(FitsTestCase):
             assert comparerecords(tbhdu.data, new_tbhdu.data)
 
             # Double check that the headers are equivalent
-            assert str(tbhdu.header) == str(new_tbhdu.header)
+            for card in tbhdu.header.cards:
+                new_card = new_tbhdu.header.cards[card.keyword]
+                assert card.value == new_card.value
 
     def test_dump_load_array_colums(self):
         """

@@ -1294,7 +1294,7 @@ class BinTableHDU(_TableBaseHDU):
         for column in self.columns:
             line = [column.name, column.format]
             attrs = ['disp', 'unit', 'dim', 'null', 'bscale', 'bzero']
-            line += [f'{value}' if value else '""'
+            line += [f'{str(value):16s}' if value else '""'
                      for value in (getattr(column, attr) for attr in attrs)]
             fileobj.write(' '.join(line))
             fileobj.write('\n')
