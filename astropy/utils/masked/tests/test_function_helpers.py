@@ -18,7 +18,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
 from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions)
 
@@ -1333,10 +1333,13 @@ if NUMPY_LT_1_20:
                            if f in np.lib.financial.__dict__.values()}
     untested_functions |= financial_functions
 
-deprecated_functions = {
-    np.asscalar,
-    np.alen,
+if NUMPY_LT_1_23:
+    deprecated_functions = {
+        # Deprecated, removed in numpy 1.23
+        np.asscalar, np.alen,
     }
+else:
+    deprecated_functions = set()
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
