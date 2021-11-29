@@ -12,7 +12,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, TBD_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
 
 
 needs_array_function = pytest.mark.xfail(
@@ -2087,7 +2087,13 @@ if NUMPY_LT_1_20:
                            if f in np.lib.financial.__dict__.values()}
     untested_functions |= financial_functions
 
-deprecated_functions = {np.asscalar, np.alen}
+if NUMPY_LT_1_23:
+    deprecated_functions = {
+        # Deprecated, removed in numpy 1.23
+        np.asscalar, np.alen,
+    }
+else:
+    deprecated_functions = set()
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
