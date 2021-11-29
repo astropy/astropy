@@ -2582,6 +2582,21 @@ class Table:
         out = zip(*cols)
         return out
 
+    def _set_of_names_in_colnames(self, names):
+        """Return ``names`` as a set if valid, or raise a `KeyError`.
+
+        ``names`` is valid if all elements in it are in ``self.colnames``.
+        If ``names`` is a string then it is interpreted as a single column
+        name.
+        """
+        names = {names} if isinstance(names, str) else set(names)
+        invalid_names = names.difference(self.colnames)
+        if len(invalid_names) == 1:
+            raise KeyError(f'column "{invalid_names.pop()}" does not exist')
+        elif len(invalid_names) > 1:
+            raise KeyError(f'columns {invalid_names} do not exist')
+        return names
+
     def remove_column(self, name):
         """
         Remove a column from the table.
@@ -2629,8 +2644,8 @@ class Table:
 
         Parameters
         ----------
-        names : list
-            A list containing the names of the columns to remove
+        names : str or iterable of str
+            Names of the columns to remove
 
         Examples
         --------
@@ -2669,14 +2684,7 @@ class Table:
 
         This gives the same as using remove_column.
         '''
-        if isinstance(names, str):
-            names = [names]
-
-        for name in names:
-            if name not in self.columns:
-                raise KeyError(f"Column {name} does not exist")
-
-        for name in names:
+        for name in self._set_of_names_in_colnames(names):
             self.columns.pop(name)
 
     def _convert_string_dtype(self, in_kind, out_kind, encode_decode_func):
@@ -2737,9 +2745,8 @@ class Table:
 
         Parameters
         ----------
-        names : list
-            A list containing the names of the columns to keep. All other
-            columns will be removed.
+        names : str or iterable of str
+            The columns to keep. All other columns will be removed.
 
         Examples
         --------
@@ -2754,7 +2761,6 @@ class Table:
               2 0.2   y
               3 0.3   z
 
-        Specifying only a single column name keeps only this column.
         Keep only column 'a' of the table::
 
             >>> t.keep_columns('a')
@@ -2765,7 +2771,6 @@ class Table:
               2
               3
 
-        Specifying a list of column names is keeps is also possible.
         Keep columns 'a' and 'c' of the table::
 
             >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
@@ -2778,17 +2783,10 @@ class Table:
               2   y
               3   z
         '''
-
-        if isinstance(names, str):
-            names = [names]
-
-        for name in names:
-            if name not in self.columns:
-                raise KeyError(f"Column {name} does not exist")
-
-        remove = list(set(self.keys()) - set(names))
-
-        self.remove_columns(remove)
+        names = self._set_of_names_in_colnames(names)
+        for colname in self.colnames:
+            if colname not in names:
+                self.columns.pop(colname)
 
     def rename_column(self, name, new_name):
         '''
