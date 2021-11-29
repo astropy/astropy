@@ -8,7 +8,6 @@ from io import StringIO
 
 import pytest
 import numpy as np
-import yaml
 
 from astropy.coordinates import (SkyCoord, EarthLocation, Angle, Longitude, Latitude,
                                  SphericalRepresentation, UnitSphericalRepresentation,
@@ -58,18 +57,30 @@ def test_custom_unit(c):
         assert cy2 is c
 
 
-@pytest.mark.parametrize('c', [Angle('1 2 3', unit='deg'),
-                               Longitude('1 2 3', unit='deg'),
-                               Latitude('1 2 3', unit='deg'),
-                               [[1], [3]] * u.m,
-                               np.array([[1, 2], [3, 4]], order='F'),
-                               np.array([[1, 2], [3, 4]], order='C'),
-                               np.array([1, 2, 3, 4])[::2]])
+@pytest.mark.parametrize('c', [
+    Angle('1 2 3', unit='deg'),
+    Longitude('1 2 3', unit='deg'),
+    Latitude('1 2 3', unit='deg'),
+    [[1], [3]] * u.m,
+    np.array([[1, 2], [3, 4]], order='F'),
+    np.array([[1, 2], [3, 4]], order='C'),
+    np.array([1, 2, 3, 4])[::2],
+    np.array([(1., 2), (3., 4)], dtype='f8,i4'),  # array with structured dtype.
+    np.array((1., 2), dtype='f8,i4'),  # array scalar with structured dtype.
+    np.array((1., 2), dtype='f8,i4')[()],  # numpy void.
+    np.array((1., 2.), dtype='f8,f8') * u.s,  # Quantity structured scalar.
+    [((1., 2., 3.), (4., 5., 6.)),  # Quantity with structured unit.
+     ((11., 12., 13.), (14., 15., 16.))] * u.Unit('m, m/s'),
+    np.array([((1., 2., 3.), (4., 5., 6.)),
+              ((11., 12., 13.), (14., 15., 16.))],
+             dtype=[('p', '3f8'), ('v', '3f8')]) * u.Unit('m, m/s')
+    ])
 def test_ndarray_subclasses(c):
     cy = load(dump(c))
 
     assert np.all(c == cy)
     assert c.shape == cy.shape
+    assert c.dtype == cy.dtype
     assert type(c) is type(cy)
 
     cc = 'C_CONTIGUOUS'
