@@ -2980,3 +2980,17 @@ def test_read_write_not_replaceable():
 
     with pytest.raises(AttributeError):
         t.write = 'fake_write'
+
+
+def test_keep_columns_with_generator():
+    # Regression test for #12529
+    t = table.table_helpers.simple_table(1)
+    t.keep_columns(col for col in t.colnames if col == 'a')
+    assert t.colnames == ['a']
+
+
+def test_remove_columns_with_generator():
+    # Regression test for #12529
+    t = table.table_helpers.simple_table(1)
+    t.remove_columns(col for col in t.colnames if col == 'a')
+    assert t.colnames == ['b', 'c']
