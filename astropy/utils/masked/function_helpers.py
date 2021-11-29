@@ -13,7 +13,7 @@ import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import (
     FunctionAssigner)
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -109,8 +109,6 @@ MASKED_SAFE_FUNCTIONS |= {
 }
 
 IGNORED_FUNCTIONS = {
-    # Deprecated
-    np.asscalar, np.alen,
     # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
@@ -141,6 +139,12 @@ IGNORED_FUNCTIONS |= {
 IGNORED_FUNCTIONS |= set(getattr(np, setopsname)
                          for setopsname in np.lib.arraysetops.__all__)
 
+
+if NUMPY_LT_1_23:
+    IGNORED_FUNCTIONS |= {
+        # Deprecated, removed in numpy 1.23
+        np.asscalar, np.alen,
+    }
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
