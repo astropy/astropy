@@ -2994,3 +2994,21 @@ def test_remove_columns_with_generator():
     t = table.table_helpers.simple_table(1)
     t.remove_columns(col for col in t.colnames if col == 'a')
     assert t.colnames == ['b', 'c']
+
+
+def test_keep_columns_invalid_names_messages():
+    t = table.table_helpers.simple_table(1)
+    with pytest.raises(KeyError, match='column "d" does not exist'):
+        t.keep_columns(['c', 'd'])
+    with pytest.raises(KeyError,
+                       match='columns {\'[de]\', \'[de]\'} do not exist'):
+        t.keep_columns(['c', 'd', 'e'])
+
+
+def test_remove_columns_invalid_names_messages():
+    t = table.table_helpers.simple_table(1)
+    with pytest.raises(KeyError, match='column "d" does not exist'):
+        t.remove_columns(['c', 'd'])
+    with pytest.raises(KeyError,
+                       match='columns {\'[de]\', \'[de]\'} do not exist'):
+        t.remove_columns(['c', 'd', 'e'])
