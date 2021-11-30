@@ -427,10 +427,18 @@ def test_url_or_file_ephemeris(time):
 @pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 def test_url_ephemeris_wrong_input():
-    # Try loading a non-existing URL:
     time = Time('1960-01-12 00:00')
     with pytest.raises((HTTPError, URLError)):
+        # A non-existent URL
         get_body('earth', time, ephemeris=get_pkg_data_filename('path/to/nonexisting/file.bsp'))
+
+    with pytest.raises(HTTPError):
+        # A non-existent version of the JPL ephemeris
+        get_body('earth', time, ephemeris='de001')
+
+    with pytest.raises(ValueError):
+        # An invalid string
+        get_body('earth', time, ephemeris='not_an_ephemeris')
 
 
 @pytest.mark.skipif('not HAS_JPLEPHEM')
