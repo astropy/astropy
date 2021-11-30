@@ -1,0 +1,2 @@
+The ephemeris used in `astropy.coordinates` can now be set to any version of
+the JPL ephemeris available from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/.
