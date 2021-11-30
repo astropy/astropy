@@ -1172,7 +1172,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
         # TODO: REMOVE ME ----------------------------------------
         # This is a terrible hack to support Simple Image Access
-        # Protocol results from archive.noao.edu.  It creates a field
+        # Protocol results from https://astroarchive.noirlab.edu/ .  It creates a field
         # for the coordinate projection type of type "double", which
         # actually contains character data.  We have to hack the field
         # to store character data, or we can't read it in.  A warning
