@@ -141,9 +141,9 @@ The last thing to note is pretty formatting for the |Cosmology|. Each
 may be overridden, like :attr:`~astropy.cosmology.FLRW.Tcmb0` does.
 
 If a new cosmology modifies an existing Parameter, then the
-`Parameter.clone() <astropy.cosmology.Parameter.clone>`_ method is useful
-to deep-copy the parameter and change any constructor argument. For example,
-see ``FlatFLRWMixin`` in ``astropy.cosmology.flrw`` (also shown below).
+:meth:`~astropy.cosmology.Parameter.clone` method is useful to deep-copy the
+parameter and change any constructor argument. For example, see
+``FlatFLRWMixin`` in ``astropy.cosmology.flrw`` (also shown below).
 
 .. code-block:: python
 
