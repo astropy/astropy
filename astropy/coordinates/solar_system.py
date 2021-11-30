@@ -6,6 +6,7 @@ ephemerides from jplephem.
 
 from urllib.parse import urlparse
 import os.path
+import re
 
 import numpy as np
 import erfa
@@ -80,7 +81,10 @@ class solar_system_ephemeris(ScienceState):
     This can be one of the following::
 
     - 'builtin': polynomial approximations to the orbital elements.
-    - 'de430', 'de432s', 'de440', 'de440s': short-cuts for recent JPL dynamical models.
+    - 'dexxx[s]', for a JPL dynamical model, where xxx is the three digit version number
+      (e.g. de430), and the s is optional to specify the 'small' version of a kernel.
+      The version number must correspond to an ephemeris file available at
+      https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
     - PATH: (str) File path to a SPK ephemeris in SPICE binary (.bsp) format.
@@ -160,9 +164,10 @@ def _get_kernel(value):
                           "(https://pypi.org/project/jplephem/)")
 
     if value.lower() == 'jpl':
+        # Get the default JPL ephemeris URL
         value = DEFAULT_JPL_EPHEMERIS
 
-    if value.lower() in ('de430', 'de432s', 'de440', 'de440s'):
+    if re.compile(r'de[0-9][0-9][0-9]s?').match(value.lower()):
         value = ('https://naif.jpl.nasa.gov/pub/naif/generic_kernels'
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
 
