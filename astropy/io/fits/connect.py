@@ -112,7 +112,8 @@ def _decode_mixins(tbl):
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
-                    character_as_bytes=True, unit_parse_strict='warn'):
+                    character_as_bytes=True, unit_parse_strict='warn',
+                    mask_invalid=True):
     """
     Read a Table object from an FITS file
 
@@ -246,9 +247,9 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
-        elif issubclass(coltype, np.inexact):
+        elif mask_invalid and issubclass(coltype, np.inexact):
             mask = np.isnan(data[col.name])
-        elif issubclass(coltype, np.character):
+        elif mask_invalid and issubclass(coltype, np.character):
             mask = col.array == b''
 
         if masked or np.any(mask):
