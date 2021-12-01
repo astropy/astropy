@@ -403,7 +403,7 @@ The following example shows a similar situation, using the option to send the ou
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
   ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
 
-  >>> ascii.write(outtab, format='mrt')  # doctest: +REMOTE_DATA
+  >>> ascii.write(outtab, format='mrt')  # doctest: +SKIP
   Title:
   Authors:
   Table:
