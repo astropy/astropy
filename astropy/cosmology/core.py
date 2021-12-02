@@ -77,19 +77,6 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __init_subclass__(cls):
         super().__init_subclass__()
 
-        # override signature of __new__ to match __init__ so IDEs and Sphinx
-        # will display the correct signature
-        new = FunctionType(  # almost exact copy of __new__
-            cls.__new__.__code__, cls.__new__.__globals__, name=cls.__new__.__name__,
-            argdefs=cls.__new__.__defaults__, closure=cls.__new__.__closure__)
-        new = functools.update_wrapper(new, cls.__new__)  # update further
-        new.__kwdefaults__ = cls.__init__.__kwdefaults__  # fill in kwdefaults
-        sig = cls._init_signature  # override signature to look like init
-        sig = sig.replace(parameters=[inspect.Parameter("cls", 0)] + list(sig.parameters.values()))
-        new.__signature__ = sig
-        # set __new__ with copied & modified version
-        cls.__new__ = new
-
         # -------------------
         # Parameters
 
@@ -128,16 +115,6 @@ class Cosmology(metaclass=abc.ABCMeta):
         return sig
 
     # ---------------------------------------------------------------
-
-    def __new__(cls, *args, **kwargs):
-        self = super().__new__(cls)
-
-        # bundle and store initialization arguments on the instance
-        ba = cls._init_signature.bind_partial(*args, **kwargs)
-        ba.apply_defaults()  # and fill in the defaults
-        self._init_arguments = ba.arguments
-
-        return self
 
     def __init__(self, name=None, meta=None):
         self._name = name
@@ -201,6 +178,17 @@ class Cosmology(metaclass=abc.ABCMeta):
         ba = self._init_signature.bind_partial(**new_init)
         # Return new instance, respecting args vs kwargs
         return self.__class__(*ba.args, **ba.kwargs)
+
+    @property
+    def _init_arguments(self):
+        # parameters
+        kw = {n: getattr(self, n) for n in self.__parameters__}
+
+        # other info
+        kw["name"] = self.name
+        kw["meta"] = self.meta
+
+        return kw
 
     # ---------------------------------------------------------------
     # comparison methods

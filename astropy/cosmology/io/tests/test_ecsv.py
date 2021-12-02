@@ -166,10 +166,10 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 
-        # not equal, because Tcmb0 is changed
+        # not equal, because Tcmb0 is changed, which also changes m_nu
         assert got != cosmo
         assert got.Tcmb0 == cosmo_cls._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
+        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0, m_nu=cosmo.m_nu) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
