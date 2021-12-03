@@ -15,87 +15,82 @@ References
 
 
 import abc
+from itertools import chain, product
 
 import numpy as np
 
 from astropy import units as u
+from astropy import wcs
 
 from .core import Model
 from .parameters import Parameter, InputParameterError
-from . import _projections
 from .utils import _to_radian, _to_orig_unit
 
 
-projcodes = [
-    'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',
-    'CEA', 'CAR', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE',
-    'COD', 'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
+# List of tuples of the form
+# (long class name without suffix, short WCSLIB projection code):
+_PROJ_NAME_CODE = [
+    ('ZenithalPerspective', 'AZP'),
+    ('SlantZenithalPerspective', 'SZP'),
+    ('Gnomonic', 'TAN'),
+    ('Stereographic', 'STG'),
+    ('SlantOrthographic', 'SIN'),
+    ('ZenithalEquidistant', 'ARC'),
+    ('ZenithalEqualArea', 'ZEA'),
+    ('Airy', 'AIR'),
+    ('CylindricalPerspective', 'CYP'),
+    ('CylindricalEqualArea', 'CEA'),
+    ('PlateCarree', 'CAR'),
+    ('Mercator', 'MER'),
+    ('SansonFlamsteed', 'SFL'),
+    ('Parabolic', 'PAR'),
+    ('Molleweide', 'MOL'),
+    ('HammerAitoff', 'AIT'),
+    ('ConicPerspective', 'COP'),
+    ('ConicEqualArea', 'COE'),
+    ('ConicEquidistant', 'COD'),
+    ('ConicOrthomorphic', 'COO'),
+    ('BonneEqualArea', 'BON'),
+    ('Polyconic', 'PCO'),
+    ('TangentialSphericalCube', 'TSC'),
+    ('COBEQuadSphericalCube', 'CSC'),
+    ('QuadSphericalCube', 'QSC'),
+    ('HEALPix', 'HPX'),
+    ('HEALPixPolar', 'XPH'),
 ]
 
+_NOT_SUPPORTED_PROJ_CODES = ['ZPN']
 
-__all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
-           'Zenithal', 'Cylindrical', 'PseudoCylindrical', 'Conic',
-           'PseudoConic', 'QuadCube', 'HEALPix',
-           'AffineTransformation2D',
-           'projcodes',
+_PROJ_NAME_CODE_MAP = dict(_PROJ_NAME_CODE)
 
-           'Pix2Sky_ZenithalPerspective', 'Sky2Pix_ZenithalPerspective',
-           'Pix2Sky_SlantZenithalPerspective', 'Sky2Pix_SlantZenithalPerspective',
-           'Pix2Sky_Gnomonic', 'Sky2Pix_Gnomonic',
-           'Pix2Sky_Stereographic', 'Sky2Pix_Stereographic',
-           'Pix2Sky_SlantOrthographic', 'Sky2Pix_SlantOrthographic',
-           'Pix2Sky_ZenithalEquidistant', 'Sky2Pix_ZenithalEquidistant',
-           'Pix2Sky_ZenithalEqualArea', 'Sky2Pix_ZenithalEqualArea',
-           'Pix2Sky_Airy', 'Sky2Pix_Airy',
-           'Pix2Sky_CylindricalPerspective', 'Sky2Pix_CylindricalPerspective',
-           'Pix2Sky_CylindricalEqualArea', 'Sky2Pix_CylindricalEqualArea',
-           'Pix2Sky_PlateCarree', 'Sky2Pix_PlateCarree',
-           'Pix2Sky_Mercator', 'Sky2Pix_Mercator',
-           'Pix2Sky_SansonFlamsteed', 'Sky2Pix_SansonFlamsteed',
-           'Pix2Sky_Parabolic', 'Sky2Pix_Parabolic',
-           'Pix2Sky_Molleweide', 'Sky2Pix_Molleweide',
-           'Pix2Sky_HammerAitoff', 'Sky2Pix_HammerAitoff',
-           'Pix2Sky_ConicPerspective', 'Sky2Pix_ConicPerspective',
-           'Pix2Sky_ConicEqualArea', 'Sky2Pix_ConicEqualArea',
-           'Pix2Sky_ConicEquidistant', 'Sky2Pix_ConicEquidistant',
-           'Pix2Sky_ConicOrthomorphic', 'Sky2Pix_ConicOrthomorphic',
-           'Pix2Sky_BonneEqualArea', 'Sky2Pix_BonneEqualArea',
-           'Pix2Sky_Polyconic', 'Sky2Pix_Polyconic',
-           'Pix2Sky_TangentialSphericalCube', 'Sky2Pix_TangentialSphericalCube',
-           'Pix2Sky_COBEQuadSphericalCube', 'Sky2Pix_COBEQuadSphericalCube',
-           'Pix2Sky_QuadSphericalCube', 'Sky2Pix_QuadSphericalCube',
-           'Pix2Sky_HEALPix', 'Sky2Pix_HEALPix',
-           'Pix2Sky_HEALPixPolar', 'Sky2Pix_HEALPixPolar',
+projcodes = [code for _, code in _PROJ_NAME_CODE]
 
-           # The following are short FITS WCS aliases
-           'Pix2Sky_AZP', 'Sky2Pix_AZP',
-           'Pix2Sky_SZP', 'Sky2Pix_SZP',
-           'Pix2Sky_TAN', 'Sky2Pix_TAN',
-           'Pix2Sky_STG', 'Sky2Pix_STG',
-           'Pix2Sky_SIN', 'Sky2Pix_SIN',
-           'Pix2Sky_ARC', 'Sky2Pix_ARC',
-           'Pix2Sky_ZEA', 'Sky2Pix_ZEA',
-           'Pix2Sky_AIR', 'Sky2Pix_AIR',
-           'Pix2Sky_CYP', 'Sky2Pix_CYP',
-           'Pix2Sky_CEA', 'Sky2Pix_CEA',
-           'Pix2Sky_CAR', 'Sky2Pix_CAR',
-           'Pix2Sky_MER', 'Sky2Pix_MER',
-           'Pix2Sky_SFL', 'Sky2Pix_SFL',
-           'Pix2Sky_PAR', 'Sky2Pix_PAR',
-           'Pix2Sky_MOL', 'Sky2Pix_MOL',
-           'Pix2Sky_AIT', 'Sky2Pix_AIT',
-           'Pix2Sky_COP', 'Sky2Pix_COP',
-           'Pix2Sky_COE', 'Sky2Pix_COE',
-           'Pix2Sky_COD', 'Sky2Pix_COD',
-           'Pix2Sky_COO', 'Sky2Pix_COO',
-           'Pix2Sky_BON', 'Sky2Pix_BON',
-           'Pix2Sky_PCO', 'Sky2Pix_PCO',
-           'Pix2Sky_TSC', 'Sky2Pix_TSC',
-           'Pix2Sky_CSC', 'Sky2Pix_CSC',
-           'Pix2Sky_QSC', 'Sky2Pix_QSC',
-           'Pix2Sky_HPX', 'Sky2Pix_HPX',
-           'Pix2Sky_XPH', 'Sky2Pix_XPH'
-           ]
+
+__all__ = [
+    'Projection', 'Pix2SkyProjection', 'Sky2PixProjection', 'Zenithal',
+    'Cylindrical', 'PseudoCylindrical', 'Conic', 'PseudoConic', 'QuadCube',
+    'HEALPix', 'AffineTransformation2D', 'projcodes'
+] + list(map('_'.join, product(['Pix2Sky', 'Sky2Pix'], chain(*_PROJ_NAME_CODE))))
+
+
+class _ParameterDS(Parameter):
+    """
+    Same as `Parameter` but can indicate its modified status via the ``dirty``
+    property. This flag also gets set automatically when a parameter is
+    modified.
+
+    This ability to track parameter's modified status is needed for automatic
+    update of WCSLIB's prjprm structure (which may be a more-time intensive
+    operation) *only as required*.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dirty = True
+
+    def validate(self, value):
+        super().validate(value)
+        self.dirty = True
 
 
 class Projection(Model):
@@ -107,12 +102,53 @@ class Projection(Model):
 
     _separable = False
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prj = wcs.Prjprm()
+
     @property
     @abc.abstractmethod
     def inverse(self):
         """
         Inverse projection--all projection models must provide an inverse.
         """
+
+    @property
+    def prjprm(self):
+        """ WCSLIB ``prjprm`` structure. """
+        self._update_prj()
+        return self._prj
+
+    def _update_prj(self):
+        """
+        A default updater for projection's pv.
+
+        .. warning::
+            This method assumes that PV0 is never modified. If a projection
+            that uses PV0 is ever implemented in this module, that projection
+            class should override this method.
+
+        .. warning::
+            This method assumes that the order in which PVi values (i>0)
+            are to be asigned is identical to the order of model parameters
+            in ``param_names``. That is, pv[1] = model.parameters[0], ...
+
+        """
+        if not self.param_names:
+            return
+
+        pv = []
+        dirty = False
+
+        for p in self.param_names:
+            param = getattr(self, p)
+            pv.append(float(param.value))
+            dirty |= param.dirty
+            param.dirty = False
+
+        if dirty:
+            self._prj.pv = None, *pv
+            self._prj.set()
 
 
 class Pix2SkyProjection(Projection):
@@ -124,8 +160,21 @@ class Pix2SkyProjection(Projection):
     _input_units_strict = True
     _input_units_allow_dimensionless = True
 
+    def __new__(cls, *args, **kwargs):
+        long_name = cls.name.split('_')[1]
+        cls.prj_code = _PROJ_NAME_CODE_MAP[long_name]
+        return super(Pix2SkyProjection, cls).__new__(cls)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self._prj.code = self.prj_code
+        self._update_prj()
+        if not self.param_names:
+            # force initial call to Prjprm.set() for projections
+            # with no parameters:
+            self._prj.set()
+
         self.inputs = ('x', 'y')
         self.outputs = ('phi', 'theta')
 
@@ -139,6 +188,15 @@ class Pix2SkyProjection(Projection):
         return {self.outputs[0]: u.deg,
                 self.outputs[1]: u.deg}
 
+    def evaluate(self, x, y, *args, **kwargs):
+        self._update_prj()
+        return self._prj.prjx2s(x, y)
+
+    @property
+    def inverse(self):
+        pv = [getattr(self, param).value for param in self.param_names]
+        return self._inv_cls(*pv)
+
 
 class Sky2PixProjection(Projection):
     """Base class for all Sky2Pix projections."""
@@ -149,8 +207,21 @@ class Sky2PixProjection(Projection):
     _input_units_strict = True
     _input_units_allow_dimensionless = True
 
+    def __new__(cls, *args, **kwargs):
+        long_name = cls.name.split('_')[1]
+        cls.prj_code = _PROJ_NAME_CODE_MAP[long_name]
+        return super(Sky2PixProjection, cls).__new__(cls)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self._prj.code = self.prj_code
+        self._update_prj()
+        if not self.param_names:
+            # force initial call to Prjprm.set() for projections
+            # without parameters:
+            self._prj.set()
+
         self.inputs = ('phi', 'theta')
         self.outputs = ('x', 'y')
 
@@ -163,6 +234,15 @@ class Sky2PixProjection(Projection):
     def return_units(self):
         return {self.outputs[0]: u.deg,
                 self.outputs[1]: u.deg}
+
+    def evaluate(self, phi, theta, *args, **kwargs):
+        self._update_prj()
+        return self._prj.prjs2x(phi, theta)
+
+    @property
+    def inverse(self):
+        pv = [getattr(self, param).value for param in self.param_names]
+        return self._inv_cls(*pv)
 
 
 class Zenithal(Projection):
@@ -184,8 +264,6 @@ class Zenithal(Projection):
         x &= R_\theta \sin \phi \\
         y &= R_\theta \cos \phi
     """
-
-    _separable = False
 
 
 class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
@@ -214,33 +292,19 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
 
     gamma : float
         Look angle γ in degrees.  Default is 0°.
+
     """
-
-    mu = Parameter(default=0.0,
-                   description="Distance from point of projection to center of sphere")
-    gamma = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-                      description="Look angle γ in degrees (Default = 0°)")
-
-    def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
-        # units : mu - in spherical radii, gamma - in deg
-        super().__init__(mu, gamma, **kwargs)
+    mu = _ParameterDS(
+        default=0.0, description="Distance from point of projection to center of sphere"
+    )
+    gamma = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian,
+                         description="Look angle γ in degrees (Default = 0°)")
 
     @mu.validator
     def mu(self, value):
-        if np.any(value == -1):
+        if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1")
-
-    @property
-    def inverse(self):
-        return Sky2Pix_ZenithalPerspective(self.mu.value, self.gamma.value)
-
-    @classmethod
-    def evaluate(cls, x, y, mu, gamma):
-        return _projections.azpx2s(x, y, mu, _to_orig_unit(gamma))
-
-
-Pix2Sky_AZP = Pix2Sky_ZenithalPerspective
 
 
 class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -266,28 +330,20 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
 
     gamma : float
         Look angle γ in degrees. Default is 0°.
-    """
 
-    mu = Parameter(default=0.0, description="Distance from point of projection to center of sphere")
-    gamma = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian, description="Look angle γ in degrees (Default=0°)")
+    """
+    mu = _ParameterDS(
+        default=0.0,
+        description="Distance from point of projection to center of sphere"
+    )
+    gamma = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian,
+                         description="Look angle γ in degrees (Default=0°)")
 
     @mu.validator
     def mu(self, value):
-        if np.any(value == -1):
+        if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1")
-
-    @property
-    def inverse(self):
-        return Pix2Sky_AZP(self.mu.value, self.gamma.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, mu, gamma):
-        return _projections.azps2x(
-            phi, theta, mu, _to_orig_unit(gamma))
-
-
-Sky2Pix_AZP = Sky2Pix_ZenithalPerspective
 
 
 class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
@@ -309,30 +365,26 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
     theta0 : float
         The latitude θ₀ of the reference point, in degrees.  Default
         is 90°.
-    """
 
-    def _validate_mu(mu):
-        if np.asarray(mu == -1).any():
+    """
+    mu = _ParameterDS(
+        default=0.0,
+        description="Distance from point of projection to center of sphere"
+    )
+    phi0 = _ParameterDS(
+        default=0.0, getter=_to_orig_unit, setter=_to_radian,
+        description="The longitude φ₀ of the reference point in degrees (Default=0°)"
+    )
+    theta0 = _ParameterDS(
+        default=90.0, getter=_to_orig_unit, setter=_to_radian,
+        description="The latitude θ₀ of the reference point, in degrees (Default=0°)"
+    )
+
+    @mu.validator
+    def mu(self, value):
+        if np.any(np.equal(value, -1.0)):
             raise InputParameterError(
                 "Zenithal perspective projection is not defined for mu = -1")
-        return mu
-
-    mu = Parameter(default=0.0, setter=_validate_mu, description="Distance from point of projection to center of sphere")
-    phi0 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian, description="The longitude φ₀ of the reference point in degrees (Default=0°)")
-    theta0 = Parameter(default=90.0, getter=_to_orig_unit, setter=_to_radian, description="The latitude θ₀ of the reference point, in degrees (Default=0°)")
-
-    @property
-    def inverse(self):
-        return Sky2Pix_SlantZenithalPerspective(
-            self.mu.value, self.phi0.value, self.theta0.value)
-
-    @classmethod
-    def evaluate(cls, x, y, mu, phi0, theta0):
-        return _projections.szpx2s(
-            x, y, mu, _to_orig_unit(phi0), _to_orig_unit(theta0))
-
-
-Pix2Sky_SZP = Pix2Sky_SlantZenithalPerspective
 
 
 class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -354,32 +406,25 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
     theta0 : float
         The latitude θ₀ of the reference point, in degrees.  Default
         is 90°.
+
     """
+    mu = _ParameterDS(
+        default=0.0, description="Distance from point of projection to center of sphere"
+    )
+    phi0 = _ParameterDS(
+        default=0.0, getter=_to_orig_unit, setter=_to_radian,
+        description="The longitude φ₀ of the reference point in degrees"
+    )
+    theta0 = _ParameterDS(
+        default=0.0, getter=_to_orig_unit, setter=_to_radian,
+        description="The latitude θ₀ of the reference point, in degrees"
+    )
 
-    def _validate_mu(mu):
-        if np.asarray(mu == -1).any():
-            raise InputParameterError("Zenithal perspective projection is not defined for mu = -1")
-        return mu
-
-    mu = Parameter(default=0.0, setter=_validate_mu,
-                   description="Distance from point of projection to center of sphere")
-    phi0 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-                     description="The longitude φ₀ of the reference point in degrees")
-    theta0 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-                       description="The latitude θ₀ of the reference point, in degrees")
-
-    @property
-    def inverse(self):
-        return Pix2Sky_SlantZenithalPerspective(
-            self.mu.value, self.phi0.value, self.theta0.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, mu, phi0, theta0):
-        return _projections.szps2x(
-            phi, theta, mu, _to_orig_unit(phi0), _to_orig_unit(theta0))
-
-
-Sky2Pix_SZP = Sky2Pix_SlantZenithalPerspective
+    @mu.validator
+    def mu(self, value):
+        if np.any(np.equal(value, -1.0)):
+            raise InputParameterError(
+                "Zenithal perspective projection is not defined for mu = -1")
 
 
 class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
@@ -394,17 +439,6 @@ class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
         \theta = \tan^{-1}\left(\frac{180^{\circ}}{\pi R_\theta}\right)
     """
 
-    @property
-    def inverse(self):
-        return Sky2Pix_Gnomonic()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.tanx2s(x, y)
-
-
-Pix2Sky_TAN = Pix2Sky_Gnomonic
-
 
 class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
     r"""
@@ -417,17 +451,6 @@ class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
     .. math::
         R_\theta = \frac{180^{\circ}}{\pi}\cot \theta
     """
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Gnomonic()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.tans2x(phi, theta)
-
-
-Sky2Pix_TAN = Sky2Pix_Gnomonic
 
 
 class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
@@ -442,17 +465,6 @@ class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
         \theta = 90^{\circ} - 2 \tan^{-1}\left(\frac{\pi R_\theta}{360^{\circ}}\right)
     """
 
-    @property
-    def inverse(self):
-        return Sky2Pix_Stereographic()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.stgx2s(x, y)
-
-
-Pix2Sky_STG = Pix2Sky_Stereographic
-
 
 class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
     r"""
@@ -465,17 +477,6 @@ class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
     .. math::
         R_\theta = \frac{180^{\circ}}{\pi}\frac{2 \cos \theta}{1 + \sin \theta}
     """
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Stereographic()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.stgs2x(phi, theta)
-
-
-Sky2Pix_STG = Sky2Pix_Stereographic
 
 
 class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
@@ -506,21 +507,10 @@ class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
 
     eta : float
         Obliqueness parameter, η.  Default is 0.0.
+
     """
-
-    xi = Parameter(default=0.0, description="Obliqueness parameter")
-    eta = Parameter(default=0.0, description="Obliqueness parameter")
-
-    @property
-    def inverse(self):
-        return Sky2Pix_SlantOrthographic(self.xi.value, self.eta.value)
-
-    @classmethod
-    def evaluate(cls, x, y, xi, eta):
-        return _projections.sinx2s(x, y, xi, eta)
-
-
-Pix2Sky_SIN = Pix2Sky_SlantOrthographic
+    xi = _ParameterDS(default=0.0, description="Obliqueness parameter")
+    eta = _ParameterDS(default=0.0, description="Obliqueness parameter")
 
 
 class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
@@ -542,21 +532,10 @@ class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
     .. math::
         x &= \frac{180^\circ}{\pi}[\cos \theta \sin \phi + \xi(1 - \sin \theta)] \\
         y &= \frac{180^\circ}{\pi}[\cos \theta \cos \phi + \eta(1 - \sin \theta)]
+
     """
-
-    xi = Parameter(default=0.0)
-    eta = Parameter(default=0.0)
-
-    @property
-    def inverse(self):
-        return Pix2Sky_SlantOrthographic(self.xi.value, self.eta.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, xi, eta):
-        return _projections.sins2x(phi, theta, xi, eta)
-
-
-Sky2Pix_SIN = Sky2Pix_SlantOrthographic
+    xi = _ParameterDS(default=0.0)
+    eta = _ParameterDS(default=0.0)
 
 
 class Pix2Sky_ZenithalEquidistant(Pix2SkyProjection, Zenithal):
@@ -570,16 +549,6 @@ class Pix2Sky_ZenithalEquidistant(Pix2SkyProjection, Zenithal):
     .. math::
         \theta = 90^\circ - R_\theta
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ZenithalEquidistant()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.arcx2s(x, y)
-
-
-Pix2Sky_ARC = Pix2Sky_ZenithalEquidistant
 
 
 class Sky2Pix_ZenithalEquidistant(Sky2PixProjection, Zenithal):
@@ -593,16 +562,6 @@ class Sky2Pix_ZenithalEquidistant(Sky2PixProjection, Zenithal):
     .. math::
         R_\theta = 90^\circ - \theta
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ZenithalEquidistant()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.arcs2x(phi, theta)
-
-
-Sky2Pix_ARC = Sky2Pix_ZenithalEquidistant
 
 
 class Pix2Sky_ZenithalEqualArea(Pix2SkyProjection, Zenithal):
@@ -616,16 +575,6 @@ class Pix2Sky_ZenithalEqualArea(Pix2SkyProjection, Zenithal):
     .. math::
         \theta = 90^\circ - 2 \sin^{-1} \left(\frac{\pi R_\theta}{360^\circ}\right)
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ZenithalEqualArea()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.zeax2s(x, y)
-
-
-Pix2Sky_ZEA = Pix2Sky_ZenithalEqualArea
 
 
 class Sky2Pix_ZenithalEqualArea(Sky2PixProjection, Zenithal):
@@ -640,16 +589,6 @@ class Sky2Pix_ZenithalEqualArea(Sky2PixProjection, Zenithal):
         R_\theta &= \frac{180^\circ}{\pi} \sqrt{2(1 - \sin\theta)} \\
                  &= \frac{360^\circ}{\pi} \sin\left(\frac{90^\circ - \theta}{2}\right)
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ZenithalEqualArea()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.zeas2x(phi, theta)
-
-
-Sky2Pix_ZEA = Sky2Pix_ZenithalEqualArea
 
 
 class Pix2Sky_Airy(Pix2SkyProjection, Zenithal):
@@ -666,18 +605,7 @@ class Pix2Sky_Airy(Pix2SkyProjection, Zenithal):
         The latitude :math:`\theta_b` at which to minimize the error,
         in degrees.  Default is 90°.
     """
-    theta_b = Parameter(default=90.0)
-
-    @property
-    def inverse(self):
-        return Sky2Pix_Airy(self.theta_b.value)
-
-    @classmethod
-    def evaluate(cls, x, y, theta_b):
-        return _projections.airx2s(x, y, theta_b)
-
-
-Pix2Sky_AIR = Pix2Sky_Airy
+    theta_b = _ParameterDS(default=90.0)
 
 
 class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
@@ -702,19 +630,9 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
     theta_b : float
         The latitude :math:`\theta_b` at which to minimize the error,
         in degrees.  Default is 90°.
+
     """
-    theta_b = Parameter(default=90.0, description="The latitude at which to minimize the error,in degrees")
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Airy(self.theta_b.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, theta_b):
-        return _projections.airs2x(phi, theta, theta_b)
-
-
-Sky2Pix_AIR = Sky2Pix_Airy
+    theta_b = _ParameterDS(default=90.0, description="The latitude at which to minimize the error,in degrees")
 
 
 class Cylindrical(Projection):
@@ -749,10 +667,10 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
 
     lam : float
         Radius of the cylinder in spherical radii, λ. Default is 1.
-    """
 
-    mu = Parameter(default=1.0)
-    lam = Parameter(default=1.0)
+    """
+    mu = _ParameterDS(default=1.0)
+    lam = _ParameterDS(default=1.0)
 
     @mu.validator
     def mu(self, value):
@@ -765,17 +683,6 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
         if np.any(value == -self.mu):
             raise InputParameterError(
                 "CYP projection is not defined for lambda = -mu")
-
-    @property
-    def inverse(self):
-        return Sky2Pix_CylindricalPerspective(self.mu.value, self.lam.value)
-
-    @classmethod
-    def evaluate(cls, x, y, mu, lam):
-        return _projections.cypx2s(x, y, mu, lam)
-
-
-Pix2Sky_CYP = Pix2Sky_CylindricalPerspective
 
 
 class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
@@ -796,10 +703,10 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
 
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 0.
-    """
 
-    mu = Parameter(default=1.0, description="Distance from center of sphere in spherical radii")
-    lam = Parameter(default=1.0, description="Radius of the cylinder in spherical radii")
+    """
+    mu = _ParameterDS(default=1.0, description="Distance from center of sphere in spherical radii")
+    lam = _ParameterDS(default=1.0, description="Radius of the cylinder in spherical radii")
 
     @mu.validator
     def mu(self, value):
@@ -812,17 +719,6 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         if np.any(value == -self.mu):
             raise InputParameterError(
                 "CYP projection is not defined for lambda = -mu")
-
-    @property
-    def inverse(self):
-        return Pix2Sky_CylindricalPerspective(self.mu, self.lam)
-
-    @classmethod
-    def evaluate(cls, phi, theta, mu, lam):
-        return _projections.cyps2x(phi, theta, mu, lam)
-
-
-Sky2Pix_CYP = Sky2Pix_CylindricalPerspective
 
 
 class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
@@ -840,19 +736,7 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 1.
     """
-
-    lam = Parameter(default=1)
-
-    @property
-    def inverse(self):
-        return Sky2Pix_CylindricalEqualArea(self.lam)
-
-    @classmethod
-    def evaluate(cls, x, y, lam):
-        return _projections.ceax2s(x, y, lam)
-
-
-Pix2Sky_CEA = Pix2Sky_CylindricalEqualArea
+    lam = _ParameterDS(default=1)
 
 
 class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
@@ -870,19 +754,7 @@ class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 0.
     """
-
-    lam = Parameter(default=1)
-
-    @property
-    def inverse(self):
-        return Pix2Sky_CylindricalEqualArea(self.lam)
-
-    @classmethod
-    def evaluate(cls, phi, theta, lam):
-        return _projections.ceas2x(phi, theta, lam)
-
-
-Sky2Pix_CEA = Sky2Pix_CylindricalEqualArea
+    lam = _ParameterDS(default=1)
 
 
 class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
@@ -896,20 +768,12 @@ class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
         \theta &= y
     """
 
-    @property
-    def inverse(self):
-        return Sky2Pix_PlateCarree()
-
     @staticmethod
     def evaluate(x, y):
         # The intermediate variables are only used here for clarity
-        phi = np.array(x, copy=True)
-        theta = np.array(y, copy=True)
-
+        phi = np.array(x)
+        theta = np.array(y)
         return phi, theta
-
-
-Pix2Sky_CAR = Pix2Sky_PlateCarree
 
 
 class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
@@ -923,20 +787,12 @@ class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
         y &= \theta
     """
 
-    @property
-    def inverse(self):
-        return Pix2Sky_PlateCarree()
-
     @staticmethod
     def evaluate(phi, theta):
         # The intermediate variables are only used here for clarity
-        x = np.array(phi, copy=True)
-        y = np.array(theta, copy=True)
-
+        x = np.array(phi)
+        y = np.array(theta)
         return x, y
-
-
-Sky2Pix_CAR = Sky2Pix_PlateCarree
 
 
 class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
@@ -950,17 +806,6 @@ class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
         \theta &= 2 \tan^{-1}\left(e^{y \pi / 180^{\circ}}\right)-90^{\circ}
     """
 
-    @property
-    def inverse(self):
-        return Sky2Pix_Mercator()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.merx2s(x, y)
-
-
-Pix2Sky_MER = Pix2Sky_Mercator
-
 
 class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
     r"""
@@ -973,17 +818,6 @@ class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
         y &= \frac{180^{\circ}}{\pi}\ln \tan \left(\frac{90^{\circ} + \theta}{2}\right)
     """
 
-    @property
-    def inverse(self):
-        return Pix2Sky_Mercator()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.mers2x(phi, theta)
-
-
-Sky2Pix_MER = Sky2Pix_Mercator
-
 
 class PseudoCylindrical(Projection):
     r"""Base class for pseudocylindrical projections.
@@ -993,7 +827,6 @@ class PseudoCylindrical(Projection):
     lengths toward the polar regions in order to reduce lateral
     distortion there.  Consequently, the meridians are curved.
     """
-
     _separable = True
 
 
@@ -1008,17 +841,6 @@ class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
         \theta &= y
     """
 
-    @property
-    def inverse(self):
-        return Sky2Pix_SansonFlamsteed()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.sflx2s(x, y)
-
-
-Pix2Sky_SFL = Pix2Sky_SansonFlamsteed
-
 
 class Sky2Pix_SansonFlamsteed(Sky2PixProjection, PseudoCylindrical):
     r"""
@@ -1030,17 +852,6 @@ class Sky2Pix_SansonFlamsteed(Sky2PixProjection, PseudoCylindrical):
         x &= \phi \cos \theta \\
         y &= \theta
     """
-
-    @property
-    def inverse(self):
-        return Pix2Sky_SansonFlamsteed()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.sfls2x(phi, theta)
-
-
-Sky2Pix_SFL = Sky2Pix_SansonFlamsteed
 
 
 class Pix2Sky_Parabolic(Pix2SkyProjection, PseudoCylindrical):
@@ -1054,19 +865,6 @@ class Pix2Sky_Parabolic(Pix2SkyProjection, PseudoCylindrical):
         \theta &= 3 \sin^{-1}\left(\frac{y}{180^\circ}\right)
     """
 
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_Parabolic()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.parx2s(x, y)
-
-
-Pix2Sky_PAR = Pix2Sky_Parabolic
-
 
 class Sky2Pix_Parabolic(Sky2PixProjection, PseudoCylindrical):
     r"""
@@ -1079,19 +877,6 @@ class Sky2Pix_Parabolic(Sky2PixProjection, PseudoCylindrical):
         y &= 180^\circ \sin \frac{\theta}{3}
     """
 
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Parabolic()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.pars2x(phi, theta)
-
-
-Sky2Pix_PAR = Sky2Pix_Parabolic
-
 
 class Pix2Sky_Molleweide(Pix2SkyProjection, PseudoCylindrical):
     r"""
@@ -1103,19 +888,6 @@ class Pix2Sky_Molleweide(Pix2SkyProjection, PseudoCylindrical):
         \phi &= \frac{\pi x}{2 \sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}} \\
         \theta &= \sin^{-1}\left(\frac{1}{90^\circ}\sin^{-1}\left(\frac{\pi}{180^\circ}\frac{y}{\sqrt{2}}\right) + \frac{y}{180^\circ}\sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}\right)
     """
-
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_Molleweide()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.molx2s(x, y)
-
-
-Pix2Sky_MOL = Pix2Sky_Molleweide
 
 
 class Sky2Pix_Molleweide(Sky2PixProjection, PseudoCylindrical):
@@ -1136,19 +908,6 @@ class Sky2Pix_Molleweide(Sky2PixProjection, PseudoCylindrical):
         \sin \theta = \frac{\gamma}{90^\circ} + \frac{\sin 2 \gamma}{\pi}
     """
 
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Molleweide()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.mols2x(phi, theta)
-
-
-Sky2Pix_MOL = Sky2Pix_Molleweide
-
 
 class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
     r"""
@@ -1160,19 +919,6 @@ class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
         \phi &= 2 \arg \left(2Z^2 - 1, \frac{\pi}{180^\circ} \frac{Z}{2}x\right) \\
         \theta &= \sin^{-1}\left(\frac{\pi}{180^\circ}yZ\right)
     """
-
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_HammerAitoff()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.aitx2s(x, y)
-
-
-Pix2Sky_AIT = Pix2Sky_HammerAitoff
 
 
 class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
@@ -1190,19 +936,6 @@ class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     .. math::
         \gamma = \frac{180^\circ}{\pi} \sqrt{\frac{2}{1 + \cos \theta \cos(\phi / 2)}}
     """
-
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_HammerAitoff()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.aits2x(phi, theta)
-
-
-Sky2Pix_AIT = Sky2Pix_HammerAitoff
 
 
 class Conic(Projection):
@@ -1229,10 +962,8 @@ class Conic(Projection):
     .. math::
         C = \frac{180^\circ \cos \theta}{\pi R_\theta}
     """
-    sigma = Parameter(default=90.0, getter=_to_orig_unit, setter=_to_radian)
-    delta = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
-
-    _separable = False
+    sigma = _ParameterDS(default=90.0, getter=_to_orig_unit, setter=_to_radian)
+    delta = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
 
 class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
@@ -1262,16 +993,6 @@ class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ConicPerspective(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, x, y, sigma, delta):
-        return _projections.copx2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Pix2Sky_COP = Pix2Sky_ConicPerspective
 
 
 class Sky2Pix_ConicPerspective(Sky2PixProjection, Conic):
@@ -1301,17 +1022,6 @@ class Sky2Pix_ConicPerspective(Sky2PixProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ConicPerspective(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, sigma, delta):
-        return _projections.cops2x(phi, theta,
-                                   _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Sky2Pix_COP = Sky2Pix_ConicPerspective
 
 
 class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
@@ -1346,16 +1056,6 @@ class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ConicEqualArea(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, x, y, sigma, delta):
-        return _projections.coex2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Pix2Sky_COE = Pix2Sky_ConicEqualArea
 
 
 class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
@@ -1390,17 +1090,6 @@ class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ConicEqualArea(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, sigma, delta):
-        return _projections.coes2x(phi, theta,
-                                   _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Sky2Pix_COE = Sky2Pix_ConicEqualArea
 
 
 class Pix2Sky_ConicEquidistant(Pix2SkyProjection, Conic):
@@ -1431,16 +1120,6 @@ class Pix2Sky_ConicEquidistant(Pix2SkyProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ConicEquidistant(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, x, y, sigma, delta):
-        return _projections.codx2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Pix2Sky_COD = Pix2Sky_ConicEquidistant
 
 
 class Sky2Pix_ConicEquidistant(Sky2PixProjection, Conic):
@@ -1471,17 +1150,6 @@ class Sky2Pix_ConicEquidistant(Sky2PixProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ConicEquidistant(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, sigma, delta):
-        return _projections.cods2x(phi, theta,
-                                   _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Sky2Pix_COD = Sky2Pix_ConicEquidistant
 
 
 class Pix2Sky_ConicOrthomorphic(Pix2SkyProjection, Conic):
@@ -1521,16 +1189,6 @@ class Pix2Sky_ConicOrthomorphic(Pix2SkyProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Sky2Pix_ConicOrthomorphic(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, x, y, sigma, delta):
-        return _projections.coox2s(x, y, _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Pix2Sky_COO = Pix2Sky_ConicOrthomorphic
 
 
 class Sky2Pix_ConicOrthomorphic(Sky2PixProjection, Conic):
@@ -1570,17 +1228,6 @@ class Sky2Pix_ConicOrthomorphic(Sky2PixProjection, Conic):
         :math:`\theta_2` are the latitudes of the standard parallels,
         in degrees.  Default is 0.
     """
-    @property
-    def inverse(self):
-        return Pix2Sky_ConicOrthomorphic(self.sigma.value, self.delta.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, sigma, delta):
-        return _projections.coos2x(phi, theta,
-                                   _to_orig_unit(sigma), _to_orig_unit(delta))
-
-
-Sky2Pix_COO = Sky2Pix_ConicOrthomorphic
 
 
 class PseudoConic(Projection):
@@ -1613,19 +1260,9 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-    theta1 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
     _separable = True
 
-    @property
-    def inverse(self):
-        return Sky2Pix_BonneEqualArea(self.theta1.value)
-
-    @classmethod
-    def evaluate(cls, x, y, theta1):
-        return _projections.bonx2s(x, y, _to_orig_unit(theta1))
-
-
-Pix2Sky_BON = Pix2Sky_BonneEqualArea
+    theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
 
 class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
@@ -1650,20 +1287,10 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-    theta1 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian, description="Bonne conformal latitude, in degrees")
     _separable = True
 
-    @property
-    def inverse(self):
-        return Pix2Sky_BonneEqualArea(self.theta1.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, theta1):
-        return _projections.bons2x(phi, theta,
-                                   _to_orig_unit(theta1))
-
-
-Sky2Pix_BON = Sky2Pix_BonneEqualArea
+    theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian,
+                          description="Bonne conformal latitude, in degrees")
 
 
 class Pix2Sky_Polyconic(Pix2SkyProjection, PseudoConic):
@@ -1672,18 +1299,6 @@ class Pix2Sky_Polyconic(Pix2SkyProjection, PseudoConic):
 
     Corresponds to the ``PCO`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_Polyconic()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.pcox2s(x, y)
-
-
-Pix2Sky_PCO = Pix2Sky_Polyconic
 
 
 class Sky2Pix_Polyconic(Sky2PixProjection, PseudoConic):
@@ -1692,18 +1307,6 @@ class Sky2Pix_Polyconic(Sky2PixProjection, PseudoConic):
 
     Corresponds to the ``PCO`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_Polyconic()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.pcos2x(phi, theta)
-
-
-Sky2Pix_PCO = Sky2Pix_Polyconic
 
 
 class QuadCube(Projection):
@@ -1729,38 +1332,14 @@ class Pix2Sky_TangentialSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``TSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_TangentialSphericalCube()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.tscx2s(x, y)
-
-
-Pix2Sky_TSC = Pix2Sky_TangentialSphericalCube
 
 
 class Sky2Pix_TangentialSphericalCube(Sky2PixProjection, QuadCube):
     r"""
     Tangential spherical cube projection - sky to pixel.
 
-    Corresponds to the ``PCO`` projection in FITS WCS.
+    Corresponds to the ``TSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_TangentialSphericalCube()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.tscs2x(phi, theta)
-
-
-Sky2Pix_TSC = Sky2Pix_TangentialSphericalCube
 
 
 class Pix2Sky_COBEQuadSphericalCube(Pix2SkyProjection, QuadCube):
@@ -1769,18 +1348,6 @@ class Pix2Sky_COBEQuadSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``CSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_COBEQuadSphericalCube()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.cscx2s(x, y)
-
-
-Pix2Sky_CSC = Pix2Sky_COBEQuadSphericalCube
 
 
 class Sky2Pix_COBEQuadSphericalCube(Sky2PixProjection, QuadCube):
@@ -1789,18 +1356,6 @@ class Sky2Pix_COBEQuadSphericalCube(Sky2PixProjection, QuadCube):
 
     Corresponds to the ``CSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_COBEQuadSphericalCube()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.cscs2x(phi, theta)
-
-
-Sky2Pix_CSC = Sky2Pix_COBEQuadSphericalCube
 
 
 class Pix2Sky_QuadSphericalCube(Pix2SkyProjection, QuadCube):
@@ -1809,18 +1364,6 @@ class Pix2Sky_QuadSphericalCube(Pix2SkyProjection, QuadCube):
 
     Corresponds to the ``QSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_QuadSphericalCube()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.qscx2s(x, y)
-
-
-Pix2Sky_QSC = Pix2Sky_QuadSphericalCube
 
 
 class Sky2Pix_QuadSphericalCube(Sky2PixProjection, QuadCube):
@@ -1829,18 +1372,6 @@ class Sky2Pix_QuadSphericalCube(Sky2PixProjection, QuadCube):
 
     Corresponds to the ``QSC`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_QuadSphericalCube()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.qscs2x(phi, theta)
-
-
-Sky2Pix_QSC = Sky2Pix_QuadSphericalCube
 
 
 class HEALPix(Projection):
@@ -1861,22 +1392,12 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
 
     X : float
         The number of facets in latitude direction.
+
     """
     _separable = True
 
-    H = Parameter(default=4.0, description="The number of facets in longitude direction.")
-    X = Parameter(default=3.0, description="The number of facets in latitude direction.")
-
-    @property
-    def inverse(self):
-        return Sky2Pix_HEALPix(self.H.value, self.X.value)
-
-    @classmethod
-    def evaluate(cls, x, y, H, X):
-        return _projections.hpxx2s(x, y, H, X)
-
-
-Pix2Sky_HPX = Pix2Sky_HEALPix
+    H = _ParameterDS(default=4.0, description="The number of facets in longitude direction.")
+    X = _ParameterDS(default=3.0, description="The number of facets in latitude direction.")
 
 
 class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
@@ -1892,22 +1413,12 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
 
     X : float
         The number of facets in latitude direction.
+
     """
     _separable = True
 
-    H = Parameter(default=4.0, description="The number of facets in longitude direction.")
-    X = Parameter(default=3.0, description="The number of facets in latitude direction.")
-
-    @property
-    def inverse(self):
-        return Pix2Sky_HEALPix(self.H.value, self.X.value)
-
-    @classmethod
-    def evaluate(cls, phi, theta, H, X):
-        return _projections.hpxs2x(phi, theta, H, X)
-
-
-Sky2Pix_HPX = Sky2Pix_HEALPix
+    H = _ParameterDS(default=4.0, description="The number of facets in longitude direction.")
+    X = _ParameterDS(default=3.0, description="The number of facets in latitude direction.")
 
 
 class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
@@ -1916,18 +1427,6 @@ class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
 
     Corresponds to the ``XPH`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Sky2Pix_HEALPixPolar()
-
-    @classmethod
-    def evaluate(cls, x, y):
-        return _projections.xphx2s(x, y)
-
-
-Pix2Sky_XPH = Pix2Sky_HEALPixPolar
 
 
 class Sky2Pix_HEALPixPolar(Sky2PixProjection, HEALPix):
@@ -1936,18 +1435,6 @@ class Sky2Pix_HEALPixPolar(Sky2PixProjection, HEALPix):
 
     Corresponds to the ``XPH`` projection in FITS WCS.
     """
-    _separable = False
-
-    @property
-    def inverse(self):
-        return Pix2Sky_HEALPixPolar()
-
-    @classmethod
-    def evaluate(cls, phi, theta):
-        return _projections.xphs2x(phi, theta)
-
-
-Sky2Pix_XPH = Sky2Pix_HEALPixPolar
 
 
 class AffineTransformation2D(Model):
@@ -1963,8 +1450,8 @@ class AffineTransformation2D(Model):
     translation : array
         A 2D vector (given as either a 2x1 or 1x2 array) specifying a
         translation to apply to the inputs
-    """
 
+    """
     n_inputs = 2
     n_outputs = 2
 
@@ -2083,3 +1570,12 @@ class AffineTransformation2D(Model):
             return dict(zip(self.inputs, [self.translation.unit] * 2))
         else:
             return dict(zip(self.inputs, [self.matrix.unit] * 2))
+
+
+for long_name, short_name in _PROJ_NAME_CODE:
+    # define short-name projection equivalent classes:
+    globals()['Pix2Sky_' + short_name] = globals()['Pix2Sky_' + long_name]
+    globals()['Sky2Pix_' + short_name] = globals()['Sky2Pix_' + long_name]
+    # set inverse classes:
+    globals()['Pix2Sky_' + long_name]._inv_cls = globals()['Sky2Pix_' + long_name]
+    globals()['Sky2Pix_' + long_name]._inv_cls = globals()['Pix2Sky_' + long_name]
