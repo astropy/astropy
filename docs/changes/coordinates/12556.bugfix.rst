@@ -1,6 +1,2 @@
-Fixed a bug where instantiating a coordinate representation without copying the
-component inputs would return a representation whose components were always
-broadcasted versions, even for those components that did not need to change
-shape.  Broadcasted versions can have more restrictions on writeability than
-the original inputs, and is particularly problematic when changing the wrap
-angle on longitude components.
+Fixed a bug where changing the wrap angle of the longitude component of a
+representation could raise a warning or error in certain situations.
