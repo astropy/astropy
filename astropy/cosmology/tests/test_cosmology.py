@@ -15,26 +15,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
-def test_basic():
-    cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
-                               Ob0=0.05, name="test", meta={"a": "b"})
-    # This next test will fail if astropy.const starts returning non-mks
-    #  units by default; see the comment at the top of core.py
-    assert allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0,
-                    1.0, rtol=1e-6)
-    assert allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +
-                    cosmo.Onu(1), 1.0, rtol=1e-6)
-
-    # Make sure setting them as quantities gives the same results
-    H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
-    T = u.Quantity(2.0, u.K)
-    cosmo = flrw.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04, Ob0=0.05)
-    assert allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0,
-                    1.0, rtol=1e-6)
-    assert allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +
-                    cosmo.Onu(1), 1.0, rtol=1e-6)
-
-
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units():
     """ Test if the right units are being returned"""

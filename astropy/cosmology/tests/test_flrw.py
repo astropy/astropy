@@ -463,6 +463,7 @@ class TestFLRW(CosmologyTest,
         # TODO! transfer tests for initializing neutrinos
 
     # ---------------------------------------------------------------
+    # Properties
 
     def test_Odm0(self, cosmo_cls, cosmo):
         """Test property ``Odm0``."""
@@ -593,6 +594,32 @@ class TestFLRW(CosmologyTest,
             # and check compatibility with nu_relative_density
             assert np.allclose(cosmo.nu_relative_density(0), 0.22710731766 * cosmo._Neff)
 
+    def test_Otot0(self, cosmo):
+        """Test :attr:`astropy.cosmology.FLRW.Otot0`."""
+        assert cosmo.Otot0 == cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ode0 + cosmo.Ok0
+
+    # ---------------------------------------------------------------
+    # Methods
+
+    def test_Otot(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.Otot`."""
+        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+        with pytest.raises(exception):
+            assert cosmo.Otot(1)
+
+    def test_efunc_vs_invefunc(self, cosmo):
+        """
+        Test that efunc and inv_efunc give inverse values.
+        Here they just fail b/c no ``w(z)`` or no scipy.
+        """
+        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+
+        with pytest.raises(exception):
+            cosmo.efunc(0.5)
+
+        with pytest.raises(exception):
+            cosmo.inv_efunc(0.5)
+
     # ---------------------------------------------------------------
     # from Cosmology
 
@@ -653,21 +680,6 @@ class TestFLRW(CosmologyTest,
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
-    # ---------------------------------------------------------------
-
-    def test_efunc_vs_invefunc(self, cosmo):
-        """
-        Test that efunc and inv_efunc give inverse values.
-        Here they just fail b/c no ``w(z)`` or no scipy.
-        """
-        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
-
-        with pytest.raises(exception):
-            cosmo.efunc(0.5)
-
-        with pytest.raises(exception):
-            cosmo.inv_efunc(0.5)
-
 
 class FLRWSubclassTest(TestFLRW):
     """
@@ -682,6 +694,20 @@ class FLRWSubclassTest(TestFLRW):
         pass
 
     # ===============================================================
+    # Method & Attribute Tests
+
+    # ---------------------------------------------------------------
+    # Densities
+
+    @pytest.mark.skipif(HAS_SCIPY, reason="scipy is not installed")
+    def test_Otot(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.Otot`."""
+        z = np.arange(0, 1e4, int(1e3))
+        assert np.allclose(
+            cosmo.Otot(z),
+            cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z))
+
+    # ---------------------------------------------------------------
 
     def test_efunc_vs_invefunc(self, cosmo):
         """Test that ``efunc`` and ``inv_efunc`` give inverse values.
@@ -765,6 +791,27 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         # for flat cosmologies, Ok0 is not *close* to 0, it *is* 0
         assert cosmo.Ok0 == 0.0
+
+    def test_Otot0(self, cosmo):
+        """Test :attr:`astropy.cosmology.FLRW.Otot0`. Should always be 1."""
+        super().test_Otot0(cosmo)
+
+        assert cosmo.Otot0 == 1.0
+
+    @pytest.mark.skipif(HAS_SCIPY, reason="scipy is not installed")
+    def test_Otot(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.Otot`. Should always be 1."""
+        super().test_Otot(cosmo)
+
+        # scalar
+        assert cosmo.Otot(1049.5) == 1.0
+        assert cosmo.Otot(np.float64(1345.3)) == 1.0
+
+        # array
+        z = np.arange(0, 1e4, int(1e3))
+        assert np.allclose(cosmo.Otot(z), np.ones_like(z, subok=False))
+
+    # ---------------------------------------------------------------
 
     def test_is_equivalent(self, cosmo, nonflatcosmo):
         """Test :meth:`astropy.cosmology.FLRW.is_equivalent`."""
