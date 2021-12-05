@@ -67,16 +67,18 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         """
         class SubCosmology(Cosmology):
 
-            H0 = Parameter(unit=u.km / u.s / u.Mpc)
+            H0 = Parameter(unit="km/(s Mpc)")
             Tcmb0 = Parameter(unit=u.K)
+            m_nu = Parameter(unit=u.eV)
 
-            def __init__(self, H0, Tcmb0=0*u.K, name=None, meta=None):
+            def __init__(self, H0, Tcmb0=0*u.K, m_nu=0*u.eV, name=None, meta=None):
                 super().__init__(name=name, meta=meta)
-                self._H0 = H0
-                self._Tcmb0 = Tcmb0
+                self.H0 = H0
+                self.Tcmb0 = Tcmb0
+                self.m_nu = m_nu
 
         self.cls = SubCosmology
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K)
+        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV)
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 
     @property
@@ -130,25 +132,6 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
     # ---------------------------------------------------------------
     # instance-level
-
-    def test_new(self, cosmo_cls):
-        """Test method ``__new__``"""
-        # before calling new
-        assert hasattr(cosmo_cls, "_init_signature")  # actually a class property
-        assert not hasattr(cosmo_cls, "_init_arguments")
-
-        # after calling new (doing this in a way that doesn't call __init__)
-        c = cosmo_cls.__new__(cosmo_cls)
-        assert isinstance(c, cosmo_cls)
-        assert hasattr(c, "_init_arguments")
-        assert isinstance(c._init_arguments, dict)
-        assert c._init_arguments["name"] == None
-        assert c._init_arguments["meta"] == None
-
-        # do again, but with arguments. don't need to repeat all tests
-        c = cosmo_cls.__new__(cosmo_cls, name="test", meta=dict(a=1))
-        assert c._init_arguments["name"] == "test"
-        assert c._init_arguments["meta"] == dict(a=1)
 
     def test_init(self, cosmo_cls):
         """Test initialization."""
@@ -289,7 +272,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # the name & all parameters are columns
         for n in ("name", *cosmo.__parameters__):
             assert n in tbl.colnames
-            assert all(tbl[n] == getattr(cosmo, n))
+            assert np.all(tbl[n] == getattr(cosmo, n))
         # check if Cosmology is in metadata or a column
         if in_meta:
             assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__

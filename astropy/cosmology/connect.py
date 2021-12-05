@@ -218,6 +218,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
 
         with add_enabled_units(cu):
             cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
+
         return cosmo
 
 
