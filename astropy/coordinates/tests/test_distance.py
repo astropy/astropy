@@ -127,7 +127,7 @@ def test_distances_scipy():
         Distance()
 
     # Regression test for #12531
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='more than one'):
         Distance(z=0.23, parallax=1*u.mas)
 
     # vectors!  regression test for #11949

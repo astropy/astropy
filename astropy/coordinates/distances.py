@@ -102,12 +102,11 @@ class Distance(u.SpecificTypeQuantity):
 
         n_not_none = sum(x is not None for x in [value, z, distmod, parallax])
         if n_not_none == 0:
-            raise ValueError('None of `value`, `z`, `distmod`, or `parallax` '
+            raise ValueError('none of `value`, `z`, `distmod`, or `parallax` '
                              'were given to Distance constructor')
         elif n_not_none > 1:
-            raise ValueError('Should given only one of `value`, `z`, '
-                             '`distmod`, or `parallax` in Distance '
-                             'constructor.')
+            raise ValueError('more than one of `value`, `z`, `distmod`, or '
+                             '`parallax` were given to Distance constructor')
 
         if z is not None:
             if cosmology is None:
