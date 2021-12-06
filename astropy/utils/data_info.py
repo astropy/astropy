@@ -320,13 +320,13 @@ class DataInfo(metaclass=DataInfoMeta):
 
         if parent is None:
             raise AttributeError("""\
-failed access "info" attribute on a temporary object.
+failed to access "info" attribute on a temporary object.
 
-It looks like you have done something like ``col[3:5].info``, i.e.
-you accessed ``info`` from a temporary slice object ``col[3:5]`` that
-only exists momentarily.  This has failed because the reference to
-that temporary object is now lost.  Instead force a permanent
-reference with ``c = col[3:5]`` followed by ``c.info``.""")
+It looks like you have done something like ``col[3:5].info`` or
+``col.quantity.info``, i.e.  you accessed ``info`` from a temporary slice
+object that only exists momentarily.  This has failed because the reference to
+that temporary object is now lost.  Instead force a permanent reference (e.g.
+``c = col[3:5]`` followed by ``c.info``).""")
 
         return parent
 

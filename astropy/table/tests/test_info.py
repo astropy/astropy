@@ -250,9 +250,9 @@ def test_no_deprecation_warning():
 
 def test_lost_parent_error():
     c = table.Column([1, 2, 3], name='a')
-    with pytest.raises(AttributeError) as err:
+    with pytest.raises(AttributeError,
+                       match='failed to access "info" attribute'):
         c[:].info.name
-    assert 'failed access "info" attribute' in str(err.value)
 
 
 def test_info_serialize_method():
