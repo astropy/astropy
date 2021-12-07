@@ -278,7 +278,7 @@ class TestConvenience(FitsTestCase):
         with open(datafile) as data:
             assert data.read() == datastr
         with open(cdfile) as coldefs:
-            assert coldefs.read() == cdstr             
+            assert coldefs.read() == cdstr
 
     @pytest.mark.parametrize('tablename', ['table.fits', 'tb.fits'])
     def test_dump_load_round_trip(self, tablename):
