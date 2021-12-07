@@ -130,7 +130,7 @@ by ``CHANGES.md`` in the instructions.
 
         twine upload dist/*
 
-   as described in `these <https://packaging.python.org/tutorials/distributing-packages/#uploading-your-project-to-pypi>`_
+   as described in `these <https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives>`_
    instructions. Check that the entry on PyPI is correct, and that
    the tarfile is present.
 
