@@ -209,7 +209,7 @@ calculate the reddening::
     >>> A_V = R_V * EB_V
     >>> A_B = (R_V+1) * EB_V
     >>> EB_V, A_V, A_B  # doctest: +FLOAT_CMP
-    (<Magnitude 0.4 mag>, <Quantity 1.24 mag>, <Quantity 1.64 mag>)
+    (<Magnitude 0.4 mag>, <Magnitude 1.24 mag>, <Magnitude 1.64 mag>)
 
 Here, you see that the extinctions have been converted to quantities. This
 happens generally for division and multiplication, since these processes
