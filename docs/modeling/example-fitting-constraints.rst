@@ -77,10 +77,9 @@ Tied Constraints
 
 The `~astropy.modeling.Parameter.tied` constraint is often useful with :ref:`Compound models <compound-models-intro>`.
 In this example we will read a spectrum from a file called ``spec.txt``
-and fit Gaussians to the lines simultaneously while linking the flux of the OIII_1 and OIII_2 lines.
+and fit Gaussians to the lines simultaneously while linking the flux of the OIII_1 and OIII_2 lines::
 
-.. plot::
-    :include-source:
+.. Plot directive disabled due to warnings during Sphinx build.
 
     import numpy as np
     from astropy.io import ascii
