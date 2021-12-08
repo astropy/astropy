@@ -257,6 +257,23 @@ class TestSphericalRepresentation:
                                          distance=[1, 2] * u.kpc)
         assert exc.value.args[0] == "Input parameters lon, lat, and distance cannot be broadcast"
 
+    def test_broadcasting_and_nocopy(self):
+
+        s1 = SphericalRepresentation(lon=[200] * u.deg,
+                                     lat=[0] * u.deg,
+                                     distance=[0] * u.kpc,
+                                     copy=False)
+        # With no copying, we should be able to modify the wrap angle of the longitude component
+        s1.lon.wrap_angle = 180 * u.deg
+
+        s2 = SphericalRepresentation(lon=[200] * u.deg,
+                                     lat=0 * u.deg,
+                                     distance=0 * u.kpc,
+                                     copy=False)
+        # We should be able to modify the wrap angle of the longitude component even if other
+        # components need to be broadcasted
+        s2.lon.wrap_angle = 180 * u.deg
+
     def test_readonly(self):
 
         s1 = SphericalRepresentation(lon=8 * u.hourangle,
