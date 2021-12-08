@@ -1353,12 +1353,10 @@ class Quantity(np.ndarray):
                 return f'{self.value}{self._unitstr:s}'
             else:
                 # np.array2string properly formats arrays as well as scalars
-                return np.array2string(self.value, precision=precision, floatmode="fixed") + self._unitstr
+                return np.array2string(self.value, precision=precision,
+                                       floatmode="fixed") + self._unitstr
 
         # else, for the moment we assume format="latex"
-
-        # need to do try/finally because "threshold" cannot be overridden
-        # with array2string
 
         # Set the precision if set, otherwise use numpy default
         pops = np.get_printoptions()
@@ -1375,20 +1373,17 @@ class Quantity(np.ndarray):
                 Latex.format_exponential_notation(value.imag,
                                                   format_spec='+' + format_spec))
 
-        try:
-            formatter = {'float_kind': float_formatter,
-                         'complex_kind': complex_formatter}
-            if conf.latex_array_threshold > -1:
-                np.set_printoptions(threshold=conf.latex_array_threshold)
+        # The view is needed for the scalar case - self.value might be float.
+        latex_value = np.array2string(
+            self.view(np.ndarray),
+            threshold=(conf.latex_array_threshold
+                       if conf.latex_array_threshold > -1 else pops['threshold']),
+            formatter={'float_kind': float_formatter,
+                       'complex_kind': complex_formatter},
+            max_line_width=np.inf,
+            separator=',~')
 
-            # the view is needed for the scalar case - value might be float
-            latex_value = np.array2string(
-                self.view(np.ndarray),
-                formatter=formatter, max_line_width=np.inf, separator=',~')
-
-            latex_value = latex_value.replace('...', r'\dots')
-        finally:
-            np.set_printoptions(**pops)
+        latex_value = latex_value.replace('...', r'\dots')
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
@@ -1398,9 +1393,7 @@ class Quantity(np.ndarray):
 
         delimiter_left, delimiter_right = formats[format][subfmt]
 
-        return r'{left}{0} \; {1}{right}'.format(latex_value, latex_unit,
-                                                 left=delimiter_left,
-                                                 right=delimiter_right)
+        return rf'{delimiter_left}{latex_value} \; {latex_unit}{delimiter_right}'
 
     def __str__(self):
         return self.to_string()
