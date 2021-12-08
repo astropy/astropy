@@ -1,0 +1,1 @@
+Implement multiplication and division of LogQuantities and numbers

@@ -644,7 +644,38 @@ class TestLogQuantitySlicing:
 
 
 class TestLogQuantityArithmetic:
-    def test_multiplication_division(self):
+    @pytest.mark.parametrize(
+        'other', [2.4 * u.mag(), 12.34 * u.ABmag,
+                  u.Magnitude(3.45 * u.Jy), u.Dex(3.),
+                  u.Dex(np.linspace(3000, 5000, 10) * u.Angstrom),
+                  u.Magnitude(6.78, 2. * u.mag)])
+    @pytest.mark.parametrize('fac', [1., 2, 0.4])
+    def test_multiplication_division(self, other, fac):
+        """Check that multiplication and division works as expectes"""
+
+        lq_sf = fac * other
+        assert lq_sf.unit.physical_unit == other.unit.physical_unit**fac
+        assert_allclose(lq_sf.physical, other.physical ** fac)
+
+        lq_sf = other * fac
+        assert lq_sf.unit.physical_unit == other.unit.physical_unit**fac
+        assert_allclose(lq_sf.physical, other.physical ** fac)
+
+        lq_sf = other / fac
+        assert lq_sf.unit.physical_unit**fac == other.unit.physical_unit
+        assert_allclose(lq_sf.physical**fac, other.physical)
+
+        lq_sf = other.copy()
+        lq_sf *= fac
+        assert lq_sf.unit.physical_unit == other.unit.physical_unit**fac
+        assert_allclose(lq_sf.physical, other.physical ** fac)
+
+        lq_sf = other.copy()
+        lq_sf /= fac
+        assert lq_sf.unit.physical_unit**fac == other.unit.physical_unit
+        assert_allclose(lq_sf.physical**fac, other.physical)
+
+    def test_more_multiplication_division(self):
         """Check that multiplication/division with other quantities is only
         possible when the physical unit is dimensionless, and that this turns
         the result into a normal quantity."""
@@ -673,6 +704,18 @@ class TestLogQuantityArithmetic:
 
         with pytest.raises(u.UnitsError):
             lq / lq2
+
+        lq_sf = lq.copy()
+
+        with pytest.raises(u.UnitsError):
+            lq_sf *= lq2
+        # ensure that nothing changed inside
+        assert (lq_sf == lq).all()
+
+        with pytest.raises(u.UnitsError):
+            lq_sf /= lq2
+        # ensure that nothing changed inside
+        assert (lq_sf == lq).all()
 
         # but dimensionless_unscaled can be cancelled
         r = lq2 / u.Magnitude(2.)
