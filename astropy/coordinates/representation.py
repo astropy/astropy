@@ -238,14 +238,20 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
             raise ValueError(f"Input parameters {c_str} cannot be broadcast") from err
 
-        # If inputs have been copied, there is no reason to output a broadcasted array for a
-        # component, so we perform another copy of any component that has been broadcasted
-        # TODO: Look for some way to avoid the double copy in these situations
-        if copy:
-            attrs = [bc_attr.copy() if bc_attr.shape != attr.shape else attr
-                     for attr, bc_attr in zip(attrs, bc_attrs)]
-        else:
-            attrs = bc_attrs
+        # The output of np.broadcast_arrays() has limitations on writeability, so we perform
+        # additional handling to enable writeability in most situations.  This is primarily
+        # relevant for allowing the changing of the wrap angle of longitude components.
+        #
+        # If the shape has changed for a given component, broadcasting is needed:
+        #     If copy=True, we make a copy of the broadcasted array to ensure writeability.
+        #         Note that array had already been copied prior to the broadcasting.
+        #         TODO: Find a way to avoid the double copy.
+        #     If copy=False, we use the broadcasted array, and writeability may still be
+        #         limited.
+        # If the shape has not changed for a given component, we can proceed with using the
+        #     non-broadcasted array, which avoids writeability issues from np.broadcast_arrays().
+        attrs = [(bc_attr.copy() if copy else bc_attr) if bc_attr.shape != attr.shape else attr
+                 for attr, bc_attr in zip(attrs, bc_attrs)]
 
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
