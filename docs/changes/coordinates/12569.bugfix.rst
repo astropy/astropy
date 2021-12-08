@@ -1,0 +1,2 @@
+``astropy.coordinates.Distance`` constructor no longer ignores the ``unit``
+keyword when ``parallax`` is provided.

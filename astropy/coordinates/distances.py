@@ -143,8 +143,9 @@ class Distance(u.SpecificTypeQuantity):
                 copy = False
 
             elif parallax is not None:
-                value = parallax.to_value(u.pc, equivalencies=u.parallax())
-                unit = u.pc
+                if unit is None:
+                    unit = u.pc
+                value = parallax.to_value(unit, equivalencies=u.parallax())
 
                 # Continue on to take account of unit and other arguments
                 # but a copy is already made, so no longer necessary
