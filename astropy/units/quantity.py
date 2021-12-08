@@ -22,10 +22,8 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
 from .structured import StructuredUnit
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.introspection import minversion
 from astropy.utils.misc import isiterable
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
