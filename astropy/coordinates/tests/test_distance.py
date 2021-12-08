@@ -241,6 +241,11 @@ def test_parallax():
     with pytest.warns(AstropyWarning):
         Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
 
+    # Regression test for #12569; `unit` was ignored if `parallax` was given.
+    d = Distance(parallax=1*u.mas, unit=u.kpc)
+    assert d.value == 1.
+    assert d.unit is u.kpc
+
 
 def test_distance_in_coordinates():
     """
