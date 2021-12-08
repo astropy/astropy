@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import numbers
 import numpy as np
 
 from astropy.units import (dimensionless_unscaled, photometric, Unit,
@@ -277,6 +278,51 @@ class LogQuantity(FunctionQuantity):
         self._set_unit(new_unit)
         return self
 
+    def __mul__(self, other):
+        # Multiply by a float or a dimensionless quantity
+        if isinstance(other, numbers.Number):
+            # Multiplying a log means putting the factor into the exponent
+            # of the unit
+            new_physical_unit = self.unit.physical_unit**other
+            result = self.view(np.ndarray) * other
+            return self._new_view(result, self.unit._copy(new_physical_unit))
+        else:
+            return super().__mul__(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __imul__(self, other):
+        if isinstance(other, numbers.Number):
+            new_physical_unit = self.unit.physical_unit**other
+            function_view = self._function_view
+            function_view *= other
+            self._set_unit(self.unit._copy(new_physical_unit))
+            return self
+        else:
+            return super().__imul__(other)
+
+    def __truediv__(self, other):
+        # Divide by a float or a dimensionless quantity
+        if isinstance(other, numbers.Number):
+            # Dividing a log means putting the nominator into the exponent
+            # of the unit
+            new_physical_unit = self.unit.physical_unit**(1/other)
+            result = self.view(np.ndarray) / other
+            return self._new_view(result, self.unit._copy(new_physical_unit))
+        else:
+            return super().__truediv__(other)
+
+    def __itruediv__(self, other):
+        if isinstance(other, numbers.Number):
+            new_physical_unit = self.unit.physical_unit**(1/other)
+            function_view = self._function_view
+            function_view /= other
+            self._set_unit(self.unit._copy(new_physical_unit))
+            return self
+        else:
+            return super().__itruediv__(other)
+
     def __pow__(self, other):
         # We check if this power is OK by applying it first to the unit.
         try:
@@ -311,9 +357,6 @@ class LogQuantity(FunctionQuantity):
 
         self._set_unit(other)
         return self
-
-    # Could add __mul__ and __div__ and try interpreting other as a power,
-    # but this seems just too error-prone.
 
     # Methods that do not work for function units generally but are OK for
     # logarithmic units as they imply differences and independence of
