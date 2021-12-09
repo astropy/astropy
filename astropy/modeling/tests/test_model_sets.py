@@ -353,7 +353,7 @@ def test_linear_fit_model_set_common_weight():
     with pytest.raises(ValueError,
                        match='Found NaNs in the coefficient matrix'):
         with pytest.warns(RuntimeWarning,
-                          match=r'invalid value encountered in true_divide'):
+                          match=r'invalid value encountered in.*divide'):
             fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
 
 
@@ -383,12 +383,12 @@ def test_linear_fit_model_set_weights():
     with pytest.raises(ValueError,
                        match='Found NaNs in the coefficient matrix'):
         with pytest.warns(RuntimeWarning,
-                          match=r'invalid value encountered in true_divide'):
+                          match=r'invalid value encountered in.*divide'):
             fitted_model = fitter(init_model, x, y, weights=weights)
 
     # Now we mask the values where weight is 0
     with pytest.warns(RuntimeWarning,
-                      match=r'invalid value encountered in true_divide'):
+                      match=r'invalid value encountered in.*divide'):
         fitted_model = fitter(init_model, x,
                               np.ma.array(y, mask=np.isclose(weights, 0)),
                               weights=weights)
