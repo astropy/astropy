@@ -23,21 +23,20 @@ class Distance(u.SpecificTypeQuantity):
     """
     A one-dimensional distance.
 
-    This can be initialized in one of five ways:
+    This can be initialized by providing one of the following:
 
-    * A distance ``value`` (array or float) and a ``unit``
-    * A `~astropy.units.Quantity` object
-    * A redshift and (optionally) a cosmology.
-    * Providing a distance modulus
-    * Providing a parallax
+    * Distance ``value`` (array or float) and a ``unit``
+    * |Quantity| object with dimensionality of length
+    * Redshift and (optionally) a `~astropy.cosmology.Cosmology`
+    * Distance modulus
+    * Parallax
 
     Parameters
     ----------
     value : scalar or `~astropy.units.Quantity` ['length']
         The value of this distance.
     unit : `~astropy.units.UnitBase` ['length']
-        The units for this distance, *if* ``value`` is not a
-        `~astropy.units.Quantity`. Must have dimensions of distance.
+        The unit for this distance.
     z : float
         A redshift for this distance.  It will be converted to a distance
         by computing the luminosity distance for this redshift given the
@@ -63,34 +62,38 @@ class Distance(u.SpecificTypeQuantity):
     ndmin : int, optional
         See `~astropy.units.Quantity`.
     allow_negative : bool, optional
-        Whether to allow negative distances (which are possible is some
-        cosmologies).  Default: ``False``.
+        Whether to allow negative distances (which are possible in some
+        cosmologies).  Default: `False`.
 
     Raises
     ------
     `~astropy.units.UnitsError`
-        If the ``unit`` is not a distance.
+        If the ``unit`` is not a length unit.
     ValueError
         If value specified is less than 0 and ``allow_negative=False``.
 
-        If ``z`` is provided with a ``unit`` or ``cosmology`` is provided
-        when ``z`` is *not* given, or ``value`` is given as well as ``z``.
+        If ``cosmology`` is provided when ``z`` is *not* given.
 
-        If none of ``value``, ``z``, ``distmod``, or ``parallax`` were given.
+        If either none or more than one of ``value``, ``z``, ``distmod``,
+        or ``parallax`` were given.
 
 
     Examples
     --------
     >>> from astropy import units as u
-    >>> from astropy.cosmology import WMAP5, WMAP7
-    >>> d1 = Distance(10, u.Mpc)
-    >>> d2 = Distance(40, unit=u.au)
-    >>> d3 = Distance(value=5, unit=u.kpc)
-    >>> d4 = Distance(z=0.23)
-    >>> d5 = Distance(z=0.23, cosmology=WMAP5)
-    >>> d6 = Distance(distmod=24.47)
-    >>> d7 = Distance(Distance(10 * u.Mpc))
-    >>> d8 = Distance(parallax=21.34*u.mas)
+    >>> from astropy.cosmology import WMAP5
+    >>> Distance(10, u.Mpc)
+    <Distance 10. Mpc>
+    >>> Distance(40*u.pc, unit=u.kpc)
+    <Distance 0.04 kpc>
+    >>> Distance(z=0.23)                      # doctest: +FLOAT_CMP
+    <Distance 1184.01657566 Mpc>
+    >>> Distance(z=0.23, cosmology=WMAP5)     # doctest: +FLOAT_CMP
+    <Distance 1147.78831918 Mpc>
+    >>> Distance(distmod=24.47*u.mag)         # doctest: +FLOAT_CMP
+    <Distance 783.42964277 kpc>
+    >>> Distance(parallax=21.34*u.mas)        # doctest: +FLOAT_CMP
+    <Distance 46.86035614 pc>
     """
 
     _equivalent_unit = u.m
