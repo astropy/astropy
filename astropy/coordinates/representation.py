@@ -1936,7 +1936,7 @@ class SphericalRepresentation(BaseRepresentation):
             try:
                 self._distance = Distance(self._distance, copy=False)
             except ValueError as e:
-                if e.args[0].startswith('Distance must be >= 0'):
+                if e.args[0].startswith('distance must be >= 0'):
                     raise ValueError("Distance must be >= 0. To allow negative "
                                      "distance values, you must explicitly pass"
                                      " in a `Distance` object with the the "
