@@ -36,9 +36,6 @@ def test_distances():
     with pytest.raises(u.UnitsError):
         Distance(12)
 
-    with pytest.raises(ValueError, match='none of `value`, `z`, `distmod`,'):
-        Distance(unit=u.km)
-
     # standard units are pre-defined
     npt.assert_allclose(distance.lyr, 39.138765325702551)
     npt.assert_allclose(distance.km, 370281309776063.0)
@@ -123,8 +120,11 @@ def test_distances_scipy():
     d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
     npt.assert_allclose(d6.value, 3.5417046898762366e+22)
 
-    with pytest.raises(ValueError, match='a `cosmology` was given but `z`'):
-        Distance(parallax=1*u.mas, cosmology=WMAP5)
+    with pytest.raises(ValueError):
+        Distance(cosmology=WMAP5, unit=u.km)
+
+    with pytest.raises(ValueError):
+        Distance()
 
     # Regression test for #12531
     with pytest.raises(ValueError, match='more than one'):
