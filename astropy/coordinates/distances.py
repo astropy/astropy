@@ -121,7 +121,7 @@ class Distance(u.SpecificTypeQuantity):
             value = cosmology.luminosity_distance(z)
 
         elif cosmology is not None:
-            raise ValueError('A `cosmology` was given but `z` was not '
+            raise ValueError('a `cosmology` was given but `z` was not '
                              'provided in Distance constructor')
 
         elif distmod is not None:
@@ -147,20 +147,18 @@ class Distance(u.SpecificTypeQuantity):
             if np.any(parallax < 0):
                 if allow_negative:
                     warnings.warn(
-                        "Negative parallaxes are converted to NaN "
+                        "negative parallaxes are converted to NaN "
                         "distances even when `allow_negative=True`, "
                         "because negative parallaxes cannot be transformed "
-                        "into distances. See discussion in this paper: "
+                        "into distances. See the discussion in this paper: "
                         "https://arxiv.org/abs/1507.02105", AstropyWarning)
                 else:
-                    raise ValueError("Some parallaxes are negative, which "
-                                     "are notinterpretable as distances. "
-                                     "See the discussion in this paper: "
-                                     "https://arxiv.org/abs/1507.02105 . "
-                                     "If you want parallaxes to pass "
-                                     "through, with negative parallaxes "
-                                     "instead becoming NaN, use the "
-                                     "`allow_negative=True` argument.")
+                    raise ValueError(
+                        "some parallaxes are negative, which are not "
+                        "interpretable as distances. See the discussion in "
+                        "this paper: https://arxiv.org/abs/1507.02105 . You "
+                        "can convert negative parallaxes to NaN distances by "
+                        "providing the `allow_negative=True` argument.")
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(
@@ -173,8 +171,8 @@ class Distance(u.SpecificTypeQuantity):
             any_negative = np.any(distance.value < 0)
 
         if not allow_negative and any_negative:
-            raise ValueError("Distance must be >= 0.  Use the argument "
-                             "'allow_negative=True' to allow negative values.")
+            raise ValueError("distance must be >= 0. Use the argument "
+                             "`allow_negative=True` to allow negative values.")
 
         return distance
 
