@@ -108,66 +108,59 @@ class Distance(u.SpecificTypeQuantity):
             raise ValueError('more than one of `value`, `z`, `distmod`, or '
                              '`parallax` were given to Distance constructor')
 
+        if value is None:
+            # If something else but `value` was provided then a new array will
+            # be created anyways and there is no need to copy that.
+            copy = False
+
         if z is not None:
             if cosmology is None:
                 from astropy.cosmology import default_cosmology
                 cosmology = default_cosmology.get()
 
             value = cosmology.luminosity_distance(z)
-            # Continue on to take account of unit and other arguments
-            # but a copy is already made, so no longer necessary
-            copy = False
 
-        else:
-            if cosmology is not None:
-                raise ValueError('A `cosmology` was given but `z` was not '
-                                 'provided in Distance constructor')
+        elif cosmology is not None:
+            raise ValueError('A `cosmology` was given but `z` was not '
+                             'provided in Distance constructor')
 
-            if distmod is not None:
-                value = cls._distmod_to_pc(distmod)
-                if unit is None:
-                    # if the unit is not specified, guess based on the mean of
-                    # the log of the distance
-                    meanlogval = np.log10(value.value).mean()
-                    if meanlogval > 6:
-                        unit = u.Mpc
-                    elif meanlogval > 3:
-                        unit = u.kpc
-                    elif meanlogval < -3:  # ~200 AU
-                        unit = u.AU
-                    else:
-                        unit = u.pc
-
-                # Continue on to take account of unit and other arguments
-                # but a copy is already made, so no longer necessary
-                copy = False
-
-            elif parallax is not None:
-                if unit is None:
+        elif distmod is not None:
+            value = cls._distmod_to_pc(distmod)
+            if unit is None:
+                # if the unit is not specified, guess based on the mean of
+                # the log of the distance
+                meanlogval = np.log10(value.value).mean()
+                if meanlogval > 6:
+                    unit = u.Mpc
+                elif meanlogval > 3:
+                    unit = u.kpc
+                elif meanlogval < -3:  # ~200 AU
+                    unit = u.AU
+                else:
                     unit = u.pc
-                value = parallax.to_value(unit, equivalencies=u.parallax())
 
-                # Continue on to take account of unit and other arguments
-                # but a copy is already made, so no longer necessary
-                copy = False
+        elif parallax is not None:
+            if unit is None:
+                unit = u.pc
+            value = parallax.to_value(unit, equivalencies=u.parallax())
 
-                if np.any(parallax < 0):
-                    if allow_negative:
-                        warnings.warn(
-                            "Negative parallaxes are converted to NaN "
-                            "distances even when `allow_negative=True`, "
-                            "because negative parallaxes cannot be transformed "
-                            "into distances. See discussion in this paper: "
-                            "https://arxiv.org/abs/1507.02105", AstropyWarning)
-                    else:
-                        raise ValueError("Some parallaxes are negative, which "
-                                         "are notinterpretable as distances. "
-                                         "See the discussion in this paper: "
-                                         "https://arxiv.org/abs/1507.02105 . "
-                                         "If you want parallaxes to pass "
-                                         "through, with negative parallaxes "
-                                         "instead becoming NaN, use the "
-                                         "`allow_negative=True` argument.")
+            if np.any(parallax < 0):
+                if allow_negative:
+                    warnings.warn(
+                        "Negative parallaxes are converted to NaN "
+                        "distances even when `allow_negative=True`, "
+                        "because negative parallaxes cannot be transformed "
+                        "into distances. See discussion in this paper: "
+                        "https://arxiv.org/abs/1507.02105", AstropyWarning)
+                else:
+                    raise ValueError("Some parallaxes are negative, which "
+                                     "are notinterpretable as distances. "
+                                     "See the discussion in this paper: "
+                                     "https://arxiv.org/abs/1507.02105 . "
+                                     "If you want parallaxes to pass "
+                                     "through, with negative parallaxes "
+                                     "instead becoming NaN, use the "
+                                     "`allow_negative=True` argument.")
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(
