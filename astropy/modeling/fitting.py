@@ -532,7 +532,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         model_copy = model.copy()
         model_copy.sync_constraints = False
-        _, fitparam_indices = _model_to_fit_params(model_copy)
+        _, fitparam_indices = model_to_fit_params(model_copy)
 
         if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
@@ -1150,7 +1150,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             dfunc = None
         else:
             dfunc = self._wrap_deriv
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
         fitparams, cov_x, dinfo, mess, ierr = optimize.leastsq(
             self.objective_function, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
@@ -1310,7 +1310,7 @@ class SLSQPLSQFitter(Fitter):
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
         fitter_to_model_params(model_copy, fitparams)
@@ -1378,7 +1378,7 @@ class SimplexLSQFitter(Fitter):
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
@@ -1409,14 +1409,14 @@ class JointFitter(metaclass=_FitterMeta):
         self.initvals = list(initvals)
         self.jointparams = jointparameters
         self._verify_input()
-        self.fitparams = self._model_to_fit_params()
+        self.fitparams = self.model_to_fit_params()
 
         # a list of model.n_inputs
         self.modeldims = [m.n_inputs for m in self.models]
         # sum all model dimensions
         self.ndim = np.sum(self.modeldims)
 
-    def _model_to_fit_params(self):
+    def model_to_fit_params(self):
         fparams = []
         fparams.extend(self.initvals)
         for model in self.models:
@@ -1599,7 +1599,7 @@ def fitter_to_model_params(model, fps):
     constrained parameters.
     """
 
-    _, fit_param_indices = _model_to_fit_params(model)
+    _, fit_param_indices = model_to_fit_params(model)
 
     has_tied = any(model.tied.values())
     has_fixed = any(model.fixed.values())
@@ -1656,7 +1656,7 @@ def fitter_to_model_params(model, fps):
                 model._array_to_parameters()
 
 
-def _model_to_fit_params(model):
+def model_to_fit_params(model):
     """
     Convert a model instance's parameter array to an array that can be used
     with a fitter that doesn't natively support fixed or tied parameters.
