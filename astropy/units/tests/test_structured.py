@@ -10,6 +10,7 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
+from astropy.tests.helper import pickle_protocol, check_pickling_recovery
 from astropy.utils.masked import Masked
 
 
@@ -192,6 +193,10 @@ class TestStructuredUnitBasics(StructuredTestBase):
         su = StructuredUnit(((u.km, u.km/u.s), u.yr))
         assert repr(su) == 'Unit("((km, km / s), yr)")'
         assert eval(repr(su)) == su
+
+    def test_pickle(self, pickle_protocol):
+        su = StructuredUnit(((u.km, u.km/u.s), u.yr))
+        check_pickling_recovery(su, pickle_protocol)
 
 
 class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
