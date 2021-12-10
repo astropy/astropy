@@ -315,7 +315,7 @@ class Fitter(metaclass=_FitterMeta):
         """
         model = args[0]
         meas = args[-1]
-        _fitter_to_model_params(model, fps)
+        fitter_to_model_params(model, fps)
         res = self._stat_method(meas, model, *args[1:-1])
         return res
 
@@ -768,7 +768,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lacoef /= scl[:, np.newaxis] if scl.ndim < rhs.ndim else scl
         self.fit_info['params'] = lacoef
 
-        _fitter_to_model_params(model_copy, lacoef.flatten())
+        fitter_to_model_params(model_copy, lacoef.flatten())
 
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
@@ -1075,7 +1075,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         model = args[0]
         weights = args[1]
-        _fitter_to_model_params(model, fps)
+        fitter_to_model_params(model, fps)
         meas = args[-1]
         if weights is None:
             return np.ravel(model(*args[2: -1]) - meas)
@@ -1155,7 +1155,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             self.objective_function, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
             xtol=acc, full_output=True)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
         self.fit_info['cov_x'] = cov_x
         self.fit_info['message'] = mess
@@ -1197,7 +1197,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         if any(model.fixed.values()) or any(model.tied.values()):
             # update the parameters with the current values from the fitter
-            _fitter_to_model_params(model, params)
+            fitter_to_model_params(model, params)
             if z is None:
                 full = np.array(model.fit_deriv(x, *model.parameters))
                 if not model.col_fit_deriv:
@@ -1313,7 +1313,7 @@ class SLSQPLSQFitter(Fitter):
         init_values, _ = _model_to_fit_params(model_copy)
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
 
         model_copy.sync_constraints = True
         return model_copy
@@ -1382,7 +1382,7 @@ class SimplexLSQFitter(Fitter):
 
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
         model_copy.sync_constraints = True
         return model_copy
 
@@ -1593,7 +1593,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # its own versions of these)
 # TODO: Most of this code should be entirely rewritten; it should not be as
 # inefficient as it is.
-def _fitter_to_model_params(model, fps):
+def fitter_to_model_params(model, fps):
     """
     Constructs the full list of model parameters from the fitted and
     constrained parameters.
