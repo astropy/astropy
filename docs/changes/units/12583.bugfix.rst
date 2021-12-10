@@ -1,0 +1,1 @@
+Structured units can be pickled and unpicked when ``protocol`` >= 2.
