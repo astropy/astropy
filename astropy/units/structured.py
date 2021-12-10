@@ -180,6 +180,9 @@ class StructuredUnit:
         self._units = np.array(tuple(converted), dtype)[()]
         return self
 
+    def __getnewargs__(self):
+        return (), None
+
     @property
     def field_names(self):
         """Possibly nested tuple of the field names of the parts."""
@@ -486,12 +489,6 @@ class StructuredUnit:
                 return NotImplemented
 
         return self.values() != other.values()
-
-    def __reduce_ex__(self, protocol):
-        state = list(super().__reduce_ex__(protocol))
-        if protocol >= 2:
-            state[1] += (str(self), )  # add in ``units`` argument
-        return tuple(state)
 
 
 class Structure(np.void):

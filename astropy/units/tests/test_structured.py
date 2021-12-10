@@ -3,6 +3,8 @@
 """
 Test Structured units and quantities.
 """
+import copy
+
 import pytest
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -194,9 +196,22 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert repr(su) == 'Unit("((km, km / s), yr)")'
         assert eval(repr(su)) == su
 
+
+class TestStructuredUnitsCopyPickle(StructuredTestBaseWithUnits):
+    def test_copy(self):
+        su_copy = copy.copy(self.pv_t_unit)
+        assert su_copy is not self.pv_t_unit
+        assert su_copy == self.pv_t_unit
+        assert su_copy._units is self.pv_t_unit._units
+
+    def test_deepcopy(self):
+        su_copy = copy.deepcopy(self.pv_t_unit)
+        assert su_copy is not self.pv_t_unit
+        assert su_copy == self.pv_t_unit
+        assert su_copy._units is not self.pv_t_unit._units
+
     def test_pickle(self, pickle_protocol):
-        su = StructuredUnit(((u.km, u.km/u.s), u.yr))
-        check_pickling_recovery(su, pickle_protocol)
+        check_pickling_recovery(self.pv_t_unit, pickle_protocol)
 
 
 class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
