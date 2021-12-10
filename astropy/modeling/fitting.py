@@ -34,6 +34,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated
 from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
@@ -1656,6 +1657,11 @@ def fitter_to_model_params(model, fps):
                 model._array_to_parameters()
 
 
+@deprecated('5.1', 'private method: _fitter_to_model_params has been made public now')
+def _fitter_to_model_params(model, fps):
+    return fitter_to_model_params(model, fps)
+
+
 def model_to_fit_params(model):
     """
     Convert a model instance's parameter array to an array that can be used
@@ -1677,6 +1683,11 @@ def model_to_fit_params(model):
                 del fitparam_indices[idx]
         return (np.array(params), fitparam_indices)
     return (model.parameters, fitparam_indices)
+
+
+@deprecated('5.1', 'private method: _model_to_fit_params has been made public now')
+def _model_to_fit_params(model):
+    return model_to_fit_params(model)
 
 
 def _validate_constraints(supported_constraints, model):
