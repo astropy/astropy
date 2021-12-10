@@ -824,7 +824,7 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert result is out
         assert_masked_equal(out, expected)
 
-    @pytest.mark.filterwarnings("ignore:.*true_divide.*")
+    @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_var(self, axis):
         ma_var = self.ma.var(axis)

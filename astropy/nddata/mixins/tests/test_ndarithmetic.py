@@ -30,7 +30,7 @@ class StdDevUncertaintyUncorrelated(StdDevUncertainty):
 # Test with Data covers:
 # scalars, 1D, 2D and 3D
 # broadcasting between them
-@pytest.mark.filterwarnings("ignore:divide by zero encountered in true_divide")
+@pytest.mark.filterwarnings("ignore:divide by zero encountered.*")
 @pytest.mark.parametrize(('data1', 'data2'), [
                          (np.array(5), np.array(10)),
                          (np.array(5), np.arange(10)),
@@ -85,7 +85,7 @@ def test_arithmetics_data_invalid():
 # identical units (even dimensionless unscaled vs. no unit),
 # equivalent units (such as meter and kilometer)
 # equivalent composite units (such as m/s and km/h)
-@pytest.mark.filterwarnings("ignore:divide by zero encountered in true_divide")
+@pytest.mark.filterwarnings("ignore:divide by zero encountered.*")
 @pytest.mark.parametrize(('data1', 'data2'), [
     (np.array(5) * u.s, np.array(10) * u.s),
     (np.array(5) * u.s, np.arange(10) * u.h),
@@ -533,7 +533,7 @@ def test_arithmetics_varianceuncertainty_basic_with_correlation(
 # The point of this test is to compare the used formula to the theoretical one.
 # TODO: Maybe covering units too but I think that should work because of
 # the next tests. Also this may be reduced somehow.
-@pytest.mark.filterwarnings("ignore:divide by zero encountered in true_divide")
+@pytest.mark.filterwarnings("ignore:divide by zero encountered.*")
 @pytest.mark.parametrize(('cor', 'uncert1', 'data2'), [
     (-1, [1, 1, 3], [2, 2, 7]),
     (-0.5, [1, 1, 3], [2, 2, 7]),
@@ -710,7 +710,7 @@ def test_arithmetics_stddevuncertainty_one_missing():
 # Covering:
 # data with unit and uncertainty with unit (but equivalent units)
 # compared against correctly scaled NDDatas
-@pytest.mark.filterwarnings("ignore:.*encountered in true_divide.*")
+@pytest.mark.filterwarnings("ignore:.*encountered in.*divide.*")
 @pytest.mark.parametrize(('uncert1', 'uncert2'), [
     (np.array([1, 2, 3]) * u.m, None),
     (np.array([1, 2, 3]) * u.cm, None),
@@ -814,7 +814,7 @@ def test_arithmetics_stddevuncertainty_with_units(uncert1, uncert2):
 # Covering:
 # data with unit and uncertainty with unit (but equivalent units)
 # compared against correctly scaled NDDatas
-@pytest.mark.filterwarnings("ignore:.*encountered in true_divide.*")
+@pytest.mark.filterwarnings("ignore:.*encountered in.*divide.*")
 @pytest.mark.parametrize(('uncert1', 'uncert2'), [
     (np.array([1, 2, 3]) * u.m, None),
     (np.array([1, 2, 3]) * u.cm, None),
@@ -918,7 +918,7 @@ def test_arithmetics_varianceuncertainty_with_units(uncert1, uncert2):
 # Covering:
 # data with unit and uncertainty with unit (but equivalent units)
 # compared against correctly scaled NDDatas
-@pytest.mark.filterwarnings("ignore:.*encountered in true_divide.*")
+@pytest.mark.filterwarnings("ignore:.*encountered in.*divide.*")
 @pytest.mark.parametrize(('uncert1', 'uncert2'), [
     (np.array([1, 2, 3]) * u.m, None),
     (np.array([1, 2, 3]) * u.cm, None),
