@@ -180,6 +180,9 @@ class StructuredUnit:
         self._units = np.array(tuple(converted), dtype)[()]
         return self
 
+    def __getnewargs__(self):
+        return (), None
+
     @property
     def field_names(self):
         """Possibly nested tuple of the field names of the parts."""
