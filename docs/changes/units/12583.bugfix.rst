@@ -1,0 +1,2 @@
+Structured units can now be copied with ``copy.copy`` and ``copy.deepcopy``
+and also pickled and unpicked also for ``protocol`` >= 2.
