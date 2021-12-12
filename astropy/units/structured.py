@@ -181,6 +181,7 @@ class StructuredUnit:
         return self
 
     def __getnewargs__(self):
+        """When de-serializing, e.g. pickle, start with a blank structure."""
         return (), None
 
     @property
