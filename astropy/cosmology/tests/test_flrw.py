@@ -120,7 +120,6 @@ class ParameterOm0TestMixin(ParameterTestMixin):
         # on the class
         assert isinstance(cosmo_cls.Om0, Parameter)
         assert "Omega matter" in cosmo_cls.Om0.__doc__
-        assert cosmo_cls.Tcmb0.format_spec == "0.4g"
 
         # validation
         assert cosmo_cls.Om0.validate(cosmo, 1) == 1

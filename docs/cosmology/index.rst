@@ -230,8 +230,8 @@ describe the cosmology::
   >>> from astropy.cosmology import FlatwCDM
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
-  FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=0 K, Neff=3.04, m_nu=None, Ob0=None)
+  FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262,
+           w0=-1.016, Tcmb0=0 K, Neff=3.04, m_nu=None, Ob0=None)
 
 ..
   EXAMPLE END

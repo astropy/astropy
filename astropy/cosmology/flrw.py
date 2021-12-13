@@ -122,7 +122,7 @@ class FLRW(Cosmology):
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
                      fvalidate="float")
     Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
-                      unit="Kelvin", fmt="0.4g", fvalidate="scalar")
+                      unit="Kelvin", fvalidate="scalar")
     Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
     m_nu = Parameter(doc="Mass of neutrino species.",
                      unit="eV", equivalencies=u.mass_energy(), fmt="")

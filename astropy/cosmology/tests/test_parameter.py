@@ -70,7 +70,7 @@ class ParameterTestMixin:
         assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []
-        assert parameter.format_spec == ".3g"
+        assert parameter.format_spec == "g"
         assert parameter.derived is False
         assert parameter.name is None
 
@@ -300,7 +300,7 @@ class TestParameter(ParameterTestMixin):
         # custom from init
         assert param._unit == u.m
         assert param._equivalencies == u.mass_energy()
-        assert param._fmt == ".3g"
+        assert param._fmt == "g"
         assert param._derived == False
 
         # custom from set_name
@@ -336,7 +336,7 @@ class TestParameter(ParameterTestMixin):
         """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
         super().test_Parameter_format_spec(param)
 
-        assert param.format_spec == ".3g"
+        assert param.format_spec == "g"
 
     def test_Parameter_derived(self, cosmo_cls, param):
         """Test :attr:`astropy.cosmology.Parameter.derived`."""
@@ -453,7 +453,7 @@ class TestParameter(ParameterTestMixin):
 
         assert "Parameter(" in r
         for subs in ("derived=False", 'unit=Unit("m")', 'equivalencies=[(Unit("kg"), Unit("J")',
-                     "fmt='.3g'", "doc='Description of example parameter.'"):
+                     "fmt='g'", "doc='Description of example parameter.'"):
             assert subs in r, subs
 
         # `fvalidate` is a little tricker b/c one of them is custom!
