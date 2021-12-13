@@ -9,7 +9,7 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-from astropy.units import Unit, Quantity
+from astropy.units import Unit, Quantity, StructuredUnit
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -342,6 +342,94 @@ class ColumnInfo(BaseColumnInfo):
     """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
+    # For structured columns, data is used to store a dict of columns.
+    # Store entries in that dict as name.key instead of name.data.key.
+    _represent_as_dict_primary_data = 'data'
+
+    def _represent_as_dict(self):
+        result = super()._represent_as_dict()
+        names = self._parent.dtype.names
+        # For a regular column, we are done, but for a structured
+        # column, we use a SerializedColumns to store the pieces.
+        if names is None:
+            return result
+
+        from .serialize import SerializedColumn
+
+        data = SerializedColumn()
+        # If this column has a StructuredUnit, we split it and store
+        # it on the corresponding part. Otherwise, we just store it
+        # as an attribute below.  All other attributes we remove from
+        # the parts, so that we do not store them multiple times.
+        # (Note that attributes are not linked to the parent, so it
+        # is safe to reset them.)
+        # TODO: deal with (some of) this in Column.__getitem__?
+        # Alternatively: should we store info on the first part?
+        # TODO: special-case format somehow? Can we have good formats
+        # for structured columns?
+        unit = self.unit
+        if isinstance(unit, StructuredUnit) and len(unit) == len(names):
+            units = unit.values()
+            unit = None  # No need to store as an attribute as well.
+        else:
+            units = [None] * len(names)
+        for name, part_unit in zip(names, units):
+            part = self._parent[name]
+            part.unit = part_unit
+            part.description = None
+            part.meta = {}
+            part.format = None
+            data[name] = part
+
+        # Create the attributes required to reconstruct the column.
+        result['data'] = data
+        # Store the shape if needed. Just like scalar data, a structured data
+        # column (e.g. with dtype `f8,i8`) can be multidimensional within each
+        # row and have a shape, and that needs to be distinguished from the
+        # case that each entry in the structure has the same shape (e.g.,
+        # distinguist a column with dtype='f8,i8' and 2 elements per row from
+        # one with dtype '2f8,2i8' and just one element per row).
+        if shape := self._parent.shape[1:]:
+            result['shape'] = list(shape)
+        # Also store the standard info attributes since these are
+        # stored on the parent and can thus just be passed on as
+        # arguments.  TODO: factor out with essentially the same
+        # code in serialize._represent_mixin_as_column.
+        if unit is not None and unit != '':
+            result['unit'] = unit
+        if self.format is not None:
+            result['format'] = format
+        if self.description is not None:
+            result['description'] = self.description
+        if self.meta:
+            result['meta'] = self.meta
+
+        return result
+
+    def _construct_from_dict(self, map):
+        if not isinstance(map.get('data'), dict):
+            return super()._construct_from_dict(map)
+
+        # Reconstruct a structured Column, by first making an empty column
+        # and then filling it with the structured data.
+        data = map.pop('data')
+        shape = tuple(map.pop('shape', ()))
+        # There are three elements in the shape of `part`:
+        # (table length, shape of structured column, shape of part like '3f8')
+        # The column `shape` only includes the second, so by adding one to its
+        # length to include the table length, we pick off a possible last bit.
+        dtype = np.dtype([(name, part.dtype, part.shape[len(shape)+1:])
+                          for name, part in data.items()])
+        units = tuple(col.info.unit for col in data.values())
+        if all(unit is not None for unit in units):
+            map['unit'] = StructuredUnit(units, dtype)
+        map.update(dtype=dtype, shape=shape, length=len(data[dtype.names[0]]))
+        # Construct the empty column from `map` (note: 'data' removed above).
+        result = super()._construct_from_dict(map)
+        # Fill it with the structured data.
+        for name in dtype.names:
+            result[name] = data[name]
+        return result
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
@@ -1277,6 +1365,11 @@ class MaskedColumnInfo(ColumnInfo):
 
     def _represent_as_dict(self):
         out = super()._represent_as_dict()
+        # If we are a structured masked column, then our parent class,
+        # ColumnInfo, will already have set up a dict with masked parts,
+        # which will be serialized later, so no further work needed here.
+        if self._parent.dtype.names is not None:
+            return out
 
         col = self._parent
 

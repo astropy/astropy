@@ -38,6 +38,7 @@ __construct_mixin_classes = (
     'astropy.coordinates.sky_coordinate.SkyCoord',
     'astropy.table.ndarray_mixin.NdarrayMixin',
     'astropy.table.table_helpers.ArrayWrapper',
+    'astropy.table.column.Column',
     'astropy.table.column.MaskedColumn',
     'astropy.coordinates.representation.CartesianRepresentation',
     'astropy.coordinates.representation.UnitSphericalRepresentation',
@@ -57,16 +58,36 @@ __construct_mixin_classes = (
 )
 
 
-class SerializedColumn(dict):
+class SerializedColumnInfo(MixinInfo):
     """
-    Subclass of dict that is a used in the representation to contain the name
-    (and possible other info) for a mixin attribute (either primary data or an
+    Minimal info to allow SerializedColumn to be recognized as a mixin Column.
+
+    Used to help create a dict of columns in ColumnInfo for structured data.
+    """
+    def _represent_as_dict(self):
+        # SerializedColumn is already a `dict`, so we can return it directly.
+        return self._parent
+
+
+class SerializedColumn(dict):
+    """Subclass of dict used to serialize  mixin columns.
+
+    It is used in the representation to contain the name and possible
+    other info for a mixin column or attribute (either primary data or an
     array-like attribute) that is serialized as a column in the table.
 
-    Normally contains the single key ``name`` with the name of the column in the
-    table.
     """
-    pass
+    info = SerializedColumnInfo()
+
+    @property
+    def shape(self):
+        """Minimal shape implementation to allow use as a mixin column.
+
+        Returns the shape of the first item that has a shape at all,
+        or `()` if none of the values has a shape attribute.
+        """
+        return next((value.shape for value in self.values()
+                     if hasattr(value, 'shape')), ())
 
 
 def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
@@ -145,16 +166,19 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')
                                        and np.any(data.mask)) else Column
-            new_cols.append(col_cls(data, name=new_name, **new_info))
-            obj_attrs[data_attr] = SerializedColumn({'name': new_name})
+            data = col_cls(data, name=new_name, **new_info)
             if is_primary:
                 # Don't store info in the __serialized_columns__ dict for this column
                 # since this is redundant with info stored on the new column.
                 info = {}
-        else:
-            # recurse. This will define obj_attrs[new_name].
-            _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
-            obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
+
+        # Recurse. If this is anything that needs further serialization (i.e.,
+        # a Mixin column, a structured Column, a MaskedColumn for which mask is
+        # stored, etc.), it will define obj_attrs[new_name]. Otherwise, it will
+        # just add to new_cols and all we have to do is to link to the new name.
+        _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
+        obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name,
+                                                              {'name': new_name}))
 
     # Strip out from info any attributes defined by the parent,
     # and store whatever remains.
@@ -165,8 +189,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         obj_attrs['__info__'] = info
 
     # Store the fully qualified class name
-    obj_attrs.setdefault('__class__',
-                         col.__module__ + '.' + col.__class__.__name__)
+    if not isinstance(col, SerializedColumn):
+        obj_attrs.setdefault('__class__',
+                             col.__module__ + '.' + col.__class__.__name__)
 
     mixin_cols[name] = obj_attrs
 
@@ -264,17 +289,19 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
 
 
 def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
-    cls_full_name = obj_attrs.pop('__class__')
-
     # If this is a supported class then import the class and run
     # the _construct_from_col method.  Prevent accidentally running
     # untrusted code by only importing known astropy classes.
-    if cls_full_name not in __construct_mixin_classes:
+    cls_full_name = obj_attrs.pop('__class__', None)
+    if cls_full_name is None:
+        cls = SerializedColumn
+    elif cls_full_name not in __construct_mixin_classes:
         raise ValueError(f'unsupported class for construct {cls_full_name}')
+    else:
+        mod_name, cls_name = re.match(r'(.+)\.(\w+)', cls_full_name).groups()
+        module = import_module(mod_name)
+        cls = getattr(module, cls_name)
 
-    mod_name, cls_name = re.match(r'(.+)\.(\w+)', cls_full_name).groups()
-    module = import_module(mod_name)
-    cls = getattr(module, cls_name)
     for attr, value in info.items():
         if attr in cls.info.attrs_from_parent:
             obj_attrs[attr] = value
