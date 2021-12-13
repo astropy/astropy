@@ -38,6 +38,7 @@ __construct_mixin_classes = (
     'astropy.coordinates.sky_coordinate.SkyCoord',
     'astropy.table.ndarray_mixin.NdarrayMixin',
     'astropy.table.table_helpers.ArrayWrapper',
+    'astropy.table.column.Column',
     'astropy.table.column.MaskedColumn',
     'astropy.table.table.Table',
     'astropy.table.table.QTable',
@@ -147,16 +148,18 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')
                                        and np.any(data.mask)) else Column
-            new_cols.append(col_cls(data, name=new_name, **new_info))
-            obj_attrs[data_attr] = SerializedColumn({'name': new_name})
+            data = col_cls(data, name=new_name, **new_info)
             if is_primary:
                 # Don't store info in the __serialized_columns__ dict for this column
                 # since this is redundant with info stored on the new column.
                 info = {}
-        else:
-            # recurse. This will define obj_attrs[new_name].
-            _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
-            obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
+
+        # Recurse. If this is a Mixin, it will define obj_attrs[new_name],
+        # otherwise it will just add to new_cols and all we have to do is
+        # to add the link to the new name.
+        _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
+        obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name,
+                                                              {'name': new_name}))
 
     # Strip out from info any attributes defined by the parent,
     # and store whatever remains.

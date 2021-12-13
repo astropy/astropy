@@ -299,6 +299,8 @@ tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 obj = Column([{'a': 1}, {'b': [2]}], dtype='object')
+su = Column([(1, (1.5, 1.6)),
+             (2, (2.5, 2.6))], dtype=[('i', np.int64), ('f', np.float64, (2,))])
 tab = Table({'tm': tm, 'c': [1, 2], 'x': [3, 4] * u.m})
 qtab = QTable({'tm': tm, 'c': [1, 2], 'x': [3, 4] * u.m})
 
@@ -330,6 +332,7 @@ mixin_cols = {
     'srd': srd,
     'nd': NdarrayMixin([1, 2]),
     'obj': obj,
+    'su': su,
     'tab': tab,
     'qtab': qtab
 }
@@ -367,6 +370,7 @@ compare_attrs = {
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
     'obj': [],
+    'su': ['i', 'f'],
     'tab': ['tm', 'c', 'x'],
     'qtab': ['tm', 'c', 'x'],
 }
@@ -458,6 +462,7 @@ def test_ecsv_mixins_as_one(table_cls):
                         'srd.differentials.s.d_lon_coslat',
                         'srd.differentials.s.d_lat',
                         'srd.differentials.s.d_distance',
+                        'su.i', 'su.f',
                         'tab.tm',
                         'tab.c',
                         'tab.x',

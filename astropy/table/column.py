@@ -9,7 +9,7 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-from astropy.units import Unit, Quantity
+from astropy.units import Unit, Quantity, StructuredUnit
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -343,6 +343,65 @@ class ColumnInfo(BaseColumnInfo):
     """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
+    # For structured columns, data is used to store a list of columns.
+    # Store that list as name.key instead of name.data.key.
+    _represent_as_dict_primary_data = 'data'
+
+    def _represent_as_dict(self):
+        result = super()._represent_as_dict()
+        if names := self._parent.dtype.names:
+            from .table import Table
+
+            # To serialize the columns, we turn them into a table.
+            table = Table()
+            su = self.unit
+            has_su = isinstance(su, StructuredUnit) and su.keys() == names
+            for name in names:
+                part = self._parent[name]
+                # Try to give correct unit.
+                # TODO: deal with this in Column.__getitem__?
+                part.unit = su[name] if has_su else su
+                # Strip common info from the part, so we store it only once.
+                # TODO: should it be on the first part?
+                part.description = None
+                part.meta = {}
+                part.format = None  # TODO!!
+                table[name] = part
+
+            result['data'] = table
+            # Store the shape if needed to distinguish, e.g., a column
+            # with dtype '2f8,2i8' and just one element per row from a
+            # column with dtype with 'f8,i8' and 2 elements per row.
+            if shape := self._parent.shape[1:]:
+                result['shape'] = list(shape)
+            # Also store the standard info attributes since these are
+            # stored on the parent and can thus just be passed on as
+            # arguments.  TODO: factor out with essentially the same
+            # code in serialize._represent_mixin_as_column.
+            if su is not None and su != '':
+                result['unit'] = su
+            if self.format is not None:
+                result['format'] = format
+            if self.description is not None:
+                result['description'] = self.description
+            if self.meta:
+                result['meta'] = self.meta
+
+        return result
+
+    def _construct_from_dict(self, map):
+        if not hasattr(map.get('data', None), 'items'):
+            return super()._construct_from_dict(map)
+
+        data = map.pop('data')
+        shape = tuple(map.pop('shape', ()))
+        dtype = np.dtype([(name, part.dtype, part.shape[len(shape)+1:])
+                          for name, part in data.items()])
+        map.update(dtype=dtype, shape=shape, length=len(data))
+        result = super()._construct_from_dict(map)
+        for name in dtype.names:
+            result[name] = data[name]
+        return result
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
@@ -1265,6 +1324,8 @@ class MaskedColumnInfo(ColumnInfo):
 
     def _represent_as_dict(self):
         out = super()._represent_as_dict()
+        if self._parent.dtype.names:
+            return out
 
         col = self._parent
 
