@@ -101,8 +101,6 @@ compare_attrs = {
             'differentials.s.d_lat', 'differentials.s.d_distance'],
     'obj': [],
     'su': ['i', 'f'],
-    'tab': ['tm', 'c', 'x'],
-    'qtab': ['tm', 'c', 'x'],
 }
 non_trivial_names = {
     'cr': ['cr.x', 'cr.y', 'cr.z'],

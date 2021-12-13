@@ -25,7 +25,7 @@ from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
 from astropy.io import ascii
 from astropy import units as u
 
-from astropy.io.tests.mixin_columns import mixin_cols, compare_attrs
+from astropy.io.tests.mixin_columns import mixin_cols, compare_attrs, serialized_names
 from .common import TEST_DIR
 
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
@@ -322,41 +322,15 @@ def test_ecsv_mixins_qtable_to_table():
 def test_ecsv_mixins_as_one(table_cls):
     """Test write/read all cols at once and validate intermediate column names"""
     names = sorted(mixin_cols)
-
-    serialized_names = ['ang',
-                        'cr.x', 'cr.y', 'cr.z',
-                        'dt',
-                        'el.x', 'el.y', 'el.z',
-                        'lat',
-                        'lon',
-                        'nd',
-                        'obj',
-                        'qdb',
-                        'qdex',
-                        'qmag',
-                        'sc.ra', 'sc.dec',
-                        'scd.ra', 'scd.dec', 'scd.distance',
-                        'scd.obstime',
-                        'scdc.x', 'scdc.y', 'scdc.z',
-                        'scdc.obstime',
-                        'scpm.ra', 'scpm.dec', 'scpm.distance',
-                        'scpm.pm_ra_cosdec', 'scpm.pm_dec',
-                        'scpmrv.ra', 'scpmrv.dec', 'scpmrv.distance',
-                        'scpmrv.pm_ra_cosdec', 'scpmrv.pm_dec',
-                        'scpmrv.radial_velocity',
-                        'scrv.ra', 'scrv.dec', 'scrv.distance',
-                        'scrv.radial_velocity',
-                        'sd.d_lon_coslat', 'sd.d_lat', 'sd.d_distance',
-                        'sr.lon', 'sr.lat', 'sr.distance',
-                        'srd.lon', 'srd.lat', 'srd.distance',
-                        'srd.differentials.s.d_lon_coslat',
-                        'srd.differentials.s.d_lat',
-                        'srd.differentials.s.d_distance',
-                        'tm',  # serialize_method is formatted_value
-                        'tm2',  # serialize_method is formatted_value
-                        'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2
-                        'tm3.location.x', 'tm3.location.y', 'tm3.location.z',
-                        'x']
+    all_serialized_names = []
+    # ECSV stores times as value by default, so we just get the column back.
+    # One exception is tm3, which is set to serialize via jd1 and jd2.
+    for name in names:
+        s_names = serialized_names[name]
+        if not name.startswith('tm3'):
+            s_names = [s_name.replace('.jd1', '') for s_name in s_names
+                       if not s_name.endswith('jd2')]
+        all_serialized_names.extend(s_names)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
 
@@ -368,7 +342,7 @@ def test_ecsv_mixins_as_one(table_cls):
 
     # Read as a ascii.basic table (skip all the ECSV junk)
     t3 = table_cls.read(out.getvalue(), format='ascii.basic')
-    assert t3.colnames == serialized_names
+    assert t3.colnames == all_serialized_names
 
 
 def make_multidim(col, ndim):
