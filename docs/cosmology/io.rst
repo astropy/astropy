@@ -179,8 +179,8 @@ the |Planck18| cosmology from which it was created.
 
     >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
     >>> cosmo
-    FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                  Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
 Perhaps more usefully, |QTable| can be saved to ``latex`` and ``html`` formats,
 which can be copied into journal articles and websites, respectively.
