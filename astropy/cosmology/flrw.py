@@ -286,6 +286,11 @@ class FLRW(Cosmology):
     # properties
 
     @property
+    def Otot0(self):
+        """Omega total; the total density/critical density at z=0."""
+        return self._Om0 + self._Ogamma0 + self._Onu0 + self._Ode0 + self._Ok0
+
+    @property
     def Odm0(self):
         """Omega dark matter; dark matter density/critical density at z=0."""
         return self._Odm0
@@ -364,6 +369,22 @@ class FLRW(Cosmology):
         This must be overridden by subclasses.
         """
         raise NotImplementedError("w(z) is not implemented")
+
+    def Otot(self, z):
+        """The total density parameter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+            Input redshifts.
+
+        Returns
+        -------
+        Otot : ndarray or float
+            The total density relative to the critical density at each redshift.
+            Returns float if input scalar.
+        """
+        return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
     def Om(self, z):
         """
@@ -1432,6 +1453,26 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
+
+    @property
+    def Otot0(self):
+        """Omega total; the total density/critical density at z=0."""
+        return 1.0
+
+    def Otot(self, z):
+        """The total density parameter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like, or `~numbers.Number`
+            Input redshifts.
+
+        Returns
+        -------
+        Otot : ndarray or float
+            Returns float if input scalar. Value of 1.
+        """
+        return 1.0 if isinstance(z, (Number, np.generic)) else np.ones_like(z, subok=False)
 
     def __equiv__(self, other):
         """flat-FLRW equivalence. Use ``.is_equivalent()`` for actual check!

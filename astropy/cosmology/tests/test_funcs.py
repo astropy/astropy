@@ -228,7 +228,7 @@ def test_z_at_value_roundtrip(cosmo):
     # special handling
     # clone is not a redshift-dependent method
     # nu_relative_density is not redshift-dependent in the WMAP cosmologies
-    skip = ('Ok',
+    skip = ('Ok', 'Otot',
             'angular_diameter_distance_z1z2',
             'clone', 'is_equivalent',
             'de_density_scale', 'w')
