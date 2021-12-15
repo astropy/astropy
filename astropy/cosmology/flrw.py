@@ -730,10 +730,8 @@ class FLRW(Cosmology):
         It is not necessary to override this method, but if de_density_scale
         takes a particularly simple form, it may be advantageous to.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
@@ -754,10 +752,8 @@ class FLRW(Cosmology):
             Returns `float` if the input is scalar.
         """
         # Avoid the function overhead by repeating code
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
@@ -2011,10 +2007,8 @@ class LambdaCDM(FLRW):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)
@@ -2034,10 +2028,8 @@ class LambdaCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)**(-0.5)
@@ -2138,10 +2130,8 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)
@@ -2161,10 +2151,8 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
         return (zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)**(-0.5)
 
@@ -2319,10 +2307,8 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
@@ -2343,10 +2329,8 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
@@ -2451,10 +2435,8 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return np.sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) +
@@ -2475,10 +2457,8 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
+        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
+                              else self._Ogamma0 * self.nu_relative_density(z))
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
         return (zp1 ** 3 * (Or * zp1 + self._Om0) +
