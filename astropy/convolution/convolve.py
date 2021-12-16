@@ -102,7 +102,7 @@ def _next_fast_lengths(shape):
 
 
 def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
-                          mask=None, fill_value=None, nparray=np.array):
+                          mask=None, fill_value=None, npa=np):
     # Alias input
     input = input.array if isinstance(input, Kernel) else input
     # strip quantity attributes
@@ -123,12 +123,12 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
                 # ``float`` masked arrays. ``subok=True`` is needed to retain
                 # ``np.ma.maskedarray.filled()``. ``copy=False`` allows the fill
                 # to act as the copy if type and order are already correct.
-                output = nparray(input, dtype=dtype, copy=False, order=order, subok=True)
+                output = npa.array(input, dtype=dtype, copy=False, order=order, subok=True)
                 output = output.filled(fill_value)
             else:
                 # Since we're making a copy, we might as well use `subok=False` to save,
                 # what is probably, a negligible amount of memory.
-                output = nparray(input, dtype=dtype, copy=True, order=order, subok=False)
+                output = npa.array(input, dtype=dtype, copy=True, order=order, subok=False)
 
             if mask is not None:
                 # mask != 0 yields a bool mask for all ints/floats/bool
@@ -138,7 +138,7 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
             # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass. If it
             # is and `subok=False` (default), then it will copy even if `copy=False`. This uses less memory
             # when ndarray subclasses are passed in.
-            output = nparray(input, dtype=dtype, copy=False, order=order, subok=True)
+            output = npa.array(input, dtype=dtype, copy=False, order=order, subok=True)
     except (TypeError, ValueError) as e:
         raise TypeError('input should be a Numpy array or something '
                         'convertible into a float array', e)
@@ -444,7 +444,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=complex, dealias=False, nparray=np.array):
+                 complex_dtype=complex, dealias=False, npa=np):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -690,12 +690,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                          f"Use allow_huge=True to override this exception.")
 
     # NaN and inf catching
-    nanmaskarray = np.isnan(array) | np.isinf(array)
+    nanmaskarray = npa.isnan(array) | npa.isinf(array)
     if nan_treatment == 'fill':
         array[nanmaskarray] = fill_value
     else:
         array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
+    nanmaskkernel = npa.isnan(kernel) | npa.isinf(kernel)
     kernel[nanmaskkernel] = 0
 
     if normalize_kernel is True:
@@ -761,7 +761,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # Add shapes elementwise for psf_pad.
     if psf_pad:  # default=False
         # add the sizes along each dimension (bigger)
-        newshape = nparray(arrayshape) + nparray(kernshape)
+        newshape = np.array(arrayshape) + np.array(kernshape)
     else:
         # take the larger shape in each dimension (smaller)
         newshape = np.maximum(arrayshape, kernshape)
@@ -811,15 +811,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     if not np.all(newshape == arrayshape):
         if np.isfinite(fill_value):
-            bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+            bigarray = npa.ones(newshape, dtype=complex_dtype) * fill_value
         else:
-            bigarray = np.zeros(newshape, dtype=complex_dtype)
+            bigarray = npa.zeros(newshape, dtype=complex_dtype)
         bigarray[arrayslices] = array
     else:
         bigarray = array
 
     if not np.all(newshape == kernshape):
-        bigkernel = np.zeros(newshape, dtype=complex_dtype)
+        bigkernel = npa.zeros(newshape, dtype=complex_dtype)
         bigkernel[kernslices] = normalized_kernel
     else:
         bigkernel = normalized_kernel
@@ -832,9 +832,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     interpolate_nan = (nan_treatment == 'interpolate')
     if interpolate_nan:
         if not np.isfinite(fill_value):
-            bigimwt = np.zeros(newshape, dtype=complex_dtype)
+            bigimwt = npa.zeros(newshape, dtype=complex_dtype)
         else:
-            bigimwt = np.ones(newshape, dtype=complex_dtype)
+            bigimwt = npa.ones(newshape, dtype=complex_dtype)
 
         bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
         wtfft = fftn(bigimwt)
@@ -848,7 +848,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         bigimwt = 1
 
-    if np.isnan(fftmult).any():
+    if npa.isnan(fftmult).any():
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
