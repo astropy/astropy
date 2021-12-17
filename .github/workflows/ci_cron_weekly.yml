@@ -72,7 +72,7 @@ jobs:
     # we include them just in the weekly cron. These also serve as a test
     # of using system libraries and using pytest directly.
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     name: Python 3.9
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
