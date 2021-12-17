@@ -286,6 +286,11 @@ class FLRW(Cosmology):
     # properties
 
     @property
+    def is_flat(self):
+        """Return bool; `True` if the cosmology is flat."""
+        return bool((self._Ok0 == 0.0) and (self.Otot0 == 1.0))
+
+    @property
     def Otot0(self):
         """Omega total; the total density/critical density at z=0."""
         return self._Om0 + self._Ogamma0 + self._Onu0 + self._Ode0 + self._Ok0
@@ -1502,11 +1507,10 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # check all parameters in other match those in 'self' and 'other' has
         # no extra parameters (case (2)) except for 'Ode0' and that other
         params_eq = (
-            set(self.__all_parameters__) == set(other.__all_parameters__) # no extra params
-            and all(np.all(getattr(self, k) == getattr(other, k))  # params equal
-                    for k in self.__all_parameters__)
-            # flatness conditions
-            and other.Ok0 == 0.0  # `Ode0` is checked in __all_parameters__
+            set(self.__all_parameters__) == set(other.__all_parameters__) # no extra
+            and all(np.all(getattr(self, k) == getattr(other, k))  # equal
+                    for k in self.__parameters__)
+            and other.is_flat
         )
 
         return params_eq

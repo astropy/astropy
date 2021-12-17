@@ -77,6 +77,10 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
                 self.Tcmb0 = Tcmb0
                 self.m_nu = m_nu
 
+            @property
+            def is_flat(self):
+                return super().is_flat()
+
         self.cls = SubCosmology
         self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV)
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
@@ -153,6 +157,11 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # immutable
         with pytest.raises(AttributeError, match="can't set"):
             cosmo.name = None
+
+    def test_is_flat(self, cosmo_cls, cosmo):
+        """Test property ``is_flat``. It's an ABC."""
+        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
+            cosmo.is_flat
 
     # ------------------------------------------------
     # clone
@@ -309,12 +318,35 @@ class CosmologySubclassTest(TestCosmology):
         """Setup for testing."""
         pass
 
+    # ===============================================================
+    # Method & Attribute Tests
+
+    # ---------------------------------------------------------------
+    # instance-level
+
+    @abc.abstractmethod
+    def test_is_flat(self, cosmo_cls, cosmo):
+        """Test property ``is_flat``."""
+
 
 # -----------------------------------------------------------------------------
 
 
 class FlatCosmologyMixinTest:
-    """Test :class:`astropy.cosmology.core.FlatCosmologyMixin`."""
+    """Tests for :class:`astropy.cosmology.core.FlatCosmologyMixin` subclasses.
+
+    E.g to use this class::
+
+        class TestFlatSomeCosmology(FlatCosmologyMixinTest, TestSomeCosmology):
+            ...
+    """
+
+    def test_is_flat(self, cosmo_cls, cosmo):
+        """Test property ``is_flat``."""
+        super().test_is_flat(cosmo_cls, cosmo)
+
+        # it's always True
+        assert cosmo.is_flat is True
 
     def test_is_equivalent(self, cosmo):
         """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.

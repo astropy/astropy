@@ -489,6 +489,16 @@ class TestFLRW(CosmologyTest,
         assert cosmo.Ok0 is cosmo._Ok0
         assert np.allclose(cosmo.Ok0, 1.0 - (cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0))
 
+    def test_is_flat(self, cosmo_cls, cosmo):
+        """Test property ``is_flat``."""
+        # on the class
+        assert isinstance(cosmo_cls.is_flat, property)
+        assert cosmo_cls.is_flat.fset is None  # immutable
+
+        # on the instance
+        assert isinstance(cosmo.is_flat, bool)
+        assert cosmo.is_flat is bool((cosmo.Ok0 == 0.0) and (cosmo.Otot0 == 1.0))
+
     def test_Tnu0(self, cosmo_cls, cosmo):
         """Test property ``Tnu0``."""
         # on the class
@@ -758,7 +768,13 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
 
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
-    """Tests for :class:`astropy.cosmology.FlatFLRWMixin`."""
+    """Tests for :class:`astropy.cosmology.FlatFLRWMixin` subclasses.
+
+    E.g to use this class::
+
+        class TestFlatSomeFLRW(FlatFLRWMixinTest, TestSomeFLRW):
+            ...
+    """
 
     # ---------------------------------------------------------------
     # class-level
@@ -798,7 +814,6 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         assert cosmo.Otot0 == 1.0
 
-    @pytest.mark.skipif(HAS_SCIPY, reason="scipy is not installed")
     def test_Otot(self, cosmo):
         """Test :meth:`astropy.cosmology.FLRW.Otot`. Should always be 1."""
         super().test_Otot(cosmo)
