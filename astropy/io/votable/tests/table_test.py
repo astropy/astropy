@@ -12,7 +12,7 @@ import numpy as np
 from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
-from astropy.io.votable import tree, conf
+from astropy.io.votable import tree, conf, validate
 from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
@@ -222,6 +222,20 @@ def test_binary2_masked_strings():
     assert not np.any(table.array.mask['epoch_photometry_url'])
     output = io.BytesIO()
     astropy_table.write(output, format='votable')
+
+
+def test_validate_output_type():
+    """
+    Issue #12603
+    """
+    votable_filepath = get_pkg_data_filename('data/regression.xml')
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(votable_filepath, output=None)
+    assert type(validate_out) == str
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(votable_filepath)
+    assert type(validate_out) == bool
 
 
 class TestVerifyOptions:
