@@ -42,8 +42,16 @@ class ToFromModelTestMixin(IOTestMixinBase):
     @pytest.fixture
     def method_name(self, cosmo):
         # get methods, ignoring private and dunder
-        methods = {n for n in dir(cosmo)
-                   if (callable(getattr(cosmo, n)) and not n.startswith("_"))}
+        methods = set()
+        for n in dir(cosmo):
+            try:  # get method, some will error on ABCs
+                m = getattr(cosmo, n)
+            except NotImplementedError:
+                continue
+
+            if callable(m) and not n.startswith("_"):
+                methods.add(n)
+
         # sieve out incompatible methods
         for n in tuple(methods):
             # remove non-introspectable methods
