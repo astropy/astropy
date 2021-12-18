@@ -12,6 +12,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
 from astropy.tests.helper import pickle_protocol, check_pickling_recovery
+from astropy.utils.compat import NUMPY_LT_1_21_1
 from astropy.utils.masked import Masked
 
 
@@ -209,6 +210,7 @@ class TestStructuredUnitsCopyPickle(StructuredTestBaseWithUnits):
         assert su_copy == self.pv_t_unit
         assert su_copy._units is not self.pv_t_unit._units
 
+    @pytest.mark.skipif(NUMPY_LT_1_21_1, reason="https://stackoverflow.com/q/69571643")
     def test_pickle(self, pickle_protocol):
         check_pickling_recovery(self.pv_t_unit, pickle_protocol)
 
