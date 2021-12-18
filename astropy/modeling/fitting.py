@@ -34,6 +34,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecated
 from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
@@ -315,7 +316,7 @@ class Fitter(metaclass=_FitterMeta):
         """
         model = args[0]
         meas = args[-1]
-        _fitter_to_model_params(model, fps)
+        fitter_to_model_params(model, fps)
         res = self._stat_method(meas, model, *args[1:-1])
         return res
 
@@ -532,7 +533,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         model_copy = model.copy()
         model_copy.sync_constraints = False
-        _, fitparam_indices = _model_to_fit_params(model_copy)
+        _, fitparam_indices = model_to_fit_params(model_copy)
 
         if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
@@ -768,7 +769,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lacoef /= scl[:, np.newaxis] if scl.ndim < rhs.ndim else scl
         self.fit_info['params'] = lacoef
 
-        _fitter_to_model_params(model_copy, lacoef.flatten())
+        fitter_to_model_params(model_copy, lacoef.flatten())
 
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
@@ -1075,7 +1076,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         model = args[0]
         weights = args[1]
-        _fitter_to_model_params(model, fps)
+        fitter_to_model_params(model, fps)
         meas = args[-1]
         if weights is None:
             return np.ravel(model(*args[2: -1]) - meas)
@@ -1150,12 +1151,12 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             dfunc = None
         else:
             dfunc = self._wrap_deriv
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
         fitparams, cov_x, dinfo, mess, ierr = optimize.leastsq(
             self.objective_function, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_fit_deriv, maxfev=maxiter, epsfcn=epsilon,
             xtol=acc, full_output=True)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
         self.fit_info['cov_x'] = cov_x
         self.fit_info['message'] = mess
@@ -1197,7 +1198,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         if any(model.fixed.values()) or any(model.tied.values()):
             # update the parameters with the current values from the fitter
-            _fitter_to_model_params(model, params)
+            fitter_to_model_params(model, params)
             if z is None:
                 full = np.array(model.fit_deriv(x, *model.parameters))
                 if not model.col_fit_deriv:
@@ -1310,10 +1311,10 @@ class SLSQPLSQFitter(Fitter):
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
 
         model_copy.sync_constraints = True
         return model_copy
@@ -1378,11 +1379,11 @@ class SimplexLSQFitter(Fitter):
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
-        init_values, _ = _model_to_fit_params(model_copy)
+        init_values, _ = model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
         model_copy.sync_constraints = True
         return model_copy
 
@@ -1409,14 +1410,14 @@ class JointFitter(metaclass=_FitterMeta):
         self.initvals = list(initvals)
         self.jointparams = jointparameters
         self._verify_input()
-        self.fitparams = self._model_to_fit_params()
+        self.fitparams = self.model_to_fit_params()
 
         # a list of model.n_inputs
         self.modeldims = [m.n_inputs for m in self.models]
         # sum all model dimensions
         self.ndim = np.sum(self.modeldims)
 
-    def _model_to_fit_params(self):
+    def model_to_fit_params(self):
         fparams = []
         fparams.extend(self.initvals)
         for model in self.models:
@@ -1593,13 +1594,13 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # its own versions of these)
 # TODO: Most of this code should be entirely rewritten; it should not be as
 # inefficient as it is.
-def _fitter_to_model_params(model, fps):
+def fitter_to_model_params(model, fps):
     """
     Constructs the full list of model parameters from the fitted and
     constrained parameters.
     """
 
-    _, fit_param_indices = _model_to_fit_params(model)
+    _, fit_param_indices = model_to_fit_params(model)
 
     has_tied = any(model.tied.values())
     has_fixed = any(model.fixed.values())
@@ -1656,7 +1657,12 @@ def _fitter_to_model_params(model, fps):
                 model._array_to_parameters()
 
 
-def _model_to_fit_params(model):
+@deprecated('5.1', 'private method: _fitter_to_model_params has been made public now')
+def _fitter_to_model_params(model, fps):
+    return fitter_to_model_params(model, fps)
+
+
+def model_to_fit_params(model):
     """
     Convert a model instance's parameter array to an array that can be used
     with a fitter that doesn't natively support fixed or tied parameters.
@@ -1677,6 +1683,11 @@ def _model_to_fit_params(model):
                 del fitparam_indices[idx]
         return (np.array(params), fitparam_indices)
     return (model.parameters, fitparam_indices)
+
+
+@deprecated('5.1', 'private method: _model_to_fit_params has been made public now')
+def _model_to_fit_params(model):
+    return model_to_fit_params(model)
 
 
 def _validate_constraints(supported_constraints, model):
