@@ -328,15 +328,20 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     for name in data_attrs_map.values():
         del obj_attrs[name]
 
-    # Get the index where to add new column
-    idx = min(out.colnames.index(name) for name in data_attrs_map)
+    # YAML maps order alphabetically by key, while python code may expect
+    # the order in which the data were stored, so use the order in which the
+    # attributes appear in the serialized parts.
+    names = sorted(data_attrs_map, key=out.colnames.index)
+    # Similarly, we keep the index where to add new column, so that
+    # the output table keeps order as well.
+    idx = out.colnames.index(names[0])
 
     # Name is the column name in the table (e.g. "coord.ra") and
     # data_attr is the object attribute name  (e.g. "ra").  A different
     # example would be a formatted time object that would have (e.g.)
     # "time_col" and "value", respectively.
-    for name, data_attr in data_attrs_map.items():
-        obj_attrs[data_attr] = out[name]
+    for name in names:
+        obj_attrs[data_attrs_map[name]] = out[name]
         del out[name]
 
     info = obj_attrs.pop('__info__', {})
