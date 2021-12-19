@@ -132,22 +132,9 @@ class Row:
         cols = self._table.columns.values()
         vals = tuple(np.asarray(col)[index] for col in cols)
         if self._table.masked:
-            # The logic here is a little complicated to work around
-            # bug in numpy < 1.8 (numpy/numpy#483).  Need to build up
-            # a np.ma.mvoid object by hand.
-            from .table import descr
-
-            # Make np.void version of masks.  Use the table dtype but
-            # substitute bool for data type
-            masks = tuple(col.mask[index] if hasattr(col, 'mask') else False
-                          for col in cols)
-            descrs = (descr(col) for col in cols)
-            mask_dtypes = [(name, bool, shape) for name, type_, shape in descrs]
-            row_mask = np.array([masks], dtype=mask_dtypes)[0]
-
-            # Make np.void version of values, and then the final mvoid row
-            row_vals = np.array([vals], dtype=self.dtype)[0]
-            void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
+            mask = tuple(col.mask[index] if hasattr(col, 'mask') else False
+                         for col in cols)
+            void_row = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
         else:
             void_row = np.array([vals], dtype=self.dtype)[0]
         return void_row
