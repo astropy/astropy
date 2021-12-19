@@ -260,6 +260,8 @@ class Quantity(np.ndarray):
         hold the value.  If not provided, it is determined from the input,
         except that any integer and (non-Quantity) object inputs are converted
         to float by default.
+        If `None`, the normal `numpy.dtype` introspection is used, e.g.
+        preventing upcasting of integers.
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy will
@@ -403,12 +405,19 @@ class Quantity(np.ndarray):
         # TODO: ensure we do interact with NDArray.__class_getitem__.
         return Annotated.__class_getitem__((cls, unit))
 
-    def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
+    def __new__(cls, value, unit=None, dtype=np.floating, copy=True, order=None,
                 subok=False, ndmin=0):
 
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
+
+        # floating -> upcast to float dtype
+        if dtype is np.floating:
+            dtype = None
+            odtype = np.floating
+        else:
+            odtype = None
 
         # optimize speed for Quantity with no dtype given, copy=False
         if isinstance(value, Quantity):
@@ -421,7 +430,7 @@ class Quantity(np.ndarray):
                                                isinstance(value, cls)):
                 value = value.view(cls)
 
-            if dtype is None and value.dtype.kind in 'iu':
+            if dtype is None and value.dtype.kind in 'iu' and odtype is np.floating:
                 dtype = float
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
@@ -510,7 +519,7 @@ class Quantity(np.ndarray):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and value.dtype.kind in 'iuO':
+        if dtype is None and value.dtype.kind in 'iuO' and odtype is np.floating:
             value = value.astype(float)
 
         # if we allow subclasses, allow a class from the unit.

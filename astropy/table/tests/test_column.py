@@ -423,6 +423,16 @@ class TestColumn():
         with pytest.raises(AttributeError):
             t['a'].mask = [True, False]
 
+    def test_numpy_style_dtype_inspect(self, Column):
+        """Test that if ``dtype=Ellipsis``, NumPy's dtype inspection is used."""
+        q1 = Column([1, 2], dtype=None)
+        assert np.issubdtype(q1.dtype, np.integer)
+
+        q2 = Column([1, 2], dtype=...)
+        assert np.issubdtype(q2.dtype, np.integer)
+
+        assert q1.dtype == q2.dtype
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

@@ -286,9 +286,11 @@ def resolve_fractions(a, b):
     return a, b
 
 
-def quantity_asanyarray(a, dtype=None):
+def quantity_asanyarray(a, dtype=np.floating):
     from .quantity import Quantity
     if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
         return Quantity(a, dtype=dtype)
     else:
+        # skip over floating64-related deprecation.
+        dtype = dtype if dtype is not np.floating else np.float64
         return np.asanyarray(a, dtype=dtype)
