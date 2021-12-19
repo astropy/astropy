@@ -1072,7 +1072,7 @@ class Table:
         Coercion to a different dtype via np.array(table, dtype) is not
         supported and will raise a ValueError.
         """
-        if dtype is not None:
+        if dtype is not None and dtype != self.dtype:
             raise ValueError('Datatype coercion is not allowed')
 
         # This limitation is because of the following unexpected result that
@@ -2051,6 +2051,14 @@ class Table:
             # Get the first column name
             self._first_colname = next(iter(self.columns))
             return len(self.columns[self._first_colname])
+
+    @property
+    def shape(self):
+        """The shape of the table - a single-element tuple with the length.
+
+        This exists mostly for use of a table as a mixin column.
+        """
+        return (len(self),)
 
     def index_column(self, name):
         """

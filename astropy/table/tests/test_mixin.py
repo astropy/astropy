@@ -831,6 +831,16 @@ def test_primary_data_column_gets_description():
     assert tser['a'].description == 'parrot'
 
 
+@pytest.mark.parametrize('table_types', (Table, QTable))
+def test_table_as_mixin(table_types):
+    t = table_types({'a': [1, 2] * u.m, 'b': ['a', 'b']})
+    t['t'] = t
+    tser = serialize.represent_mixins_as_columns(t)
+    assert list(tser.columns.keys()) == ['a', 'b', 't.a', 't.b']
+    trec = serialize._construct_mixins_from_columns(tser)
+    assert np.all(trec == t)
+
+
 def test_skycoord_with_velocity():
     # Regression test for gh-6447
     sc = SkyCoord([1], [2], unit='deg', galcen_v_sun=None)

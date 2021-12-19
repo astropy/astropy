@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from inspect import isclass
 
 import numpy as np
-from astropy.utils.data_info import DataInfo
+from astropy.utils.data_info import ParentDtypeInfo
 
 __all__ = ['table_info', 'TableInfo', 'serialize_method_as']
 
@@ -116,11 +116,22 @@ def table_info(tbl, option='attributes', out=''):
     out.writelines(outline + os.linesep for outline in outlines)
 
 
-class TableInfo(DataInfo):
+class TableInfo(ParentDtypeInfo):
     def __call__(self, option='attributes', out=''):
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
+
+    def _represent_as_dict(self):
+        return dict(self._parent.columns)
+
+    def _construct_from_dict(self, map):
+        return super()._construct_from_dict({'data': map})
+
+    @staticmethod
+    def default_format(val):
+        return val.table[val.index:val.index+1].pformat(
+            max_width=-1, show_name=False, show_unit=False, show_dtype=False)[0]
 
 
 @contextmanager

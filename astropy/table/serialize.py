@@ -39,6 +39,8 @@ __construct_mixin_classes = (
     'astropy.table.ndarray_mixin.NdarrayMixin',
     'astropy.table.table_helpers.ArrayWrapper',
     'astropy.table.column.MaskedColumn',
+    'astropy.table.table.Table',
+    'astropy.table.table.QTable',
     'astropy.coordinates.representation.CartesianRepresentation',
     'astropy.coordinates.representation.UnitSphericalRepresentation',
     'astropy.coordinates.representation.RadialRepresentation',
