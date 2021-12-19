@@ -299,6 +299,8 @@ tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 obj = Column([{'a': 1}, {'b': [2]}], dtype='object')
+tab = Table({'tm': tm, 'c': [1, 2], 'x': [3, 4] * u.m})
+qtab = QTable({'tm': tm, 'c': [1, 2], 'x': [3, 4] * u.m})
 
 # NOTE: in the test below the name of the column "x" for the Quantity is
 # important since it tests the fix for #10215 (namespace clash, where "x"
@@ -327,7 +329,9 @@ mixin_cols = {
     'sd': sd,
     'srd': srd,
     'nd': NdarrayMixin([1, 2]),
-    'obj': obj
+    'obj': obj,
+    'tab': tab,
+    'qtab': qtab
 }
 
 time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
@@ -362,7 +366,9 @@ compare_attrs = {
     'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
-    'obj': []
+    'obj': [],
+    'tab': ['tm', 'c', 'x'],
+    'qtab': ['tm', 'c', 'x'],
 }
 
 
@@ -433,6 +439,7 @@ def test_ecsv_mixins_as_one(table_cls):
                         'qdb',
                         'qdex',
                         'qmag',
+                        'qtab.tm', 'qtab.c', 'qtab.x',
                         'sc.ra', 'sc.dec',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime',
@@ -451,6 +458,9 @@ def test_ecsv_mixins_as_one(table_cls):
                         'srd.differentials.s.d_lon_coslat',
                         'srd.differentials.s.d_lat',
                         'srd.differentials.s.d_distance',
+                        'tab.tm',
+                        'tab.c',
+                        'tab.x',
                         'tm',  # serialize_method is formatted_value
                         'tm2',  # serialize_method is formatted_value
                         'tm3.jd1', 'tm3.jd2',    # serialize is jd1_jd2
@@ -486,7 +496,8 @@ def make_multidim(col, ndim):
     return col
 
 
-@pytest.mark.parametrize('name_col', list(mixin_cols.items()))
+@pytest.mark.parametrize('name_col', [(name, col) for name, col in mixin_cols.items()
+                                      if not isinstance(col, Table)])
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 @pytest.mark.parametrize('ndim', (1, 2, 3))
 def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
