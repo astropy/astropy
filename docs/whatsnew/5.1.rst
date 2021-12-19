@@ -7,6 +7,17 @@ What's New in Astropy 5.1?
 Overview
 ========
 
+.. _whatsnew-5.0-cosmology:
+
+Updates to ``Cosmology``
+========================
+
+:class:`~astropy.cosmology.Cosmology` is now an abstract base class,
+and subclasses must override the abstract property ``is_flat``.
+For :class:`~astropy.cosmology.FLRW`, ``is_flat`` checks that ``Ok0=0`` and
+``Omtot0=1``.
+
+
 Full change log
 ===============
 
