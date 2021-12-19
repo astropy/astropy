@@ -34,13 +34,12 @@ About the Units
 Cosmological Redshift and Dimensionless Equivalency
 ---------------------------------------------------
 
-There are numerous measures of distance in cosmology -- luminosities,
-CMB temperature, the universe's age, etc. -- but redshift is the principal
-measure from which others are defined. In cosmology, distance measures are
-commonly exasperating to follow in a derivation, because they are used
-so interchangeably. ``astropy`` provides the ``redshift`` unit and associated
-equivalencies to assist in these derivations by providing a way to convert
-to/from redshift "units".
+There are numerous measures of distance in cosmology -- luminosities, CMB
+temperature, the universe's age, etc. -- but redshift is the principal measure
+from which others are defined. In cosmology, distance measures are commonly
+exasperating to follow in a derivation, because they are used interchangeably.
+``astropy`` provides the ``redshift`` unit and associated equivalencies to
+assist in these derivations and unify the distance measures.
 
 Examples
 ^^^^^^^^
@@ -116,7 +115,7 @@ so too will the conversions.
     <Quantity 3303. K>
 
 If no argument is given (or the argument is `None`), this equivalency assumes
-the current default :class:`~astropy.cosmology.Cosmology`:
+the current default |Cosmology|:
 
     >>> z.to(u.K, cu.with_redshift())
     <Quantity 3000.7755 K>
@@ -169,7 +168,7 @@ literature as just ``h``, here it is ``littleh`` to avoid confusion with
 "hours."
 
 If no argument is given (or the argument is `None`), this equivalency assumes
-the ``H0`` from the current default :class:`~astropy.cosmology.Cosmology`:
+the ``H0`` from the current default |Cosmology|:
 
 .. code-block:: python
 
