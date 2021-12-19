@@ -352,9 +352,12 @@ class MaskedNDArrayInfo(MaskedInfoBase, ParentDtypeInfo):
         return out
 
     def _construct_from_dict(self, map):
-        # 'data' may be a Column or a MaskedColumn.  In the former case,
-        # there will also be a 'mask'.
-        return Masked(map.pop('data').data, mask=map.pop('mask', None))
+        # Override usual handling, since MaskedNDArray takes shape and buffer
+        # as input, which is less useful here.
+        # The map can contain either a MaskedColumn or a Column and a mask.
+        # Extract the mask for the former case.
+        map.setdefault('mask', getattr(map['data'], 'mask', False))
+        return self._parent_cls.from_unmasked(**map)
 
 
 class MaskedArraySubclassInfo(MaskedInfoBase):
