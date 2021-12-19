@@ -1,0 +1,2 @@
+``Table`` and ``QTable`` can now be used as columns in other tables,
+and will be properly serialized to ECSV, etc.
