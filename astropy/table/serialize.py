@@ -134,7 +134,8 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # MaskedColumn).  For primary data, we attempt to store any info on
         # the format, etc., on the column, but not for ancillary data (e.g.,
         # no sense to use a float format for a mask).
-        if data_attr == col.info._represent_as_dict_primary_data:
+        is_primary = data_attr == col.info._represent_as_dict_primary_data
+        if is_primary:
             new_name = name
             new_info = info
         else:
@@ -146,6 +147,10 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
                                        and np.any(data.mask)) else Column
             new_cols.append(col_cls(data, name=new_name, **new_info))
             obj_attrs[data_attr] = SerializedColumn({'name': new_name})
+            if is_primary:
+                # Don't store info in the __serialized_columns__ dict for this column
+                # since this is redundant with info stored on the new column.
+                info = {}
         else:
             # recurse. This will define obj_attrs[new_name].
             _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
