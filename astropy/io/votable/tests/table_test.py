@@ -246,7 +246,7 @@ def test_validate_output_invalid():
     assert validate_out is False
 
 
-def test_validate_output_invalid():
+def test_validate_output_valid():
     """
     Issue #12603. Test that we get the correct output from votable.validate with a valid
     votable
