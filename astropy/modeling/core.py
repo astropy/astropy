@@ -85,7 +85,7 @@ class _ModelMeta(abc.ABCMeta):
     # Default empty dict for _parameters_, which will be empty on model
     # classes that don't have any Parameters
 
-    def __new__(mcls, name, bases, members):
+    def __new__(mcls, name, bases, members, **kwds):
         # See the docstring for _is_dynamic above
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
@@ -105,7 +105,7 @@ class _ModelMeta(abc.ABCMeta):
 
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall
-        cls = super().__new__(mcls, name, bases, members)
+        cls = super().__new__(mcls, name, bases, members, **kwds)
 
         param_names = list(members['_parameters_'])
 
@@ -128,8 +128,8 @@ class _ModelMeta(abc.ABCMeta):
 
         return cls
 
-    def __init__(cls, name, bases, members):
-        super(_ModelMeta, cls).__init__(name, bases, members)
+    def __init__(cls, name, bases, members, **kwds):
+        super(_ModelMeta, cls).__init__(name, bases, members, **kwds)
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         pdict = {}
@@ -694,6 +694,9 @@ class Model(metaclass=_ModelMeta):
     # If cov_matrix is available, then std will set as well
     _cov_matrix = None
     _stds = None
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__()
 
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
