@@ -1,0 +1,4 @@
+Add property ``is_flat`` to cosmologies to calculate the curvature of the Universe.
+
+``Cosmology`` is now an abstract class and subclasses must override the
+abstract property ``is_flat``.
