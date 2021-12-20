@@ -1,0 +1,2 @@
+Avoid duplicate storage of info in serialized columns if the column
+used to serialize already can hold that information.
