@@ -224,18 +224,49 @@ def test_binary2_masked_strings():
     astropy_table.write(output, format='votable')
 
 
-def test_validate_output_type():
+def test_validate_output_invalid():
     """
-    Issue #12603
+    Issue #12603. Test that we get the correct output from votable.validate with an invalid
+    votable.
     """
-    votable_filepath = get_pkg_data_filename('data/regression.xml')
+
+    # A votable with errors
+    invalid_votable_filepath = get_pkg_data_filename('data/regression.xml')
+
     # When output is None, check that validate returns validation output as a string
-    validate_out = validate(votable_filepath, output=None)
-    assert type(validate_out) == str
+    validate_out = validate(invalid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known error string
+    assert "E02: Incorrect number of elements in array." in validate_out
 
     # When output is not set, check that validate returns a bool
-    validate_out = validate(votable_filepath)
-    assert type(validate_out) == bool
+    validate_out = validate(invalid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is not valid)
+    assert validate_out is False
+
+
+def test_validate_output_invalid():
+    """
+    Issue #12603. Test that we get the correct output from votable.validate with a valid
+    votable
+    """
+
+    # A valid votable. (Example from the votable standard:
+    # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
+    valid_votable_filepath = get_pkg_data_filename('data/valid_votable.xml')
+
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(valid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known good output string
+    assert "astropy.io.votable found no violations" in validate_out
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(valid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is valid)
+    assert validate_out is True
 
 
 class TestVerifyOptions:
