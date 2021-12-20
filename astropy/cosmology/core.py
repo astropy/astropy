@@ -125,6 +125,15 @@ class Cosmology(metaclass=abc.ABCMeta):
         """The name of the Cosmology instance."""
         return self._name
 
+    @property
+    @abc.abstractmethod
+    def is_flat(self):
+        """
+        Return bool; `True` if the cosmology is flat.
+        This is abstract and must be defined in subclasses.
+        """
+        raise NotImplementedError("is_flat is not implemented")
+
     def clone(self, *, meta=None, **kwargs):
         """Returns a copy of this object with updated parameters, as specified.
 
@@ -313,7 +322,11 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
     but ``FlatLambdaCDM`` **will** be flat.
     """
-    pass
+
+    @property
+    def is_flat(self):
+        """Return `True`, the cosmology is flat."""
+        return True
 
 
 # -----------------------------------------------------------------------------
