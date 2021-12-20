@@ -16,7 +16,7 @@ from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
 from astropy.modeling.bounding_box import ModelBoundingBox
-from astropy.modeling.core import FittableModel
+from astropy.modeling.core import FittableModel, _ModelMeta
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import SmoothlyBrokenPowerLaw1D
@@ -1023,3 +1023,35 @@ def test_SmoothlyBrokenPowerLaw1D_fit_deriv():
                                          estimate_jacobian=True)
     assert_allclose(new_model_with_deriv.parameters,
                     new_model_no_deriv.parameters, atol=0.5)
+
+
+class _ExtendedModelMeta(_ModelMeta):
+    @classmethod
+    def __prepare__(mcls, name, bases, **kwds):
+        # this shows the parent class machinery still applies
+        namespace = super().__prepare__(name, bases, **kwds)
+        # the custom bit
+        namespace.update(kwds)
+        return namespace
+
+    model = models.Gaussian1D(1.5, 2.5, 3.5)
+    assert model.amplitude._description == "Amplitude (peak value) of the Gaussian"
+    assert model.mean._description == "Position of peak (Gaussian)"
+
+
+def test_metaclass_kwargs():
+    """Test can pass kwargs to Models"""
+    class ClassModel(FittableModel, flag="flag"):
+        def evaluate(self):
+            pass
+
+    # Nothing further to test, just making the class is good enough.
+
+
+def test_submetaclass_kwargs():
+    """Test can pass kwargs to Model subclasses."""
+    class ClassModel(FittableModel, metaclass=_ExtendedModelMeta, flag="flag"):
+        def evaluate(self):
+            pass
+
+    assert ClassModel.flag == "flag"
