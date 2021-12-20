@@ -152,6 +152,7 @@ class default_cosmology(ScienceState):
         if isinstance(value, str):
             value = cls.get(value)
         elif not isinstance(value, Cosmology):
-            raise TypeError("default_cosmology must be a string or Cosmology instance.")
+            raise TypeError("default_cosmology must be a string or Cosmology instance, "
+                            f"not {value}.")
 
         return value
