@@ -595,7 +595,7 @@ def time_to_fits(table):
                     hdr.extend([Card(keyword=f'OBSGEO-{dim.upper()}',
                                      value=getattr(location, dim).to_value(u.m))
                                 for dim in ('x', 'y', 'z')])
-            elif location != col.location:
+            elif np.any(location != col.location):
                 raise ValueError('Multiple Time Columns with different geocentric '
                                  'observatory locations ({}, {}) encountered.'
                                  'This is not supported by the FITS standard.'
