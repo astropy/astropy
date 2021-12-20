@@ -353,20 +353,26 @@ class ColumnInfo(BaseColumnInfo):
             from .table import Table
 
             # To serialize the columns, we turn them into a table.
-            table = Table()
-            su = self.unit
-            has_su = isinstance(su, StructuredUnit) and su.keys() == names
-            for name in names:
-                part = self._parent[name]
+            table = Table(self._parent)
+            # Next, we remove attributes by default, so that we do not
+            # store those multiple times.  Except for the unit, we split
+            # it correctly if it is a structured unit.
+            unit = self.unit
+            if isinstance(unit, StructuredUnit) and len(unit) == len(names):
+                units = unit.values()
+            else:
+                units = [None] * len(names)
+                if unit is not None and unit != '':
+                    result['unit'] = unit
+            for (name, part), unit in zip(table.items(), units):
                 # Try to give correct unit.
                 # TODO: deal with this in Column.__getitem__?
-                part.unit = su[name] if has_su else su
+                part.unit = unit
                 # Strip common info from the part, so we store it only once.
                 # TODO: should it be on the first part?
                 part.description = None
                 part.meta = {}
                 part.format = None  # TODO!!
-                table[name] = part
 
             result['data'] = table
             # Store the shape if needed to distinguish, e.g., a column
@@ -378,8 +384,6 @@ class ColumnInfo(BaseColumnInfo):
             # stored on the parent and can thus just be passed on as
             # arguments.  TODO: factor out with essentially the same
             # code in serialize._represent_mixin_as_column.
-            if su is not None and su != '':
-                result['unit'] = su
             if self.format is not None:
                 result['format'] = format
             if self.description is not None:
@@ -397,6 +401,9 @@ class ColumnInfo(BaseColumnInfo):
         shape = tuple(map.pop('shape', ()))
         dtype = np.dtype([(name, part.dtype, part.shape[len(shape)+1:])
                           for name, part in data.items()])
+        units = tuple(col.info.unit for col in data.values())
+        if all(unit is not None for unit in units):
+            map['unit'] = StructuredUnit(units, dtype)
         map.update(dtype=dtype, shape=shape, length=len(data))
         result = super()._construct_from_dict(map)
         for name in dtype.names:
