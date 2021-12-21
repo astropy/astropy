@@ -69,10 +69,8 @@ def from_row(row, *, move_to_meta=False, cosmology=None):
     # parent table. If Row is ever separated from Table, this should be moved
     # to ``to_table``.
     for col in row._table.itercols():
-        # Only add metadata if exists and not empty,
-        # e.g. Table has Column with meta, QTable doesn't have Column.
-        if getattr(col, "meta", None):
-            meta[col.name].update(col.meta)
+        if col.info.meta:  # Only add metadata if not empty
+            meta[col.name].update(col.info.meta)
 
     # turn row into mapping, filling cosmo if not in a column
     mapping = dict(row)

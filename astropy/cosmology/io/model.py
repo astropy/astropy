@@ -20,7 +20,7 @@ from astropy.modeling import FittableModel, Model
 from astropy.modeling import Parameter as ModelParameter
 from astropy.utils.decorators import classproperty
 
-from ._parameter import _convert_Parameter_to_Model_Parameter as _convert_Parameter
+from .utils import convert_parameter_to_model_parameter
 
 __all__ = []  # nothing is publicly scoped
 
@@ -216,7 +216,8 @@ def to_model(cosmology, *_, method):
             continue
 
         # add as Model Parameter
-        params[n] = _convert_Parameter(getattr(cosmo_cls, n), v, cosmology.meta.get(n))
+        params[n] = convert_parameter_to_model_parameter(getattr(cosmo_cls, n), v,
+                                                         cosmology.meta.get(n))
 
     # class name is cosmology name + Cosmology + method name + Model
     clsname = (cosmo_cls.__qualname__.replace(".", "_")

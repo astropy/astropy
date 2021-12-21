@@ -8,9 +8,9 @@ from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 from astropy.table import QTable, Table, Column
 
-from ._parameter import _convert_Parameter_to_Column
 from .mapping import to_mapping
 from .row import from_row
+from .utils import convert_parameter_to_column
 
 
 def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
@@ -76,7 +76,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         >>> del ct["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(ct)
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
 
     For tables with multiple rows of cosmological parameters, the ``index``
     argument is needed to select the correct row. The index can be an integer
@@ -224,8 +224,8 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
     cosmo_cls = cosmology.__class__
     for k, v in data.items():
         if k in cosmology.__parameters__:
-            col = _convert_Parameter_to_Column(getattr(cosmo_cls, k), v,
-                                               cosmology.meta.get(k))
+            col = convert_parameter_to_column(getattr(cosmo_cls, k), v,
+                                              cosmology.meta.get(k))
         else:
             col = Column([v])
         data[k] = col

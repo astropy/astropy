@@ -7,8 +7,8 @@ from astropy.table import Column
 from astropy.modeling import Parameter as ModelParameter
 
 
-def _convert_Parameter_to_Column(parameter, value, param_meta=None):
-    """Convert a Cosmology Parameter to a Table Column.
+def convert_parameter_to_column(parameter, value, meta=None):
+    """Convert a |Cosmology| Parameter to a Table |Column|.
 
     Parameters
     ----------
@@ -21,33 +21,20 @@ def _convert_Parameter_to_Column(parameter, value, param_meta=None):
     -------
     `astropy.table.Column`
     """
-    if value is None:  # Create None column
-        data = [None]
-        dtype = np.object_
-        format = None
-    else:  # Create empty column. Assign later.
-        data = None  # assigned later
-        dtype = None
-        format = parameter.format_spec
+    format = None if value is None else parameter.format_spec
+    shape = (1,) + np.shape(value)  # minimum of 1d
 
-    col = Column(data=data,
+    col = Column(data=np.reshape(value, shape),
                  name=parameter.name,
-                 dtype=dtype,
-                 shape=np.shape(value),  # minimum of 1d
-                 length=1,  # Cosmology is scalar
+                 dtype=None,  # inferred from the data
                  description=parameter.__doc__,
-                 unit=parameter.unit,
                  format=format,
-                 meta=param_meta,
-                 copy=False,
-                 copy_indices=True)
-    if value is not None:
-        col[:] = value  # Assign value in-place
+                 meta=meta)
 
     return col
 
 
-def _convert_Parameter_to_Model_Parameter(parameter, value, meta=None):
+def convert_parameter_to_model_parameter(parameter, value, meta=None):
     """Convert a Cosmology Parameter to a Model Parameter.
 
     Parameters

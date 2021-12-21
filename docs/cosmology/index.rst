@@ -81,7 +81,7 @@ classes::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
   >>> cosmo  # doctest: +FLOAT_CMP
-  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
+  FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
                 Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)
 
 Note the presence of additional cosmological parameters (e.g., ``Neff``, the
@@ -135,7 +135,7 @@ parameter and Omega matter (both at z=0)::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
-  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=0 K,
+  FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=None)
 
 This can also be done more explicitly using units, which is recommended::
@@ -207,7 +207,7 @@ instantiation by passing the keyword argument ``Ob0``::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.05)
   >>> cosmo
-  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=0 K,
+  FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=0.0 K,
                 Neff=3.04, m_nu=None, Ob0=0.05)
 
 In this case the dark matter-only density at redshift 0 is available as class
@@ -231,7 +231,7 @@ describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.58 km / (Mpc s), Om0=0.262,
-           w0=-1.016, Tcmb0=0 K, Neff=3.04, m_nu=None, Ob0=None)
+           w0=-1.016, Tcmb0=0.0 K, Neff=3.04, m_nu=None, Ob0=None)
 
 ..
   EXAMPLE END
