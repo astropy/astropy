@@ -3599,11 +3599,14 @@ class CompoundModel(Model):
     @property
     def input_units_equivalencies(self):
         inputs_map = self.inputs_map()
-        input_units_equivalencies_dict = {key: inputs_map[key][0].input_units_equivalencies[orig_key]
-                for key, (mod, orig_key) in inputs_map.items()
-                if inputs_map[key][0].input_units_equivalencies is not None }
+        input_units_equivalencies_dict = {
+            key: inputs_map[key][0].input_units_equivalencies[orig_key]
+            for key, (mod, orig_key) in inputs_map.items()
+            if inputs_map[key][0].input_units_equivalencies is not None
+        }
         if not input_units_equivalencies_dict:
             return None
+
         return input_units_equivalencies_dict
 
     @property

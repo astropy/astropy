@@ -7,6 +7,7 @@ import numpy as np
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.modeling.core import fix_inputs
 
 from astropy.modeling.functional_models import (
     Gaussian1D, Sersic1D,
@@ -376,33 +377,33 @@ def test_models_bounding_box(model):
 def test_compound_model_input_units_equivalencies_defaults(model):
     m = model['class'](**model['parameters'])
 
-    assert m.input_units_equivalencies == None
+    assert m.input_units_equivalencies is None
 
     compound_model = m + m
-    assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+    assert compound_model.inputs_map()['x'][0].input_units_equivalencies is None
     fixed_input_model = fix_inputs(compound_model, {'x':1})
 
-    assert fixed_input_model.input_units_equivalencies == None
+    assert fixed_input_model.input_units_equivalencies is None
 
     compound_model = m - m
-    assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+    assert compound_model.inputs_map()['x'][0].input_units_equivalencies is None
     fixed_input_model = fix_inputs(compound_model, {'x':1})
 
-    assert fixed_input_model.input_units_equivalencies == None
+    assert fixed_input_model.input_units_equivalencies is None
 
     compound_model = m & m
-    assert compound_model.inputs_map()['x1'][0].input_units_equivalencies == None
+    assert compound_model.inputs_map()['x1'][0].input_units_equivalencies is None
     fixed_input_model = fix_inputs(compound_model, {'x0':1})
-    assert fixed_input_model.inputs_map()['x1'][0].input_units_equivalencies == None
+    assert fixed_input_model.inputs_map()['x1'][0].input_units_equivalencies is None
 
-    assert fixed_input_model.input_units_equivalencies == None
+    assert fixed_input_model.input_units_equivalencies is None
 
     if m.n_outputs == m.n_inputs:
         compound_model = m | m
-        assert compound_model.inputs_map()['x'][0].input_units_equivalencies == None
+        assert compound_model.inputs_map()['x'][0].input_units_equivalencies is None
         fixed_input_model = fix_inputs(compound_model, {'x':1})
 
-        assert fixed_input_model.input_units_equivalencies == None
+        assert fixed_input_model.input_units_equivalencies is None
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

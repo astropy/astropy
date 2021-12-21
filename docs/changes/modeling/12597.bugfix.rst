@@ -1,0 +1,2 @@
+Bugfix for ``keyerror`` thrown by ``Model.input_units_equivalencies`` when
+used on ``fix_inputs`` models which have no set unit equivalencies.

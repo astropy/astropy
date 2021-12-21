@@ -297,16 +297,20 @@ def test_compound_input_units_equivalencies():
     sp = Shift(10 * u.pix)
 
     cs = s1 | s2
+    assert cs.input_units_equivalencies == {'x': u.pixel_scale(0.5 * u.deg / u.pix)}
 
     out = cs(10 * u.pix)
     assert_quantity_allclose(out, 25 * u.deg)
 
     cs = sp | s1
+    assert cs.input_units_equivalencies is None
 
     out = cs(10 * u.pix)
     assert_quantity_allclose(out, 20 * u.deg)
 
     cs = s1 & s2
+    assert cs.input_units_equivalencies == {'x0': u.pixel_scale(0.5 * u.deg / u.pix)}
+
     cs = cs.rename('TestModel')
     out = cs(20 * u.pix, 10 * u.deg)
     assert_quantity_allclose(out, 20 * u.deg)
