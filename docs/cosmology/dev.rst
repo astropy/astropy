@@ -19,9 +19,8 @@ have not set a default cosmology using one of the methods described above, then
 the cosmology module will default to using the
 ``default_cosmology._value`` parameters.
 
-It is strongly recommended that you use the default cosmology through the
-|default_cosmology| science state object. An override option can then be
-provided using something like the following:
+You can override the default cosmology through the |default_cosmology| science
+state object, using something like the following:
 
 .. code-block:: python
 
@@ -38,10 +37,12 @@ explicitly overridden.
 
 .. note::
 
-    In general it is better to use an explicit cosmology (for example
-    ``WMAP9.H(0)`` instead of ``cosmology.default_cosmology.get().H(0)``).
+    If you are preparing a paper and thus need to ensure your code provides
+    reproducible results, it is better to use an explicit cosmology (for
+    example ``WMAP9.H(0)`` instead of ``default_cosmology.get().H(0)``).
     Use of the default cosmology should generally be reserved for code that
-    will be included in the ``astropy`` core or an affiliated package.
+    allows for the global cosmology state to be changed; e.g. code included in
+    ``astropy`` core or an affiliated package.
 
 
 .. _astropy-cosmology-custom:
@@ -188,7 +189,7 @@ constructor for the subclass, where the latter are all the arguments except
 ``z`` to ``_inv_efunc_scalar``. The provided classes do use this optimization,
 and in fact go even further and provide optimizations for no radiation, and for
 radiation with massless neutrinos coded in cython. Consult the |FLRW|
-subclasses for details, and ``scalar_inv_efuncs`` for the details.
+subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
@@ -197,9 +198,9 @@ Astropy Interoperability: I/O and your Cosmology Package
 ========================================================
 
 If you are developing a package and want to be able to interoperate with
-|Cosmology|, you're in the right place! Here we will discuss and provide
-examples for enabling Astropy to read and write your file formats, but also
-convert your cosmology objects to and from Astropy's |Cosmology|.
+|Cosmology|, you're in the right place! Here we will discuss how to enable
+Astropy to read and write your file formats, and convert your cosmology objects
+to and from Astropy's |Cosmology|.
 
 The following presumes knowledge of how Astropy structures I/O functions. For
 a quick tutorial see :ref:`cosmology_io`.
