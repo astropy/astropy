@@ -60,6 +60,8 @@ also be specified as an attribute rather than a property in simple cases::
 
     input_units = {'x': u.deg}
 
+.. _models_return_units:
+
 ``return_units``
 ^^^^^^^^^^^^^^^^
 
