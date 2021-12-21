@@ -125,7 +125,7 @@ class FLRW(Cosmology):
                       unit="Kelvin", fvalidate="scalar")
     Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
     m_nu = Parameter(doc="Mass of neutrino species.",
-                     unit="eV", equivalencies=u.mass_energy(), fmt="")
+                     unit="eV", equivalencies=u.mass_energy())
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,

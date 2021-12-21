@@ -79,7 +79,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> del cm["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(cm)
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
+                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
     """
     params = dict(map)  # so we are guaranteed to have a poppable map
 

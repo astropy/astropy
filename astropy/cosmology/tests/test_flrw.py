@@ -887,8 +887,8 @@ class TestLambdaCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("LambdaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+        expected = ("LambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
                     " Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -909,8 +909,8 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s),"
-                    " Om0=0.27, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+        expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
+                    " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
                     " Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -985,8 +985,8 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("wCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, Tcmb0=3 K, Neff=3.04,"
+        expected = ("wCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " Ode0=0.73, w0=-1.0, Tcmb0=3.0 K, Neff=3.04,"
                     " m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -1007,8 +1007,8 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatwCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " w0=-1, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+        expected = ("FlatwCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " w0=-1.0, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
                     " Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -1084,8 +1084,8 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0waCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
+        expected = ("w0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " Ode0=0.73, w0=-1.0, wa=0.0, Tcmb0=3.0 K, Neff=3.04,"
                     " m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -1106,8 +1106,8 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70 km / (Mpc s),"
-                    " Om0=0.27, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
+        expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
+                    " Om0=0.27, w0=-1.0, wa=0.0, Tcmb0=3.0 K, Neff=3.04,"
                     " m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -1225,8 +1225,8 @@ class TestwpwaCDM(FLRWSubclassTest,
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("wpwaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, wp=-1, wa=0, zp=0 redshift, Tcmb0=3 K,"
+        expected = ("wpwaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " Ode0=0.73, wp=-1.0, wa=0.0, zp=0.0 redshift, Tcmb0=3.0 K,"
                     " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
@@ -1302,7 +1302,7 @@ class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0wzCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, wz=0, Tcmb0=3 K, Neff=3.04,"
+        expected = ("w0wzCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
+                    " Ode0=0.73, w0=-1.0, wz=0.0, Tcmb0=3.0 K, Neff=3.04,"
                     " m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected

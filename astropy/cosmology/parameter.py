@@ -47,7 +47,7 @@ class Parameter:
     _registry_validators = {}
 
     def __init__(self, *, derived=False, unit=None, equivalencies=[],
-                 fvalidate="default", fmt="g", doc=None):
+                 fvalidate="default", fmt="", doc=None):
 
         # attribute name on container cosmology class.
         # really set in __set_name__, but if Parameter is not init'ed as a
@@ -250,11 +250,11 @@ class Parameter:
         >>> p = Parameter()
         >>> p
         Parameter(derived=False, unit=None, equivalencies=[],
-                  fvalidate='default', fmt='g', doc=None)
+                  fvalidate='default', fmt='', doc=None)
 
         >>> p.clone(unit="km")
         Parameter(derived=False, unit=Unit("km"), equivalencies=[],
-                  fvalidate='default', fmt='g', doc=None)
+                  fvalidate='default', fmt='', doc=None)
         """
         # Start with defaults, update from kw.
         kwargs = {**self._get_init_arguments(), **kw}
