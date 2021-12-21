@@ -990,7 +990,7 @@ def test_spectralcoord_frame(header_spectral_frames):
 
     with iers.conf.set_temp('auto_download', False):
 
-        obstime = Time(f"2009-05-04T04:44:23", scale='utc')
+        obstime = Time("2009-05-04T04:44:23", scale='utc')
 
         header = header_spectral_frames.copy()
         header['MJD-OBS'] = obstime.mjd
@@ -1235,7 +1235,7 @@ def test_spectral_with_time_kw(header_spectral_with_time):
             assert_allclose(w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval)
             sky, spec = w.pixel_to_world(*w.wcs.crpix)
             assert_allclose((sky.spherical.lon.degree, sky.spherical.lat.degree, spec.value),
-                             w.wcs.crval, rtol=1e-3)
+                            w.wcs.crval, rtol=1e-3)
 
     # Chek with MJD-AVG and TIMESYS
     hdr = header_spectral_with_time.copy()
