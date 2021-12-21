@@ -176,7 +176,9 @@ class CommentedHeader(Basic):
 class TabHeaderSplitter(core.DefaultSplitter):
     """Split lines on tab and do not remove whitespace"""
     delimiter = '\t'
-    process_line = None
+
+    def process_line(self, line):
+        return line + '\n'
 
 
 class TabDataSplitter(TabHeaderSplitter):

@@ -562,8 +562,11 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 // Parse rest of field normally, e.g. "ab"c
                 self->state = FIELD;
             }
-            else if (c == self->newline)
-                self->state = QUOTED_FIELD_NEWLINE;
+            // else if (c == self->newline)
+            // {
+            //     self->state = QUOTED_FIELD_NEWLINE;
+            //     PUSH(c);
+            // }
             else
             {
                 PUSH(c);
