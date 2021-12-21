@@ -63,10 +63,7 @@ transverse proper kiloparsecs (kpc) corresponding to an arcminute at z=3::
 Here |WMAP9| is a built-in object describing a cosmology with the parameters
 from the nine-year WMAP results. Several other built-in cosmologies are also
 available (see `Built-in Cosmologies`_). The available methods of the cosmology
-object are listed in the methods summary for the |FLRW| class. If you are using
-IPython you can also use tab completion to print a list of the available
-methods. To do this, after importing the cosmology as in the above example,
-type ``cosmo.`` at the IPython prompt and then press the tab key.
+object are listed in the methods summary for the |FLRW| class.
 
 All of these methods also accept an arbitrarily-shaped array of redshifts as
 input:
@@ -147,9 +144,6 @@ This can also be done more explicitly using units, which is recommended::
   >>> import astropy.units as u
   >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Tcmb0=2.725 * u.K, Om0=0.3)
 
-However, most of the parameters that accept units (``H0``, ``Tcmb0``) have
-default units, so unit quantities do not have to be used (with the exception of
-neutrino masses, where you must supply a unit if you want massive neutrinos).
 
 The predefined cosmologies described in the `Getting Started`_ section are
 instances of |FlatLambdaCDM|, and have the same methods. So we can find the
