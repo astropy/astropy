@@ -451,7 +451,11 @@ class DefaultSplitter(BaseSplitter):
         If splitting on whitespace then replace unquoted tabs with space first"""
         if self.delimiter == r'\s':
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
-        return line.strip()
+        return line.strip() + '\n'
+
+    def process_val(self, val):
+        """Remove whitespace at the beginning or end of value."""
+        return val.strip(' \t')
 
     def __call__(self, lines):
         """Return an iterator over the table ``lines``, where each iterator output
@@ -496,8 +500,8 @@ class DefaultSplitter(BaseSplitter):
                                         doublequote=self.doublequote,
                                         escapechar=self.escapechar,
                                         quotechar=self.quotechar,
-                                        quoting=self.quoting,
-                                        lineterminator='')
+                                        lineterminator='',
+                                        quoting=self.quoting)
         if self.process_val:
             vals = [self.process_val(x) for x in vals]
         out = self.csv_writer.writerow(vals)
