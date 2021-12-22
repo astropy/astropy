@@ -817,6 +817,20 @@ def test_represent_mixins_as_columns_unit_fix():
     serialize.represent_mixins_as_columns(t)
 
 
+def test_primary_data_column_gets_description():
+    """
+    If the mixin defines a primary data column, that should get the
+    description, format, etc., so no __info__ should be needed.
+    """
+    t = QTable({'a': [1, 2] * u.m})
+    t['a'].info.description = 'parrot'
+    t['a'].info.format = '7.2f'
+    tser = serialize.represent_mixins_as_columns(t)
+    assert '__info__' not in tser.meta['__serialized_columns__']['a']
+    assert tser['a'].format == '7.2f'
+    assert tser['a'].description == 'parrot'
+
+
 def test_skycoord_with_velocity():
     # Regression test for gh-6447
     sc = SkyCoord([1], [2], unit='deg', galcen_v_sun=None)
