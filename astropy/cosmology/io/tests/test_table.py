@@ -71,6 +71,29 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
     # -----------------------
 
+    def test_to_table(self, cosmo_cls, cosmo, to_format):
+        """Test cosmology -> astropy.table."""
+        tbl = to_format("astropy.table")
+
+        # Test properties of Table.
+        assert isinstance(tbl, QTable)
+        assert tbl.meta["cosmology"] == cosmo_cls.__qualname__
+        assert tbl["name"] == cosmo.name
+        assert tbl.indices  # indexed
+
+        # Test each Parameter column has expected information.
+        for n in cosmo.__parameters__:
+            P = getattr(cosmo_cls, n)  # Parameter
+            col = tbl[n]  # Column
+
+            # Compare the two
+            assert col.info.name == P.name
+            assert col.info.description == P.__doc__
+            assert col.info.format == (None if col[0] is None else P.format_spec)
+            assert col.info.meta == (cosmo.meta.get(n) or {})
+
+    # -----------------------
+
     def test_from_not_table(self, cosmo, from_format):
         """Test not passing a Table to the Table parser."""
         with pytest.raises((TypeError, ValueError)):
@@ -78,18 +101,9 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
     def test_tofrom_table_instance(self, cosmo_cls, cosmo, from_format, to_format):
         """Test cosmology -> astropy.table -> cosmology."""
-        # ------------
-        # To Table
-
         tbl = to_format("astropy.table")
-        assert isinstance(tbl, QTable)
-        assert tbl.meta["cosmology"] == cosmo_cls.__qualname__
-        assert tbl["name"] == cosmo.name
-        assert tbl.indices  # indexed!
 
-        # ------------
-        # From Table
-
+        # add information
         tbl["mismatching"] = "will error"
 
         # tests are different if the last argument is a **kwarg
@@ -156,7 +170,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
         assert got.meta == cosmo.meta
 
     @pytest.mark.parametrize("add_index", [True, False])
-    def test_tofrom_table_mutlirow(self, cosmo_cls, cosmo, to_format, from_format, add_index):
+    def test_tofrom_table_mutlirow(self, cosmo_cls, cosmo, from_format, add_index):
         """Test if table has multiple rows."""
         # ------------
         # To Table
