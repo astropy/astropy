@@ -270,7 +270,7 @@ class TableFormatter:
                                                show_length=show_length,
                                                outs=outs)
 
-        col_strs = list(col_strs_iter)
+        col_strs = [val.replace('\t', '\\t').replace('\n', '\\n') for val in col_strs_iter]
         if len(col_strs) > 0:
             col_width = max(len(x) for x in col_strs)
 
