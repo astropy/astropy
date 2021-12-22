@@ -443,6 +443,9 @@ class TestFLRW(CosmologyTest,
         Setup for testing.
         FLRW is abstract, so tests are done on a subclass.
         """
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
+
         self.cls = SubFLRW
         self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.689 * u.one)
         self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})

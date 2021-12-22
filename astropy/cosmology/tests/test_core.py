@@ -88,6 +88,9 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         Setup for testing.
         Cosmology should not be instantiated, so tests are done on a subclass.
         """
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
+
         self.cls = SubCosmology
         self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV)
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
