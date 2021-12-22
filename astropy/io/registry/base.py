@@ -382,7 +382,12 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         """
         Update the docstring to include all the available readers / writers for
         the ``data_class.read``/``data_class.write`` functions (respectively).
+        Don't update if the data_class does not have the relevant method.
         """
+        # abort if method "readwrite" isn't on data_class
+        if not hasattr(data_class, readwrite):
+            return
+
         from .interface import UnifiedReadWrite
 
         FORMATS_TEXT = 'The available built-in formats are:'
