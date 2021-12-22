@@ -745,6 +745,30 @@ class FLRWSubclassTest(TestFLRW):
     # ===============================================================
     # Method & Attribute Tests
 
+    _FLRW_redshift_methods = [
+        "w", "Otot", "Om", "Ob", "Odm", "Ok", "Ode", "Ogamma", "Onu", "Tcmb",
+        "Tnu", "nu_relative_density",  # _w_integrand,
+        "de_density_scale", "efunc", "inv_efunc", "_lookback_time_integrand_scalar",
+        "lookback_time_integrand", "_abs_distance_integrand_scalar", "abs_distance_integrand",
+        "H", "scale_factor", "lookback_time", "lookback_distance", "age", "_age", "_integral_age",
+        "critical_density", "comoving_distance",  # _comoving_distance_z1z2
+        # _integral_comoving_distance_z1z2_scalar, _integral_comoving_distance_z1z2,
+        "comoving_transverse_distance",  # _comoving_transverse_distance_z1z2,
+        "angular_diameter_distance", "luminosity_distance",
+        # "angular_diameter_distance_z1z2",
+        "absorption_distance", "distmod", "comoving_volume", "differential_comoving_volume",
+        "kpc_comoving_per_arcmin", "kpc_proper_per_arcmin", "arcsec_per_kpc_comoving",
+        "arcsec_per_kpc_proper",
+    ]
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        with pytest.raises(exc):
+            getattr(cosmo, method)(z)
+
     @pytest.mark.parametrize("z", valid_zs)
     @abc.abstractmethod
     def test_w(self, cosmo, z):
@@ -756,12 +780,6 @@ class FLRWSubclassTest(TestFLRW):
         w = cosmo.w(z)
         assert np.shape(w) == np.shape(z)  # test same shape
         assert u.Quantity(w).unit == u.one  # test no units or dimensionless
-
-    @pytest.mark.parametrize("z, exc", invalid_zs)
-    def test_w_fail(self, cosmo, z, exc):
-        """Test :meth:`astropy.cosmology.FLRW.w` with bad input"""
-        with pytest.raises(exc):
-            cosmo.w(z)
 
     # -------------------------------------------
 
@@ -933,6 +951,17 @@ class TestLambdaCDM(FLRWSubclassTest):
 
     # ===============================================================
     # Method & Attribute Tests
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize(
+        'method',
+        FLRWSubclassTest._FLRW_redshift_methods
+        + ["_dS_age", "_EdS_age", "_flat_age",
+           "_EdS_lookback_time", "_dS_lookback_time", "_flat_lookback_time"])
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     @pytest.mark.parametrize("z", valid_zs)
     def test_w(self, cosmo, z):
