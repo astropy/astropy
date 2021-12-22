@@ -20,6 +20,21 @@
 
 .. Cosmology
 .. |Cosmology| replace:: :class:`~astropy.cosmology.Cosmology`
+.. |Cosmology.read| replace:: :meth:`~astropy.cosmology.Cosmology.read`
+.. |Cosmology.write| replace:: :meth:`~astropy.cosmology.Cosmology.write`
+.. |Cosmology.from_format| replace:: :meth:`~astropy.cosmology.Cosmology.from_format`
+.. |Cosmology.to_format| replace:: :meth:`~astropy.cosmology.Cosmology.to_format`
+
+.. |FLRW| replace:: :class:`~astropy.cosmology.FLRW`
+.. |LambdaCDM| replace:: :class:`~astropy.cosmology.LambdaCDM`
+.. |FlatLambdaCDM| replace:: :class:`~astropy.cosmology.FlatLambdaCDM`
+
+.. |Planck18| replace:: :ref:`Planck18 <astropy:Planck18>`
+
+.. |FlatCosmologyMixin| replace:: :class:`~astropy.cosmology.FlatCosmologyMixin`
+.. |FlatFLRWMixin| replace:: :class:`~astropy.cosmology.FlatFLRWMixin`
+
+.. |default_cosmology| replace:: :class:`~astropy.cosmology.default_cosmology`
 
 .. SAMP
 .. |SAMPClient| replace:: :class:`~astropy.samp.SAMPClient`
