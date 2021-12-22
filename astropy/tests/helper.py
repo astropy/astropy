@@ -5,14 +5,14 @@ from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
 import os
 import sys
-import types
 import pickle
 import warnings
 import functools
 
 import pytest
 
-from astropy.units import allclose as quantity_allclose  # noqa
+from astropy.units import allclose as quantity_allclose  # noqa: F401
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyPendingDeprecationWarning)
 
@@ -20,15 +20,9 @@ from astropy.utils.exceptions import (AstropyDeprecationWarning,
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611  # noqa
 
-__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
-           'treat_deprecations_as_exceptions', 'catch_warnings',
-           'assert_follows_unicode_guidelines',
+__all__ = ['assert_follows_unicode_guidelines',
            'assert_quantity_allclose', 'check_pickling_recovery',
            'pickle_protocol', 'generic_recursive_equality_test']
-
-# pytest marker to mark tests which get data from the web
-# This is being maintained for backwards compatibility
-remote_data = pytest.mark.remote_data
 
 
 def _save_coverage(cov, result, rootdir, testing_path):
@@ -71,8 +65,7 @@ def _save_coverage(cov, result, rootdir, testing_path):
     cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
 
 
-# TODO: Plan a roadmap of deprecation as pytest.raises has matured over the years.
-# See https://github.com/astropy/astropy/issues/6761
+@deprecated('5.1', alternative='pytest.raises')
 class raises:
     """
     A decorator to mark that a test should raise a given exception.
@@ -110,6 +103,7 @@ class raises:
         return self._ctx.__exit__(*exc_info)
 
 
+# TODO: Remove these when deprecation period of things deprecated in PR 12633 are removed.
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
 _modules_to_ignore_on_import = set([
@@ -143,6 +137,7 @@ _warnings_to_ignore_by_pyver = {
 }
 
 
+@deprecated('5.1', alternative='https://docs.pytest.org/en/stable/warnings.html')
 def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
                                       modules_to_ignore_on_import=[],
                                       warnings_to_ignore_entire_module=[],
@@ -196,6 +191,7 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
             _warnings_to_ignore_by_pyver[key] = set(val)
 
 
+@deprecated('5.1', alternative='https://docs.pytest.org/en/stable/warnings.html')
 def treat_deprecations_as_exceptions():
     """
     Turn all DeprecationWarnings (which indicate deprecated uses of
@@ -259,8 +255,7 @@ def treat_deprecations_as_exceptions():
                 warnings.filterwarnings("ignore", s[0], s[1])
 
 
-# TODO: Plan a roadmap of deprecation as pytest.warns has matured over the years.
-# See https://github.com/astropy/astropy/issues/6761
+@deprecated('5.1', alternative='pytest.warns')
 class catch_warnings(warnings.catch_warnings):
     """
     A high-powered version of warnings.catch_warnings to use for testing
@@ -302,6 +297,7 @@ class catch_warnings(warnings.catch_warnings):
         treat_deprecations_as_exceptions()
 
 
+@deprecated('5.1', alternative='pytest.mark.filterwarnings')
 class ignore_warnings(catch_warnings):
     """
     This can be used either as a context manager or function decorator to
