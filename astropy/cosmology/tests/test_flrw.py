@@ -29,6 +29,15 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from .test_core import CosmologySubclassTest as CosmologyTest
 from .test_core import FlatCosmologyMixinTest, ParameterTestMixin
 
+
+##############################################################################
+# SETUP / TEARDOWN
+
+class SubFLRW(FLRW):
+    def w(self, z):
+        return super().w(z)
+
+
 ##############################################################################
 # TESTS
 ##############################################################################
@@ -434,10 +443,8 @@ class TestFLRW(CosmologyTest,
         Setup for testing.
         FLRW is abstract, so tests are done on a subclass.
         """
-
-        class SubFLRW(FLRW):
-            def w(self, z):
-                return super().w(z)
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
 
         self.cls = SubFLRW
         self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.689 * u.one)
@@ -445,7 +452,7 @@ class TestFLRW(CosmologyTest,
 
     def teardown_class(self):
         super().teardown_class(self)
-        _COSMOLOGY_CLASSES.pop("TestFLRW.setup_class.<locals>.SubFLRW", None)
+        _COSMOLOGY_CLASSES.pop("SubFLRW", None)
 
     @pytest.fixture
     def nonflatcosmo(self):

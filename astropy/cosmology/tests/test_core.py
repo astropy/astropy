@@ -8,6 +8,7 @@
 # STDLIB
 import abc
 import inspect
+import pickle
 from types import MappingProxyType
 
 # THIRD PARTY
@@ -26,6 +27,28 @@ from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
 from .test_parameter import ParameterTestMixin
+
+##############################################################################
+# SETUP / TEARDOWN
+
+
+class SubCosmology(Cosmology):
+    """Defined here to be serializable."""
+
+    H0 = Parameter(unit="km/(s Mpc)")
+    Tcmb0 = Parameter(unit=u.K)
+    m_nu = Parameter(unit=u.eV)
+
+    def __init__(self, H0, Tcmb0=0*u.K, m_nu=0*u.eV, name=None, meta=None):
+        super().__init__(name=name, meta=meta)
+        self.H0 = H0
+        self.Tcmb0 = Tcmb0
+        self.m_nu = m_nu
+
+    @property
+    def is_flat(self):
+        return super().is_flat()
+
 
 ##############################################################################
 # TESTS
@@ -65,21 +88,8 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         Setup for testing.
         Cosmology should not be instantiated, so tests are done on a subclass.
         """
-        class SubCosmology(Cosmology):
-
-            H0 = Parameter(unit="km/(s Mpc)")
-            Tcmb0 = Parameter(unit=u.K)
-            m_nu = Parameter(unit=u.eV)
-
-            def __init__(self, H0, Tcmb0=0*u.K, m_nu=0*u.eV, name=None, meta=None):
-                super().__init__(name=name, meta=meta)
-                self.H0 = H0
-                self.Tcmb0 = Tcmb0
-                self.m_nu = m_nu
-
-            @property
-            def is_flat(self):
-                return super().is_flat()
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubCosmology"] = SubCosmology
 
         self.cls = SubCosmology
         self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV)
@@ -90,7 +100,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         return tuple(self._cls_args.values())
 
     def teardown_class(self):
-        _COSMOLOGY_CLASSES.pop("TestCosmology.setup_class.<locals>.SubCosmology", None)
+        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
 
     @pytest.fixture
     def cosmo_cls(self):
@@ -304,6 +314,25 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         for n in cosmo.__all_parameters__:
             with pytest.raises(AttributeError):
                 setattr(cosmo, n, getattr(cosmo, n))
+
+    def test_pickle_class(self, cosmo_cls, pickle_protocol):
+        """Test classes can pickle and unpickle."""
+        # pickle and unpickle
+        f = pickle.dumps(cosmo_cls, protocol=pickle_protocol)
+        unpickled = pickle.loads(f)
+
+        # test equality
+        assert unpickled == cosmo_cls
+
+    def test_pickle_instance(self, cosmo, pickle_protocol):
+        """Test instances can pickle and unpickle."""
+        # pickle and unpickle
+        f = pickle.dumps(cosmo, protocol=pickle_protocol)
+        unpickled = pickle.loads(f)
+
+        # test equality
+        # assert unpickled == cosmo  # FIXME! #12214 for comparing redshifts.
+        assert unpickled.meta == cosmo.meta
 
 
 class CosmologySubclassTest(TestCosmology):
