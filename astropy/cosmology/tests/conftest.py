@@ -15,7 +15,7 @@ import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import core
 from astropy.cosmology.core import Cosmology
-from astropy.utils.misc import isiterable
+from astropy.tests.helper import pickle_protocol
 
 ###############################################################################
 # FUNCTIONS

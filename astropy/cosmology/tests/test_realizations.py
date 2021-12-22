@@ -1,9 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
+import pickle
+
+# THIRD PARTY
 import pytest
 
+# LOCAL
+from astropy import cosmology
 from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import default_cosmology, Planck13
+from astropy.tests.helper import pickle_protocol
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -76,3 +83,21 @@ class Test_default_cosmology(object):
         cosmo = getattr(realizations, name)
         value = default_cosmology.validate(cosmo)
         assert value is cosmo
+
+
+@pytest.mark.parametrize("name", parameters.available)
+def test_pickle_builtin_realizations(name, pickle_protocol):
+    """
+    Test in-built realizations can pickle and unpickle.
+    Also a regression test for #12008.
+    """
+    # get class instance
+    original = getattr(cosmology, name)
+
+    # pickle and unpickle
+    f = pickle.dumps(original, protocol=pickle_protocol)
+    unpickled = pickle.loads(f)
+
+    # test equality
+    assert unpickled == original
+    assert unpickled.meta == original.meta
