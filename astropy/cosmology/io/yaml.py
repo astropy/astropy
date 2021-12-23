@@ -8,6 +8,8 @@ the io registry cannot be displayed. These functions are registered into
 via these methods.
 """  # this is shown in the docs.
 
+import astropy.cosmology.units as cu
+import astropy.units as u
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
@@ -129,7 +131,8 @@ def from_yaml(yml):
     -------
     `~astropy.cosmology.Cosmology` subclass instance
     """
-    return load(yml)
+    with u.add_enabled_units(cu):
+        return load(yml)
 
 
 def to_yaml(cosmology, *args):
