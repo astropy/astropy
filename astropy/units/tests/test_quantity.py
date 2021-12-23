@@ -989,6 +989,7 @@ class TestQuantityDisplay:
             assert r'\dots' in lsbig
             lsvbig = qvbig._repr_latex_()
             assert r'\dots' in lsvbig
+            assert lsvbig.endswith(',~1 \\times 10^{13}] \\; \\mathrm{m}$')
         finally:
             # prevent side-effects from influencing other tests
             np.set_printoptions(**pops)

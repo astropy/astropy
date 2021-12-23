@@ -1,0 +1,3 @@
+Ensure that ``Quantity.to_string(format='latex')`` properly typesets exponents
+also when ``u.quantity.conf.latex_array_threshold = -1`` (i.e., when the threshold
+is taken from numpy).
