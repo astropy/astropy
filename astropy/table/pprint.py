@@ -270,6 +270,8 @@ class TableFormatter:
                                                show_length=show_length,
                                                outs=outs)
 
+        # Replace tab and newline with text representations so they display nicely.
+        # Newline in particular is a problem in a multicolumn table.
         col_strs = [val.replace('\t', '\\t').replace('\n', '\\n') for val in col_strs_iter]
         if len(col_strs) > 0:
             col_width = max(len(x) for x in col_strs)
