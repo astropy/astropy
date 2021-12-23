@@ -1,0 +1,2 @@
+Change the repr of the Table object to replace embedded newlines and tabs with
+``r'\n'`` and ``r'\t'`` respectively. This improves the display of such tables.
