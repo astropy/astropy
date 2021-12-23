@@ -18,7 +18,7 @@ from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
-           'lazyproperty', 'sharedmethod', 'wraps']
+           'lazyproperty', 'sharedmethod']
 
 _NotFound = object()
 
