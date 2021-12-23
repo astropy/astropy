@@ -1229,26 +1229,44 @@ def header_spectral_with_time():
 
 def test_spectral_with_time_kw(header_spectral_with_time):
     def check_wcs(header):
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
-            w = WCS(header)
-            assert_allclose(w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval)
-            sky, spec = w.pixel_to_world(*w.wcs.crpix)
-            assert_allclose((sky.spherical.lon.degree, sky.spherical.lat.degree, spec.value),
-                            w.wcs.crval, rtol=1e-3)
+        assert_allclose(w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval)
+        sky, spec = w.pixel_to_world(*w.wcs.crpix)
+        assert_allclose((sky.spherical.lon.degree, sky.spherical.lat.degree, spec.value),
+                        w.wcs.crval, rtol=1e-3)
 
     # Chek with MJD-AVG and TIMESYS
     hdr = header_spectral_with_time.copy()
-    check_wcs(hdr)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        # Make sure the correct keyword is used in a test
+        assert ~np.isnan(w.wcs.mjdavg)
+        assert np.isnan(w.wcs.mjdobs)
+
+    check_wcs(w)
 
     # Check fall back to MJD-OBS
     hdr['MJD-OBS'] = hdr['MJD-AVG']
     del hdr['MJD-AVG']
-    check_wcs(hdr)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        # Make sure the correct keyword is used in a test
+        assert ~np.isnan(w.wcs.mjdobs)
+        assert np.isnan(w.wcs.mjdavg)
+    check_wcs(w)
 
     # Check fall back to DATE--OBS
     hdr['DATE-OBS'] = '2020-07-15'
     del hdr['MJD-OBS']
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        w.wcs.mjdobs = np.nan
+        # Make sure the correct keyword is used in a test
+        assert np.isnan(w.wcs.mjdobs)
+        assert np.isnan(w.wcs.mjdavg)
+        assert w.wcs.dateobs != ""
     check_wcs(hdr)
 
     # Check fall back to scale='utc'
