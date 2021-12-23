@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import os
 import functools
 
@@ -128,62 +129,56 @@ def read_no_header(tmpdir, request):
                              format='no_header')
 
 
-@pytest.fixture(scope='function')
-def dat_newlines(request):
-    """Table with data with newlines in it."""
-    dat = [['\t a ', ' b \n cd ', '\n'],
-           [' 1\n ', '2 \n \t 3\n4\n5', '1\n 2\n'],
-           [' x,y \nz\t', '\t 12\n\t34\t ', '56\t\n'],
-           ]
-    return Table(dat, names=('a', 'b', 'c'))
-
-
 @pytest.mark.parametrize('delimiter', [',', '\t', ' ', 'csv'])
 @pytest.mark.parametrize('quotechar', ['"', "'"])
-@pytest.mark.parametrize('fast_reader', [False, True])
-def test_embedded_newlines_basic(dat_newlines, delimiter, quotechar, fast_reader):
+@pytest.mark.parametrize('fast', [False, True])
+def test_embedded_newlines(delimiter, quotechar, fast):
+    """Test that embedded newlines are supported for io.ascii readers
+    and writers, both fast and Python readers."""
+    # Start with an assortment of values with different embedded newlines and whitespace
+    dat = [['\t a ', ' b \n cd ', '\n'],
+           [' 1\n ', '2 \n" \t 3\n4\n5', "1\n '2\n"],
+           [' x,y \nz\t', '\t 12\n\t34\t ', '56\t\n'],
+           ]
+    dat = Table(dat, names=('a', 'b', 'c'))
+
+    # Construct a table which is our expected result of writing the table and
+    # reading it back. Certain stripping of whitespace is expected.
+    exp = {}  # expected output from reading
+    for col in dat.itercols():
+        vals = []
+        for val in col:
+            # Readers and writers both strip whitespace from ends of values
+            val = val.strip(' \t')
+            if not fast:
+                # Pure Python reader has a "feature" where it strips trailing
+                # whitespace from each input line. This means a value like
+                # " x \ny \t\n" gets read as "x\ny".
+                bits = val.splitlines(keepends=True)
+                bits_out = []
+                for bit in bits:
+                    bit = re.sub(r'[ \t]+(\n?)$', r'\1', bit.strip(' \t'))
+                    bits_out.append(bit)
+                val = ''.join(bits_out)
+            vals.append(val)
+        exp[col.info.name] = vals
+    exp = Table(exp)
+
     if delimiter == 'csv':
         format = 'csv'
         delimiter = ','
     else:
         format = 'basic'
 
-    # Input table has values with embedded whitespace on ends and these are
-    # expected to get stripped.
-    exp = dat_newlines.copy()  # expected output from reading
-    for name in exp.colnames:
-        vals_out = []
-        for val in exp[name]:
-            bits = val.splitlines(keepends=True)
-            bits_out = []
-            for bit in bits:
-                if not fast_reader:
-                    bit = re.sub(r'[ \t]+(\n?)$', r'\1', bit.strip(' \t'))
-                bits_out.append(bit)
-            val_out = ''.join(bits_out)
-            vals_out.append(repr(val_out.strip(' \t')))
-        exp[name] = vals_out
+    # Write the table to `text`
+    fh = io.StringIO()
+    ascii.write(dat, fh, format=format, delimiter=delimiter,
+                quotechar=quotechar, fast_writer=fast)
+    text = fh.getvalue()
 
-    lines = [delimiter.join(dat_newlines.colnames)]
-    for row in dat_newlines:
-        vals = []
-        for val in row:
-            if '\n' in val or '\t' in val or delimiter in val:
-                val = quotechar + val + quotechar  # No embedded quotes so this works
-            vals.append(val)
-        lines.append(delimiter.join(vals))
-    text = '\n'.join(lines)
-    # For debug:
-    # text_repr = '\n'.join(line.replace('\n', '\\n').replace('\t', '\\t') for line in lines)
-
+    # Read it back and compare to the expected
     dat_out = ascii.read(text, format=format, guess=False, delimiter=delimiter,
-                         quotechar=quotechar, fast_reader=fast_reader)
-    for name in dat_out.colnames:
-        dat_out[name] = [repr(val) for val in dat_out[name]]
-
-    print()
-    print(repr(exp))
-    print(repr(dat_out))
+                         quotechar=quotechar, fast_reader=fast)
 
     eq = dat_out.values_equal(exp)
     assert all(np.all(col) for col in eq.itercols())

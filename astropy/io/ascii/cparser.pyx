@@ -1135,7 +1135,7 @@ cdef class FastWriter:
                             rows[i % N][j] = rows[i % N][j].strip()
 
                 if str_val and self.strip_whitespace:
-                    rows[i % N][j] = rows[i % N][j].strip()
+                    rows[i % N][j] = rows[i % N][j].strip(' \t')
 
             if i >= N - 1 and i % N == N - 1: # rows is now full
                 writer.writerows(rows)

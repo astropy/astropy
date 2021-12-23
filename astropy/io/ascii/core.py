@@ -500,11 +500,10 @@ class DefaultSplitter(BaseSplitter):
                                         doublequote=self.doublequote,
                                         escapechar=self.escapechar,
                                         quotechar=self.quotechar,
-                                        lineterminator='',
                                         quoting=self.quoting)
         if self.process_val:
             vals = [self.process_val(x) for x in vals]
-        out = self.csv_writer.writerow(vals)
+        out = self.csv_writer.writerow(vals).rstrip('\r\n')
 
         return out
 
@@ -1712,7 +1711,7 @@ def _get_writer(Writer, fast_writer, **kwargs):
             # Restore the default SplitterClass process_val method which strips
             # whitespace.  This may have been changed in the Writer
             # initialization (e.g. Rdb and Tab)
-            writer.data.splitter.process_val = operator.methodcaller('strip')
+            writer.data.splitter.process_val = operator.methodcaller('strip', ' \t')
         else:
             writer.data.splitter.process_val = None
     if 'names' in kwargs:
