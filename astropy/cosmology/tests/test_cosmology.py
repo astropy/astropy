@@ -158,23 +158,6 @@ def test_flat_z1():
                     [2404.0, 2404.24, 2404.4] * u.Mpc, rtol=1e-3)
 
 
-def test_zeroing():
-    """ Tests if setting params to 0s always respects that"""
-    # Make sure Ode = 0 behaves that way
-    cosmo = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0)
-    assert allclose(cosmo.Ode([0, 1, 2, 3]), [0, 0, 0, 0])
-    assert allclose(cosmo.Ode(1), 0)
-    # Ogamma0 and Onu
-    cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
-    assert allclose(cosmo.Ogamma(1.5), [0, 0, 0, 0])
-    assert allclose(cosmo.Ogamma([0, 1, 2, 3]), [0, 0, 0, 0])
-    assert allclose(cosmo.Onu(1.5), [0, 0, 0, 0])
-    assert allclose(cosmo.Onu([0, 1, 2, 3]), [0, 0, 0, 0])
-    # Obaryon
-    cosmo = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Ob0=0.0)
-    assert allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
-
-
 # This class is to test whether the routines work correctly
 # if one only overloads w(z)
 class test_cos_sub(flrw.FLRW):

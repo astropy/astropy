@@ -117,21 +117,34 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV)
         self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 
+    def teardown_class(self):
+        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
+
     @property
     def cls_args(self):
         return tuple(self._cls_args.values())
 
-    def teardown_class(self):
-        _COSMOLOGY_CLASSES.pop("SubCosmology", None)
+    @property
+    def ba(self):
+        """Return filled `inspect.BoundArguments` for cosmology.
+
+        Note this is not a fixture because those are cached and too easily
+        mutated in-place, which is a difficult thing to diagnose.
+        """
+        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba.apply_defaults()
+        return ba
 
     @pytest.fixture
     def cosmo_cls(self):
+        """The Cosmology class as a :func:`pytest.fixture`."""
         return self.cls
 
     @pytest.fixture
-    def cosmo(self):
+    def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        return self.cls(*self.cls_args, **self.cls_kwargs)
+        ba = self.ba
+        return cosmo_cls(*ba.args, **ba.kwargs)
 
     # ===============================================================
     # Method & Attribute Tests
