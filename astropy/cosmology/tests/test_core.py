@@ -17,6 +17,7 @@ import pytest
 import numpy as np
 
 # LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
@@ -328,10 +329,10 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         """Test instances can pickle and unpickle."""
         # pickle and unpickle
         f = pickle.dumps(cosmo, protocol=pickle_protocol)
-        unpickled = pickle.loads(f)
+        with u.add_enabled_units(cu):
+            unpickled = pickle.loads(f)
 
-        # test equality
-        # assert unpickled == cosmo  # FIXME! #12214 for comparing redshifts.
+        assert unpickled == cosmo
         assert unpickled.meta == cosmo.meta
 
 
