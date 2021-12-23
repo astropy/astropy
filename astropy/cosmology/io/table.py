@@ -208,8 +208,8 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, unstructure=T
 
         >>> Planck18.to_format("astropy.table", unstructure=False)
         <QTable length=1>
-          name        H0        Om0    Tcmb0    Neff       m_nu        Ob0  
-                 km / (Mpc s)            K             (eV, eV, eV)         
+          name        H0        Om0    Tcmb0    Neff       m_nu        Ob0
+                 km / (Mpc s)            K             (eV, eV, eV)
           str8     float64    float64 float64 float64    void192     float64
         -------- ------------ ------- ------- ------- -------------- -------
         Planck18        67.66 0.30966  2.7255   3.046 (0., 0., 0.06) 0.04897

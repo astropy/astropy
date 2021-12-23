@@ -74,7 +74,7 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
 #         """Test if serialized structured or unstructured."""
 #         fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
 #         write(fp, format='ascii.ecsv', unstructure=unstructure)
-# 
+#
 #         tbl = QTable.read(fp)
 #         # for each structured param check it is correctly unstructured,
 #         # if it meant to be unstructured

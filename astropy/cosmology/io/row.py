@@ -132,8 +132,8 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, unstruct
 
         >>> Planck18.to_format("astropy.row", cosmology_in_meta=True)
         <Row index=0>
-          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
-                 km / (Mpc s)            K                 eV            
+          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+                 km / (Mpc s)            K                 eV
           str8     float64    float64 float64 float64   float64   float64
         -------- ------------ ------- ------- ------- ----------- -------
         Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
@@ -144,8 +144,8 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, unstruct
 
         >>> Planck18.to_format("astropy.row", unstructure=False)
         <Row index=0>
-          cosmology     name        H0        Om0    Tcmb0    Neff       m_nu        Ob0  
-                               km / (Mpc s)            K             (eV, eV, eV)         
+          cosmology     name        H0        Om0    Tcmb0    Neff       m_nu        Ob0
+                               km / (Mpc s)            K             (eV, eV, eV)
             str13       str8     float64    float64 float64 float64    void192     float64
         ------------- -------- ------------ ------- ------- ------- -------------- -------
         FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 (0., 0., 0.06) 0.04897
