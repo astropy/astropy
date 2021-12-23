@@ -27,9 +27,9 @@ class Spine:
         self.parent_axes = parent_axes
         self.transform = transform
 
-        self.data = None
-        self.pixel = None
-        self.world = None
+        self._data = None
+        self._pixel = None
+        self._world = None
 
     @property
     def data(self):
@@ -37,12 +37,11 @@ class Spine:
 
     @data.setter
     def data(self, value):
+        self._data = value
         if value is None:
-            self._data = None
             self._pixel = None
             self._world = None
         else:
-            self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
             with np.errstate(invalid='ignore'):
                 self._world = self.transform.transform(self._data)
@@ -54,13 +53,12 @@ class Spine:
 
     @pixel.setter
     def pixel(self, value):
+        self._pixel = value
         if value is None:
             self._data = None
-            self._pixel = None
             self._world = None
         else:
             self._data = self.parent_axes.transData.inverted().transform(self._data)
-            self._pixel = value
             self._world = self.transform.transform(self._data)
             self._update_normal()
 
@@ -70,14 +68,13 @@ class Spine:
 
     @world.setter
     def world(self, value):
+        self._world = value
         if value is None:
             self._data = None
             self._pixel = None
-            self._world = None
         else:
             self._data = self.transform.transform(value)
             self._pixel = self.parent_axes.transData.transform(self._data)
-            self._world = value
             self._update_normal()
 
     def _update_normal(self):
@@ -118,12 +115,11 @@ class SpineXAligned(Spine):
 
     @data.setter
     def data(self, value):
+        self._data = value
         if value is None:
-            self._data = None
             self._pixel = None
             self._world = None
         else:
-            self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
             with np.errstate(invalid='ignore'):
                 self._world = self.transform.transform(self._data[:,0:1])
@@ -135,13 +131,12 @@ class SpineXAligned(Spine):
 
     @pixel.setter
     def pixel(self, value):
+        self._pixel = value
         if value is None:
             self._data = None
-            self._pixel = None
             self._world = None
         else:
             self._data = self.parent_axes.transData.inverted().transform(self._data)
-            self._pixel = value
             self._world = self.transform.transform(self._data[:,0:1])
             self._update_normal()
 

@@ -112,42 +112,30 @@ class Ticks(Line2D):
             return [x for x in self._visible_axes if x in self.world]
 
     def clear(self):
-        self.world = {}
-        self.pixel = {}
-        self.angle = {}
-        self.disp = {}
-        self.minor_world = {}
-        self.minor_pixel = {}
-        self.minor_angle = {}
-        self.minor_disp = {}
+        self.world = defaultdict(list)
+        self.pixel = defaultdict(list)
+        self.angle = defaultdict(list)
+        self.disp = defaultdict(list)
+        self.minor_world = defaultdict(list)
+        self.minor_pixel = defaultdict(list)
+        self.minor_angle = defaultdict(list)
+        self.minor_disp = defaultdict(list)
 
     def add(self, axis, world, pixel, angle, axis_displacement):
-        if axis not in self.world:
-            self.world[axis] = [world]
-            self.pixel[axis] = [pixel]
-            self.angle[axis] = [angle]
-            self.disp[axis] = [axis_displacement]
-        else:
-            self.world[axis].append(world)
-            self.pixel[axis].append(pixel)
-            self.angle[axis].append(angle)
-            self.disp[axis].append(axis_displacement)
+        self.world[axis].append(world)
+        self.pixel[axis].append(pixel)
+        self.angle[axis].append(angle)
+        self.disp[axis].append(axis_displacement)
 
     def get_minor_world(self):
         return self.minor_world
 
     def add_minor(self, minor_axis, minor_world, minor_pixel, minor_angle,
                   minor_axis_displacement):
-        if minor_axis not in self.minor_world:
-            self.minor_world[minor_axis] = [minor_world]
-            self.minor_pixel[minor_axis] = [minor_pixel]
-            self.minor_angle[minor_axis] = [minor_angle]
-            self.minor_disp[minor_axis] = [minor_axis_displacement]
-        else:
-            self.minor_world[minor_axis].append(minor_world)
-            self.minor_pixel[minor_axis].append(minor_pixel)
-            self.minor_angle[minor_axis].append(minor_angle)
-            self.minor_disp[minor_axis].append(minor_axis_displacement)
+        self.minor_world[minor_axis].append(minor_world)
+        self.minor_pixel[minor_axis].append(minor_pixel)
+        self.minor_angle[minor_axis].append(minor_angle)
+        self.minor_disp[minor_axis].append(minor_axis_displacement)
 
     def __len__(self):
         return len(self.world)

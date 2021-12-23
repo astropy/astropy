@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from collections import defaultdict
 
 import numpy as np
 
@@ -37,25 +38,18 @@ class TickLabels(Text):
             self.set_size(rcParams['xtick.labelsize'])
 
     def clear(self):
-        self.world = {}
-        self.pixel = {}
-        self.angle = {}
-        self.text = {}
-        self.disp = {}
+        self.world = defaultdict(list)
+        self.pixel = defaultdict(list)
+        self.angle = defaultdict(list)
+        self.text = defaultdict(list)
+        self.disp = defaultdict(list)
 
     def add(self, axis, world, pixel, angle, text, axis_displacement):
-        if axis not in self.world:
-            self.world[axis] = [world]
-            self.pixel[axis] = [pixel]
-            self.angle[axis] = [angle]
-            self.text[axis] = [text]
-            self.disp[axis] = [axis_displacement]
-        else:
-            self.world[axis].append(world)
-            self.pixel[axis].append(pixel)
-            self.angle[axis].append(angle)
-            self.text[axis].append(text)
-            self.disp[axis].append(axis_displacement)
+        self.world[axis].append(world)
+        self.pixel[axis].append(pixel)
+        self.angle[axis].append(angle)
+        self.text[axis].append(text)
+        self.disp[axis].append(axis_displacement)
         self._stale = True
 
     def sort(self):
