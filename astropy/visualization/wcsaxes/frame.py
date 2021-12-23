@@ -3,6 +3,7 @@
 
 import abc
 from collections import OrderedDict
+import warnings
 
 import numpy as np
 
@@ -10,6 +11,8 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['RectangularFrame1D', 'Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
 
@@ -27,9 +30,8 @@ class Spine:
         self.parent_axes = parent_axes
         self.transform = transform
 
-        self.data = None
-        self.pixel = None
-        self.world = None
+        self._data = None
+        self._world = None
 
     @property
     def data(self):
@@ -39,30 +41,30 @@ class Spine:
     def data(self, value):
         if value is None:
             self._data = None
-            self._pixel = None
             self._world = None
         else:
             self._data = value
-            self._pixel = self.parent_axes.transData.transform(self._data)
             with np.errstate(invalid='ignore'):
                 self._world = self.transform.transform(self._data)
             self._update_normal()
 
+    def _get_pixel(self):
+        return self.parent_axes.transData.transform(self._data)
+
     @property
     def pixel(self):
-        return self._pixel
+        warnings.warn('Pixel coordinates cannot be accurately calculated unless '
+                      'Matplotlib is currently drawing a figure, so the .pixel '
+                      'attribute is deprecated and will be removed in a future '
+                      'astropy release.', AstropyDeprecationWarning)
+        return self._get_pixel()
 
     @pixel.setter
     def pixel(self, value):
-        if value is None:
-            self._data = None
-            self._pixel = None
-            self._world = None
-        else:
-            self._data = self.parent_axes.transData.inverted().transform(self._data)
-            self._pixel = value
-            self._world = self.transform.transform(self._data)
-            self._update_normal()
+        warnings.warn('Manually setting pixel values of a Spine can lead to incorrect results '
+                      'as these can only be accuractley calculated when Matplotlib is drawing '
+                      'a figure. As such the .pixel setter now does nothing, is deprecated, '
+                      'and will be removed in a future astropy release.', AstropyDeprecationWarning)
 
     @property
     def world(self):
@@ -81,16 +83,18 @@ class Spine:
             self._update_normal()
 
     def _update_normal(self):
+        pixel = self._get_pixel()
         # Find angle normal to border and inwards, in display coordinate
-        dx = self.pixel[1:, 0] - self.pixel[:-1, 0]
-        dy = self.pixel[1:, 1] - self.pixel[:-1, 1]
+        dx = pixel[1:, 0] - pixel[:-1, 0]
+        dy = pixel[1:, 1] - pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
     def _halfway_x_y_angle(self):
         """
         Return the x, y, normal_angle values halfway along the spine
         """
-        x_disp, y_disp = self.pixel[:, 0], self.pixel[:, 1]
+        pixel = self._get_pixel()
+        x_disp, y_disp = pixel[:, 0], pixel[:, 1]
         # Get distance along the path
         d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))])
         xcen = np.interp(d[-1] / 2., d, x_disp)
@@ -120,29 +124,11 @@ class SpineXAligned(Spine):
     def data(self, value):
         if value is None:
             self._data = None
-            self._pixel = None
             self._world = None
         else:
             self._data = value
-            self._pixel = self.parent_axes.transData.transform(self._data)
             with np.errstate(invalid='ignore'):
-                self._world = self.transform.transform(self._data[:,0:1])
-            self._update_normal()
-
-    @property
-    def pixel(self):
-        return self._pixel
-
-    @pixel.setter
-    def pixel(self, value):
-        if value is None:
-            self._data = None
-            self._pixel = None
-            self._world = None
-        else:
-            self._data = self.parent_axes.transData.inverted().transform(self._data)
-            self._pixel = value
-            self._world = self.transform.transform(self._data[:,0:1])
+                self._world = self.transform.transform(self._data[:, 0:1])
             self._update_normal()
 
 
@@ -204,7 +190,8 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
     def draw(self, renderer):
         for axis in self:
-            x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
+            pixel = self[axis]._get_pixel()
+            x, y = pixel[:, 0], pixel[:, 1]
             line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
             line.draw(renderer)
 
@@ -365,6 +352,7 @@ class EllipticalFrame(BaseFrame):
         FIXME: we may want to add a general method to give the user control
         over which spines are drawn."""
         axis = 'c'
-        x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
+        pixel = self[axis]._get_pixel()
+        x, y = pixel[:, 0], pixel[:, 1]
         line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
         line.draw(renderer)
