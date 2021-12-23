@@ -1381,13 +1381,12 @@ class Quantity(np.ndarray):
             formatter = {'float_kind': float_formatter,
                          'complex_kind': complex_formatter}
             if conf.latex_array_threshold > -1:
-                np.set_printoptions(threshold=conf.latex_array_threshold,
-                                    formatter=formatter)
+                np.set_printoptions(threshold=conf.latex_array_threshold)
 
             # the view is needed for the scalar case - value might be float
             latex_value = np.array2string(
                 self.view(np.ndarray),
-                max_line_width=np.inf, separator=',~')
+                formatter=formatter, max_line_width=np.inf, separator=',~')
 
             latex_value = latex_value.replace('...', r'\dots')
         finally:
