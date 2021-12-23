@@ -50,7 +50,9 @@ def get_polar_motion(time):
     wmsg = (
         'Tried to get polar motions for times {} IERS data is '
         'valid. Defaulting to polar motion from the 50-yr mean for those. '
-        'This may affect precision at the arcsec level'
+        'This may affect precision at the arcsec level. Please check your '
+        'astropy.utils.iers.conf.iers_auto_url and point it to a newer '
+        'version if necessary.'
     )
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
         xp[status == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
