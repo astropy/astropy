@@ -1,0 +1,3 @@
+Backward-compatible import of ``astropy.tests.disable_internet``
+is removed; use ``pytest_remotedata.disable_internet`` instead
+from ``pytest-remotedata`` plugin instead.

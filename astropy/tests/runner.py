@@ -8,7 +8,6 @@ import shlex
 import sys
 import tempfile
 import warnings
-import importlib
 from collections import OrderedDict
 from importlib.util import find_spec
 from functools import wraps
