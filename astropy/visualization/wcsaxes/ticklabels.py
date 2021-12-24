@@ -170,7 +170,7 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
-    def _set_xy_alignments(self, renderer, tick_out_size):
+    def _set_xy_alignments(self, renderer):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
         each label.
@@ -195,7 +195,7 @@ class TickLabels(Text):
                     continue
 
                 x, y = self._frame.parent_axes.transData.transform(self.data[axis][i])
-                pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
+                pad = renderer.points_to_pixels(self.get_pad() + self._tick_out_size)
 
                 if isinstance(self._frame, RectangularFrame):
                     # This is just to preserve the current results, but can be
@@ -297,11 +297,11 @@ class TickLabels(Text):
         self.set_va(self.va[axis][i])
         return super().get_window_extent(renderer)
 
-    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
+    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size=None):
         if not self.get_visible():
             return
 
-        self._set_xy_alignments(renderer, tick_out_size)
+        self._set_xy_alignments(renderer)
 
         for axis in self.get_visible_axes():
             for i in range(len(self.world[axis])):

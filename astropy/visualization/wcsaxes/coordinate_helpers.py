@@ -634,12 +634,9 @@ class CoordinateHelper:
         """
         renderer.open_group("ticks")
         self.ticks.draw(renderer)
-        self.ticklabels.draw(
-            renderer,
-            bboxes=bboxes,
-            ticklabels_bbox=ticklabels_bbox,
-            tick_out_size=self.ticks.out_size,
-        )
+
+        self.ticklabels._tick_out_size = self.ticks.out_size
+        self.ticklabels.draw(renderer, bboxes=bboxes, ticklabels_bbox=ticklabels_bbox)
 
         renderer.close_group("ticks")
 
