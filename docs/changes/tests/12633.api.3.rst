@@ -1,0 +1,2 @@
+Backward-compatible plugin ``astropy.tests.plugins.display``
+is removed; use ``pytest-astropy-header`` package instead.
