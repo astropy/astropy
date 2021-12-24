@@ -297,7 +297,9 @@ class TickLabels(Text):
         self.set_va(self.va[axis][i])
         return super().get_window_extent(renderer)
 
-    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size=None):
+    def draw(self, renderer, bboxes, ticklabels_bbox=None, tick_out_size=None):
+        self._ticklabels_bbox = defaultdict(list)
+
         if not self.get_visible():
             return
 
@@ -317,4 +319,4 @@ class TickLabels(Text):
                 if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
                     super().draw(renderer)
                     bboxes.append(bb)
-                    ticklabels_bbox[axis].append(bb)
+                    self._ticklabels_bbox[axis].append(bb)

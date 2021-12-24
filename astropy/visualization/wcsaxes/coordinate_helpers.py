@@ -636,7 +636,11 @@ class CoordinateHelper:
         self.ticks.draw(renderer)
 
         self.ticklabels._tick_out_size = self.ticks.out_size
-        self.ticklabels.draw(renderer, bboxes=bboxes, ticklabels_bbox=ticklabels_bbox)
+        self.ticklabels.draw(renderer, bboxes=bboxes)
+
+        # Save copies of the ticklabel bounding boxes
+        for axis in self.ticklabels._ticklabels_bbox:
+            ticklabels_bbox[axis] += self.ticklabels._ticklabels_bbox[axis]
 
         renderer.close_group("ticks")
 
