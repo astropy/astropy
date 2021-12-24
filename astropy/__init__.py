@@ -8,7 +8,6 @@ managing them.
 
 import os
 import sys
-from warnings import warn
 
 from .version import version as __version__
 
@@ -134,7 +133,7 @@ class astronomical_constants(base_constants_version):
 # Create the test() function
 from .tests.runner import TestRunner  # noqa: E402
 
-test = TestRunner.make_test_runner_in(__path__[0])
+test = TestRunner.make_test_runner_in(__path__[0])  # noqa: F821
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the

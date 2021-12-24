@@ -44,6 +44,7 @@ Deprecated                                                 Use this
 ========================================================== ===============================================
 Removed                                                    Use this
 ========================================================== ===============================================
+``astropy.tests.disable_internet``                         ``pytest_remotedata.disable_internet``
 ``astropy.tests.helper.remote_data``                       ``pytest.mark.remote_data``
 ``astropy.tests.plugins.display``                          ``pytest-astropy-header`` package
 ========================================================== ===============================================
