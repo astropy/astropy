@@ -297,8 +297,17 @@ class TickLabels(Text):
         self.set_va(self.va[axis][i])
         return super().get_window_extent(renderer)
 
+    @property
+    def _all_bboxes(self):
+        # List of all tick label bounding boxes
+        ret = []
+        for axis in self._axis_bboxes:
+            ret += self._axis_bboxes[axis]
+        return ret
+
     def draw(self, renderer, bboxes=None, ticklabels_bbox=None, tick_out_size=None):
-        self._ticklabels_bbox = defaultdict(list)
+        # Mapping from axis > list[bounding boxes]
+        self._axis_bboxes = defaultdict(list)
 
         if not self.get_visible():
             return
@@ -316,6 +325,9 @@ class TickLabels(Text):
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
-                if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
+                if (
+                    not self._exclude_overlapping
+                    or bb.count_overlaps(self._all_bboxes) == 0
+                ):
                     super().draw(renderer)
-                    self._ticklabels_bbox[axis].append(bb)
+                    self._axis_bboxes[axis].append(bb)

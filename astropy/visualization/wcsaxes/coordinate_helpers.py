@@ -628,7 +628,7 @@ class CoordinateHelper:
 
         renderer.close_group("grid lines")
 
-    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
+    def _draw_ticks(self, renderer):
         """
         Draw all ticks and ticklabels.
         """
@@ -636,12 +636,7 @@ class CoordinateHelper:
         self.ticks.draw(renderer)
 
         self.ticklabels._tick_out_size = self.ticks.out_size
-        self.ticklabels.draw(renderer, bboxes=bboxes)
-
-        # Save copies of the ticklabel bounding boxes
-        for axis, bbs in self.ticklabels._ticklabels_bbox.items():
-            ticklabels_bbox[axis] += bbs
-            bboxes += bbs
+        self.ticklabels.draw(renderer)
 
         renderer.close_group("ticks")
 
