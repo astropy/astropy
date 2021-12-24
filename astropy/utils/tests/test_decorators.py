@@ -6,7 +6,7 @@ import pickle
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
+from astropy.utils.decorators import (deprecated_attribute, deprecated,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
@@ -23,9 +23,10 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
 
 def test_wraps():
     """
-    Tests the compatibility replacement for functools.wraps which supports
+    Make sure functools.wraps supports
     argument preservation across all supported Python versions.
     """
+    from functools import wraps
 
     def foo(a, b, c=1, d=2, e=3, **kwargs):
         """A test function."""
