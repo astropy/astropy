@@ -910,3 +910,14 @@ class TestColumnsShowHide:
         with t.pprint_exclude_names.set('a??'):
             out = t.pformat_all()
         assert out == exp
+
+
+def test_embedded_newline_tab():
+    """Newlines and tabs are escaped in table repr"""
+    t = Table(rows=[['a', 'b \n c \t \n d'], ['x', 'y\n']])
+    exp = [
+        r'col0      col1     ',
+        r'---- --------------',
+        r'   a b \n c \t \n d',
+        r'   x            y\n']
+    assert t.pformat_all() == exp
