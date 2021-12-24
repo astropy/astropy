@@ -639,8 +639,9 @@ class CoordinateHelper:
         self.ticklabels.draw(renderer, bboxes=bboxes)
 
         # Save copies of the ticklabel bounding boxes
-        for axis in self.ticklabels._ticklabels_bbox:
-            ticklabels_bbox[axis] += self.ticklabels._ticklabels_bbox[axis]
+        for axis, bbs in self.ticklabels._ticklabels_bbox.items():
+            ticklabels_bbox[axis] += bbs
+            bboxes += bbs
 
         renderer.close_group("ticks")
 
