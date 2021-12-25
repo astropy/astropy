@@ -1172,6 +1172,32 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
                     " m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+    def test_varyde_lumdist_mathematica(self, cosmo_cls):
+        """Test dark energy EOS models against a Mathematica computation."""
+        z = np.array([0.2, 0.4, 0.9, 1.2])
+        ba = self.ba
+        ba.arguments.update(dict(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2, Tcmb0=0.0))
+
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert u.allclose(cosmo.luminosity_distance(z),
+                          [1004.0, 2268.62, 6265.76, 9061.84] * u.Mpc, rtol=1e-4)
+        assert u.allclose(cosmo.de_density_scale(0.0), 1.0, rtol=1e-5)
+        assert u.allclose(cosmo.de_density_scale([0.0, 0.5, 1.5]),
+                          [1.0, 0.9246310669529021, 0.9184087000251957])
+
+        ba.arguments.update(dict(Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0))
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert u.allclose(cosmo.luminosity_distance(z),
+                          [971.667, 2141.67, 5685.96, 8107.41] * u.Mpc, rtol=1e-4)
+
+        ba.arguments["wa"] = -0.5
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert u.allclose(cosmo.luminosity_distance(z),
+                          [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc, rtol=1e-4)
 
 # -----------------------------------------------------------------------------
 
@@ -1326,6 +1352,21 @@ class TestwpwaCDM(FLRWSubclassTest,
                     " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)")
         assert repr(cosmo) == expected
 
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+    def test_varyde_lumdist_mathematica(self, cosmo_cls):
+        """Test dark energy EOS models against a Mathematica computation."""
+        z = np.array([0.2, 0.4, 0.9, 1.2])
+
+        cosmo = cosmo_cls(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5, Tcmb0=0.0)
+        assert u.allclose(cosmo.luminosity_distance(z),
+                          [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc, rtol=1e-4)
+
+        cosmo = cosmo_cls(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9, Tcmb0=0.0)
+        assert u.allclose(cosmo.luminosity_distance(z),
+                          [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc, rtol=1e-4)
 
 # -----------------------------------------------------------------------------
 
