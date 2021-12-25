@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import astropy.cosmology.units as cu
+import astropy.units as u
 from astropy.table import QTable
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
@@ -42,7 +44,8 @@ def read_ecsv(filename, index=None, *, move_to_meta=False, cosmology=None, **kwa
     `~astropy.cosmology.Cosmology` subclass instance
     """
     kwargs["format"] = "ascii.ecsv"
-    table = QTable.read(filename, **kwargs)
+    with u.add_enabled_units(cu):
+        table = QTable.read(filename, **kwargs)
 
     # build cosmology from table
     return from_table(table, index=index, move_to_meta=move_to_meta, cosmology=cosmology)
