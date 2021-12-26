@@ -1288,6 +1288,17 @@ class TestSort():
         assert t.dtype.names == ('c',)
 
 
+@pytest.mark.parametrize('kwargs', [{}, {'kind': 'stable'}, {'kind': 'quicksort'}])
+def test_sort_kind(kwargs):
+    t = Table()
+    t['a'] = [2, 1, 3, 2, 3, 1]
+    t['b'] = [6, 5, 4, 3, 5, 4]
+    t_struct = t.as_array()
+    # Since sort calls Table.argsort this covers `kind` for both methods
+    t.sort(['a', 'b'], **kwargs)
+    assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
+
+
 @pytest.mark.usefixtures('table_types')
 class TestIterator():
 

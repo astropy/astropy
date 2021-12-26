@@ -1,0 +1,4 @@
+A new keyword-only argument ``kind`` was added to the ``Table.sort`` method to
+specify the sort algorithm. The signature of ``Table.sort`` was modified so that
+the ``reverse`` argument is now keyword-only. Previously ``reverse`` could be
+specified as the second positional argument.
