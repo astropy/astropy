@@ -21,7 +21,7 @@ from astropy.table import Table
 from astropy.units import UnitsWarning, Unit, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from astropy.io.fits.column import Delayed, NUMPY2FITS
+from astropy.io.fits.column import ColumnAttribute, Delayed, NUMPY2FITS
 from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
@@ -2140,6 +2140,21 @@ class TestTableFunctions(FitsTestCase):
         header files and try to reload the table from them.
         """
 
+        def _assert_attr_col(new_tbhdu, tbhdu):
+            """
+            Helper function to compare column attributes
+            """
+            # Double check that the headers are equivalent
+            assert tbhdu.columns.names == new_tbhdu.columns.names
+            attrs = [k for k, v in fits.Column.__dict__.items()
+                     if isinstance(v, ColumnAttribute)]
+            for name in tbhdu.columns.names:
+                col = tbhdu.columns[name]
+                new_col = new_tbhdu.columns[name]
+                for attr in attrs:
+                    if getattr(col, attr) and getattr(new_col, attr):
+                        assert getattr(col, attr) == getattr(new_col, attr)
+
         with fits.open(self.data(tablename)) as hdul:
             tbhdu = hdul[1]
             datafile = self.temp('data.txt')
@@ -2152,12 +2167,14 @@ class TestTableFunctions(FitsTestCase):
 
             assert comparerecords(tbhdu.data, new_tbhdu.data)
 
+            _assert_attr_col(new_tbhdu, hdul[1])
+
             # Double check that the headers are equivalent
-            for card in hdul[1].header.cards:
+            #for card in hdul[1].header.cards:
                 # Skip unloaded keywords (should this be fixed?)
-                if card.keyword[0:5] not in ['TFORM', 'TDISP', 'TNULL', 'TZERO', 'TSCAL']:
-                    new_card = new_tbhdu.header.cards[card.keyword]
-                    assert card.value == new_card.value
+                #if card.keyword[0:5] not in ['TFORM', 'TDISP', 'TNULL', 'TZERO', 'TSCAL']:
+                #    new_card = new_tbhdu.header.cards[card.keyword]
+                #    assert card.value == new_card.value
 
     def test_dump_load_array_colums(self):
         """

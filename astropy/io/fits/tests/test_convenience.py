@@ -13,6 +13,7 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
+from astropy.io.fits.column import ColumnAttribute
 from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -287,6 +288,22 @@ class TestConvenience(FitsTestCase):
         header files and try to reload the table from them.
         """
 
+        def _assert_attr_col(tbhdu, fitsfile):
+            """
+            Helper function to compare column attributes
+            """
+            with fits.open(fitsfile) as hdul:
+                # Double check that the headers are equivalent
+                assert hdul[1].columns.names == tbhdu.columns.names
+                attrs = [k for k, v in fits.Column.__dict__.items()
+                         if isinstance(v, ColumnAttribute)]
+                for name in hdul[1].columns.names:
+                    col = hdul[1].columns[name]
+                    new_col = tbhdu.columns[name]
+                    for attr in attrs:
+                        if getattr(col, attr) and getattr(new_col, attr):
+                            assert getattr(col, attr) == getattr(new_col, attr)
+
         # copy fits file to the temp directory
         self.copy_file(tablename)
 
@@ -296,14 +313,8 @@ class TestConvenience(FitsTestCase):
         fits.tabledump(self.temp(tablename), datafile, cdfile, hfile)
 
         new_tbhdu = fits.tableload(datafile, cdfile, hfile)
-
-        with fits.open(self.temp(tablename)) as hdul:
-            # Double check that the headers are equivalent
-            for card in hdul[1].header.cards:
-                # Skip unloaded keywords (should this be fixed?)
-                if card.keyword[0:5] not in ['TFORM', 'TDISP', 'TNULL', 'TZERO', 'TSCAL']:
-                    new_card = new_tbhdu.header.cards[card.keyword]
-                    assert card.value == new_card.value
+        
+        _assert_attr_col(new_tbhdu, self.temp(tablename))
 
     def test_append_filename(self):
         """
