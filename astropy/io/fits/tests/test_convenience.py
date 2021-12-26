@@ -313,7 +313,7 @@ class TestConvenience(FitsTestCase):
         fits.tabledump(self.temp(tablename), datafile, cdfile, hfile)
 
         new_tbhdu = fits.tableload(datafile, cdfile, hfile)
-        
+
         _assert_attr_col(new_tbhdu, self.temp(tablename))
 
     def test_append_filename(self):
