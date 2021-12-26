@@ -1,0 +1,40 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: name, datatype: string}
+# - {name: H0, unit: km / (Mpc s), datatype: float64, format: '', description: Hubble constant as an `~astropy.units.Quantity` at z=0.}
+# - {name: Om0, datatype: float64, format: '', description: Omega matter; matter density/critical density at z=0.}
+# - {name: Tcmb0, unit: K, datatype: float64, format: '', description: Temperature of the CMB as `~astropy.units.Quantity` at z=0.}
+# - {name: Neff, datatype: float64, format: '', description: Number of effective neutrino species.}
+# - {name: m_nu, unit: eV, datatype: string, format: '', description: Mass of neutrino species., subtype: 'float64[3]'}
+# - {name: Ob0, datatype: float64, format: '', description: Omega baryon; baryonic matter density/critical density at z=0.}
+# meta: !!omap
+# - {Oc0: 0.226}
+# - {n: 0.967}
+# - {sigma8: 0.81}
+# - {tau: 0.085}
+# - z_reion: !astropy.units.Quantity
+#     unit: !astropy.units.Unit {unit: redshift}
+#     value: 10.3
+# - t0: !astropy.units.Quantity
+#     unit: !astropy.units.Unit {unit: Gyr}
+#     value: 13.76
+# - {flat: true}
+# - {reference: 'Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).'}
+# - {cosmology: FlatLambdaCDM}
+# - __serialized_columns__:
+#     H0:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: km / (Mpc s)}
+#       value: !astropy.table.SerializedColumn {name: H0}
+#     Tcmb0:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: K}
+#       value: !astropy.table.SerializedColumn {name: Tcmb0}
+#     m_nu:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: eV}
+#       value: !astropy.table.SerializedColumn {name: m_nu}
+# schema: astropy-2.0
+name H0 Om0 Tcmb0 Neff m_nu Ob0
+WMAP7 70.4 0.272 2.725 3.04 [0.0,0.0,0.0] 0.0455
