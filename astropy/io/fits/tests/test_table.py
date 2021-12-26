@@ -2169,13 +2169,6 @@ class TestTableFunctions(FitsTestCase):
 
             _assert_attr_col(new_tbhdu, hdul[1])
 
-            # Double check that the headers are equivalent
-            #for card in hdul[1].header.cards:
-                # Skip unloaded keywords (should this be fixed?)
-                #if card.keyword[0:5] not in ['TFORM', 'TDISP', 'TNULL', 'TZERO', 'TSCAL']:
-                #    new_card = new_tbhdu.header.cards[card.keyword]
-                #    assert card.value == new_card.value
-
     def test_dump_load_array_colums(self):
         """
         Regression test for https://github.com/spacetelescope/PyFITS/issues/22
