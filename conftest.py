@@ -17,7 +17,10 @@ except ImportError:
 
 # This has to be in the root dir or it will not display in CI.
 def pytest_configure(config):
-    from astropy import __version__
+    try:
+        from astropy import __version__
+    except ImportError:
+        __version__ = 'unknown'
 
     PYTEST_HEADER_MODULES['PyERFA'] = 'erfa'
     PYTEST_HEADER_MODULES['Cython'] = 'cython'

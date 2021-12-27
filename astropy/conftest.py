@@ -69,7 +69,10 @@ def fast_thread_switching():
 
 
 def pytest_configure(config):
-    from astropy import __version__
+    try:
+        from astropy import __version__
+    except ImportError:
+        __version__ = 'unknown'
     from astropy.utils.iers import conf as iers_conf
 
     # Disable IERS auto download for testing
