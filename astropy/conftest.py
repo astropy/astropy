@@ -68,11 +68,19 @@ def fast_thread_switching():
     sys.setswitchinterval(old)
 
 
-def pytest_configure(config):
+def pytest_report_header(config):
     try:
-        from astropy import __version__
+        from astropy import __version__  # noqa: F401
     except ImportError:
-        __version__ = 'unknown'
+        return
+
+    # This gets added after the pytest-astropy-header output.
+    return (f'ARCH_ON_CI: {os.environ.get("ARCH_ON_CI", "undefined")}\n'
+            f'IS_CRON: {os.environ.get("IS_CRON", "undefined")}\n')
+
+
+def pytest_configure(config):
+    from astropy import __version__
     from astropy.utils.iers import conf as iers_conf
 
     # Disable IERS auto download for testing

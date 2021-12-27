@@ -17,11 +17,7 @@ except ImportError:
 
 # This has to be in the root dir or it will not display in CI.
 def pytest_configure(config):
-    try:
-        from astropy import __version__
-    except ImportError:
-        __version__ = 'unknown'
-
+    from astropy import __version__
     PYTEST_HEADER_MODULES['PyERFA'] = 'erfa'
     PYTEST_HEADER_MODULES['Cython'] = 'cython'
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
@@ -32,6 +28,11 @@ def pytest_configure(config):
 
 # This has to be in the root dir or it will not display in CI.
 def pytest_report_header(config):
+    try:
+        from astropy import __version__  # noqa: F401
+    except ImportError:
+        return
+
     # This gets added after the pytest-astropy-header output.
     return (f'ARCH_ON_CI: {os.environ.get("ARCH_ON_CI", "undefined")}\n'
             f'IS_CRON: {os.environ.get("IS_CRON", "undefined")}\n')
