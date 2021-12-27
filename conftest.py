@@ -8,8 +8,6 @@ import tempfile
 
 import hypothesis
 
-from astropy import __version__
-
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
@@ -19,6 +17,8 @@ except ImportError:
 
 # This has to be in the root dir or it will not display in CI.
 def pytest_configure(config):
+    from astropy import __version__
+
     PYTEST_HEADER_MODULES['PyERFA'] = 'erfa'
     PYTEST_HEADER_MODULES['Cython'] = 'cython'
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'

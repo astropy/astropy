@@ -18,7 +18,6 @@ except ImportError:
 
 import pytest
 
-from astropy import __version__
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 # This is needed to silence a warning from matplotlib caused by
@@ -70,6 +69,7 @@ def fast_thread_switching():
 
 
 def pytest_configure(config):
+    from astropy import __version__
     from astropy.utils.iers import conf as iers_conf
 
     # Disable IERS auto download for testing
