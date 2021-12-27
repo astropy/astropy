@@ -1,0 +1,2 @@
+A new keyword-only argument ``kind`` was added to the ``Table.sort`` method to
+specify the sort algorithm.

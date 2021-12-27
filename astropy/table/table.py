@@ -3164,8 +3164,8 @@ class Table:
         ----------
         keys : str or list of str
             The column name(s) to order the table by
-        kind : {'quicksort', 'mergesort', 'heapsort'}, optional
-            Sorting algorithm.
+        kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+            Sorting algorithm used by ``numpy.argsort``.
         reverse : bool
             Sort in reverse order (default=False)
 
@@ -3211,7 +3211,7 @@ class Table:
 
         return idx[::-1] if reverse else idx
 
-    def sort(self, keys=None, reverse=False):
+    def sort(self, keys=None, *, kind=None, reverse=False):
         '''
         Sort the table according to one or more keys. This operates
         on the existing table and does not return a new table.
@@ -3221,7 +3221,8 @@ class Table:
         keys : str or list of str
             The key(s) to order the table by. If None, use the
             primary index of the Table.
-
+        kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
+            Sorting algorithm used by ``numpy.argsort``.
         reverse : bool
             Sort in reverse order (default=False)
 
@@ -3267,10 +3268,7 @@ class Table:
         if isinstance(keys, str):
             keys = [keys]
 
-        indexes = self.argsort(keys)
-
-        if reverse:
-            indexes = indexes[::-1]
+        indexes = self.argsort(keys, kind=kind, reverse=reverse)
 
         with self.index_mode('freeze'):
             for name, col in self.columns.items():
