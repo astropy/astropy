@@ -899,9 +899,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             If True, the resulting object is a copy of the data.  When False,
             references are used where  possible. This rule also applies to the
             frame attributes.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object.
+        **kwargs
+            Any additional keywords are treated as frame attributes to be set on the
+            new frame object.
 
         Returns
         -------
@@ -927,9 +927,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         copy : bool, optional
             If True, the resulting object has copies of the frame attributes.
             When False, references are used where  possible.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object.
+        **kwargs
+            Any additional keywords are treated as frame attributes to be set on the
+            new frame object.
 
         Returns
         -------
@@ -949,9 +949,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         ----------
         data : `~astropy.coordinates.BaseRepresentation`
             The representation to use as the data for the new frame.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object. In particular, `representation_type` can be specified.
+        **kwargs
+            Any additional keywords are treated as frame attributes to be set on the
+            new frame object. In particular, `representation_type` can be specified.
 
         Returns
         -------

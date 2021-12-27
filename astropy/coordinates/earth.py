@@ -330,7 +330,6 @@ class EarthLocation(u.Quantity):
             but it currently only contains the Greenwich Royal Observatory as an
             example case.
 
-
         Parameters
         ----------
         site_name : str
@@ -344,7 +343,6 @@ class EarthLocation(u.Quantity):
 
         Examples
         --------
-
         >>> from astropy.coordinates import EarthLocation
         >>> keck = EarthLocation.of_site('Keck Observatory')  # doctest: +REMOTE_DATA
         >>> keck.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
@@ -411,7 +409,6 @@ class EarthLocation(u.Quantity):
         google_api_key : str, optional
             A Google API key with the Geocoding API and (optionally) the
             elevation API enabled. See [4]_ for more information.
-
 
         Returns
         -------
@@ -495,7 +492,6 @@ class EarthLocation(u.Quantity):
             request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
 
-
         Returns
         -------
         names : list of str
@@ -504,7 +500,7 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         of_site : Gets the actual location object for one of the sites names
-                  this returns.
+            this returns.
         """
         return cls._get_site_registry().names
 

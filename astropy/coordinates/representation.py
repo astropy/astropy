@@ -1374,7 +1374,6 @@ class CartesianRepresentation(BaseRepresentation):
 
         Examples
         --------
-
         We can start off by creating a cartesian representation object:
 
             >>> from astropy import units as u
