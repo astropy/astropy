@@ -151,7 +151,6 @@ def is_O3(matrix):
     The orthogonal group O(3) preserves lengths, but is not guaranteed to keep
     orientations. Rotations and reflections are in this group.
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
-
     """
     # matrix is in O(3) (rotations, proper and improper).
     I = np.identity(matrix.shape[-1])
@@ -182,7 +181,7 @@ def is_rotation(matrix, allow_improper=False):
 
     See Also
     --------
-    `~astopy.coordinates.matrix_utilities.is_O3`
+    astopy.coordinates.matrix_utilities.is_O3 :
         For the less restrictive check that a matrix is in the group O(3).
 
     Notes

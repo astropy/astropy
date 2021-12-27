@@ -647,7 +647,6 @@ class TransformGraph:
 
         Examples
         --------
-
         ::
 
             graph = TransformGraph()
@@ -662,7 +661,6 @@ class TransformGraph:
             def f1_to_f2(f1_obj):
                 ... do something with f1_obj ...
                 return f2_obj
-
 
         """
         def deco(func):
@@ -696,7 +694,7 @@ class TransformGraph:
             The coordinate frame class to start from.
         tosys : class
             The coordinate frame class to transform to.
-        furthersys : class
+        *furthersys : class
             Additional coordinate frame classes to transform to in order.
         priority : number
             The priority of this transform when finding the shortest
