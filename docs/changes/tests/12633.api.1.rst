@@ -1,5 +1,5 @@
 The following are deprecated and will be removed in a future release.
-Use ``pytest`` warnings handling instead:
+Use ``pytest`` warning and exception handling instead:
 
 * ``astropy.io.ascii.tests.common.raises``
 * ``astropy.tests.helper.catch_warnings``
