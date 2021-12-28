@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from importlib import import_module
-import re
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -298,7 +297,7 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
     elif cls_full_name not in __construct_mixin_classes:
         raise ValueError(f'unsupported class for construct {cls_full_name}')
     else:
-        mod_name, cls_name = re.match(r'(.+)\.(\w+)', cls_full_name).groups()
+        mod_name, _, cls_name = cls_full_name.rpartition('.')
         module = import_module(mod_name)
         cls = getattr(module, cls_name)
 
