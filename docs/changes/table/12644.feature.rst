@@ -1,0 +1,4 @@
+Columns which are ``numpy`` structured arrays are now fully supported,
+effectively allowing tables within tables. This applies to ``Column``,
+``MaskedColumn``, and ``Quantity`` columns. These structured data columns
+can be stored in ECSV, FITS, and HDF5 formats.
