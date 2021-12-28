@@ -16,15 +16,15 @@ except Exception:
     version = '0.0.0'
 
 
-# We use LooseVersion to define major, minor, micro, but ignore any suffixes.
+# We use Version to define major, minor, micro, but ignore any suffixes.
 def split_version(version):
     pieces = [0, 0, 0]
 
     try:
-        from distutils.version import LooseVersion
+        from packaging.version import Version
 
-        for j, piece in enumerate(LooseVersion(version).version[:3]):
-            pieces[j] = int(piece)
+        v = Version(version)
+        pieces = [v.major, v.minor, v.micro]
 
     except Exception:
         pass
