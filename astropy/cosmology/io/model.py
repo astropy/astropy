@@ -189,8 +189,6 @@ def to_model(cosmology, *_, method):
         Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
         name='Planck18')>
     """
-    cosmo_cls = cosmology.__class__
-
     # get bound method & sig from cosmology (unbound if class).
     if not hasattr(cosmology, method):
         raise AttributeError(f"{method} is not a method on {cosmology.__class__}.")
@@ -203,7 +201,7 @@ def to_model(cosmology, *_, method):
     n_inputs = len([p for p in tuple(msig.parameters.values()) if (p.kind in (0, 1))])
 
     attrs = {}  # class attributes
-    attrs["_cosmology_class"] = cosmo_cls
+    attrs["_cosmology_class"] = cosmology.__class__
     attrs["_method_name"] = method
     attrs["n_inputs"] = n_inputs
     attrs["n_outputs"] = 1
@@ -211,18 +209,19 @@ def to_model(cosmology, *_, method):
     cosmo_params = {}
     model_params = {}  # Model Parameters (also class attributes)
     for n in cosmology.__parameters__:
-        v = getattr(cosmology, n)  # parameter value
+        default = getattr(cosmology, n)  # parameter value
 
-        if v is None:  # skip unspecified parameters
+        if default is None:  # skip unspecified parameters
             continue
 
         # add as Model Parameter
         cosmo_params[n] = v
         model_params[n] = convert_parameter_to_model_parameter(
-            getattr(cosmo_cls, n), v, meta=cosmology.meta.get(n))
+            default, v, meta=cosmology.meta.get(n))
 
     # class name is cosmology name + Cosmology + method name + Model
-    clsname = (cosmo_cls.__qualname__.replace(".", "_")
+    qualname = cosmology.__class__.__qualname__
+    clsname = (qualname.replace(".", "_")
                + "Cosmology"
                + method.replace("_", " ").title().replace(" ", "")
                + "Model")
@@ -232,7 +231,7 @@ def to_model(cosmology, *_, method):
     # override __signature__ and format the doc.
     setattr(CosmoModel.evaluate, "__signature__", msig)
     CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
-        cosmo_cls=cosmo_cls.__qualname__, method=method)
+        cosmo_cls=qualname, method=method)
 
     # instantiate class using default values
     model = CosmoModel(**cosmo_params, name=cosmology.name,
