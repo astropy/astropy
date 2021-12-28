@@ -20,6 +20,8 @@ from astropy.modeling import FittableModel, Model
 from astropy.modeling import Parameter as ModelParameter
 from astropy.utils.decorators import classproperty
 
+from .utils import convert_parameter_to_model_parameter
+
 __all__ = []  # nothing is publicly scoped
 
 
@@ -142,8 +144,8 @@ def from_model(model):
     >>> from astropy.cosmology import Cosmology, Planck18
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
     >>> Cosmology.from_format(model)
-    FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                  Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
     cosmology = model.cosmology_class
     meta = copy.deepcopy(model.meta)
@@ -213,11 +215,11 @@ def to_model(cosmology, *_, method):
         if v is None:  # skip unspecified parameters
             continue
 
-        params[n] = ModelParameter(default=getattr(cosmology, n),
-                                   unit=getattr(cosmo_cls, n).unit,
-                                   **cosmology.meta.get(n, {}))
+        # add as Model Parameter
+        params[n] = convert_parameter_to_model_parameter(getattr(cosmo_cls, n), v,
+                                                         cosmology.meta.get(n))
 
-    # class name is cosmology name + method name + _CosmologyModel
+    # class name is cosmology name + Cosmology + method name + Model
     clsname = (cosmo_cls.__qualname__.replace(".", "_")
                + "Cosmology"
                + method.replace("_", " ").title().replace(" ", "")

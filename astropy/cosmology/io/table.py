@@ -6,10 +6,11 @@ import numpy as np
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
-from astropy.table import QTable, Table
+from astropy.table import QTable, Table, Column
 
 from .mapping import to_mapping
 from .row import from_row
+from .utils import convert_parameter_to_column
 
 
 def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
@@ -64,8 +65,8 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
 
         >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                      Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
     Specific cosmology classes can be used to parse the data. The class'
     default parameter values are used to fill in any information missing in the
@@ -74,8 +75,8 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         >>> from astropy.cosmology import FlatLambdaCDM
         >>> del ct["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(ct)
-        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                      Tcmb0=0 K, Neff=3.05, m_nu=None, Ob0=0.049)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
 
     For tables with multiple rows of cosmological parameters, the ``index``
     argument is needed to select the correct row. The index can be an integer
@@ -208,17 +209,28 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
     if not issubclass(cls, Table):
         raise TypeError(f"'cls' must be a (sub)class of Table, not {type(cls)}")
 
-    # start by getting a map representation. This requires minimal repackaging.
-    p = to_mapping(cosmology)
-    p["cosmology"] = p["cosmology"].__qualname__
-    # create metadata from mapping
-    meta = p.pop("meta")
-    if cosmology_in_meta:  # move class to Table meta
-        meta["cosmology"] = p.pop("cosmology")
-    # package parameters into lists for Table parsing
-    params = {k: [v] for k, v in p.items()}
+    # Start by getting a map representation.
+    data = to_mapping(cosmology)
+    data["cosmology"] = data["cosmology"].__qualname__  # change to str
 
-    tbl = cls(params, meta=meta)
+    # Metadata
+    meta = data.pop("meta")  # remove the meta
+    if cosmology_in_meta:
+        meta["cosmology"] = data.pop("cosmology")
+
+    # Need to turn everything into something Table can process:
+    # - Column for Parameter
+    # - list for anything else
+    cosmo_cls = cosmology.__class__
+    for k, v in data.items():
+        if k in cosmology.__parameters__:
+            col = convert_parameter_to_column(getattr(cosmo_cls, k), v,
+                                              cosmology.meta.get(k))
+        else:
+            col = Column([v])
+        data[k] = col
+
+    tbl = cls(data, meta=meta)
     tbl.add_index("name", unique=True)
     return tbl
 

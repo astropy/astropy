@@ -68,8 +68,8 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
 
         >>> cosmo = Cosmology.from_format(cm, format="mapping")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                      Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 
     Specific cosmology classes can be used to parse the data. The class'
     default parameter values are used to fill in any information missing in the
@@ -78,8 +78,8 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> from astropy.cosmology import FlatLambdaCDM
         >>> del cm["Tcmb0"]  # show FlatLambdaCDM provides default
         >>> FlatLambdaCDM.from_format(cm)
-        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                      Tcmb0=0 K, Neff=3.05, m_nu=None, Ob0=0.049)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=0.0 K, Neff=3.046, m_nu=None, Ob0=0.04897)
     """
     params = dict(map)  # so we are guaranteed to have a poppable map
 
