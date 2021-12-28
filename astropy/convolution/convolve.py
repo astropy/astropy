@@ -21,10 +21,7 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 LIBRARY_PATH = os.path.dirname(__file__)
 
 try:
-    with warnings.catch_warnings():
-        # distutils.sysconfig module is deprecated in Python 3.10
-        warnings.simplefilter('ignore', DeprecationWarning)
-        _convolve = load_library("_convolve", LIBRARY_PATH)
+    _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
     raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
