@@ -11,7 +11,7 @@ import io
 import re
 import gzip
 
-from distutils import version
+from packaging.version import Version
 
 
 __all__ = [
@@ -207,7 +207,7 @@ def version_compare(a, b):
     def version_to_tuple(v):
         if v[0].lower() == 'v':
             v = v[1:]
-        return version.StrictVersion(v)
+        return Version(v)
     av = version_to_tuple(a)
     bv = version_to_tuple(b)
     # Can't use cmp because it was removed from Python 3.x
