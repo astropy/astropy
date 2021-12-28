@@ -17,12 +17,10 @@ import weakref
 from contextlib import contextmanager, suppress
 from functools import wraps
 
-from astropy.utils import data
-
-from distutils.version import LooseVersion
-
 import numpy as np
+from packaging.version import Version
 
+from astropy.utils import data
 from astropy.utils.exceptions import AstropyUserWarning
 
 path_like = (str, os.PathLike)
@@ -561,7 +559,7 @@ def _array_from_file(infile, dtype, count):
         global CHUNKED_FROMFILE
         if CHUNKED_FROMFILE is None:
             if (sys.platform == 'darwin' and
-                    LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
+                    Version(platform.mac_ver()[0]) < Version('10.9')):
                 CHUNKED_FROMFILE = True
             else:
                 CHUNKED_FROMFILE = False
