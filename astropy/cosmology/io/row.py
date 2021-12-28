@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+from collections import defaultdict
 
 import numpy as np
 
-from astropy.table import Row
+from astropy.table import Row, QTable
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 
@@ -57,24 +58,31 @@ def from_row(row, *, move_to_meta=False, cosmology=None):
 
         >>> cosmo = Cosmology.from_format(cr, format="astropy.row")
         >>> cosmo
-        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                      Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
     # special values
     name = row['name'] if 'name' in row.columns else None  # get name from column
-    meta = copy.deepcopy(row.meta)
+
+    meta = defaultdict(dict, copy.deepcopy(row.meta))
+    # Now need to add the Columnar metadata. This is only available on the
+    # parent table. If Row is ever separated from Table, this should be moved
+    # to ``to_table``.
+    for col in row._table.itercols():
+        if col.info.meta:  # Only add metadata if not empty
+            meta[col.name].update(col.info.meta)
 
     # turn row into mapping, filling cosmo if not in a column
     mapping = dict(row)
     mapping["name"] = name
     mapping.setdefault("cosmology", meta.pop("cosmology", None))
-    mapping["meta"] = meta
+    mapping["meta"] = dict(meta)
 
     # build cosmology from map
     return from_mapping(mapping, move_to_meta=move_to_meta, cosmology=cosmology)
 
 
-def to_row(cosmology, *args, cosmology_in_meta=False):
+def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable):
     """Serialize the cosmology into a `~astropy.table.Row`.
 
     Parameters
@@ -83,6 +91,9 @@ def to_row(cosmology, *args, cosmology_in_meta=False):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
+    table_cls: type (optional, keyword-only)
+        Astropy :class:`~astropy.table.Table` class or subclass type to use.
+        Default is :class:`~astropy.table.QTable`.
     cosmology_in_meta : bool
         Whether to put the cosmology class in the Table metadata (if `True`) or
         as the first column (if `False`, default).
@@ -114,7 +125,7 @@ def to_row(cosmology, *args, cosmology_in_meta=False):
     """
     from .table import to_table
 
-    table = to_table(cosmology, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(cosmology, cls=table_cls, cosmology_in_meta=cosmology_in_meta)
     return table[0]  # extract row from table
 
 

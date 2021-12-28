@@ -1,0 +1,4 @@
+In I/O, conversions of Parameters move more relevant information from the
+Parameter to the Column.
+
+The default Parameter ``format_spec`` is changed from ``".3g"`` to ``""``.
