@@ -39,7 +39,7 @@ class FixRemoteDataOption(type):
     with --remote-data. We've now changed the --remote-data option so that it
     takes arguments, but we still want --remote-data to work as before and to
     enable all remote tests. With this metaclass, we can modify sys.argv
-    before distutils/setuptools try to parse the command-line options.
+    before setuptools try to parse the command-line options.
     """
     def __init__(cls, name, bases, dct):
 
