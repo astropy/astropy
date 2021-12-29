@@ -64,7 +64,7 @@ def test_ripley_K_implementation(points, x_min, x_max):
 
 rng = np.random.default_rng(seed=123)
 a = rng.uniform(5, 10, size=(100, 2))
-b = rng.uniform(-5, -10, size=(100, 2))
+b = rng.uniform(-10, -5, size=(100, 2))
 
 
 @pytest.mark.parametrize("points", [a, b])
