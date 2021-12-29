@@ -194,8 +194,8 @@ class SigmaClip:
     where the mask is `True` for clipped data::
 
         >>> from astropy.stats import SigmaClip
-        >>> from numpy.random import randn
-        >>> randvar = randn(10000)
+        >>> from numpy.random import standard_normal
+        >>> randvar = standard_normal(10000)
         >>> sigclip = SigmaClip(sigma=2, maxiters=5)
         >>> filtered_data = sigclip(randvar)
 
@@ -204,9 +204,9 @@ class SigmaClip:
     `~numpy.ndarray`, and modifies the data in-place::
 
         >>> from astropy.stats import SigmaClip
-        >>> from numpy.random import randn
+        >>> from numpy.random import standard_normal
         >>> from numpy import mean
-        >>> randvar = randn(10000)
+        >>> randvar = standard_normal(10000)
         >>> sigclip = SigmaClip(sigma=3, maxiters=None, cenfunc='mean')
         >>> filtered_data = sigclip(randvar, masked=False, copy=False)
 
@@ -802,8 +802,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     where the mask is `True` for clipped data::
 
         >>> from astropy.stats import sigma_clip
-        >>> from numpy.random import randn
-        >>> randvar = randn(10000)
+        >>> from numpy.random import standard_normal
+        >>> randvar = standard_normal(10000)
         >>> filtered_data = sigma_clip(randvar, sigma=2, maxiters=5)
 
     This example clips all points that are more than 3 sigma relative
@@ -811,9 +811,9 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     `~numpy.ndarray`, and does not copy the data::
 
         >>> from astropy.stats import sigma_clip
-        >>> from numpy.random import randn
+        >>> from numpy.random import standard_normal
         >>> from numpy import mean
-        >>> randvar = randn(10000)
+        >>> randvar = standard_normal(10000)
         >>> filtered_data = sigma_clip(randvar, sigma=3, maxiters=None,
         ...                            cenfunc=mean, masked=False, copy=False)
 

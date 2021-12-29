@@ -4,7 +4,7 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-from numpy.random import random, randint
+import numpy as np
 
 import astropy.units as u
 
@@ -22,14 +22,15 @@ def representation(request):
     other_unit = u.km
 
     kwargs = {}
-    arr_len = randint(1, 100)
+    arr_len = 16  # arbitrary number
+    rng = np.random.default_rng(seed=42)
     for aname, atype in rep.attr_classes.items():
         if issubclass(atype, Angle):
-            value = ([random()] * arr_len) * angle_unit
+            unit = angle_unit
         else:
-            value = ([random()] * arr_len) * other_unit
+            unit = other_unit
 
-        kwargs[aname] = value
+        kwargs[aname] = rng.random(size=arr_len) * unit
 
     return rep(**kwargs)
 
