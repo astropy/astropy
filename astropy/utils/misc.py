@@ -119,6 +119,7 @@ def format_exception(msg, *args, **kwargs):
 
 
 class NumpyRNGContext:
+    # TODO: deprecate
     """
     A context manager (for use with the ``with`` statement) that will seed the
     numpy random number generator (RNG) to a specific value, and then restore

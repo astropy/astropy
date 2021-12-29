@@ -20,9 +20,10 @@ if HAS_SCIPY:
 class TestInit:
     @classmethod
     def setup_class(self):
+        rng = np.random.default_rng(12345)
         self.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
-        self.parr = np.random.poisson(self.rates, (4, 1000))
-        self.parr_t = np.random.poisson(self.rates.squeeze(), (1000, 4))
+        self.parr = rng.poisson(self.rates, (4, 1000))
+        self.parr_t = rng.poisson(self.rates.squeeze(), (1000, 4))
 
     def test_numpy_init(self):
         # Test that we can initialize directly from a Numpy array
@@ -56,8 +57,9 @@ class TestInit:
 
 
 def test_init_scalar():
-    parr = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
-                             (4, 1000))
+    rng = np.random.default_rng(12345)
+    parr = rng.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
+                       (4, 1000))
     with pytest.raises(TypeError) as exc:
         Distribution(parr.ravel()[0])
     assert exc.value.args[0] == "Attempted to initialize a Distribution with a scalar"
@@ -65,10 +67,10 @@ def test_init_scalar():
 
 class TestDistributionStatistics():
     def setup_class(self):
-        with NumpyRNGContext(12345):
-            self.data = np.random.normal(np.array([1, 2, 3, 4])[:, np.newaxis],
-                                         np.array([3, 2, 4, 5])[:, np.newaxis],
-                                         (4, 10000))
+        rng = np.random.default_rng(12345)
+        self.data = rng.normal(np.array([1, 2, 3, 4])[:, np.newaxis],
+                               np.array([3, 2, 4, 5])[:, np.newaxis],
+                               (4, 10000))
 
         self.distr = Distribution(self.data * u.kpc)
 
@@ -206,7 +208,8 @@ class TestDistributionStatistics():
         assert_quantity_allclose(distrplus.pdf_var(), expected)
 
     def test_add_distribution(self):
-        another_data = (np.random.randn(4, 10000)
+        rng = np.random.default_rng(12345)
+        another_data = (rng.standard_normal((4, 10000))
                         * np.array([1000, .01, 80, 10])[:, np.newaxis]
                         + np.array([2000, 0, 0, 500])[:, np.newaxis])
         # another_data is in pc, but main distr is in kpc

@@ -2,8 +2,6 @@ import time
 
 import numpy as np
 
-from astropy.utils.misc import NumpyRNGContext
-
 
 def func(i):
     """An identity function that jitters its execution time by a
@@ -14,6 +12,6 @@ def func(i):
     module. I was getting a mysterious PicklingError until I moved this
     function into a separate module. (It worked fine in a standalone pytest
     script.)"""
-    with NumpyRNGContext(i):
-        time.sleep(np.random.uniform(0, 0.01))
+    rng = np.random.default_rng(i)
+    time.sleep(rng.uniform(0, 0.01))
     return i
