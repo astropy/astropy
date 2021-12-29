@@ -889,15 +889,14 @@ def test_asymmetric_kernel(boundary):
 @pytest.mark.parametrize('ndims', (1, 2, 3))
 def test_convolution_consistency(ndims):
 
-    np.random.seed(0)
-    array = np.random.randn(*([3]*ndims))
-    np.random.seed(0)
-    kernel = np.random.rand(*([3]*ndims))
+    array = np.ones(shape=[3] * ndims)
+    kernel = np.zeros(shape=[3] * ndims)
+    kernel[..., 1] = 0.5
 
     conv_f = convolve_fft(array, kernel, boundary='fill')
     conv_d = convolve(array, kernel, boundary='fill')
 
-    assert_array_almost_equal_nulp(conv_f, conv_d, 30)
+    assert np.allclose(conv_f, conv_d)
 
 
 def test_astropy_convolution_against_numpy():

@@ -10,7 +10,7 @@ from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noq
 
 @pytest.mark.parametrize(("name", "args", "kwargs", "xfail"),
                          [(conv.CustomKernel, [],
-                           {'array': np.random.rand(15)},
+                           {'array': np.ones(15)},
                            False),
                           (conv.Gaussian1DKernel, [1.0],
                            {'x_size': 5},
