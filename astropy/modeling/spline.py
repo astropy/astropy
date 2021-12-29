@@ -248,9 +248,9 @@ class Spline1D(_Spline):
     >>> import numpy as np
     >>> from astropy.modeling.models import Spline1D
     >>> from astropy.modeling import fitting
-    >>> np.random.seed(42)
+    >>> rng = np.random.default_rng(seed=42)
     >>> x = np.linspace(-3, 3, 50)
-    >>> y = np.exp(-x**2) + 0.1 * np.random.randn(50)
+    >>> y = np.exp(-x**2) + rng.normal(0, 0.1, x.size)
     >>> xs = np.linspace(-3, 3, 1000)
 
     A 1D interpolating spline can be fit to data:

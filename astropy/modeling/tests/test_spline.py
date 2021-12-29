@@ -18,10 +18,10 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 npts = 50
 nknots = 10
-np.random.seed(42)
-test_w = np.random.rand(npts)
+rng = np.random.default_rng(seed=42)
+test_w = rng.random(npts)
 test_t = [-1, 0, 1]
-noise = np.random.randn(npts)
+noise = rng.standard_normal(npts)
 
 degree_tests = [1, 2, 3, 4, 5]
 wieght_tests = [None, test_w]
@@ -198,8 +198,7 @@ class TestSpline:
                 assert mkIntercept.call_args_list == [mk.call(spl, **kwargs)]
 
     def test__create_parameter(self):
-        np.random.seed(37)
-        base_vec = np.random.random(20)
+        base_vec = rng.random(20)
         test = base_vec.copy()
         fixed_test = base_vec.copy()
 
@@ -225,11 +224,11 @@ class TestSpline:
             assert param.model == spl
             assert param.fixed is False
             assert param.value == test[index] == spl.test[index] == base_vec[index]
-            new_set = np.random.random()
+            new_set = rng.random()
             param.value = new_set
             assert spl.test[index] == new_set
             assert spl.test[index] != base_vec[index]
-            new_get = np.random.random()
+            new_get = rng.random()
             spl.test[index] = new_get
             assert param.value == new_get
             assert param.value != new_set
@@ -243,18 +242,17 @@ class TestSpline:
             assert param.model == spl
             assert param.fixed is True
             assert param.value == fixed_test[index] == spl.fixed_test[index] == base_vec[index]
-            new_set = np.random.random()
+            new_set = rng.random()
             param.value = new_set
             assert spl.fixed_test[index] == new_set
             assert spl.fixed_test[index] != base_vec[index]
-            new_get = np.random.random()
+            new_get = rng.random()
             spl.fixed_test[index] = new_get
             assert param.value == new_get
             assert param.value != new_set
 
     def test__create_parameters(self):
-        np.random.seed(37)
-        test = np.random.random(20)
+        test = rng.random(20)
 
         class Spline(self.Spline):
             @property
@@ -333,7 +331,7 @@ class TestSpline1D:
         self.truth = func(self.x)
 
         arg_sort = np.argsort(self.x)
-        np.random.shuffle(arg_sort)
+        rng.shuffle(arg_sort)
 
         self.x_s = self.x[arg_sort]
         self.y_s = func(self.x_s, noise[arg_sort])
@@ -783,8 +781,8 @@ class TestSpline1D:
         assert spl._knot_names == ()
         assert spl._coeff_names == ()
         t = np.array([0, 0, 0, 0, 1, 2, 3, 4, 5, 5, 5, 5])
-        np.random.seed(619)
-        c = np.random.random(12)
+
+        c = rng.random(12)
         k = 3
         spl.tck = (t, c, k)
         assert (spl._t == t).all()
@@ -842,8 +840,8 @@ class TestSpline1D:
         assert bspline.tck[2] == spl.tck[2]
 
         t = np.array([0, 0, 0, 0, 1, 2, 3, 4, 5, 5, 5, 5])
-        np.random.seed(619)
-        c = np.random.random(12)
+
+        c = rng.random(12)
         k = 3
 
         def value0(idx):
@@ -945,9 +943,8 @@ class TestSpline1D:
         assert spl._user_bounding_box == (-5, 5)
 
     def test__init_knots(self):
-        np.random.seed(19)
-        lower = np.random.random(4)
-        upper = np.random.random(4)
+        lower = rng.random(4)
+        upper = rng.random(4)
 
         # Integer
         with mk.patch.object(Spline1D, "bspline",
@@ -962,7 +959,7 @@ class TestSpline1D:
         # vector with bounds
         with mk.patch.object(Spline1D, "bspline",
                              new_callable=mk.PropertyMock) as mkBspline:
-            knots = np.random.random(10)
+            knots = rng.random(10)
             spl = Spline1D()
             assert spl._t is None
             spl._init_knots(knots, True, lower, upper)
@@ -973,7 +970,7 @@ class TestSpline1D:
         # vector with no bounds
         with mk.patch.object(Spline1D, "bspline",
                              new_callable=mk.PropertyMock) as mkBspline:
-            knots = np.random.random(10)
+            knots = rng.random(10)
             spl = Spline1D()
             assert spl._t is None
             spl._init_knots(knots, False, lower, upper)
@@ -982,7 +979,7 @@ class TestSpline1D:
 
             # error
             for num in range(8):
-                knots = np.random.random(num)
+                knots = rng.random(num)
                 spl = Spline1D()
                 assert spl._t is None
                 with pytest.raises(ValueError) as err:
@@ -997,7 +994,6 @@ class TestSpline1D:
         assert str(err.value) == "Knots: 0.5 must be iterable or value"
 
     def test__init_coeffs(self):
-        np.random.seed(492)
         # No coeffs
         with mk.patch.object(Spline1D, "bspline",
                              new_callable=mk.PropertyMock) as mkBspline:
@@ -1011,7 +1007,7 @@ class TestSpline1D:
         # Some coeffs
         with mk.patch.object(Spline1D, "bspline",
                              new_callable=mk.PropertyMock) as mkBspline:
-            coeffs = np.random.random(10)
+            coeffs = rng.random(10)
             spl = Spline1D()
             assert spl._c is None
             spl._init_coeffs(coeffs)

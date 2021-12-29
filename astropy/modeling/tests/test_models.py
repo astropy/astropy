@@ -65,8 +65,8 @@ def test_custom_model(fitter, amplitude=4, frequency=1):
     sin_model.evaluate(x, 5., 2.)
     sin_model.fit_deriv(x, 5., 2.)
 
-    np.random.seed(0)
-    data = sin_model(x) + np.random.rand(len(x)) - 0.5
+    rng = np.random.default_rng(0)
+    data = sin_model(x) + rng.uniform(size=len(x)) - 0.5
     model = fitter(sin_model, x, data)
     assert np.all((np.array([model.amplitude.value, model.frequency.value]) -
                    np.array([amplitude, frequency])) < 0.001)
@@ -272,9 +272,9 @@ class Fittable2DModelTester:
             y = np.linspace(y_lim[0], y_lim[1], self.N)
         xv, yv = np.meshgrid(x, y)
 
-        np.random.seed(0)
+        rng = np.random.default_rng(0)
         # add 10% noise to the amplitude
-        noise = np.random.rand(self.N, self.N) - 0.5
+        noise = rng.uniform(size=(self.N, self.N)) - 0.5
         data = model(xv, yv) + 0.1 * parameters[0] * noise
         new_model = fitter(model, xv, yv, data)
 
@@ -488,10 +488,10 @@ class Fittable1DModelTester:
         else:
             x = np.linspace(x_lim[0], x_lim[1], self.N)
 
-        np.random.seed(0)
+        rng = np.random.default_rng(0)
         # add 10% noise to the amplitude
         relative_noise_amplitude = 0.01
-        data = ((1 + relative_noise_amplitude * np.random.randn(len(x))) *
+        data = ((1 + relative_noise_amplitude * rng.standard_normal(len(x))) *
                 model(x))
         new_model = fitter(model, x, data)
 
@@ -763,8 +763,8 @@ def test_with_bounding_box():
     """
     p = models.Polynomial2D(2) & models.Polynomial2D(2)
     m = models.Mapping((0, 1, 0, 1)) | p
-    with NumpyRNGContext(1234567):
-        m.parameters = np.random.rand(12)
+    rng = np.random.default_rng(1234567)
+    m.parameters = rng.uniform(size=12)
 
     m.bounding_box = ((3, 9), (1, 8))
     x, y = np.mgrid[:10, :10]

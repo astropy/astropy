@@ -26,10 +26,10 @@ fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter,
 def _fake_gaussian_data():
 
     # Generate fake data
-    with NumpyRNGContext(12345):
-        x = np.linspace(-5., 5., 2000)
-        y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
-        y += np.random.normal(0., 0.2, x.shape)
+    rng = np.random.default_rng(12345)
+    x = np.linspace(-5., 5., 2000)
+    y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
+    y += rng.normal(0., 0.2, x.shape)
 
     # Attach units to data
     x = x * u.m
@@ -207,8 +207,8 @@ def test_compound_without_units(model, fitter):
     fitter = fitter()
 
     x = np.linspace(-5, 5, 10) * u.Angstrom
-    with NumpyRNGContext(12345):
-        y = np.random.sample(10)
+    rng = np.random.default_rng(12345)
+    y = rng.random(10)
 
     res_fit = fitter(model, x, y * u.Hz)
     for param_name in res_fit.param_names:
@@ -254,8 +254,8 @@ def test_compound_fitting_with_units(fitter):
     model = models.BlackBody(temperature=3000 * u.K) * models.Const1D(amplitude=1.0)
     x = np.linspace(1, 3, 10000) * u.micron
 
-    with NumpyRNGContext(12345):
-        n = np.random.normal(3)
+    rng = np.random.default_rng(12345)
+    n = rng.normal(3)
 
     y = model(x)
     res = fitter(model, x, y * (1 + n))
