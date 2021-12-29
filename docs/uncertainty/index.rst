@@ -110,7 +110,7 @@ that carries the samples in the *last* dimension::
   >>> from astropy import uncertainty as unc
   >>> rng = np.random.default_rng(123456)  # ensures "random" numbers match examples below
   >>> unc.Distribution(rng.poisson(12, (1000)))  # doctest: +ELLIPSIS
-  NdarrayDistribution([..., 12,...]) with n_samples=1000
+  NdarrayDistribution([...]) with n_samples=1000
   >>> pq = rng.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
   >>> distr = unc.Distribution(pq)
   >>> distr # doctest: +ELLIPSIS

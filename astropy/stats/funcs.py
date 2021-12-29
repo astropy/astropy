@@ -1012,8 +1012,8 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None, rng=None):
     >>> bootarr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
     >>> bootresult = bootstrap(bootarr, 2, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
-    array([[6., 9., 0., 6., 1., 1., 2., 8., 7., 0.],
-           [3., 5., 6., 3., 5., 3., 5., 8., 8., 0.]])
+    array([[5., 6., 8., 0., 1., 2., 9., 0., 3., 4.],
+           [9., 5., 3., 9., 3., 5., 7., 6., 1., 1.]])
     >>> bootresult.shape
     (2, 10)
 
@@ -1021,16 +1021,16 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None, rng=None):
 
     >>> bootresult = bootstrap(bootarr, 2, bootfunc=np.mean, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
-    array([4. , 4.6])
+    array([6.4, 3. ])
 
     Obtain a statistic with two outputs on the array
 
     >>> test_statistic = lambda x: (np.sum(x), np.mean(x))
     >>> bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
-    array([[40. ,  4. ],
-           [46. ,  4.6],
-           [35. ,  3.5]])
+    array([[33. ,  3.3],
+           [35. ,  3.5],
+           [52. ,  5.2]])
     >>> bootresult.shape
     (3, 2)
 
@@ -1040,7 +1040,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None, rng=None):
     >>> bootfunc = lambda x:test_statistic(x)[0]
     >>> bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
-    array([40., 46., 35.])
+    array([47., 63., 51.])
     >>> bootresult.shape
     (3,)
 
