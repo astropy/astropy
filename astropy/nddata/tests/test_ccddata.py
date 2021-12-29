@@ -23,8 +23,8 @@ from astropy.table import Table
 
 DEFAULT_DATA_SIZE = 100
 
-with NumpyRNGContext(123):
-    _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+rng = np.random.default_rng(seed=123)
+_random_array = rng.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
 
 
 def create_ccd_data():

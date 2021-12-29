@@ -114,8 +114,8 @@ def test_nddata_init_data_nonarray():
 
 def test_nddata_init_data_ndarray():
     # random floats
-    with NumpyRNGContext(123):
-        nd = NDData(np.random.random((10, 10)))
+    rng = np.random.default_rng(123)
+    nd = NDData(rng.random((10, 10)))
     assert nd.data.shape == (10, 10)
     assert nd.data.size == 100
     assert nd.data.dtype == np.dtype(float)
@@ -139,14 +139,13 @@ def test_nddata_init_data_ndarray():
 
 
 def test_nddata_init_data_maskedarray():
-    with NumpyRNGContext(456):
-        NDData(np.random.random((10, 10)),
-               mask=np.random.random((10, 10)) > 0.5)
+    rng = np.random.default_rng(456)
+    NDData(rng.random((10, 10)),
+           mask=rng.random((10, 10)) > 0.5)
 
     # Another test (just copied here)
-    with NumpyRNGContext(12345):
-        a = np.random.randn(100)
-        marr = np.ma.masked_where(a > 0, a)
+    a = rng.standard_normal(100)
+    marr = np.ma.masked_where(a > 0, a)
     nd = NDData(marr)
     # check that masks and data match
     assert_array_equal(nd.mask, marr.mask)
