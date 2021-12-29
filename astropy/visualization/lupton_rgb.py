@@ -338,7 +338,6 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
 
     Parameters
     ----------
-
     image_r : ndarray
         Image to map to red.
     image_g : ndarray
@@ -351,7 +350,7 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
         The linear stretch of the image.
     Q : float
         The asinh softening parameter.
-    filename: str
+    filename : str
         Write the resulting RGB image to a file (file type determined
         from extension).
 
