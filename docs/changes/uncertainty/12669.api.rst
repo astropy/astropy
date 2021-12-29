@@ -1,0 +1,2 @@
+The distributions now accept a ``numpy.random.Generator`` instance instead of
+relying on setting a global random seed for generating random samples.
