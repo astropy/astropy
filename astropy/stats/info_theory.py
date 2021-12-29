@@ -159,10 +159,10 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     >>> from astropy.modeling import models, fitting
     >>> from astropy.stats.info_theory import bayesian_info_criterion_lsq
     >>> # Generate fake data
-    >>> np.random.seed(0)
+    >>> rng = np.random.default_rng(seed=42)
     >>> x = np.linspace(-5., 5., 200)
     >>> y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
-    >>> y += np.random.normal(0., 0.2, x.shape)
+    >>> y += rng.normal(0., 0.2, x.shape)
     >>> # Fit the data using a Box model.
     >>> # Bounds are not really needed but included here to demonstrate usage.
     >>> t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5,
@@ -180,7 +180,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     >>> bic_t = bayesian_info_criterion_lsq(ssr_t, 4, x.shape[0])
     >>> bic_g = bayesian_info_criterion_lsq(ssr_g, 3, x.shape[0])
     >>> bic_t - bic_g  # doctest: +SKIP
-    30.644474706065466
+    33.951560205187434
 
     Hence, there is a very strong evidence that the Gaussian model has a
     significantly better representation of the data than the Box model. This
@@ -356,13 +356,13 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> import numpy as np
     >>> from astropy.modeling import models, fitting
     >>> from astropy.stats.info_theory import akaike_info_criterion_lsq
-    >>> np.random.seed(42)
+    >>> rng = np.random.default_rng(seed=42)
     >>> # Generate fake data
     >>> g1 = models.Gaussian1D(.1, 0, 0.2) # changed this to noise level
     >>> g2 = models.Gaussian1D(.1, 0.3, 0.2) # and added another Gaussian
     >>> g3 = models.Gaussian1D(2.5, 0.5, 0.1)
     >>> x = np.linspace(-1, 1, 200)
-    >>> y = g1(x) + g2(x) + g3(x) + np.random.normal(0., 0.2, x.shape)
+    >>> y = g1(x) + g2(x) + g3(x) + rng.normal(0., 0.2, x.shape)
     >>> # Fit with three Gaussians
     >>> g3_init = (models.Gaussian1D(.1, 0, 0.1)
     ...            + models.Gaussian1D(.1, 0.2, 0.15)
@@ -381,11 +381,11 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     >>> ssr_g2 = np.sum((g2_fit(x) - y)**2.0)
     >>> ssr_g1 = np.sum((g1_fit(x) - y)**2.0)
     >>> akaike_info_criterion_lsq(ssr_g3, 9, x.shape[0]) # doctest: +FLOAT_CMP
-    -634.5257517810961
+    -667.4076870594205
     >>> akaike_info_criterion_lsq(ssr_g2, 6, x.shape[0]) # doctest: +FLOAT_CMP
-    -662.83834510232043
+    -686.8968416239637
     >>> akaike_info_criterion_lsq(ssr_g1, 3, x.shape[0]) # doctest: +FLOAT_CMP
-    -647.47312032659499
+    -680.3550554851531
 
     Hence, from the AIC values, we would prefer to choose the model g2_fit.
     However, we can considerably support the model g3_fit, since the

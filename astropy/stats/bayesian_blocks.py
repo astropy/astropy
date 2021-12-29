@@ -109,18 +109,18 @@ def bayesian_blocks(t, x=None, sigma=None,
     Examples
     --------
 
-    .. testsetup::
+    Set up a `numpy` random number generator:
 
-        >>> np.random.seed(12345)
+    >>> rng = np.random.default_rng(12345)
 
     Event data:
 
-    >>> t = np.random.normal(size=100)
+    >>> t = rng.normal(size=100)
     >>> edges = bayesian_blocks(t, fitness='events', p0=0.01)
 
     Event data with repeats:
 
-    >>> t = np.random.normal(size=100)
+    >>> t = rng.normal(size=100)
     >>> t[80:] = t[:20]
     >>> edges = bayesian_blocks(t, fitness='events', p0=0.01)
 
@@ -129,15 +129,15 @@ def bayesian_blocks(t, x=None, sigma=None,
     >>> dt = 0.05
     >>> t = dt * np.arange(1000)
     >>> x = np.zeros(len(t))
-    >>> x[np.random.randint(0, len(t), len(t) // 10)] = 1
+    >>> x[rng.integers(0, len(t), len(t) // 10)] = 1
     >>> edges = bayesian_blocks(t, x, fitness='regular_events', dt=dt)
 
     Measured point data with errors:
 
-    >>> t = 100 * np.random.random(100)
+    >>> t = 100 * rng.random(100)
     >>> x = np.exp(-0.5 * (t - 50) ** 2)
     >>> sigma = 0.1
-    >>> x_obs = np.random.normal(x, sigma)
+    >>> x_obs = rng.normal(x, sigma)
     >>> edges = bayesian_blocks(t, x_obs, sigma, fitness='measures')
 
     References

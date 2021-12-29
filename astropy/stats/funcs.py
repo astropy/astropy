@@ -411,10 +411,9 @@ def binned_binom_proportion(x, success, bins=10, range=None,
        from astropy.stats import binned_binom_proportion
        def true_efficiency(x):
            return 0.5 - 0.5 * erf((x - 25.) / 2.)
-       np.random.seed(400)
-       mag = 20. + 10. * np.random.rand(100)
-       np.random.seed(600)
-       detected = binom.rvs(1, true_efficiency(mag))
+       rng = np.random.default_rng(400)
+       mag = 20. + 10. * rng.random(100)
+       detected = binom.rvs(1, true_efficiency(mag), random_state=rng)
        bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20)
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
@@ -450,10 +449,9 @@ def binned_binom_proportion(x, success, bins=10, range=None,
        from astropy.stats import binned_binom_proportion
        def true_efficiency(x):
            return 0.5 - 0.5 * erf((x - 25.) / 2.)
-       np.random.seed(400)
-       mag = 20. + 10. * np.random.rand(100)
-       np.random.seed(600)
-       detected = binom.rvs(1, true_efficiency(mag))
+       rng = np.random.default_rng(400)
+       mag = 20. + 10. * rng.random(100)
+       detected = binom.rvs(1, true_efficiency(mag), random_state=rng)
        bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20,
                                                        interval='wald')
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',

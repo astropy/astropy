@@ -13,37 +13,37 @@ from astropy.utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
-    with NumpyRNGContext(12345):
-        # test that it runs
-        randvar = np.random.randn(10000)
-        mad = funcs.median_absolute_deviation(randvar)
+    rng = np.random.default_rng(seed=12345)
+    # test that it runs
+    randvar = rng.standard_normal(10000)
+    mad = funcs.median_absolute_deviation(randvar)
 
-        # test whether an array is returned if an axis is used
-        randvar = randvar.reshape((10, 1000))
-        mad = funcs.median_absolute_deviation(randvar, axis=1)
-        assert len(mad) == 10
-        assert mad.size < randvar.size
-        mad = funcs.median_absolute_deviation(randvar, axis=0)
-        assert len(mad) == 1000
-        assert mad.size < randvar.size
-        # Test some actual values in a 3 dimensional array
-        x = np.arange(3 * 4 * 5)
-        a = np.array([sum(x[:i + 1]) for i in range(len(x))]).reshape(3, 4, 5)
-        mad = funcs.median_absolute_deviation(a)
-        assert mad == 389.5
-        mad = funcs.median_absolute_deviation(a, axis=0)
-        assert_allclose(mad, [[210., 230., 250., 270., 290.],
-                              [310., 330., 350., 370., 390.],
-                              [410., 430., 450., 470., 490.],
-                              [510., 530., 550., 570., 590.]])
-        mad = funcs.median_absolute_deviation(a, axis=1)
-        assert_allclose(mad, [[27.5, 32.5, 37.5, 42.5, 47.5],
-                              [127.5, 132.5, 137.5, 142.5, 147.5],
-                              [227.5, 232.5, 237.5, 242.5, 247.5]])
-        mad = funcs.median_absolute_deviation(a, axis=2)
-        assert_allclose(mad, [[3., 8., 13., 18.],
-                              [23., 28., 33., 38.],
-                              [43., 48., 53., 58.]])
+    # test whether an array is returned if an axis is used
+    randvar = randvar.reshape((10, 1000))
+    mad = funcs.median_absolute_deviation(randvar, axis=1)
+    assert len(mad) == 10
+    assert mad.size < randvar.size
+    mad = funcs.median_absolute_deviation(randvar, axis=0)
+    assert len(mad) == 1000
+    assert mad.size < randvar.size
+    # Test some actual values in a 3 dimensional array
+    x = np.arange(3 * 4 * 5)
+    a = np.array([sum(x[:i + 1]) for i in range(len(x))]).reshape(3, 4, 5)
+    mad = funcs.median_absolute_deviation(a)
+    assert mad == 389.5
+    mad = funcs.median_absolute_deviation(a, axis=0)
+    assert_allclose(mad, [[210., 230., 250., 270., 290.],
+                          [310., 330., 350., 370., 390.],
+                          [410., 430., 450., 470., 490.],
+                          [510., 530., 550., 570., 590.]])
+    mad = funcs.median_absolute_deviation(a, axis=1)
+    assert_allclose(mad, [[27.5, 32.5, 37.5, 42.5, 47.5],
+                          [127.5, 132.5, 137.5, 142.5, 147.5],
+                          [227.5, 232.5, 237.5, 242.5, 247.5]])
+    mad = funcs.median_absolute_deviation(a, axis=2)
+    assert_allclose(mad, [[3., 8., 13., 18.],
+                          [23., 28., 33., 38.],
+                          [43., 48., 53., 58.]])
 
 
 def test_median_absolute_deviation_masked():
@@ -316,44 +316,44 @@ def test_bootstrap_multiple_outputs():
 
 
 def test_mad_std():
-    with NumpyRNGContext(12345):
-        data = np.random.normal(5, 2, size=(100, 100))
-        assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
+    rng = np.random.default_rng(seed=12345)
+    data = rng.normal(5, 2, size=(100, 100))
+    assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
 
 
 def test_mad_std_scalar_return():
-    with NumpyRNGContext(12345):
-        data = np.random.normal(5, 2, size=(10, 10))
-        # make a masked array with no masked points
-        data = np.ma.masked_where(np.isnan(data), data)
-        rslt = funcs.mad_std(data)
-        # want a scalar result, NOT a masked array
-        assert np.isscalar(rslt)
+    rng = np.random.default_rng(seed=12345)
+    data = rng.normal(5, 2, size=(10, 10))
+    # make a masked array with no masked points
+    data = np.ma.masked_where(np.isnan(data), data)
+    rslt = funcs.mad_std(data)
+    # want a scalar result, NOT a masked array
+    assert np.isscalar(rslt)
 
-        data[5, 5] = np.nan
+    data[5, 5] = np.nan
 
-        rslt = funcs.mad_std(data, ignore_nan=True)
-        assert np.isscalar(rslt)
-        rslt = funcs.mad_std(data)
-        assert np.isscalar(rslt)
-        assert np.isnan(rslt)
+    rslt = funcs.mad_std(data, ignore_nan=True)
+    assert np.isscalar(rslt)
+    rslt = funcs.mad_std(data)
+    assert np.isscalar(rslt)
+    assert np.isnan(rslt)
 
 
 def test_mad_std_warns():
-    with NumpyRNGContext(12345):
-        data = np.random.normal(5, 2, size=(10, 10))
-        data[5, 5] = np.nan
-        rslt = funcs.mad_std(data, ignore_nan=False)
-        assert np.isnan(rslt)
+    rng = np.random.default_rng(seed=12345)
+    data = rng.normal(5, 2, size=(10, 10))
+    data[5, 5] = np.nan
+    rslt = funcs.mad_std(data, ignore_nan=False)
+    assert np.isnan(rslt)
 
 
 @pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_mad_std_withnan():
-    with NumpyRNGContext(12345):
-        data = np.empty([102, 102])
-        data[:] = np.nan
-        data[1:-1, 1:-1] = np.random.normal(5, 2, size=(100, 100))
-        assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
+    rng = np.random.default_rng(seed=12345)
+    data = np.empty([102, 102])
+    data[:] = np.nan
+    data[1:-1, 1:-1] = rng.normal(5, 2, size=(100, 100))
+    assert_allclose(funcs.mad_std(data, ignore_nan=True), 2.0, rtol=0.05)
 
     assert np.isnan(funcs.mad_std([1, 2, 3, 4, 5, np.nan]))
     assert_allclose(funcs.mad_std([1, 2, 3, 4, 5, np.nan], ignore_nan=True),
@@ -675,8 +675,8 @@ def test_poisson_limit_nodependencies():
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('N', [10, 100, 1000, 10000])
 def test_uniform(N):
-    with NumpyRNGContext(12345):
-        assert funcs.kuiper(np.random.random(N))[1] > 0.01
+    rng = np.random.default_rng(seed=12345)
+    assert funcs.kuiper(rng.random(N))[1] > 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -687,9 +687,9 @@ def test_uniform(N):
                                  (5, 5),
                                  (1000, 100)])
 def test_kuiper_two_uniform(N, M):
-    with NumpyRNGContext(12345):
-        assert funcs.kuiper_two(np.random.random(N),
-                                np.random.random(M))[1] > 0.01
+    rng = np.random.default_rng(seed=12345)
+    assert funcs.kuiper_two(rng.random(N),
+                            rng.random(M))[1] > 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -700,17 +700,17 @@ def test_kuiper_two_uniform(N, M):
                                  (5, 5),
                                  (1000, 100)])
 def test_kuiper_two_nonuniform(N, M):
-    with NumpyRNGContext(12345):
-        assert funcs.kuiper_two(np.random.random(N)**2,
-                                np.random.random(M)**2)[1] > 0.01
+    rng = np.random.default_rng(seed=12345)
+    assert funcs.kuiper_two(rng.random(N)**2,
+                            rng.random(M)**2)[1] > 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_detect_kuiper_two_different():
-    with NumpyRNGContext(12345):
-        D, f = funcs.kuiper_two(np.random.random(500) * 0.5,
-                                np.random.random(500))
-        assert f < 0.01
+    rng = np.random.default_rng(seed=12345)
+    D, f = funcs.kuiper_two(rng.random(500) * 0.5,
+                            rng.random(500))
+    assert f < 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -723,16 +723,17 @@ def test_detect_kuiper_two_different():
 def test_fpp_kuiper_two(N, M):
     from scipy.stats import binom
 
-    with NumpyRNGContext(12345):
-        R = 100
-        fpp = 0.05
-        fps = 0
-        for i in range(R):
-            D, f = funcs.kuiper_two(np.random.random(N), np.random.random(M))
-            if f < fpp:
-                fps += 1
-        assert binom(R, fpp).sf(fps - 1) > 0.005
-        assert binom(R, fpp).cdf(fps - 1) > 0.005
+    rng = np.random.default_rng(seed=12345)
+
+    R = 100
+    fpp = 0.05
+    fps = 0
+    for i in range(R):
+        D, f = funcs.kuiper_two(rng.random(N), rng.random(M))
+        if f < fpp:
+            fps += 1
+    assert binom(R, fpp).sf(fps - 1) > 0.005
+    assert binom(R, fpp).cdf(fps - 1) > 0.005
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -745,22 +746,22 @@ def test_kuiper_false_positive_probability():
 def test_histogram():
     from scipy.stats import chi2
 
-    with NumpyRNGContext(1234):
-        a, b = 0.3, 3.14
-        s = np.random.uniform(a, b, 10000) % 1
+    rng = np.random.default_rng(seed=1234)
+    a, b = 0.3, 3.14
+    s = rng.uniform(a, b, 10000) % 1
 
-        b, w = funcs.fold_intervals([(a, b, 1. / (b - a))])
+    b, w = funcs.fold_intervals([(a, b, 1. / (b - a))])
 
-        h = funcs.histogram_intervals(16, b, w)
-        nn, bb = np.histogram(s, bins=len(h), range=(0, 1))
+    h = funcs.histogram_intervals(16, b, w)
+    nn, bb = np.histogram(s, bins=len(h), range=(0, 1))
 
-        uu = np.sqrt(nn)
-        nn, uu = len(h) * nn / h / len(s), len(h) * uu / h / len(s)
+    uu = np.sqrt(nn)
+    nn, uu = len(h) * nn / h / len(s), len(h) * uu / h / len(s)
 
-        c2 = np.sum(((nn - 1) / uu)**2)
+    c2 = np.sum(((nn - 1) / uu)**2)
 
-        assert chi2(len(h)).cdf(c2) > 0.01
-        assert chi2(len(h)).sf(c2) > 0.01
+    assert chi2(len(h)).cdf(c2) > 0.01
+    assert chi2(len(h)).sf(c2) > 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -772,8 +773,7 @@ def test_histogram():
     ((3, (0, 0.5, 1), (1, 2)), (1, 1.5, 2)),
 ])
 def test_histogram_intervals_known(ii, rr):
-    with NumpyRNGContext(1234):
-        assert_allclose(funcs.histogram_intervals(*ii), rr)
+    assert_allclose(funcs.histogram_intervals(*ii), rr)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -795,11 +795,11 @@ def test_uniform_binomial(N, m, p):
     """
     from scipy.stats import binom
 
-    with NumpyRNGContext(1234):
-        fpps = np.array([funcs.kuiper(np.random.random(N))[1]
-                         for i in range(m)])
-        assert (fpps >= 0).all()
-        assert (fpps <= 1).all()
-        low = binom(n=m, p=p).ppf(0.01)
-        high = binom(n=m, p=p).ppf(0.99)
-        assert (low < sum(fpps < p) < high)
+    rng = np.random.default_rng(seed=12345)
+    fpps = np.array([funcs.kuiper(rng.random(N))[1]
+                        for i in range(m)])
+    assert (fpps >= 0).all()
+    assert (fpps <= 1).all()
+    low = binom(n=m, p=p).ppf(0.01)
+    high = binom(n=m, p=p).ppf(0.99)
+    assert (low < sum(fpps < p) < high)

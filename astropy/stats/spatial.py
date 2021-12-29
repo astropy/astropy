@@ -33,7 +33,8 @@ class RipleysKEstimator:
     >>> import numpy as np
     >>> from matplotlib import pyplot as plt # doctest: +SKIP
     >>> from astropy.stats import RipleysKEstimator
-    >>> z = np.random.uniform(low=5, high=10, size=(100, 2))
+    >>> rng = np.random.default_rng(seed=8675309)
+    >>> z = rng.uniform(low=5, high=10, size=(100, 2))
     >>> Kest = RipleysKEstimator(area=25, x_max=10, y_max=10,
     ... x_min=5, y_min=5)
     >>> r = np.linspace(0, 2.5, 100)
