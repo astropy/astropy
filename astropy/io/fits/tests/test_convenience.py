@@ -17,6 +17,7 @@ from astropy.io.fits.column import ColumnAttribute
 from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.utils.exceptions import AstropyUserWarning
 
+from astropy.io.fits.tests.test_table import _assert_attr_col
 from . import FitsTestCase
 
 
@@ -288,22 +289,6 @@ class TestConvenience(FitsTestCase):
         header files and try to reload the table from them.
         """
 
-        def _assert_attr_col(tbhdu, fitsfile):
-            """
-            Helper function to compare column attributes
-            """
-            with fits.open(fitsfile) as hdul:
-                # Double check that the headers are equivalent
-                assert hdul[1].columns.names == tbhdu.columns.names
-                attrs = [k for k, v in fits.Column.__dict__.items()
-                         if isinstance(v, ColumnAttribute)]
-                for name in hdul[1].columns.names:
-                    col = hdul[1].columns[name]
-                    new_col = tbhdu.columns[name]
-                    for attr in attrs:
-                        if getattr(col, attr) and getattr(new_col, attr):
-                            assert getattr(col, attr) == getattr(new_col, attr)
-
         # copy fits file to the temp directory
         self.copy_file(tablename)
 
@@ -314,7 +299,8 @@ class TestConvenience(FitsTestCase):
 
         new_tbhdu = fits.tableload(datafile, cdfile, hfile)
 
-        _assert_attr_col(new_tbhdu, self.temp(tablename))
+        with fits.open(self.temp(tablename)) as hdul:
+            _assert_attr_col(new_tbhdu, hdul[1])
 
     def test_append_filename(self):
         """
