@@ -1,0 +1,1 @@
+Units of redshift are added to ``z_reion`` in built-in realizations' metadata.

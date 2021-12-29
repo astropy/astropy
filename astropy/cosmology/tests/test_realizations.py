@@ -7,6 +7,8 @@ import pickle
 import pytest
 
 # LOCAL
+import astropy.cosmology.units as cu
+import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import default_cosmology, Planck13
@@ -96,8 +98,14 @@ def test_pickle_builtin_realizations(name, pickle_protocol):
 
     # pickle and unpickle
     f = pickle.dumps(original, protocol=pickle_protocol)
-    unpickled = pickle.loads(f)
+    with u.add_enabled_units(cu):
+        unpickled = pickle.loads(f)
 
-    # test equality
     assert unpickled == original
     assert unpickled.meta == original.meta
+
+    # if the units are not enabled, it isn't equal because redshift units
+    # are not equal. This is a weird, known issue.
+    unpickled = pickle.loads(f)
+    assert unpickled == original
+    assert unpickled.meta != original.meta

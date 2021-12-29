@@ -59,6 +59,7 @@ Pending WMAP team approval and subject to change.
 from types import MappingProxyType
 
 # LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
 
 # Note: if you add a new cosmology, please also update the table
@@ -78,7 +79,7 @@ Planck18 = MappingProxyType(dict(
     n=0.9665,
     sigma8=0.8102,
     tau=0.0561,
-    z_reion=7.82,
+    z_reion=7.82 * cu.redshift,
     t0=13.787 * u.Gyr,
     Tcmb0=2.7255 * u.K,
     Neff=3.046,
@@ -98,7 +99,7 @@ Planck15 = MappingProxyType(dict(
     n=0.9667,
     sigma8=0.8159,
     tau=0.066,
-    z_reion=8.8,
+    z_reion=8.8 * cu.redshift,
     t0=13.799 * u.Gyr,
     Tcmb0=2.7255 * u.K,
     Neff=3.046,
@@ -118,7 +119,7 @@ Planck13 = MappingProxyType(dict(
     n=0.9611,
     sigma8=0.8288,
     tau=0.0952,
-    z_reion=11.52,
+    z_reion=11.52 * cu.redshift,
     t0=13.7965 * u.Gyr,
     Tcmb0=2.7255 * u.K,
     Neff=3.046,
@@ -138,7 +139,7 @@ WMAP9 = MappingProxyType(dict(
     n=0.9608,
     sigma8=0.820,
     tau=0.081,
-    z_reion=10.1,
+    z_reion=10.1 * cu.redshift,
     t0=13.772 * u.Gyr,
     Tcmb0=2.725 * u.K,
     Neff=3.04,
@@ -158,7 +159,7 @@ WMAP7 = MappingProxyType(dict(
     n=0.967,
     sigma8=0.810,
     tau=0.085,
-    z_reion=10.3,
+    z_reion=10.3 * cu.redshift,
     t0=13.76 * u.Gyr,
     Tcmb0=2.725 * u.K,
     Neff=3.04,
@@ -178,7 +179,7 @@ WMAP5 = MappingProxyType(dict(
     n=0.962,
     sigma8=0.817,
     tau=0.088,
-    z_reion=11.3,
+    z_reion=11.3 * cu.redshift,
     t0=13.72 * u.Gyr,
     Tcmb0=2.725 * u.K,
     Neff=3.04,
@@ -198,7 +199,7 @@ WMAP3 = MappingProxyType(dict(
     n=0.946,
     sigma8=0.784,
     tau=0.079,
-    z_reion=10.3,
+    z_reion=10.3 * cu.redshift,
     t0=13.78 * u.Gyr,
     Tcmb0=2.725 * u.K,
     Neff=3.04,
@@ -216,11 +217,11 @@ WMAP1 = MappingProxyType(dict(
     Oc0=0.213,
     Ob0=0.0436,
     Om0=0.257,
-    H0=72. * (u.km / u.s / u.Mpc),
+    H0=72.0 * (u.km / u.s / u.Mpc),
     n=0.96,
     sigma8=0.75,
     tau=0.117,
-    z_reion=17.0,  # Only from WMAP1. Does not exist in the combined analysis.
+    z_reion=17.0 * cu.redshift,  # Only from WMAP1. Does not exist in the combined analysis.
     t0=13.4 * u.Gyr,
     Tcmb0=2.725 * u.K,
     Neff=3.04,
