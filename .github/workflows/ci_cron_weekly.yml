@@ -28,7 +28,7 @@ jobs:
           # releases.
           - name: Python 3.10 with dev version of key dependencies
             os: ubuntu-latest
-            python: '3.10.0-alpha - 3.10.0'
+            python: '3.10'
             toxenv: py310-test-devdeps
 
           - name: Documentation link check
