@@ -31,16 +31,6 @@ __all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
 remote_data = pytest.mark.remote_data
 
 
-# distutils expects options to be Unicode strings
-def _fix_user_options(options):
-    def to_str_or_none(x):
-        if x is None:
-            return None
-        return str(x)
-
-    return [tuple(to_str_or_none(x) for x in y) for y in options]
-
-
 def _save_coverage(cov, result, rootdir, testing_path):
     """
     This method is called after the tests have been run in coverage mode
