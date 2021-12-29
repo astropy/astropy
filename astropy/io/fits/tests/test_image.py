@@ -1133,8 +1133,8 @@ class TestCompressedImage(FitsTestCase):
 
         """
         import scipy.misc
-        np.random.seed(42)
-        data = scipy.misc.ascent() + np.random.randn(512, 512)*10
+        rng = np.random.default_rng(42)
+        data = scipy.misc.ascent() + rng.normal(0, 10, (512, 512))
 
         fits.ImageHDU(data).writeto(self.temp('im1.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
@@ -1425,8 +1425,8 @@ class TestCompressedImage(FitsTestCase):
         # some of it ends up just getting gzip-compressed
         data2 = ((np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis] +
                  np.arange(1, 7))
-        np.random.seed(1337)
-        data1 = np.random.uniform(size=(6 * 4, 7 * 4))
+        rng = np.random.default_rng(1337)
+        data1 = rng.uniform(size=(6 * 4, 7 * 4))
         data1[:data2.shape[0], :data2.shape[1]] = data2
         chdu = fits.CompImageHDU(data1, compression_type='RICE_1',
                                  tile_size=(6, 7))
