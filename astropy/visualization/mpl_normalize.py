@@ -315,7 +315,7 @@ def imshow_norm(data, ax=None, **kwargs):
     ax : None or `~matplotlib.axes.Axes`, optional
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of
         the supplied axes.
-    kwargs : dict, optional
+    **kwargs : dict, optional
         All other keyword arguments are parsed first by the
         `ImageNormalize` initializer, then to
         `~matplotlib.pyplot.imshow`.
