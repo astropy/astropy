@@ -8,8 +8,6 @@ import tempfile
 
 import hypothesis
 
-from astropy import __version__
-
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
@@ -24,6 +22,8 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
     PYTEST_HEADER_MODULES['asdf'] = 'asdf'
     PYTEST_HEADER_MODULES['pyarrow'] = 'pyarrow'
+
+    from astropy import __version__
     TESTED_VERSIONS['Astropy'] = __version__
 
 
