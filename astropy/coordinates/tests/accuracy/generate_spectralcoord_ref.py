@@ -16,17 +16,17 @@ if __name__ == "__main__":
     from astropy.time import Time
     from astropy import units as u
 
-    np.random.seed(12345)
+    rng = np.random.default_rng(seed=12345)
 
     N = 100
 
     tab = QTable()
-    target_lon = np.random.uniform(0, 360, N) * u.deg
-    target_lat = np.degrees(np.arcsin(np.random.uniform(-1, 1, N))) * u.deg
+    target_lon = rng.uniform(0, 360, N) * u.deg
+    target_lat = np.degrees(np.arcsin(rng.uniform(-1, 1, N))) * u.deg
     tab['target'] = SkyCoord(target_lon, target_lat, frame='fk5')
-    tab['obstime'] = Time(np.random.uniform(Time('1997-01-01').mjd, Time('2017-12-31').mjd, N), format='mjd', scale='utc')
-    tab['obslon'] = Angle(np.random.uniform(-180, 180, N) * u.deg)
-    tab['obslat'] = Angle(np.arcsin(np.random.uniform(-1, 1, N)) * u.deg)
+    tab['obstime'] = Time(rng.uniform(Time('1997-01-01').mjd, Time('2017-12-31').mjd, N), format='mjd', scale='utc')
+    tab['obslon'] = Angle(rng.uniform(-180, 180, N) * u.deg)
+    tab['obslat'] = Angle(np.arcsin(rng.uniform(-1, 1, N)) * u.deg)
     tab['geocent'] = 0.
     tab['heliocent'] = 0.
     tab['lsrk'] = 0.

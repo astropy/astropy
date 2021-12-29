@@ -33,6 +33,8 @@ class TestManipulation():
     """
 
     def setup_class(cls):
+        cls.rng = np.random.default_rng(seed=42)
+
         # For these tests, we set up frames and coordinates using copy=False,
         # so we can check that broadcasting is handled correctly.
         lon = Longitude(np.arange(0, 24, 4), u.hourangle)
@@ -49,7 +51,7 @@ class TestManipulation():
         # Ensure we have a quantity scalar.
         cls.pressure = 1000 * u.hPa
         # As well as an array.
-        cls.temperature = np.random.uniform(
+        cls.temperature = cls.rng.uniform(
             0., 20., size=(lon.size, lat.size)) * u.deg_C
         cls.s1 = AltAz(az=lon[:, np.newaxis], alt=lat,
                        obstime=cls.obstime,

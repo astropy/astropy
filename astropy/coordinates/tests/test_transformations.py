@@ -164,8 +164,8 @@ def test_sphere_cart():
     assert_allclose(lon, np.pi / 2 * u.rad)
 
     # test round-tripping
-    with NumpyRNGContext(13579):
-        x, y, z = np.random.randn(3, 5)
+    rng = np.random.default_rng(seed=13579)
+    x, y, z = rng.standard_normal((3, 5))
 
     r, lat, lon = cartesian_to_spherical(x, y, z)
     x2, y2, z2 = spherical_to_cartesian(r, lat, lon)

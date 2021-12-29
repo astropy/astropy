@@ -1968,9 +1968,9 @@ class TestCartesianRepresentationWithDifferential:
         assert cr5.differentials['s'] == diff
 
         # make sure we don't update the original representation's dict
-        d1 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s)
-        d2 = CartesianDifferential(*np.random.random((3, 5)), unit=u.km/u.s**2)
-        r1 = CartesianRepresentation(*np.random.random((3, 5)), unit=u.pc,
+        d1 = CartesianDifferential(*np.ones((3, 5)), unit=u.km/u.s)
+        d2 = CartesianDifferential(*np.ones((3, 5)), unit=u.km/u.s**2)
+        r1 = CartesianRepresentation(*np.ones((3, 5)), unit=u.pc,
                                      differentials=d1)
 
         r2 = r1.with_differentials(d2)

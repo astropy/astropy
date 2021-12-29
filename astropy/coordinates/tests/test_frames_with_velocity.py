@@ -247,14 +247,16 @@ def test_slicing_preserves_differential():
 def test_shorthand_attributes():
     # Check that attribute access works
 
+    rng = np.random.default_rng(seed=42)
+
     # for array data:
     n = 4
-    icrs1 = ICRS(ra=np.random.uniform(0, 360, n)*u.deg,
-                 dec=np.random.uniform(-90, 90, n)*u.deg,
+    icrs1 = ICRS(ra=rng.uniform(0, 360, n)*u.deg,
+                 dec=rng.uniform(-90, 90, n)*u.deg,
                  distance=100*u.pc,
-                 pm_ra_cosdec=np.random.normal(0, 100, n)*u.mas/u.yr,
-                 pm_dec=np.random.normal(0, 100, n)*u.mas/u.yr,
-                 radial_velocity=np.random.normal(0, 100, n)*u.km/u.s)
+                 pm_ra_cosdec=rng.normal(0, 100, n)*u.mas/u.yr,
+                 pm_dec=rng.normal(0, 100, n)*u.mas/u.yr,
+                 radial_velocity=rng.normal(0, 100, n)*u.km/u.s)
     v = icrs1.velocity
     pm = icrs1.proper_motion
     assert quantity_allclose(pm[0], icrs1.pm_ra_cosdec)
