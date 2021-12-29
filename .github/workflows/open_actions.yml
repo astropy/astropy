@@ -12,11 +12,13 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
+    # NOTE: sync-labels due to https://github.com/actions/labeler/issues/112
     - name: Label PR
-      uses: actions/labeler@main
+      uses: actions/labeler@v3
       if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'meeseeksmachine'
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        sync-labels: ''
     - name: Greet new contributors
       uses: actions/first-interaction@v1
       with:
