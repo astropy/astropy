@@ -217,6 +217,11 @@ def fitter_unit_support(func):
                 # input units (to make sure that initial guesses on the parameters)
                 # are in the right unit system
                 model = model.without_units_for_data(**rename_data)
+                if isinstance(model, tuple):
+                    rename_data['_left_kwargs'] = model[1]
+                    rename_data['_right_kwargs'] = model[2]
+                    model = model[0]
+
                 # We strip away the units from the input itself
                 add_back_units = False
 

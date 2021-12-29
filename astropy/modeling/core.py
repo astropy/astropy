@@ -1573,6 +1573,40 @@ class Model(metaclass=_ModelMeta):
 
         return model
 
+    def output_units(self, **kwargs):
+        """
+        Return a dictionary of output units for this model given a dictionary
+        of fitting inputs and outputs
+
+        The input and output Quantity objects should be given as keyword
+        arguments.
+
+        Notes
+        -----
+
+        This method is needed in order to be able to fit models with units in
+        the parameters, since we need to temporarily strip away the units from
+        the model during the fitting (which might be done by e.g. scipy
+        functions).
+
+        This method will force extra model evaluations, which maybe computationally
+        expensive. To avoid this, one can add a return_units property to the model,
+        see :ref:`astropy:models_return_units`.
+        """
+        units = self.return_units
+
+        if units is None or units == {}:
+            inputs = {inp: kwargs[inp] for inp in self.inputs}
+
+            values = self(**inputs)
+            if self.n_outputs == 1:
+                values = (values,)
+
+            units = {out: getattr(values[index], 'unit', dimensionless_unscaled)
+                     for index, out in enumerate(self.outputs)}
+
+        return units
+
     def strip_units_from_tree(self):
         for item in self._leaflist:
             for parname in item.param_names:
@@ -1602,7 +1636,6 @@ class Model(metaclass=_ModelMeta):
         units (as two dictionaries) and returns a dictionary giving the target
         units for each parameter.
         """
-
         model = self.copy()
         inputs_unit = {inp: getattr(kwargs[inp], 'unit', dimensionless_unscaled)
                        for inp in self.inputs if kwargs[inp] is not None}
@@ -3842,6 +3875,118 @@ class CompoundModel(Model):
 
         else:
             raise ValueError(f"No submodels found named {name}")
+
+    def _set_sub_models_and_parameter_units(self, left, right):
+        """
+        Provides a work-around to properly set the sub models and respective
+        parameters's units/values when using ``without_units_for_data``
+        or ``without_units_for_data`` methods.
+        """
+        model = CompoundModel(self.op, left, right)
+
+        self.left = left
+        self.right = right
+
+        for name in model.param_names:
+            model_parameter = getattr(model, name)
+            parameter = getattr(self, name)
+
+            parameter.value = model_parameter.value
+            parameter._set_unit(model_parameter.unit, force=True)
+
+    def without_units_for_data(self, **kwargs):
+        """
+        See `~astropy.modeling.Model.without_units_for_data` for overview
+        of this method.
+
+        Notes
+        -----
+        This modifies the behavior of the base method to account for the
+        case where the sub-models of a compound model have different output
+        units. This is only valid for compound * and / compound models as
+        in that case it is reasonable to mix the output units. It does this
+        by modifying the output units of each sub model by using the output
+        units of the other sub model so that we can apply the original function
+        and get the desired result.
+
+        Additional data has to be output in the mixed output unit case
+        so that the units can be properly rebuilt by
+        `~astropy.modeling.CompoundModel.with_units_from_data`.
+
+        Outside the mixed output units, this method is identical to the
+        base method.
+        """
+        if self.op in ['*', '/']:
+            model = self.copy()
+            inputs = {inp: kwargs[inp] for inp in self.inputs}
+
+            left_units = self.left.output_units(**kwargs)
+            right_units = self.right.output_units(**kwargs)
+
+            if self.op == '*':
+                left_kwargs = {out: kwargs[out] / right_units[out]
+                               for out in self.left.outputs if kwargs[out] is not None}
+                right_kwargs = {out: kwargs[out] / left_units[out]
+                                for out in self.right.outputs if kwargs[out] is not None}
+            else:
+                left_kwargs = {out: kwargs[out] * right_units[out]
+                               for out in self.left.outputs if kwargs[out] is not None}
+                right_kwargs = {out: 1 / kwargs[out] * left_units[out]
+                                for out in self.right.outputs if kwargs[out] is not None}
+
+            left_kwargs.update(inputs.copy())
+            right_kwargs.update(inputs.copy())
+
+            left = self.left.without_units_for_data(**left_kwargs)
+            if isinstance(left, tuple):
+                left_kwargs['_left_kwargs'] = left[1]
+                left_kwargs['_right_kwargs'] = left[2]
+                left = left[0]
+
+            right = self.right.without_units_for_data(**right_kwargs)
+            if isinstance(right, tuple):
+                right_kwargs['_left_kwargs'] = right[1]
+                right_kwargs['_right_kwargs'] = right[2]
+                right = right[0]
+
+            model._set_sub_models_and_parameter_units(left, right)
+
+            return model, left_kwargs, right_kwargs
+        else:
+            return super().without_units_for_data(**kwargs)
+
+    def with_units_from_data(self, **kwargs):
+        """
+        See `~astropy.modeling.Model.with_units_from_data` for overview
+        of this method.
+
+        Notes
+        -----
+        This modifies the behavior of the base method to account for the
+        case where the sub-models of a compound model have different output
+        units. This is only valid for compound * and / compound models as
+        in that case it is reasonable to mix the output units. In order to
+        do this it requires some additional information output by
+        `~astropy.modeling.CompoundModel.without_units_for_data` passed as
+        keyword arguments under the keywords ``_left_kwargs`` and ``_right_kwargs``.
+
+        Outside the mixed output units, this method is identical to the
+        base method.
+        """
+
+        if self.op in ['*', '/']:
+            left_kwargs = kwargs.pop('_left_kwargs')
+            right_kwargs = kwargs.pop('_right_kwargs')
+
+            left = self.left.with_units_from_data(**left_kwargs)
+            right = self.right.with_units_from_data(**right_kwargs)
+
+            model = self.copy()
+            model._set_sub_models_and_parameter_units(left, right)
+
+            return model
+        else:
+            return super().with_units_from_data(**kwargs)
 
 
 def _get_submodel_path(model, name):
