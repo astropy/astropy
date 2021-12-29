@@ -9,6 +9,7 @@ from collections import OrderedDict
 import pytest
 
 # LOCAL
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
@@ -48,7 +49,8 @@ def test_yaml_constructor():
     # it's too hard to manually construct a node, so we only test dump/load
     # this is also a good round-trip test
     yml = dump(Planck18)
-    cosmo = load(yml)
+    with u.add_enabled_units(cu):  # needed for redshift units
+        cosmo = load(yml)
     assert isinstance(cosmo, FlatLambdaCDM)
     assert cosmo == Planck18
     assert cosmo.meta == Planck18.meta
