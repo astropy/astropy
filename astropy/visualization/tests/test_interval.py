@@ -3,7 +3,6 @@
 import pytest
 import numpy as np
 
-from astropy.utils import NumpyRNGContext
 from astropy.visualization.interval import (ManualInterval,
                                             MinMaxInterval,
                                             PercentileInterval,
@@ -68,11 +67,12 @@ class TestInterval:
         np.testing.assert_allclose(vmax, 36.4)
 
     def test_asymmetric_percentile_nsamples(self):
-        with NumpyRNGContext(12345):
-            interval = AsymmetricPercentileInterval(10.5, 70.5, n_samples=20)
-            vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -14.367676767676768)
-        np.testing.assert_allclose(vmax, 40.266666666666666)
+        rng = np.random.default_rng(seed=12345)
+        interval = AsymmetricPercentileInterval(10.5, 70.5, n_samples=20,
+                                                rng=rng)
+        vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, -3.0343434343434352)
+        np.testing.assert_allclose(vmax, 34.779797979797976)
 
 
 class TestIntervalList(TestInterval):
@@ -88,12 +88,12 @@ class TestInterval2D(TestInterval):
 
 
 def test_zscale():
-    np.random.seed(42)
-    data = np.random.randn(100, 100) * 5 + 10
+    rng = np.random.default_rng(42)
+    data = rng.normal(10, 5, size=(100, 100))
     interval = ZScaleInterval()
     vmin, vmax = interval.get_limits(data)
-    np.testing.assert_allclose(vmin, -9.6, atol=0.1)
-    np.testing.assert_allclose(vmax, 25.4, atol=0.1)
+    np.testing.assert_allclose(vmin, -5.0, atol=0.1)
+    np.testing.assert_allclose(vmax, 22.7, atol=0.1)
 
     data = list(range(1000)) + [np.nan]
     interval = ZScaleInterval()

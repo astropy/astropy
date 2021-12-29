@@ -142,12 +142,20 @@ class AsymmetricPercentileInterval(BaseInterval):
         Maximum number of values to use. If this is specified, and there
         are more values in the dataset as this, then values are randomly
         sampled from the array (with replacement).
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
     """
 
-    def __init__(self, lower_percentile, upper_percentile, n_samples=None):
+    def __init__(self, lower_percentile, upper_percentile, n_samples=None,
+                 rng=None):
         self.lower_percentile = lower_percentile
         self.upper_percentile = upper_percentile
         self.n_samples = n_samples
+
+        if rng is None:
+            rng = np.random.default_rng()
+        self.rng = rng
 
     def get_limits(self, values):
         # Make sure values is a Numpy array
@@ -156,7 +164,7 @@ class AsymmetricPercentileInterval(BaseInterval):
         # If needed, limit the number of samples. We sample with replacement
         # since this is much faster.
         if self.n_samples is not None and values.size > self.n_samples:
-            values = np.random.choice(values, self.n_samples)
+            values = self.rng.choice(values, self.n_samples)
 
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]
@@ -181,13 +189,16 @@ class PercentileInterval(AsymmetricPercentileInterval):
         Maximum number of values to use. If this is specified, and there
         are more values in the dataset as this, then values are randomly
         sampled from the array (with replacement).
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
     """
 
-    def __init__(self, percentile, n_samples=None):
+    def __init__(self, percentile, n_samples=None, rng=None):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
         super().__init__(
-            lower_percentile, upper_percentile, n_samples=n_samples)
+            lower_percentile, upper_percentile, n_samples=n_samples, rng=rng)
 
 
 class ZScaleInterval(BaseInterval):
