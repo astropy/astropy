@@ -63,8 +63,8 @@ def test_ripley_K_implementation(points, x_min, x_max):
 
 
 rng = np.random.default_rng(seed=123)
-a = rng.uniform(low=5, high=10, size=(100, 2))
-b = rng.uniform(low=-5, high=-10, size=(100, 2))
+a = rng.uniform(5, 10, size=(100, 2))
+b = rng.uniform(-5, -10, size=(100, 2))
 
 
 @pytest.mark.parametrize("points", [a, b])
@@ -78,8 +78,8 @@ def test_ripley_uniform_property(points):
         assert_allclose(area, Kest(data=points, radii=r, mode='none')[4])
 
 
-a = rng.uniform(low=0, high=1, size=(500, 2))
-b = rng.uniform(low=-1, high=0, size=(500, 2))
+a = rng.uniform(0, 1, size=(500, 2))
+b = rng.uniform(-1, 0, size=(500, 2))
 
 
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
@@ -94,8 +94,8 @@ def test_ripley_large_density(points, low, high):
             assert_allclose(Kpos, Kest_r, atol=1e-1)
 
 
-a = rng.uniform(low=5, high=10, size=(500, 2))
-b = rng.uniform(low=-10, high=-5, size=(500, 2))
+a = rng.uniform(5, 10, size=(500, 2))
+b = rng.uniform(-10, -5, size=(500, 2))
 
 
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
@@ -110,8 +110,8 @@ def test_ripley_modes(points, low, high):
             assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)
 
 
-a = rng.uniform(low=0, high=1, size=(50, 2))
-b = rng.uniform(low=-1, high=0, size=(50, 2))
+a = rng.uniform(0, 1, size=(50, 2))
+b = rng.uniform(-1, 0, size=(50, 2))
 
 
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
@@ -124,8 +124,8 @@ def test_ripley_large_density_var_width(points, low, high):
         assert_allclose(Kpos, Kest_r, atol=1e-1)
 
 
-a = rng.uniform(low=5, high=10, size=(50, 2))
-b = rng.uniform(low=-10, high=-5, size=(50, 2))
+a = rng.uniform(5, 10, size=(50, 2))
+b = rng.uniform(-10, -5, size=(50, 2))
 
 
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
