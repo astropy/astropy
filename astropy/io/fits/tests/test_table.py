@@ -103,6 +103,20 @@ def comparerecords(a, b):
                 return False
     return True
 
+def _assert_attr_col(new_tbhdu, tbhdu):
+    """
+    Helper function to compare column attributes
+    """
+    # Double check that the headers are equivalent
+    assert tbhdu.columns.names == new_tbhdu.columns.names
+    attrs = [k for k, v in fits.Column.__dict__.items()
+             if isinstance(v, ColumnAttribute)]
+    for name in tbhdu.columns.names:
+        col = tbhdu.columns[name]
+        new_col = new_tbhdu.columns[name]
+        for attr in attrs:
+            if getattr(col, attr) and getattr(new_col, attr):
+                assert getattr(col, attr) == getattr(new_col, attr)
 
 class TestTableFunctions(FitsTestCase):
     def test_constructor_copies_header(self):
@@ -2139,21 +2153,6 @@ class TestTableFunctions(FitsTestCase):
         A simple test of the dump/load methods; dump the data, column, and
         header files and try to reload the table from them.
         """
-
-        def _assert_attr_col(new_tbhdu, tbhdu):
-            """
-            Helper function to compare column attributes
-            """
-            # Double check that the headers are equivalent
-            assert tbhdu.columns.names == new_tbhdu.columns.names
-            attrs = [k for k, v in fits.Column.__dict__.items()
-                     if isinstance(v, ColumnAttribute)]
-            for name in tbhdu.columns.names:
-                col = tbhdu.columns[name]
-                new_col = new_tbhdu.columns[name]
-                for attr in attrs:
-                    if getattr(col, attr) and getattr(new_col, attr):
-                        assert getattr(col, attr) == getattr(new_col, attr)
 
         with fits.open(self.data(tablename)) as hdul:
             tbhdu = hdul[1]
