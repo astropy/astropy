@@ -103,6 +103,7 @@ def comparerecords(a, b):
                 return False
     return True
 
+
 def _assert_attr_col(new_tbhdu, tbhdu):
     """
     Helper function to compare column attributes
@@ -117,6 +118,7 @@ def _assert_attr_col(new_tbhdu, tbhdu):
         for attr in attrs:
             if getattr(col, attr) and getattr(new_col, attr):
                 assert getattr(col, attr) == getattr(new_col, attr)
+
 
 class TestTableFunctions(FitsTestCase):
     def test_constructor_copies_header(self):
