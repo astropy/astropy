@@ -12,7 +12,7 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
 
     Parameters
     ----------
-    t, y: array-like
+    t, y : array-like
         times, values, and errors of the data points. These should be
         broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     frequency : array-like

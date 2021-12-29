@@ -31,10 +31,10 @@ def extirpolate(x, y, N=None, M=4):
     Returns
     -------
     yN : ndarray
-         N extirpolated values associated with range(N)
+        N extirpolated values associated with range(N)
 
-    Example
-    -------
+    Examples
+    --------
     >>> rng = np.random.default_rng(0)
     >>> x = 100 * rng.random(20)
     >>> y = np.sin(x)
