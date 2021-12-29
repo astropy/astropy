@@ -181,13 +181,15 @@ def golden_spiral_grid(size):
     return UnitSphericalRepresentation(lon, lat)
 
 
-def uniform_spherical_random_surface(size=1):
+def uniform_spherical_random_surface(size=1, rng=None):
     """Generate a random sampling of points on the surface of the unit sphere.
 
     Parameters
     ----------
     size : int
         The number of points to generate.
+    rng : `numpy.random.Generator`, optional
+        A random number generator instance.
 
     Returns
     -------
@@ -195,7 +197,8 @@ def uniform_spherical_random_surface(size=1):
         The random points.
     """
 
-    rng = np.random  # can maybe switch to this being an input later - see #11628
+    if rng is None:
+        rng = np.random.default_rng()
 
     lon = rng.uniform(0, 2*np.pi, size) * u.rad
     lat = np.arcsin(rng.uniform(-1, 1, size=size)) * u.rad
@@ -203,7 +206,7 @@ def uniform_spherical_random_surface(size=1):
     return UnitSphericalRepresentation(lon, lat)
 
 
-def uniform_spherical_random_volume(size=1, max_radius=1):
+def uniform_spherical_random_volume(size=1, max_radius=1, rng=None):
     """Generate a random sampling of points that follow a uniform volume
     density distribution within a sphere.
 
@@ -219,9 +222,10 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
     rep : `~astropy.coordinates.SphericalRepresentation`
         The random points.
     """
-    rng = np.random  # can maybe switch to this being an input later - see #11628
+    if rng is None:
+        rng = np.random.default_rng()
 
-    usph = uniform_spherical_random_surface(size=size)
+    usph = uniform_spherical_random_surface(size=size, rng=rng)
 
     r = np.cbrt(rng.uniform(size=size)) * u.Quantity(max_radius, copy=False)
     return SphericalRepresentation(usph.lon, usph.lat, r)
