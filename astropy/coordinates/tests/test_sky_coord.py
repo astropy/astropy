@@ -1288,7 +1288,6 @@ def test_init_with_frame_instance_keyword():
 
 def test_guess_from_table():
     from astropy.table import Table, Column
-    from astropy.utils import NumpyRNGContext
 
     tab = Table()
 

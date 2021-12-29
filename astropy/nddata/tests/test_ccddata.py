@@ -12,7 +12,6 @@ from astropy.nddata.nduncertainty import (
 from astropy import units as u
 from astropy import log
 from astropy.wcs import WCS, FITSFixedWarning
-from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
                                 get_pkg_data_contents)
 from astropy.utils.exceptions import AstropyWarning

@@ -11,7 +11,6 @@ from astropy.stats.biweight import (biweight_location, biweight_scale,
                                     biweight_midcorrelation)
 from astropy.tests.helper import assert_quantity_allclose
 import astropy.units as u
-from astropy.utils.misc import NumpyRNGContext
 
 
 def test_biweight_location():

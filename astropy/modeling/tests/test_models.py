@@ -24,7 +24,6 @@ from astropy.modeling.powerlaws import (
     SmoothlyBrokenPowerLaw1D)
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 from .example_models import models_1D, models_2D

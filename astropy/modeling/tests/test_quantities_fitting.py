@@ -12,7 +12,6 @@ from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
-from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 # Fitting should be as intuitive as possible to the user. Essentially, models

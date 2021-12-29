@@ -10,7 +10,6 @@ from numpy.testing import assert_array_almost_equal
 from astropy.utils.data import (get_pkg_data_contents, get_pkg_data_fileobj,
                                 get_pkg_data_filename)
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.misc import NumpyRNGContext
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyWarning
 from astropy import wcs

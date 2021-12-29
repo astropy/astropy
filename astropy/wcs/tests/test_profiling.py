@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 
 from astropy.utils.data import get_pkg_data_filenames, get_pkg_data_contents
-from astropy.utils.misc import NumpyRNGContext
 
 from astropy import wcs
 from astropy.wcs.wcs import FITSFixedWarning

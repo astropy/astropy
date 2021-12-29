@@ -12,7 +12,6 @@ from numpy.testing import assert_array_equal
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy import units as u
-from astropy.utils import NumpyRNGContext
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS, \
                                BaseHighLevelWCS

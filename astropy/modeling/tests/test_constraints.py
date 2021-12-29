@@ -532,36 +532,36 @@ def test_2d_model(fitter):
     w = np.ones(x.size)
     w.shape = x.shape
 
-    with NumpyRNGContext(1234567890):
+    rng = np.random.default_rng(1234567890)
 
-        n = np.random.randn(x.size)
-        n.shape = x.shape
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    n = rng.standard_normal(x.size)
+    n.shape = x.shape
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
-        # 2D model with LevMarLSQFitter, fixed constraint
-        gauss2d.x_stddev.fixed = True
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
-        m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    # 2D model with LevMarLSQFitter, fixed constraint
+    gauss2d.x_stddev.fixed = True
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
+    m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
 
-        # Polynomial2D, col_fit_deriv=False
-        p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
-        z = p2(x, y)
-        m = fitter(p2, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
-        m = fitter(p2, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    # Polynomial2D, col_fit_deriv=False
+    p2 = models.Polynomial2D(1, c0_0=1, c1_0=1.2, c0_1=3.2)
+    z = p2(x, y)
+    m = fitter(p2, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    m = fitter(p2, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
 
-        # Polynomial2D, col_fit_deriv=False, fixed constraint
-        p2.c1_0.fixed = True
-        m = fitter(p2, x, y, z + 2 * n, weights=w)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
-        m = fitter(p2, x, y, z + 2 * n, weights=None)
-        assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    # Polynomial2D, col_fit_deriv=False, fixed constraint
+    p2.c1_0.fixed = True
+    m = fitter(p2, x, y, z + 2 * n, weights=w)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
+    m = fitter(p2, x, y, z + 2 * n, weights=None)
+    assert_allclose(m.parameters, p2.parameters, rtol=0.05)
 
 
 def test_set_prior_posterior():

@@ -140,7 +140,6 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
-    from astropy.utils import NumpyRNGContext
     from astropy.coordinates import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
