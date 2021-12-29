@@ -35,10 +35,10 @@ def test_dist():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-            world1 = wcs1.all_pix2world(x, 1)
-            world2 = wcs2.all_pix2world(x, 1)
+        rng = np.random.default_rng(seed=123456789)
+        x = rng.random((2 ** 16, wcs1.wcs.naxis))
+        world1 = wcs1.all_pix2world(x, 1)
+        world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -53,10 +53,10 @@ def test_sip():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-            world1 = wcs1.all_pix2world(x, 1)
-            world2 = wcs2.all_pix2world(x, 1)
+        rng = np.random.default_rng(seed=123456789)
+        x = rng.random((2 ** 16, wcs1.wcs.naxis))
+        world1 = wcs1.all_pix2world(x, 1)
+        world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -71,10 +71,10 @@ def test_sip2():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-            world1 = wcs1.all_pix2world(x, 1)
-            world2 = wcs2.all_pix2world(x, 1)
+        rng = np.random.default_rng(seed=123456789)
+        x = rng.random((2 ** 16, wcs1.wcs.naxis))
+        world1 = wcs1.all_pix2world(x, 1)
+        world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -89,10 +89,10 @@ def test_wcs():
     s = pickle.dumps(wcs1)
     wcs2 = pickle.loads(s)
 
-    with NumpyRNGContext(123456789):
-        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-        world1 = wcs1.all_pix2world(x, 1)
-        world2 = wcs2.all_pix2world(x, 1)
+    rng = np.random.default_rng(seed=123456789)
+    x = rng.random((2 ** 16, wcs1.wcs.naxis))
+    world1 = wcs1.all_pix2world(x, 1)
+    world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 

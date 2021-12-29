@@ -17,7 +17,6 @@ from astropy.wcs import _wcs  # noqa
 from astropy import units as u
 from astropy.utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from astropy.utils.misc import NumpyRNGContext
 from astropy.utils.exceptions import (
     AstropyUserWarning, AstropyWarning, AstropyDeprecationWarning)
 from astropy.tests.helper import assert_quantity_allclose
@@ -243,10 +242,10 @@ def test_extra_kwarg():
     Issue #444
     """
     w = wcs.WCS()
-    with NumpyRNGContext(123456789):
-        data = np.random.rand(100, 2)
-        with pytest.raises(TypeError):
-            w.wcs_pix2world(data, origin=1)
+    rng = np.random.default_rng(123456789)
+    data = rng.random((100, 2))
+    with pytest.raises(TypeError):
+        w.wcs_pix2world(data, origin=1)
 
 
 def test_3d_shapes():
@@ -254,13 +253,13 @@ def test_3d_shapes():
     Issue #444
     """
     w = wcs.WCS(naxis=3)
-    with NumpyRNGContext(123456789):
-        data = np.random.rand(100, 3)
-        result = w.wcs_pix2world(data, 1)
-        assert result.shape == (100, 3)
-        result = w.wcs_pix2world(
-            data[..., 0], data[..., 1], data[..., 2], 1)
-        assert len(result) == 3
+    rng = np.random.default_rng(123456789)
+    data = rng.random((100, 3))
+    result = w.wcs_pix2world(data, 1)
+    assert result.shape == (100, 3)
+    result = w.wcs_pix2world(
+        data[..., 0], data[..., 1], data[..., 2], 1)
+    assert len(result) == 3
 
 
 def test_preserve_shape():
@@ -550,8 +549,8 @@ def test_all_world2pix(fname=None, ext=0,
                          np.meshgrid(*map(range, naxesi_l, naxesi_u))])[0]
 
     # Generage random data (in image coordinates):
-    with NumpyRNGContext(123456789):
-        rnd_pix = np.random.rand(random_npts, ncoord)
+    rng = np.random.default_rng(123456789)
+    rnd_pix = rng.random((random_npts, ncoord))
 
     # Scale random data to cover the central part of the image
     mwidth = 2 * (crpix * 1. / 8)
