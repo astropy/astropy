@@ -288,8 +288,8 @@ class WCSAxes(Axes):
 
         See Also
         --------
-
-        matplotlib.axes.Axes.plot : This method is called from this function with all arguments passed to it.
+        matplotlib.axes.Axes.plot :
+            This method is called from this function with all arguments passed to it.
 
         """
 
