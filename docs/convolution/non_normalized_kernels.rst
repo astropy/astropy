@@ -80,9 +80,9 @@ before applying the peak-finding kernel.
 
    # Select a random set of pixels that were affected by some sort of artifact
    # and replaced with NaNs (e.g., cosmic-ray-affected pixels)
-   np.random.seed(42)
+   rng = np.random.default_rng(42)
    yinds, xinds = np.indices(img.shape)
-   img[np.random.choice(yinds.flat, 50), np.random.choice(xinds.flat, 50)] = np.nan
+   img[rng.choice(yinds.flat, 50), rng.choice(xinds.flat, 50)] = np.nan
 
    # We smooth with a Gaussian kernel with x_stddev=1 (and y_stddev=1)
    # It is a 9x9 array
