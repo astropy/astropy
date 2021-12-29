@@ -42,12 +42,12 @@ deviation of 0.2, but with outliers:
 
      >>> import numpy as np
      >>> import scipy.stats as stats
-     >>> np.random.seed(0)
+     >>> rng = np.random.default_rng(0)
      >>> x = np.arange(200)
      >>> y = np.zeros(200)
-     >>> c = stats.bernoulli.rvs(0.35, size=x.shape)
-     >>> y += (np.random.normal(0., 0.2, x.shape) +
-     ...       c*np.random.normal(3.0, 5.0, x.shape))
+     >>> c = stats.bernoulli.rvs(0.35, size=x.shape, random_state=rng)
+     >>> y += (rng.normal(0., 0.2, x.shape) +
+     ...       c * rng.normal(3.0, 5.0, x.shape))
 
 Now we can use :func:`~astropy.stats.sigma_clip` to perform sigma
 clipping on the data:
@@ -107,9 +107,9 @@ calculation:
 
      >>> from astropy.stats import sigma_clipped_stats
      >>> y.mean(), np.median(y), y.std()  # doctest: +FLOAT_CMP
-     (0.86586417693378226, 0.03265864495523732, 3.2913811977676444)
+     (1.2474712040025113, 0.07065098296198567, 3.43928573764036)
      >>> sigma_clipped_stats(y, sigma=3, maxiters=10)  # doctest: +FLOAT_CMP
-     (-0.0020337793767186197, -0.023632809025713953, 0.19514652532636906)
+     (0.12682917020097678, 0.01107299498271078, 0.843894461755914)
 
 :func:`~astropy.stats.sigma_clip` and
 :class:`~astropy.stats.SigmaClip` can be combined with other robust
@@ -124,12 +124,12 @@ statistics to provide improved outlier rejection as well.
     from astropy.stats import sigma_clip, mad_std
 
     # Generate fake data that has a mean of 0 and standard deviation of 0.2 with outliers
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     x = np.arange(200)
     y = np.zeros(200)
     c = stats.bernoulli.rvs(0.35, size=x.shape)
-    y += (np.random.normal(0., 0.2, x.shape) +
-          c*np.random.normal(3.0, 5.0, x.shape))
+    y += (rng.normal(0., 0.2, x.shape) +
+          c * rng.normal(3.0, 5.0, x.shape))
 
     filtered_data = sigma_clip(y, sigma=3, maxiters=1, stdfunc=mad_std)
 

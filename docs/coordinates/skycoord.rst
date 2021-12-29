@@ -931,8 +931,8 @@ of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
 (``dec_random``). Finally, we multiply these values by degrees to get a
 `~astropy.units.Quantity` with units of degrees.
 
-    >>> ra_random = np.random.rand(100)*360.0 * u.degree
-    >>> dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+    >>> ra_random = np.random.uniform(0, 360, 100) * u.degree
+    >>> dec_random = np.random.uniform(-90, 90, 100) * u.degree
 
 As the next step, those coordinates are transformed into an
 `astropy.coordinates` |SkyCoord| object.
@@ -984,8 +984,8 @@ its usual position to avoid overlap with the axis labels.
     # of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
     # (``dec_random``). Finally, we multiply these values by degrees to get a
     # `~astropy.units.Quantity` with units of degrees.
-    ra_random = np.random.rand(100)*360.0 * u.degree
-    dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+    ra_random = np.random.uniform(0, 360, 100) * u.degree
+    dec_random = np.random.uniform(-90, 90, 100) * u.degree
 
     # As the next step, those coordinates are transformed into an astropy.coordinates
     # astropy.coordinates.SkyCoord object.

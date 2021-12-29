@@ -22,7 +22,7 @@ of 3 rows by 4 columns, with a depth of 10 non-destructive reads.
 First, import the necessary libraries:
 
     >>> import numpy as np
-    >>> np.random.seed(seed=12345)
+    >>> rng = np.random.default_rng(seed=12345)
     >>> from astropy.modeling import models, fitting
 
     >>> depth, width, height = 10, 3, 4  # Time is along the depth axis
@@ -32,7 +32,7 @@ The number of counts in neach pixel is flux*time with the addition of some Gauss
 
     >>> fluxes = np.arange(1. * width * height).reshape(width, height)
     >>> image = fluxes[np.newaxis, :, :] * t[:, np.newaxis, np.newaxis]
-    >>> image += np.random.normal(0., image*0.05, size=image.shape)  # Add noise
+    >>> image += rng.normal(0., image*0.05, size=image.shape)  # Add noise
     >>> image.shape
     (10, 3, 4)
 
@@ -81,29 +81,29 @@ Now inspect the model::
                  c0                 c1
         ------------------- ------------------
 	                0.0                0.0
-	-0.5206606340901005 1.0463998276552442
-         0.6401930368329991 1.9818733492667582
-         0.1134712985541639  3.049279878262541
-        -3.3556420351251313  4.013810434122983
-          6.782223372575449  4.755912707001437
-          3.628220497058842  5.841397947835126
-        -5.8828309622531565  7.016044775363114
-        -11.676538736037775  8.072519832452022
-          -6.17932185981594  9.103924115403503
-        -4.7258541419613165 10.315295021908833
-           4.95631951675311 10.911167956770575
+         0.7435257251672668 0.9788645710692938
+        -2.9342067207465647  2.038294797728997
+         -4.258776494573452 3.1951399579785678
+          2.364390501364263 3.9973270072631104
+          2.161531512810536  4.939542306192216
+         3.9930177540418823  5.967786182181591
+         -6.825657765397985 7.2680615507233215
+         -6.675677073701012  8.321048309260679
+         -11.91115500400788  9.025794163936956
+         -4.123655771677581  9.938564642105128
+        -0.7256700167533869 10.989896974949136
 
     >>> print("The new_model has a param_sets attribute with shape: ",new_model.param_sets.shape)
     The new_model has a param_sets attribute with shape:  (2, 12)
 
     >>> print(f"And values that are the best-fit parameters for each pixel:\n{new_model.param_sets}") # doctest: +FLOAT_CMP
     And values that are the best-fit parameters for each pixel:
-    [[  0.          -0.52066063   0.64019304   0.1134713   -3.35564204
-        6.78222337   3.6282205   -5.88283096 -11.67653874  -6.17932186
-       -4.72585414   4.95631952]
-     [  0.           1.04639983   1.98187335   3.04927988   4.01381043
-        4.75591271   5.84139795   7.01604478   8.07251983   9.10392412
-       10.31529502  10.91116796]]
+    [[  0.           0.74352573  -2.93420672  -4.25877649   2.3643905
+        2.16153151   3.99301775  -6.82565777  -6.67567707 -11.911155
+       -4.12365577  -0.72567002]
+     [  0.           0.97886457   2.0382948    3.19513996   3.99732701
+        4.93954231   5.96778618   7.26806155   8.32104831   9.02579416
+        9.93856464  10.98989697]]
 
 Plot the fit along a couple of pixels:
 

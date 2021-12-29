@@ -39,7 +39,7 @@ with some initial imports and setup::
   >>> import numpy as np
   >>> from astropy import units as u
   >>> from astropy import uncertainty as unc
-  >>> np.random.seed(12345)  # ensures reproducible example numbers
+  >>> rng = np.random.default_rng(12345)  # ensures reproducible example numbers
 
 Now we create two |Distribution| objects to represent our distributions::
 
@@ -54,7 +54,7 @@ Monte Carlo sampling) trivially with |Distribution| arithmetic and attributes::
   >>> c # doctest: +ELLIPSIS
   <QuantityDistribution [...] kpc with n_samples=10000>
   >>> c.pdf_mean() # doctest: +FLOAT_CMP
-  <Quantity 2.99970555 kpc>
+  <Quantity 2.99985922 kpc>
   >>> c.pdf_std().to(u.pc) # doctest: +FLOAT_CMP
   <Quantity 50.07120457 pc>
 
@@ -64,7 +64,7 @@ operations where error analysis becomes untenable, |Distribution| still powers
 through::
 
   >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
-  >>> e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
+  >>> e = unc.Distribution(((rng.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean() # doctest: +FLOAT_CMP
   <Quantity 2.99786227 kpc>
@@ -82,12 +82,12 @@ through::
   from astropy import uncertainty as unc
   from astropy.visualization import quantity_support
   from matplotlib import pyplot as plt
-  np.random.seed(12345)
+  rng = np.random.default_rng(12345)
   a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
   b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
   c = a + b
   d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
-  e = unc.Distribution(((np.random.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
+  e = unc.Distribution(((rng.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
       plt.hist(f.distribution, bins=50)
@@ -107,10 +107,10 @@ that carries the samples in the *last* dimension::
   >>> import numpy as np
   >>> from astropy import units as u
   >>> from astropy import uncertainty as unc
-  >>> np.random.seed(123456)  # ensures "random" numbers match examples below
-  >>> unc.Distribution(np.random.poisson(12, (1000)))  # doctest: +ELLIPSIS
+  >>> rng = np.random.default_rng(123456)  # ensures "random" numbers match examples below
+  >>> unc.Distribution(rng.poisson(12, (1000)))  # doctest: +ELLIPSIS
   NdarrayDistribution([..., 12,...]) with n_samples=1000
-  >>> pq = np.random.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
+  >>> pq = rng.poisson([1, 5, 30, 400], (1000, 4)).T * u.ct # note the transpose, required to get the sampling on the *last* axis
   >>> distr = unc.Distribution(pq)
   >>> distr # doctest: +ELLIPSIS
   <QuantityDistribution [[...],
@@ -233,7 +233,7 @@ A |Quantity| distribution interacts naturally with non-|Distribution|
 It also operates as expected with other distributions (but see below for a
 discussion of covariances)::
 
-  >>> another_distr = unc.Distribution((np.random.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
+  >>> another_distr = unc.Distribution((rng.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
   >>> combined_distr.pdf_median()  # doctest: +FLOAT_CMP
   <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
@@ -260,7 +260,7 @@ an un-correlated joint distribution plot:
   :include-source:
 
   >>> import numpy as np
-  >>> np.random.seed(12345)  # produce repeatable plots
+  >>> rng = np.random.default_rng(12345)  # produce repeatable plots
   >>> from astropy import units as u
   >>> from astropy import uncertainty as unc
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
@@ -277,7 +277,7 @@ pair of Gaussians, it is immediately apparent:
   :context: close-figs
   :include-source:
 
-  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=10000)
+  >>> ncov = rng.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=10000)
   >>> n1 = unc.Distribution(ncov[:, 0])
   >>> n2 = unc.Distribution(ncov[:, 1])
   >>> plt.scatter(n1.distribution, n2.distribution, s=2, lw=0, alpha=.5) # doctest: +SKIP
@@ -333,7 +333,7 @@ example above, but with 200x fewer samples:
   :context: close-figs
   :include-source:
 
-  >>> ncov = np.random.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=50)
+  >>> ncov = rng.multivariate_normal([0, 0], [[1, .5], [.5, 2]], size=50)
   >>> n1 = unc.Distribution(ncov[:, 0])
   >>> n2 = unc.Distribution(ncov[:, 1])
   >>> plt.scatter(n1.distribution, n2.distribution, s=5, lw=0) # doctest: +SKIP
