@@ -9,7 +9,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH  # noqa
 
 from astropy.stats import funcs
 from astropy import units as u
-from astropy.utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
@@ -253,15 +252,15 @@ def test_signal_to_noise_oir_ccd():
 def test_bootstrap():
     bootarr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
     # test general bootstrapping
-    answer = np.array([[7, 4, 8, 5, 7, 0, 3, 7, 8, 5],
-                       [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]])
-    with NumpyRNGContext(42):
-        assert_equal(answer, funcs.bootstrap(bootarr, 2))
+    answer = np.array([[1., 8., 7., 5., 5., 9., 1., 7., 3., 1.],
+                       [6., 0., 8., 8., 8., 8., 6., 2., 9., 5.]])
+    rng = np.random.default_rng(42)
+    assert_equal(answer, funcs.bootstrap(bootarr, 2, rng=rng))
 
     # test with a bootfunction
-    with NumpyRNGContext(42):
-        bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
-        assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
+    bootresult = np.mean(
+        funcs.bootstrap(bootarr, 10000, bootfunc=np.mean, rng=rng))
+    assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -271,48 +270,48 @@ def test_bootstrap_multiple_outputs():
 
     # test a bootfunc with several output values
     # return just bootstrapping with one output from bootfunc
-    with NumpyRNGContext(42):
-        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+    rng = np.random.default_rng(seed=42)
+    bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                        [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
 
-        answer = np.array((0.19425, 0.02094))
+    answer = np.array((0.184728, 0.478443))
 
-        def bootfunc(x): return spearmanr(x)[0]
+    def bootfunc(x): return spearmanr(x)[0]
 
-        bootresult = funcs.bootstrap(bootarr, 2,
-                                     bootfunc=bootfunc)
+    bootresult = funcs.bootstrap(bootarr, 2,
+                                 bootfunc=bootfunc,
+                                 rng=rng)
 
-        assert_allclose(answer, bootresult, atol=1e-3)
+    assert_allclose(answer, bootresult, atol=1e-3)
 
     # test a bootfunc with several output values
     # return just bootstrapping with the second output from bootfunc
-    with NumpyRNGContext(42):
-        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+    bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                        [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
 
-        answer = np.array((0.5907,
-                           0.9541))
+    answer = np.array((0.580743, 0.710756))
 
-        def bootfunc(x): return spearmanr(x)[1]
+    def bootfunc(x): return spearmanr(x)[1]
 
-        bootresult = funcs.bootstrap(bootarr, 2,
-                                     bootfunc=bootfunc)
+    bootresult = funcs.bootstrap(bootarr, 2,
+                                 bootfunc=bootfunc,
+                                 rng=rng)
 
-        assert_allclose(answer, bootresult, atol=1e-3)
+    assert_allclose(answer, bootresult, atol=1e-3)
 
     # return just bootstrapping with two outputs from bootfunc
-    with NumpyRNGContext(42):
-        answer = np.array(((0.1942, 0.5907),
-                           (0.0209, 0.9541),
-                           (0.4286, 0.2165)))
+    answer = np.array([[5.097196e-01, 1.323175e-01],
+                       [1.139606e-01, 7.539236e-01],
+                       [9.230769e-01, 1.394894e-04]])
 
-        def bootfunc(x): return spearmanr(x)
+    def bootfunc(x): return spearmanr(x)
 
-        bootresult = funcs.bootstrap(bootarr, 3,
-                                     bootfunc=bootfunc)
+    bootresult = funcs.bootstrap(bootarr, 3,
+                                 bootfunc=bootfunc,
+                                 rng=rng)
 
-        assert bootresult.shape == (3, 2)
-        assert_allclose(answer, bootresult, atol=1e-3)
+    assert bootresult.shape == (3, 2)
+    assert_allclose(answer, bootresult, atol=1e-3)
 
 
 def test_mad_std():

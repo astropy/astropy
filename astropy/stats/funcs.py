@@ -966,7 +966,7 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
     return signal / noise
 
 
-def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
+def bootstrap(data, bootnum=100, samples=None, bootfunc=None, rng=None):
     """Performs bootstrap resampling on numpy arrays.
 
     Bootstrap resampling is used to understand confidence intervals of sample
@@ -990,6 +990,9 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         Function to reduce the resampled data. Each bootstrap resample will
         be put through this function and the results returned. If `None`, the
         bootstrapped data will be returned
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
 
     Returns
     -------
@@ -1005,11 +1008,9 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     >>> from astropy.stats import bootstrap
     >>> import numpy as np
-    >>> from astropy.utils import NumpyRNGContext
+    >>> rng = np.random.default_rng(seed=1)
     >>> bootarr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
-    >>> with NumpyRNGContext(1):
-    ...     bootresult = bootstrap(bootarr, 2)
-    ...
+    >>> bootresult = bootstrap(bootarr, 2, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
     array([[6., 9., 0., 6., 1., 1., 2., 8., 7., 0.],
            [3., 5., 6., 3., 5., 3., 5., 8., 8., 0.]])
@@ -1018,17 +1019,14 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     Obtain a statistic on the array
 
-    >>> with NumpyRNGContext(1):
-    ...     bootresult = bootstrap(bootarr, 2, bootfunc=np.mean)
-    ...
+    >>> bootresult = bootstrap(bootarr, 2, bootfunc=np.mean, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
     array([4. , 4.6])
 
     Obtain a statistic with two outputs on the array
 
     >>> test_statistic = lambda x: (np.sum(x), np.mean(x))
-    >>> with NumpyRNGContext(1):
-    ...     bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic)
+    >>> bootresult = bootstrap(bootarr, 3, bootfunc=test_statistic, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
     array([[40. ,  4. ],
            [46. ,  4.6],
@@ -1040,9 +1038,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     output
 
     >>> bootfunc = lambda x:test_statistic(x)[0]
-    >>> with NumpyRNGContext(1):
-    ...     bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc)
-    ...
+    >>> bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc, rng=rng)
     >>> bootresult  # doctest: +FLOAT_CMP
     array([40., 46., 35.])
     >>> bootresult.shape
@@ -1070,7 +1066,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     boot = np.empty(resultdims)
 
     for i in range(bootnum):
-        bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
+        bootarr = rng.integers(low=0, high=data.shape[0], size=samples)
         if bootfunc is None:
             boot[i] = data[bootarr]
         else:
