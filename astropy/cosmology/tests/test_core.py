@@ -22,7 +22,7 @@ import astropy.units as u
 from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
-from astropy.table import QTable, Table
+from astropy.table import QTable, Table, Column
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 
@@ -31,6 +31,27 @@ from .test_parameter import ParameterTestMixin
 
 ##############################################################################
 # SETUP / TEARDOWN
+
+
+scalar_zs = [
+    0, 1, 1100,  # interesting times
+    # FIXME! np.inf breaks some funcs. 0 * inf is an error
+    np.float64(3300),  # different type
+    2 * cu.redshift, 3 * u.one  # compatible units
+]
+_zarr = np.linspace(0, 1e5, num=20)
+array_zs = [
+    _zarr,  # numpy
+    _zarr.tolist(),  # pure python
+    Column(_zarr),  # table-like
+    _zarr * cu.redshift  # Quantity
+]
+valid_zs = scalar_zs + array_zs
+
+invalid_zs = [
+    (None, TypeError),  # wrong type
+    (4 * u.MeV, u.UnitConversionError),  # wrong unit
+]
 
 
 class SubCosmology(Cosmology):
