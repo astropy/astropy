@@ -15,7 +15,7 @@ __all__ = ['normal', 'poisson', 'uniform']
 
 
 def normal(center, *, std=None, var=None, ivar=None, n_samples,
-           cls=Distribution, **kwargs):
+           cls=Distribution, rng=None, **kwargs):
     """
     Create a Gaussian/normal distribution.
 
@@ -39,6 +39,9 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
 
     Remaining keywords are passed into the constructor of the ``cls``
 
@@ -66,15 +69,18 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     else:
         std = np.asanyarray(std)
 
+    if rng is None:
+        rng = np.random.default_rng()
+
     randshape = np.broadcast(std, center).shape + (n_samples,)
-    samples = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
+    samples = center[..., np.newaxis] + rng.standard_normal(randshape) * std[..., np.newaxis]
     return cls(samples, **kwargs)
 
 
 COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.chan, u.bin, u.vox, u.bit, u.byte)
 
 
-def poisson(center, n_samples, cls=Distribution, **kwargs):
+def poisson(center, n_samples, cls=Distribution, rng=None, **kwargs):
     """
     Create a Poisson distribution.
 
@@ -87,6 +93,9 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
 
     Remaining keywords are passed into the constructor of the ``cls``
 
@@ -105,7 +114,10 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
         poissonarr = np.asanyarray(center)
     randshape = poissonarr.shape + (n_samples,)
 
-    samples = np.random.poisson(poissonarr[..., np.newaxis], randshape)
+    if rng is None:
+        rng = np.random.default_rng()
+
+    samples = rng.poisson(poissonarr[..., np.newaxis], randshape)
     if has_unit:
         if center.unit == u.adu:
             warn('ADUs were provided to poisson.  ADUs are not strictly count'
@@ -123,7 +135,7 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
 
 
 def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
-            cls=Distribution, **kwargs):
+            cls=Distribution, rng=None, **kwargs):
     """
     Create a Uniform distriution from the lower and upper bounds.
 
@@ -149,6 +161,9 @@ def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
+    rng : `numpy.random.Generator` or None
+        A `numpy` random number generator used to generate random samples.
+        If `None`, this will use `numpy.random.default_rng()`.
 
     Remaining keywords are passed into the constructor of the ``cls``
 
@@ -172,12 +187,15 @@ def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
         raise ValueError('either upper/lower or center/width must be given '
                          'to uniform - other combinations are not valid')
 
+    if rng is None:
+        rng = np.random.default_rng()
+
     newshape = lower.shape + (n_samples,)
     if lower.shape == tuple() and upper.shape == tuple():
         width = upper - lower  # scalar
     else:
         width = (upper - lower)[:, np.newaxis]
         lower = lower[:, np.newaxis]
-    samples = lower + width * np.random.uniform(size=newshape)
+    samples = lower + width * rng.uniform(size=newshape)
 
     return cls(samples, **kwargs)

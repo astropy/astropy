@@ -43,8 +43,8 @@ with some initial imports and setup::
 
 Now we create two |Distribution| objects to represent our distributions::
 
-  >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
-  >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
+  >>> a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000, rng=rng)
+  >>> b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000, rng=rng)
 
 For normal distributions, the centers should add as expected, and the standard
 deviations add in quadrature. We can check these results (to the limits of our
@@ -54,22 +54,23 @@ Monte Carlo sampling) trivially with |Distribution| arithmetic and attributes::
   >>> c # doctest: +ELLIPSIS
   <QuantityDistribution [...] kpc with n_samples=10000>
   >>> c.pdf_mean() # doctest: +FLOAT_CMP
-  <Quantity 2.99985922 kpc>
+  <Quantity 3.00065251 kpc>
   >>> c.pdf_std().to(u.pc) # doctest: +FLOAT_CMP
-  <Quantity 50.07120457 pc>
+  <Quantity 50.23530916 pc>
 
 Indeed these are close to the expectations. While this may seem unnecessary for
 the basic Gaussian case, for more complex distributions or arithmetic
 operations where error analysis becomes untenable, |Distribution| still powers
 through::
 
-  >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
+  >>> d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000,
+  ...                 rng=rng)
   >>> e = unc.Distribution(((rng.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   >>> f = (c * d * e) ** (1/3)
   >>> f.pdf_mean() # doctest: +FLOAT_CMP
-  <Quantity 2.99786227 kpc>
+  <Quantity 2.99773896 kpc>
   >>> f.pdf_std() # doctest: +FLOAT_CMP
-  <Quantity 0.08330476 kpc>
+  <Quantity 0.08311128 kpc>
   >>> from matplotlib import pyplot as plt # doctest: +SKIP
   >>> from astropy.visualization import quantity_support # doctest: +SKIP
   >>> with quantity_support():
@@ -83,10 +84,10 @@ through::
   from astropy.visualization import quantity_support
   from matplotlib import pyplot as plt
   rng = np.random.default_rng(12345)
-  a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000)
-  b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000)
+  a = unc.normal(1*u.kpc, std=30*u.pc, n_samples=10000, rng=rng)
+  b = unc.normal(2*u.kpc, std=40*u.pc, n_samples=10000, rng=rng)
   c = a + b
-  d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000)
+  d = unc.uniform(center=3*u.kpc, width=800*u.pc, n_samples=10000, rng=rng)
   e = unc.Distribution(((rng.beta(2,5, 10000)-(2/7))/2 + 3)*u.kpc)
   f = (c * d * e) ** (1/3)
   with quantity_support():
@@ -185,34 +186,34 @@ the sampled distributions::
   >>> distr.n_samples
   1000
   >>> distr.pdf_mean() # doctest: +FLOAT_CMP
-  <Quantity [  0.998,   5.017,  30.085, 400.345] ct>
+  <Quantity [  1.034,   5.026,  29.994, 400.365] ct>
   >>> distr.pdf_std() # doctest: +FLOAT_CMP
-  <Quantity [ 0.97262326,  2.32222114,  5.47629208, 20.6328373 ] ct>
+  <Quantity [ 1.04539179,  2.19484031,  5.47776998, 19.87022333] ct>
   >>> distr.pdf_var() # doctest: +FLOAT_CMP
-  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] ct2>
+  <Quantity [  1.092844,   4.817324,  30.005964, 394.825775] ct2>
   >>> distr.pdf_median()
   <Quantity [   1.,   5.,  30., 400.] ct>
   >>> distr.pdf_mad()  # Median absolute deviation # doctest: +FLOAT_CMP
-  <Quantity [ 1.,  2.,  4., 14.] ct>
+  <Quantity [ 1.,  1.,  4., 13.] ct>
   >>> distr.pdf_smad()  # Median absolute deviation, rescaled to match std for normal # doctest: +FLOAT_CMP
-  <Quantity [ 1.48260222,  2.96520444,  5.93040887, 20.75643106] ct>
+  <Quantity [ 1.48260222,  1.48260222,  5.93040887, 19.27382884] ct>
   >>> distr.pdf_percentiles([10, 50, 90])
-  <Quantity [[  0. ,   2. ,  23. , 374. ],
+  <Quantity [[  0. ,   2. ,  23. , 375. ],
              [  1. ,   5. ,  30. , 400. ],
-             [  2. ,   8. ,  37.1, 427. ]] ct>
+             [  2. ,   8. ,  37. , 426.1]] ct>
   >>> distr.pdf_percentiles([.1, .5, .9]*u.dimensionless_unscaled)
-  <Quantity [[  0. ,   2. ,  23. , 374. ],
-            [  1. ,   5. ,  30. , 400. ],
-            [  2. ,   8. ,  37.1, 427. ]] ct>
+  <Quantity [[  0. ,   2. ,  23. , 375. ],
+             [  1. ,   5. ,  30. , 400. ],
+             [  2. ,   8. ,  37. , 426.1]] ct>
 
 If need be, the underlying array can then be accessed from the ``distribution``
 attribute::
 
   >>> distr.distribution  # doctest: +ELLIPSIS
   <Quantity [[...1...],
-             [...5...],
-             [...27...],
-             [...405...]] ct>
+             [...8...],
+             [...20...],
+             [...410...]] ct>
   >>> distr.distribution.shape
   (4, 1000)
 
@@ -228,17 +229,17 @@ A |Quantity| distribution interacts naturally with non-|Distribution|
   >>> distrplus.pdf_median()
   <Quantity [   3. ,   5. ,  30. , 400.5] kpc>
   >>> distrplus.pdf_var() # doctest: +FLOAT_CMP
-  <Quantity [  0.945996,   5.392711,  29.989775, 425.713975] kpc2>
+  <Quantity [  1.092844,   4.817324,  30.005964, 394.825775] kpc2>
 
 It also operates as expected with other distributions (but see below for a
 discussion of covariances)::
 
-  >>> another_distr = unc.Distribution((rng.randn(1000,4)*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
+  >>> another_distr = unc.Distribution((rng.standard_normal((1000,4))*[1000,.01 , 3000, 10] + [2000, 0, 0, 500]).T * u.pc)
   >>> combined_distr = distr_in_kpc + another_distr
   >>> combined_distr.pdf_median()  # doctest: +FLOAT_CMP
-  <Quantity [  3.01847755,   4.99999576,  29.60559788, 400.49176321] kpc>
+  <Quantity [  2.81374275,   4.99999631,  29.7150889 , 400.49576691] kpc>
   >>> combined_distr.pdf_var()  # doctest: +FLOAT_CMP
-  <Quantity [  1.8427705 ,   5.39271147,  39.5343726 , 425.71324244] kpc2>
+  <Quantity [  2.15512118,   4.817324  ,  39.0614616 , 394.82969655] kpc2>
 
 .. EXAMPLE END
 
@@ -340,8 +341,8 @@ example above, but with 200x fewer samples:
   >>> plt.xlim(-4, 4) # doctest: +SKIP
   >>> plt.ylim(-4, 4) # doctest: +SKIP
   >>> np.cov(n1.distribution, n2.distribution) # doctest: +FLOAT_CMP
-  array([[1.04667972, 0.19391617],
-         [0.19391617, 1.50899902]])
+  array([[1.03937868, 0.39902677],
+         [0.39902677, 2.02339081]])
 
 The covariance structure is much less apparent by eye, and this is reflected
 in significant discrepancies between the input and output covariance matrix.

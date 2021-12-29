@@ -8,7 +8,6 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.uncertainty.core import Distribution
 from astropy.uncertainty import distributions as ds
-from astropy.utils import NumpyRNGContext
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
@@ -227,44 +226,49 @@ class TestDistributionStatistics():
 def test_helper_normal_samples():
     centerq = [1, 5, 30, 400] * u.kpc
 
-    with NumpyRNGContext(12345):
-        n_dist = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100)
-        assert n_dist.distribution.shape == (4, 100)
-        assert n_dist.shape == (4, )
-        assert n_dist.unit == u.kpc
-        assert np.all(n_dist.pdf_std() > 100*u.pc)
+    rng = np.random.default_rng(seed=12345)
+    n_dist = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.kpc, n_samples=100,
+                       rng=rng)
+    assert n_dist.distribution.shape == (4, 100)
+    assert n_dist.shape == (4, )
+    assert n_dist.unit == u.kpc
+    assert np.all(n_dist.pdf_std() > 100*u.pc)
 
-        n_dist2 = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000)
-        assert n_dist2.distribution.shape == (4, 20000)
-        assert n_dist2.shape == (4, )
-        assert n_dist2.unit == u.kpc
-        assert np.all(n_dist2.pdf_std() < 100*u.pc)
+    n_dist2 = ds.normal(centerq, std=[0.2, 1.5, 4, 1]*u.pc, n_samples=20000,
+                        rng=rng)
+    assert n_dist2.distribution.shape == (4, 20000)
+    assert n_dist2.shape == (4, )
+    assert n_dist2.unit == u.kpc
+    assert np.all(n_dist2.pdf_std() < 100*u.pc)
 
 
 def test_helper_poisson_samples():
     centerqcounts = [1, 5, 30, 400] * u.count
 
-    with NumpyRNGContext(12345):
-        p_dist = ds.poisson(centerqcounts, n_samples=100)
-        assert p_dist.shape == (4,)
-        assert p_dist.distribution.shape == (4, 100)
-        assert p_dist.unit == u.count
-        p_min = np.min(p_dist)
-        assert isinstance(p_min, Distribution)
-        assert p_min.shape == ()
-        assert np.all(p_min >= 0)
-        assert np.all(np.abs(p_dist.pdf_mean() - centerqcounts) < centerqcounts)
+    rng = np.random.default_rng(seed=12345)
+    p_dist = ds.poisson(centerqcounts, n_samples=100, rng=rng)
+    assert p_dist.shape == (4,)
+    assert p_dist.distribution.shape == (4, 100)
+    assert p_dist.unit == u.count
+    p_min = np.min(p_dist)
+    assert isinstance(p_min, Distribution)
+    assert p_min.shape == ()
+    assert np.all(p_min >= 0)
+    assert np.all(np.abs(p_dist.pdf_mean() - centerqcounts) < centerqcounts)
 
 
 def test_helper_uniform_samples():
-    udist = ds.uniform(lower=[1, 2]*u.kpc, upper=[3, 4]*u.kpc, n_samples=1000)
+    rng = np.random.default_rng(seed=12345)
+    udist = ds.uniform(lower=[1, 2]*u.kpc, upper=[3, 4]*u.kpc, n_samples=1000,
+                       rng=rng)
     assert udist.shape == (2, )
     assert udist.distribution.shape == (2, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [1, 2]*u.kpc)
     assert np.all(np.max(udist.distribution, axis=-1) < [3, 4]*u.kpc)
 
     # try the alternative creator
-    udist = ds.uniform(center=[1, 3, 2] * u.pc, width=[5, 4, 3] * u.pc, n_samples=1000)
+    udist = ds.uniform(center=[1, 3, 2] * u.pc, width=[5, 4, 3] * u.pc,
+                       n_samples=1000, rng=rng)
     assert udist.shape == (3, )
     assert udist.distribution.shape == (3, 1000)
     assert np.all(np.min(udist.distribution, axis=-1) > [-1.5, 1, 0.5]*u.pc)
