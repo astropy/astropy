@@ -127,7 +127,7 @@ statistics to provide improved outlier rejection as well.
     rng = np.random.default_rng(0)
     x = np.arange(200)
     y = np.zeros(200)
-    c = stats.bernoulli.rvs(0.35, size=x.shape)
+    c = stats.bernoulli.rvs(0.35, size=x.shape, random_state=rng)
     y += (rng.normal(0., 0.2, x.shape) +
           c * rng.normal(3.0, 5.0, x.shape))
 
