@@ -36,7 +36,7 @@ if HAS_SCIPY:
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 non_linear_fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
-_RANDOM_SEED = 0x1337
+_RANDOM_SEED = 1337
 
 
 class TestPolynomial2D:
@@ -527,10 +527,8 @@ class TestNonLinearFitters:
             tf1 = fitter(model, tx, ty, weights=tw)
         tf2 = fitter2(model, tx, ty, weights=tw)
 
-        assert_allclose(tf1.parameters, tf2.parameters,
-                        atol=10 ** (-16))
-        assert_allclose(tf1.parameters, c,
-                        rtol=10 ** (-2), atol=10 ** (-2))
+        assert_allclose(tf1.parameters, tf2.parameters, atol=1e-16)
+        assert_allclose(tf1.parameters, c, rtol=1e-1, atol=1e-1)
 
         model = models.Gaussian1D()
         if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, LMLSQFitter):
@@ -554,10 +552,8 @@ class TestNonLinearFitters:
             tf1 = fitter(model, tx, ty, tz, weights=tw)
         tf2 = fitter2(model, tx, ty, tz, weights=tw)
 
-        assert_allclose(tf1.parameters, tf2.parameters,
-                        atol=10 ** (-16))
-        assert_allclose(tf1.parameters, c,
-                        rtol=10 ** (-2), atol=10 ** (-2))
+        assert_allclose(tf1.parameters, tf2.parameters, atol=1e-16)
+        assert_allclose(tf1.parameters, c, rtol=1e-1, atol=1e-1)
 
     def test_simplex_lsq_fitter(self):
         """A basic test for the `SimplexLSQ` fitter."""
@@ -701,7 +697,7 @@ class Test1DFittingWithOutlierRemoval:
         fitter = fitter()
 
         rng = np.random.default_rng(0)
-        c = stats.bernoulli.rvs(0.25, size=self.x.shape)
+        c = stats.bernoulli.rvs(0.25, size=self.x.shape, random_state=rng)
         self.y += (rng.normal(0., 0.2, self.x.shape) +
                    c * rng.normal(3.0, 5.0, self.x.shape))
 
@@ -756,7 +752,7 @@ class Test2DFittingWithOutlierRemoval:
         fitter = fitter()
 
         rng = np.random.default_rng(0)
-        c = stats.bernoulli.rvs(0.25, size=self.z.shape)
+        c = stats.bernoulli.rvs(0.25, size=self.z.shape, random_state=rng)
         self.z += (rng.normal(0., 0.2, self.z.shape) +
                    c * rng.normal(self.z, 2.0, self.z.shape))
 
@@ -958,7 +954,7 @@ def test_fitters_with_weights(fitter):
     g2 = models.Gaussian2D(10, 10, 9, 2, 3)
     z = g2(Xin, Yin)
     gmod = fitter(models.Gaussian2D(15, 7, 8, 1.3, 1.2), Xin, Yin, z + zsig)
-    assert_allclose(gmod.parameters, g2.parameters, atol=10 ** (-2))
+    assert_allclose(gmod.parameters, g2.parameters, atol=1e-1)
 
     # Linear model
     p2 = models.Polynomial2D(3)
@@ -967,7 +963,7 @@ def test_fitters_with_weights(fitter):
     with pytest.warns(AstropyUserWarning,
                       match=r'Model is linear in parameters'):
         pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
-    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+    assert_allclose(pmod.parameters, p2.parameters, atol=1e-1)
 
 
 def test_linear_fitter_with_weights():
@@ -1247,22 +1243,22 @@ class TestFittingUncertanties:
         print(fit_mod.cov_matrix)
         captured = capsys.readouterr()
         assert "slope    | 0.001" in captured.out
-        assert "intercept| -0.005,  0.03" in captured.out
+        assert "intercept| -0.003,  0.02" in captured.out
 
         print(fit_mod.stds)
         captured = capsys.readouterr()
-        assert "slope    | 0.032" in captured.out
-        assert "intercept| 0.173" in captured.out
+        assert "slope    | 0.027" in captured.out
+        assert "intercept| 0.143" in captured.out
 
         # test 'pprint' for Covariance/stds
         print(fit_mod.cov_matrix.pprint(round_val=5, max_lines=1))
         captured = capsys.readouterr()
-        assert "slope    | 0.00105" in captured.out
+        assert "slope    | 0.00071" in captured.out
         assert "intercept" not in captured.out
 
         print(fit_mod.stds.pprint(max_lines=1, round_val=5))
         captured = capsys.readouterr()
-        assert "slope    | 0.03241" in captured.out
+        assert "slope    | 0.02672" in captured.out
         assert "intercept" not in captured.out
 
         # test indexing for Covariance class.

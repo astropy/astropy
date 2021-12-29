@@ -65,11 +65,12 @@ def test_custom_model(fitter, amplitude=4, frequency=1):
     sin_model.evaluate(x, 5., 2.)
     sin_model.fit_deriv(x, 5., 2.)
 
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(42)
     data = sin_model(x) + rng.uniform(size=len(x)) - 0.5
     model = fitter(sin_model, x, data)
-    assert np.all((np.array([model.amplitude.value, model.frequency.value]) -
-                   np.array([amplitude, frequency])) < 0.001)
+    assert np.allclose([model.amplitude.value, model.frequency.value],
+                       [amplitude, frequency],
+                       atol=0.1)
 
 
 def test_custom_model_init():
@@ -162,7 +163,8 @@ class Fittable2DModelTester:
         self.N = 100
         self.M = 100
         self.eval_error = 0.0001
-        self.fit_error = 0.1
+        self.fit_atol = 0.2
+        self.fit_rtol = 0.1
         self.x = 5.3
         self.y = 6.7
         self.x1 = np.arange(1, 10, .1)
@@ -285,7 +287,7 @@ class Fittable2DModelTester:
         fitted = np.array([param.value for param in params
                            if not param.fixed])
         assert_allclose(fitted, expected,
-                        atol=self.fit_error)
+                        atol=self.fit_atol, rtol=self.fit_rtol)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize('fitter', fitters)
@@ -381,7 +383,8 @@ class Fittable1DModelTester:
         self.N = 100
         self.M = 100
         self.eval_error = 0.0001
-        self.fit_error = 0.11
+        self.fit_atol = 0.2
+        self.fit_rtol = 0.1
         self.x = 5.3
         self.y = 6.7
         self.x1 = np.arange(1, 10, .1)
