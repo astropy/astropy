@@ -536,7 +536,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         Name of fits file.
 
     hdu : int, str, tuple of (string, int), or an HDU object, optional
-        Index or other identifier of the Header Data Unit of the FITS 
+        Index or other identifier of the Header Data Unit of the FITS
         file from which CCDData should be initialized. If zero and
         no data in the primary HDU, it will search for the first
         extension HDU with data. The header will be added to the primary HDU.
