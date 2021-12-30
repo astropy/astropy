@@ -21,7 +21,7 @@ from astropy.table import Table
 from astropy.units import UnitsWarning, Unit, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from astropy.io.fits.column import Delayed, NUMPY2FITS
+from astropy.io.fits.column import ColumnAttribute, Delayed, NUMPY2FITS
 from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
@@ -102,6 +102,22 @@ def comparerecords(a, b):
                 print(f'field {i} differs')
                 return False
     return True
+
+
+def _assert_attr_col(new_tbhdu, tbhdu):
+    """
+    Helper function to compare column attributes
+    """
+    # Double check that the headers are equivalent
+    assert tbhdu.columns.names == new_tbhdu.columns.names
+    attrs = [k for k, v in fits.Column.__dict__.items()
+             if isinstance(v, ColumnAttribute)]
+    for name in tbhdu.columns.names:
+        col = tbhdu.columns[name]
+        new_col = new_tbhdu.columns[name]
+        for attr in attrs:
+            if getattr(col, attr) and getattr(new_col, attr):
+                assert getattr(col, attr) == getattr(new_col, attr)
 
 
 class TestTableFunctions(FitsTestCase):
@@ -2133,28 +2149,26 @@ class TestTableFunctions(FitsTestCase):
         assert comparerecords(s2, s3)
         assert comparerecords(s3, s4)
 
-    def test_dump_load_round_trip(self):
+    @pytest.mark.parametrize('tablename', ['table.fits', 'tb.fits'])
+    def test_dump_load_round_trip(self, tablename):
         """
         A simple test of the dump/load methods; dump the data, column, and
         header files and try to reload the table from them.
         """
 
-        hdul = fits.open(self.data('table.fits'))
-        tbhdu = hdul[1]
-        datafile = self.temp('data.txt')
-        cdfile = self.temp('coldefs.txt')
-        hfile = self.temp('header.txt')
+        with fits.open(self.data(tablename)) as hdul:
+            tbhdu = hdul[1]
+            datafile = self.temp('data.txt')
+            cdfile = self.temp('coldefs.txt')
+            hfile = self.temp('header.txt')
 
-        tbhdu.dump(datafile, cdfile, hfile)
+            tbhdu.dump(datafile, cdfile, hfile)
 
-        new_tbhdu = fits.BinTableHDU.load(datafile, cdfile, hfile)
+            new_tbhdu = fits.BinTableHDU.load(datafile, cdfile, hfile)
 
-        assert comparerecords(tbhdu.data, new_tbhdu.data)
+            assert comparerecords(tbhdu.data, new_tbhdu.data)
 
-        # Double check that the headers are equivalent
-        assert str(tbhdu.header) == str(new_tbhdu.header)
-
-        hdul.close()
+            _assert_attr_col(new_tbhdu, hdul[1])
 
     def test_dump_load_array_colums(self):
         """
