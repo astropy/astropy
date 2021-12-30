@@ -151,17 +151,24 @@ class FLRW(Cosmology):
         # H0 in s^-1; don't use units for speed
         H0_s = self._H0.value * H0units_to_invs
         # Hubble time; again, avoiding units package for speed
-        self._hubble_time = u.Quantity(sec_to_Gyr / H0_s, u.Gyr)
+        self._hubble_time = u.Quantity(sec_to_Gyr / H0_s, unit=u.Gyr)
 
         # critical density at z=0 (grams per cubic cm)
         cd0value = critdens_const * H0_s ** 2
-        self._critical_density0 = u.Quantity(cd0value, u.g / u.cm ** 3)
+        self._critical_density0 = u.Quantity(cd0value, unit=u.g / u.cm ** 3)
 
         # -------------------
         # neutrinos
 
         # Load up neutrino masses.
         self._nneutrinos = floor(self._Neff)
+        self._neff_per_nu = np.nan  # assuming no neutrinos
+
+        # Start by assuming massless neutrinos, then correct below.
+        self._massivenu = False
+        self._massivenu_mass = None
+        self._nmassivenu = 0
+        self._nmasslessnu = self._nneutrinos
 
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
@@ -169,7 +176,6 @@ class FLRW(Cosmology):
         # on the details of the massive neutrinos (e.g., their weak
         # interactions, which could be unusual if one is considering sterile
         # neutrinos)
-        self._massivenu = False
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
@@ -178,37 +184,25 @@ class FLRW(Cosmology):
             # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
-            m_nu = self._m_nu
-            if m_nu.isscalar:
-                # Assume all neutrinos have the same mass
-                if m_nu.value == 0:
-                    self._nmasslessnu = self._nneutrinos
-                    self._nmassivenu = 0
-                else:
+            m_nu = self._m_nu  # has units eV
+            if np.any(m_nu.value < 0):
+                raise ValueError("invalid (negative) neutrino mass encountered.")
+            elif m_nu.isscalar:  # Assume all neutrinos have the same mass.
+                if m_nu.value != 0.0:  # already dealt with m <= 0
                     self._massivenu = True
-                    self._nmasslessnu = 0
+                    self._massivenu_mass = np.full(self._nneutrinos, m_nu.value)
                     self._nmassivenu = self._nneutrinos
-                    self._massivenu_mass = (m_nu.value *
-                                            np.ones(self._nneutrinos))
-            else:
-                # Make sure we have the right number of masses
-                # -unless- they are massless, in which case we cheat a little
-                if m_nu.value.min() < 0:
-                    raise ValueError("Invalid (negative) neutrino mass"
-                                     " encountered")
-                if m_nu.value.max() == 0:
-                    self._nmasslessnu = self._nneutrinos
-                    self._nmassivenu = 0
-                else:
-                    self._massivenu = True
-                    if len(m_nu) != self._nneutrinos:
-                        errstr = "Unexpected number of neutrino masses"
-                        raise ValueError(errstr)
-                    # Segregate out the massless ones
-                    self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
-                    self._nmassivenu = self._nneutrinos - self._nmasslessnu
-                    w = np.nonzero(m_nu.value > 0)[0]
-                    self._massivenu_mass = m_nu[w]
+                    self._nmasslessnu = 0
+            elif len(m_nu) != self._nneutrinos:  # not scalar, check number of masses
+                raise ValueError("unexpected number of neutrino masses.")
+            # elif m_nu.value.max() == 0:
+            #     pass  # if this is true, min = max = 0 = default case (above)
+            elif np.any(m_nu.value > 0):  # Different masses.
+                massive = np.nonzero(m_nu.value > 0)[0]
+                self._massivenu = True
+                self._nmassivenu = len(massive)
+                self._massivenu_mass = m_nu[massive].value
+                self._nmasslessnu = self._nneutrinos - self._nmassivenu
 
         # Compute photon density, Tcmb, neutrino parameters
         # Tcmb0=0 removes both photons and neutrinos, is handled
@@ -239,11 +233,13 @@ class FLRW(Cosmology):
                 # bit ^4 (blackbody energy density) times 7/8 for
                 # FD vs. BE statistics.
                 self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
+                self._nu_y = self._nu_y_list = None
 
         else:
             self._Ogamma0 = 0.0
             self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
+            self._nu_y = self._nu_y_list = None
 
         # now set m_nu Parameter
         if self._nneutrinos == 0 or self._Tnu0.value == 0:
