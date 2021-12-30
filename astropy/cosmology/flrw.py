@@ -1452,8 +1452,8 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)  # guaranteed not to have `Ode0`
         # Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
+        self._Ode0 = 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
 
     @property
     def Otot0(self):

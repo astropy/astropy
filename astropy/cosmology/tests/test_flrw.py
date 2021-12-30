@@ -89,8 +89,7 @@ class ParameterH0TestMixin(ParameterTestMixin):
 
     def test_init_H0(self, cosmo_cls):
         """Test initialization for values of ``H0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -134,8 +133,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
 
     def test_init_Om0(self, cosmo_cls):
         """Test initialization for values of ``Om0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["Om0"] = ba.arguments["Om0"] << u.one  # ensure units
@@ -182,8 +180,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
 
     def test_init_Ode0(self, cosmo_cls):
         """Test initialization for values of ``Ode0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["Ode0"] = ba.arguments["Ode0"] << u.one  # ensure units
@@ -195,7 +192,13 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Ode0 == ba.arguments["Ode0"]
 
-        # must be dimensionless or have no units
+        # Setting param to 0 respects that. Note this test uses ``Ode()``.
+        ba.arguments["Ode0"] = 0.0
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert u.allclose(cosmo.Ode([0, 1, 2, 3]), [0, 0, 0, 0])
+        assert u.allclose(cosmo.Ode(1), 0)
+
+        # Must be dimensionless or have no units. Errors otherwise.
         ba.arguments["Ode0"] = 10 * u.km
         with pytest.raises(TypeError, match="only dimensionless"):
             cosmo_cls(*ba.args, **ba.kwargs)
@@ -229,8 +232,7 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
 
     def test_init_Tcmb0(self, cosmo_cls):
         """Test initialization for values of ``Tcmb0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -274,8 +276,7 @@ class ParameterNeffTestMixin(ParameterTestMixin):
 
     def test_init_Neff(self, cosmo_cls):
         """Test initialization for values of ``Neff``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["Neff"] = ba.arguments["Neff"] << u.one  # ensure units
@@ -326,8 +327,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
 
     def test_init_m_nu(self, cosmo_cls):
         """Test initialization for values of ``m_nu``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -391,8 +391,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
 
     def test_init_Ob0(self, cosmo_cls):
         """Test initialization for values of ``Ob0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # default value is `None`
         assert ba.arguments["Ob0"] is None
@@ -408,18 +407,26 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Ob0 == ba.arguments["Ob0"]
 
-        # negative Ob0
+        # Setting param to 0 respects that.  Note this test uses ``Ob()``.
+        ba.arguments["Ob0"] = 0.0
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert cosmo.Ob0 == 0.0
+        if not self.abstract_w:
+            assert u.allclose(cosmo.Ob(1), 0)
+            assert u.allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
+
+        # Negative Ob0 errors
         tba = copy.copy(ba)
         tba.arguments["Ob0"] = -0.04
         with pytest.raises(ValueError, match="Ob0 cannot be negative"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # Ob0 > Om0
+        # Ob0 > Om0 errors
         tba.arguments["Ob0"] = tba.arguments["Om0"] + 0.1
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # no baryons specified
+        # No baryons specified means baryon-specific methods fail.
         tba = copy.copy(ba)
         tba.arguments.pop("Ob0", None)
         cosmo = cosmo_cls(*tba.args, **tba.kwargs)
@@ -436,6 +443,8 @@ class TestFLRW(CosmologyTest,
                ParameterTcmb0TestMixin, ParameterNeffTestMixin, Parameterm_nuTestMixin,
                ParameterOb0TestMixin):
     """Test :class:`astropy.cosmology.FLRW`."""
+
+    abstract_w = True
 
     def setup_class(self):
         """
@@ -467,6 +476,24 @@ class TestFLRW(CosmologyTest,
 
         # TODO! tests for initializing calculated values, e.g. `h`
         # TODO! transfer tests for initializing neutrinos
+
+    def test_init_Tcmb0_zeroing(self, cosmo_cls):
+        """Test if setting Tcmb0 parameter to 0 influences other parameters.
+
+        TODO: consider moving this test to ``FLRWSubclassTest``
+        """
+        ba = self.ba
+        ba.arguments["Tcmb0"] = 0.0
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+
+        assert cosmo.Ogamma0 == 0.0
+        assert cosmo.Onu0 == 0.0
+
+        if not self.abstract_w:
+            assert u.allclose(cosmo.Ogamma(1.5), [0, 0, 0, 0])
+            assert u.allclose(cosmo.Ogamma([0, 1, 2, 3]), [0, 0, 0, 0])
+            assert u.allclose(cosmo.Onu(1.5), [0, 0, 0, 0])
+            assert u.allclose(cosmo.Onu([0, 1, 2, 3]), [0, 0, 0, 0])
 
     # ---------------------------------------------------------------
     # Properties
@@ -709,10 +736,11 @@ class FLRWSubclassTest(TestFLRW):
     subclasses must override some methods.
     """
 
+    abstract_w = False
+
     @abc.abstractmethod
     def setup_class(self):
         """Setup for testing."""
-        pass
 
     # ===============================================================
     # Method & Attribute Tests
@@ -786,10 +814,10 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
 
     def test_init_Ode0(self, cosmo_cls):
         """Test initialization for values of ``Ode0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba = self.ba
 
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0)
+        assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ok0)
 
         # Ode0 is not in the signature
         with pytest.raises(TypeError, match="Ode0"):
@@ -827,8 +855,8 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         super().test_init(cosmo_cls)
 
         cosmo = cosmo_cls(*self.cls_args, **self.cls_kwargs)
-        assert cosmo._Ode0 == 1.0 - cosmo._Om0 - cosmo._Ogamma0 - cosmo._Onu0
         assert cosmo._Ok0 == 0.0
+        assert cosmo._Ode0 == 1.0 - (cosmo._Om0 + cosmo._Ogamma0 + cosmo._Onu0 + cosmo._Ok0)
 
     def test_Ok0(self, cosmo_cls, cosmo):
         """Test property ``Ok0``."""
@@ -970,8 +998,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
 
     def test_init_w0(self, cosmo_cls):
         """Test initialization for values of ``w0``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["w0"] = ba.arguments["w0"] << u.one  # ensure units
@@ -1081,8 +1108,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
 
     def test_init_wa(self, cosmo_cls):
         """Test initialization for values of ``wa``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["wa"] = ba.arguments["wa"] << u.one  # ensure units
@@ -1194,8 +1220,7 @@ class ParameterwpTestMixin(ParameterTestMixin):
 
     def test_init_wp(self, cosmo_cls):
         """Test initialization for values of ``wp``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["wp"] = ba.arguments["wp"] << u.one  # ensure units
@@ -1234,8 +1259,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
 
     def test_init_zp(self, cosmo_cls):
         """Test initialization for values of ``zp``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["zp"] = ba.arguments["zp"] << u.one  # ensure units
@@ -1327,8 +1351,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
 
     def test_init_wz(self, cosmo_cls):
         """Test initialization for values of ``wz``."""
-        ba = cosmo_cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
+        ba = self.ba
 
         # test that it works with units
         ba.arguments["wz"] = ba.arguments["wz"] << u.one  # ensure units
