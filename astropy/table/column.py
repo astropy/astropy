@@ -840,6 +840,18 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     def unit(self):
         self._unit = None
 
+    def searchsorted(self, v, side='left', sorter=None):
+        # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
+        # calling searchsorted. This prevents a factor of 1000 slowdown in
+        # searchsorted in this case.
+        a = self.data
+        if a.dtype.kind == 'S' and not isinstance(v, bytes):
+            v = np.asarray(v)
+            if v.dtype.kind == 'U':
+                v = np.char.encode(v, 'utf-8')
+        return np.searchsorted(a, v, side=side, sorter=sorter)
+    searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
+
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
