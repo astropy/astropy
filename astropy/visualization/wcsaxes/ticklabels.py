@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 from matplotlib import rcParams
+from matplotlib.artist import allow_rasterization
 from matplotlib.text import Text
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -305,6 +306,7 @@ class TickLabels(Text):
             ret += self._axis_bboxes[axis]
         return ret
 
+    @allow_rasterization
     def draw(self, renderer, bboxes=None, ticklabels_bbox=None, tick_out_size=None):
         # Mapping from axis > list[bounding boxes]
         self._axis_bboxes = defaultdict(list)
