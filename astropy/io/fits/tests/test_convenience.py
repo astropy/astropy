@@ -13,9 +13,11 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.table import Table
 from astropy.io.fits import printdiff
+from astropy.io.fits.column import ColumnAttribute
 from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.utils.exceptions import AstropyUserWarning
 
+from astropy.io.fits.tests.test_table import _assert_attr_col
 from . import FitsTestCase
 
 
@@ -242,8 +244,23 @@ class TestConvenience(FitsTestCase):
 
     def test_tabledump(self):
         """
-        Regression test for https://github.com/astropy/astropy/issues/6937
+        A simple test of the dump method.
+        Also regression test for https://github.com/astropy/astropy/issues/6937
         """
+        datastr = (
+            '"                    1" "abc" "     3.70000007152557" "                    0"\n'
+            '"                    2" "xy " "     6.69999971389771" "                    1"\n'
+        )
+        cdstr = (
+            'c1 1J I11              ""               ""'
+            '               -2147483647      ""               ""              \n'
+            'c2 3A A3               ""               ""'
+            '               ""               ""               ""              \n'
+            'c3 1E G15.7            ""               ""'
+            '               ""               3                0.4             \n'
+            'c4 1L L6               ""               ""'
+            '               ""               ""               ""              \n'
+        )
         # copy fits file to the temp directory
         self.copy_file('tb.fits')
 
@@ -254,6 +271,36 @@ class TestConvenience(FitsTestCase):
         # test with datafile
         fits.tabledump(self.temp('tb.fits'), datafile=self.temp('test_tb.txt'))
         assert os.path.isfile(self.temp('test_tb.txt'))
+
+        # test with datafile and cdfile
+        datafile = self.temp('data.txt')
+        cdfile = self.temp('coldefs.txt')
+        fits.tabledump(self.temp('tb.fits'), datafile, cdfile)
+        assert os.path.isfile(datafile)
+        with open(datafile) as data:
+            assert data.read() == datastr
+        with open(cdfile) as coldefs:
+            assert coldefs.read() == cdstr
+
+    @pytest.mark.parametrize('tablename', ['table.fits', 'tb.fits'])
+    def test_dump_load_round_trip(self, tablename):
+        """
+        A simple test of the dump/load methods; dump the data, column, and
+        header files and try to reload the table from them.
+        """
+
+        # copy fits file to the temp directory
+        self.copy_file(tablename)
+
+        datafile = self.temp('data.txt')
+        cdfile = self.temp('coldefs.txt')
+        hfile = self.temp('header.txt')
+        fits.tabledump(self.temp(tablename), datafile, cdfile, hfile)
+
+        new_tbhdu = fits.tableload(datafile, cdfile, hfile)
+
+        with fits.open(self.temp(tablename)) as hdul:
+            _assert_attr_col(new_tbhdu, hdul[1])
 
     def test_append_filename(self):
         """
