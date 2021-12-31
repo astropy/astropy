@@ -6,7 +6,7 @@ import pickle
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
+from astropy.utils.decorators import (deprecated_attribute, deprecated,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
@@ -19,39 +19,6 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
     New Warning subclass to be used to test the deprecated decorator's
     ``warning_type`` parameter.
     """
-
-
-def test_wraps():
-    """
-    Tests the compatibility replacement for functools.wraps which supports
-    argument preservation across all supported Python versions.
-    """
-
-    def foo(a, b, c=1, d=2, e=3, **kwargs):
-        """A test function."""
-
-        return a, b, c, d, e, kwargs
-
-    @wraps(foo)
-    def bar(*args, **kwargs):
-        return ('test',) + foo(*args, **kwargs)
-
-    expected = ('test', 1, 2, 3, 4, 5, {'f': 6, 'g': 7})
-    assert bar(1, 2, 3, 4, 5, f=6, g=7) == expected
-    assert bar.__name__ == 'foo'
-
-    if foo.__doc__ is not None:
-        # May happen if using optimized opcode
-        assert bar.__doc__ == "A test function."
-
-    if hasattr(foo, '__qualname__'):
-        assert bar.__qualname__ == foo.__qualname__
-
-    sig = inspect.signature(bar)
-    assert list(sig.parameters) == ['a', 'b', 'c', 'd', 'e', 'kwargs']
-
-    defaults = [inspect._empty, inspect._empty, 1, 2, 3, inspect._empty]
-    assert [p.default for p in sig.parameters.values()] == defaults
 
 
 def test_deprecated_attribute():

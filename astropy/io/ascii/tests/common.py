@@ -4,7 +4,9 @@ import os
 
 import numpy as np
 
-__all__ = ['raises', 'assert_equal', 'assert_almost_equal',
+from astropy.utils.decorators import deprecated
+
+__all__ = ['assert_equal', 'assert_almost_equal',
            'assert_true', 'setup_function', 'teardown_function',
            'has_isnan']
 
@@ -71,6 +73,7 @@ def make_decorator(func):
     return decorate
 
 
+@deprecated('5.1', alternative='pytest.raises')
 def raises(*exceptions):
     """Test must raise one of expected exceptions to pass.
 
@@ -84,8 +87,6 @@ def raises(*exceptions):
       def test_that_fails_by_passing():
           pass
 
-    If you want to test many assertions about exceptions in a single test,
-    you may want to use `assert_raises` instead.
     """
     valid = ' or '.join([e.__name__ for e in exceptions])
 
