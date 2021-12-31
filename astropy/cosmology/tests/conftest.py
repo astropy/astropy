@@ -6,19 +6,69 @@
 # IMPORTS
 
 # STDLIB
+import inspect
 import json
 import os
 
+# THIRD-PARTY
 import pytest
 
+# LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import core
 from astropy.cosmology.core import Cosmology
 from astropy.tests.helper import pickle_protocol
 
+
 ###############################################################################
 # FUNCTIONS
+
+def get_redshift_methods(cosmology, allow_private=True, allow_z2=True):
+    """Get redshift methods from a cosmology.
+
+    Parameters
+    ----------
+    cosmology : |Cosmology| class or instance
+
+    Returns
+    -------
+    set[str]
+    """
+    methods = set()
+    for n in dir(cosmology):
+        try:  # get method, some will error on ABCs
+            m = getattr(cosmology, n)
+        except NotImplementedError:
+            continue
+
+        # Add anything callable, optionally excluding private methods.
+        if callable(m) and (not n.startswith('_') or allow_private):
+            methods.add(n)
+
+    # Sieve out incompatible methods.
+    # The index to check for redshift depends on whether cosmology is a class
+    # or instance and does/doesn't include 'self'.
+    iz1 = 1 if inspect.isclass(cosmology) else 0
+    for n in tuple(methods):
+        try:
+            sig = inspect.signature(getattr(cosmology, n))
+        except ValueError:  # Remove non-introspectable methods.
+            methods.discard(n)
+            continue
+        else:
+            params = list(sig.parameters.keys())
+
+        # Remove non redshift methods:
+        if len(params) <= iz1:  # Check there are enough arguments.
+            methods.discard(n)
+        elif len(params) >= iz1 + 1 and not params[iz1].startswith("z"):  # First non-self arg is z.
+            methods.discard(n)
+        # If methods with 2 z args are not allowed, the following arg is checked.
+        elif not allow_z2 and (len(params) >= iz1 + 2) and params[iz1 + 1].startswith("z"):
+            methods.discard(n)
+
+    return methods
 
 
 def read_json(filename, **kwargs):

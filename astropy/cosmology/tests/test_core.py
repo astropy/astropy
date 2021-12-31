@@ -50,8 +50,9 @@ valid_zs = scalar_zs + array_zs
 
 invalid_zs = [
     (None, TypeError),  # wrong type
-    (4 * u.MeV, (u.UnitConversionError, TypeError)),  # scalar with wrong unit
-    ([0, 1] * u.m, (u.UnitConversionError, TypeError)),  # array with wrong unit
+    # Wrong units (the TypeError is for the cython, which can differ)
+    (4 * u.MeV, (u.UnitConversionError, TypeError)),  # scalar
+    ([0, 1] * u.m, (u.UnitConversionError, TypeError)),  # array
 ]
 
 

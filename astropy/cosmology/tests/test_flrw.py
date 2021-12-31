@@ -26,6 +26,7 @@ from astropy.cosmology.flrw import (a_B_c2, critdens_const, ellipkinc,
 from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import get_redshift_methods
 from .test_core import CosmologySubclassTest as CosmologyTest, valid_zs, invalid_zs
 from .test_core import FlatCosmologyMixinTest, ParameterTestMixin
 
@@ -434,7 +435,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
             cosmo.Odm(1)
 
         # The default value is None
-        cosmo_cls._init_signature.parameters["Ob0"].default is None
+        assert cosmo_cls._init_signature.parameters["Ob0"].default is None
 
 
 class TestFLRW(CosmologyTest,
@@ -746,21 +747,7 @@ class FLRWSubclassTest(TestFLRW):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = [
-        "w", "Otot", "Om", "Ob", "Odm", "Ok", "Ode", "Ogamma", "Onu", "Tcmb",
-        "Tnu", "nu_relative_density",  # _w_integrand,
-        "de_density_scale", "efunc", "inv_efunc", "_lookback_time_integrand_scalar",
-        "lookback_time_integrand", "_abs_distance_integrand_scalar", "abs_distance_integrand",
-        "H", "scale_factor", "lookback_time", "lookback_distance", "age", "_age", "_integral_age",
-        "critical_density", "comoving_distance",  # _comoving_distance_z1z2
-        # _integral_comoving_distance_z1z2_scalar, _integral_comoving_distance_z1z2,
-        "comoving_transverse_distance",  # _comoving_transverse_distance_z1z2,
-        "angular_diameter_distance", "luminosity_distance",
-        # "angular_diameter_distance_z1z2",
-        "absorption_distance", "distmod", "comoving_volume", "differential_comoving_volume",
-        "kpc_comoving_per_arcmin", "kpc_proper_per_arcmin", "arcsec_per_kpc_comoving",
-        "arcsec_per_kpc_proper",
-    ]
+    _FLRW_redshift_methods = get_redshift_methods(FLRW, allow_private=True, allow_z2=False)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
@@ -852,6 +839,19 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
             ...
     """
 
+    def setup_class(self):
+        """Setup for testing.
+
+        Set up as for regular FLRW test class, but remove dark energy component
+        since flat cosmologies are forbidden Ode0 as an argument,
+        see ``test_init_subclass``.
+        """
+        super().setup_class(self)
+        self._cls_args.pop("Ode0")
+
+    # ===============================================================
+    # Method & Attribute Tests
+
     # ---------------------------------------------------------------
     # class-level
 
@@ -898,6 +898,13 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         # for flat cosmologies, Otot is 1, within precision.
         assert u.allclose(cosmo.Otot(z), 1.0)
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', FLRWSubclassTest._FLRW_redshift_methods - {"Otot"})
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     # ---------------------------------------------------------------
 
@@ -952,13 +959,13 @@ class TestLambdaCDM(FLRWSubclassTest):
     # ===============================================================
     # Method & Attribute Tests
 
+    _FLRW_redshift_methods = get_redshift_methods(LambdaCDM, allow_private=True, allow_z2=False) - {"_dS_age"}
+    # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
+    # so any input that doesn't trip up ``np.shape`` is "valid"
+
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize(
-        'method',
-        FLRWSubclassTest._FLRW_redshift_methods
-        + ["_dS_age", "_EdS_age", "_flat_age",
-           "_EdS_lookback_time", "_dS_lookback_time", "_flat_lookback_time"])
+    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
@@ -991,6 +998,13 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         """Setup for testing."""
         super().setup_class(self)
         self.cls = FlatLambdaCDM
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', TestLambdaCDM._FLRW_redshift_methods - {"Otot"})
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
