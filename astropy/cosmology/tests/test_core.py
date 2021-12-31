@@ -50,8 +50,8 @@ valid_zs = scalar_zs + array_zs
 
 invalid_zs = [
     (None, TypeError),  # wrong type
-    (4 * u.MeV, u.UnitConversionError),  # scalar with wrong unit
-    ([0, 1] * u.m, u.UnitConversionError),  # array with wrong unit
+    (4 * u.MeV, (u.UnitConversionError, TypeError)),  # scalar with wrong unit
+    ([0, 1] * u.m, (u.UnitConversionError, TypeError)),  # array with wrong unit
 ]
 
 
