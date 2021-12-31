@@ -1,0 +1,9 @@
+The following are deprecated and will be removed in a future release.
+Use ``pytest`` warning and exception handling instead:
+
+* ``astropy.io.ascii.tests.common.raises``
+* ``astropy.tests.helper.catch_warnings``
+* ``astropy.tests.helper.ignore_warnings``
+* ``astropy.tests.helper.raises``
+* ``astropy.tests.helper.enable_deprecations_as_exceptions``
+* ``astropy.tests.helper.treat_deprecations_as_exceptions``

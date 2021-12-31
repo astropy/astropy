@@ -1,0 +1,3 @@
+Backward-compatible import of ``astropy.tests.helper.remote_data``
+has been removed; use ``pytest.mark.remote_data`` from ``pytest-remotedata``
+instead.

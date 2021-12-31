@@ -11,6 +11,7 @@ overview of running or writing the tests.
 
 `astropy.tests.helper` Module
 =============================
+
 To ease development of tests that work with Astropy, the
 `astropy.tests.helper` module provides some utility functions to make
 tests that use Astropy conventions or classes easier to work with, e.g.,
@@ -23,6 +24,30 @@ library, `pytest`_, or `numpy.testing
 contains primarily functionality specific to the astropy core package or
 packages that follow the Astropy package template.
 
+Conversion Guide
+----------------
+
+Some long-standing functionality has been deprecated/removed since ``astropy`` 5.1.
+The following table maps them to what you should use instead.
+
+========================================================== ===============================================
+Deprecated                                                 Use this
+========================================================== ===============================================
+``astropy.io.ascii.tests.common.raises``                   ``pytest.raises``
+``astropy.tests.helper.raises``                            ``pytest.raises``
+``astropy.tests.helper.catch_warnings``                    ``pytest.warns``
+``astropy.tests.helper.ignore_warnings``                   https://docs.pytest.org/en/stable/warnings.html
+``astropy.tests.helper.enable_deprecations_as_exceptions`` https://docs.pytest.org/en/stable/warnings.html
+``astropy.tests.helper.treat_deprecations_as_exceptions``  https://docs.pytest.org/en/stable/warnings.html
+========================================================== ===============================================
+
+========================================================== ===============================================
+Removed                                                    Use this
+========================================================== ===============================================
+``astropy.tests.disable_internet``                         ``pytest_remotedata.disable_internet``
+``astropy.tests.helper.remote_data``                       ``pytest.mark.remote_data``
+``astropy.tests.plugins.display``                          ``pytest-astropy-header`` package
+========================================================== ===============================================
 
 Reference/API
 -------------
