@@ -16,6 +16,7 @@ from astropy.cosmology import Cosmology, Planck18, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.parameters import available
+from astropy.cosmology.tests.conftest import get_redshift_methods
 from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -42,32 +43,12 @@ class ToFromModelTestMixin(IOTestMixinBase):
     @pytest.fixture
     def method_name(self, cosmo):
         # get methods, ignoring private and dunder
-        methods = set()
-        for n in dir(cosmo):
-            try:  # get method, some will error on ABCs
-                m = getattr(cosmo, n)
-            except NotImplementedError:
-                continue
+        methods = get_redshift_methods(cosmo, allow_private=False, allow_z2=True)
 
-            if callable(m) and not n.startswith("_"):
-                methods.add(n)
-
-        # sieve out incompatible methods
+        # dynamically detect ABC and optional dependencies
         for n in tuple(methods):
-            # remove non-introspectable methods
-            try:
-                sig = inspect.signature(getattr(cosmo, n))
-            except ValueError:
-                methods.discard(n)
-                continue
+            params = inspect.signature(getattr(cosmo, n)).parameters.keys()
 
-            params = list(sig.parameters.keys())
-            # remove non redshift methods
-            if len(params) == 0 or not params[0].startswith("z"):
-                methods.discard(n)
-                continue
-
-            # dynamically detect ABC and optional dependencies
             ERROR_SEIVE = (NotImplementedError, ValueError)
             #              # ABC                can't introspect for good input
             if not HAS_SCIPY:
