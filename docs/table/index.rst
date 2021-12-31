@@ -21,7 +21,8 @@ notable capabilities of this package are:
 * Create a new table by selecting rows or columns from a table.
 * Perform :ref:`table_operations` like database joins, concatenation, and binning.
 * Maintain a table index for fast retrieval of table items or ranges.
-* Manipulate multidimensional columns.
+* Manipulate multidimensional and `structured array
+  <https://numpy.org/doc/stable/user/basics.rec.html>` columns.
 * Handle non-native (mixin) column types within table.
 * Methods for :ref:`read_write_tables` to files.
 * Hooks for :ref:`subclassing_table` and its component classes.
