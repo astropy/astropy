@@ -201,7 +201,7 @@ def test_redshift_distance_wrong_kind():
 class Test_with_redshift:
     """Test `astropy.cosmology.units.with_redshift`."""
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def cosmo(self):
         """Test cosmology."""
         return Planck13.clone(Tcmb0=3 * u.K)

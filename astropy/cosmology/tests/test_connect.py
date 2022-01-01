@@ -107,11 +107,11 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin):
 class TestCosmologyReadWrite(ReadWriteTestMixin):
     """Test the classes CosmologyRead/Write."""
 
-    @pytest.fixture(params=cosmo_instances)
+    @pytest.fixture(scope="class", params=cosmo_instances)
     def cosmo(self, request):
         return getattr(cosmology.realizations, request.param)
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def cosmo_cls(self, cosmo):
         return cosmo.__class__
 
@@ -260,11 +260,11 @@ class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFr
 class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     """Test Cosmology[To/From]Format classes."""
 
-    @pytest.fixture(params=cosmo_instances)
+    @pytest.fixture(scope="class", params=cosmo_instances)
     def cosmo(self, request):
         return getattr(cosmology.realizations, request.param)
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def cosmo_cls(self, cosmo):
         return cosmo.__class__
 
