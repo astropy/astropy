@@ -59,7 +59,7 @@ def write_ecsv(cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_met
 
     overwrite : bool
         Whether to overwrite the file, if it exists.
-    cls: type (optional, keyword-only)
+    cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` (sub)class to use when writing.
         Default is :class:`~astropy.table.QTable`.
     cosmology_in_meta : bool

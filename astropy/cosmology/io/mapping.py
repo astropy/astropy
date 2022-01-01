@@ -125,7 +125,7 @@ def to_mapping(cosmology, *args, cls=dict):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
-    cls: type (optional, keyword-only)
+    cls : type (optional, keyword-only)
         `dict` or `collections.Mapping` subclass.
         The mapping type to return. Default is `dict`.
 
