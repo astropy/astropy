@@ -25,22 +25,22 @@ class IOTestMixinBase:
     See ``TestCosmology`` for an example.
     """
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def from_format(self):
         """Convert to Cosmology using ``Cosmology.from_format()``."""
         return Cosmology.from_format
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def to_format(self, cosmo):
         """Convert Cosmology instance using ``.to_format()``."""
         return cosmo.to_format
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def read(self):
         """Read Cosmology instance using ``Cosmology.read()``."""
         return Cosmology.read
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def write(self, cosmo):
         """Write Cosmology using ``.write()``."""
         return cosmo.write
@@ -74,21 +74,21 @@ class IOFormatTestBase(IOTestMixinBase):
         # but don't error b/c it can fail in parallel
         _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__, None)
 
-    @pytest.fixture(params=cosmo_instances)
+    @pytest.fixture(scope="class", params=cosmo_instances)
     def cosmo(self, request):
         """Cosmology instance."""
         if isinstance(request.param, str):  # CosmologyWithKwargs
             return _COSMOLOGY_CLASSES[request.param](Tcmb0=3)
         return request.param
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def cosmo_cls(self, cosmo):
         """Cosmology classes."""
         return cosmo.__class__
 
     # -------------------------------------------
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def from_format(self):
         """Convert to Cosmology using function ``from``."""
         def use_from_format(*args, **kwargs):
@@ -97,14 +97,14 @@ class IOFormatTestBase(IOTestMixinBase):
 
         return use_from_format
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def to_format(self, cosmo):
         """Convert Cosmology to format using function ``to``."""
         return lambda *args, **kwargs: self.functions["to"](cosmo, *args, **kwargs)
 
     # -------------------------------------------
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def read(self):
         """Read Cosmology from file using function ``read``."""
         def use_read(*args, **kwargs):
@@ -113,7 +113,7 @@ class IOFormatTestBase(IOTestMixinBase):
 
         return use_read
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def write(self, cosmo):
         """Write Cosmology to file using function ``write``."""
         return lambda *args, **kwargs: self.functions["write"](cosmo, *args, **kwargs)

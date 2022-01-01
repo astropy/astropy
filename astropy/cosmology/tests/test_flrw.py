@@ -489,7 +489,7 @@ class TestFLRW(CosmologyTest,
         super().teardown_class(self)
         _COSMOLOGY_CLASSES.pop("SubFLRW", None)
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def nonflatcosmo(self):
         """A non-flat cosmology used in equivalence tests."""
         return LambdaCDM(70, 0.4, 0.8)
