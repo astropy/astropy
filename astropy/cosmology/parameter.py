@@ -216,7 +216,7 @@ class Parameter:
 
         Parameters
         ----------
-        interpreted : bool
+        processed : bool
             Whether to more closely reproduce the input arguments (`False`,
             default) or the processed arguments (`True`). The former is better
             for string representations and round-tripping with ``eval(repr())``.

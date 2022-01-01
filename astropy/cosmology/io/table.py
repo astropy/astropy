@@ -147,7 +147,7 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
-    cls: type (optional, keyword-only)
+    cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` class or subclass type to return.
         Default is :class:`~astropy.table.QTable`.
     cosmology_in_meta : bool
