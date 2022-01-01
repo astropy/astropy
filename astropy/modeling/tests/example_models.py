@@ -306,7 +306,7 @@ models_1D = {
 # 2D Models
 models_2D = {
     Gaussian2D: {
-        'parameters': [1, 0, 0, 1, 1],
+        'parameters': [1, 0, 0, 1, 1, 0],
         'constraints': {'fixed': {'theta': True}},
         'x_values': [0, np.sqrt(2), -np.sqrt(2)],
         'y_values': [0, np.sqrt(2), -np.sqrt(2)],

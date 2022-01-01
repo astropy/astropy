@@ -167,7 +167,7 @@ def test_search_around():
     idx1_0p05deg, idx2_0p05deg, d2d_0p05deg, d3d_0p05deg = search_around_sky(coo1, coo2, 0.05*u.deg)
 
     assert list(zip(idx1_1deg, idx2_1deg)) == [(0, 2), (0, 3), (1, 1), (1, 2)]
-    assert d2d_1deg[0] == 1.0*u.deg
+    assert_allclose(d2d_1deg[0], 1.0*u.deg, atol=1e-14*u.deg, rtol=0)
     assert_allclose(d2d_1deg, [1, 0, .1, .9]*u.deg)
 
     assert list(zip(idx1_0p05deg, idx2_0p05deg)) == [(0, 3)]
