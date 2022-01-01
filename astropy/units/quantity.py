@@ -1639,11 +1639,18 @@ class Quantity(np.ndarray):
                                self._to_own_unit(v, check_precision=False),
                                *args, **kwargs)  # avoid numpy 1.6 problem
 
-    def argmax(self, axis=None, out=None):
-        return self.view(np.ndarray).argmax(axis, out=out)
+    if NUMPY_LT_1_22:
+        def argmax(self, axis=None, out=None):
+            return self.view(np.ndarray).argmax(axis, out=out)
 
-    def argmin(self, axis=None, out=None):
-        return self.view(np.ndarray).argmin(axis, out=out)
+        def argmin(self, axis=None, out=None):
+            return self.view(np.ndarray).argmin(axis, out=out)
+    else:
+        def argmax(self, axis=None, out=None, *, keepdims=False):
+            return self.view(np.ndarray).argmax(axis=axis, out=out, keepdims=keepdims)
+
+        def argmin(self, axis=None, out=None, *, keepdims=False):
+            return self.view(np.ndarray).argmin(axis=axis, out=out, keepdims=keepdims)
 
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions, taking care of units.
