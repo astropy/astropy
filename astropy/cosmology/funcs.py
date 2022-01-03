@@ -120,37 +120,37 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     Parameters
     ----------
     func : function or method
-       A function that takes a redshift as input.
+        A function that takes a redshift as input.
 
     fval : `~astropy.units.Quantity`
-       The (scalar or array) value of ``func(z)`` to recover.
+        The (scalar or array) value of ``func(z)`` to recover.
 
     zmin : float or array-like['dimensionless'] or quantity-like, optional
-       The lower search limit for ``z``.  Beware of divergences
-       in some cosmological functions, such as distance moduli,
-       at z=0 (default 1e-8).
+        The lower search limit for ``z``.  Beware of divergences
+        in some cosmological functions, such as distance moduli,
+        at z=0 (default 1e-8).
 
     zmax : float or array-like['dimensionless'] or quantity-like, optional
-       The upper search limit for ``z`` (default 1000).
+        The upper search limit for ``z`` (default 1000).
 
     ztol : float or array-like['dimensionless'], optional
-       The relative error in ``z`` acceptable for convergence.
+        The relative error in ``z`` acceptable for convergence.
 
     maxfun : int or array-like, optional
-       The maximum number of function evaluations allowed in the
-       optimization routine (default 500).
+        The maximum number of function evaluations allowed in the
+        optimization routine (default 500).
 
     method : str or callable, optional
-       Type of solver to pass to the minimizer. The built-in options provided
-       by :func:`~scipy.optimize.minimize_scalar` are 'Brent' (default),
-       'Golden' and 'Bounded' with names case insensitive - see documentation
-       there for details. It also accepts a custom solver by passing any
-       user-provided callable object that meets the requirements listed
-       therein under the Notes on "Custom minimizers" - or in more detail in
-       :doc:`scipy:tutorial/optimize` - although their use is currently
-       untested.
+        Type of solver to pass to the minimizer. The built-in options provided
+        by :func:`~scipy.optimize.minimize_scalar` are 'Brent' (default),
+        'Golden' and 'Bounded' with names case insensitive - see documentation
+        there for details. It also accepts a custom solver by passing any
+        user-provided callable object that meets the requirements listed
+        therein under the Notes on "Custom minimizers" - or in more detail in
+        :doc:`scipy:tutorial/optimize` - although their use is currently
+        untested.
 
-       .. versionadded:: 4.3
+        .. versionadded:: 4.3
 
     bracket : sequence or object array[sequence], optional
         For methods 'Brent' and 'Golden', ``bracket`` defines the bracketing
@@ -161,18 +161,18 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         distance this may be used to start the search on the desired side of
         the maximum, but see Examples below for usage notes.
 
-       .. versionadded:: 4.3
+        .. versionadded:: 4.3
 
     verbose : bool, optional
-       Print diagnostic output from solver (default `False`).
+        Print diagnostic output from solver (default `False`).
 
-       .. versionadded:: 4.3
+        .. versionadded:: 4.3
 
     Returns
     -------
     z : `~astropy.units.Quantity` ['redshift']
-      The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
-      fval`` within ``ztol``. Has units of cosmological redshift.
+        The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
+        fval`` within ``ztol``. Has units of cosmological redshift.
 
     Warns
     -----
