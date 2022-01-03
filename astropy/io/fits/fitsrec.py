@@ -35,18 +35,15 @@ class FITS_record:
         Parameters
         ----------
         input : array
-           The array to wrap.
-
+            The array to wrap.
         row : int, optional
-           The starting logical row of the array.
-
+            The starting logical row of the array.
         start : int, optional
-           The starting column in the row associated with this object.
-           Used for subsetting the columns of the `FITS_rec` object.
-
+            The starting column in the row associated with this object.
+            Used for subsetting the columns of the `FITS_rec` object.
         end : int, optional
-           The ending column in the row associated with this object.
-           Used for subsetting the columns of the `FITS_rec` object.
+            The ending column in the row associated with this object.
+            Used for subsetting the columns of the `FITS_rec` object.
         """
 
         self.array = input
