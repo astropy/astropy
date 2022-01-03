@@ -456,8 +456,7 @@ class Element:
         ----------
         w : astropy.utils.xml.writer.XMLWriter object
             An XML writer to write to.
-
-        kwargs : dict
+        **kwargs : dict
             Any configuration parameters to control the output.
         """
         raise NotImplementedError()

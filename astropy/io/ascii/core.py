@@ -316,7 +316,8 @@ class BaseInputter:
             Can be either a file name, string (newline separated) with all header and data
             lines (must have at least 2 lines), a file-like object with a
             ``read()`` method, or a list of strings.
-        newline: line separator, if `None` use OS default from ``splitlines()``.
+        newline :
+            Line separator. If `None` use OS default from ``splitlines()``.
 
         Returns
         -------
@@ -1671,7 +1672,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
 def _get_writer(Writer, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
-    only on the "core" module. """
+    only on the "core" module."""
 
     from .fastbasic import FastBasic
 

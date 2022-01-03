@@ -810,9 +810,9 @@ class Header:
         Parameters
         ----------
         strip : bool, optional
-           If `True`, strip any headers that are specific to one of the
-           standard HDU types, so that this header can be used in a different
-           HDU.
+            If `True`, strip any headers that are specific to one of the
+            standard HDU types, so that this header can be used in a different
+            HDU.
 
         Returns
         -------

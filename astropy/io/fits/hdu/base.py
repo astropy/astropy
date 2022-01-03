@@ -275,24 +275,24 @@ class _BaseHDU:
         Parameters
         ----------
         data : str, bytearray, memoryview, ndarray
-           A byte string containing the HDU's header and data.
+            A byte string containing the HDU's header and data.
 
         checksum : bool, optional
-           Check the HDU's checksum and/or datasum.
+            Check the HDU's checksum and/or datasum.
 
         ignore_missing_end : bool, optional
-           Ignore a missing end card in the header data.  Note that without the
-           end card the end of the header may be ambiguous and resulted in a
-           corrupt HDU.  In this case the assumption is that the first 2880
-           block that does not begin with valid FITS header data is the
-           beginning of the data.
+            Ignore a missing end card in the header data.  Note that without the
+            end card the end of the header may be ambiguous and resulted in a
+            corrupt HDU.  In this case the assumption is that the first 2880
+            block that does not begin with valid FITS header data is the
+            beginning of the data.
 
-        kwargs : optional
-           May consist of additional keyword arguments specific to an HDU
-           type--these correspond to keywords recognized by the constructors of
-           different HDU classes such as `PrimaryHDU`, `ImageHDU`, or
-           `BinTableHDU`.  Any unrecognized keyword arguments are simply
-           ignored.
+        **kwargs : optional
+            May consist of additional keyword arguments specific to an HDU
+            type--these correspond to keywords recognized by the constructors of
+            different HDU classes such as `PrimaryHDU`, `ImageHDU`, or
+            `BinTableHDU`.  Any unrecognized keyword arguments are simply
+            ignored.
         """
 
         return cls._readfrom_internal(data, checksum=checksum,
@@ -975,23 +975,22 @@ class _ValidHDU(_BaseHDU, _Verify):
         Returns
         -------
         dict or None
+            The dictionary details information about the locations of
+            this HDU within an associated file.  Returns `None` when
+            the HDU is not associated with a file.
 
-           The dictionary details information about the locations of
-           this HDU within an associated file.  Returns `None` when
-           the HDU is not associated with a file.
+            Dictionary contents:
 
-           Dictionary contents:
-
-           ========== ================================================
-           Key        Value
-           ========== ================================================
-           file       File object associated with the HDU
-           filemode   Mode in which the file was opened (readonly, copyonwrite,
-                      update, append, ostream)
-           hdrLoc     Starting byte location of header in file
-           datLoc     Starting byte location of data block in file
-           datSpan    Data size including padding
-           ========== ================================================
+            ========== ================================================
+            Key        Value
+            ========== ================================================
+            file       File object associated with the HDU
+            filemode   Mode in which the file was opened (readonly, copyonwrite,
+                       update, append, ostream)
+            hdrLoc     Starting byte location of header in file
+            datLoc     Starting byte location of data block in file
+            datSpan    Data size including padding
+            ========== ================================================
         """
 
         if hasattr(self, '_file') and self._file:
@@ -1242,12 +1241,10 @@ class _ValidHDU(_BaseHDU, _Verify):
         Parameters
         ----------
         when : str, optional
-           comment string for the cards; by default the comments
-           will represent the time when the checksum was calculated
-
+            comment string for the cards; by default the comments
+            will represent the time when the checksum was calculated
         override_datasum : bool, optional
-           add the ``CHECKSUM`` card only
-
+            add the ``CHECKSUM`` card only
         checksum_keyword : str, optional
             The name of the header keyword to store the checksum value in; this
             is typically 'CHECKSUM' per convention, but there exist use cases
@@ -1294,9 +1291,9 @@ class _ValidHDU(_BaseHDU, _Verify):
         Returns
         -------
         valid : int
-           - 0 - failure
-           - 1 - success
-           - 2 - no ``DATASUM`` keyword present
+            - 0 - failure
+            - 1 - success
+            - 2 - no ``DATASUM`` keyword present
         """
 
         if 'DATASUM' in self._header:
@@ -1317,9 +1314,9 @@ class _ValidHDU(_BaseHDU, _Verify):
         Returns
         -------
         valid : int
-           - 0 - failure
-           - 1 - success
-           - 2 - no ``CHECKSUM`` keyword present
+            - 0 - failure
+            - 1 - success
+            - 2 - no ``CHECKSUM`` keyword present
         """
 
         if 'CHECKSUM' in self._header:
