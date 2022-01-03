@@ -200,7 +200,7 @@ def poly_map_domain(oldx, domain, window):
     domain = np.array(domain, dtype=np.float64)
     window = np.array(window, dtype=np.float64)
     if domain.shape != (2,) or window.shape != (2,):
-        raise ValueError('Expected "domain" and window to be a tuple of size 2.')
+        raise ValueError('Expected "domain" and "window" to be a tuple of size 2.')
     scl = (window[1] - window[0]) / (domain[1] - domain[0])
     off = (window[0] * domain[1] - window[1] * domain[0]) / (domain[1] - domain[0])
     return off + scl * oldx
