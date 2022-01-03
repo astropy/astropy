@@ -15,6 +15,7 @@ code under a BSD license.
 # where most time is spent (e.g., using python -X importtime).
 from .core import *
 from .quantity import *
+from .unitspec import *
 
 from . import si
 from . import cgs
