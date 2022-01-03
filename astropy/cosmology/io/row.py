@@ -91,7 +91,7 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
-    table_cls: type (optional, keyword-only)
+    table_cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` class or subclass type to use.
         Default is :class:`~astropy.table.QTable`.
     cosmology_in_meta : bool
