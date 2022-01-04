@@ -292,10 +292,15 @@ class Fittable2DModelTester:
             if test_parameters['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
                 y = np.logspace(y_lim[0], y_lim[1], self.M)
+                x_test = np.logspace(x_lim[0], x_lim[1], self.N*10)
+                y_test = np.logspace(y_lim[0], y_lim[1], self.M*10)
         else:
             x = np.linspace(x_lim[0], x_lim[1], self.N)
             y = np.linspace(y_lim[0], y_lim[1], self.M)
+            x_test = np.linspace(x_lim[0], x_lim[1], self.N*10)
+            y_test = np.linspace(y_lim[0], y_lim[1], self.M*10)
         xv, yv = np.meshgrid(x, y)
+        xv_test, yv_test = np.meshgrid(x_test, y_test)
 
         try:
             model_with_deriv = create_model(model_class, test_parameters,
@@ -327,9 +332,13 @@ class Fittable2DModelTester:
         fitter_no_deriv = fitting.LevMarLSQFitter()
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, xv, yv, data,
                                              estimate_jacobian=True)
-        assert_allclose(new_model_with_deriv.parameters,
-                        new_model_no_deriv.parameters,
-                        rtol=0.1)
+        assert_allclose(new_model_with_deriv(xv_test, yv_test),
+                        new_model_no_deriv(xv_test, yv_test),
+                        rtol=1e-3)
+        if model_class != Gaussian2D:
+            assert_allclose(new_model_with_deriv.parameters,
+                            new_model_no_deriv.parameters,
+                            rtol=0.1)
 
 
 class Fittable1DModelTester:
