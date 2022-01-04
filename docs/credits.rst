@@ -166,7 +166,6 @@ Core Package Contributors
 * Jeff Taylor
 * Jeffrey McBeth
 * Jero Bado
-* Jerry Ma
 * Joanna Power
 * Joe Hunkeler
 * Joe Lyman
@@ -398,6 +397,7 @@ Core Package Contributors
 * Zach Edwards
 * Zachary Kurtz
 * Zeljko Ivezic
+* Zhiyuan Ma
 * Zlatan Vasović
 * Zé Vinicius
 
