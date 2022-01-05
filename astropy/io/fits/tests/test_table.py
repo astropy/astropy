@@ -5,6 +5,7 @@ import copy
 import gc
 import pickle
 import re
+import sys
 
 import pytest
 import numpy as np
@@ -19,6 +20,7 @@ except ImportError:
 from astropy.io import fits
 from astropy.table import Table
 from astropy.units import UnitsWarning
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from astropy.io.fits.column import ColumnAttribute, Delayed, NUMPY2FITS
@@ -2912,6 +2914,9 @@ class TestVLATables(FitsTestCase):
         for code in ('PJ()', 'QJ()'):
             test(code)
 
+    # TODO: Unpin when Numpy bug is resolved.
+    @pytest.mark.skipif(not NUMPY_LT_1_22 and sys.platform == 'win32',
+                        reason='https://github.com/numpy/numpy/issues/20699')
     def test_copy_vla(self):
         """
         Regression test for https://github.com/spacetelescope/PyFITS/issues/47
