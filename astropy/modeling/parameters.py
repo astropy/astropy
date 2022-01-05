@@ -686,8 +686,6 @@ class Parameter:
     __rmul__ = _binary_arithmetic_operation(operator.mul, reflected=True)
     __pow__ = _binary_arithmetic_operation(operator.pow)
     __rpow__ = _binary_arithmetic_operation(operator.pow, reflected=True)
-    __div__ = _binary_arithmetic_operation(operator.truediv)
-    __rdiv__ = _binary_arithmetic_operation(operator.truediv, reflected=True)
     __truediv__ = _binary_arithmetic_operation(operator.truediv)
     __rtruediv__ = _binary_arithmetic_operation(operator.truediv,
                                                 reflected=True)

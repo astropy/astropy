@@ -757,7 +757,6 @@ def test_col_unicode_sandwich_unicode():
     """
     Sanity check that Unicode Column behaves normally.
     """
-    # On Py2 the unicode must be ASCII-compatible, else the final test fails.
     uba = 'bä'
     uba8 = uba.encode('utf-8')
 
