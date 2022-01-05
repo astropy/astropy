@@ -49,8 +49,7 @@ class TransformType(AstropyAsdfType):
         if "input_units_equivalencies" in node:
             # this still writes eqs. for compound, but operates on each sub model
             if not isinstance(model, CompoundModel):
-                eqs = node['input_units_equivalencies']
-                model.input_units_equivalencies = eqs
+                model.input_units_equivalencies = node['input_units_equivalencies']
 
         yield model
 
@@ -114,14 +113,8 @@ class TransformType(AstropyAsdfType):
                 node['bounds'] = bounds_nondefaults
 
         if not isinstance(model, CompoundModel):
-            if model.input_units is not None:
-                if model.input_units_equivalencies:
-                    input_unit_equivalencies = {}
-                    for in_unit in model.input_units:
-                        eq = model.input_units_equivalencies[in_unit]
-                        unit_equiv = eq
-                        input_unit_equivalencies[in_unit] = unit_equiv
-                    node['input_units_equivalencies'] = input_unit_equivalencies
+            if model.input_units_equivalencies:
+                node['input_units_equivalencies'] = model.input_units_equivalencies
 
         return node
 
@@ -143,6 +136,7 @@ class TransformType(AstropyAsdfType):
         assert a.get_bounding_box() == b.get_bounding_box()
         assert a.inputs == b.inputs
         assert a.outputs == b.outputs
+        assert a.input_units_equivalencies == b.input_units_equivalencies
 
 
 class IdentityType(TransformType):
