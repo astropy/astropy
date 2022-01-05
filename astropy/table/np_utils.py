@@ -106,7 +106,9 @@ def get_descrs(arrays, col_name_map):
             raise TableMergeError('Key columns have different shape')
         shape = uniq_shapes.pop()
 
-        out_descrs.append((fix_column_name(out_name), dtype, shape))
+        if out_name is not None:
+            out_name = str(out_name)
+        out_descrs.append((out_name, dtype, shape))
 
     return out_descrs
 
@@ -150,19 +152,3 @@ def _check_for_sequence_of_structured_arrays(arrays):
             raise TypeError(err)
     if len(arrays) == 0:
         raise ValueError('`arrays` arg must include at least one array')
-
-
-def fix_column_name(val):
-    """
-    Fixes column names so that they are compatible with Numpy on
-    Python 2.  Raises a ValueError exception if the column name
-    contains Unicode characters, which can not reasonably be used as a
-    column name.
-    """
-    if val is not None:
-        try:
-            val = str(val)
-        except UnicodeEncodeError:
-            raise
-
-    return val

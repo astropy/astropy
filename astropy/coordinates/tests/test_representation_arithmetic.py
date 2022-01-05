@@ -365,7 +365,7 @@ class TestArithmetic():
         r_cross_uv_cartesian = r_cross_uv.to_cartesian()
         assert_representation_allclose(r_cross_uv_cartesian,
                                        expected, atol=1.*u.upc)
-        # A final check, with the side benefit of ensuring __div__ and norm
+        # A final check, with the side benefit of ensuring __truediv__ and norm
         # work on multi-D representations.
         r_cross_uv_by_distance = r_cross_uv / self.distance
         uv_sph = unit_vectors.represent_as(UnitSphericalRepresentation)

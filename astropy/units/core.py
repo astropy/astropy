@@ -777,7 +777,7 @@ class UnitBase:
         p = validate_power(p)
         return CompositeUnit(1, [self], [p], _error_check=False)
 
-    def __div__(self, m):
+    def __truediv__(self, m):
         if isinstance(m, (bytes, str)):
             m = Unit(m)
 
@@ -793,7 +793,7 @@ class UnitBase:
         except TypeError:
             return NotImplemented
 
-    def __rdiv__(self, m):
+    def __rtruediv__(self, m):
         if isinstance(m, (bytes, str)):
             return Unit(m) / self
 
@@ -810,10 +810,6 @@ class UnitBase:
                 return Quantity(m, self**(-1))
         except TypeError:
             return NotImplemented
-
-    __truediv__ = __div__
-
-    __rtruediv__ = __rdiv__
 
     def __mul__(self, m):
         if isinstance(m, (bytes, str)):
@@ -1928,9 +1924,8 @@ class UnrecognizedUnit(IrreducibleUnit):
             "The unit {!r} is unrecognized, so all arithmetic operations "
             "with it are invalid.".format(self.name))
 
-    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
-        __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
-        _unrecognized_operator
+    __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = __lt__ = \
+        __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
 
     def __eq__(self, other):
         try:

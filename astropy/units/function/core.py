@@ -301,7 +301,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
@@ -316,7 +316,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             except Exception:
                 return NotImplemented
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         if isinstance(other, (str, UnitBase, FunctionUnitBase)):
             if self.physical_unit == dimensionless_unscaled:
                 # If dimensionless, drop back to normal unit and retry.
@@ -327,10 +327,6 @@ class FunctionUnitBase(metaclass=ABCMeta):
         else:
             # Don't know what to do with anything not like a unit.
             return NotImplemented
-
-    __truediv__ = __div__
-
-    __rtruediv__ = __rdiv__
 
     def __pow__(self, power):
         if power == 0:
@@ -591,7 +587,7 @@ class FunctionQuantity(Quantity):
 
     def __rtruediv__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
-            return self._function_view.__rdiv__(other)
+            return self._function_view.__rtruediv__(other)
 
         raise UnitTypeError("Cannot divide function quantities which "
                             "are not dimensionless into anything.")
