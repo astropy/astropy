@@ -334,7 +334,7 @@ class Fittable2DModelTester:
                                              estimate_jacobian=True)
         assert_allclose(new_model_with_deriv(xv_test, yv_test),
                         new_model_no_deriv(xv_test, yv_test),
-                        rtol=1e-3)
+                        rtol=1e-2)
         if model_class != Gaussian2D:
             assert_allclose(new_model_with_deriv.parameters,
                             new_model_no_deriv.parameters,
