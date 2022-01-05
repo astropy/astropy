@@ -48,7 +48,7 @@ import astropy.units as u
 ##############################################################################
 # Let's first define a barycentric coordinate and velocity in the ICRS frame.
 # We'll use the data for the star HD 39881 from the `Simbad
-# <http://simbad.harvard.edu/simbad/>`_ database:
+# <https://simbad.u-strasbg.fr/simbad/>`_ database:
 
 c1 = coord.SkyCoord(ra=89.014303*u.degree, dec=13.924912*u.degree,
                     distance=(37.59*u.mas).to(u.pc, u.parallax()),
