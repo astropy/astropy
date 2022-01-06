@@ -1,0 +1,1 @@
+Allow serialization of model unit equivalencies.
