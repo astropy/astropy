@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import os
 import functools
 
 from io import BytesIO
+import re
 from textwrap import dedent
 
 import pytest
@@ -125,6 +127,61 @@ def read_rdb(tmpdir, request):
 def read_no_header(tmpdir, request):
     return functools.partial(_read, tmpdir, Reader=FastNoHeader,
                              format='no_header')
+
+
+@pytest.mark.parametrize('delimiter', [',', '\t', ' ', 'csv'])
+@pytest.mark.parametrize('quotechar', ['"', "'"])
+@pytest.mark.parametrize('fast', [False, True])
+def test_embedded_newlines(delimiter, quotechar, fast):
+    """Test that embedded newlines are supported for io.ascii readers
+    and writers, both fast and Python readers."""
+    # Start with an assortment of values with different embedded newlines and whitespace
+    dat = [['\t a ', ' b \n cd ', '\n'],
+           [' 1\n ', '2 \n" \t 3\n4\n5', "1\n '2\n"],
+           [' x,y \nz\t', '\t 12\n\t34\t ', '56\t\n'],
+           ]
+    dat = Table(dat, names=('a', 'b', 'c'))
+
+    # Construct a table which is our expected result of writing the table and
+    # reading it back. Certain stripping of whitespace is expected.
+    exp = {}  # expected output from reading
+    for col in dat.itercols():
+        vals = []
+        for val in col:
+            # Readers and writers both strip whitespace from ends of values
+            val = val.strip(' \t')
+            if not fast:
+                # Pure Python reader has a "feature" where it strips trailing
+                # whitespace from each input line. This means a value like
+                # " x \ny \t\n" gets read as "x\ny".
+                bits = val.splitlines(keepends=True)
+                bits_out = []
+                for bit in bits:
+                    bit = re.sub(r'[ \t]+(\n?)$', r'\1', bit.strip(' \t'))
+                    bits_out.append(bit)
+                val = ''.join(bits_out)
+            vals.append(val)
+        exp[col.info.name] = vals
+    exp = Table(exp)
+
+    if delimiter == 'csv':
+        format = 'csv'
+        delimiter = ','
+    else:
+        format = 'basic'
+
+    # Write the table to `text`
+    fh = io.StringIO()
+    ascii.write(dat, fh, format=format, delimiter=delimiter,
+                quotechar=quotechar, fast_writer=fast)
+    text = fh.getvalue()
+
+    # Read it back and compare to the expected
+    dat_out = ascii.read(text, format=format, guess=False, delimiter=delimiter,
+                         quotechar=quotechar, fast_reader=fast)
+
+    eq = dat_out.values_equal(exp)
+    assert all(np.all(col) for col in eq.itercols())
 
 
 @pytest.mark.parametrize("parallel", [True, False])
@@ -367,7 +424,7 @@ def test_quoted_fields(parallel, read_basic):
     d"
     """)
     table = read_basic(text, parallel=parallel)
-    expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'cd']], names=('A B', 'C', 'D'))
+    expected = Table([['1.5', 'a'], ['2.1', 'b'], ['-37.1', 'c\nd']], names=('A B', 'C', 'D'))
     assert_table_equal(table, expected)
     table = read_basic(text.replace('"', "'"), quotechar="'", parallel=parallel)
     assert_table_equal(table, expected)
@@ -701,7 +758,7 @@ def test_read_tab(parallel, read_tab):
     assert_equal(table['1'][0], '  a')   # preserve line whitespace
     assert_equal(table['2'][0], ' b ')   # preserve field whitespace
     assert table['3'][0] is ma.masked    # empty value should be masked
-    assert_equal(table['2'][1], ' d e')  # preserve whitespace in quoted fields
+    assert_equal(table['2'][1], ' d\n e')  # preserve whitespace in quoted fields
     assert_equal(table['3'][1], '  ')    # preserve end-of-line whitespace
 
 
@@ -797,17 +854,17 @@ A B C
 4 5 6
 
 7 8 "9
- \t1"
+1"
 # comment
 10 11 12
 """
     table = read_basic(text, data_start=2, parallel=parallel)
-    expected = Table([[4, 7, 10], [5, 8, 11], [6, 91, 12]], names=('A', 'B', 'C'))
+    expected = Table([[4, 7, 10], [5, 8, 11], ["6", "9\n1", "12"]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     table = read_basic(text, data_start=3, parallel=parallel)
     # ignore empty line
-    expected = Table([[7, 10], [8, 11], [91, 12]], names=('A', 'B', 'C'))
+    expected = Table([[7, 10], [8, 11], ["9\n1", "12"]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
     with pytest.raises(InconsistentTableError) as e:
@@ -845,7 +902,7 @@ def test_quoted_empty_values(parallel, read_basic):
         pytest.xfail("Multiprocessing can fail with quoted fields")
     text = 'a b c\n1 2 " \n "'
     table = read_basic(text, parallel=parallel)
-    assert table['c'][0] is ma.masked  # empty value masked by default
+    assert table['c'][0] == '\n'  # empty value masked by default
 
 
 @pytest.mark.parametrize("parallel", [True, False])

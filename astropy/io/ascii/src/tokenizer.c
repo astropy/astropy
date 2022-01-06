@@ -526,25 +526,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 self->state = QUOTED_FIELD;
             }
 
-        case QUOTED_FIELD_NEWLINE:
-            if (self->state == QUOTED_FIELD)
-                ; // fall through
-            // Ignore initial whitespace if strip_whitespace_lines and
-            // newlines regardless
-            else if (((c == ' ' || c == '\t') && self->strip_whitespace_lines)
-                     || c == self->newline)
-                break;
-            else if (c == self->quotechar)
-            {
-                self->state = FIELD;
-                break;
-            }
-            else
-            {
-                // Once data begins, parse it as a normal quoted field
-                self->state = QUOTED_FIELD;
-            }
-
         case QUOTED_FIELD:
             if (c == self->quotechar)
             {
@@ -562,8 +543,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 // Parse rest of field normally, e.g. "ab"c
                 self->state = FIELD;
             }
-            else if (c == self->newline)
-                self->state = QUOTED_FIELD_NEWLINE;
             else
             {
                 PUSH(c);
