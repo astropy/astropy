@@ -12,9 +12,6 @@ recursive-include astropy *.pyx *.c *.h *.map *.templ
 
 include astropy/astropy.cfg
 
-# We have to explicitly include the following modules, otherwise only the
-# Python 2 versions are included when making a source distribution in Python
-# 2, and similarly for Python 3:
 include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
 

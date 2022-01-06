@@ -23,7 +23,7 @@ from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
 
 from . import _np_utils
-from .np_utils import fix_column_name, TableMergeError
+from .np_utils import TableMergeError
 
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
            'join_skycoord', 'join_distance']
@@ -951,7 +951,9 @@ def get_descrs(arrays, col_name_map):
             raise TableMergeError(f'Key columns {names!r} have different shape')
         shape = uniq_shapes.pop()
 
-        out_descrs.append((fix_column_name(out_name), dtype, shape))
+        if out_name is not None:
+            out_name = str(out_name)
+        out_descrs.append((out_name, dtype, shape))
 
     return out_descrs
 

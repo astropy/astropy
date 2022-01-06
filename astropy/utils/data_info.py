@@ -39,11 +39,6 @@ IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
                         'Mean of empty slice|Degrees of freedom <= 0|'
                         'invalid value encountered in sqrt'),)
 
-STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
-                     (False, 'U'): 'unicode',
-                     (True, 'S'): 'bytes',  # PY3
-                     (True, 'U'): 'str'}
-
 
 @contextmanager
 def serialize_context_as(context):
@@ -75,8 +70,8 @@ def dtype_info_name(dtype):
     <type_name>[B] where <type_name> is like ``int`` or ``bool`` and [B] is an
     optional number of bits which gets included only for numeric types.
 
-    For bytes, string and unicode types, the output is shown below, where <N>
-    is the number of characters.  This representation corresponds to the Python
+    The output is shown below for ``bytes`` and ``str`` types, with <N> being
+    the number of characters. This representation corresponds to the Python
     type that matches the dtype::
 
       Numpy          S<N>      U<N>
@@ -85,7 +80,7 @@ def dtype_info_name(dtype):
     Parameters
     ----------
     dtype : str, `~numpy.dtype`, type
-        Input dtype as an object that can be converted via np.dtype()
+        Input as an object that can be converted via :class:`numpy.dtype`.
 
     Returns
     -------
@@ -94,8 +89,8 @@ def dtype_info_name(dtype):
     """
     dtype = np.dtype(dtype)
     if dtype.kind in ('S', 'U'):
+        type_name = 'bytes' if dtype.kind == 'S' else 'str'
         length = re.search(r'(\d+)', dtype.str).group(1)
-        type_name = STRING_TYPE_NAMES[(True, dtype.kind)]
         out = type_name + length
     else:
         out = dtype.name
@@ -157,10 +152,9 @@ def data_info_factory(names, funcs):
 def _get_obj_attrs_map(obj, attrs):
     """
     Get the values for object ``attrs`` and return as a dict.  This
-    ignores any attributes that are None and in Py2 converts any unicode
-    attribute names or values to str.  In the context of serializing the
-    supported core astropy classes this conversion will succeed and results
-    in more succinct and less python-specific YAML.
+    ignores any attributes that are None.  In the context of serializing
+    the supported core astropy classes this conversion will succeed and
+    results in more succinct and less python-specific YAML.
     """
     out = {}
     for attr in attrs:
@@ -753,8 +747,7 @@ class MixinInfo(BaseColumnInfo):
         # table when setting the name attribute.  This mirrors the same
         # functionality in the BaseColumn class.
         if self.parent_table is not None:
-            from astropy.table.np_utils import fix_column_name
-            new_name = fix_column_name(name)  # Ensure col name is numpy compatible
+            new_name = None if name is None else str(name)
             self.parent_table.columns._rename_column(self.name, new_name)
 
         self._attrs['name'] = name

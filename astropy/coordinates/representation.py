@@ -460,9 +460,6 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def __truediv__(self, other):
         return self._scale_operation(operator.truediv, other)
 
-    def __div__(self, other):  # pragma: py2
-        return self._scale_operation(operator.truediv, other)
-
     def __neg__(self):
         return self._scale_operation(operator.neg)
 

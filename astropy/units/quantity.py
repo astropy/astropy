@@ -1164,18 +1164,6 @@ class Quantity(np.ndarray):
 
         return super().__rtruediv__(other)
 
-    def __div__(self, other):
-        """ Division between `Quantity` objects. """
-        return self.__truediv__(other)
-
-    def __idiv__(self, other):
-        """ Division between `Quantity` objects. """
-        return self.__itruediv__(other)
-
-    def __rdiv__(self, other):
-        """ Division between `Quantity` objects. """
-        return self.__rtruediv__(other)
-
     def __pow__(self, other):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.

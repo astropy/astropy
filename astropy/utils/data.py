@@ -12,7 +12,6 @@ import os
 import io
 import re
 import shutil
-import socket
 import ssl
 import sys
 import urllib.request
@@ -1378,13 +1377,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                                      '. requested URL: '
                                      + remote_url)
                 e.reason.args = (e.reason.errno, e.reason.strerror)
-            errors[source_url] = e
-        except socket.timeout as e:
-            # this isn't supposed to happen, but occasionally a socket.timeout
-            # gets through.  It's supposed to be caught in urllib and raised
-            # in this way, but for some reason in mysterious circumstances it
-            # doesn't (or didn't in python2?). So we'll just re-raise it here
-            # instead.
             errors[source_url] = e
     else:   # No success
         if not sources:
