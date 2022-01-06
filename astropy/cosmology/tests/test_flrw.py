@@ -765,7 +765,6 @@ class FLRWSubclassTest(TestFLRW):
 
     # -------------------------------------------
 
-    @pytest.mark.skipif(HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z", valid_zs)
     def test_Otot(self, cosmo, z):
         """Test :meth:`astropy.cosmology.FLRW.Otot`."""
@@ -963,6 +962,9 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         self.cls = FlatLambdaCDM
         self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one)
         self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+
+    # ===============================================================
+    # Method & Attribute Tests
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""

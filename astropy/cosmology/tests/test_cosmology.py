@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""Stand-alone overall systems tests for :mod:`astropy.cosmology`."""
+
 from io import StringIO
 
 import pytest
@@ -9,11 +11,42 @@ import numpy as np
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import Cosmology, flrw, funcs
-from astropy.cosmology.realizations import Planck13, Planck18, default_cosmology
+from astropy.cosmology.realizations import Planck18
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy.")
+def test_flat_z1():
+    """Test a flat cosmology at z=1 against several other on-line calculators.
+
+    Test values were taken from the following web cosmology calculators on
+    2012-02-11:
+
+    Wright: http://www.astro.ucla.edu/~wright/CosmoCalc.html
+            (https://ui.adsabs.harvard.edu/abs/2006PASP..118.1711W)
+    Kempner: http://www.kempner.net/cosmic.php
+    iCosmos: http://www.icosmos.co.uk/index.html
+    """
+    cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
+
+    # The order of values below is Wright, Kempner, iCosmos'
+    assert allclose(cosmo.comoving_distance(1),
+                    [3364.5, 3364.8, 3364.7988] * u.Mpc, rtol=1e-4)
+    assert allclose(cosmo.angular_diameter_distance(1),
+                    [1682.3, 1682.4, 1682.3994] * u.Mpc, rtol=1e-4)
+    assert allclose(cosmo.luminosity_distance(1),
+                    [6729.2, 6729.6, 6729.5976] * u.Mpc, rtol=1e-4)
+    assert allclose(cosmo.lookback_time(1),
+                    [7.841, 7.84178, 7.843] * u.Gyr, rtol=1e-3)
+    assert allclose(cosmo.lookback_distance(1),
+                    [2404.0, 2404.24, 2404.4] * u.Mpc, rtol=1e-3)
+
+
+###############################################################################
+# TODO! sort and refactor following tests.
+# overall systems tests stay here, specific tests go to new test suite.
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units():
@@ -127,35 +160,6 @@ def test_xtfuncs():
                     rtol=1e-4)
     assert allclose(cosmo.abs_distance_integrand(z),
                     [2.7899584, 3.44104758], rtol=1e-4)
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
-def test_flat_z1():
-    """ Test a flat cosmology at z=1 against several other on-line
-    calculators.
-    """
-    cosmo = flrw.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
-    z = 1
-
-    # Test values were taken from the following web cosmology
-    # calculators on 27th Feb 2012:
-
-    # Wright: http://www.astro.ucla.edu/~wright/CosmoCalc.html
-    #         (https://ui.adsabs.harvard.edu/abs/2006PASP..118.1711W)
-    # Kempner: http://www.kempner.net/cosmic.php
-    # iCosmos: http://www.icosmos.co.uk/index.html
-
-    # The order of values below is Wright, Kempner, iCosmos'
-    assert allclose(cosmo.comoving_distance(z),
-                    [3364.5, 3364.8, 3364.7988] * u.Mpc, rtol=1e-4)
-    assert allclose(cosmo.angular_diameter_distance(z),
-                    [1682.3, 1682.4, 1682.3994] * u.Mpc, rtol=1e-4)
-    assert allclose(cosmo.luminosity_distance(z),
-                    [6729.2, 6729.6, 6729.5976] * u.Mpc, rtol=1e-4)
-    assert allclose(cosmo.lookback_time(z),
-                    [7.841, 7.84178, 7.843] * u.Gyr, rtol=1e-3)
-    assert allclose(cosmo.lookback_distance(z),
-                    [2404.0, 2404.24, 2404.4] * u.Mpc, rtol=1e-3)
 
 
 # This class is to test whether the routines work correctly
