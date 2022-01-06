@@ -29,7 +29,6 @@ from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_copy, _convert_sequence_data_to_array)
 from .row import Row
-from .np_utils import fix_column_name
 from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
@@ -828,9 +827,7 @@ class Table:
         if names is None:
             names = default_names or [None] * n_cols
 
-        # Numpy does not support bytes column names on Python 3, so fix them
-        # up now.
-        names = [fix_column_name(name) for name in names]
+        names = [None if name is None else str(name) for name in names]
 
         self._check_names_dtype(names, dtype, n_cols)
 
