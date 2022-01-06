@@ -1,0 +1,3 @@
+Improve the performance of ``np.searchsorted`` by a factor of 1000 for a
+bytes-type ``Column`` when the search value is ``str`` or an array of ``str``.
+This happens commonly for string data stored in FITS or HDF5 format files.

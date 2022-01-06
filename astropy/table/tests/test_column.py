@@ -933,3 +933,23 @@ def test_masked_column_serialize_method_propagation():
     assert mc4.info.serialize_method['ecsv'] == 'data_mask'
     mc5 = mc[1:]
     assert mc5.info.serialize_method['ecsv'] == 'data_mask'
+
+
+@pytest.mark.parametrize('dtype', ['S', 'U', 'i'])
+def test_searchsorted(Column, dtype):
+    c = Column([1, 2, 2, 3], dtype=dtype)
+    if isinstance(Column, table.MaskedColumn):
+        # Searchsorted seems to ignore the mask
+        c[2] = np.ma.masked
+
+    if dtype == 'i':
+        vs = (2, [2, 1])
+    else:
+        vs = ('2', ['2', '1'], b'2', [b'2', b'1'])
+    for v in vs:
+        v = np.array(v, dtype=dtype)
+        exp = np.searchsorted(c.data, v, side='right')
+        res = c.searchsorted(v, side='right')
+        assert np.all(res == exp)
+        res = np.searchsorted(c, v, side='right')
+        assert np.all(res == exp)
