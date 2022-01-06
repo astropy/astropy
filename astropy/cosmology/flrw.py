@@ -251,8 +251,7 @@ class FLRW(Cosmology):
             elif self._nmasslessnu == 0:  # only massive
                 m = self._massivenu_mass
             else:  # a mix -- the most complicated case
-                m = np.append(np.zeros(self._nmasslessnu),
-                              self._massivenu_mass.value)
+                m = np.append(np.zeros(self._nmasslessnu), self._massivenu_mass)
             self._m_nu = m << self._m_nu.unit
 
         # -------------------
