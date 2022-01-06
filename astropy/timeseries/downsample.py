@@ -174,8 +174,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
 
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
-        indices_start = np.searchsorted(ts_sorted.time[keep],
-                                        np.minimum(bin_start, ts_sorted.time[-1]))
+        indices_start = np.searchsorted(subset.time, bin_start[bin_start <= ts_sorted.time[-1]])
         indices[indices_start] = np.arange(len(indices_start))
 
     # Determine rows where values are defined
