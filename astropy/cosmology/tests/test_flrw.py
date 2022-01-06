@@ -26,6 +26,7 @@ from astropy.cosmology.flrw import (a_B_c2, critdens_const, ellipkinc,
 from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from .conftest import get_redshift_methods
 from .test_core import CosmologySubclassTest as CosmologyTest, valid_zs, invalid_zs
 from .test_core import FlatCosmologyMixinTest, ParameterTestMixin
 
@@ -387,18 +388,14 @@ class ParameterOb0TestMixin(ParameterTestMixin):
 
         # on the instance
         assert cosmo.Ob0 is cosmo._Ob0
-        assert cosmo.Ob0 is None
+        assert cosmo.Ob0 == 0.03
 
     def test_init_Ob0(self, cosmo_cls):
         """Test initialization for values of ``Ob0``."""
         ba = self.ba
 
-        # default value is `None`
-        assert ba.arguments["Ob0"] is None
-
         # test that it works with units
-        # need to manually specify a value because default is `None`
-        ba.arguments["Ob0"] = 0.05 * u.one  # ensure units
+        assert isinstance(ba.arguments["Ob0"], u.Quantity)
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Ob0 == ba.arguments["Ob0"]
 
@@ -437,6 +434,9 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         with pytest.raises(ValueError):
             cosmo.Odm(1)
 
+        # The default value is None
+        assert cosmo_cls._init_signature.parameters["Ob0"].default is None
+
 
 class TestFLRW(CosmologyTest,
                ParameterH0TestMixin, ParameterOm0TestMixin, ParameterOde0TestMixin,
@@ -455,8 +455,9 @@ class TestFLRW(CosmologyTest,
         _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
 
         self.cls = SubFLRW
-        self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.689 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.73 * u.one)
+        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, Ob0=0.03 * u.one,
+                               name=self.__class__.__name__, meta={"a": "b"})
 
     def teardown_class(self):
         super().teardown_class(self)
@@ -741,9 +742,20 @@ class FLRWSubclassTest(TestFLRW):
     @abc.abstractmethod
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
 
     # ===============================================================
     # Method & Attribute Tests
+
+    _FLRW_redshift_methods = get_redshift_methods(FLRW, allow_private=True, allow_z2=False)
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        with pytest.raises(exc):
+            getattr(cosmo, method)(z)
 
     @pytest.mark.parametrize("z", valid_zs)
     @abc.abstractmethod
@@ -756,12 +768,6 @@ class FLRWSubclassTest(TestFLRW):
         w = cosmo.w(z)
         assert np.shape(w) == np.shape(z)  # test same shape
         assert u.Quantity(w).unit == u.one  # test no units or dimensionless
-
-    @pytest.mark.parametrize("z, exc", invalid_zs)
-    def test_w_fail(self, cosmo, z, exc):
-        """Test :meth:`astropy.cosmology.FLRW.w` with bad input"""
-        with pytest.raises(exc):
-            cosmo.w(z)
 
     # -------------------------------------------
 
@@ -832,6 +838,19 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
             ...
     """
 
+    def setup_class(self):
+        """Setup for testing.
+
+        Set up as for regular FLRW test class, but remove dark energy component
+        since flat cosmologies are forbidden Ode0 as an argument,
+        see ``test_init_subclass``.
+        """
+        super().setup_class(self)
+        self._cls_args.pop("Ode0")
+
+    # ===============================================================
+    # Method & Attribute Tests
+
     # ---------------------------------------------------------------
     # class-level
 
@@ -878,6 +897,13 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         # for flat cosmologies, Otot is 1, within precision.
         assert u.allclose(cosmo.Otot(z), 1.0)
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', FLRWSubclassTest._FLRW_redshift_methods - {"Otot"})
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     # ---------------------------------------------------------------
 
@@ -926,12 +952,22 @@ class TestLambdaCDM(FLRWSubclassTest):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = LambdaCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
     # ===============================================================
     # Method & Attribute Tests
+
+    _FLRW_redshift_methods = get_redshift_methods(LambdaCDM, allow_private=True, allow_z2=False) - {"_dS_age"}
+    # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
+    # so any input that doesn't trip up ``np.shape`` is "valid"
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     @pytest.mark.parametrize("z", valid_zs)
     def test_w(self, cosmo, z):
@@ -947,7 +983,7 @@ class TestLambdaCDM(FLRWSubclassTest):
 
         expected = ("LambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+                    " Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -959,9 +995,15 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = FlatLambdaCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize('method', TestLambdaCDM._FLRW_redshift_methods - {"Otot"})
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        super().test_redshift_method_bad_input(cosmo, method, z, exc)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -972,7 +1014,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
 
         expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
                     " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+                    " Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1023,10 +1065,10 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
+
         self.cls = wCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, w0=-0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(w0=-0.5)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -1059,7 +1101,7 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
 
         expected = ("wCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, w0=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1071,10 +1113,9 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = FlatwCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, w0=-0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(w0=-0.5)
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
@@ -1082,7 +1123,7 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
 
         expected = ("FlatwCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " w0=-0.5, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+                    " Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1133,10 +1174,9 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = w0waCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, w0=-1, wa=-0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(w0=-1, wa=-0.5)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -1171,7 +1211,7 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
 
         expected = ("w0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1183,10 +1223,9 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = Flatw0waCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, w0=-1, wa=-0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(w0=-1, wa=-0.5)
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
@@ -1194,7 +1233,7 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
 
         expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
                     " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1285,10 +1324,9 @@ class TestwpwaCDM(FLRWSubclassTest,
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = wpwaCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, wp=-0.9, wa=0.2, zp=0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(wp=-0.9, wa=0.2, zp=0.5)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -1325,7 +1363,7 @@ class TestwpwaCDM(FLRWSubclassTest,
 
         expected = ("wpwaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
-                    " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)")
+                    " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -1371,15 +1409,15 @@ class ParameterwzTestMixin(ParameterTestMixin):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
-class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
+class Testw0wzCDM(FLRWSubclassTest,
+                  Parameterw0TestMixin, ParameterwzTestMixin):
     """Test :class:`astropy.cosmology.w0wzCDM`."""
 
     def setup_class(self):
         """Setup for testing."""
+        super().setup_class(self)
         self.cls = w0wzCDM
-        self._cls_args = dict(H0=70 * (u.km / u.s / u.Mpc), Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, w0=-1, wz=0.5,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs.update(w0=-1, wz=0.5)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -1414,5 +1452,5 @@ class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
 
         expected = ("w0wzCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
         assert repr(cosmo) == expected
