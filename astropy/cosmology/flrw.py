@@ -194,7 +194,8 @@ class FLRW(Cosmology):
                     self._nmassivenu = self._nneutrinos
                     self._nmasslessnu = 0
             elif len(m_nu) != self._nneutrinos:  # not scalar, check number of masses
-                raise ValueError("unexpected number of neutrino masses.")
+                raise ValueError("unexpected number of neutrino masses — "
+                                 f"expected {self._nneutrinos}, got {len(m_nu)}.")
             # elif m_nu.value.max() == 0:
             #     pass  # if this is true, min = max = 0 = default case (above)
             elif np.any(m_nu.value > 0):  # Different masses.
