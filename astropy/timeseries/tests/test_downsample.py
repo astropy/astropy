@@ -177,15 +177,20 @@ def test_downsample():
         assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
 
 
-@pytest.mark.parametrize("time,time_bin_start,time_bin_end",
+@pytest.mark.parametrize("time, time_bin_start, time_bin_end",
                         [(INPUT_TIME[:2], INPUT_TIME[2:], None),
-                         (INPUT_TIME[3:], INPUT_TIME[:2], INPUT_TIME[1:3])])
+                         (INPUT_TIME[3:], INPUT_TIME[:2], INPUT_TIME[1:3]),
+                         (INPUT_TIME[[0]], INPUT_TIME[:2], None),
+                         (INPUT_TIME[[0]], INPUT_TIME[::2], None)])
 def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
     """Regression test for #12527: allow downsampling even if all bins fall
     before or beyond the time span of the data."""
-    # Place all bins *beyond* the time span of the data
+
     ts = TimeSeries(time=time, data=[np.ones(len(time))], names=['a'])
     down = aggregate_downsample(ts, time_bin_start=time_bin_start, time_bin_end=time_bin_end)
     assert len(down) == len(time_bin_start)
-    assert down['a'].mask.all()
     assert all(down['time_bin_size'] >= 0)  # bin lengths shall never be negative
+    if ts.time.min() < time_bin_start[0] or time_bin_end is not None:
+        assert down['a'].mask.all()        # all bins placed *beyond* the time span of the data
+    elif ts.time.min() < time_bin_start[1]:
+        assert down['a'][0] == ts['a'][0]  # single-valued time series falls in *first* bin
