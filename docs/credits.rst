@@ -389,6 +389,7 @@ Core Package Contributors
 * Víctor Terrón
 * Víctor Zabalza
 * Wilfred Tyler Gee
+* William Jamieson
 * Wolfgang Kerzendorf
 * Yannick Copin
 * Yash Kumar
