@@ -92,16 +92,18 @@ class TransformType(AstropyAsdfType):
             node['bounding_box'] = bb
 
         elif isinstance(bb, CompoundBoundingBox):
+            cbbox = {}
             selector_args = [[sa.index, sa.ignore] for sa in bb.selector_args]
-            node['selector_args'] = selector_args
-            node['cbbox_keys'] = list(bb.bounding_boxes.keys())
+            cbbox['selector_args'] = selector_args
+            cbbox['cbbox_keys'] = list(bb.bounding_boxes.keys())
 
             bounding_boxes = list(bb.bounding_boxes.values())
             if len(model.inputs) - len(selector_args) == 1:
-                node['cbbox_values'] = [list(sbbox.bounding_box()) for sbbox in bounding_boxes]
+                cbbox['cbbox_values'] = [list(sbbox.bounding_box()) for sbbox in bounding_boxes]
             else:
-                node['cbbox_values'] = [[list(item) for item in sbbox.bounding_box()
+                cbbox['cbbox_values'] = [[list(item) for item in sbbox.bounding_box()
                                          if np.isfinite(item[0])] for sbbox in bounding_boxes]
+            node['compound_bounding_box'] = cbbox
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):
