@@ -98,6 +98,12 @@ def test_nbins():
     down_nbins = aggregate_downsample(ts, n_bins=2)
     assert_equal(down_nbins.time_bin_start.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000'])
 
+    # Regression test for #12527: ignore `n_bins` if `time_bin_start` is an array
+    n_times = len(INPUT_TIME)
+    for n_bins in [0, n_times - 1, n_times, n_times + 1]:
+        down_nbins = aggregate_downsample(ts, time_bin_start=INPUT_TIME, n_bins=n_bins)
+        assert len(down_nbins) == n_times
+
 
 def test_downsample():
     ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=['a'])
@@ -169,3 +175,22 @@ def test_downsample():
                                                  time_bin_end=Time(['2016-03-22T12:30:34',
                                                               '2016-03-22T12:30:36.000']))
         assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
+
+
+@pytest.mark.parametrize("time, time_bin_start, time_bin_end",
+                        [(INPUT_TIME[:2], INPUT_TIME[2:], None),
+                         (INPUT_TIME[3:], INPUT_TIME[:2], INPUT_TIME[1:3]),
+                         (INPUT_TIME[[0]], INPUT_TIME[:2], None),
+                         (INPUT_TIME[[0]], INPUT_TIME[::2], None)])
+def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
+    """Regression test for #12527: allow downsampling even if all bins fall
+    before or beyond the time span of the data."""
+
+    ts = TimeSeries(time=time, data=[np.ones(len(time))], names=['a'])
+    down = aggregate_downsample(ts, time_bin_start=time_bin_start, time_bin_end=time_bin_end)
+    assert len(down) == len(time_bin_start)
+    assert all(down['time_bin_size'] >= 0)  # bin lengths shall never be negative
+    if ts.time.min() < time_bin_start[0] or time_bin_end is not None:
+        assert down['a'].mask.all()        # all bins placed *beyond* the time span of the data
+    elif ts.time.min() < time_bin_start[1]:
+        assert down['a'][0] == ts['a'][0]  # single-valued time series falls in *first* bin
