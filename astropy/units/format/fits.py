@@ -98,7 +98,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
-        cls._validate_unit(unit)
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     @classmethod
