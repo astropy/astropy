@@ -499,6 +499,10 @@ def get_moon(time, location=None, ephemeris=None):
 
     Notes
     -----
+    The coordinate returned is the apparent position, which is the position of
+    the moon at time *t* minus the light travel time from the moon to the
+    observing *location*.
+
     {_EPHEMERIS_NOTE}
     """
 
