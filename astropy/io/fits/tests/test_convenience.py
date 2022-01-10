@@ -419,7 +419,7 @@ class TestConvenience(FitsTestCase):
 
         with pytest.raises(
             IndexError,
-            match="No data in either Primary or first extension HDUs."
+            match="No data in either Primary or first non-primary HDUs."
         ):
             fits.getdata(buf)
 
@@ -434,6 +434,6 @@ class TestConvenience(FitsTestCase):
 
         with pytest.raises(
             IndexError,
-            match="No data in Primary HDU and no extension HDU found."
+            match="No data in Primary HDU and no non-primary HDU found."
         ):
             fits.getdata(buf)
