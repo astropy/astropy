@@ -144,6 +144,24 @@ def test_bad_restfreqs(function, value):
         function(value)
 
 
+@pytest.mark.parametrize(('z', 'rv_ans'),
+                         [(0, 0 * (u.km / u.s)),
+                          (0.001, 299642.56184583 * (u.m / u.s)),
+                          (-1, -2.99792458e8 * (u.m / u.s))])
+def test_doppler_redshift(z, rv_ans):
+    z_in = z * u.dimensionless_unscaled
+    rv_out = z_in.to(u.km / u.s, u.doppler_redshift())
+    z_out = rv_out.to(u.dimensionless_unscaled, u.doppler_redshift())
+    assert_quantity_allclose(rv_out, rv_ans)
+    assert_quantity_allclose(z_out, z_in)  # Check roundtrip
+
+
+def test_doppler_redshift_no_cosmology():
+    from astropy.cosmology.units import redshift
+    with pytest.raises(u.UnitConversionError, match='not convertible'):
+        (0 * (u.km / u.s)).to(redshift, u.doppler_redshift())
+
+
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
     # in the charge of the electron, which is known to about
