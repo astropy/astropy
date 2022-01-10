@@ -88,10 +88,8 @@ class ParameterH0TestMixin(ParameterTestMixin):
         assert cosmo.H0 == self._cls_args["H0"]
         assert isinstance(cosmo.H0, u.Quantity) and cosmo.H0.unit == unit
 
-    def test_init_H0(self, cosmo_cls):
+    def test_init_H0(self, cosmo_cls, ba):
         """Test initialization for values of ``H0``."""
-        ba = self.ba
-
         # test that it works with units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.H0 == ba.arguments["H0"]
@@ -132,10 +130,8 @@ class ParameterOm0TestMixin(ParameterTestMixin):
         assert cosmo.Om0 == self._cls_args["Om0"]
         assert isinstance(cosmo.Om0, float)
 
-    def test_init_Om0(self, cosmo_cls):
+    def test_init_Om0(self, cosmo_cls, ba):
         """Test initialization for values of ``Om0``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["Om0"] = ba.arguments["Om0"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -179,10 +175,8 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         assert cosmo.Ode0 == self._cls_args["Ode0"]
         assert isinstance(cosmo.Ode0, float)
 
-    def test_init_Ode0(self, cosmo_cls):
+    def test_init_Ode0(self, cosmo_cls, ba):
         """Test initialization for values of ``Ode0``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["Ode0"] = ba.arguments["Ode0"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -231,10 +225,8 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
         assert cosmo.Tcmb0 == self.cls_kwargs["Tcmb0"]
         assert isinstance(cosmo.Tcmb0, u.Quantity) and cosmo.Tcmb0.unit == u.K
 
-    def test_init_Tcmb0(self, cosmo_cls):
+    def test_init_Tcmb0(self, cosmo_cls, ba):
         """Test initialization for values of ``Tcmb0``."""
-        ba = self.ba
-
         # test that it works with units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Tcmb0 == ba.arguments["Tcmb0"]
@@ -275,10 +267,8 @@ class ParameterNeffTestMixin(ParameterTestMixin):
         assert cosmo.Neff == self.cls_kwargs.get("Neff", 3.04)
         assert isinstance(cosmo.Neff, float)
 
-    def test_init_Neff(self, cosmo_cls):
+    def test_init_Neff(self, cosmo_cls, ba):
         """Test initialization for values of ``Neff``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["Neff"] = ba.arguments["Neff"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -326,41 +316,79 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
             assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
             assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
 
-    def test_init_m_nu(self, cosmo_cls):
-        """Test initialization for values of ``m_nu``."""
-        ba = self.ba
+    def test_init_m_nu(self, cosmo_cls, ba):
+        """Test initialization for values of ``m_nu``.
 
-        # test that it works with units
+        Note this requires the class to have a property ``has_massive_nu``.
+        """
+        # Test that it works when m_nu has units.
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(cosmo.m_nu == ba.arguments["m_nu"])
+        assert np.all(cosmo.m_nu == ba.arguments["m_nu"])  # (& checks len, unit)
+        assert not cosmo.has_massive_nu
+        assert cosmo.m_nu.unit == u.eV  # explicitly check unit once.
 
-        # also without units
+        # And it works when m_nu doesn't have units.
         ba.arguments["m_nu"] = ba.arguments["m_nu"].value  # strip units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert np.all(cosmo.m_nu.value == ba.arguments["m_nu"])
+        assert not cosmo.has_massive_nu
 
-        # negative m_nu fails
+        # A negative m_nu raises an exception.
         tba = copy.copy(ba)
         tba.arguments["m_nu"] = u.Quantity([-0.3, 0.2, 0.1], u.eV)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="invalid"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # mismatch with Neff and Tcmb0
+    def test_init_m_nu_and_Neff(self, cosmo_cls, ba):
+        """Test initialization for values of ``m_nu`` and ``Neff``.
+
+        Note this test requires ``Neff`` as constructor input, and a property
+        ``has_massive_nu``.
+        """
+        # Mismatch with Neff = wrong number of neutrinos
         tba = copy.copy(ba)
-        tba.arguments["Tcmb0"] = 3
-        tba.arguments["Neff"] = 2
+        tba.arguments["Neff"] = 4.05
         tba.arguments["m_nu"] = u.Quantity([0.15, 0.2, 0.1], u.eV)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="unexpected number of neutrino"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # wrong number of neutrinos
+        # No neutrinos, but Neff
+        tba.arguments["m_nu"] = 0
+        cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        assert not cosmo.has_massive_nu
+        assert len(cosmo.m_nu) == 4
+        assert cosmo.m_nu.unit == u.eV
+        assert u.allclose(cosmo.m_nu, 0 * u.eV)
+        # TODO! move this test when create ``test_nu_relative_density``
+        assert u.allclose(cosmo.nu_relative_density(1.0), 0.22710731766 * 4.05, rtol=1e-6)
+
+        # All massive neutrinos case, len from Neff
+        tba.arguments["m_nu"] = 0.1 * u.eV
+        cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        assert cosmo.has_massive_nu
+        assert len(cosmo.m_nu) == 4
+        assert cosmo.m_nu.unit == u.eV
+        assert u.allclose(cosmo.m_nu, [0.1, 0.1, 0.1, 0.1] * u.eV)
+
+    def test_init_m_nu_override_by_Tcmb0(self, cosmo_cls, ba):
+        """Test initialization for values of ``m_nu``.
+
+        Note this test requires ``Tcmb0`` as constructor input, and a property
+        ``has_massive_nu``.
+        """
+        # If Neff = 0, m_nu is None.
         tba = copy.copy(ba)
-        tba.arguments["Tcmb0"] = 3
-        tba.arguments["m_nu"] = u.Quantity([-0.3, 0.2], u.eV)  # 2, expecting 3
-        with pytest.raises(ValueError):
-            cosmo_cls(*tba.args, **tba.kwargs)
+        tba.arguments["Neff"] = 0
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert cosmo.m_nu is None
+        assert not cosmo.has_massive_nu
 
-        # TODO! transfer tests for initializing neutrinos
+        # If Tcmb0 = 0, m_nu is None
+        tba = copy.copy(ba)
+        tba.arguments["Tcmb0"] = 0
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        assert cosmo.m_nu is None
+        assert not cosmo.has_massive_nu
 
 
 class ParameterOb0TestMixin(ParameterTestMixin):
@@ -390,10 +418,8 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         assert cosmo.Ob0 is cosmo._Ob0
         assert cosmo.Ob0 == 0.03
 
-    def test_init_Ob0(self, cosmo_cls):
+    def test_init_Ob0(self, cosmo_cls, ba):
         """Test initialization for values of ``Ob0``."""
-        ba = self.ba
-
         # test that it works with units
         assert isinstance(ba.arguments["Ob0"], u.Quantity)
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -463,7 +489,7 @@ class TestFLRW(CosmologyTest,
         super().teardown_class(self)
         _COSMOLOGY_CLASSES.pop("SubFLRW", None)
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def nonflatcosmo(self):
         """A non-flat cosmology used in equivalence tests."""
         return LambdaCDM(70, 0.4, 0.8)
@@ -478,12 +504,11 @@ class TestFLRW(CosmologyTest,
         # TODO! tests for initializing calculated values, e.g. `h`
         # TODO! transfer tests for initializing neutrinos
 
-    def test_init_Tcmb0_zeroing(self, cosmo_cls):
+    def test_init_Tcmb0_zeroing(self, cosmo_cls, ba):
         """Test if setting Tcmb0 parameter to 0 influences other parameters.
 
         TODO: consider moving this test to ``FLRWSubclassTest``
         """
-        ba = self.ba
         ba.arguments["Tcmb0"] = 0.0
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
 
@@ -817,10 +842,8 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
         assert cosmo.Ode0 is cosmo._Ode0
         assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0)
 
-    def test_init_Ode0(self, cosmo_cls):
+    def test_init_Ode0(self, cosmo_cls, ba):
         """Test initialization for values of ``Ode0``."""
-        ba = self.ba
-
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Ode0 == 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ok0)
 
@@ -1040,10 +1063,8 @@ class Parameterw0TestMixin(ParameterTestMixin):
         assert cosmo.w0 is cosmo._w0
         assert cosmo.w0 == self.cls_kwargs["w0"]
 
-    def test_init_w0(self, cosmo_cls):
+    def test_init_w0(self, cosmo_cls, ba):
         """Test initialization for values of ``w0``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["w0"] = ba.arguments["w0"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -1149,10 +1170,8 @@ class ParameterwaTestMixin(ParameterTestMixin):
         assert cosmo.wa is cosmo._wa
         assert cosmo.wa == self.cls_kwargs["wa"]
 
-    def test_init_wa(self, cosmo_cls):
+    def test_init_wa(self, cosmo_cls, ba):
         """Test initialization for values of ``wa``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["wa"] = ba.arguments["wa"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -1259,10 +1278,8 @@ class ParameterwpTestMixin(ParameterTestMixin):
         assert cosmo.wp is cosmo._wp
         assert cosmo.wp == self.cls_kwargs["wp"]
 
-    def test_init_wp(self, cosmo_cls):
+    def test_init_wp(self, cosmo_cls, ba):
         """Test initialization for values of ``wp``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["wp"] = ba.arguments["wp"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -1298,10 +1315,8 @@ class ParameterzpTestMixin(ParameterTestMixin):
         assert cosmo.zp is cosmo._zp
         assert cosmo.zp == self.cls_kwargs["zp"] << cu.redshift
 
-    def test_init_zp(self, cosmo_cls):
+    def test_init_zp(self, cosmo_cls, ba):
         """Test initialization for values of ``zp``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["zp"] = ba.arguments["zp"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -1389,10 +1404,8 @@ class ParameterwzTestMixin(ParameterTestMixin):
         assert cosmo.wz is cosmo._wz
         assert cosmo.wz == self.cls_kwargs["wz"]
 
-    def test_init_wz(self, cosmo_cls):
+    def test_init_wz(self, cosmo_cls, ba):
         """Test initialization for values of ``wz``."""
-        ba = self.ba
-
         # test that it works with units
         ba.arguments["wz"] = ba.arguments["wz"] << u.one  # ensure units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)

@@ -126,26 +126,23 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
     def cls_args(self):
         return tuple(self._cls_args.values())
 
-    @property
-    def ba(self):
-        """Return filled `inspect.BoundArguments` for cosmology.
-
-        Note this is not a fixture because those are cached and too easily
-        mutated in-place, which is a difficult thing to diagnose.
-        """
-        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
-        ba.apply_defaults()
-        return ba
-
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def cosmo_cls(self):
         """The Cosmology class as a :func:`pytest.fixture`."""
         return self.cls
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")  # ensure not cached.
+    def ba(self):
+        """Return filled `inspect.BoundArguments` for cosmology."""
+        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba.apply_defaults()
+        return ba
+
+    @pytest.fixture(scope="class")
     def cosmo(self, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = self.ba
+        ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+        ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
     # ===============================================================

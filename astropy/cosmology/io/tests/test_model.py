@@ -40,7 +40,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
     See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
     """
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def method_name(self, cosmo):
         # get methods, ignoring private and dunder
         methods = get_redshift_methods(cosmo, allow_private=False, allow_z2=True)
