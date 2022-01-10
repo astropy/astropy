@@ -946,48 +946,6 @@ def test_absorption_distance():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_massivenu_basic():
-    # Test no neutrinos case
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Neff=4.05,
-                              Tcmb0=2.725 * u.K, m_nu=0)
-    assert allclose(tcos.Neff, 4.05)
-    assert not tcos.has_massive_nu
-    mnu = tcos.m_nu
-    assert len(mnu) == 4
-    assert mnu.unit == u.eV
-    assert allclose(mnu, [0.0, 0.0, 0.0, 0.0] * u.eV)
-    assert allclose(tcos.nu_relative_density(1.), 0.22710731766 * 4.05,
-                    rtol=1e-6)
-    assert allclose(tcos.nu_relative_density(1), 0.22710731766 * 4.05,
-                    rtol=1e-6)
-
-    # Alternative no neutrinos case
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0 * u.K,
-                              m_nu=str((0.4 * u.eV).to(u.g, u.mass_energy())))
-    assert not tcos.has_massive_nu
-    assert tcos.m_nu is None
-
-    # Test basic setting, retrieval of values
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725 * u.K,
-                              m_nu=u.Quantity([0.0, 0.01, 0.02], u.eV))
-    assert tcos.has_massive_nu
-    mnu = tcos.m_nu
-    assert len(mnu) == 3
-    assert mnu.unit == u.eV
-    assert allclose(mnu, [0.0, 0.01, 0.02] * u.eV)
-
-    # All massive neutrinos case
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725,
-                              m_nu=u.Quantity(0.1, u.eV), Neff=3.1)
-    assert allclose(tcos.Neff, 3.1)
-    assert tcos.has_massive_nu
-    mnu = tcos.m_nu
-    assert len(mnu) == 3
-    assert mnu.unit == u.eV
-    assert allclose(mnu, [0.1, 0.1, 0.1] * u.eV)
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
 def test_distances():
     # Test distance calculations for various special case
     #  scenarios (no relativistic species, normal, massive neutrinos)
