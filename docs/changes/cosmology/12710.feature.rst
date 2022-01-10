@@ -1,0 +1,5 @@
+For converting a cosmology to a mapping, two new boolean keyword arguments are
+added: ``cosmology_as_str`` for turning the the class reference to a string,
+instead of the class object itself, and ``move_from_meta`` to merge the
+metadata with the rest of the returned mapping instead of adding it as a
+nested dictionary.

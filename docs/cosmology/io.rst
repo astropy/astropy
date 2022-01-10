@@ -259,8 +259,7 @@ a ``*args`` to absorb unneeded information passed by
     >>> from astropy.table import QTable
 
     >>> def to_table_row(cosmology, *args):
-    ...     p = cosmology.to_format("mapping")
-    ...     p["cosmology"] = p["cosmology"].__qualname__  # as string
+    ...     p = cosmology.to_format("mapping", cosmology_as_str=True)
     ...     meta = p.pop("meta")
     ...     # package parameters into lists for Table parsing
     ...     params = {k: [v] for k, v in p.items()}
@@ -363,8 +362,7 @@ boolean flag "overwrite" to set behavior for existing files. Note that
 .. code-block:: python
 
     >>> def write_json(cosmology, file, *, overwrite=False, **kwargs):
-    ...    data = cosmology.to_format("mapping")  # start by turning into dict
-    ...    data["cosmology"] = data["cosmology"].__name__  # change class field to str
+    ...    data = cosmology.to_format("mapping", cosmology_as_str=True)  # start by turning into dict
     ...    # serialize Quantity
     ...    for k, v in data.items():
     ...        if isinstance(v, u.Quantity):
