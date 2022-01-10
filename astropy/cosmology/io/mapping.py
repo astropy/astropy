@@ -187,7 +187,7 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
          'name': 'Planck18', 'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, ...
     """
     if not issubclass(cls, (dict, Mapping)):
-        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {type(cls)}")
+        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {cls}")
 
     m = cls()
     # start with the cosmology class & name
