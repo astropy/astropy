@@ -2,9 +2,11 @@
 
 # STDLIB
 import copy
+import inspect
 from collections import OrderedDict
 
 # THIRD PARTY
+import numpy as np
 import pytest
 
 # LOCAL
@@ -34,69 +36,126 @@ class ToFromMappingTestMixin(IOTestMixinBase):
     See ``TestCosmology`` for an example.
     """
 
-    def test_failed_cls_to_mapping(self, cosmo, to_format):
+    def test_to_mapping_default(self, cosmo, to_format):
+        """Test default usage of Cosmology -> mapping."""
+        m = to_format('mapping')
+        keys = tuple(m.keys())
+
+        assert isinstance(m, dict)
+        # Check equality of all expected items
+        assert keys[0] == "cosmology"
+        assert m.pop("cosmology") is cosmo.__class__
+        assert keys[1] == "name"
+        assert m.pop("name") == cosmo.name
+        for i, k in enumerate(cosmo.__parameters__, start=2):
+            assert keys[i] == k
+            assert np.array_equal(m.pop(k), getattr(cosmo, k))
+        assert keys[-1] == "meta"
+        assert m.pop("meta") == cosmo.meta
+
+        # No unexpected items
+        assert not m
+
+    def test_to_mapping_wrong_cls(self, to_format):
         """Test incorrect argument ``cls`` in ``to_mapping()``."""
         with pytest.raises(TypeError, match="'cls' must be"):
             to_format('mapping', cls=list)
 
     @pytest.mark.parametrize("map_cls", [dict, OrderedDict])
-    def test_to_mapping_cls(self, cosmo, to_format, map_cls):
+    def test_to_mapping_cls(self, to_format, map_cls):
         """Test argument ``cls`` in ``to_mapping()``."""
-        params = to_format('mapping', cls=map_cls)
-        assert isinstance(params, map_cls)  # test type
+        m = to_format('mapping', cls=map_cls)
+        assert isinstance(m, map_cls)  # test type
 
-    def test_from_not_mapping(self, cosmo, from_format):
-        """Test incorrect map type in ``from_mapping()``."""
-        with pytest.raises((TypeError, ValueError)):
-            from_format("NOT A MAP", format="mapping")
+    def test_to_mapping_cosmology_as_str(self, cosmo_cls, to_format):
+        """Test argument ``cosmology_as_str`` in ``to_mapping()``."""
+        default = to_format('mapping')
 
-    def test_tofrom_mapping_instance(self, cosmo, to_format, from_format):
-        """Test cosmology -> Mapping -> cosmology."""
-        # ------------
-        # To Mapping
+        # Cosmology is the class
+        m = to_format('mapping', cosmology_as_str=False)
+        assert inspect.isclass(m["cosmology"])
+        assert cosmo_cls is m["cosmology"]
 
-        params = to_format('mapping')
-        assert isinstance(params, dict)  # test type
-        assert params["cosmology"] is cosmo.__class__
-        assert params["name"] == cosmo.name
+        assert m == default  # False is the default option
 
-        # ------------
-        # From Mapping
+        # Cosmology is a string
+        m = to_format('mapping', cosmology_as_str=True)
+        assert isinstance(m["cosmology"], str)
+        assert m["cosmology"] == cosmo_cls.__qualname__  # Correct class
+        assert tuple(m.keys())[0] == "cosmology"  # Stayed at same index
 
-        params["mismatching"] = "will error"
+    def test_tofrom_mapping_cosmology_as_str(self, cosmo, to_format, from_format):
+        """Test roundtrip with ``cosmology_as_str=True``.
 
-        # tests are different if the last argument is a **kwarg
+        The test for the default option (`False`) is in ``test_tofrom_mapping_instance``.
+        """
+        m = to_format('mapping', cosmology_as_str=True)
+
+        got = from_format(m, format="mapping")
+        assert got == cosmo
+        assert got.meta == cosmo.meta
+
+    def test_to_mapping_move_from_meta(self, to_format):
+        """Test argument ``move_from_meta`` in ``to_mapping()``."""
+        default = to_format('mapping')
+
+        # Metadata is 'separate' from main mapping
+        m = to_format('mapping', move_from_meta=False)
+        assert "meta" in m.keys()
+        assert not any([k in m for k in m["meta"]])  # Not added to main
+
+        assert m == default  # False is the default option
+
+        # Metadata is mixed into main mapping.
+        m = to_format('mapping', move_from_meta=True)
+        assert "meta" not in m.keys()
+        assert all([k in m for k in default["meta"]])  # All added to main
+        #  The parameters take precedence over the metadata
+        assert all([np.array_equal(v, m[k]) for k, v in default.items() if k != "meta"])
+
+    def test_tofrom_mapping_move_tofrom_meta(self, cosmo, to_format, from_format):
+        """Test roundtrip of ``move_from/to_meta`` in ``to/from_mapping()``."""
+        # Metadata is mixed into main mapping.
+        m = to_format('mapping', move_from_meta=True)
+        # (Just adding something to ensure there's 'metadata')
+        m["mismatching"] = "will error"
+
+        # (Tests are different if the last argument is a **kwarg)
         if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
-            got = from_format(params, format="mapping")
+            got = from_format(m, format="mapping")
 
             assert got.name == cosmo.name
             assert "mismatching" not in got.meta
 
             return  # don't continue testing
 
-        # read with mismatching parameters errors
+        # Reading with mismatching parameters errors...
         with pytest.raises(TypeError, match="there are unused parameters"):
-            from_format(params, format="mapping")
+            from_format(m, format="mapping")
 
-        # unless mismatched are moved to meta
-        got = from_format(params, format="mapping", move_to_meta=True)
-        assert got == cosmo
+        # unless mismatched are moved to meta.
+        got = from_format(m, format="mapping", move_to_meta=True)
+        assert got == cosmo  # (Doesn't check metadata)
         assert got.meta["mismatching"] == "will error"
 
-        # it won't error if everything matches up
-        params.pop("mismatching")
-        got = from_format(params, format="mapping")
+    # -----------------------------------------------------
+
+    def test_from_not_mapping(self, cosmo, from_format):
+        """Test incorrect map type in ``from_mapping()``."""
+        with pytest.raises((TypeError, ValueError)):
+            from_format("NOT A MAP", format="mapping")
+
+    def test_from_mapping_default(self, cosmo, to_format, from_format):
+        """Test (cosmology -> Mapping) -> cosmology."""
+        m = to_format('mapping')
+
+        # Read from exactly as given.
+        got = from_format(m, format="mapping")
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-        # and it will also work if the cosmology is a string
-        params["cosmology"] = params["cosmology"].__qualname__
-        got = from_format(params, format="mapping")
-        assert got == cosmo
-        assert got.meta == cosmo.meta
-
-        # also it auto-identifies 'format'
-        got = from_format(params)
+        # Reading auto-identifies 'format'
+        got = from_format(m)
         assert got == cosmo
         assert got.meta == cosmo.meta
 
@@ -105,9 +164,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         Test writing from an instance and reading from that class.
         This works with missing information.
         """
-        # test to_format
         m = cosmo.to_format("mapping")
-        assert isinstance(m, dict)
 
         # partial information
         m.pop("cosmology", None)
@@ -134,3 +191,8 @@ class TestToFromMapping(IOFormatTestBase, ToFromMappingTestMixin):
 
     def setup_class(self):
         self.functions = {"to": to_mapping, "from": from_mapping}
+
+    @pytest.mark.skip("N/A")
+    def test_fromformat_subclass_partial_info_mapping(self):
+        """This test does not apply to the direct functions."""
+        pass
