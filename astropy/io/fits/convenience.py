@@ -34,7 +34,7 @@ explanation of all the different formats.
 
         astropy.io.fits.setval('myimage.fits', 'NAXIS', 1)
 
-    The above example will try to set the NAXIS value on the first extension
+    The above example will try to set the NAXIS value on the first non-primary
     HDU to blank.  That is, the argument '1' is assumed to specify an
     HDU.
 
@@ -43,7 +43,7 @@ explanation of all the different formats.
         astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1)
 
     This will set the NAXIS keyword to 1 on the primary HDU (the default).  To
-    specify the first extension HDU use::
+    specify the first non-primary HDU use::
 
         astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
 
@@ -92,7 +92,7 @@ def getheader(filename, *args, **kwargs):
         must be one of the following rb, rb+, or ab+).
 
     ext, extname, extver
-        The rest of the arguments are for extension HDU specification.  See the
+        The rest of the arguments are for HDU specification.  See the
         `getdata` documentation for explanations/examples.
 
     kwargs
@@ -128,7 +128,7 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
         following rb, rb+, or ab+.
 
     ext
-        The rest of the arguments are for extension HDU specification.
+        The rest of the arguments are for HDU specification.
         They are flexible and are best illustrated by examples.
 
         No extra arguments implies the primary HDU::
@@ -138,13 +138,13 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
         .. note::
             Exclusive to ``getdata``: if ``ext`` is not specified
             and primary header contains no data, ``getdata`` attempts
-            to retrieve data from first extension.
+            to retrieve data from first non-primary HDU.
 
         By HDU number::
 
             getdata('in.fits', 0)      # the primary HDU
-            getdata('in.fits', 2)      # the second extension HDU
-            getdata('in.fits', ext=2)  # the second extension HDU
+            getdata('in.fits', 2)      # the second non-primary HDU
+            getdata('in.fits', ext=2)  # the second non-primary HDU
 
         By name, i.e., ``EXTNAME`` value (if unique)::
 
@@ -216,13 +216,13 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
             # fallback to the first non-primary HDU
             if len(hdulist) == 1:
                 raise IndexError(
-                    "No data in Primary HDU and no extension HDU found."
+                    "No data in Primary HDU and no non-primary HDU found."
                     )
             hdu = hdulist[1]
             data = hdu.data
             if data is None:
                 raise IndexError(
-                    "No data in either Primary or first extension HDUs."
+                    "No data in either Primary or first non-primary HDUs."
                     )
 
         if header:
@@ -270,7 +270,7 @@ def getval(filename, keyword, *args, **kwargs):
         Keyword name
 
     ext, extname, extver
-        The rest of the arguments are for extension HDU specification.
+        The rest of the arguments are for HDU specification.
         See `getdata` for explanations/examples.
 
     kwargs
@@ -338,7 +338,7 @@ def setval(filename, keyword, *args, value=None, comment=None, before=None,
         will automatically be preserved  (default: `False`).
 
     ext, extname, extver
-        The rest of the arguments are for extension HDU specification.
+        The rest of the arguments are for HDU specification.
         See `getdata` for explanations/examples.
 
     kwargs
@@ -378,7 +378,7 @@ def delval(filename, keyword, *args, **kwargs):
         Keyword name or index
 
     ext, extname, extver
-        The rest of the arguments are for extension HDU specification.
+        The rest of the arguments are for HDU specification.
         See `getdata` for explanations/examples.
 
     kwargs
@@ -701,7 +701,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
 
 def update(filename, data, *args, **kwargs):
     """
-    Update the specified extension with the input data/header.
+    Update the specified HDU with the input data/header.
 
     Parameters
     ----------
@@ -813,18 +813,18 @@ def printdiff(inputa, inputb, *args, **kwargs):
         object to compare to ``inputa``.
 
     ext, extname, extver
-        Additional positional arguments are for extension HDU specification if your
+        Additional positional arguments are for HDU specification if your
         inputs are string filenames (will not work if
         ``inputa`` and ``inputb`` are ``HDU`` objects or `HDUList` objects).
         They are flexible and are best illustrated by examples.  In addition
         to using these arguments positionally you can directly call the
         keyword parameters ``ext``, ``extname``.
 
-        By extension number::
+        By HDU number::
 
             printdiff('inA.fits', 'inB.fits', 0)      # the primary HDU
-            printdiff('inA.fits', 'inB.fits', 2)      # the second extension HDU
-            printdiff('inA.fits', 'inB.fits', ext=2)  # the second extension HDU
+            printdiff('inA.fits', 'inB.fits', 2)      # the second non-primary HDU
+            printdiff('inA.fits', 'inB.fits', ext=2)  # the second non-primary HDU
 
         By name, i.e., ``EXTNAME`` value (if unique). ``EXTNAME`` values are
         not case sensitive:
