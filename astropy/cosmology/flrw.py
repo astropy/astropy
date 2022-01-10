@@ -180,30 +180,42 @@ class FLRW(Cosmology):
             self._neff_per_nu = self._Neff / self._nneutrinos
 
             # Now, figure out if we have massive neutrinos to deal with,
-            # and, if so, get the right number of masses
+            # and, if so, get the right number of masses,
             # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
             m_nu = self._m_nu  # has units eV
-            if np.any(m_nu.value < 0):
-                raise ValueError("invalid (negative) neutrino mass encountered.")
-            elif m_nu.isscalar:  # Assume all neutrinos have the same mass.
-                if m_nu.value != 0.0:  # already dealt with m <= 0
+            if m_nu.isscalar:
+                if m_nu.value != 0.0:
                     self._massivenu = True
                     self._massivenu_mass = np.full(self._nneutrinos, m_nu.value)
                     self._nmassivenu = self._nneutrinos
                     self._nmasslessnu = 0
-            elif len(m_nu) != self._nneutrinos:  # not scalar, check number of masses
+                    m_nu = self._massivenu_mass << m_nu.unit
+                else:
+                    m_nu = np.zeros(self._nmasslessnu) << m_nu.unit
+
+            if np.any(m_nu.value < 0):
+                raise ValueError("invalid (negative) neutrino mass encountered.")
+            elif len(m_nu) != self._nneutrinos:
                 raise ValueError("unexpected number of neutrino masses — "
                                  f"expected {self._nneutrinos}, got {len(m_nu)}.")
-            # elif m_nu.value.max() == 0:
-            #     pass  # if this is true, min = max = 0 = default case (above)
-            elif np.any(m_nu.value > 0):  # Different masses.
+            elif np.any(m_nu.value > 0):  # Different masses, the most complicated case.
                 massive = np.nonzero(m_nu.value > 0)[0]
                 self._massivenu = True
                 self._nmassivenu = len(massive)
                 self._massivenu_mass = m_nu[massive].value
                 self._nmasslessnu = self._nneutrinos - self._nmassivenu
+
+                m = np.append(np.zeros(self._nmasslessnu), self._massivenu_mass)
+            else:  # Only massless (min = max = 0) = default case, set above.
+                m = m_nu
+
+            # Now set m_nu Parameter
+            self._m_nu = m << self._m_nu.unit
+
+        else:  # There are no neutrinos, regardless of what was passed.
+            self._m_nu = None
 
         # Compute photon density, Tcmb, neutrino parameters
         # Tcmb0=0 removes both photons and neutrinos, is handled
@@ -241,18 +253,6 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
             self._nu_y = self._nu_y_list = None
-
-        # now set m_nu Parameter
-        if self._nneutrinos == 0 or self._Tnu0.value == 0:
-            self._m_nu = None
-        else:
-            if not self._massivenu:  # only massless
-                m = np.zeros(self._nmasslessnu)
-            elif self._nmasslessnu == 0:  # only massive
-                m = self._massivenu_mass
-            else:  # a mix -- the most complicated case
-                m = np.append(np.zeros(self._nmasslessnu), self._massivenu_mass)
-            self._m_nu = m << self._m_nu.unit
 
         # -------------------
 
