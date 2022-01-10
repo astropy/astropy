@@ -18,6 +18,7 @@ import asdf
 import astropy.units as u
 from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
+from astropy.modeling.bounding_box import CompoundBoundingBox
 
 
 def custom_and_analytical_inverse():
@@ -384,6 +385,27 @@ model: !transform/concatenate-1.2.0
         model = af["model"]
         assert model.has_inverse()
         assert model.inverse(-5, -20) == (0, 0)
+
+
+def test_serialize_compound_bounding_box(tmpdir):
+    model = astmodels.Shift(1) & astmodels.Shift(2) & astmodels.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bbox = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
+    model.bounding_box = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)], order='F')
+
+    print(model.bounding_box)
+
+    from astropy.io.misc.asdf.tags.transform.basic import TransformType
+    node = TransformType._to_tree_base_transform_members(model, {}, None)
+    cbbox = node['compound_bounding_box']
+    assert cbbox['selector_args'] == [{'argument': 'slit_id', 'ignore': True}]
+    assert cbbox['cbbox'] == [
+        {'key': [0], bbox: None}
+    ]
+    print(node['compound_bounding_box']['cbbox'])
+
+    assert False
 
 
 # test some models and compound models with some input unit equivalencies

@@ -68,6 +68,14 @@ class TransformType(AstropyAsdfType):
 
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
+        def _transform_bbox(bbox):
+            bb = bbox.bounding_box(order='C')
+
+            if len(bbox) == 1:
+                return list(bb)
+            else:
+                return [list(interval) for interval in bb]
+
         if getattr(model, '_user_inverse', None) is not None:
             node['inverse'] = model._user_inverse
 
@@ -83,26 +91,23 @@ class TransformType(AstropyAsdfType):
             bb = None
 
         if isinstance(bb, ModelBoundingBox):
-            bb = bb.bounding_box(order='C')
-
-            if model.n_inputs == 1:
-                bb = list(bb)
-            else:
-                bb = [list(item) for item in bb]
-            node['bounding_box'] = bb
+            node['bounding_box'] = _transform_bbox(bb)
 
         elif isinstance(bb, CompoundBoundingBox):
             cbbox = {}
-            selector_args = [[sa.index, sa.ignore] for sa in bb.selector_args]
-            cbbox['selector_args'] = selector_args
-            cbbox['cbbox_keys'] = list(bb.bounding_boxes.keys())
+            cbbox['selector_args'] = [
+                {
+                    'argument': sa.name(model),
+                    'ignore': sa.ignore
+                } for sa in bb.selector_args
+            ]
 
-            bounding_boxes = list(bb.bounding_boxes.values())
-            if len(model.inputs) - len(selector_args) == 1:
-                cbbox['cbbox_values'] = [list(sbbox.bounding_box()) for sbbox in bounding_boxes]
-            else:
-                cbbox['cbbox_values'] = [[list(item) for item in sbbox.bounding_box()
-                                         if np.isfinite(item[0])] for sbbox in bounding_boxes]
+            cbbox['cbbox'] = [
+                {
+                    'key': list(key),
+                    'bbox': _transform_bbox(bbox)
+                } for key, bbox in bb.bounding_boxes.items()
+            ]
             node['compound_bounding_box'] = cbbox
 
         # model / parameter constraints
