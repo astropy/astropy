@@ -512,6 +512,18 @@ def test_column_aggregate(T1):
                                  '22.0']
 
 
+def test_column_aggregate_f8():
+    """https://github.com/astropy/astropy/issues/12706"""
+    # Just want to make sure it does not crash again.
+    for masked in (False, True):
+        tg = Table({'a': np.arange(2, dtype='>f8')}, masked=masked).group_by('a')
+        tga = tg['a'].groups.aggregate(np.sum)
+        assert tga.pformat() == [' a ',
+                                 '---',
+                                 '0.0',
+                                 '1.0']
+
+
 def test_table_filter():
     """
     Table groups filtering
