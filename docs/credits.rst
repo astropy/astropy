@@ -14,14 +14,17 @@ Core Package Contributors
 * Aditya Sharma
 * Adrian Price-Whelan
 * Akash Deshpande
+* Akeem
+* Akshat Dixit
+* Akshat1Nar
 * Al Niessner
 * Albert Y. Shih
 * Aleh Khvalko
 * Alex Conley
+* Alex de la Vega
 * Alex Drlica-Wagner
 * Alex Hagen
 * Alex Rudy
-* Alex de la Vega
 * Alexander Bakanov
 * Alexandre Beelen
 * Amit Kumar
@@ -29,6 +32,7 @@ Core Package Contributors
 * Anany Shrey Jain
 * Anchit Jain
 * Andreas Baumbach
+* Andrej Rode
 * Andrew Hearin
 * Aniket Kulkarni
 * Aniket Sanghi
@@ -43,6 +47,7 @@ Core Package Contributors
 * Arthur Eigenbrot
 * Asish Panda
 * Asra Nizami
+* athul
 * Austen Groener
 * Axel Donath
 * Azalee Bostroem
@@ -53,18 +58,21 @@ Core Package Contributors
 * Benjamin Winkel
 * Bernardo Sulzbach
 * Bernie Simon
+* Bhavya Khandelwal
 * Bili Dong
 * Bogdan Nicula
 * Bojan Nikolic
 * Brett Morris
 * Brian Soto
 * Brigitta Sipőcz
+* britgit
 * Bruce Merry
 * Bruno Oliveira
 * Bryce Kalmbach
 * Bryce Nordgren
 * Carl Osterwisch
 * Carl Schaffer
+* Chiara Marmo
 * Chris Beaumont
 * Chris Hanley
 * Chris Osborne
@@ -78,6 +86,7 @@ Core Package Contributors
 * Clara Brasseur
 * Clare Shanahan
 * Clément Robert
+* Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
 * Dan Foreman-Mackey
@@ -88,6 +97,7 @@ Core Package Contributors
 * Daniel Datsev
 * Daniel Lenz
 * Daniel Ruschel Dutra
+* Daniel Ryan
 * Danny Goldstein
 * Daria Cara
 * David Kirkby
@@ -100,28 +110,35 @@ Core Package Contributors
 * Derek Homeier
 * Devin Crichton
 * Diego Alonso
+* Diego Asterio de Zaballa
+* disha
 * Dominik Klaes
-* Doug Burke
+* Douglas Burke
 * Drew Leonard
 * Duncan Macleod
 * Dylan Gregersen
+* E\. Madison Bray
+* E\. Rykoff
 * Ed Slavich
 * Edward Betts
+* Edward Slavich
+* Eero Vaher
 * Eli Bressert
 * Elijah Bernstein-Cooper
 * Eloy Salinas
 * Emily Deibert
+* Emir
 * Emma Hogan
 * Eric Depagne
 * Eric Jeschke
 * Eric Koch
-* E. Madison Bray
 * Erik Tollerud
 * Erin Allard
 * Esteban Pardo Sánchez
 * Even Rouault
 * Evert Rol
 * Felix Yan
+* fockez
 * Francesco Biscani
 * Francesco Montanari
 * Francesco Montesano
@@ -141,31 +158,39 @@ Core Package Contributors
 * Gregory Simonian
 * Griffin Hosseinzadeh
 * Gustavo Bragança
+* Gyanendra Shukla
 * Hannes Breytenbach
 * Hans Moritz Günther
 * Harry Ferguson
 * Helen Sherwood-Taylor
 * Himanshu Pathak
+* homeboy445
 * Hugo Buddelmeijer
 * Humna Awan
+* iamsoto
+* ikkamens
 * Inada Naoki
-* J. Goutin
-* J. Xavier Prochaska
-* JC Hsu
+* J\. Goutin
+* J\. Xavier Prochaska
 * Jake VanderPlas
+* Jakob Maljaars
 * James Davies
 * James Dearman
 * James Noss
 * James Taylor
+* James Tocknell
 * James Turner
 * Jan Skowron
 * Jane Rigby
 * Jani Šumak
+* Jason Segnini
 * Javier Pascual Granado
+* JC Hsu
 * Jean Connelly
 * Jeff Taylor
 * Jeffrey McBeth
 * Jero Bado
+* jimboH
 * Joanna Power
 * Joe Hunkeler
 * Joe Lyman
@@ -179,6 +204,7 @@ Core Package Contributors
 * Jonathan Sick
 * Jonathan Whitmore
 * Jörg Dietrich
+* Jose Sabater
 * Joseph Jon Booker
 * Joseph Long
 * Joseph Ryan
@@ -192,6 +218,7 @@ Core Package Contributors
 * Karan Grover
 * Karl Gordon
 * Karl Vyhmeister
+* Karl Wessel
 * Katrin Leinweber
 * Kelle Cruz
 * Kevin Gullikson
@@ -204,8 +231,10 @@ Core Package Contributors
 * Kyle Barbary
 * Kyle Oman
 * Larry Bradley
+* Laura Hayes
 * Laura Watkins
 * Lauren Glattly
+* Laurie Stephey
 * Leah Fulmer
 * Lee Spitler
 * Lehman Garrison
@@ -220,11 +249,15 @@ Core Package Contributors
 * Luigi Paioro
 * Luke G. Bouma
 * Luke Kelley
+* luz paz
+* Léni Gauffier
 * M Atakan Gürkan
 * M S R Dinesh
 * Mabry Cervin
 * Madhura Parikh
 * Magali Mebsout
+* maggiesam
+* Maik Nijhuis
 * Manas Satish Bedmutha
 * Maneesh Yadav
 * Mangala Gowri Krishnamoorthy
@@ -232,6 +265,7 @@ Core Package Contributors
 * Manodeep Sinha
 * Mark Fardal
 * Mark Taylor
+* Markus Demleitner
 * Marten van Kerkwijk
 * Martin Glatzle
 * Matej Stuchlik
@@ -243,12 +277,14 @@ Core Package Contributors
 * Matthew Craig
 * Matthew Petroff
 * Matthew Turk
+* Matthias Bussonnier
 * Mavani Bhautik
 * Max Silbiger
 * Max Voronkov
 * Maximilian Nöthe
 * Médéric Boquien
 * Megan Sosey
+* Michael Brewer
 * Michael Droettboom
 * Michael Hirsch
 * Michael Hoenig
@@ -283,11 +319,15 @@ Core Package Contributors
 * Nick Murphy
 * Nicolas Tessore
 * Nikita Saxena
+* Nikita Tewary
 * Nimit Bhardwaj
 * Noah Zuckman
 * Nora Luetzgendorf
+* odidev
 * Ole Streicher
 * Orion Poplawski
+* orionlee
+* Param Patidar
 * Parikshit Sakurikar
 * Patricio Rojo
 * Patti Carroll
@@ -305,6 +345,7 @@ Core Package Contributors
 * Prasanth Nair
 * Pratik Patel
 * Pritish Chakraborty
+* Pushkar Kopparla
 * Ralf Gommers
 * Rashid Khan
 * Rasmus Handberg
@@ -312,7 +353,9 @@ Core Package Contributors
 * Régis Terrier
 * Ricardo Fonseca
 * Ricardo Ogando
+* Richard R
 * Ricky O'Steen
+* Rik van Lieshout
 * Ritiek Malhotra
 * Ritwick DSouza
 * Roban Hultman Kramer
@@ -323,24 +366,28 @@ Core Package Contributors
 * Rohit Kapoor
 * Rohit Patil
 * Roman Tolesnikov
+* Roy Smart
 * Rui Xue
 * Ryan Abernathey
 * Ryan Cooke
 * Ryan Fox
 * Sadie Bartholomew
+* Sam Van Kooten
 * Sam Verstocken
 * Samuel Brice
 * Sanjeev Dubey
 * Sara Ogaz
+* Sarah Graves
 * Sarah Kendrew
 * Sashank Mishra
+* sashmish
 * Saurav Sachidanand
 * Scott Thomas
 * Semyeong Oh
 * Serge Montagnac
 * Sergio Pascual
-* SF Graves
 * Shailesh Ahuja
+* Shankar Kulumani
 * Shantanu Srivastava
 * Shilpi Jain
 * Shivan Sornarajah
@@ -354,22 +401,26 @@ Core Package Contributors
 * Simon Torres
 * Sourabh Cheedella
 * Srikrishna Sekhar
+* srirajshukla
 * Stefan Becker
 * Stefan Nelson
 * Stephen Portillo
 * Steve Crawford
+* Steve Guest
 * Steven Bamford
 * Stuart Littlefair
 * Stuart Mumford
 * Sudheesh Singanamalla
 * Sushobhana Patra
+* Suyog Garg
 * Swapnil Sharma
-* T. Carl Beery
+* T\. Carl Beery
 * Tanuj Rastogi
 * Thomas Erben
 * Thomas Robitaille
 * Thompson Le Blanc
 * Tiffany Jansen
+* Tim Gates
 * Tim Jenness
 * Tim Plummer
 * Tito Dal Canton
@@ -379,15 +430,17 @@ Core Package Contributors
 * Tom Kooij
 * Tomas Babej
 * Tyler Finethy
-* VSN Reddy Janga
 * Vatsala Swaroop
 * Victoria Dye
 * Vinayak Mehta
 * Vishnunarayan K I
 * Vital Fernández
+* Volodymyr Savchenko
+* VSN Reddy Janga
 * Víctor Terrón
 * Víctor Zabalza
 * Wilfred Tyler Gee
+* William Jamieson
 * Wolfgang Kerzendorf
 * Yannick Copin
 * Yash Kumar
