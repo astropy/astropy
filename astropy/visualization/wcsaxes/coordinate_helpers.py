@@ -652,7 +652,7 @@ class CoordinateHelper:
         # Look up parent axes' transform from data to figure coordinates.
         #
         # See:
-        # https://matplotlib.org/users/transforms_tutorial.html#the-transformation-pipeline
+        # https://matplotlib.org/stable/tutorials/advanced/transforms_tutorial.html#the-transformation-pipeline
         transData = self.parent_axes.transData
         invertedTransLimits = transData.inverted()
 
