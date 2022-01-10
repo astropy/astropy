@@ -316,7 +316,7 @@ try:
         'gallery_dirs': 'generated/examples',  # path to save gallery generated examples
         'reference_url': {
             'astropy': None,
-            'matplotlib': 'https://matplotlib.org/',
+            'matplotlib': 'https://matplotlib.org/stable/',
             'numpy': 'https://numpy.org/doc/stable/',
         },
         'abort_on_example_error': True
