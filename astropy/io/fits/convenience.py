@@ -34,7 +34,7 @@ explanation of all the different formats.
 
         astropy.io.fits.setval('myimage.fits', 'NAXIS', 1)
 
-    The above example will try to set the NAXIS value on the first non-primary
+    The above example will try to set the NAXIS value on the first extension
     HDU to blank.  That is, the argument '1' is assumed to specify an
     HDU.
 
@@ -43,7 +43,7 @@ explanation of all the different formats.
         astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1)
 
     This will set the NAXIS keyword to 1 on the primary HDU (the default).  To
-    specify the first non-primary HDU use::
+    specify the first extension HDU use::
 
         astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
 
@@ -138,13 +138,13 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
         .. note::
             Exclusive to ``getdata``: if ``ext`` is not specified
             and primary header contains no data, ``getdata`` attempts
-            to retrieve data from first non-primary HDU.
+            to retrieve data from first extension HDU.
 
         By HDU number::
 
             getdata('in.fits', 0)      # the primary HDU
-            getdata('in.fits', 2)      # the second non-primary HDU
-            getdata('in.fits', ext=2)  # the second non-primary HDU
+            getdata('in.fits', 2)      # the second extension HDU
+            getdata('in.fits', ext=2)  # the second extension HDU
 
         By name, i.e., ``EXTNAME`` value (if unique)::
 
@@ -213,16 +213,16 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
             if ext_given:
                 raise IndexError(f"No data in HDU #{extidx}.")
 
-            # fallback to the first non-primary HDU
+            # fallback to the first extension HDU
             if len(hdulist) == 1:
                 raise IndexError(
-                    "No data in Primary HDU and no non-primary HDU found."
+                    "No data in Primary HDU and no extension HDU found."
                     )
             hdu = hdulist[1]
             data = hdu.data
             if data is None:
                 raise IndexError(
-                    "No data in either Primary or first non-primary HDUs."
+                    "No data in either Primary or first extension HDUs."
                     )
 
         if header:
@@ -724,11 +724,11 @@ def update(filename, data, *args, **kwargs):
         keyword arguments.  For example::
 
             update(file, dat, hdr, 'sci')  # update the 'sci' extension
-            update(file, dat, 3)  # update the 3rd HDU
-            update(file, dat, hdr, 3)  # update the 3rd HDU
-            update(file, dat, 'sci', 2)  # update the 2nd SCI HDU
-            update(file, dat, 3, header=hdr)  # update the 3rd HDU
-            update(file, dat, header=hdr, ext=5)  # update the 5th HDU
+            update(file, dat, 3)  # update the 3rd extension HDU
+            update(file, dat, hdr, 3)  # update the 3rd extension HDU
+            update(file, dat, 'sci', 2)  # update the 2nd extension HDU named 'sci'
+            update(file, dat, 3, header=hdr)  # update the 3rd extension HDU
+            update(file, dat, header=hdr, ext=5)  # update the 5th extension HDU
 
     **kwargs
         Any additional keyword arguments to be passed to
@@ -823,8 +823,8 @@ def printdiff(inputa, inputb, *args, **kwargs):
         By HDU number::
 
             printdiff('inA.fits', 'inB.fits', 0)      # the primary HDU
-            printdiff('inA.fits', 'inB.fits', 2)      # the second non-primary HDU
-            printdiff('inA.fits', 'inB.fits', ext=2)  # the second non-primary HDU
+            printdiff('inA.fits', 'inB.fits', 2)      # the second extension HDU
+            printdiff('inA.fits', 'inB.fits', ext=2)  # the second extension HDU
 
         By name, i.e., ``EXTNAME`` value (if unique). ``EXTNAME`` values are
         not case sensitive:
