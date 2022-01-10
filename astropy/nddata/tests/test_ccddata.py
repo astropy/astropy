@@ -149,13 +149,19 @@ def test_initialize_from_fits_with_extension(tmpdir):
     fake_img1 = np.zeros([2, 2])
     fake_img2 = np.arange(4).reshape(2, 2)
     hdu0 = fits.PrimaryHDU()
-    hdu1 = fits.ImageHDU(fake_img1)
-    hdu2 = fits.ImageHDU(fake_img2)
+    hdu1 = fits.ImageHDU(fake_img1, name='first', ver=1)
+    hdu2 = fits.ImageHDU(fake_img2, name='second', ver=1)
     hdus = fits.HDUList([hdu0, hdu1, hdu2])
     filename = tmpdir.join('afile.fits').strpath
     hdus.writeto(filename)
     ccd = CCDData.read(filename, hdu=2, unit='adu')
     # ccd should pick up the unit adu from the fits header...did it?
+    np.testing.assert_array_equal(ccd.data, fake_img2)
+    # check hdu string parameter
+    ccd = CCDData.read(filename, hdu='second', unit='adu')
+    np.testing.assert_array_equal(ccd.data, fake_img2)
+    # check hdu tuple parameter
+    ccd = CCDData.read(filename, hdu=('second', 1), unit='adu')
     np.testing.assert_array_equal(ccd.data, fake_img2)
 
 
