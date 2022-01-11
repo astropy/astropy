@@ -21,7 +21,7 @@ from .core import UnitsError, Unit
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic', 'mass_energy',
+           'doppler_optical', 'doppler_relativistic', 'doppler_redshift', 'mass_energy',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
@@ -364,9 +364,9 @@ def doppler_radio(rest):
         return resten * (1-voverc)
 
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_radio", {'rest': rest})
+                        (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+                        (si.eV, si.km/si.s, to_vel_en, from_vel_en),
+                        ], "doppler_radio", {'rest': rest})
 
 
 def doppler_optical(rest):
@@ -430,9 +430,9 @@ def doppler_optical(rest):
         return resten / (1+voverc)
 
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_optical", {'rest': rest})
+                        (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+                        (si.eV, si.km/si.s, to_vel_en, from_vel_en),
+                        ], "doppler_optical", {'rest': rest})
 
 
 def doppler_relativistic(rest):
@@ -469,7 +469,7 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
-    """
+    """  # noqa: E501
 
     assert_is_spectral_unit(rest)
 
@@ -503,9 +503,34 @@ def doppler_relativistic(rest):
         return resten * ((1-voverc) / (1+(voverc)))**0.5
 
     return Equivalency([(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
-            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
-            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
-            ], "doppler_relativistic", {'rest': rest})
+                        (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+                        (si.eV, si.km/si.s, to_vel_en, from_vel_en),
+                        ], "doppler_relativistic", {'rest': rest})
+
+
+def doppler_redshift():
+    """
+    Returns the equivalence between Doppler redshift (unitless) and radial velocity.
+
+    .. note::
+
+        This equivalency is not compatible with cosmological
+        redshift in `astropy.cosmology.units`.
+
+    """
+    rv_unit = si.km / si.s
+    C_KMS = _si.c.to_value(rv_unit)
+
+    def convert_z_to_rv(z):
+        zponesq = (1 + z) ** 2
+        return C_KMS * (zponesq - 1) / (zponesq + 1)
+
+    def convert_rv_to_z(rv):
+        beta = rv / C_KMS
+        return np.sqrt((1 + beta) / (1 - beta)) - 1
+
+    return Equivalency([(dimensionless_unscaled, rv_unit, convert_z_to_rv, convert_rv_to_z)],
+                       "doppler_redshift")
 
 
 def molar_mass_amu():
@@ -524,16 +549,16 @@ def mass_energy():
     """
 
     return Equivalency([(si.kg, si.J, lambda x: x * _si.c.value ** 2,
-             lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 2, si.J / si.m ** 2,
-             lambda x: x * _si.c.value ** 2,
-             lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 3, si.J / si.m ** 3,
-             lambda x: x * _si.c.value ** 2,
-             lambda x: x / _si.c.value ** 2),
-            (si.kg / si.s, si.J / si.s, lambda x: x * _si.c.value ** 2,
-             lambda x: x / _si.c.value ** 2),
-    ], "mass_energy")
+                         lambda x: x / _si.c.value ** 2),
+                        (si.kg / si.m ** 2, si.J / si.m ** 2,
+                         lambda x: x * _si.c.value ** 2,
+                         lambda x: x / _si.c.value ** 2),
+                        (si.kg / si.m ** 3, si.J / si.m ** 3,
+                         lambda x: x * _si.c.value ** 2,
+                         lambda x: x / _si.c.value ** 2),
+                        (si.kg / si.s, si.J / si.s, lambda x: x * _si.c.value ** 2,
+                         lambda x: x / _si.c.value ** 2),
+                        ], "mass_energy")
 
 
 def brightness_temperature(frequency, beam_area=None):
@@ -592,7 +617,7 @@ def brightness_temperature(frequency, beam_area=None):
         >>> surf_brightness = 1e6*u.MJy/u.sr
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
-    """
+    """  # noqa: E501
     if frequency.unit.is_equivalent(si.sr):
         if not beam_area.unit.is_equivalent(si.Hz):
             raise ValueError("The inputs to `brightness_temperature` are "
@@ -617,8 +642,8 @@ def brightness_temperature(frequency, beam_area=None):
             return (x_K * beam / factor)
 
         return Equivalency([(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy),
-                            (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy),],
-                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})
+                            (astrophys.Jy/astrophys.beam, si.K, convert_Jy_to_K, convert_K_to_Jy)],
+                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})  # noqa: E501
     else:
         def convert_JySr_to_K(x_jysr):
             factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
@@ -626,10 +651,10 @@ def brightness_temperature(frequency, beam_area=None):
 
         def convert_K_to_JySr(x_K):
             factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
-            return (x_K / factor) # multiplied by 1x for 1 steradian
+            return (x_K / factor)  # multiplied by 1x for 1 steradian
 
         return Equivalency([(astrophys.Jy/si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)],
-                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})
+                           "brightness_temperature", {'frequency': frequency, 'beam_area': beam_area})  # noqa: E501
 
 
 def beam_angular_area(beam_area):
@@ -647,7 +672,7 @@ def beam_angular_area(beam_area):
     """
     return Equivalency([(astrophys.beam, Unit(beam_area)),
                         (astrophys.beam**-1, Unit(beam_area)**-1),
-                        (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area)),],
+                        (astrophys.Jy/astrophys.beam, astrophys.Jy/Unit(beam_area))],
                        "beam_angular_area", {'beam_area': beam_area})
 
 
@@ -790,7 +815,8 @@ def plate_scale(platescale):
         raise UnitsError("The pixel scale must be in angle/distance or "
                          "distance/angle")
 
-    return Equivalency([(si.m, si.radian, lambda d: d*platescale_val, lambda rad: rad/platescale_val)],
+    return Equivalency([(si.m, si.radian, lambda d: d*platescale_val,
+                         lambda rad: rad/platescale_val)],
                        "plate_scale", {'platescale': platescale})
 
 

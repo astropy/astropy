@@ -7,6 +7,14 @@ What's New in Astropy 5.1?
 Overview
 ========
 
+Astropy 5.1 is a major release that adds significant new functionality since
+the 5.0 LTS release.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-5.0-cosmology`
+* :ref:`whatsnew-doppler-redshift-eq`
+
 .. _whatsnew-5.0-cosmology:
 
 Updates to ``Cosmology``
@@ -17,6 +25,13 @@ and subclasses must override the abstract property ``is_flat``.
 For :class:`~astropy.cosmology.FLRW`, ``is_flat`` checks that ``Ok0=0`` and
 ``Omtot0=1``.
 
+.. _whatsnew-doppler-redshift-eq:
+
+``doppler_redshift`` equivalency
+================================
+
+New :func:`astropy.units.equivalencies.doppler_redshift` is added to
+provide conversion between Doppler redshift and radial velocity.
 
 Full change log
 ===============

@@ -34,22 +34,6 @@ DEFAULT_DISTANCE = 1e6 * u.kpc
 __doctest_skip__ = ['SpectralCoord.*']
 
 
-def _velocity_to_redshift(velocity):
-    """
-    Convert a velocity to a relativistic redshift.
-    """
-    beta = velocity / C_KMS
-    return np.sqrt((1 + beta) / (1 - beta)) - 1
-
-
-def _redshift_to_velocity(redshift):
-    """
-    Convert a relativistic redshift to a velocity.
-    """
-    zponesq = (1 + redshift) ** 2
-    return (C_KMS * (zponesq - 1) / (zponesq + 1))
-
-
 def _apply_relativistic_doppler_shift(scoord, velocity):
     """
     Given a `SpectralQuantity` and a velocity, return a new `SpectralQuantity`
@@ -81,8 +65,8 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
         return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
     else:  # pragma: no cover
         raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
-                            "This should not happen, so please report this in the "
-                            "astropy issue tracker!")
+                           "This should not happen, so please report this in the "
+                           "astropy issue tracker!")
 
 
 def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
@@ -216,7 +200,7 @@ class SpectralCoord(SpectralQuantity):
             # can remove the check here and add redshift=u.one to the decorator
             if not redshift.unit.is_equivalent(u.one):
                 raise u.UnitsError('redshift should be dimensionless')
-            radial_velocity = _redshift_to_velocity(redshift)
+            radial_velocity = redshift.to(u.km / u.s, u.doppler_redshift())
 
         # If we're initializing from an existing SpectralCoord, keep any
         # parameters that aren't being overridden
@@ -476,7 +460,7 @@ class SpectralCoord(SpectralQuantity):
         float
             Redshift of target.
         """
-        return _velocity_to_redshift(self.radial_velocity)
+        return self.radial_velocity.to(u.dimensionless_unscaled, u.doppler_redshift()).value
 
     @staticmethod
     def _calculate_radial_velocity(observer, target, as_scalar=False):
@@ -674,7 +658,7 @@ class SpectralCoord(SpectralQuantity):
         else:
             target_shift = u.Quantity(target_shift)
             if target_shift.unit.physical_type == 'dimensionless':
-                target_shift = _redshift_to_velocity(target_shift)
+                target_shift = target_shift.to(u.km / u.s, u.doppler_redshift())
             if self._observer is None or self._target is None:
                 return self.replicate(value=_apply_relativistic_doppler_shift(self, target_shift),
                                       radial_velocity=self.radial_velocity + target_shift)
@@ -684,7 +668,7 @@ class SpectralCoord(SpectralQuantity):
         else:
             observer_shift = u.Quantity(observer_shift)
             if observer_shift.unit.physical_type == 'dimensionless':
-                observer_shift = _redshift_to_velocity(observer_shift)
+                observer_shift = observer_shift.to(u.km / u.s, u.doppler_redshift())
 
         target_icrs = self._target.transform_to(ICRS())
         observer_icrs = self._observer.transform_to(ICRS())
