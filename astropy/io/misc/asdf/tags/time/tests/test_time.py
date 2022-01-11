@@ -6,7 +6,6 @@ import pytest
 asdf = pytest.importorskip('asdf')
 
 import datetime
-from collections import OrderedDict
 
 import numpy as np
 
@@ -18,7 +17,7 @@ import asdf.schema as asdf_schema
 
 
 def _flatten_combiners(schema):
-    newschema = OrderedDict()
+    newschema = dict()
 
     def add_entry(path, schema, combiner):
         # TODO: Simplify?
@@ -31,13 +30,13 @@ def _flatten_combiners(schema):
                     cursor.append({})
                 cursor = cursor[part]
             elif part == 'items':
-                cursor = cursor.setdefault('items', OrderedDict())
+                cursor = cursor.setdefault('items', dict())
             else:
-                cursor = cursor.setdefault('properties', OrderedDict())
+                cursor = cursor.setdefault('properties', dict())
                 if i < len(path) - 1 and isinstance(path[i+1], int):
                     cursor = cursor.setdefault(part, [])
                 else:
-                    cursor = cursor.setdefault(part, OrderedDict())
+                    cursor = cursor.setdefault(part, dict())
 
         cursor.update(schema)
 
