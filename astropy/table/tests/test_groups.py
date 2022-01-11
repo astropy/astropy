@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from astropy.table import Table, Column, QTable, table_helpers, NdarrayMixin, unique
+from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import time
 from astropy import units as u
@@ -512,6 +513,8 @@ def test_column_aggregate(T1):
                                  '22.0']
 
 
+@pytest.mark.skipif(not NUMPY_LT_1_22 and NUMPY_LT_1_22_1,
+                    reason='https://github.com/numpy/numpy/issues/20699')
 def test_column_aggregate_f8():
     """https://github.com/astropy/astropy/issues/12706"""
     # Just want to make sure it does not crash again.
