@@ -1,15 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import numpy as np
-
-from asdf.versioning import AsdfVersion
-
 from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
-from astropy.modeling import mappings
-from astropy.modeling import functional_models
-from astropy.modeling.core import CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType
-from . import _parameter_to_value
 
 
 class BoundingBoxType(AstropyAsdfType):
@@ -18,12 +10,8 @@ class BoundingBoxType(AstropyAsdfType):
     types = ['astropy.modeling.bounding_box.ModelBoundingBox']
 
     @classmethod
-    def from_tree_transform(cls, node, ctx):
-        pass
-
-    @classmethod
-    def to_tree_transform(cls, model, cts):
-        def _transform_bbox(bbox):
+    def to_tree(cls, bbox, cts):
+        if isinstance(bbox, ModelBoundingBox):
             return {
                 'intervals': {
                     _input: list(interval)
@@ -32,27 +20,80 @@ class BoundingBoxType(AstropyAsdfType):
                 'ignore': list(bbox.ignored_inputs),
                 'order': bbox.order
             }
+        else:
+            raise TypeError(f"{bbox} is not a valid BoundingBox")
 
-        try:
-            bb = model.bounding_box
-        except NotImplementedError:
-            bb = None
+    @classmethod
+    def from_tree(cls, node, cts):
+        bounding_box = {
+            _input: tuple(interval) for _input, interval in node['intervals']
+        }
+        if 'ignore' in node:
+            ignored = node['ignore']
+        else:
+            ignored = None
 
-        if isinstance(bb, ModelBoundingBox):
-            return _transform_bbox(bb)
+        if 'order' in node:
+            order = node['order']
+        else:
+            order = 'C'
 
-        elif isinstance(bb, CompoundBoundingBox):
+        return {
+            'bounding_box': bounding_box,
+            'ignored': ignored,
+            'order': order
+        }
+
+
+class CompoundBoundingBoxType(AstropyAsdfType):
+    name = 'transform/property/compound_bounding_box'
+    version = '1.0.0'
+    types = ['astropy.modeling.bounding_box.CompoundBoundingBox']
+
+    @classmethod
+    def to_tree(cls, bbox, cts):
+        if isinstance(bbox, CompoundBoundingBox):
             return {
                 'selector_args': [
                     {
-                        'argument': sa.name(model),
+                        'argument': sa.name(bbox._model),
                         'ignore': sa.ignore
-                    } for sa in bb.selector_args
+                    } for sa in bbox.selector_args
                 ],
                 'cbbox': [
                     {
                         'key': list(key),
-                        'bbox': _transform_bbox(bbox)
-                    } for key, bbox in bb.bounding_boxes.items()
-                ]
+                        'bbox': bb
+                    } for key, bb in bbox.bounding_boxes.items()
+                ],
+                'ignore': bbox.ignored_inputs,
+                'order': bbox.order
             }
+        else:
+            raise TypeError(f"{bbox} is not a valid CompoundBoundingBox")
+
+    @classmethod
+    def from_tree(cls, node, cts):
+        selector_args = [
+            (sa['argument'], sa['ignore']) for sa in node['selector_args']
+        ]
+        bounding_box = {
+            tuple(bb['key']): bb['bbox']['bounding_box']
+            for bb in node['cbbox']
+        }
+        if 'ignore' in node:
+            ignored = node['ignore']
+        else:
+            ignored = None
+
+        if 'order' in node:
+            order = node['order']
+        else:
+            order = 'C'
+
+        return {
+            'bounding_box': bounding_box,
+            'selector_args': selector_args,
+            'ignored': ignored,
+            'order': order
+        }
