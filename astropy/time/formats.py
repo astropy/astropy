@@ -380,9 +380,11 @@ class TimeFormat:
         """
         if not isinstance(pattern, str):
             raise ValueError('subfmt attribute must be a string')
+        elif pattern == '*':
+            return cls.subfmts
 
         subfmts = [x for x in cls.subfmts if fnmatch.fnmatchcase(x[0], pattern)]
-        if len(subfmts) == 0 and pattern != '*':
+        if len(subfmts) == 0:
             if len(cls.subfmts) == 0:
                 raise ValueError(f'subformat not allowed for format {cls.name}')
             else:
