@@ -515,7 +515,7 @@ def doppler_redshift():
     .. note::
 
         This equivalency is not compatible with cosmological
-        redshift, `astropy.cosmology.units.redshift`.
+        redshift in `astropy.cosmology.units`.
 
     """
     rv_unit = si.km / si.s

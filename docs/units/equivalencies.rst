@@ -519,7 +519,7 @@ To convert Doppler redshift (unitless) to ``km/s``::
     >>> z.to(u.km / u.s, u.doppler_redshift())  # doctest: +FLOAT_CMP
     <Quantity 28487.0661448 km / s>
 
-However, it cannot take the `~astropy.cosmology.units.redshift` unit
+However, it cannot take the cosmological redshift unit from `astropy.cosmology.units`
 because the latter should not be interpreted the same since the recessional
 velocity from the expansion of space can exceed the speed of light; see
 `Hubble's law: Redshift velocity and recessional velocity <https://en.wikipedia.org/wiki/Hubble%27s_law#Redshift_velocity_and_recessional_velocity>`_
