@@ -116,7 +116,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
     return cosmology(*ba.args, **ba.kwargs)
 
 
-def to_mapping(cosmology, *args, cls=dict):
+def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_meta=False):
     """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
@@ -128,13 +128,22 @@ def to_mapping(cosmology, *args, cls=dict):
     cls : type (optional, keyword-only)
         `dict` or `collections.Mapping` subclass.
         The mapping type to return. Default is `dict`.
+    cosmology_as_str : bool (optional, keyword-only)
+        Whether the cosmology value is the class (if `False`, default) or
+        the semi-qualified name (if `True`).
+    move_from_meta : bool (optional, keyword-only)
+        Whether to add the Cosmology's metadata as an item to the mapping (if
+        `False`, default) or to merge with the rest of the mapping, preferring
+        the original values (if `True`)
 
     Returns
     -------
     dict
         with key-values for the cosmology parameters and also:
         - 'cosmology' : the class
-        - 'meta' : the contents of the cosmology's metadata attribute
+        - 'meta' : the contents of the cosmology's metadata attribute.
+                   If ``move_from_meta`` is `True`, this key is missing and the
+                   contained metadata are added to the main `dict`.
 
     Examples
     --------
@@ -148,19 +157,58 @@ def to_mapping(cosmology, *args, cls=dict):
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
          'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
          'meta': ...
+
+    The dictionary type may be changed with the ``cls`` keyword argument:
+
+        >>> from collections import OrderedDict
+        >>> Planck18.to_format('mapping', cls=OrderedDict)
+        OrderedDict([('cosmology', <class 'astropy.cosmology.flrw.FlatLambdaCDM'>),
+          ('name', 'Planck18'), ('H0', <Quantity 67.66 km / (Mpc s)>),
+          ('Om0', 0.30966), ('Tcmb0', <Quantity 2.7255 K>), ('Neff', 3.046),
+          ('m_nu', <Quantity [0.  , 0.  , 0.06] eV>), ('Ob0', 0.04897),
+          ('meta', ...
+
+    Sometimes it is more useful to have the name of the cosmology class, not
+    the object itself. The keyword argument ``cosmology_as_str`` may be used:
+
+        >>> Planck18.to_format('mapping', cosmology_as_str=True)
+        {'cosmology': 'FlatLambdaCDM', ...
+
+    The metadata is normally included as a nested mapping. To move the metadata
+    into the main mapping, use the keyword argument ``move_from_meta``. This
+    kwarg inverts ``move_to_meta`` in
+    ``Cosmology.to_format("mapping", move_to_meta=...)`` where extra items
+    are moved to the metadata (if the cosmology constructor does not have a
+    variable keyword-only argument -- ``**kwargs``).
+
+        >>> from astropy.cosmology import Planck18
+        >>> Planck18.to_format('mapping', move_from_meta=True)
+        {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
+         'name': 'Planck18', 'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, ...
     """
     if not issubclass(cls, (dict, Mapping)):
-        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {type(cls)}")
+        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {cls}")
 
     m = cls()
     # start with the cosmology class & name
-    m["cosmology"] = cosmology.__class__
+    m["cosmology"] = cosmology.__class__.__qualname__ if cosmology_as_str else cosmology.__class__
     m["name"] = cosmology.name  # here only for dict ordering
-    # get all the immutable inputs
+
+    meta = copy.deepcopy(cosmology.meta)  # metadata (mutable)
+    if move_from_meta:
+        # Merge the mutable metadata. Since params are added later they will
+        # be preferred in cases of overlapping keys. Likewise, need to pop
+        # cosmology and name from meta.
+        meta.pop("cosmology", None)
+        meta.pop("name", None)
+        m.update(meta)
+
+    # Add all the immutable inputs
     m.update({k: v for k, v in cosmology._init_arguments.items()
               if k not in ("meta", "name")})
-    # add the mutable metadata
-    m["meta"] = copy.deepcopy(cosmology.meta)
+    # Lastly, add the metadata, if haven't already (above)
+    if not move_from_meta:
+        m["meta"] = meta  # TODO? should meta be type(cls)
 
     return m
 
