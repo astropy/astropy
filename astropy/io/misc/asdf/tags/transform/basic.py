@@ -69,12 +69,13 @@ class TransformType(AstropyAsdfType):
     @classmethod
     def _to_tree_base_transform_members(cls, model, node, ctx):
         def _transform_bbox(bbox):
-            bb = bbox.bounding_box(order='C')
-
-            if len(bbox) == 1:
-                return list(bb)
-            else:
-                return [list(interval) for interval in bb]
+            return {
+                'intervals': {
+                    _input: list(interval) for _input, interval in bbox.named_intervals.items()
+                },
+                'ignore': list(bbox.ignored_inputs),
+                'order': bbox.order
+            }
 
         if getattr(model, '_user_inverse', None) is not None:
             node['inverse'] = model._user_inverse
@@ -108,7 +109,7 @@ class TransformType(AstropyAsdfType):
                     'bbox': _transform_bbox(bbox)
                 } for key, bbox in bb.bounding_boxes.items()
             ]
-            node['compound_bounding_box'] = cbbox
+            node['bounding_box'] = cbbox
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):

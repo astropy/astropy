@@ -394,18 +394,41 @@ def test_serialize_compound_bounding_box(tmpdir):
             (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
     model.bounding_box = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)], order='F')
 
-    print(model.bounding_box)
-
     from astropy.io.misc.asdf.tags.transform.basic import TransformType
     node = TransformType._to_tree_base_transform_members(model, {}, None)
-    cbbox = node['compound_bounding_box']
-    assert cbbox['selector_args'] == [{'argument': 'slit_id', 'ignore': True}]
-    assert cbbox['cbbox'] == [
-        {'key': [0], bbox: None}
-    ]
-    print(node['compound_bounding_box']['cbbox'])
-
-    assert False
+    cbbox = node['bounding_box']
+    assert cbbox == {
+        'selector_args': [
+            {
+                'argument': 'slit_id',
+                'ignore': True
+            }
+        ],
+        'cbbox': [
+            {
+                'key': [0],
+                'bbox': {
+                    'intervals': {
+                        'x': [-0.5, 1047.5],
+                        'y': [-0.5, 2047.5]
+                    },
+                    'ignore': ['slit_id'],
+                    'order': 'F'
+                }
+            },
+            {
+                'key': [1],
+                'bbox': {
+                    'intervals': {
+                        'x': [-0.5, 3047.5],
+                        'y': [-0.5, 4047.5]
+                    },
+                    'ignore': ['slit_id'],
+                    'order': 'F'
+                }
+            },
+        ]
+    }
 
 
 # test some models and compound models with some input unit equivalencies
