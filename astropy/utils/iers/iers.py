@@ -984,7 +984,7 @@ class LeapSeconds(QTable):
         after the present.
         """
         offset = 180 - (30 if conf.auto_max_age is None else conf.auto_max_age)
-        good_enough = cls._today() + TimeDelta(180 - offset, format='jd')
+        good_enough = cls._today() + TimeDelta(offset, format='jd')
 
         if files is None:
             # Basic files to go over (entries in _auto_open_files can be
