@@ -57,7 +57,7 @@ Plotting times
 
 Matplotlib natively provides a mechanism for plotting dates and times on one
 or both of the axes, as described in
-`Date tick labels <https://matplotlib.org/3.1.0/gallery/text_labels_and_annotations/date.html>`_.
+`Date tick labels <https://matplotlib.org/stable/gallery/text_labels_and_annotations/date.html>`_.
 To make use of this, you can use the ``plot_date`` attribute of |Time| to get
 values in the time system used by Matplotlib.
 
