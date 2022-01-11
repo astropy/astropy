@@ -24,7 +24,7 @@ that have the same spectral line in the wavelength region that is overlapping
 between both segments.
 
 We will need to define a Gaussian function that has mean wavelength, area, and
-width parameters.  This is needed as the `astropy.modeling.models.Gaussian1D`
+width parameters.  This is needed as the `astropy.modeling.functional_models.Gaussian1D`
 function has mean wavelength, central intensity, and width parameters, but the
 central intensity of a line will be different at different spectral resolutions,
 but the area will be the same.
