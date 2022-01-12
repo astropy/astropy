@@ -4104,6 +4104,8 @@ def bind_bounding_box(modelinstance, bounding_box, ignored=None, order='C'):
         This is the model that the validated bounding box will be set on.
     bounding_box : tuple
         A bounding box tuple, see :ref:`astropy:bounding-boxes` for details
+    ignored : list
+        List of the inputs to be ignored by the bounding box.
     order : str, optional
         The ordering of the bounding box tuple, can be either ``'C'`` or
         ``'F'``.
@@ -4135,6 +4137,8 @@ def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
         there is no bounding box in the compound bounding box listed under
         that selector value. Default is ``None``, meaning new bounding
         box entries will not be automatically generated.
+    ignored : list
+        List of the inputs to be ignored by the bounding box.
     order : str, optional
         The ordering of the bounding box tuple, can be either ``'C'`` or
         ``'F'``.

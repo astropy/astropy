@@ -231,6 +231,12 @@ class Test_BoundingDomain:
         with pytest.raises(ValueError):
             self.BoundingDomain(model, order=mk.MagicMock())
 
+    def test_model(self):
+        model = mk.MagicMock()
+        bounding_box = self.BoundingDomain(model)
+        assert bounding_box._model == model
+        assert bounding_box.model == model
+
     def test_order(self):
         bounding_box = self.BoundingDomain(mk.MagicMock(), order='C')
         assert bounding_box._order == 'C'
