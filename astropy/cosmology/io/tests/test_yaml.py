@@ -71,14 +71,28 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         YAML I/O only works on registered classes. So the thing to check is
         if this class is registered. If not, skip this test.
         Some of the tests define custom cosmologies. They are not registered.
+
+        .. todo::  deprecate this fixture in favor of the method
+                   ``mark_xfail_if_not_registered_with_yaml``
         """
         return True if cosmo_cls in AstropyDumper.yaml_representers else False
 
-    def test_tofrom_yaml_instance(self, cosmo, to_format, from_format,
-                                  registered_with_yaml):
+    def mark_xfail_if_not_registered_with_yaml(self, cosmo_cls, format):
+        """
+        YAML I/O only works on registered classes. So the thing to check is
+        if this class is registered. If not, imperatively mark a test with
+        `pytest.xfail`
+        """
+        registered = True if cosmo_cls in AstropyDumper.yaml_representers else False
+        if format == "yaml" and not registered:
+            pytest.xfail(f"{cosmo_cls} is not registered with YAML")
+
+    # ===============================================================
+
+    def test_tofrom_yaml_instance(self, cosmo, to_format, from_format):
         """Test cosmology -> YAML -> cosmology."""
-        if not registered_with_yaml:
-            return
+        # Mark tests expected to fail
+        self.mark_xfail_if_not_registered_with_yaml(cosmo.__class__, "yaml")
 
         # ------------
         # To YAML
@@ -102,15 +116,14 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
 
         # auto-identify test moved because it doesn't work.
 
-    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format,
-                                      registered_with_yaml):
+    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format):
         """As a non-path string, it does NOT auto-identifies 'format'.
 
         TODO! this says there should be different types of I/O registries.
               not just hacking object conversion on top of file I/O.
         """
-        if not registered_with_yaml:
-            return
+        # Mark tests expected to fail
+        self.mark_xfail_if_not_registered_with_yaml(cosmo.__class__, "yaml")
 
         yml = to_format('yaml')
         with pytest.raises((FileNotFoundError, OSError)):  # OSError in Windows
@@ -151,4 +164,4 @@ class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
         If directly calling the function there's no auto-identification.
         So this overrides the test from `ToFromYAMLTestMixin`
         """
-        pass
+        assert self.can_autodentify("yaml") is False

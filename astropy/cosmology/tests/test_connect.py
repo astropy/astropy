@@ -197,17 +197,21 @@ class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFr
     @pytest.mark.parametrize("format, totype", tofrom_formats)
     def test_tofromformat_complete_info(self, cosmo, format, totype):
         """Read tests happen later."""
+        # Mark tests expected to fail
+        self.mark_xfail_if_not_registered_with_yaml(cosmo.__class__, format)
+
         # test to_format
         obj = cosmo.to_format(format)
         assert isinstance(obj, totype)
 
         # test from_format
         got = Cosmology.from_format(obj, format=format)
-        # and autodetect
-        got2 = Cosmology.from_format(obj)
+        # and autodetect, if enabled
+        if self.can_autodentify(format):
+            got2 = Cosmology.from_format(obj)
+            assert got2 == got  # internal consistency
 
-        assert got2 == got  # internal consistency
-        assert got == cosmo  # external consistency
+        assert got == cosmo
         assert got.meta == cosmo.meta
 
     @pytest.mark.parametrize("format, totype", tofrom_formats)
@@ -217,16 +221,21 @@ class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFr
         full information available.
         Partial information tests are handled in the Mixin super classes.
         """
+        # Mark tests expected to fail
+        self.mark_xfail_if_not_registered_with_yaml(cosmo.__class__, format)
+
         # test to_format
         obj = cosmo.to_format(format)
         assert isinstance(obj, totype)
 
         # read with the same class that wrote.
         got = cosmo.__class__.from_format(obj, format=format)
-        got2 = Cosmology.from_format(obj)  # and autodetect
+        # and autodetect, if enabled
+        if self.can_autodentify(format):
+            got2 = Cosmology.from_format(obj)
+            assert got2 == got  # internal consistency
 
-        assert got2 == got  # internal consistency
-        assert got == cosmo  # external consistency
+        assert got == cosmo  # consistency
         assert got.meta == cosmo.meta
 
         # this should be equivalent to
@@ -255,15 +264,18 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
 
     @pytest.mark.parametrize("format, totype", tofrom_formats)
     def test_fromformat_class_mismatch(self, cosmo, format, totype):
+        # Mark tests expected to fail
+        self.mark_xfail_if_not_registered_with_yaml(cosmo.__class__, format)
+
         # test to_format
         obj = cosmo.to_format(format)
         assert isinstance(obj, totype)
 
         # class mismatch
-        with pytest.raises(TypeError, match="missing 1 required"):
+        with pytest.raises(TypeError):
             w0wzCDM.from_format(obj, format=format)
 
-        with pytest.raises(TypeError, match="missing 1 required"):
+        with pytest.raises(TypeError):
             Cosmology.from_format(obj, format=format, cosmology=w0wzCDM)
 
         # when specifying the class
