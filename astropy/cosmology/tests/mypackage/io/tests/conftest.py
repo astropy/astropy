@@ -3,8 +3,13 @@
 # THIRD PARTY
 import pytest
 
-# LOCAL
-from mypackage.io import ASTROPY_GE_5
+try:
+    import astropy
+    from astropy.utils.introspection import minversion
+except ImportError:
+    ASTROPY_GE_5 = False
+else:
+    ASTROPY_GE_5 = minversion(astropy, "5.0")
 
 
 @pytest.fixture(scope="session", autouse=True)

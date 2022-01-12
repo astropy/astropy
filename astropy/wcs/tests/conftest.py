@@ -2,11 +2,8 @@
 
 import pytest
 
-import numpy as np
-
 from astropy import wcs
-
-from . helper import SimModelTAB
+from astropy.wcs.tests.helper import SimModelTAB
 
 
 @pytest.fixture(scope='module')
