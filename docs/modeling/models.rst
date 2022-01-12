@@ -547,6 +547,89 @@ instead specifies ``with_bounding_box=<bounding_key>`` ::
     >>> model(0.5, 1.5, with_bounding_box=1)
     nan
 
+
+Ignoring Inputs in Bounding Boxes
++++++++++++++++++++++++++++++++++
+
+Both `standard bounding box <astropy.modeling.bounding_box.ModelBoundingBox>`
+and `CompoundBoundingBox <astropy.modeling.bounding_box.CompoundBoundingBox>`
+support ignoring specific inputs from enforcement by the bounding box. Effectively,
+for multi-dimensional models one can define bounding boxes so that bounds are
+only applied to a subset of the model's inputs rather than the default of enforcing
+a bound of some kind on every input. Note that use of this feature is equivalent
+to defining the bounds for an input to be ``[-np.inf, np.inf]``.
+
+.. warning::
+   The ``ignored`` input feature is not available when constructing/adding bounding
+   boxes to models using tuples and the property interface. That is one cannot
+   ignore inputs when setting bounding boxes using ``model.bounding_box = (-1, 1)``.
+   This feature is only available via the methods
+   `bind_bounding_box <astropy.modeling.bind_bounding_box>` and
+   `bind_compound_bounding_box <astropy.modeling.bind_compound_bounding_box>`.
+
+Ignoring inputs for a bounding box can be achieved via passing a list of the input
+name strings to be ignored to the ``ignored`` keyword argument in any of the main
+bounding box interfaces. ::
+
+    >>> from astropy.modeling.models import Polynomial1D
+    >>> from astropy.modeling import bind_bounding_box
+    >>> model1 = Polynomial2D(3)
+    >>> bind_bounding_box(model1, {'x': (-1, 1)}, ignored=['y'])
+    >>> model1.bounding_box
+    ModelBoundingBox(
+        intervals={
+            x: Interval(lower=-1, upper=1)
+        }
+        ignored=['y']
+        model=Polynomial2D(inputs=('x', 'y'))
+        order='C'
+    )
+    >>> model1(-2, 0, with_bounding_box=True)
+    nan
+    >>> model1(0, 300, with_bounding_box=True)
+    0.0
+
+Similarly, the ignored inputs will be applied to all of the bounding boxes
+contained within a compound bounding box. ::
+
+    >>> from astropy.modeling import bind_compound_bounding_box
+    >>> model2 = Polynomial2D(3)
+    >>> bboxes = {
+    ...     0: {'x': (0, 1)},
+    ...     1: {'x': (1, 2)}
+    ... }
+    >>> selector_args = [('x', False)]
+    >>> bind_compound_bounding_box(model2, bboxes, selector_args, ignored=['y'], order='F')
+    >>> model2.bounding_box
+        CompoundBoundingBox(
+        bounding_boxes={
+            (0,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=0, upper=1)
+                    }
+                    ignored=['y']
+                    model=Polynomial2D(inputs=('x', 'y'))
+                    order='F'
+                )
+            (1,) = ModelBoundingBox(
+                    intervals={
+                        x: Interval(lower=1, upper=2)
+                    }
+                    ignored=['y']
+                    model=Polynomial2D(inputs=('x', 'y'))
+                    order='F'
+                )
+        }
+        selector_args = SelectorArguments(
+                Argument(name='x', ignore=False)
+            )
+    )
+    >>> model2(0.5, 300, with_bounding_box=0)
+    0.0
+    >>> model2(0.5, 300, with_bounding_box=1)
+    nan
+
+
 Efficient evaluation with `Model.render() <astropy.modeling.Model.render>`
 --------------------------------------------------------------------------
 
