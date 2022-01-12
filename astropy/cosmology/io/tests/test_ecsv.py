@@ -13,7 +13,7 @@ from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
 from astropy.table import QTable, Table, vstack
 from astropy.cosmology.parameters import available
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import ReadWriteTestMixinBase, ReadWriteDirectTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
@@ -21,7 +21,7 @@ cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
 ###############################################################################
 
 
-class ReadWriteECSVTestMixin(IOTestMixinBase):
+class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
     """
     Tests for a Cosmology[Read/Write] with ``format="ascii.ecsv"``.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -30,14 +30,6 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmology`` for an example.
     """
-
-    @pytest.fixture
-    def add_cu(self):
-        # TODO! autoenable 'cu' if cosmology is imported?
-        with u.add_enabled_units(cu):
-            yield
-
-    # ===============================================================
 
     def test_to_ecsv_bad_index(self, read, write, tmp_path):
         """Test if argument ``index`` is incorrect"""
@@ -206,7 +198,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         assert got2 == cosmo
 
 
-class TestReadWriteECSV(IOFormatTestBase, ReadWriteECSVTestMixin):
+class TestReadWriteECSV(ReadWriteDirectTestBase, ReadWriteECSVTestMixin):
     """
     Directly test ``read/write``.
     These are not public API and are discouraged from use, in favor of

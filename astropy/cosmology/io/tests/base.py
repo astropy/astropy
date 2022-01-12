@@ -5,6 +5,7 @@ import pytest
 
 # LOCAL
 import astropy.units as u
+from astropy.cosmology import units as cu
 from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameters import available
@@ -15,9 +16,20 @@ cosmo_instances = [getattr(realizations, name) for name in available]
 ##############################################################################
 
 
-class IOTestMixinBase:
+class IOTestBase:
+    """Base class for Cosmology I/O tests.
+
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
+    ``cosmo`` that returns/yields an instance of a |Cosmology|.
+    See ``TestCosmology`` for an example.
     """
-    Tests for a Cosmology[To/From]Format with some ``format``.
+
+
+class ToFromTestMixinBase(IOTestBase):
+    """Tests for a Cosmology[To/From]Format with some ``format``.
+
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
@@ -35,6 +47,17 @@ class IOTestMixinBase:
         """Convert Cosmology instance using ``.to_format()``."""
         return cosmo.to_format
 
+
+class ReadWriteTestMixinBase(IOTestBase):
+    """Tests for a Cosmology[Read/Write].
+
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
+    ``cosmo`` that returns/yields an instance of a |Cosmology|.
+    See ``TestCosmology`` for an example.
+    """
+
     @pytest.fixture(scope="class")
     def read(self):
         """Read Cosmology instance using ``Cosmology.read()``."""
@@ -45,16 +68,28 @@ class IOTestMixinBase:
         """Write Cosmology using ``.write()``."""
         return cosmo.write
 
+    @pytest.fixture
+    def add_cu(self):
+        """Add :mod:`astropy.cosmology.units` to the enabled units."""
+        # TODO! autoenable 'cu' if cosmology is imported?
+        with u.add_enabled_units(cu):
+            yield
 
-class IOFormatTestBase(IOTestMixinBase):
-    """
-    Directly test ``to/from_<format>``.
-    These are not public API and are discouraged from public use, in favor of
-    ``Cosmology.to/from_format(..., format="<format>")``.
 
-    Subclasses should have an attribute ``functions`` which is a dictionary
-    containing two items: ``"to"=<function for to_format>`` and
-    ``"from"=<function for from_format>``.
+##############################################################################
+
+
+class IODirectTestBase(IOTestBase):
+    """Directly test Cosmology I/O functions.
+
+    These functions are not public API and are discouraged from public use, in
+    favor of the I/O methods on |Cosmology|. They are tested b/c they are used
+    internally and because some tests for the methods on |Cosmology| don't need
+    to be run in the |Cosmology| class's large test matrix.
+
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass.
     """
 
     @pytest.fixture(scope="class", autouse=True)
@@ -86,7 +121,24 @@ class IOFormatTestBase(IOTestMixinBase):
         """Cosmology classes."""
         return cosmo.__class__
 
-    # -------------------------------------------
+
+class ToFromDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
+    """Directly test ``to/from_<format>``.
+
+    These functions are not public API and are discouraged from public use, in
+    favor of ``Cosmology.to/from_format(..., format="<format>")``. They are
+    tested because they are used internally and because some tests for the
+    methods on |Cosmology| don't need to be run in the |Cosmology| class's
+    large test matrix.
+
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass.
+
+    Subclasses should have an attribute ``functions`` which is a dictionary
+    containing two items: ``"to"=<function for to_format>`` and
+    ``"from"=<function for from_format>``.
+    """
 
     @pytest.fixture(scope="class")
     def from_format(self):
@@ -100,9 +152,29 @@ class IOFormatTestBase(IOTestMixinBase):
     @pytest.fixture(scope="class")
     def to_format(self, cosmo):
         """Convert Cosmology to format using function ``to``."""
-        return lambda *args, **kwargs: self.functions["to"](cosmo, *args, **kwargs)
+        def use_to_format(*args, **kwargs):
+            return self.functions["to"](cosmo, *args, **kwargs)
 
-    # -------------------------------------------
+        return use_to_format
+
+
+class ReadWriteDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
+    """Directly test ``read/write_<format>``.
+
+    These functions are not public API and are discouraged from public use, in
+    favor of ``Cosmology.read/write(..., format="<format>")``. They are tested
+    because they are used internally and because some tests for the
+    methods on |Cosmology| don't need to be run in the |Cosmology| class's
+    large test matrix.
+
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass.
+
+    Subclasses should have an attribute ``functions`` which is a dictionary
+    containing two items: ``"read"=<function for read>`` and
+    ``"write"=<function for write>``.
+    """
 
     @pytest.fixture(scope="class")
     def read(self):
@@ -116,4 +188,7 @@ class IOFormatTestBase(IOTestMixinBase):
     @pytest.fixture(scope="class")
     def write(self, cosmo):
         """Write Cosmology to file using function ``write``."""
-        return lambda *args, **kwargs: self.functions["write"](cosmo, *args, **kwargs)
+        def use_write(*args, **kwargs):
+            return self.functions["write"](cosmo, *args, **kwargs)
+
+        return use_write
