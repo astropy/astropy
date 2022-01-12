@@ -186,11 +186,14 @@ class TestAutoOpenExplicitLists:
         assert ls2.expires == Time('2012-06-27', scale='tai')
 
         # Use the fake files to make sure auto_max_age is safe.
-        # Should have no warning here.
+        # Should have no warning in either example.
         with iers.conf.set_temp('auto_max_age', None):
             ls3 = iers.LeapSeconds.auto_open([fake_file1,
                                               iers.IERS_LEAP_SECOND_FILE])
-        assert ls3.meta['data_url'] == fake_file1
+        assert ls3.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
+        with iers.conf.set_temp('auto_max_age', None):
+            ls4 = iers.LeapSeconds.auto_open([fake_file1, fake_file2])
+        assert ls4.meta['data_url'] == fake_file2
 
 
 @pytest.mark.remote_data
