@@ -194,6 +194,10 @@ class _BoundingDomain(abc.ABC):
         self._order = self._get_order(order)
 
     @property
+    def model(self):
+        return self._model
+
+    @property
     def order(self) -> str:
         return self._order
 
