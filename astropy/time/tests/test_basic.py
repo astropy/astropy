@@ -2317,3 +2317,18 @@ def test_location_init_fail():
     with pytest.raises(ValueError,
                        match='cannot concatenate times unless all locations'):
         Time([tm, tm2])
+
+
+def test_linspace():
+    t1 = Time('2020-01-01 00:00:00')
+    t2 = Time('2020-01-01 01:00:00')
+
+    ts = np.linspace(t1, t2, 3)
+    atol = 1 * u.ms
+    assert ts[0].isclose(Time('2020-01-01 00:00:00'), atol=atol)
+    assert ts[1].isclose(Time('2020-01-01 00:30:00'), atol=atol)
+    assert ts[2].isclose(Time('2020-01-01 01:00:00'), atol=atol)
+
+    ts = np.linspace(t1, t2, 2, endpoint=False)
+    assert ts[0].isclose(Time('2020-01-01 00:00:00'), atol=atol)
+    assert ts[1].isclose(Time('2020-01-01 00:30:00'), atol=atol)
