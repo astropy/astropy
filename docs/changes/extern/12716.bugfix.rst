@@ -1,1 +1,5 @@
-Images added from 'https://cdn.datatables.net/1.10.12/images/' 
+Local CSS file `jquery.dataTables.css` refers to several images called
+`sort*.png`. They are the little arrows next to each sortable column. These
+images exist at the CDN (https://cdn.datatables.net/1.10.12/images/), but they
+were missing in this repo. Images required to display the corresponding arrows
+were added.
