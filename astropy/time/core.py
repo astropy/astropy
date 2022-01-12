@@ -31,6 +31,8 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # noqa
+from .time_helper.function_helpers import (
+    CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
 
 from astropy.extern import _strptime
 
@@ -2231,6 +2233,32 @@ class Time(TimeBase):
     # but there is no case of <something> - T, so no __rsub__.
     def __radd__(self, other):
         return self.__add__(other)
+
+    def __array_function__(self, function, types, args, kwargs):
+        """
+        Wrap numpy functions.
+
+        Parameters
+        ----------
+        function : callable
+            Numpy function to wrap
+        types : iterable of classes
+            Classes that provide an ``__array_function__`` override. Can
+            in principle be used to interact with other classes. Below,
+            mostly passed on to `~numpy.ndarray`, which can only interact
+            with subclasses.
+        args : tuple
+            Positional arguments provided in the function call.
+        kwargs : dict
+            Keyword arguments provided in the function call.
+        """
+        if function in CUSTOM_FUNCTIONS:
+            f = CUSTOM_FUNCTIONS[function]
+            return f(*args, **kwargs)
+        elif function in UNSUPPORTED_FUNCTIONS:
+            return NotImplemented
+        else:
+            return super().__array_function__(function, types, args, kwargs)
 
     def to_datetime(self, timezone=None):
         # TODO: this could likely go through to_value, as long as that
