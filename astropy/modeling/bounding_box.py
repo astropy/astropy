@@ -580,8 +580,8 @@ class ModelBoundingBox(_BoundingDomain):
         (default), 'F': Fortran/mathematical notation order, e.g. x, y, z.
     """
 
-    def __init__(self, intervals: Dict[int, _Interval], model,
-                 ignored: List[int] = None, order: str = 'C'):
+    def __init__(self, intervals: Dict[str, _Interval], model,
+                 ignored: List[str] = None, order: str = 'C'):
         super().__init__(model, ignored, order)
 
         self._intervals = {}
@@ -591,8 +591,8 @@ class ModelBoundingBox(_BoundingDomain):
         self._verify_ignored()
 
     def copy(self, ignored=None):
-        intervals = {index: interval.copy()
-                     for index, interval in self._intervals.items()}
+        intervals = {name: interval.copy()
+                     for name, interval in self._intervals.items()}
 
         if ignored is None:
             ignored = self._ignored.copy()
@@ -602,14 +602,14 @@ class ModelBoundingBox(_BoundingDomain):
                                 order=self._order)
 
     @property
-    def intervals(self) -> Dict[int, _Interval]:
+    def intervals(self) -> Dict[str, _Interval]:
         """Return bounding_box labeled using input positions"""
         return self._intervals
 
     @property
-    def named_intervals(self) -> Dict[str, _Interval]:
+    def indexed_intervals(self) -> Dict[int, _Interval]:
         """Return bounding_box labeled using input names"""
-        return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
+        return {self._get_index(name): bbox for name, bbox in self._intervals.items()}
 
     def __repr__(self):
         parts = [
@@ -617,7 +617,7 @@ class ModelBoundingBox(_BoundingDomain):
             '    intervals={'
         ]
 
-        for name, interval in self.named_intervals.items():
+        for name, interval in self.intervals.items():
             parts.append(f"        {name}: {interval}")
 
         parts.append('    }')
@@ -635,12 +635,12 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __contains__(self, key):
         try:
-            return self._get_index(key) in self._intervals or self._ignored
+            return self._get_name(key) in self._intervals or self._ignored
         except (IndexError, ValueError):
             return False
 
     def has_interval(self, key):
-        return self._get_index(key) in self._intervals
+        return self._get_name(key) in self._intervals
 
     def __getitem__(self, key):
         """Get bounding_box entries by either input name or input index"""
@@ -648,7 +648,7 @@ class ModelBoundingBox(_BoundingDomain):
         if name in self._ignored:
             return _ignored_interval
         else:
-            return self._intervals[self._get_index(key)]
+            return self._intervals[self._get_name(key)]
 
     def bounding_box(self, order: str = None):
         """
@@ -685,14 +685,14 @@ class ModelBoundingBox(_BoundingDomain):
         if name in self._ignored:
             self._ignored.remove(name)
 
-        self._intervals[self._get_index(name)] = _Interval.validate(value)
+        self._intervals[name] = _Interval.validate(value)
 
     def __delitem__(self, key):
         """Delete stored interval"""
         name = self._get_name(key)
         if name in self._ignored:
             raise RuntimeError(f"Cannot delete ignored input: {key}!")
-        del self._intervals[self._get_index(name)]
+        del self._intervals[name]
         self._ignored.append(name)
 
     def _validate_dict(self, bounding_box: dict):
@@ -788,7 +788,7 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             ignored = None
 
-        return ModelBoundingBox.validate(model, new.named_intervals,
+        return ModelBoundingBox.validate(model, new.intervals,
                                     ignored=ignored, order=new._order)
 
     @property
@@ -1541,7 +1541,7 @@ class CompoundBoundingBox(_BoundingDomain):
             bbox_dict = bbox
         elif isinstance(bbox, ModelBoundingBox):
             selector_args = None
-            bbox_dict = bbox.named_intervals
+            bbox_dict = bbox.intervals
 
         return bbox.__class__.validate(model, bbox_dict,
                                        order=bbox.order, selector_args=selector_args)

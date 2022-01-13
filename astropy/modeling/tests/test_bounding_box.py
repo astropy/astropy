@@ -695,7 +695,7 @@ class TestModelBoundingBox:
         bounding_box = ModelBoundingBox(intervals, model)
 
         assert isinstance(bounding_box, _BoundingDomain)
-        assert bounding_box._intervals == {0: (1, 2)}
+        assert bounding_box._intervals == {'x': (1, 2)}
         assert bounding_box._model == model
 
         # Set ignored
@@ -706,7 +706,7 @@ class TestModelBoundingBox:
         bounding_box = ModelBoundingBox(intervals, model, ignored=[1])
 
         assert isinstance(bounding_box, _BoundingDomain)
-        assert bounding_box._intervals == {0: (1, 2)}
+        assert bounding_box._intervals == {'x': (1, 2)}
         assert bounding_box._model == model
         assert bounding_box._ignored == ['y']
 
@@ -717,7 +717,7 @@ class TestModelBoundingBox:
         bounding_box = ModelBoundingBox(intervals, model, ignored=[2], order='F')
 
         assert isinstance(bounding_box, _BoundingDomain)
-        assert bounding_box._intervals == {0: (1, 2), 1: (3, 4)}
+        assert bounding_box._intervals == {'x': (1, 2), 'y': (3, 4)}
         assert bounding_box._model == model
         assert bounding_box._ignored == ['z']
         assert bounding_box._order == 'F'
@@ -762,25 +762,26 @@ class TestModelBoundingBox:
         model.inputs = ['x']
         bounding_box = ModelBoundingBox(intervals, model)
 
-        assert bounding_box._intervals == intervals
-        assert bounding_box.intervals == intervals
+        truth_intervals = {'x': _Interval(1, 2)}
+        assert bounding_box._intervals == truth_intervals
+        assert bounding_box.intervals == truth_intervals
 
-    def test_named_intervals(self):
-        intervals = {idx: _Interval(idx, idx + 1) for idx in range(4)}
+    def test_indexed_intervals(self):
+        intervals = {f"x{idx}": _Interval(idx, idx + 1) for idx in range(4)}
         model = mk.MagicMock()
         model.n_inputs = 4
         model.inputs = [f"x{idx}" for idx in range(4)]
         bounding_box = ModelBoundingBox(intervals, model)
 
-        named = bounding_box.named_intervals
-        assert isinstance(named, dict)
-        for name, interval in named.items():
-            assert name in model.inputs
-            assert intervals[model.inputs.index(name)] == interval
+        indexed = bounding_box.indexed_intervals
+        assert isinstance(indexed, dict)
+
+        for index, interval in indexed.items():
+            assert 0 <= index <= len(model.inputs)
+            assert interval == intervals[model.inputs[index]]
+
         for index, name in enumerate(model.inputs):
-            assert index in intervals
-            assert name in named
-            assert intervals[index] == named[name]
+            assert intervals[name] == indexed[index]
 
     def test___repr__(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
@@ -959,18 +960,18 @@ class TestModelBoundingBox:
 
         # USING Intervals directly
         # Set interval using key
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         assert 'x' in bounding_box.ignored
         bounding_box['x'] = _Interval(-1, 1)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert 'x' not in bounding_box.ignored
         assert isinstance(bounding_box['x'], _Interval)
         assert bounding_box['x'] == (-1, 1)
 
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert 'y' in bounding_box.ignored
         bounding_box['y'] = _Interval(-4, 4)
-        assert 1 in bounding_box.intervals
+        assert 'y' in bounding_box.intervals
         assert 'y' not in bounding_box.ignored
         assert isinstance(bounding_box['y'], _Interval)
         assert bounding_box['y'] == (-4, 4)
@@ -981,18 +982,18 @@ class TestModelBoundingBox:
         assert bounding_box.ignored == ['x', 'y']
 
         # Set interval using index
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         assert 'x' in bounding_box.ignored
         bounding_box[0] = _Interval(-1, 1)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert 'x' not in bounding_box.ignored
         assert isinstance(bounding_box[0], _Interval)
         assert bounding_box[0] == (-1, 1)
 
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert 'y' in bounding_box.ignored
         bounding_box[1] = _Interval(-4, 4)
-        assert 1 in bounding_box.intervals
+        assert 'y' in bounding_box.intervals
         assert 'y' not in bounding_box.ignored
         assert isinstance(bounding_box[1], _Interval)
         assert bounding_box[1] == (-4, 4)
@@ -1004,18 +1005,18 @@ class TestModelBoundingBox:
 
         # USING tuples
         # Set interval using key
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         assert 'x' in bounding_box.ignored
         bounding_box['x'] = (-1, 1)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert 'x' not in bounding_box.ignored
         assert isinstance(bounding_box['x'], _Interval)
         assert bounding_box['x'] == (-1, 1)
 
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert 'y' in bounding_box.ignored
         bounding_box['y'] = (-4, 4)
-        assert 1 in bounding_box.intervals
+        assert 'y' in bounding_box.intervals
         assert 'y' not in bounding_box.ignored
         assert isinstance(bounding_box['y'], _Interval)
         assert bounding_box['y'] == (-4, 4)
@@ -1026,18 +1027,18 @@ class TestModelBoundingBox:
         assert bounding_box.ignored == ['x', 'y']
 
         # Set interval using index
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         assert 'x' in bounding_box.ignored
         bounding_box[0] = (-1, 1)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert 'x' not in bounding_box.ignored
         assert isinstance(bounding_box[0], _Interval)
         assert bounding_box[0] == (-1, 1)
 
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert 'y' in bounding_box.ignored
         bounding_box[1] = (-4, 4)
-        assert 1 in bounding_box.intervals
+        assert 'y' in bounding_box.intervals
         assert 'y' not in bounding_box.ignored
         assert isinstance(bounding_box[1], _Interval)
         assert bounding_box[1] == (-4, 4)
@@ -1055,9 +1056,9 @@ class TestModelBoundingBox:
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
         # Set interval using index
         bounding_box._intervals = {}
-        assert 0 not in bounding_box
+        assert 'x' not in bounding_box
         bounding_box[0] = _Interval(np.array([-1, -2]), np.array([1, 2]))
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert isinstance(bounding_box[0], _Interval)
         assert (bounding_box[0].lower == np.array([-1, -2])).all()
         assert (bounding_box[0].upper == np.array([1, 2])).all()
@@ -1072,9 +1073,9 @@ class TestModelBoundingBox:
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
         # Set interval using index
         bounding_box._intervals = {}
-        assert 0 not in bounding_box
+        assert 'x' not in bounding_box
         bounding_box[0] = (np.array([-1, -2]), np.array([1, 2]))
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert isinstance(bounding_box[0], _Interval)
         assert (bounding_box[0].lower == np.array([-1, -2])).all()
         assert (bounding_box[0].upper == np.array([1, 2])).all()
@@ -1085,14 +1086,14 @@ class TestModelBoundingBox:
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Using index
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert 'x' not in bounding_box.ignored
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert 'x' in bounding_box
         del bounding_box[0]
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         assert 'x' in bounding_box.ignored
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert 'x' in bounding_box
 
         # Delete an ignored item
@@ -1102,14 +1103,14 @@ class TestModelBoundingBox:
             "Cannot delete ignored input: 0!"
 
         # Using key
-        assert 1 in bounding_box.intervals
+        assert 'y' in bounding_box.intervals
         assert 'y' not in bounding_box.ignored
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert 'y' in bounding_box
         del bounding_box['y']
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert 'y' in bounding_box.ignored
-        assert 0 in bounding_box
+        assert 'x' in bounding_box
         assert 'y' in bounding_box
 
         # Delete an ignored item
@@ -1269,9 +1270,9 @@ class TestModelBoundingBox:
         bounding_box._intervals = {}
         bounding_box._ignored = [1]
         intervals = {0: _Interval(-1, 1)}
-        assert 0 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
         bounding_box._validate_iterable(intervals)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert bounding_box[0] == (-1, 1)
 
         # Invalid iterable
@@ -1344,12 +1345,12 @@ class TestModelBoundingBox:
         intervals = {0: _Interval(-1, 1)}
         bounding_box = ModelBoundingBox({}, model, ignored=[1])
 
-        assert 0 not in bounding_box.intervals
-        assert 1 not in bounding_box.intervals
+        assert 'x' not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         bounding_box._validate(intervals)
-        assert 0 in bounding_box.intervals
+        assert 'x' in bounding_box.intervals
         assert bounding_box[0] == (-1, 1)
-        assert 1 not in bounding_box.intervals
+        assert 'y' not in bounding_box.intervals
         assert len(bounding_box.intervals) == 1
 
         # Pass single
@@ -2496,8 +2497,8 @@ class TestCompoundBoundingBox:
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored == ['slit_id']
         assert bbox.ignored_inputs == [2]
-        assert bbox.named_intervals == {'x': (-0.5, 1047.5),
-                                        'y': (-0.5, 2047.5)}
+        assert bbox.intervals == {'x': (-0.5, 1047.5),
+                                  'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
 
         matching = bounding_box._matching_bounding_boxes('slit_id', 1)
@@ -2508,8 +2509,8 @@ class TestCompoundBoundingBox:
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored == ['slit_id']
         assert bbox.ignored_inputs == [2]
-        assert bbox.named_intervals == {'x': (-0.5, 3047.5),
-                                        'y': (-0.5, 4047.5)}
+        assert bbox.intervals == {'x': (-0.5, 3047.5),
+                                  'y': (-0.5, 4047.5)}
         assert bbox.order == 'F'
 
         # Errors
@@ -2582,8 +2583,8 @@ class TestCompoundBoundingBox:
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored == ['slit_id']
         assert bbox.ignored_inputs == [2]
-        assert bbox.named_intervals == {'x': (-0.5, 1047.5),
-                                        'y': (-0.5, 2047.5)}
+        assert bbox.intervals == {'x': (-0.5, 1047.5),
+                                  'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
 
         bbox = bounding_box._fix_input_selector_arg('slit_id', 1)
@@ -2591,8 +2592,8 @@ class TestCompoundBoundingBox:
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored == ['slit_id']
         assert bbox.ignored_inputs == [2]
-        assert bbox.named_intervals == {'x': (-0.5, 3047.5),
-                                        'y': (-0.5, 4047.5)}
+        assert bbox.intervals == {'x': (-0.5, 3047.5),
+                                  'y': (-0.5, 4047.5)}
         assert bbox.order == 'F'
 
     def test__fix_input_bbox_arg(self):
@@ -2632,8 +2633,8 @@ class TestCompoundBoundingBox:
         assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
-        assert bbox.named_intervals == {'x': (-0.5, 1047.5),
-                                        'y': (-0.5, 2047.5)}
+        assert bbox.intervals == {'x': (-0.5, 1047.5),
+                                  'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
 
         # Fix a bounding_box field
@@ -2666,14 +2667,14 @@ class TestCompoundBoundingBox:
         assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
-        assert bbox.named_intervals == {'y': (-0.5, 2047.5)}
+        assert bbox.intervals == {'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
         new_model = fix_inputs(model, {'y': 5, 'slit_id': 1})
         bbox = new_model.bounding_box
         assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
-        assert bbox.named_intervals == {'x': (-0.5, 3047.5)}
+        assert bbox.intervals == {'x': (-0.5, 3047.5)}
         assert bbox.order == 'F'
 
         # Fix two bounding_box fields
