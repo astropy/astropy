@@ -133,6 +133,34 @@ class _Interval(_BaseInterval):
 _ignored_interval = _Interval.validate((-np.inf, np.inf))
 
 
+def get_index(model, key) -> int:
+    """
+    Get the input index corresponding to the given key.
+        Can pass in either:
+            the string name of the input or
+            the input index itself.
+    """
+    if isinstance(key, str):
+        if key in model.inputs:
+            index = model.inputs.index(key)
+        else:
+            raise ValueError(f"'{key}' is not one of the inputs: {model.inputs}.")
+    elif np.issubdtype(type(key), np.integer):
+        if 0 <= key < len(model.inputs):
+            index = key
+        else:
+            raise IndexError(f"Integer key: {key} must be non-negative and < {len(model.inputs)}.")
+    else:
+        raise ValueError(f"Key value: {key} must be string or integer.")
+
+    return index
+
+
+def get_name(model, index: int):
+    """Get the input name corresponding to the input index"""
+    return model.inputs[index]
+
+
 class _BoundingDomain(abc.ABC):
     """
     Base class for ModelBoundingBox and CompoundBoundingBox.
@@ -160,8 +188,60 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model):
+    def __init__(self, model, ignored: List[int] = None, order: str = 'C'):
         self._model = model
+        self._ignored = self._validate_ignored(ignored)
+        self._order = self._get_order(order)
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def order(self) -> str:
+        return self._order
+
+    @property
+    def ignored(self) -> List[int]:
+        return self._ignored
+
+    def _get_order(self, order: str = None) -> str:
+        """
+        Get if bounding_box is C/python ordered or Fortran/mathematically
+        ordered
+        """
+        if order is None:
+            order = self._order
+
+        if order not in ('C', 'F'):
+            raise ValueError("order must be either 'C' (C/python order) or "
+                             f"'F' (Fortran/mathematical order), got: {order}.")
+
+        return order
+
+    def _get_index(self, key) -> int:
+        """
+        Get the input index corresponding to the given key.
+            Can pass in either:
+                the string name of the input or
+                the input index itself.
+        """
+
+        return get_index(self._model, key)
+
+    def _get_name(self, index: int):
+        """Get the input name corresponding to the input index"""
+        return get_name(self._model, index)
+
+    @property
+    def ignored_inputs(self) -> List[str]:
+        return [self._get_name(index) for index in self._ignored]
+
+    def _validate_ignored(self, ignored: list) -> List[int]:
+        if ignored is None:
+            return []
+        else:
+            return [self._get_index(key) for key in ignored]
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
@@ -474,34 +554,6 @@ class _BoundingDomain(abc.ABC):
         return tuple(self._set_outputs_unit(outputs, valid_outputs_unit))
 
 
-def get_name(model, index: int):
-    """Get the input name corresponding to the input index"""
-    return model.inputs[index]
-
-
-def get_index(model, key) -> int:
-    """
-    Get the input index corresponding to the given key.
-        Can pass in either:
-            the string name of the input or
-            the input index itself.
-    """
-    if isinstance(key, str):
-        if key in model.inputs:
-            index = model.inputs.index(key)
-        else:
-            raise ValueError(f"'{key}' is not one of the inputs: {model.inputs}.")
-    elif np.issubdtype(type(key), np.integer):
-        if 0 <= key < len(model.inputs):
-            index = key
-        else:
-            raise IndexError(f"Integer key: {key} must be non-negative and < {len(model.inputs)}.")
-    else:
-        raise ValueError(f"Key value: {key} must be string or integer.")
-
-    return index
-
-
 class ModelBoundingBox(_BoundingDomain):
     """
     A model's bounding box
@@ -540,10 +592,7 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __init__(self, intervals: Dict[int, _Interval], model,
                  ignored: List[int] = None, order: str = 'C'):
-        super().__init__(model)
-        self._order = order
-
-        self._ignored = self._validate_ignored(ignored)
+        super().__init__(model, ignored, order)
 
         self._intervals = {}
         if intervals != () and intervals != {}:
@@ -566,25 +615,9 @@ class ModelBoundingBox(_BoundingDomain):
         return self._intervals
 
     @property
-    def order(self) -> str:
-        return self._order
-
-    @property
-    def ignored(self) -> List[int]:
-        return self._ignored
-
-    def _get_name(self, index: int):
-        """Get the input name corresponding to the input index"""
-        return get_name(self._model, index)
-
-    @property
     def named_intervals(self) -> Dict[str, _Interval]:
         """Return bounding_box labeled using input names"""
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
-
-    @property
-    def ignored_inputs(self) -> List[str]:
-        return [self._get_name(index) for index in self._ignored]
 
     def __repr__(self):
         parts = [
@@ -605,22 +638,6 @@ class ModelBoundingBox(_BoundingDomain):
 
         return '\n'.join(parts)
 
-    def _get_index(self, key) -> int:
-        """
-        Get the input index corresponding to the given key.
-            Can pass in either:
-                the string name of the input or
-                the input index itself.
-        """
-
-        return get_index(self._model, key)
-
-    def _validate_ignored(self, ignored: list) -> List[int]:
-        if ignored is None:
-            return []
-        else:
-            return [self._get_index(key) for key in ignored]
-
     def __len__(self):
         return len(self._intervals)
 
@@ -640,20 +657,6 @@ class ModelBoundingBox(_BoundingDomain):
             return _ignored_interval
         else:
             return self._intervals[self._get_index(key)]
-
-    def _get_order(self, order: str = None) -> str:
-        """
-        Get if bounding_box is C/python ordered or Fortran/mathematically
-        ordered
-        """
-        if order is None:
-            order = self._order
-
-        if order not in ('C', 'F'):
-            raise ValueError("order must be either 'C' (C/python order) or "
-                             f"'F' (Fortran/mathematical order), got: {order}.")
-
-        return order
 
     def bounding_box(self, order: str = None):
         """
@@ -744,7 +747,7 @@ class ModelBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box,
-                 ignored: list = None, order: str = 'C', **kwargs):
+                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwargs):
         """
         Construct a valid bounding box for a model.
 
@@ -760,6 +763,8 @@ class ModelBoundingBox(_BoundingDomain):
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
+            if _preserve_ignore:
+                ignored = bounding_box.ignored
             bounding_box = bounding_box.intervals
 
         new = cls({}, model, ignored=ignored, order=order)
@@ -1304,9 +1309,9 @@ class CompoundBoundingBox(_BoundingDomain):
         Contructs a valid complex bounding_box
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
-                 selector_args: _SelectorArguments, create_selector: Callable = None, order: str = 'C'):
-        super().__init__(model)
-        self._order = order
+                 selector_args: _SelectorArguments, create_selector: Callable = None,
+                 ignored: List[int] = None, order: str = 'C'):
+        super().__init__(model, ignored, order)
 
         self._create_selector = create_selector
         self._selector_args = _SelectorArguments.validate(model, selector_args)
@@ -1366,10 +1371,6 @@ class CompoundBoundingBox(_BoundingDomain):
     def create_selector(self):
         return self._create_selector
 
-    @property
-    def order(self) -> str:
-        return self._order
-
     @staticmethod
     def _get_selector_key(key):
         if isiterable(key):
@@ -1382,9 +1383,10 @@ class CompoundBoundingBox(_BoundingDomain):
         if not self.selector_args.is_selector(_selector):
             raise ValueError(f"{_selector} is not a selector!")
 
+        ignored = self.selector_args.ignore + self.ignored
         self._bounding_boxes[_selector] = ModelBoundingBox.validate(self._model, value,
-                                                               self.selector_args.ignore,
-                                                               order=self._order)
+                                                                    ignored,
+                                                                    order=self._order)
 
     def _validate(self, bounding_boxes: dict):
         for _selector, bounding_box in bounding_boxes.items():
@@ -1400,7 +1402,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 order: str = 'C'):
+                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwarg):
         """
         Construct a valid compound bounding box for a model.
 
@@ -1424,12 +1426,15 @@ class CompoundBoundingBox(_BoundingDomain):
             if create_selector is None:
                 create_selector = bounding_box.create_selector
             order = bounding_box.order
+            if _preserve_ignore:
+                ignored = bounding_box.ignored
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:
             raise ValueError("Selector arguments must be provided (can be passed as part of bounding_box argument)!")
 
-        return cls(bounding_box, model, selector_args, create_selector, order)
+        return cls(bounding_box, model, selector_args,
+                   create_selector=create_selector, ignored=ignored, order=order)
 
     def __contains__(self, key):
         return key in self._bounding_boxes

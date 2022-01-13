@@ -1311,3 +1311,34 @@ def test_compound_model_with_bounding_box_true_and_single_output():
     assert_equal(model(x, y), [4, 5])
     # Check with_bounding_box=True should be the same
     assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+
+
+def test_bounding_box_pass_with_ignored():
+    """Test the possiblity of setting ignored variables in bounding box"""
+
+    model = models.Polynomial2D(2)
+    bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=['y'])
+    model.bounding_box = bbox
+    assert model.bounding_box.bounding_box() == (-1, 1)
+    assert model.bounding_box == bbox
+
+    model = models.Polynomial2D(2)
+    bind_bounding_box(model, (-1, 1), ignored=['y'])
+    assert model.bounding_box.bounding_box() == (-1, 1)
+    assert model.bounding_box == bbox
+
+
+def test_compound_bounding_box_pass_with_ignored():
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bbox = {(0,): (-0.5, 1047.5),
+            (1,): (-0.5, 2047.5), }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)],
+                                         ignored=['y'], order='F')
+    model.bounding_box = cbbox
+
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bind_compound_bounding_box(model, bbox, selector_args=[('slit_id', True)],
+                               ignored=['y'], order='F')
+    assert model.bounding_box == cbbox
