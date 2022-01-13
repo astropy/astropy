@@ -372,7 +372,7 @@ class TableFormatter:
             if the column is not shown completely.
         """
         max_lines, _ = self._get_pprint_size(max_lines, -1)
-
+        dtype = getattr(col, 'dtype', None)
         multidims = getattr(col, 'shape', [0])[1:]
         if multidims:
             multidim0 = tuple(0 for n in multidims)
@@ -386,8 +386,8 @@ class TableFormatter:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
             col_name = str(col.info.name)
-            if multidims:
-                col_name += f" [{','.join(str(n) for n in multidims)}]"
+            if dtype is not None and dtype.names is not None:
+                col_name += f" [{', '.join(str(n) for n in dtype.names)}]"
             n_header += 1
             yield col_name
         if show_unit:
@@ -397,11 +397,11 @@ class TableFormatter:
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
-            try:
-                dtype = dtype_info_name(col.dtype)
-            except AttributeError:
-                dtype = col.__class__.__qualname__ or 'object'
-            yield str(dtype)
+            if dtype is not None:
+                col_dtype = dtype_info_name((dtype, multidims))
+            else:
+                col_dtype = col.__class__.__qualname__ or 'object'
+            yield col_dtype
         if show_unit or show_name or show_dtype:
             i_dashes = n_header
             n_header += 1
