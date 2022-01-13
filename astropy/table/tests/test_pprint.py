@@ -385,7 +385,7 @@ class TestFormat():
 
     def test_column_format_func_multiD(self, table_type):
         arr = [np.array([[1, 2],
-                         [10, 20]])]
+                         [10, 20]], dtype='i8')]
         t = table_type(arr, names=['a'])
 
         # mathematical function
@@ -535,7 +535,7 @@ class TestFormatWithMaskedElements():
 
     def test_column_format_func_multiD(self):
         arr = [np.array([[1, 2],
-                         [10, 20]])]
+                         [10, 20]], dtype='i8')]
         t = Table(arr, names=['a'], masked=True)
         t['a'].mask[0, 1] = True
         t['a'].mask[1, 1] = True
