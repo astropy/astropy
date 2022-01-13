@@ -542,10 +542,11 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
         5   7
         6   8
       >>> print(dstack([t1, t2]))
-      a [2]  b [2]
-      ------ ------
-      1 .. 5 3 .. 7
-      2 .. 6 4 .. 8
+         a        b
+      int64[2] int64[2]
+      -------- --------
+        1 .. 5   3 .. 7
+        2 .. 6   4 .. 8
     """
     _check_join_type(join_type, 'dstack')
 

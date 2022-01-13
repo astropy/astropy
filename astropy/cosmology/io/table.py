@@ -52,9 +52,9 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         >>> ct = Planck18.to_format("astropy.table")
         >>> ct
         <QTable length=1>
-          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+          name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
                  km / (Mpc s)            K                 eV
-          str8     float64    float64 float64 float64   float64   float64
+          str8     float64    float64 float64 float64  float64[3] float64
         -------- ------------ ------- ------- ------- ----------- -------
         Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
@@ -92,9 +92,9 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
         ...              metadata_conflicts='silent')
         >>> cts
         <QTable length=3>
-          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+          name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
                  km / (Mpc s)            K                 eV
-          str8     float64    float64 float64 float64   float64   float64
+          str8     float64    float64 float64 float64  float64[3]  float64
         -------- ------------ ------- ------- ------- ----------- --------
         Planck13        67.77 0.30712  2.7255   3.046 0.0 .. 0.06 0.048252
         Planck15        67.74  0.3075  2.7255   3.046 0.0 .. 0.06   0.0486
@@ -172,9 +172,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
         >>> ct = Planck18.to_format("astropy.table")
         >>> ct
         <QTable length=1>
-          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+          name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
                  km / (Mpc s)            K                 eV
-          str8     float64    float64 float64 float64   float64   float64
+          str8     float64    float64 float64 float64  float64[3] float64
         -------- ------------ ------- ------- ------- ----------- -------
         Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
@@ -189,9 +189,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
 
         >>> Planck18.to_format("astropy.table", cosmology_in_meta=False)
         <QTable length=1>
-          cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+          cosmology     name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
                                km / (Mpc s)            K                 eV
-            str13       str8     float64    float64 float64 float64   float64   float64
+            str13       str8     float64    float64 float64 float64  float64[3] float64
         ------------- -------- ------------ ------- ------- ------- ----------- -------
         FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 

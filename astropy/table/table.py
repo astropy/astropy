@@ -1591,7 +1591,7 @@ class Table:
 
     @format_doc(_pprint_docs)
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None, show_dtype=False, align=None):
+               show_unit=None, show_dtype=None, align=None):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -1621,7 +1621,7 @@ class Table:
 
     @format_doc(_pprint_docs)
     def pprint_all(self, max_lines=-1, max_width=-1, show_name=True,
-                   show_unit=None, show_dtype=False, align=None):
+                   show_unit=None, show_dtype=None, align=None):
         """Print a formatted string representation of the entire table.
 
         This method is the same as `astropy.table.Table.pprint` except that
@@ -1696,7 +1696,7 @@ class Table:
         if table_class == 'astropy-default':
             table_class = conf.default_notebook_table_class
         html = display_table._base_repr_(html=True, max_width=-1, tableid=tableid,
-                                         max_lines=-1, show_dtype=False,
+                                         max_lines=-1, show_dtype=None,
                                          tableclass=table_class)
 
         columns = display_table.columns.values()
@@ -1786,7 +1786,7 @@ class Table:
 
     @format_doc(_pformat_docs, id="{id}")
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, show_dtype=False, html=False, tableid=None,
+                show_unit=None, show_dtype=None, html=False, tableid=None,
                 align=None, tableclass=None):
         """Return a list of lines for the formatted string representation of
         the table.
@@ -1815,7 +1815,7 @@ class Table:
 
     @format_doc(_pformat_docs, id="{id}")
     def pformat_all(self, max_lines=-1, max_width=-1, show_name=True,
-                    show_unit=None, show_dtype=False, html=False, tableid=None,
+                    show_unit=None, show_dtype=None, html=False, tableid=None,
                     align=None, tableclass=None):
         """Return a list of lines for the formatted string representation of
         the entire table.
@@ -1837,7 +1837,7 @@ class Table:
                             align, tableclass)
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-             show_unit=None, show_dtype=False):
+             show_unit=None, show_dtype=True):
         """Interactively browse table with a paging interface.
 
         Supported keys::
