@@ -535,10 +535,11 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     filename : str
         Name of fits file.
 
-    hdu : int, optional
-        FITS extension from which CCDData should be initialized. If zero and
-        and no data in the primary extension, it will search for the first
-        extension with data. The header will be added to the primary header.
+    hdu : int, str, tuple of (str, int), optional
+        Index or other identifier of the Header Data Unit of the FITS
+        file from which CCDData should be initialized. If zero and
+        no data in the primary HDU, it will search for the first
+        extension HDU with data. The header will be added to the primary HDU.
         Default is ``0``.
 
     unit : `~astropy.units.Unit`, optional
