@@ -286,7 +286,7 @@ class _ModelMeta(abc.ABCMeta):
             # See if it's a hard-coded bounding_box (as a sequence) and
             # normalize it
             try:
-                bounding_box = ModelBoundingBox.validate(cls, bounding_box)
+                bounding_box = ModelBoundingBox.validate(cls, bounding_box, _preserve_ignore=True)
             except ValueError as exc:
                 raise ModelDefinitionError(exc.args[0])
         else:
@@ -1450,7 +1450,7 @@ class Model(metaclass=_ModelMeta):
 
         if cls is not None:
             try:
-                bounding_box = cls.validate(self, bounding_box)
+                bounding_box = cls.validate(self, bounding_box, _preserve_ignore=True)
             except ValueError as exc:
                 raise ValueError(exc.args[0])
 
@@ -4087,11 +4087,14 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
         bbox = CompoundBoundingBox.validate(modelinstance, bounding_boxes, selector_args)
         _selector = bbox.selector_args.get_fixed_values(modelinstance, values)
 
-        model.bounding_box = bbox[_selector]
+        new_bbox = bbox[_selector]
+        new_bbox = new_bbox.__class__.validate(model, new_bbox)
+
+        model.bounding_box = new_bbox
     return model
 
 
-def bind_bounding_box(modelinstance, bounding_box, order='C'):
+def bind_bounding_box(modelinstance, bounding_box, ignored=None, order='C'):
     """
     Set a validated bounding box to a model instance.
 
@@ -4101,17 +4104,20 @@ def bind_bounding_box(modelinstance, bounding_box, order='C'):
         This is the model that the validated bounding box will be set on.
     bounding_box : tuple
         A bounding box tuple, see :ref:`astropy:bounding-boxes` for details
+    ignored : list
+        List of the inputs to be ignored by the bounding box.
     order : str, optional
         The ordering of the bounding box tuple, can be either ``'C'`` or
         ``'F'``.
     """
     modelinstance.bounding_box = ModelBoundingBox.validate(modelinstance,
                                                            bounding_box,
+                                                           ignored=ignored,
                                                            order=order)
 
 
 def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
-                               create_selector=None, order='C'):
+                               create_selector=None, ignored=None, order='C'):
     """
     Add a validated compound bounding box to a model instance.
 
@@ -4131,14 +4137,16 @@ def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
         there is no bounding box in the compound bounding box listed under
         that selector value. Default is ``None``, meaning new bounding
         box entries will not be automatically generated.
+    ignored : list
+        List of the inputs to be ignored by the bounding box.
     order : str, optional
         The ordering of the bounding box tuple, can be either ``'C'`` or
         ``'F'``.
     """
     modelinstance.bounding_box = CompoundBoundingBox.validate(modelinstance,
-                                                              bounding_boxes,
-                                                              selector_args,
-                                                              create_selector,
+                                                              bounding_boxes, selector_args,
+                                                              create_selector=create_selector,
+                                                              ignored=ignored,
                                                               order=order)
 
 
