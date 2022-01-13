@@ -528,25 +528,25 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
     --------
     To stack two tables along rows do::
 
-      >>> from astropy.table import vstack, Table
-      >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
-      >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
+      >>> from astropy.table import dstack, Table
+      >>> t1 = Table({'a': [1., 2.], 'b': [3., 4.]}, names=('a', 'b'))
+      >>> t2 = Table({'a': [5., 6.], 'b': [7., 8.]}, names=('a', 'b'))
       >>> print(t1)
        a   b
       --- ---
-        1   3
-        2   4
+      1.0 3.0
+      2.0 4.0
       >>> print(t2)
        a   b
       --- ---
-        5   7
-        6   8
+      5.0 7.0
+      6.0 8.0
       >>> print(dstack([t1, t2]))
-         a        b
-      int64[2] int64[2]
-      -------- --------
-        1 .. 5   3 .. 7
-        2 .. 6   4 .. 8
+          a          b
+      float64[2] float64[2]
+      ---------- ----------
+      1.0 .. 5.0 3.0 .. 7.0
+      2.0 .. 6.0 4.0 .. 8.0
     """
     _check_join_type(join_type, 'dstack')
 

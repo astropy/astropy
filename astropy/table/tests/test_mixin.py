@@ -707,9 +707,9 @@ def test_ndarray_mixin():
                  dtype='<i4,' + ('|U1'))
     b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
                  dtype=[('x', 'i4'), ('y', ('U2'))])
-    c = np.rec.fromrecords([(100, 'raa'), (200, 'rbb'), (300, 'rcc'), (400, 'rdd')],
+    c = np.rec.fromrecords([(100., 'raa'), (200., 'rbb'), (300., 'rcc'), (400., 'rdd')],
                            names=['rx', 'ry'])
-    d = np.arange(8).reshape(4, 2).view(NdarrayMixin)
+    d = np.arange(8, dtype='i8').reshape(4, 2).view(NdarrayMixin)
 
     # Add one during initialization and the next as a new column.
     t = Table([a], names=['a'])
@@ -750,13 +750,13 @@ def test_ndarray_mixin():
     assert t[1]['d'][1] == d[1][1]
 
     assert t.pformat() == [
-        "  a [f0, f1]     b [x, y]     c [rx, ry]     d    ",
-        "(int32, str1) (int32, str2) (int64, str3) int64[2]",
-        "------------- ------------- ------------- --------",
-        "     (1, 'a')    (10, 'aa')  (100, 'raa')   0 .. 1",
-        "     (2, 'b')    (20, 'bb')  (200, 'rbb')   2 .. 3",
-        "     (3, 'c')    (30, 'cc')  (300, 'rcc')   4 .. 5",
-        "     (4, 'd')    (40, 'dd')  (400, 'rdd')   6 .. 7"]
+        '  a [f0, f1]     b [x, y]      c [rx, ry]      d    ',
+        '(int32, str1) (int32, str2) (float64, str3) int64[2]',
+        '------------- ------------- --------------- --------',
+        "     (1, 'a')    (10, 'aa')   (100., 'raa')   0 .. 1",
+        "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
+        "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
+        "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7"]
 
 
 def test_possible_string_format_functions():

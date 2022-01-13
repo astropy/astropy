@@ -736,34 +736,34 @@ and last value of each row element and indicates the array dimensions in the
 column name header::
 
   >>> t = Table()
-  >>> arr = [ np.array([[ 1,  2],
-  ...                   [10, 20]]),
-  ...         np.array([[ 3,  4],
-  ...                   [30, 40]]),
-  ...         np.array([[ 5,  6],
-  ...                   [50, 60]]) ]
+  >>> arr = [ np.array([[ 1.,  2.],
+  ...                   [10., 20.]]),
+  ...         np.array([[ 3.,  4.],
+  ...                   [30., 40.]]),
+  ...         np.array([[ 5.,  6.],
+  ...                   [50., 60.]]) ]
   >>> t['a'] = arr
   >>> t['a'].shape
   (3, 2, 2)
   >>> t.pprint()
-     a
-  int64[2,2]
-  ----------
-     1 .. 20
-     3 .. 40
-     5 .. 60
+       a
+  float64[2,2]
+  ------------
+   1.0 .. 20.0
+   3.0 .. 40.0
+   5.0 .. 60.0
 
 In order to see all of the data values for a multidimensional column use the
 column representation. This uses the standard ``numpy`` mechanism for printing
 any array::
 
   >>> t['a'].data
-  array([[[ 1,  2],
-          [10, 20]],
-         [[ 3,  4],
-          [30, 40]],
-         [[ 5,  6],
-          [50, 60]]])
+  array([[[ 1.,  2.],
+          [10., 20.]],
+         [[ 3.,  4.],
+          [30., 40.]],
+         [[ 5.,  6.],
+          [50., 60.]]])
 
 .. _columns_with_units:
 

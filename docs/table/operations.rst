@@ -689,15 +689,15 @@ source counts for different PSF fractions::
 
   >>> from astropy.table import Table, dstack
   >>> src1 = Table.read("""psf_frac  counts
-  ...                      0.10        45
-  ...                      0.50        90
-  ...                      0.90       120
+  ...                      0.10        45.
+  ...                      0.50        90.
+  ...                      0.90       120.
   ...                      """, format='ascii')
 
   >>> src2 = Table.read("""psf_frac  counts
-  ...                      0.10       200
-  ...                      0.50       300
-  ...                      0.90       350
+  ...                      0.10       200.
+  ...                      0.50       300.
+  ...                      0.90       350.
   ...                      """, format='ascii')
 
 Now we can stack these two tables depth-wise to get a single table with the
@@ -705,12 +705,12 @@ characteristics of both sources::
 
   >>> srcs = dstack([src1, src2])
   >>> print(srcs)
-   psf_frac    counts
-  float64[2]  int64[2]
-  ---------- ----------
-  0.1 .. 0.1  45 .. 200
-  0.5 .. 0.5  90 .. 300
-  0.9 .. 0.9 120 .. 350
+   psf_frac      counts
+  float64[2]   float64[2]
+  ---------- --------------
+  0.1 .. 0.1  45.0 .. 200.0
+  0.5 .. 0.5  90.0 .. 300.0
+  0.9 .. 0.9 120.0 .. 350.0
 
 In this case the counts for the first source are accessible as
 ``srcs['counts'][:, 0]``, and likewise the second source counts are
