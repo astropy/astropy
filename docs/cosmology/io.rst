@@ -145,9 +145,9 @@ from a |QTable|.
     >>> ct = Planck18.to_format("astropy.table")
     >>> ct
     <QTable length=1>
-      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+      name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
              km / (Mpc s)            K                 eV
-      str8     float64    float64 float64 float64   float64   float64
+      str8     float64    float64 float64 float64  float64[3] float64
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
@@ -160,9 +160,9 @@ Cosmology supports the astropy Table-like protocol (see
     >>> ct = QTable(Planck18)
     >>> ct
     <QTable length=1>
-      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+      name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
              km / (Mpc s)            K                 eV
-      str8     float64    float64 float64 float64   float64   float64
+      str8     float64    float64 float64 float64  float64[3] float64
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
@@ -288,9 +288,9 @@ Now the registered functions can be used in |Cosmology.from_format| and
     >>> row = Planck18.to_format("astropy.row")
     >>> row
     <Row index=0>
-      cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+      cosmology     name        H0        Om0    Tcmb0    Neff      m_nu      Ob0
                            km / (Mpc s)            K                 eV
-        str13       str8     float64    float64 float64 float64   float64   float64
+        str13       str8     float64    float64 float64 float64  float64[3] float64
     ------------- -------- ------------ ------- ------- ------- ----------- -------
     FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 

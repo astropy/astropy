@@ -746,11 +746,12 @@ column name header::
   >>> t['a'].shape
   (3, 2, 2)
   >>> t.pprint()
-  a [2,2]
-  -------
-  1 .. 20
-  3 .. 40
-  5 .. 60
+     a
+  int64[2,2]
+  ----------
+     1 .. 20
+     3 .. 40
+     5 .. 60
 
 In order to see all of the data values for a multidimensional column use the
 column representation. This uses the standard ``numpy`` mechanism for printing

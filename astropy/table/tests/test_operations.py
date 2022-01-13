@@ -712,7 +712,8 @@ class TestJoin():
                                   kdtree_args={'leafsize': 32},
                                   query_args={'p': 2})
         t12 = table.join(t1, t2, join_type='outer', join_funcs={'col': join_func})
-        exp = ['col_id col_1 [2]   col_2 [2] ',
+        exp = ['col_id   col_1       col_2   ',
+               'int64  float64[2]  float64[2]',
                '------ ---------- -----------',
                '     1 1.0 .. 0.0 1.05 .. 0.0',
                '     2 2.0 .. 0.0  2.1 .. 0.0',

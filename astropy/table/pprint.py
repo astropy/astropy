@@ -219,7 +219,7 @@ class TableFormatter:
         return max_lines, max_width
 
     def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
-                     show_dtype=False, show_length=None, html=False, align=None):
+                     show_dtype=None, show_length=None, html=False, align=None):
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -236,7 +236,8 @@ class TableFormatter:
             for the unit.
 
         show_dtype : bool
-            Include column dtype. Default is False.
+            Include column dtype. Default is to show it only if the
+            column is multidimensional.
 
         show_length : bool
             Include column length at end.  Default is to show this only
@@ -262,6 +263,8 @@ class TableFormatter:
         """
         if show_unit is None:
             show_unit = col.info.unit is not None
+        if show_dtype is None:
+            show_dtype = bool(getattr(col, 'shape', ())[1:])
 
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
         col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name,
@@ -344,7 +347,7 @@ class TableFormatter:
         return col_strs, outs
 
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
-                          show_dtype=False, show_length=None):
+                          show_dtype=None, show_length=None):
         """Iterator which yields formatted string representation of column values.
 
         Parameters
@@ -365,7 +368,8 @@ class TableFormatter:
             defined within the iterator.
 
         show_dtype : bool
-            Include column dtype. Default is False.
+            Include column dtype. Default is to show the dtype only if
+            the column is multidimensional.
 
         show_length : bool
             Include column length at end.  Default is to show this only
@@ -490,7 +494,7 @@ class TableFormatter:
         outs['i_dashes'] = i_dashes
 
     def _pformat_table(self, table, max_lines=None, max_width=None,
-                       show_name=True, show_unit=None, show_dtype=False,
+                       show_name=True, show_unit=None, show_dtype=None,
                        html=False, tableid=None, tableclass=None, align=None):
         """Return a list of lines for the formatted string representation of
         the table.
@@ -512,7 +516,8 @@ class TableFormatter:
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes. Default is False.
+            Include a header row for column dtypes. Default is to show
+            a row for dtype only if one or more columns is multidimensional.
 
         html : bool
             Format the output as an HTML table. Default is False.
@@ -548,6 +553,10 @@ class TableFormatter:
 
         if show_unit is None:
             show_unit = any(col.info.unit for col in table.columns.values())
+
+        if show_dtype is None:
+            show_dtype = any(getattr(col, 'shape', [])[1:]
+                             for col in table.columns.values())
 
         # Coerce align into a correctly-sized list of alignments (if possible)
         n_cols = len(table.columns)
@@ -640,7 +649,7 @@ class TableFormatter:
         return rows, outs
 
     def _more_tabcol(self, tabcol, max_lines=None, max_width=None,
-                     show_name=True, show_unit=None, show_dtype=False):
+                     show_name=True, show_unit=None, show_dtype=None):
         """Interactive "more" of a table or column.
 
         Parameters
@@ -660,7 +669,8 @@ class TableFormatter:
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes. Default is False.
+            Include a header row for column dtypes. Default is to show
+            the header only if the column is multidimensional.
         """
         allowed_keys = 'f br<>qhpn'
 
