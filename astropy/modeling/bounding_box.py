@@ -902,7 +902,7 @@ class ModelBoundingBox(_BoundingDomain):
         return tuple(valid_inputs), valid_index, all_out
 
 
-_BaseSelectorArgument = namedtuple('_BaseSelectorArgument', "index ignore")
+_BaseSelectorArgument = namedtuple('_BaseSelectorArgument', "name ignore")
 
 
 class _SelectorArgument(_BaseSelectorArgument):
@@ -911,8 +911,8 @@ class _SelectorArgument(_BaseSelectorArgument):
 
     Parameters
     ----------
-    index : int
-        The index of the input in the input list
+    name : str
+        The name of the input in the input list
 
     ignore : bool
         Whether or not this input will be ignored by the bounding box.
@@ -929,11 +929,6 @@ class _SelectorArgument(_BaseSelectorArgument):
     get_fixed_value :
         Gets the slicing value from a fix_inputs set of values.
     """
-
-    def __new__(cls, index, ignore):
-        self = super().__new__(cls, index, ignore)
-
-        return self
 
     @classmethod
     def validate(cls, model, argument, ignored: bool = True):
@@ -953,26 +948,9 @@ class _SelectorArgument(_BaseSelectorArgument):
         -------
         Validated selector_argument
         """
-        return cls(get_index(model, argument), ignored)
+        return cls(get_name(model, argument), ignored)
 
-    def get_selector(self, *inputs):
-        """
-        Get the selector value corresponding to this argument
-
-        Parameters
-        ----------
-        *inputs :
-            All the processed model evaluation inputs.
-        """
-        _selector = inputs[self.index]
-        if isiterable(_selector):
-            if len(_selector) == 1:
-                return _selector[0]
-            else:
-                return tuple(_selector)
-        return _selector
-
-    def name(self, model) -> str:
+    def index(self, model) -> int:
         """
         Get the name of the input described by this selector argument
 
@@ -981,9 +959,26 @@ class _SelectorArgument(_BaseSelectorArgument):
         model : `~astropy.modeling.Model`
             The Model this selector argument is for.
         """
-        return get_name(model, self.index)
+        return get_index(model, self.name)
 
-    def pretty_repr(self, model):
+    def get_selector(self, model, *inputs):
+        """
+        Get the selector value corresponding to this argument
+
+        Parameters
+        ----------
+        *inputs :
+            All the processed model evaluation inputs.
+        """
+        _selector = inputs[self.index(model)]
+        if isiterable(_selector):
+            if len(_selector) == 1:
+                return _selector[0]
+            else:
+                return tuple(_selector)
+        return _selector
+
+    def __repr__(self):
         """
         Get a pretty-print representation of this object
 
@@ -992,7 +987,7 @@ class _SelectorArgument(_BaseSelectorArgument):
         model : `~astropy.modeling.Model`
             The Model this selector argument is for.
         """
-        return f"Argument(name='{self.name(model)}', ignore={self.ignore})"
+        return f"Argument(name='{self.name}', ignore={self.ignore})"
 
     def get_fixed_value(self, model, values: dict):
         """
@@ -1006,13 +1001,13 @@ class _SelectorArgument(_BaseSelectorArgument):
         values : dict
             Dictionary of fixed inputs.
         """
-        if self.index in values:
-            return values[self.index]
+        if self.name in values:
+            return values[self.name]
         else:
-            if self.name(model) in values:
-                return values[self.name(model)]
+            if self.index(model) in values:
+                return values[self.index(model)]
             else:
-                raise RuntimeError(f"{self.pretty_repr(model)} was not found in {values}")
+                raise RuntimeError(f"{self} was not found in {values}")
 
     def is_argument(self, model, argument) -> bool:
         """
@@ -1027,9 +1022,9 @@ class _SelectorArgument(_BaseSelectorArgument):
             A representation of which evaluation input is being used
         """
 
-        return self.index == get_index(model, argument)
+        return self.name == get_name(model, argument)
 
-    def named_tuple(self, model):
+    def index_tuple(self, model):
         """
         Get a tuple representation of this argument using the input
         name from the model.
@@ -1039,7 +1034,7 @@ class _SelectorArgument(_BaseSelectorArgument):
         model : `~astropy.modeling.Model`
             The Model this selector argument is for.
         """
-        return (self.name(model), self.ignore)
+        return (self.index(model), self.ignore)
 
 
 class _SelectorArguments(tuple):
@@ -1068,7 +1063,7 @@ class _SelectorArguments(tuple):
 
     _kept_ignore = None
 
-    def __new__(cls, input_: Tuple[_SelectorArgument], kept_ignore: List = None):
+    def __new__(cls, input_: Tuple[_SelectorArgument], kept_ignore: List[str] = None):
         self = super().__new__(cls, input_)
 
         if kept_ignore is None:
@@ -1078,7 +1073,7 @@ class _SelectorArguments(tuple):
 
         return self
 
-    def pretty_repr(self, model):
+    def __repr__(self):
         """
         Get a pretty-print representation of this object
 
@@ -1090,16 +1085,16 @@ class _SelectorArguments(tuple):
         parts = ['SelectorArguments(']
         for argument in self:
             parts.append(
-                f"    {argument.pretty_repr(model)}"
+                f"    {argument}"
             )
         parts.append(')')
 
         return '\n'.join(parts)
 
     @property
-    def ignore(self):
+    def ignore(self) -> list[str]:
         """Get the list of ignored inputs"""
-        ignore = [argument.index for argument in self if argument.ignore]
+        ignore = [argument.name for argument in self if argument.ignore]
         ignore.extend(self._kept_ignore)
 
         return ignore
@@ -1128,8 +1123,8 @@ class _SelectorArguments(tuple):
         inputs = []
         for argument in arguments:
             _input = _SelectorArgument.validate(model, *argument)
-            if _input.index in [this.index for this in inputs]:
-                raise ValueError(f"Input: '{get_name(model, _input.index)}' has been repeated.")
+            if _input.name in [this.name for this in inputs]:
+                raise ValueError(f"Input: '{_input.name}' has been repeated.")
             inputs.append(_input)
 
         if len(inputs) == 0:
@@ -1143,7 +1138,7 @@ class _SelectorArguments(tuple):
 
         return cls(tuple(inputs), kept_ignore)
 
-    def get_selector(self, *inputs):
+    def get_selector(self, model, *inputs):
         """
         Get the selector corresponding to these inputs
 
@@ -1152,7 +1147,7 @@ class _SelectorArguments(tuple):
         *inputs :
             All the processed model evaluation inputs.
         """
-        return tuple([argument.get_selector(*inputs) for argument in self])
+        return tuple([argument.get_selector(model, *inputs) for argument in self])
 
     def is_selector(self, _selector):
         """
@@ -1231,7 +1226,7 @@ class _SelectorArguments(tuple):
         """
 
         arguments = list(self)
-        kept_ignore = [arguments.pop(self.selector_index(model, argument)).index]
+        kept_ignore = [arguments.pop(self.selector_index(model, argument)).name]
         kept_ignore.extend(self._kept_ignore)
 
         return _SelectorArguments.validate(model, tuple(arguments), kept_ignore)
@@ -1252,11 +1247,11 @@ class _SelectorArguments(tuple):
         if self.is_argument(model, argument):
             raise ValueError(f"{argument}: is a selector argument and cannot be ignored.")
 
-        kept_ignore = [get_index(model, argument)]
+        kept_ignore = [get_name(model, argument)]
 
         return _SelectorArguments.validate(model, self, kept_ignore)
 
-    def named_tuple(self, model):
+    def index_tuple(self, model):
         """
         Get a tuple of selector argument tuples using input names
 
@@ -1265,7 +1260,7 @@ class _SelectorArguments(tuple):
         model : `~astropy.modeling.Model`
             The Model these selector arguments are for.
         """
-        return tuple([selector_arg.named_tuple(model) for selector_arg in self])
+        return tuple([selector_arg.index_tuple(model) for selector_arg in self])
 
 
 class CompoundBoundingBox(_BoundingDomain):
@@ -1327,7 +1322,7 @@ class CompoundBoundingBox(_BoundingDomain):
         parts.append('    }')
 
         # selector_args
-        selector_args_repr = self.selector_args.pretty_repr(self._model).split('\n')
+        selector_args_repr = self.selector_args.__repr__().split('\n')
         parts.append(f"    selector_args = {selector_args_repr.pop(0)}")
         for part in selector_args_repr:
             parts.append(f"        {part}")
@@ -1441,7 +1436,7 @@ class CompoundBoundingBox(_BoundingDomain):
             raise RuntimeError(f"No bounding box is defined for selector: {_selector}.")
 
     def _select_bounding_box(self, inputs) -> ModelBoundingBox:
-        _selector = self.selector_args.get_selector(*inputs)
+        _selector = self.selector_args.get_selector(self._model, *inputs)
 
         return self[_selector]
 
@@ -1537,7 +1532,7 @@ class CompoundBoundingBox(_BoundingDomain):
             bbox = bbox.fix_inputs(model, new_fixed_inputs)
 
         if isinstance(bbox, CompoundBoundingBox):
-            selector_args = bbox.named_selector_tuple
+            selector_args = bbox.selector_args
             bbox_dict = bbox
         elif isinstance(bbox, ModelBoundingBox):
             selector_args = None
