@@ -154,10 +154,10 @@ def get_index(model, key) -> int:
     return index
 
 
-def get_name(model, index: int):
+def get_name(model, key):
     """Get the input name corresponding to the input index"""
-    return model.inputs[index]
 
+    return model.inputs[get_index(model, key)]
 
 class _BoundingDomain(abc.ABC):
     """
@@ -186,21 +186,28 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model, ignored: List[int] = None, order: str = 'C'):
+    def __init__(self, model = None, ignored: List[str] = None, order: str = 'C'):
         self._model = model
-        self._ignored = self._validate_ignored(ignored)
         self._order = self._get_order(order)
+
+        if ignored is None:
+            self._ignored = []
+        else:
+            self._ignored = ignored
 
     @property
     def model(self):
-        return self._model
+        if self._model is None:
+            raise RuntimeError("Method requires a model to function, please attach to a model")
+        else:
+            return self._model
 
     @property
     def order(self) -> str:
         return self._order
 
     @property
-    def ignored(self) -> List[int]:
+    def ignored(self) -> List[str]:
         return self._ignored
 
     def _get_order(self, order: str = None) -> str:
@@ -225,21 +232,18 @@ class _BoundingDomain(abc.ABC):
                 the input index itself.
         """
 
-        return get_index(self._model, key)
+        return get_index(self.model, key)
 
-    def _get_name(self, index: int):
+    def _get_name(self, key):
         """Get the input name corresponding to the input index"""
-        return get_name(self._model, index)
+        return get_name(self.model, key)
 
     @property
-    def ignored_inputs(self) -> List[str]:
-        return [self._get_name(index) for index in self._ignored]
+    def ignored_inputs(self) -> List[int]:
+        return [self._get_index(name) for name in self._ignored]
 
-    def _validate_ignored(self, ignored: list) -> List[int]:
-        if ignored is None:
-            return []
-        else:
-            return [self._get_index(key) for key in ignored]
+    def _verify_ignored(self):
+        self._ignored = [self._get_name(key) for key in self._ignored]
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
@@ -584,6 +588,8 @@ class ModelBoundingBox(_BoundingDomain):
         if intervals != () and intervals != {}:
             self._validate(intervals, order=order)
 
+        self._verify_ignored()
+
     def copy(self, ignored=None):
         intervals = {index: interval.copy()
                      for index, interval in self._intervals.items()}
@@ -616,7 +622,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         parts.append('    }')
         if len(self._ignored) > 0:
-            parts.append(f"    ignored={self.ignored_inputs}")
+            parts.append(f"    ignored={self.ignored}")
 
         parts.append(f'    model={self._model.__class__.__name__}(inputs={self._model.inputs})')
         parts.append(f"    order='{self._order}'")
@@ -638,8 +644,8 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __getitem__(self, key):
         """Get bounding_box entries by either input name or input index"""
-        index = self._get_index(key)
-        if index in self._ignored:
+        name = self._get_name(key)
+        if name in self._ignored:
             return _ignored_interval
         else:
             return self._intervals[self._get_index(key)]
@@ -675,19 +681,19 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __setitem__(self, key, value):
         """Validate and store interval under key (input index or input name)."""
-        index = self._get_index(key)
-        if index in self._ignored:
-            self._ignored.remove(index)
+        name = self._get_name(key)
+        if name in self._ignored:
+            self._ignored.remove(name)
 
-        self._intervals[index] = _Interval.validate(value)
+        self._intervals[self._get_index(name)] = _Interval.validate(value)
 
     def __delitem__(self, key):
         """Delete stored interval"""
-        index = self._get_index(key)
-        if index in self._ignored:
+        name = self._get_name(key)
+        if name in self._ignored:
             raise RuntimeError(f"Cannot delete ignored input: {key}!")
-        del self._intervals[index]
-        self._ignored.append(index)
+        del self._intervals[self._get_index(name)]
+        self._ignored.append(name)
 
     def _validate_dict(self, bounding_box: dict):
         """Validate passing dictionary of intervals and setting them."""
