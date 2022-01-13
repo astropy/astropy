@@ -207,8 +207,8 @@ class Test_BoundingDomain:
             def fix_inputs(self, model, fix_inputs):
                 super().fix_inputs(model, fixed_inputs=fix_inputs)
 
-            def prepare_inputs(self, input_shape, inputs):
-                super().prepare_inputs(input_shape, inputs)
+            def prepare_inputs(self, input_shape, inputs, ignored=[]):
+                super().prepare_inputs(input_shape, inputs, ignored)
 
         self.BoundingDomain = BoundingDomain
 
@@ -429,11 +429,16 @@ class Test_BoundingDomain:
         assert str(err.value) ==\
             "This should be implemented by a child class."
 
-    def test__prepare_inputs(self):
+    def test_prepare_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
         with pytest.raises(NotImplementedError) as err:
             bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
+        assert str(err.value) == \
+            "This has not been implemented for BoundingDomain."
+
+        with pytest.raises(NotImplementedError) as err:
+            bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
         assert str(err.value) == \
             "This has not been implemented for BoundingDomain."
 
@@ -1505,6 +1510,39 @@ class TestModelBoundingBox:
         with pytest.raises(ValueError):
             bounding_box.domain(0.25, order)
 
+    def test__get_interval(self):
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
+        model = Gaussian2D()
+        bounding_box = ModelBoundingBox.validate(model, intervals)
+
+        # Get non-ignored
+        for index in range(2):
+            interval = bounding_box._get_interval(index, ['a'])
+            assert isinstance(interval, _Interval)
+            assert interval == intervals[index]
+
+        # Get always ignored
+        for index in range(2):
+            interval = bounding_box._get_interval(index, ['x', 'y'])
+            assert isinstance(interval, _Interval)
+            assert interval == _ignored_interval
+
+        # ignore only x
+        interval = bounding_box._get_interval(0, ['x'])
+        assert isinstance(interval, _Interval)
+        assert interval == _ignored_interval
+        interval = bounding_box._get_interval(1, ['x'])
+        assert isinstance(interval, _Interval)
+        assert interval == intervals[1]
+
+        # ignore only y
+        interval = bounding_box._get_interval(0, ['y'])
+        assert isinstance(interval, _Interval)
+        assert interval == intervals[0]
+        interval = bounding_box._get_interval(1, ['y'])
+        assert isinstance(interval, _Interval)
+        assert interval == _ignored_interval
+
     def test__outside(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
         model = Gaussian2D()
@@ -1515,7 +1553,7 @@ class TestModelBoundingBox:
         y = np.linspace(0, 2, 13)
         input_shape = x.shape
         inputs = (x, y)
-        outside_index, all_out = bounding_box._outside(input_shape, inputs)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, [])
         assert (outside_index == [False for _ in range(13)]).all()
         assert not all_out and isinstance(all_out, bool)
 
@@ -1524,7 +1562,7 @@ class TestModelBoundingBox:
         y = np.linspace(0, 3, 13)
         input_shape = x.shape
         inputs = (x, y)
-        outside_index, all_out = bounding_box._outside(input_shape, inputs)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, [])
         assert (outside_index ==
                 [True, True, True, True,
                  False, False, False, False, False,
@@ -1536,23 +1574,84 @@ class TestModelBoundingBox:
         y = np.linspace(-2, -1, 13)
         input_shape = x.shape
         inputs = (x, y)
-        outside_index, all_out = bounding_box._outside(input_shape, inputs)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, [])
         assert (outside_index == [True for _ in range(13)]).all()
         assert all_out and isinstance(all_out, bool)
 
         # Scalar input inside bounding_box
         inputs = (0.5, 0.5)
         input_shape = (1,)
-        outside_index, all_out = bounding_box._outside(input_shape, inputs)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, [])
         assert (outside_index == [False]).all()
         assert not all_out and isinstance(all_out, bool)
 
         # Scalar input outside bounding_box
         inputs = (2, -1)
         input_shape = (1,)
-        outside_index, all_out = bounding_box._outside(input_shape, inputs)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, [])
         assert (outside_index == [True]).all()
         assert all_out and isinstance(all_out, bool)
+
+    def test__outside_with_ignored(self):
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
+        model = Gaussian2D()
+        bounding_box = ModelBoundingBox.validate(model, intervals)
+
+        # Normal array input, all inside, ignore x or y
+        x = np.linspace(-1, 1, 13)
+        y = np.linspace(0, 2, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            outside_index, all_out = bounding_box._outside(input_shape, inputs, [ignore])
+            assert (outside_index == [False for _ in range(13)]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # normal array input, some inside and some outside, ignore x
+        x = np.linspace(-2, 1, 13)
+        y = np.linspace(0, 3, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, ['x'])
+        assert (outside_index ==
+                [False, False, False, False,
+                 False, False, False, False, False,
+                 True, True, True, True]).all()
+        assert not all_out and isinstance(all_out, bool)
+        # normal array input, some inside and some outside, ignore y
+        outside_index, all_out = bounding_box._outside(input_shape, inputs, ['y'])
+        print(outside_index)
+        assert (outside_index ==
+                [True, True, True, True,
+                 False, False, False, False, False,
+                 False, False, False, False]).all()
+        assert not all_out and isinstance(all_out, bool)
+
+        # Normal array input, all outside, ignore x or y
+        x = np.linspace(2, 3, 13)
+        y = np.linspace(-2, -1, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            outside_index, all_out = bounding_box._outside(input_shape, inputs, [ignore])
+            assert (outside_index == [True for _ in range(13)]).all()
+            assert all_out and isinstance(all_out, bool)
+
+        # Scalar input inside bounding_box, ignore x or y
+        inputs = (0.5, 0.5)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            outside_index, all_out = bounding_box._outside(input_shape, inputs, [ignore])
+            assert (outside_index == [False]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # Scalar input outside bounding_box, ignore x or y
+        inputs = (2, -1)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            outside_index, all_out = bounding_box._outside(input_shape, inputs, [ignore])
+            assert (outside_index == [True]).all()
+            assert all_out and isinstance(all_out, bool)
 
     def test__valid_index(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
@@ -1564,7 +1663,7 @@ class TestModelBoundingBox:
         y = np.linspace(0, 2, 13)
         input_shape = x.shape
         inputs = (x, y)
-        valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [])
         assert len(valid_index) == 1
         assert (valid_index[0] == [idx for idx in range(13)]).all()
         assert not all_out and isinstance(all_out, bool)
@@ -1574,7 +1673,7 @@ class TestModelBoundingBox:
         y = np.linspace(0, 3, 13)
         input_shape = x.shape
         inputs = (x, y)
-        valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [])
         assert len(valid_index) == 1
         assert (valid_index[0] == [4, 5, 6, 7, 8]).all()
         assert not all_out and isinstance(all_out, bool)
@@ -1584,7 +1683,7 @@ class TestModelBoundingBox:
         y = np.linspace(-2, -1, 13)
         input_shape = x.shape
         inputs = (x, y)
-        valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [])
         assert len(valid_index) == 1
         assert (valid_index[0] == []).all()
         assert all_out and isinstance(all_out, bool)
@@ -1592,7 +1691,7 @@ class TestModelBoundingBox:
         # Scalar input inside bounding_box
         inputs = (0.5, 0.5)
         input_shape = (1,)
-        valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [])
         assert len(valid_index) == 1
         assert (valid_index[0] == [0]).all()
         assert not all_out and isinstance(all_out, bool)
@@ -1600,10 +1699,70 @@ class TestModelBoundingBox:
         # Scalar input outside bounding_box
         inputs = (2, -1)
         input_shape = (1,)
-        valid_index, all_out = bounding_box._valid_index(input_shape, inputs)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [])
         assert len(valid_index) == 1
         assert (valid_index[0] == []).all()
         assert all_out and isinstance(all_out, bool)
+
+    def test__valid_index_with_ignored(self):
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
+        model = Gaussian2D()
+        bounding_box = ModelBoundingBox.validate(model, intervals)
+
+        # Normal array input, all inside, ignore x or y
+        x = np.linspace(-1, 1, 13)
+        y = np.linspace(0, 2, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [ignore])
+            assert len(valid_index) == 1
+            assert (valid_index[0] == [idx for idx in range(13)]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # Normal array input, some inside and some outside, ignore x
+        x = np.linspace(-2, 1, 13)
+        y = np.linspace(0, 3, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, ['x'])
+        assert len(valid_index) == 1
+        assert (valid_index[0] == [0, 1, 2, 3, 4, 5, 6, 7, 8]).all()
+        assert not all_out and isinstance(all_out, bool)
+        # Normal array input, some inside and some outside, ignore y
+        valid_index, all_out = bounding_box._valid_index(input_shape, inputs, ['y'])
+        assert len(valid_index) == 1
+        assert (valid_index[0] == [4, 5, 6, 7, 8, 9, 10, 11, 12]).all()
+        assert not all_out and isinstance(all_out, bool)
+
+        # Normal array input, all outside, ignore x or y
+        x = np.linspace(2, 3, 13)
+        y = np.linspace(-2, -1, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [ignore])
+            assert len(valid_index) == 1
+            assert (valid_index[0] == []).all()
+            assert all_out and isinstance(all_out, bool)
+
+        # Scalar input inside bounding_box, ignore x or y
+        inputs = (0.5, 0.5)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [ignore])
+            assert len(valid_index) == 1
+            assert (valid_index[0] == [0]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # Scalar input outside bounding_box, ignore x or y
+        inputs = (2, -1)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            valid_index, all_out = bounding_box._valid_index(input_shape, inputs, [ignore])
+            assert len(valid_index) == 1
+            assert (valid_index[0] == []).all()
+            assert all_out and isinstance(all_out, bool)
 
     def test_prepare_inputs(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
@@ -1666,6 +1825,84 @@ class TestModelBoundingBox:
         assert len(valid_index) == 1
         assert (valid_index[0] == []).all()
         assert all_out and isinstance(all_out, bool)
+
+    def test_prepare_inputs_with_ignored(self):
+        intervals = {0: _Interval(-1, 1), 1: _Interval(0, 2)}
+        model = Gaussian2D()
+        bounding_box = ModelBoundingBox.validate(model, intervals)
+
+        # Normal array input, all inside, ignore x or y
+        x = np.linspace(-1, 1, 13)
+        y = np.linspace(0, 2, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, [ignore])
+            assert (np.array(new_inputs) == np.array(inputs)).all()
+            assert len(valid_index) == 1
+            assert (valid_index[0] == [idx for idx in range(13)]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # Normal array input, some inside and some outside, ignore x
+        x = np.linspace(-2, 1, 13)
+        y = np.linspace(0, 3, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, ['x'])
+        assert (np.array(new_inputs) ==
+                np.array(
+                    [
+                        [x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8]],
+                        [y[0], y[1], y[2], y[3], y[4], y[5], y[6], y[7], y[8]],
+                    ]
+                )).all()
+        assert len(valid_index) == 1
+        assert (valid_index[0] == [0, 1, 2, 3, 4, 5, 6, 7, 8]).all()
+        assert not all_out and isinstance(all_out, bool)
+        # Normal array input, some inside and some outside, ignore y
+        new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, ['y'])
+        assert (np.array(new_inputs) ==
+                np.array(
+                    [
+                        [x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12]],
+                        [y[4], y[5], y[6], y[7], y[8], y[9], y[10], y[11], y[12]],
+                    ]
+                )).all()
+        assert len(valid_index) == 1
+        assert (valid_index[0] == [4, 5, 6, 7, 8, 9, 10, 11, 12]).all()
+        assert not all_out and isinstance(all_out, bool)
+
+        # Normal array input, all outside, ignore x or y
+        x = np.linspace(2, 3, 13)
+        y = np.linspace(-2, -1, 13)
+        input_shape = x.shape
+        inputs = (x, y)
+        for ignore in ['x', 'y']:
+            new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, [ignore])
+            assert new_inputs == ()
+            assert len(valid_index) == 1
+            assert (valid_index[0] == []).all()
+            assert all_out and isinstance(all_out, bool)
+
+        # Scalar input inside bounding_box, ignore x or y
+        inputs = (0.5, 0.5)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, [ignore])
+            assert (np.array(new_inputs) == np.array([[0.5], [0.5]])).all()
+            assert len(valid_index) == 1
+            assert (valid_index[0] == [0]).all()
+            assert not all_out and isinstance(all_out, bool)
+
+        # Scalar input outside bounding_box, ignore x or y
+        inputs = (2, -1)
+        input_shape = (1,)
+        for ignore in ['x', 'y']:
+            new_inputs, valid_index, all_out = bounding_box.prepare_inputs(input_shape, inputs, [ignore])
+            assert new_inputs == ()
+            assert len(valid_index) == 1
+            assert (valid_index[0] == []).all()
+            assert all_out and isinstance(all_out, bool)
 
 
 class Test_SelectorArgument:
@@ -2436,11 +2673,11 @@ class TestCompoundBoundingBox:
                              autospec=True) as mkPrepare:
             assert bounding_box.prepare_inputs(input_shape, [1, 2, 3]) == mkPrepare.return_value
             assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box[(1,)], input_shape, [1, 2, 3])]
+                [mk.call(bounding_box[(1,)], input_shape, [1, 2, 3], [])]
             mkPrepare.reset_mock()
-            assert bounding_box.prepare_inputs(input_shape, [2, 2, 3]) == mkPrepare.return_value
+            assert bounding_box.prepare_inputs(input_shape, [2, 2, 3], []) == mkPrepare.return_value
             assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box[(2,)], input_shape, [2, 2, 3])]
+                [mk.call(bounding_box[(2,)], input_shape, [2, 2, 3], [])]
             mkPrepare.reset_mock()
 
     def test__matching_bounding_boxes(self):

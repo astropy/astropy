@@ -266,7 +266,7 @@ class _BoundingDomain(abc.ABC):
         raise NotImplementedError("This should be implemented by a child class.")
 
     @abc.abstractmethod
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs, ignored: List[str] = []) -> Tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -276,6 +276,8 @@ class _BoundingDomain(abc.ABC):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
+        ignored : List
+            List of inputs to ignore by name
 
         Returns
         -------
@@ -803,7 +805,28 @@ class ModelBoundingBox(_BoundingDomain):
 
         return [self[input_name].domain(resolution) for input_name in inputs]
 
-    def _outside(self,  input_shape, inputs):
+    def _get_interval(self, index: int, ignored: List[str]) -> _Interval:
+        """
+        Get the interval for the given input index accounting for externally
+        ignored intervals
+
+        Parameters
+        ----------
+        index : int
+            The index of the input
+        ignored : list
+            List of inputs to ignore by name
+
+        Returns
+        -------
+        an interval
+        """
+        if self._get_name(index) in ignored:
+            return _ignored_interval
+        else:
+            return self[index]
+
+    def _outside(self,  input_shape, inputs, ignored: List[str]):
         """
         Get all the input positions which are outside the bounding_box,
         so that the corresponding outputs can be filled with the fill
@@ -815,6 +838,8 @@ class ModelBoundingBox(_BoundingDomain):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
+        ignored : List
+            List of inputs to ignore by name
 
         Returns
         -------
@@ -830,7 +855,8 @@ class ModelBoundingBox(_BoundingDomain):
         for index, _input in enumerate(inputs):
             _input = np.asanyarray(_input)
 
-            outside = np.broadcast_to(self[index].outside(_input), input_shape)
+            outside = np.broadcast_to(self._get_interval(index, ignored).outside(_input),
+                                      input_shape)
             outside_index[outside] = True
 
             if outside_index.all():
@@ -839,7 +865,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return outside_index, all_out
 
-    def _valid_index(self, input_shape, inputs):
+    def _valid_index(self, input_shape, inputs, ignored: List[str]):
         """
         Get the indices of all the inputs inside the bounding_box.
 
@@ -849,6 +875,8 @@ class ModelBoundingBox(_BoundingDomain):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
+        ignored : List
+            List of inputs to ignore by name
 
         Returns
         -------
@@ -857,7 +885,7 @@ class ModelBoundingBox(_BoundingDomain):
         all_out : bool
             if all of the inputs are outside the bounding_box
         """
-        outside_index, all_out = self._outside(input_shape, inputs)
+        outside_index, all_out = self._outside(input_shape, inputs, ignored)
 
         valid_index = np.atleast_1d(np.logical_not(outside_index)).nonzero()
         if len(valid_index[0]) == 0:
@@ -865,7 +893,7 @@ class ModelBoundingBox(_BoundingDomain):
 
         return valid_index, all_out
 
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs, ignored: List[str] = None) -> Tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -875,6 +903,8 @@ class ModelBoundingBox(_BoundingDomain):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
+        ignored : List
+            List of inputs to ignore by name
 
         Returns
         -------
@@ -886,7 +916,10 @@ class ModelBoundingBox(_BoundingDomain):
         all_out: bool
             if all of the inputs are outside the bounding_box
         """
-        valid_index, all_out = self._valid_index(input_shape, inputs)
+        if ignored is None:
+            ignored = []
+
+        valid_index, all_out = self._valid_index(input_shape, inputs, ignored)
 
         valid_inputs = []
         if not all_out:
@@ -1092,12 +1125,18 @@ class _SelectorArguments(tuple):
         return '\n'.join(parts)
 
     @property
-    def ignore(self) -> list[str]:
+    def ignored(self) -> List[str]:
         """Get the list of ignored inputs"""
-        ignore = [argument.name for argument in self if argument.ignore]
+        return [argument.name for argument in self if argument.ignore]
+
+    @property
+    def ignore(self) -> List[str]:
+        """Get the list of ignored inputs"""
+        ignore = self.ignored
         ignore.extend(self._kept_ignore)
 
         return ignore
+
 
     @property
     def kept_ignore(self):
@@ -1292,7 +1331,7 @@ class CompoundBoundingBox(_BoundingDomain):
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
                  selector_args: _SelectorArguments, create_selector: Callable = None,
-                 ignored: List[int] = None, order: str = 'C'):
+                 ignored: List[str] = None, order: str = 'C'):
         super().__init__(model, ignored, order)
 
         self._create_selector = create_selector
@@ -1300,6 +1339,8 @@ class CompoundBoundingBox(_BoundingDomain):
 
         self._bounding_boxes = {}
         self._validate(bounding_boxes)
+
+        self._verify_ignored()
 
     def copy(self):
         bounding_boxes = {selector: bbox.copy(self.selector_args.ignore)
@@ -1330,6 +1371,10 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return '\n'.join(parts)
 
+    # @property
+    # def ignored(self) -> List[str]:
+    #     return super().ignored + self.selector_args.ignored
+
     @property
     def bounding_boxes(self) -> Dict[Any, ModelBoundingBox]:
         return self._bounding_boxes
@@ -1344,10 +1389,6 @@ class CompoundBoundingBox(_BoundingDomain):
 
         warnings.warn("Overriding selector_args may cause problems you should re-validate "
                       "the compound bounding box before use!", RuntimeWarning)
-
-    @property
-    def named_selector_tuple(self) -> tuple:
-        return self._selector_args.named_tuple(self._model)
 
     @property
     def create_selector(self):
@@ -1440,7 +1481,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return self[_selector]
 
-    def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
+    def prepare_inputs(self, input_shape, inputs, ignored: List[str] = None) -> Tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
 
@@ -1461,8 +1502,13 @@ class CompoundBoundingBox(_BoundingDomain):
         all_out: bool
             if all of the inputs are outside the bounding_box
         """
+        if ignored is None:
+            ignored = []
+
+        ignored.extend(self.ignored)
         bounding_box = self._select_bounding_box(inputs)
-        return bounding_box.prepare_inputs(input_shape, inputs)
+
+        return bounding_box.prepare_inputs(input_shape, inputs, ignored)
 
     def _matching_bounding_boxes(self, argument, value) -> Dict[Any, ModelBoundingBox]:
         selector_index = self.selector_args.selector_index(self._model, argument)
