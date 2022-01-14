@@ -12,7 +12,7 @@ from astropy.cosmology.io.row import from_row, to_row
 from astropy.table import Row
 from astropy.cosmology.parameters import available
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import ToFromTestMixinBase, ToFromDirectTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromRow.setup.<locals>.CosmologyWithKwargs")
@@ -20,7 +20,7 @@ cosmo_instances.append("TestToFromRow.setup.<locals>.CosmologyWithKwargs")
 ###############################################################################
 
 
-class ToFromRowTestMixin(IOTestMixinBase):
+class ToFromRowTestMixin(ToFromTestMixinBase):
     """
     Tests for a Cosmology[To/From]Format with ``format="astropy.row"``.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -109,7 +109,7 @@ class ToFromRowTestMixin(IOTestMixinBase):
         pass  # there are no partial info options
 
 
-class TestToFromTable(IOFormatTestBase, ToFromRowTestMixin):
+class TestToFromTable(ToFromDirectTestBase, ToFromRowTestMixin):
     """
     Directly test ``to/from_row``.
     These are not public API and are discouraged from use, in favor of

@@ -21,7 +21,7 @@ from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import ToFromTestMixinBase, ToFromDirectTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
@@ -30,9 +30,9 @@ cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
 ###############################################################################
 
 
-class ToFromModelTestMixin(IOTestMixinBase):
-    """
-    Tests for a Cosmology[To/From]Format with ``format="astropy.model"``.
+class ToFromModelTestMixin(ToFromTestMixinBase):
+    """Tests for a Cosmology[To/From]Format with ``format="astropy.model"``.
+
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
@@ -160,7 +160,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         pass  # there's no partial information with a Model
 
 
-class TestToFromModel(IOFormatTestBase, ToFromModelTestMixin):
+class TestToFromModel(ToFromDirectTestBase, ToFromModelTestMixin):
     """Directly test ``to/from_model``."""
 
     def setup_class(self):
