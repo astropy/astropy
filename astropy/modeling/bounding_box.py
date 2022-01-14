@@ -197,6 +197,7 @@ class _BoundingDomain(abc.ABC):
             self._ignored = ignored
 
         self.model = model
+        self.verify()
 
     @property
     def model(self):
@@ -211,6 +212,10 @@ class _BoundingDomain(abc.ABC):
 
         if model is not None:
             self.verify()
+
+    @property
+    def _has_model(self) -> bool:
+        return self._model is not None
 
     @property
     def order(self) -> str:
@@ -253,7 +258,8 @@ class _BoundingDomain(abc.ABC):
         return [self._get_index(name) for name in self._ignored]
 
     def _verify_ignored(self):
-        self._ignored = [self._get_name(key) for key in self._ignored]
+        if self._has_model:
+            self._ignored = [self._get_name(key) for key in self._ignored]
 
     def verify(self):
         """
@@ -598,15 +604,57 @@ class ModelBoundingBox(_BoundingDomain):
         (default), 'F': Fortran/mathematical notation order, e.g. x, y, z.
     """
 
-    def __init__(self, intervals: Dict[str, _Interval], model,
+    def __init__(self, intervals: Dict[str, _Interval], model = None,
                  ignored: List[str] = None, order: str = 'C'):
+
+        # HACK, prevents a huge number of errors in legacy bounding box related tests.
+        if intervals == ():
+            intervals = {}
+
+        self._intervals = intervals
         super().__init__(model, ignored, order)
 
+    def _pop_intervals(self):
+        intervals = self._intervals
         self._intervals = {}
-        if intervals != () and intervals != {}:
-            self._validate(intervals, order=order)
 
-        self._verify_ignored()
+        return intervals
+
+    def _verify_intervals_dict(self):
+        intervals = self._pop_intervals()
+
+        for key, value in intervals.items():
+            self[key] = value
+
+    def _verify_intervals_sequence(self):
+        intervals = self._pop_intervals()
+
+        if len(intervals) <= 1:
+            raise ValueError(f"The intervals: {intervals}, do not contain enough information to construct a bounding_box!")
+        else:
+            if len(intervals) == 2 and not isinstance(intervals[0], (list, tuple)):
+                self[0] = intervals
+            else:
+                if self._order == 'C':
+                    intervals = intervals[::-1]
+
+                for index, value in enumerate(intervals):
+                    self[index] = value
+
+    def _verify_intervals(self):
+        ignored = self._ignored.copy()
+
+        if isinstance(self._intervals, dict):
+            self._verify_intervals_dict()
+        else:
+            self._verify_intervals_sequence()
+
+        if ignored != self._ignored or any(name in self._intervals for name in ignored):
+            raise ValueError("At least one interval is being ignored")
+
+    def verify(self):
+        super().verify()
+        self._verify_intervals()
 
     def copy(self, ignored=None):
         intervals = {name: interval.copy()
@@ -699,19 +747,27 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __setitem__(self, key, value):
         """Validate and store interval under key (input index or input name)."""
-        name = self._get_name(key)
-        if name in self._ignored:
-            self._ignored.remove(name)
+
+        if self._has_model:
+            name = self._get_name(key)
+            if name in self._ignored:
+                self._ignored.remove(name)
+        else:
+            name = key
 
         self._intervals[name] = _Interval.validate(value)
 
     def __delitem__(self, key):
         """Delete stored interval"""
-        name = self._get_name(key)
-        if name in self._ignored:
-            raise RuntimeError(f"Cannot delete ignored input: {key}!")
+        if self._has_model:
+            name = self._get_name(key)
+            if name in self._ignored:
+                raise RuntimeError(f"Cannot delete ignored input: {key}!")
+            self._ignored.append(name)
+        else:
+            name = key
+
         del self._intervals[name]
-        self._ignored.append(name)
 
     def _validate_dict(self, bounding_box: dict):
         """Validate passing dictionary of intervals and setting them."""
