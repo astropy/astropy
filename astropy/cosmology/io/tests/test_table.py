@@ -12,7 +12,7 @@ from astropy.cosmology.io.table import from_table, to_table
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, Table, vstack
 
-from .base import ToFromTestMixinBase, ToFromDirectTestBase
+from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")

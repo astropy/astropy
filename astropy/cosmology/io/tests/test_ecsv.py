@@ -4,16 +4,15 @@
 import pytest
 
 # LOCAL
-import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
-from astropy.table import QTable, Table, vstack
 from astropy.cosmology.parameters import available
+from astropy.table import QTable, Table, vstack
 
-from .base import ReadWriteTestMixinBase, ReadWriteDirectTestBase
+from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
@@ -78,9 +77,9 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
 
     # -----------------------
 
-    def test_tofrom_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):
+    def test_readwrite_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):
         """Test cosmology -> ascii.ecsv -> cosmology."""
-        fp = tmp_path / "test_tofrom_ecsv_instance.ecsv"
+        fp = tmp_path / "test_readwrite_ecsv_instance.ecsv"
 
         # ------------
         # To Table
@@ -133,13 +132,13 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
         got = read(fp)
         assert got == cosmo
 
-    def test_fromformat_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read, write,
-                                                   tmp_path, add_cu):
+    def test_readwrite_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read,
+                                                  write, tmp_path, add_cu):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
         """
-        fp = tmp_path / "test_fromformat_ecsv_subclass_partial_info.ecsv"
+        fp = tmp_path / "test_read_ecsv_subclass_partial_info.ecsv"
 
         # test write
         write(fp, format="ascii.ecsv")
@@ -165,9 +164,9 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    def test_tofrom_ecsv_mutlirow(self, cosmo, read, write, tmp_path, add_cu):
+    def test_readwrite_ecsv_mutlirow(self, cosmo, read, write, tmp_path, add_cu):
         """Test if table has multiple rows."""
-        fp = tmp_path / "test_tofrom_ecsv_mutlirow.ecsv"
+        fp = tmp_path / "test_readwrite_ecsv_mutlirow.ecsv"
 
         # Make
         cosmo1 = cosmo.clone(name="row 0")

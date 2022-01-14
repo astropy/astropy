@@ -21,7 +21,7 @@ from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .base import ToFromTestMixinBase, ToFromDirectTestBase
+from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
