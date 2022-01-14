@@ -10,18 +10,12 @@ import numpy as np
 import pytest
 
 # LOCAL
-import astropy.units as u
-from astropy.cosmology import Cosmology, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology import Cosmology
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.mapping import from_mapping, to_mapping
-from astropy.cosmology.parameters import available
 from astropy.table import QTable, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
-
-cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
-
 
 ###############################################################################
 

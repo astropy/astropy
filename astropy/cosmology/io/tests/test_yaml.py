@@ -11,18 +11,13 @@ import pytest
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.yaml import from_yaml, to_yaml, yaml_constructor, yaml_representer
-from astropy.cosmology.parameters import available
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 from astropy.table import QTable, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
-
-cosmo_instances = [getattr(realizations, name) for name in available]
-# cosmo_instances.append("TestToFromYAML.setup.<locals>.CosmologyWithKwargs")
-
 
 ##############################################################################
 # Test Serializer
