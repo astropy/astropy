@@ -33,12 +33,17 @@ from mypackage.cosmology import MyCosmology
 __doctest_skip__ = ['*']
 
 
-def from_mypackage(mycosmo):
+def from_mypackage(mycosmo, *, cosmology=None):
     """Load `~astropy.cosmology.Cosmology` from ``mypackage`` object.
 
     Parameters
     ----------
     mycosmo : `~mypackage.cosmology.MyCosmology`
+
+    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
+        The cosmology class (or string name thereof) to use when constructing
+        the cosmology instance. The class also provides default parameter values,
+        filling in any non-mandatory arguments missing in 'mycosmo'.
 
     Returns
     -------
@@ -71,10 +76,11 @@ def from_mypackage(mycosmo):
     # TODO! CUSTOMIZE FOR DETECTION
     # Here we just force FlatLambdaCDM, but if your package allows for
     # non-flat cosmologies...
-    m["cosmology"] = FlatLambdaCDM
+    cosmology = FlatLambdaCDM if cosmology is None else cosmology
 
-    # build cosmology
-    return Cosmology.from_format(m, format="mapping", move_to_meta=True)
+    # Build the cosmology from the dict, moving extra info to the metadata.
+    return Cosmology.from_format(m, format="mapping",
+                                 move_to_meta=True, cosmology=cosmology)
 
 
 def to_mypackage(cosmology, *args):

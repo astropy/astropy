@@ -20,7 +20,8 @@ from astropy.table import QTable
 cosmo_instances = cosmology.parameters.available
 
 # Collect the registered read/write formats.
-readwrite_formats = {"ascii.ecsv", "json"}
+readwrite_formats = {"ascii.ecsv", "json", "myformat"}
+# readwrite_formats = {k for k, cls in readwrite_registry._readers.keys()}
 
 # Collect all the registered to/from formats. Unfortunately this is NOT
 # automatic since the output format class is not stored on the registry.
@@ -40,7 +41,8 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
     See ``TestReadWriteCosmology`` or ``TestCosmology`` for examples.
     """
 
-    @pytest.mark.parametrize("format", readwrite_formats)
+    # TODO! "myformat" only works on FLRW subclasses. Detect and only skip needed!
+    @pytest.mark.parametrize("format", readwrite_formats - {"myformat"})
     def test_readwrite_complete_info(self, cosmo, tmpdir, format):
         """
         Test writing from an instance and reading from the base class.
@@ -48,29 +50,33 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
         The round-tripped metadata can be in a different order, so the
         OrderedDict must be converted to a dict before testing equality.
         """
-        fname = tmpdir / f"{cosmo.name}.{format}"
-
-        cosmo.write(str(fname), format=format)
+        fname = str(tmpdir / f"{cosmo.name}.{format}")
+        cosmo.write(fname, format=format)
 
         # Also test kwarg "overwrite"
-        assert os.path.exists(str(fname))  # file exists
+        assert os.path.exists(fname)  # file exists
         with pytest.raises(IOError):
-            cosmo.write(str(fname), format=format, overwrite=False)
+            cosmo.write(fname, format=format, overwrite=False)
 
-        assert os.path.exists(str(fname))  # overwrite file existing file
-        cosmo.write(str(fname), format=format, overwrite=True)
+        assert os.path.exists(fname)  # overwrite existing file
+        cosmo.write(fname, format=format, overwrite=True)
 
         # Read back
         got = Cosmology.read(fname, format=format)
 
         assert got == cosmo
+        # Test metadata equality. Roundtrip does NOT necessarily preserve order
+        # so need to convert OrderedDict to dict.
         assert dict(got.meta) == dict(cosmo.meta)
 
-    @pytest.mark.parametrize("format", readwrite_formats)
+    # TODO! "myformat" only works on FLRW subclasses. Detect and only skip needed!
+    @pytest.mark.parametrize("format", readwrite_formats - {"myformat"})
     def test_readwrite_from_subclass_complete_info(self, cosmo, tmpdir, format):
         """
         Test writing from an instance and reading from that class, when there's
         full information saved.
+        The roundtripped metadata can be in a different order, so need to
+        convert from OrderedDict to dict before testing equality.
         """
         fname = tmpdir / f"{cosmo.name}.{format}"
         cosmo.write(str(fname), format=format)
@@ -78,17 +84,17 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
         # read with the same class that wrote.
         got = cosmo.__class__.read(fname, format=format)
         assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert dict(got.meta) == dict(cosmo.meta)
 
         # this should be equivalent to
         got = Cosmology.read(fname, format=format, cosmology=cosmo.__class__)
         assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert dict(got.meta) == dict(cosmo.meta)
 
         # and also
         got = Cosmology.read(fname, format=format, cosmology=cosmo.__class__.__qualname__)
         assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert dict(got.meta) == dict(cosmo.meta)
 
 
 class TestCosmologyReadWrite(ReadWriteTestMixin):
