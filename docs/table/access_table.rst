@@ -462,8 +462,8 @@ pprint() method
 In order to fully control the print output use the `Table.pprint()
 <astropy.table.Table.pprint>` or `Column.pprint()
 <astropy.table.Column.pprint>` methods. These have keyword arguments
-``max_lines``, ``max_width``, ``show_name``, and ``show_unit``, with meanings
-as shown below::
+``max_lines``, ``max_width``, ``show_name``, ``show_unit``, and
+``show_dtype``, with meanings as shown below::
 
   >>> arr = np.arange(3000, dtype=float).reshape(100, 30)
   >>> t = Table(arr)
@@ -498,6 +498,16 @@ as shown below::
            ... ...          ...
   2.940000e+03 ...       2969.0
   2.970000e+03 ...       2999.0
+  Length = 100 rows
+
+  >>> t.pprint(max_lines=8, max_width=40, show_dtype=True)
+      col0       col1  ...    col29
+      km2              ... kg sec m**-2
+    float64    float64 ...   float64
+  ------------ ------- ... ------------
+  0.000000e+00     1.0 ...         29.0
+           ...     ... ...          ...
+  2.970000e+03  2971.0 ...       2999.0
   Length = 100 rows
 
 In order to force printing all values regardless of the output length or width
