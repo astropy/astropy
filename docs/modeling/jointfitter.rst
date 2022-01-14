@@ -137,17 +137,17 @@ datasets.
 .. code-block:: python
 
    # define the two models to be fit
-   gjf1 = AreaGaussian1D(
-       area=1.0, mean=5.0, stddev=1.0, bounds={"area": (0, 10), "stddev": (0.1, 0.3)}
-   )
-   gjf2 = AreaGaussian1D(
-       area=1.0, mean=5.0, stddev=1.0, bounds={"area": (0, 10), "stddev": (0.1, 0.5)}
-   )
+   gjf1 = AreaGaussian1D(area=1.0, mean=5.0, stddev=1.0)
+   gjf2 = AreaGaussian1D(area=1.0, mean=5.0, stddev=1.0)
 
    # define the jointfitter specifying the parameters in common and their initial values
    fit_joint = fitting.JointFitter(
        [gjf1, gjf2], {gjf1: ["area", "mean"], gjf2: ["area", "mean"]}, [1.0, 5.0]
    )
+
+   # perform the fit
+   g12 = fit_joint(x1, y1, x2, y2)
+
 
 The resulting fit parameters show that the area and mean wavelength of the
 two AreaGaussian1D models are exactly the same while the width (stddev) is
@@ -158,7 +158,7 @@ different reflecting the different spectral resolutions of the two segments.
    print("AreaGaussian1 parameters")
    print(gjf1.param_names)
    print(gjf1.parameters)
-   print("AreaGaussian1 parameters")
+   print("AreaGaussian2 parameters")
    print(gjf1.param_names)
    print(gjf2.parameters)
 
@@ -167,9 +167,10 @@ different reflecting the different spectral resolutions of the two segments.
    AreaGaussian1 parameters
    ('area', 'mean', 'stddev')
    [1.48697226 5.09826068 0.19761087]
-   AreaGaussian1 parameters
+   AreaGaussian2 parameters
    ('area', 'mean', 'stddev')
    [1.48697226 5.09826068 0.4015368 ]
+
 
 The simulated data and best fit models can be plotted showing good agreement
 between the two AreaGaussian1D models and the two spectral segments.
