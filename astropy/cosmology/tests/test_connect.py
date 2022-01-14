@@ -8,11 +8,12 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology.connect import CosmologyRead, readwrite_registry
+from astropy.cosmology.connect import CosmologyRead, readwrite_registry, convert_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.tests import (test_ecsv, test_json, test_mapping,
                                         test_model, test_row, test_table, test_yaml)
-from astropy.table import QTable
+from astropy.modeling import Model
+from astropy.table import QTable, Row
 
 ###############################################################################
 # SETUP
@@ -25,8 +26,30 @@ readwrite_formats = {k for k, cls in readwrite_registry._readers.keys()}.union({
 
 # Collect all the registered to/from formats. Unfortunately this is NOT
 # automatic since the output format class is not stored on the registry.
-tofrom_formats = [("mapping", dict), ("astropy.table", QTable)]
 #                 (format, data type)
+# TODO! figure out how to aumate collection.
+tofrom_formats = [("mapping", dict), ("yaml", str),
+                  # ("astropy.model", Model),
+                  ("astropy.row", Row), ("astropy.table", QTable)]
+# tofrom_formats += [("mypackage", ...)]
+
+
+def test_collected_all_expected_tofrom_formats():
+    """Test that all the expected ``to/from_format`` will be tested.
+
+    Unfortunately collecting all these registrants is NOT automatic since
+    the output format class is not stored on the registry.
+
+    .. todo:: store the output format class on the registry?
+    """
+    got = {k for (k, _) in tofrom_formats}
+
+    expect = {k for (k, _) in convert_registry._readers.keys()}
+    expect -= {"astropy.model"}  # TODO! requires kwarg 'method'
+    expect -= {"mypackage"}  # TODO! only works on FLRW subclasses, shouldn't skip those
+
+    assert got == expect
+
 
 ###############################################################################
 
@@ -171,14 +194,12 @@ class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFr
     See ``TestCosmology`` for an example.
     """
 
-    @pytest.mark.parametrize("format_type", tofrom_formats)
-    def test_tofromformat_complete_info(self, cosmo, format_type):
+    @pytest.mark.parametrize("format, totype", tofrom_formats)
+    def test_tofromformat_complete_info(self, cosmo, format, totype):
         """Read tests happen later."""
-        format, objtype = format_type
-
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # test from_format
         got = Cosmology.from_format(obj, format=format)
@@ -189,18 +210,16 @@ class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_model.ToFr
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("format_type", tofrom_formats)
-    def test_fromformat_subclass_complete_info(self, cosmo, format_type):
+    @pytest.mark.parametrize("format, totype", tofrom_formats)
+    def test_fromformat_subclass_complete_info(self, cosmo, format, totype):
         """
         Test transforming an instance and parsing from that class, when there's
         full information available.
         Partial information tests are handled in the Mixin super classes.
         """
-        format, objtype = format_type
-
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # read with the same class that wrote.
         got = cosmo.__class__.from_format(obj, format=format)
@@ -234,13 +253,11 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
 
     # ==============================================================
 
-    @pytest.mark.parametrize("format_type", tofrom_formats)
-    def test_fromformat_class_mismatch(self, cosmo, format_type):
-        format, objtype = format_type
-
+    @pytest.mark.parametrize("format, totype", tofrom_formats)
+    def test_fromformat_class_mismatch(self, cosmo, format, totype):
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # class mismatch
         with pytest.raises(TypeError, match="missing 1 required"):
