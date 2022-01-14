@@ -10,24 +10,27 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.io.tests import (test_ecsv, test_mapping, test_model,
-                                        test_row, test_table, test_yaml)
+from astropy.cosmology.io.tests import (test_ecsv, test_json, test_mapping,
+                                        test_model, test_row, test_table, test_yaml)
 from astropy.table import QTable
-
-from .conftest import json_identify, read_json, write_json
 
 ###############################################################################
 # SETUP
 
 cosmo_instances = cosmology.parameters.available
-readwrite_formats = ["json"]
+
+# Collect the registered read/write formats.
+readwrite_formats = {"ascii.ecsv", "json"}
+
+# Collect all the registered to/from formats. Unfortunately this is NOT
+# automatic since the output format class is not stored on the registry.
 tofrom_formats = [("mapping", dict), ("astropy.table", QTable)]
 #                 (format, data type)
 
 ###############################################################################
 
 
-class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin):
+class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJSONTestMixin):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -37,29 +40,13 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin):
     See ``TestReadWriteCosmology`` or ``TestCosmology`` for examples.
     """
 
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_readwrite(self):
-        """Setup & teardown for read/write tests."""
-        # register
-        readwrite_registry.register_reader("json", Cosmology, read_json, force=True)
-        readwrite_registry.register_writer("json", Cosmology, write_json, force=True)
-        readwrite_registry.register_identifier("json", Cosmology, json_identify, force=True)
-
-        yield  # run all tests in class
-
-        # unregister
-        readwrite_registry.unregister_reader("json", Cosmology)
-        readwrite_registry.unregister_writer("json", Cosmology)
-        readwrite_registry.unregister_identifier("json", Cosmology)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
     @pytest.mark.parametrize("format", readwrite_formats)
     def test_readwrite_complete_info(self, cosmo, tmpdir, format):
         """
         Test writing from an instance and reading from the base class.
         This requires full information.
+        The round-tripped metadata can be in a different order, so the
+        OrderedDict must be converted to a dict before testing equality.
         """
         fname = tmpdir / f"{cosmo.name}.{format}"
 
@@ -77,7 +64,7 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin):
         got = Cosmology.read(fname, format=format)
 
         assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert dict(got.meta) == dict(cosmo.meta)
 
     @pytest.mark.parametrize("format", readwrite_formats)
     def test_readwrite_from_subclass_complete_info(self, cosmo, tmpdir, format):
@@ -126,50 +113,6 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 
         # also in docstring
         assert "overwrite : bool" in writer.__doc__
-
-    # @pytest.mark.parametrize("format", readwrite_formats)
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_readwrite_from_subclass_partial_info(self, instance, tmpdir):
-        """
-        Test writing from an instance and reading from that class.
-        This requires partial information.
-
-        .. todo::
-
-            remove when fix method in super
-        """
-        cosmo = getattr(cosmology.realizations, instance)
-
-        format = "json"
-        fname = tmpdir / f"{cosmo.name}.{format}"
-
-        cosmo.write(str(fname), format=format)
-
-        # partial information
-        with open(fname, "r") as file:
-            L = file.readlines()[0]
-        L = L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]  # remove cosmology
-        i = L.index('"Tcmb0":')  # delete Tcmb0
-        L = L[:i] + L[L.index(", ", L.index(", ", i) + 1) + 2 :]  # second occurence
-
-        tempfname = tmpdir / f"{cosmo.name}_temp.{format}"
-        with open(tempfname, "w") as file:
-            file.writelines([L])
-
-        # read with the same class that wrote fills in the missing info with
-        # the default value
-        got = cosmo.__class__.read(tempfname, format=format)
-        got2 = Cosmology.read(tempfname, format=format, cosmology=cosmo.__class__)
-        got3 = Cosmology.read(tempfname, format=format, cosmology=cosmo.__class__.__qualname__)
-
-        assert (got == got2) and (got2 == got3)  # internal consistency
-
-        # not equal, because Tcmb0 is changed, which also changes m_nu
-        assert got != cosmo
-        assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0, m_nu=cosmo.m_nu) == cosmo
-        # but the metadata is the same
-        assert got.meta == cosmo.meta
 
     @pytest.mark.parametrize("format", readwrite_formats)
     def test_readwrite_reader_class_mismatch(self, cosmo, tmpdir, format):

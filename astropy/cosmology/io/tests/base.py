@@ -5,8 +5,8 @@ import pytest
 
 # LOCAL
 import astropy.units as u
-from astropy.cosmology import units as cu
 from astropy.cosmology import Cosmology, Parameter, realizations
+from astropy.cosmology import units as cu
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameters import available
 

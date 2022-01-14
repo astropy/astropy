@@ -17,7 +17,7 @@ from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, vstack
 
-from .base import ToFromTestMixinBase, ToFromDirectTestBase
+from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
