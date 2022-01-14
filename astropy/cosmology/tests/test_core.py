@@ -22,7 +22,7 @@ import astropy.units as u
 from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
-from astropy.table import QTable, Table, Column
+from astropy.table import Column, QTable, Table
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 

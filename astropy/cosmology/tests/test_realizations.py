@@ -11,7 +11,7 @@ import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import parameters, realizations
-from astropy.cosmology.realizations import default_cosmology, Planck13
+from astropy.cosmology.realizations import Planck13, default_cosmology
 from astropy.tests.helper import pickle_protocol
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
