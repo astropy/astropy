@@ -18,7 +18,7 @@ from astropy.cosmology.parameters import available
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 from astropy.table import QTable, vstack
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import ToFromTestMixinBase, ToFromDirectTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 # cosmo_instances.append("TestToFromYAML.setup.<locals>.CosmologyWithKwargs")
@@ -60,7 +60,7 @@ def test_yaml_constructor():
 # Test Unified I/O
 
 
-class ToFromYAMLTestMixin(IOTestMixinBase):
+class ToFromYAMLTestMixin(ToFromTestMixinBase):
     """
     Tests for a Cosmology[To/From]Format with ``format="yaml"``.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -129,7 +129,7 @@ class ToFromYAMLTestMixin(IOTestMixinBase):
     #     """
 
 
-class TestToFromYAML(IOFormatTestBase, ToFromYAMLTestMixin):
+class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
     """
     Directly test ``to/from_yaml``.
     These are not public API and are discouraged from use, in favor of
@@ -146,7 +146,7 @@ class TestToFromYAML(IOFormatTestBase, ToFromYAMLTestMixin):
     def setup(self):
         """
         Setup and teardown for tests.
-        This overrides from super because `IOFormatTestBase` adds a custom
+        This overrides from super because `ToFromDirectTestBase` adds a custom
         Cosmology ``CosmologyWithKwargs`` that is not registered with YAML.
         """
         yield  # run tests

@@ -12,7 +12,7 @@ from astropy.cosmology.io.table import from_table, to_table
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, Table, vstack
 
-from .base import IOTestMixinBase, IOFormatTestBase
+from .base import ToFromTestMixinBase, ToFromDirectTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
@@ -20,7 +20,7 @@ cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
 ###############################################################################
 
 
-class ToFromTableTestMixin(IOTestMixinBase):
+class ToFromTableTestMixin(ToFromTestMixinBase):
     """
     Tests for a Cosmology[To/From]Format with ``format="astropy.table"``.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -209,7 +209,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
             from_format(tbls, index=cosmo.name, format="astropy.table")
 
 
-class TestToFromTable(IOFormatTestBase, ToFromTableTestMixin):
+class TestToFromTable(ToFromDirectTestBase, ToFromTableTestMixin):
     """Directly test ``to/from_table``."""
 
     def setup_class(self):
