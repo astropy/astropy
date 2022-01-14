@@ -187,7 +187,8 @@ class _BoundingDomain(abc.ABC):
     """
 
     def __init__(self, model = None, ignored: List[str] = None, order: str = 'C'):
-        self._model = model
+        """Note this init should be called last in sub-classes"""
+
         self._order = self._get_order(order)
 
         if ignored is None:
@@ -195,12 +196,21 @@ class _BoundingDomain(abc.ABC):
         else:
             self._ignored = ignored
 
+        self.model = model
+
     @property
     def model(self):
         if self._model is None:
             raise RuntimeError("Method requires a model to function, please attach to a model")
         else:
             return self._model
+
+    @model.setter
+    def model(self, model):
+        self._model = model
+
+        if model is not None:
+            self.verify()
 
     @property
     def order(self) -> str:
@@ -244,6 +254,12 @@ class _BoundingDomain(abc.ABC):
 
     def _verify_ignored(self):
         self._ignored = [self._get_name(key) for key in self._ignored]
+
+    def verify(self):
+        """
+        Fully integrate the domain with the model and verify its functionality.
+        """
+        self._verify_ignored()
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(

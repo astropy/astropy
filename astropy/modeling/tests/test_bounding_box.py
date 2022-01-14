@@ -214,30 +214,115 @@ class Test_BoundingDomain:
 
     def test_create(self):
         model = mk.MagicMock()
+        model.inputs = ['x']
+
+        # Defaults
+        bounding_box = self.BoundingDomain()
+        assert bounding_box._model is None
+        assert bounding_box._ignored == []
+        assert bounding_box._order == 'C'
+
+        # Only model
         bounding_box = self.BoundingDomain(model)
         assert bounding_box._model == model
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
 
+        # Model and ignored
+        bounding_box = self.BoundingDomain(model, ['x'])
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'C'
+        bounding_box = self.BoundingDomain(model, [0])
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'C'
+
+        # Model and order
         bounding_box = self.BoundingDomain(model, order='F')
         assert bounding_box._model == model
         assert bounding_box._ignored == []
         assert bounding_box._order == 'F'
 
-        bounding_box = self.BoundingDomain(Gaussian2D(), ['x'])
+        # Model, ignored, and order
+        bounding_box = self.BoundingDomain(model, ['x'], 'F')
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'F'
+        bounding_box = self.BoundingDomain(model, [0], 'F')
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'F'
+
+        # Only ignored
+        bounding_box = self.BoundingDomain(ignored=['x'])
+        assert bounding_box._model is None
         assert bounding_box._ignored == ['x']
         assert bounding_box._order == 'C'
-        assert bounding_box.ignored_inputs == [0]
+        bounding_box = self.BoundingDomain(ignored=[0])
+        assert bounding_box._model is None
+        assert bounding_box._ignored == [0]
+        assert bounding_box._order == 'C'
 
-        # Error
-        with pytest.raises(ValueError):
-            self.BoundingDomain(model, order=mk.MagicMock())
+        # Ignored and order
+        bounding_box = self.BoundingDomain(ignored=['x'], order='F')
+        assert bounding_box._model is None
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'F'
+        bounding_box = self.BoundingDomain(ignored=[0], order='F')
+        assert bounding_box._model is None
+        assert bounding_box._ignored == [0]
+        assert bounding_box._order == 'F'
+
+        # Only order
+        bounding_box = self.BoundingDomain(order='F')
+        assert bounding_box._model is None
+        assert bounding_box._ignored == []
+        assert bounding_box._order == 'F'
+
+        # Error from bad order
+        with pytest.raises(ValueError, match=r"order must be*"):
+            self.BoundingDomain(order=mk.MagicMock())
+
+        # Error from bad ignored for model
+        with pytest.raises(ValueError, match=r"Key value:*"):
+            self.BoundingDomain(model, [mk.MagicMock()])
+        with pytest.raises(ValueError, match=r"'*' is not *"):
+            self.BoundingDomain(model, ['y'])
+        with pytest.raises(IndexError, match=r"Integer key:*"):
+            self.BoundingDomain(model, [1])
 
     def test_model(self):
         model = mk.MagicMock()
+
+        # Test get with no error
         bounding_box = self.BoundingDomain(model)
         assert bounding_box._model == model
         assert bounding_box.model == model
+
+        # Test get with error
+        bounding_box = self.BoundingDomain()
+        assert bounding_box._model is None
+        with pytest.raises(RuntimeError) as err:
+            bounding_box.model
+        assert str(err.value) == \
+            "Method requires a model to function, please attach to a model"
+
+        # Test set
+        bounding_box = self.BoundingDomain(model)
+        assert bounding_box._model == model
+        with mk.patch.object(self.BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            # No verify
+            bounding_box.model = None
+            assert bounding_box._model is None
+            assert mkVerify.call_args_list == []
+
+            # verify
+            bounding_box.model = model
+            assert bounding_box._model == model
+            assert bounding_box.model == model
+            assert mkVerify.call_args_list == [mk.call(bounding_box)]
 
     def test_order(self):
         bounding_box = self.BoundingDomain(mk.MagicMock(), order='C')
@@ -252,7 +337,7 @@ class Test_BoundingDomain:
         assert bounding_box.order == 'test'
 
     def test_ignored(self):
-        ignored = [0]
+        ignored = ['x']
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
@@ -406,6 +491,14 @@ class Test_BoundingDomain:
         with pytest.raises(IndexError):
             bounding_box = self.BoundingDomain(Gaussian2D(), [np.int64(3)])
             bounding_box._verify_ignored()
+
+    def test_verify(self):
+        bounding_box = self.BoundingDomain()
+
+        with mk.patch.object(self.BoundingDomain, '_verify_ignored',
+                             autospec=True) as mkVerify:
+            bounding_box.verify()
+            assert mkVerify.call_args_list == [mk.call(bounding_box)]
 
     def test___call__(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
