@@ -240,7 +240,7 @@ https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage
 Converting Objects Between Packages
 -----------------------------------
 
-We want to enable conversion between cosmology objects from ``mypckage``
+We want to enable conversion between cosmology objects from ``mypackage``
 to/from |Cosmology|. All the Astropy interface code is defined in
 ``mypackage/io/astropy_convert.py``. The following is a rough outline of the
 necessary functions and how to register them with astropy's unified
