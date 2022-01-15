@@ -24,7 +24,6 @@ class NoDistanceWarning(AstropyUserWarning):
 
 
 KMS = u.km / u.s
-C_KMS = c.to(KMS)
 ZERO_VELOCITIES = CartesianDifferential([0, 0, 0] * KMS)
 
 # Default distance to use for target when none is provided
@@ -457,10 +456,10 @@ class SpectralCoord(SpectralQuantity):
 
         Returns
         -------
-        float
+        `astropy.units.Quantity`
             Redshift of target.
         """
-        return self.radial_velocity.to(u.dimensionless_unscaled, u.doppler_redshift()).value
+        return self.radial_velocity.to(u.dimensionless_unscaled, u.doppler_redshift())
 
     @staticmethod
     def _calculate_radial_velocity(observer, target, as_scalar=False):
