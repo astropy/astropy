@@ -185,6 +185,20 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
+    @pytest.mark.parametrize("strict_format", [True, False])
+    def test_is_equivalent_to_mapping(self, cosmo, to_format, strict_format):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
+
+        This test checks that Cosmology equivalency can be extended to any
+        Python object that can be converted to a Cosmology -- in this case
+        a mapping.
+        """
+        obj = to_format("mapping")
+        assert not isinstance(obj, Cosmology)
+
+        is_equiv = cosmo.is_equivalent(obj, strict_format=strict_format)
+        assert is_equiv is not strict_format
+
 
 class TestToFromMapping(ToFromDirectTestBase, ToFromMappingTestMixin):
     """Directly test ``to/from_mapping``."""

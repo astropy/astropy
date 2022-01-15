@@ -202,7 +202,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
     # comparison methods
 
-    def is_equivalent(self, other):
+    def is_equivalent(self, other, *, strict_format=True):
         r"""Check equivalence between Cosmologies.
 
         Two cosmologies may be equivalent even if not the same class.
@@ -213,12 +213,52 @@ class Cosmology(metaclass=abc.ABCMeta):
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
+        strict_format : bool, optional keyword-only
+            Whether to allow, before equivalence is checked, the object to be
+            converted to a |Cosmology|. This allows, e.g. a |Table| to be
+            equivalent to a Cosmology.
 
         Returns
         -------
         bool
             True if cosmologies are equivalent, False otherwise.
+
+        Examples
+        --------
+        Two cosmologies may be equivalent even if not of the same class.
+        In this examples the ``LambdaCDM`` has ``Ode0`` set to the same value
+        calculated in ``FlatLambdaCDM``.
+
+            >>> import astropy.units as u
+            >>> from astropy.cosmology import LambdaCDM, FlatLambdaCDM
+            >>> cosmo1 = LambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, 0.7)
+            >>> cosmo2 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3)
+            >>> cosmo1.is_equivalent(cosmo2)
+            True
+
+        While in this example, the cosmologies are not equivalent.
+
+            >>> cosmo3 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, Tcmb0=3 * u.K)
+            >>> cosmo3.is_equivalent(cosmo2)
+            False
+
+        Also, using the keyword argument, the notion of equivalence is extended
+        to any Python object that can be converted to a |Cosmology|. The list
+        of valid formats, e.g. the |Table| in this example, may be checked with
+        ``Cosmology.from_format.list_formats()``
+
+            >>> from astropy.cosmology import Planck18
+            >>> tbl = Planck18.to_format("astropy.table")
+            >>> Planck18.is_equivalent(tbl, strict_format=False)
+            True
         """
+        # Allow for different formats to be considered equivalent.
+        if not strict_format:
+            try:
+                other = Cosmology.from_format(other)
+            except Exception:
+                return False
+
         # The options are: 1) same class & parameters; 2) same class, different
         # parameters; 3) different classes, equivalent parameters; 4) different
         # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
@@ -266,7 +306,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         Returns
         -------
         bool
-            True if Parameters and names are the same, False otherwise.
+            `True` if Parameters and names are the same, `False` otherwise.
         """
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__eq__
