@@ -43,7 +43,7 @@ Now define AreaGaussian1D with area instead of intensity as a parameter.
 This new is modified and trimmed version of the standard Gaussian1D model.
 
    >>> class AreaGaussian1D(Fittable1DModel):
-   ...    """
+   ...   """
    ...   One dimensional Gaussian model with area as a parameter.
    ...
    ...   Parameters
@@ -63,14 +63,14 @@ This new is modified and trimmed version of the standard Gaussian1D model.
    ...   # stddev must be non-zero and positive.
    ...   stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
    ...
-   ...    @staticmethod
-   ...    def evaluate(x, area, mean, stddev):
-   ...        """
-   ...        Gaussian1D model function.
-   ...        """
-   ...        return (area / (stddev * np.sqrt(2 * np.pi))) * np.exp(
-   ...            -0.5 * (x - mean) ** 2 / stddev ** 2
-   ...        )
+   ...   @staticmethod
+   ...   def evaluate(x, area, mean, stddev):
+   ...       """
+   ...       AreaGaussian1D model function.
+   ...       """
+   ...       return (area / (stddev * np.sqrt(2 * np.pi))) * np.exp(
+   ...           -0.5 * (x - mean) ** 2 / stddev ** 2
+   ...       )
 
 Data to be fit is simulated.  The 1st spectral segment will have a spectral
 resolution that is a factor of 2 higher than the second segment.  The first
@@ -112,8 +112,8 @@ datasets.
 
    >>> # define the jointfitter specifying the parameters in common and their initial values
    >>> fit_joint = fitting.JointFitter(
-   >>>    [gjf1, gjf2], {gjf1: ["area", "mean"], gjf2: ["area", "mean"]}, [1.0, 5.0]
-   >>> )
+   ...    [gjf1, gjf2], {gjf1: ["area", "mean"], gjf2: ["area", "mean"]}, [1.0, 5.0]
+   ... )
 
    >>> # perform the fit
    >>> g12 = fit_joint(x1, y1, x2, y2)
@@ -177,7 +177,7 @@ between the two AreaGaussian1D models and the two spectral segments.
        @staticmethod
        def evaluate(x, area, mean, stddev):
            """
-           Gaussian1D model function.
+           AreaGaussian1D model function.
            """
            return (area / (stddev * np.sqrt(2 * np.pi))) * np.exp(
                -0.5 * (x - mean) ** 2 / stddev ** 2
