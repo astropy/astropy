@@ -163,8 +163,8 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
         got = Cosmology.from_format(obj, format=format)
         # and autodetect
         got2 = Cosmology.from_format(obj)
-
         assert got2 == got  # internal consistency
+
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
@@ -182,8 +182,8 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
         # read with the same class that wrote.
         got = cosmo_cls.from_format(obj, format=format)
         got2 = Cosmology.from_format(obj)  # and autodetect
-
         assert got2 == got  # internal consistency
+
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
