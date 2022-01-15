@@ -146,7 +146,6 @@ between the two AreaGaussian1D models and the two spectral segments.
    # imports
    import numpy as np
    import math
-   import matplotlib.pyplot as plt
    from astropy.modeling import fitting, Fittable1DModel
    from astropy.modeling.parameters import Parameter
    from astropy.modeling.functional_models import FLOAT_EPSILON
