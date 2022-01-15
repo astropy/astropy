@@ -95,14 +95,15 @@ To see the a list of the available conversion formats:
 
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.to_format.list_formats()
-        Format    Read Write Auto-identify
-    ------------- ---- ----- -------------
-    astropy.model  Yes   Yes           Yes
-      astropy.row  Yes   Yes           Yes
-    astropy.table  Yes   Yes           Yes
-          mapping  Yes   Yes           Yes
-        mypackage  Yes   Yes           Yes
-             yaml  Yes   Yes            No
+          Format      Read Write Auto-identify
+    ----------------- ---- ----- -------------
+    astropy.cosmology  Yes   Yes           Yes
+        astropy.model  Yes   Yes           Yes
+          astropy.row  Yes   Yes           Yes
+        astropy.table  Yes   Yes           Yes
+              mapping  Yes   Yes           Yes
+            mypackage  Yes   Yes           Yes
+                 yaml  Yes   Yes            No
 
 This list will include both built-in and registered 3rd-party formats.
 For instance, in the above, "mapping" is built-in while "mypackage" and
