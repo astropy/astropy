@@ -314,6 +314,7 @@ def test_rv_redshift_initialization():
     # Check that setting the redshift sets the radial velocity appropriately,
     # and that the redshift can be recovered
     sc_init = SpectralCoord([4000, 5000]*u.AA, redshift=1)
+    assert isinstance(sc_init.redshift, u.Quantity)
     assert_quantity_allclose(sc_init.redshift, 1*u.dimensionless_unscaled)
     assert_quantity_allclose(sc_init.radial_velocity, 0.6 * c)
 
