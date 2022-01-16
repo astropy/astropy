@@ -10,22 +10,14 @@ import pytest
 import numpy as np
 
 # LOCAL
-import astropy.units as u
-from astropy import cosmology
-from astropy.cosmology import Cosmology, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
-from astropy.cosmology.parameters import available
 from astropy.cosmology.tests.conftest import get_redshift_methods
 from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
-
-cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
-
 
 ###############################################################################
 

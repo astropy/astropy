@@ -4,18 +4,13 @@
 import pytest
 
 # LOCAL
-import astropy.units as u
-from astropy import cosmology
-from astropy.cosmology import Cosmology, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology import Cosmology, Planck18
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.table import from_table, to_table
-from astropy.cosmology.parameters import available
 from astropy.table import QTable, Table, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
-cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
 
 ###############################################################################
 
