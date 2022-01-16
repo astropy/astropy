@@ -152,7 +152,7 @@ class FLRW(Cosmology):
         # H0 in s^-1
         H0_s = self._H0.value * H0units_to_invs
         # Hubble time
-        self._hubble_time = sec_to_Gyr / H0_s << u.Gyr
+        self._hubble_time = (sec_to_Gyr / H0_s) << u.Gyr
 
         # Critical density at z=0 (grams per cubic cm)
         cd0value = critdens_const * H0_s ** 2
@@ -175,6 +175,18 @@ class FLRW(Cosmology):
             self._massivenu_mass = None
             self._nmassivenu = self._nmasslessnu = None
         else:  # There are neutrinos:
+            # Check and correct neutrinos
+            m_nu = self._m_nu  # has units eV
+
+            if m_nu.shape not in ((), (self._nneutrinos,)):
+                raise ValueError("unexpected number of neutrino masses — "
+                                 f"expected {self._nneutrinos}, got {len(m_nu)}.")
+            elif np.any(m_nu.value < 0):
+                raise ValueError("invalid (negative) neutrino mass encountered.")
+
+            if m_nu.isscalar:
+                self._m_nu = m_nu = np.full_like(m_nu, m_nu, shape=self._nneutrinos)
+
             # We are going to share Neff between the neutrinos equally. In
             # detail this is not correct, but it is a standard assumption
             # because properly calculating it is a) complicated b) depends on
@@ -182,34 +194,16 @@ class FLRW(Cosmology):
             # interactions, which could be unusual if one is considering
             # sterile neutrinos).
             self._neff_per_nu = self._Neff / self._nneutrinos
-            # Start by assuming massless neutrinos, then correct below.
-            # ``m_nu`` might not be massless; this is detected below.
-            self._massivenu = False
-            self._massivenu_mass = None
-            self._nmassivenu = 0
-            self._nmasslessnu = self._nneutrinos
 
             # Now figure out if we have massive neutrinos to deal with, and if
             # so, get the right number of masses. It is worth keeping track of
             # massless ones separately (since they are easy to deal with, and a
             # common use case is to have only one massive neutrino).
-            m_nu = self._m_nu  # has units eV
-            if m_nu.isscalar:
-                self._m_nu = m_nu = np.full(self._nneutrinos, m_nu.value) << self._m_nu.unit
-
-            if np.any(m_nu.value < 0):
-                raise ValueError("invalid (negative) neutrino mass encountered.")
-            elif len(m_nu) != self._nneutrinos:
-                raise ValueError("unexpected number of neutrino masses — "
-                                 f"expected {self._nneutrinos}, got {len(m_nu)}.")
-            elif np.any(m_nu.value > 0):
-                massive = np.nonzero(m_nu.value > 0)[0]
-                self._massivenu = True
-                self._nmassivenu = len(massive)
-                self._massivenu_mass = m_nu[massive].value
-                self._nmasslessnu = self._nneutrinos - self._nmassivenu
-            # else:  # Only massless (min = max = 0) = default case, set above.
-            #     pass
+            massive = np.nonzero(m_nu.value > 0)[0]
+            self._massivenu = massive.size > 0
+            self._nmassivenu = len(massive)
+            self._massivenu_mass = m_nu[massive].value if self._massivenu else None
+            self._nmasslessnu = self._nneutrinos - self._nmassivenu
 
         # Compute Neutrino Omega and total relativistic component for massive
         # neutrinos. We also store a list version, since that is more efficient
