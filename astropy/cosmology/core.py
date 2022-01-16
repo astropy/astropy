@@ -243,14 +243,16 @@ class Cosmology(metaclass=abc.ABCMeta):
             False
 
         Also, using the keyword argument, the notion of equivalence is extended
-        to any Python object that can be converted to a |Cosmology|. The list
-        of valid formats, e.g. the |Table| in this example, may be checked with
-        ``Cosmology.from_format.list_formats()``
+        to any Python object that can be auto-identified and converted to a
+        |Cosmology|.
 
             >>> from astropy.cosmology import Planck18
             >>> tbl = Planck18.to_format("astropy.table")
             >>> Planck18.is_equivalent(tbl, strict_format=False)
             True
+
+        The list of valid formats, e.g. the |Table| in this example, may be
+        checked with ``Cosmology.from_format.list_formats()``
         """
         # Allow for different formats to be considered equivalent.
         if not strict_format:
