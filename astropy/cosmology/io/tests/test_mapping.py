@@ -185,8 +185,8 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("strict_format", [True, False])
-    def test_is_equivalent_to_mapping(self, cosmo, to_format, strict_format):
+    @pytest.mark.parametrize("format", [True, False, None, "mapping"])
+    def test_is_equivalent_to_mapping(self, cosmo, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
 
         This test checks that Cosmology equivalency can be extended to any
@@ -196,8 +196,8 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         obj = to_format("mapping")
         assert not isinstance(obj, Cosmology)
 
-        is_equiv = cosmo.is_equivalent(obj, strict_format=strict_format)
-        assert is_equiv is not strict_format
+        is_equiv = cosmo.is_equivalent(obj, format=format)
+        assert is_equiv is (True if format is not False else False)
 
 
 class TestToFromMapping(ToFromDirectTestBase, ToFromMappingTestMixin):
