@@ -32,8 +32,9 @@ but the area will be the same.
 First, imports needed for this example
 
    >>> # imports
-   >>> import numpy as np
    >>> import math
+   >>> import numpy as np
+   >>> import scipy
    >>> from astropy.modeling import fitting, Fittable1DModel
    >>> from astropy.modeling.parameters import Parameter
    >>> from astropy.modeling.functional_models import FLOAT_EPSILON
