@@ -34,7 +34,6 @@ First, imports needed for this example
    >>> # imports
    >>> import math
    >>> import numpy as np
-   >>> import scipy
    >>> from astropy.modeling import fitting, Fittable1DModel
    >>> from astropy.modeling.parameters import Parameter
    >>> from astropy.modeling.functional_models import FLOAT_EPSILON
@@ -104,17 +103,17 @@ an overlapping wavelength region from 4 to 6.
 Now define the models to be fit and fitter to use.  Then fit the two simulated
 datasets.
 
-.. code-block:: python
-
    >>> # define the two models to be fit
    >>> gjf1 = AreaGaussian1D(area=1.0, mean=5.0, stddev=1.0)
    >>> gjf2 = AreaGaussian1D(area=1.0, mean=5.0, stddev=1.0)
+
+.. doctest-requires:: scipy
 
    >>> # define the jointfitter specifying the parameters in common and their initial values
    >>> fit_joint = fitting.JointFitter(
    ...    [gjf1, gjf2], {gjf1: ["area", "mean"], gjf2: ["area", "mean"]}, [1.0, 5.0]
    ... )
-
+   >>>
    >>> # perform the fit
    >>> g12 = fit_joint(x1, y1, x2, y2)
 
@@ -125,12 +124,16 @@ different reflecting the different spectral resolutions of the two segments.
 
 AreaGaussian1 parameters
 
+.. doctest-requires:: scipy
+
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
    >>> print(gjf1.parameters)
    [1.48697226 5.09826068 0.19761087]
 
 AreaGaussian2 parameters
+
+.. doctest-requires:: scipy
 
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
