@@ -30,13 +30,12 @@ Astropy v5.0 introduced Cosmological equivalency -- with method
 be equivalent even if not of the same class. For example, an instance of
 :class:`~astropy.cosmology.LambdaCDM` might have :math:`\Omega_0=1` and
 :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
-Now the keyword argument ``strict_format`` is added to extend the notion of
-equivalence to any Python object that can be auto-identified and converted to a
-Cosmology.
+Now the keyword argument ``format`` is added to extend the notion of
+equivalence to any Python object that can be converted to a Cosmology.
 
     >>> from astropy.cosmology import Planck18
     >>> tbl = Planck18.to_format("astropy.table")
-    >>> Planck18.is_equivalent(tbl, strict_format=False)
+    >>> Planck18.is_equivalent(tbl, format=True)
     True
 
 The list of valid formats, e.g. the Table in this example, may be

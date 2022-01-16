@@ -185,8 +185,9 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
         The object to parse according to 'format'
     *args
         Positional arguments passed through to data parser.
-    format : str (optional, keyword-only)
-        Object format specifier.
+    format : str or None, optional keyword-only
+        Object format specifier. For `None` (default) CosmologyFromFormat tries
+        to identify the correct format.
     **kwargs
         Keyword arguments passed through to data parser.
 
@@ -200,7 +201,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     def __init__(self, instance, cosmo_cls):
         super().__init__(instance, cosmo_cls, "read", registry=convert_registry)
 
-    def __call__(self, obj, *args, **kwargs):
+    def __call__(self, obj, *args, format=None, **kwargs):
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -217,7 +218,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
         with add_enabled_units(cu):
-            cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
+            cosmo = self.registry.read(self._cls, obj, *args, format=format, **kwargs)
 
         return cosmo
 

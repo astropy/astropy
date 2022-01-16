@@ -108,8 +108,8 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         """
         pass  # there are no partial info options
 
-    @pytest.mark.parametrize("strict_format", [True, False])
-    def test_is_equivalent_to_row(self, cosmo, to_format, strict_format):
+    @pytest.mark.parametrize("format", [True, False, None, "astropy.row"])
+    def test_is_equivalent_to_row(self, cosmo, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
 
         This test checks that Cosmology equivalency can be extended to any
@@ -119,8 +119,8 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         obj = to_format("astropy.row")
         assert not isinstance(obj, Cosmology)
 
-        is_equiv = cosmo.is_equivalent(obj, strict_format=strict_format)
-        assert is_equiv is not strict_format
+        is_equiv = cosmo.is_equivalent(obj, format=format)
+        assert is_equiv is (True if format is not False else False)
 
 
 class TestToFromTable(ToFromDirectTestBase, ToFromRowTestMixin):

@@ -159,8 +159,8 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         """
         pass  # there's no partial information with a Model
 
-    @pytest.mark.parametrize("strict_format", [True, False])
-    def test_is_equivalent_to_model(self, cosmo, method_name, to_format, strict_format):
+    @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
+    def test_is_equivalent_to_model(self, cosmo, method_name, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
 
         This test checks that Cosmology equivalency can be extended to any
@@ -173,8 +173,8 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         obj = to_format("astropy.model", method=method_name)
         assert not isinstance(obj, Cosmology)
 
-        is_equiv = cosmo.is_equivalent(obj, strict_format=strict_format)
-        assert is_equiv is not strict_format
+        is_equiv = cosmo.is_equivalent(obj, format=format)
+        assert is_equiv is (True if format is not False else False)
 
 
 class TestToFromModel(ToFromDirectTestBase, ToFromModelTestMixin):

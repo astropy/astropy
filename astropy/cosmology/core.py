@@ -202,7 +202,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
     # comparison methods
 
-    def is_equivalent(self, other, *, strict_format=True):
+    def is_equivalent(self, other, *, format=False):
         r"""Check equivalence between Cosmologies.
 
         Two cosmologies may be equivalent even if not the same class.
@@ -213,10 +213,14 @@ class Cosmology(metaclass=abc.ABCMeta):
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
-        strict_format : bool, optional keyword-only
+        format : bool or None or str, optional keyword-only
             Whether to allow, before equivalence is checked, the object to be
             converted to a |Cosmology|. This allows, e.g. a |Table| to be
             equivalent to a Cosmology.
+            `False` (default) will not allow conversion. `True` or `None` will,
+            and will use the auto-identification to try to infer the correct
+            format. A `str` is assumed to be the correct format to use when
+            converting.
 
         Returns
         -------
@@ -243,22 +247,31 @@ class Cosmology(metaclass=abc.ABCMeta):
             False
 
         Also, using the keyword argument, the notion of equivalence is extended
-        to any Python object that can be auto-identified and converted to a
-        |Cosmology|.
+        to any Python object that can be converted to a |Cosmology|.
 
             >>> from astropy.cosmology import Planck18
             >>> tbl = Planck18.to_format("astropy.table")
-            >>> Planck18.is_equivalent(tbl, strict_format=False)
+            >>> Planck18.is_equivalent(tbl, format=True)
             True
 
         The list of valid formats, e.g. the |Table| in this example, may be
-        checked with ``Cosmology.from_format.list_formats()``
+        checked with ``Cosmology.from_format.list_formats()``.
+
+        As can be seen in the list of formats, not all formats can be
+        auto-identified by ``Cosmology.from_format.registry``. Objects of
+        these kinds can still be checked for equivalence, but the correct
+        format string must be used.
+
+            >>> tbl = Planck18.to_format("yaml")
+            >>> Planck18.is_equivalent(tbl, format="yaml")
+            True
         """
         # Allow for different formats to be considered equivalent.
-        if not strict_format:
+        if format is not False:
+            format = None if format is True else format  # str->str, None/True->None
             try:
-                other = Cosmology.from_format(other)
-            except Exception:
+                other = Cosmology.from_format(other, format=format)
+            except Exception:  # TODO! should enforce only TypeError
                 return False
 
         # The options are: 1) same class & parameters; 2) same class, different
