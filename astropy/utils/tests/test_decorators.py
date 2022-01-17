@@ -528,6 +528,7 @@ def test_classproperty_docstring():
     assert B.__dict__['foo'].__doc__ == "The foo."
 
 
+@pytest.mark.slow
 def test_classproperty_lazy_threadsafe(fast_thread_switching):
     """
     Test that a class property with lazy=True is thread-safe.
@@ -555,6 +556,7 @@ def test_classproperty_lazy_threadsafe(fast_thread_switching):
             assert values == [values[0]] * workers
 
 
+@pytest.mark.slow
 def test_lazyproperty_threadsafe(fast_thread_switching):
     """
     Test thread safety of lazyproperty.

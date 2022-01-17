@@ -233,7 +233,7 @@ of the tests actually run), using tox to do a thorough test in an isolated
 environment::
 
    $ pip install tox --upgrade
-   $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
+   $ tox -e test-alldeps -- --remote-data=any --run-slow --run-hugemem
 
 Additional notes
 ----------------
