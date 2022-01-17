@@ -83,6 +83,7 @@ class TestUfuncHelpers:
         assert np.add in qh.UFUNC_HELPERS
         assert np.add not in qh.UNSUPPORTED_UFUNCS
 
+    @pytest.mark.slow
     def test_thread_safety(self, fast_thread_switching):
         def dummy_ufunc(*args, **kwargs):
             return np.sqrt(*args, **kwargs)
