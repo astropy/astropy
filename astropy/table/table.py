@@ -1084,7 +1084,7 @@ class Table:
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        out = self.as_array()
+    out = self.as_array()
         return out.data if isinstance(out, np.ma.MaskedArray) else out
 
     def _check_names_dtype(self, names, dtype, n_cols):
