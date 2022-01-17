@@ -5,17 +5,11 @@ import pytest
 
 # LOCAL
 import astropy.units as u
-from astropy import cosmology
-from astropy.cosmology import Cosmology, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
-from astropy.cosmology.parameters import available
 from astropy.table import QTable, Table, vstack
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
-
-cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
 
 ###############################################################################
 
@@ -199,7 +193,7 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
 
 class TestReadWriteECSV(ReadWriteDirectTestBase, ReadWriteECSVTestMixin):
     """
-    Directly test ``read/write``.
+    Directly test ``read/write_ecsv``.
     These are not public API and are discouraged from use, in favor of
     ``Cosmology.read/write(..., format="ascii.ecsv")``, but should be
     tested regardless b/c they are used internally.

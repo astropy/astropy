@@ -4,18 +4,11 @@
 import pytest
 
 # LOCAL
-import astropy.units as u
-from astropy import cosmology
-from astropy.cosmology import Cosmology, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.row import from_row, to_row
-from astropy.cosmology.parameters import available
 from astropy.table import Row
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
-
-cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestToFromRow.setup.<locals>.CosmologyWithKwargs")
 
 ###############################################################################
 
