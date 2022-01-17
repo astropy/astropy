@@ -1,0 +1,4 @@
+Cosmological equivalency (``Cosmology.is_equivalent``) can now be extended
+to any Python object that can be converted to a Cosmology, using the new
+keyword argument ``format``.
+This allows e.g. a properly formatted Table to be equivalent to a Cosmology.

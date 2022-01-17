@@ -101,6 +101,20 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         """
         pass  # there are no partial info options
 
+    @pytest.mark.parametrize("format", [True, False, None, "astropy.row"])
+    def test_is_equivalent_to_row(self, cosmo, to_format, format):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
+
+        This test checks that Cosmology equivalency can be extended to any
+        Python object that can be converted to a Cosmology -- in this case
+        a Row.
+        """
+        obj = to_format("astropy.row")
+        assert not isinstance(obj, Cosmology)
+
+        is_equiv = cosmo.is_equivalent(obj, format=format)
+        assert is_equiv is (True if format is not False else False)
+
 
 class TestToFromTable(ToFromDirectTestBase, ToFromRowTestMixin):
     """

@@ -12,10 +12,10 @@ the 5.0 LTS release.
 
 In particular, this release includes:
 
-* :ref:`whatsnew-5.0-cosmology`
+* :ref:`whatsnew-5.1-cosmology`
 * :ref:`whatsnew-doppler-redshift-eq`
 
-.. _whatsnew-5.0-cosmology:
+.. _whatsnew-5.1-cosmology:
 
 Updates to ``Cosmology``
 ========================
@@ -23,7 +23,24 @@ Updates to ``Cosmology``
 :class:`~astropy.cosmology.Cosmology` is now an abstract base class,
 and subclasses must override the abstract property ``is_flat``.
 For :class:`~astropy.cosmology.FLRW`, ``is_flat`` checks that ``Ok0=0`` and
-``Omtot0=1``.
+``Otot0=1``.
+
+Astropy v5.0 introduced Cosmological equivalency -- with method
+:meth:`~astropy.cosmology.Cosmology.is_equivalent` -- where two cosmologies may
+be equivalent even if not of the same class. For example, an instance of
+:class:`~astropy.cosmology.LambdaCDM` might have :math:`\Omega_0=1` and
+:math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
+Now the keyword argument ``format`` is added to extend the notion of
+equivalence to any Python object that can be converted to a Cosmology.
+
+    >>> from astropy.cosmology import Planck18
+    >>> tbl = Planck18.to_format("astropy.table")
+    >>> Planck18.is_equivalent(tbl, format=True)
+    True
+
+The list of valid formats, e.g. the Table in this example, may be
+checked with ``Cosmology.from_format.list_formats()``
+
 
 .. _whatsnew-doppler-redshift-eq:
 

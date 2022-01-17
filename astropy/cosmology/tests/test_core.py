@@ -269,7 +269,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert cosmo.is_equivalent(newclone)
         assert newclone.is_equivalent(cosmo)
 
-        # different class
+        # different class and not convertible to Cosmology.
         assert not cosmo.is_equivalent(2)
 
     def test_equality(self, cosmo):
