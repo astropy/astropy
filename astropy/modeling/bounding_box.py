@@ -197,7 +197,6 @@ class _BoundingDomain(abc.ABC):
             self._ignored = ignored
 
         self.model = model
-        self.verify()
 
     @property
     def model(self):
@@ -208,10 +207,7 @@ class _BoundingDomain(abc.ABC):
 
     @model.setter
     def model(self, model):
-        self._model = model
-
-        if model is not None:
-            self.verify()
+        self.verify(model)
 
     @property
     def _has_model(self) -> bool:
@@ -257,15 +253,17 @@ class _BoundingDomain(abc.ABC):
     def ignored_inputs(self) -> List[int]:
         return [self._get_index(name) for name in self._ignored]
 
-    def _verify_ignored(self):
+    def _verify_ignored(self, _external_ignored: List[str] = None):
         if self._has_model:
             self._ignored = [self._get_name(key) for key in self._ignored]
 
-    def verify(self):
+    def verify(self, model, _external_ignored: List[str] = None):
         """
         Fully integrate the domain with the model and verify its functionality.
         """
-        self._verify_ignored()
+        self._model = model
+
+        self._verify_ignored(_external_ignored)
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
@@ -652,8 +650,8 @@ class ModelBoundingBox(_BoundingDomain):
         if ignored != self._ignored or any(name in self._intervals for name in ignored):
             raise ValueError("At least one interval is being ignored")
 
-    def verify(self):
-        super().verify()
+    def verify(self, model, _external_ignored: List[str] = None):
+        super().verify(model, _external_ignored)
         self._verify_intervals()
 
     def copy(self, ignored=None):
