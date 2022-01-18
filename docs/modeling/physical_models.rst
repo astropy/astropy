@@ -297,18 +297,19 @@ Cosmologies
 
 The instances of the |Cosmology| class (and subclasses) include
 |Cosmology.to_format|, a method to convert a Cosmology to another python
-object. Relevant here is the conversion of any redshift method to a
-:class:`~astropy.modeling.FittableModel` instance, using the argument
+object. Specifically, any redshift method can be converted to a
+:class:`~astropy.modeling.FittableModel` instance using the argument
 ``format="astropy.model"``.
-Each |Cosmology| :class:`~astropy.cosmology.Parameter` is converted to a
-:class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
-and the redshift-method to the model's ``__call__`` / ``evaluate``.
-Now you can fit cosmologies with data!
+During the conversion, each |Cosmology| :class:`~astropy.cosmology.Parameter`
+is converted to a :class:`astropy.modeling.Model`
+:class:`~astropy.modeling.Parameter`, while the redshift-method becomes the
+model's ``__call__`` / ``evaluate`` method.
+This means cosmologies can now be fit with data!
 
 .. code-block::
 
     >>> from astropy.cosmology import Planck18
-    >>> model = Planck18.to_format("astropy.model", method="lookback_time")
+    >>> model = Planck18.to_format(format="astropy.model", method="lookback_time")
     >>> model
     <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
         Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
