@@ -652,7 +652,9 @@ class ModelBoundingBox(_BoundingDomain):
 
     def verify(self, model, _external_ignored: List[str] = None):
         super().verify(model, _external_ignored)
-        self._verify_intervals()
+
+        if self._has_model:
+            self._verify_intervals()
 
     def copy(self, ignored=None):
         intervals = {name: interval.copy()

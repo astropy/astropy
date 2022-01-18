@@ -852,8 +852,7 @@ class TestModelBoundingBox:
 
         # Intervals only, 1D-tuple
         bounding_box = ModelBoundingBox((0, 1))
-        assert bounding_box._intervals == {0: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
+        assert bounding_box._intervals == (0, 1)
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
@@ -861,16 +860,13 @@ class TestModelBoundingBox:
         # Intervals only, 1D-dictionary
         bounding_box = ModelBoundingBox({'x': (0, 1)})
         assert bounding_box._intervals == {'x': (0, 1)}
-        assert isinstance(bounding_box._intervals['x'], _Interval)
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
 
         # Intervals only, 2D-tuple
         bounding_box = ModelBoundingBox(((0, 1), (2, 3)))
-        assert bounding_box._intervals == {0: (2, 3), 1: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
+        assert bounding_box._intervals == ((0, 1), (2, 3))
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
@@ -878,18 +874,13 @@ class TestModelBoundingBox:
         # Intervals only, 2D-dictionary
         bounding_box = ModelBoundingBox({'x': (0, 1), 'y': (2, 3)})
         assert bounding_box._intervals == {'x': (0, 1), 'y': (2, 3)}
-        assert isinstance(bounding_box._intervals['x'], _Interval)
-        assert isinstance(bounding_box._intervals['y'], _Interval)
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
 
         # Intervals only, 3D-tuple
         bounding_box = ModelBoundingBox(((0, 1), (2, 3), (4, 5)))
-        assert bounding_box._intervals == {0: (4, 5), 1: (2, 3), 2: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
-        assert isinstance(bounding_box._intervals[2], _Interval)
+        assert bounding_box._intervals == ((0, 1), (2, 3), (4, 5))
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
@@ -897,16 +888,9 @@ class TestModelBoundingBox:
         # Intervals only, 3D-dictionary
         bounding_box = ModelBoundingBox({'x': (0, 1), 'y': (2, 3), 'z': (4, 5)})
         assert bounding_box._intervals == {'x': (0, 1), 'y': (2, 3), 'z': (4, 5)}
-        assert isinstance(bounding_box._intervals['x'], _Interval)
-        assert isinstance(bounding_box._intervals['y'], _Interval)
-        assert isinstance(bounding_box._intervals['z'], _Interval)
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
-
-        # Intervals only, bad tuple
-        with pytest.raises(ValueError, match=r"The intervals:*"):
-            ModelBoundingBox((1,))
 
         # Intervals and ignored
         bounding_box = ModelBoundingBox({}, ignored=['a', 'b'])
@@ -920,10 +904,6 @@ class TestModelBoundingBox:
         assert bounding_box._ignored == [1, 2]
         assert bounding_box._order == 'C'
 
-        # Intervals and ignored Error
-        with pytest.raises(ValueError, match=r"At least one*"):
-            ModelBoundingBox({'x': (0, 1)}, ignored=['x'])
-
         # Intervals and order
         bounding_box = ModelBoundingBox({}, order='F')
         assert bounding_box._intervals == {}
@@ -931,9 +911,7 @@ class TestModelBoundingBox:
         assert bounding_box._ignored == []
         assert bounding_box._order == 'F'
         bounding_box = ModelBoundingBox(((0, 1), (2, 3)), order='F')
-        assert bounding_box._intervals == {1: (2, 3), 0: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
+        assert bounding_box._intervals == ((0, 1), (2, 3))
         assert bounding_box._model is None
         assert bounding_box._ignored == []
         assert bounding_box._order == 'F'
@@ -967,6 +945,14 @@ class TestModelBoundingBox:
         assert bounding_box._model == model
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
+
+        # Intervals only, bad tuple
+        with pytest.raises(ValueError, match=r"The intervals:*"):
+            ModelBoundingBox((1,), model)
+
+        # Intervals and ignored Error
+        with pytest.raises(ValueError, match=r"At least one*"):
+            ModelBoundingBox({'x': (0, 1)}, model, ignored=['x'])
 
         # Intervals and model, 1D-dictionary
         bounding_box = ModelBoundingBox({'x': (0, 1)}, model)
@@ -1207,9 +1193,9 @@ class TestModelBoundingBox:
     def test_verify(self):
         model = mk.MagicMock()
         external_ignored = mk.MagicMock()
-        bounding_box = ModelBoundingBox({})
 
-        # No _external_ignored
+        # No model, no _external_ignored
+        bounding_box = ModelBoundingBox({})
         with mk.patch.object(_BoundingDomain, 'verify',
                              autospec=True) as mkVerify:
             with mk.patch.object(ModelBoundingBox, '_verify_intervals',
@@ -1220,11 +1206,11 @@ class TestModelBoundingBox:
 
                 bounding_box.verify(model)
                 assert main.mock_calls == [
-                    mk.call.verify(bounding_box, model, None),
-                    mk.call.intervals(bounding_box),
+                    mk.call.verify(bounding_box, model, None)
                 ]
 
-        # _external_ignored
+        # No model, with _external_ignored
+        bounding_box = ModelBoundingBox({})
         with mk.patch.object(_BoundingDomain, 'verify',
                              autospec=True) as mkVerify:
             with mk.patch.object(ModelBoundingBox, '_verify_intervals',
@@ -1236,7 +1222,38 @@ class TestModelBoundingBox:
                 bounding_box.verify(model, external_ignored)
                 assert main.mock_calls == [
                     mk.call.verify(bounding_box, model, external_ignored),
-                    mk.call.intervals(bounding_box),
+                ]
+
+        # With model, no _external_ignored
+        bounding_box = ModelBoundingBox({}, mk.MagicMock())
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
+                                 autospec=True) as mkIntervals:
+                main = mk.MagicMock()
+                main.attach_mock(mkVerify, 'verify')
+                main.attach_mock(mkIntervals, 'intervals')
+
+                bounding_box.verify(model)
+                assert main.mock_calls == [
+                    mk.call.verify(bounding_box, model, None),
+                    mk.call.intervals(bounding_box)
+                ]
+
+        # With model, with _external_ignored
+        bounding_box = ModelBoundingBox({}, mk.MagicMock())
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
+                                 autospec=True) as mkIntervals:
+                main = mk.MagicMock()
+                main.attach_mock(mkVerify, 'verify')
+                main.attach_mock(mkIntervals, 'intervals')
+
+                bounding_box.verify(model, external_ignored)
+                assert main.mock_calls == [
+                    mk.call.verify(bounding_box, model, external_ignored),
+                    mk.call.intervals(bounding_box)
                 ]
 
     def test_copy(self):
@@ -1643,9 +1660,8 @@ class TestModelBoundingBox:
             "Cannot delete ignored input: y!"
 
         # No model
-        bounding_box = ModelBoundingBox((0, 1))
+        bounding_box = ModelBoundingBox({0: (0, 1)})
         assert bounding_box._intervals[0] == (0, 1)
-        assert isinstance(bounding_box._intervals[0], _Interval)
         del bounding_box[0]
         assert 0 not in bounding_box._intervals
 
