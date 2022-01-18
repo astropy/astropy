@@ -40,7 +40,7 @@ def yaml_representer(tag):
         Function to construct :mod:`yaml` representation of |Cosmology| object.
     """
     def representer(dumper, obj):
-        """Cosmology yaml representer function.
+        """Cosmology yaml representer function for {}.
 
         Parameters
         ----------
@@ -60,6 +60,8 @@ def yaml_representer(tag):
         map["meta"] = tuple(map["meta"].items())
 
         return dumper.represent_mapping(tag, map)
+
+    representer.__doc__ = representer.__doc__.format(tag)
 
     return representer
 
