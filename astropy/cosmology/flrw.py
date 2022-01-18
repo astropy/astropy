@@ -141,120 +141,85 @@ class FLRW(Cosmology):
         self.m_nu = m_nu  # (reset later, this is just for unit validation)
         self.Ob0 = Ob0  # (must be after Om0)
 
-        # Derived quantities
+        # Derived quantities:
+        # Dark matter density; matter - baryons, if latter is not None.
         self._Odm0 = None if Ob0 is None else (self._Om0 - self._Ob0)
 
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
-        self._h = self._H0.value / 100.
+        self._h = self._H0.value / 100.0
         # Hubble distance
         self._hubble_distance = (const.c / self._H0).to(u.Mpc)
-        # H0 in s^-1; don't use units for speed
+        # H0 in s^-1
         H0_s = self._H0.value * H0units_to_invs
-        # Hubble time; again, avoiding units package for speed
-        self._hubble_time = u.Quantity(sec_to_Gyr / H0_s, unit=u.Gyr)
+        # Hubble time
+        self._hubble_time = (sec_to_Gyr / H0_s) << u.Gyr
 
-        # critical density at z=0 (grams per cubic cm)
+        # Critical density at z=0 (grams per cubic cm)
         cd0value = critdens_const * H0_s ** 2
-        self._critical_density0 = u.Quantity(cd0value, unit=u.g / u.cm ** 3)
+        self._critical_density0 = cd0value << u.g / u.cm ** 3
 
-        # -------------------
-        # neutrinos
+        # Compute photon density from Tcmb
+        self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 / self._critical_density0.value
 
-        # Load up neutrino masses.
+        # Compute Neutrino temperature:
+        # The constant in front is (4/11)^1/3 -- see any cosmology book for an
+        # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
+        self._Tnu0 = 0.7137658555036082 * self._Tcmb0
+
+        # Compute (/verify) neutrino masses:
         self._nneutrinos = floor(self._Neff)
-        self._neff_per_nu = np.nan  # assuming no neutrinos
-
-        # Start by assuming massless neutrinos, then correct below.
-        self._massivenu = False
-        self._massivenu_mass = None
-        self._nmassivenu = 0
-        self._nmasslessnu = self._nneutrinos
-
-        # We are going to share Neff between the neutrinos equally.
-        # In detail this is not correct, but it is a standard assumption
-        # because properly calculating it is a) complicated b) depends
-        # on the details of the massive neutrinos (e.g., their weak
-        # interactions, which could be unusual if one is considering sterile
-        # neutrinos)
-        if self._nneutrinos > 0 and self._Tcmb0.value > 0:
-            self._neff_per_nu = self._Neff / self._nneutrinos
-
-            # Now, figure out if we have massive neutrinos to deal with,
-            # and, if so, get the right number of masses
-            # It is worth the effort to keep track of massless ones separately
-            # (since they are quite easy to deal with, and a common use case
-            # is to set only one neutrino to have mass)
+        if self._nneutrinos == 0 or self._Tcmb0.value == 0:  # No neutrinos, regardless of input.
+            self._m_nu = None
+            self._neff_per_nu = None
+            self._massivenu = False
+            self._massivenu_mass = None
+            self._nmassivenu = self._nmasslessnu = None
+        else:  # There are neutrinos:
+            # Check and correct neutrinos
             m_nu = self._m_nu  # has units eV
-            if np.any(m_nu.value < 0):
-                raise ValueError("invalid (negative) neutrino mass encountered.")
-            elif m_nu.isscalar:  # Assume all neutrinos have the same mass.
-                if m_nu.value != 0.0:  # already dealt with m <= 0
-                    self._massivenu = True
-                    self._massivenu_mass = np.full(self._nneutrinos, m_nu.value)
-                    self._nmassivenu = self._nneutrinos
-                    self._nmasslessnu = 0
-            elif len(m_nu) != self._nneutrinos:  # not scalar, check number of masses
+
+            if m_nu.shape not in ((), (self._nneutrinos,)):
                 raise ValueError("unexpected number of neutrino masses — "
                                  f"expected {self._nneutrinos}, got {len(m_nu)}.")
-            # elif m_nu.value.max() == 0:
-            #     pass  # if this is true, min = max = 0 = default case (above)
-            elif np.any(m_nu.value > 0):  # Different masses.
-                massive = np.nonzero(m_nu.value > 0)[0]
-                self._massivenu = True
-                self._nmassivenu = len(massive)
-                self._massivenu_mass = m_nu[massive].value
-                self._nmasslessnu = self._nneutrinos - self._nmassivenu
+            elif np.any(m_nu.value < 0):
+                raise ValueError("invalid (negative) neutrino mass encountered.")
 
-        # Compute photon density, Tcmb, neutrino parameters
-        # Tcmb0=0 removes both photons and neutrinos, is handled
-        # as a special case for efficiency
-        if self._Tcmb0.value > 0:
-            # Compute photon density from Tcmb
-            self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 / self._critical_density0.value
+            if m_nu.isscalar:
+                self._m_nu = m_nu = np.full_like(m_nu, m_nu, shape=self._nneutrinos)
 
-            # Compute Neutrino temperature
-            # The constant in front is (4/11)^1/3 -- see any
-            #  cosmology book for an explanation -- for example,
-            #  Weinberg 'Cosmology' p 154 eq (3.1.21)
-            self._Tnu0 = 0.7137658555036082 * self._Tcmb0
+            # We are going to share Neff between the neutrinos equally. In
+            # detail this is not correct, but it is a standard assumption
+            # because properly calculating it is a) complicated b) depends on
+            # the details of the massive neutrinos (e.g., their weak
+            # interactions, which could be unusual if one is considering
+            # sterile neutrinos).
+            self._neff_per_nu = self._Neff / self._nneutrinos
 
-            # Compute Neutrino Omega and total relativistic component
-            # for massive neutrinos.  We also store a list version,
-            # since that is more efficient to do integrals with (perhaps
-            # surprisingly!  But small python lists are more efficient
-            # than small numpy arrays).
-            if self._massivenu:
-                nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
-                self._nu_y = nu_y.value
-                self._nu_y_list = self._nu_y.tolist()
-                self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
-            else:
-                # This case is particularly simple, so do it directly
-                # The 0.2271... is 7/8 (4/11)^(4/3) -- the temperature
-                # bit ^4 (blackbody energy density) times 7/8 for
-                # FD vs. BE statistics.
-                self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
-                self._nu_y = self._nu_y_list = None
+            # Now figure out if we have massive neutrinos to deal with, and if
+            # so, get the right number of masses. It is worth keeping track of
+            # massless ones separately (since they are easy to deal with, and a
+            # common use case is to have only one massive neutrino).
+            massive = np.nonzero(m_nu.value > 0)[0]
+            self._massivenu = massive.size > 0
+            self._nmassivenu = len(massive)
+            self._massivenu_mass = m_nu[massive].value if self._massivenu else None
+            self._nmasslessnu = self._nneutrinos - self._nmassivenu
 
+        # Compute Neutrino Omega and total relativistic component for massive
+        # neutrinos. We also store a list version, since that is more efficient
+        # to do integrals with (perhaps surprisingly! But small python lists
+        # are more efficient than small NumPy arrays).
+        if self._massivenu:  # (`_massivenu` set in `m_nu`)
+            nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
+            self._nu_y = nu_y.value
+            self._nu_y_list = self._nu_y.tolist()
+            self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
         else:
-            self._Ogamma0 = 0.0
-            self._Tnu0 = 0.0 * u.K
-            self._Onu0 = 0.0
+            # This case is particularly simple, so do it directly The 0.2271...
+            # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
+            # density) times 7/8 for FD vs. BE statistics.
+            self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
             self._nu_y = self._nu_y_list = None
-
-        # now set m_nu Parameter
-        if self._nneutrinos == 0 or self._Tnu0.value == 0:
-            self._m_nu = None
-        else:
-            if not self._massivenu:  # only massless
-                m = np.zeros(self._nmasslessnu)
-            elif self._nmasslessnu == 0:  # only massive
-                m = self._massivenu_mass
-            else:  # a mix -- the most complicated case
-                m = np.append(np.zeros(self._nmasslessnu), self._massivenu_mass)
-            self._m_nu = m << self._m_nu.unit
-
-        # -------------------
 
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
