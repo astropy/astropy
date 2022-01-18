@@ -55,4 +55,37 @@ Pending WMAP team approval and subject to change.
 
 """
 
-available = ()
+# STDLIB
+import pathlib
+import sys
+from types import MappingProxyType
+
+# LOCAL
+from astropy.utils.data import get_pkg_data_path
+
+
+_COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
+available = tuple(sorted([p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")]))
+
+__all__ = ["available"] +  list(available)
+
+
+def __getattr__(name):
+    """Get parameters of cosmology representations with lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+    """
+    from astropy.cosmology import realizations
+
+    cosmo = getattr(realizations, name)
+    m = cosmo.to_format("mapping", cosmology_as_str=True, move_from_meta=True)
+    proxy = MappingProxyType(m)
+
+    # Cache in this module so `__getattr__` is only called once per `name`.
+    setattr(sys.modules[__name__], name, proxy)
+
+    return proxy
+
+
+def __dir__():
+    """Directory, including lazily-imported objects."""
+    return __all__

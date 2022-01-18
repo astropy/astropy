@@ -1,45 +1,46 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # STDLIB
-import pathlib
 import sys
-from types import MappingProxyType
 
 # LOCAL
-from astropy import units as u
 from astropy.utils.decorators import deprecated
-from astropy.utils.data import get_pkg_data_path
 from astropy.utils.state import ScienceState
 
-from . import parameters
-from .core import _COSMOLOGY_CLASSES, Cosmology
+from .core import Cosmology
+from .parameters import _COSMOLOGY_DATA_DIR, available
 
-__all__ = ["default_cosmology"]
+__all__ = ["default_cosmology"] + list(available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
-# Pre-defined cosmologies. This loops over the data directory and creates a
-# corresponding cosmology instance.
-data_dir = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
-for path in data_dir.glob("*.ecsv"):
-    cosmo = Cosmology.read(path, format="ascii.ecsv")
-    cosmo.__doc__ = (f"{path.stem} instance of {cosmo.__class__.__qualname__} "
+def __getattr__(name):
+    """Make specific realizations from data files with lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+
+    Raises
+    ------
+    AttributeError
+        If "name" is not in :mod:`astropy.cosmology.realizations`
+    """
+    if name not in available:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
+
+    cosmo = Cosmology.read(str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv")
+    cosmo.__doc__ = (f"{name} instance of {cosmo.__class__.__qualname__} "
                      f"cosmology\n(from {cosmo.meta['reference']})")
 
-    # Put in this namespace
-    setattr(sys.modules[__name__], path.stem, cosmo)
-    __all__.append(path.stem)
+    # Cache in this module so `__getattr__` is only called once per `name`.
+    setattr(sys.modules[__name__], name, cosmo)
 
-    # And add to parameters.py
-    m = cosmo.to_format("mapping")
-    m["cosmology"] = m["cosmology"].__qualname__
-    m.update(m.pop("meta"))
-    setattr(parameters, path.stem, MappingProxyType(m))
-    parameters.available += (path.stem, )
+    return cosmo
 
-del data_dir, path, cosmo, m  # clean the namespace
-parameters.available = tuple(sorted(parameters.available))
+
+def __dir__():
+    """Directory, including lazily-imported objects."""
+    return __all__
+
 
 #########################################################################
 # The science state below contains the current cosmology.
@@ -122,7 +123,7 @@ class default_cosmology(ScienceState):
                 value = getattr(sys.modules[__name__], key)
             except AttributeError:
                 raise ValueError(f"Unknown cosmology {key!r}. "
-                                 f"Valid cosmologies:\n{parameters.available}")
+                                 f"Valid cosmologies:\n{available}")
         elif isinstance(key, Cosmology):
             value = key
         else:

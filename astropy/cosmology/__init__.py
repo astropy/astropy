@@ -16,10 +16,30 @@ from .core import *
 from .flrw import *
 from .funcs import *
 from .parameter import *
-from .realizations import *
+from .realizations import default_cosmology
 from .utils import *
 
 __all__ = (core.__all__ + flrw.__all__       # cosmology classes
            + realizations.__all__            # instances thereof
            + ["units"]
            + funcs.__all__ + parameter.__all__ + utils.__all__)  # utils
+
+
+def __getattr__(name):
+    """Get realizations using lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
+
+    Raises
+    ------
+    AttributeError
+        If "name" is not in :mod:`astropy.cosmology.realizations`
+    """
+    if name not in realizations.available:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
+
+    return getattr(realizations, name)
+
+
+def __dir__():
+    """Directory, including lazily-imported objects."""
+    return __all__
