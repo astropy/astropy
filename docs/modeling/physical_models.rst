@@ -288,3 +288,39 @@ The maximum circular velocity and radius of maximum circular velocity are availa
     # Display plot
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
+
+
+.. _Cosmologies:
+
+Cosmologies
+===========
+
+The instances of the |Cosmology| class (and subclasses) include
+|Cosmology.to_format|, a method to convert a Cosmology to another python
+object. Specifically, any redshift method can be converted to a
+:class:`~astropy.modeling.FittableModel` instance using the argument
+``format="astropy.model"``.
+During the conversion, each |Cosmology| :class:`~astropy.cosmology.Parameter`
+is converted to a :class:`astropy.modeling.Model`
+:class:`~astropy.modeling.Parameter`, while the redshift-method becomes the
+model's ``__call__`` / ``evaluate`` method.
+This means cosmologies can now be fit with data!
+
+.. code-block::
+
+    >>> from astropy.cosmology import Planck18
+    >>> model = Planck18.to_format(format="astropy.model", method="lookback_time")
+    >>> model
+    <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
+        Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
+        name='Planck18')>
+
+When finished, e.g. fitting, a model can be turned back into a |Cosmology|
+using |Cosmology.from_format|.
+
+.. code-block::
+
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.from_format(model, format="astropy.model")
+    >>> cosmo == Planck18
+    True
