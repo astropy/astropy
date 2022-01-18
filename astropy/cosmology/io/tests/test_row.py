@@ -4,7 +4,7 @@
 import pytest
 
 # LOCAL
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.io.row import from_row, to_row
 from astropy.table import Row
 
