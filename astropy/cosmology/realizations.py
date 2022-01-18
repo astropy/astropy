@@ -1,34 +1,45 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
+import pathlib
 import sys
-import warnings
+from types import MappingProxyType
 
+# LOCAL
 from astropy import units as u
 from astropy.utils.decorators import deprecated
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.data import get_pkg_data_path
 from astropy.utils.state import ScienceState
 
 from . import parameters
 from .core import _COSMOLOGY_CLASSES, Cosmology
 
-__all__ = ["default_cosmology"] + list(parameters.available)
+__all__ = ["default_cosmology"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
-# Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a corresponding cosmology instance
-for key in parameters.available:
-    params = dict(getattr(parameters, key))  # get parameters dict (copy)
-    params.setdefault("name", key)
-    # make cosmology
-    cosmo = Cosmology.from_format(params, format="mapping", move_to_meta=True)
-    cosmo.__doc__ = (f"{key} instance of {cosmo.__class__.__qualname__} "
+# Pre-defined cosmologies. This loops over the data directory and creates a
+# corresponding cosmology instance.
+data_dir = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
+for path in data_dir.glob("*.ecsv"):
+    cosmo = Cosmology.read(path, format="ascii.ecsv")
+    cosmo.__doc__ = (f"{path.stem} instance of {cosmo.__class__.__qualname__} "
                      f"cosmology\n(from {cosmo.meta['reference']})")
-    # put in this namespace
-    setattr(sys.modules[__name__], key, cosmo)
 
-del key, params, cosmo  # clean the namespace
+    # Put in this namespace
+    setattr(sys.modules[__name__], path.stem, cosmo)
+    __all__.append(path.stem)
+
+    # And add to parameters.py
+    m = cosmo.to_format("mapping")
+    m["cosmology"] = m["cosmology"].__qualname__
+    m.update(m.pop("meta"))
+    setattr(parameters, path.stem, MappingProxyType(m))
+    parameters.available += (path.stem, )
+
+del data_dir, path, cosmo, m  # clean the namespace
+parameters.available = tuple(sorted(parameters.available))
 
 #########################################################################
 # The science state below contains the current cosmology.
