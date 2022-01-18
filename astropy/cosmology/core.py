@@ -117,7 +117,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __init__(self, name=None, meta=None):
-        self._name = name
+        self._name = str(name) if name is not None else name
         self.meta.update(meta or {})
 
     @property
