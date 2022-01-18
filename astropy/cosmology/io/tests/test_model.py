@@ -10,7 +10,7 @@ import pytest
 import numpy as np
 
 # LOCAL
-from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.tests.conftest import get_redshift_methods
 from astropy.modeling import FittableModel
