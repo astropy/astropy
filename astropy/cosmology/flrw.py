@@ -166,26 +166,15 @@ class FLRW(Cosmology):
         # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
         self._Tnu0 = 0.7137658555036082 * self._Tcmb0
 
-        # Compute (/verify) neutrino masses:
-        self._nneutrinos = floor(self._Neff)
-        if self._nneutrinos == 0 or self._Tcmb0.value == 0:  # No neutrinos, regardless of input.
-            self._m_nu = None
+        # Compute neutrino parameters:
+        if self._m_nu is None:
+            self._nneutrinos = 0
             self._neff_per_nu = None
             self._massivenu = False
             self._massivenu_mass = None
             self._nmassivenu = self._nmasslessnu = None
-        else:  # There are neutrinos:
-            # Check and correct neutrinos
-            m_nu = self._m_nu  # has units eV
-
-            if m_nu.shape not in ((), (self._nneutrinos,)):
-                raise ValueError("unexpected number of neutrino masses — "
-                                 f"expected {self._nneutrinos}, got {len(m_nu)}.")
-            elif np.any(m_nu.value < 0):
-                raise ValueError("invalid (negative) neutrino mass encountered.")
-
-            if m_nu.isscalar:
-                self._m_nu = m_nu = np.full_like(m_nu, m_nu, shape=self._nneutrinos)
+        else:
+            self._nneutrinos = floor(self._Neff)
 
             # We are going to share Neff between the neutrinos equally. In
             # detail this is not correct, but it is a standard assumption
@@ -199,10 +188,10 @@ class FLRW(Cosmology):
             # so, get the right number of masses. It is worth keeping track of
             # massless ones separately (since they are easy to deal with, and a
             # common use case is to have only one massive neutrino).
-            massive = np.nonzero(m_nu.value > 0)[0]
+            massive = np.nonzero(self._m_nu.value > 0)[0]
             self._massivenu = massive.size > 0
             self._nmassivenu = len(massive)
-            self._massivenu_mass = m_nu[massive].value if self._massivenu else None
+            self._massivenu_mass = self._m_nu[massive].value if self._massivenu else None
             self._nmasslessnu = self._nneutrinos - self._nmassivenu
 
         # Compute Neutrino Omega and total relativistic component for massive
@@ -241,6 +230,34 @@ class FLRW(Cosmology):
         value = _validate_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError("baryonic density can not be larger than total matter density.")
+        return value
+
+    @m_nu.validator
+    def m_nu(self, param, value):
+        """Validate neutrino masses to right value, units, and shape.
+
+        There are no neutrinos if floor(Neff) or Tcmb0 are 0.
+        The number of neutrinos must match floor(Neff).
+        Neutrino masses cannot be negative.
+        """
+        # Check if there are any neutrinos
+        if (nneutrinos := floor(self._Neff)) == 0 or self._Tcmb0.value == 0:
+            return None  # None, regardless of input
+
+        # Validate / set units
+        value = _validate_with_unit(self, param, value)
+
+        # Check values and data shapes
+        if value.shape not in ((), (nneutrinos,)):
+            raise ValueError("unexpected number of neutrino masses — "
+                             f"expected {nneutrinos}, got {len(value)}.")
+        elif np.any(value.value < 0):
+            raise ValueError("invalid (negative) neutrino mass encountered.")
+
+        # scalar -> array
+        if value.isscalar:
+            value = np.full_like(value, value, shape=nneutrinos)
+
         return value
 
     # ---------------------------------------------------------------
