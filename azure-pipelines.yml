@@ -41,6 +41,9 @@ variables:
   CIBW_MANYLINUX_I686_IMAGE: manylinux2010
   CIBW_ARCHS_LINUX: "auto, aarch64"
   CIBW_ARCHS_MACOS: "x86_64 arm64"
+  # Numpy 1.22 doesn't have wheels for i386, so we pin Numpy to an older version
+  # that does - this pin can be removed once we drop support for 32-bit wheels.
+  CIBW_TEST_REQUIRES: "numpy==1.20.*"
   CI: true
 
 jobs:
