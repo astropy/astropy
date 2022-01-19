@@ -1,0 +1,2 @@
+Cosmology realizations (e.g. ``Planck18``) and parameter dictionaries are now
+lazily loaded from source files.
