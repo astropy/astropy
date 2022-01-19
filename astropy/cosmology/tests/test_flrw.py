@@ -8,6 +8,7 @@
 # STDLIB
 import abc
 import copy
+import re
 
 # THIRD PARTY
 import pytest
@@ -79,7 +80,8 @@ class ParameterH0TestMixin(ParameterTestMixin):
         # validation
         assert cosmo_cls.H0.validate(cosmo, 1) == 1 * unit
         assert cosmo_cls.H0.validate(cosmo, 10 * unit) == 10 * unit
-        with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
+        with pytest.raises(ValueError,
+                           match=re.escape("H0=[1. 2.] km / (Mpc s) is a non-scalar quantity")):
             cosmo_cls.H0.validate(cosmo, [1, 2])
 
         # on the instance
@@ -100,7 +102,8 @@ class ParameterH0TestMixin(ParameterTestMixin):
 
         # fails for non-scalar
         ba.arguments["H0"] = u.Quantity([70, 100], u.km / u.s / u.Mpc)
-        with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
+        with pytest.raises(ValueError,
+                           match=re.escape("H0=[ 70. 100.] km / (Mpc s) is a non-scalar quantity")):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -121,7 +124,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
         # validation
         assert cosmo_cls.Om0.validate(cosmo, 1) == 1
         assert cosmo_cls.Om0.validate(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="Om0 cannot be negative"):
+        with pytest.raises(ValueError, match="Om0=-1.0 cannot be negative"):
             cosmo_cls.Om0.validate(cosmo, -1)
 
         # on the instance
@@ -143,7 +146,7 @@ class ParameterOm0TestMixin(ParameterTestMixin):
 
         # fails for negative numbers
         ba.arguments["Om0"] = -0.27
-        with pytest.raises(ValueError, match="Om0 cannot be negative."):
+        with pytest.raises(ValueError, match="Om0=-0.27 cannot be negative."):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -164,7 +167,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
         """Test Parameter ``Ode0`` validation."""
         assert cosmo_cls.Ode0.validate(cosmo, 1.1) == 1.1
         assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10.0
-        with pytest.raises(TypeError, match="only dimensionless"):
+        with pytest.raises(u.UnitConversionError, match="'km'"):
             cosmo_cls.Ode0.validate(cosmo, 10 * u.km)
 
     def test_Ode0(self, cosmo):
@@ -194,7 +197,7 @@ class ParameterOde0TestMixin(ParameterTestMixin):
 
         # Must be dimensionless or have no units. Errors otherwise.
         ba.arguments["Ode0"] = 10 * u.km
-        with pytest.raises(TypeError, match="only dimensionless"):
+        with pytest.raises(u.UnitConversionError, match="'km'"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -216,7 +219,8 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
         # validation
         assert cosmo_cls.Tcmb0.validate(cosmo, 1) == 1 * u.K
         assert cosmo_cls.Tcmb0.validate(cosmo, 10 * u.K) == 10 * u.K
-        with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
+        with pytest.raises(ValueError,
+                           match=re.escape("Tcmb0=[1. 2.] K is a non-scalar quantity")):
             cosmo_cls.Tcmb0.validate(cosmo, [1, 2])
 
         # on the instance
@@ -237,7 +241,8 @@ class ParameterTcmb0TestMixin(ParameterTestMixin):
 
         # must be a scalar
         ba.arguments["Tcmb0"] = u.Quantity([0.0, 2], u.K)
-        with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
+        with pytest.raises(ValueError,
+                           match=re.escape("Tcmb0=[0. 2.] K is a non-scalar quantity")):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -258,7 +263,7 @@ class ParameterNeffTestMixin(ParameterTestMixin):
         # validation
         assert cosmo_cls.Neff.validate(cosmo, 1) == 1
         assert cosmo_cls.Neff.validate(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="Neff cannot be negative"):
+        with pytest.raises(ValueError, match="Neff=-1.0 cannot be negative"):
             cosmo_cls.Neff.validate(cosmo, -1)
 
         # on the instance
@@ -278,8 +283,9 @@ class ParameterNeffTestMixin(ParameterTestMixin):
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert cosmo.Neff == ba.arguments["Neff"]
 
+        # Neff > 0
         ba.arguments["Neff"] = -1
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Neff=-1.0 cannot be negative"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -408,7 +414,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         assert cosmo_cls.Ob0.validate(cosmo, None) is None
         assert cosmo_cls.Ob0.validate(cosmo, 0.1) == 0.1
         assert cosmo_cls.Ob0.validate(cosmo, 0.1 * u.one) == 0.1
-        with pytest.raises(ValueError, match="Ob0 cannot be negative"):
+        with pytest.raises(ValueError, match="Ob0=-1.0 cannot be negative"):
             cosmo_cls.Ob0.validate(cosmo, -1)
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls.Ob0.validate(cosmo, cosmo.Om0 + 1)
@@ -440,7 +446,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         # Negative Ob0 errors
         tba = copy.copy(ba)
         tba.arguments["Ob0"] = -0.04
-        with pytest.raises(ValueError, match="Ob0 cannot be negative"):
+        with pytest.raises(ValueError, match="Ob0=-0.04 cannot be negative"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
         # Ob0 > Om0 errors
@@ -1076,7 +1082,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
 
         # must be dimensionless
         ba.arguments["w0"] = 10 * u.km
-        with pytest.raises(TypeError):
+        with pytest.raises(u.UnitConversionError, match="'km"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -1183,7 +1189,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
 
         # must be dimensionless
         ba.arguments["wa"] = 10 * u.km
-        with pytest.raises(TypeError):
+        with pytest.raises(u.UnitConversionError, match="'km"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -1291,7 +1297,7 @@ class ParameterwpTestMixin(ParameterTestMixin):
 
         # must be dimensionless
         ba.arguments["wp"] = 10 * u.km
-        with pytest.raises(TypeError):
+        with pytest.raises(u.UnitConversionError, match="'km"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
@@ -1417,7 +1423,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
 
         # must be dimensionless
         ba.arguments["wz"] = 10 * u.km
-        with pytest.raises(TypeError):
+        with pytest.raises(u.UnitConversionError, match="'km"):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 

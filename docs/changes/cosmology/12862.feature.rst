@@ -1,0 +1,2 @@
+A ``dtype`` argument is added to Parameters, allowing the ``numpy.dtype`` to
+be specified for each Cosmology parameter.

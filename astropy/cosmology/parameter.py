@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import numpy as np
+
 import astropy.units as u
-from astropy.utils.decorators import classproperty
+from astropy.utils.decorators import classproperty, deprecated
 
 __all__ = ["Parameter"]
 
@@ -21,8 +23,10 @@ class Parameter:
         ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
         independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
     unit : unit-like or None (optional, keyword-only)
-        The `~astropy.units.Unit` for the Parameter. If None (default) no
-        unit as assumed.
+        The `~astropy.units.Unit` for the Parameter.
+        If None (default) the units will be converted to
+        ``astropy.units.dimensionless_unscaled`` and then removed (unless a
+        custom validator is used that does not implement this behavior).
     equivalencies : `~astropy.units.Equivalency` or sequence thereof
         Unit equivalencies for this Parameter.
     fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)
@@ -46,7 +50,8 @@ class Parameter:
 
     _registry_validators = {}
 
-    def __init__(self, *, derived=False, unit=None, equivalencies=[],
+    def __init__(self, *, derived=False, dtype=np.float64,
+                 unit=None, equivalencies=[],
                  fvalidate="default", fmt="", doc=None):
 
         # attribute name on container cosmology class.
@@ -58,7 +63,8 @@ class Parameter:
         self._fmt = str(fmt)  # @property is `format_spec`
         self.__doc__ = doc
 
-        # units stuff
+        # units & dtype stuff
+        self._dtype = dtype
         self._unit = u.Unit(unit) if unit is not None else None
         self._equivalencies = equivalencies
 
@@ -85,6 +91,11 @@ class Parameter:
     def name(self):
         """Parameter name."""
         return self._attr_name
+
+    @property
+    def dtype(self):
+        """Parameter dtype."""
+        return self._dtype
 
     @property
     def unit(self):
@@ -317,13 +328,19 @@ def _validate_with_unit(cosmology, param, value):
     Default Parameter value validator.
     Adds/converts units if Parameter has a unit.
     """
-    if param.unit is not None:
-        with u.add_enabled_equivalencies(param.equivalencies):
-            value = u.Quantity(value, param.unit)
+    # Quantity with right units (can be None) and dtype
+    with u.add_enabled_equivalencies(param.equivalencies):
+        value = u.Quantity(value, unit=param.unit, dtype=param.dtype, copy=False)
+
+    # If there shouldn't be units, decompose to unitless value
+    if param.unit is None:
+        value = value.to_value(u.one)
+
     return value
 
 
 @Parameter.register_validator("float")
+@deprecated("v5.1", alternative="use ``dtype=float`` in Parameter()")
 def _validate_to_float(cosmology, param, value):
     """Parameter value validator with units, and converted to float."""
     value = _validate_with_unit(cosmology, param, value)
@@ -332,17 +349,20 @@ def _validate_to_float(cosmology, param, value):
 
 @Parameter.register_validator("scalar")
 def _validate_to_scalar(cosmology, param, value):
-    """"""
+    """Parameter value validator where value is a scalar."""
     value = _validate_with_unit(cosmology, param, value)
-    if not value.isscalar:
-        raise ValueError(f"{param.name} is a non-scalar quantity")
-    return value
+
+    # Check it's a scalar (Quantity or other)
+    if (hasattr(value, "isscalar") and value.isscalar) or np.isscalar(value):
+        return value
+    else:
+        raise ValueError(f"{param.name}={value} is a non-scalar quantity")
 
 
 @Parameter.register_validator("non-negative")
 def _validate_non_negative(cosmology, param, value):
-    """Parameter value validator where value is a positive float."""
-    value = _validate_to_float(cosmology, param, value)
+    """Parameter value validator where value is a positive number."""
+    value = _validate_with_unit(cosmology, param, value)
     if value < 0.0:
-        raise ValueError(f"{param.name} cannot be negative.")
+        raise ValueError(f"{param.name}={value} cannot be negative.")
     return value

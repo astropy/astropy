@@ -1,0 +1,2 @@
+The ``fvalidate="float"`` option for a Parameter is deprecated in favor of
+``dtype=float``, and will be removed in at least two minor versions (>v5.3).

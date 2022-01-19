@@ -6,6 +6,7 @@ from math import acos, cos, exp, floor, inf, log, pi, sin, sqrt
 from numbers import Number
 
 import numpy as np
+from numpy.lib.scimath import power
 
 import astropy.constants as const
 import astropy.units as u
@@ -16,7 +17,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
-from .parameter import _validate_non_negative, _validate_with_unit
+from .parameter import _validate_non_negative, _validate_to_scalar, _validate_with_unit
 from .utils import aszarr, vectorize_redshift_method
 
 # isort: split
@@ -120,7 +121,7 @@ class FLRW(Cosmology):
     Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.",
                     fvalidate="non-negative")
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                     fvalidate="float")
+                     fvalidate="scalar")
     Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
                       unit="Kelvin", fvalidate="scalar")
     Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
@@ -227,6 +228,7 @@ class FLRW(Cosmology):
         if value is None:
             return value
 
+        value = _validate_to_scalar(self, param, value)
         value = _validate_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError("baryonic density can not be larger than total matter density.")
@@ -1805,7 +1807,7 @@ class LambdaCDM(FLRW):
         except ValueError as e:
             raise ValueError("z1 and z2 have different shapes") from e
 
-        s = ((1 - self._Om0) / self._Om0) ** (1./3)
+        s = power((1 - self._Om0) / self._Om0, 1.0/3)
         # Use np.sqrt here to handle negative s (Om0>1).
         prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
         return prefactor * (self._T_hypergeometric(s / (z1 + 1.0)) -
@@ -2202,7 +2204,7 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
+    w0 = Parameter(doc="Dark energy equation of state.", fvalidate="scalar")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
@@ -2522,9 +2524,9 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
+    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="scalar")
     wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
-                   fvalidate="float")
+                   fvalidate="scalar")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
@@ -2788,10 +2790,12 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float")
+    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.",
+                   fvalidate="scalar")
     wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
-                   fvalidate="float")
-    zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
+                   fvalidate="scalar")
+    zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift,
+                   fvalidate="scalar")
 
     def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0 * cu.redshift,
                  Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *,
@@ -2949,8 +2953,9 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
-    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.", fvalidate="float")
+    w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="scalar")
+    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.",
+                   fvalidate="scalar")
 
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wz=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
