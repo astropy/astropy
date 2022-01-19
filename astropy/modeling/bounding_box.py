@@ -618,34 +618,57 @@ class ModelBoundingBox(_BoundingDomain):
 
         return intervals
 
-    def _verify_intervals_dict(self):
+    def _verify_intervals_dict(self, _external_ignored: List[str] = None):
+        if _external_ignored is None:
+            _external_ignored = []
+
         intervals = self._pop_intervals()
 
         for key, value in intervals.items():
-            self[key] = value
+            name = self._get_name(key)
+            if name in _external_ignored:
+                raise ValueError(f"Interval: {name} is being externally ignored!")
 
-    def _verify_intervals_sequence(self):
+            self[name] = value
+
+        if len(self.intervals) != 0 and len(self.intervals) != len(names := self._interval_names(_external_ignored)):
+            raise ValueError(f"Given {len(self.intervals)}, need {len(names)} intervals!")
+
+    def _interval_names(self, _external_ignored: List[str] = None):
+        if _external_ignored is None:
+            _external_ignored = []
+
+        return [name for name in self.model.inputs
+                if name not in self._ignored
+                and name not in _external_ignored]
+
+    def _verify_intervals_sequence(self, _external_ignored: List[str] = None):
+        names = self._interval_names(_external_ignored)
+        if len(names) == 0 and len(self.intervals) > 0:
+            raise ValueError("All intervals have been ignored!")
+
         intervals = self._pop_intervals()
-
         if len(intervals) <= 1:
             raise ValueError(f"The intervals: {intervals}, do not contain enough information to construct a bounding_box!")
+
+        if len(names) == 1: # Handle the 1D tuple case.
+            self[names[0]] = intervals
+        elif len(names) == len(intervals):
+            if self._order == 'C':
+                intervals = intervals[::-1]
+
+            for value in intervals:
+                self[names.pop(0)] = value
         else:
-            if len(intervals) == 2 and not isinstance(intervals[0], (list, tuple)):
-                self[0] = intervals
-            else:
-                if self._order == 'C':
-                    intervals = intervals[::-1]
+            raise ValueError(f"Given {len(intervals)}, need {len(names)} intervals!")
 
-                for index, value in enumerate(intervals):
-                    self[index] = value
-
-    def _verify_intervals(self):
+    def _verify_intervals(self, _external_ignored: List[str] = None):
         ignored = self._ignored.copy()
 
         if isinstance(self._intervals, dict):
-            self._verify_intervals_dict()
+            self._verify_intervals_dict(_external_ignored)
         else:
-            self._verify_intervals_sequence()
+            self._verify_intervals_sequence(_external_ignored)
 
         if ignored != self._ignored or any(name in self._intervals for name in ignored):
             raise ValueError("At least one interval is being ignored")
@@ -654,7 +677,7 @@ class ModelBoundingBox(_BoundingDomain):
         super().verify(model, _external_ignored)
 
         if self._has_model:
-            self._verify_intervals()
+            self._verify_intervals(_external_ignored)
 
     def copy(self, ignored=None):
         intervals = {name: interval.copy()

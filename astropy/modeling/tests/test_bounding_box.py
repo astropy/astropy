@@ -1004,11 +1004,80 @@ class TestModelBoundingBox:
         assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
 
-        # Intervals, model, and ignored error (shared input name)
-        with pytest.raises(ValueError, match=r"At least one*"):
+        # Tuple interval with ignored 1D
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y']
+        bounding_box = ModelBoundingBox((0, 1), model, ignored=['x'])
+        assert bounding_box._intervals == {'y': (0, 1)}
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'C'
+        bounding_box = ModelBoundingBox((0, 1), model, ignored=['y'])
+        assert bounding_box._intervals == {'x': (0, 1)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['y']
+        assert bounding_box._order == 'C'
+
+        # Tuple interval with ignored 2D
+        model.inputs = ['x', 'y', 'z']
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['x'])
+        assert bounding_box._intervals == {'y': (2, 3), 'z': (0, 1)}
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+        assert isinstance(bounding_box._intervals['z'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'C'
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['x'], order='F')
+        assert bounding_box._intervals == {'y': (0, 1), 'z': (2, 3)}
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+        assert isinstance(bounding_box._intervals['z'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['x']
+        assert bounding_box._order == 'F'
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['y'])
+        assert bounding_box._intervals == {'x': (2, 3), 'z': (0, 1)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert isinstance(bounding_box._intervals['z'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['y']
+        assert bounding_box._order == 'C'
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['y'], order='F')
+        assert bounding_box._intervals == {'x': (0, 1), 'z': (2, 3)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert isinstance(bounding_box._intervals['z'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['y']
+        assert bounding_box._order == 'F'
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['z'])
+        assert bounding_box._intervals == {'x': (2, 3), 'y': (0, 1)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['z']
+        assert bounding_box._order == 'C'
+        bounding_box = ModelBoundingBox(((0, 1), (2, 3)), model, ignored=['z'], order='F')
+        assert bounding_box._intervals == {'x': (0, 1), 'y': (2, 3)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+        assert bounding_box._model == model
+        assert bounding_box._ignored == ['z']
+        assert bounding_box._order == 'F'
+
+        # Intervals, model, and ignored error (Incorrect number of intervals)
+        with pytest.raises(ValueError, match=r"An interval must be*"):
             ModelBoundingBox((0, 1), model, ignored=['x'])
-        with pytest.raises(ValueError, match=r"At least one*"):
-            ModelBoundingBox((0, 1), model, ignored=[0])
+        model.inputs = ['x', 'y', 'z', 'a']
+        with pytest.raises(ValueError, match=r"Given .*, need .* intervals!"):
+            ModelBoundingBox(((0, 1), (2, 3)), model, ignored=[0])
+        with pytest.raises(ValueError, match=r"Given .*, need .* intervals!"):
+            ModelBoundingBox({'x': (0, 1)}, model, ignored=[0])
+        with pytest.raises(ValueError, match=r"Given .*, need .* intervals!"):
+            ModelBoundingBox({'x': (0, 1), 'y': (2, 3)}, model, ignored=['z'])
+
+        # Intervals, model, and ignored error (shared input name)
+        model.inputs = ['x']
         with pytest.raises(ValueError, match=r"At least one*"):
             ModelBoundingBox({'x': (0, 1)}, model, ignored=[0])
         with pytest.raises(ValueError, match=r"At least one*"):
@@ -1023,7 +1092,7 @@ class TestModelBoundingBox:
         assert bounding_box._intervals == {}
 
     def test__verify_intervals_dict(self):
-        bounding_box = ModelBoundingBox({})
+        bounding_box = ModelBoundingBox({}, Gaussian2D())
         assert bounding_box._intervals == {}
 
         # Success integer keys
@@ -1032,9 +1101,31 @@ class TestModelBoundingBox:
         assert not isinstance(bounding_box._intervals[0], _Interval)
         assert not isinstance(bounding_box._intervals[1], _Interval)
         bounding_box._verify_intervals_dict()
-        assert bounding_box._intervals == intervals
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
+        assert bounding_box._intervals == {'x': (0, 1), 'y': (2, 3)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+        assert isinstance(bounding_box._intervals['y'], _Interval)
+
+        # Success integer keys (ignored key)
+        intervals = {0: (0, 1)}
+        bounding_box._intervals = intervals
+        assert not isinstance(bounding_box._intervals[0], _Interval)
+        bounding_box._verify_intervals_dict(['y'])
+        assert bounding_box._intervals == {'x': (0, 1)}
+        assert isinstance(bounding_box._intervals['x'], _Interval)
+
+        # Fail integer keys (ignored key)
+        bounding_box._intervals = {0: (0, 1), 1: (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['x'])
+        bounding_box._intervals = {0: (0, 1), 1: (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['y'])
+        bounding_box._intervals = {0: (0, 1)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['x'])
+        bounding_box._intervals = {1: (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['y'])
 
         # Success str keys
         intervals = {'x': (0, 1), 'y': (2, 3)}
@@ -1046,27 +1137,19 @@ class TestModelBoundingBox:
         assert isinstance(bounding_box._intervals['x'], _Interval)
         assert isinstance(bounding_box._intervals['y'], _Interval)
 
-        bounding_box._model = Gaussian2D()
-
-        # Success int-to-str with model
-        intervals = {0: (0, 1), 1: (2, 3)}
-        bounding_box._intervals = intervals
-        assert not isinstance(bounding_box._intervals[0], _Interval)
-        assert not isinstance(bounding_box._intervals[1], _Interval)
-        bounding_box._verify_intervals_dict()
-        assert bounding_box._intervals == {'x': (0, 1), 'y': (2, 3)}
-        assert isinstance(bounding_box._intervals['x'], _Interval)
-        assert isinstance(bounding_box._intervals['y'], _Interval)
-
-        # Success str with model
-        intervals = {'x': (0, 1), 'y': (2, 3)}
-        bounding_box._intervals = intervals
-        assert not isinstance(bounding_box._intervals['x'], _Interval)
-        assert not isinstance(bounding_box._intervals['y'], _Interval)
-        bounding_box._verify_intervals_dict()
-        assert bounding_box._intervals == intervals
-        assert isinstance(bounding_box._intervals['x'], _Interval)
-        assert isinstance(bounding_box._intervals['y'], _Interval)
+        # Fail str keys (ignored key)
+        bounding_box._intervals = {'x': (0, 1), 'y': (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['x'])
+        bounding_box._intervals = {'x': (0, 1), 'y': (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['y'])
+        bounding_box._intervals = {'x': (0, 1)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['x'])
+        bounding_box._intervals = {'y': (2, 3)}
+        with pytest.raises(ValueError, match=r"Interval: .* is being externally ignored!"):
+            bounding_box._verify_intervals_dict(['y'])
 
         # Fail, bad interval
         bounding_box._intervals = {0: (0, 1), 1: (2,)}
@@ -1081,48 +1164,17 @@ class TestModelBoundingBox:
         with pytest.raises(ValueError, match=r"'*' is not one*"):
             bounding_box._verify_intervals_dict()
 
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z', 'a']
+        bounding_box._ignored = ['z']
+        bounding_box._model = model
+        bounding_box._intervals = {'x': (0, 1), 'y': (2, 3)}
+        with pytest.raises(ValueError, match=r"Given 2, need 3 intervals!"):
+            bounding_box._verify_intervals_dict()
+
     def test__verify_intervals_sequence(self):
         bounding_box = ModelBoundingBox({})
         assert bounding_box._intervals == {}
-
-        # Success 1D
-        bounding_box._intervals = (0, 1)
-        bounding_box._verify_intervals_sequence()
-        assert bounding_box._intervals == {0: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-
-        # Success 2D, order 'C'
-        bounding_box._intervals = ((0, 1), (2, 3))
-        bounding_box._verify_intervals_sequence()
-        assert bounding_box._intervals == {0: (2, 3), 1: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
-
-        # Success 2D, order 'F'
-        bounding_box._order = 'F'
-        bounding_box._intervals = ((0, 1), (2, 3))
-        bounding_box._verify_intervals_sequence()
-        assert bounding_box._intervals == {0: (0, 1), 1: (2, 3)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
-
-        # Success 3D, order 'C'
-        bounding_box._order = 'C'
-        bounding_box._intervals = ((0, 1), (2, 3), (4, 5))
-        bounding_box._verify_intervals_sequence()
-        assert bounding_box._intervals == {0: (4, 5), 1: (2, 3), 2: (0, 1)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
-        assert isinstance(bounding_box._intervals[2], _Interval)
-
-        # Success 3D, order 'F'
-        bounding_box._order = 'F'
-        bounding_box._intervals = ((0, 1), (2, 3), (4, 5))
-        bounding_box._verify_intervals_sequence()
-        assert bounding_box._intervals == {0: (0, 1), 1: (2, 3), 2: (4, 5)}
-        assert isinstance(bounding_box._intervals[0], _Interval)
-        assert isinstance(bounding_box._intervals[1], _Interval)
-        assert isinstance(bounding_box._intervals[2], _Interval)
 
         # Success 1D with model
         bounding_box._model = Gaussian1D()
@@ -1154,8 +1206,41 @@ class TestModelBoundingBox:
         with pytest.raises(ValueError, match=r"An interval must*"):
             bounding_box._verify_intervals_sequence()
 
+        # Fail, ignoring all intervals but passing one.
+        bounding_box._model = Gaussian1D()
+        bounding_box._intervals = (0, 1)
+        bounding_box._ignored = ['x']
+        with pytest.raises(ValueError, match="All intervals have been ignored!"):
+            bounding_box._verify_intervals_sequence()
+        bounding_box._model = Gaussian2D()
+        bounding_box._intervals = ((0, 1), (2, 3))
+        bounding_box._ignored = ['x', 'y']
+        with pytest.raises(ValueError, match="All intervals have been ignored!"):
+            bounding_box._verify_intervals_sequence()
+
+        # Intervals only, tuple is not long enough
+        bounding_box._intervals = (1,)
+        bounding_box._ignored = []
+        with pytest.raises(ValueError) as err:
+            bounding_box._verify_intervals_sequence()
+        assert str(err.value) ==\
+            "The intervals: (1,), do not contain enough information to construct a bounding_box!"
+
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z', 'a']
+        bounding_box._model = model
+        # Difference in available intervals and provided intervals
+        bounding_box._intervals = ((0, 1), (2, 3))
+        bounding_box._ignored = ['a']
+        with pytest.raises(ValueError, match=r"Given 2, need 3 intervals!"):
+            bounding_box._verify_intervals_sequence()
+        bounding_box._intervals = ((0, 1), (2, 3), (4, 5))
+        bounding_box._ignored = ['a', 'z']
+        with pytest.raises(ValueError, match=r"Given 3, need 2 intervals!"):
+            bounding_box._verify_intervals_sequence()
+
     def test__verify_intervals(self):
-        bounding_box = ModelBoundingBox({})
+        bounding_box = ModelBoundingBox({}, Gaussian2D())
         assert bounding_box._intervals == {}
 
         with mk.patch.object(ModelBoundingBox, '_verify_intervals_dict',
@@ -1164,31 +1249,23 @@ class TestModelBoundingBox:
                                  autospec=True) as mkSeq:
                 # Verify dictionary intervals
                 bounding_box._verify_intervals()
-                assert mkDict.call_args_list == [mk.call(bounding_box)]
+                assert mkDict.call_args_list == [mk.call(bounding_box, None)]
                 assert mkSeq.call_args_list == []
 
                 mkDict.reset_mock()
 
                 # Verify tuple intervals
-                bounding_box._intervals = (0, 1)
+                bounding_box._intervals = ((0, 1), (2, 3))
                 bounding_box._verify_intervals()
                 assert mkDict.call_args_list == []
-                assert mkSeq.call_args_list == [mk.call(bounding_box)]
+                assert mkSeq.call_args_list == [mk.call(bounding_box, None)]
 
-        MESSAGE = "At least one interval is being ignored"
         # Test error from ignored and intervals sharing keys
         bounding_box._intervals = {'x': (0, 1)}
         bounding_box._ignored = ['x']
-        with pytest.raises(ValueError) as err:
-            bounding_box._verify_intervals()
-        assert str(err.value) == MESSAGE
-        # Test error from ignored and intervals sharing keys with a model
-        bounding_box._intervals = (0, 1)
-        bounding_box._ignored = ['x']
         bounding_box._model = Gaussian1D()
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match="At least one interval is being ignored"):
             bounding_box._verify_intervals()
-        assert str(err.value) == MESSAGE
 
     def test_verify(self):
         model = mk.MagicMock()
@@ -1237,7 +1314,7 @@ class TestModelBoundingBox:
                 bounding_box.verify(model)
                 assert main.mock_calls == [
                     mk.call.verify(bounding_box, model, None),
-                    mk.call.intervals(bounding_box)
+                    mk.call.intervals(bounding_box, None)
                 ]
 
         # With model, with _external_ignored
@@ -1253,7 +1330,7 @@ class TestModelBoundingBox:
                 bounding_box.verify(model, external_ignored)
                 assert main.mock_calls == [
                     mk.call.verify(bounding_box, model, external_ignored),
-                    mk.call.intervals(bounding_box)
+                    mk.call.intervals(bounding_box, external_ignored)
                 ]
 
     def test_copy(self):
