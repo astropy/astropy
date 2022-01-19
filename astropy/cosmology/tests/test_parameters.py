@@ -22,14 +22,17 @@ def test_realizations_in_dir():
 
 @pytest.mark.parametrize("name", parameters.available)
 def test_getting_parameters(name):
-    """Test getting 'parameters' and that matches corresponding realization."""
+    """
+    Test getting 'parameters' and that it is derived from the corresponding
+    realization.
+    """
     params = getattr(parameters, name)
 
     assert isinstance(params, MappingProxyType)
     assert params["name"] == name
 
+    # Check parameters have the right keys and values
     cosmo = getattr(realizations, name)
-
     assert params["name"] == cosmo.name
     assert params["cosmology"] == cosmo.__class__.__qualname__
     # All the cosmology parameters are equal
@@ -38,3 +41,7 @@ def test_getting_parameters(name):
     # All the metadata is included. Parameter values take precedence, so only
     # checking the keys.
     assert set(cosmo.meta.keys()).issubset(params.keys())
+
+    # Lastly, check the generation process.
+    m = cosmo.to_format("mapping", cosmology_as_str=True, move_from_meta=True)
+    assert params == m
