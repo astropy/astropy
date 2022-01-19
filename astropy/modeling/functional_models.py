@@ -481,7 +481,7 @@ class Shift(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.offset) for x in self.bounding_box)
+            inv.bounding_box = tuple(self.evaluate(x, self.offset) for x in self.bounding_box.bounding_box())
 
         return inv
 

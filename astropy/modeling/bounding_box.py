@@ -606,7 +606,7 @@ class ModelBoundingBox(_BoundingDomain):
                  ignored: List[str] = None, order: str = 'C'):
 
         # HACK, prevents a huge number of errors in legacy bounding box related tests.
-        if intervals == ():
+        if isinstance(intervals, tuple) and len(intervals) == 0:
             intervals = {}
 
         self._intervals = intervals
@@ -648,7 +648,7 @@ class ModelBoundingBox(_BoundingDomain):
             raise ValueError("All intervals have been ignored!")
 
         intervals = self._pop_intervals()
-        if len(intervals) <= 1:
+        if not isiterable(intervals) or len(intervals) <= 1:
             raise ValueError(f"The intervals: {intervals}, do not contain enough information to construct a bounding_box!")
 
         if len(names) == 1: # Handle the 1D tuple case.
@@ -792,48 +792,6 @@ class ModelBoundingBox(_BoundingDomain):
 
         del self._intervals[name]
 
-    def _validate_dict(self, bounding_box: dict):
-        """Validate passing dictionary of intervals and setting them."""
-        for key, value in bounding_box.items():
-            self[key] = value
-
-    def _validate_sequence(self, bounding_box, order: str = None):
-        """Validate passing tuple of tuples representation (or related) and setting them."""
-        order = self._get_order(order)
-        if order == 'C':
-            # If bounding_box is C/python ordered, it needs to be reversed
-            # to be in Fortran/mathematical/input order.
-            bounding_box = bounding_box[::-1]
-
-        for index, value in enumerate(bounding_box):
-            self[index] = value
-
-    @property
-    def _n_inputs(self) -> int:
-        n_inputs = self._model.n_inputs - len(self._ignored)
-        if n_inputs > 0:
-            return n_inputs
-        else:
-            return 0
-
-    def _validate_iterable(self, bounding_box, order: str = None):
-        """Validate and set any iterable representation"""
-        if len(bounding_box) != self._n_inputs:
-            raise ValueError(f"Found {len(bounding_box)} intervals, "
-                             f"but must have exactly {self._n_inputs}.")
-
-        if isinstance(bounding_box, dict):
-            self._validate_dict(bounding_box)
-        else:
-            self._validate_sequence(bounding_box, order)
-
-    def _validate(self, bounding_box, order: str = None):
-        """Validate and set any representation"""
-        if self._n_inputs == 1 and not isinstance(bounding_box, dict):
-            self[0] = bounding_box
-        else:
-            self._validate_iterable(bounding_box, order)
-
     @classmethod
     def validate(cls, model, bounding_box,
                  ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwargs):
@@ -856,8 +814,8 @@ class ModelBoundingBox(_BoundingDomain):
                 ignored = bounding_box.ignored
             bounding_box = bounding_box.intervals
 
-        new = cls({}, model, ignored=ignored, order=order)
-        new._validate(bounding_box)
+        new = cls(bounding_box, ignored=ignored, order=order)
+        new.verify(model)
 
         return new
 
