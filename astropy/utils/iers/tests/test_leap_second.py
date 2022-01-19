@@ -139,18 +139,20 @@ def test_fake_file(tmpdir):
     assert fake.expires == Time('2345-06-28', scale='tai')
 
 
-# For this set of tests, leap-seconds are allowed to be expired
-# except as explicitly tested.
-@pytest.mark.filterwarnings(iers.IERSStaleWarning)
 class TestAutoOpenExplicitLists:
+    # For this set of tests, leap-seconds are allowed to be expired
+    # except as explicitly tested.
+    @pytest.mark.filterwarnings(iers.IERSStaleWarning)
     def test_auto_open_simple(self):
         ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
 
+    @pytest.mark.filterwarnings(iers.IERSStaleWarning)
     def test_auto_open_erfa(self):
         ls = iers.LeapSeconds.auto_open(['erfa', iers.IERS_LEAP_SECOND_FILE])
         assert ls.meta['data_url'] in ['erfa', iers.IERS_LEAP_SECOND_FILE]
 
+    @pytest.mark.filterwarnings(iers.IERSStaleWarning)
     def test_fake_future_file(self, tmpdir):
         fake_file = make_fake_file('28 June 2345', tmpdir)
         # Try as system file for auto_open, setting auto_max_age such
@@ -184,10 +186,14 @@ class TestAutoOpenExplicitLists:
         assert ls2.expires == Time('2012-06-27', scale='tai')
 
         # Use the fake files to make sure auto_max_age is safe.
+        # Should have no warning in either example.
         with iers.conf.set_temp('auto_max_age', None):
             ls3 = iers.LeapSeconds.auto_open([fake_file1,
                                               iers.IERS_LEAP_SECOND_FILE])
-        assert ls3.meta['data_url'] == fake_file1
+        assert ls3.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
+        with iers.conf.set_temp('auto_max_age', None):
+            ls4 = iers.LeapSeconds.auto_open([fake_file1, fake_file2])
+        assert ls4.meta['data_url'] == fake_file2
 
 
 @pytest.mark.remote_data
