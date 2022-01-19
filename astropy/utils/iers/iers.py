@@ -983,8 +983,8 @@ class LeapSeconds(QTable):
         that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
         after the present.
         """
-        good_enough = cls._today() + TimeDelta(180-_none_to_float(conf.auto_max_age),
-                                               format='jd')
+        offset = 180 - (30 if conf.auto_max_age is None else conf.auto_max_age)
+        good_enough = cls._today() + TimeDelta(offset, format='jd')
 
         if files is None:
             # Basic files to go over (entries in _auto_open_files can be
@@ -1028,7 +1028,7 @@ class LeapSeconds(QTable):
             raise ValueError('none of the files could be read. The '
                              'following errors were raised:\n' + str(err_list))
 
-        if self.expires < self._today():
+        if self.expires < self._today() and conf.auto_max_age is not None:
             warn('leap-second file is expired.', IERSStaleWarning)
 
         return self
