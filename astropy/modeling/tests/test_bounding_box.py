@@ -1564,6 +1564,10 @@ class TestModelBoundingBox:
         assert bounding_box_1._ignored != bounding_box_2._ignored
         assert not (bounding_box_1 == bounding_box_2)
 
+        # Empty == (-np.inf, np.inf)
+        bounding_box = ModelBoundingBox((), model)
+        assert bounding_box == (-np.inf, np.inf)
+
     def test__setitem__(self):
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, {}, ignored=[0, 1])
@@ -2595,6 +2599,15 @@ class TestCompoundBoundingBox:
         selector_args = (('x', True),)
         ignored = ['x']
 
+        # No bounding_boxes
+        bounding_box = CompoundBoundingBox({})
+        assert bounding_box._model is None
+        assert bounding_box._selector_args is None
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == {}
+
         # bounding_boxes only:
         bounding_box = CompoundBoundingBox(bounding_boxes)
         assert bounding_box._model is None
@@ -2603,6 +2616,15 @@ class TestCompoundBoundingBox:
         assert bounding_box._order == 'C'
         assert bounding_box._ignored == []
         assert bounding_box._bounding_boxes == bounding_boxes
+
+        # model only:
+        bounding_box = CompoundBoundingBox({}, model)
+        assert bounding_box._model == model
+        assert bounding_box._selector_args is None
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == {}
 
         # bounding_boxes and model only:
         bounding_box = CompoundBoundingBox(bounding_boxes, model)
@@ -2686,6 +2708,126 @@ class TestCompoundBoundingBox:
         assert bounding_box._create_selector == create_selector
         assert bounding_box._order == 'F'
 
+    def test__verify_selector_args(self):
+        bounding_box = CompoundBoundingBox({}, Gaussian2D())
+        bounding_box._verify_selector_args()
+
+        bounding_box._selector_args = (('x', True),)
+        assert not isinstance(bounding_box._selector_args, _SelectorArguments)
+        bounding_box._verify_selector_args()
+        assert isinstance(bounding_box._selector_args, _SelectorArguments)
+        assert bounding_box._selector_args == (('x', True),)
+
+    def test__pop_bounding_boxes(self):
+        bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
+        bounding_box = CompoundBoundingBox(bounding_boxes)
+        assert bounding_box._bounding_boxes == bounding_boxes
+        assert bounding_box._pop_bounding_boxes() == bounding_boxes
+        assert bounding_boxes != {}
+        assert bounding_box._bounding_boxes == {}
+
+    def test__verify_bounding_boxes(self):
+        bounding_box = CompoundBoundingBox({}, Gaussian2D(), (('x', True),))
+        assert bounding_box._bounding_boxes == {}
+
+        # With selector args
+        bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
+        bounding_box._bounding_boxes = bounding_boxes
+        bounding_box._verify_bounding_boxes()
+        assert bounding_box._bounding_boxes == bounding_boxes
+        for selector, bbox in bounding_box._bounding_boxes.items():
+            assert not isinstance(bounding_boxes[selector], ModelBoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
+
+        # Without selector args
+        bounding_box._selector_args = None
+        bounding_box._bounding_boxes = bounding_boxes
+        bounding_box._verify_bounding_boxes()
+        assert bounding_box._bounding_boxes == bounding_boxes
+        for selector, bbox in bounding_box._bounding_boxes.items():
+            assert not isinstance(bounding_boxes[selector], ModelBoundingBox)
+            assert not isinstance(bbox, ModelBoundingBox)
+
+    def test_verify(self):
+        model = mk.MagicMock()
+        external_ignored = mk.MagicMock()
+
+        # No model, no _external_ignored
+        bounding_box = CompoundBoundingBox({})
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
+                                 autospec=True) as mkArgs:
+                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
+                                     autospec=True) as mkBbox:
+                    main = mk.MagicMock()
+                    main.attach_mock(mkVerify, 'verify')
+                    main.attach_mock(mkArgs, 'select')
+                    main.attach_mock(mkBbox, 'bbox')
+
+                    bounding_box.verify(model)
+                    assert main.mock_calls == [
+                        mk.call.verify(bounding_box, model, None)
+                    ]
+
+        # No model, with _external_ignored
+        bounding_box = CompoundBoundingBox({})
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
+                                 autospec=True) as mkArgs:
+                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
+                                     autospec=True) as mkBbox:
+                    main = mk.MagicMock()
+                    main.attach_mock(mkVerify, 'verify')
+                    main.attach_mock(mkArgs, 'select')
+                    main.attach_mock(mkBbox, 'bbox')
+
+                    bounding_box.verify(model, external_ignored)
+                    assert main.mock_calls == [
+                        mk.call.verify(bounding_box, model, external_ignored)
+                    ]
+
+        # With model, no _external_ignored
+        bounding_box = CompoundBoundingBox({}, model)
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
+                                 autospec=True) as mkArgs:
+                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
+                                     autospec=True) as mkBbox:
+                    main = mk.MagicMock()
+                    main.attach_mock(mkVerify, 'verify')
+                    main.attach_mock(mkArgs, 'select')
+                    main.attach_mock(mkBbox, 'bbox')
+
+                    bounding_box.verify(model)
+                    assert main.mock_calls == [
+                        mk.call.verify(bounding_box, model, None),
+                        mk.call.select(bounding_box),
+                        mk.call.bbox(bounding_box, None)
+                    ]
+
+        # # With model, with _external_ignored
+        bounding_box = CompoundBoundingBox({}, model)
+        with mk.patch.object(_BoundingDomain, 'verify',
+                             autospec=True) as mkVerify:
+            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
+                                 autospec=True) as mkArgs:
+                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
+                                     autospec=True) as mkBbox:
+                    main = mk.MagicMock()
+                    main.attach_mock(mkVerify, 'verify')
+                    main.attach_mock(mkArgs, 'select')
+                    main.attach_mock(mkBbox, 'bbox')
+
+                    bounding_box.verify(model, external_ignored)
+                    assert main.mock_calls == [
+                        mk.call.verify(bounding_box, model, external_ignored),
+                        mk.call.select(bounding_box),
+                        mk.call.bbox(bounding_box, external_ignored)
+                    ]
+
     def test_copy(self):
         bounding_box = CompoundBoundingBox.validate(Gaussian2D(), {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
                                                     ((0, True),), mk.MagicMock())
@@ -2754,8 +2896,10 @@ class TestCompoundBoundingBox:
 
     def test___repr__(self):
         model = Gaussian2D()
-        selector_args = ((0, True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
+
+        # No global ignore
+        selector_args = ((0, True),)
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
 
         assert bounding_box.__repr__() ==\
@@ -2781,6 +2925,34 @@ class TestCompoundBoundingBox:
             "        )\n" + \
             ")"
 
+        # Global ignore
+        selector_args = ((0, False),)
+        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, ignored=['x'])
+
+        assert bounding_box.__repr__() ==\
+            "CompoundBoundingBox(\n" + \
+            "    bounding_boxes={\n" + \
+            "        (1,) = ModelBoundingBox(\n" + \
+            "                intervals={\n" + \
+            "                    y: Interval(lower=-1, upper=1)\n" + \
+            "                }\n" + \
+            "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
+            "                order='C'\n" + \
+            "            )\n" + \
+            "        (2,) = ModelBoundingBox(\n" + \
+            "                intervals={\n" + \
+            "                    y: Interval(lower=-2, upper=2)\n" + \
+            "                }\n" + \
+            "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
+            "                order='C'\n" + \
+            "            )\n" + \
+            "    }\n" + \
+            "    ignored=['x']\n" +\
+            "    selector_args = SelectorArguments(\n" + \
+            "            Argument(name='x', ignore=False)\n" + \
+            "        )\n" + \
+            ")"
+
     def test_bounding_boxes(self):
         model = Gaussian2D()
         selector_args = ((0, True),)
@@ -2793,7 +2965,14 @@ class TestCompoundBoundingBox:
     def test_selector_args(self):
         model = Gaussian2D()
         selector_args = (('x', True),)
-        bounding_box = CompoundBoundingBox({}, model, selector_args)
+        bounding_box = CompoundBoundingBox({}, model)
+
+        # Get error
+        assert bounding_box._selector_args is None
+        with pytest.raises(RuntimeError, match="selector_args must be specified for a fully functional*"):
+            bounding_box.selector_args
+
+        bounding_box._selector_args = selector_args
 
         # Get
         assert bounding_box._selector_args == selector_args
@@ -2888,6 +3067,17 @@ class TestCompoundBoundingBox:
             bounding_box[(13,)] = (-13, 13)
         assert 13 not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
+
+        # _external_ignored
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z']
+        bounding_box = CompoundBoundingBox({}, model, ((1, True),), order='F')
+        assert len(bounding_box.bounding_boxes) == 0
+        bounding_box.__setitem__((12,), (-7, 4), _external_ignored=['z'])
+        assert (12,) in bounding_box
+        assert isinstance(bounding_box._bounding_boxes[(12,)], ModelBoundingBox)
+        assert bounding_box._bounding_boxes[(12,)] == (-7, 4)
+        assert bounding_box._bounding_boxes[(12,)].order == 'F'
 
     def test___eq__(self):
         bounding_box_1 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)}, Gaussian2D(), ((0, True),))
