@@ -2648,6 +2648,82 @@ class Test_SelectorArguments:
 
 class TestCompoundBoundingBox:
     def test_create(self):
+        bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y']
+        selector_args = (('x', True),)
+        ignored = ['x']
+
+        # bounding_boxes only:
+        bounding_box = CompoundBoundingBox(bounding_boxes)
+        assert bounding_box._model is None
+        assert bounding_box._selector_args is None
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == bounding_boxes
+
+        # bounding_boxes and model only:
+        bounding_box = CompoundBoundingBox(bounding_boxes, model)
+        assert bounding_box._model == model
+        assert bounding_box._selector_args is None
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == bounding_boxes
+
+        # bounding_boxes and selector_args only:
+        bounding_box = CompoundBoundingBox(bounding_boxes, selector_args=selector_args)
+        assert bounding_box._model is None
+        assert bounding_box._selector_args == selector_args
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == bounding_boxes
+
+        # bounding_boxes and ignored only:
+        bounding_box = CompoundBoundingBox(bounding_boxes, ignored=ignored)
+        assert bounding_box._model is None
+        assert bounding_box._selector_args is None
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == ignored
+        assert bounding_box._bounding_boxes == bounding_boxes
+
+        # bounding_box, model, and selector_args only:
+        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
+        assert bounding_box._model == model
+        assert bounding_box._selector_args == selector_args
+        assert not isinstance(selector_args, _SelectorArguments)
+        assert isinstance(bounding_box._selector_args, _SelectorArguments)
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == []
+        assert bounding_box._bounding_boxes == bounding_boxes
+        for selector, bbox in bounding_box._bounding_boxes.items():
+            assert not isinstance(bounding_boxes[selector], ModelBoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
+            assert bbox._intervals == {'y': bounding_boxes[selector]}
+            assert bbox._ignored == []
+
+        # bounding_box, model, selector_args, and ignored only:
+        model.inputs = ['x', 'y', 'z']
+        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, ignored=['z'])
+        assert bounding_box._model == model
+        assert bounding_box._selector_args == selector_args
+        assert not isinstance(selector_args, _SelectorArguments)
+        assert isinstance(bounding_box._selector_args, _SelectorArguments)
+        assert bounding_box._create_selector is None
+        assert bounding_box._order == 'C'
+        assert bounding_box._ignored == ['z']
+        assert bounding_box._bounding_boxes == bounding_boxes
+        for selector, bbox in bounding_box._bounding_boxes.items():
+            assert not isinstance(bounding_boxes[selector], ModelBoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
+            assert bbox._intervals == {'y': bounding_boxes[selector]}
+            assert bbox._ignored == []
+
+        # More practical example
         model = Gaussian2D()
         selector_args = (('x', True),)
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
@@ -2656,13 +2732,15 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, create_selector, order='F')
         assert (bounding_box._model.parameters == model.parameters).all()
         assert bounding_box._selector_args == selector_args
-        for _selector, bbox in bounding_boxes.items():
-            assert _selector in bounding_box._bounding_boxes
-            assert bounding_box._bounding_boxes[_selector] == bbox
-        for _selector, bbox in bounding_box._bounding_boxes.items():
-            assert _selector in bounding_boxes
-            assert bounding_boxes[_selector] == bbox
+        for selector, bbox in bounding_boxes.items():
+            assert selector in bounding_box._bounding_boxes
+            assert bounding_box._bounding_boxes[selector] == bbox
+        for selector, bbox in bounding_box._bounding_boxes.items():
+            assert selector in bounding_boxes
+            assert bounding_boxes[selector] == bbox
             assert isinstance(bbox, ModelBoundingBox)
+            assert bbox._intervals == {'y': bounding_boxes[selector]}
+            assert bbox._ignored == []
         assert bounding_box._bounding_boxes == bounding_boxes
         assert bounding_box._create_selector == create_selector
         assert bounding_box._order == 'F'
@@ -2780,7 +2858,13 @@ class TestCompoundBoundingBox:
         assert bounding_box._selector_args == selector_args
         assert bounding_box.selector_args == selector_args
 
-        # Set
+        # Set without override
+        bounding_box = CompoundBoundingBox({}, model)
+        bounding_box.selector_args = selector_args
+        assert bounding_box._selector_args == selector_args
+        assert bounding_box.selector_args == selector_args
+
+        # Set with override
         selector_args = (('y', False),)
         with pytest.warns(RuntimeWarning, match=r"Overriding selector_args.*"):
             bounding_box.selector_args = selector_args
@@ -2863,23 +2947,6 @@ class TestCompoundBoundingBox:
             bounding_box[(13,)] = (-13, 13)
         assert 13 not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
-
-    def test__validate(self):
-        model = Gaussian2D()
-        selector_args = ((0, True),)
-
-        # Tuple selector_args
-        bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
-        bounding_box = CompoundBoundingBox({}, model, selector_args)
-        bounding_box._validate(bounding_boxes)
-        for _selector, bbox in bounding_boxes.items():
-            assert _selector in bounding_box._bounding_boxes
-            assert bounding_box._bounding_boxes[_selector] == bbox
-        for _selector, bbox in bounding_box._bounding_boxes.items():
-            assert _selector in bounding_boxes
-            assert bounding_boxes[_selector] == bbox
-            assert isinstance(bbox, ModelBoundingBox)
-        assert bounding_box._bounding_boxes == bounding_boxes
 
     def test___eq__(self):
         bounding_box_1 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)}, Gaussian2D(), ((0, True),))

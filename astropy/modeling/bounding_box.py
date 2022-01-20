@@ -606,6 +606,7 @@ class ModelBoundingBox(_BoundingDomain):
                  ignored: List[str] = None, order: str = 'C'):
 
         # HACK, prevents a huge number of errors in legacy bounding box related tests.
+        #       should be comparing to () but there is a bug in __eq__.
         if isinstance(intervals, tuple) and len(intervals) == 0:
             intervals = {}
 
@@ -1384,18 +1385,39 @@ class CompoundBoundingBox(_BoundingDomain):
         The ordering that is assumed for the tuple representation of the
         bounding_boxes.
     """
-    def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
-                 selector_args: _SelectorArguments, create_selector: Callable = None,
+    def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model = None,
+                 selector_args: _SelectorArguments = None, create_selector: Callable = None,
                  ignored: List[str] = None, order: str = 'C'):
-        super().__init__(model, ignored, order)
 
         self._create_selector = create_selector
-        self._selector_args = _SelectorArguments.validate(model, selector_args)
 
+        self._selector_args = selector_args
+        self._bounding_boxes = bounding_boxes
+
+        super().__init__(model, ignored, order)
+
+    def _verify_selector_args(self):
+        if self._selector_args is not None:
+            self._selector_args = _SelectorArguments.validate(self.model, self._selector_args)
+
+    def _pop_bounding_boxes(self):
+        bounding_boxes = self._bounding_boxes
         self._bounding_boxes = {}
-        self._validate(bounding_boxes)
 
-        self._verify_ignored()
+        return bounding_boxes
+
+    def _verify_bounding_boxes(self):
+        if self._selector_args is not None:
+            bounding_boxes = self._pop_bounding_boxes()
+            for selector, bounding_box in bounding_boxes.items():
+                self[selector] = bounding_box
+
+    def verify(self, model, _external_ignored: List[str] = None):
+        super().verify(model, _external_ignored)
+
+        if self._has_model:
+            self._verify_selector_args()
+            self._verify_bounding_boxes()
 
     def copy(self):
         bounding_boxes = {selector: bbox.copy(self.ignored)
@@ -1439,14 +1461,17 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @property
     def selector_args(self) -> _SelectorArguments:
+        if self._selector_args is None:
+            raise RuntimeError("selector_args must be specified for a fully functional compound bounding box!")
+
         return self._selector_args
 
     @selector_args.setter
     def selector_args(self, value):
-        self._selector_args = _SelectorArguments.validate(self._model, value)
-
-        warnings.warn("Overriding selector_args may cause problems you should re-validate "
-                      "the compound bounding box before use!", RuntimeWarning)
+        if self._selector_args is not None:
+            warnings.warn("Overriding selector_args may cause problems you should re-validate "
+                          "the compound bounding box before use!", RuntimeWarning)
+        self._selector_args = _SelectorArguments.validate(self.model, value)
 
     @property
     def create_selector(self):
@@ -1460,29 +1485,25 @@ class CompoundBoundingBox(_BoundingDomain):
             return (key,)
 
     def __setitem__(self, key, value):
-        _selector = self._get_selector_key(key)
-        if not self.selector_args.is_selector(_selector):
-            raise ValueError(f"{_selector} is not a selector!")
+        selector = self._get_selector_key(key)
+        if not self.selector_args.is_selector(selector):
+            raise ValueError(f"{selector} is not a selector!")
 
-        self._bounding_boxes[_selector] = ModelBoundingBox.validate(self._model, value,
-                                                                    _external_ignored = self.ignored,
-                                                                    order=self._order)
-
-    def _validate(self, bounding_boxes: dict):
-        for _selector, bounding_box in bounding_boxes.items():
-            self[_selector] = bounding_box
+        self._bounding_boxes[selector] = ModelBoundingBox.validate(self.model, value,
+                                                                   _external_ignored = self.ignored,
+                                                                   order=self._order)
 
     def __eq__(self, value):
         if isinstance(value, CompoundBoundingBox):
             return (self.bounding_boxes == value.bounding_boxes) and \
-                (self.selector_args == value.selector_args) and \
+                (self._selector_args == value._selector_args) and \
                 (self.create_selector == value.create_selector)
         else:
             return False
 
     @classmethod
     def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwarg):
+                 ignored: list = None, order: str = 'C', **kwarg):
         """
         Construct a valid compound bounding box for a model.
 
@@ -1506,8 +1527,7 @@ class CompoundBoundingBox(_BoundingDomain):
             if create_selector is None:
                 create_selector = bounding_box.create_selector
             order = bounding_box.order
-            if _preserve_ignore:
-                ignored = bounding_box._ignored
+            ignored = bounding_box._ignored
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:
@@ -1525,18 +1545,18 @@ class CompoundBoundingBox(_BoundingDomain):
         return self[_selector]
 
     def __getitem__(self, key):
-        _selector = self._get_selector_key(key)
-        if _selector in self:
-            return self._bounding_boxes[_selector]
+        selector = self._get_selector_key(key)
+        if selector in self:
+            return self._bounding_boxes[selector]
         elif self._create_selector is not None:
-            return self._create_bounding_box(_selector)
+            return self._create_bounding_box(selector)
         else:
-            raise RuntimeError(f"No bounding box is defined for selector: {_selector}.")
+            raise RuntimeError(f"No bounding box is defined for selector: {selector}.")
 
     def _select_bounding_box(self, inputs) -> ModelBoundingBox:
-        _selector = self.selector_args.get_selector(self._model, *inputs)
+        selector = self.selector_args.get_selector(self._model, *inputs)
 
-        return self[_selector]
+        return self[selector]
 
     def prepare_inputs(self, input_shape, inputs, ignored: List[str] = None) -> Tuple[Any, Any, Any]:
         """
