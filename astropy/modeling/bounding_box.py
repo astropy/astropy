@@ -159,6 +159,7 @@ def get_name(model, key):
 
     return model.inputs[get_index(model, key)]
 
+
 class _BoundingDomain(abc.ABC):
     """
     Base class for ModelBoundingBox and CompoundBoundingBox.
@@ -759,7 +760,10 @@ class ModelBoundingBox(_BoundingDomain):
     def __eq__(self, value):
         """Note equality can be either with old representation or new one."""
         if isinstance(value, tuple):
-            return self.bounding_box() == value
+            if len(self._intervals) == 0:
+                return tuple(_ignored_interval) == value
+            else:
+                return self.bounding_box() == value
         elif isinstance(value, ModelBoundingBox):
             return (self.intervals == value.intervals) and (self.ignored == value.ignored)
         else:
@@ -840,10 +844,6 @@ class ModelBoundingBox(_BoundingDomain):
             if _compound_ignore:
                 new._ignored.remove(_input)
                 _external_ignored.append(_input)
-
-        print("NEW:")
-        print(new)
-        print(_external_ignored)
 
         return ModelBoundingBox.validate(model, new.intervals,
                                          order=new._order,
@@ -1150,15 +1150,8 @@ class _SelectorArguments(tuple):
         Gets the selector from a fix_inputs set of values.
     """
 
-    _kept_ignore = None
-
-    def __new__(cls, input_: Tuple[_SelectorArgument], kept_ignore: List[str] = None):
+    def __new__(cls, input_: Tuple[_SelectorArgument]):
         self = super().__new__(cls, input_)
-
-        if kept_ignore is None:
-            self._kept_ignore = []
-        else:
-            self._kept_ignore = kept_ignore
 
         return self
 
@@ -1185,22 +1178,8 @@ class _SelectorArguments(tuple):
         """Get the list of ignored inputs"""
         return [argument.name for argument in self if argument.ignore]
 
-    @property
-    def ignore(self) -> List[str]:
-        """Get the list of ignored inputs"""
-        ignore = self.ignored
-        ignore.extend(self._kept_ignore)
-
-        return ignore
-
-
-    @property
-    def kept_ignore(self):
-        """The arguments to persist in ignoring"""
-        return self._kept_ignore
-
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: List=None):
+    def validate(cls, model, arguments):
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1211,9 +1190,6 @@ class _SelectorArguments(tuple):
 
         arguments :
             The individual argument informations
-
-        kept_ignore :
-            Arguments to persist as ignored
         """
         inputs = []
         for argument in arguments:
@@ -1225,13 +1201,7 @@ class _SelectorArguments(tuple):
         if len(inputs) == 0:
             raise ValueError("There must be at least one selector argument.")
 
-        if isinstance(arguments, _SelectorArguments):
-            if kept_ignore is None:
-                kept_ignore = []
-
-            kept_ignore.extend(arguments.kept_ignore)
-
-        return cls(tuple(inputs), kept_ignore)
+        return cls(tuple(inputs))
 
     def get_selector(self, model, *inputs):
         """
@@ -1321,30 +1291,9 @@ class _SelectorArguments(tuple):
         """
 
         arguments = list(self)
-        kept_ignore = [arguments.pop(self.selector_index(model, argument)).name]
-        kept_ignore.extend(self._kept_ignore)
+        arguments.pop(self.selector_index(model, argument))
 
-        return _SelectorArguments.validate(model, tuple(arguments), kept_ignore)
-
-    def add_ignore(self, model, argument):
-        """
-        Add argument to the kept_ignore list
-
-        Parameters
-        ----------
-        model : `~astropy.modeling.Model`
-            The Model these selector arguments are for.
-
-        argument : int or str
-            A representation of which argument is being used
-        """
-
-        if self.is_argument(model, argument):
-            raise ValueError(f"{argument}: is a selector argument and cannot be ignored.")
-
-        kept_ignore = [get_name(model, argument)]
-
-        return _SelectorArguments.validate(model, self, kept_ignore)
+        return _SelectorArguments.validate(model, tuple(arguments))
 
     def index_tuple(self, model):
         """
@@ -1406,18 +1355,18 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return bounding_boxes
 
-    def _verify_bounding_boxes(self):
+    def _verify_bounding_boxes(self, _external_ignored: List[str] = None):
         if self._selector_args is not None:
             bounding_boxes = self._pop_bounding_boxes()
             for selector, bounding_box in bounding_boxes.items():
-                self[selector] = bounding_box
+                self.__setitem__(selector, bounding_box, _external_ignored)
 
     def verify(self, model, _external_ignored: List[str] = None):
         super().verify(model, _external_ignored)
 
         if self._has_model:
             self._verify_selector_args()
-            self._verify_bounding_boxes()
+            self._verify_bounding_boxes(_external_ignored)
 
     def copy(self):
         bounding_boxes = {selector: bbox.copy(self.ignored)
@@ -1484,13 +1433,17 @@ class CompoundBoundingBox(_BoundingDomain):
         else:
             return (key,)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, _external_ignored: List[str] = None):
+        if _external_ignored is None:
+            _external_ignored = []
+        _external_ignored.extend(self.ignored)
+
         selector = self._get_selector_key(key)
         if not self.selector_args.is_selector(selector):
             raise ValueError(f"{selector} is not a selector!")
 
         self._bounding_boxes[selector] = ModelBoundingBox.validate(self.model, value,
-                                                                   _external_ignored = self.ignored,
+                                                                   _external_ignored=_external_ignored,
                                                                    order=self._order)
 
     def __eq__(self, value):
@@ -1503,7 +1456,8 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 ignored: list = None, order: str = 'C', **kwarg):
+                 ignored: list = None, order: str = 'C',
+                 _external_ignored: List[str] = None, **kwarg):
         """
         Construct a valid compound bounding box for a model.
 
@@ -1533,8 +1487,11 @@ class CompoundBoundingBox(_BoundingDomain):
         if selector_args is None:
             raise ValueError("Selector arguments must be provided (can be passed as part of bounding_box argument)!")
 
-        return cls(bounding_box, model, selector_args,
-                   create_selector=create_selector, ignored=ignored, order=order)
+        new = cls(bounding_box, selector_args=selector_args,
+                  create_selector=create_selector, ignored=ignored, order=order)
+        new.verify(model, _external_ignored)
+
+        return new
 
     def __contains__(self, key):
         return key in self._bounding_boxes
@@ -1587,7 +1544,15 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return bounding_box.prepare_inputs(input_shape, inputs, ignored)
 
-    def _matching_bounding_boxes(self, argument, value) -> Dict[Any, ModelBoundingBox]:
+    def _matching_bounding_boxes(self, argument, value,
+                                 _external_ignored: List[str] = None) -> Dict[Any, ModelBoundingBox]:
+        """
+        Fix input for a matching bounding box
+        """
+        if _external_ignored is None:
+            _external_ignored = []
+        _external_ignored.extend(self.ignored)
+
         selector_index = self.selector_args.selector_index(self._model, argument)
         matching = {}
         for selector_key, bbox in self._bounding_boxes.items():
@@ -1597,10 +1562,10 @@ class CompoundBoundingBox(_BoundingDomain):
 
                 if bbox.has_interval(argument):
                     new_bbox = bbox.fix_inputs(self._model, {argument: value},
-                                               _keep_ignored=True,
-                                               _external_ignored=self.ignored)
+                                               _compound_ignore=True,
+                                               _external_ignored=_external_ignored)
                 else:
-                    new_bbox = bbox.copy(self.ignored)
+                    new_bbox = bbox.copy(_external_ignored)
 
                 matching[tuple(new_selector_key)] = new_bbox
 
@@ -1610,37 +1575,34 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return matching
 
-    def _fix_input_selector_arg(self, argument, value):
-        matching_bounding_boxes = self._matching_bounding_boxes(argument, value)
-
+    def _fix_input_selector_arg(self, argument, value,
+                                _external_ignored: List[str] = None):
+        matching_bounding_boxes = self._matching_bounding_boxes(argument, value, _external_ignored)
         if len(self.selector_args) == 1:
             return matching_bounding_boxes[()]
         else:
-            return CompoundBoundingBox(matching_bounding_boxes, self._model,
-                                       self.selector_args.reduce(self._model, argument))
+            return CompoundBoundingBox.validate(self.model, matching_bounding_boxes,
+                                                selector_args=self.selector_args.reduce(self.model, argument),
+                                                _external_ignored=[argument])
 
-    def _fix_input_bbox_arg(self, argument, value):
-        print("\n")
-        print("START: _fix_input_bbox_arg")
+    def _fix_input_bbox_arg(self, argument, value,
+                            _external_ignored: List[str] = None):
+        if _external_ignored is None:
+            _external_ignored = []
+        _external_ignored.extend(self.ignored)
+
         bounding_boxes = {}
         for selector_key, bbox in self._bounding_boxes.items():
-            ignored = self.ignored.copy()
-            print(f"{ignored=}")
-            print(bbox)
-            bounding_boxes[selector_key] = bbox.fix_inputs(self._model, {argument: value},
-                                                           _external_ignored=ignored,
+            bounding_boxes[selector_key] = bbox.fix_inputs(self.model, {argument: value},
+                                                           _external_ignored=_external_ignored.copy(),
                                                            _compound_ignore=True)
 
-        print("\n")
-        print(bounding_boxes)
-        print(self.selector_args._kept_ignore)
-        selector_args = self.selector_args.add_ignore(self._model, argument)
-        print(selector_args._kept_ignore)
+        return CompoundBoundingBox.validate(self.model, bounding_boxes,
+                                            selector_args=self.selector_args,
+                                            _external_ignored=[argument])
 
-        return CompoundBoundingBox(bounding_boxes, self._model,
-                                   selector_args)
-
-    def fix_inputs(self, model, fixed_inputs: dict):
+    def fix_inputs(self, model, fixed_inputs: dict,
+                   _external_ignored: List[str] = None):
         """
         Fix the bounding_box for a `fix_inputs` compound model.
 
@@ -1651,27 +1613,21 @@ class CompoundBoundingBox(_BoundingDomain):
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
         """
-        print("\n")
-        print(self.ignored)
-
         fixed_input_keys = list(fixed_inputs.keys())
         argument = fixed_input_keys.pop()
         value = fixed_inputs[argument]
 
         if self.selector_args.is_argument(self._model, argument):
-            print("selector arg")
-            bbox = self._fix_input_selector_arg(argument, value)
+            bbox = self._fix_input_selector_arg(argument, value, _external_ignored)
         else:
-            print("bbox arg")
-            bbox = self._fix_input_bbox_arg(argument, value)
-
-        print("NEXT")
+            bbox = self._fix_input_bbox_arg(argument, value, _external_ignored)
 
         if len(fixed_input_keys) > 0:
             new_fixed_inputs = fixed_inputs.copy()
             del new_fixed_inputs[argument]
 
-            bbox = bbox.fix_inputs(model, new_fixed_inputs)
+            bbox = bbox.fix_inputs(model, new_fixed_inputs,
+                                   _external_ignored=[argument])
 
         if isinstance(bbox, CompoundBoundingBox):
             selector_args = bbox.selector_args
@@ -1679,8 +1635,6 @@ class CompoundBoundingBox(_BoundingDomain):
         elif isinstance(bbox, ModelBoundingBox):
             selector_args = None
             bbox_dict = bbox.intervals
-
-        print(bbox)
 
         return bbox.__class__.validate(model, bbox_dict,
                                        order=bbox.order,

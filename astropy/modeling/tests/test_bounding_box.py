@@ -2401,13 +2401,6 @@ class Test_SelectorArguments:
         arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)))
         assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
-        assert arguments._kept_ignore == []
-
-        kept_ignore = mk.MagicMock()
-        arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)), kept_ignore)
-        assert isinstance(arguments, _SelectorArguments)
-        assert arguments == ((0, True), (1, False))
-        assert arguments._kept_ignore == kept_ignore
 
     def test___repr__(self):
         arguments = _SelectorArguments((_SelectorArgument('x', True), _SelectorArgument('y', False)))
@@ -2418,50 +2411,31 @@ class Test_SelectorArguments:
             "    Argument(name='y', ignore=False)\n" +\
             ")"
 
-    def test_ignore(self):
+    def test_ignored(self):
         assert _SelectorArguments((_SelectorArgument('x', True),
-                               _SelectorArgument('y', True))).ignore == ['x', 'y']
+                                  _SelectorArgument('y', True))).ignored == ['x', 'y']
         assert _SelectorArguments((_SelectorArgument('x', True),
-                               _SelectorArgument('y', True)), ['a', 'b']).ignore == ['x', 'y', 'a', 'b']
-        assert _SelectorArguments((_SelectorArgument('x', True),
-                               _SelectorArgument('y', False))).ignore == ['x']
+                                   _SelectorArgument('y', False))).ignored == ['x']
         assert _SelectorArguments((_SelectorArgument('x', False),
-                               _SelectorArgument('y', True))).ignore == ['y']
+                                   _SelectorArgument('y', True))).ignored == ['y']
         assert _SelectorArguments((_SelectorArgument('x', False),
-                               _SelectorArgument('y', False))).ignore == []
-        assert _SelectorArguments((_SelectorArgument('x', False),
-                               _SelectorArgument('y', False)), ['c', 'd']).ignore == ['c', 'd']
+                                   _SelectorArgument('y', False))).ignored == []
 
     def test_validate(self):
         # Integer key and passed ignore
         arguments = _SelectorArguments.validate(Gaussian2D(), ((0, True), (1, False)))
         assert isinstance(arguments, _SelectorArguments)
         assert arguments == (('x', True), ('y', False))
-        assert arguments.kept_ignore == []
 
         # Default ignore
         arguments = _SelectorArguments.validate(Gaussian2D(), ((0,), (1,)))
         assert isinstance(arguments, _SelectorArguments)
         assert arguments == (('x', True), ('y', True))
-        assert arguments.kept_ignore == []
 
         # String key and passed ignore
         arguments = _SelectorArguments.validate(Gaussian2D(), (('x', True), ('y', False)))
         assert isinstance(arguments, _SelectorArguments)
         assert arguments == (('x', True), ('y', False))
-        assert arguments.kept_ignore == []
-
-        # Test kept_ignore option
-        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments, ['a', 'b', 'c'])
-        assert isinstance(new_arguments, _SelectorArguments)
-        assert new_arguments == (('x', True), ('y', False))
-        assert new_arguments.kept_ignore == ['a', 'b', 'c']
-
-        arguments._kept_ignore = ['d', 'e', 'f']
-        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments)
-        assert isinstance(new_arguments, _SelectorArguments)
-        assert new_arguments == (('x', True), ('y', False))
-        assert new_arguments.kept_ignore == ['d', 'e', 'f']
 
         # Invalid, bad argument
         with pytest.raises(ValueError):
@@ -2582,31 +2556,6 @@ class Test_SelectorArguments:
         assert str(err.value) ==\
             "y does not correspond to any selector argument."
 
-    def test_add_ignore(self):
-        model = Gaussian2D()
-
-        arguments = _SelectorArguments.validate(model, ((0, True), ))
-        assert arguments == (('x', True),)
-        assert arguments._kept_ignore == []
-
-        new_arguments0 = arguments.add_ignore(model, 1)
-        assert new_arguments0 == arguments
-        assert new_arguments0._kept_ignore == ['y']
-        assert arguments._kept_ignore == []
-
-        assert arguments._kept_ignore == []
-        new_arguments1 = new_arguments0.add_ignore(model, 'y')
-        assert new_arguments1 == arguments == new_arguments0
-        assert new_arguments0._kept_ignore == ['y']
-        assert new_arguments1._kept_ignore == ['y', 'y']
-        assert arguments._kept_ignore == []
-
-        # Error
-        with pytest.raises(ValueError) as err:
-            arguments.add_ignore(model, 0)
-        assert str(err.value) ==\
-            "0: is a selector argument and cannot be ignored."
-
     def test_reduce(self):
         model = Gaussian2D()
 
@@ -2615,26 +2564,18 @@ class Test_SelectorArguments:
         new_arguments = arguments.reduce(model, 0)
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == (('y', False),)
-        assert new_arguments._kept_ignore == ['x']
-        assert arguments._kept_ignore == []
 
         new_arguments = arguments.reduce(model, 'x')
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == (('y', False),)
-        assert new_arguments._kept_ignore == ['x']
-        assert arguments._kept_ignore == []
 
         new_arguments = arguments.reduce(model, 1)
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == (('x', True),)
-        assert new_arguments._kept_ignore == ['y']
-        assert arguments._kept_ignore == []
 
         new_arguments = arguments.reduce(model, 'y')
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == (('x', True),)
-        assert new_arguments._kept_ignore == ['y']
-        assert arguments._kept_ignore == []
 
     def test_index_tuple(self):
         model = Gaussian2D()
@@ -3123,12 +3064,10 @@ class TestCompoundBoundingBox:
             bbox = matching[()]
             assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
-            assert 'x' in bbox
-            assert 'x' in bbox.ignored
             assert 'y' in bbox
             assert bbox['y'] == (-value, value)
             assert len(bbox.intervals) == 1
-            assert bbox.ignored == ['x']
+            assert bbox.ignored == []
 
         # Multiple selector index
         selector_args = ((0, False), (1, False))
@@ -3142,12 +3081,10 @@ class TestCompoundBoundingBox:
             bbox = matching[(4 - value,)]
             assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
-            assert 'x' in bbox
-            assert 'x' in bbox.ignored
             assert 'y' in bbox
             assert bbox['y'] == (-value, value)
             assert len(bbox.intervals) == 1
-            assert bbox.ignored == ['x']
+            assert bbox.ignored == []
 
             matching = bounding_box._matching_bounding_boxes('y', value)
             assert isinstance(matching, dict)
@@ -3155,12 +3092,10 @@ class TestCompoundBoundingBox:
             bbox = matching[(4 - value,)]
             assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
-            assert 'y' in bbox
-            assert 'y' in bbox.ignored
             assert 'x' in bbox
             assert bbox['x'] == (-(5 - value), (5 - value))
             assert len(bbox.intervals) == 1
-            assert bbox.ignored == ['y']
+            assert bbox.ignored == []
 
         # Real fix input of slicing input
         model = Shift(1) & Scale(2) & Identity(1)
@@ -3206,12 +3141,10 @@ class TestCompoundBoundingBox:
             bbox = bounding_box._fix_input_selector_arg('x', value)
             assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
-            assert 'x' in bbox
-            assert 'x' in bbox.ignored
             assert 'y' in bbox
             assert bbox['y'] == (-value, value)
             assert len(bbox.intervals) == 1
-            assert bbox.ignored == ['x']
+            assert bbox.ignored == []
 
         # Multiple selector index
         selector_args = ((0, False), (1, False))
@@ -3227,12 +3160,10 @@ class TestCompoundBoundingBox:
             bbox_selector = bbox[(4 - value,)]
             assert isinstance(bbox_selector, ModelBoundingBox)
             assert (bbox_selector._model.parameters == Gaussian2D().parameters).all()
-            assert 'x' in bbox_selector
-            assert 'x' in bbox_selector.ignored
             assert 'y' in bbox_selector
             assert bbox_selector['y'] == (-value, value)
             assert len(bbox_selector.intervals) == 1
-            assert bbox_selector.ignored == ['x']
+            assert bbox_selector.ignored == []
 
             bbox = bounding_box._fix_input_selector_arg('y', value)
             assert isinstance(bbox, CompoundBoundingBox)
@@ -3242,12 +3173,10 @@ class TestCompoundBoundingBox:
             bbox_selector = bbox[(4 - value,)]
             assert isinstance(bbox_selector, ModelBoundingBox)
             assert (bbox_selector._model.parameters == Gaussian2D().parameters).all()
-            assert 'y' in bbox_selector
-            assert 'y' in bbox_selector.ignored
             assert 'x' in bbox_selector
             assert bbox_selector['x'] == (-(5 - value), (5 - value))
             assert len(bbox_selector.intervals) == 1
-            assert bbox_selector.ignored == ['y']
+            assert bbox_selector.ignored == []
 
         # Real fix input of slicing input
         model = Shift(1) & Scale(2) & Identity(1)
@@ -3281,7 +3210,6 @@ class TestCompoundBoundingBox:
         assert isinstance(bbox, CompoundBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.selector_args == (('slit_id', True),)
-        assert bbox.selector_args._kept_ignore == ['x']
         assert bbox._bounding_boxes[(0,)] == (-0.5, 2047.5)
         assert bbox._bounding_boxes[(1,)] == (-0.5, 4047.5)
         assert len(bbox._bounding_boxes) == 2
@@ -3290,7 +3218,6 @@ class TestCompoundBoundingBox:
         assert isinstance(bbox, CompoundBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.selector_args == (('slit_id', True),)
-        assert bbox.selector_args._kept_ignore == ['y']
         assert bbox._bounding_boxes[(0,)] == (-0.5, 1047.5)
         assert bbox._bounding_boxes[(1,)] == (-0.5, 3047.5)
         assert len(bbox._bounding_boxes) == 2
@@ -3302,23 +3229,22 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
         model.bounding_box = bounding_box
 
-        # # Fix selector argument
-        # new_model = fix_inputs(model, {'slit_id': 0})
-        # bbox = new_model.bounding_box
-        # assert isinstance(bbox, ModelBoundingBox)
-        # assert (bbox._model.parameters == new_model.parameters).all()
-        # assert bbox.ignored_inputs == []
-        # assert bbox.intervals == {'x': (-0.5, 1047.5),
-        #                           'y': (-0.5, 2047.5)}
-        # assert bbox.order == 'F'
+        # Fix selector argument
+        new_model = fix_inputs(model, {'slit_id': 0})
+        bbox = new_model.bounding_box
+        assert isinstance(bbox, ModelBoundingBox)
+        assert (bbox._model.parameters == new_model.parameters).all()
+        assert bbox.ignored_inputs == []
+        assert bbox.intervals == {'x': (-0.5, 1047.5),
+                                  'y': (-0.5, 2047.5)}
+        assert bbox.order == 'F'
 
         # Fix a bounding_box field
         new_model = fix_inputs(model, {'x': 5})
         bbox = new_model.bounding_box
         assert isinstance(bbox, CompoundBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
-        assert bbox.selector_args == ((1, True),)
-        assert bbox.selector_args._kept_ignore == []
+        assert bbox.selector_args == (('slit_id', True),)
         assert bbox._bounding_boxes[(0,)] == (-0.5, 2047.5)
         assert bbox._bounding_boxes[(0,)].order == 'F'
         assert bbox._bounding_boxes[(1,)] == (-0.5, 4047.5)
@@ -3328,8 +3254,7 @@ class TestCompoundBoundingBox:
         bbox = new_model.bounding_box
         assert isinstance(bbox, CompoundBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
-        assert bbox.selector_args == ((1, True),)
-        assert bbox.selector_args._kept_ignore == []
+        assert bbox.selector_args == (('slit_id', True),)
         assert bbox._bounding_boxes[(0,)] == (-0.5, 1047.5)
         assert bbox._bounding_boxes[(0,)].order == 'F'
         assert bbox._bounding_boxes[(1,)] == (-0.5, 3047.5)
@@ -3356,8 +3281,7 @@ class TestCompoundBoundingBox:
         new_model = fix_inputs(model, {'x': 5, 'y': 7})
         bbox = new_model.bounding_box
         assert isinstance(bbox, CompoundBoundingBox)
-        assert bbox.selector_args == ((0, True),)
-        assert bbox.selector_args._kept_ignore == []
+        assert bbox.selector_args == (('slit_id', True),)
         assert bbox._bounding_boxes[(0,)] == (-np.inf, np.inf)
         assert bbox._bounding_boxes[(0,)].order == 'F'
         assert bbox._bounding_boxes[(1,)] == (-np.inf, np.inf)
