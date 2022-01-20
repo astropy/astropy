@@ -13,6 +13,8 @@ repository, as well as reusing much of the helper code used to organize
 for instructions on using the package template.
 
 
+.. _simple-release-docs:
+
 Releasing a Python package
 **************************
 
