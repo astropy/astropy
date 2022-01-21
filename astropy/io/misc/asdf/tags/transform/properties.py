@@ -40,6 +40,12 @@ class ModelBoundingBoxType(AstropyAsdfType):
 
         return ModelBoundingBox(intervals, ignored=ignored, order=order)
 
+    @classmethod
+    def assert_equal(cls, a, b):
+        assert a.intervals == b.intervals
+        assert a.ignored == b.ignored
+        assert a.order == b.order
+
 
 class CompoundBoundingBoxType(AstropyAsdfType):
     name = 'transform/property/compound_bounding_box'
@@ -90,3 +96,10 @@ class CompoundBoundingBoxType(AstropyAsdfType):
             order = 'C'
 
         return CompoundBoundingBox(bounding_boxes, selector_args=selector_args, ignored=ignored, order=order)
+
+    @classmethod
+    def assert_equal(cls, a, b):
+        assert a.bounding_boxes == b.bounding_boxes
+        assert a.selector_args == b.selector_args
+        assert a.ignored == b.ignored
+        assert a.order == b.order
