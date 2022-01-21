@@ -61,8 +61,8 @@ class CompoundBoundingBoxType(AstropyAsdfType):
             return {
                 'selector_args': [
                     {
-                        'argument': sa.name,
-                        'ignore': sa.ignore
+                        'argument': sa[0],
+                        'ignore': sa[1]
                     } for sa in cbbox.selector_args
                 ],
                 'cbbox': [
