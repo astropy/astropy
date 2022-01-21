@@ -981,7 +981,7 @@ class ModelBoundingBox(_BoundingDomain):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
-        ignored : List
+        ignored : list
             List of inputs to ignore by name
 
         Returns
@@ -1548,6 +1548,8 @@ class CompoundBoundingBox(_BoundingDomain):
             The shape that all inputs have be reshaped/broadcasted into
         inputs : list
             List of all the model inputs
+        ignored : list
+            List of inputs to ignore by name
 
         Returns
         -------
