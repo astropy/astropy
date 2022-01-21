@@ -96,10 +96,10 @@ jobs:
         fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v2
-      cache: 'pip'
-      cache-dependency-path: setup.cfg
       with:
         python-version: ${{ matrix.python }}
+        cache: 'pip'
+        cache-dependency-path: setup.cfg
     - name: Install language-pack-fr and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: |
@@ -137,10 +137,10 @@ jobs:
         fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v2
-      cache: 'pip'
-      cache-dependency-path: setup.cfg
       with:
         python-version: ${{ matrix.python }}
+        cache: 'pip'
+        cache-dependency-path: setup.cfg
     - name: Install language-pack-de and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: |
