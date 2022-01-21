@@ -409,7 +409,6 @@ or not. In this case, it makes sense for the selector argument to be ignored ::
                         x: Interval(lower=0, upper=1)
                         y: Interval(lower=1, upper=2)
                     }
-                    ignored=['slit_id']
                     model=CompoundModel(inputs=('x', 'y', 'slit_id'))
                     order='F'
                 )
@@ -418,7 +417,6 @@ or not. In this case, it makes sense for the selector argument to be ignored ::
                         x: Interval(lower=2, upper=3)
                         y: Interval(lower=3, upper=4)
                     }
-                    ignored=['slit_id']
                     model=CompoundModel(inputs=('x', 'y', 'slit_id'))
                     order='F'
                 )
@@ -453,7 +451,6 @@ dictionary of bounding boxes need to be specified as tuples of values ::
                         x: Interval(lower=0, upper=1)
                         y: Interval(lower=1, upper=2)
                     }
-                    ignored=['slit_x', 'slit_y']
                     model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
                     order='F'
                 )
@@ -462,7 +459,6 @@ dictionary of bounding boxes need to be specified as tuples of values ::
                         x: Interval(lower=2, upper=3)
                         y: Interval(lower=3, upper=4)
                     }
-                    ignored=['slit_x', 'slit_y']
                     model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
                     order='F'
                 )
@@ -471,7 +467,6 @@ dictionary of bounding boxes need to be specified as tuples of values ::
                         x: Interval(lower=4, upper=5)
                         y: Interval(lower=5, upper=6)
                     }
-                    ignored=['slit_x', 'slit_y']
                     model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
                     order='F'
                 )
@@ -480,7 +475,6 @@ dictionary of bounding boxes need to be specified as tuples of values ::
                         x: Interval(lower=6, upper=7)
                         y: Interval(lower=7, upper=8)
                     }
-                    ignored=['slit_x', 'slit_y']
                     model=CompoundModel(inputs=('x', 'y', 'slit_x', 'slit_y'))
                     order='F'
                 )
@@ -607,7 +601,6 @@ contained within a compound bounding box. ::
                     intervals={
                         x: Interval(lower=0, upper=1)
                     }
-                    ignored=['y']
                     model=Polynomial2D(inputs=('x', 'y'))
                     order='F'
                 )
@@ -615,11 +608,11 @@ contained within a compound bounding box. ::
                     intervals={
                         x: Interval(lower=1, upper=2)
                     }
-                    ignored=['y']
                     model=Polynomial2D(inputs=('x', 'y'))
                     order='F'
                 )
         }
+        ignored=['y']
         selector_args = SelectorArguments(
                 Argument(name='x', ignore=False)
             )

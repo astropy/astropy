@@ -3050,6 +3050,16 @@ class TestCompoundBoundingBox:
         assert bounding_box._create_selector == create_selector
         assert bounding_box._order == 'C'
 
+        # ignored
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z']
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args,
+                                                    ignored=['z'])
+        assert bounding_box._ignored == ['z']
+        model.inputs = ['x', 'y', 'z', 'a']
+        bounding_box = CompoundBoundingBox.validate(model, bounding_box, ignored=['a'])
+        assert bounding_box._ignored == ['a', 'z']
+
     def test___contains__(self):
         model = Gaussian2D()
         selector_args = ((0, True),)

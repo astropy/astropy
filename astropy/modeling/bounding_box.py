@@ -828,7 +828,12 @@ class ModelBoundingBox(_BoundingDomain):
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
-            ignored = bounding_box.ignored
+
+            if ignored is None:
+                ignored = bounding_box.ignored
+            else:
+                ignored.extend(bounding_box.ignored)
+
             bounding_box = bounding_box.intervals
 
         new = cls(bounding_box, ignored=ignored, order=order)
@@ -1496,7 +1501,10 @@ class CompoundBoundingBox(_BoundingDomain):
             if create_selector is None:
                 create_selector = bounding_box.create_selector
             order = bounding_box.order
-            ignored = bounding_box._ignored
+            if ignored is None:
+                ignored = bounding_box._ignored
+            else:
+                ignored.extend(bounding_box._ignored)
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:

@@ -1077,6 +1077,14 @@ def test_bind_compound_bounding_box_using_with_bounding_box_select():
     # Override implicit selector
     assert np.isnan(model(1, with_bounding_box=0))
 
+    # Replicate example from docs
+    model = models.Polynomial2D(3)
+    bboxes = {0: {'x': (0, 1)}, 1: {'x': (1, 2)}}
+    selector_args = [('x', False)]
+    bind_compound_bounding_box(model, bboxes, selector_args, ignored=['y'], order='F')
+    assert model(0.5, 300, with_bounding_box=0) == 0
+    assert np.isnan(model(0.5, 300, with_bounding_box=1))
+
 
 def test_fix_inputs_compound_bounding_box():
     base_model = models.Gaussian2D(1, 2, 3, 4, 5)

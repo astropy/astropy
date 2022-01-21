@@ -959,7 +959,7 @@ class Model(metaclass=_ModelMeta):
                 pass
 
             if isinstance(bbox, CompoundBoundingBox) and not isinstance(with_bbox, bool):
-                bbox = bbox[with_bbox]
+                bbox = ModelBoundingBox.validate(self, bbox[with_bbox], ignored=bbox.ignored)
 
         return bbox
 
