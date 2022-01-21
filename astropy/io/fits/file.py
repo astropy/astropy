@@ -332,7 +332,10 @@ class _File:
         finally:
             # Make sure we leave the file in the position we found it; on
             # some platforms (e.g. Windows) mmaping a file handle can also
-            # reset its file pointer
+            # reset its file pointer.
+            # Also for Windows when using mmap seek() may return weird
+            # negative values, which is fixed by calling tell() before.
+            self._file.tell()
             self._file.seek(filepos)
 
     def writable(self):
