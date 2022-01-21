@@ -125,14 +125,17 @@ test_models_with_constraints = [astmodels.Legendre2D(x_degree=1, y_degree=1,
 test_models.extend(test_models_with_constraints)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
 def test_model_bounding_box(tmpdir):
-    bbox = ModelBoundingBox((0, 1), astmodels.Polynomial1D(1))
-
     tree = {
-        'bbox': bbox
+        'bbox_1D': ModelBoundingBox((0, 1), astmodels.Polynomial1D(1)),
+        'bbox_2D_C': ModelBoundingBox(((0, 1), (2, 3)), astmodels.Polynomial2D(1)),
+        'bbox_2D_F': ModelBoundingBox(((0, 1), (2, 3)), astmodels.Polynomial2D(1), order='F'),
+        'bbox_ignore0': ModelBoundingBox((0, 1), astmodels.Polynomial2D(1), ignored=['x']),
+        'bbox_ignore1': ModelBoundingBox((0, 1), astmodels.Polynomial2D(1), ignored=['y']),
     }
 
-    helpers.assert_roundtrip_tree(tree, bbox)
+    helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_transforms_compound(tmpdir):
