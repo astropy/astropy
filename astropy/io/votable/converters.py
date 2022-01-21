@@ -1373,8 +1373,8 @@ def numpy_to_votable_dtype(dtype, shape):
     Returns
     -------
     attributes : dict
-       A dict containing 'datatype' and 'arraysize' keys that can be
-       set on a VOTable FIELD element.
+        A dict containing 'datatype' and 'arraysize' keys that can be
+        set on a VOTable FIELD element.
     """
     if dtype.num not in numpy_dtype_to_field_mapping:
         raise TypeError(
@@ -1427,8 +1427,8 @@ def table_column_to_votable_datatype(column):
     Returns
     -------
     attributes : dict
-       A dict containing 'datatype' and 'arraysize' keys that can be
-       set on a VOTable FIELD element.
+        A dict containing 'datatype' and 'arraysize' keys that can be
+        set on a VOTable FIELD element.
     """
     votable_string_dtype = None
     if column.info.meta is not None:

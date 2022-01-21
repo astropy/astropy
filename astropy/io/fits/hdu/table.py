@@ -116,7 +116,6 @@ class _TableLikeHDU(_ValidHDU):
 
         Notes
         -----
-
         Any additional keyword arguments accepted by the HDU class's
         ``__init__`` may also be passed in as keyword arguments.
         """

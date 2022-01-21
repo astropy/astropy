@@ -597,7 +597,6 @@ class Card(_Verify):
 
         Examples
         --------
-
         ::
 
             self._check_if_rvkc('DP1', 'AXIS.1: 2')

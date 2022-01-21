@@ -2503,7 +2503,7 @@ def _parse_tdisp_format(tdisp):
 
     Parameters
     ----------
-    tdisp: str
+    tdisp : str
         TDISPn FITS Header keyword.  Used to specify display formatting.
 
     Returns
@@ -2560,7 +2560,7 @@ def _fortran_to_python_format(tdisp):
 
     Parameters
     ----------
-    tdisp: str
+    tdisp : str
         TDISPn FITS Header keyword.  Used to specify display formatting.
 
     Returns
@@ -2585,9 +2585,9 @@ def python_to_tdisp(format_string, logical_dtype=False):
 
     Parameters
     ----------
-    format_string: str
+    format_string : str
         TDISPn FITS Header keyword.  Used to specify display formatting.
-    logical_dtype: bool
+    logical_dtype : bool
         True is this format type should be a logical type, 'L'. Needs special
         handling.
 

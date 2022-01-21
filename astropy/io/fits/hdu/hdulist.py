@@ -432,8 +432,7 @@ class HDUList(list, _Verify):
             It should be noted that if that memory is read-only (such as a
             Python string) the returned :class:`HDUList`'s data portions will
             also be read-only.
-
-        kwargs : dict
+        **kwargs : dict
             Optional keyword arguments.  See
             :func:`astropy.io.fits.open` for details.
 
@@ -695,35 +694,34 @@ class HDUList(list, _Verify):
         Parameters
         ----------
         key : int, str, tuple of (string, int) or BaseHDU
-           The key identifying the HDU.  If ``key`` is a tuple, it is of the
-           form ``(name, ver)`` where ``ver`` is an ``EXTVER`` value that must
-           match the HDU being searched for.
+            The key identifying the HDU.  If ``key`` is a tuple, it is of the
+            form ``(name, ver)`` where ``ver`` is an ``EXTVER`` value that must
+            match the HDU being searched for.
 
-           If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
-           the first match is returned.  For a more precise match use the
-           ``(name, ver)`` pair.
+            If the key is ambiguous (e.g. there are multiple 'SCI' extensions)
+            the first match is returned.  For a more precise match use the
+            ``(name, ver)`` pair.
 
-           If even the ``(name, ver)`` pair is ambiguous (it shouldn't be
-           but it's not impossible) the numeric index must be used to index
-           the duplicate HDU.
+            If even the ``(name, ver)`` pair is ambiguous (it shouldn't be
+            but it's not impossible) the numeric index must be used to index
+            the duplicate HDU.
 
-           When ``key`` is an HDU object, this function returns the
-           index of that HDU object in the ``HDUList``.
+            When ``key`` is an HDU object, this function returns the
+            index of that HDU object in the ``HDUList``.
 
         Returns
         -------
         index : int
-           The index of the HDU in the `HDUList`.
+            The index of the HDU in the `HDUList`.
 
         Raises
         ------
         ValueError
-           If ``key`` is an HDU object and it is not found in the ``HDUList``.
-
+            If ``key`` is an HDU object and it is not found in the ``HDUList``.
         KeyError
-           If an HDU specified by the ``key`` that is an extension number,
-           extension name, or a tuple of extension name and version is not
-           found in the ``HDUList``.
+            If an HDU specified by the ``key`` that is an extension number,
+            extension name, or a tuple of extension name and version is not
+            found in the ``HDUList``.
 
         """
 
