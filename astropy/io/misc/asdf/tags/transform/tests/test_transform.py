@@ -18,6 +18,7 @@ import asdf
 import astropy.units as u
 from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
+from astropy.modeling.bounding_box import ModelBoundingBox
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -122,6 +123,16 @@ test_models_with_constraints = [astmodels.Legendre2D(x_degree=1, y_degree=1,
                                 fixed={'c1_0': True, 'c0_1': True},
                                 bounds={'c0_0': (-10, 10)})]
 test_models.extend(test_models_with_constraints)
+
+
+def test_model_bounding_box(tmpdir):
+    bbox = ModelBoundingBox((0, 1), astmodels.Polynomial1D(1))
+
+    tree = {
+        'bbox': bbox
+    }
+
+    helpers.assert_roundtrip_tree(tree, bbox)
 
 
 def test_transforms_compound(tmpdir):
