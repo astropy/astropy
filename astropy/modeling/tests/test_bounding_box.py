@@ -3150,14 +3150,14 @@ class TestCompoundBoundingBox:
                 [mk.call(bounding_box[(2,)], input_shape, [2, 2, 3], ['x'])]
             mkPrepare.reset_mock()
 
-    def test__matching_bounding_boxes(self):
+    def test__fix_inputs_matching_bounding_boxes(self):
         # Single selector index
         selector_args = ((0, False),)
         bounding_boxes = {(1,): ((-1, 1), (-2, 2)), (2,): ((-2, 2), (-3, 3)), (3,): ((-3, 3), (-4, 4))}
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
-            matching = bounding_box._matching_bounding_boxes('x', value)
+            matching = bounding_box._fix_inputs_matching_bounding_boxes('x', value)
             assert isinstance(matching, dict)
             assert () in matching
             bbox = matching[()]
@@ -3174,7 +3174,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
-            matching = bounding_box._matching_bounding_boxes('x', value)
+            matching = bounding_box._fix_inputs_matching_bounding_boxes('x', value)
             assert isinstance(matching, dict)
             assert (4 - value,) in matching
             bbox = matching[(4 - value,)]
@@ -3185,7 +3185,7 @@ class TestCompoundBoundingBox:
             assert len(bbox.intervals) == 1
             assert bbox.ignored == []
 
-            matching = bounding_box._matching_bounding_boxes('y', value)
+            matching = bounding_box._fix_inputs_matching_bounding_boxes('y', value)
             assert isinstance(matching, dict)
             assert (4 - value,) in matching
             bbox = matching[(4 - value,)]
@@ -3202,7 +3202,7 @@ class TestCompoundBoundingBox:
         bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
         bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
 
-        matching = bounding_box._matching_bounding_boxes('slit_id', 0)
+        matching = bounding_box._fix_inputs_matching_bounding_boxes('slit_id', 0)
         assert isinstance(matching, dict)
         assert () in matching
         bbox = matching[()]
@@ -3213,7 +3213,7 @@ class TestCompoundBoundingBox:
                                   'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
 
-        matching = bounding_box._matching_bounding_boxes('slit_id', 1)
+        matching = bounding_box._fix_inputs_matching_bounding_boxes('slit_id', 1)
         assert isinstance(matching, dict)
         assert () in matching
         bbox = matching[()]
@@ -3226,7 +3226,7 @@ class TestCompoundBoundingBox:
 
         # Errors
         with pytest.raises(ValueError) as err:
-            bounding_box._matching_bounding_boxes('slit_id', 2)
+            bounding_box._fix_inputs_matching_bounding_boxes('slit_id', 2)
         assert str(err.value) ==\
             "Attempting to fix input slit_id, but there are no bounding boxes for argument value 2."
 

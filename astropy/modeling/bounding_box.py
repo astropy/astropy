@@ -257,6 +257,14 @@ class _BoundingDomain(abc.ABC):
     def verify(self, model, _external_ignored: List[str] = None):
         """
         Fully integrate the domain with the model and verify its functionality.
+
+        Parameters
+        ----------
+        model :
+            The astropy model to integrate functionality with
+        _external_ignored : list
+            Convenience for passing externally ignored model inputs.
+            For compound bounding_box and fix_inputs support.
         """
 
         self._model = model
@@ -274,6 +282,9 @@ class _BoundingDomain(abc.ABC):
     def _verify(self, _external_ignored: List[str] = None):
         """
         Subclass verification method
+
+        _external_ignored : list
+            Convenience for passing externally ignored model inputs.
         """
 
         pass # pragma: no cover
@@ -1548,10 +1559,13 @@ class CompoundBoundingBox(_BoundingDomain):
 
         return bounding_box.prepare_inputs(input_shape, inputs, ignored)
 
-    def _matching_bounding_boxes(self, argument, value,
-                                 _external_ignored: List[str] = None) -> Dict[Any, ModelBoundingBox]:
+    def _fix_inputs_matching_bounding_boxes(self, argument, value,
+                                            _external_ignored: List[str] = None) -> Dict[Any, ModelBoundingBox]:
         """
-        Fix input for a matching bounding box
+        Fix inputs for single input when fixed-input is a selector arg.
+            - Returns bounding_boxes for a compound bounding box, if
+              all selector arguments are removed, will be dict with a
+              single entry, with key ().
         """
         if _external_ignored is None:
             _external_ignored = []
@@ -1581,7 +1595,13 @@ class CompoundBoundingBox(_BoundingDomain):
 
     def _fix_input_selector_arg(self, argument, value,
                                 _external_ignored: List[str] = None):
-        matching_bounding_boxes = self._matching_bounding_boxes(argument, value, _external_ignored)
+        """
+        Fix inputs for single input when fixed-input is a selector arg.
+            - Drops from compound bounding box to a normal bounding box
+              if the selector arguments become redundant.
+        """
+
+        matching_bounding_boxes = self._fix_inputs_matching_bounding_boxes(argument, value, _external_ignored)
         if len(self.selector_args) == 1:
             return matching_bounding_boxes[()]
         else:
@@ -1591,6 +1611,9 @@ class CompoundBoundingBox(_BoundingDomain):
 
     def _fix_input_bbox_arg(self, argument, value,
                             _external_ignored: List[str] = None):
+        """
+        Fix inputs for single input when fixed-input is not part of the selector_args.
+        """
         if _external_ignored is None:
             _external_ignored = []
         _external_ignored.extend(self.ignored)
