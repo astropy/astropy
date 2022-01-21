@@ -148,15 +148,13 @@ class DaophotHeader(core.BaseHeader):
         header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-
-
         Parameters
         ----------
         lines : list
             List of table lines
 
         Returns
-        ----------
+        -------
         col : list
             List of table Columns
         """

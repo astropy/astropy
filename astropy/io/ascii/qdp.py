@@ -156,7 +156,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
     ncols : int
         Number of data columns
 
-    Other parameters
+    Other Parameters
     ----------------
     names : list of str
         Name of data columns (defaults to ['col1', 'col2', ...]), _not_
@@ -242,7 +242,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
     qdp_file : str
         Input QDP file name
 
-    Other parameters
+    Other Parameters
     ----------------
     input_colnames : list of str
         Name of data columns (defaults to ['col1', 'col2', ...]), _not_
@@ -392,7 +392,7 @@ def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
     qdp_file : str
         Input QDP file name
 
-    Other parameters
+    Other Parameters
     ----------------
     names : list of str
         Name of data columns (defaults to ['col1', 'col2', ...]), _not_
@@ -430,7 +430,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
     filename : str
         Output QDP file name
 
-    Other parameters
+    Other Parameters
     ----------------
     err_specs : dict
         Dictionary of the format {'serr': [1], 'terr': [2, 3]}, specifying

@@ -338,7 +338,7 @@ def dump(data, stream=None, **kwargs):
 
     Parameters
     ----------
-    data: object
+    data : object
         Object to serialize to YAML
     stream : file-like, optional
         YAML output (if not supplied a string is returned)

@@ -108,7 +108,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
     -------
     votable : `~astropy.io.votable.tree.VOTableFile` object
 
-    See also
+    See Also
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """

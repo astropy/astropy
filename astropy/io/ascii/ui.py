@@ -572,7 +572,7 @@ def _get_guess_kwargs_list(read_kwargs):
     Parameters
     ----------
     read_kwargs : dict
-       User-supplied read keyword args
+        User-supplied read keyword args
 
     Returns
     -------
@@ -870,7 +870,7 @@ def get_read_trace():
     Returns
     -------
     trace : list of dict
-       Ordered list of format guesses and status
+        Ordered list of format guesses and status
     """
 
     return copy.deepcopy(_read_trace)

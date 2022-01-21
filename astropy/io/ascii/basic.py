@@ -327,7 +327,6 @@ class RdbHeader(TabHeader):
         Line 1: RDB col definitions
         Line 2+: RDB data rows
 
-
         Parameters
         ----------
         lines : list
