@@ -293,10 +293,10 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
         # check_meta=
         newclone = cosmo.clone(name=cosmo.name, meta=dict(info="new"))
-        assert not cosmo.is_equal(newclone)
-        assert cosmo.is_equal(newclone, check_meta=False)
-        assert not newclone.is_equal(cosmo)
-        assert newclone.is_equal(cosmo, check_meta=False)
+        assert cosmo.is_equal(newclone)
+        assert not cosmo.is_equal(newclone, check_meta=True)
+        assert newclone.is_equal(cosmo)
+        assert not newclone.is_equal(cosmo, check_meta=True)
 
         # format=
         # This is tested in each to/from_format mixin

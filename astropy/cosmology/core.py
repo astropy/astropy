@@ -14,6 +14,7 @@ from astropy.utils.metadata import MetaData
 
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 from .parameter import Parameter
+from .utils import _recursive_dict_eq
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -308,7 +309,7 @@ class Cosmology(metaclass=abc.ABCMeta):
                              for k in self.__all_parameters__))
         return params_eq
 
-    def is_equal(self, other, *, check_meta=True, format=False):
+    def is_equal(self, other, *, check_meta=False, format=False):
         r"""Check equality between Cosmologies.
 
         Parameters
@@ -349,16 +350,21 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck13 != Planck18
             True
 
-        ``is_equal`` also checks that the metadata (`astropy.Cosmology.meta`)
-        are equal. To not check the metadata, set the keyword argument
-        ``check_meta`` to `False`.
+        This is the same as the default behavior of ``is_equal``:
 
-            >>> cosmo = Planck18.clone(name="Planck18", meta=dict(info="new"))
-            >>> Planck18.is_equal(cosmo)
+            >>> Planck18.is_equal(Planck18)
+            True
+
+            >>> Planck18.is_equal(Planck13)
             False
 
-            >>> Planck18.is_equal(cosmo, check_meta=False)
-            True
+        ``is_equal`` can also check that the metadata
+        (:attr:`astropy.Cosmology.meta`) are equal, with the keyword argument
+        ``check_meta``.
+
+            >>> cosmo = Planck18.clone(name="Planck18", meta=dict(info="new"))
+            >>> Planck18.is_equal(cosmo, check_meta=True)
+            False
 
         When the cosmologies have different names or parameter values they
         are never equal.
@@ -398,14 +404,11 @@ class Cosmology(metaclass=abc.ABCMeta):
         if eq is NotImplemented and hasattr(other, "__eq__"):
             eq = other.__eq__(self)  # that failed, try from 'other'
 
-        is_eq = eq if eq is not NotImplemented else False  # Ensure boolean
-
         # Metadata
-        if check_meta and is_eq:  # Only check if required.
-            is_eq &= (dict(self.meta) == dict(other.meta)) if hasattr(other, "meta") else False
-            # using dict() to not care about ordering.
+        if check_meta and eq is True:  # Only check if required.
+            eq &= _recursive_dict_eq(self.meta, other.meta) if hasattr(other, "meta") else False
 
-        return is_eq
+        return eq if eq is not NotImplemented else False  # Ensure boolean
 
     def __eq__(self, other):
         """Check equality between Cosmologies.
