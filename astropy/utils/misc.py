@@ -38,9 +38,9 @@ __doctest_skip__ = ['OrderedDescriptor', 'OrderedDescriptorContainer']
 NOT_OVERWRITING_MSG = ('File {} already exists. If you mean to replace it '
                        'then use the argument "overwrite=True".')
 # A useful regex for tests.
-_NOT_OVERWRITING_MSG_MATCH = ('File .* already exists\. If you mean to '
-                              'replace it then use the argument '
-                              '"overwrite=True"\.')
+_NOT_OVERWRITING_MSG_MATCH = (r'File .* already exists\. If you mean to '
+                              r'replace it then use the argument '
+                              r'"overwrite=True"\.')
 
 
 def isiterable(obj):
