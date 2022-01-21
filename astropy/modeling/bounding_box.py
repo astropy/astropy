@@ -254,22 +254,29 @@ class _BoundingDomain(abc.ABC):
     def ignored_inputs(self) -> List[int]:
         return [self._get_index(name) for name in self._ignored]
 
-    def _verify_ignored(self, _external_ignored: List[str] = None):
-        if self._has_model:
-            self._ignored = [self._get_name(key) for key in self._ignored]
-
     def verify(self, model, _external_ignored: List[str] = None):
         """
         Fully integrate the domain with the model and verify its functionality.
         """
-        self._model = model
 
-        self._verify_ignored(_external_ignored)
+        self._model = model
+        if self._has_model:
+            self._ignored = [self._get_name(key) for key in self._ignored]
+
+        self._verify(_external_ignored)
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
             "This bounding box is fixed by the model and does not have "
             "adjustable parameters.")
+
+    @abc.abstractclassmethod
+    def _verify(self, _external_ignored: List[str] = None):
+        """
+        Subclass verification method
+        """
+
+        pass # pragma: no cover
 
     @abc.abstractmethod
     def fix_inputs(self, model, fixed_inputs: dict):
@@ -284,7 +291,7 @@ class _BoundingDomain(abc.ABC):
             Dictionary of inputs which have been fixed by this bounding box.
         """
 
-        raise NotImplementedError("This should be implemented by a child class.")
+        pass # pragma: no cover
 
     @abc.abstractmethod
     def prepare_inputs(self, input_shape, inputs, ignored: List[str] = []) -> Tuple[Any, Any, Any]:
@@ -310,7 +317,8 @@ class _BoundingDomain(abc.ABC):
         all_out: bool
             if all of the inputs are outside the bounding_box
         """
-        raise NotImplementedError("This has not been implemented for BoundingDomain.")
+
+        pass # pragma: no cover
 
     @staticmethod
     def _base_output(input_shape, fill_value):
@@ -675,9 +683,7 @@ class ModelBoundingBox(_BoundingDomain):
         if ignored != self._ignored or any(name in self._intervals for name in ignored):
             raise ValueError("At least one interval is being ignored")
 
-    def verify(self, model, _external_ignored: List[str] = None):
-        super().verify(model, _external_ignored)
-
+    def _verify(self, _external_ignored: List[str] = None):
         if self._has_model:
             self._verify_intervals(_external_ignored)
 
@@ -1361,9 +1367,7 @@ class CompoundBoundingBox(_BoundingDomain):
             for selector, bounding_box in bounding_boxes.items():
                 self.__setitem__(selector, bounding_box, _external_ignored)
 
-    def verify(self, model, _external_ignored: List[str] = None):
-        super().verify(model, _external_ignored)
-
+    def _verify(self, _external_ignored: List[str] = None):
         if self._has_model:
             self._verify_selector_args()
             self._verify_bounding_boxes(_external_ignored)

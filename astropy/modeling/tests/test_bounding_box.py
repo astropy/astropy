@@ -204,11 +204,14 @@ class Test_Interval:
 class Test_BoundingDomain:
     def setup(self):
         class BoundingDomain(_BoundingDomain):
+            def _verify(self, _external_ignored = None):
+                pass
+
             def fix_inputs(self, model, fix_inputs):
-                super().fix_inputs(model, fixed_inputs=fix_inputs)
+                pass
 
             def prepare_inputs(self, input_shape, inputs, ignored=[]):
-                super().prepare_inputs(input_shape, inputs, ignored)
+                pass
 
         self.BoundingDomain = BoundingDomain
 
@@ -481,96 +484,111 @@ class Test_BoundingDomain:
                 assert index < 4
                 assert index not in ignored_inputs
 
-    def test__verify_ignored(self):
-        # Pass
-        bounding_box = self.BoundingDomain()
-        bounding_box._ignored == []
-        bounding_box._verify_ignored()
-        bounding_box._ignored == []
-        bounding_box._model = Gaussian2D()
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == []
-
-        # Tess pass dummy argument
-        bounding_box = self.BoundingDomain()
-        bounding_box._ignored == []
-        bounding_box._verify_ignored(mk.MagicMock())
-        bounding_box._ignored == []
-        bounding_box._model = Gaussian2D()
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == []
-
-        bounding_box = self.BoundingDomain(ignored=['x', 'y'])
-        assert bounding_box._ignored == ['x', 'y']
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == ['x', 'y']
-        bounding_box._model = Gaussian2D()
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == ['x', 'y']
-
-        bounding_box = self.BoundingDomain(ignored=[0, 1])
-        assert bounding_box._ignored == [0, 1]
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == [0, 1]
-        bounding_box._model = Gaussian2D()
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == ['x', 'y']
-
-        bounding_box = self.BoundingDomain(ignored=[np.int32(0), np.int64(1)])
-        assert bounding_box._ignored == [np.int32(0), np.int64(1)]
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == [np.int32(0), np.int64(1)]
-        bounding_box._model = Gaussian2D()
-        bounding_box._verify_ignored()
-        assert bounding_box._ignored == ['x', 'y']
-
-        # Fail
-        bounding_box = self.BoundingDomain(ignored=[mk.MagicMock()])
-        bounding_box._model = Gaussian2D()
-        with pytest.raises(ValueError):
-            bounding_box._verify_ignored()
-
-        bounding_box = self.BoundingDomain(ignored=['z'])
-        bounding_box._model = Gaussian2D()
-        with pytest.raises(ValueError):
-            bounding_box._verify_ignored()
-
-        bounding_box = self.BoundingDomain(ignored=[3])
-        bounding_box._model = Gaussian2D()
-        with pytest.raises(IndexError):
-            bounding_box._verify_ignored()
-
-        bounding_box = self.BoundingDomain(ignored=[np.int32(3)])
-        bounding_box._model = Gaussian2D()
-        with pytest.raises(IndexError):
-            bounding_box._verify_ignored()
-
-        bounding_box = self.BoundingDomain(ignored=[np.int64(3)])
-        bounding_box._model = Gaussian2D()
-        with pytest.raises(IndexError):
-            bounding_box._verify_ignored()
-
     def test_verify(self):
         model = mk.MagicMock()
+        model.inputs = ['x', 'y']
         external_ignored = mk.MagicMock()
 
+        # Pass, No ignored, default args
         bounding_box = self.BoundingDomain()
         assert bounding_box._model is None
-
-        with mk.patch.object(self.BoundingDomain, '_verify_ignored',
+        assert bounding_box._ignored == []
+        with mk.patch.object(self.BoundingDomain, '_verify',
                              autospec=True) as mkVerify:
-            # No _external_ignored
+            bounding_box.verify(None)
+            assert bounding_box._model is None
+            assert bounding_box._ignored == []
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+            mkVerify.reset_mock()
             bounding_box.verify(model)
             assert bounding_box._model == model
+            assert bounding_box._ignored == []
             assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
 
+        # Pass, No ignored, non-default args
+        bounding_box = self.BoundingDomain()
+        assert bounding_box._model is None
+        assert bounding_box._ignored == []
+        with mk.patch.object(self.BoundingDomain, '_verify',
+                             autospec=True) as mkVerify:
+            bounding_box.verify(None, external_ignored)
+            assert bounding_box._model is None
+            assert bounding_box._ignored == []
+            assert mkVerify.call_args_list == [mk.call(bounding_box, external_ignored)]
             mkVerify.reset_mock()
-            bounding_box._model = None
-
-            # with _external_ignored
             bounding_box.verify(model, external_ignored)
             assert bounding_box._model == model
+            assert bounding_box._ignored == []
             assert mkVerify.call_args_list == [mk.call(bounding_box, external_ignored)]
+
+        # Pass, str ignored, default args
+        bounding_box = self.BoundingDomain(ignored=['x', 'y'])
+        assert bounding_box._model is None
+        assert bounding_box._ignored == ['x', 'y']
+        with mk.patch.object(self.BoundingDomain, '_verify',
+                             autospec=True) as mkVerify:
+            bounding_box.verify(None)
+            assert bounding_box._model is None
+            assert bounding_box._ignored == ['x', 'y']
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+            mkVerify.reset_mock()
+            bounding_box.verify(model)
+            assert bounding_box._model == model
+            assert bounding_box._ignored == ['x', 'y']
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+
+        # Pass, integer ignored, default args
+        bounding_box = self.BoundingDomain(ignored=[0, 1])
+        assert bounding_box._model is None
+        assert bounding_box._ignored == [0, 1]
+        with mk.patch.object(self.BoundingDomain, '_verify',
+                             autospec=True) as mkVerify:
+            bounding_box.verify(None)
+            assert bounding_box._model is None
+            assert bounding_box._ignored == [0, 1]
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+            mkVerify.reset_mock()
+            bounding_box.verify(model)
+            assert bounding_box._model == model
+            assert bounding_box._ignored == ['x', 'y']
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+
+        # Pass, numpy integer ignored, default args
+        bounding_box = self.BoundingDomain(ignored=[np.int32(0), np.int64(1)])
+        assert bounding_box._model is None
+        assert bounding_box._ignored == [np.int32(0), np.int64(1)]
+        with mk.patch.object(self.BoundingDomain, '_verify',
+                             autospec=True) as mkVerify:
+            bounding_box.verify(None)
+            assert bounding_box._model is None
+            assert bounding_box._ignored == [np.int32(0), np.int64(1)]
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+            mkVerify.reset_mock()
+            bounding_box.verify(model)
+            assert bounding_box._model == model
+            assert bounding_box._ignored == ['x', 'y']
+            assert mkVerify.call_args_list == [mk.call(bounding_box, None)]
+
+        # Fail, arbitrary value
+        bounding_box = self.BoundingDomain(ignored=[mk.MagicMock()])
+        with pytest.raises(ValueError):
+            bounding_box.verify(model)
+
+        # Fail, non input str
+        bounding_box = self.BoundingDomain(ignored=['z'])
+        with pytest.raises(ValueError):
+            bounding_box.verify(model)
+
+        # Fail, non input integer index
+        bounding_box = self.BoundingDomain(ignored=[3])
+        with pytest.raises(IndexError):
+            bounding_box.verify(model)
+        bounding_box = self.BoundingDomain(ignored=[np.int32(3)])
+        with pytest.raises(IndexError):
+            bounding_box.verify(model)
+        bounding_box = self.BoundingDomain(ignored=[np.int64(3)])
+        with pytest.raises(IndexError):
+            bounding_box.verify(model)
 
     def test___call__(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -588,24 +606,13 @@ class Test_BoundingDomain:
         bounding_box = self.BoundingDomain(mk.MagicMock())
         model = mk.MagicMock()
         fixed_inputs = mk.MagicMock()
-
-        with pytest.raises(NotImplementedError) as err:
-            bounding_box.fix_inputs(model, fixed_inputs)
-        assert str(err.value) ==\
-            "This should be implemented by a child class."
+        bounding_box.fix_inputs(model, fixed_inputs)
 
     def test_prepare_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
-        with pytest.raises(NotImplementedError) as err:
-            bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == \
-            "This has not been implemented for BoundingDomain."
-
-        with pytest.raises(NotImplementedError) as err:
-            bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == \
-            "This has not been implemented for BoundingDomain."
+        bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
+        bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
 
     def test__base_ouput(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -1267,71 +1274,32 @@ class TestModelBoundingBox:
         with pytest.raises(ValueError, match="At least one interval is being ignored"):
             bounding_box._verify_intervals()
 
-    def test_verify(self):
-        model = mk.MagicMock()
+    def test__verify(self):
         external_ignored = mk.MagicMock()
 
-        # No model, no _external_ignored
-        bounding_box = ModelBoundingBox({})
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
-                                 autospec=True) as mkIntervals:
-                main = mk.MagicMock()
-                main.attach_mock(mkVerify, 'verify')
-                main.attach_mock(mkIntervals, 'intervals')
+        bounding_box_0 = ModelBoundingBox({})
+        bounding_box_1 = ModelBoundingBox({}, mk.MagicMock())
+        with mk.patch.object(ModelBoundingBox, '_verify_intervals',
+                             autospec=True) as mkIntervals:
+            # No model, no _external_ignored
+            bounding_box_0._verify()
+            assert mkIntervals.call_args_list == []
 
-                bounding_box.verify(model)
-                assert main.mock_calls == [
-                    mk.call.verify(bounding_box, model, None)
-                ]
+            # No model, with _external_ignored
+            bounding_box_0._verify(external_ignored)
+            assert mkIntervals.call_args_list == []
 
-        # No model, with _external_ignored
-        bounding_box = ModelBoundingBox({})
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
-                                 autospec=True) as mkIntervals:
-                main = mk.MagicMock()
-                main.attach_mock(mkVerify, 'verify')
-                main.attach_mock(mkIntervals, 'intervals')
+            # With model, no _external_ignored
+            bounding_box_1._verify()
+            assert mkIntervals.call_args_list == \
+                [mk.call(bounding_box_1, None)]
 
-                bounding_box.verify(model, external_ignored)
-                assert main.mock_calls == [
-                    mk.call.verify(bounding_box, model, external_ignored),
-                ]
+            mkIntervals.reset_mock()
 
-        # With model, no _external_ignored
-        bounding_box = ModelBoundingBox({}, mk.MagicMock())
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
-                                 autospec=True) as mkIntervals:
-                main = mk.MagicMock()
-                main.attach_mock(mkVerify, 'verify')
-                main.attach_mock(mkIntervals, 'intervals')
-
-                bounding_box.verify(model)
-                assert main.mock_calls == [
-                    mk.call.verify(bounding_box, model, None),
-                    mk.call.intervals(bounding_box, None)
-                ]
-
-        # With model, with _external_ignored
-        bounding_box = ModelBoundingBox({}, mk.MagicMock())
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(ModelBoundingBox, '_verify_intervals',
-                                 autospec=True) as mkIntervals:
-                main = mk.MagicMock()
-                main.attach_mock(mkVerify, 'verify')
-                main.attach_mock(mkIntervals, 'intervals')
-
-                bounding_box.verify(model, external_ignored)
-                assert main.mock_calls == [
-                    mk.call.verify(bounding_box, model, external_ignored),
-                    mk.call.intervals(bounding_box, external_ignored)
-                ]
+            # With model, with _external_ignored
+            bounding_box_1._verify(external_ignored)
+            assert mkIntervals.call_args_list == \
+                [mk.call(bounding_box_1, external_ignored)]
 
     def test_copy(self):
         bounding_box = ModelBoundingBox.validate(Gaussian2D(), ((-4.5, 4.5), (-1.4, 1.4)))
@@ -1818,7 +1786,6 @@ class TestModelBoundingBox:
     def test_fix_inputs(self):
         bounding_box = ModelBoundingBox.validate(Gaussian2D(), ((-4, 4), (-1, 1)))
 
-        # keep_ignored = False (default)
         new_bounding_box = bounding_box.fix_inputs(Gaussian1D(), {1: mk.MagicMock()})
         assert not (bounding_box == new_bounding_box)
 
@@ -1828,19 +1795,6 @@ class TestModelBoundingBox:
         assert 'y' not in new_bounding_box
         assert len(new_bounding_box.intervals) == 1
         assert new_bounding_box.ignored == []
-
-        # # keep_ignored = True
-        # new_bounding_box = bounding_box.fix_inputs(Gaussian2D(), {1: mk.MagicMock()},
-        #                                            _keep_ignored=True)
-        # assert not (bounding_box == new_bounding_box)
-
-        # assert (new_bounding_box._model.parameters == Gaussian2D().parameters).all()
-        # assert 'x' in new_bounding_box
-        # assert new_bounding_box['x'] == (-1, 1)
-        # assert 'y' in new_bounding_box
-        # assert 'y' in new_bounding_box.ignored
-        # assert len(new_bounding_box.intervals) == 1
-        # assert new_bounding_box.ignored == ['y']
 
     def test_dimension(self):
         intervals = {0: _Interval(-1, 1)}
@@ -2748,85 +2702,40 @@ class TestCompoundBoundingBox:
             assert not isinstance(bounding_boxes[selector], ModelBoundingBox)
             assert not isinstance(bbox, ModelBoundingBox)
 
-    def test_verify(self):
-        model = mk.MagicMock()
+    def test__verify(self):
         external_ignored = mk.MagicMock()
 
-        # No model, no _external_ignored
-        bounding_box = CompoundBoundingBox({})
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
-                                 autospec=True) as mkArgs:
-                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
-                                     autospec=True) as mkBbox:
-                    main = mk.MagicMock()
-                    main.attach_mock(mkVerify, 'verify')
-                    main.attach_mock(mkArgs, 'select')
-                    main.attach_mock(mkBbox, 'bbox')
+        bounding_box_0 = CompoundBoundingBox({})
+        bounding_box_1 = CompoundBoundingBox({}, mk.MagicMock())
+        with mk.patch.object(CompoundBoundingBox, '_verify_selector_args') as mkArgs:
+            with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes') as mkBbox:
+                main = mk.MagicMock()
+                main.attach_mock(mkArgs, 'select')
+                main.attach_mock(mkBbox, 'bbox')
 
-                    bounding_box.verify(model)
-                    assert main.mock_calls == [
-                        mk.call.verify(bounding_box, model, None)
-                    ]
+                # No model, no _external_ignored
+                bounding_box_0._verify()
+                assert main.mock_calls == []
 
-        # No model, with _external_ignored
-        bounding_box = CompoundBoundingBox({})
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
-                                 autospec=True) as mkArgs:
-                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
-                                     autospec=True) as mkBbox:
-                    main = mk.MagicMock()
-                    main.attach_mock(mkVerify, 'verify')
-                    main.attach_mock(mkArgs, 'select')
-                    main.attach_mock(mkBbox, 'bbox')
+                # No model, with _external_ignored
+                bounding_box_0._verify(external_ignored)
+                assert main.mock_calls == []
 
-                    bounding_box.verify(model, external_ignored)
-                    assert main.mock_calls == [
-                        mk.call.verify(bounding_box, model, external_ignored)
-                    ]
+                # With model, no _external_ignored
+                bounding_box_1._verify()
+                assert main.mock_calls == [
+                    mk.call.select(),
+                    mk.call.bbox(None)
+                ]
 
-        # With model, no _external_ignored
-        bounding_box = CompoundBoundingBox({}, model)
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
-                                 autospec=True) as mkArgs:
-                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
-                                     autospec=True) as mkBbox:
-                    main = mk.MagicMock()
-                    main.attach_mock(mkVerify, 'verify')
-                    main.attach_mock(mkArgs, 'select')
-                    main.attach_mock(mkBbox, 'bbox')
+                main.reset_mock()
 
-                    bounding_box.verify(model)
-                    assert main.mock_calls == [
-                        mk.call.verify(bounding_box, model, None),
-                        mk.call.select(bounding_box),
-                        mk.call.bbox(bounding_box, None)
-                    ]
-
-        # # With model, with _external_ignored
-        bounding_box = CompoundBoundingBox({}, model)
-        with mk.patch.object(_BoundingDomain, 'verify',
-                             autospec=True) as mkVerify:
-            with mk.patch.object(CompoundBoundingBox, '_verify_selector_args',
-                                 autospec=True) as mkArgs:
-                with mk.patch.object(CompoundBoundingBox, '_verify_bounding_boxes',
-                                     autospec=True) as mkBbox:
-                    main = mk.MagicMock()
-                    main.attach_mock(mkVerify, 'verify')
-                    main.attach_mock(mkArgs, 'select')
-                    main.attach_mock(mkBbox, 'bbox')
-
-                    bounding_box.verify(model, external_ignored)
-                    assert main.mock_calls == [
-                        mk.call.verify(bounding_box, model, external_ignored),
-                        mk.call.select(bounding_box),
-                        mk.call.bbox(bounding_box, external_ignored)
-                    ]
+                # With model, with _external_ignored
+                bounding_box_1._verify(external_ignored)
+                assert main.mock_calls == [
+                    mk.call.select(),
+                    mk.call.bbox(external_ignored)
+                ]
 
     def test_copy(self):
         bounding_box = CompoundBoundingBox.validate(Gaussian2D(), {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
