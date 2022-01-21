@@ -1,0 +1,5 @@
+Add method ``is_equal`` to ``Cosmology`` to check for equality between two
+Cosmologies. The method accepts two keyword arguments: ``check_meta`` (default
+`True`) to check the metadata, in addition to the name and parameters; and
+``format`` to try to convert any object to a Cosmology before checking
+equality. This works much the same as ``Cosmology.is_equivalent``.

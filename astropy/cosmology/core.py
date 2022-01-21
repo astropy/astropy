@@ -331,20 +331,23 @@ class Cosmology(metaclass=abc.ABCMeta):
         bool
             `True` if cosmologies are equal, `False` otherwise.
 
+        See Also
+        --------
+        astropy.cosmology.Cosmology.is_equivalent
+            Cosmologies may be equivalent, even if not the same class or name
+            or metadata.
+
         Examples
         --------
-        Two cosmologies must be the same class, with the same name and
-        parameters to be equal.
+        For a simple check that the two objects are |Cosmology|, with the same
+        names and parameter values, use the standard python equality operator.
 
-            >>> from astropy.cosmology import Planck18, Planck13
-            >>> Planck18.is_equal(Planck18)
+            >>> from astropy.cosmology import Planck13, Planck18
+            >>> Planck18 == Planck18
             True
 
-        While in this example, the cosmologies are not equivalent.
-
-            >>> from astropy.cosmology import Planck13
-            >>> Planck18.is_equal(Planck13)
-            False
+            >>> Planck13 != Planck18
+            True
 
         ``is_equal`` also checks that the metadata (`astropy.Cosmology.meta`)
         are equal. To not check the metadata, set the keyword argument
@@ -357,7 +360,13 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck18.is_equal(cosmo, check_meta=False)
             True
 
-        Also, using the keyword argument ``format``, the notion of equality is
+        When the cosmologies have different names or parameter values they
+        are never equal.
+
+            >>> Planck18.is_equal(Planck13)
+            False
+
+        Using the keyword argument ``format``, the notion of equality is
         extended to any Python object that can be converted to a |Cosmology|.
 
             >>> tbl = Planck18.to_format("astropy.table")
