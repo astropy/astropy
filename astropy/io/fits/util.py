@@ -375,14 +375,6 @@ def isfile(f):
     return False
 
 
-def fileobj_open(filename, mode):
-    """
-    A wrapper around the `open()` builtin.
-    """
-
-    return open(filename, mode)
-
-
 def fileobj_name(f):
     """
     Returns the 'name' of file-like object *f*, if it has anything that could be
