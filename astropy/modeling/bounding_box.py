@@ -1408,8 +1408,8 @@ class CompoundBoundingBox(_BoundingDomain):
                 parts.append(f"            {part}")
         parts.append('    }')
 
-        if len(self._ignored) > 0:
-            parts.append(f"    ignored={self._ignored}")
+        if len(self.global_ignored) > 0:
+            parts.append(f"    ignored={self.global_ignored}")
 
         # selector_args
         selector_args_repr = self.selector_args.__repr__().split('\n')
@@ -1423,6 +1423,10 @@ class CompoundBoundingBox(_BoundingDomain):
     @property
     def ignored(self) -> List[str]:
         return super().ignored + self.selector_args.ignored
+
+    @property
+    def global_ignored(self) -> List[str]:
+        return super().ignored
 
     @property
     def bounding_boxes(self) -> Dict[Any, ModelBoundingBox]:
@@ -1470,7 +1474,8 @@ class CompoundBoundingBox(_BoundingDomain):
         if isinstance(value, CompoundBoundingBox):
             return (self.bounding_boxes == value.bounding_boxes) and \
                 (self._selector_args == value._selector_args) and \
-                (self.create_selector == value.create_selector)
+                (self.create_selector == value.create_selector) and \
+                (self.global_ignored == value.global_ignored)
         else:
             return False
 
@@ -1502,9 +1507,9 @@ class CompoundBoundingBox(_BoundingDomain):
                 create_selector = bounding_box.create_selector
             order = bounding_box.order
             if ignored is None:
-                ignored = bounding_box._ignored
+                ignored = bounding_box.global_ignored
             else:
-                ignored.extend(bounding_box._ignored)
+                ignored.extend(bounding_box.global_ignored)
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:

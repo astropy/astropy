@@ -2862,6 +2862,36 @@ class TestCompoundBoundingBox:
             "        )\n" + \
             ")"
 
+    def test_ignored(self):
+        ignored = ['x', 'y', 'z']
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z', 'a']
+
+        # No selector_args ignore
+        bounding_box = CompoundBoundingBox({}, model, selector_args= [('a', False)], ignored=ignored)
+        assert bounding_box._ignored == ignored
+        assert bounding_box.ignored == ignored
+
+        # selector_args ignore
+        bounding_box = CompoundBoundingBox({}, model, selector_args= [('a', True)], ignored=ignored)
+        assert bounding_box._ignored == ignored
+        assert bounding_box.ignored == ['x', 'y', 'z', 'a']
+
+    def test_global_ignored(self):
+        ignored = ['x', 'y', 'z']
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z', 'a']
+
+        # No selector_args ignore
+        bounding_box = CompoundBoundingBox({}, model, selector_args= [('a', False)], ignored=ignored)
+        assert bounding_box._ignored == ignored
+        assert bounding_box.global_ignored == ignored
+
+        # selector_args ignore
+        bounding_box = CompoundBoundingBox({}, model, selector_args= [('a', True)], ignored=ignored)
+        assert bounding_box._ignored == ignored
+        assert bounding_box.global_ignored == ignored
+
     def test_bounding_boxes(self):
         model = Gaussian2D()
         selector_args = ((0, True),)
