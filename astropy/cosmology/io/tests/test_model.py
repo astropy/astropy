@@ -151,6 +151,8 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         """
         pass  # there's no partial information with a Model
 
+    # ---------------------------------------------------------------
+
     @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
     def test_is_equivalent_to_model(self, cosmo, method_name, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
@@ -167,6 +169,30 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
 
         is_equiv = cosmo.is_equivalent(obj, format=format)
         assert is_equiv is (True if format is not False else False)
+
+    @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
+    def test_is_equal_to_model(self, cosmo, method_name, to_format, format):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+
+        This test checks that Cosmology equality can be extended to any
+        Python object that can be converted to a Cosmology -- in this case
+        a model. Models attach a lot more metadata when converted back to a
+        Cosmology, so this can only be equal if the metadata is ignored.
+        """
+        if method_name is None:  # no test if no method
+            return
+
+        # Convert and check
+        obj = to_format("astropy.model", method=method_name)
+        assert not isinstance(obj, Cosmology)
+
+        # Never equal because extra metadata
+        is_equal = cosmo.is_equal(obj, format=format)
+        assert is_equal is False
+
+        # Can be equal if the metadata is ignored.
+        is_equal = cosmo.is_equal(obj, format=format, check_meta=False)
+        assert is_equal is (True if format is not False else False)
 
 
 class TestToFromModel(ToFromDirectTestBase, ToFromModelTestMixin):

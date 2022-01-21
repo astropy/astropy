@@ -141,6 +141,31 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         """
         assert cosmo.is_equivalent(to_format("yaml"), format="yaml") is True
 
+    # ---------------------------------------------------------------
+
+    @pytest.mark.parametrize("format", [True, False, None])
+    def test_is_equal_to_yaml(self, cosmo, to_format, format,
+                              xfail_if_not_registered_with_yaml):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+
+        This test checks that Cosmology equality can be extended to any
+        Python object that can be converted to a Cosmology -- in this case
+        a YAML string. YAML can't be identified without "format" specified.
+        """
+        obj = to_format("yaml")
+        assert not isinstance(obj, Cosmology)
+
+        is_equal = cosmo.is_equal(obj, format=format)
+        assert is_equal is False
+
+    def test_is_equal_to_yaml_specify_format(self, cosmo, to_format,
+                                                  xfail_if_not_registered_with_yaml):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+
+        Same as ``test_is_equal_to_yaml`` but with ``format="yaml"``.
+        """
+        assert cosmo.is_equal(to_format("yaml"), format="yaml") is True
+
 
 class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
     """

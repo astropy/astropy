@@ -231,7 +231,7 @@ def test_z_at_value_roundtrip(cosmo):
     # nu_relative_density is not redshift-dependent in the WMAP cosmologies
     skip = ('Ok', 'Otot',
             'angular_diameter_distance_z1z2',
-            'clone', 'is_equivalent',
+            'clone', 'is_equivalent', 'is_equal',
             'de_density_scale', 'w')
     if str(cosmo.name).startswith('WMAP'):
         skip += ('nu_relative_density', )

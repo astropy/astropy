@@ -272,6 +272,9 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # different class and not convertible to Cosmology.
         assert not cosmo.is_equivalent(2)
 
+        # format=
+        # This is tested in each to/from_format mixin
+
     def test_equality(self, cosmo):
         """Test method ``.__eq__()."""
         # wrong class
@@ -282,6 +285,21 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         newcosmo = cosmo.clone(name="test_equality")
         assert (cosmo != newcosmo) and (newcosmo != cosmo)
         assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
+
+    def test_is_equal(self, cosmo):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equal`."""
+        # to self
+        assert cosmo.is_equal(cosmo)
+
+        # check_meta=
+        newclone = cosmo.clone(name=cosmo.name, meta=dict(info="new"))
+        assert not cosmo.is_equal(newclone)
+        assert cosmo.is_equal(newclone, check_meta=False)
+        assert not newclone.is_equal(cosmo)
+        assert newclone.is_equal(cosmo, check_meta=False)
+
+        # format=
+        # This is tested in each to/from_format mixin
 
     # ---------------------------------------------------------------
 

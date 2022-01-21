@@ -203,6 +203,8 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         with pytest.raises(ValueError, match="more than one"):
             from_format(tbls, index=cosmo.name, format="astropy.table")
 
+    # ---------------------------------------------------------------
+
     @pytest.mark.parametrize("format", [True, False, None, "astropy.table"])
     def test_is_equivalent_to_table(self, cosmo, to_format, format):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
@@ -216,6 +218,21 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
 
         is_equiv = cosmo.is_equivalent(obj, format=format)
         assert is_equiv is (True if format is not False else False)
+
+    @pytest.mark.filterwarnings("ignore:elementwise == comparison")
+    @pytest.mark.parametrize("format", [True, False, None, "astropy.table"])
+    def test_is_equal_to_table(self, cosmo, to_format, format):
+        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+
+        This test checks that Cosmology equality can be extended to any
+        Python object that can be converted to a Cosmology -- in this case
+        a |Table|.
+        """
+        obj = to_format("astropy.table")
+        assert not isinstance(obj, Cosmology)
+
+        is_equal = cosmo.is_equal(obj, format=format)
+        assert is_equal is (True if format is not False else False)
 
 
 class TestToFromTable(ToFromDirectTestBase, ToFromTableTestMixin):
