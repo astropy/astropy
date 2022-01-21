@@ -61,7 +61,7 @@ class CompoundBoundingBoxType(AstropyAsdfType):
             return {
                 'selector_args': [
                     {
-                        'argument': sa.name(cbbox._model),
+                        'argument': sa.name,
                         'ignore': sa.ignore
                     } for sa in cbbox.selector_args
                 ],
@@ -71,7 +71,7 @@ class CompoundBoundingBoxType(AstropyAsdfType):
                         'bbox': bbox
                     } for key, bbox in cbbox.bounding_boxes.items()
                 ],
-                'ignore': cbbox.ignored_inputs,
+                'ignore': cbbox.global_ignored,
                 'order': cbbox.order
             }
         else:
@@ -79,9 +79,9 @@ class CompoundBoundingBoxType(AstropyAsdfType):
 
     @classmethod
     def from_tree(cls, node, cts):
-        selector_args = [
+        selector_args = tuple([
             (selector['argument'], selector['ignore']) for selector in node['selector_args']
-        ]
+        ])
 
         bounding_boxes = {
             tuple(bbox['key']): bbox['bbox']
@@ -104,5 +104,5 @@ class CompoundBoundingBoxType(AstropyAsdfType):
     def assert_equal(cls, a, b):
         assert a.bounding_boxes == b.bounding_boxes
         assert a.selector_args == b.selector_args
-        assert a.ignored == b.ignored
+        assert a.global_ignored == b.global_ignored
         assert a.order == b.order

@@ -18,7 +18,7 @@ import asdf
 import astropy.units as u
 from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
-from astropy.modeling.bounding_box import ModelBoundingBox
+from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -133,6 +133,21 @@ def test_model_bounding_box(tmpdir):
         'bbox_2D_F': ModelBoundingBox(((0, 1), (2, 3)), astmodels.Polynomial2D(1), order='F'),
         'bbox_ignore0': ModelBoundingBox((0, 1), astmodels.Polynomial2D(1), ignored=['x']),
         'bbox_ignore1': ModelBoundingBox((0, 1), astmodels.Polynomial2D(1), ignored=['y']),
+    }
+
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
+def test_compound_bounding_box(tmpdir):
+    tree = {
+        'cbbox_1D': CompoundBoundingBox({(1,): (0, 1), (2,): (2, 3)}, astmodels.Polynomial2D(1), [('x', True)]),
+        'cbbox_2D': CompoundBoundingBox({(1,): ((0, 1), (-1, 0)), (2,): ((2, 3), (-3, -2))},
+                                        astmodels.Polynomial2D(1), [('x', False)]),
+        'cbbox_ignore0': CompoundBoundingBox({(1,): (0, 1), (2,): (2, 3)},
+                                             astmodels.Polynomial2D(1), [('x', False)], ignored=['x']),
+        'cbbox_ignore1': CompoundBoundingBox({(1,): (0, 1), (2,): (2, 3)},
+                                             astmodels.Polynomial2D(1), [('x', False)], ignored=['y']),
     }
 
     helpers.assert_roundtrip_tree(tree, tmpdir)
