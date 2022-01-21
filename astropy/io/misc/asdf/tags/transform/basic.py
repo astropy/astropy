@@ -33,13 +33,6 @@ class TransformType(AstropyAsdfType):
         if 'bounding_box' in node:
             model.bounding_box = node['bounding_box']
 
-        elif 'selector_args' in node:
-            cbbox_keys = [tuple(key) for key in node['cbbox_keys']]
-            bbox_dict = dict(zip(cbbox_keys, node['cbbox_values']))
-
-            selector_args = node['selector_args']
-            model.bounding_box = CompoundBoundingBox.validate(model, bbox_dict, selector_args)
-
         param_and_model_constraints = {}
         for constraint in ['fixed', 'bounds']:
             if constraint in node:
@@ -78,30 +71,9 @@ class TransformType(AstropyAsdfType):
         node['outputs'] = list(model.outputs)
 
         try:
-            bb = model.bounding_box
+            node['bounding_box'] = model.bounding_box
         except NotImplementedError:
-            bb = None
-
-        if isinstance(bb, ModelBoundingBox):
-            bb = bb.bounding_box(order='C')
-
-            if model.n_inputs == 1:
-                bb = list(bb)
-            else:
-                bb = [list(item) for item in bb]
-            node['bounding_box'] = bb
-
-        elif isinstance(bb, CompoundBoundingBox):
-            selector_args = [[sa.index, sa.ignore] for sa in bb.selector_args]
-            node['selector_args'] = selector_args
-            node['cbbox_keys'] = list(bb.bounding_boxes.keys())
-
-            bounding_boxes = list(bb.bounding_boxes.values())
-            if len(model.inputs) - len(selector_args) == 1:
-                node['cbbox_values'] = [list(sbbox.bounding_box()) for sbbox in bounding_boxes]
-            else:
-                node['cbbox_values'] = [[list(item) for item in sbbox.bounding_box()
-                                         if np.isfinite(item[0])] for sbbox in bounding_boxes]
+            pass
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):

@@ -183,6 +183,7 @@ def test_inverse_transforms(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
 @pytest.mark.parametrize(('model'), test_models)
 def test_single_model(tmpdir, model):
     with warnings.catch_warnings():
@@ -240,6 +241,7 @@ def test_generic_projections(tmpdir):
             helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
 def test_tabular_model(tmpdir):
     points = np.arange(0, 5)
     values = [1., 10, 2, 45, -3]
@@ -256,10 +258,23 @@ def test_tabular_model(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
 def test_bounding_box(tmpdir):
     model = astmodels.Shift(1) & astmodels.Shift(2)
     model.bounding_box = ((1, 3), (2, 4))
     tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
+def test_compound_bounding_box_with_model(tmpdir):
+    model = astmodels.Shift(1) & astmodels.Scale(2) & astmodels.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
+    bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
+    model.bounding_box = bounding_box
+    tree = {'model': model}
+
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
@@ -330,6 +345,7 @@ def test_linear1d_quantity(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
+@pytest.mark.filterwarnings("ignore:Unable to locate schema")
 def test_tabular_model_units(tmpdir):
     points = np.arange(0, 5) * u.pix
     values = [1., 10, 2, 45, -3] * u.nm
