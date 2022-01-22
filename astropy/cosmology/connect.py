@@ -43,14 +43,6 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
 
     See also: https://docs.astropy.org/en/stable/io/unified.html
 
-    .. note::
-
-        :meth:`~astropy.cosmology.Cosmology.read` and
-        :meth:`~astropy.cosmology.Cosmology.from_format` currently access the
-        same registry. This will be deprecated and formats intended for
-        ``from_format`` should not be used here. Use ``Cosmology.read.help()``
-        to confirm that the format may be used to read a file.
-
     Parameters
     ----------
     *args
@@ -112,14 +104,6 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
       >>> Cosmology.write.help(format='<format>')  # Get detailed help on format
       >>> Cosmology.write.list_formats()  # Print list of available formats
 
-    .. note::
-
-        :meth:`~astropy.cosmology.Cosmology.write` and
-        :meth:`~astropy.cosmology.Cosmology.to_format` currently access the
-        same registry. This will be deprecated and formats intended for
-        ``to_format`` should not be used here. Use ``Cosmology.write.help()``
-        to confirm that the format may be used to write to a file.
-
     Parameters
     ----------
     *args
@@ -170,14 +154,6 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
       >>> Cosmology.from_format.list_formats()  # Print list of available formats
 
     See also: https://docs.astropy.org/en/stable/io/unified.html
-
-    .. note::
-
-        :meth:`~astropy.cosmology.Cosmology.from_format` and
-        :meth:`~astropy.cosmology.Cosmology.read` currently access the
-        same registry. This will be deprecated and formats intended for
-        ``read`` should not be used here. Use ``Cosmology.to_format.help()``
-        to confirm that the format may be used to convert to a Cosmology.
 
     Parameters
     ----------
@@ -244,14 +220,6 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
       >>> Cosmology.to_format.help()  # Get help and list supported formats
       >>> Cosmology.to_format.help('<format>')  # Get detailed help on format
       >>> Cosmology.to_format.list_formats()  # Print list of available formats
-
-    .. note::
-
-        :meth:`~astropy.cosmology.Cosmology.to_format` and
-        :meth:`~astropy.cosmology.Cosmology.write` currently access the
-        same registry. This will be deprecated and formats intended for
-        ``write`` should not be used here. Use ``Cosmology.to_format.help()``
-        to confirm that the format may be used to convert a Cosmology.
 
     Parameters
     ----------
