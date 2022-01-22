@@ -47,6 +47,10 @@ class ToFromTestMixinBase(IOTestBase):
         """Convert Cosmology instance using ``.to_format()``."""
         return cosmo.to_format
 
+    def can_autodentify(self, format):
+        """Check whether a format can auto-identify."""
+        return format in Cosmology.from_format.registry._identifiers
+
 
 class ReadWriteTestMixinBase(IOTestBase):
     """Tests for a Cosmology[Read/Write].

@@ -121,20 +121,38 @@ def register_cosmology_yaml(cosmo_cls):
 # Unified-I/O Functions
 
 
-def from_yaml(yml):
+def from_yaml(yml, *, cosmology=None):
     """Load `~astropy.cosmology.Cosmology` from :mod:`yaml` object.
 
     Parameters
     ----------
     yml : str
         :mod:`yaml` representation of |Cosmology| object
+    cosmology : str, `~astropy.cosmology.Cosmology` class, or None (optional, keyword-only)
+        The expected cosmology class (or string name thereof). This argument is
+        is only checked for correctness if not `None`.
 
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
+
+    Raises
+    ------
+    TypeError
+        If the |Cosmology| object loaded from ``yml`` is not an instance of
+        the ``cosmology`` (and ``cosmology`` is not `None`).
     """
     with u.add_enabled_units(cu):
-        return load(yml)
+        cosmo = load(yml)
+
+    # Check argument `cosmology`, if not None
+    # This kwarg is required for compatibility with |Cosmology.from_format|
+    if isinstance(cosmology, str):
+        cosmology = _COSMOLOGY_CLASSES[cosmology]
+    if cosmology is not None and not isinstance(cosmo, cosmology):
+        raise TypeError(f"cosmology {cosmo} is not an {cosmology} instance.")
+
+    return cosmo
 
 
 def to_yaml(cosmology, *args):
