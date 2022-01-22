@@ -6,24 +6,21 @@ Cosmology For Developers
 Cosmologies in Functions
 ========================
 
-It is often useful to assume a default cosmology so that the exact
-cosmology does not have to be specified every time a function or method
-is called. In this case, it is possible to specify a "default"
-cosmology.
+It is often useful to assume a default cosmology so that the exact cosmology
+does not have to be specified every time a function or method is called. In
+this case, it is possible to specify a "default" cosmology.
 
 You can set the default cosmology to a predefined value by using the
 "default_cosmology" option in the ``[cosmology.core]`` section of the
-configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the :meth:`~astropy.cosmology.default_cosmology.set` function of
-:func:`~astropy.cosmology.default_cosmology` to set a cosmology for the current
-Python session. If you have not set a default cosmology using one of the
-methods described above, then the cosmology module will default to using the
+configuration file (see :ref:`astropy_config`). Alternatively, you can use the
+:meth:`~astropy.cosmology.default_cosmology.set` function of
+|default_cosmology| to set a cosmology for the current Python session. If you
+have not set a default cosmology using one of the methods described above, then
+the cosmology module will default to using the
 ``default_cosmology._value`` parameters.
 
-It is strongly recommended that you use the default cosmology through
-the :class:`~astropy.cosmology.default_cosmology` science state object. An
-override option can then be provided using something like the
-following:
+You can override the default cosmology through the |default_cosmology| science
+state object, using something like the following:
 
 .. code-block:: python
 
@@ -35,16 +32,17 @@ following:
 
         ... function code here ...
 
-This ensures that all code consistently uses the default cosmology
-unless explicitly overridden.
+This ensures that all code consistently uses the default cosmology unless
+explicitly overridden.
 
 .. note::
 
-    In general it is better to use an explicit cosmology (for example
-    ``WMAP9.H(0)`` instead of
-    ``cosmology.default_cosmology.get().H(0)``). Use of the default
-    cosmology should generally be reserved for code that will be
-    included in the ``astropy`` core or an affiliated package.
+    If you are preparing a paper and thus need to ensure your code provides
+    reproducible results, it is better to use an explicit cosmology (for
+    example ``WMAP9.H(0)`` instead of ``default_cosmology.get().H(0)``).
+    Use of the default cosmology should generally be reserved for code that
+    allows for the global cosmology state to be changed; e.g. code included in
+    ``astropy`` core or an affiliated package.
 
 
 .. _astropy-cosmology-custom:
@@ -53,10 +51,9 @@ Custom Cosmologies
 ==================
 
 In :mod:`astropy.cosmology` cosmologies are classes, so custom cosmologies may
-be implemented by subclassing |Cosmology| (or more likely
-:class:`~astropy.cosmology.FLRW`) and adding details specific to that
-cosmology. Here we will review some of those details and tips and tricks to
-building a performant cosmology class.
+be implemented by subclassing |Cosmology| (or more likely |FLRW|) and adding
+details specific to that cosmology. Here we will review some of those details
+and tips and tricks to building a performant cosmology class.
 
 .. code-block:: python
 
@@ -85,7 +82,7 @@ signature or more deeply in the code. On a cosmology instance, the descriptor
 will return the parameter value.
 
 There are a number of best practices. For a reference, this is excerpted from
-the definition of :class:`~astropy.cosmology.FLRW`.
+the definition of |FLRW|.
 
 .. code-block:: python
 
@@ -149,12 +146,10 @@ Mixins
 inheritance lines. We use the term loosely as mixins are meant to be strictly
 orthogonal, but may not be, particularly in ``__init__``.
 
-Currently the only mixin is :class:`~astropy.cosmology.FlatCosmologyMixin`
-and its :class:`~astropy.cosmology.FLRW`-specific subclass
-:class:`~astropy.cosmology.FlatFLRWMixin`. "Flat" cosmologies should use this
-mixin. :class:`~astropy.cosmology.FlatFLRWMixin` must precede the base class in
-the multiple-inheritance so that this mixin's ``__init__`` proceeds the base
-class'.
+Currently the only mixin is |FlatCosmologyMixin| and its |FLRW|-specific
+subclass |FlatFLRWMixin|. "Flat" cosmologies should use this mixin.
+|FlatFLRWMixin| must precede the base class in the multiple-inheritance so that
+this mixin's ``__init__`` proceeds the base class'.
 
 
 .. _astropy-cosmology-fast-integrals:
@@ -163,9 +158,8 @@ Speeding up Integrals in Custom Cosmologies
 -------------------------------------------
 
 The supplied cosmology classes use a few tricks to speed up distance and time
-integrals.  It is not necessary for anyone subclassing
-:class:`~astropy.cosmology.FLRW` to use these tricks -- but if they do, such
-calculations may be a lot faster.
+integrals.  It is not necessary for anyone subclassing |FLRW| to use these
+tricks -- but if they do, such calculations may be a lot faster.
 
 The first, more basic, idea is that, in many cases, it's a big deal to provide
 explicit formulae for :meth:`~astropy.cosmology.FLRW.inv_efunc` rather than
@@ -173,19 +167,18 @@ simply setting up ``de_energy_scale`` -- assuming there is a nice expression.
 As noted above, almost all of the provided classes do this, and that template
 can pretty much be followed directly with the appropriate formula changes.
 
-The second, and more advanced, option is to also explicitly provide a
-scalar only version of :meth:`~astropy.cosmology.FLRW.inv_efunc`. This results
-in a fairly large speedup (>10x in most cases) in the distance and age
-integrals, even if only done in python, because testing whether the inputs are
-iterable or pure scalars turns out to be rather expensive. To take advantage of
-this, the key thing is to explicitly set the instance variables
+The second, and more advanced, option is to also explicitly provide a scalar
+only version of :meth:`~astropy.cosmology.FLRW.inv_efunc`. This results in a
+fairly large speedup (>10x in most cases) in the distance and age integrals,
+even if only done in python, because testing whether the inputs are iterable or
+pure scalars turns out to be rather expensive. To take advantage of this, the
+key thing is to explicitly set the instance variables
 ``self._inv_efunc_scalar`` and ``self._inv_efunc_scalar_args`` in the
 constructor for the subclass, where the latter are all the arguments except
 ``z`` to ``_inv_efunc_scalar``. The provided classes do use this optimization,
 and in fact go even further and provide optimizations for no radiation, and for
-radiation with massless neutrinos coded in cython. Consult the
-:class:`~astropy.cosmology.FLRW` subclasses for details, and
-``scalar_inv_efuncs`` for the details.
+radiation with massless neutrinos coded in cython. Consult the |FLRW|
+subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
@@ -194,18 +187,16 @@ Astropy Interoperability: I/O and your Cosmology Package
 ========================================================
 
 If you are developing a package and want to be able to interoperate with
-`astropy.cosmology.Cosmology`, you're in the right place! Here we will discuss
-and provide examples for enabling Astropy to read and write your file formats,
-but also convert your cosmology objects to and from Astropy's |Cosmology|.
+|Cosmology|, you're in the right place! Here we will discuss how to enable
+Astropy to read and write your file formats, and convert your cosmology objects
+to and from Astropy's |Cosmology|.
 
 The following presumes knowledge of how Astropy structures I/O functions. For
 a quick tutorial see :ref:`cosmology_io`.
 
-Now that we know how to build and register functions into
-:meth:`~astropy.cosmology.Cosmology.read`,
-:meth:`~astropy.cosmology.Cosmology.write`,
-:meth:`~astropy.cosmology.Cosmology.from_format`,
-:meth:`~astropy.cosmology.Cosmology.to_format`, we can do this in your package.
+Now that we know how to build and register functions into |Cosmology.read|,
+|Cosmology.write|, |Cosmology.from_format|, |Cosmology.to_format|, we can do
+this in your package.
 
 Consider a package -- since this is mine, it's cleverly named ``mypackage`` --
 with the following file structure: a module for cosmology codes and a module
@@ -243,10 +234,8 @@ Converting Objects Between Packages
 We want to enable conversion between cosmology objects from ``mypackage``
 to/from |Cosmology|. All the Astropy interface code is defined in
 ``mypackage/io/astropy_convert.py``. The following is a rough outline of the
-necessary functions and how to register them with astropy's unified
-I/O to be automatically available to
-:meth:`astropy.cosmology.Cosmology.from_format` and
-:meth:`astropy.cosmology.Cosmology.to_format`.
+necessary functions and how to register them with astropy's unified I/O to be
+automatically available to |Cosmology.from_format| and |Cosmology.to_format|.
 
 .. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_convert.py
    :language: python
@@ -258,8 +247,7 @@ Reading and Writing
 Everything Astropy read/write related is defined in
 ``mypackage/io/astropy_io.py``. The following is a rough outline of the read,
 write, and identify functions and how to register them with astropy's unified
-io to be automatically available to :meth:`astropy.cosmology.Cosmology.read`
-and :meth:`astropy.cosmology.Cosmology.write`.
+IO to be automatically available to |Cosmology.read| and |Cosmology.write|.
 
 .. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_io.py
    :language: python
