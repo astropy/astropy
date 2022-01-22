@@ -74,20 +74,19 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
 
     # ===============================================================
 
-    def test_tofrom_yaml_instance(self, cosmo, to_format, from_format,
-                                  xfail_if_not_registered_with_yaml):
-        """Test cosmology -> YAML -> cosmology."""
-        # ------------
-        # To YAML
-
+    def test_to_yaml(self, cosmo, to_format, xfail_if_not_registered_with_yaml):
+        """Test cosmology -> YAML."""
         yml = to_format('yaml')
+
         assert isinstance(yml, str)  # test type
         assert yml.startswith("!astropy.cosmology.")
 
-        # ------------
-        # From YAML
+    def test_from_yaml_default(self, cosmo, to_format, from_format,
+                               xfail_if_not_registered_with_yaml):
+        """Test cosmology -> YAML -> cosmology."""
+        yml = to_format('yaml')
 
-        got = from_format(yml, format="yaml")
+        got = from_format(yml, format="yaml")  # (cannot autoidentify)
 
         assert got.name == cosmo.name
         assert got.meta == cosmo.meta
@@ -98,15 +97,19 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         assert got.meta == cosmo.meta
 
         # auto-identify test moved because it doesn't work.
-        # see test_tofrom_yaml_autoidentify
+        # see test_from_yaml_autoidentify
 
-    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format,
+    def test_from_yaml_autoidentify(self, cosmo, to_format, from_format,
                                       xfail_if_not_registered_with_yaml):
         """As a non-path string, it does NOT auto-identifies 'format'.
 
         TODO! this says there should be different types of I/O registries.
               not just hacking object conversion on top of file I/O.
         """
+        assert self.can_autodentify("yaml") is False
+
+        # Showing the specific error. The str is interpreted as a file location
+        # but is too long a file name.
         yml = to_format('yaml')
         with pytest.raises((FileNotFoundError, OSError)):  # OSError in Windows
             from_format(yml)
@@ -117,6 +120,8 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
     #     Test writing from an instance and reading from that class.
     #     This works with missing information.
     #     """
+
+    # -----------------------------------------------------
 
     @pytest.mark.parametrize("format", [True, False, None])
     def test_is_equivalent_to_yaml(self, cosmo, to_format, format,
@@ -164,7 +169,7 @@ class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
         """
         yield  # run tests
 
-    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format):
+    def test_from_yaml_autoidentify(self, cosmo, to_format, from_format):
         """
         If directly calling the function there's no auto-identification.
         So this overrides the test from `ToFromYAMLTestMixin`

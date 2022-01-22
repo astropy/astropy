@@ -25,7 +25,7 @@ readwrite_formats = {"ascii.ecsv", "json"}
 # Collect all the registered to/from formats. Unfortunately this is NOT
 # automatic since the output format class is not stored on the registry.
 #                 (format, data type)
-tofrom_formats = [("mapping", dict),
+tofrom_formats = [("mapping", dict), ("yaml", str),
                   ("astropy.cosmology", Cosmology),
                   ("astropy.row", Row), ("astropy.table", QTable)]
 
@@ -152,24 +152,28 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
     See ``TestCosmology`` for an example.
     """
 
-    @pytest.mark.parametrize("format, objtype", tofrom_formats)
-    def test_tofromformat_complete_info(self, cosmo, format, objtype):
+    @pytest.mark.parametrize("format, totype", tofrom_formats)
+    def test_tofromformat_complete_info(self, cosmo, format, totype,
+                                        xfail_if_not_registered_with_yaml):
         """Read tests happen later."""
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # test from_format
         got = Cosmology.from_format(obj, format=format)
-        # and autodetect
-        got2 = Cosmology.from_format(obj)
-        assert got2 == got  # internal consistency
+
+        # Test autodetect, if enabled
+        if self.can_autodentify(format):
+            got2 = Cosmology.from_format(obj)
+            assert got2 == got  # internal consistency
 
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("format, objtype", tofrom_formats)
-    def test_fromformat_subclass_complete_info(self, cosmo_cls, cosmo, format, objtype):
+    @pytest.mark.parametrize("format, totype", tofrom_formats)
+    def test_fromformat_subclass_complete_info(self, cosmo_cls, cosmo, format, totype,
+                                               xfail_if_not_registered_with_yaml):
         """
         Test transforming an instance and parsing from that class, when there's
         full information available.
@@ -177,12 +181,14 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
         """
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # read with the same class that wrote.
         got = cosmo_cls.from_format(obj, format=format)
-        got2 = Cosmology.from_format(obj)  # and autodetect
-        assert got2 == got  # internal consistency
+
+        if self.can_autodentify(format):
+            got2 = Cosmology.from_format(obj)  # and autodetect
+            assert got2 == got  # internal consistency
 
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
@@ -213,11 +219,11 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
 
     @pytest.mark.parametrize("format_type", tofrom_formats)
     def test_fromformat_class_mismatch(self, cosmo, format_type):
-        format, objtype = format_type
+        format, totype = format_type
 
         # test to_format
         obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
+        assert isinstance(obj, totype)
 
         # class mismatch
         with pytest.raises(TypeError):
