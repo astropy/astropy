@@ -295,6 +295,8 @@ def get_extensions():
         'util.c',
         'wcslib_wrap.c',
         'wcslib_auxprm_wrap.c',
+        'wcslib_prjprm_wrap.c',
+        'wcslib_celprm_wrap.c',
         'wcslib_tabprm_wrap.c',
         'wcslib_wtbarr_wrap.c'
     ]

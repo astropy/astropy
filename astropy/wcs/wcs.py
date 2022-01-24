@@ -57,9 +57,10 @@ from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'Wcsprm', 'Auxprm',
-           'Wtbarr', 'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
-           'InconsistentAxisTypesError', 'InvalidTransformError',
-           'InvalidCoordinateError', 'NoSolutionError',
+           'Celprm', 'Prjprm', 'Wtbarr', 'WCSBase', 'validate', 'WcsError',
+           'SingularMatrixError', 'InconsistentAxisTypesError',
+           'InvalidTransformError', 'InvalidCoordinateError',
+           'InvalidPrjParametersError', 'NoSolutionError',
            'InvalidSubimageSpecificationError', 'NoConvergence',
            'NonseparableSubimageCoordinateSystemError',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
@@ -86,6 +87,8 @@ if _wcs is not None:
     Sip = _wcs.Sip
     Wcsprm = _wcs.Wcsprm
     Auxprm = _wcs.Auxprm
+    Celprm = _wcs.Celprm
+    Prjprm = _wcs.Prjprm
     Tabprm = _wcs.Tabprm
     Wtbarr = _wcs.Wtbarr
     WcsError = _wcs.WcsError
@@ -98,10 +101,11 @@ if _wcs is not None:
     NonseparableSubimageCoordinateSystemError = _wcs.NonseparableSubimageCoordinateSystemError
     NoWcsKeywordsFoundError = _wcs.NoWcsKeywordsFoundError
     InvalidTabularParametersError = _wcs.InvalidTabularParametersError
+    InvalidPrjParametersError = _wcs.InvalidPrjParametersError
 
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
-        if key.startswith(('WCSSUB_', 'WCSHDR_', 'WCSHDO_', 'WCSCOMPARE_')):
+        if key.startswith(('WCSSUB_', 'WCSHDR_', 'WCSHDO_', 'WCSCOMPARE_', 'PRJ_')):
             locals()[key] = val
             __all__.append(key)
 
