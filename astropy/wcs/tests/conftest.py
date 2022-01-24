@@ -2,8 +2,6 @@
 
 import pytest
 
-import numpy as np
-
 from astropy import wcs
 
 from . helper import SimModelTAB
@@ -46,3 +44,11 @@ def tab_wcs_2di_f():
     w = wcs.WCS(hdulist[0].header, hdulist)
 
     return w
+
+
+@pytest.fixture(scope='function')
+def prj_TAB():
+    prj = wcs.Prjprm()
+    prj.code = 'TAN'
+    prj.set()
+    return prj

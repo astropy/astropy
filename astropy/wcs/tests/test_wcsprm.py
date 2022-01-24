@@ -541,7 +541,6 @@ def test_latpole():
 
 def test_lattyp():
     w = _wcs.Wcsprm()
-    print(repr(w.lattyp))
     assert w.lattyp == "    "
 
 

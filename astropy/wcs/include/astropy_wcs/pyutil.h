@@ -133,6 +133,7 @@ extern PyObject* WcsExc_InvalidSubimageSpecification;
 extern PyObject* WcsExc_NonseparableSubimageCoordinateSystem;
 extern PyObject* WcsExc_NoWcsKeywordsFound;
 extern PyObject* WcsExc_InvalidTabularParameters;
+extern PyObject* WcsExc_InvalidPrjParameters;
 
 /* This is an array mapping the wcs status codes to Python exception
  * types.  The exception string is stored as part of wcslib itself in

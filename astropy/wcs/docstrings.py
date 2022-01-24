@@ -153,6 +153,26 @@ ap_order = """
 ``int`` (read-only) Order of the polynomial (``AP_ORDER``).
 """
 
+cel = """
+`~astropy.wcs.Celprm` Information required to transform celestial coordinates.
+"""
+
+Celprm = """
+Class that contains information required to transform celestial coordinates.
+It consists of certain members that must be set by the user (given) and others
+that are set by the WCSLIB routines (returned).
+Some of the latter are supplied for informational purposes and others are for
+internal use only.
+"""
+
+Prjprm = """
+Class that contains information needed to project or deproject native spherical coordinates.
+It consists of certain members that must be set by the user (given) and others
+that are set by the WCSLIB routines (returned).
+Some of the latter are supplied for informational purposes and others are for
+internal use only.
+"""
+
 aux = """
 `~astropy.wcs.Auxprm` Auxiliary coordinate system information of a specialist nature.
 """
@@ -318,6 +338,317 @@ cel_offset = """
 
 If `True`, an offset will be applied to ``(x, y)`` to force ``(x, y) =
 (0, 0)`` at the fiducial point, (phi_0, theta_0).  Default is `False`.
+"""
+
+celprm_phi0 = r"""
+`float`, `None`. The native longitude, :math:`\phi_0`, in degrees of the
+fiducial point, i.e., the point whose celestial coordinates are given in
+''Celprm.ref[0:1]''. If `None` or ``nan``, the initialization routine,
+``celset()``, will set this to a projection-specific default.
+"""
+
+celprm_theta0 = r"""
+`float`, `None`. The native latitude, :math:`\theta_0`, in degrees of the
+fiducial point, i.e. the point whose celestial coordinates are given in
+``Celprm:ref[0:1]``. If `None` or ``nan``, the initialization routine,
+``celset()``, will set this to a projection-specific default.
+"""
+
+celprm_ref = """
+``numpy.ndarray`` with 4 elements.
+(Given) The first pair of values should be set to the celestial longitude and
+latitude of the fiducial point in degrees - typically right ascension and
+declination. These are given by the ``CRVALia`` keywords in ``FITS``.
+
+(Given and returned) The second pair of values are the native longitude,
+``phi_p`` (in degrees), and latitude, ``theta_p`` (in degrees), of the
+celestial pole (the latter is the same as the celestial latitude of the
+native pole, ``delta_p``) and these are given by the ``FITS`` keywords
+``LONPOLEa`` and ``LATPOLEa`` (or by ``PVi_2a`` and ``PVi_3a`` attached
+to the longitude axis which take precedence if defined).
+
+``LONPOLEa`` defaults to ``phi0`` if the celestial latitude of the fiducial
+point of the projection is greater than or equal to the native latitude,
+otherwise ``phi0 + 180`` (degrees). (This is the condition for the celestial
+latitude to increase in the same direction as the native latitude at the
+fiducial point.) ``ref[2]`` may be set to `None` or ``numpy.nan``
+or 999.0 to indicate that the correct default should be substituted.
+
+``theta_p``, the native latitude of the celestial pole (or equally the
+celestial latitude of the native pole, ``delta_p``) is often determined
+uniquely by ``CRVALia`` and ``LONPOLEa`` in which case ``LATPOLEa`` is ignored.
+However, in some circumstances there are two valid solutions for ``theta_p``
+and ``LATPOLEa`` is used to choose between them. ``LATPOLEa`` is set in
+``ref[3]`` and the solution closest to this value is used to reset ``ref[3]``.
+It is therefore legitimate, for example, to set ``ref[3]`` to ``+90.0``
+to choose the more northerly solution - the default if the ``LATPOLEa`` keyword
+is omitted from the ``FITS`` header. For the special case where the fiducial
+point of the projection is at native latitude zero, its celestial latitude
+is zero, and ``LONPOLEa`` = ``+/- 90.0`` then the celestial latitude of the
+native pole is not determined by the first three reference values and
+``LATPOLEa`` specifies it completely.
+
+The returned value, celprm.latpreq, specifies how ``LATPOLEa``
+was actually used."""
+
+celprm_euler = """
+*Read-only* ``numpy.ndarray`` with 5 elements. Euler angles and associated
+intermediaries derived from the coordinate reference values. The first three
+values are the ``Z-``, ``X-``, and ``Z``-Euler angles in degrees, and the
+remaining two are the cosine and sine of the ``X``-Euler angle.
+"""
+
+celprm_latpreq = """
+``int``, *read-only*. For informational purposes, this indicates how the
+``LATPOLEa`` keyword was used:
+
+- 0: Not required, ``theta_p == delta_p`` was determined uniquely by the
+    ``CRVALia`` and ``LONPOLEa`` keywords.
+- 1: Required to select between two valid solutions of ``theta_p``.
+- 2: ``theta_p`` was specified solely by ``LATPOLEa``.
+"""
+
+celprm_isolat = """
+``bool``, *read-only*. True if the spherical rotation preserves the magnitude
+of the latitude, which occurs if the axes of the native and celestial
+coordinates are coincident. It signals an opportunity to cache intermediate
+calculations common to all elements in a vector computation.
+"""
+
+celprm_prj = """
+*Read-only* Celestial transformation parameters. Some members of `Prjprm`
+are read-write, i.e., can be set by the user. For more details, see
+documentation for `Prjprm`.
+"""
+
+prjprm_r0 = r"""
+The radius of the generating sphere for the projection, a linear scaling
+parameter. If this is zero, it will be reset to its default value of
+:math:`180^\circ/\pi` (the value for FITS WCS).
+"""
+
+prjprm_code = """
+Three-letter projection code defined by the FITS standard.
+"""
+
+prjprm_pv = """
+Projection parameters. These correspond to the ``PVi_ma`` keywords in FITS,
+so ``pv[0]`` is ``PVi_0a``, ``pv[1]`` is ``PVi_1a``, etc., where ``i`` denotes
+the latitude-like axis. Many projections use ``pv[1]`` (``PVi_1a``),
+some also use ``pv[2]`` (``PVi_2a``) and ``SZP`` uses ``pv[3]`` (``PVi_3a``).
+``ZPN`` is currently the only projection that uses any of the others.
+
+When setting ``pv`` values using lists or ``numpy.ndarray``,
+elements set to `None` will be left unchanged while those set to ``numpy.nan``
+will be set to ``WCSLIB``'s ``UNDEFINED`` special value. For efficiency
+purposes, if supplied list or ``numpy.ndarray`` is shorter than the length of
+the ``pv`` member, then remaining values in ``pv`` will be left unchanged.
+
+.. note::
+    When retrieving ``pv``, a copy of the ``prjprm.pv`` array is returned.
+    Modifying this array values will not modify underlying ``WCSLIB``'s
+    ``prjprm.pv`` data.
+"""
+
+prjprm_pvi = """
+Set/Get projection parameters for specific index. These correspond to the
+``PVi_ma`` keywords in FITS, so ``pv[0]`` is ``PVi_0a``, ``pv[1]`` is
+``PVi_1a``, etc., where ``i`` denotes the latitude-like axis.
+Many projections use ``pv[1]`` (``PVi_1a``),
+some also use ``pv[2]`` (``PVi_2a``) and ``SZP`` uses ``pv[3]`` (``PVi_3a``).
+``ZPN`` is currently the only projection that uses any of the others.
+
+Setting a ``pvi`` value to `None` will reset the corresponding ``WCSLIB``'s
+``prjprm.pv`` element to the default value as set by ``WCSLIB``'s ``prjini()``.
+
+Setting a ``pvi`` value to ``numpy.nan`` will set the corresponding
+``WCSLIB``'s ``prjprm.pv`` element to ``WCSLIB``'s ``UNDEFINED`` special value.
+"""
+
+prjprm_phi0 = r"""
+The native longitude, :math:`\phi_0` (in degrees) of the reference point,
+i.e. the point ``(x,y) = (0,0)``. If undefined the initialization routine
+will set this to a projection-specific default.
+"""
+
+prjprm_theta0 = r"""
+the native latitude, :math:`\theta_0` (in degrees) of the reference point,
+i.e. the point ``(x,y) = (0,0)``. If undefined the initialization routine
+will set this to a projection-specific default.
+"""
+
+prjprm_bounds = """
+Controls bounds checking. If ``bounds&1`` then enable strict bounds checking
+for the spherical-to-Cartesian (``s2x``) transformation for the
+``AZP``, ``SZP``, ``TAN``, ``SIN``, ``ZPN``, and ``COP`` projections.
+If ``bounds&2`` then enable strict bounds checking for the
+Cartesian-to-spherical transformation (``x2s``) for the ``HPX`` and ``XPH``
+projections. If ``bounds&4`` then the Cartesian- to-spherical transformations
+(``x2s``) will invoke WCSLIB's ``prjbchk()`` to perform bounds checking on the
+computed native coordinates, with a tolerance set to suit each projection.
+bounds is set to 7 during initialization by default which enables all checks.
+Zero it to disable all checking.
+
+It is not necessary to reset the ``Prjprm`` struct (via ``Prjprm.set()``) when
+``bounds`` is changed.
+"""
+
+prjprm_name = """
+*Read-only.* Long name of the projection.
+"""
+
+prjprm_category = """
+*Read-only.* Projection category matching the value of the relevant ``wcs``
+module constants:
+
+PRJ_ZENITHAL,
+PRJ_CYLINDRICAL,
+PRJ_PSEUDOCYLINDRICAL,
+PRJ_CONVENTIONAL,
+PRJ_CONIC,
+PRJ_POLYCONIC,
+PRJ_QUADCUBE, and
+PRJ_HEALPIX.
+"""
+
+prjprm_w = """
+*Read-only.* Intermediate floating-point values derived from the projection
+parameters, cached here to save recomputation.
+
+.. note::
+    When retrieving ``w``, a copy of the ``prjprm.w`` array is returned.
+    Modifying this array values will not modify underlying ``WCSLIB``'s
+    ``prjprm.w`` data.
+
+"""
+
+prjprm_pvrange = """
+*Read-only.* Range of projection parameter indices: 100 times the first allowed
+index plus the number of parameters, e.g. ``TAN`` is 0 (no parameters),
+``SZP`` is 103 (1 to 3), and ``ZPN`` is 30 (0 to 29).
+"""
+
+prjprm_simplezen = """
+*Read-only.* True if the projection is a radially-symmetric zenithal projection.
+"""
+
+prjprm_equiareal = """
+*Read-only.* True if the projection is equal area.
+"""
+
+prjprm_conformal = """
+*Read-only.* True if the projection is conformal.
+"""
+
+prjprm_global_projection = """
+*Read-only.* True if the projection can represent the whole sphere in a finite,
+non-overlapped mapping.
+"""
+
+prjprm_divergent = """
+*Read-only.* True if the projection diverges in latitude.
+"""
+
+prjprm_x0 = r"""
+*Read-only.* The offset in ``x`` used to force :math:`(x,y) = (0,0)` at
+:math:`(\phi_0, \theta_0)`.
+"""
+
+prjprm_y0 = r"""
+*Read-only.* The offset in ``y`` used to force :math:`(x,y) = (0,0)` at
+:math:`(\phi_0, \theta_0)`.
+"""
+
+prjprm_m = """
+*Read-only.* Intermediate integer value (used only for the ``ZPN`` and ``HPX`` projections).
+"""
+
+prjprm_n = """
+*Read-only.* Intermediate integer value (used only for the ``ZPN`` and ``HPX`` projections).
+"""
+
+prjprm_set = """
+This method sets up a ``Prjprm`` object according to information supplied
+within it.
+
+Note that this routine need not be called directly; it will be invoked by
+`prjx2s` and `prjs2x` if ``Prjprm.flag`` is anything other than a predefined
+magic value.
+
+The one important property of ``set()`` is that the projection code must be
+defined in the ``Prjprm`` in order for ``set()`` to identify the required
+projection.
+
+Raises
+------
+MemoryError
+    Null ``prjprm`` pointer passed to WCSLIB routines.
+
+InvalidPrjParametersError
+    Invalid projection parameters.
+
+InvalidCoordinateError
+    One or more of the ``(x,y)`` or ``(lon,lat)`` coordinates were invalid.
+"""
+
+prjprm_prjx2s = r"""
+Deproject Cartesian ``(x,y)`` coordinates in the plane of projection to native
+spherical coordinates :math:`(\phi,\theta)`.
+
+The projection is that specified by ``Prjprm.code``.
+
+Parameters
+----------
+x, y : numpy.ndarray
+    Arrays corresponding to the first (``x``) and second (``y``) projected
+    coordinates.
+
+Returns
+-------
+phi, theta : tuple of numpy.ndarray
+    Longitude and latitude :math:`(\phi,\theta)` of the projected point in
+    native spherical coordinates (in degrees). Values corresponding to
+    invalid ``(x,y)`` coordinates are set to ``numpy.nan``.
+
+Raises
+------
+MemoryError
+    Null ``prjprm`` pointer passed to WCSLIB routines.
+
+InvalidPrjParametersError
+    Invalid projection parameters.
+
+"""
+
+prjprm_prjs2x = r"""
+Project native spherical coordinates :math:`(\phi,\theta)` to Cartesian
+``(x,y)`` coordinates in the plane of projection.
+
+The projection is that specified by ``Prjprm.code``.
+
+Parameters
+----------
+phi : numpy.ndarray
+    Array corresponding to the longitude :math:`\phi` of the projected point
+    in native spherical coordinates (in degrees).
+theta : numpy.ndarray
+    Array corresponding to the longitude :math:`\theta` of the projected point
+    in native spherical coordinatess (in degrees). Values corresponding to
+    invalid :math:`(\phi, \theta)` coordinates are set to ``numpy.nan``.
+
+Returns
+-------
+x, y : tuple of numpy.ndarray
+    Projected coordinates.
+
+Raises
+------
+MemoryError
+    Null ``prjprm`` pointer passed to WCSLIB routines.
+
+InvalidPrjParametersError
+    Invalid projection parameters.
+
 """
 
 celfix = """
@@ -1686,6 +2017,23 @@ InvalidTabularParametersError
     Invalid tabular parameters.
 """
 
+set_celprm = """
+set()
+
+Sets up a ``celprm`` struct according to information supplied within it.
+
+Note that this routine need not be called directly; it will be invoked
+by functions that need it.
+
+Raises
+------
+MemoryError
+    Memory allocation failed.
+
+InvalidPrjParametersError
+    Invalid celestial parameters.
+"""
+
 set_ps = """
 set_ps(ps)
 
@@ -2377,6 +2725,12 @@ InvalidTabularParameters = """
 InvalidTabularParametersError()
 
 The given tabular parameters are invalid.
+"""
+
+InvalidPrjParameters = """
+InvalidPrjParametersError()
+
+The given projection parameters are invalid.
 """
 
 mjdbeg = """

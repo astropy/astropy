@@ -7,6 +7,8 @@
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_tabprm_wrap.h"
 #include "astropy_wcs/wcslib_auxprm_wrap.h"
+#include "astropy_wcs/wcslib_prjprm_wrap.h"
+#include "astropy_wcs/wcslib_celprm_wrap.h"
 #include "astropy_wcs/wcslib_units_wrap.h"
 #include "astropy_wcs/wcslib_wtbarr_wrap.h"
 #include "astropy_wcs/distortion_wrap.h"
@@ -858,6 +860,8 @@ PyInit__wcs(void)
       _setup_unit_list_proxy_type(m)||
       _setup_wcsprm_type(m)         ||
       _setup_auxprm_type(m)         ||
+      _setup_prjprm_type(m)         ||
+      _setup_celprm_type(m)         ||
       _setup_tabprm_type(m)         ||
       _setup_wtbarr_type(m)         ||
       _setup_distortion_type(m)     ||
