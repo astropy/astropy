@@ -70,10 +70,9 @@ class TransformType(AstropyAsdfType):
         node['inputs'] = list(model.inputs)
         node['outputs'] = list(model.outputs)
 
-        try:
+        # Serialize only non-default bounding_box
+        if model._user_bounding_box is not None:
             node['bounding_box'] = model.bounding_box
-        except NotImplementedError:
-            pass
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):
@@ -106,6 +105,7 @@ class TransformType(AstropyAsdfType):
         # TODO: Assert inverses are the same
 
         # assert the bounding_boxes are the same
+        assert a._user_bounding_box == b._user_bounding_box
         assert a.get_bounding_box() == b.get_bounding_box()
         try:
             a_bbox = a.bounding_box

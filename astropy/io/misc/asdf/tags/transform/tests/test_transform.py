@@ -268,6 +268,7 @@ def test_bounding_box(tmpdir):
     model = astmodels.Gaussian2D()
     model.inputs = ("a", "b")
     model.outputs = ("c",)
+    model.bounding_box = ((1, 2), (3, 4))
     tree = {'model': model}
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
