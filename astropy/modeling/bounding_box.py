@@ -307,7 +307,7 @@ class _BoundingDomain(abc.ABC):
     @abc.abstractmethod
     def prepare_inputs(self, input_shape, inputs, ignored: List[str] = []) -> Tuple[Any, Any, Any]:
         """
-        Get prepare the inputs with respect to the bounding box.
+        Prepare the inputs with respect to the bounding box.
 
         Parameters
         ----------
@@ -327,6 +327,14 @@ class _BoundingDomain(abc.ABC):
             array of all indices inside the bounding box
         all_out: bool
             if all of the inputs are outside the bounding_box
+        """
+
+        pass # pragma: no cover
+
+    @abc.abstractmethod
+    def indexed_bounding_box(self):
+        """
+        Get a version of the bounding box which relies purely on input index.
         """
 
         pass # pragma: no cover
@@ -714,6 +722,11 @@ class ModelBoundingBox(_BoundingDomain):
     def indexed_intervals(self) -> Dict[int, _Interval]:
         """Return bounding_box labeled using input names"""
         return {self._get_index(name): bbox for name, bbox in self._intervals.items()}
+
+    def indexed_bounding_box(self):
+        return ModelBoundingBox(self.indexed_intervals,
+                                ignored=self.ignored_inputs,
+                                order=self.order)
 
     def __repr__(self):
         parts = [
@@ -1449,6 +1462,17 @@ class CompoundBoundingBox(_BoundingDomain):
     @property
     def create_selector(self):
         return self._create_selector
+
+    def indexed_bounding_box(self):
+        bounding_boxes = {selector: bbox.indexed_bounding_box()
+                          for selector, bbox in self._bounding_boxes.items()}
+        selector_args = self.selector_args.index_tuple(self.model)
+
+        return CompoundBoundingBox(bounding_boxes,
+                                   selector_args=selector_args,
+                                   create_selector=self.create_selector,
+                                   ignored=self.ignored_inputs,
+                                   order=self.order)
 
     @staticmethod
     def _get_selector_key(key):

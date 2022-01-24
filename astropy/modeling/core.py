@@ -757,10 +757,17 @@ class Model(metaclass=_ModelMeta):
 
     @inputs.setter
     def inputs(self, val):
+        try:
+            bbox = self.bounding_box.indexed_bounding_box()
+        except NotImplementedError:
+            bbox = None
+
         if len(val) != self.n_inputs:
             raise ValueError(f"Expected {self.n_inputs} number of inputs, got {len(val)}.")
         self._inputs = val
         self._initialize_unit_support()
+
+        self.bounding_box = bbox
 
     @property
     def outputs(self):

@@ -213,6 +213,9 @@ class Test_BoundingDomain:
             def prepare_inputs(self, input_shape, inputs, ignored=[]):
                 pass
 
+            def indexed_bounding_box(self):
+                pass
+
         self.BoundingDomain = BoundingDomain
 
     def test_create(self):
@@ -613,6 +616,11 @@ class Test_BoundingDomain:
 
         bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
         bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
+
+    def test_indexed_bounding_box(self):
+        bounding_box = self.BoundingDomain(mk.MagicMock())
+
+        bounding_box.indexed_bounding_box()
 
     def test__base_ouput(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -1361,6 +1369,58 @@ class TestModelBoundingBox:
 
         for index, name in enumerate(model.inputs):
             assert intervals[name] == indexed[index]
+
+    def test_indexed_bounding_box(self):
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y']
+
+        # No ignored, standard order
+        bounding_box = ModelBoundingBox.validate(model, ((1, 2), (3, 4)))
+        assert bounding_box.intervals == {'x': (3, 4), 'y': (1, 2)}
+        assert bounding_box.ignored == []
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.intervals == {0: (3, 4), 1: (1, 2)}
+        assert indexed_bounding_box.ignored == []
+        assert indexed_bounding_box.order == 'C'
+
+        # No ignored, F order
+        bounding_box = ModelBoundingBox.validate(model, ((1, 2), (3, 4)), order='F')
+        assert bounding_box.intervals == {'x': (1, 2), 'y': (3, 4)}
+        assert bounding_box.ignored == []
+        assert bounding_box.order == 'F'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.intervals == {0: (1, 2), 1: (3, 4)}
+        assert indexed_bounding_box.ignored == []
+        assert indexed_bounding_box.order == 'F'
+
+        # Ignored, standard order
+        bounding_box = ModelBoundingBox.validate(model, (1, 2), ignored=['y'])
+        assert bounding_box.intervals == {'x': (1, 2)}
+        assert bounding_box.ignored == ['y']
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.intervals == {0: (1, 2)}
+        assert indexed_bounding_box.ignored == [1]
+        assert indexed_bounding_box.order == 'C'
+        bounding_box = ModelBoundingBox.validate(model, (1, 2), ignored=['x'])
+        assert bounding_box.intervals == {'y': (1, 2)}
+        assert bounding_box.ignored == ['x']
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.intervals == {1: (1, 2)}
+        assert indexed_bounding_box.ignored == [0]
+        assert indexed_bounding_box.order == 'C'
+
+        # Ignored, F order
+        bounding_box = ModelBoundingBox.validate(model, (1, 2), ignored=['x'], order='F')
+        assert bounding_box.intervals == {'y': (1, 2)}
+        assert bounding_box.ignored == ['x']
+        assert bounding_box.order == 'F'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.intervals == {1: (1, 2)}
+        assert indexed_bounding_box.ignored == [0]
+        assert indexed_bounding_box.order == 'F'
 
     def test___repr__(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
@@ -2937,6 +2997,102 @@ class TestCompoundBoundingBox:
 
         assert bounding_box._create_selector == create_selector
         assert bounding_box.create_selector == create_selector
+
+    def test_indexed_bounding_box(self):
+        model = mk.MagicMock()
+        model.inputs = ['x', 'y', 'z']
+        create_selector = mk.MagicMock()
+
+        # No ignored, standard order
+        bounding_boxes = {(0,): ((1, 2), (3, 4)),
+                          (1,): ((5, 6), (7, 8))}
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, [('x', True)],
+                                                    create_selector)
+        assert bounding_box.bounding_boxes[(0,)].intervals == {'y': (3, 4), 'z': (1, 2)}
+        assert bounding_box.bounding_boxes[(1,)].intervals == {'y': (7, 8), 'z': (5, 6)}
+        assert bounding_box.selector_args == (('x', True),)
+        assert bounding_box.create_selector == create_selector
+        assert bounding_box.global_ignored == []
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.bounding_boxes[(0,)].intervals == {1: (3, 4), 2: (1, 2)}
+        assert indexed_bounding_box.bounding_boxes[(1,)].intervals == {1: (7, 8), 2: (5, 6)}
+        assert indexed_bounding_box.selector_args == ((0, True),)
+        assert indexed_bounding_box.create_selector == create_selector
+        assert indexed_bounding_box.global_ignored == []
+        assert indexed_bounding_box.order == 'C'
+
+        # No ignored, F order
+        bounding_boxes = {(0,): ((1, 2), (3, 4)),
+                          (1,): ((5, 6), (7, 8))}
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, [('x', True)],
+                                                    create_selector, order='F')
+        assert bounding_box.bounding_boxes[(0,)].intervals == {'y': (1, 2), 'z': (3, 4)}
+        assert bounding_box.bounding_boxes[(1,)].intervals == {'y': (5, 6), 'z': (7, 8)}
+        assert bounding_box.selector_args == (('x', True),)
+        assert bounding_box.create_selector == create_selector
+        assert bounding_box.global_ignored == []
+        assert bounding_box.order == 'F'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.bounding_boxes[(0,)].intervals == {1: (1, 2), 2: (3, 4)}
+        assert indexed_bounding_box.bounding_boxes[(1,)].intervals == {1: (5, 6), 2: (7, 8)}
+        assert indexed_bounding_box.selector_args == ((0, True),)
+        assert indexed_bounding_box.create_selector == create_selector
+        assert indexed_bounding_box.global_ignored == []
+        assert indexed_bounding_box.order == 'F'
+
+        # Ignored, standard order
+        bounding_boxes = {(0,): (1, 2),
+                          (1,): (3, 4)}
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, [('x', True)],
+                                                    create_selector, ignored=['z'])
+        assert bounding_box.bounding_boxes[(0,)].intervals == {'y': (1, 2)}
+        assert bounding_box.bounding_boxes[(1,)].intervals == {'y': (3, 4)}
+        assert bounding_box.selector_args == (('x', True),)
+        assert bounding_box.create_selector == create_selector
+        assert bounding_box.global_ignored == ['z']
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.bounding_boxes[(0,)].intervals == {1: (1, 2)}
+        assert indexed_bounding_box.bounding_boxes[(1,)].intervals == {1: (3, 4)}
+        assert indexed_bounding_box.selector_args == ((0, True),)
+        assert indexed_bounding_box.create_selector == create_selector
+        assert indexed_bounding_box.global_ignored == [2]
+        assert indexed_bounding_box.order == 'C'
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, [('x', True)],
+                                                    create_selector, ignored=['y'])
+        assert bounding_box.bounding_boxes[(0,)].intervals == {'z': (1, 2)}
+        assert bounding_box.bounding_boxes[(1,)].intervals == {'z': (3, 4)}
+        assert bounding_box.selector_args == (('x', True),)
+        assert bounding_box.create_selector == create_selector
+        assert bounding_box.global_ignored == ['y']
+        assert bounding_box.order == 'C'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.bounding_boxes[(0,)].intervals == {2: (1, 2)}
+        assert indexed_bounding_box.bounding_boxes[(1,)].intervals == {2: (3, 4)}
+        assert indexed_bounding_box.selector_args == ((0, True),)
+        assert indexed_bounding_box.create_selector == create_selector
+        assert indexed_bounding_box.global_ignored == [1]
+        assert indexed_bounding_box.order == 'C'
+
+        # Ignored, F order
+        bounding_boxes = {(0,): (1, 2),
+                          (1,): (3, 4)}
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, [('x', True)],
+                                                    create_selector, ignored=['z'], order='F')
+        assert bounding_box.bounding_boxes[(0,)].intervals == {'y': (1, 2)}
+        assert bounding_box.bounding_boxes[(1,)].intervals == {'y': (3, 4)}
+        assert bounding_box.selector_args == (('x', True),)
+        assert bounding_box.create_selector == create_selector
+        assert bounding_box.global_ignored == ['z']
+        assert bounding_box.order == 'F'
+        indexed_bounding_box = bounding_box.indexed_bounding_box()
+        assert indexed_bounding_box.bounding_boxes[(0,)].intervals == {1: (1, 2)}
+        assert indexed_bounding_box.bounding_boxes[(1,)].intervals == {1: (3, 4)}
+        assert indexed_bounding_box.selector_args == ((0, True),)
+        assert indexed_bounding_box.create_selector == create_selector
+        assert indexed_bounding_box.global_ignored == [2]
+        assert indexed_bounding_box.order == 'F'
 
     def test__get_selector_key(self):
         bounding_box = CompoundBoundingBox({}, Gaussian2D(), ((1, True),))

@@ -1346,6 +1346,70 @@ def test_compound_bounding_box_pass_with_ignored():
     assert model.bounding_box == cbbox
 
 
+def test_bounding_box_rename_inputs():
+    # no ignored
+    model = models.Shift(1) & models.Shift(2)
+    model.bounding_box = ((1, 2), (3, 4))
+    assert model.bounding_box.intervals == {'x0': (3, 4),
+                                            'x1': (1, 2)}
+    assert model.bounding_box.ignored == []
+    assert model.bounding_box.order == 'C'
+    model.inputs = ['a', 'b']
+    assert model.bounding_box.intervals == {'a': (3, 4),
+                                            'b': (1, 2)}
+    assert model.bounding_box.ignored == []
+    assert model.bounding_box.order == 'C'
+
+    # ignored
+    model = models.Shift(1) & models.Shift(2)
+    model.bounding_box = ModelBoundingBox.validate(model, (1, 2), ignored=['x0'], order='F')
+    assert model.bounding_box.intervals == {'x1': (1, 2)}
+    assert model.bounding_box.ignored == ['x0']
+    assert model.bounding_box.order == 'F'
+    model.inputs = ['a', 'b']
+    assert model.bounding_box.intervals == {'b': (1, 2)}
+    assert model.bounding_box.ignored == ['a']
+    assert model.bounding_box.order == 'F'
+
+
+def test_compound_bounding_box_rename_inputs():
+    # no ignored
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    bbox = {(0,): ((1, 2), (3, 4)),
+            (1,): ((5, 6), (7, 8)), }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('x01', True)], order='F')
+    model.bounding_box = cbbox
+    assert model.bounding_box.bounding_boxes[(0,)].intervals == {'x00': (1, 2), 'x10': (3, 4)}
+    assert model.bounding_box.bounding_boxes[(1,)].intervals == {'x00': (5, 6), 'x10': (7, 8)}
+    assert model.bounding_box.selector_args == (('x01', True),)
+    assert model.bounding_box.global_ignored == []
+    assert model.bounding_box.order == 'F'
+    model.inputs = ['x', 'y', 'slit_id']
+    assert model.bounding_box.bounding_boxes[(0,)].intervals == {'x': (1, 2), 'y': (3, 4)}
+    assert model.bounding_box.bounding_boxes[(1,)].intervals == {'x': (5, 6), 'y': (7, 8)}
+    assert model.bounding_box.selector_args == (('slit_id', True),)
+    assert model.bounding_box.global_ignored == []
+    assert model.bounding_box.order == 'F'
+
+    # ignored
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    bbox = {(0,): (1, 2),
+            (1,): (3, 4), }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('x01', True)], ignored=['x10'], order='F')
+    model.bounding_box = cbbox
+    assert model.bounding_box.bounding_boxes[(0,)].intervals == {'x00': (1, 2)}
+    assert model.bounding_box.bounding_boxes[(1,)].intervals == {'x00': (3, 4)}
+    assert model.bounding_box.selector_args == (('x01', True),)
+    assert model.bounding_box.global_ignored == ['x10']
+    assert model.bounding_box.order == 'F'
+    model.inputs = ['x', 'y', 'slit_id']
+    assert model.bounding_box.bounding_boxes[(0,)].intervals == {'x': (1, 2)}
+    assert model.bounding_box.bounding_boxes[(1,)].intervals == {'x': (3, 4)}
+    assert model.bounding_box.selector_args == (('slit_id', True),)
+    assert model.bounding_box.global_ignored == ['y']
+    assert model.bounding_box.order == 'F'
+
+
 @pytest.mark.parametrize('int_type', [int, np.int32, np.int64, np.uint32, np.uint64])
 def test_model_integer_indexing(int_type):
     """Regression for PR 12561; verify that compound model components
