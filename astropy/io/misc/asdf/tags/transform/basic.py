@@ -104,8 +104,19 @@ class TransformType(AstropyAsdfType):
         # TODO: If models become comparable themselves, remove this.
         assert a.name == b.name
         # TODO: Assert inverses are the same
+
         # assert the bounding_boxes are the same
         assert a.get_bounding_box() == b.get_bounding_box()
+        try:
+            a_bbox = a.bounding_box
+        except NotImplementedError:
+            a_bbox = None
+        try:
+            b_bbox = b.bounding_box
+        except NotImplementedError:
+            b_bbox = None
+        assert a_bbox == b_bbox
+
         assert a.inputs == b.inputs
         assert a.outputs == b.outputs
         assert a.input_units_equivalencies == b.input_units_equivalencies

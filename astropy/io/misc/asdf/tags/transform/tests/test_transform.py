@@ -265,6 +265,12 @@ def test_bounding_box(tmpdir):
     tree = {'model': model}
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
+    model = astmodels.Gaussian2D()
+    model.inputs = ("a", "b")
+    model.outputs = ("c",)
+    tree = {'model': model}
+    helpers.assert_roundtrip_tree(tree, tmpdir)
+
 
 @pytest.mark.filterwarnings("ignore:Unable to locate schema")
 def test_compound_bounding_box_with_model(tmpdir):
