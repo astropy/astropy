@@ -770,8 +770,13 @@ class ModelBoundingBox(_BoundingDomain):
     def bounding_box(self, order: str = None):
         """
         Return the old tuple of tuples representation of the bounding_box
-            order='C' corresponds to the old bounding_box ordering
-            order='F' corresponds to the gwcs bounding_box ordering.
+
+        Parameters
+        ----------
+            order : optional, str
+                'C' corresponds to the old bounding_box ordering
+                'F' corresponds to the gwcs bounding_box ordering.
+                Defaults to the value of order stored by the bounding_box.
         """
         if len(self._intervals) == 1:
             return tuple(list(self._intervals.values())[0])
@@ -835,9 +840,14 @@ class ModelBoundingBox(_BoundingDomain):
             The model for which this will be a bounding_box
         bounding_box : dict, tuple
             A possible representation of the bounding box
+        ignored : optional, list
+            List of inputs to be ignored by bounding box
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        _external_ignored : optional, list
+            Convenience variable for passing externally ignored inputs
+            when this bounding_box is wrapped by another bounding box.
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
@@ -1520,9 +1530,14 @@ class CompoundBoundingBox(_BoundingDomain):
             Description of the selector arguments
         create_selector : optional, callable
             Method for generating new selectors
+        ignored : optional, list
+            List of inputs to be ignored by bounding box
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        _external_ignored : optional, list
+            Convenience variable for passing externally ignored inputs
+            when this bounding_box is wrapped by another bounding box.
         """
         if isinstance(bounding_box, CompoundBoundingBox):
             if selector_args is None:
