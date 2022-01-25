@@ -6,8 +6,11 @@ import pytest
 
 import numpy as np
 
-from astropy.cosmology.utils import inf_like, vectorize_if_needed, vectorize_redshift_method
+from astropy.cosmology.utils import aszarr, vectorize_redshift_method
+from astropy.cosmology.utils import inf_like, vectorize_if_needed
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+from .test_core import _zarr, invalid_zs, valid_zs
 
 
 def test_vectorize_redshift_method():
@@ -71,3 +74,23 @@ def test_inf_like(arr, expected):
     """
     with pytest.warns(AstropyDeprecationWarning):
         assert np.all(inf_like(arr) == expected)
+
+
+# -------------------------------------------------------------------
+
+
+class Test_aszarr:
+
+    @pytest.mark.parametrize("z, expect", list(zip(valid_zs, [
+        0, 1, 1100, np.float64(3300), 2.0, 3.0, _zarr, _zarr, _zarr, _zarr
+    ])))
+    def test_valid(self, z, expect):
+        """Test :func:`astropy.cosmology.utils.aszarr`."""
+        got = aszarr(z)
+        assert np.array_equal(got, expect)
+
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    def test_invalid(self, z, exc):
+        """Test :func:`astropy.cosmology.utils.aszarr`."""
+        with pytest.raises(exc):
+            aszarr(z)
