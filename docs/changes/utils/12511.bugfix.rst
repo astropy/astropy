@@ -1,2 +1,0 @@
-Ensure ``Masked`` also works with numpy >=1.22, which has a keyword argument
-name change for ``np.quantile``.

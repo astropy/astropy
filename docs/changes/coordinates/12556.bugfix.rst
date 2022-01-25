@@ -1,2 +1,0 @@
-Fixed a bug where changing the wrap angle of the longitude component of a
-representation could raise a warning or error in certain situations.
