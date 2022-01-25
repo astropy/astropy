@@ -1,0 +1,2 @@
+Updates to ``~astropy.modeling.bounding_box`` so that ``model`` is an
+optional argument for bounding_box initialization.
