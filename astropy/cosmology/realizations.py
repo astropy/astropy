@@ -1,34 +1,52 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
+import pathlib
 import sys
-import warnings
 
-from astropy import units as u
+# LOCAL
+from astropy.utils.data import get_pkg_data_path
 from astropy.utils.decorators import deprecated
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
-from . import parameters
-from .core import _COSMOLOGY_CLASSES, Cosmology
+from .core import Cosmology
 
-__all__ = ["default_cosmology"] + list(parameters.available)
+
+_COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
+available = tuple(sorted([p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")]))
+
+
+__all__ = ["available", "default_cosmology"] + list(available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
-# Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a corresponding cosmology instance
-for key in parameters.available:
-    params = dict(getattr(parameters, key))  # get parameters dict (copy)
-    params.setdefault("name", key)
-    # make cosmology
-    cosmo = Cosmology.from_format(params, format="mapping", move_to_meta=True)
-    cosmo.__doc__ = (f"{key} instance of {cosmo.__class__.__qualname__} "
-                     f"cosmology\n(from {cosmo.meta['reference']})")
-    # put in this namespace
-    setattr(sys.modules[__name__], key, cosmo)
+def __getattr__(name):
+    """Make specific realizations from data files with lazy import from
+    `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 
-del key, params, cosmo  # clean the namespace
+    Raises
+    ------
+    AttributeError
+        If "name" is not in :mod:`astropy.cosmology.realizations`
+    """
+    if name not in available:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
+
+    cosmo = Cosmology.read(str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv")
+    cosmo.__doc__ = (f"{name} instance of {cosmo.__class__.__qualname__} "
+                     f"cosmology\n(from {cosmo.meta['reference']})")
+
+    # Cache in this module so `__getattr__` is only called once per `name`.
+    setattr(sys.modules[__name__], name, cosmo)
+
+    return cosmo
+
+
+def __dir__():
+    """Directory, including lazily-imported objects."""
+    return __all__
+
 
 #########################################################################
 # The science state below contains the current cosmology.
@@ -111,7 +129,7 @@ class default_cosmology(ScienceState):
                 value = getattr(sys.modules[__name__], key)
             except AttributeError:
                 raise ValueError(f"Unknown cosmology {key!r}. "
-                                 f"Valid cosmologies:\n{parameters.available}")
+                                 f"Valid cosmologies:\n{available}")
         elif isinstance(key, Cosmology):
             value = key
         else:
