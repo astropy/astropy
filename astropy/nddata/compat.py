@@ -31,7 +31,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     See also: https://docs.astropy.org/en/stable/nddata/
 
     Parameters
-    -----------
+    ----------
     data : ndarray or `NDData`
         The actual data contained in this `NDData` object. Not that this
         will always be copies by *reference* , so you should make copy
