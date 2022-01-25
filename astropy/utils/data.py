@@ -1014,7 +1014,7 @@ def check_free_space_in_dir(path, size):
         A proposed filesize. If not a Quantity, assume it is in bytes.
 
     Raises
-    -------
+    ------
     OSError
         There is not enough room on the filesystem.
     """

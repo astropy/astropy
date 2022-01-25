@@ -1258,7 +1258,7 @@ class SLSQPLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
 
     Notes
-    ------
+    -----
     See also the `~astropy.modeling.optimizers.SLSQP` optimizer.
 
     """
