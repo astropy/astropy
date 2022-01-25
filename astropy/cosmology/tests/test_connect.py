@@ -17,7 +17,7 @@ from astropy.table import QTable, Row
 ###############################################################################
 # SETUP
 
-cosmo_instances = cosmology.parameters.available
+cosmo_instances = cosmology.realizations.available
 
 # Collect the registered read/write formats.
 readwrite_formats = {"ascii.ecsv", "json"}

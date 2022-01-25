@@ -23,7 +23,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # cosmology instances to test reading and writing
 astropy_cosmos = [
-    getattr(cosmology.realizations, n) for n in cosmology.parameters.available
+    getattr(cosmology.realizations, n) for n in cosmology.realizations.available
 ]
 
 mypackage_cosmos = [myplanck]  # list of ``mypackage`` cosmology realizations

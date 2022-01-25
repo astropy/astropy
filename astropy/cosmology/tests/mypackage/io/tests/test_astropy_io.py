@@ -26,7 +26,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 # the formats being registered with Astropy
 readwrite_formats = ["myformat"]
 # cosmology instances to test reading and writing
-astropy_cosmos = cosmology.parameters.available
+astropy_cosmos = cosmology.realizations.available
 
 # list of ``mypackage`` cosmology realizations
 mypackage_cosmos = [myplanck]
