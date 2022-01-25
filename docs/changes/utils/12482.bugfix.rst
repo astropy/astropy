@@ -1,2 +1,0 @@
-Ensure that a ``Masked`` instance can be used to initialize (or viewed
-as) a ``numpy.ma.Maskedarray``.

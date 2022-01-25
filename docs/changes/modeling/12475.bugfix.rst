@@ -1,2 +1,0 @@
-Fixes error when fitting multiplication or division based compound models
-where the sub-models have different output units.
