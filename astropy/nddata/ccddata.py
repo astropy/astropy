@@ -79,7 +79,7 @@ class CCDData(NDDataArray):
     information for a single CCD image.
 
     Parameters
-    -----------
+    ----------
     data : `~astropy.nddata.CCDData`-like or array-like
         The actual data contained in this `~astropy.nddata.CCDData` object.
         Note that the data will always be saved by *reference*, so you should
@@ -298,7 +298,7 @@ class CCDData(NDDataArray):
             .. versionadded:: 3.1
 
         Raises
-        -------
+        ------
         ValueError
             - If ``self.mask`` is set but not a `numpy.ndarray`.
             - If ``self.uncertainty`` is set but not a astropy uncertainty type.
@@ -695,7 +695,7 @@ def fits_ccddata_writer(
         All additional keywords are passed to :py:mod:`astropy.io.fits`
 
     Raises
-    -------
+    ------
     ValueError
         - If ``self.mask`` is set but not a `numpy.ndarray`.
         - If ``self.uncertainty`` is set but not a
