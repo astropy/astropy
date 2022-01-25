@@ -524,18 +524,6 @@ class ModelBoundingBox(_BoundingDomain):
         The ordering that is assumed for the tuple representation of this
         bounding_box. Options: 'C': C/Python order, e.g. z, y, x.
         (default), 'F': Fortran/mathematical notation order, e.g. x, y, z.
-
-    Methods
-    -------
-    validate :
-        Constructs a valid bounding_box from any of the allowed
-        respresentations of a bounding_box.
-
-    bounding_box :
-        Contructs a tuple respresentation
-
-    domain :
-        Contructs a discretization of the points inside the bounding_box
     """
 
     def __init__(self, intervals: Dict[int, _Interval], model,
@@ -1297,11 +1285,6 @@ class CompoundBoundingBox(_BoundingDomain):
     order : optional, str
         The ordering that is assumed for the tuple representation of the
         bounding_boxes.
-
-    Methods
-    -------
-    validate :
-        Contructs a valid complex bounding_box
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
                  selector_args: _SelectorArguments, create_selector: Callable = None, order: str = 'C'):
