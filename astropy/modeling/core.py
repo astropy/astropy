@@ -767,7 +767,8 @@ class Model(metaclass=_ModelMeta):
         self._inputs = val
         self._initialize_unit_support()
 
-        self.bounding_box = bbox
+        if self._user_bounding_box is not None:
+            self.bounding_box = bbox
 
     @property
     def outputs(self):
