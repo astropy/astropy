@@ -1779,7 +1779,7 @@ class Time(TimeBase):
         """Calculate local Earth rotation angle.
 
         Parameters
-        ---------------
+        ----------
         longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
             The longitude on the Earth at which to compute the Earth rotation
             angle (taken from a location as needed).  If `None` (default), taken
@@ -1830,7 +1830,7 @@ class Time(TimeBase):
         """Calculate sidereal time.
 
         Parameters
-        ---------------
+        ----------
         kind : str
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
