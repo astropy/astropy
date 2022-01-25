@@ -310,7 +310,7 @@ the WMAP and Planck satellite data. For example:
   <Quantity 10.51184138 Gyr>
 
 A full list of the predefined cosmologies is given by
-``cosmology.parameters.available`` and summarized below:
+``cosmology.realizations.available`` and summarized below:
 
 ===========  ============================== ====  ===== =======
 Name         Source                         H0    Om    Flat

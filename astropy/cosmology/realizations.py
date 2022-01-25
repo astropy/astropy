@@ -1,16 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # STDLIB
+import pathlib
 import sys
 
 # LOCAL
+from astropy.utils.data import get_pkg_data_path
 from astropy.utils.decorators import deprecated
 from astropy.utils.state import ScienceState
 
 from .core import Cosmology
-from .parameters import _COSMOLOGY_DATA_DIR, available
 
-__all__ = ["default_cosmology"] + list(available)
+
+_COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
+available = tuple(sorted([p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")]))
+
+
+__all__ = ["available", "default_cosmology"] + list(available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 

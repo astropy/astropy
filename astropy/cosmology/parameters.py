@@ -56,18 +56,13 @@ Pending WMAP team approval and subject to change.
 """
 
 # STDLIB
-import pathlib
 import sys
 from types import MappingProxyType
 
 # LOCAL
-from astropy.utils.data import get_pkg_data_path
+from .realizations import available
 
-
-_COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
-available = tuple(sorted([p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")]))
-
-__all__ = ["available"] +  list(available)
+__all__ = ["available"] + list(available)
 
 
 def __getattr__(name):

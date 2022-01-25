@@ -16,7 +16,7 @@ from .core import *
 from .flrw import *
 from .funcs import *
 from .parameter import *
-from .realizations import default_cosmology
+from .realizations import available, default_cosmology
 from .utils import *
 
 __all__ = (core.__all__ + flrw.__all__       # cosmology classes
