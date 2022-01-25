@@ -1,2 +1,0 @@
-``astropy.utils.iers.LeapSeconds.auto_open()`` no longer emits unnecessary
-warnings when ``astropy.utils.iers.conf.auto_max_age`` is set to ``None``.

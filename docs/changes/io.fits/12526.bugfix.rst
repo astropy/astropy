@@ -1,2 +1,0 @@
-Fix formatting issue in ``_dump_coldefs`` and add tests for ``tabledump`` and
-``tableload`` convenience functions.

@@ -1,1 +1,0 @@
-Fix bad typing problems by removing interaction with ``NDArray.__class_getitem__``.
