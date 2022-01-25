@@ -647,11 +647,9 @@ class ModelBoundingBox(_BoundingDomain):
 
         return intervals
 
-    def _verify_intervals_dict(self, _external_ignored: List[str] = None):
+    def _verify_intervals_dict(self, intervals, _external_ignored: List[str] = None):
         if _external_ignored is None:
             _external_ignored = []
-
-        intervals = self._pop_intervals()
 
         for key, value in intervals.items():
             name = self._get_name(key)
@@ -671,12 +669,11 @@ class ModelBoundingBox(_BoundingDomain):
                 if name not in self._ignored
                 and name not in _external_ignored]
 
-    def _verify_intervals_sequence(self, _external_ignored: List[str] = None):
+    def _verify_intervals_sequence(self, intervals, _external_ignored: List[str] = None):
         names = self._interval_names(_external_ignored)
-        if len(names) == 0 and len(self.intervals) > 0:
+        if len(names) == 0 and len(intervals) > 0:
             raise ValueError("All intervals have been ignored!")
 
-        intervals = self._pop_intervals()
         if not isiterable(intervals) or len(intervals) <= 1:
             raise ValueError(f"The intervals: {intervals}, do not contain enough information to construct a bounding_box!")
 
@@ -694,10 +691,17 @@ class ModelBoundingBox(_BoundingDomain):
     def _verify_intervals(self, _external_ignored: List[str] = None):
         ignored = self._ignored.copy()
 
-        if isinstance(self._intervals, dict):
-            self._verify_intervals_dict(_external_ignored)
-        else:
-            self._verify_intervals_sequence(_external_ignored)
+        intervals = self._pop_intervals()
+        try:
+            if isinstance(intervals, dict):
+                self._verify_intervals_dict(intervals, _external_ignored)
+            else:
+                self._verify_intervals_sequence(intervals, _external_ignored)
+
+        except Exception as err:
+            self._intervals = intervals
+
+            raise err
 
         if ignored != self._ignored or any(name in self._intervals for name in ignored):
             raise ValueError("At least one interval is being ignored")
@@ -1403,8 +1407,14 @@ class CompoundBoundingBox(_BoundingDomain):
     def _verify_bounding_boxes(self, _external_ignored: List[str] = None):
         if self._selector_args is not None:
             bounding_boxes = self._pop_bounding_boxes()
-            for selector, bounding_box in bounding_boxes.items():
-                self.__setitem__(selector, bounding_box, _external_ignored)
+            try:
+                for selector, bounding_box in bounding_boxes.items():
+                    self.__setitem__(selector, bounding_box, _external_ignored)
+
+            except Exception as err:
+                self._bounding_boxes = bounding_boxes
+
+                raise err
 
     def _verify(self, _external_ignored: List[str] = None):
         if self._has_model:
