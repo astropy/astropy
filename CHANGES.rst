@@ -1,3 +1,95 @@
+5.0.1 (2022-01-25)
+==================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Trying to create an instance of ``astropy.coordinates.Distance`` by providing
+  both ``z`` and ``parallax`` now raises the expected ``ValueError``. [#12531]
+
+- Fixed a bug where changing the wrap angle of the longitude component of a
+  representation could raise a warning or error in certain situations. [#12556]
+
+- ``astropy.coordinates.Distance`` constructor no longer ignores the ``unit``
+  keyword when ``parallax`` is provided. [#12569]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- ``astropy.cosmology.utils.aszarr`` can now convert ``Column`` objects. [#12525]
+
+- Reading a cosmology from an ECSV will load redshift and Hubble parameter units
+  from the cosmology units module. [#12636]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix formatting issue in ``_dump_coldefs`` and add tests for ``tabledump`` and
+  ``tableload`` convenience functions. [#12526]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- YAML can now also represent quantities and arrays with structured dtype,
+  as well as structured scalars based on ``np.void``. [#12509]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixes error when fitting multiplication or division based compound models
+  where the sub-models have different output units. [#12475]
+
+- Bugfix for incorrectly initialized and filled ``parameters`` data for ``Spline1D`` model. [#12523]
+
+- Bugfix for ``keyerror`` thrown by ``Model.input_units_equivalencies`` when
+  used on ``fix_inputs`` models which have no set unit equivalencies. [#12597]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- ``astropy.table.Table.keep_columns()`` and
+  ``astropy.table.Table.remove_columns()`` now work with generators of column
+  names. [#12529]
+
+- Avoid duplicate storage of info in serialized columns if the column
+  used to serialize already can hold that information. [#12607]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Fixed edge case bugs which emerged when using ``aggregate_downsample`` with custom bins. [#12527]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Structured units can be serialized to/from yaml. [#12492]
+
+- Fix bad typing problems by removing interaction with ``NDArray.__class_getitem__``. [#12511]
+
+- Ensure that ``Quantity.to_string(format='latex')`` properly typesets exponents
+  also when ``u.quantity.conf.latex_array_threshold = -1`` (i.e., when the threshold
+  is taken from numpy). [#12573]
+
+- Structured units can now be copied with ``copy.copy`` and ``copy.deepcopy``
+  and also pickled and unpicked also for ``protocol`` >= 2.
+  This does not work for big-endian architecture with older ``numpy<1.21.1``. [#12583]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure that a ``Masked`` instance can be used to initialize (or viewed
+  as) a ``numpy.ma.Maskedarray``. [#12482]
+
+- Ensure ``Masked`` also works with numpy >=1.22, which has a keyword argument
+  name change for ``np.quantile``. [#12511]
+
+- ``astropy.utils.iers.LeapSeconds.auto_open()`` no longer emits unnecessary
+  warnings when ``astropy.utils.iers.conf.auto_max_age`` is set to ``None``. [#12713]
+
+
 5.0 (2021-11-15)
 ================
 

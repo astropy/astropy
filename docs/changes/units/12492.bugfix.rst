@@ -1,1 +1,0 @@
-Structured units can be serialized to/from yaml.
