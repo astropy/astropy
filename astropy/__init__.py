@@ -8,7 +8,6 @@ managing them.
 
 import sys
 import os
-from warnings import warn
 
 from .version import version as __version__
 

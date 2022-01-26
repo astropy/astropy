@@ -10,7 +10,6 @@ import threading
 import types
 import warnings
 from inspect import signature
-from functools import wraps
 
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
