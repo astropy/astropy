@@ -14,16 +14,13 @@ class ModelBoundingBoxType(AstropyAsdfType):
 
     @classmethod
     def to_tree(cls, bbox, cts):
-        if isinstance(bbox, ModelBoundingBox):
-            return {
-                'intervals': {
-                    _input: list(interval) for _input, interval in bbox.intervals.items()
-                },
-                'ignore': list(bbox.ignored),
-                'order': bbox.order
-            }
-        else:
-            raise TypeError(f"{bbox} is not a valid ModelBoundingBox!")
+        return {
+            'intervals': {
+                _input: list(interval) for _input, interval in bbox.intervals.items()
+            },
+            'ignore': list(bbox.ignored),
+            'order': bbox.order
+        }
 
     @classmethod
     def from_tree(cls, node, cts):
@@ -57,25 +54,22 @@ class CompoundBoundingBoxType(AstropyAsdfType):
 
     @classmethod
     def to_tree(cls, cbbox, cts):
-        if isinstance(cbbox, CompoundBoundingBox):
-            return {
-                'selector_args': [
-                    {
-                        'argument': sa[0],
-                        'ignore': sa[1]
-                    } for sa in cbbox.selector_args
-                ],
-                'cbbox': [
-                    {
-                        'key': list(key),
-                        'bbox': bbox
-                    } for key, bbox in cbbox.bounding_boxes.items()
-                ],
-                'ignore': cbbox.global_ignored,
-                'order': cbbox.order
-            }
-        else:
-            raise TypeError(f"{cbbox} is not a valid CompoundBoundingBox!")
+        return {
+            'selector_args': [
+                {
+                    'argument': sa[0],
+                    'ignore': sa[1]
+                } for sa in cbbox.selector_args
+            ],
+            'cbbox': [
+                {
+                    'key': list(key),
+                    'bbox': bbox
+                } for key, bbox in cbbox.bounding_boxes.items()
+            ],
+            'ignore': cbbox.global_ignored,
+            'order': cbbox.order
+        }
 
     @classmethod
     def from_tree(cls, node, cts):
