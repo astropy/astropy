@@ -1,0 +1,1 @@
+Add extended encoder and decoders for json I/O.
