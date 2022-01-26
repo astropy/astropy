@@ -93,6 +93,7 @@ background in an image.
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling import models, fitting
+    from astropy.utils.exceptions import AstropyUserWarning
 
     # Generate fake data
     np.random.seed(0)
@@ -106,7 +107,8 @@ background in an image.
 
     with warnings.catch_warnings():
         # Ignore model linearity warning from the fitter
-        warnings.simplefilter('ignore')
+        warnings.filterwarnings('ignore', message='Model is linear in parameters',
+                                category=AstropyUserWarning)
         p = fit_p(p_init, x, y, z)
 
     # Plot the data with the best-fit model

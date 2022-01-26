@@ -130,10 +130,11 @@ and fit Gaussians to the lines simultaneously while linking the flux of the OIII
 
     hbeta_combo = h_beta + o3_1 + o3_2 + poly_cont
 
-    # Fit all lines simultaneously.
+    # Fit all lines simultaneously -
+    # this will need one iteration more than the default of 100.
 
     fitter = fitting.LevMarLSQFitter()
-    fitted_model = fitter(hbeta_combo, wave, flux)
+    fitted_model = fitter(hbeta_combo, wave, flux, maxiter=111)
     fitted_lines = fitted_model(wave)
 
     from matplotlib import pyplot as plt
