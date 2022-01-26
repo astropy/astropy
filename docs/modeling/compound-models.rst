@@ -52,9 +52,11 @@ These new compound models can also be fitted to data, like most other models
     # guesses for the parameters:
     gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
     fitter = fitting.SLSQPLSQFitter()
+
     with warnings.catch_warnings():
-        # Ignore "Values in x were outside bounds" warning from the fitter
-        warnings.simplefilter('ignore')
+        # Ignore a warning on clipping to bounds from the fitter
+        warnings.filterwarnings('ignore', message='Values in x were outside bounds',
+                                category=RuntimeWarning)
         gg_fit = fitter(gg_init, x, y)
 
     # Plot the data with the best-fit model

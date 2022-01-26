@@ -27,15 +27,20 @@ More information on using WCSAxes can be found :ref:`here <wcsaxes>`.
     :include-source:
     :align: center
 
+    import warnings
     from matplotlib import pyplot as plt
     from astropy.io import fits
-    from astropy.wcs import WCS
+    from astropy.wcs import WCS, FITSFixedWarning
     from astropy.utils.data import get_pkg_data_filename
 
     filename = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
 
     hdu = fits.open(filename)[0]
-    wcs = WCS(hdu.header)
+    with warnings.catch_warnings():
+        # Ignore a warning on using DATE-OBS in place of MJD-OBS
+        warnings.filterwarnings('ignore', message="'datfix' made the change",
+                                category=FITSFixedWarning)
+        wcs = WCS(hdu.header)
 
     fig = plt.figure()
     fig.add_subplot(111, projection=wcs)
