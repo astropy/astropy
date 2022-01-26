@@ -36,6 +36,7 @@ These new compound models can also be fitted to data, like most other models
 .. plot::
     :include-source:
 
+    import warnings
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling import models, fitting
@@ -51,7 +52,10 @@ These new compound models can also be fitted to data, like most other models
     # guesses for the parameters:
     gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
     fitter = fitting.SLSQPLSQFitter()
-    gg_fit = fitter(gg_init, x, y)
+    with warnings.catch_warnings():
+        # Ignore "Values in x were outside bounds" warning from the fitter
+        warnings.simplefilter('ignore')
+        gg_fit = fitter(gg_init, x, y)
 
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,5))
