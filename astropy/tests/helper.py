@@ -5,7 +5,6 @@ from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
 import os
 import sys
-import types
 import pickle
 import warnings
 import functools
