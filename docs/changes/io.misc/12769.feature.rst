@@ -1,0 +1,2 @@
+Enable serialization of bounding boxes according to the new bounding box
+asdf transform schema.
