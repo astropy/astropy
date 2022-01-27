@@ -14,7 +14,6 @@ from astropy.utils.metadata import MetaData
 
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 from .parameter import Parameter
-from .utils import _recursive_dict_eq
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -308,107 +307,6 @@ class Cosmology(metaclass=abc.ABCMeta):
                      and all(np.all(getattr(self, k) == getattr(other, k))
                              for k in self.__all_parameters__))
         return params_eq
-
-    def is_equal(self, other, *, check_meta=False, format=False):
-        r"""Check equality between Cosmologies.
-
-        Parameters
-        ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance or Any
-            The object to check for equality.
-        check_meta : bool, optional keyword-only
-            Whether to also check the metadata when determining equality.
-        format : bool or None or str, optional keyword-only
-            Whether to allow, before equality is checked, the object to be
-            converted to a |Cosmology|. This allows, e.g. a |Table| to be
-            equal to a Cosmology.
-            `False` (default) will not allow conversion. `True` or `None` will,
-            and will use the auto-identification to try to infer the correct
-            format. A `str` is assumed to be the correct format to use when
-            converting.
-
-        Returns
-        -------
-        bool
-            `True` if cosmologies are equal, `False` otherwise.
-
-        See Also
-        --------
-        astropy.cosmology.Cosmology.is_equivalent
-            Cosmologies may be equivalent, even if not the same class or name
-            or metadata.
-
-        Examples
-        --------
-        For a simple check that the two objects are |Cosmology|, with the same
-        names and parameter values, use the standard python equality operator.
-
-            >>> from astropy.cosmology import Planck13, Planck18
-            >>> Planck18 == Planck18
-            True
-
-            >>> Planck13 != Planck18
-            True
-
-        This is the same as the default behavior of ``is_equal``:
-
-            >>> Planck18.is_equal(Planck18)
-            True
-
-            >>> Planck18.is_equal(Planck13)
-            False
-
-        ``is_equal`` can also check that the metadata
-        (:attr:`astropy.Cosmology.meta`) are equal, with the keyword argument
-        ``check_meta``.
-
-            >>> cosmo = Planck18.clone(name="Planck18", meta=dict(info="new"))
-            >>> Planck18.is_equal(cosmo, check_meta=True)
-            False
-
-        When the cosmologies have different names or parameter values they
-        are never equal.
-
-            >>> Planck18.is_equal(Planck13)
-            False
-
-        Using the keyword argument ``format``, the notion of equality is
-        extended to any Python object that can be converted to a |Cosmology|.
-
-            >>> tbl = Planck18.to_format("astropy.table")
-            >>> Planck18.is_equal(tbl, format=True)
-            True
-
-        The list of valid formats, e.g. the |Table| in this example, may be
-        checked with ``Cosmology.from_format.list_formats()``.
-
-        As can be seen in the list of formats, not all formats can be
-        auto-identified by ``Cosmology.from_format.registry``. Objects of
-        these kinds can still be checked for equality, but the correct
-        format string must be used.
-
-            >>> tbl = Planck18.to_format("yaml")
-            >>> Planck18.is_equal(tbl, format="yaml")
-            True
-        """
-        # Allow for different formats to be considered equivalent.
-        if format is not False:
-            format = None if format is True else format  # str->str, None/True->None
-            try:
-                other = Cosmology.from_format(other, format=format)
-            except Exception:  # TODO! should enforce only TypeError
-                return False
-
-        # Parameter equality
-        eq = self.__eq__(other)
-        if eq is NotImplemented and hasattr(other, "__eq__"):
-            eq = other.__eq__(self)  # that failed, try from 'other'
-
-        # Metadata
-        if check_meta and eq is True:  # Only check if required.
-            eq &= _recursive_dict_eq(self.meta, other.meta) if hasattr(other, "meta") else False
-
-        return eq if eq is not NotImplemented else False  # Ensure boolean
 
     def __eq__(self, other):
         """Check equality between Cosmologies.

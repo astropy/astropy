@@ -13,6 +13,7 @@ import numpy as np
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.tests.conftest import get_redshift_methods
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -136,8 +137,9 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         # it won't error if everything matches up
         got = from_format(model, format="astropy.model")
         assert got == cosmo
+        assert cosmology_equal(cosmo, got) is False
         assert set(cosmo.meta.keys()).issubset(got.meta.keys())
-        # Note: model adds parameter attributes to the metadata
+        # Note: Model adds parameter attributes to the metadata
 
         # also it auto-identifies 'format'
         got = from_format(model)
@@ -172,13 +174,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.model"])
     def test_is_equal_to_model(self, cosmo, method_name, to_format, from_format, format):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
-
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a model. Models attach a lot more metadata when converted back to a
-        Cosmology, so this can only be equal if the metadata is ignored.
-        """
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`."""
         if method_name is None:  # no test if no method
             return
 
@@ -187,16 +183,16 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert not isinstance(obj, Cosmology)
 
         # Can be equal if the metadata is ignored.
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, check_meta=False, format=format)
         assert is_equal is (True if format is not False else False)
 
         # Rarely equal because extra metadata
-        is_equal = cosmo.is_equal(obj, format=format, check_meta=True)
+        is_equal = cosmology_equal(cosmo, obj, format=format, check_meta=True)
         assert is_equal is False
 
         if format is not False:  # Carrying metadata through.
             roundtripcosmo = from_format(obj)
-            is_equal = roundtripcosmo.is_equal(obj, format=format, check_meta=True)
+            is_equal = cosmology_equal(roundtripcosmo, obj, format=format, check_meta=True)
             assert is_equal is True
 
 

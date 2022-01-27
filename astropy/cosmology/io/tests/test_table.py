@@ -7,6 +7,7 @@ import pytest
 from astropy.cosmology import Cosmology, Planck18
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.table import from_table, to_table
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.table import QTable, Table, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -123,17 +124,17 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
         # it won't error if everything matches up
         tbl.remove_column("mismatching")
         got = from_format(tbl, format="astropy.table")
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
         # and it will also work if the cosmology is a class
         # Note this is not the default output of ``to_format``.
         tbl.meta["cosmology"] = _COSMOLOGY_CLASSES[tbl.meta["cosmology"]]
         got = from_format(tbl, format="astropy.table")
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
         # also it auto-identifies 'format'
         got = from_format(tbl)
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
     def test_fromformat_table_subclass_partial_info(self, cosmo_cls, cosmo,
                                                     from_format, to_format):
@@ -222,16 +223,11 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
     @pytest.mark.filterwarnings("ignore:elementwise == comparison")
     @pytest.mark.parametrize("format", [True, False, None, "astropy.table"])
     def test_is_equal_to_table(self, cosmo, to_format, format):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
-
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a |Table|.
-        """
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`."""
         obj = to_format("astropy.table")
         assert not isinstance(obj, Cosmology)
 
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, format=format)
         assert is_equal is (True if format is not False else False)
 
 

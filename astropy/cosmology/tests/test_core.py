@@ -26,6 +26,7 @@ from astropy.table import Column, QTable, Table
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 
+from .helper import cosmology_equal
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
 from .test_parameter import ParameterTestMixin
 
@@ -221,8 +222,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert c.name == "cloned cosmo"  # changed
         # show name is the only thing changed
         c._name = cosmo.name  # first change name back
-        assert c == cosmo
-        assert c.meta == cosmo.meta
+        assert cosmology_equal(cosmo, c)
 
         # now change a different parameter and see how 'name' changes
         c = cosmo.clone(meta={})
@@ -250,7 +250,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
     def test_clone_fail_unexpected_arg(self, cosmo):
         """Test when ``.clone()`` gets an unexpected argument."""
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            newclone = cosmo.clone(not_an_arg=4)
+            cosmo.clone(not_an_arg=4)
 
     def test_clone_fail_positional_arg(self, cosmo):
         with pytest.raises(TypeError, match="1 positional argument"):
@@ -286,20 +286,17 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert (cosmo != newcosmo) and (newcosmo != cosmo)
         assert cosmo.__equiv__(newcosmo) and newcosmo.__equiv__(cosmo)
 
-    def test_is_equal(self, cosmo):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`."""
+    def test_equality_including_metadata(self, cosmo):
+        """Test :meth:`astropy.cosmology.Cosmology` equality."""
         # to self
-        assert cosmo.is_equal(cosmo)
+        assert cosmology_equal(cosmo, cosmo)
 
         # check_meta=
         newclone = cosmo.clone(name=cosmo.name, meta=dict(info="new"))
-        assert cosmo.is_equal(newclone)
-        assert not cosmo.is_equal(newclone, check_meta=True)
-        assert newclone.is_equal(cosmo)
-        assert not newclone.is_equal(cosmo, check_meta=True)
-
-        # format=
-        # This is tested in each to/from_format mixin
+        assert not cosmology_equal(cosmo, newclone, check_meta=True)
+        assert cosmology_equal(cosmo, newclone, check_meta=False)
+        assert not cosmology_equal(newclone, cosmo, check_meta=True)
+        assert cosmology_equal(newclone, cosmo, check_meta=False)
 
     # ---------------------------------------------------------------
 
@@ -355,6 +352,8 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         for k, v in cosmo.meta.items():
             assert np.all(tbl.meta[k] == v)
 
+        # Further tests are in the To/FromTableTestMixin.
+
     # ===============================================================
     # Usage Tests
 
@@ -383,8 +382,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         with u.add_enabled_units(cu):
             unpickled = pickle.loads(f)
 
-        assert unpickled == cosmo
-        assert unpickled.meta == cosmo.meta
+        assert cosmology_equal(cosmo, unpickled)
 
 
 class CosmologySubclassTest(TestCosmology):

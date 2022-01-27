@@ -14,6 +14,8 @@ from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import Planck13, default_cosmology
 from astropy.tests.helper import pickle_protocol
 
+from .helper import cosmology_equal
+
 
 def test_realizations_in_toplevel_dir():
     """Test the realizations are in ``dir`` of :mod:`astropy.cosmology`."""
@@ -33,7 +35,7 @@ def test_realizations_in_realizations_dir():
         assert n in d
 
 
-class Test_default_cosmology(object):
+class Test_default_cosmology:
     """Tests for :class:`~astropy.cosmology.realizations.default_cosmology`."""
 
     # -----------------------------------------------------
@@ -42,12 +44,12 @@ class Test_default_cosmology(object):
     def test_get_fail(self):
         """Test bad inputs to :meth:`astropy.cosmology.default_cosmology.get`."""
         # a not-valid option, but still a str
-        with pytest.raises(ValueError, match="Unknown cosmology"):
-            cosmo = default_cosmology.get("fail!")
+        with pytest.raises(ValueError, match="Unknown cosmology"):  # noqa: E305
+            default_cosmology.get("fail!")  # noqa: E305
 
-        # a not-valid type
-        with pytest.raises(TypeError, match="'key' must be must be"):
-            cosmo = default_cosmology.get(object())
+        # A not-valid type
+        with pytest.raises(TypeError, match="'key' must be must be"):  # noqa: E305
+            default_cosmology.get(object())  # noqa: E305
 
     def test_get_current(self):
         """Test :meth:`astropy.cosmology.default_cosmology.get` current value."""
@@ -118,8 +120,7 @@ def test_pickle_builtin_realizations(name, pickle_protocol):
     with u.add_enabled_units(cu):
         unpickled = pickle.loads(f)
 
-    assert unpickled == original
-    assert unpickled.meta == original.meta
+    assert cosmology_equal(original, unpickled)
 
     # if the units are not enabled, it isn't equal because redshift units
     # are not equal. This is a weird, known issue.

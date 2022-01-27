@@ -20,6 +20,7 @@ astropy = pytest.importorskip("astropy", minversion="4.3")  # isort: skip
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.io import registry as io_registry
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -57,10 +58,8 @@ class TestAstropyCosmologyIO:
         got = Cosmology.read(fname, format=format)
 
         # test round-tripped as expected
-        assert got == cosmo  # tests immutable parameters, e.g. H0
-
-        # NOTE: if your package's cosmology supports metadata
-        # assert got.meta == expected.meta  # (metadata not tested above)
+        assert cosmology_equal(cosmo, got, check_meta=False)  # tests immutable parameters
+        # (set to True ff your package's cosmology supports metadata)
 
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", astropy_cosmos)

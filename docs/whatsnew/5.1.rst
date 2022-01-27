@@ -41,15 +41,11 @@ equivalence to any Python object that can be converted to a Cosmology.
 The list of valid formats, e.g. the Table in this example, may be
 checked with ``Cosmology.from_format.list_formats()``.
 
-A new method ``is_equal`` is added to more extend Cosmology equality (by the
-standard operator ``==``). ``is_equal`` allows for the metadata to be included
-in the equality check and also adds the keyword argument ``format`` so that
-any Python object that can be converted to a Cosmology may be checked for
-equality.
 
-    >>> tbl = Planck18.to_format("astropy.table")
-    >>> Planck18.is_equal(tbl, format=True)
-    True
+A new module ``cosmology.tests.helper`` is added to provide helper functions
+when testing cosmologies and related functionality.
+Included is a new function ``cosmology_equal`` to check for equality between
+two Cosmologies or any Python objects that can be converted to a Cosmology.
 
 
 .. _whatsnew-doppler-redshift-eq:

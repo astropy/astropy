@@ -11,6 +11,7 @@ import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
 from astropy.cosmology.io.yaml import from_yaml, to_yaml, yaml_constructor, yaml_representer
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.io.misc.yaml import AstropyDumper, dump, load
 from astropy.table import QTable, vstack
 
@@ -44,8 +45,7 @@ def test_yaml_constructor():
     with u.add_enabled_units(cu):  # needed for redshift units
         cosmo = load(yml)
     assert isinstance(cosmo, FlatLambdaCDM)
-    assert cosmo == Planck18
-    assert cosmo.meta == Planck18.meta
+    assert cosmology_equal(cosmo, Planck18)
 
 
 ##############################################################################
@@ -88,14 +88,11 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         # From YAML
 
         got = from_format(yml, format="yaml")
-
-        assert got.name == cosmo.name
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # it won't error if everything matches up
         got = from_format(yml, format="yaml")
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # auto-identify test moved because it doesn't work.
         # see test_tofrom_yaml_autoidentify
@@ -146,25 +143,23 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
     @pytest.mark.parametrize("format", [True, False, None])
     def test_is_equal_to_yaml(self, cosmo, to_format, format,
                               xfail_if_not_registered_with_yaml):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`.
 
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a YAML string. YAML can't be identified without "format" specified.
+        YAML can't be identified without "format" specified.
         """
         obj = to_format("yaml")
         assert not isinstance(obj, Cosmology)
 
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, format=format)
         assert is_equal is False
 
     def test_is_equal_to_yaml_specify_format(self, cosmo, to_format,
                                                   xfail_if_not_registered_with_yaml):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`.
 
         Same as ``test_is_equal_to_yaml`` but with ``format="yaml"``.
         """
-        assert cosmo.is_equal(to_format("yaml"), format="yaml") is True
+        assert cosmology_equal(cosmo, to_format("yaml"), format="yaml") is True
 
 
 class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):

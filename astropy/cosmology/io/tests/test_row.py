@@ -6,6 +6,7 @@ import pytest
 # LOCAL
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.io.row import from_row, to_row
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.table import Row
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -80,7 +81,7 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         # it won't error if everything matches up
         row.table.remove_column("mismatching")
         got = from_format(row, format="astropy.row")
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
         # and it will also work if the cosmology is a class
         # Note this is not the default output of ``to_format``.
@@ -88,11 +89,11 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         row.table.remove_column("cosmology")
         row.table["cosmology"] = cosmology
         got = from_format(row, format="astropy.row")
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
         # also it auto-identifies 'format'
         got = from_format(row)
-        assert got == cosmo
+        assert cosmology_equal(cosmo, got)
 
     def test_fromformat_row_subclass_partial_info(self, cosmo):
         """
@@ -120,16 +121,11 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
     @pytest.mark.filterwarnings("ignore:elementwise == comparison")
     @pytest.mark.parametrize("format", [True, False, None, "astropy.row"])
     def test_is_equal_to_row(self, cosmo, to_format, format):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
-
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a Row.
-        """
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`."""
         obj = to_format("astropy.row")
         assert not isinstance(obj, Cosmology)
 
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, format=format)
         assert is_equal is (True if format is not False else False)
 
 

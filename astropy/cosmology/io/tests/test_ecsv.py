@@ -7,6 +7,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.table import QTable, Table, vstack
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase

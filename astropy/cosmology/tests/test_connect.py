@@ -12,6 +12,7 @@ from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.tests import (test_cosmology, test_ecsv, test_json, test_mapping,
                                         test_model, test_row, test_table, test_yaml)
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.table import QTable, Row
 
 ###############################################################################
@@ -63,9 +64,7 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
 
         # Read back
         got = Cosmology.read(fname, format=format)
-
-        assert got == cosmo
-        assert dict(got.meta) == dict(cosmo.meta)
+        assert cosmology_equal(cosmo, got)
 
     @pytest.mark.parametrize("format", readwrite_formats)
     def test_readwrite_from_subclass_complete_info(self, cosmo_cls, cosmo, tmpdir, format):
@@ -78,18 +77,15 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
 
         # read with the same class that wrote.
         got = cosmo_cls.read(fname, format=format)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # this should be equivalent to
         got = Cosmology.read(fname, format=format, cosmology=cosmo_cls)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # and also
         got = Cosmology.read(fname, format=format, cosmology=cosmo_cls.__qualname__)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
 
 class TestCosmologyReadWrite(ReadWriteTestMixin):
@@ -161,12 +157,11 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
 
         # test from_format
         got = Cosmology.from_format(obj, format=format)
+        assert cosmology_equal(cosmo, got)  # external consistency
+
         # and autodetect
         got2 = Cosmology.from_format(obj)
-        assert got2 == got  # internal consistency
-
-        assert got == cosmo  # external consistency
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(got, got2)  # internal consistency
 
     @pytest.mark.parametrize("format, objtype", tofrom_formats)
     def test_fromformat_subclass_complete_info(self, cosmo_cls, cosmo, format, objtype):
@@ -181,21 +176,18 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
 
         # read with the same class that wrote.
         got = cosmo_cls.from_format(obj, format=format)
-        got2 = Cosmology.from_format(obj)  # and autodetect
-        assert got2 == got  # internal consistency
+        assert cosmology_equal(cosmo, got)  # external consistency
 
-        assert got == cosmo  # external consistency
-        assert got.meta == cosmo.meta
+        got2 = Cosmology.from_format(obj)  # and autodetect
+        assert cosmology_equal(got, got2)  # internal consistency
 
         # this should be equivalent to
         got = Cosmology.from_format(obj, format=format, cosmology=cosmo_cls)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # and also
         got = Cosmology.from_format(obj, format=format, cosmology=cosmo_cls.__qualname__)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
 
 class TestCosmologyToFromFormat(ToFromFormatTestMixin):

@@ -13,6 +13,7 @@ import pytest
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.mapping import from_mapping, to_mapping
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.table import QTable, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -86,8 +87,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         m = to_format('mapping', cosmology_as_str=True)
 
         got = from_format(m, format="mapping")
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
     def test_to_mapping_move_from_meta(self, to_format):
         """Test argument ``move_from_meta`` in ``to_mapping()``."""
@@ -145,13 +145,11 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
         # Read from exactly as given.
         got = from_format(m, format="mapping")
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
         # Reading auto-identifies 'format'
         got = from_format(m)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        assert cosmology_equal(cosmo, got)
 
     def test_fromformat_subclass_partial_info_mapping(self, cosmo):
         """
@@ -197,16 +195,11 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
     @pytest.mark.parametrize("format", [True, False, None, "mapping"])
     def test_is_equal_to_mapping(self, cosmo, to_format, format):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
-
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a mapping.
-        """
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`."""
         obj = to_format("mapping")
         assert not isinstance(obj, Cosmology)
 
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, format=format)
         assert is_equal is (True if format is not False else False)
 
 

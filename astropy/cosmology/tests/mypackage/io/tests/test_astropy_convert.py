@@ -18,6 +18,7 @@ astropy = pytest.importorskip("astropy", minversion="4.3")  # isort: skip
 # can now import freely from astropy
 from astropy import cosmology
 from astropy.cosmology import Cosmology
+from astropy.cosmology.tests.helper import cosmology_equal
 from astropy.io import registry as io_registry
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -42,10 +43,8 @@ class TestAstropyCosmologyConvert:
         got = Cosmology.from_format(mycosmo, format="mypackage")
 
         # test round-tripped as expected
-        assert got == expected  # tests immutable parameters, e.g. H0
-
-        # NOTE: if your package's cosmology supports metadata
-        # assert got.meta == expected.meta  # (metadata not tested above)
+        assert cosmology_equal(got, expected, check_meta=False)  # tests immutable parameters
+        # (set to True ff your package's cosmology supports metadata)
 
     @pytest.mark.parametrize("expected", mypackage_cosmos)
     def test_roundtrip_from_mypackage(self, expected):

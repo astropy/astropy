@@ -6,6 +6,7 @@ import pytest
 # LOCAL
 from astropy.cosmology import Cosmology
 from astropy.cosmology.io.cosmology import from_cosmology, to_cosmology
+from astropy.cosmology.tests.helper import cosmology_equal
 
 from .base import ToFromTestMixinBase, IODirectTestBase
 
@@ -57,17 +58,11 @@ class ToFromCosmologyTestMixin(ToFromTestMixinBase):
 
     @pytest.mark.parametrize("format", [True, False, None, "astropy.cosmology"])
     def test_is_equal_to_cosmology(self, cosmo, to_format, format):
-        """Test :meth:`astropy.cosmology.Cosmology.is_equal`.
-
-        This test checks that Cosmology equality can be extended to any
-        Python object that can be converted to a Cosmology -- in this case
-        a Cosmology! Since it's the identity conversion, the cosmology is
-        always equal to itself, regardless of ``format``.
-        """
+        """Test :func:`astropy.cosmology.tests.helper.cosmology_equal`."""
         obj = to_format("astropy.cosmology")
         assert obj is cosmo
 
-        is_equal = cosmo.is_equal(obj, format=format)
+        is_equal = cosmology_equal(cosmo, obj, format=format)
         assert is_equal is True  # equal to self
 
 

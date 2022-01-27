@@ -140,27 +140,3 @@ def aszarr(z):
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
-
-
-def _recursive_dict_eq(map1, map2):
-    if not isinstance(map1, Mapping) or not isinstance(map2, Mapping):
-        return False
-
-    elif set(map1.keys()) != set(map2.keys()):
-        return False
-
-    for k, v in map1.items():
-        try:  # Attempt normal comparison
-            eq = (map2[k] == v)
-        except ValueError:  # Maybe it's a NumPy array
-            try:
-                eq = np.array_equal(map2[k], v)
-            except DeprecationWarning:  # Some element-wise failures. Maybe mappings?
-                if isinstance(v, Mapping) and isinstance(map2[k], Mapping):
-                    eq = _recursive_dict_eq(v, map2[k])
-                else:
-                    eq = False
-        if not np.all(eq):
-            return False
-
-    return True
