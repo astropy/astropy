@@ -1,0 +1,3 @@
+|Cosmology| instances can now be serialized to and loaded from JSON, using the
+new ``JSONExtendedEncoder`` and ``JSONExtendedDecoder`` classes in
+``astropy.io.misc.json``.
