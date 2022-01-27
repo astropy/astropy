@@ -1,1 +1,0 @@
-Fixed edge case bugs which emerged when using ``aggregate_downsample`` with custom bins.
