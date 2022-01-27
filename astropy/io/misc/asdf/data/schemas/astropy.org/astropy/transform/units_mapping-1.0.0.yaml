@@ -17,20 +17,20 @@ examples:
     - Assign units of seconds to dimensionless input.
     - |
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
-        inputs:
+        unit_inputs:
           - name: x
             unit: !unit/unit-1.0.0
-        outputs:
+        unit_outputs:
           - name: x
             unit: !unit/unit-1.0.0 s
   -
     - Convert input to meters, then assign dimensionless units.
     - |
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
-        inputs:
+        unit_inputs:
           - name: x
             unit: !unit/unit-1.0.0 m
-        outputs:
+        unit_outputs:
           - name: x
             unit: !unit/unit-1.0.0
 
@@ -38,19 +38,19 @@ examples:
     - Convert input to meters, then drop units entirely.
     - |
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
-        inputs:
+        unit_inputs:
           - name: x
             unit: !unit/unit-1.0.0 m
-        outputs:
+        unit_outputs:
           - name: x
 
   -
     - Accept any units, then replace with meters.
     - |
       !<tag:astropy.org:astropy/transform/units_mapping-1.0.0>
-        inputs:
+        unit_inputs:
           - name: x
-        outputs:
+        unit_outputs:
           - name: x
             unit: !unit/unit-1.0.0 m
 
@@ -58,19 +58,19 @@ allOf:
   - $ref: "http://stsci.edu/schemas/asdf/transform/transform-1.2.0"
   - type: object
     properties:
-      inputs:
+      unit_inputs:
         description: |
           Array of input configurations.
         type: array
         items:
           $ref: "#/definitions/value_configuration"
-      outputs:
+      unit_outputs:
         description: |
           Array of output configurations.
         type: array
         items:
           $ref: "#/definitions/value_configuration"
-    required: [inputs, outputs]
+    required: [unit_inputs, unit_outputs]
 
 definitions:
   value_configuration:
