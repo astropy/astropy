@@ -22,6 +22,7 @@ from astropy.cosmology import io  # make sure everything is registered
 
 def _recursive_dict_eq(map1, map2):
     if not isinstance(map1, Mapping) or not isinstance(map2, Mapping):
+        assert False, "not a mapping"
         return False
 
     elif set(map1.keys()) != set(map2.keys()):
@@ -37,6 +38,7 @@ def _recursive_dict_eq(map1, map2):
                 if isinstance(v, Mapping) and isinstance(map2[k], Mapping):
                     eq = _recursive_dict_eq(v, map2[k])
                 else:
+                    assert False, f"{v}\n{map2[k]}\n"
                     eq = False
         if not np.all(eq):
             return False
