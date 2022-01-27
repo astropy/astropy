@@ -1,3 +1,0 @@
-``astropy.table.Table.keep_columns()`` and
-``astropy.table.Table.remove_columns()`` now work with generators of column
-names.

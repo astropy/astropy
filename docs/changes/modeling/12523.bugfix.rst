@@ -1,1 +1,0 @@
-Bugfix for incorrectly initialized and filled ``parameters`` data for ``Spline1D`` model.

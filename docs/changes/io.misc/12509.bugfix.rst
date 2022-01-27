@@ -1,2 +1,0 @@
-YAML can now also represent quantities and arrays with structured dtype,
-as well as structured scalars based on ``np.void``.
