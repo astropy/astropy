@@ -357,7 +357,7 @@ def get_pyarrow():
     except ImportError:
         raise Exception("pyarrow is required to read and write parquet files")
 
-    if minversion('pyarrow', '6.0.0'):
+    if minversion(pa, '6.0.0'):
         writer_version = '2.4'
     else:
         writer_version = '2.0'
