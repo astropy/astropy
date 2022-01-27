@@ -58,15 +58,17 @@ class JSONExtendedDecoder(json.JSONDecoder):
     @classmethod
     def object_hook(cls, code):
         try:
-            qualname = code.pop("__class__").split(".")
+            qualname = code["__class__"].split(".")
             module = importlib.import_module(".".join(qualname[:-1]))
             constructor = getattr(module, qualname[-1])
         except ModuleNotFoundError as e:
             raise  # TODO!
+        except KeyError:
+            return code
 
         for key, func in cls._registry:
-            print(constructor, key)
             if issubclass(constructor, key):
+                code.pop("__class__", None)
                 obj = func(constructor, code.pop("value"), code)
                 break
         else:
@@ -136,7 +138,7 @@ def _encode_ndarray(obj):
 
 @JSONExtendedEncoder.register_encoding(u.FunctionUnitBase)
 @JSONExtendedEncoder.register_encoding(u.UnitBase)
-def _encode_unit(obj):
+def _encode_unit(obj):  # FIXME so works with units defined outside units subpkg
     code = _base_encode(obj)
     if obj == u.dimensionless_unscaled:
         code.update(value="dimensionless_unit")
