@@ -12,6 +12,7 @@ import numpy as np
 
 import astropy.units as u
 import astropy.coordinates as coord
+from astropy.io.utils import load_all_entry_points
 
 
 __all__ = ['JSONExtendedEncoder', 'JSONExtendedDecoder']
@@ -48,9 +49,11 @@ class JSONExtendedEncoder(json.JSONEncoder):
 
 
 class JSONExtendedDecoder(json.JSONDecoder):
+
     _registry = []
 
-    def __init__(self, *, parse_float=None, parse_int=None, parse_constant=None, strict=True):
+    def __init__(self, *, parse_float=None, parse_int=None, parse_constant=None,
+                 strict=True):
         super().__init__(object_hook=self.object_hook, parse_float=parse_float,
                          parse_int=parse_int, parse_constant=parse_constant,
                          strict=strict)
@@ -95,75 +98,62 @@ class JSONExtendedDecoder(json.JSONDecoder):
 # Register Encodings
 
 
-def _base_encode(obj):
+def _json_base_encode(obj):
     qualname = obj.__class__.__module__ + "." + obj.__class__.__qualname__
     code = {"__class__": qualname}
     return code
 
+# -------------------------------------------------------------------
+# Builtin
 
 @JSONExtendedEncoder.register_encoding(bytes)
 def _encode_bytes(obj):
-    code = _base_encode(obj)
+    code = _json_base_encode(obj)
     code.update(value=obj.decode("utf-8"))
     return code
 
 
 @JSONExtendedEncoder.register_encoding(complex)
 def _encode_complex(obj):
-    code = _base_encode(obj)
+    code = _json_base_encode(obj)
     code.update(value=[obj.real, obj.imag])
     return code
 
 
 @JSONExtendedEncoder.register_encoding(set)
 def _encode_set(obj):
-    code = _base_encode(obj)
+    code = _json_base_encode(obj)
     code.update(value=list(obj))
     return code
 
 
+# -------------------------------------------------------------------
+# NumPy
+
 @JSONExtendedEncoder.register_encoding(np.number)
 def _encode_numpy_number(obj):
-    code = _base_encode(obj)
+    code = _json_base_encode(obj)
     code.update(value=obj.tolist())
     return code
 
 
+@JSONExtendedEncoder.register_encoding(np.dtype)
+def _encode_numpy_dtype(obj):
+    code = {"__class__": "numpy.dtype", "value": str(obj)}
+    # TODO! more sophisticated encoding for structured dtype
+    return code
+
+
+@JSONExtendedDecoder.register_decoding(np.dtype)
+def _decode_numpy_dtype(constructor, value, code):
+    return constructor(value, **code)
+
+
 @JSONExtendedEncoder.register_encoding(np.ndarray)
 def _encode_ndarray(obj):
-    code = _base_encode(obj)
-    code.update(value=obj.tolist(), dtype=str(obj.dtype))  # TODO! encode dtype
+    code = _json_base_encode(obj)
+    code.update(value=obj.tolist(), dtype=_encode_numpy_dtype(obj.dtype))
     return code
-
-
-@JSONExtendedEncoder.register_encoding(u.FunctionUnitBase)
-@JSONExtendedEncoder.register_encoding(u.UnitBase)
-def _encode_unit(obj):  # FIXME so works with units defined outside units subpkg
-    code = _base_encode(obj)
-    if obj == u.dimensionless_unscaled:
-        code.update(value="dimensionless_unit")
-    else:
-        code.update(value=obj.to_string())
-    return code
-
-
-@JSONExtendedEncoder.register_encoding(u.Quantity)
-def _encode_quantity(obj):
-    code = _base_encode(obj)
-    code.update(value=obj.value.tolist(), dtype=str(obj.dtype))  # TODO! encode dtype
-    code["unit"] = obj.unit.to_string()
-    return code
-
-
-@JSONExtendedEncoder.register_encoding(coord.Longitude)
-def _encode_longitude(obj):
-    code = _encode_quantity(obj)
-    code["wrap_angle"] = _encode_quantity(obj.wrap_angle)
-    return code
-
-
-###############################################################################
-# Register Decodings
 
 
 @JSONExtendedDecoder.register_decoding(np.ndarray)
@@ -173,6 +163,7 @@ def _decode_ndarray(constructor, value, code):
     return constructor(value, **code)
 
 
-@JSONExtendedDecoder.register_decoding(u.Quantity)
-def _decode_quantity(constructor, value, code):
-    return constructor(value, **code)
+###############################################################################
+# Load All Entry Points
+
+load_all_entry_points('astropy_io_json_extensions')
