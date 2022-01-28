@@ -19,10 +19,11 @@ def json_encode_unit(obj):  # FIXME so works with units defined outside units su
 
 
 def json_encode_quantity(obj):
-    from astropy.io.misc.json import _json_base_encode, _encode_numpy_dtype
+    from astropy.io.misc.json.core import _json_base_encode
+    from astropy.io.misc.json.numpy import encode_numpy_dtype
 
     code = _json_base_encode(obj)
-    code.update(value=obj.value.tolist(), dtype=_encode_numpy_dtype(obj.dtype))
+    code.update(value=obj.value.tolist(), dtype=encode_numpy_dtype(obj.dtype))
     code["unit"] = obj.unit.to_string()
     return code
 

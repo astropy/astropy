@@ -1,0 +1,78 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+"""
+This module contains functions for serializing python builtins via JSON.
+"""
+
+from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
+
+
+def register_json_extended():
+
+    JSONExtendedEncoder.register_encoding(bytes)(encode_bytes)
+    JSONExtendedDecoder.register_decoding(bytes)(decode_bytes)
+
+    JSONExtendedEncoder.register_encoding(complex)(encode_complex)
+    JSONExtendedDecoder.register_decoding(complex)(decode_complex)
+
+    JSONExtendedEncoder.register_encoding(set)(encode_set)
+    JSONExtendedDecoder.register_decoding(set)(decode_set)
+
+    JSONExtendedEncoder.register_encoding(type(NotImplemented))(encode_NotImplemented)
+    JSONExtendedDecoder.register_decoding(type(NotImplemented))(decode_NotImplemented)
+
+    JSONExtendedEncoder.register_encoding(type(Ellipsis))(encode_Ellipsis)
+    JSONExtendedDecoder.register_decoding(type(Ellipsis))(decode_Ellipsis)
+
+
+# -------------------------------------------------------------------
+
+
+def encode_bytes(obj):
+    code = _json_base_encode(obj)
+    code.update(value=obj.decode("utf-8"))
+    return code
+
+
+def decode_bytes(constructor, value, code):
+    """Return a `bytes` from an ``encode_bytes`` dictionary."""
+    return constructor(value, "utf-8")
+
+
+def encode_complex(obj):
+    code = _json_base_encode(obj)
+    code.update(value=[obj.real, obj.imag])
+    return code
+
+
+def decode_complex(constructor, value, code):
+    """Return a `complex` from an ``encode_complex`` dictionary."""
+    return constructor(*value)
+
+
+def encode_set(obj):
+    code = _json_base_encode(obj)
+    code.update(value=list(obj))
+    return code
+
+
+def decode_set(constructor, value, code):
+    return constructor(value)
+
+
+def encode_NotImplemented(obj):
+    code = {"__class__": "builtins.NotImplemented", "value": str(obj)}
+    return code
+
+
+def decode_NotImplemented(constructor, value, code):
+    return NotImplemented
+
+
+def encode_Ellipsis(obj):
+    code = {"__class__": "builtins.Ellipsis", "value": str(obj)}
+    return code
+
+
+def decode_Ellipsis(constructor, value, code):
+    return Ellipsis

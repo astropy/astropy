@@ -5,10 +5,11 @@ This module contains functions for serializing Cosmology objects with JSON.
 """
 
 from astropy.cosmology.core import Cosmology
-from astropy.io.misc.json import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
 
 
 def encode_cosmology(cosmo):
+    from astropy.io.misc.json.core import _json_base_encode
+
     code = _json_base_encode(cosmo)  # get type code for decoding
 
     map = cosmo.to_format("mapping")  # dictionary representation
@@ -28,5 +29,7 @@ def decode_cosmology(cosmo_cls, parameters, meta):
 
 def register_json_extended():
     r"""Entry point for JSONExtendedEncoder, JSONExtendedDecoder."""
+    from astropy.io.misc.json.core import JSONExtendedEncoder, JSONExtendedDecoder
+
     JSONExtendedEncoder.register_encoding(Cosmology)(encode_cosmology)
     JSONExtendedDecoder.register_decoding(Cosmology)(decode_cosmology)
