@@ -166,13 +166,19 @@ def _decode_Ellipsis(constructor, value, code):
 @JSONExtendedEncoder.register_encoding(np.number)
 def _encode_numpy_number(obj):
     code = _json_base_encode(obj)
-    code.update(value=obj.tolist())
+    code.update(value=obj.astype('U13'))
     return code
+
+
+@JSONExtendedDecoder.register_decoding(np.number)
+def _decode_numpy_number(constructor, value, code):
+    return constructor(value)
 
 
 @JSONExtendedEncoder.register_encoding(np.dtype)
 def _encode_numpy_dtype(obj):
-    code = {"__class__": "numpy.dtype", "value": str(obj)}
+    code = {"__class__": "numpy.dtype",
+    "value": str(obj)}
     # TODO! more sophisticated encoding for structured dtype
     return code
 
