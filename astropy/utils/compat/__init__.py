@@ -13,7 +13,13 @@ packages or code.
 
 """
 
+import sys
+
 from .misc import *  # noqa
 
 # Importing this module will also install monkey-patches defined in it
 from .numpycompat import *  # noqa
+
+
+PY_LT_309 = sys.version_info < (3, 9)
+PY_LT_310 = sys.version_info < (3, 10)
