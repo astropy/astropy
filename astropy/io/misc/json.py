@@ -6,6 +6,7 @@ JSON protocol.
 """
 
 import importlib
+import inspect
 import json
 
 import numpy as np
@@ -70,7 +71,7 @@ class JSONExtendedDecoder(json.JSONDecoder):
             return code
 
         for key, func in cls._registry:
-            if issubclass(constructor, key):
+            if isinstance(constructor, key) or (inspect.isclass(constructor) and issubclass(constructor, key)):
                 code.pop("__class__", None)
                 obj = func(constructor, code.pop("value"), code)
                 break
@@ -120,11 +121,43 @@ def _encode_complex(obj):
     return code
 
 
+@JSONExtendedDecoder.register_decoding(complex)
+def _decode_complex(constructor, value, code):
+    return constructor(*value)
+
+
 @JSONExtendedEncoder.register_encoding(set)
 def _encode_set(obj):
     code = _json_base_encode(obj)
     code.update(value=list(obj))
     return code
+
+
+@JSONExtendedDecoder.register_decoding(set)
+def _decode_set(constructor, value, code):
+    return constructor(value)
+
+
+@JSONExtendedEncoder.register_encoding(type(NotImplemented))
+def _encode_NotImplemented(obj):
+    code = {"__class__": "builtins.NotImplemented", "value": str(obj)}
+    return code
+
+
+@JSONExtendedDecoder.register_decoding(type(NotImplemented))
+def _decode_NotImplemented(constructor, value, code):
+    return NotImplemented
+
+
+@JSONExtendedEncoder.register_encoding(type(Ellipsis))
+def _encode_Ellipsis(obj):
+    code = {"__class__": "builtins.Ellipsis", "value": str(obj)}
+    return code
+
+
+@JSONExtendedDecoder.register_decoding(type(Ellipsis))
+def _decode_Ellipsis(constructor, value, code):
+    return Ellipsis
 
 
 # -------------------------------------------------------------------
