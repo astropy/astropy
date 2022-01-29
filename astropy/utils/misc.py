@@ -365,6 +365,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
         yield root, dirs, files
 
 
+@deprecated("v5.1", alternative="astropy.io.misc.json.JSONExtendedEncoder", pending=True)
 class JsonCustomEncoder(json.JSONEncoder):
     """Support for data types that JSON default encoder
     does not do.
@@ -383,7 +384,7 @@ class JsonCustomEncoder(json.JSONEncoder):
     >>> import json
     >>> import numpy as np
     >>> from astropy.utils.misc import JsonCustomEncoder
-    >>> json.dumps(np.arange(3), cls=JsonCustomEncoder)
+    >>> json.dumps(np.arange(3), cls=JsonCustomEncoder)  # doctest: +IGNORE_WARNINGS
     '[0, 1, 2]'
 
     """

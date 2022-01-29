@@ -62,6 +62,7 @@ def test_skip_hidden():
         break
 
 
+@pytest.mark.filterwarnings("ignore:The JsonCustomEncoder class will be deprecated")
 def test_JsonCustomEncoder():
     from astropy import units as u
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
@@ -87,6 +88,7 @@ def test_JsonCustomEncoder():
     assert newd == tmpd
 
 
+@pytest.mark.filterwarnings("ignore:The JsonCustomEncoder class will be deprecated")
 def test_JsonCustomEncoder_FITS_rec_from_files():
     with fits.open(fits.util.get_testdata_filepath('variable_length_table.fits')) as hdul:
         assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \

@@ -1,0 +1,5 @@
+``astropy.utils.misc.JsonCustomEncoder`` is deprecated, pending a major version
+release, since it could not uniquely decode objects.
+Please re-save files using the new and improved JSON encoder
+``astropy.io.misc.json.JSONExtendedEncoder``. The new encoding is incompatible
+with the old encoding.
