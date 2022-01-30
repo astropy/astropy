@@ -8,7 +8,8 @@ import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import _is_pseudo_integer, _pseudo_zero, _is_int
+from astropy.io.fits.util import (_is_pseudo_integer, _pseudo_zero, _is_int,
+                                  _is_dask_array)
 from astropy.io.fits.verify import VerifyWarning
 
 from astropy.utils import isiterable, lazyproperty
@@ -254,7 +255,9 @@ class _ImageBaseHDU(_ValidHDU):
             self._data_replaced = True
             was_unsigned = False
 
-        if data is not None and not isinstance(data, (np.ndarray, DaskArray)):
+        if (data is not None
+                and not isinstance(data, np.ndarray)
+                and not _is_dask_array(data)):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:
@@ -499,7 +502,7 @@ class _ImageBaseHDU(_ValidHDU):
             _scale = self._orig_bscale
             _zero = self._orig_bzero
         elif option == 'minmax' and not issubclass(_type, np.floating):
-            if isinstance(self.data, DaskArray):
+            if _is_dask_array(self.data):
                 min = self.data.min().compute()
                 max = self.data.max().compute()
             else:
@@ -521,7 +524,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Do the scaling
         if _zero != 0:
-            if isinstance(self.data, DaskArray):
+            if _is_dask_array(self.data):
                 self.data = self.data - _zero
             else:
                 # 0.9.6.3 to avoid out of range error for BZERO = +32768
@@ -622,7 +625,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         if self.data is None:
             return size
-        elif isinstance(self.data, DaskArray):
+        elif _is_dask_array(self.data):
             return self._writeinternal_dask(fileobj)
         else:
             # Based on the system type, determine the byteorders that
