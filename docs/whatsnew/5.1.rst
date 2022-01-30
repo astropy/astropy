@@ -50,6 +50,66 @@ checked with ``Cosmology.from_format.list_formats()``
 New :func:`astropy.units.equivalencies.doppler_redshift` is added to
 provide conversion between Doppler redshift and radial velocity.
 
+
+.. _whatsnew-5.1-json-extended:
+
+New Extended JSON En/Decodeers
+==============================
+
+New JSON en/decodeers are added to support data types that the JSON default
+encoder does not do.
+
+This includes (but is not limited to):
+
+- :mod:`builtins`: `bytes`, `complex`, `set`, `NotImplemented`, `Ellipsis`
+- :mod:`numpy`: `~numpy.array`, `~numpy.number`, `~numpy.dtype`
+- Astropy:
+
+    - :mod:`astropy.units`: `~astropy.units.Unit`, `~astropy.units.Quantity`
+    - :mod:`astropy.coordinates`: `~astropy.coordinates.Longitude`
+    - :mod:`~astropy.cosmology`: `~astropy.cosmology.Cosmology`
+
+For example:
+
+    >>> import json, numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.io.misc.json import JSONExtendedEncoder, JSONExtendedDecoder
+
+    >>> v = 1 + 2j
+    >>> serialized = json.dumps(v, cls=JSONExtendedEncoder)
+    >>> serialized
+    '{"__class__": "builtins.complex", "value": [1.0, 2.0]}'
+
+    >>> json.loads(serialized, cls=JSONExtendedDecoder)
+    (1+2j)
+
+    >>> q = np.array([3, 4], dtype=float) * u.km
+    >>> serialized = json.dumps(q, cls=JSONExtendedEncoder)
+    >>> serialized
+    '{"__class__": "astropy.units.quantity.Quantity", "value": [3.0, 4.0],
+      "dtype": {"__class__": "numpy.dtype", "value": "float64"}, "unit": "km"}'
+
+    >>> json.loads(serialized, cls=JSONExtendedDecoder)
+    <Quantity [3., 4.] km>
+
+    `astropy.cosmology.Cosmology` can also be saved. These are complex objects
+    composed of many |Quantity| and arbitrary metadata.
+
+    >>> from astropy.cosmology import Planck18, units as cu
+    >>> serialized = json.dumps(Planck18, cls=JSONExtendedEncoder)
+    >>> serialized
+    '{"__class__": "astropy.cosmology.flrw.FlatLambdaCDM",
+      "value": {"name": "Planck18",
+                "H0": {"__class__": "astropy.units.quantity.Quantity", "value": 67.66,
+      ...
+      "meta": {"Oc0": 0.2607, "n": 0.9665, ...
+
+    >>> with u.add_enabled_units(cu):
+    ...     json.loads(serialized, cls=JSONExtendedDecoder)
+    FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.   0.   0.06] eV, Ob0=0.04897)
+
+
 Full change log
 ===============
 
