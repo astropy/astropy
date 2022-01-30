@@ -19,6 +19,11 @@ def json_encode_unit(obj):  # FIXME so works with units defined outside units su
     return code
 
 
+def json_decode_unit(constructor, value, code):
+    """Return a |Unit| from an ``json_encode_unit`` dictionary."""
+    return constructor(value)
+
+
 def json_encode_quantity(obj):
     """Return a |Quantity| as a JSON-able dictionary."""
     from astropy.io.misc.json.core import _json_base_encode
@@ -41,7 +46,10 @@ def register_json_extended():
 
     # Unit
     JSONExtendedEncoder.register_encoding(u.UnitBase)(json_encode_unit)
+    JSONExtendedDecoder.register_decoding(u.UnitBase)(json_decode_unit)
+
     JSONExtendedEncoder.register_encoding(u.FunctionUnitBase)(json_encode_unit)
+    JSONExtendedDecoder.register_decoding(u.FunctionUnitBase)(json_decode_unit)
 
     # Quantity
     JSONExtendedEncoder.register_encoding(u.Quantity)(json_encode_quantity)
