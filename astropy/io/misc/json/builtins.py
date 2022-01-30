@@ -8,7 +8,7 @@ from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
 
 
 def register_json_extended():
-
+    """:mod:`builtins` entry point for JSONExtendedEncoder, JSONExtendedDecoder."""
     JSONExtendedEncoder.register_encoding(bytes)(encode_bytes)
     JSONExtendedDecoder.register_decoding(bytes)(decode_bytes)
 
@@ -29,6 +29,7 @@ def register_json_extended():
 
 
 def encode_bytes(obj):
+    """Return `bytes` as a JSON-able dictionary."""
     code = _json_base_encode(obj)
     code.update(value=obj.decode("utf-8"))
     return code
@@ -40,6 +41,7 @@ def decode_bytes(constructor, value, code):
 
 
 def encode_complex(obj):
+    """Return `complex` as a JSON-able dictionary."""
     code = _json_base_encode(obj)
     code.update(value=[obj.real, obj.imag])
     return code
@@ -51,28 +53,34 @@ def decode_complex(constructor, value, code):
 
 
 def encode_set(obj):
+    """Return `set` as a JSON-able dictionary."""
     code = _json_base_encode(obj)
     code.update(value=list(obj))
     return code
 
 
 def decode_set(constructor, value, code):
+    """Return a `set` from an ``encode_set`` dictionary."""
     return constructor(value)
 
 
 def encode_NotImplemented(obj):
+    """Return `NotImplemented` as a JSON-able dictionary."""
     code = {"__class__": "builtins.NotImplemented", "value": str(obj)}
     return code
 
 
 def decode_NotImplemented(constructor, value, code):
+    """Return a `NotImplemented` from an ``encode_NotImplemented`` dictionary."""
     return NotImplemented
 
 
 def encode_Ellipsis(obj):
+    """Return `Ellipsis` as a JSON-able dictionary."""
     code = {"__class__": "builtins.Ellipsis", "value": str(obj)}
     return code
 
 
 def decode_Ellipsis(constructor, value, code):
+    """Return a `Ellipsis` from an ``encode_Ellipsis`` dictionary."""
     return Ellipsis

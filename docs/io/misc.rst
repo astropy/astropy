@@ -20,6 +20,9 @@ listed in the `astropy.io.misc` section.
 .. automodapi:: astropy.io.misc.yaml
    :headings: =-
 
+.. automodapi:: astropy.io.misc.json
+   :headings: =-
+
 .. automodapi:: astropy.io.misc.parquet
    :headings: =-
 

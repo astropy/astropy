@@ -8,6 +8,7 @@ __all__ = []  # Nothing is publicly scoped.
 
 
 def json_encode_longitude(obj):
+    """Return a `~astropy.coordinates.Longitude` as a JSON-able dictionary."""
     from astropy.units.io import json_encode_quantity
 
     code = json_encode_quantity(obj)
@@ -16,6 +17,7 @@ def json_encode_longitude(obj):
 
 
 def register_json_extended():
+    """Coordinates entry points for JSONExtendedEncoder, JSONExtendedDecoder."""
     from astropy.io.misc.json import JSONExtendedEncoder
 
     # Quantity subclasses. Decoding handled by Quantity decoder.
