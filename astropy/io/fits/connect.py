@@ -112,7 +112,8 @@ def _decode_mixins(tbl):
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
-                    character_as_bytes=True, unit_parse_strict='warn'):
+                    character_as_bytes=True, unit_parse_strict='warn',
+                    unit_format='fits'):
     """
     Read a Table object from an FITS file
 
@@ -158,6 +159,14 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         :class:`~astropy.units.core.UnrecognizedUnit`.
         Values are the ones allowed by the ``parse_strict`` argument of
         :class:`~astropy.units.core.Unit`.
+    unit_format : str, optional
+        By default units are parsed with the ``fits`` format, defined in the
+        Units section of the FITS Standard. This parameter allows to use a
+        less restrictive set of units, using for example the ``generic`` format
+        for units that are not compliant with the FITS standard.
+        Values are the ones allowed by the ``format`` argument of
+        :class:`~astropy.units.core.Unit`.
+
     """
 
     if isinstance(input, HDUList):
@@ -221,6 +230,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
                 hdulist, hdu=hdu,
                 astropy_native=astropy_native,
                 unit_parse_strict=unit_parse_strict,
+                unit_format=unit_format,
             )
         finally:
             hdulist.close()
@@ -258,7 +268,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
         # Copy over units
         if col.unit is not None:
-            column.unit = u.Unit(col.unit, format='fits', parse_strict=unit_parse_strict)
+            column.unit = u.Unit(col.unit, format=unit_format,
+                                 parse_strict=unit_parse_strict)
 
         # Copy over display format
         if col.disp is not None:
