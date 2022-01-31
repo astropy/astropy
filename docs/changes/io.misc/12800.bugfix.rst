@@ -1,0 +1,3 @@
+Bugfix for ``units_mapping`` schema's property name conflicts. Changes:
+    * ``inputs`` to ``unit_inputs``
+    * ``outputs`` to ``unit_outputs``
