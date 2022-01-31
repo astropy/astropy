@@ -675,6 +675,22 @@ def test_unit_warnings_read_write(tmpdir):
         Table.read(filename, hdu=1)
 
 
+def test_unit_format(tmpdir):
+    filename = str(tmpdir.join('test_unit.fits'))
+    t1 = Table([[1, 2], [3, 4]], names=['a', 'b'])
+    t1['a'].unit = 'm/s'
+    t1['b'].unit = 'ampere'
+    t1.write(filename, overwrite=True)
+    fits.setval(filename, 'TUNIT2', value='ampere', ext=1)
+
+    with pytest.warns(u.UnitsWarning, match="'ampere' did not parse as fits unit"):
+        t = Table.read(filename, hdu=1)
+    assert isinstance(t['b'].unit, u.UnrecognizedUnit)
+
+    t = Table.read(filename, hdu=1, unit_format='generic')
+    assert t['b'].unit == u.ampere
+
+
 def test_convert_comment_convention(tmpdir):
     """
     Regression test for https://github.com/astropy/astropy/issues/6079
