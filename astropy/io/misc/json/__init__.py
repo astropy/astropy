@@ -95,7 +95,7 @@ from astropy.io.utils import load_all_entry_points
 
 from .core import *
 from .core import _json_base_encode
-from . import builtins, numpy
+from . import builtins as _, numpy as _  # Ensure imported before entry points are loaded
 
 # After importing, load all entry points
 load_all_entry_points('astropy_io_json_extensions')
