@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import warnings
 
 from packaging.version import Version
 import pytest
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from contextlib import nullcontext
 from matplotlib.contour import QuadContourSet
-import numpy as np
 
 from astropy import units as u
 from astropy.wcs import WCS
@@ -82,21 +81,18 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white', grid_type=grid_type)
 
-    with pytest.warns(None) as warning_lines:
-        fig.savefig(tmpdir.join('test.png').strpath)
-
     # There should be no warnings raised if some pixels are outside WCS
     # (since this is normal).
-    # BUT catch_warning was ignoring some warnings before, so now we
+    # BUT our own catch_warning was ignoring some warnings before, so now we
     # have to catch it. Otherwise, the pytest filterwarnings=error
     # setting in setup.cfg will fail this test.
     # There are actually multiple warnings but they are all similar.
-    for w in warning_lines:
-        w_msg = str(w.message)
-        assert ('converting a masked element to nan' in w_msg or
-                'No contour levels were found within the data range' in w_msg or
-                'np.asscalar(a) is deprecated since NumPy v1.16' in w_msg or
-                'PY_SSIZE_T_CLEAN will be required' in w_msg)
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message=r'.*converting a masked element to nan.*')
+        warnings.filterwarnings('ignore', message=r'.*No contour levels were found within the data range.*')
+        warnings.filterwarnings('ignore', message=r'.*np\.asscalar\(a\) is deprecated since NumPy v1\.16.*')
+        warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN will be required.*')
+        fig.savefig(tmpdir.join('test.png').strpath)
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
@@ -187,29 +183,21 @@ def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
     wcs3d.wcs.cdelt = [6.25, 6.25, 23]
     wcs3d.wcs.crval = [0., 0., 1.]
 
-    with pytest.warns(None) as warning_lines:
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/9690
+        warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
         plt.savefig(tmpdir.join('test.png').strpath)
-
-    # For easy debugging if there are indeed warnings
-    for warning in warning_lines:
-        # https://github.com/astropy/astropy/issues/9690
-        if 'PY_SSIZE_T_CLEAN' not in str(warning.message):
-            raise AssertionError(f'Unexpected warning: {warning}')
 
     # Angle case
 
     wcs3d = WCS(GAL_HEADER)
 
-    with pytest.warns(None) as warning_lines:
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/9690
+        warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
         plt.savefig(tmpdir.join('test.png').strpath)
-
-    # For easy debugging if there are indeed warnings
-    for warning in warning_lines:
-        # https://github.com/astropy/astropy/issues/9690
-        if 'PY_SSIZE_T_CLEAN' not in str(warning.message):
-            raise AssertionError(f'Unexpected warning: {warning}')
 
 
 def test_plt_xlabel_ylabel(tmpdir):

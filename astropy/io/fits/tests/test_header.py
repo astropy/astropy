@@ -603,9 +603,7 @@ class TestHeaderFunctions(FitsTestCase):
         filename = fits.util.get_testdata_filepath('compressed_image.fits')
         with fits.open(filename) as hdul:
             header = hdul[1].header
-        with pytest.warns(None) as warning_list:
-            header["HIERARCH LONG KEYWORD"] = 42
-        assert len(warning_list) == 0
+        header["HIERARCH LONG KEYWORD"] = 42
         assert header["LONG KEYWORD"] == 42
         assert header["HIERARCH LONG KEYWORD"] == 42
 

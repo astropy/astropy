@@ -3454,10 +3454,8 @@ def test_new_column_attributes_preserved(tmpdir):
     hdu.writeto(filename)
 
     # Make sure we don't emit a warning in this case
-    with pytest.warns(None) as warning_list:
-        with fits.open(filename) as hdul:
-            hdu2 = hdul[1]
-    assert len(warning_list) == 0
+    with fits.open(filename) as hdul:
+        hdu2 = hdul[1]
 
     # Check that column attributes are now correctly set
 
