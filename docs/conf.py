@@ -93,12 +93,12 @@ del intersphinx_mapping['astropy']  # noqa: F405
 # add any custom intersphinx for astropy
 intersphinx_mapping['astropy-dev'] = ('https://docs.astropy.org/en/latest/', None)  # noqa: F405
 intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/stable/', None)  # noqa: F405
-intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)  # noqa: F405
+intersphinx_mapping['pytest'] = ('https://docs.pytest.org/en/stable/', None)  # noqa: F405
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)  # noqa: F405
 intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)  # noqa: F405, E501
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)  # noqa: F405, E501
 intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: F405, E501
-intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)  # noqa: F405
+intersphinx_mapping['h5py'] = ('https://docs.h5py.org/en/stable/', None)  # noqa: F405
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
