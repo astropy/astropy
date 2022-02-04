@@ -17,7 +17,7 @@ def sort_eq(list1, list2):
 
 def test_column_group_by(T1):
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = QTable(T1, masked=masked)
         t1a = t1['a'].copy()
 
         # Group by a Column (i.e. numpy array)
@@ -39,7 +39,7 @@ def test_table_group_by(T1):
     masked/unmasked tables.
     """
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = QTable(T1, masked=masked)
         # Group by a single column key specified by name
         tg = t1.group_by('a')
         assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
@@ -47,16 +47,17 @@ def test_table_group_by(T1):
         assert str(tg['a'].groups) == "<ColumnGroups indices=[0 1 4 8]>"
 
         # Sorted by 'a' and in original order for rest
-        assert tg.pformat() == [' a   b   c   d ',
-                                '--- --- --- ---',
-                                '  0   a 0.0   4',
-                                '  1   b 3.0   5',
-                                '  1   a 2.0   6',
-                                '  1   a 1.0   7',
-                                '  2   c 7.0   0',
-                                '  2   b 5.0   1',
-                                '  2   b 6.0   2',
-                                '  2   a 4.0   3']
+        assert tg.pformat() == [' a   b   c   d   q ',
+                                '                 m ',
+                                '--- --- --- --- ---',
+                                '  0   a 0.0   4 4.0',
+                                '  1   b 3.0   5 5.0',
+                                '  1   a 2.0   6 6.0',
+                                '  1   a 1.0   7 7.0',
+                                '  2   c 7.0   0 0.0',
+                                '  2   b 5.0   1 1.0',
+                                '  2   b 6.0   2 2.0',
+                                '  2   a 4.0   3 3.0']
         assert tg.meta['ta'] == 1
         assert tg['c'].meta['a'] == 1
         assert tg['c'].description == 'column c'
@@ -70,16 +71,17 @@ def test_table_group_by(T1):
             tg = t1.group_by(keys)
             assert np.all(tg.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
             # Sorted by 'a', 'b' and in original order for rest
-            assert tg.pformat() == [' a   b   c   d ',
-                                    '--- --- --- ---',
-                                    '  0   a 0.0   4',
-                                    '  1   a 2.0   6',
-                                    '  1   a 1.0   7',
-                                    '  1   b 3.0   5',
-                                    '  2   a 4.0   3',
-                                    '  2   b 5.0   1',
-                                    '  2   b 6.0   2',
-                                    '  2   c 7.0   0']
+            assert tg.pformat() == [' a   b   c   d   q ',
+                                    '                 m ',
+                                    '--- --- --- --- ---',
+                                    '  0   a 0.0   4 4.0',
+                                    '  1   a 2.0   6 6.0',
+                                    '  1   a 1.0   7 7.0',
+                                    '  1   b 3.0   5 5.0',
+                                    '  2   a 4.0   3 3.0',
+                                    '  2   b 5.0   1 1.0',
+                                    '  2   b 6.0   2 2.0',
+                                    '  2   c 7.0   0 0.0']
 
         # Group by a Table
         tg2 = t1.group_by(t1['a', 'b'])
@@ -92,16 +94,17 @@ def test_table_group_by(T1):
         # Group by a simple ndarray
         tg = t1.group_by(np.array([0, 1, 0, 1, 2, 1, 0, 0]))
         assert np.all(tg.groups.indices == np.array([0, 4, 7, 8]))
-        assert tg.pformat() == [' a   b   c   d ',
-                                '--- --- --- ---',
-                                '  2   c 7.0   0',
-                                '  2   b 6.0   2',
-                                '  1   a 2.0   6',
-                                '  1   a 1.0   7',
-                                '  2   b 5.0   1',
-                                '  2   a 4.0   3',
-                                '  1   b 3.0   5',
-                                '  0   a 0.0   4']
+        assert tg.pformat() == [' a   b   c   d   q ',
+                                '                 m ',
+                                '--- --- --- --- ---',
+                                '  2   c 7.0   0 0.0',
+                                '  2   b 6.0   2 2.0',
+                                '  1   a 2.0   6 6.0',
+                                '  1   a 1.0   7 7.0',
+                                '  2   b 5.0   1 1.0',
+                                '  2   a 4.0   3 3.0',
+                                '  1   b 3.0   5 5.0',
+                                '  0   a 0.0   4 4.0']
 
 
 def test_groups_keys(T1):
@@ -134,7 +137,7 @@ def test_grouped_copy(T1):
     Test that copying a table or column copies the groups properly
     """
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = QTable(T1, masked=masked)
         tg = t1.group_by('a')
         tgc = tg.copy()
         assert np.all(tgc.groups.indices == tg.groups.indices)
@@ -155,7 +158,7 @@ def test_grouped_slicing(T1):
     """
 
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = QTable(T1, masked=masked)
 
         # Regular slice of a table
         tg = t1.group_by('a')
@@ -266,11 +269,11 @@ def test_mutable_operations(T1):
     but adding or removing or renaming a column should retain grouping.
     """
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = QTable(T1, masked=masked)
 
         # add row
         tg = t1.group_by('a')
-        tg.add_row((0, 'a', 3.0, 4))
+        tg.add_row((0, 'a', 3.0, 4, 4 * u.m))
         assert np.all(tg.groups.indices == np.array([0, len(tg)]))
         assert tg.groups.keys is None
 
@@ -312,19 +315,20 @@ def test_mutable_operations(T1):
 
 
 def test_group_by_masked(T1):
-    t1m = Table(T1, masked=True)
+    t1m = QTable(T1, masked=True)
     t1m['c'].mask[4] = True
     t1m['d'].mask[5] = True
-    assert t1m.group_by('a').pformat() == [' a   b   c   d ',
-                                           '--- --- --- ---',
-                                           '  0   a  --   4',
-                                           '  1   b 3.0  --',
-                                           '  1   a 2.0   6',
-                                           '  1   a 1.0   7',
-                                           '  2   c 7.0   0',
-                                           '  2   b 5.0   1',
-                                           '  2   b 6.0   2',
-                                           '  2   a 4.0   3']
+    assert t1m.group_by('a').pformat() == [' a   b   c   d   q ',
+                                           '                 m ',
+                                           '--- --- --- --- ---',
+                                           '  0   a  --   4 4.0',
+                                           '  1   b 3.0  -- 5.0',
+                                           '  1   a 2.0   6 6.0',
+                                           '  1   a 1.0   7 7.0',
+                                           '  2   c 7.0   0 0.0',
+                                           '  2   b 5.0   1 1.0',
+                                           '  2   b 6.0   2 2.0',
+                                           '  2   a 4.0   3 3.0']
 
 
 def test_group_by_errors(T1):
@@ -348,7 +352,7 @@ def test_group_by_errors(T1):
         T1.group_by(None)
 
     # Masked key column
-    t1 = Table(T1, masked=True)
+    t1 = QTable(T1, masked=True)
     t1['a'].mask[4] = True
     with pytest.raises(ValueError):
         t1.group_by('a')
@@ -408,23 +412,24 @@ def test_table_aggregate(T1):
     # Aggregate with np.sum with masked elements.  This results
     # in one group with no elements, hence a nan result and conversion
     # to float for the 'd' column.
-    t1m = Table(t1, masked=True)
+    t1m = QTable(T1, masked=True)
     t1m['c'].mask[4:6] = True
     t1m['d'].mask[4:6] = True
     tg = t1m.group_by('a')
     with pytest.warns(UserWarning, match="converting a masked element to nan"):
         tga = tg.groups.aggregate(np.sum)
 
-    assert tga.pformat() == [' a   c    d  ',
-                             '--- ---- ----',
-                             '  0  nan  nan',
-                             '  1  3.0 13.0',
-                             '  2 22.0  6.0']
+    assert tga.pformat() == [' a   c    d    q  ',
+                             '               m  ',
+                             '--- ---- ---- ----',
+                             '  0  nan  nan  4.0',
+                             '  1  3.0 13.0 18.0',
+                             '  2 22.0  6.0  6.0']
 
     # Aggregrate with np.sum with masked elements, but where every
     # group has at least one remaining (unmasked) element.  Then
     # the int column stays as an int.
-    t1m = Table(t1, masked=True)
+    t1m = QTable(t1, masked=True)
     t1m['c'].mask[5] = True
     t1m['d'].mask[5] = True
     tg = t1m.group_by('a')
@@ -440,11 +445,12 @@ def test_table_aggregate(T1):
     tg = T1.group_by('a')
     with pytest.warns(AstropyUserWarning, match="Cannot aggregate column"):
         tga = tg.groups.aggregate(np.sum)
-    assert tga.pformat() == [' a   c    d ',
-                             '--- ---- ---',
-                             '  0  0.0   4',
-                             '  1  6.0  18',
-                             '  2 22.0   6']
+    assert tga.pformat() == [' a   c    d   q  ',
+                             '              m  ',
+                             '--- ---- --- ----',
+                             '  0  0.0   4  4.0',
+                             '  1  6.0  18 18.0',
+                             '  2 22.0   6  6.0']
 
 
 def test_table_aggregate_reduceat(T1):
@@ -504,7 +510,7 @@ def test_column_aggregate(T1):
     Aggregate a single table column
     """
     for masked in (False, True):
-        tg = Table(T1, masked=masked).group_by('a')
+        tg = QTable(T1, masked=masked).group_by('a')
         tga = tg['c'].groups.aggregate(np.sum)
         assert tga.pformat() == [' c  ',
                                  '----',
@@ -635,3 +641,16 @@ def test_group_mixins():
     # Column group_by() with mixins
     idxg = qt['idx'].group_by(qt[mixin_keys])
     assert np.all(idxg == [1, 3, 2, 0])
+
+
+def test_group_mixins_unsupported():
+    """Test that aggregating unsupported mixins produces a warning only"""
+    td = time.TimeDelta([1, 2], format='sec')
+    tm = time.Time([1, 2], format='cxcsec')
+    sc = coordinates.SkyCoord([1, 2], [3, 4], unit='deg,deg')
+
+    for col in [td, sc, tm]:
+        t = Table([[1, 1], [3, 4], col], names=['a', 'b', 'mix'])
+        tg = t.group_by('a')
+        with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
+            tg.groups.aggregate(np.sum)
