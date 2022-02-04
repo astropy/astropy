@@ -4,6 +4,7 @@ Define the Enhanced Character-Separated-Values (ECSV) which allows for reading a
 writing all the meta data associated with an astropy Table object.
 """
 
+import itertools
 import re
 from collections import OrderedDict
 import warnings
@@ -472,3 +473,90 @@ class Ecsv(basic.Basic):
         with serialize_context_as('ecsv'):
             out = serialize.represent_mixins_as_columns(table)
         return out
+
+
+class EcsvFixedWidthData(EcsvData):
+
+    def _join_fixed(self, vals, widths):
+        """Pad elements with spaces to specified widths and join."""
+        vals = [' ' * (width - len(val)) + val for val, width in zip(vals, widths)]
+        delimiter = self.splitter.delimiter + ' '
+        return delimiter.join(vals)
+
+    def write(self, lines):
+        """Write ``self.cols`` in place to ``lines``.
+
+        Parameters
+        ----------
+        lines : list
+            List for collecting output of writing self.cols.
+        """
+        # Remove column header line which was put there by EcsvHeader.write()
+        lines.pop()
+
+        # Use the basic splitter.join which calls the csv writer to escape
+        # values and add quotes as needed. Call the csv writer on just one
+        # column at a time so we put in fixed width spacing ourselves.
+        col_str_iters = self.str_vals()
+        vals_list = []  # Escaped/quoted string values for each column
+        for col_str_iter in col_str_iters:
+            vals = [self.splitter.join([val]) for val in col_str_iter]
+            vals_list.append(vals)
+
+        # Find the widths of each column
+        widths = []
+        for i, col in enumerate(self.cols):
+            width = max([len(val) for val in vals_list[i]])
+            width = max(width, len(col.info.name))
+            widths.append(width)
+
+        # Make the column header line
+        lines.append(self._join_fixed([col.info.name for col in self.cols],
+                                     widths))
+
+        # Make the data lines, using zip(*) to transpose the columns and write
+        # one row at a time.
+        for row_vals in zip(*vals_list):
+            lines.append(self._join_fixed(row_vals, widths))
+
+        return lines
+
+
+class EcsvFixedWidth(Ecsv):
+    """ECSV (Enhanced Character Separated Values) fixed width format table.
+
+    This is the same as the standard ECSV format, but the data are written out
+    in a fixed-width format (with all columns aligned) to make the output easier
+    for humans to read.
+
+    Th ECSV format allows for specification of key table and column meta-data,
+    in particular the data type and unit.
+
+    See: https://github.com/astropy/astropy-APEs/blob/main/APE6.rst
+
+    Examples
+    --------
+
+    >>> t = Table()
+    >>> t['col0'] = [1, 2, 30000, -5]
+    >>> t['col1'] = ['x z', 'y,z', 'z, x', 'hello!']
+    >>> t['col2'] = [1.0, -20000.0, 3.0, 4.0]
+
+    >>> ascii.write(t, format='ecsv_fixed_width')
+    # %ECSV 1.0
+    # ---
+    # datatype:
+    # - {name: col0, datatype: int64}
+    # - {name: col1, datatype: string}
+    # - {name: col2, datatype: float64}
+    # schema: astropy-2.0
+    col0   col1     col2
+        1  "x z"      1.0
+        2    y,z -20000.0
+    30000 "z, x"      3.0
+       -5 hello!      4.0
+    """
+    _format_name = 'ecsv_fixed_width'
+    _description = 'Enhanced CSV Fixed Width'
+
+    data_class = EcsvFixedWidthData

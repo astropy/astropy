@@ -248,6 +248,46 @@ def test_csv_ecsv_colnames_mismatch():
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
+@pytest.mark.parametrize('delimiter', [' ', ','])
+def test_ecsv_fixed_width(delimiter):
+    t = Table()
+    t['col0'] = [1, 2, 30000, -5]
+    t['col1'] = ['x z', 'y,z', 'z, x', 'hello!']
+    t['col2'] = [1.0, -20000.0, 3.0, 4.0]
+    out = StringIO()
+
+    exp = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: col0, datatype: int64}
+# - {name: col1, datatype: string}
+# - {name: col2, datatype: float64}
+"""
+    if delimiter == ' ':
+        exp += """\
+# schema: astropy-2.0
+ col0    col1      col2
+    1   "x z"       1.0
+    2     y,z  -20000.0
+30000  "z, x"       3.0
+   -5  hello!       4.0
+"""
+    else:
+        exp += """\
+# delimiter: ','
+# schema: astropy-2.0
+ col0,   col1,     col2
+    1,    x z,      1.0
+    2,  "y,z", -20000.0
+30000, "z, x",      3.0
+   -5, hello!,      4.0
+"""
+
+    t.write(out, format='ascii.ecsv_fixed_width', delimiter=delimiter)
+    assert out.getvalue() == exp
+
+
 def test_regression_5604():
     """
     See https://github.com/astropy/astropy/issues/5604 for more.

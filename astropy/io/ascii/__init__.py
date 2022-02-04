@@ -31,7 +31,7 @@ from .fastbasic import (FastBasic,
                         FastRdb)
 from .cds import Cds
 from .mrt import Mrt
-from .ecsv import Ecsv
+from .ecsv import Ecsv, EcsvFixedWidth
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML
 from .ipac import Ipac
