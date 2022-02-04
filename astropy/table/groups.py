@@ -214,7 +214,7 @@ class BaseGroups:
 class ColumnGroups(BaseGroups):
     def __init__(self, parent_column, indices=None, keys=None):
         self.parent_column = parent_column  # parent Column
-        self.parent_table = parent_column.parent_table
+        self.parent_table = parent_column.info.parent_table
         self._indices = indices
         self._keys = keys
 
@@ -256,17 +256,18 @@ class ColumnGroups(BaseGroups):
                     vals = func.reduceat(par_col, i0s)
             else:
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
+            out = par_col.__class__(vals)
         except Exception as err:
-            raise TypeError("Cannot aggregate column '{}' with type '{}'"
-                            .format(par_col.info.name,
-                                    par_col.info.dtype)) from err
+            raise TypeError("Cannot aggregate column '{}' with type '{}': {}"
+                            .format(par_col.info.name, par_col.info.dtype, err)) from err
 
-        out = par_col.__class__(data=vals,
-                                name=par_col.info.name,
-                                description=par_col.info.description,
-                                unit=par_col.info.unit,
-                                format=par_col.info.format,
-                                meta=par_col.info.meta)
+        out_info = out.info
+        for attr in ('name', 'unit', 'format', 'description', 'meta'):
+            try:
+                setattr(out_info, attr, getattr(par_col.info, attr))
+            except AttributeError:
+                pass
+
         return out
 
     def filter(self, func):
@@ -354,7 +355,7 @@ class TableGroups(BaseGroups):
                 new_col = col.take(i0s)
             else:
                 try:
-                    new_col = col.groups.aggregate(func)
+                    new_col = col.info.groups.aggregate(func)
                 except TypeError as err:
                     warnings.warn(str(err), AstropyUserWarning)
                     continue

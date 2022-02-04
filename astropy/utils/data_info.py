@@ -511,7 +511,7 @@ class BaseColumnInfo(DataInfo):
     Note that this class is defined here so that mixins can use it
     without importing the table package.
     """
-    attr_names = DataInfo.attr_names.union(['parent_table', 'indices'])
+    attr_names = DataInfo.attr_names | {'parent_table', 'indices'}
     _attrs_no_copy = set(['parent_table', 'indices'])
 
     # Context for serialization.  This can be set temporarily via
@@ -751,6 +751,15 @@ class MixinInfo(BaseColumnInfo):
             self.parent_table.columns._rename_column(self.name, new_name)
 
         self._attrs['name'] = name
+
+    @property
+    def groups(self):
+        # This implementation for mixin columns essentially matches the Column
+        # property definition.  `groups` is a read-only property here and
+        # depends on the parent table of the column having `groups`. This will
+        # allow aggregating mixins as long as they support those operations.
+        from astropy.table import groups
+        return self._attrs.setdefault('groups', groups.ColumnGroups(self._parent))
 
 
 class ParentDtypeInfo(MixinInfo):

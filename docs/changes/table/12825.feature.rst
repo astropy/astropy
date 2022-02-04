@@ -1,0 +1,4 @@
+Add support for using mixin columns in group aggregation operations when the
+mixin supports the specified operation (e.g. ``np.sum`` works for ``Quantity``
+but not ``Time``). In cases where the operation is not supported the code now
+issues a warning and drops the column instead of raising an exception.
