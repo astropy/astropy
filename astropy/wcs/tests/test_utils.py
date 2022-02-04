@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import warnings
+from contextlib import nullcontext
 
 import pytest
-
-from io import StringIO
-from itertools import product
 
 from packaging.version import Version
 import numpy as np
@@ -569,13 +568,13 @@ def test_has_celestial_correlated():
     assert mywcs.has_celestial
 
 
-@pytest.mark.parametrize(('cdelt', 'pc', 'cd'),
-                         ((np.array([0.1, 0.2]), np.eye(2), np.eye(2)),
-                          (np.array([1, 1]), np.diag([0.1, 0.2]), np.eye(2)),
-                          (np.array([0.1, 0.2]), np.eye(2), None),
-                          (np.array([0.1, 0.2]), None, np.eye(2)),
+@pytest.mark.parametrize(('cdelt', 'pc', 'cd', 'check_warning'),
+                         ((np.array([0.1, 0.2]), np.eye(2), np.eye(2), True),
+                          (np.array([1, 1]), np.diag([0.1, 0.2]), np.eye(2), True),
+                          (np.array([0.1, 0.2]), np.eye(2), None, False),
+                          (np.array([0.1, 0.2]), None, np.eye(2), True),
                           ))
-def test_noncelestial_scale(cdelt, pc, cd):
+def test_noncelestial_scale(cdelt, pc, cd, check_warning):
 
     mywcs = WCS(naxis=2)
     if cd is not None:
@@ -585,11 +584,16 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     # TODO: Some inputs emit RuntimeWarning from here onwards.
     #       Fix the test data. See @nden's comment in PR 9010.
-    with pytest.warns(None) as warning_lines:
+    if check_warning:
+        ctx = pytest.warns()
+    else:
+        ctx = nullcontext()
+    with ctx as warning_lines:
         mywcs.wcs.cdelt = cdelt
-    for w in warning_lines:
-        assert issubclass(w.category, RuntimeWarning)
-        assert 'cdelt will be ignored since cd is present' in str(w.message)
+    if check_warning:
+        for w in warning_lines:
+            assert issubclass(w.category, RuntimeWarning)
+            assert 'cdelt will be ignored since cd is present' in str(w.message)
 
     mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
 
@@ -1242,8 +1246,8 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 def test_issue10991():
     # test issue #10991 (it just needs to run and set the user defined crval)
     xy = np.array([[1766.88276168,  662.96432257,  171.50212526,  120.70924648],
-               [1706.69832901, 1788.85480559, 1216.98949653, 1307.41843381]])
-    world_coords = SkyCoord([(66.3542367 , 22.20000162), (67.15416174, 19.18042906),
+                   [1706.69832901, 1788.85480559, 1216.98949653, 1307.41843381]])
+    world_coords = SkyCoord([(66.3542367, 22.20000162), (67.15416174, 19.18042906),
                              (65.73375432, 17.54251555), (66.02400512, 17.44413253)],
                             frame="icrs", unit="deg")
     proj_point = SkyCoord(64.67514918, 19.63389538,
@@ -1264,19 +1268,19 @@ def test_issue10991():
 @pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
     """Regression test for https://github.com/astropy/astropy/pull/9609"""
-    with pytest.warns(None) as w:
+    if Version(_wcs.__version__) >= Version('7.4'):
+        ctx = pytest.warns(
+            FITSFixedWarning,
+            match=r"'datfix' made the change 'Set MJD-OBS to 57982\.528524 from DATE-OBS'\.")
+    else:
+        ctx = nullcontext()
+
+    with ctx:
         wcs = WCS({'NAXIS': 2,
                    'CTYPE1': 'TLON-CAR',
                    'CTYPE2': 'TLAT-CAR',
                    'RADESYS': 'ITRS ',
                    'DATE-OBS': '2017-08-17T12:41:04.444'})
-
-    if Version(_wcs.__version__) >= Version('7.4'):
-        assert len(w) == 1
-        msg = str(w[0].message)
-        assert "'datfix' made the change 'Set MJD-OBS to 57982.528524 from DATE-OBS'." in msg
-    else:
-        assert len(w) == 0
 
     # This shouldn't raise an exception.
     coord = wcs.pixel_to_world(x_in, y_in)

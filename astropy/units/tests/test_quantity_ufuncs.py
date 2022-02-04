@@ -699,15 +699,13 @@ class TestComparisonUfuncs:
                                     .to_value(u.dimensionless_unscaled), 2.))
         # comparison with 0., inf, nan is OK even for dimensional quantities
         # (though ignore numpy runtime warnings for comparisons with nan).
-        with pytest.warns(None) as warning_lines:
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
             for arbitrary_unit_value in (0., np.inf, np.nan):
                 ufunc(q_i1, arbitrary_unit_value)
                 ufunc(q_i1, arbitrary_unit_value*np.ones(len(q_i1)))
             # and just for completeness
             ufunc(q_i1, np.array([0., np.inf, np.nan]))
-        if len(warning_lines) > 0:
-            for w in warning_lines:
-                assert issubclass(w.category, RuntimeWarning)
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,

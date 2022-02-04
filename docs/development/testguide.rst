@@ -687,7 +687,7 @@ analogously to ``pytest.raises`` (see below) allows to probe explicitly
 for specific warning classes and, through the optional ``match`` argument,
 messages. Note that when no warning of the specified type is
 triggered, this will make the test fail. When checking for optional,
-but not mandatory warnings, ``pytest.warns(None)`` can be used to catch and
+but not mandatory warnings, ``pytest.warns()`` can be used to catch and
 inspect them.
 
 .. note::
