@@ -24,7 +24,7 @@ Returning to the complex number example:
 
 >>> serialized = json.dumps(v, cls=JSONExtendedEncoder)
 >>> serialized
-'{"__class__": "builtins.complex", "value": [1.0, 2.0]}'
+'{"!": "builtins.complex", "value": [1.0, 2.0]}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 (1+2j)
@@ -39,8 +39,7 @@ serializing to / loading from JSON.
 >>> arr = np.array([3, 4], dtype=float)
 >>> serialized = json.dumps(arr, cls=JSONExtendedEncoder)
 >>> serialized
-'{"__class__": "numpy.ndarray", "value": [3.0, 4.0],
-  "dtype": {"__class__": "numpy.dtype", "value": "float64"}}'
+'{"!": "numpy.ndarray", "value": [3.0, 4.0], "dtype": "float64"}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 array([3., 4.])
@@ -50,7 +49,7 @@ Precision is kept; for example a `numpy.float128` number is serialized as
 >>> arr = np.int64(10)
 >>> serialized = json.dumps(arr, cls=JSONExtendedEncoder)
 >>> serialized
-'{"__class__": "numpy.int64", "value": "10"}'
+'{"!": "numpy.int64", "value": "10"}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 10
@@ -63,8 +62,9 @@ We start with `astropy.units.Quantity`, which builds upon the
 >>> q = np.array([3], dtype=float) * u.km
 >>> serialized = json.dumps(q, cls=JSONExtendedEncoder)
 >>> serialized
-'{"__class__": "astropy.units.quantity.Quantity", "value": [3.0],
-  "dtype": {"__class__": "numpy.dtype", "value": "float64"}, "unit": "km"}'
+'{"!": "astropy.units.quantity.Quantity",
+  "value": {"!": "numpy.ndarray", "value": [3.0], "dtype": "float64"},
+  "unit": "km"}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 <Quantity [3.] km>
@@ -75,14 +75,13 @@ composed of many |Quantity| and arbitrary metadata.
 >>> from astropy.cosmology import Planck18, units as cu
 >>> serialized = json.dumps(Planck18, cls=JSONExtendedEncoder)
 >>> serialized
-'{"__class__": "astropy.cosmology.flrw.FlatLambdaCDM",
+'{"!": "astropy.cosmology.flrw.FlatLambdaCDM",
   "value": {"name": "Planck18",
-            "H0": {"__class__": "astropy.units.quantity.Quantity",
-                   "value": 67.66,
-                   "dtype": {"__class__": "numpy.dtype", "value": "float64"},
-                   "unit": "km / (Mpc s)"},
-  ...
-  "meta": {"Oc0": 0.2607, "n": 0.9665, ...
+            "H0": {"!": "astropy.units.quantity.Quantity",
+                   "value": {"!": "numpy.float64", "value": 67.66, "dtype": "float64"},
+                   "unit": {"!": "astropy.units.core.CompositeUnit", "value": null, "scale": 1.0, "bases": [{"!": "astropy.units.core.PrefixUnit", "value": "km"}, {"!": "astropy.units.core.PrefixUnit", "value": "Mpc"}, {"!": "astropy.units.core.IrreducibleUnit", "value": "s"}], "powers": [1, -1, -1]}},
+   ...
+   "meta": {"Oc0": 0.2607, "n": 0.9665, ...
 
 >>> with u.add_enabled_units(cu):
 ...     json.loads(serialized, cls=JSONExtendedDecoder)

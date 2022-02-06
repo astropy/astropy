@@ -12,8 +12,42 @@ import astropy.units as u
 from astropy.cosmology import units as cu
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.realizations import Planck18
+from astropy.io.misc.json.core import JSONExtendedEncoder, JSONExtendedDecoder
+from astropy.io.misc.json.tests.test_core import JSONExtendedTestBase
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
+
+
+###############################################################################
+# Test ``to/from_format(format="astropy.json")``
+
+class TestJSONExtended_Cosmology(JSONExtendedTestBase):
+
+    def setup_class(self):
+        self._type = type(Planck18)
+        self._obj = Planck18
+        self._serialized_value = {
+            'name': 'Planck18',
+            'H0': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.float64', 'value': 67.66, 'dtype': 'float64'}, 'unit': {'!': 'astropy.units.core.CompositeUnit', 'value': 'km / (Mpc s)'}},
+            'Om0': 0.30966,
+            'Tcmb0': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.float64', 'value': 2.7255, 'dtype': 'float64'}, 'unit': 'K'},
+            'Neff': 3.046,
+            'm_nu': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.ndarray', 'value': [0.0, 0.0, 0.06], 'dtype': 'float64'}, 'unit': 'eV'},
+            'Ob0': 0.04897
+        }
+
+    @pytest.mark.skip("TODO!")
+    def test_roundtrips_with_extended_decoder(self, obj, obj_type):
+
+        serialized = json.dumps(obj, cls=JSONExtendedEncoder)
+
+        with u.add_enabled_units(cu):
+            out = json.loads(serialized, cls=JSONExtendedDecoder)
+
+        assert isinstance(out, obj_type)
+        assert np.all(out == obj)
+
 
 ###############################################################################
 

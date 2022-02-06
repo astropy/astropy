@@ -14,14 +14,14 @@ def register_json_extended():
     # Unit
     JSONExtendedEncoder.register_encoding(u.UnitBase)(json_encode_unit)
     JSONExtendedDecoder.register_decoding(u.UnitBase)(json_decode_unit)
-    
+
     JSONExtendedEncoder.register_encoding(u.FunctionUnitBase)(json_encode_unit)
     JSONExtendedDecoder.register_decoding(u.FunctionUnitBase)(json_decode_unit)
 
     JSONExtendedEncoder.register_encoding(u.StructuredUnit)(json_encode_unit)
     JSONExtendedDecoder.register_decoding(u.StructuredUnit)(json_decode_unit)
 
-    JSONExtendedEncoder.register_encoding(u.CompositeUnit)(json_encode_composite_unit)
+    JSONExtendedEncoder.register_encoding(u.CompositeUnit)(json_encode_unit)
     JSONExtendedDecoder.register_decoding(u.CompositeUnit)(json_decode_composite_unit)
 
     # Quantity
@@ -33,11 +33,14 @@ def json_encode_unit(obj):  # FIXME so works with units defined outside units su
     """Return `astropy.unit.Unit` as a JSON-able dictionary."""
     from astropy.io.misc.json import _json_base_encode
 
-    if isinstance(obj, u.CompositeUnit):
-        return json_encode_composite_unit(obj)
-
     code = _json_base_encode(obj)
-    code.update(value=obj.to_string())
+
+    if obj == u.dimensionless_unscaled:
+        code["!"] = "astropy.units.core.Unit"  # TODO? should it remain Composite?
+        code["value"] = "dimensionless"
+    else:
+        code["value"] = obj.to_string()
+
     return code
 
 
@@ -48,21 +51,9 @@ def json_decode_unit(constructor, value, code):
     return constructor(value, **code)
 
 
-def json_encode_composite_unit(obj):
-    """Return `astropy.unit.CompositeUnit` as a JSON-able dictionary."""
-    from astropy.io.misc.json import _json_base_encode
-    code = _json_base_encode(obj)
-
-    if obj == u.dimensionless_unscaled:
-        code.update(__class__= "astropy.units.core.Unit", value="dimensionless")
-    else:
-        code.update(value=None, scale=obj.scale, bases=obj.bases, powers=obj.powers)
-    return code
-
-
 def json_decode_composite_unit(constructor, value, code):
     """Return a `astropy.unit.CompositeUnit` from an ``json_encode_composite_unit`` dictionary."""
-    return constructor(**code)
+    return u.Unit(value, **code)
 
 
 def json_encode_quantity(obj):
@@ -71,8 +62,7 @@ def json_encode_quantity(obj):
     from astropy.io.misc.json.numpy import encode_ndarray
 
     code = _json_base_encode(obj)
-    value = encode_ndarray(obj.value)
-    code["value"] = value
+    code["value"] = obj.value
 
     # code["dtype"] = code["value"].pop("dtype") # move up a level
 

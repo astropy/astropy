@@ -66,7 +66,7 @@ def decode_set(constructor, value, code):
 
 def encode_NotImplemented(obj):
     """Return `NotImplemented` as a JSON-able dictionary."""
-    code = {"__class__": "builtins.NotImplemented", "value": str(obj)}
+    code = {"!": "builtins.NotImplemented", "value": str(obj)}
     return code
 
 
@@ -77,7 +77,7 @@ def decode_NotImplemented(constructor, value, code):
 
 def encode_Ellipsis(obj):
     """Return `Ellipsis` as a JSON-able dictionary."""
-    code = {"__class__": "builtins.Ellipsis", "value": str(obj)}
+    code = {"!": "builtins.Ellipsis", "value": str(obj)}
     return code
 
 

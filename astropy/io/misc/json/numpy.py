@@ -12,11 +12,14 @@ from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
 
 def register_json_extended():
     """Register :mod:`numpy` into `JSON <http://json.org>`_."""
-    JSONExtendedEncoder.register_encoding(np.number)(encode_numpy_number)
-    JSONExtendedDecoder.register_decoding(np.number)(decode_numpy_number)
-
     JSONExtendedEncoder.register_encoding(np.dtype)(encode_numpy_dtype)
     JSONExtendedDecoder.register_decoding(np.dtype)(decode_numpy_dtype)
+
+    JSONExtendedEncoder.register_encoding(np.bool_)(encode_numpy_bool)
+    JSONExtendedDecoder.register_decoding(np.bool_)(decode_numpy_bool)
+
+    JSONExtendedEncoder.register_encoding(np.number)(encode_numpy_number)
+    JSONExtendedDecoder.register_decoding(np.number)(decode_numpy_number)
 
     JSONExtendedEncoder.register_encoding(np.void)(encode_numpy_void)
     JSONExtendedDecoder.register_decoding(np.void)(decode_numpy_void)
@@ -28,18 +31,8 @@ def register_json_extended():
 # -------------------------------------------------------------------
 
 
-def encode_numpy_number(obj):
-    code = _json_base_encode(obj)
-    code.update(value=obj.astype('U13'))  # TODO! dynamic length detection
-    return code
-
-
-def decode_numpy_number(constructor, value, code):
-    return constructor(value)
-
-
 def encode_numpy_dtype(obj):
-    code = {"__class__": "numpy.dtype"}
+    code = {"!": "numpy.dtype"}
     if obj.isbuiltin:
         code["value"] = str(obj)
         # don't need `align` and copy is True
@@ -74,18 +67,56 @@ def decode_numpy_dtype(constructor, value, code):
     return constructor(value, **code)
 
 
+def _abbreviate_dtype(dtype):
+    dt = encode_numpy_dtype(dtype)
+    dt.pop("!")  # we know the dtype
+    if dt.keys() == {"value"}:  # only value, no e.g. metadata
+        dt = dt["value"]
+    return dt
+
+
+def _unabbreviate_dtype(dtype):
+    if isinstance(dtype, str):
+        dtype = {"value": dtype}
+    # only if "!" wasn't a key, e.g. in non-structured ndarray
+    if isinstance(dtype, dict):
+        dtype = decode_numpy_dtype(np.dtype, dtype.pop("value"), dtype)
+
+    return dtype
+
+
+# ===================================================================
+# Scalars
+
+def encode_numpy_bool(obj):
+    code = _json_base_encode(obj)
+    code["value"] = bool(obj)
+    return code
+
+
+def decode_numpy_bool(constructor, value, code):
+    return constructor(value)
+
+
+def encode_numpy_number(obj):
+    code = _json_base_encode(obj)
+    code.update(value=obj.astype('U13'))  # TODO! dynamic length detection
+    return code
+
+
+def decode_numpy_number(constructor, value, code):
+    return constructor(value)
+
+
 def encode_numpy_void(obj):
     code = _json_base_encode(obj)
     code["value"] = obj.tolist()
-    
-    dtype = encode_numpy_dtype(obj.dtype)
-    code["dtype"] = dtype if not isinstance(dtype["value"], str) else dtype["value"]
-
+    code["dtype"] = _abbreviate_dtype(obj.dtype)
     return code
 
 
 def decode_numpy_void(constructor, value, code):
-    return tuple(value)
+    return tuple(value)  # FIXME!!!
 
 
 def encode_ndarray(obj):
@@ -103,8 +134,7 @@ def encode_ndarray(obj):
     else:
         code["value"] = obj.tolist()
 
-    dtype = encode_numpy_dtype(obj.dtype)
-    code["dtype"] = dtype if not isinstance(dtype["value"], str) else dtype["value"]
+    code["dtype"] = _abbreviate_dtype(obj.dtype)
 
     return code
 
@@ -113,12 +143,12 @@ def decode_ndarray(constructor, value, code):
     if constructor is np.ndarray:
         constructor = np.array
 
-    dtype = code.pop("dtype")
+    dtype = _unabbreviate_dtype(code.pop("dtype"))
 
     # structured array
     if getattr(dtype, "fields", None) is not None:
         k1 = tuple(value.keys())[0]
-        temp = np.empty(len(value[k1]), dtype=dtype)        
+        temp = np.empty(np.size(value[k1]), dtype=dtype)
         for k, val in value.items():
             temp[k] = val
         value = temp

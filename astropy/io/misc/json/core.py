@@ -152,7 +152,7 @@ class JSONExtendedDecoder(json.JSONDecoder):
         place of the given dict, otherwise the dict is return unchanged.
         """
         try:
-            qualname = code["__class__"].split(".")
+            qualname = code["!"].split(".")
             module = importlib.import_module(".".join(qualname[:-1]))
             constructor = getattr(module, qualname[-1])
         except ModuleNotFoundError as e:
@@ -162,7 +162,7 @@ class JSONExtendedDecoder(json.JSONDecoder):
 
         for key, func in cls._registry:  # try to decode
             if isinstance(constructor, key) or (inspect.isclass(constructor) and issubclass(constructor, key)):
-                code.pop("__class__")
+                code.pop("!")
                 obj = func(constructor, code.pop("value"), code)
                 break
         else:
@@ -189,5 +189,5 @@ class JSONExtendedDecoder(json.JSONDecoder):
 
 def _json_base_encode(obj):
     qualname = obj.__class__.__module__ + "." + obj.__class__.__qualname__
-    code = {"__class__": qualname}
+    code = {"!": qualname}
     return code

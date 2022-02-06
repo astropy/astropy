@@ -1,77 +1,53 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import ast
-import json
-import re
-
 import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.io.misc.json import JSONExtendedEncoder, JSONExtendedDecoder
 from astropy.io.misc.json.tests.test_core import JSONExtendedTestBase
 
 
-class TestJSONExtendedUnits(JSONExtendedTestBase):
-    """Tests for serializing builtins with extended JSON encoders and decoders."""
+class TestJSONExtended_Unit(JSONExtendedTestBase):
 
-    def test_unit_simple(self):
-        """Test round-tripping `astropy.units.Unit`."""
-        obj = u.Unit("km")
+    def setup_class(self):
+        self._type = u.PrefixUnit
+        self._obj = u.km
+        self._serialized_value = "km"
 
-        # Raises errors without extended encoder
-        with pytest.raises(TypeError, match=re.escape("Object of type PrefixUnit is not JSON serializable")):
-            json.dumps(obj)
 
-        # Works with the extended encoder
-        serialized = json.dumps(obj, cls=JSONExtendedEncoder)
-        assert isinstance(serialized, str)
-        d = ast.literal_eval(serialized)
-        assert d["__class__"] == "astropy.units.core.PrefixUnit"
-        assert d["value"] == "km"
+class TestJSONExtended_StructuredUnit(JSONExtendedTestBase):
 
-        # Comes back partially processed without extended decoder
-        out = json.loads(serialized)
-        assert isinstance(out, dict)
+    def setup_class(self):
+        self._type = u.StructuredUnit
+        self._obj = u.StructuredUnit("(km, km, (eV^2, eV))")
+        self._serialized_value = "(km, km, (eV2, eV))"
 
-        # Roundtrips
-        out = json.loads(serialized, cls=JSONExtendedDecoder)
-        assert isinstance(out, u.UnitBase)
-        assert out == obj
 
-    @pytest.mark.skip("TODO!")
-    def test_unit_structured(self):
-        """Test round-tripping structured `astropy.units.Unit`."""
-        obj = u.Unit(("km", "eV"))
+class TestJSONExtended_CompositeUnit(JSONExtendedTestBase):
 
-    def test_quantity_simple(self):
-        """Test round-tripping `astropy.units.Quantity`."""
-        obj = u.Quantity([3, 4], dtype=float, unit=u.km)
+    def setup_class(self):
+        self._type = u.CompositeUnit
+        self._obj = u.km * u.eV**2
+        self._serialized_value = 'eV2 km'
 
-        # Raises errors without extended encoder
-        with pytest.raises(TypeError, match=re.escape("Object of type Quantity is not JSON serializable")):
-            json.dumps(obj)
+# -------------------------------------------------------------------
 
-        # Works with the extended encoder
-        serialized = json.dumps(obj, cls=JSONExtendedEncoder)
-        assert isinstance(serialized, str)
-        d = ast.literal_eval(serialized)
-        assert d["__class__"] == "astropy.units.quantity.Quantity"
-        assert d["value"] == [3.0, 4.0]
-        assert d["unit"] == "km"
 
-        # Comes back partially processed without extended decoder
-        out = json.loads(serialized)
-        assert isinstance(out, dict)
+class TestJSONExtended_Quantity(JSONExtendedTestBase):
 
-        # Roundtrips
-        out = json.loads(serialized, cls=JSONExtendedDecoder)
-        assert isinstance(out, u.Quantity)
-        assert np.array_equal(out, obj)
+    def setup_class(self):
+        self._type = u.Quantity
+        self._obj = u.Quantity([3, 4], dtype=float, unit=u.km)
+        self._serialized_value = {'!': 'numpy.ndarray', 'value': [3.0, 4.0], 'dtype': 'float64'}
 
-    @pytest.mark.skip("TODO!")
-    def test_quantity_structured(self):
-        """Test round-tripping structured `astropy.units.Quantity`."""
+
+@pytest.mark.skip("TODO!")
+class TestJSONExtended_StructuredQuantity(JSONExtendedTestBase):
+
+    def setup_class(self):
+        self._type = u.Quantity
         dt = np.unit([("f1", np.int64), ("f2", np.float16)])
         obj = u.Quantity((1, 3.0), dtype=dt, unit=u.Unit("(u.km, u.eV)"))
+        self._obj = obj
+        # self._serialized_value = "int64"
