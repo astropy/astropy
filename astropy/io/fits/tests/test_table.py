@@ -6,6 +6,7 @@ import gc
 import pickle
 import re
 import sys
+import warnings
 
 import pytest
 import numpy as np
@@ -3454,8 +3455,10 @@ def test_new_column_attributes_preserved(tmpdir):
     hdu.writeto(filename)
 
     # Make sure we don't emit a warning in this case
-    with fits.open(filename) as hdul:
-        hdu2 = hdul[1]
+    with warnings.catch_warnings(record=True) as warning_list:
+        with fits.open(filename) as hdul:
+            hdu2 = hdul[1]
+    assert len(warning_list) == 0
 
     # Check that column attributes are now correctly set
 

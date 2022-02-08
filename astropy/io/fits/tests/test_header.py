@@ -3,6 +3,7 @@
 
 import copy
 import collections
+import warnings
 
 from io import StringIO, BytesIO
 
@@ -603,7 +604,9 @@ class TestHeaderFunctions(FitsTestCase):
         filename = fits.util.get_testdata_filepath('compressed_image.fits')
         with fits.open(filename) as hdul:
             header = hdul[1].header
-        header["HIERARCH LONG KEYWORD"] = 42
+        with warnings.catch_warnings(record=True) as warning_list:
+            header["HIERARCH LONG KEYWORD"] = 42
+        assert len(warning_list) == 0
         assert header["LONG KEYWORD"] == 42
         assert header["HIERARCH LONG KEYWORD"] == 42
 
