@@ -10,6 +10,15 @@ on:
     types:
       - synchronize
       - labeled
+  push:
+    # We want this workflow to always run on release branches as well as
+    # all tags since we want to be really sure we don't introduce
+    # regressions on the release branches, and it's also important to run
+    # this on pre-release and release tags.
+    branches:
+    - 'v*'
+    tags:
+    - '*'
 
 env:
   ARCH_ON_CI: "normal"
@@ -18,7 +27,7 @@ env:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     strategy:
       fail-fast: false
       matrix:
