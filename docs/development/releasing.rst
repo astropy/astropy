@@ -38,12 +38,20 @@ updates, and so on. New features can then continue to be added in parallel to th
 
 The procedure for the feature freeze is as follows:
 
+#. On the GitHub issue tracker, add a new milestone for the next major version
+   and for the next bugfix version, and also create a ``backport-v<version>.x``
+   label which can be used to label pull requests that should be backported
+   to the new release branch. You can then start to move any issues and pull
+   requests that you know will not be included in the release to the next milestones.
+
 #. Well in advance of the feature freeze date, advertise to developers when the
-   feature freeze will happen.
+   feature freeze will happen and encourage developers to re-milestone pull
+   requests to the next version (not the one you are releasing now) if they
+   will not be ready in time.
 
 #. Once you are ready to make the release branch, update your local ``main`` branch to the latest version from GitHub::
 
-      $ git fetch upstream --tags
+      $ git fetch upstream --tags --prune
       $ git checkout -B main upstream/main
 
 #. Create a new branch from ``main`` at the point you want the feature freeze to
@@ -92,16 +100,11 @@ The procedure for the feature freeze is as follows:
 
       $ git tag -s "v<next_version>.dev" -m "Back to development: v<next_version>"
 
-#. Push all of these changes up to github::
+#. Push all of these changes up to GitHub::
 
       $ git push upstream v<version>.x:v<version>.x
       $ git push upstream main:main
-
-#. On the GitHub issue tracker, add a new milestone for the next major version
-   and for the next bugfix version, and also create a ``backport-v<version>.x``
-   label which can be used to label pull requests that should be backported
-   to the new release branch. You can then start to move any issues and pull
-   requests that you know will not be included in the release to the next milestones.
+      $ git push upstream v<next_version>.dev:v<next_version>.dev
 
 #. Inform the Astropy developer community that the branching has occurred.
 
@@ -119,9 +122,10 @@ Ensure the built-in IERS earth rotation parameter and leap second tables are up
 to date by changing directory to ``astropy/utils/iers/data`` and executing
 ``update_builtin_iers.sh``. Check the result with ``git diff`` (do not be
 surprised to find many lines in the ``eopc04_IAU2000.62-now`` file change; those
-data are reanalyzed periodically) and committing. Since in some cases updating
-the IERS tables may result in test failures, this update should be done via a
-pull request to the ``main`` branch, and then backported to the release branch.
+data are reanalyzed periodically) and committing. This update should be done via a
+pull request to the ``main`` branch, and then backported to the release branch,
+as it is important for the ``main`` branch to have up-to-date values, and donig it
+via a pull request allows us to check for any failures the update introduces.
 
 .. _release-procedure-update-whatsnew:
 
@@ -195,18 +199,22 @@ the current release and commit this. E.g., ::
    $ git add docs/whatsnew/5.0.rst
    $ git commit -m "Added contributor statistics and names"
 
-Update the ``docs/credits.rst`` file to include any new contributors from the
-above step, and commit this and the ``.mailmap`` changes::
+Push the release branch back to GitHub, e.g.::
 
+      $ git push upstream v5.0.x
+
+Switch to a new branch that tracks the ``main`` branch and update the
+``docs/credits.rst`` file to include any new contributors from the above step,
+and commit this and the ``.mailmap`` changes::
+
+   $ git checkout -b v5.0-mailmap-credits upstream/main
    $ git add .mailmap
    $ git add docs/credits.rst
    $ git commit -m "Updated list of contributors and .mailmap file"
 
-This last commit should be forward-ported to the ``main`` branch.
+Open a pull request to merge this into ``main`` and mark it as requiring backporting to
+the release branch.
 
-Push the release branch back to GitHub, e.g.::
-
-      $ git push upstream v5.0.x
 
 .. _release-procedure-update-ci:
 
@@ -282,7 +290,7 @@ Push up the tag to the `astropy core repository`_, e.g.::
 
       $ git push upstream v5.0rc1
 
-.. note::
+.. warning::
 
    It might be tempting to use the ``--tags`` argument to ``git push``,
    but this should *not* be done, as it might push up some unintended tags.
@@ -552,9 +560,13 @@ in the `Azure core package pipeline`_ and uploaded to PyPI!
 In the event there are any issues with the wheel building for the tag
 (which shouldn't really happen if it was passing for the release branch),
 you'll have to fix whatever the problem is. Make sure you delete the
-tag::
+tag locally, e.g.::
 
-   git tag -d v<version>
+   git tag -d v5.0.1
+
+and on GitHub:
+
+   git push upstream :refs/tags/v5.0.1
 
 Make any fixes by adding commits to the release branch (no need to remove
 previous commits) e.g. via pull requests to the release branch, backports,
