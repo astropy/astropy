@@ -268,8 +268,9 @@ Tagging the first release candidate
 
 Assuming all the CI passes, you should now be ready to do a first release
 candidate! Ensure you have a GPG key pair available for when git needs to sign
-the tag you create for the release.  See :ref:`key-signing-info` for more on
-this.
+the tag you create for the release (see e.g.,
+`GitHub's documentation <https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key>`_
+for how to generate a key pair).
 
 Make sure your local release branch is up-to-date with the upstream release
 branch, then tag the latest commit with the ``-s`` option, including an ``rc1``
@@ -643,132 +644,6 @@ will involve followup commits that need to back backported as well.  Most bug
 fixes will have an issues associated with it in the issue tracker, so make sure
 to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
-
-.. _key-signing-info:
-
-Creating a GPG Signing Key and a Signed Tag
--------------------------------------------
-
-One of the main steps in performing a release is to create a tag in the git
-repository representing the exact state of the repository that represents the
-version being released.  For Astropy we will always use `signed tags`_: A
-signed tag is annotated with the name and e-mail address of the signer, a date
-and time, and a checksum of the code in the tag.  This information is then
-signed with a GPG private key and stored in the repository.
-
-Using a signed tag ensures the integrity of the contents of that tag for the
-future.  On a distributed VCS like git, anyone can create a tag of Astropy
-called "0.1" in their repository--and where it's easy to monkey around even
-after the tag has been created.  But only one "0.1" will be signed by one of
-the Astropy Project coordinators and will be verifiable with their public key.
-
-Generating a public/private key pair
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Git uses GPG to created signed tags, so in order to perform an Astropy release
-you will need GPG installed and will have to generated a signing key pair.
-Most \*NIX installations come with GPG installed by default (as it is used to
-verify the integrity of system packages).  If you don't have the ``gpg``
-command, consult the documentation for your system on how to install it.
-
-For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
-
-To create a new public/private key pair, run::
-
-    $ gpg --gen-key
-
-This will take you through a few interactive steps. For the encryption
-and expiry settings, it should be safe to use the default settings (I use
-a key size of 4096 just because what does a couple extra kilobytes
-hurt?) Enter your full name, preferably including your middle name or
-middle initial, and an e-mail address that you expect to be active for a
-decent amount of time. Note that this name and e-mail address must match
-the info you provide as your git configuration, so you should either
-choose the same name/e-mail address when you create your key, or update
-your git configuration to match the key info. Finally, choose a very good
-pass phrase that won't be easily subject to brute force attacks.
-
-
-If you expect to use the same key for some time, it's good to make a backup of
-both your public and private key::
-
-    $ gpg --export --armor > public.key
-    $ gpg --export-secret-key --armor > private.key
-
-Back up these files to a trusted location--preferably a write-once physical
-medium that can be stored safely somewhere.  One may also back up their keys to
-a trusted online encrypted storage, though some might not find that secure
-enough--it's up to you and what you're comfortable with.
-
-Add your public key to a keyserver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Now that you have a public key, you can publish this anywhere you like--in your
-e-mail, in a public code repository, etc.  You can also upload it to a
-dedicated public OpenPGP keyserver.  This will store the public key
-indefinitely (until you manually revoke it), and will be automatically synced
-with other keyservers around the world.  That makes it easy to retrieve your
-public key using the gpg command-line tool.
-
-To do this you will need your public key's keyname.  To find this enter::
-
-    $ gpg --list-keys
-
-This will output something like::
-
-    /path/to/.gnupg/pubring.gpg
-    ---------------------------------------------
-    pub   4096D/1234ABCD 2012-01-01
-    uid                  Your Name <your_email>
-    sub   4096g/567890EF 2012-01-01
-
-The 8 digit hex number on the line starting with "pub"--in this example the
-"1234ABCD" unique keyname for your public key.  To push it to a keyserver
-enter::
-
-    $ gpg --send-keys 1234ABCD
-
-But replace the 1234ABCD with the keyname for your public key.  Most systems
-come configured with a sensible default keyserver, so you shouldn't have to
-specify any more than that.
-
-Create a tag
-^^^^^^^^^^^^
-
-Now test creating a signed tag in git.  It's safe to experiment with this--you
-can always delete the tag before pushing it to a remote repository::
-
-    $ git tag -s v0.1 -m "Astropy version 0.1"
-
-This will ask for the password to unlock your private key in order to sign
-the tag with it.  Confirm that the default signing key selected by git is the
-correct one (it will be if you only have one key).
-
-Once the tag has been created, you can verify it with::
-
-    $ git tag -v v0.1
-
-This should output something like::
-
-    object e8e3e3edc82b02f2088f4e974dbd2fe820c0d934
-    type commit
-    tag v0.1
-    tagger Your Name <your_email> 1339779534 -0400
-
-    Astropy version 0.1
-    gpg: Signature made Fri 15 Jun 2012 12:59:04 PM EDT using DSA key ID 0123ABCD
-    gpg: Good signature from "Your Name <your_email>"
-
-You can use this to verify signed tags from any repository as long as you have
-the signer's public key in your keyring.  In this case you signed the tag
-yourself, so you already have your public key.
-
-Note that if you are planning to do a release following the steps below, you
-will want to delete the tag you just created, because the release script does
-that for you.  You can delete this tag by doing::
-
-    $ git tag -d v0.1
-
 
 .. _astropy core repository: https://github.com/astropy/astropy
 .. _signed tags: https://git-scm.com/book/en/v2/Git-Basics-Tagging#Signed-Tags
