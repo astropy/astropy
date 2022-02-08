@@ -259,7 +259,7 @@ Do not render the changelog with towncrier at this point. This should only be do
 release. However, it is up to the discretion of the release manager whether to
 open 'practice' pull requests to do this as part of the beta/release candidate
 process (but they should not be merged in) - if so the process for rendering the changelog is described
-in :ref:`render-changelog`.
+in :ref:`release-procedure-render-changelog`.
 
 .. _release-procedure-tagging:
 
@@ -336,7 +336,7 @@ come up with a release candidate, you are ready to proceed to the next section.
 Releasing the final version of the major release
 ================================================
 
-.. _render-changelog:
+.. _release-procedure-render-changelog:
 
 Rendering the changelog
 -----------------------
@@ -379,6 +379,16 @@ rendering from the non-LTS release branch should be forward-ported to ``main``.
    rather than rendering on ``main`` and backporting, since the latter would
    render all news fragments into the changelog rather than only the ones
    intended for the e.g. v5.0.x release branch.
+
+.. _release-procedure-checking-changelog:
+
+Checking the changelog
+----------------------
+
+Scripts are provided at https://github.com/astropy/astropy-tools/tree/main/pr_consistency
+to check for consistency between milestones, labels, the presence of pull requests
+in release branches, and the changelog. Follow the instructions in that repository
+to make sure everything is correct for the present release.
 
 Tagging the final release
 -------------------------
@@ -517,7 +527,8 @@ in a similar way to the initial major release:
 
 * :ref:`release-procedure-update-iers` (this should be done in ``main`` and backport it)
 * :ref:`release-procedure-check-ci`
-* :ref:`render-changelog`
+* :ref:`release-procedure-render-changelog`
+* :ref:`release-procedure-checking-changelog`
 
 You can then proceed with tagging the bugfix release. Make sure your local
 release branch is up-to-date with the upstream release branch, then tag the
@@ -632,76 +643,6 @@ will involve followup commits that need to back backported as well.  Most bug
 fixes will have an issues associated with it in the issue tracker, so make sure
 to reference all commits related to that issue in the commit message.  That way
 it's harder for commits that need to be backported from getting lost.
-
-.. _pr-consistency:
-
-Checking for consistency between pull request milestones, release branches, and changelog entries
--------------------------------------------------------------------------------------------------
-
-There are a series of scripts in the
-`astropy-tools repository`_, in the ``pr_consistency`` directory that can be used to make sure
-that all milestoned and merged pull requests are included in the appropriate release branches
-and in the changelog.Detailed documentation
-for these scripts is given in their repository, but here we summarize the basic
-workflow.  Run the scripts in order (they are numbered ``1.<something>.py``,
-``2.<something>.py``, etc.), entering your github login credentials as needed
-(if you are going to run them multiple times, using a ``~/.netrc`` file is
-recommended - see `this Stack Overflow post
-<https://stackoverflow.com/questions/5343068/is-there-a-way-to-cache-github-credentials-for-pushing-commits/18362082#18362082>`_
-for more on how to do that, or
-`a similar github help page <https://help.github.com/en/articles/caching-your-github-password-in-git>`_).
-The script to actually check consistency should be run like::
-
-    $ python 4.check_consistency.py > consistency.html
-
-Which will generate a simple web page that shows all of the areas where either
-a pull request was merged into ``main`` but is *not* in the relevant release that
-it has been milestoned for, as well as any changelog irregularities (i.e., PRs
-that are in the wrong section for what the github milestone indicates).  You'll
-want to correct those irregularities *first* before starting the backport
-process (re-running the scripts in order as needed).
-
-The end of the ``consistency.html`` page will then show a series of
-``git cherry-pick`` commands to update the maintenance branch with the PRs that
-are needed to make the milestones and branches consistent.  Make sure you're in
-the correct maintenance branch with e.g.,
-
-::
-
-    $ git checkout v1.3.x
-    $ git pull upstream v1.3.x  # Or possibly a rebase if conflicts exist
-
-if you are doing bugfixes for the 1.3.x series. Go through the commands one at a
-time, following the cherry-picking procedure described above. If for some reason
-you determine the github milestone was in error and the backporting is
-impossible, re-label the issue on github and move on.  Also, whenever you
-backport a PR, it's useful to leave a comment in the issue along the lines of
-"backported this to v1.3.x as <SHA>" so that it's clear that the backport
-happened to others who might later look.
-
-.. warning::
-
-    Automated scripts are never perfect, and can either miss issues that need to
-    be backported, or in some cases can report false positives.
-
-    It's always a good idea before finalizing a bug fix release to look on
-    GitHub through the list of closed issues in the release milestone and check
-    that each one has a fix in the bug fix branch.  Usually a quick way to do
-    this is for each issue to run::
-
-        $ git log --oneline <bugfix-branch> | grep #<issue>
-
-    Most fixes will mention their related issue in the commit message, so this
-    tends to be pretty reliable.  Some issues won't show up in the commit log,
-    however, as their fix is in a separate pull request.  Usually GitHub makes
-    this clear by cross-referencing the issue with its PR.
-
-Finally, not all issues assigned to a release milestone need to be fixed before
-making that release.  Usually, in the interest of getting a release with
-existing fixes out within some schedule, it's best to triage issues that won't
-be fixed soon to a new release milestone.  If the upcoming bug fix release is
-'v5.0.2', then go ahead and create a 'v5.0.3' milestone and reassign to it any
-issues that you don't expect to be fixed in time for 'v5.0.2'.
 
 .. _key-signing-info:
 
