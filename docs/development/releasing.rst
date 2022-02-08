@@ -341,6 +341,11 @@ Releasing the final version of the major release
 Rendering the changelog
 -----------------------
 
+.. warning:: Make sure that you have a very recent version of towncrier - at the time of
+             writing you will need the 21.9.0rc1 pre-release for things to work correctly::
+
+                $ pip install towncrier==21.9.0rc1
+
 We now need to render the changelog with towncrier. Since it is a good idea to
 review the changelog and fix any line wrap and other issues, we do this on
 a separate branch and open a pull request into the release branch to allow for
@@ -351,7 +356,10 @@ branch, e.g.::
 
 Next, run towncrier and confirm that the fragments can be deleted::
 
-      towncrier --version 5.0
+      towncrier build --version 5.0
+
+Check the ``CHANGES.rst`` file and remove any empty sections from the new
+changelog section.
 
 Then add and commit those changes with::
 
@@ -398,8 +406,17 @@ Post-Release procedures
       $ git reset --hard v<version>
       $ git push upstream stable --force
 
+#. If this is an LTS release (whether or not it is being supported alongside
+   a more recent version), update the "LTS" branch to ponit to the new LTS
+   release:
+
+      $ git checkout LTS
+      $ git reset --hard v<version>
+      $ git push upstream LTS --force
+
 #. Update Readthedocs so that it builds docs for the version you just released.
-   You'll find this in the "admin" tab, with checkboxes next to each github tag.
+   You'll find this in the "Admin" tab, in the "Edit Versions" section --
+   click on "Activate" for the tag of the release you have just done.
    Also verify that the ``stable`` Readthedocs version builds correctly for
    the new version (it should trigger automatically once you've done the
    previous step).
@@ -410,11 +427,9 @@ Post-Release procedures
    cluttering the list of versions that users see in the version dropdown
    (the previous versions are still accessible by their URL though).
 
-#. Update the Astropy web site by editing the ``index.html`` page at
-   https://github.com/astropy/astropy.github.com by changing the "current
-   version" link and/or updating the list of older versions if this is an LTS
-   bugfix or a new major version.  You may also need to update the contributor
-   list on the web site if you updated the ``docs/credits.rst`` at the outset.
+#. If you have updated the list of contributors during the release, update the
+   equivalent list on the Astropy web site at
+   https://github.com/astropy/astropy.github.com.
 
 #. Cherry-pick the commit rendering the changelog and deleting the fragments and
    open a PR to the astropy *main* branch. Also make sure you cherry-pick the
@@ -434,7 +449,7 @@ Post-Release procedures
 
 #. Upload the release to Zenodo by creating a GitHub Release off the GitHub tag.
    Click on the tag in https://github.com/astropy/astropy/tags and then click on
-   the "Edit tag" button on the upper right. The release title is the same as the
+   "Create release from tag" on the upper right. The release title is the same as the
    tag. In the description, you can copy and paste a description from the previous
    release, as it should be a one-liner that points to ``CHANGES.rst``. When you
    are ready, click "Publish release" (the green button on bottom left).
@@ -502,6 +517,7 @@ in a similar way to the initial major release:
 
 * :ref:`release-procedure-update-iers` (this should be done in ``main`` and backport it)
 * :ref:`release-procedure-check-ci`
+* :ref:`render-changelog`
 
 You can then proceed with tagging the bugfix release. Make sure your local
 release branch is up-to-date with the upstream release branch, then tag the
