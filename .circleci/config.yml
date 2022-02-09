@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 # NOTE: We run these in CircleCI because it has better artifacts support
 # and it is possible to publish image diffs as HTML like pytest-mpl in the future.
@@ -36,9 +36,70 @@ jobs:
       - store_artifacts:
           path: results
 
+  manylinux2014-aarch64:
+    parameters:
+      production_wheel:
+        type: boolean
+        default: false
+
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+    environment:
+      CIBW_BEFORE_TEST: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_wcsapi_extension" --pyargs astropy
+      CIBW_TEST_EXTRAS: test
+      CIBW_BUILD_VERBOSITY_LINUX: 3
+      CIBW_BUILD: "cp38-* cp39-* cp310-*"
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m pip install --upgrade pip==21.2.4
+            python3 -m pip install cibuildwheel==2.1.2 twine
+      - run:
+          name: Cibuildwheel
+          command: |
+            python3 -m cibuildwheel --output-dir wheelhouse
+      - store_artifacts:
+          path: ./wheelhouse
+          destination: astropy
+      - when:
+          condition:  << parameters.production_wheel>>
+          steps:
+            - run:
+                name: Upload wheels to pypi
+                command: |
+                  twine upload --skip-existing -u TWINE_USERNAME  -p TWINE_PASSWORD wheelhouse/*
+
 workflows:
-  version: 2
+  version: 2.1
   tests:
     jobs:
       - image-tests-mpl311
       - image-tests-mpldev
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - manylinux2014-aarch64:
+          name: nightly-wheel-AArch64
+  build:
+    jobs:
+      - manylinux2014-aarch64:
+          name: development-wheel-AArch64
+      - manylinux2014-aarch64:
+          name: production-wheel-AArch64
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          matrix:
+            parameters:
+              production_wheel: [true]
