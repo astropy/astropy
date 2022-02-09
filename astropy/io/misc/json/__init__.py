@@ -77,11 +77,9 @@ composed of many |Quantity| and arbitrary metadata.
 >>> serialized
 '{"!": "astropy.cosmology.flrw.FlatLambdaCDM",
   "value": {"name": "Planck18",
-            "H0": {"!": "astropy.units.quantity.Quantity",
-                   "value": {"!": "numpy.float64", "value": 67.66, "dtype": "float64"},
-                   "unit": {"!": "astropy.units.core.CompositeUnit", "value": null, "scale": 1.0, "bases": [{"!": "astropy.units.core.PrefixUnit", "value": "km"}, {"!": "astropy.units.core.PrefixUnit", "value": "Mpc"}, {"!": "astropy.units.core.IrreducibleUnit", "value": "s"}], "powers": [1, -1, -1]}},
-   ...
-   "meta": {"Oc0": 0.2607, "n": 0.9665, ...
+            "H0": {"!": "astropy.units.quantity.Quantity", "value": 67.66, "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"}},
+            ...
+  "meta": {"Oc0": 0.2607, "n": 0.9665, ...
 
 >>> with u.add_enabled_units(cu):
 ...     json.loads(serialized, cls=JSONExtendedDecoder)

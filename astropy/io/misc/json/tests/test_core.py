@@ -3,11 +3,45 @@
 
 import abc
 import json
+from collections.abc import Mapping
 
 import numpy as np
 import pytest
 
 from astropy.io.misc.json.core import JSONExtendedEncoder, JSONExtendedDecoder
+
+
+def _array_close(obj1, obj2):
+    try:
+        eq = np.allclose(obj1, obj2)
+    except (TypeError, DeprecationWarning, np.VisibleDeprecationWarning):
+        try:
+            eq = (obj1 == obj2)
+        except ValueError:  # Some element-wise failures. Maybe mappings?
+            eq = False
+    return eq
+
+
+def _recursive_eq(obj1, obj2):
+
+    if not isinstance(obj1, Mapping):
+        return _array_close(obj1, obj2)
+
+    elif not isinstance(obj2, Mapping):
+        return False
+
+    elif set(obj1.keys()) != set(obj2.keys()):
+        return False
+
+    for k, v in obj1.items():
+        eq = _array_close(obj1, obj2)
+        if not eq and isinstance(v, Mapping) and isinstance(obj2[k], Mapping):
+            eq = _recursive_eq(v, obj2[k])
+    if not np.all(eq):
+        return False
+
+    return True
+
 
 
 class JSONExtendedTestBase(metaclass=abc.ABCMeta):
@@ -49,7 +83,7 @@ class JSONExtendedTestBase(metaclass=abc.ABCMeta):
         out = json.loads(serialized)
         scls = getattr(self, "_serialized_class", f"{obj_type.__module__}.{obj_type.__qualname__}")
         assert out["!"] == scls
-        assert out["value"] == self._serialized_value
+        assert _recursive_eq(out["value"], self._serialized_value)
 
     def test_roundtrips_with_extended_decoder(self, obj, obj_type):
 

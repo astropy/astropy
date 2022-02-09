@@ -22,22 +22,29 @@ from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 ###############################################################################
 # Test ``to/from_format(format="astropy.json")``
 
-class TestJSONExtended_Cosmology(JSONExtendedTestBase):
 
+class TestJSONExtended_Cosmology(JSONExtendedTestBase):
     def setup_class(self):
         self._type = type(Planck18)
         self._obj = Planck18
         self._serialized_value = {
-            'name': 'Planck18',
-            'H0': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.float64', 'value': 67.66, 'dtype': 'float64'}, 'unit': {'!': 'astropy.units.core.CompositeUnit', 'value': 'km / (Mpc s)'}},
-            'Om0': 0.30966,
-            'Tcmb0': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.float64', 'value': 2.7255, 'dtype': 'float64'}, 'unit': 'K'},
-            'Neff': 3.046,
-            'm_nu': {'!': 'astropy.units.quantity.Quantity', 'value': {'!': 'numpy.ndarray', 'value': [0.0, 0.0, 0.06], 'dtype': 'float64'}, 'unit': 'eV'},
-            'Ob0': 0.04897
+            "name": "Planck18",
+            "H0": {
+                "!": "astropy.units.quantity.Quantity",
+                "value": 67.66,
+                "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"},
+            },
+            "Om0": 0.30966,
+            "Tcmb0": {"!": "astropy.units.quantity.Quantity", "value": 2.7255, "unit": "K"},
+            "Neff": 3.046,
+            "m_nu": {
+                "!": "astropy.units.quantity.Quantity",
+                "value": {"!": "numpy.ndarray", "value": [0.0, 0.0, 0.06], "dtype": "float64"},
+                "unit": "eV",
+            },
+            "Ob0": 0.04897,
         }
 
-    @pytest.mark.skip("TODO!")
     def test_roundtrips_with_extended_decoder(self, obj, obj_type):
 
         serialized = json.dumps(obj, cls=JSONExtendedEncoder)
@@ -46,7 +53,8 @@ class TestJSONExtended_Cosmology(JSONExtendedTestBase):
             out = json.loads(serialized, cls=JSONExtendedDecoder)
 
         assert isinstance(out, obj_type)
-        assert np.all(out == obj)
+        assert out == obj
+        assert dict(out.meta) == dict(obj.meta)
 
 
 ###############################################################################
@@ -147,8 +155,9 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
 
     # ========================================================================
 
-    def test_readwrite_json_subclass_partial_info(self, cosmo_cls, cosmo, read,
-                                                  write, tmp_path, add_cu):
+    def test_readwrite_json_subclass_partial_info(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.

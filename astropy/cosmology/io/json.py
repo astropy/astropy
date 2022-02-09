@@ -25,9 +25,9 @@ def json_encode_cosmology(cosmo):
     return code
 
 
-def json_decode_cosmology(cosmo_cls, parameters, meta):
+def json_decode_cosmology(cosmo_cls, parameters, code):
     """Return a |Cosmology| from an ``json_encode_cosmology`` dictionary."""
-    map = {**parameters, "meta": meta}  # mix back to one dict
+    map = {**parameters, "meta": code.pop("meta", None)}  # mix back to one dict
     return Cosmology.from_format(map, format="mapping", cosmology=cosmo_cls)
 
 

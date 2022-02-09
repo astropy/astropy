@@ -116,7 +116,14 @@ def encode_numpy_void(obj):
 
 
 def decode_numpy_void(constructor, value, code):
-    return tuple(value)  # FIXME!!!
+    # return tuple(value)  # FIXME!!!
+    if isinstance(value, bytes):
+        return constructor(value)
+
+    dt = code.pop("dtype")
+    dtype = decode_numpy_dtype(np.dtype, dt.pop("value"), dt)
+
+    return np.array(tuple(value), dtype=dtype)[()]
 
 
 def encode_ndarray(obj):
