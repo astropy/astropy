@@ -122,7 +122,7 @@ class TestJSONExtended_NDArray(JSONExtendedTestBase):
     def setup_class(self):
         self._type = np.ndarray
         self._obj = np.array([3, 4], dtype=float)
-        self._serialized_value = [3.0, 4.0]
+        self._serialized_value = ["3.0", "4.0"]
 
 
 class TestJSONExtended_StructuredNDArray(JSONExtendedTestBase):
@@ -131,6 +131,6 @@ class TestJSONExtended_StructuredNDArray(JSONExtendedTestBase):
 
         self._obj = np.array((0, 0.6), dtype=np.dtype([("nu1", float), ("nu2", np.float32)]))
         self._serialized_value = {
-            "nu1": {"!": "numpy.ndarray", "value": 0.0, "dtype": "float64"},
-            "nu2": {"!": "numpy.ndarray", "value": 0.6000000238418579, "dtype": "float32"},
+            "nu1": {"!": "numpy.ndarray", "value": "0.0", "dtype": "float64"},
+            "nu2": {"!": "numpy.ndarray", "value": "0.6", "dtype": "float32"},
         }

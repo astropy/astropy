@@ -139,7 +139,7 @@ def encode_ndarray(obj):
         for k in obj.dtype.fields:
             code["value"][k] = encode_ndarray(obj[k])
     else:
-        code["value"] = obj.tolist()
+        code["value"] = obj.astype(str).tolist()
 
     code["dtype"] = _abbreviate_dtype(obj.dtype)
 

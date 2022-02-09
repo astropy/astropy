@@ -43,7 +43,6 @@ def _recursive_eq(obj1, obj2):
     return True
 
 
-
 class JSONExtendedTestBase(metaclass=abc.ABCMeta):
     """Base for testing JSON extended encoders and decoders"""
 

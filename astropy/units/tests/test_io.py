@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import json
+
 import numpy as np
 import pytest
 
 import astropy.units as u
+from astropy.io.misc.json import JSONExtendedEncoder
 from astropy.io.misc.json.tests.test_core import JSONExtendedTestBase
 
 
@@ -36,7 +39,12 @@ class TestJSONExtended_Quantity(JSONExtendedTestBase):
     def setup_class(self):
         self._type = u.Quantity
         self._obj = u.Quantity([3, 4], dtype=float, unit=u.km)
-        self._serialized_value = {"!": "numpy.ndarray", "value": [3.0, 4.0], "dtype": "float64"}
+        self._serialized_value = {"!": "numpy.ndarray", "value": ["3.0", "4.0"], "dtype": "float64"}
+
+    def test_unit(self, obj):
+        serialized = json.dumps(obj, cls=JSONExtendedEncoder)
+        out = json.loads(serialized)
+        assert out["unit"] == str(self._obj.unit)
 
 
 class TestJSONExtended_StructuredVoidQuantity(TestJSONExtended_Quantity):
@@ -48,7 +56,7 @@ class TestJSONExtended_StructuredVoidQuantity(TestJSONExtended_Quantity):
         self._obj = obj
         self._serialized_value = {
             "!": "numpy.void",
-            "value": [0.0, 0.6],
+            "value": ["0.0", "0.6"],
             "dtype": {"value": {"nu1": [{"!": "numpy.dtype", "value": "float64"}, 0],
                                 "nu2": [{"!": "numpy.dtype", "value": "float32"}, 8]},
                       "align": False}}
@@ -63,8 +71,8 @@ class TestJSONExtended_StructuredArrayQuantity(TestJSONExtended_Quantity):
         self._obj = obj
         self._serialized_value = {
             "!": "numpy.ndarray",
-            "value": {"nu1": {"!": "numpy.ndarray", "value": [0.0], "dtype": "float64"},
-                      "nu2": {"!": "numpy.ndarray", "value": [0.6], "dtype": "float32"}
+            "value": {"nu1": {"!": "numpy.ndarray", "value": ["0.0"], "dtype": "float64"},
+                      "nu2": {"!": "numpy.ndarray", "value": ["0.6"], "dtype": "float32"}
             },
             "dtype": {
                 "value": {"nu1": [{"!": "numpy.dtype", "value": "float64"}, 0],

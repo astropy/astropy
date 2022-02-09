@@ -39,7 +39,7 @@ class TestJSONExtended_Cosmology(JSONExtendedTestBase):
             "Neff": 3.046,
             "m_nu": {
                 "!": "astropy.units.quantity.Quantity",
-                "value": {"!": "numpy.ndarray", "value": [0.0, 0.0, 0.06], "dtype": "float64"},
+                "value": {"!": "numpy.ndarray", "value": ["0.0", "0.0", "0.06"], "dtype": "float64"},
                 "unit": "eV",
             },
             "Ob0": 0.04897,

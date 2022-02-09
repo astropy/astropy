@@ -39,7 +39,7 @@ serializing to / loading from JSON.
 >>> arr = np.array([3, 4], dtype=float)
 >>> serialized = json.dumps(arr, cls=JSONExtendedEncoder)
 >>> serialized
-'{"!": "numpy.ndarray", "value": [3.0, 4.0], "dtype": "float64"}'
+'{"!": "numpy.ndarray", "value": ["3.0", "4.0"], "dtype": "float64"}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 array([3., 4.])
@@ -63,7 +63,7 @@ We start with `astropy.units.Quantity`, which builds upon the
 >>> serialized = json.dumps(q, cls=JSONExtendedEncoder)
 >>> serialized
 '{"!": "astropy.units.quantity.Quantity",
-  "value": {"!": "numpy.ndarray", "value": [3.0], "dtype": "float64"},
+  "value": {"!": "numpy.ndarray", "value": ["3.0"], "dtype": "float64"},
   "unit": "km"}'
 
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
