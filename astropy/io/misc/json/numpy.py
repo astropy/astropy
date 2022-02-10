@@ -109,15 +109,31 @@ def decode_numpy_number(constructor, value, code):
 
 
 def encode_numpy_void(obj):
+    """Encode `numpy.void`.
+
+    `~numpy.void` can be either a bytes or an item from a structured array.
+    The former is a simple wrapper around the bytes encoding, the latter
+    looks more like an encoded ndarray and has a "dtype" field.
+
+    Returns
+    -------
+    dict
+        With fields "value" (always) and "dtype" (if structured).
+    """
     code = _json_base_encode(obj)
-    code["value"] = obj.tolist()
-    code["dtype"] = _abbreviate_dtype(obj.dtype)
+    value = tuple(map(str, obj))  # go through str to keep precision
+
+    if value == ():  # it's actually bytes
+        code["value"] = obj.tolist()
+    else:
+        code["value"] = value
+        code["dtype"] = _abbreviate_dtype(obj.dtype)
     return code
 
 
 def decode_numpy_void(constructor, value, code):
-    # return tuple(value)  # FIXME!!!
     if isinstance(value, bytes):
+        # TODO? can't have field dtype, or needs to be "|V..."
         return constructor(value)
 
     dt = code.pop("dtype")
