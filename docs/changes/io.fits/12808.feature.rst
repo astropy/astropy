@@ -1,3 +1,4 @@
-Add option ``unit_format`` to ``astropy.io.fits.connect.read_table_fits`` to
-enable using a wider range of units for files not compliant with the units
-defined in the FITS Standard.
+Add option ``unit_format`` to ``astropy.io.fits.connect.read_table_fits``
+(and thus to ``Table.read(format='fits')``) to enable using a wider
+range of units for files not compliant with the units defined in the
+FITS Standard.
