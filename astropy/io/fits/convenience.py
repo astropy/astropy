@@ -1084,8 +1084,6 @@ def _makehdu(data, header):
                 isinstance(data, np.recarray)):
             hdu = BinTableHDU(data, header=header)
         elif isinstance(data, np.ndarray) or _is_dask_array(data):
-            # Duck-type array mimics like dask.array.Array - those should have
-            # an __array__ method to convert to regular numpy array.
             hdu = ImageHDU(data, header=header)
         else:
             raise KeyError('Data must be a numpy array.')

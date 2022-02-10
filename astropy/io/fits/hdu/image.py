@@ -14,12 +14,6 @@ from astropy.io.fits.verify import VerifyWarning
 
 from astropy.utils import isiterable, lazyproperty
 
-try:
-    from dask.array import Array as DaskArray
-except ImportError:
-    class DaskArray:
-        pass
-
 
 __all__ = ["Section", "PrimaryHDU", "ImageHDU"]
 
