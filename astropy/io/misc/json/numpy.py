@@ -114,6 +114,7 @@ def encode_numpy_void(obj):
     `~numpy.void` can be either a bytes or an item from a structured array.
     The former is a simple wrapper around the bytes encoding, the latter
     looks more like an encoded ndarray and has a "dtype" field.
+    `numpy.void.flags` cannot be set, so are not included in this encoding.
 
     Returns
     -------
@@ -142,14 +143,26 @@ def decode_numpy_void(constructor, value, code):
     return np.array(tuple(value), dtype=dtype)[()]
 
 
+def _check_flags(flags):
+    """Checks that flags are not their default values."""
+    out = {}
+    if flags.writeable is False:
+        out["write"] = False
+    if flags.aligned is False:
+        out["align"] = False
+    if flags.writebackifcopy is True:
+        out["uic"] = True
+    return out
+
+
 def encode_ndarray(obj):
+    # For convenience, check if actually a void
     if isinstance(obj, np.void):
         return encode_numpy_void(obj)
 
     code = _json_base_encode(obj)
 
-    # TODO! structured ndarray need to be broken into each field and
-    # serialized separately
+    # structured
     if obj.dtype.fields:
         code["value"] = dict()
         for k in obj.dtype.fields:
@@ -157,7 +170,12 @@ def encode_ndarray(obj):
     else:
         code["value"] = obj.astype(str).tolist()
 
+    # dtype
     code["dtype"] = _abbreviate_dtype(obj.dtype)
+
+    # flags
+    if flags := _check_flags(obj.flags):
+        code["flags"] = flags
 
     return code
 
@@ -167,6 +185,7 @@ def decode_ndarray(constructor, value, code):
         constructor = np.array
 
     dtype = _unabbreviate_dtype(code.pop("dtype"))
+    flags = code.pop("flags", {})
 
     # structured array
     if getattr(dtype, "fields", None) is not None:
@@ -176,4 +195,6 @@ def decode_ndarray(constructor, value, code):
             temp[k] = val
         value = temp
 
-    return constructor(value, dtype=dtype, **code)
+    array = constructor(value, dtype=dtype, **code)
+    array.setflags(**flags)
+    return array
