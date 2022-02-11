@@ -30,15 +30,15 @@ class TestJSONExtended_Cosmology(JSONExtendedTestBase):
         self._serialized_value = {
             "name": "Planck18",
             "H0": {
-                "!": "astropy.units.quantity.Quantity",
+                "!": "astropy.units.Quantity",
                 "value": 67.66,
                 "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"},
             },
             "Om0": 0.30966,
-            "Tcmb0": {"!": "astropy.units.quantity.Quantity", "value": 2.7255, "unit": "K"},
+            "Tcmb0": {"!": "astropy.units.Quantity", "value": 2.7255, "unit": "K"},
             "Neff": 3.046,
             "m_nu": {
-                "!": "astropy.units.quantity.Quantity",
+                "!": "astropy.units.Quantity",
                 "value": {"!": "numpy.ndarray", "value": ["0.0", "0.0", "0.06"], "dtype": "float64"},
                 "unit": "eV",
             },

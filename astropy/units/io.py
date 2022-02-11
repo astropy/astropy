@@ -10,6 +10,7 @@ __all__ = []  # Nothing is publicly scoped.
 def register_json_extended():
     """Units entry points for JSONExtendedEncoder, JSONExtendedDecoder."""
     from astropy.io.misc.json import JSONExtendedDecoder, JSONExtendedEncoder
+    from astropy.io.misc.json.core import QUALNAME_SUBSTITUTIONS as QS
 
     # Unit
     JSONExtendedEncoder.register_encoding(u.UnitBase)(json_encode_unit)
@@ -24,9 +25,16 @@ def register_json_extended():
     JSONExtendedEncoder.register_encoding(u.CompositeUnit)(json_encode_unit)
     JSONExtendedDecoder.register_decoding(u.CompositeUnit)(json_decode_composite_unit)
 
+    QS["astropy.units.core.Unit"] = "astropy.units.Unit"
+    QS["astropy.units.core.CompositeUnit"] = "astropy.units.CompositeUnit"
+    QS["astropy.units.core.PrefixUnit"] = "astropy.units.PrefixUnit"
+    QS["astropy.units.structured.StructuredUnit"] = "astropy.units.StructuredUnit"
+
     # Quantity
     JSONExtendedEncoder.register_encoding(u.Quantity)(json_encode_quantity)
     JSONExtendedDecoder.register_decoding(u.Quantity)(json_decode_quantity)
+
+    QS["astropy.units.quantity.Quantity"] = "astropy.units.Quantity"
 
 
 def json_encode_unit(obj):  # FIXME so works with units defined outside units subpkg

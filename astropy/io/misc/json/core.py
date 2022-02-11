@@ -16,6 +16,9 @@ from . import __doc__ as _example_doc
 __all__ = ['JSONExtendedEncoder', 'JSONExtendedDecoder']
 
 
+QUALNAME_SUBSTITUTIONS = {}
+
+
 @format_doc(None, examples=indent(_example_doc[77:])[4:])  # (cut off 1st line)
 class JSONExtendedEncoder(json.JSONEncoder):
     """Support for data types that JSON default encoder does not do.
@@ -189,5 +192,6 @@ class JSONExtendedDecoder(json.JSONDecoder):
 
 def _json_base_encode(obj):
     qualname = obj.__class__.__module__ + "." + obj.__class__.__qualname__
+    qualname = QUALNAME_SUBSTITUTIONS.get(qualname, qualname)  # possibly substitute
     code = {"!": qualname}
     return code

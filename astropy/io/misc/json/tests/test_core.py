@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from astropy.io.misc.json.core import JSONExtendedEncoder, JSONExtendedDecoder
+from astropy.io.misc.json.core import QUALNAME_SUBSTITUTIONS
 
 
 def _array_close(obj1, obj2):
@@ -81,6 +82,7 @@ class JSONExtendedTestBase(metaclass=abc.ABCMeta):
         # Partially unserialize (without extended decoder)
         out = json.loads(serialized)
         scls = getattr(self, "_serialized_class", f"{obj_type.__module__}.{obj_type.__qualname__}")
+        scls = QUALNAME_SUBSTITUTIONS.get(scls, scls)
         assert out["!"] == scls
         assert _recursive_eq(out["value"], self._serialized_value)
 

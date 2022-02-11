@@ -62,7 +62,7 @@ We start with `astropy.units.Quantity`, which builds upon the
 >>> q = np.array([3], dtype=float) * u.km
 >>> serialized = json.dumps(q, cls=JSONExtendedEncoder)
 >>> serialized
-'{"!": "astropy.units.quantity.Quantity",
+'{"!": "astropy.units.Quantity",
   "value": {"!": "numpy.ndarray", "value": ["3.0"], "dtype": "float64"},
   "unit": "km"}'
 
@@ -75,7 +75,7 @@ composed of many |Quantity| and arbitrary metadata.
 >>> from astropy.cosmology import Planck18, units as cu
 >>> serialized = json.dumps(Planck18, cls=JSONExtendedEncoder)
 >>> serialized
-'{"!": "astropy.cosmology.flrw.FlatLambdaCDM",
+'{"!": "astropy.cosmology.FlatLambdaCDM",
   "value": {"name": "Planck18",
             "H0": {"!": "astropy.units.quantity.Quantity", "value": 67.66, "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"}},
             ...
