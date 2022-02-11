@@ -75,7 +75,7 @@ def json_encode_quantity(obj):
     # code["dtype"] = code["value"].pop("dtype") # move up a level
 
     unit = json_encode_unit(obj.unit)
-    if (obj.unit == u.one or not isinstance(obj.unit, u.CompositeUnit)):
+    if not isinstance(obj.unit, u.StructuredUnit):
         code["unit"] = unit["value"]
     else:
         code["unit"] = unit

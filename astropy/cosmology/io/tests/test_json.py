@@ -32,7 +32,7 @@ class TestJSONExtended_Cosmology(JSONExtendedTestBase):
             "H0": {
                 "!": "astropy.units.Quantity",
                 "value": 67.66,
-                "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"},
+                "unit": "km / (Mpc s)",
             },
             "Om0": 0.30966,
             "Tcmb0": {"!": "astropy.units.Quantity", "value": 2.7255, "unit": "K"},

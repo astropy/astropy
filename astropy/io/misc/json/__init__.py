@@ -77,7 +77,8 @@ composed of many |Quantity| and arbitrary metadata.
 >>> serialized
 '{"!": "astropy.cosmology.FlatLambdaCDM",
   "value": {"name": "Planck18",
-            "H0": {"!": "astropy.units.quantity.Quantity", "value": 67.66, "unit": {"!": "astropy.units.core.CompositeUnit", "value": "km / (Mpc s)"}},
+            "H0": {"!": "astropy.units.Quantity",
+                   "value": 67.66, "unit": "km / (Mpc s)"},
             ...
   "meta": {"Oc0": 0.2607, "n": 0.9665, ...
 

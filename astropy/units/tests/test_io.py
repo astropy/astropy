@@ -43,8 +43,9 @@ class TestJSONExtended_Quantity(JSONExtendedTestBase):
 
     def test_unit(self, obj):
         serialized = json.dumps(obj, cls=JSONExtendedEncoder)
-        out = json.loads(serialized)
-        assert out["unit"] == str(self._obj.unit)
+        out = json.loads(serialized)["unit"]
+        out = out if not isinstance(out, dict) else out["value"]
+        assert out == str(self._obj.unit)
 
 
 class TestJSONExtended_StructuredVoidQuantity(TestJSONExtended_Quantity):

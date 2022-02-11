@@ -97,7 +97,7 @@ class TestJSONExtended_Void_Structure(JSONExtendedTestBase):
         self._obj = val = np.array(
             (0, 0.60), dtype=np.dtype([("nu1", float), ("nu2", np.float32)])
         )[()]
-        self._serialized_value = [0.0, 0.6]
+        self._serialized_value = ["0.0", "0.6"]
 
     def test_dtype(self, obj):
         # Serialize
