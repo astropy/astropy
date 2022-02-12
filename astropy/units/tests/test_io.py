@@ -58,8 +58,7 @@ class TestJSONExtended_StructuredVoidQuantity(TestJSONExtended_Quantity):
         self._serialized_value = {
             "!": "numpy.void",
             "value": ["0.0", "0.6"],
-            "dtype": {"value": {"nu1": [{"!": "numpy.dtype", "value": "float64"}, 0],
-                                "nu2": [{"!": "numpy.dtype", "value": "float32"}, 8]},
+            "dtype": {"value": {"nu1": ["float64", 0], "nu2": ["float32", 8]},
                       "align": False}}
 
 
@@ -75,8 +74,5 @@ class TestJSONExtended_StructuredArrayQuantity(TestJSONExtended_Quantity):
             "value": {"nu1": {"!": "numpy.ndarray", "value": ["0.0"], "dtype": "float64"},
                       "nu2": {"!": "numpy.ndarray", "value": ["0.6"], "dtype": "float32"}
             },
-            "dtype": {
-                "value": {"nu1": [{"!": "numpy.dtype", "value": "float64"}, 0],
-                          "nu2": [{"!": "numpy.dtype", "value": "float32"}, 8]},
-                "align": False}
-        }
+            "dtype": {"value": {"nu1": ["float64", 0], "nu2": ["float32", 8]},
+                      "align": False}}

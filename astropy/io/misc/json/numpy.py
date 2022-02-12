@@ -45,10 +45,14 @@ def encode_numpy_dtype(obj):
 
     Examples
     --------
+    >>> import json
+    >>> from astropy.io.misc.json import JSONExtendedEncoder, JSONExtendedDecoder
     >>> def show(val):
+    ...     print("value:", repr(val))
     ...     serialized = json.dumps(val, cls=JSONExtendedEncoder)
+    ...     print("dump:", serialized)
     ...     out = json.loads(serialized, cls=JSONExtendedDecoder)
-    ...     return f"value: {val!r}\ndump: {serialized}\nload: {out!r}"
+    ...     print("load:", repr(out))
 
     >>> show(np.dtype(float))
     value: dtype('float64')
@@ -62,19 +66,19 @@ def encode_numpy_dtype(obj):
 
     >>> show(np.dtype("10float64", align=True))
     value: dtype(('<f8', (10,)))
-    dump: {"!": "numpy.dtype", "value": ["float64", [10]]}
+    dump: {"!": "numpy.dtype", "value": "float64", "shape": [10]}
     load: dtype(('<f8', (10,)))
     """
     code = {"!": "numpy.dtype"}
-    if obj.isbuiltin:
+
+    # Built-in or only metadata making it not "isbuiltin"
+    if obj.isbuiltin or (obj.fields is None and obj.subdtype is None):
         code["value"] = str(obj)
         # don't need `align` and copy is True
-    elif obj.fields is None:  # not structured
-        if obj.subdtype is None:  # only metadata
-            code["value"] = str(obj)
-        else:
-            code["value"] = [str(obj.subdtype[0]), obj.subdtype[1]]
-    else:  # structured
+    elif obj.fields is None:  # Shaped, not structured
+        code["value"] = str(obj.subdtype[0])
+        code["shape"] = obj.subdtype[1]
+    else:  # Structured
         code.update(value=dict(obj.fields),
                     align=False if obj.alignment == 1 else True)
 
@@ -85,13 +89,14 @@ def encode_numpy_dtype(obj):
 
 
 def decode_numpy_dtype(constructor, value, code):
-    # not builtin, but scalar.
-    if isinstance(value, list):
-        value = (value[0], tuple(value[1]), *value[2:])
-    elif isinstance(value, dict):  # structured
-        for k, v in value.items():
+    """Return a `numpy.dtype` from an ``encode_numpy_dtype`` dictionary."""
+    # Structured. `json` has called `decode_numpy_dtype` on each sub-field
+    if isinstance(value, dict):
+        for k, v in value.items():  # need to convert lists to tuples for numpy
             if isinstance(v, list):
                 value[k] = tuple(v)
+    elif "shape" in code:
+        value = (value, tuple(code.pop("shape")))
 
     # Prune metadata, if None.
     if "metadata" in code and code["metadata"] is None:
@@ -100,17 +105,31 @@ def decode_numpy_dtype(constructor, value, code):
     return constructor(value, **code)
 
 
-def _abbreviate_dtype(dtype):
+def _encode_abbreviate_dtype(dtype):
+    """Abbreviate a dtype for nested structures, like `numpy.ndarray`"""
     dt = encode_numpy_dtype(dtype)
     dt.pop("!")  # we know the dtype
-    if dt.keys() == {"value"}:  # only value, no e.g. metadata
+    # iterature through subdtypes (if structured), similarly abbreviating.
+    if isinstance(dt["value"], dict):
+        for k, v in dt["value"].items():
+            if isinstance(v, tuple) and isinstance(v[0], np.dtype):
+                dt["value"][k] = [_encode_abbreviate_dtype(v[0]), v[1]]
+
+    if dt.keys() == {"value"}:  # only value, no e.g. "metadata" or "align"
         dt = dt["value"]
     return dt
 
 
-def _unabbreviate_dtype(dtype):
+def _decode_abbreviated_dtype(dtype):
+    """Recreate a dtype from an abbreviated form, like in `numpy.ndarray`"""
     if isinstance(dtype, str):
         dtype = {"value": dtype}
+    # iterature through subdtypes (if structured), similarly un-abbreviating.
+    elif isinstance(dtype["value"], dict):
+        for k, v in dtype["value"].items():
+            if isinstance(v, list):
+                dtype["value"][k] = (_decode_abbreviated_dtype(v[0]), v[1])
+
     # only if "!" wasn't a key, e.g. in non-structured ndarray
     if isinstance(dtype, dict):
         dtype = decode_numpy_dtype(np.dtype, dtype.pop("value"), dtype)
@@ -165,7 +184,7 @@ def encode_numpy_void(obj):
         code["value"] = obj.tolist()
     else:
         code["value"] = value
-        code["dtype"] = _abbreviate_dtype(obj.dtype)
+        code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
     return code
 
 
@@ -211,12 +230,12 @@ def encode_ndarray(obj):
     if obj.dtype.fields:
         code["value"] = dict()
         for k in obj.dtype.fields:
-            code["value"][k] = encode_ndarray(obj[k])
+            code["value"][k] = obj[k]
+
+        code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
     else:
         code["value"] = obj.astype(str).tolist()
-
-    # dtype
-    code["dtype"] = _abbreviate_dtype(obj.dtype)
+        code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
 
     # flags
     if flags := _check_flags(obj.flags):
@@ -229,7 +248,7 @@ def decode_ndarray(constructor, value, code):
     if constructor is np.ndarray:
         constructor = np.array
 
-    dtype = _unabbreviate_dtype(code.pop("dtype"))
+    dtype = _decode_abbreviated_dtype(code.pop("dtype"))
     flags = code.pop("flags", {})
 
     # structured array

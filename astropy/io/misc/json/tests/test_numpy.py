@@ -35,21 +35,28 @@ class TestJSONExtended_DType_Shaped(TestJSONExtended_DType):
     def setup_class(self):
         self._type = np.dtype
         self._obj = np.dtype("10float64", align=True)
-        self._serialized_value = ["float64", [10]]
+        self._serialized_value = "float64"
+
+    def test_shape(self, obj, obj_type):
+        # Serialize
+        serialized = json.dumps(obj, cls=JSONExtendedEncoder)
+        # Partially unserialize (without extended decoder)
+        out = json.loads(serialized)
+        out["shape"] == [10]
 
 
 class TestJSONExtended_StructuredDType(TestJSONExtended_DType):
     def setup_class(self):
         self._type = np.dtype
-        self._obj = np.dtype([("f1", float, (1, 2)), ("f2", [("n1", float), ("n2", int)])])
+        self._obj = np.dtype([("f1", float, (1, 2)), ("f2", [("n1", float), ("n2", float)])])
         self._serialized_value = {
-            "f1": [{"!": "numpy.dtype", "value": ["float64", [1, 2]]}, 0],
+            "f1": [{"!": "numpy.dtype", "value": "float64", "shape": [1, 2]}, 0],
             "f2": [
                 {
                     "!": "numpy.dtype",
                     "value": {
                         "n1": [{"!": "numpy.dtype", "value": "float64"}, 0],
-                        "n2": [{"!": "numpy.dtype", "value": "int64"}, 8],
+                        "n2": [{"!": "numpy.dtype", "value": "float64"}, 8],
                     },
                     "align": False,
                 },
