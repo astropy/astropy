@@ -216,6 +216,85 @@ def _check_flags(flags):
 
 
 def encode_ndarray(obj):
+    """Return a `numpy.ndarray` as a JSON-able dictionary.
+
+    `numpy.ndarray` is a multipurpose object that can contain values of many
+    different datatypes, even non-homogenous ones. Consequently the encoding
+    can become quite verbose, but hopefully simple arrays are encoded simply.
+    The "flags" field is included only if any flag is not the default value.
+    The `numpy.dtype` is abbreviated and cannot be decoded separately.
+    Structured arrays are encoded as a nested dictionary, with each field
+    the encoded constituent array and the primary `numpy.dtype` used to
+    coordinate the reconstruction. Below are examples.
+
+    Examples
+    --------
+    >>> import json
+    >>> from astropy.io.misc.json import JSONExtendedEncoder, JSONExtendedDecoder
+    >>> def show(val):
+    ...     print("value:", repr(val))
+    ...     serialized = json.dumps(val, cls=JSONExtendedEncoder)
+    ...     print("dump:", repr(serialized))
+    ...     out = json.loads(serialized, cls=JSONExtendedDecoder)
+    ...     print("load:", repr(out))
+
+    We start with a scalar array.
+
+    >>> show(np.array(np.float64(10)))
+    value: array(10.)
+    dump: '{"!": "numpy.ndarray", "value": "10.0", "dtype": "float64"}'
+    load: array(10.)
+
+    Actual arrays are econded very similarly. Note that the value is in a list.
+
+    >>> show(np.array([3], dtype=float))
+    value: array([3.])
+    dump: '{"!": "numpy.ndarray", "value": ["3.0"], "dtype": "float64"}'
+    load: array([3.])
+
+    Non-trivial `numpy.dtype` are properly encoded. For further information see
+    ``encode_numpy_dtype``.
+
+    >>> show(np.array([3], dtype=np.dtype("int16", metadata={"a": 1})))
+    value: array([3], dtype=int16)
+    dump: '{"!": "numpy.ndarray", "value": ["3"],
+            "dtype": {"value": "int16", "metadata": {"a": 1}}}'
+    load: array([3], dtype=int16)
+
+    Structured arrays are done in a nested structure so :mod:`json` properly
+    decodes each component when it recurses through "value". The structured
+    array is assembled using the "dtype".
+
+    >>> show(np.array((0, 0.6), dtype=np.dtype([("f1", float), ("f2", np.float32)])))
+    value: array((0., 0.6), dtype=[('f1', '<f8'), ('f2', '<f4')])
+    dump: '{"!": "numpy.ndarray",
+            "value": {"f1": {"!": "numpy.ndarray", "value": "0.0", "dtype": "float64"},             "f2": {"!": "numpy.ndarray", "value": "0.6", "dtype": "float32"}},
+            "dtype": {"value": {"f1": ["float64", 0], "f2": ["float32", 8]},
+                      "align": false}}'
+    load: array([(0., 0.6)], dtype=[('f1', '<f8'), ('f2', '<f4')])
+
+    A more complex example of the above:
+
+    >>> show(np.array((0, (1, 0.6)),
+    ...               dtype=np.dtype([("f1", float),
+    ...                               ("f2", [("s1", np.float32), ("s2", np.float32)])])))
+    value: array((0., (1., 0.6)),
+                 dtype=[('f1', '<f8'), ('f2', [('s1', '<f4'), ('s2', '<f4')])])
+    dump: '{"!": "numpy.ndarray",
+            "value":
+                {"f1": {"!": "numpy.ndarray", "value": "0.0", "dtype": "float64"},
+                 "f2": {"!": "numpy.ndarray",
+                        "value":
+                            {"s1": {"!": "numpy.ndarray", "value": "1.0", "dtype": "float32"},
+                             "s2": {"!": "numpy.ndarray", "value": "0.6", "dtype": "float32"}},
+                        "dtype": {"value": {"s1": ["float32", 0], "s2": ["float32", 4]},
+                                  "align": false}}},
+            "dtype": {"value": {"f1": ["float64", 0],
+                                "f2": [{"value": {"s1": ["float32", 0], "s2": ["float32", 4]}, "align": false}, 8]},
+                      "align": false}}'
+    load: array([(0., (1., 0.6))],
+          dtype=[('f1', '<f8'), ('f2', [('s1', '<f4'), ('s2', '<f4')])])
+    """
     # For convenience, check if actually a void
     if isinstance(obj, np.void):
         return encode_numpy_void(obj)
@@ -226,16 +305,16 @@ def encode_ndarray(obj):
     # routed through str, which keeps the precision and strips the numpy type.
     # Otherwise an array of e.g. int32 would become a list of dictionaries
     # each of which is the JSON serialization of one int32 number.
-    # Structured arrays are seriazed
-    if obj.dtype.fields:
-        code["value"] = dict()
-        for k in obj.dtype.fields:
-            code["value"][k] = obj[k]
-
-        code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
+    # Structured arrays are serialized through the `fields`, which
+    if obj.dtype.fields is not None:  # Let JSON detect and encode the values
+        code["value"] = {k: obj[k] for k in obj.dtype.fields}
     else:
         code["value"] = obj.astype(str).tolist()
-        code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
+
+    # Encode the dtype. Normally JSON would do this automatically, using the
+    # registerd dtype encoder. But we want to abbreviate the dtype, so must
+    # encode it now, with a custom encoding function.
+    code["dtype"] = _encode_abbreviate_dtype(obj.dtype)
 
     # flags
     if flags := _check_flags(obj.flags):
@@ -245,6 +324,7 @@ def encode_ndarray(obj):
 
 
 def decode_ndarray(constructor, value, code):
+    """Return a `numpy.ndarray` from an ``encode_ndarray`` dictionary."""
     if constructor is np.ndarray:
         constructor = np.array
 
