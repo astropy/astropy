@@ -164,6 +164,7 @@ class JSONExtendedDecoder(json.JSONDecoder):
             constructor = getattr(module, qualname[-1])
         except ModuleNotFoundError as e:
             raise JSONExtendedDecodeError from e
+        except KeyError:  # Not a JSONExtended object, return unchanged.
             return code
 
         # Iterate through the decoder registry, trying to figure out if there
@@ -174,6 +175,8 @@ class JSONExtendedDecoder(json.JSONDecoder):
                 obj = func(constructor, code.pop("value"), code)
                 break
         else:  # Looks like a valid JSONExtended, but it is NOT.
+            warnings.warn("JSONExtendedDecoder does not have any registered"                      f"function to decode a {'.'.join(qualname)} object",
+                          category=UserWarning)
             obj = code
 
         return obj
