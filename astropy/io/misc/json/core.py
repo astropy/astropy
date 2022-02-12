@@ -19,6 +19,10 @@ __all__ = ['JSONExtendedEncoder', 'JSONExtendedDecoder']
 QUALNAME_SUBSTITUTIONS = {}
 
 
+class JSONExtendedDecodeError(json.JSONDecodeError):
+    """Decoding error for JSON-Extended."""
+
+
 @format_doc(None, examples=indent(_example_doc[77:])[4:])  # (cut off 1st line)
 class JSONExtendedEncoder(json.JSONEncoder):
     """Support for data types that JSON default encoder does not do.
@@ -159,8 +163,7 @@ class JSONExtendedDecoder(json.JSONDecoder):
             module = importlib.import_module(".".join(qualname[:-1]))
             constructor = getattr(module, qualname[-1])
         except ModuleNotFoundError as e:
-            raise  # TODO! decide how to deal with this problem
-        except KeyError:  # Not a valid JSONExtended object.
+            raise JSONExtendedDecodeError from e
             return code
 
         # Iterate through the decoder registry, trying to figure out if there
