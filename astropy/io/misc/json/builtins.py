@@ -8,7 +8,7 @@ from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
 
 
 def register_json_extended():
-    """:mod:`builtins` entry point for JSONExtendedEncoder, JSONExtendedDecoder."""
+    """:mod:`astropy.io.misc.json` entry points for :mod:`builtins`."""
     JSONExtendedEncoder.register_encoding(bytes)(encode_bytes)
     JSONExtendedDecoder.register_decoding(bytes)(decode_bytes)
 

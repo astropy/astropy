@@ -11,7 +11,7 @@ from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
 
 
 def register_json_extended():
-    """Register :mod:`numpy` into `JSON <http://json.org>`_."""
+    """:mod:`astropy.io.misc.json` entry points for :mod:`numpy`."""
     JSONExtendedEncoder.register_encoding(np.dtype)(encode_numpy_dtype)
     JSONExtendedDecoder.register_decoding(np.dtype)(decode_numpy_dtype)
 
@@ -32,6 +32,39 @@ def register_json_extended():
 
 
 def encode_numpy_dtype(obj):
+    """Return a `numpy.dtype` as a JSON-able dictionary.
+
+    `numpy.dtype` spans many different cases -- builtin types, aligned, shaped,
+    structured, with metadata, etc. -- and the contents of the JSON will
+    reflect this.
+    The "metadata" field will only be included if there is metadata.
+    If the type is a built-in (python or numpy), then "value" is just a string.
+    If the type has a shape, then "value" is a list of the type and shape.
+    Structured dtypes have field "align" and "value" is a nested dictionary
+    of the contained dtypes.
+
+    Examples
+    --------
+    >>> def show(val):
+    ...     serialized = json.dumps(val, cls=JSONExtendedEncoder)
+    ...     out = json.loads(serialized, cls=JSONExtendedDecoder)
+    ...     return f"value: {val!r}\ndump: {serialized}\nload: {out!r}"
+
+    >>> show(np.dtype(float))
+    value: dtype('float64')
+    dump: {"!": "numpy.dtype", "value": "float64"}
+    load: dtype('float64')
+
+    >>> show(np.dtype(np.dtype("float", metadata={"a": 1})))
+    value: dtype('float64')
+    dump: {"!": "numpy.dtype", "value": "float64", "metadata": {"a": 1}}
+    load: dtype('float64')
+
+    >>> show(np.dtype("10float64", align=True))
+    value: dtype(('<f8', (10,)))
+    dump: {"!": "numpy.dtype", "value": ["float64", [10]]}
+    load: dtype(('<f8', (10,)))
+    """
     code = {"!": "numpy.dtype"}
     if obj.isbuiltin:
         code["value"] = str(obj)
@@ -89,27 +122,31 @@ def _unabbreviate_dtype(dtype):
 # Scalars
 
 def encode_numpy_bool(obj):
+    """Return `numpy.bool` as a JSON-able dictionary."""
     code = _json_base_encode(obj)
     code["value"] = bool(obj)
     return code
 
 
 def decode_numpy_bool(constructor, value, code):
+    """Return a `numpy.bool` from an ``encode_numpy_bool`` dictionary."""
     return constructor(value)
 
 
 def encode_numpy_number(obj):
+    """Return `numpy.number` as a JSON-able dictionary."""
     code = _json_base_encode(obj)
     code.update(value=obj.astype('U13'))  # TODO! dynamic length detection
     return code
 
 
 def decode_numpy_number(constructor, value, code):
+    """Return a `numpy.number` from an ``encode_numpy_number`` dictionary."""
     return constructor(value)
 
 
 def encode_numpy_void(obj):
-    """Encode `numpy.void`.
+    """Encode `numpy.void` as a JSON-able dictionary.
 
     `~numpy.void` can be either a bytes or an item from a structured array.
     The former is a simple wrapper around the bytes encoding, the latter
@@ -133,6 +170,7 @@ def encode_numpy_void(obj):
 
 
 def decode_numpy_void(constructor, value, code):
+    """Return a `numpy.void` from an ``encode_numpy_void`` dictionary."""
     if isinstance(value, bytes):
         # TODO? can't have field dtype, or needs to be "|V..."
         return constructor(value)
@@ -142,6 +180,9 @@ def decode_numpy_void(constructor, value, code):
 
     return np.array(tuple(value), dtype=dtype)[()]
 
+
+# ===================================================================
+# Arrays
 
 def _check_flags(flags):
     """Checks that flags are not their default values."""
@@ -162,7 +203,11 @@ def encode_ndarray(obj):
 
     code = _json_base_encode(obj)
 
-    # structured
+    # Encode the actual value. Normal arrays are turned into a list, but first
+    # routed through str, which keeps the precision and strips the numpy type.
+    # Otherwise an array of e.g. int32 would become a list of dictionaries
+    # each of which is the JSON serialization of one int32 number.
+    # Structured arrays are seriazed
     if obj.dtype.fields:
         code["value"] = dict()
         for k in obj.dtype.fields:

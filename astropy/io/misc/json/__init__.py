@@ -92,8 +92,10 @@ FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
 from astropy.io.utils import load_all_entry_points
 
 from .core import *
-from .core import _json_base_encode
-from . import builtins as _, numpy as _  # Ensure imported before entry points are loaded
+from .core import _json_base_encode  # imported before entry points are loaded
+from . import builtins as _, numpy as _  # imported before entry points are loaded
 
 # After importing, load all entry points
 load_all_entry_points('astropy_io_json_extensions')
+
+del load_all_entry_points

@@ -152,9 +152,9 @@ class JSONExtendedDecoder(json.JSONDecoder):
         """Called with the result of every JSON object decoded.
 
         If a method exists in the registry, the return value will be used in
-        place of the given dict, otherwise the dict is return unchanged.
+        place of the given dict, otherwise the dict is returned unchanged.
         """
-        try:
+        try:  # Import the constructor from the type field ("!")
             qualname = code["!"].split(".")
             module = importlib.import_module(".".join(qualname[:-1]))
             constructor = getattr(module, qualname[-1])
@@ -163,12 +163,14 @@ class JSONExtendedDecoder(json.JSONDecoder):
         except KeyError:  # Not a valid JSONExtended object.
             return code
 
+        # Iterate through the decoder registry, trying to figure out if there
+        # is a way to decode the object. If not, a warning is issued.
         for key, func in cls._registry:  # try to decode
             if isinstance(constructor, key) or (inspect.isclass(constructor) and issubclass(constructor, key)):
                 code.pop("!")
                 obj = func(constructor, code.pop("value"), code)
                 break
-        else:
+        else:  # Looks like a valid JSONExtended, but it is NOT.
             obj = code
 
         return obj
@@ -177,8 +179,8 @@ class JSONExtendedDecoder(json.JSONDecoder):
     def register_decoding(cls, type):
         """Return a function for registering a decoding. Can be used as a decorator."""
         def register(func):
-            # inserting subclasses before parent classes, so encountered first
-            # when finding the right decoder.
+            # Subclasses are inserted before parent classes, so the more
+            # specific subclass is encountered first when finding a decoder.
             for i, (key, _) in enumerate(cls._registry):
                 if issubclass(type, key):
                     cls._registry.insert(i, (type, func))
