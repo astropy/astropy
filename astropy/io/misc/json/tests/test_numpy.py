@@ -3,11 +3,13 @@
 
 import json
 
-import numpy as np
 import pytest
 
-from .test_core import JSONExtendedTestBase
+import numpy as np
+
 from astropy.io.misc.json.core import JSONExtendedEncoder
+
+from .test_core import JSONExtendedTestBase
 
 
 class TestJSONExtended_DType(JSONExtendedTestBase):

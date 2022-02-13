@@ -4,7 +4,7 @@
 This module contains functions for serializing python builtins via JSON.
 """
 
-from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
+from .core import JSONExtendedDecoder, JSONExtendedEncoder, _json_base_encode
 
 
 def register_json_extended():

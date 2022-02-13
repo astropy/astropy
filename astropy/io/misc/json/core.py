@@ -2,12 +2,14 @@
 
 import importlib
 import inspect
-import json
+from json import JSONDecodeError
+from json import JSONDecoder as _JSONDecoder
+from json import JSONEncoder as _JSONEncoder
 
 import numpy as np
 
-import astropy.units as u
 import astropy.coordinates as coord
+import astropy.units as u
 from astropy.utils.decorators import format_doc
 from astropy.utils.misc import indent
 
@@ -19,12 +21,12 @@ __all__ = ['JSONExtendedEncoder', 'JSONExtendedDecoder']
 QUALNAME_SUBSTITUTIONS = {}
 
 
-class JSONExtendedDecodeError(json.JSONDecodeError):
+class JSONExtendedDecodeError(JSONDecodeError):
     """Decoding error for JSON-Extended."""
 
 
 @format_doc(None, examples=indent(_example_doc[77:])[4:])  # (cut off 1st line)
-class JSONExtendedEncoder(json.JSONEncoder):
+class JSONExtendedEncoder(_JSONEncoder):
     """Support for data types that JSON default encoder does not do.
 
     This includes (but is not limited to):
@@ -40,19 +42,19 @@ class JSONExtendedEncoder(json.JSONEncoder):
     Parameters
     ----------
     skipkeys : bool, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     ensure_ascii : bool, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     check_circular : bool, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     allow_nan : bool, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     sort_keys : bool, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     indent : int or str or None, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     separators : tuple or None, optional keyword-only
-        See `json.JSONEncoder` for details.
+        See :class:`json.JSONEncoder` for details.
     default : None, optional keyword-only
         Must be `None`. A `ValueError` is raised otherwise.
 
@@ -114,7 +116,7 @@ class JSONExtendedEncoder(json.JSONEncoder):
 
 
 @format_doc(None, examples=indent(_example_doc[77:])[4:])  # (cut off 1st line)
-class JSONExtendedDecoder(json.JSONDecoder):
+class JSONExtendedDecoder(_JSONDecoder):
     """Support for data types that JSON default decoder does not do.
 
     This includes (but is not limited to):
@@ -130,13 +132,13 @@ class JSONExtendedDecoder(json.JSONDecoder):
     Parameters
     ----------
     parse_float : callable or None, optional keyword-only
-        See ``json.JSONDecoder`` for details.
+        See :class:`json.JSONDecoder` for details.
     parse_int : callable or None, optional keyword-only
-        See ``json.JSONDecoder`` for details.
+        See :class:`json.JSONDecoder` for details.
     parse_constant : callable or None, optional keyword-only
-        See ``json.JSONDecoder`` for details.
+        See :class:`json.JSONDecoder` for details.
     strict : bool, optional keyword-only
-        See ``json.JSONDecoder`` for details.
+        See :class:`json.JSONDecoder` for details.
 
     Examples
     --------

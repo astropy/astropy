@@ -5,11 +5,12 @@ import abc
 import json
 from collections.abc import Mapping
 
-import numpy as np
 import pytest
 
-from astropy.io.misc.json.core import JSONExtendedEncoder, JSONExtendedDecoder
-from astropy.io.misc.json.core import QUALNAME_SUBSTITUTIONS
+import numpy as np
+
+from astropy.io.misc.json.core import (QUALNAME_SUBSTITUTIONS,
+                                       JSONExtendedDecoder, JSONExtendedEncoder)
 
 
 def _array_close(obj1, obj2):

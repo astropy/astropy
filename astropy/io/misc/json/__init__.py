@@ -44,9 +44,9 @@ serializing to / loading from JSON.
 >>> json.loads(serialized, cls=JSONExtendedDecoder)
 array([3., 4.])
 
-Precision is kept; for example a `numpy.float128` number is serialized as
+Precision is kept; for example a `numpy.int64` number will remain an integer.
 
->>> arr = np.int64(10)
+>>> arr = np.int64(10.001)
 >>> serialized = json.dumps(arr, cls=JSONExtendedEncoder)
 >>> serialized
 '{"!": "numpy.int64", "value": "10"}'
@@ -91,9 +91,10 @@ FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
 
 from astropy.io.utils import load_all_entry_points
 
+from . import builtins as _  # imported before entry points are loaded
+from . import numpy as _
 from .core import *
 from .core import _json_base_encode  # imported before entry points are loaded
-from . import builtins as _, numpy as _  # imported before entry points are loaded
 
 # After importing, load all entry points
 load_all_entry_points('astropy_io_json_extensions')

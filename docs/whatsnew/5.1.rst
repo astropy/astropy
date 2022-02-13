@@ -56,7 +56,7 @@ provide conversion between Doppler redshift and radial velocity.
 New Extended JSON En/Decodeers
 ==============================
 
-New JSON en/decodeers are added to support data types that the JSON default
+New JSON en/decoders are added to support data types that the JSON default
 encoder does not do.
 
 This includes (but is not limited to):
@@ -78,7 +78,7 @@ For example:
     >>> v = 1 + 2j
     >>> serialized = json.dumps(v, cls=JSONExtendedEncoder)
     >>> serialized
-    '{"__class__": "builtins.complex", "value": [1.0, 2.0]}'
+    '{"!": "builtins.complex", "value": [1.0, 2.0]}'
 
     >>> json.loads(serialized, cls=JSONExtendedDecoder)
     (1+2j)
@@ -86,8 +86,9 @@ For example:
     >>> q = np.array([3, 4], dtype=float) * u.km
     >>> serialized = json.dumps(q, cls=JSONExtendedEncoder)
     >>> serialized
-    '{"__class__": "astropy.units.quantity.Quantity", "value": [3.0, 4.0],
-      "dtype": {"__class__": "numpy.dtype", "value": "float64"}, "unit": "km"}'
+    '{"!": "astropy.units.Quantity",
+      "value": {"!": "numpy.ndarray", "value": ["3.0", "4.0"], "dtype": "float64"},
+      "unit": "km"}'
 
     >>> json.loads(serialized, cls=JSONExtendedDecoder)
     <Quantity [3., 4.] km>
@@ -98,9 +99,9 @@ For example:
     >>> from astropy.cosmology import Planck18, units as cu
     >>> serialized = json.dumps(Planck18, cls=JSONExtendedEncoder)
     >>> serialized
-    '{"__class__": "astropy.cosmology.flrw.FlatLambdaCDM",
+    '{"!": "astropy.cosmology.FlatLambdaCDM",
       "value": {"name": "Planck18",
-                "H0": {"__class__": "astropy.units.quantity.Quantity", "value": 67.66,
+                "H0": {"!": "astropy.units.Quantity", "value": 67.66,
       ...
       "meta": {"Oc0": 0.2607, "n": 0.9665, ...
 
@@ -108,6 +109,9 @@ For example:
     ...     json.loads(serialized, cls=JSONExtendedDecoder)
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.   0.   0.06] eV, Ob0=0.04897)
+
+The old class, `astropy.utils.misc.JsonCustomEncoder` is deprecated and will be
+removed.
 
 
 Full change log

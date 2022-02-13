@@ -7,7 +7,7 @@ JSON protocol.
 
 import numpy as np
 
-from .core import _json_base_encode, JSONExtendedEncoder, JSONExtendedDecoder
+from .core import JSONExtendedDecoder, JSONExtendedEncoder, _json_base_encode
 
 
 def register_json_extended():

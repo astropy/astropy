@@ -1,1 +1,13 @@
-Add extended encoder and decoders for json I/O.
+Two new classes -- ``JSONExtendedEncoder`` and ``JSONExtendedDecoder` -- have
+been added to extend support for data types that Python's default JSON does not
+support. Unsupported data types can be registered with the classes using a
+registry system, including via entry points.
+
+All python builtins, essential numpy classes, and many astropy objects come
+pre-registered. This includes (but is not limited to):
+
+- builtins: ``bytes``, ``complex``, ``set``, ``NotImplemented``, ``Ellipsis``
+- numpy: ``numpy.array``, ``numpy.number``, ``numpy.dtype``
+- Astropy:
+    - ``Unit`` and related classes, ``Quantity`` and subclasses
+    - ``Cosmology`` and subclasses
