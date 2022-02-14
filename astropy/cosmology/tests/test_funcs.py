@@ -197,14 +197,14 @@ def test_z_at_value_unconverged(method):
     ztol = {'Brent': [1e-4, 1e-4], 'Golden': [1e-3, 1e-2], 'Bounded': [1e-3, 1e-1]}
 
     if method == 'Bounded':
-        status, message = 1, 'Maximum number of function calls reached.'
+        ctx = pytest.warns(AstropyUserWarning, match='Solver returned 1: Maximum number of '
+                           'function calls reached')
     else:
-        status, message = None, 'Unsuccessful'
-    diag = rf'Solver returned {status}: {message}'
+        ctx = pytest.warns(AstropyUserWarning, match='Solver returned None')
 
-    with pytest.warns(AstropyUserWarning, match=diag):
+    with ctx:
         z0 = z_at_value(cosmo.angular_diameter_distance, 1*u.Gpc, zmax=2, maxfun=13, method=method)
-    with pytest.warns(AstropyUserWarning, match=diag):
+    with ctx:
         z1 = z_at_value(cosmo.angular_diameter_distance, 1*u.Gpc, zmin=2, maxfun=13, method=method)
 
     assert allclose(z0, 0.32442, rtol=ztol[method][0])

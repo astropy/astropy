@@ -15,8 +15,8 @@ from astropy.convolution.kernels import (
 
 from astropy.convolution.utils import KernelSizeError
 from astropy.modeling.models import Box2D, Gaussian1D, Gaussian2D
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyUserWarning
 
 WIDTHS_ODD = [3, 5, 7, 9]
 WIDTHS_EVEN = [2, 4, 8, 16]
@@ -53,7 +53,7 @@ class TestKernels:
         """
         Test GaussianKernel against SciPy ndimage gaussian filter.
         """
-        from scipy.ndimage import filters
+        from scipy.ndimage import gaussian_filter
 
         gauss_kernel_1D = Gaussian1DKernel(width)
         gauss_kernel_1D.normalize()
@@ -63,8 +63,8 @@ class TestKernels:
         astropy_1D = convolve(delta_pulse_1D, gauss_kernel_1D, boundary='fill')
         astropy_2D = convolve(delta_pulse_2D, gauss_kernel_2D, boundary='fill')
 
-        scipy_1D = filters.gaussian_filter(delta_pulse_1D, width)
-        scipy_2D = filters.gaussian_filter(delta_pulse_2D, width)
+        scipy_1D = gaussian_filter(delta_pulse_1D, width)
+        scipy_2D = gaussian_filter(delta_pulse_2D, width)
 
         assert_almost_equal(astropy_1D, scipy_1D, decimal=12)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=12)
@@ -75,7 +75,7 @@ class TestKernels:
         """
         Test RickerWavelet kernels against SciPy ndimage gaussian laplace filters.
         """
-        from scipy.ndimage import filters
+        from scipy.ndimage import gaussian_laplace
 
         ricker_kernel_1D = RickerWavelet1DKernel(width)
         ricker_kernel_2D = RickerWavelet2DKernel(width)
@@ -92,8 +92,8 @@ class TestKernels:
         assert 'sum is close to zero' in exc.value.args[0]
 
         # The Laplace of Gaussian filter is an inverted Ricker Wavelet filter.
-        scipy_1D = -filters.gaussian_laplace(delta_pulse_1D, width)
-        scipy_2D = -filters.gaussian_laplace(delta_pulse_2D, width)
+        scipy_1D = -gaussian_laplace(delta_pulse_1D, width)
+        scipy_2D = -gaussian_laplace(delta_pulse_2D, width)
 
         # There is a slight deviation in the normalization. They differ by a
         # factor of ~1.0000284132604045. The reason is not known.
@@ -550,7 +550,7 @@ class TestKernels:
         """
         Regression test for issue #10439
         """
-        x = np.ones([10,10])
+        x = np.ones([10, 10])
         with pytest.raises(TypeError, match=r".* allowed .*"):
             AiryDisk2DKernel(2, array=x)
             Box1DKernel(2, array=x)

@@ -66,7 +66,7 @@ def test_read_spec_files():
 def test_spectrum(filename):
     header = get_pkg_data_contents(os.path.join("data", "spectra", filename))
     # Warning only pops up for one of the inputs.
-    with pytest.warns(None) as warning_lines:
+    with pytest.warns() as warning_lines:
         wcsobj = wcs.WCS(header)
     for w in warning_lines:
         assert issubclass(w.category, FITSFixedWarning)
