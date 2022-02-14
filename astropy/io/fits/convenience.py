@@ -67,15 +67,11 @@ from .hdu.hdulist import fitsopen, HDUList
 from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
+from .util import (fileobj_closed, fileobj_name, fileobj_mode, _is_int,
+                   _is_dask_array)
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
-try:
-    from dask.array import Array as DaskArray
-except ImportError:
-    class DaskArray:
-        pass
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',
@@ -1107,7 +1103,7 @@ def _makehdu(data, header):
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None) or
                 isinstance(data, np.recarray)):
             hdu = BinTableHDU(data, header=header)
-        elif isinstance(data, (np.ndarray, DaskArray)):
+        elif isinstance(data, np.ndarray) or _is_dask_array(data):
             hdu = ImageHDU(data, header=header)
         else:
             raise KeyError('Data must be a numpy array.')
