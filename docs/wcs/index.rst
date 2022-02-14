@@ -148,6 +148,8 @@ Other Information
    that
 .. include:: performance.inc.rst
 
+.. _wcs-reference-api:
+
 
 Reference/API
 =============
@@ -162,7 +164,6 @@ See Also
 
 - `wcslib`_
 
-.. _wcs-reference-api:
 
 
 Acknowledgments and Licenses
