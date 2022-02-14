@@ -192,6 +192,39 @@ def test_multidim_input():
     assert np.all(t2['b'] == t['b'])
 
 
+def test_structured_input():
+    """
+    Structured column in input.
+    """
+    t = Table()
+    # Add unit, description and meta to make sure that round-trips as well.
+    t['a'] = Column([('B', (1., [2., 3.])),
+                     ('A', (9., [8., 7.]))],
+                    dtype=[('s', 'U1'), ('v', [('p0', 'f8'), ('p1', '2f8')])],
+                    description='description',
+                    format='>',  # Most formats do not work with structured!
+                    unit='m',  # Overall unit should round-trip.
+                    meta={1: 2})
+    t['b'] = Column([[(1., 2.), (9., 8.)],
+                     [(3., 4.), (7., 6.)]],
+                    dtype='f8,f8',
+                    unit=u.Unit('m,s')  # Per part unit should round-trip too.
+                    )
+
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    for col in t.colnames:
+        assert np.all(t2[col] == t[col])
+        assert t2[col].shape == t[col].shape
+        assert t2[col].dtype == t[col].dtype
+        assert t2[col].unit == t[col].unit
+        assert t2[col].format == t[col].format
+        assert t2[col].info.description == t[col].info.description
+        assert t2[col].info.meta == t[col].info.meta
+
+
 def test_round_trip_empty_table():
     """Test fix in #5010 for issue #5009 (ECSV fails for empty type with bool type)"""
     t = Table(dtype=[bool, 'i', 'f'], names=['a', 'b', 'c'])
