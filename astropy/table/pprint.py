@@ -346,6 +346,20 @@ class TableFormatter:
 
         return col_strs, outs
 
+    def _name_and_structure(self, name, dtype, sep=" "):
+        """Format a column name, including a possible structure.
+
+        Normally, just returns the name, but if it has a structured dtype,
+        will add the parts in between square brackets.  E.g.,
+        "name [f0, f1]" or "name [f0[sf0, sf1], f1]".
+        """
+        if dtype is None or dtype.names is None:
+            return name
+
+        structure = ', '.join([self._name_and_structure(name, dt, sep="")
+                               for name, (dt, _) in dtype.fields.items()])
+        return f"{name}{sep}[{structure}]"
+
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
                           show_dtype=None, show_length=None):
         """Iterator which yields formatted string representation of column values.
@@ -390,10 +404,8 @@ class TableFormatter:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
             col_name = str(col.info.name)
-            if dtype is not None and dtype.names is not None:
-                col_name += f" [{', '.join(str(n) for n in dtype.names)}]"
             n_header += 1
-            yield col_name
+            yield self._name_and_structure(col_name, dtype)
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
