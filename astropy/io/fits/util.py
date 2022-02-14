@@ -939,3 +939,22 @@ def _rstrip_inplace(array):
             mask = c[..., i] == 0
 
     return array
+
+
+def _is_dask_array(data):
+    """Check whether data is a dask array.
+
+    We avoid importing dask unless it is likely it is a dask array,
+    so that non-dask code is not slowed down.
+    """
+    if not hasattr(data, 'compute'):
+        return False
+
+    try:
+        from dask.array import Array
+    except ImportError:
+        # If we cannot import dask, surely this cannot be a
+        # dask array!
+        return False
+    else:
+        return isinstance(data, Array)
