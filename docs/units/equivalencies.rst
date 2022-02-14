@@ -502,6 +502,22 @@ In a special relativity context it can be convenient to use the
 
 .. EXAMPLE END
 
+Mass-Length-Time Equivalency
+----------------------------
+
+.. EXAMPLE START: Using the Mass-Length-Time Equivalency
+
+In geometric units, mass, length, time, are equivalent, and can be converted
+into each other. This can be useful in the context of general relativity.
+As an example of the Schwarzchild radius for the sun, which is around 3 kilometers,
+use the :func:`~astropy.units.equivalencies.mass_length_time` equivalency to get
+the equivalent in solar mass (about twice the solar mass) ::
+
+    >>> (3 * u.km).to(u.solMass, equivalencies=u.mass_length_time())  # doctest: +FLOAT_CMP
+    <Quantity 2.03165998 solMass>
+
+.. EXAMPLE END
+
 Doppler Redshift Equivalency
 ----------------------------
 

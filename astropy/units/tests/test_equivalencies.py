@@ -215,6 +215,25 @@ def test_massenergy():
                        pow_eV.value, rtol=1e-7)
 
 
+@pytest.mark.parametrize(
+    'mass,length,time',
+    [[2 * u.solMass, 3 * u.km, 10 * u.microsecond],
+     [1 * u.kg, 7.54e-31 * u.km, 2.47e-36 * u.s]]
+)
+def test_mass_length_time(mass, length, time):
+    """Test known cases of equivalencies. An example being
+    Schwarzschild radius for sun is 3 km, which is about 10 microsecond
+    of light crossing time.
+    """
+    converted_mass = mass.to('kg', equivalencies=u.mass_length_time()).value
+    converted_length = length.to('m', equivalencies=u.mass_length_time()).value
+    converted_time = time.to('s', equivalencies=u.mass_length_time()).value
+
+    assert mass.to('kg').value == pytest.approx(converted_mass)
+    assert length.to('m').value == pytest.approx(converted_length)
+    assert time.to('s').value == pytest.approx(converted_time)
+
+
 def test_is_equivalent():
     assert u.m.is_equivalent(u.pc)
     assert u.cycle.is_equivalent(u.mas)

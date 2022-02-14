@@ -22,7 +22,7 @@ from .core import UnitsError, Unit
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'doppler_redshift', 'mass_energy',
-           'brightness_temperature', 'thermodynamic_temperature',
+           'mass_length_time', 'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
            'pixel_scale', 'plate_scale', "Equivalency"]
@@ -559,6 +559,41 @@ def mass_energy():
                         (si.kg / si.s, si.J / si.s, lambda x: x * _si.c.value ** 2,
                          lambda x: x / _si.c.value ** 2),
                         ], "mass_energy")
+
+
+def mass_length_time():
+    """
+    Convert mass, length, time in geometric units.
+
+    Examples
+    --------
+    >>> from astropy import constants as c, units as u
+    >>> mass = 2 * u.M_sun
+    >>> mass.to('km', equivalencies=u.equivalencies.mass_length_time())
+    <Quantity 2.95325008 km>
+    >>> time = 1 * u.microsecond
+    >>> time.to('solMass', equivalencies=u.equivalencies.mass_length_time())
+    <Quantity 0.20302545 solMass>
+    >>> time.to('kg', equivalencies=u.equivalencies.mass_length_time())
+    <Quantity 4.03697802e+29 kg>
+    """
+    schwarzchild_factor = _si.GM_sun / _si.c**2  # 1 M_sun -> approx 1.5 km
+
+    sol_mass_to_meters = lambda _: _ * schwarzchild_factor.to('m').value
+    meters_to_sol_mass = lambda _: _ / schwarzchild_factor.to('m').value
+
+    sol_mass_to_seconds = lambda _: (
+        sol_mass_to_meters(_) * si.m / _si.c
+    ).to('s').value
+    seconds_to_sol_mass = lambda _: meters_to_sol_mass(
+            (_ * si.s * _si.c).to('m').value
+    )
+
+    return Equivalency(
+        [(astrophys.solMass, si.m, sol_mass_to_meters, meters_to_sol_mass),
+         (astrophys.solMass, si.s, sol_mass_to_seconds, seconds_to_sol_mass),
+         (si.m, si.s, lambda _: (_ / _si.c).value, lambda _: (_ * _si.c).value)]
+    )
 
 
 def brightness_temperature(frequency, beam_area=None):
