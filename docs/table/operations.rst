@@ -706,7 +706,6 @@ characteristics of both sources::
   >>> srcs = dstack([src1, src2])
   >>> print(srcs)
    psf_frac      counts
-  float64[2]   float64[2]
   ---------- --------------
   0.1 .. 0.1  45.0 .. 200.0
   0.5 .. 0.5  90.0 .. 300.0
