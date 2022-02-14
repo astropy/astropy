@@ -3277,12 +3277,21 @@ def __WCS_unpickle__(cls, dct, fits_data):
     """
 
     self = cls.__new__(cls)
-    self.__dict__.update(dct)
 
     buffer = io.BytesIO(fits_data)
     hdulist = fits.open(buffer)
 
+    naxis = dct.pop('naxis', None)
+    if naxis:
+        hdulist[0].header['naxis'] = naxis
+        naxes = dct.pop('_naxis', [])
+        for k, na in enumerate(naxes):
+            hdulist[0].header[f'naxis{k + 1:d}'] = na
+
+    self.__dict__.update(dct)
+
     WCS.__init__(self, hdulist[0].header, hdulist)
+    self.pixel_bounds = dct.get('_pixel_bounds', None)
 
     return self
 

@@ -19,8 +19,7 @@ from astropy.wcs.wcs import FITSFixedWarning
 def test_basic():
     wcs1 = wcs.WCS()
     s = pickle.dumps(wcs1)
-    with pytest.warns(FITSFixedWarning):
-        pickle.loads(s)
+    pickle.loads(s)
 
 
 def test_dist():
@@ -33,8 +32,7 @@ def test_dist():
         assert wcs1.det2im2 is not None
 
         s = pickle.dumps(wcs1)
-        with pytest.warns(FITSFixedWarning):
-            wcs2 = pickle.loads(s)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -52,8 +50,7 @@ def test_sip():
             wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
         s = pickle.dumps(wcs1)
-        with pytest.warns(FITSFixedWarning):
-            wcs2 = pickle.loads(s)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -71,8 +68,7 @@ def test_sip2():
             wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
         s = pickle.dumps(wcs1)
-        with pytest.warns(FITSFixedWarning):
-            wcs2 = pickle.loads(s)
+        wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
             x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -90,8 +86,7 @@ def test_wcs():
 
     wcs1 = wcs.WCS(header)
     s = pickle.dumps(wcs1)
-    with pytest.warns(FITSFixedWarning):
-        wcs2 = pickle.loads(s)
+    wcs2 = pickle.loads(s)
 
     with NumpyRNGContext(123456789):
         x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
@@ -103,16 +98,35 @@ def test_wcs():
 
 class Sub(wcs.WCS):
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.foo = 42
 
 
 def test_subclass():
-    wcs = Sub()
-    s = pickle.dumps(wcs)
-    with pytest.warns(FITSFixedWarning):
-        wcs2 = pickle.loads(s)
+    wcs1 = Sub()
+    wcs1.foo = 45
+    s = pickle.dumps(wcs1)
+    wcs2 = pickle.loads(s)
 
     assert isinstance(wcs2, Sub)
-    assert wcs.foo == 42
-    assert wcs2.foo == 42
+    assert wcs1.foo == 45
+    assert wcs2.foo == 45
     assert wcs2.wcs is not None
+
+
+def test_axes_info():
+    w = wcs.WCS(naxis=3)
+    w.pixel_shape = [100, 200, 300]
+    w.pixel_bounds = ((11, 22), (33, 45), (55, 67))
+    w.extra = 111
+
+    w2 = pickle.loads(pickle.dumps(w))
+
+    # explicitly test naxis-related info
+    assert w.naxis == w2.naxis
+    assert w.pixel_shape == w2.pixel_shape
+    assert w.pixel_bounds == w2.pixel_bounds
+
+    # test all attributes
+    for k, v in w.__dict__.items():
+        assert getattr(w2, k) == v

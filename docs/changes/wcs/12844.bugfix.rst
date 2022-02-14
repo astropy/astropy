@@ -1,0 +1,5 @@
+Fixed a bug due to which ``naxis``, ``pixel_shape``, and
+``pixel_bounds`` attributes of ``astropy.wcs.WCS`` were not restored when
+an ``astropy.wcs.WCS`` object was unpickled. This fix also eliminates
+``FITSFixedWarning`` warning issued during unpiclikng of the WCS objects
+related to the number of axes.
