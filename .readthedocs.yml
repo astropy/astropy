@@ -1,7 +1,11 @@
 version: 2
 
 build:
-  image: latest
+  os: ubuntu-20.04
+  apt_packages:
+    - graphviz
+  tools:
+    python: "3.9"
 
 sphinx:
   builder: html
@@ -11,7 +15,6 @@ sphinx:
 # Install regular dependencies.
 # Then, install special pinning for RTD.
 python:
-  version: 3.8
   system_packages: false
   install:
     - method: pip
