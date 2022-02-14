@@ -43,7 +43,9 @@ tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 obj = table.Column([{'a': 1}, {'b': [2]}], dtype='object')
 su = table.Column([(1, (1.5, 1.6)),
                    (2, (2.5, 2.6))],
-                  dtype=[('i', np.int64), ('f', np.float64, (2,))])
+                  name='su',
+                  dtype=[('i', np.int64),
+                         ('f', [('p0', np.float64), ('p1', np.float64)])])
 su2 = table.Column([(['d', 'c'], [1.6, 1.5]),
                     (['b', 'a'], [2.5, 2.6])],
                    dtype=[('s', 'U1', (2,)), ('f', 'f8', (2,))])
@@ -110,7 +112,7 @@ compare_attrs = {
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
     'obj': [],
-    'su': ['i', 'f'],
+    'su': ['i', 'f.p0', 'f.p1'],
     'su2': ['s', 'f'],
 }
 non_trivial_names = {
@@ -137,7 +139,7 @@ non_trivial_names = {
             'srd.differentials.s.d_lon_coslat',
             'srd.differentials.s.d_lat',
             'srd.differentials.s.d_distance'],
-    'su': ['su.i', 'su.f'],
+    'su': ['su.i', 'su.f.p0', 'su.f.p1'],
     'su2': ['su2.s', 'su2.f'],
     'tm': ['tm.jd1', 'tm.jd2'],
     'tm2': ['tm2.jd1', 'tm2.jd2'],

@@ -398,7 +398,7 @@ class ColumnInfo(BaseColumnInfo):
         if unit is not None and unit != '':
             result['unit'] = unit
         if self.format is not None:
-            result['format'] = format
+            result['format'] = self.format
         if self.description is not None:
             result['description'] = self.description
         if self.meta:
