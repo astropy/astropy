@@ -573,6 +573,28 @@ def test_pprint_py3_bytes():
     assert t['col'].pformat() == ['col ', '----', ' val', 'bläh']
 
 
+def test_pprint_structured():
+    su = table.Column([(1, (1.5, [1.6, 1.7])),
+                       (2, (2.5, [2.6, 2.7]))],
+                      name='su',
+                      dtype=[('i', np.int64),
+                             ('f', [('p0', np.float64), ('p1', np.float64, (2,))])])
+    assert su.pformat() == [
+        "  su [i, f[p0, p1]]   ",
+        "----------------------",
+        "(1, (1.5, [1.6, 1.7]))",
+        "(2, (2.5, [2.6, 2.7]))"]
+    t = table.Table([su])
+    assert t.pformat() == su.pformat()
+    assert repr(t).splitlines() == [
+        "<Table length=2>",
+        "      su [i, f[p0, p1]]       ",
+        "(int64, (float64, float64[2]))",
+        "------------------------------",
+        "        (1, (1.5, [1.6, 1.7]))",
+        "        (2, (2.5, [2.6, 2.7]))"]
+
+
 def test_pprint_nameless_col():
     """Regression test for #2213, making sure a nameless column can be printed
     using None as the name.
