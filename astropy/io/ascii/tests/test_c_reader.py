@@ -3,6 +3,7 @@
 import io
 import os
 import functools
+from contextlib import nullcontext
 
 from io import BytesIO
 import re
@@ -1132,11 +1133,15 @@ def test_data_out_of_range(parallel, fast_reader, guess):
             pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     test_for_warnings = fast_reader and not parallel
+    if not parallel and not fast_reader:
+        ctx = nullcontext()
+    else:
+        ctx = pytest.warns()
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
     # NOTE: Warning behavior varies for the parameters being passed in.
-    with pytest.warns(None) as w:
+    with ctx as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
     if test_for_warnings:  # Assert precision warnings for cols 2-5
@@ -1151,7 +1156,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     fields = ['.0101E202', '0.000000314E+314', '1777E+305', '-1799E+305',
               '0.2e-323', '5200e-327', ' 0.0000000000000000000001024E+330']
     values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308])
-    with pytest.warns(None) as w:
+    with ctx as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
     if test_for_warnings:  # Assert precision warnings for cols 4-6
@@ -1170,7 +1175,7 @@ def test_data_out_of_range(parallel, fast_reader, guess):
 
     fields = ['.0101D202', '0.000000314d+314', '1777+305', '-1799E+305',
               '0.2e-323', '2500-327', ' 0.0000000000000000000001024Q+330']
-    with pytest.warns(None) as w:
+    with ctx as w:
         t = ascii.read(StringIO(' '.join(fields)), format='no_header',
                        guess=guess, fast_reader=fast_reader)
     if test_for_warnings:
@@ -1231,7 +1236,7 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         pytest.skip("Catching warnings broken in parallel mode")
     elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with pytest.warns(None) as warning_lines:
+    with pytest.warns() as warning_lines:
         t = ascii.read(StringIO('0.' + 314 * '0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
 
@@ -1257,7 +1262,7 @@ def test_int_out_of_range(parallel, guess):
     text = f'P M S\n {imax:d} {imin:d} {huge:s}'
     expected = Table([[imax], [imin], [huge]], names=('P', 'M', 'S'))
     # NOTE: Warning behavior varies for the parameters being passed in.
-    with pytest.warns(None) as w:
+    with pytest.warns() as w:
         table = ascii.read(text, format='basic', guess=guess,
                            fast_reader={'parallel': parallel})
     if not parallel:
@@ -1269,7 +1274,7 @@ def test_int_out_of_range(parallel, guess):
     # Check with leading zeroes to make sure strtol does not read them as octal
     text = f'P M S\n000{imax:d} -0{-imin:d} 00{huge:s}'
     expected = Table([[imax], [imin], ['00' + huge]], names=('P', 'M', 'S'))
-    with pytest.warns(None) as w:
+    with pytest.warns() as w:
         table = ascii.read(text, format='basic', guess=guess,
                            fast_reader={'parallel': parallel})
     if not parallel:
