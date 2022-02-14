@@ -94,7 +94,8 @@ _pprint_docs = """
         for the unit.
 
     show_dtype : bool
-        Include a header row for column dtypes. Default is True.
+        Include a header row for column dtypes. Default is to show
+        a row for dtype only if one or more columns is multidimensional.
 
     align : str or list or tuple or None
         Left/right alignment of columns. Default is right (None) for all
@@ -1541,7 +1542,7 @@ class Table:
         return self._base_repr_(html=False, max_width=None)
 
     def __str__(self):
-        return '\n'.join(self.pformat())
+        return '\n'.join(self.pformat(show_dtype=False))
 
     def __bytes__(self):
         return str(self).encode('utf-8')
