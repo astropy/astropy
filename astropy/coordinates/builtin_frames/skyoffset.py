@@ -4,15 +4,20 @@ from astropy import units as u
 from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
 from astropy.coordinates.baseframe import (frame_transform_graph,
                                            BaseCoordinateFrame)
-from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
+from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute, Attribute
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                                   matrix_product,
                                                   matrix_transpose)
 
+from astropy.coordinates.representation import (
+    PhysicsSphericalRepresentation,
+    PhysicsSphericalDifferential,
+)
+
 _skyoffset_cache = {}
 
 
-def make_skyoffset_cls(framecls):
+def make_skyoffset_cls(framecls, polar=False):
     """
     Create a new class that is the sky offset frame for a specific class of
     origin frame. If such a class has already been created for this frame, the
@@ -40,18 +45,28 @@ def make_skyoffset_cls(framecls):
     actually gets created in any given python session.
     """
 
-    if framecls in _skyoffset_cache:
-        return _skyoffset_cache[framecls]
+    cache_key = (framecls, polar)
+    if cache_key in _skyoffset_cache:
+        return _skyoffset_cache[cache_key]
+
+
+    if polar:
+        default_represenation = PhysicsSphericalRepresentation
+        default_differential = PhysicsSphericalDifferential
+    else:
+        default_represenation = framecls._default_representation
+        default_differential = framecls._default_differential
 
     # Create a new SkyOffsetFrame subclass for this frame class.
     name = 'SkyOffset' + framecls.__name__
     _SkyOffsetFramecls = type(
         name, (SkyOffsetFrame, framecls),
         {'origin': CoordinateAttribute(frame=framecls, default=None),
+         'polar': Attribute(default=polar),
          # The following two have to be done because otherwise we use the
          # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
-         '_default_representation': framecls._default_representation,
-         '_default_differential': framecls._default_differential,
+         '_default_representation': default_represenation,
+         '_default_differential': default_differential,
          '__doc__': SkyOffsetFrame.__doc__,
          })
 
@@ -71,10 +86,18 @@ def make_skyoffset_cls(framecls):
 
         # Define rotation matrices along the position angle vector, and
         # relative to the origin.
-        origin = skyoffset_frame.origin.spherical
-        mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
-        mat2 = rotation_matrix(-origin.lat, 'y')
-        mat3 = rotation_matrix(origin.lon, 'z')
+
+        if skyoffset_frame.polar:
+            origin = skyoffset_frame.origin.represent_as(PhysicsSphericalRepresentation)
+            mat1 = rotation_matrix(-skyoffset_frame.rotation, 'z')
+            mat2 = rotation_matrix(origin.theta, 'y')
+            mat3 = rotation_matrix(origin.phi, 'z')
+        else:
+            origin = skyoffset_frame.origin.spherical
+            mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
+            mat2 = rotation_matrix(-origin.lat, 'y')
+            mat3 = rotation_matrix(origin.lon, 'z')
+
         return matrix_product(mat1, mat2, mat3)
 
     @frame_transform_graph.transform(DynamicMatrixTransform, _SkyOffsetFramecls, framecls)
@@ -86,7 +109,7 @@ def make_skyoffset_cls(framecls):
         # transpose is the inverse because R is a rotation matrix
         return matrix_transpose(R)
 
-    _skyoffset_cache[framecls] = _SkyOffsetFramecls
+    _skyoffset_cache[cache_key] = _SkyOffsetFramecls
     return _SkyOffsetFramecls
 
 
@@ -144,7 +167,9 @@ class SkyOffsetFrame(BaseCoordinateFrame):
                 raise TypeError("Can't initialize an SkyOffsetFrame without origin= keyword.")
             if hasattr(origin_frame, 'frame'):
                 origin_frame = origin_frame.frame
-            newcls = make_skyoffset_cls(origin_frame.__class__)
+
+            polar = kwargs.get("polar", False)
+            newcls = make_skyoffset_cls(origin_frame.__class__, polar=polar)
             return newcls.__new__(newcls, *args, **kwargs)
 
         # http://stackoverflow.com/questions/19277399/why-does-object-new-work-differently-in-these-three-cases
