@@ -2,6 +2,7 @@
 
 import io
 import os
+from contextlib import nullcontext
 from datetime import datetime
 
 from packaging.version import Version
@@ -24,25 +25,18 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.nddata import Cutout2D
 
-
 _WCSLIB_VER = Version(_wcs.__version__)
 
 
 # NOTE: User can choose to use system wcslib instead of bundled.
-def _check_v71_dateref_warnings(w, nmax=None):
-    if _WCSLIB_VER >= Version('7.1') and _WCSLIB_VER < Version('7.3') and w:
-        if nmax is None:
-            assert w
-        else:
-            assert len(w) == nmax
-
-        for item in w:
-            if (issubclass(item.category, wcs.FITSFixedWarning) and
-                    str(item.message) == "'datfix' made the change "
-                    "'Set DATE-REF to '1858-11-17' from MJD-REF'."):
-                break
-        else:
-            assert False, "No 'datfix' warning found"
+def ctx_for_v71_dateref_warnings():
+    if _WCSLIB_VER >= Version('7.1') and _WCSLIB_VER < Version('7.3'):
+        ctx = pytest.warns(
+            wcs.FITSFixedWarning,
+            match=r"'datfix' made the change 'Set DATE-REF to '1858-11-17' from MJD-REF'\.")
+    else:
+        ctx = nullcontext()
+    return ctx
 
 
 class TestMaps:
@@ -105,15 +99,14 @@ class TestSpectra:
             header = get_pkg_data_contents(
                 os.path.join("data", "spectra", filename), encoding='binary')
             # finally run the test.
-            with pytest.warns(None) as w:
-                all_wcs = wcs.find_all_wcs(header)
-
             if _WCSLIB_VER >= Version('7.4'):
-                assert len(w) == 9
-                m = str(w.pop().message)
-                assert "'datfix' made the change 'Set MJD-OBS to 53925.853472 from DATE-OBS'." in m
+                ctx = pytest.warns(
+                    wcs.FITSFixedWarning,
+                    match=r"'datfix' made the change 'Set MJD-OBS to 53925\.853472 from DATE-OBS'\.")  # noqa
             else:
-                assert len(w) == 0
+                ctx = nullcontext()
+            with ctx:
+                all_wcs = wcs.find_all_wcs(header)
 
             assert len(all_wcs) == 9
 
@@ -127,7 +120,7 @@ def test_fixes():
     with pytest.raises(wcs.InvalidTransformError), pytest.warns(wcs.FITSFixedWarning) as w:
         wcs.WCS(header, translate_units='dhs')
 
-    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
@@ -168,7 +161,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -205,9 +198,8 @@ def test_dict_init():
     """
 
     # Dictionary with no actual WCS, returns identity transform
-    with pytest.warns(None) as wrng:
+    with ctx_for_v71_dateref_warnings():
         w = wcs.WCS({})
-    _check_v71_dateref_warnings(wrng)
 
     xp, yp = w.wcs_world2pix(41., 2., 1)
 
@@ -230,15 +222,15 @@ def test_dict_init():
     if _WCSLIB_VER >= Version('7.1'):
         hdr['DATEREF'] = '1858-11-17'
 
-    with pytest.warns(None) as wrng:
-        w = wcs.WCS(hdr)
-
     if _WCSLIB_VER >= Version('7.4'):
-        assert len(wrng) == 1
-        msg = str(wrng[0].message)
-        assert "'datfix' made the change 'Set MJDREF to 0.000000 from DATEREF'." in msg
+        ctx = pytest.warns(
+            wcs.wcs.FITSFixedWarning,
+            match=r"'datfix' made the change 'Set MJDREF to 0\.000000 from DATEREF'\.")
     else:
-        assert len(wrng) == 0
+        ctx = nullcontext()
+
+    with ctx:
+        w = wcs.WCS(hdr)
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
@@ -344,7 +336,7 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
-    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         n_warn = 5
     else:
         n_warn = 4
@@ -1132,60 +1124,53 @@ def test_inconsistent_sip():
     Test for #4814
     """
     hdr = get_pkg_data_contents("data/sip-broken.hdr")
-    with pytest.warns(None) as wrng:
+    ctx = ctx_for_v71_dateref_warnings()
+    with ctx:
         w = wcs.WCS(hdr)
-    _check_v71_dateref_warnings(wrng)
     with pytest.warns(AstropyWarning):
         newhdr = w.to_header(relax=None)
     # CTYPE should not include "-SIP" if relax is None
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr)
-    _check_v71_dateref_warnings(wrng)
     assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     newhdr = w.to_header(relax=False)
-    assert('A_0_2' not in newhdr)
+    assert 'A_0_2' not in newhdr
     # CTYPE should not include "-SIP" if relax is False
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr)
-    _check_v71_dateref_warnings(wrng)
     assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     with pytest.warns(AstropyWarning):
         newhdr = w.to_header(key="C")
-    assert('A_0_2' not in newhdr)
+    assert 'A_0_2' not in newhdr
     # Test writing header with a different key
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr, key='C')
-    _check_v71_dateref_warnings(wrng)
     assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     with pytest.warns(AstropyWarning):
         newhdr = w.to_header(key=" ")
     # Test writing a primary WCS to header
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr)
-    _check_v71_dateref_warnings(wrng)
     assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
     # Test that "-SIP" is kept into CTYPE if relax=True and
     # "-SIP" was in the original header
     newhdr = w.to_header(relax=True)
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr)
-    _check_v71_dateref_warnings(wrng)
     assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
-    assert('A_0_2' in newhdr)
+    assert 'A_0_2' in newhdr
     # Test that SIP coefficients are also written out.
     assert wnew.sip is not None
     # ######### broken header ###########
     # Test that "-SIP" is added to CTYPE if relax=True and
     # "-SIP" was not in the original header but SIP coefficients
     # are present.
-    with pytest.warns(None) as wrng:
+    with ctx:
         w = wcs.WCS(hdr)
-    _check_v71_dateref_warnings(wrng)
     w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     newhdr = w.to_header(relax=True)
-    with pytest.warns(None) as wrng:
+    with ctx:
         wnew = wcs.WCS(newhdr)
-    _check_v71_dateref_warnings(wrng)
     assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
 
 
@@ -1237,9 +1222,8 @@ def test_sip_with_altkey():
     h1['CTYPE1A'] = "RA---SIN-SIP"
     h1['CTYPE2A'] = "DEC--SIN-SIP"
     h1.update(h2)
-    with pytest.warns(None) as wrng:
+    with ctx_for_v71_dateref_warnings():
         w = wcs.WCS(h1, key='A')
-    _check_v71_dateref_warnings(wrng)
     assert (w.wcs.ctype == np.array(['RA---SIN-SIP', 'DEC--SIN-SIP'])).all()
 
 

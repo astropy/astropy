@@ -12,13 +12,11 @@ from astropy import log
 from astropy.logger import LoggingError, conf
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning
 
-
 # Save original values of hooks. These are not the system values, but the
 # already overwritten values since the logger already gets imported before
 # this file gets executed.
 _excepthook = sys.__excepthook__
 _showwarning = warnings.showwarning
-
 
 try:
     ip = get_ipython()
@@ -80,7 +78,7 @@ def test_warnings_logging():
     assert len(warn_list) == 1
 
     # With warnings logging
-    with pytest.warns(None) as warn_list:
+    with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
@@ -118,7 +116,7 @@ def test_warnings_logging_with_custom_class():
         pass
 
     # With warnings logging
-    with pytest.warns(None) as warn_list:
+    with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", CustomAstropyWarningClass)
@@ -133,7 +131,7 @@ def test_warnings_logging_with_custom_class():
 def test_warning_logging_with_io_votable_warning():
     from astropy.io.votable.exceptions import W02, vo_warn
 
-    with pytest.warns(None) as warn_list:
+    with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             vo_warn(W02, ('a', 'b'))

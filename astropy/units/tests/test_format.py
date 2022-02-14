@@ -4,7 +4,7 @@
 """
 Regression tests for the units.format package
 """
-
+import warnings
 from contextlib import nullcontext
 from fractions import Fraction
 
@@ -184,17 +184,16 @@ class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
             output_format = self.format_
-        with pytest.warns(None) as w:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # Same warning shows up multiple times
             s = unit.to_string(output_format)
-            a = core.Unit(s, format=self.format_)
 
         if s in self.deprecated_units:
-            assert len(w) == 3  # Same warning shows up multiple times
-            for ww in w:
-                assert issubclass(ww.category, UnitsWarning)
-                assert 'deprecated' in str(ww.message)
+            with pytest.warns(UnitsWarning, match='deprecated') as w:
+                a = core.Unit(s, format=self.format_)
+            assert len(w) == 1
         else:
-            assert len(w) == 0
+            a = core.Unit(s, format=self.format_)  # No warning
 
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
 
@@ -476,9 +475,9 @@ def test_fits_function(string):
 @pytest.mark.parametrize('string', ['mag(ct/s)', 'dB(mW)', 'dex(cm s**-2)'])
 def test_vounit_function(string):
     # Function units cannot be written, so ensure they're not parsed either.
-    with pytest.raises(ValueError):
-        with pytest.warns(None):  # ct, dex also raise warnings - irrelevant here.
-            u_format.VOUnit().parse(string)
+    with pytest.raises(ValueError), warnings.catch_warnings():
+        warnings.simplefilter('ignore')    # ct, dex also raise warnings - irrelevant here.
+        u_format.VOUnit().parse(string)
 
 
 def test_vounit_binary_prefix():

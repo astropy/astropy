@@ -2,6 +2,7 @@
 # pylint: disable=invalid-name
 
 import types
+import warnings
 
 import pytest
 import numpy as np
@@ -197,23 +198,22 @@ class TestBounds:
         gauss_fit = fitting.SLSQPLSQFitter()
         # Warning does not appear in all the CI jobs.
         # TODO: Rewrite the test for more consistent warning behavior.
-        with pytest.warns(None) as warning_lines:
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=r'.*The fit may be unsuccessful.*',
+                                    category=AstropyUserWarning)
             model = gauss_fit(gauss, X, Y, self.data)
-            x_mean = model.x_mean.value
-            y_mean = model.y_mean.value
-            x_stddev = model.x_stddev.value
-            y_stddev = model.y_stddev.value
-            assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
-            assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
-            assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
-            assert y_mean - 10 ** -5 <= bounds['y_mean'][1]
-            assert x_stddev + 10 ** -5 >= bounds['x_stddev'][0]
-            assert x_stddev - 10 ** -5 <= bounds['x_stddev'][1]
-            assert y_stddev + 10 ** -5 >= bounds['y_stddev'][0]
-            assert y_stddev - 10 ** -5 <= bounds['y_stddev'][1]
-        for w in warning_lines:
-            assert issubclass(w.category, AstropyUserWarning)
-            assert 'The fit may be unsuccessful' in str(w.message)
+        x_mean = model.x_mean.value
+        y_mean = model.y_mean.value
+        x_stddev = model.x_stddev.value
+        y_stddev = model.y_stddev.value
+        assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
+        assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
+        assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
+        assert y_mean - 10 ** -5 <= bounds['y_mean'][1]
+        assert x_stddev + 10 ** -5 >= bounds['x_stddev'][0]
+        assert x_stddev - 10 ** -5 <= bounds['x_stddev'][1]
+        assert y_stddev + 10 ** -5 >= bounds['y_stddev'][0]
+        assert y_stddev - 10 ** -5 <= bounds['y_stddev'][1]
 
 
 class TestLinearConstraints:

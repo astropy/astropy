@@ -3,8 +3,8 @@
 
 """
 import os
+import warnings
 from importlib import metadata
-
 
 import pytest
 import numpy as np
@@ -17,7 +17,7 @@ from astropy.coordinates import (
     EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz, HADec,
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
-    HCRS, HeliocentricMeanEcliptic, TEME, TETE, Angle)
+    HCRS, HeliocentricMeanEcliptic, TEME, TETE)
 from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -376,7 +376,7 @@ totest_frames = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                        obstime=Time('2014-08-01 08:00:00')),
                  AltAz(location=EarthLocation(120*u.deg, -35*u.deg),
                        obstime=Time('2014-01-01 00:00:00'))
-                ]
+                 ]
 MOONDIST = 385000*u.km  # approximate moon semi-major orbit axis of moon
 MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
 EARTHECC = 0.017 + 0.005  # roughly earth orbital eccentricity, but with an added tolerance
@@ -662,19 +662,15 @@ def test_earth_orientation_table(monkeypatch):
     # Default: uses IERS_Auto, which will give a prediction.
     # Note: tests run with warnings turned into errors, so it is
     # meaningful if this passes.
-    with pytest.warns(None) as warning_lines:
-        altaz_auto = sc.transform_to(altaz)
-
-    # Server occasionally blocks IERS download in CI.
-    n_warnings = len(warning_lines)
     if CI:
-        assert n_warnings <= 1, f'Expected at most one warning but got {n_warnings}'
-        if n_warnings == 1:
-            w_msg = str(warning_lines[0].message)
+        with warnings.catch_warnings():
+            # Server occasionally blocks IERS download in CI.
+            warnings.filterwarnings('ignore', message=r'.*using local IERS-B.*')
             # This also captures unclosed socket warning that is ignored in setup.cfg
-            assert 'using local IERS-B' in w_msg or 'unclosed' in w_msg, f'Got unexpected warning: {w_msg}'
+            warnings.filterwarnings('ignore', message=r'.*unclosed.*')
+            altaz_auto = sc.transform_to(altaz)
     else:
-        assert n_warnings == 0, f'Expected no warning but got {n_warnings}'
+        altaz_auto = sc.transform_to(altaz)  # No warnings
 
     with iers.earth_orientation_table.set(iers.IERS_B.open()):
         with pytest.warns(AstropyWarning, match='after IERS data'):
