@@ -253,18 +253,18 @@ class UnitsMappingType(AstropyType):
                 output["unit"] = m[-1]
             outputs.append(output)
 
-        tree["inputs"] = inputs
-        tree["outputs"] = outputs
+        tree["unit_inputs"] = inputs
+        tree["unit_outputs"] = outputs
 
         return tree
 
     @classmethod
     def from_tree(cls, tree, ctx):
         mapping = tuple((i.get("unit"), o.get("unit"))
-                        for i, o in zip(tree["inputs"], tree["outputs"]))
+                        for i, o in zip(tree["unit_inputs"], tree["unit_outputs"]))
 
         equivalencies = None
-        for i in tree["inputs"]:
+        for i in tree["unit_inputs"]:
             if "equivalencies" in i:
                 if equivalencies is None:
                     equivalencies = {}
@@ -273,7 +273,7 @@ class UnitsMappingType(AstropyType):
         kwargs = {
             "input_units_equivalencies": equivalencies,
             "input_units_allow_dimensionless": {
-                i["name"]: i.get("allow_dimensionless", False) for i in tree["inputs"]},
+                i["name"]: i.get("allow_dimensionless", False) for i in tree["unit_inputs"]},
         }
 
         if "name" in tree:
