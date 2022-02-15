@@ -24,6 +24,7 @@ from .parameter import Parameter
 
 __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 
+__doctest_skip__ = []  # needed until __getattr__ removed
 __doctest_requires__ = {}  # needed until __getattr__ removed
 
 # registry of cosmology classes with {key=name : value=class}
