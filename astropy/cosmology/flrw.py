@@ -37,6 +37,7 @@ else:
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "w0waCDM", "Flatw0waCDM", "wpwaCDM", "w0wzCDM", "FlatFLRWMixin"]
 
+__doctest_skip__ = ['ellipkinc', 'hyp2f1']
 __doctest_requires__ = {'*': ['scipy']}
 
 
