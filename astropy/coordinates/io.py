@@ -12,7 +12,7 @@ def json_encode_longitude(obj):
     from astropy.units.io import json_encode_quantity
 
     code = json_encode_quantity(obj)
-    code["wrap_angle"] = json_encode_quantity(obj.wrap_angle)
+    code["wrap_angle"] = obj.wrap_angle
     return code
 
 
