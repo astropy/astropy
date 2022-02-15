@@ -29,6 +29,8 @@ from .conftest import get_redshift_methods
 from .test_core import CosmologySubclassTest as CosmologyTest
 from .test_core import FlatCosmologyMixinTest, ParameterTestMixin, invalid_zs, valid_zs
 
+__doctest_skip__ = ['ellipkinc', 'hyp2f1']
+
 
 ##############################################################################
 # SETUP / TEARDOWN
