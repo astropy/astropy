@@ -432,3 +432,5 @@ UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
 if isinstance(getattr(np.core.umath, 'clip', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath.clip] = helper_clip
+
+del ufunc
