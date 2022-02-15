@@ -1,9 +1,3 @@
-# We need to import this here and run metadata.version to make sure
-# metadata.version('numpy') works correctly in the astropy code itself.
-from importlib import metadata
-
-metadata.version('numpy')
-
 import os
 import shutil
 import sys
@@ -106,5 +100,4 @@ sys.exit(pytest.main(['astropy_tests',
                      plugins=['pytest_doctestplus.plugin',
                               'pytest_openfiles.plugin',
                               'pytest_remotedata.plugin',
-                              'pytest_mpl.plugin',
                               'pytest_astropy_header.display']))
