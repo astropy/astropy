@@ -63,8 +63,8 @@ jobs:
 
           - name: Python 3.10 with minimal dependencies
             os: ubuntu-latest
-            python: '3.10.0-alpha - 3.10.0'
-            toxenv: py310-test-devdeps
+            python: '3.10'
+            toxenv: py310-test
 
           # NOTE: In the build below we also check that tests do not open and
           # leave open any files. This has a performance impact on running the
