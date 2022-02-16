@@ -969,6 +969,54 @@ class TestTableFunctions(FitsTestCase):
             assert header['TNULL2'] == 'b'
             assert header['TNULL3'] == 2.3
 
+    def test_multidimension_table_from_numpy_rec_columns(self):
+        """Regression test for https://github.com/astropy/astropy/issues/5280
+        and https://github.com/astropy/astropy/issues/5287
+
+        multidimentional tables can now be written with the correct TDIM.
+        Author: Stephen Bailey.
+        """
+
+        dtype = [
+            (str('x'), (str, 5)),        # 1D column of 5-character strings
+            (str('y'), (str, 3), (4,)),  # 2D column; each row is four 3-char strings
+        ]
+        data = np.zeros(2, dtype=dtype)
+        data['x'] = ['abcde', 'xyz']
+        data['y'][0] = ['A', 'BC', 'DEF', '123']
+        data['y'][1] = ['X', 'YZ', 'PQR', '999']
+        table = Table(data)
+
+        testfile = self.temp('test.fits')
+        # Test convenience functions io.fits.writeto / getdata
+        fits.writeto(testfile, data)
+        dx = fits.getdata(testfile)
+        assert data['x'].dtype == dx['x'].dtype
+        assert data['y'].dtype == dx['y'].dtype
+        assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
+        assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
+
+        # Test fits.BinTableHDU(data) and avoid convenience functions
+        hdu0 = fits.PrimaryHDU()
+        hdu1 = fits.BinTableHDU(data)
+        hx = fits.HDUList([hdu0, hdu1])
+        hx.writeto(testfile, overwrite=True)
+        fx = fits.open(testfile)
+        dx = fx[1].data
+        fx.close()
+        assert data['x'].dtype == dx['x'].dtype
+        assert data['y'].dtype == dx['y'].dtype
+        assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
+        assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
+
+        # Test Table write and read
+        table.write(testfile, overwrite=True)
+        tx = Table.read(testfile, character_as_bytes=False)
+        assert table['x'].dtype == tx['x'].dtype
+        assert table['y'].dtype == tx['y'].dtype
+        assert np.all(table['x'] == tx['x']), 'x: {} != {}'.format(table['x'], tx['x'])
+        assert np.all(table['y'] == tx['y']), 'y: {} != {}'.format(table['y'], tx['y'])
+
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
