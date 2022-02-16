@@ -69,7 +69,8 @@ def encode_numpy_dtype(obj):
     dump: {"!": "numpy.dtype", "value": "float64", "shape": [10]}
     load: dtype(('<f8', (10,)))
     """
-    code = {"!": "numpy.dtype"}
+    clsname = obj.__class__.__name__.split('[')[0]  # e.g. dtype[void] -> dtype
+    code = {"!": f"{obj.__class__.__module__}.{clsname}"}
 
     # Built-in or only metadata making it not "isbuiltin"
     if obj.isbuiltin or (obj.fields is None and obj.subdtype is None):
@@ -85,16 +86,35 @@ def encode_numpy_dtype(obj):
     if obj.metadata is not None:
         code["metadata"] = dict(obj.metadata)
 
+    # iterate through sub-dtypes (if structured), abbreviating.
+    if isinstance(code["value"], dict):
+        for k, v in code["value"].items():
+            if not isinstance(v, tuple) or not isinstance(v[0], np.dtype):
+                continue  # skip non dtypes
+
+            dt = encode_numpy_dtype(v[0])
+            if dt["!"] == "numpy.dtype":
+                dt.pop("!")  # we know the dtype
+            if dt.keys() == {"value"}:  # only value, no e.g. "metadata" or "align"
+                dt = dt["value"]
+            code["value"][k] = [dt, v[1]]  # (list not tuple b/c json)
+
     return code
 
 
 def decode_numpy_dtype(constructor, value, code):
     """Return a `numpy.dtype` from an ``encode_numpy_dtype`` dictionary."""
-    # Structured. `json` has called `decode_numpy_dtype` on each sub-field
+    # Structured: iterate through sub-dtypes, decoding.
     if isinstance(value, dict):
         for k, v in value.items():  # need to convert lists to tuples for numpy
-            if isinstance(v, list):
+            if not isinstance(v, list):
+                continue
+            elif isinstance(v[0], np.dtype):
                 value[k] = tuple(v)
+            else:
+                v_c = {"value": v[0]} if isinstance(v[0], str) else v[0]
+                dt = decode_numpy_dtype(np.dtype, v_c.pop("value"), v_c)
+                value[k] = (dt, v[1])
     elif "shape" in code:
         value = (value, tuple(code.pop("shape")))
 
@@ -108,12 +128,7 @@ def decode_numpy_dtype(constructor, value, code):
 def _encode_abbreviate_dtype(dtype):
     """Abbreviate a dtype for nested structures, like `numpy.ndarray`"""
     dt = encode_numpy_dtype(dtype)
-    dt.pop("!")  # we know the dtype
-    # iterature through subdtypes (if structured), similarly abbreviating.
-    if isinstance(dt["value"], dict):
-        for k, v in dt["value"].items():
-            if isinstance(v, tuple) and isinstance(v[0], np.dtype):
-                dt["value"][k] = [_encode_abbreviate_dtype(v[0]), v[1]]
+    dt.pop("!", None)  # we know the dtype
 
     if dt.keys() == {"value"}:  # only value, no e.g. "metadata" or "align"
         dt = dt["value"]
@@ -124,7 +139,7 @@ def _decode_abbreviated_dtype(dtype):
     """Recreate a dtype from an abbreviated form, like in `numpy.ndarray`"""
     if isinstance(dtype, str):
         dtype = {"value": dtype}
-    # iterature through subdtypes (if structured), similarly un-abbreviating.
+    # iterate through subdtypes (if structured), similarly un-abbreviating.
     elif isinstance(dtype["value"], dict):
         for k, v in dtype["value"].items():
             if isinstance(v, list):

@@ -52,18 +52,8 @@ class TestJSONExtended_StructuredDType(TestJSONExtended_DType):
         self._type = np.dtype
         self._obj = np.dtype([("f1", float, (1, 2)), ("f2", [("n1", float), ("n2", float)])])
         self._serialized_value = {
-            "f1": [{"!": "numpy.dtype", "value": "float64", "shape": [1, 2]}, 0],
-            "f2": [
-                {
-                    "!": "numpy.dtype",
-                    "value": {
-                        "n1": [{"!": "numpy.dtype", "value": "float64"}, 0],
-                        "n2": [{"!": "numpy.dtype", "value": "float64"}, 8],
-                    },
-                    "align": False,
-                },
-                16,
-            ],
+            "f1": [{"value": "float64", "shape": [1, 2]}, 0],
+            "f2": [{"value": {"n1": ["float64", 0], "n2": ["float64", 8]}, "align": False}, 16],
         }
 
     def test_align(self, obj, obj_type):
