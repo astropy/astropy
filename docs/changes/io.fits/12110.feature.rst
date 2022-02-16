@@ -1,0 +1,3 @@
+``astropy.io.fits.Header`` now has a method to calculate the size
+(in bytes) of the data portion (with or without padding) following
+that header.
