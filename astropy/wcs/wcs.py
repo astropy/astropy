@@ -382,6 +382,12 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                  fix=True, translate_units='', _do_set=True):
         close_fds = []
 
+        # these parameters are stored to be used when unpickling a WCS object:
+        self._init_kwargs = {
+            'keysel': copy.copy(keysel),
+            'colsel': copy.copy(colsel),
+        }
+
         if header is None:
             if naxis is None:
                 naxis = 2
@@ -2994,8 +3000,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         buffer = io.BytesIO()
         hdulist.writeto(buffer)
 
+        dct = self.__dict__.copy()
+        dct['_alt_wcskey'] = self.wcs.alt
+
         return (__WCS_unpickle__,
-                (self.__class__, self.__dict__, buffer.getvalue(),))
+                (self.__class__, dct, buffer.getvalue(),))
 
     def dropaxis(self, dropax):
         """
@@ -3288,9 +3297,11 @@ def __WCS_unpickle__(cls, dct, fits_data):
         for k, na in enumerate(naxes):
             hdulist[0].header[f'naxis{k + 1:d}'] = na
 
+    kwargs = dct.pop('_init_kwargs', {})
     self.__dict__.update(dct)
 
-    WCS.__init__(self, hdulist[0].header, hdulist)
+    wcskey = dct.pop('_alt_wcskey', ' ')
+    WCS.__init__(self, hdulist[0].header, hdulist, key=wcskey, **kwargs)
     self.pixel_bounds = dct.get('_pixel_bounds', None)
 
     return self

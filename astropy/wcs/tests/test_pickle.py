@@ -7,7 +7,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj
+from astropy.utils.data import (get_pkg_data_contents, get_pkg_data_fileobj,
+                                get_pkg_data_filename)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 from astropy.io import fits
@@ -130,3 +131,30 @@ def test_axes_info():
     # test all attributes
     for k, v in w.__dict__.items():
         assert getattr(w2, k) == v
+
+
+def test_pixlist_wcs_colsel():
+    """
+    Test selection of a specific pixel list WCS using ``colsel``. See #11412.
+    """
+    hdr_file = get_pkg_data_filename('data/chandra-pixlist-wcs.hdr')
+    hdr = fits.Header.fromtextfile(hdr_file)
+    with pytest.warns(wcs.FITSFixedWarning):
+        w0 = wcs.WCS(hdr, keysel=['image', 'pixel'], colsel=[11, 12])
+
+    with pytest.warns(wcs.FITSFixedWarning):
+        w = pickle.loads(pickle.dumps(w0))
+
+    assert w.naxis == 2
+    assert list(w.wcs.ctype) == ['RA---TAN', 'DEC--TAN']
+    assert np.allclose(w.wcs.crval, [229.38051931869, -58.81108068885])
+    assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
+    assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
+    assert np.allclose(w.wcs.lonpole, 180.)
+
+
+def test_alt_wcskey():
+    w = wcs.WCS(key='A')
+    w2 = pickle.loads(pickle.dumps(w))
+
+    assert w2.wcs.alt == 'A'
