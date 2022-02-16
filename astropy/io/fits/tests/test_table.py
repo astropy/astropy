@@ -987,22 +987,20 @@ class TestTableFunctions(FitsTestCase):
         data['y'][1] = ['X', 'YZ', 'PQR', '999']
         table = Table(data)
 
-        testfile = self.temp('test.fits')
         # Test convenience functions io.fits.writeto / getdata
-        fits.writeto(testfile, data)
-        with fits.open(testfile):
-            dx = fits.getdata(testfile)
-            assert data['x'].dtype == dx['x'].dtype
-            assert data['y'].dtype == dx['y'].dtype
-            assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
-            assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
+        fits.writeto(self.temp('test.fits'), data)
+        dx = fits.getdata(self.temp('test.fits'))
+        assert data['x'].dtype == dx['x'].dtype
+        assert data['y'].dtype == dx['y'].dtype
+        assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
+        assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
 
         # Test fits.BinTableHDU(data) and avoid convenience functions
         hdu0 = fits.PrimaryHDU()
         hdu1 = fits.BinTableHDU(data)
         hx = fits.HDUList([hdu0, hdu1])
-        hx.writeto(testfile, overwrite=True)
-        fx = fits.open(testfile)
+        hx.writeto(self.temp('test2.fits'))
+        fx = fits.open(self.temp('test2.fits'))
         dx = fx[1].data
         fx.close()
         assert data['x'].dtype == dx['x'].dtype
@@ -1011,8 +1009,8 @@ class TestTableFunctions(FitsTestCase):
         assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
 
         # Test Table write and read
-        table.write(testfile, overwrite=True)
-        tx = Table.read(testfile, character_as_bytes=False)
+        table.write(self.temp('test3.fits'))
+        tx = Table.read(self.temp('test3.fits'), character_as_bytes=False)
         assert table['x'].dtype == tx['x'].dtype
         assert table['y'].dtype == tx['y'].dtype
         assert np.all(table['x'] == tx['x']), 'x: {} != {}'.format(table['x'], tx['x'])
