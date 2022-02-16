@@ -2517,17 +2517,18 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_data_size(self):
         """
-        Tests data size calculation given a Header.
+        Tests data size calculation (w/o padding) given a Header.
         """
         hdu = fits.PrimaryHDU()
         header = hdu.header
-        assert header.size_of_data() == 0
+        assert header.data_size == 0
 
         header['BITPIX'] = 32
         header['NAXIS'] = 2
         header['NAXIS1'] = 100
         header['NAXIS2'] = 100
-        assert header.size_of_data() == 40000
+        assert header.data_size == 40000
+        assert header.data_size_padded == 40320
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):
