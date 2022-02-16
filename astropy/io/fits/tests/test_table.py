@@ -990,11 +990,12 @@ class TestTableFunctions(FitsTestCase):
         testfile = self.temp('test.fits')
         # Test convenience functions io.fits.writeto / getdata
         fits.writeto(testfile, data)
-        dx = fits.getdata(testfile)
-        assert data['x'].dtype == dx['x'].dtype
-        assert data['y'].dtype == dx['y'].dtype
-        assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
-        assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
+        with fits.open(testfile):
+            dx = fits.getdata(testfile)
+            assert data['x'].dtype == dx['x'].dtype
+            assert data['y'].dtype == dx['y'].dtype
+            assert np.all(data['x'] == dx['x']), 'x: {} != {}'.format(data['x'], dx['x'])
+            assert np.all(data['y'] == dx['y']), 'y: {} != {}'.format(data['y'], dx['y'])
 
         # Test fits.BinTableHDU(data) and avoid convenience functions
         hdu0 = fits.PrimaryHDU()
