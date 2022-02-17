@@ -2,9 +2,10 @@
 
 import time
 
-from astropy.samp.hub import SAMPHubServer
+import pytest
 
 from astropy.samp import conf
+from astropy.samp.hub import SAMPHubServer
 
 
 def setup_module(module):
@@ -24,6 +25,7 @@ def test_SAMPHubServer_run():
     hub.stop()
 
 
+@pytest.mark.slow
 def test_SAMPHubServer_run_repeated():
     """
     Test that SAMPHub can be restarted after it has been stopped, including
