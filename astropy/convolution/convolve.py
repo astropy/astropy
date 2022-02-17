@@ -21,7 +21,11 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 LIBRARY_PATH = os.path.dirname(__file__)
 
 try:
-    _convolve = load_library("_convolve", LIBRARY_PATH)
+    with warnings.catch_warnings():
+        # numpy.distutils is deprecated since numpy 1.23
+        # see https://github.com/astropy/astropy/issues/12865
+        warnings.simplefilter('ignore', DeprecationWarning)
+        _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
     raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
