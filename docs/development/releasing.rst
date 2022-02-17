@@ -113,6 +113,18 @@ The procedure for the feature freeze is as follows:
 Releasing the first major release candidate
 ===========================================
 
+.. _release-procedure-restrict-branch:
+
+Restricting changes to the release branch
+-----------------------------------------
+
+This step is optional and could also be done at a later stage in the release process,
+but you may want to temporarily restrict who can push/merge pull requests to the
+release branch so that someone does not inadvertantly push changes to the release
+branch while you are in the middle of following release steps. If you wish to do this,
+you can go to the core package repository settings, and under 'Branches' and 'Branch
+protection rules' you can then add a rule which restricts who can push to the branch.
+
 .. _release-procedure-update-iers:
 
 Updating the IERS parameter and leap second tables
@@ -441,8 +453,8 @@ Post-Release procedures
    previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
-   release history to "protected".  For example when releasing v5.0.2, set
-   v5.0.1 to "protected".  This prevents the previous releases from
+   release history to "Hidden".  For example when releasing v5.0.2, set
+   v5.0.1 to "Hidden".  This prevents the previous releases from
    cluttering the list of versions that users see in the version dropdown
    (the previous versions are still accessible by their URL though).
 
@@ -454,6 +466,9 @@ Post-Release procedures
    open a PR to the astropy *main* branch. Also make sure you cherry-pick the
    commit updating the ``.mailmap`` and ``docs/credits.rst`` files to the *main*
    branch in a separate PR.
+
+#. Turn off any branch protection you might have enabled in
+   :ref:`release-procedure-restrict-branch`.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
@@ -477,11 +492,12 @@ Post-Release procedures
    step, please contact the Astropy Coordination Committee.
 
 #. Once the release(s) are available on the default ``conda`` channels,
-   prepare the public announcement. Use the previous announcement as a
-   template, but link to the release tag instead of ``stable``.
-   For a new major release, you should coordinate with the Astropy Coordinators.
-   Meanwhile, for a bugfix release, you can proceed to send out an email
-   to the ``astropy-dev`` and Astropy mailing lists.
+   prepare the public announcement. Use the previous announcement as a template,
+   but link to the release tag instead of ``stable``. For a new major release,
+   you should coordinate with the rest of the Astropy release team and the
+   community engagement coordinators. Meanwhile, for a bugfix release, you can
+   proceed to send out an email to the ``astropy-dev`` and Astropy mailing
+   lists.
 
 .. _release-procedure-bug-fix:
 
