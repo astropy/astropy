@@ -839,6 +839,7 @@ EXPECTED_VELOCITY_FRAMES = {'geocent': 'gcrs',
 
 
 @pytest.mark.parametrize('specsys', list(EXPECTED_VELOCITY_FRAMES))
+@pytest.mark.slow
 def test_spectralcoord_accuracy(specsys):
 
     # This is a test to check the numerical results of transformations between

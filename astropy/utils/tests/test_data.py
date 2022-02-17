@@ -775,6 +775,7 @@ def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls)
     # assert not any([is_url_in_cache(u) for (u, c) in td])
 
 
+@pytest.mark.slow
 def test_download_parallel_partial_success_lock_safe(temp_cache, valid_urls, invalid_urls):
     """Check that a partially successful parallel download leaves the cache unlocked.
 

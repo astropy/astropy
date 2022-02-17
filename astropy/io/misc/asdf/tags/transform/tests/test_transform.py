@@ -194,6 +194,7 @@ def test_naming_of_compound_model(tmpdir):
     helpers.assert_roundtrip_tree(tree, tmpdir, asdf_check_func=asdf_check)
 
 
+@pytest.mark.slow
 def test_generic_projections(tmpdir):
     from astropy.io.misc.asdf.tags.transform import projections
 
