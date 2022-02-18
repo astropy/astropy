@@ -1,0 +1,1 @@
+Switch ``modeling.projections`` to use ``astropy.wcs.Prjprm`` wrapper internally and provide access to the ``astropy.wcs.Prjprm`` structure.
