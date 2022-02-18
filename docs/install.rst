@@ -246,8 +246,7 @@ Prerequisites
 
 You will need a compiler suite and the development headers for Python in order
 to build ``astropy``. You do not need to install any other specific build
-dependencies (such as `Cython <https://cython.org/>`_ or
-`jinja2 <https://jinja.palletsprojects.com/en/master/>`_) since these are
+dependencies (such as `Cython <https://cython.org/>`_) since these are
 declared in the ``pyproject.toml`` file and will be automatically installed into
 a temporary build environment by pip.
 
@@ -261,11 +260,11 @@ package for your Linux distribution, as well as pip.
 
 For Debian/Ubuntu::
 
-    sudo apt-get install python3-dev python3-numpy-dev python3-setuptools cython3 python3-jinja2 python3-pytest-astropy
+    sudo apt-get install python3-dev python3-numpy-dev python3-setuptools cython3 python3-pytest-astropy
 
 For Fedora/RHEL::
 
-    sudo yum install python3-devel python3-numpy python3-setuptools python3-Cython python3-jinja2 python3-pytest-astropy
+    sudo yum install python3-devel python3-numpy python3-setuptools python3-Cython python3-pytest-astropy
 
 .. note:: Building the developer version of ``astropy`` may require
           newer versions of the above packages than are available in
