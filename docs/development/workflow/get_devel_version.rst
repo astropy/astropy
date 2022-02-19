@@ -228,8 +228,8 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 If you have decided to use the recommended "activation" method with
 ``pip``, please note the following: Before trying to install,
-check that you have the required dependencies: "cython" and "jinja2".
-If not, install them with ``pip``. Note that on some platforms,
+check that you have the required dependency: "cython".
+If not, install it with ``pip``. Note that on some platforms,
 the pip command is ``pip3`` instead of ``pip``, so be sure to use
 this instead in the examples below if that is the case.
 If you have any problem with different versions of ``pip`` installed,

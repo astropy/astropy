@@ -68,7 +68,7 @@ jobs:
       if: matrix.language == 'cpp'
       run: |
        pip install -U pip setuptools_scm wheel
-       pip install extension-helpers jinja2 cython numpy pyerfa
+       pip install extension-helpers cython numpy pyerfa
        python setup.py build_ext --inplace
 
     - name: Perform CodeQL Analysis
