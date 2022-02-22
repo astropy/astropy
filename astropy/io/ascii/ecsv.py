@@ -129,7 +129,9 @@ class EcsvHeader(basic.BasicHeader):
         match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
         if not match:
             raise core.InconsistentTableError(no_header_msg)
-        # ecsv_version could be constructed here, but it is not currently used.
+
+        # Construct ecsv_version for backwards compatibility workarounds.
+        self.ecsv_version = tuple(int(v or 0) for v in match.groups())
 
         try:
             header = meta.get_header_from_yaml(lines)
@@ -173,7 +175,11 @@ class EcsvHeader(basic.BasicHeader):
                     setattr(col, attr, header_cols[col.name][attr])
 
             col.dtype = header_cols[col.name]['datatype']
-            if col.dtype not in ECSV_DATATYPES:
+            # Require col dtype to be a valid ECSV datatype. However, older versions
+            # of astropy writing ECSV version 0.9 and earlier had inadvertently allowed
+            # numpy datatypes like datetime64 or object or python str, which are not in the ECSV standard.
+            # For back-compatibility with those existing older files, allow reading with no error.
+            if col.dtype not in ECSV_DATATYPES and self.ecsv_version > (0, 9, 0):
                 raise ValueError(f'datatype {col.dtype!r} of column {col.name!r} '
                                  f'is not in allowed values {ECSV_DATATYPES}')
 

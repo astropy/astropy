@@ -21,6 +21,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
 
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.compat import NUMPY_LT_1_19
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
@@ -646,6 +647,26 @@ a
         Table.read(txt, format='ascii.ecsv')
 
 
+@pytest.mark.skipif(NUMPY_LT_1_19,
+                    reason="numpy cannot parse 'complex' as string until 1.19+")
+def test_read_complex_v09():
+    """Test an ECSV file with a complex column for version 0.9
+    Note: ECSV Version <=0.9 files should not raise ValueError
+    for complex datatype to maintain backwards compatibility.
+    """
+    txt = """\
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: a, datatype: complex}
+# schema: astropy-2.0
+a
+1+1j
+2+2j"""
+    t = Table.read(txt, format='ascii.ecsv')
+    assert t['a'].dtype.type is np.complex128
+
+
 def test_read_bad_datatype_for_object_subtype():
     """Test a malformed ECSV file"""
     txt = """\
@@ -676,6 +697,26 @@ fail
     match = r"column 'a' is not in allowed values \('bool', 'int8', 'int16', 'int32'"
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_bad_datatype_v09():
+    """Test a malformed ECSV file for version 0.9
+    Note: ECSV Version <=0.9 files should not raise ValueError
+    for malformed datatypes to maintain backwards compatibility.
+    """
+    txt = """\
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: a, datatype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    t = Table.read(txt, format='ascii.ecsv')
+    assert t['a'][0] == "fail"
+    assert type(t['a'][1]) is str
+    assert type(t['a'].dtype) == np.dtype("O")
 
 
 def test_full_repr_roundtrip():
