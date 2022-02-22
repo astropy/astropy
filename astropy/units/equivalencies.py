@@ -2,6 +2,7 @@
 """A set of standard astronomical equivalencies."""
 
 from collections import UserList
+from dataclasses import dataclass
 
 # THIRD-PARTY
 import numpy as np
@@ -15,14 +16,16 @@ from . import si
 from . import cgs
 from . import astrophys
 from . import misc
+from . import physical
 from .function import units as function_units
 from . import dimensionless_unscaled
-from .core import UnitsError, Unit
+from .core import UnitsError, UnitTypeError, Unit
+from .quantity import Quantity
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'doppler_redshift', 'mass_energy',
-           'mass_length_time', 'brightness_temperature', 'thermodynamic_temperature',
+           'geometrized', 'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
            'pixel_scale', 'plate_scale', "Equivalency"]
@@ -561,39 +564,266 @@ def mass_energy():
                         ], "mass_energy")
 
 
-def mass_length_time():
+@dataclass
+class GeometricUnitConversionFactors:
     """
-    Convert mass, length, time in geometric units.
+    Geometric conversion factors w.r.t. SI. Implemented from
+    `Wikipedia <https://en.wikipedia.org/wiki/Geometrized_unit_system>`_.
+    """
+    m = {
+        'm': Quantity(1.0),
+        'kg': _si.c**2 / _si.G,
+        's': 1.0 / _si.c,
+        'C': _si.c**2 / (_si.G / _si.eps0)**0.5,
+        'K': _si.c**4 / (_si.G * _si.k_B)
+    }
+    kg = {
+        'm': _si.G / _si.c**2,
+        'kg': Quantity(1.0),
+        's': _si.G / _si.c**3,
+        'C': (_si.G * _si.eps0)**0.5,
+        'K': _si.c**2 / _si.k_B
+    }
+    s = {
+        'm': _si.c,
+        'kg': _si.c**3 / _si.G,
+        's': Quantity(1.0),
+        'C': _si.c**3 / (_si.G / _si.eps0)**0.5,
+        'K': _si.c**5 / (_si.G * _si.k_B)
+    }
+    C = {
+        'm': (_si.G / _si.eps0)**0.5 / _si.c**2,
+        'kg': 1.0 / (_si.G * _si.eps0)**0.5,
+        's': (_si.G / _si.eps0)**0.5 / _si.c**3,
+        'C': Quantity(1.0),
+        'K': _si.c**2 / (_si.k_B * (_si.G * _si.eps0)**0.5)
+    }
+    K = {
+        'm': _si.G * _si.k_B / _si.c**4,
+        'kg': _si.k_B / _si.c**2,
+        's': _si.G * _si.k_B / _si.c**5,
+        'C': _si.k_B * (_si.G * _si.eps0)**0.5 / _si.c**2,
+        'K': Quantity(1.0)
+    }
+
+    def _base_conversion(self, source_base, target_base):
+        """Base conversions
+
+        Parameters
+        ----------
+        source_base: astropy.unit.Unit
+            source base
+        target_base: astropy.unit.Unit
+            target base
+        """
+        try:
+            conversion_factor = getattr(self, source_base.__str__())
+        except (AttributeError, UnitTypeError):
+            raise UnitTypeError(
+                """
+                Base of source units must be one of "m", "kg", "s",
+                "C", "K".
+                """
+            )
+        return conversion_factor.get(target_base.__str__())
+
+    def _irreducible_conversion(self, source_quantity, target_unit):
+        """
+        Convert irreducible quantities. Unit powers are unity.
+        E.g. meter to second, but not meter-squared to second-squared
+
+        Parameters
+        ----------
+        source_quantity: astropy.units.Quantity
+            source quantity
+        target_unit: astropy.units.IrreducibleUnit
+            target quantity
+        """
+        source_quantity_decomposed = source_quantity.decompose()
+        source_quantity_unit = source_quantity_decomposed.unit
+        conversion_factor = self._base_conversion(
+            source_quantity_unit, target_unit
+        ).value
+        return source_quantity_decomposed.value * conversion_factor
+
+    def _homogeneous_conversion(
+            self, source_quantity,
+            target_unit):
+        """Composite quantity conversion. E.g. meter-cubed to second-cubed,
+        but not m/s to dimensionless units.
+
+        Parameters
+        ----------
+        source_quantity_value: float
+            source quantity value
+        source_units: list
+            list of units
+
+        """
+        assert len(source_quantity.unit.bases) == len(target_unit.bases) == 1
+        assert source_quantity.unit.powers == target_unit.powers
+
+        res = source_quantity.value
+
+        res *= self._irreducible_conversion(
+            1.0 * source_quantity.unit.bases[0],
+            target_unit.bases[0]
+        )**target_unit.powers[0]
+
+        return res
+
+
+def geometrized(physical_type):
+    """
+    Convert quantities to geometric units.
+
+    Parameters
+    ----------
+    physical_type: str or `~astropy.units.PhysicalType`
+        Physical type to convert.
+        Argument to :meth:`astropy.units.get_physical_type`
 
     Examples
     --------
     >>> from astropy import constants as c, units as u
     >>> mass = 2 * u.M_sun
-    >>> mass.to('km', equivalencies=u.equivalencies.mass_length_time())
+    >>> mass.to('km', equivalencies=u.geometrized('mass'))
     <Quantity 2.95325008 km>
     >>> time = 1 * u.microsecond
-    >>> time.to('solMass', equivalencies=u.equivalencies.mass_length_time())
+    >>> time.to('solMass', equivalencies=u.geometrized('time'))
     <Quantity 0.20302545 solMass>
-    >>> time.to('kg', equivalencies=u.equivalencies.mass_length_time())
+    >>> time.to('kg', equivalencies=u.geometrized('time'))
     <Quantity 4.03697802e+29 kg>
     """
-    schwarzchild_factor = _si.GM_sun / _si.c**2  # 1 M_sun -> approx 1.5 km
+    physical_type = physical.get_physical_type(physical_type)
+    mass_length_time_physical_types = [
+        physical.length,
+        physical.mass,
+        physical.time,
+    ]
 
-    sol_mass_to_meters = lambda _: _ * schwarzchild_factor.to('m').value
-    meters_to_sol_mass = lambda _: _ / schwarzchild_factor.to('m').value
+    volume_physical_types = [
+        physical.volume
+    ]
 
-    sol_mass_to_seconds = lambda _: (
-        sol_mass_to_meters(_) * si.m / _si.c
-    ).to('s').value
-    seconds_to_sol_mass = lambda _: meters_to_sol_mass(
-            (_ * si.s * _si.c).to('m').value
+    area_physical_types = [
+        physical.area,
+    ]
+
+    temperature_physical_types = [
+        physical.temperature,
+    ]
+
+    velocity_physical_types = [
+        physical.velocity,
+    ]
+
+    allowed_physical_types = mass_length_time_physical_types
+    allowed_physical_types += volume_physical_types
+    allowed_physical_types += area_physical_types
+    allowed_physical_types += temperature_physical_types
+    allowed_physical_types += velocity_physical_types
+
+    assert physical_type in allowed_physical_types, (
+        "Allowed values : "
+        f"{[v._physical_type for v in allowed_physical_types]}"
     )
 
-    return Equivalency(
-        [(astrophys.solMass, si.m, sol_mass_to_meters, meters_to_sol_mass),
-         (astrophys.solMass, si.s, sol_mass_to_seconds, seconds_to_sol_mass),
-         (si.m, si.s, lambda _: (_ / _si.c).value, lambda _: (_ * _si.c).value)]
-    )
+    conversions = GeometricUnitConversionFactors()
+
+    if physical_type in velocity_physical_types:
+
+        return Equivalency([
+            # velocity
+            (
+                si.m / si.s, Unit(),
+                lambda velocity: velocity / _si.c.value,
+                lambda v_over_c: v_over_c * _si.c.value,
+            )
+         ])
+
+    elif physical_type in area_physical_types:
+
+        return Equivalency([
+            # area-time**2
+            (
+                si.m**2, si.s**2,
+                lambda meter_sq: conversions._homogeneous_conversion(
+                    meter_sq * si.m**2, si.s**2
+                ),
+                lambda second_sq: conversions._homogeneous_conversion(
+                    second_sq * si.s**2, si.m**2
+                )
+            ),
+            # area-mass**2
+            (
+                si.m**2, si.kg**2,
+                lambda meter_sq: conversions._homogeneous_conversion(
+                    meter_sq * si.m**2, si.kg**2
+                ),
+                lambda second_sq: conversions._homogeneous_conversion(
+                    second_sq * si.kg**2, si.m**2
+                )
+            )
+        ])
+
+    elif physical_type in volume_physical_types:
+        return Equivalency([
+            # volume-time**3
+            (
+                si.m**3, si.s**3,
+                lambda meter_cubed: conversions._homogeneous_conversion(
+                    meter_cubed * si.m**3, si.s**3
+                ),
+                lambda second_cubed: conversions._homogeneous_conversion(
+                    second_cubed * si.s**3, si.m**3
+                )
+            ),
+            # volume-mass**3
+            (
+                si.m**3, si.kg**3,
+                lambda meter_cubed: conversions._homogeneous_conversion(
+                    meter_cubed * si.m**3, si.kg**3
+                ),
+                lambda second_cubed: conversions._homogeneous_conversion(
+                    second_cubed * si.kg**3, si.m**3
+                )
+            )
+        ])
+
+    elif physical_type in mass_length_time_physical_types:
+        return Equivalency([
+            # mass-length
+            (
+                si.kg, si.m,
+                lambda mass: conversions._irreducible_conversion(
+                    mass * si.kg, si.m
+                ),
+                lambda meter: conversions._irreducible_conversion(
+                    meter * si.m, si.kg
+                )
+            ),
+            # mass-time
+            (
+                si.kg, si.s,
+                lambda mass: conversions._irreducible_conversion(
+                    mass * si.kg, si.s
+                ),
+                lambda second: conversions._irreducible_conversion(
+                    second * si.s, si.kg
+                )
+            ),
+            # length-time
+            (
+                si.m, si.s,
+                lambda meter: conversions._irreducible_conversion(
+                    meter * si.m, si.s
+                ),
+                lambda second: conversions._irreducible_conversion(
+                    second * si.s, si.m
+                )
+            )
+        ])
 
 
 def brightness_temperature(frequency, beam_area=None):

@@ -77,9 +77,6 @@ astropy.units
   and also pickled and unpicked also for ``protocol`` >= 2.
   This does not work for big-endian architecture with older ``numpy<1.21.1``. [#12583]
 
-- Added a ``mass_length_time`` equivalency for converting mass, length, and time
-  based on geometric units.
-
 astropy.utils
 ^^^^^^^^^^^^^
 

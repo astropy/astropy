@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose
 
 # LOCAL
 from astropy import units as u
+from astropy.units import equivalencies
 from astropy.units.equivalencies import Equivalency
 from astropy import constants
 from astropy.tests.helper import assert_quantity_allclose
@@ -218,20 +219,35 @@ def test_massenergy():
 @pytest.mark.parametrize(
     'mass,length,time',
     [[2 * u.solMass, 3 * u.km, 10 * u.microsecond],
-     [1 * u.kg, 7.54e-31 * u.km, 2.47e-36 * u.s]]
+     [1 * u.kg, 7.54e-31 * u.km, 2.47e-36 * u.s],]
 )
-def test_mass_length_time(mass, length, time):
-    """Test known cases of equivalencies. An example being
+def test_mass_length_time_geometrized_equivalency(mass, length, time):
+    """Known cases of mass, length, time equivalencies. An example being
     Schwarzschild radius for sun is 3 km, which is about 10 microsecond
     of light crossing time.
     """
-    converted_mass = mass.to('kg', equivalencies=u.mass_length_time()).value
-    converted_length = length.to('m', equivalencies=u.mass_length_time()).value
-    converted_time = time.to('s', equivalencies=u.mass_length_time()).value
+    converted_mass = mass.to('kg', equivalencies=u.geometrized('mass')).value
+    converted_length = length.to('m', equivalencies=u.geometrized('length')).value
+    converted_time = time.to('s', equivalencies=u.geometrized('time')).value
 
     assert mass.to('kg').value == pytest.approx(converted_mass)
     assert length.to('m').value == pytest.approx(converted_length)
     assert time.to('s').value == pytest.approx(converted_time)
+
+
+@pytest.mark.parametrize(
+    'si_qty,geometrized_qty,physical_type',
+    [[1 * u.lightsecond**2, 1 * u.s**2, 'area'],
+     [1 * u.lightsecond**3, 1 * u.s**3, 'volume'],]
+)
+def test_area_volume_geometric_equivalency(si_qty, geometrized_qty,
+                                           physical_type):
+    """Geometric units of area and volume"""
+    converted_si_qty = geometrized_qty.to(
+        si_qty.unit,
+        equivalencies=u.geometrized(physical_type)
+    )
+    assert converted_si_qty == si_qty
 
 
 def test_is_equivalent():
