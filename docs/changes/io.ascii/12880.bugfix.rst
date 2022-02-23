@@ -1,0 +1,4 @@
+Bugfix to add backwards compatibility for reading ECSV
+version 0.9 files with non-standard column datatypes
+(such as ``object``, ``str``, ``datetime64``, etc.), which would
+raise a ValueError in ECSV version 1.0.
