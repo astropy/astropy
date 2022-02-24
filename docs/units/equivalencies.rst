@@ -519,7 +519,9 @@ physical types like area and volume.::
     >>> area = (1 * u.lightsecond)**2
     >>> vol = (1 * u.lightsecond)**3
     >>> area.to(u.s**2, equivalencies=u.geometrized('area'))  # doctest: +FLOAT_CMP
+    <Quantity 1. s2>
     >>> vol.to(u.s**3, equivalencies=u.geometrized('volume'))  # doctest: +FLOAT_CMP
+    <Quantity 1. s3>
 
 .. EXAMPLE END
 
