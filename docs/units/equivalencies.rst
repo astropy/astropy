@@ -510,11 +510,16 @@ Geometrized Equivalency
 In geometric units, mass, length, time, are equivalent, and can be converted
 into each other. This can be useful in the context of general relativity.
 As an example of the Schwarzchild radius for the sun, which is around 3 kilometers,
-use the :func:`~astropy.units.equivalencies.mass_length_time` equivalency to get
-the equivalent in solar mass (about twice the solar mass) ::
+is equivalent to twice its mass. Use the :func:`~astropy.units.equivalencies.geometrized`
+equivalency to perform this conversion. One can also convert other allowed
+physical types like area and volume.::
 
     >>> (3 * u.km).to(u.solMass, equivalencies=u.geometrized('length'))  # doctest: +FLOAT_CMP
     <Quantity 2.03165998 solMass>
+    >>> area = (1 * u.lightsecond)**2
+    >>> vol = (1 * u.lightsecond)**3
+    >>> area.to(u.s**2, equivalencies=u.geometrized('area'))  # doctest: +FLOAT_CMP
+    >>> vol.to(u.s**3, equivalencies=u.geometrized('volume'))  # doctest: +FLOAT_CMP
 
 .. EXAMPLE END
 
