@@ -1,0 +1,2 @@
+Added the ``where`` keyword argument to the ``mean()``, ``var()``, ``std()``, ``any()``, and ``all()`` methods of
+``astropy.utils.masked.MaskedNDArray``.
