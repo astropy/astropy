@@ -24,7 +24,7 @@ def test_timedelta(fmt, tmpdir):
 @pytest.mark.parametrize('scale', list(TimeDelta.SCALES) + [None])
 def test_timedelta_scales(scale, tmpdir):
 
-    tree = dict(timedelta=TimeDelta(0.125, scale=scale))
+    tree = dict(timedelta=TimeDelta(0.125, scale=scale, format="jd"))
     assert_roundtrip_tree(tree, tmpdir)
 
 
