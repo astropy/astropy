@@ -8,6 +8,7 @@ from astropy import units as u
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
 from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.coordinates.representation import PhysicsSphericalRepresentation
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
@@ -352,3 +353,26 @@ def test_skyoffset_two_frames_interfering():
     target_icrs = target.transform_to(ICRS())
     # The line below was almost guaranteed to fail.
     dirs_icrs.transform_to(target_icrs.skyoffset_frame())
+
+
+def test_skyoffset_frame_polar():
+    """Test for the polar version of the SkyOffsetFrame"""
+    # Example adapted from @bmerry's minimal example at
+    # https://github.com/astropy/astropy/issues/11277#issuecomment-825492335
+    origin = SkyCoord(ra=70 * u.deg, dec=20 * u.deg)
+
+    frame = SkyOffsetFrame(origin=origin, polar=True)
+
+    s1 = SkyCoord(ra=71 * u.deg, dec=20 * u.deg).transform_to(frame)
+    s2 = SkyCoord(ra=69 * u.deg, dec=20 * u.deg).transform_to(frame)
+    s3 = SkyCoord(ra=70 * u.deg, dec=19 * u.deg).transform_to(frame)
+    s4 = SkyCoord(ra=70 * u.deg, dec=21 * u.deg).transform_to(frame)
+
+    center = origin.transform_to(frame)
+    data = center.represent_as(PhysicsSphericalRepresentation)
+    assert u.isclose(data.theta, 0 * u.deg)
+
+    s1_data = s1.represent_as(PhysicsSphericalRepresentation)
+
+    assert u.isclose(s1_data.theta, s1.separation(center))
+    assert u.isclose(center.position_angle(s1).to(u.deg), s1_data.phi.to(u.deg)), data.phi.to(u.deg)
