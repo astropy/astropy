@@ -142,6 +142,12 @@ can only have scales in which one day is always equal to 86400 seconds.
   >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP +REMOTE_DATA
   <Longitude [6.68050179, 6.70281947] hourangle>
 
+You can also use time-based `~astropy.units.Quantity` for time arithmetic:
+
+  >>> import astropy.units as u
+  >>> Time("2020-01-01") + 5 * u.day
+  <Time object: scale='utc' format='iso' value=2020-01-06 00:00:00.000>
+
 Using `astropy.time`
 ====================
 
@@ -754,7 +760,7 @@ The operations available with |Time| objects include:
 - Get a new time object for the same time value(s) but referenced to a different
   `time scale`_.
 - Calculate `sidereal time and Earth rotation angle`_ corresponding to the time value(s).
-- Do time arithmetic involving |Time| and/or |TimeDelta| objects.
+- Do time arithmetic involving |Time|, |TimeDelta| and/or |Quantity| objects with units of time.
 
 Get and Set Values
 ^^^^^^^^^^^^^^^^^^
@@ -1182,6 +1188,8 @@ The |TimeDelta| class is derived from the |Time| class and shares many of its
 properties. One difference is that the time scale has to be one for which one
 day is exactly 86400 seconds. Hence, the scale cannot be UTC.
 
+|Quantity| objects with time units can also be used in place of |TimeDelta|.
+
 The available time formats are:
 
 =========  ===================================================
@@ -1224,6 +1232,15 @@ Use of the |TimeDelta| object is illustrated in the few examples below::
   <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000'
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
+
+  >>> import astropy.units as u
+  >>> t1 + 1 * u.hour
+  <Time object: scale='utc' format='iso' value=2010-01-01 01:00:00.000>
+
+  # The now deprecated default assumes days for numeric inputs
+  >>> t1 + 5.0  # doctest: +SHOW_WARNINGS +ELLIPSIS
+  <Time object: scale='utc' format='iso' value=2010-01-06 00:00:00.000>
+  TimeDeltaMissingUnitWarning: Numerical value without unit or explicit format passed to TimeDelta, assuming days
 
 The |TimeDelta| has a `~astropy.time.TimeDelta.to_value` method which supports
 controlling the type of the output representation by providing either a format
