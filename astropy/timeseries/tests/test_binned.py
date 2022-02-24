@@ -74,7 +74,7 @@ def test_initialization_time_bin_size():
     # TimeDelta for time_bin_size
     ts = BinnedTimeSeries(data={"time": ["2016-03-22T12:30:31"]},
                           time_bin_start="2016-03-22T12:30:31",
-                          time_bin_size=TimeDelta(1))
+                          time_bin_size=TimeDelta(1, format="jd"))
     assert isinstance(ts.time_bin_size, u.quantity.Quantity)
 
 
