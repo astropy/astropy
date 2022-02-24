@@ -1043,7 +1043,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             np.minimum(out, dmax, out=out, where=True if mmax is None else ~mmax)
         return masked_out
 
-    def mean(self, axis=None, dtype=None, out=None, keepdims=False):
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False, *, where=True):
         # Implementation based on that in numpy/core/_methods.py
         # Cast bool, unsigned int, and int to float64 by default,
         # and do float16 at higher precision.
@@ -1055,38 +1055,42 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 dtype = np.dtype('f4')
                 is_float16_result = out is None
 
+        where = ~self.mask & where
+
         result = self.sum(axis=axis, dtype=dtype, out=out,
-                          keepdims=keepdims, where=~self.mask)
-        n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)
+                          keepdims=keepdims, where=where)
+        n = np.add.reduce(where, axis=axis, keepdims=keepdims)
         result /= n
         if is_float16_result:
             result = result.astype(self.dtype)
         return result
 
-    def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+    def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
+        where_final = ~self.mask & where
+
         # Simplified implementation based on that in numpy/core/_methods.py
-        n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)[...]
+        n = np.add.reduce(where_final, axis=axis, keepdims=keepdims)[...]
 
         # Cast bool, unsigned int, and int to float64 by default.
         if dtype is None and issubclass(self.dtype.type,
                                         (np.integer, np.bool_)):
             dtype = np.dtype('f8')
-        mean = self.mean(axis=axis, dtype=dtype, keepdims=True)
+        mean = self.mean(axis=axis, dtype=dtype, keepdims=True, where=where)
 
         x = self - mean
         x *= x.conjugate()  # Conjugate just returns x if not complex.
 
         result = x.sum(axis=axis, dtype=dtype, out=out,
-                       keepdims=keepdims, where=~x.mask)
+                       keepdims=keepdims, where=where_final)
         n -= ddof
         n = np.maximum(n, 0, out=n)
         result /= n
         result._mask |= (n == 0)
         return result
 
-    def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+    def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
         result = self.var(axis=axis, dtype=dtype, out=out, ddof=ddof,
-                          keepdims=keepdims)
+                          keepdims=keepdims, where=where)
         return np.sqrt(result, out=result)
 
     def __bool__(self):
@@ -1094,13 +1098,13 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         result = super().__bool__()
         return result and not self.mask
 
-    def any(self, axis=None, out=None, keepdims=False):
+    def any(self, axis=None, out=None, keepdims=False, *, where=True):
         return np.logical_or.reduce(self, axis=axis, out=out,
-                                    keepdims=keepdims, where=~self.mask)
+                                    keepdims=keepdims, where=~self.mask & where)
 
-    def all(self, axis=None, out=None, keepdims=False):
+    def all(self, axis=None, out=None, keepdims=False, *, where=True):
         return np.logical_and.reduce(self, axis=axis, out=out,
-                                     keepdims=keepdims, where=~self.mask)
+                                     keepdims=keepdims, where=~self.mask & where)
 
     # Following overrides needed since somehow the ndarray implementation
     # does not actually call these.
