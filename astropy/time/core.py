@@ -2284,7 +2284,10 @@ class TimeDelta(TimeBase):
     val2 : sequence, ndarray, number, or `~astropy.units.Quantity`; optional
         Additional values, as needed to preserve precision.
     format : str, optional
-        Format of input value(s)
+        Format of input value(s). For numerical inputs without units,
+        "jd" is assumed and values are interpreted as days.
+        A deprecation warning is raised in this case. To avoid the warning,
+        either specify the format or add units to the input values.
     scale : str, optional
         Time scale of input value(s), must be one of the following values:
         ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
