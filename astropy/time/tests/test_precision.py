@@ -622,7 +622,7 @@ def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
 def test_datetime_to_timedelta(scale, days, microseconds):
     td = timedelta(days=days, microseconds=microseconds)
     assert (TimeDelta(td, scale=scale)
-            == TimeDelta(days, microseconds/(86400*1e6), scale=scale))
+            == TimeDelta(days, microseconds/(86400*1e6), scale=scale, format="jd"))
 
 
 @given(days=integers(-3000*365, 3000*365),
@@ -647,8 +647,9 @@ def test_timedelta_datetime_roundtrip(scale, days, day_frac):
 @example(days=262144, day_frac=2.314815006343452e-11)
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_timedelta_from_parts(scale, days, day_frac):
-    whole = TimeDelta(days, day_frac, format="jd", scale=scale)
-    from_parts = TimeDelta(days, scale=scale) + TimeDelta(day_frac, scale=scale)
+    kwargs = dict(format="jd", scale=scale)
+    whole = TimeDelta(days, day_frac, **kwargs)
+    from_parts = TimeDelta(days, **kwargs) + TimeDelta(day_frac, **kwargs)
     assert whole == from_parts
 
 
