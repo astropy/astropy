@@ -24,7 +24,7 @@ from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.data_info import MixinInfo, data_info_factory
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
@@ -36,7 +36,7 @@ from astropy.extern import _strptime
 
 __all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
            'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
-           'ScaleValueError', 'OperandTypeError']
+           'ScaleValueError', 'OperandTypeError', 'TimeDeltaMissingUnitWarning']
 
 
 STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
@@ -2241,6 +2241,11 @@ class Time(TimeBase):
     to_datetime.__doc__ = TimeDatetime.to_value.__doc__
 
 
+class TimeDeltaMissingUnitWarning(AstropyDeprecationWarning):
+    """Warning for missing unit or format in TimeDelta"""
+    pass
+
+
 class TimeDelta(TimeBase):
     """
     Represent the time difference between two times.
@@ -2279,7 +2284,10 @@ class TimeDelta(TimeBase):
     val2 : sequence, ndarray, number, or `~astropy.units.Quantity`; optional
         Additional values, as needed to preserve precision.
     format : str, optional
-        Format of input value(s)
+        Format of input value(s). For numerical inputs without units,
+        "jd" is assumed and values are interpreted as days.
+        A deprecation warning is raised in this case. To avoid the warning,
+        either specify the format or add units to the input values.
     scale : str, optional
         Time scale of input value(s), must be one of the following values:
         ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
@@ -2312,13 +2320,22 @@ class TimeDelta(TimeBase):
             if scale is not None:
                 self._set_scale(scale)
         else:
-            if format is None:
-                format = 'datetime' if isinstance(val, timedelta) else 'jd'
-
+            format = format or self._get_format(val)
             self._init_from_vals(val, val2, format, scale, copy)
 
             if scale is not None:
                 self.SCALES = TIME_DELTA_TYPES[scale]
+
+    @staticmethod
+    def _get_format(val):
+        if isinstance(val, timedelta):
+            return 'datetime'
+
+        if getattr(val, 'unit', None) is None:
+            warn('Numerical value without unit or explicit format passed to'
+                 ' TimeDelta, assuming days', TimeDeltaMissingUnitWarning)
+
+        return 'jd'
 
     def replicate(self, *args, **kwargs):
         out = super().replicate(*args, **kwargs)

@@ -1,0 +1,7 @@
+Creating an `~astropy.time.TimeDelta` object with numerical inputs
+that do not have a unit and without specifying an explicit format,
+for example ``TimeDelta(5)``,
+now results in a `~astropy.time.TimeDeltaMissingUnitWarning`.
+This also affects statements like ``Time("2020-01-01") + 5`` or
+``Time("2020-01-05") - Time("2020-01-03") < 5``, which implicitly
+transform the right-hand side into an `~astropy.time.TimeDelta` instance.

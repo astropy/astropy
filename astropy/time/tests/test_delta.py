@@ -8,10 +8,13 @@ from datetime import timedelta
 import pytest
 import numpy as np
 
-from astropy.time import (Time, TimeDelta, OperandTypeError, ScaleValueError,
-                          TIME_SCALES, STANDARD_TIME_SCALES, TIME_DELTA_SCALES)
+from astropy.time import (
+    Time, TimeDelta, OperandTypeError, ScaleValueError, TIME_SCALES,
+    STANDARD_TIME_SCALES, TIME_DELTA_SCALES, TimeDeltaMissingUnitWarning,
+)
 from astropy.utils import iers
 from astropy import units as u
+from astropy.table import Table
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -605,3 +608,41 @@ def test_insert_timedelta():
     # Insert a scalar using an auto-parsed string
     tm2 = tm.insert(1, TimeDelta([10, 20], format='sec'))
     assert np.all(tm2 == TimeDelta([1, 10, 20, 2], format='sec'))
+
+
+def test_no_units_warning():
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        delta = TimeDelta(1)
+        assert delta.to_value(u.day) == 1
+
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        table = Table({"t": [1, 2, 3]})
+        delta = TimeDelta(table["t"])
+        assert np.all(delta.to_value(u.day) == [1, 2, 3])
+
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        delta = TimeDelta(np.array([1, 2, 3]))
+        assert np.all(delta.to_value(u.day) == [1, 2, 3])
+
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        t = Time('2012-01-01') + 1
+        assert t.isot[:10] == '2012-01-02'
+
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        comp = TimeDelta([1, 2, 3], format="jd") >= 2
+        assert np.all(comp == [False, True, True])
+
+    with pytest.warns(TimeDeltaMissingUnitWarning):
+        # 2 is also interpreted as days, not seconds
+        assert (TimeDelta(5 * u.s) > 2) is False
+
+    # with unit is ok
+    assert TimeDelta(1 * u.s).to_value(u.s) == 1
+
+    # with format is also ok
+    assert TimeDelta(1, format="sec").to_value(u.s) == 1
+    assert TimeDelta(1, format="jd").to_value(u.day) == 1
+
+    # table column with units
+    table = Table({"t": [1, 2, 3] * u.s})
+    assert np.all(TimeDelta(table["t"]).to_value(u.s) == [1, 2, 3])
