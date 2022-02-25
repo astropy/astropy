@@ -564,7 +564,7 @@ def mass_energy():
                         ], "mass_energy")
 
 
-@dataclass
+@dataclass(frozen=True)
 class GeometricUnitConversionFactors:
     """
     Geometric conversion factors w.r.t. SI. Implemented from
@@ -664,12 +664,48 @@ class GeometricUnitConversionFactors:
         assert source_quantity.unit.powers == target_unit.powers
 
         res = source_quantity.value
-
         res *= self._irreducible_conversion(
             1.0 * source_quantity.unit.bases[0],
             target_unit.bases[0]
         )**target_unit.powers[0]
 
+        return res
+
+    def _heterogenous_to_homogenous(
+            self, source_quantity, target_unit):
+        """
+        Convert hetergeoneous composite quantity to that with a single
+        base. For example, g/cm3 to 1/s2, but not g/s^3.
+
+        Parameters
+        ----------
+        source_quantity_value: float
+            source quantity value
+        source_units: list
+            list of units
+        """
+        source_quantity_decomposed = source_quantity.decompose()
+        target_unit_decomposed = target_unit.decompose()
+
+        bases = source_quantity_decomposed.unit.bases
+        powers = source_quantity_decomposed.unit.powers
+
+        try:
+            target_unit_powers = target_unit_decomposed.powers
+            target_unit_base = target_unit_decomposed.bases[0]
+        except AttributeError:
+            target_unit_powers = target_unit_decomposed.unit.powers
+            target_unit_base = target_unit_decomposed.unit.bases[0]
+
+        # sanity check
+        assert all(hasattr(self, b.__str__()) for b in bases)
+        assert sum(powers) == sum(target_unit_powers)
+
+        res = source_quantity_decomposed.value
+        for b, p in zip(bases, powers):
+            res *= self._homogeneous_conversion(
+                1.0 * b**p, target_unit_base**p
+            )
         return res
 
 
@@ -718,11 +754,16 @@ def geometrized(physical_type):
         physical.velocity,
     ]
 
+    mass_density_physical_type = [
+        physical.mass_density
+    ]
+
     allowed_physical_types = mass_length_time_physical_types
     allowed_physical_types += volume_physical_types
     allowed_physical_types += area_physical_types
     allowed_physical_types += temperature_physical_types
     allowed_physical_types += velocity_physical_types
+    allowed_physical_types += mass_density_physical_type
 
     assert physical_type in allowed_physical_types, (
         "Allowed values : "
@@ -739,7 +780,7 @@ def geometrized(physical_type):
                 si.m / si.s, Unit(),
                 lambda velocity: velocity / _si.c.value,
                 lambda v_over_c: v_over_c * _si.c.value,
-            )
+            ),
          ])
 
     elif physical_type in area_physical_types:
@@ -789,6 +830,41 @@ def geometrized(physical_type):
                     second_cubed * si.kg**3, si.m**3
                 )
             )
+        ])
+
+    elif physical_type in mass_density_physical_type:
+
+        return Equivalency([
+            # density in 1/time^-2
+            (
+                si.kg / si.m**3, si.s**-2,
+                lambda mass_density: conversions._heterogenous_to_homogenous(  # noqa: E501
+                    mass_density * si.kg / si.m**3, si.s**-2
+                ),
+                lambda rho_geom: rho_geom / conversions._heterogenous_to_homogenous(  # noqa: E501
+                    1.0 * si.kg / si.m**3, si.s**-2
+                )
+            ),
+            # density in 1/mass^2
+            (
+                si.kg / si.m**3, si.kg**-2,
+                lambda mass_density: conversions._heterogenous_to_homogenous(  # noqa: E501
+                    mass_density * si.kg / si.m**3, si.kg**-2
+                ),
+                lambda rho_geom: rho_geom / conversions._heterogenous_to_homogenous(  # noqa: E501
+                    1.0 * si.kg / si.m**3, si.kg**-2
+                )
+            ),
+            # density in 1/length^2
+            (
+                si.kg / si.m**3, si.m**-2,
+                lambda mass_density: conversions._heterogenous_to_homogenous(  # noqa: E501
+                    mass_density * si.kg / si.m**3, si.m**-2
+                ),
+                lambda rho_geom: rho_geom / conversions._heterogenous_to_homogenous(  # noqa: E501
+                    1.0 * si.kg / si.m**3, si.m**-2
+                )
+            ),
         ])
 
     elif physical_type in mass_length_time_physical_types:

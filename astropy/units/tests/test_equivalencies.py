@@ -8,6 +8,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 # LOCAL
+from astropy import cosmology
 from astropy import units as u
 from astropy.units import equivalencies
 from astropy.units.equivalencies import Equivalency
@@ -248,6 +249,27 @@ def test_area_volume_geometric_equivalency(si_qty, geometrized_qty,
         equivalencies=u.geometrized(physical_type)
     )
     assert converted_si_qty == si_qty
+
+
+def test_mass_density_geometric_equivalency():
+    """Mass density converted to {mass, length, time}**-2"""
+    rho_c = 3 * cosmology.Planck18.H0**2
+    rho_c /= 8 * np.pi * constants.G
+
+    rho_c_in_time_units = rho_c.to(
+        '1/s2', equivalencies=u.geometrized('mass_density')
+    )
+    rho_c_in_mass_units = rho_c.to(
+        '1/kg2', equivalencies=u.geometrized('mass_density')
+    )
+    rho_c_in_length_units = rho_c.to(
+        '1/m2', equivalencies=u.geometrized('mass_density')
+    )
+    for converted_rho in (rho_c_in_time_units, rho_c_in_mass_units,
+                          rho_c_in_length_units):
+        assert converted_rho.to(
+            'kg/m3', equivalencies=u.geometrized('mass_density')
+        ).value == pytest.approx(rho_c.to('kg/m3').value)
 
 
 def test_is_equivalent():

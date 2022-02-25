@@ -1,1 +1,1 @@
-Added a ``geometrized`` equivalency to get geometric equivalent of physical quantities like mass, length, time.
+Added a ``geometrized`` equivalency to get geometric equivalent of physical quantities like mass, length, time, area, mass density.
