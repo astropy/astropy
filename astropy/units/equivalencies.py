@@ -654,10 +654,10 @@ class GeometricUnitConversionFactors:
 
         Parameters
         ----------
-        source_quantity_value: float
+        source_quantity: astropy.units.Quantity
             source quantity value
-        source_units: list
-            list of units
+        target_unit: astropy.units.Quantity
+            target quantity
 
         """
         assert len(source_quantity.unit.bases) == len(target_unit.bases) == 1
@@ -679,9 +679,9 @@ class GeometricUnitConversionFactors:
 
         Parameters
         ----------
-        source_quantity_value: float
+        source_quantity: float
             source quantity value
-        source_units: list
+        target_unit: astropy.units.Quantity, astropy.units.Unit
             list of units
         """
         source_quantity_decomposed = source_quantity.decompose()
