@@ -291,6 +291,14 @@ def test_is_equivalent():
     assert not u.L.is_equivalent((u.m, u.s, u.kg))
     assert not (u.km / u.s).is_equivalent((u.m, u.s, u.kg))
 
+    # geometrized equivalencies
+    assert u.kg.is_equivalent(
+        (u.m, u.s), equivalencies=u.geometrized('mass'))
+    assert u.kg.is_equivalent(
+        (u.m, u.s), equivalencies=u.geometrized('length'))
+    assert u.kg.is_equivalent(
+        (u.m, u.s), equivalencies=u.geometrized('time'))
+
 
 def test_parallax():
     a = u.arcsecond.to(u.pc, 10, u.parallax())
