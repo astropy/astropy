@@ -12,7 +12,7 @@ import numpy as np
 from astropy.config import set_temp_config, reload_config
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.io.votable.table import parse, writeto
-from astropy.io.votable import tree, conf
+from astropy.io.votable import tree, conf, validate
 from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
@@ -222,6 +222,51 @@ def test_binary2_masked_strings():
     assert not np.any(table.array.mask['epoch_photometry_url'])
     output = io.BytesIO()
     astropy_table.write(output, format='votable')
+
+
+def test_validate_output_invalid():
+    """
+    Issue #12603. Test that we get the correct output from votable.validate with an invalid
+    votable.
+    """
+
+    # A votable with errors
+    invalid_votable_filepath = get_pkg_data_filename('data/regression.xml')
+
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(invalid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known error string
+    assert "E02: Incorrect number of elements in array." in validate_out
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(invalid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is not valid)
+    assert validate_out is False
+
+
+def test_validate_output_valid():
+    """
+    Issue #12603. Test that we get the correct output from votable.validate with a valid
+    votable
+    """
+
+    # A valid votable. (Example from the votable standard:
+    # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
+    valid_votable_filepath = get_pkg_data_filename('data/valid_votable.xml')
+
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(valid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known good output string
+    assert "astropy.io.votable found no violations" in validate_out
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(valid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is valid)
+    assert validate_out is True
 
 
 class TestVerifyOptions:
