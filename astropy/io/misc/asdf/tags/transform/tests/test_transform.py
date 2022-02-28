@@ -93,6 +93,9 @@ test_models = [
     astmodels.LogParabola1D(amplitude=10, x_0=0.5, alpha=2., beta=3.,),
     astmodels.PowerLaw1D(amplitude=10., x_0=0.5, alpha=2.0),
     astmodels.SmoothlyBrokenPowerLaw1D(amplitude=10., x_break=5.0, alpha_1=2.0, alpha_2=3.0, delta=0.5),
+    astmodels.Spline1D(np.array([-3., -3., -3., -3., -1., 0., 1., 3.,  3.,  3.,  3.]),
+                       np.array([0.10412331, 0.07013616, -0.18799552, 1.35953147, -0.15282581, 0.03923, -0.04297299, 0., 0., 0., 0.]),
+                       3),
     custom_and_analytical_inverse(),
     custom_inputs_outputs(),
 ]
