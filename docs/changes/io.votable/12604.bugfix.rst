@@ -1,0 +1,1 @@
+Fixed a bug where ``astropy.io.votable.validate`` was printing output to ``sys.stdout`` when the ``output`` paramter was set to ``None``. ``validate`` now returns a string when ``output`` is set to ``None``, as documented.
