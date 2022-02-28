@@ -1,0 +1,1 @@
+Fixed a bug in which running ``kuiper_false_positive_probability(D,N)`` on distributions with many data points could produce NaN values for the false positive probability of the Kuiper statistic.
