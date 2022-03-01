@@ -1,0 +1,2 @@
+Add asdf support for ``Cosine1D``, ``Tangent1D``, ``ArcSine1D``,
+``ArcCosine1D``, and ``ArcTangent1D`` models.
