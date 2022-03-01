@@ -28,6 +28,7 @@ from .tags.transform.math import *  # noqa
 from .tags.transform.polynomial import *  # noqa
 from .tags.transform.powerlaws import *  # noqa
 from .tags.transform.projections import *  # noqa
+from .tags.transform.spline import *  # noqa
 from .tags.transform.tabular import *  # noqa
 from .tags.unit.quantity import *  # noqa
 from .tags.unit.unit import *  # noqa

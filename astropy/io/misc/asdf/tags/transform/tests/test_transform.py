@@ -19,6 +19,8 @@ import astropy.units as u
 from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
 
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+
 
 def custom_and_analytical_inverse():
     p1 = astmodels.Polynomial1D(1)
@@ -102,6 +104,10 @@ test_models = [
     custom_inputs_outputs(),
 ]
 
+if HAS_SCIPY:
+    test_models.append(astmodels.Spline1D(np.array([-3., -3., -3., -3., -1., 0., 1., 3.,  3.,  3.,  3.]),
+                       np.array([0.10412331, 0.07013616, -0.18799552, 1.35953147, -0.15282581, 0.03923, -0.04297299, 0., 0., 0., 0.]),
+                       3))
 
 math_models = []
 

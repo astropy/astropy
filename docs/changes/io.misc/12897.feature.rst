@@ -1,0 +1,1 @@
+Add asdf support for ``Spline1D`` models.
