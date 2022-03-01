@@ -1361,8 +1361,14 @@ def kuiper_false_positive_probability(D, N):
                            - y**2 * t * (3 - 2 / N)
                            + y * t * (t - 1) * (3 - 2 / N) / N
                            - t * (t - 1) * (t - 2) / N**2)
-        term = Tt * comb(N, t) * (1 - D - t / N)**(N - t - 1)
-        return term.sum()
+        term1 = comb(N, t)
+        term2 = (1 - D - t / N)**(N - t - 1)
+        # term1 is formally finite, but is approximated by numpy as np.inf for
+        # large values, so we set them to zero manually when they would be
+        # multiplied by zero anyway
+        term1[(term1 == np.inf) & (term2 == 0)] = 0.
+        final_term = Tt * term1 * term2
+        return final_term.sum()
     else:
         z = D * np.sqrt(N)
         # When m*z>18.82 (sqrt(-log(finfo(double))/2)), exp(-2m**2z**2)

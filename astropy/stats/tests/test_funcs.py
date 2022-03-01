@@ -736,6 +736,12 @@ def test_fpp_kuiper_two(N, M):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_kuiper_false_positive_probability():
+    fpp = funcs.kuiper_false_positive_probability(0.5353333333333409, 1500.)
+    assert fpp == 0
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_histogram():
     from scipy.stats import chi2
 
