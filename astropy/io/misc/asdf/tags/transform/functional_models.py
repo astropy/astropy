@@ -14,8 +14,10 @@ __all__ = ['AiryDisk2DType', 'Box1DType', 'Box2DType',
            'Logarithmic1DType', 'Lorentz1DType', 'Moffat1DType',
            'Moffat2DType', 'Planar2D', 'RedshiftScaleFactorType',
            'RickerWavelet1DType', 'RickerWavelet2DType', 'Ring2DType',
-           'Sersic1DType', 'Sersic2DType', 'Sine1DType', 'Trapezoid1DType',
-           'TrapezoidDisk2DType', 'Voigt1DType']
+           'Sersic1DType', 'Sersic2DType',
+           'Sine1DType', 'Cosine1DType', 'Tangent1DType',
+           'ArcSine1DType', 'ArcCosine1DType', 'ArcTangent1DType',
+           'Trapezoid1DType', 'TrapezoidDisk2DType', 'Voigt1DType']
 
 
 class AiryDisk2DType(TransformType):
@@ -653,16 +655,14 @@ class Sersic2DType(TransformType):
         assert_array_equal(a.theta, b.theta)
 
 
-class Sine1DType(TransformType):
-    name = 'transform/sine1d'
-    version = '1.0.0'
-    types = ['astropy.modeling.functional_models.Sine1D']
+class Trigonometric1DType(TransformType):
+    _model = None
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
-        return functional_models.Sine1D(amplitude=node['amplitude'],
-                                        frequency=node['frequency'],
-                                        phase=node['phase'])
+        return cls._model(amplitude=node['amplitude'],
+                          frequency=node['frequency'],
+                          phase=node['phase'])
 
     @classmethod
     def to_tree_transform(cls, model, ctx):
@@ -675,11 +675,59 @@ class Sine1DType(TransformType):
     def assert_equal(cls, a, b):
         # TODO: If models become comparable themselves, remove this.
         TransformType.assert_equal(a, b)
-        assert (isinstance(a, functional_models.Sine1D) and
-                isinstance(b, functional_models.Sine1D))
+        assert (isinstance(a, cls._model) and
+                isinstance(b, cls._model))
         assert_array_equal(a.amplitude, b.amplitude)
         assert_array_equal(a.frequency, b.frequency)
         assert_array_equal(a.phase, b.phase)
+
+
+class Sine1DType(Trigonometric1DType):
+    name = 'transform/sine1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.Sine1D']
+
+    _model = functional_models.Sine1D
+
+
+class Cosine1DType(Trigonometric1DType):
+    name = 'transform/cosine1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.Cosine1D']
+
+    _model = functional_models.Cosine1D
+
+
+class Tangent1DType(Trigonometric1DType):
+    name = 'transform/tangent1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.Tangent1D']
+
+    _model = functional_models.Tangent1D
+
+
+class ArcSine1DType(Trigonometric1DType):
+    name = 'transform/arcsine1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.ArcSine1D']
+
+    _model = functional_models.ArcSine1D
+
+
+class ArcCosine1DType(Trigonometric1DType):
+    name = 'transform/arccosine1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.ArcCosine1D']
+
+    _model = functional_models.ArcCosine1D
+
+
+class ArcTangent1DType(Trigonometric1DType):
+    name = 'transform/arctangent1d'
+    version = '1.0.0'
+    types = ['astropy.modeling.functional_models.ArcTangent1D']
+
+    _model = functional_models.ArcTangent1D
 
 
 class Trapezoid1DType(TransformType):
