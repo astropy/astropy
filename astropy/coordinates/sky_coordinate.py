@@ -417,7 +417,7 @@ class SkyCoord(ShapedLikeNDArray):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        *args : tuple
+        *args
             Any positional arguments for ``method``.
         **kwargs : dict
             Any keyword arguments for ``method``.
@@ -1751,7 +1751,7 @@ class SkyCoord(ShapedLikeNDArray):
             Optional.  The image associated with the wcs object that the cooordinate
             is being checked against. If not given the naxis keywords will be used
             to determine if the coordinate falls within the wcs footprint.
-        **kwargs :
+        **kwargs
             Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`
 
         Returns
