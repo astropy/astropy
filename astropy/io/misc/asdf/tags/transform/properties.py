@@ -4,6 +4,9 @@ from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
 from astropy.io.misc.asdf.types import AstropyAsdfType
 
 
+__all__ = ["ModelBoundingBoxType", "CompoundBoundingBoxType"]
+
+
 class ModelBoundingBoxType(AstropyAsdfType):
     name = 'transform/property/bounding_box'
     version = '1.0.0'
