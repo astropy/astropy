@@ -384,7 +384,7 @@ image can be done with the
    :align: center
 
     from astropy import units as u
-   
+
     ax.add_beam(major=1.2 * u.arcmin, minor=1.2 * u.arcmin, angle=0, frame=True)
 
 To add a segment that shows a physical scale, you can use the
@@ -394,7 +394,7 @@ To add a segment that shows a physical scale, you can use the
    :context:
    :include-source:
    :align: center
-	   
+
     # Compute the angle corresponding to 10 pc at the distance of the galactic center
     gc_distance = 8.2 * u.kpc
     scalebar_lenght = 10 * u.pc
@@ -404,4 +404,3 @@ To add a segment that shows a physical scale, you can use the
 
     # Add a scale bar
     ax.add_scalebar(scalebar_angle, label="10 pc", color="white")
-
