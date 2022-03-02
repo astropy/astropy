@@ -39,7 +39,6 @@ CORNERS = {
 }
 
 
-
 class _WCSAxesArtist(Artist):
     """This is a dummy artist to enforce the correct z-order of axis ticks,
     tick labels, and gridlines.
