@@ -52,7 +52,14 @@ compound_models = {
     'cm7': (map2 | p2 & sh1,
             (np.array([False, True]),
              np.array([[True, False], [False, True]]))
-            )
+            ),
+    'cm8': (rot & (sh1 & sh2),
+            (np.array([False, False, True, True]),
+             np.array([[True, True, False, False],
+                       [True, True, False, False],
+                       [False, False, True, False],
+                       [False, False, False, True]]))
+            ),
 }
 
 
