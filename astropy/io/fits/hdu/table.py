@@ -23,7 +23,7 @@ from astropy.io.fits.column import (
     _scalar_to_format)
 from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from astropy.io.fits.header import Header, _pad_length
-from astropy.io.fits.util import _is_int, _str_to_num
+from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1084,12 +1084,18 @@ class BinTableHDU(_TableBaseHDU):
         plain text (ASCII) files.
         """
 
+        if isinstance(datafile, path_like):
+            datafile = os.path.expanduser(datafile)
+        if isinstance(cdfile, path_like):
+            cdfile = os.path.expanduser(cdfile)
+        if isinstance(hfile, path_like):
+            hfile = os.path.expanduser(hfile)
         # check if the output files already exist
         exist = []
         files = [datafile, cdfile, hfile]
 
         for f in files:
-            if isinstance(f, str):
+            if isinstance(f, path_like):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if overwrite:
                         os.remove(f)
@@ -1309,7 +1315,8 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, str):
+        if isinstance(fileobj, path_like):
+            fileobj = os.path.expanduser(fileobj)
             fileobj = open(fileobj)
             close_file = True
 
@@ -1452,7 +1459,8 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, str):
+        if isinstance(fileobj, path_like):
+            fileobj = os.path.expanduser(fileobj)
             fileobj = open(fileobj)
             close_file = True
 

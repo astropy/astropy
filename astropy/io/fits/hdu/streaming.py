@@ -70,6 +70,8 @@ class StreamingHDU:
         # handle a file object instead of a file name
         filename = fileobj_name(name) or ''
 
+        filename = os.path.expanduser(filename)
+
         # Check if the file already exists.  If it does not, check to see
         # if we were provided with a Primary Header.  If not we will need
         # to prepend a default PrimaryHDU to the file before writing the

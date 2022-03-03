@@ -23,7 +23,7 @@ from packaging.version import Version
 from astropy.utils import data
 from astropy.utils.exceptions import AstropyUserWarning
 
-path_like = (str, os.PathLike)
+path_like = (str, bytes, os.PathLike)
 
 cmp = lambda a, b: (a > b) - (a < b)
 
