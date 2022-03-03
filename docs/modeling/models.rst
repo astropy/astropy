@@ -3,7 +3,7 @@
 .. _models:
 
 ******
-MODELS
+Models
 ******
 
 .. _basics-models:
@@ -740,6 +740,11 @@ For example, it may be easier to define inverses using the independent parts of 
 than the entire model.
 In other cases, tools using `Generalized World Coordinate System (GWCS)`_,
 can be more flexible and take advantage of separable spectral and spatial transforms.
+
+If a custom subclass of `~astropy.modeling.Model` needs to override the
+computation of its separability it can implement the
+``_calculate_separability_matrix`` method which should return the separability
+matrix for that model.
 
 
 .. _modeling-model-sets:
