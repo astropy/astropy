@@ -27,7 +27,7 @@ from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_data
 
 
 def comparefloats(a, b):
@@ -146,7 +146,7 @@ class TestTableFunctions(FitsTestCase):
         # Original header should be unchanged
         assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
-    def test_open(self):
+    def test_open(self, home_is_data):
         # open some existing FITS files:
         tt = fits.open(self.data('tb.fits'))
         fd = fits.open(self.data('test0.fits'))

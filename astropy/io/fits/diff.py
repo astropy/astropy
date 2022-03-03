@@ -28,6 +28,7 @@ from .card import BLANK_CARD, Card
 from .hdu.hdulist import HDUList, fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from .header import Header
+from .util import path_like
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -149,7 +150,8 @@ class _BaseDiff:
         return_string = False
         filepath = None
 
-        if isinstance(fileobj, str):
+        if isinstance(fileobj, path_like):
+            fileobj = os.path.expanduser(fileobj)
             if os.path.exists(fileobj) and not overwrite:
                 raise OSError(NOT_OVERWRITING_MSG.format(fileobj))
             else:

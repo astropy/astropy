@@ -6,12 +6,14 @@ import numpy as np
 import pytest
 
 from astropy import __version__ as version
+from astropy.io import fits
 from astropy.io.fits import FITSDiff, HDUList, Header, ImageHDU
 from astropy.io.fits.convenience import writeto
 from astropy.io.fits.hdu import PrimaryHDU, hdulist
 from astropy.io.fits.scripts import fitsdiff
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_temp
 
 
 class TestFITSDiff_script(FitsTestCase):
@@ -315,3 +317,19 @@ def test_fitsdiff_openfile(tmpdir):
 
     diff = FITSDiff(path1, path2)
     assert diff.identical, diff.report()
+
+
+class Test_FITSDiff(FitsTestCase):
+    def test_FITSDiff_report(self, home_is_temp):
+        self.copy_file('test0.fits')
+        fits.setval(self.temp('test0.fits'), 'TESTKEY', value='testval')
+        d = FITSDiff(self.data('test0.fits'), self.temp('test0.fits'))
+        assert not d.identical
+        d.report(self.temp('diff_report.txt'))
+
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            d.report(self.temp('diff_report.txt'), overwrite=False)
+        d.report(self.temp('diff_report.txt'), overwrite=True)
+
+        with open(os.path.expanduser(self.temp('diff_report.txt'))) as f:
+            assert "Extra keyword 'TESTKEY' in b: 'testval'" in f.read()
