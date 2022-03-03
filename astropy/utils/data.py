@@ -12,7 +12,8 @@ import os
 import io
 import re
 import shutil
-import ssl
+# import ssl moved inside functions using ssl to avoid import failure
+# when running in pyodide/Emscripten
 import sys
 import urllib.request
 import urllib.error
@@ -1047,6 +1048,8 @@ def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
     """
     Helper for building a `urllib.request.build_opener` which handles TLS/SSL.
     """
+    # Import ssl here to avoid import failure when running in pyodide/Emscripten
+    import ssl
 
     ssl_context = dict(it for it in ssl_context) if ssl_context else {}
     cert_chain = {}
@@ -1086,6 +1089,8 @@ def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
 def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
                   ssl_context=None, allow_insecure=False):
     """Helper for opening a URL while handling TLS/SSL verification issues."""
+    # Import ssl here to avoid import failure when running in pyodide/Emscripten
+    import ssl
 
     # Always try first with a secure connection
     # _build_urlopener uses lru_cache, so the ssl_context argument must be
