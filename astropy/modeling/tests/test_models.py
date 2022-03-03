@@ -16,11 +16,12 @@ from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
 from astropy.modeling.bounding_box import ModelBoundingBox
-from astropy.modeling.core import FittableModel
+from astropy.modeling.core import FittableModel, Model
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import SmoothlyBrokenPowerLaw1D
 from astropy.modeling.parameters import InputParameterError
+from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
@@ -1023,3 +1024,26 @@ def test_SmoothlyBrokenPowerLaw1D_fit_deriv():
                                          estimate_jacobian=True)
     assert_allclose(new_model_with_deriv.parameters,
                     new_model_no_deriv.parameters, atol=0.5)
+
+
+class ModelDefault(Model):
+    slope = Parameter()
+    intercept = Parameter()
+    _separable = False
+
+    @staticmethod
+    def evaluate(x, slope, intercept):
+        return slope * x + intercept
+
+
+class ModelCustom(ModelDefault):
+    def _calculate_separability_matrix(self):
+        return np.array([[0, ]])
+
+
+def test_custom_separability_matrix():
+    original = separability_matrix(ModelDefault(slope=1, intercept=2))
+    assert original.all()
+
+    custom = separability_matrix(ModelCustom(slope=1, intercept=2))
+    assert not custom.any()
