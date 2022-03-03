@@ -166,6 +166,10 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
         to identify the correct format.
     **kwargs
         Keyword arguments passed through to data parser.
+        Parsers should accept the following keyword arguments:
+
+        - cosmology : the class (or string name thereof) to use / check when
+                      constructing the cosmology instance.
 
     Returns
     -------
