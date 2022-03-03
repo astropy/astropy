@@ -1,0 +1,5 @@
+When reading an ECSV file, changed the type checking
+to issue an ``InvalidEcsvDatatypeWarning`` instead of raising a ``ValueError``
+exception if the ``datatype`` of a column is not recognized in the ECSV standard.
+This also applies to older versions of ECSV files which used to silently
+proceed but now warn first.

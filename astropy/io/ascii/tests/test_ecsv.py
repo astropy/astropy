@@ -20,10 +20,8 @@ from astropy.table.table_helpers import simple_table
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
 
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.compat import NUMPY_LT_1_19_1
-
-from astropy.io.ascii.ecsv import DELIMITERS
+from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
 from astropy.io import ascii
 from astropy import units as u
 
@@ -581,7 +579,7 @@ def test_multidim_unknown_subtype(subtype):
 a
 [1,2]
 [3,4]"""
-    with pytest.warns(AstropyUserWarning,
+    with pytest.warns(InvalidEcsvDatatypeWarning,
                       match=rf"unexpected subtype '{subtype}' set for column 'a'"):
         t = ascii.read(txt, format='ecsv')
 
@@ -631,8 +629,29 @@ fail
         Table.read(txt, format='ascii.ecsv')
 
 
+def test_read_bad_datatype():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    with pytest.warns(InvalidEcsvDatatypeWarning,
+                      match="unexpected datatype 'object' of column 'a' is not in allowed"):
+        t = Table.read(txt, format='ascii.ecsv')
+    assert t['a'][0] == "fail"
+    assert type(t['a'][1]) is str
+    assert type(t['a'].dtype) == np.dtype("O")
+
+
+@pytest.mark.skipif(NUMPY_LT_1_19_1,
+                    reason="numpy cannot parse 'complex' as string until 1.19+")
 def test_read_complex():
-    """Test an ECSV file with a complex column"""
+    """Test an ECSV v1.0 file with a complex column"""
     txt = """\
 # %ECSV 1.0
 # ---
@@ -642,29 +661,30 @@ def test_read_complex():
 a
 1+1j
 2+2j"""
-    match = "datatype 'complex' of column 'a' is not in allowed values"
-    with pytest.raises(ValueError, match=match):
-        Table.read(txt, format='ascii.ecsv')
+
+    with pytest.warns(InvalidEcsvDatatypeWarning,
+                      match="unexpected datatype 'complex' of column 'a' is not in allowed"):
+        t = Table.read(txt, format='ascii.ecsv')
+    assert t['a'].dtype.type is np.complex128
 
 
-@pytest.mark.skipif(NUMPY_LT_1_19_1,
-                    reason="numpy<=1.19.0 cannot parse 'complex' as string")
-def test_read_complex_v09():
-    """Test an ECSV file with a complex column for version 0.9
-    Note: ECSV Version <=0.9 files should not raise ValueError
-    for complex datatype to maintain backwards compatibility.
-    """
+def test_read_str():
+    """Test an ECSV file with a 'str' instead of 'string' datatype """
     txt = """\
-# %ECSV 0.9
+# %ECSV 1.0
 # ---
 # datatype:
-# - {name: a, datatype: complex}
+# - {name: a, datatype: str}
 # schema: astropy-2.0
 a
-1+1j
-2+2j"""
-    t = Table.read(txt, format='ascii.ecsv')
-    assert t['a'].dtype.type is np.complex128
+sometext
+S"""  # also testing single character text
+
+    with pytest.warns(InvalidEcsvDatatypeWarning,
+                      match="unexpected datatype 'str' of column 'a' is not in allowed"):
+        t = Table.read(txt, format='ascii.ecsv')
+    assert isinstance(t['a'][1], str)
+    assert isinstance(t['a'][0], np.str_)
 
 
 def test_read_bad_datatype_for_object_subtype():
@@ -681,42 +701,6 @@ fail
     match = "column 'a' failed to convert: datatype of column 'a' must be \"string\""
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
-
-
-def test_read_bad_datatype():
-    """Test a malformed ECSV file"""
-    txt = """\
-# %ECSV 1.0
-# ---
-# datatype:
-# - {name: a, datatype: object}
-# schema: astropy-2.0
-a
-fail
-[3,4]"""
-    match = r"column 'a' is not in allowed values \('bool', 'int8', 'int16', 'int32'"
-    with pytest.raises(ValueError, match=match):
-        Table.read(txt, format='ascii.ecsv')
-
-
-def test_read_bad_datatype_v09():
-    """Test a malformed ECSV file for version 0.9
-    Note: ECSV Version <=0.9 files should not raise ValueError
-    for malformed datatypes to maintain backwards compatibility.
-    """
-    txt = """\
-# %ECSV 0.9
-# ---
-# datatype:
-# - {name: a, datatype: object}
-# schema: astropy-2.0
-a
-fail
-[3,4]"""
-    t = Table.read(txt, format='ascii.ecsv')
-    assert t['a'][0] == "fail"
-    assert type(t['a'][1]) is str
-    assert type(t['a'].dtype) == np.dtype("O")
 
 
 def test_full_repr_roundtrip():
