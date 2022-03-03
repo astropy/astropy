@@ -13,8 +13,9 @@ import numpy as np
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyWarning
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_temp
 from astropy.io.fits.card import _pad
 from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import encode_ascii
@@ -1609,13 +1610,18 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(header.cards[1]) == 'HISTORY ' + longval[:72]
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
-    def test_totxtfile(self):
+    def test_totxtfile(self, home_is_temp):
+        header_filename = self.temp('header.txt')
         with fits.open(self.data('test0.fits')) as hdul:
-            hdul[0].header.totextfile(self.temp('header.txt'))
+            hdul[0].header.totextfile(header_filename)
+            # Check the `overwrite` flag
+            with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+                hdul[0].header.totextfile(header_filename, overwrite=False)
+            hdul[0].header.totextfile(header_filename, overwrite=True)
 
         hdu = fits.ImageHDU()
         hdu.header.update({'MYKEY': 'FOO'})
-        hdu.header.extend(hdu.header.fromtextfile(self.temp('header.txt')),
+        hdu.header.extend(hdu.header.fromtextfile(header_filename),
                           update=True, update_first=True)
 
         # Write the hdu out and read it back in again--it should be recognized
@@ -1627,7 +1633,46 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdu = fits.ImageHDU()
         hdu.header.update({'MYKEY': 'FOO'})
-        hdu.header.extend(hdu.header.fromtextfile(self.temp('header.txt')),
+        hdu.header.extend(hdu.header.fromtextfile(header_filename),
+                          update=True, update_first=True, strip=False)
+        assert 'MYKEY' in hdu.header
+        assert 'EXTENSION' not in hdu.header
+        assert 'SIMPLE' in hdu.header
+
+        hdu.writeto(self.temp('test.fits'), output_verify='ignore',
+                    overwrite=True)
+
+        with fits.open(self.temp('test.fits')) as hdul2:
+            assert len(hdul2) == 2
+            assert 'MYKEY' in hdul2[1].header
+
+    def test_tofile(self, home_is_temp):
+        """
+        Repeat test_totxtfile, but with tofile()
+        """
+        header_filename = self.temp('header.fits')
+        with fits.open(self.data('test0.fits')) as hdul:
+            hdul[0].header.tofile(header_filename)
+            # Check the `overwrite` flag
+            with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+                hdul[0].header.tofile(header_filename, overwrite=False)
+            hdul[0].header.tofile(header_filename, overwrite=True)
+
+        hdu = fits.ImageHDU()
+        hdu.header.update({'MYKEY': 'FOO'})
+        hdu.header.extend(hdu.header.fromfile(header_filename),
+                          update=True, update_first=True)
+
+        # Write the hdu out and read it back in again--it should be recognized
+        # as a PrimaryHDU
+        hdu.writeto(self.temp('test.fits'), output_verify='ignore')
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert isinstance(hdul[0], fits.PrimaryHDU)
+
+        hdu = fits.ImageHDU()
+        hdu.header.update({'MYKEY': 'FOO'})
+        hdu.header.extend(hdu.header.fromfile(header_filename),
                           update=True, update_first=True, strip=False)
         assert 'MYKEY' in hdu.header
         assert 'EXTENSION' not in hdu.header

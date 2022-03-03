@@ -26,6 +26,7 @@ from .header import Header
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
+from .util import path_like
 from astropy.utils.diff import (report_diff_values, fixed_width_indent,
                                 where_not_allclose, diff_values)
 from astropy.utils.misc import NOT_OVERWRITING_MSG
@@ -150,7 +151,8 @@ class _BaseDiff:
         return_string = False
         filepath = None
 
-        if isinstance(fileobj, str):
+        if isinstance(fileobj, path_like):
+            fileobj = os.path.expanduser(fileobj)
             if os.path.exists(fileobj) and not overwrite:
                 raise OSError(NOT_OVERWRITING_MSG.format(fileobj))
             else:

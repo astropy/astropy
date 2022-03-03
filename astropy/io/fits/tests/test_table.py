@@ -27,7 +27,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarni
 from astropy.io.fits.column import ColumnAttribute, Delayed, NUMPY2FITS
 from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
-from . import FitsTestCase
+from . import FitsTestCase, home_is_data
 
 
 def comparefloats(a, b):
@@ -146,7 +146,7 @@ class TestTableFunctions(FitsTestCase):
         # Original header should be unchanged
         assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
-    def test_open(self):
+    def test_open(self, home_is_data):
         # open some existing FITS files:
         tt = fits.open(self.data('tb.fits'))
         fd = fits.open(self.data('test0.fits'))

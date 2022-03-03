@@ -18,7 +18,7 @@ from functools import reduce
 import numpy as np
 
 from .util import (isreadable, iswritable, isfile, fileobj_name,
-                   fileobj_closed, fileobj_mode, _array_from_file,
+                   fileobj_closed, fileobj_mode, path_like, _array_from_file,
                    _array_to_file, _write_string)
 from astropy.utils.data import download_file, _is_url
 from astropy.utils.decorators import classproperty
@@ -156,6 +156,8 @@ class _File:
                     f"Mode {mode} not supported for HTTPResponse")
             fileobj = io.BytesIO(fileobj.read())
         else:
+            if isinstance(fileobj, path_like):
+                fileobj = os.path.expanduser(fileobj)
             self.name = fileobj_name(fileobj)
 
         self.mode = mode

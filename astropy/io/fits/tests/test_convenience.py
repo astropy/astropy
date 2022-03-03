@@ -18,7 +18,7 @@ from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.utils.exceptions import AstropyUserWarning
 
 from astropy.io.fits.tests.test_table import _assert_attr_col
-from . import FitsTestCase
+from . import FitsTestCase, home_is_temp
 
 
 class TestConvenience(FitsTestCase):
@@ -190,7 +190,7 @@ class TestConvenience(FitsTestCase):
         h_out = fits.getheader(filename, ext=1)
         assert h_out['ANSWER'] == 42
 
-    def test_image_extension_update_header(self):
+    def test_image_extension_update_header(self, home_is_temp):
         """
         Test that _makehdu correctly includes the header. For example in the
         fits.update convenience function.
@@ -199,6 +199,13 @@ class TestConvenience(FitsTestCase):
 
         hdus = [fits.PrimaryHDU(np.zeros((10, 10))),
                 fits.ImageHDU(np.zeros((10, 10)))]
+
+        # Try to update a non-existant file
+        with pytest.raises(FileNotFoundError, match="No such file"):
+            fits.update(filename,
+                        np.zeros((10, 10)),
+                        header=fits.Header([('WHAT', 100)]),
+                        ext=1)
 
         fits.HDUList(hdus).writeto(filename)
 
@@ -302,7 +309,7 @@ class TestConvenience(FitsTestCase):
         with fits.open(self.temp(tablename)) as hdul:
             _assert_attr_col(new_tbhdu, hdul[1])
 
-    def test_append_filename(self):
+    def test_append_filename(self, home_is_temp):
         """
         Test fits.append with a filename argument.
         """

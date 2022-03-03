@@ -4,6 +4,7 @@ import collections
 import copy
 import itertools
 import numbers
+import os
 import re
 import warnings
 
@@ -500,6 +501,7 @@ class Header:
             #
             # Otherwise assume we are reading from an actual FITS file and open
             # in binary mode.
+            fileobj = os.path.expanduser(fileobj)
             if sep:
                 fileobj = open(fileobj, 'r', encoding='latin1')
             else:

@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 import numpy as np
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_temp
 
 from astropy.io.fits.convenience import _getext
 from astropy.io.fits.diff import FITSDiff
@@ -563,7 +563,7 @@ class TestCore(FitsTestCase):
 
 
 class TestConvenienceFunctions(FitsTestCase):
-    def test_writeto(self):
+    def test_writeto(self, home_is_temp):
         """
         Simple test for writing a trivial header and some data to a file
         with the `writeto()` convenience function.
@@ -593,6 +593,24 @@ class TestConvenienceFunctions(FitsTestCase):
             assert (data == hdul[0].data).all()
             assert 'CRPIX1' in hdul[0].header
             assert hdul[0].header['CRPIX1'] == 1.0
+
+    def test_writeto_overwrite(self, home_is_temp):
+        """
+        Ensure the `overwrite` keyword works as it should
+        """
+        filename = self.temp('array.fits')
+        data = np.zeros((100, 100))
+        header = fits.Header()
+        fits.writeto(filename, data, header=header)
+
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            fits.writeto(filename, data, header=header, overwrite=False)
+
+        fits.writeto(filename, data, header=header, overwrite=True)
+
+        with fits.open(filename) as hdul:
+            assert len(hdul) == 1
+            assert (data == hdul[0].data).all()
 
 
 class TestFileFunctions(FitsTestCase):
@@ -906,7 +924,7 @@ class TestFileFunctions(FitsTestCase):
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
             assert h[1].data[0, 0] == 1
 
-    def test_write_read_gzip_file(self):
+    def test_write_read_gzip_file(self, home_is_temp):
         """
         Regression test for https://github.com/astropy/astropy/issues/2794
 
@@ -917,7 +935,7 @@ class TestFileFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(data=data)
         hdu.writeto(self.temp('test.fits.gz'))
 
-        with open(self.temp('test.fits.gz'), 'rb') as f:
+        with open(os.path.expanduser(self.temp('test.fits.gz')), 'rb') as f:
             assert f.read(3) == GZIP_MAGIC
 
         with fits.open(self.temp('test.fits.gz')) as hdul:
@@ -1279,7 +1297,7 @@ class TestFileFunctions(FitsTestCase):
 
         return gzfile
 
-    def test_write_overwrite(self):
+    def test_write_overwrite(self, home_is_temp):
         filename = self.temp('test_overwrite.fits')
         hdu = fits.PrimaryHDU(data=np.arange(10))
         hdu.writeto(filename)
@@ -1341,11 +1359,19 @@ class TestFileFunctions(FitsTestCase):
 class TestStreamingFunctions(FitsTestCase):
     """Test functionality of the StreamingHDU class."""
 
-    def test_streaming_hdu(self):
+    def test_streaming_hdu(self, home_is_temp):
         shdu = self._make_streaming_hdu(self.temp('new.fits'))
         assert isinstance(shdu.size, int)
         assert shdu.size == 100
+
+        arr = np.arange(25, dtype=np.int32).reshape((5, 5))
+        shdu.write(arr)
+        assert shdu.writecomplete
         shdu.close()
+
+        with fits.open(self.temp('new.fits')) as hdul:
+            assert len(hdul) == 1
+            assert (hdul[0].data == arr).all()
 
     def test_streaming_hdu_file_wrong_mode(self):
         """

@@ -7,12 +7,51 @@ import tempfile
 import time
 
 from astropy.io import fits
+import pytest
+
+
+@pytest.fixture(params=[False, True], ids=['', 'home_is_data'])
+def home_is_data(request, monkeypatch):
+    """
+    Pytest fixture to run a test case both with and without tilde paths.
+
+    In the tilde-path case, calls like self.data('filename.fits') will
+    produce '~/filename.fits', and environment variables will be temporarily
+    modified so that '~' resolves to the data directory.
+    """
+    # This checks the True/False values specified in the fixture annotation
+    if request.param:
+        # `request.instance` refers to the test case that's using this fixture.
+        request.instance.monkeypatch = monkeypatch
+        request.instance.set_home_as_data()
+
+
+@pytest.fixture(params=[False, True], ids=['', 'home_is_temp'])
+def home_is_temp(request, monkeypatch):
+    """
+    Pytest fixture to run a test case both with and without tilde paths.
+
+    In the tilde-path case, calls like self.temp('filename.fits') will
+    produce '~/filename.fits', and environment variables will be temporarily
+    modified so that '~' resolves to the temp directory. These files will also
+    be tracked so that, after the test case, we can verify no files were written
+    to a literal tilde path.
+    """
+    # This checks the True/False values specified in the fixture annotation
+    if request.param:
+        # `request.instance` refers to the test case that's using this fixture.
+        request.instance.monkeypatch = monkeypatch
+        request.instance.set_home_as_temp()
 
 
 class FitsTestCase:
     def setup(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
+
+        self.home_is_data = False
+        self.home_is_temp = False
+        self.temp_files_used = set()
 
         # Restore global settings to defaults
         # TODO: Replace this when there's a better way to in the config API to
@@ -23,6 +62,12 @@ class FitsTestCase:
         fits.conf.use_memmap = True
 
     def teardown(self):
+        if self.home_is_temp:
+            # Verify that no files were written to a literal tilde path
+            for temp_file, temp_file_no_tilde in self.temp_files_used:
+                assert not os.path.exists(temp_file)
+                assert os.path.exists(temp_file_no_tilde)
+
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
             tries = 3
             while tries:
@@ -46,15 +91,50 @@ class FitsTestCase:
         mode to writeable.
         """
 
-        shutil.copy(self.data(filename), self.temp(filename))
-        os.chmod(self.temp(filename), stat.S_IREAD | stat.S_IWRITE)
+        shutil.copy(os.path.expanduser(self.data(filename)),
+                os.path.expanduser(self.temp(filename)))
+        os.chmod(os.path.expanduser(self.temp(filename)),
+                stat.S_IREAD | stat.S_IWRITE)
 
     def data(self, filename):
         """Returns the path to a test data file."""
-
+        if self.home_is_data:
+            return os.path.join('~', filename)
         return os.path.join(self.data_dir, filename)
 
     def temp(self, filename):
         """ Returns the full path to a file in the test temp dir."""
+        real_target = os.path.join(self.temp_dir, filename)
+        if self.home_is_temp:
+            path = os.path.join('~', filename)
+            # Record the '~' path and the intended path, for use
+            # in `home_is_temp`
+            self.temp_files_used.add((path, real_target))
+            return path
+        return real_target
 
-        return os.path.join(self.temp_dir, filename)
+    def set_home_as_data(self):
+        """
+        This overrides the HOME environment variable, so that paths beginning
+        with '~/' expand to the data directory. Used by the `home_is_data`
+        fixture.
+        """
+        self.home_is_data = True
+        # For Unix
+        self.monkeypatch.setenv('HOME', self.data_dir)
+        # For Windows
+        self.monkeypatch.setenv('USERPROFILE', self.data_dir)
+
+    def set_home_as_temp(self):
+        """
+        This overrides the HOME environment variable, so that paths beginning
+        with '~/' expand to the temp directory. In conjunction with
+        self.temp(), temporary files are tracked as they are created, so we can
+        verify they end up in the temporary directory and not unexpected places
+        in the filesystem. Used by the `home_is_temp` fixture.
+        """
+        self.home_is_temp = True
+        # For Unix
+        self.monkeypatch.setenv('HOME', self.temp_dir)
+        # For Windows
+        self.monkeypatch.setenv('USERPROFILE', self.temp_dir)

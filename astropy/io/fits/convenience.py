@@ -68,7 +68,7 @@ from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import (fileobj_closed, fileobj_name, fileobj_mode, _is_int,
-                   _is_dask_array)
+                   _is_dask_array, path_like)
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -657,6 +657,8 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         - Otherwise no additional arguments can be used.
 
     """
+    if isinstance(filename, path_like):
+        filename = os.path.expanduser(filename)
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
 
     if noexist_or_empty:
