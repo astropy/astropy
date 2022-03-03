@@ -302,7 +302,11 @@ class ArrayDistribution(Distribution, np.ndarray):
 
     # Override __getitem__ so that 'samples' is returned as the sample class.
     def __getitem__(self, item):
-        result = super().__getitem__(item)
+        if isinstance(item, str) and item != "samples":  # structured array access of sub-dtypes
+            result = Distribution(self["samples"][item])
+        else:  # normal access
+            result = super().__getitem__(item)
+
         if item == 'samples':
             # Here, we need to avoid our own redefinition of view.
             return super(ArrayDistribution, result).view(self._samples_cls)
