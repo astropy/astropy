@@ -213,8 +213,7 @@ class Distance(u.SpecificTypeQuantity):
 
         See Also
         --------
-        :func:`astropy.cosmology.z_at_value`
-            Find the redshift corresponding to a
+        :func:`astropy.cosmology.z_at_value` : Find the redshift corresponding to a
             :meth:`astropy.cosmology.FLRW.luminosity_distance`.
         """
         from astropy.cosmology import z_at_value

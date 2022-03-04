@@ -338,7 +338,7 @@ class TestSphericalRepresentation:
 
     def test_nan_distance(self):
         """ This is a regression test: calling represent_as() and passing in the
-            same class as the object shouldn't round-trip through cartesian.
+        same class as the object shouldn't round-trip through cartesian.
         """
 
         sph = SphericalRepresentation(1*u.deg, 2*u.deg, np.nan*u.kpc)
