@@ -21,7 +21,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
 
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.compat import NUMPY_LT_1_19
+from astropy.utils.compat import NUMPY_LT_1_19_1
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
@@ -647,8 +647,8 @@ a
         Table.read(txt, format='ascii.ecsv')
 
 
-@pytest.mark.skipif(NUMPY_LT_1_19,
-                    reason="numpy cannot parse 'complex' as string until 1.19+")
+@pytest.mark.skipif(NUMPY_LT_1_19_1,
+                    reason="numpy<=1.19.0 cannot parse 'complex' as string")
 def test_read_complex_v09():
     """Test an ECSV file with a complex column for version 0.9
     Note: ECSV Version <=0.9 files should not raise ValueError
