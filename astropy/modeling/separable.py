@@ -301,7 +301,9 @@ def _separable(transform):
         An array of shape (transform.n_outputs,) of boolean type
         Each element represents the separablity of the corresponding output.
     """
-    if isinstance(transform, CompoundModel):
+    if (transform_matrix := transform._calculate_separability_matrix()) is not NotImplemented:
+        return transform_matrix
+    elif isinstance(transform, CompoundModel):
         sepleft = _separable(transform.left)
         sepright = _separable(transform.right)
         return _operators[transform.op](sepleft, sepright)

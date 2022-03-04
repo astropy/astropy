@@ -1,0 +1,1 @@
+Provide a hook (``Model._calculate_separability_matrix``) to allow subclasses of ``Model`` to define how to compute their separability matrix.

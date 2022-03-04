@@ -802,6 +802,15 @@ class Model(metaclass=_ModelMeta):
 
         return self.__class__.n_outputs
 
+    def _calculate_separability_matrix(self):
+        """
+        This is a hook which customises the behavior of modeling.separable.
+
+        This allows complex subclasses to customise the separability matrix.
+        If it returns `NotImplemented` the default behavior is used.
+        """
+        return NotImplemented
+
     def _initialize_unit_support(self):
         """
         Convert self._input_units_strict and
