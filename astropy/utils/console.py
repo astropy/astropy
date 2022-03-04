@@ -14,7 +14,8 @@ import struct
 import sys
 import threading
 import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
+# concurrent.futures imports moved inside functions using them to avoid
+# import failure when running in pyodide/Emscripten
 
 try:
     import fcntl
@@ -785,6 +786,9 @@ class ProgressBar:
             other anomalies occur with the "fork" method (the default on
             Linux).
         """
+        # concurrent.futures import here to avoid import failure when running
+        # in pyodide/Emscripten
+        from concurrent.futures import ProcessPoolExecutor, as_completed
 
         results = []
 
