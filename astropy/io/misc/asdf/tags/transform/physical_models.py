@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
 from numpy.testing import assert_array_equal
 
-
-from astropy.modeling import functional_models, physical_models
-from .basic import TransformType
+from astropy.modeling import physical_models
+from astropy.io.misc.asdf.tags.transform.basic import TransformType
 from . import _parameter_to_value
 
 

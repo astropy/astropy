@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
-import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import table

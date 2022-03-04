@@ -1,0 +1,1 @@
+Deprecate asdf in astropy core in favor of the asdf-astropy package.

@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
 from astropy.coordinates import Angle, Latitude, Longitude
 
 from astropy.io.misc.asdf.tags.unit.quantity import QuantityType
