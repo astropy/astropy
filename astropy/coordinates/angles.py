@@ -261,7 +261,6 @@ class Angle(u.SpecificTypeQuantity):
             A string representation of the angle. If the angle is an array, this
             will be an array with a unicode dtype.
 
-
         """
         if unit is None:
             unit = self.unit

@@ -108,7 +108,6 @@ def spherical_to_cartesian(r, lat, lon):
     z : float or array
         The third cartesian coordinate.
 
-
     """
     if not hasattr(r, 'unit'):
         r = r * u.dimensionless_unscaled
@@ -138,7 +137,6 @@ def get_sun(time):
     newsc : `~astropy.coordinates.SkyCoord`
         The location of the sun as a `~astropy.coordinates.SkyCoord` in the
         `~astropy.coordinates.GCRS` frame.
-
 
     Notes
     -----
