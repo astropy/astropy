@@ -890,45 +890,35 @@ def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
     _hungry_for(option)
 
 
-class ClassWrapperBase(metaclass=abc.ABCMeta):
-    # TODO! I think this base class is better done as a metaclass
-    # for one, `typing` doesn't like ``__new__`` to return an instance that
-    # isn't the `cls`, but is fine with a metaclass messing with the returned
-    # class type.
+class ClassWrapperMeta(abc.ABCMeta):
 
-    def __init_subclass__(cls, base_cls=None, data_cls=None, **kwargs):
-        """Register a ClassWrapperBase subclass.
+    def __new__(metacls, name, bases, namespace, base_cls=None, data_cls=None,**kwargs):
+        # inject data_cls into namespace before __new__ so __init_subclass__
+        # can use it.
+        if data_cls is not None:
+            namespace["_data_cls"] = data_cls
 
-        Parameters
-        ----------
-        base_cls : type, optional
-            If given, it is taken to mean that ``cls`` can be used as
-            a base for wrapper versions of all subclasses of ``base_cls``,
-            so it is registered as such in ``_base_classes``.
-        data_cls : type, optional
-            If given, ``cls`` should will be registered as the wrapper version of
-            ``data_cls``.  Will set the private ``cls._data_cls`` attribute,
-            and auto-generate a docstring if not present already.
-        **kwargs
-            Passed on for possible further initialization by superclasses.
-        """
-        # Identify parent classes, removing extraneous information
-        mro = set(cls.mro())
-        mro.remove(object)
-        mro.remove(ClassWrapperBase)  # need to remove this as it is in it's own MRO
-        mro.remove(cls)
-        # check that this `cls` is the top-most in the MRO to subclass `ClassWrapperBase`
-        isbaseclass = all([ClassWrapperBase not in parent.mro() for parent in mro])
+        return super().__new__(metacls, name, bases, namespace, **kwargs)
+
+    def __init__(cls, name, bases, namespace, base_cls=None, data_cls=None, **kwargs):
+
+        # check that this `cls` is the top-most in the MRO to be a `ClassWrapperMeta` type
+        mro = set(bases)
+        try:
+            mro.discard(ClassWrapperBase)
+        except NameError:
+            pass
+        isbaseclass = all([not issubclass(base.__class__, ClassWrapperMeta) for base in mro])
         if isbaseclass:
             cls._wrapper_class_ = cls
             """Base class."""
-
+        
             cls._base_classes = {}
             """Explicitly defined wrapper classes keyed by their unwrapped counterparts.
             
             For subclasses of these unwrapped classes, wrapped counterparts can be generated.
             """
-
+        
             cls._generated_subclasses = {}
             """Wrapped classes keyed by their unwrapped data counterparts.
             """
@@ -937,10 +927,12 @@ class ClassWrapperBase(metaclass=abc.ABCMeta):
             cls._wrapper_class_._base_classes[base_cls] = cls
 
         if data_cls is not None:
-            cls._data_cls = data_cls
+            # cls._data_cls = data_cls  # injected into namespace in __new__
             cls._wrapper_class_._generated_subclasses[data_cls] = cls
 
-    def __new__(cls, *args, **kwargs):
+        super().__init__(name, bases, namespace, **kwargs)
+
+    def __call__(cls, *args, **kwargs):
         if cls is cls._wrapper_class_:
             # Initializing with Masked itself means we're in "factory mode".
             if not kwargs and len(args) == 1 and isinstance(args[0], type):
@@ -948,26 +940,22 @@ class ClassWrapperBase(metaclass=abc.ABCMeta):
                 return cls._get_generated_subclass(args[0])
             else:
                 return cls._get_generated_subclass_instance(*args, **kwargs)
-        else:
-            # Otherwise we're a subclass and should just pass information on.
-            return super().__new__(cls, *args, **kwargs)
 
-    @classmethod
+        # Otherwise we're a subclass and should just pass information on.
+        return super().__call__(*args, **kwargs)
+
     @abc.abstractmethod
     def _get_generated_subclass_instance(cls, data):
         pass
-
-    @classmethod
+    
     @abc.abstractmethod
     def _get_fallback_generated_subclass(cls):
         pass
-
-    @classmethod
+    
     @abc.abstractmethod
     def _make_generated_subclass(cls):
         pass
 
-    @classmethod
     def _get_generated_subclass(cls, data_cls):
         """Get the wrapper for a given data class."""
         if issubclass(data_cls, cls._wrapper_class_):
@@ -986,7 +974,7 @@ class ClassWrapperBase(metaclass=abc.ABCMeta):
             else:
                 # Just hope that ArrayDistribution can handle it.
                 return cls._get_fallback_generated_subclass()
-
+    
             # Create (and therefore register) new wrapper subclass for the
             # given data_cls. In the MRO the wrapper class is inserted below
             # the data class.

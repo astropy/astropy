@@ -137,7 +137,7 @@ In contrast, |Masked| is always wrapped around the data properly, i.e., a
 is never masked.  Indeed, one can see this from the class hierarchy::
 
   >>> mq.__class__.__mro__
-  (<class 'astropy.utils.masked.core.MaskedQuantity'>,
+  (<class 'abc.MaskedQuantity'>,
    <class 'astropy.units.quantity.Quantity'>,
    <class 'astropy.utils.masked.core.MaskedNDArray'>,
    <class 'astropy.utils.masked.core.Masked'>,

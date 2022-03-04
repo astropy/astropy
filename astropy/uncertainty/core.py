@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy import stats
-from astropy.utils.misc import ClassWrapperBase
+from astropy.utils.misc import ClassWrapperMeta
 
 __all__ = ['Distribution']
 
@@ -19,7 +19,7 @@ __all__ = ['Distribution']
 SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 
 
-class Distribution(ClassWrapperBase):
+class Distribution(metaclass=ClassWrapperMeta):
     """
     A scalar value or array values with associated uncertainty distribution.
 
@@ -255,7 +255,7 @@ class Distribution(ClassWrapperBase):
         return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)
 
 
-class ScalarDistribution(Distribution, np.void):
+class ScalarDistribution(Distribution, np.void, base_cls=np.void, data_cls=np.void):
     """Scalar distribution.
 
     This class mostly exists to make `~numpy.array2print` possible for
@@ -264,7 +264,7 @@ class ScalarDistribution(Distribution, np.void):
     pass
 
 
-class ArrayDistribution(Distribution, np.ndarray):
+class ArrayDistribution(Distribution, np.ndarray, base_cls=np.ndarray):
     # This includes the important override of view and __getitem__
     # which are needed for all ndarray subclass Distributions, but not
     # for the scalar one.
@@ -336,7 +336,7 @@ class _DistributionRepr:
             return None
 
 
-class NdarrayDistribution(_DistributionRepr, ArrayDistribution, base_cls=np.ndarray, data_cls=np.ndarray):
+class NdarrayDistribution(_DistributionRepr, ArrayDistribution, data_cls=np.ndarray):
     pass
 
 

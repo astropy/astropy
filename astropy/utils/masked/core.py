@@ -22,7 +22,7 @@ import numpy as np
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.misc import ClassWrapperBase
+from astropy.utils.misc import ClassWrapperMeta
 
 from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                APPLY_TO_BOTH_FUNCTIONS,
@@ -40,7 +40,7 @@ as for `{0.__module__}.{0.__name__}`.
 """.format
 
 
-class Masked(ClassWrapperBase, NDArrayShapeMethods):
+class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta):
     """A scalar value or array of values with associated mask.
 
     The resulting instance will take its exact type from whatever the
@@ -58,11 +58,12 @@ class Masked(ClassWrapperBase, NDArrayShapeMethods):
 
     """
 
-    def __init_subclass__(cls, base_cls=None, data_cls=None, **kwargs):
-        super().__init_subclass__(base_cls=base_cls, data_cls=data_cls, **kwargs)
+    def __init_subclass__(cls, **kwargs):  # base_cls=None, data_cls=None,
+        super().__init_subclass__(**kwargs)  # base_cls=base_cls, data_cls=data_cls
 
-        if data_cls is not None and cls.__doc__ is None:
-            cls.__doc__ = get__doc__(data_cls)
+        # this is what's preventing using the metaclass over the baseclass
+        if getattr(cls, "_data_cls", None) is not None and cls.__doc__ is None:
+            cls.__doc__ = get__doc__(cls._data_cls)
 
     # This base implementation just uses the class initializer.
     # Subclasses can override this in case the class does not work
@@ -102,7 +103,7 @@ class Masked(ClassWrapperBase, NDArrayShapeMethods):
         if issubclass(data_cls, np.ma.MaskedArray):
             return data_cls
 
-        return super()._get_generated_subclass(data_cls)
+        return ClassWrapperMeta._get_generated_subclass(cls, data_cls)  # TODO! use super
 
     @classmethod
     def _get_data_and_mask(cls, data, allow_ma_masked=False):
@@ -408,7 +409,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return self
 
     def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(cls, **kwargs)
+        super().__init_subclass__(**kwargs)
         # For all subclasses we should set a default __new__ that passes on
         # arguments other than mask to the data class, and then sets the mask.
         if '__new__' not in cls.__dict__:
