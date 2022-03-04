@@ -1,0 +1,1 @@
+Fix computation of the separability of a ``CompoundModel`` where another ``CompoundModel`` is on the right hand side of the ``&`` operator.
