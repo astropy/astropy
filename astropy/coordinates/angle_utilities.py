@@ -106,9 +106,6 @@ def offset_by(lon, lat, posang, distance):
         The position of the final point.  If any of the angles are arrays,
         these will contain arrays following the appropriate `numpy` broadcasting rules.
         0 <= lon < 2pi.
-
-    Notes
-    -----
     """
     from .angles import Angle
 
@@ -216,8 +213,6 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
         The number of points to generate.
     max_radius : number, quantity-like, optional
         A dimensionless or unit-ful factor to scale the random distances.
-    rng : `numpy.random.Generator`, optional
-        A random number generator instance.
 
     Returns
     -------
