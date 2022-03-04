@@ -1,5 +1,5 @@
-from .basic import TransformType
 from astropy.modeling.models import Spline1D
+from astropy.io.misc.asdf.tags.transform.basic import TransformType
 
 
 __all__ = ['SplineType']
