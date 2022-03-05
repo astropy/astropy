@@ -150,6 +150,9 @@ def parse(source, columns=None, invalid='exception', verify=None,
         'datatype_mapping': datatype_mapping
     }
 
+    if isinstance(source, str):
+        source = os.path.expanduser(source)
+
     if filename is None and isinstance(source, str):
         config['filename'] = source
 
@@ -253,6 +256,9 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     votable = None
 
     reset_vo_warnings()
+
+    if isinstance(source, str):
+        source = os.path.expanduser(source)
 
     with data.get_readable_fileobj(source, encoding='binary') as fd:
         content = fd.read()
@@ -372,6 +378,8 @@ def is_votable(source):
     is_votable : bool
         Returns `True` if the given file is a VOTable file.
     """
+    if isinstance(source, str):
+        source = os.path.expanduser(source)
     try:
         with iterparser.get_xml_iterator(source) as iterator:
             for start, tag, d, pos in iterator:
