@@ -3,6 +3,7 @@
 import textwrap
 
 import numpy as np
+import os
 import pytest
 
 from astropy.io import fits
@@ -14,7 +15,7 @@ from astropy import log
 from astropy.wcs import WCS, FITSFixedWarning
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import (get_pkg_data_filename, get_pkg_data_filenames,
-                                get_pkg_data_contents)
+                                get_pkg_data_contents, get_pkg_data_path)
 from astropy.utils.exceptions import AstropyWarning
 
 from astropy.nddata.ccddata import CCDData
@@ -25,6 +26,20 @@ DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
     _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+
+
+@pytest.fixture
+def home_is_tmpdir(tmpdir, monkeypatch, request):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables will be temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmpdir))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmpdir))
 
 
 def create_ccd_data():
@@ -1058,3 +1073,14 @@ def test_sliced_ccdata_to_hdu():
     assert isinstance(hdul, fits.HDUList)
     assert hdul[0].header['CRPIX1'] == 8
     assert hdul[0].header['CRPIX2'] == 8
+
+
+def test_read_write_tilde_paths(home_is_tmpdir):
+    ccd_data = create_ccd_data()
+    filename = os.path.join('~', 'test.fits')
+    ccd_data.write(filename)
+
+    ccd_disk = CCDData.read(filename, unit=ccd_data.unit)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+
+    assert not os.path.exists(filename)
