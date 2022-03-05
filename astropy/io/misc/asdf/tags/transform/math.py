@@ -1,13 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
-from numpy.testing import assert_array_equal
-
-from astropy import modeling
 from astropy.modeling.math_functions import __all__ as math_classes
 from astropy.modeling.math_functions import *
 from astropy.modeling import math_functions
-from .basic import TransformType
+from astropy.io.misc.asdf.tags.transform.basic import TransformType
 
 
 __all__ = ['NpUfuncType']

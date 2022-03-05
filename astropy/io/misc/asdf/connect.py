@@ -1,9 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 # This file connects ASDF to the astropy.table.Table class
-
-import functools
-
 from astropy.io import registry as io_registry
 from astropy.table import Table
 

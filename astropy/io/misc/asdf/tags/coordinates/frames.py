@@ -10,7 +10,6 @@ import astropy.coordinates
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
-
 from astropy.io.misc.asdf.types import AstropyType
 
 
