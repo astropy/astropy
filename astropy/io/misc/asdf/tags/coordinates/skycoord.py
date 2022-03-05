@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from astropy.coordinates import SkyCoord
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
-
-from ...types import AstropyType
+from astropy.io.misc.asdf.types import AstropyType
 
 
 class SkyCoordType(AstropyType):

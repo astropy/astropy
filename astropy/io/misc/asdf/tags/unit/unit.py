@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-
 from astropy.units import Unit, UnitBase
 from astropy.io.misc.asdf.types import AstropyAsdfType
 

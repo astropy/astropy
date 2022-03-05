@@ -5,8 +5,7 @@ import functools
 import numpy as np
 
 from astropy.time import TimeDelta
-
-from ...types import AstropyType
+from astropy.io.misc.asdf.types import AstropyType
 
 __all__ = ['TimeDeltaType']
 
