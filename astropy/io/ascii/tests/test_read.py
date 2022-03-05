@@ -23,6 +23,7 @@ from .common import (assert_equal, assert_almost_equal,
                      assert_true)
 from astropy.io.ascii import core
 from astropy.io.ascii.ui import _probably_html, get_read_trace
+from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyWarning
 
 # NOTE: Python can be built without bz2.
@@ -34,6 +35,21 @@ from .common import setup_function, teardown_function  # noqa
 
 def asciiIO(x):
     return BytesIO(x.encode('ascii'))
+
+
+@pytest.fixture
+def home_is_data(monkeypatch, request):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the data directory.
+    """
+    path = get_pkg_data_path('data')
+    # For Unix
+    monkeypatch.setenv('HOME', path)
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', path)
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, {'use_fast_converter': False},
@@ -184,8 +200,11 @@ def test_read_with_names_arg(fast_reader):
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
-def test_read_all_files(fast_reader):
+@pytest.mark.parametrize('from_tilde_path', [True, False])
+def test_read_all_files(fast_reader, from_tilde_path, home_is_data):
     for testfile in get_testfiles():
+        if from_tilde_path:
+            testfile['name'] = '~/' + testfile['name'][5:]
         if testfile.get('skip'):
             print(f"\n\n******** SKIPPING {testfile['name']}")
             continue
@@ -205,8 +224,11 @@ def test_read_all_files(fast_reader):
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
-def test_read_all_files_via_table(fast_reader):
+@pytest.mark.parametrize('from_tilde_path', [True, False])
+def test_read_all_files_via_table(fast_reader, from_tilde_path, home_is_data):
     for testfile in get_testfiles():
+        if from_tilde_path:
+            testfile['name'] = '~/' + testfile['name'][5:]
         if testfile.get('skip'):
             print(f"\n\n******** SKIPPING {testfile['name']}")
             continue
@@ -1179,11 +1201,12 @@ def test_commented_header_comments(fast):
     assert dat.colnames == ['a', 'b']
 
 
-def test_probably_html():
+def test_probably_html(home_is_data):
     """
     Test the routine for guessing if a table input to ascii.read is probably HTML
     """
     for tabl0 in ('data/html.html',
+                  '~/html.html',
                   'http://blah.com/table.html',
                   'https://blah.com/table.html',
                   'file://blah/table.htm',

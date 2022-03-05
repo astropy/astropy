@@ -390,22 +390,59 @@ a,b,c
 ]
 
 
-def check_write_table(test_def, table, fast_writer):
-    out = StringIO()
+@pytest.fixture
+def home_is_tmpdir(monkeypatch, tmpdir):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmpdir))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmpdir))
+
+
+def check_write_table(test_def, table, fast_writer, to_dir=None):
+    if to_dir is None:
+        out = StringIO()
+    else:
+        out = os.path.join(to_dir, 'table')
+
     try:
         ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
     except ValueError as e:  # if format doesn't have a fast writer, ignore
         if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
+
+    if to_dir is None:
+        # Output went to a buffer
+        actual = out.getvalue()
+    else:
+        # Output went to a file
+        if out.startswith('~'):
+            # Ensure a file hasn't been accidentally written to a literal tilde
+            # path
+            assert not os.path.exists(out)
+            out = os.path.expanduser(out)
+        assert os.path.exists(out)
+        with open(out) as f:
+            actual = f.read()
+        os.remove(out)
+
     print(f"Expected:\n{test_def['out']}")
-    print(f'Actual:\n{out.getvalue()}')
-    assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
+    print(f'Actual:\n{actual}')
+    assert [x.strip() for x in actual.strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def check_write_table_via_table(test_def, table, fast_writer):
-    out = StringIO()
+def check_write_table_via_table(test_def, table, fast_writer, to_dir=None):
+    if to_dir is None:
+        out = StringIO()
+    else:
+        out = os.path.join(to_dir, 'table-via-table')
 
     test_def = copy.deepcopy(test_def)
     if 'Writer' in test_def['kwargs']:
@@ -420,9 +457,25 @@ def check_write_table_via_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
+
+    if to_dir is None:
+        # Output went to a buffer
+        actual = out.getvalue()
+    else:
+        # Output went to a file
+        if out.startswith('~'):
+            # Ensure a file hasn't been accidentally written to a literal tilde
+            # path
+            assert not os.path.exists(out)
+            out = os.path.expanduser(out)
+        assert os.path.exists(out)
+        with open(out) as f:
+            actual = f.read()
+        os.remove(out)
+
     print(f"Expected:\n{test_def['out']}")
-    print(f'Actual:\n{out.getvalue()}')
-    assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
+    print(f'Actual:\n{actual}')
+    assert [x.strip() for x in actual.strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
@@ -434,6 +487,20 @@ def test_write_table(fast_writer):
     for test_def in test_defs:
         check_write_table(test_def, data, fast_writer)
         check_write_table_via_table(test_def, data, fast_writer)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+@pytest.mark.parametrize("to_tilde_path", [True, False])
+def test_write_table_to_tilde_file(
+        fast_writer, tmpdir, home_is_tmpdir, to_tilde_path):
+    table = ascii.get_reader(Reader=ascii.Daophot)
+    data = table.read('data/daophot.dat')
+
+    out_dir = '~' if to_tilde_path else tmpdir
+    for test_def in test_defs:
+        check_write_table(test_def, data, fast_writer, to_dir=out_dir)
+        check_write_table_via_table(
+            test_def, data, fast_writer, to_dir=out_dir)
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
@@ -686,10 +753,17 @@ def test_write_empty_table(fast_writer):
 @pytest.mark.parametrize("format", ['ascii', 'csv', 'html', 'latex',
                                     'ascii.fixed_width', 'html'])
 @pytest.mark.parametrize("fast_writer", [True, False])
-def test_write_overwrite_ascii(format, fast_writer, tmpdir):
+@pytest.mark.parametrize("to_tilde_path", [True, False])
+def test_write_overwrite_ascii(format, fast_writer, tmpdir, home_is_tmpdir,
+        to_tilde_path):
     """Test overwrite argument for various ASCII writers"""
-    filename = tmpdir.join("table-tmp.dat").strpath
-    with open(filename, 'w'):
+    true_filename = tmpdir.join("table-tmp.dat").strpath
+    if to_tilde_path:
+        filename = os.path.join("~", "table-tmp.dat")
+    else:
+        filename = true_filename
+
+    with open(true_filename, 'w'):
         # create empty file
         pass
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
@@ -701,11 +775,15 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
             fast_writer=fast_writer)
 
     # If the output is a file object, overwrite is ignored
-    with open(filename, 'w') as fp:
+    with open(true_filename, 'w') as fp:
         t.write(fp, overwrite=False, format=format,
                 fast_writer=fast_writer)
         t.write(fp, overwrite=True, format=format,
                 fast_writer=fast_writer)
+
+    if to_tilde_path:
+        # Ensure no files have been accidentally written to a literal tilde path
+        assert not os.path.exists(filename)
 
 
 fmt_name_classes = list(chain(ascii.core.FAST_CLASSES.items(),
