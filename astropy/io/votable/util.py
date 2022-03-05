@@ -8,6 +8,7 @@ Various utilities and cookbook-like things.
 import codecs
 import contextlib
 import io
+import os
 import re
 import gzip
 
@@ -45,6 +46,7 @@ def convert_to_writable_filelike(fd, compressed=False):
     fd : writable file-like
     """
     if isinstance(fd, str):
+        fd = os.path.expanduser(fd)
         if fd.endswith('.gz') or compressed:
             with gzip.GzipFile(fd, 'wb') as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')

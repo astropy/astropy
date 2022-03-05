@@ -117,6 +117,7 @@ def make_validation_report(
             raise ValueError(
                 f'{stilts} does not exist.')
 
+    destdir = os.path.expanduser(destdir)
     destdir = os.path.abspath(destdir)
 
     if urls is None:
