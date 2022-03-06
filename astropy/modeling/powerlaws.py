@@ -7,6 +7,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from .core import Fittable1DModel
+from .mixins import AmplitudeReturnUnitMixin
 from .parameters import Parameter, InputParameterError
 
 
@@ -14,7 +15,7 @@ __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
            'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
 
 
-class PowerLaw1D(Fittable1DModel):
+class PowerLaw1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional power law model.
 
@@ -72,7 +73,7 @@ class PowerLaw1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class BrokenPowerLaw1D(Fittable1DModel):
+class BrokenPowerLaw1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional power law model with a break.
 
@@ -145,7 +146,7 @@ class BrokenPowerLaw1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
+class SmoothlyBrokenPowerLaw1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """One dimensional smoothly broken power law model.
 
     Parameters
@@ -379,7 +380,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class ExponentialCutoffPowerLaw1D(Fittable1DModel):
+class ExponentialCutoffPowerLaw1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional power law model with an exponential cutoff.
 
@@ -444,7 +445,7 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class LogParabola1D(Fittable1DModel):
+class LogParabola1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional log parabola model (sometimes called curved power law).
 

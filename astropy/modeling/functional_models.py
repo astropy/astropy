@@ -7,6 +7,7 @@ import numpy as np
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
 from .core import (Fittable1DModel, Fittable2DModel)
+from .mixins import AmplitudeReturnUnitMixin
 
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
@@ -31,7 +32,7 @@ FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
 GAUSSIAN_SIGMA_TO_FWHM = 2.0 * np.sqrt(2.0 * np.log(2.0))
 
 
-class Gaussian1D(Fittable1DModel):
+class Gaussian1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Gaussian model.
 
@@ -190,7 +191,7 @@ class Gaussian1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Gaussian2D(Fittable2DModel):
+class Gaussian2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     r"""
     Two dimensional Gaussian model.
 
@@ -670,7 +671,7 @@ class RedshiftScaleFactor(Fittable1DModel):
         return inv
 
 
-class Sersic1D(Fittable1DModel):
+class Sersic1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     r"""
     One dimensional Sersic surface brightness profile.
 
@@ -790,7 +791,7 @@ class _Trigonometric1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Sine1D(_Trigonometric1D):
+class Sine1D(AmplitudeReturnUnitMixin, _Trigonometric1D):
     """
     One dimensional Sine model.
 
@@ -867,7 +868,7 @@ class Sine1D(_Trigonometric1D):
         return ArcSine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
 
 
-class Cosine1D(_Trigonometric1D):
+class Cosine1D(AmplitudeReturnUnitMixin, _Trigonometric1D):
     """
     One dimensional Cosine model.
 
@@ -944,7 +945,7 @@ class Cosine1D(_Trigonometric1D):
         return ArcCosine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
 
 
-class Tangent1D(_Trigonometric1D):
+class Tangent1D(AmplitudeReturnUnitMixin, _Trigonometric1D):
     """
     One dimensional Tangent model.
 
@@ -1429,7 +1430,7 @@ class Planar2D(Fittable2DModel):
                 'slope_y': outputs_unit['z'] / inputs_unit['y']}
 
 
-class Lorentz1D(Fittable1DModel):
+class Lorentz1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Lorentzian model.
 
@@ -1716,7 +1717,7 @@ class Voigt1D(Fittable1DModel):
         return w
 
 
-class Const1D(Fittable1DModel):
+class Const1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Constant model.
 
@@ -1792,7 +1793,7 @@ class Const1D(Fittable1DModel):
         return {'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Const2D(Fittable2DModel):
+class Const2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional Constant model.
 
@@ -1840,7 +1841,7 @@ class Const2D(Fittable2DModel):
         return {'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Ellipse2D(Fittable2DModel):
+class Ellipse2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     A 2D Ellipse model.
 
@@ -1971,7 +1972,7 @@ class Ellipse2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Disk2D(Fittable2DModel):
+class Disk2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional radial symmetric Disk model.
 
@@ -2050,7 +2051,7 @@ class Disk2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Ring2D(Fittable2DModel):
+class Ring2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional radial symmetric Ring model.
 
@@ -2168,7 +2169,7 @@ class Ring2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Box1D(Fittable1DModel):
+class Box1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Box model.
 
@@ -2250,19 +2251,13 @@ class Box1D(Fittable1DModel):
             return None
         return {self.inputs[0]: self.x_0.unit}
 
-    @property
-    def return_units(self):
-        if self.amplitude.unit is None:
-            return None
-        return {self.outputs[0]: self.amplitude.unit}
-
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit[self.inputs[0]],
                 'width': inputs_unit[self.inputs[0]],
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Box2D(Fittable2DModel):
+class Box2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional Box model.
 
@@ -2349,7 +2344,7 @@ class Box2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Trapezoid1D(Fittable1DModel):
+class Trapezoid1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Trapezoid model.
 
@@ -2445,7 +2440,7 @@ class Trapezoid1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class TrapezoidDisk2D(Fittable2DModel):
+class TrapezoidDisk2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional circular Trapezoid model.
 
@@ -2521,7 +2516,7 @@ class TrapezoidDisk2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class RickerWavelet1D(Fittable1DModel):
+class RickerWavelet1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat"
     model).
@@ -2614,7 +2609,7 @@ class RickerWavelet1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class RickerWavelet2D(Fittable2DModel):
+class RickerWavelet2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional Ricker Wavelet model (sometimes known as a "Mexican Hat"
     model).
@@ -2682,7 +2677,7 @@ class RickerWavelet2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class AiryDisk2D(Fittable2DModel):
+class AiryDisk2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional Airy disk model.
 
@@ -2780,7 +2775,7 @@ class AiryDisk2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Moffat1D(Fittable1DModel):
+class Moffat1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional Moffat model.
 
@@ -2874,7 +2869,7 @@ class Moffat1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Moffat2D(Fittable2DModel):
+class Moffat2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     """
     Two dimensional Moffat model.
 
@@ -2962,7 +2957,7 @@ class Moffat2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Sersic2D(Fittable2DModel):
+class Sersic2D(AmplitudeReturnUnitMixin, Fittable2DModel):
     r"""
     Two dimensional Sersic surface brightness profile.
 
@@ -3081,7 +3076,7 @@ class Sersic2D(Fittable2DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class KingProjectedAnalytic1D(Fittable1DModel):
+class KingProjectedAnalytic1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     Projected (surface density) analytic King Model.
 
@@ -3215,7 +3210,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Logarithmic1D(Fittable1DModel):
+class Logarithmic1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional logarithmic model.
 
@@ -3264,7 +3259,7 @@ class Logarithmic1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Exponential1D(Fittable1DModel):
+class Exponential1D(AmplitudeReturnUnitMixin, Fittable1DModel):
     """
     One dimensional exponential model.
 

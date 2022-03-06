@@ -1,0 +1,1 @@
+Implement the ``return_units`` property for all models that have an ``amplitude`` parameter.
