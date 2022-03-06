@@ -458,3 +458,35 @@ def test_scalar_quantity_distribution():
     assert isinstance(sin_angles, Distribution)
     assert isinstance(sin_angles, u.Quantity)
     assert_array_equal(sin_angles, Distribution(np.sin([90., 30., 0.]*u.deg)))
+
+
+def test_access_structured_dtype():
+    """Test that we can access the fields of a structured Distribution.
+
+    Distribution obscures the original dtype structure of an array by nesting
+    the original dtype in a structured dtype with field "samples".
+    """
+    dtype = np.dtype([("nu1", float), ("nu2", float), ("nu3", float)])
+    x = np.array([(0, 0, 0.6), (0.1, -0.01, 0.59)], dtype=dtype)
+
+    f = Distribution(x)
+    assert f.dtype.names == ("samples", )
+
+    # accessing the underlying structure
+    assert f.dtype["samples"].base.names == dtype.names
+
+    for n in dtype.names:
+        fsub = f[n]
+
+        assert isinstance(fsub, Distribution)
+        assert all(fsub.distribution == x[n])
+
+        # Changes on `fsub` are not reflected on `f` nor `x`
+        fsub.distribution[0] += 2
+        assert not all(fsub.distribution == f.distribution[n])
+        assert not all(fsub.distribution == x[n])
+
+        # Changes on `f` are reflected on `fsub` and `x`
+        f.distribution[n][0] += 2
+        assert all(fsub.distribution == f.distribution[n])
+        assert all(f.distribution == x)

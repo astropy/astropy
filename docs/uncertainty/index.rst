@@ -216,6 +216,18 @@ attribute::
   >>> distr.distribution.shape
   (4, 1000)
 
+For structured Distributions, the sub-arrays may be accessed as Distributions
+themselves:
+
+  >>> x = np.array([(0, 0.6), (0.1, 0.59)], dtype=[("n1", float), ("n2", float)])
+  >>> f = unc.Distribution(x)
+  >>> f["n1"]
+  NdarrayDistribution([0. , 0.1]) with n_samples=2
+
+Note that structured |Quantity| Distributions are not yet supported
+(https://github.com/astropy/astropy/issues/12909).
+
+
 .. EXAMPLE END
 
 .. EXAMPLE START: Interaction Between Quantity Objects and Distributions

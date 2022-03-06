@@ -1,0 +1,2 @@
+Structured distributions now allow access to the underlying structure,
+while remaining a Distribution.
