@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import astropy.config as _config
+from astropy.utils.compat import optional_deps
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
 __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
@@ -68,5 +69,9 @@ with registry.delay_doc_updates(Table):
     import astropy.io.fits.connect
     import astropy.io.misc.connect
     import astropy.io.votable.connect
-    import astropy.io.misc.asdf.connect
     import astropy.io.misc.pandas.connect  # noqa: F401
+
+    if optional_deps.HAS_ASDF_ASTROPY:
+        import asdf_astropy.io.connect
+    else:
+        import astropy.io.misc.asdf.connect

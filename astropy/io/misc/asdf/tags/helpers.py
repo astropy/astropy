@@ -1,21 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-import numpy as np
+from astropy.coordinates.tests.helper import skycoord_equal as _skycoord_equal
+from astropy.utils.decorators import deprecated
 
 
-__all__ = []
+__all__ = ['skycoord_equal']
 
 
+@deprecated("5.1", alternative="astropy.coordinates.tests.helper.skycoord_equal")
 def skycoord_equal(sc1, sc2):
-    """SkyCoord equality useful for testing and ASDF serialization
-    """
-    if not sc1.is_equivalent_frame(sc2):
-        return False
-    if sc1.representation_type is not sc2.representation_type:
-        return False
-    if sc1.shape != sc2.shape:
-        return False  # Maybe raise ValueError corresponding to future numpy behavior
-    eq = np.ones(shape=sc1.shape, dtype=bool)
-    for comp in sc1.data.components:
-        eq &= getattr(sc1.data, comp) == getattr(sc2.data, comp)
-    return np.all(eq)
+    return _skycoord_equal(sc1, sc2)

@@ -23,7 +23,7 @@ from astropy.table import table_helpers
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.coordinates.tests.helper import skycoord_equal
 
 from .conftest import MIXIN_COLS
 

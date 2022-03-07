@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import warnings
+
 from asdf.types import CustomType, ExtensionTypeMeta
+
+from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 
 __all__ = ['AstropyType', 'AstropyAsdfType']
 
@@ -41,6 +45,16 @@ class AstropyType(CustomType, metaclass=AstropyTypeMeta):
     organization = 'astropy.org'
     standard = 'astropy'
 
+    @classmethod
+    def to_tree_tagged(cls, node, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+        return super().to_tree_tagged(node, ctx)
+
+    @classmethod
+    def from_tree_tagged(cls, tree, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+        return super().from_tree_tagged(tree, ctx)
+
 
 class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
     """
@@ -52,3 +66,13 @@ class AstropyAsdfType(CustomType, metaclass=AstropyTypeMeta):
     """
     organization = 'stsci.edu'
     standard = 'asdf'
+
+    @classmethod
+    def to_tree_tagged(cls, node, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+        return super().to_tree_tagged(node, ctx)
+
+    @classmethod
+    def from_tree_tagged(cls, tree, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+        return super().from_tree_tagged(tree, ctx)
