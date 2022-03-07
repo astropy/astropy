@@ -18,6 +18,42 @@ write_to = "astropy/_version.py"
     [tool.astropy-bot.changelog_checker]
         enabled = false
 
+[tool.isort]
+    extend_skip_glob = [
+        "docs/*",
+        "examples/*",
+        "astropy/_dev/*",
+        "astropy/_erfa/*",
+        "astropy/config/*",
+        "astropy/constants/*",
+        "astropy/convolution/*",
+        "astropy/coordinates/*",
+        "astropy/cosmology/*",
+        "astropy/extern/*",
+        "astropy/io/*",
+        "astropy/modeling/*",
+        "astropy/nddata/*",
+        "astropy/samp/*",
+        "astropy/stats/*",
+        "astropy/table/*",
+        "astropy/tests/*",
+        "astropy/time/*",
+        "astropy/timeseries/*",
+        "astropy/uncertainty/*",
+        "astropy/units/*",
+        "astropy/utils/*",
+        "astropy/visualization/*",
+        "astropy/wcs/*",
+        "astropy/logger.py",
+        "setup.py"]
+    line_length = 100
+    sections = ["FUTURE", "STDLIB", "THIRDPARTY", "NUMPY", "FIRSTPARTY", "LOCALFOLDER"]
+    known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
+    known_numpy = ["numpy"]
+    known_first_party = ["astropy"]
+    multi_line_output = 0
+    group_by_package = true
+
 [tool.towncrier]
     package = "astropy"
     filename = "CHANGES.rst"
