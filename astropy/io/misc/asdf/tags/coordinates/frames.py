@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import glob
+import warnings
 
 from asdf import tagged
 
@@ -11,6 +12,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.units import Quantity
 from astropy.coordinates import ICRS, Longitude, Latitude, Angle
 from astropy.io.misc.asdf.types import AstropyType
+from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 
 
 __all__ = ['CoordType']
@@ -61,6 +63,7 @@ class BaseCoordType:
 
     @classmethod
     def from_tree_tagged(cls, node, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
 
         frame = cls._tag_to_frame(node._tag)
 
@@ -72,6 +75,8 @@ class BaseCoordType:
 
     @classmethod
     def to_tree_tagged(cls, frame, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+
         if type(frame) not in frame_transform_graph.frame_set:
             raise ValueError("Can only save frames that are registered with the "
                              "transformation graph.")

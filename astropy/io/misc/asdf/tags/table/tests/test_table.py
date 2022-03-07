@@ -12,7 +12,7 @@ import astropy.units as u
 from astropy import table
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.coordinates.tests.helper import skycoord_equal
 
 from asdf.tests import helpers
 from asdf.tags.core.ndarray import NDArrayType
