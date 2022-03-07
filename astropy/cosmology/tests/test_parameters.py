@@ -3,9 +3,10 @@
 # STDLIB
 from types import MappingProxyType
 
+import pytest
+
 # THIRD PARTY
 import numpy as np
-import pytest
 
 # LOCAL
 from astropy.cosmology import parameters, realizations

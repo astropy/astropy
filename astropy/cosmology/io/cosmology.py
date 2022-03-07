@@ -7,8 +7,8 @@ The following are private functions. These functions are registered into
 via these methods.
 """
 
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 __all__ = []  # nothing is publicly scoped
 

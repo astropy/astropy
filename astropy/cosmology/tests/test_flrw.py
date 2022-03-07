@@ -18,8 +18,8 @@ import astropy.constants as const
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
-                               LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM, LambdaCDM, Planck18,
+                               w0waCDM, w0wzCDM, wCDM, wpwaCDM)
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw import H0units_to_invs, a_B_c2, critdens_const, ellipkinc, hyp2f1, quad
 from astropy.cosmology.parameter import Parameter
@@ -29,9 +29,9 @@ from .conftest import get_redshift_methods
 from .test_core import CosmologySubclassTest as CosmologyTest
 from .test_core import FlatCosmologyMixinTest, ParameterTestMixin, invalid_zs, valid_zs
 
-
 ##############################################################################
 # SETUP / TEARDOWN
+
 
 class SubFLRW(FLRW):
     def w(self, z):
