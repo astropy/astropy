@@ -15,9 +15,9 @@ import pytest
 from astropy.cosmology import core
 from astropy.tests.helper import pickle_protocol  # noqa: F403
 
-
 ###############################################################################
 # FUNCTIONS
+
 
 def get_redshift_methods(cosmology, allow_private=True, allow_z2=True):
     """Get redshift methods from a cosmology.

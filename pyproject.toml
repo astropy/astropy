@@ -28,7 +28,6 @@ write_to = "astropy/_version.py"
         "astropy/constants/*",
         "astropy/convolution/*",
         "astropy/coordinates/*",
-        "astropy/cosmology/*",
         "astropy/extern/*",
         "astropy/io/*",
         "astropy/modeling/*",
@@ -51,6 +50,7 @@ write_to = "astropy/_version.py"
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_numpy = ["numpy"]
     known_first_party = ["astropy"]
+    known_local_folder = ["mypackage"]
     multi_line_output = 0
     group_by_package = true
 

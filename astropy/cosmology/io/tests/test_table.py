@@ -11,7 +11,6 @@ from astropy.table import QTable, Table, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
-
 ###############################################################################
 
 

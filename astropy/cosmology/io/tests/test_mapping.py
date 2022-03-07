@@ -5,9 +5,10 @@ import copy
 import inspect
 from collections import OrderedDict
 
+import pytest
+
 # THIRD PARTY
 import numpy as np
-import pytest
 
 # LOCAL
 from astropy.cosmology import Cosmology
