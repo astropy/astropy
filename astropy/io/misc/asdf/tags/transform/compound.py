@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import warnings
+
 from asdf import tagged
 from asdf.tests.helpers import assert_tree_match
 from astropy.modeling.core import Model, CompoundModel
 from astropy.modeling.models import Identity, Mapping, Const1D
+from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
 
 
@@ -42,6 +45,8 @@ class CompoundType(TransformType):
 
     @classmethod
     def from_tree_tagged(cls, node, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+
         tag = node._tag[node._tag.rfind('/')+1:]
         tag = tag[:tag.rfind('-')]
         oper = _tag_to_method_mapping[tag]
@@ -62,6 +67,8 @@ class CompoundType(TransformType):
 
     @classmethod
     def to_tree_tagged(cls, model, ctx):
+        warnings.warn(create_asdf_deprecation_warning())
+
         left = model.left
 
         if isinstance(model.right, dict):
