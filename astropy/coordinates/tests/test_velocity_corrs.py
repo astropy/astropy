@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, SkyCoord, Angle, Distance
 from astropy.coordinates.sites import get_builtin_sites
-from astropy.utils.data import download_file
+from astropy.utils.data import get_pkg_data_filename
 from astropy.constants import c as speed_of_light
 from astropy.table import Table
 
@@ -413,8 +413,9 @@ def test_regression_10094():
     """
     # Wright & Eastman (2014) Table2
     # Corrections for tau Ceti
+
     wright_table = Table.read(
-        download_file('http://data.astropy.org/coordinates/wright_eastmann_2014_tau_ceti.fits')
+        get_pkg_data_filename('coordinates/wright_eastmann_2014_tau_ceti.fits')
     )
     reduced_jds = wright_table['JD-2400000']
     tempo2 = wright_table['TEMPO2']
