@@ -29,7 +29,7 @@ from astropy.utils import minversion, isiterable
 from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 RA = 1.0 * u.deg

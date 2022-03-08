@@ -22,7 +22,7 @@ from astropy.coordinates import (SkyCoord, SphericalRepresentation,
                                  BaseRepresentationOrDifferential,
                                  search_around_3d)
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 

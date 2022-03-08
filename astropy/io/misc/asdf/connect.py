@@ -1,8 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 # This file connects ASDF to the astropy.table.Table class
+import warnings
+
 from astropy.io import registry as io_registry
+from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 from astropy.table import Table
+from astropy.utils.compat import optional_deps
 
 
 def read_table(filename, data_key=None, find_table=None, **kwargs):
@@ -36,6 +40,8 @@ def read_table(filename, data_key=None, find_table=None, **kwargs):
     table : `~astropy.table.Table`
         `~astropy.table.Table` instance
     """
+    warnings.warn(create_asdf_deprecation_warning())
+
     try:
         import asdf
     except ImportError:
@@ -80,6 +86,8 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
         to be written. The function must return a `dict` representing the ASDF
         tree to be created.
     """
+    warnings.warn(create_asdf_deprecation_warning())
+
     try:
         import asdf
     except ImportError:
@@ -107,6 +115,7 @@ def asdf_identify(origin, filepath, fileobj, *args, **kwargs):
     return filepath is not None and filepath.endswith('.asdf')
 
 
-io_registry.register_reader('asdf', Table, read_table)
-io_registry.register_writer('asdf', Table, write_table)
-io_registry.register_identifier('asdf', Table, asdf_identify)
+if not optional_deps.HAS_ASDF_ASTROPY:
+    io_registry.register_reader('asdf', Table, read_table)
+    io_registry.register_writer('asdf', Table, write_table)
+    io_registry.register_identifier('asdf', Table, asdf_identify)
