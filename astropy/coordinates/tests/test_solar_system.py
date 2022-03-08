@@ -2,7 +2,7 @@ import os
 
 import pytest
 import numpy as np
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 from astropy.time import Time
 from astropy import units as u
@@ -17,7 +17,7 @@ from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_K
 from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.data import download_file
+from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.compat.optional_deps import (HAS_JPLEPHEM,  # noqa
                                                 HAS_SKYFIELD)
 
@@ -429,8 +429,8 @@ def test_url_or_file_ephemeris(time):
 def test_url_ephemeris_wrong_input():
     # Try loading a non-existing URL:
     time = Time('1960-01-12 00:00')
-    with pytest.raises(HTTPError):
-        get_body('earth', time, ephemeris='http://data.astropy.org/path/to/nonexisting/file.bsp')
+    with pytest.raises((HTTPError, URLError)):
+        get_body('earth', time, ephemeris=get_pkg_data_filename('path/to/nonexisting/file.bsp'))
 
 
 @pytest.mark.skipif('not HAS_JPLEPHEM')
