@@ -4,27 +4,27 @@
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
+import unittest.mock as mk
+
+import numpy as np
 # pylint: disable=invalid-name, no-member
 import pytest
-import numpy as np
-import unittest.mock as mk
-import astropy.modeling.tabular as tabular_models
-
 from numpy.testing import assert_allclose, assert_equal
 
+import astropy.modeling.tabular as tabular_models
 from astropy import units as u
 from astropy.modeling import fitting, models
-from astropy.modeling.models import Gaussian2D
 from astropy.modeling.bounding_box import ModelBoundingBox
-from astropy.modeling.core import FittableModel, _ModelMeta, Model
-from astropy.modeling.parameters import Parameter
+from astropy.modeling.core import FittableModel, Model, _ModelMeta
+from astropy.modeling.models import Gaussian2D
+from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import SmoothlyBrokenPowerLaw1D
-from astropy.modeling.parameters import InputParameterError
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+
 from .example_models import models_1D, models_2D
 
 

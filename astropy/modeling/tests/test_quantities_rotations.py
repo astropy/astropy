@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name, no-member
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.wcs import wcs
-from astropy.modeling import models
 from astropy import units as u
+from astropy.modeling import models
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.wcs import wcs
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9),

@@ -3,16 +3,14 @@
 This module tests fitting and model evaluation with various inputs
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.modeling import models
-from astropy.modeling import fitting
-from astropy.modeling.core import Model, FittableModel, Fittable1DModel
+from astropy.modeling import fitting, models
+from astropy.modeling.core import Fittable1DModel, FittableModel, Model
 from astropy.modeling.parameters import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-
 
 model1d_params = [
     (models.Polynomial1D, [2]),

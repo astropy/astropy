@@ -2,22 +2,20 @@
 # pylint: disable=invalid-name, pointless-statement
 
 import pickle
-import pytest
 
 import numpy as np
-
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.utils import minversion
-from astropy.modeling.core import Model, ModelDefinitionError, CompoundModel
-from astropy.modeling.parameters import Parameter
-from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                                     Gaussian2D, Polynomial1D, Polynomial2D,
-                                     Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                                     Identity, Mapping, Linear1D,
-                                     Tabular1D, fix_inputs,)
-from astropy.modeling.fitting import LevMarLSQFitter
 import astropy.units as u
+from astropy.modeling.core import CompoundModel, Model, ModelDefinitionError
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.models import (Chebyshev1D, Chebyshev2D, Const1D, Gaussian1D, Gaussian2D,
+                                     Identity, Legendre1D, Legendre2D, Linear1D, Mapping,
+                                     Polynomial1D, Polynomial2D, Rotation2D, Scale, Shift,
+                                     Tabular1D, fix_inputs)
+from astropy.modeling.parameters import Parameter
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 

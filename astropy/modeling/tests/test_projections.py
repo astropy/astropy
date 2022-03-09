@@ -3,20 +3,19 @@
 """Test sky projections defined in WCS Paper II"""
 # pylint: disable=invalid-name, no-member
 import os
-
-import pytest
-import numpy as np
 import unittest.mock as mk
+
+import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
+from astropy import units as u
+from astropy import wcs
+from astropy.io import fits
 from astropy.modeling import projections
 from astropy.modeling.parameters import InputParameterError
-
-from astropy import units as u
-from astropy.io import fits
-from astropy import wcs
-from astropy.utils.data import get_pkg_data_filename
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.data import get_pkg_data_filename
 
 
 def test_new_wcslib_projections():
