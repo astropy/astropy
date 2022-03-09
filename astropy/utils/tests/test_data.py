@@ -1078,8 +1078,6 @@ def test_data_noastropy_fallback(monkeypatch):
         fnout = download_file(TESTURL, cache=True)
     n_warns = len(warning_lines)
 
-    assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
-
     partial_warn_msgs = ['remote data cache could not be accessed', 'temporary file']
     if n_warns == 4:
         partial_warn_msgs.extend(['socket', 'socket'])
@@ -1091,6 +1089,8 @@ def test_data_noastropy_fallback(monkeypatch):
                 del partial_warn_msgs[i]
                 break
     assert len(partial_warn_msgs) == 0, f'Got some unexpected warnings: {partial_warn_msgs}'
+
+    assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
 
     assert os.path.isfile(fnout)
 
