@@ -1311,3 +1311,28 @@ def test_compound_model_with_bounding_box_true_and_single_output():
     assert_equal(model(x, y), [4, 5])
     # Check with_bounding_box=True should be the same
     assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+
+
+@pytest.mark.parametrize('int_type', [int, np.int32, np.int64, np.uint32, np.uint64])
+def test_model_integer_indexing(int_type):
+    """Regression for PR 12561; verify that compound model components
+     can be accessed by integer index"""
+    gauss = models.Gaussian2D()
+    airy = models.AiryDisk2D()
+    compound = gauss + airy
+
+    assert compound[int_type(0)] == gauss
+    assert compound[int_type(1)] == airy
+
+
+def test_model_string_indexing():
+    """Regression for PR 12561; verify that compound model components
+     can be accessed by indexing with model name"""
+    gauss = models.Gaussian2D()
+    gauss.name = 'Model1'
+    airy = models.AiryDisk2D()
+    airy.name = 'Model2'
+    compound = gauss + airy
+
+    assert compound['Model1'] == gauss
+    assert compound['Model2'] == airy
