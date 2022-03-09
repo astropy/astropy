@@ -5,9 +5,8 @@ import inspect
 import random
 
 # THIRD PARTY
-import pytest
-
 import numpy as np
+import pytest
 
 # LOCAL
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology

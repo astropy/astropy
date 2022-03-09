@@ -8,7 +8,7 @@
 # STDLIB
 import inspect
 
-# THIRD-PARTY
+# THIRD PARTY
 import pytest
 
 # LOCAL

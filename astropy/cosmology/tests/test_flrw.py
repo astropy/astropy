@@ -10,9 +10,8 @@ import abc
 import copy
 
 # THIRD PARTY
-import pytest
-
 import numpy as np
+import pytest
 
 import astropy.constants as const
 # LOCAL
