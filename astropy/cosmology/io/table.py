@@ -6,7 +6,7 @@ import numpy as np
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
-from astropy.table import QTable, Table, Column
+from astropy.table import Column, QTable, Table
 
 from .mapping import to_mapping
 from .row import from_row

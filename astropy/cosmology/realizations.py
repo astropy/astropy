@@ -11,7 +11,6 @@ from astropy.utils.state import ScienceState
 
 from .core import Cosmology
 
-
 _COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
 available = tuple(sorted([p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")]))
 

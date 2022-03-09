@@ -11,9 +11,8 @@ import inspect
 import sys
 
 # THIRD PARTY
-import pytest
-
 import numpy as np
+import pytest
 
 # LOCAL
 import astropy.units as u

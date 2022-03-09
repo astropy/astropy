@@ -4,9 +4,8 @@
 
 from io import StringIO
 
-import pytest
-
 import numpy as np
+import pytest
 
 import astropy.constants as const
 import astropy.units as u
