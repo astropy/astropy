@@ -30,7 +30,6 @@ write_to = "astropy/_version.py"
         "astropy/coordinates/*",
         "astropy/extern/*",
         "astropy/io/*",
-        "astropy/modeling/*",
         "astropy/nddata/*",
         "astropy/samp/*",
         "astropy/stats/*",
