@@ -2,9 +2,8 @@
 
 from math import inf
 
-import pytest
-
 import numpy as np
+import pytest
 
 from astropy.cosmology.utils import aszarr, inf_like, vectorize_if_needed, vectorize_redshift_method
 from astropy.utils.exceptions import AstropyDeprecationWarning

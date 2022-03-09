@@ -43,16 +43,16 @@ write_to = "astropy/_version.py"
         "astropy/utils/*",
         "astropy/visualization/*",
         "astropy/wcs/*",
+        "astropy/__init__.py",
         "astropy/logger.py",
         "setup.py"]
     line_length = 100
-    sections = ["FUTURE", "STDLIB", "THIRDPARTY", "NUMPY", "FIRSTPARTY", "LOCALFOLDER"]
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
-    known_numpy = ["numpy"]
     known_first_party = ["astropy"]
     known_local_folder = ["mypackage"]
     multi_line_output = 0
     group_by_package = true
+    indented_import_headings = false
 
 [tool.towncrier]
     package = "astropy"
