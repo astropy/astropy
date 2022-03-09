@@ -1,29 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import os
-import sys
 import subprocess
-
-import pytest
+import sys
 import unittest.mock as mk
-import numpy as np
 from inspect import signature
+
+import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import astropy
-from astropy.modeling.core import (Model, CompoundModel, custom_model,
-                                   SPECIAL_OPERATORS, _add_special_operator,
-                                   bind_bounding_box, bind_compound_bounding_box,
-                                   fix_inputs)
-from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
-from astropy.modeling.separable import separability_matrix
-from astropy.modeling.parameters import Parameter
-from astropy.modeling import models
-from astropy.convolution import convolve_models
+import astropy.modeling.core as core
 import astropy.units as u
+from astropy.convolution import convolve_models
+from astropy.modeling import models
+from astropy.modeling.bounding_box import CompoundBoundingBox, ModelBoundingBox
+from astropy.modeling.core import (SPECIAL_OPERATORS, CompoundModel, Model, _add_special_operator,
+                                   bind_bounding_box, bind_compound_bounding_box, custom_model,
+                                   fix_inputs)
+from astropy.modeling.parameters import Parameter
+from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-import astropy.modeling.core as core
 
 
 class NonFittableModel(Model):

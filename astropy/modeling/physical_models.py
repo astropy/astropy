@@ -11,8 +11,9 @@ import numpy as np
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
+
 from .core import Fittable1DModel
-from .parameters import Parameter, InputParameterError
+from .parameters import InputParameterError, Parameter
 
 __all__ = ["BlackBody", "Drude1D", "Plummer1D", "NFW"]
 

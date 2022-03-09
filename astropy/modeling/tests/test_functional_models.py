@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # pylint: disable=invalid-name
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 
 from astropy import units as u
-from astropy.modeling import models, InputParameterError
 from astropy.coordinates import Angle
-from astropy.modeling import fitting
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.modeling import InputParameterError, fitting, models
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 def test_sigma_constant():
@@ -20,8 +19,8 @@ def test_sigma_constant():
     it manually in astropy.modeling to avoid importing from
     astropy.stats.
     """
-    from astropy.stats.funcs import gaussian_sigma_to_fwhm
     from astropy.modeling.functional_models import GAUSSIAN_SIGMA_TO_FWHM
+    from astropy.stats.funcs import gaussian_sigma_to_fwhm
     assert gaussian_sigma_to_fwhm == GAUSSIAN_SIGMA_TO_FWHM
 
 

@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # pylint: disable=invalid-name
+import unittest.mock as mk
 from math import cos, sin
 
-import pytest
-import unittest.mock as mk
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 import astropy.units as u
+from astropy.modeling import models, rotations
 from astropy.tests.helper import assert_quantity_allclose
-
-from astropy.modeling import models
-from astropy.modeling import rotations
 from astropy.wcs import wcs
 
 

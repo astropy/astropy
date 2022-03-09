@@ -17,9 +17,8 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
-from .utils import array_repr_oneline
-from .utils import get_inputs_and_params
 
+from .utils import array_repr_oneline, get_inputs_and_params
 
 __all__ = ['Parameter', 'InputParameterError', 'ParameterError']
 

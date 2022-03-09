@@ -6,11 +6,10 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
-from .core import (Fittable1DModel, Fittable2DModel)
 
-from .parameters import Parameter, InputParameterError
+from .core import Fittable1DModel, Fittable2DModel
+from .parameters import InputParameterError, Parameter
 from .utils import ellipse_extent
-
 
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',

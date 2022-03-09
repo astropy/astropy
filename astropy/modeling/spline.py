@@ -3,18 +3,17 @@
 """Spline models and fitters."""
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 
-import warnings
-
 import abc
 import functools
+import warnings
+
 import numpy as np
 
-from astropy.utils.exceptions import (AstropyUserWarning,)
 from astropy.utils import isiterable
-from .core import (FittableModel, ModelDefinitionError)
+from astropy.utils.exceptions import AstropyUserWarning
 
+from .core import FittableModel, ModelDefinitionError
 from .parameters import Parameter
-
 
 __all__ = ['Spline1D', 'SplineInterpolateFitter', 'SplineSmoothingFitter',
            'SplineExactKnotsFitter', 'SplineSplrepFitter']

@@ -4,7 +4,7 @@
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import numpy as np
 
-from .core import CompoundModel, SPECIAL_OPERATORS
+from .core import SPECIAL_OPERATORS, CompoundModel
 
 
 class Convolution(CompoundModel):
