@@ -1342,3 +1342,28 @@ def test_compound_bounding_box_pass_with_ignored():
     bind_compound_bounding_box(model, bbox, selector_args=[('slit_id', True)],
                                ignored=['y'], order='F')
     assert model.bounding_box == cbbox
+
+
+@pytest.mark.parametrize('int_type', [int, np.int32, np.int64, np.uint32, np.uint64])
+def test_model_integer_indexing(int_type):
+    """Regression for PR 12561; verify that compound model components
+     can be accessed by integer index"""
+    gauss = models.Gaussian2D()
+    airy = models.AiryDisk2D()
+    compound = gauss + airy
+
+    assert compound[int_type(0)] == gauss
+    assert compound[int_type(1)] == airy
+
+
+def test_model_string_indexing():
+    """Regression for PR 12561; verify that compound model components
+     can be accessed by indexing with model name"""
+    gauss = models.Gaussian2D()
+    gauss.name = 'Model1'
+    airy = models.AiryDisk2D()
+    airy.name = 'Model2'
+    compound = gauss + airy
+
+    assert compound['Model1'] == gauss
+    assert compound['Model2'] == airy
