@@ -13,8 +13,8 @@ from collections.abc import Mapping
 
 import numpy as np
 
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
 __all__ = []  # nothing is publicly scoped
 

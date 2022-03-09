@@ -3,8 +3,8 @@
 import numpy as np
 
 from astropy.cosmology.parameter import Parameter
-from astropy.table import Column
 from astropy.modeling import Parameter as ModelParameter
+from astropy.table import Column
 
 
 def convert_parameter_to_column(parameter, value, meta=None):

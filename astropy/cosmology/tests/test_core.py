@@ -12,9 +12,8 @@ import pickle
 from types import MappingProxyType
 
 # THIRD PARTY
-import pytest
-
 import numpy as np
+import pytest
 
 # LOCAL
 import astropy.cosmology.units as cu

@@ -5,9 +5,9 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.table import Row, QTable
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.table import QTable, Row
 
 from .mapping import from_mapping
 
