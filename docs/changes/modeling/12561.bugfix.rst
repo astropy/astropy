@@ -1,0 +1,2 @@
+Indexing on models can now be used with all types of integers
+(like ``numpy.int64``) instead of just ``int``.

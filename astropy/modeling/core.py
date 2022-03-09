@@ -18,6 +18,7 @@ import copy
 import inspect
 import itertools
 import functools
+import numbers
 import operator
 import types
 
@@ -3348,9 +3349,9 @@ class CompoundModel(Model):
                     if leftind == start and rightind == stop:
                         return node
                 raise IndexError("No appropriate subtree matches slice")
-        if isinstance(index, type(0)):
+        if np.issubdtype(type(index), np.integer):
             return leaflist[index]
-        elif isinstance(index, type('')):
+        elif isinstance(index, str):
             return leaflist[self._str_index_to_int(index)]
         else:
             raise TypeError('index must be integer, slice, or model name string')
