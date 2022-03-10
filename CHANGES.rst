@@ -1,3 +1,63 @@
+5.0.2 (2022-03-10)
+==================
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Bugfix to add backwards compatibility for reading ECSV version 0.9 files with
+  non-standard column datatypes (such as ``object``, ``str``, ``datetime64``,
+  etc.), which would raise a ValueError in ECSV version 1.0. [#12880]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Bugfix for ``units_mapping`` schema's property name conflicts. Changes:
+      * ``inputs`` to ``unit_inputs``
+      * ``outputs`` to ``unit_outputs`` [#12800]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fixed a bug where ``astropy.io.votable.validate`` was printing output to
+  ``sys.stdout`` when the ``output`` paramter was set to ``None``. ``validate``
+  now returns a string when ``output`` is set to ``None``, as documented.
+  [#12604]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fix handling of units on ``scale`` parameter in BlackBody model. [#12318]
+
+- Indexing on models can now be used with all types of integers
+  (like ``numpy.int64``) instead of just ``int``. [#12561]
+
+- Fix computation of the separability of a ``CompoundModel`` where another
+  ``CompoundModel`` is on the right hand side of the ``&`` operator. [#12907]
+
+- Provide a hook (``Model._calculate_separability_matrix``) to allow subclasses
+  of ``Model`` to define how to compute their separability matrix. [#12900]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed a bug in which running ``kuiper_false_positive_probability(D,N)`` on
+  distributions with many data points could produce NaN values for the false
+  positive probability of the Kuiper statistic. [#12896]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug due to which ``naxis``, ``pixel_shape``, and
+  ``pixel_bounds`` attributes of ``astropy.wcs.WCS`` were not restored when
+  an ``astropy.wcs.WCS`` object was unpickled. This fix also eliminates
+  ``FITSFixedWarning`` warning issued during unpiclikng of the WCS objects
+  related to the number of axes. This fix also eliminates errors when
+  unpickling WCS objects originally created using non-default values for
+  ``key``, ``colsel``, and ``keysel`` parameters. [#12844]
+
 5.0.1 (2022-01-26)
 ==================
 
