@@ -7,10 +7,9 @@ Bug Fixes
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Bugfix to add backwards compatibility for reading ECSV
-  version 0.9 files with non-standard column datatypes
-  (such as ``object``, ``str``, ``datetime64``, etc.), which would
-  raise a ValueError in ECSV version 1.0. [#12880]
+- Bugfix to add backwards compatibility for reading ECSV version 0.9 files with
+  non-standard column datatypes (such as ``object``, ``str``, ``datetime64``,
+  etc.), which would raise a ValueError in ECSV version 1.0. [#12880]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -22,7 +21,10 @@ astropy.io.misc
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
-- Fixed a bug where ``astropy.io.votable.validate`` was printing output to ``sys.stdout`` when the ``output`` paramter was set to ``None``. ``validate`` now returns a string when ``output`` is set to ``None``, as documented. [#12604]
+- Fixed a bug where ``astropy.io.votable.validate`` was printing output to
+  ``sys.stdout`` when the ``output`` paramter was set to ``None``. ``validate``
+  now returns a string when ``output`` is set to ``None``, as documented.
+  [#12604]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -32,14 +34,18 @@ astropy.modeling
 - Indexing on models can now be used with all types of integers
   (like ``numpy.int64``) instead of just ``int``. [#12561]
 
-- Fix computation of the separability of a ``CompoundModel`` where another ``CompoundModel`` is on the right hand side of the ``&`` operator. [#12907]
+- Fix computation of the separability of a ``CompoundModel`` where another
+  ``CompoundModel`` is on the right hand side of the ``&`` operator. [#12907]
 
-- Provide a hook (``Model._calculate_separability_matrix``) to allow subclasses of ``Model`` to define how to compute their separability matrix. [#12900]
+- Provide a hook (``Model._calculate_separability_matrix``) to allow subclasses
+  of ``Model`` to define how to compute their separability matrix. [#12900]
 
 astropy.stats
 ^^^^^^^^^^^^^
 
-- Fixed a bug in which running ``kuiper_false_positive_probability(D,N)`` on distributions with many data points could produce NaN values for the false positive probability of the Kuiper statistic. [#12896]
+- Fixed a bug in which running ``kuiper_false_positive_probability(D,N)`` on
+  distributions with many data points could produce NaN values for the false
+  positive probability of the Kuiper statistic. [#12896]
 
 astropy.wcs
 ^^^^^^^^^^^
