@@ -225,7 +225,8 @@ Also make sure that the ReadTheDocs build is passing for the release branch.
 
 One of the continuous integration tasks that should be run periodically is the updates to the
 IERS tables in ``astropy.utils.iers``, so check that the last run from this has been
-successfully run and that related pull requests have been merged (and back-ported if needed).
+successfully run and that related pull requests have been merged (and backported if needed).
+You can also manually trigger it using its workflow dispatch option.
 
 You may also want to locally run the tests (with remote data on to ensure all
 of the tests actually run), using tox to do a thorough test in an isolated
