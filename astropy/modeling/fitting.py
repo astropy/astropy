@@ -26,21 +26,20 @@ import abc
 import inspect
 import operator
 import warnings
-from importlib.metadata import entry_points
-
 from functools import reduce, wraps
+from importlib.metadata import entry_points
 
 import numpy as np
 
 from astropy.units import Quantity
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated
-from .utils import poly_map_domain, _combine_equivalency_dict
-from .optimizers import (SLSQP, Simplex)
-from .statistic import (leastsquare)
-from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
-from .spline import (SplineInterpolateFitter, SplineSmoothingFitter,
-                     SplineExactKnotsFitter, SplineSplrepFitter)
+from astropy.utils.exceptions import AstropyUserWarning
+
+from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
+from .spline import (SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter,
+                     SplineSplrepFitter)
+from .statistic import leastsquare
+from .utils import _combine_equivalency_dict, poly_map_domain
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',

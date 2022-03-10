@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
-import pytest
-import numpy as np
-
 from inspect import Parameter
 
-from astropy.modeling.utils import (poly_map_domain, _validate_domain_window,
-                                    get_inputs_and_params, _SpecialOperatorsDict)
+import numpy as np
+import pytest
+
+from astropy.modeling.utils import (_SpecialOperatorsDict, _validate_domain_window,
+                                    get_inputs_and_params, poly_map_domain)
 
 
 def test_poly_map_domain():

@@ -3,28 +3,25 @@
 """Tests for polynomial models."""
 # pylint: disable=invalid-name
 import os
+import unittest.mock as mk
 import warnings
-
 from itertools import product
 
-import pytest
 import numpy as np
-import unittest.mock as mk
-
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.modeling import fitting
 from astropy import wcs
 from astropy.io import fits
-from astropy.modeling.polynomial import (
-    Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D,
-    Chebyshev2D, Hermite2D, Legendre2D, Polynomial2D, SIP,
-    PolynomialBase, OrthoPolynomialBase)
+from astropy.modeling import fitting
 from astropy.modeling.functional_models import Linear1D
 from astropy.modeling.mappings import Identity
+from astropy.modeling.polynomial import (SIP, Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D,
+                                         Legendre1D, Legendre2D, OrthoPolynomialBase, Polynomial1D,
+                                         Polynomial2D, PolynomialBase)
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 linear1d = {
     Chebyshev1D: {

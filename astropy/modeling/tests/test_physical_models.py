@@ -1,18 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Tests for physical functions."""
 # pylint: disable=no-member, invalid-name
-import pytest
 import numpy as np
+import pytest
 
-from astropy.modeling.physical_models import BlackBody, NFW
-from astropy.modeling.fitting import LevMarLSQFitter
-
-from astropy.tests.helper import assert_quantity_allclose
-from astropy import units as u
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy import cosmology
+from astropy import units as u
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.physical_models import NFW, BlackBody
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
-
+from astropy.utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ["*"]
 

@@ -1,17 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-import numpy as np
 import unittest.mock as mk
 
-from astropy.modeling.bounding_box import (_BaseInterval, _Interval, _ignored_interval,
-                                           _BoundingDomain, ModelBoundingBox,
-                                           _BaseSelectorArgument, _SelectorArgument, _SelectorArguments,
-                                           CompoundBoundingBox)
-from astropy.modeling.models import Gaussian1D, Gaussian2D, Shift, Scale, Identity
-from astropy.modeling.core import Model, fix_inputs
-from astropy.coordinates import SpectralCoord
+import numpy as np
+import pytest
+
 import astropy.units as u
+from astropy.coordinates import SpectralCoord
+from astropy.modeling.bounding_box import (CompoundBoundingBox, ModelBoundingBox, _BaseInterval,
+                                           _BaseSelectorArgument, _BoundingDomain,
+                                           _ignored_interval, _Interval, _SelectorArgument,
+                                           _SelectorArguments)
+from astropy.modeling.core import Model, fix_inputs
+from astropy.modeling.models import Gaussian1D, Gaussian2D, Identity, Scale, Shift
 
 
 class Test_Interval:

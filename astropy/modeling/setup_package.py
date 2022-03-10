@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-from os.path import join
 from collections import defaultdict
-
-from setuptools import Extension
+from os.path import join
 
 from extension_helpers import import_file
-
+from setuptools import Extension
 
 # This defines the set of projection functions that we want to wrap.
 # The key is the projection name, and the value is the number of

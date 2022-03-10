@@ -6,9 +6,9 @@ Power law model variants
 import numpy as np
 
 from astropy.units import Quantity
-from .core import Fittable1DModel
-from .parameters import Parameter, InputParameterError
 
+from .core import Fittable1DModel
+from .parameters import InputParameterError, Parameter
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
            'ExponentialCutoffPowerLaw1D', 'LogParabola1D']

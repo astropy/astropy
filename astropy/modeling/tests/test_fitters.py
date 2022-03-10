@@ -4,29 +4,28 @@ Module to test fitting routines
 """
 # pylint: disable=invalid-name
 import os.path
-import warnings
-from unittest import mock
-from importlib.metadata import EntryPoint
-
-import pytest
-import numpy as np
 import unittest.mock as mk
+import warnings
+from importlib.metadata import EntryPoint
+from unittest import mock
+
+import numpy as np
+import pytest
 from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
-from astropy.modeling.fitting import (
-    SimplexLSQFitter, SLSQPLSQFitter, LinearLSQFitter, LevMarLSQFitter,
-    JointFitter, Fitter, FittingWithOutlierRemoval)
+from astropy.modeling.fitting import (Fitter, FittingWithOutlierRemoval, JointFitter,
+                                      LevMarLSQFitter, LinearLSQFitter, SimplexLSQFitter,
+                                      SLSQPLSQFitter, populate_entry_points)
 from astropy.modeling.optimizers import Optimization
-from astropy.utils import NumpyRNGContext
-from astropy.utils.data import get_pkg_data_filename
 from astropy.stats import sigma_clip
-
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.modeling.fitting import populate_entry_points
+
 from . import irafutil
 
 if HAS_SCIPY:

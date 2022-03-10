@@ -4,18 +4,19 @@ Tests models.parameters
 """
 # pylint: disable=invalid-name
 
-import itertools
 import functools
-
-import pytest
-import numpy as np
+import itertools
 import unittest.mock as mk
 
-from astropy.modeling import models, fitting
-from astropy.modeling.core import Model, FittableModel
-from astropy.modeling.parameters import Parameter, InputParameterError, _tofloat, param_repr_oneline
+import numpy as np
+import pytest
+
 from astropy import units as u
+from astropy.modeling import fitting, models
+from astropy.modeling.core import FittableModel, Model
+from astropy.modeling.parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
 from astropy.utils.data import get_pkg_data_filename
+
 from . import irafutil
 
 
