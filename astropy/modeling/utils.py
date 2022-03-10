@@ -3,13 +3,13 @@
 """
 This module provides utility functions for the models package.
 """
+import warnings
 # pylint: disable=invalid-name
 from collections import UserDict
 from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
-import warnings
 
 from astropy import units as u
 from astropy.utils.decorators import deprecated

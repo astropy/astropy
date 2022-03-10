@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.modeling.fitting import LevMarLSQFitter
-from astropy.modeling.models import Shift, Rotation2D, Gaussian1D, Identity, Mapping, UnitsMapping
 from astropy import units as u
+from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.models import Gaussian1D, Identity, Mapping, Rotation2D, Shift, UnitsMapping
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
