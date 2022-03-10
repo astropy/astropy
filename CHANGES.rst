@@ -50,7 +50,7 @@ astropy.wcs
   ``FITSFixedWarning`` warning issued during unpiclikng of the WCS objects
   related to the number of axes. This fix also eliminates errors when
   unpickling WCS objects originally created using non-default values for
-  `key`, `colsel`, and `keysel` parameters. [#12844]
+  ``key``, ``colsel``, and ``keysel`` parameters. [#12844]
 
 5.0.1 (2022-01-26)
 ==================
