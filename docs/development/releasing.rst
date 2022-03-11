@@ -125,20 +125,6 @@ branch while you are in the middle of following release steps. If you wish to do
 you can go to the core package repository settings, and under 'Branches' and 'Branch
 protection rules' you can then add a rule which restricts who can push to the branch.
 
-.. _release-procedure-update-iers:
-
-Updating the IERS parameter and leap second tables
---------------------------------------------------
-
-Ensure the built-in IERS earth rotation parameter and leap second tables are up
-to date by changing directory to ``astropy/utils/iers/data`` and executing
-``update_builtin_iers.sh``. Check the result with ``git diff`` (do not be
-surprised to find many lines in the ``eopc04_IAU2000.62-now`` file change; those
-data are reanalyzed periodically) and committing. This update should be done via a
-pull request to the ``main`` branch, and then backported to the release branch,
-as it is important for the ``main`` branch to have up-to-date values, and donig it
-via a pull request allows us to check for any failures the update introduces.
-
 .. _release-procedure-update-whatsnew:
 
 Updating the What's new and contributors
@@ -227,34 +213,6 @@ and commit this and the ``.mailmap`` changes::
 Open a pull request to merge this into ``main`` and mark it as requiring backporting to
 the release branch.
 
-
-.. _release-procedure-update-ci:
-
-Update continuous integration configuration
--------------------------------------------
-
-Update the continuous integration configuration in the release branch
-to run on all commits rather than use cron jobs. For example, for GitHub actions,
-you should edit the ``ci_cron*.yml`` files and replace the existing ``on`` section
-with e.g.::
-
-   on:
-   push:
-      branches:
-      - v5.0.x
-   pull_request:
-      branches:
-      - v5.0.x
-
-(with the branch name replaced by the appropriate one), and remove any lines that
-look like e.g.::
-
-        if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' ...
-
-This is important because once you are on a release branch, it is necessary to make sure
-we are much more careful about not introducing regressions and we cannot always wait for the
-cron jobs to run to carry out the release.
-
 .. _release-procedure-check-ci:
 
 Ensure continuous integration and intensive tests pass
@@ -264,6 +222,11 @@ Make sure that the continuous integration services (e.g., GitHub Actions or Circ
 for the `astropy core repository`_ branch you are going to release. Also check that
 the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
 Also make sure that the ReadTheDocs build is passing for the release branch.
+
+One of the continuous integration tasks that should be run periodically is the updates to the
+IERS tables in ``astropy.utils.iers``, so check that the last run from this has been
+successfully run and that related pull requests have been merged (and backported if needed).
+You can also manually trigger it using its workflow dispatch option.
 
 You may also want to locally run the tests (with remote data on to ensure all
 of the tests actually run), using tox to do a thorough test in an isolated
@@ -344,7 +307,6 @@ fixes is described in :ref:`release-procedure-bug-fix-backport`.
 Once you have backported any required fixes, repeat the following steps
 you did for the first release candidate:
 
-* :ref:`release-procedure-update-iers` (optional, only do this if it has been a while since it was done before the first release candidate)
 * :ref:`release-procedure-update-whatsnew` (this should only involve updating the numbers of issues and so on, as well as potentially adding a few new contributors)
 * :ref:`release-procedure-check-ci`
 
@@ -439,7 +401,7 @@ Post-Release procedures
 
 #. If this is an LTS release (whether or not it is being supported alongside
    a more recent version), update the "LTS" branch to ponit to the new LTS
-   release:
+   release::
 
       $ git checkout LTS
       $ git reset --hard v<version>
@@ -550,7 +512,6 @@ in :ref:`release-procedure-bug-fix-backport`.
 Once you have backported any required fixes, go through the following steps
 in a similar way to the initial major release:
 
-* :ref:`release-procedure-update-iers` (this should be done in ``main`` and backport it)
 * :ref:`release-procedure-check-ci`
 * :ref:`release-procedure-render-changelog`
 * :ref:`release-procedure-checking-changelog`
