@@ -838,25 +838,20 @@ def test_print_special_operator_CompoundModel(capsys):
     """
 
     model = convolve_models(models.Sersic2D(), models.Gaussian2D())
-    print(model)
-
-    true_out = "Model: CompoundModel\n" +\
-               "Inputs: ('x', 'y')\n" +\
-               "Outputs: ('z',)\n" +\
-               "Model set size: 1\n" +\
-               "Expression: convolve_fft (([0]), ([1]))\n" +\
-               "Components: \n" +\
-               "    [0]: <Sersic2D(amplitude=1., r_eff=1., n=4., x_0=0., y_0=0., ellip=0., theta=0.)>\n" +\
-               "\n" +\
-               "    [1]: <Gaussian2D(amplitude=1., x_mean=0., y_mean=0., x_stddev=1., y_stddev=1., theta=0.)>\n" +\
-               "Parameters:\n" +\
-               "    amplitude_0 r_eff_0 n_0 x_0_0 y_0_0 ... y_mean_1 x_stddev_1 y_stddev_1 theta_1\n" +\
-               "    ----------- ------- --- ----- ----- ... -------- ---------- ---------- -------\n" +\
-               "            1.0     1.0 4.0   0.0   0.0 ...      0.0        1.0        1.0     0.0\n"
-
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == true_out
+    with astropy.conf.set_temp('max_width', 80):
+        assert str(model) == "Model: CompoundModel\n" +\
+                             "Inputs: ('x', 'y')\n" +\
+                             "Outputs: ('z',)\n" +\
+                             "Model set size: 1\n" +\
+                             "Expression: convolve_fft (([0]), ([1]))\n" +\
+                             "Components: \n" +\
+                             "    [0]: <Sersic2D(amplitude=1., r_eff=1., n=4., x_0=0., y_0=0., ellip=0., theta=0.)>\n" +\
+                             "\n" +\
+                             "    [1]: <Gaussian2D(amplitude=1., x_mean=0., y_mean=0., x_stddev=1., y_stddev=1., theta=0.)>\n" +\
+                             "Parameters:\n" +\
+                             "    amplitude_0 r_eff_0 n_0 x_0_0 y_0_0 ... y_mean_1 x_stddev_1 y_stddev_1 theta_1\n" +\
+                             "    ----------- ------- --- ----- ----- ... -------- ---------- ---------- -------\n" +\
+                             "            1.0     1.0 4.0   0.0   0.0 ...      0.0        1.0        1.0     0.0"
 
 
 def test__validate_input_shape():
