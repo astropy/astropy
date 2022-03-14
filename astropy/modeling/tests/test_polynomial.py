@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from astropy import wcs
+from astropy import conf, wcs
 from astropy.io import fits
 from astropy.modeling import fitting
 from astropy.modeling.functional_models import Linear1D
@@ -350,47 +350,48 @@ def test_sip_hst():
         "<_SIP1D(4, 'B', B_2_0=-0.00000175, B_3_0=0., B_4_0=-0., B_0_2=-0.00000722, " +\
         "B_0_3=-0., B_0_4=-0., B_1_1=0.00000618, B_1_2=-0., B_1_3=0., " +\
         "B_2_1=-0., B_2_2=-0., B_3_1=-0.)>])>"
-    assert str(sip) ==\
-        "Model: SIP\n" +\
-        "    Model: Shift\n" +\
-        "    Inputs: ('x',)\n" +\
-        "    Outputs: ('y',)\n" +\
-        "    Model set size: 1\n" +\
-        "    Parameters:\n" +\
-        "         offset\n" +\
-        "        -------\n" +\
-        "        -2048.0\n" +\
-        "\n" +\
-        "    Model: Shift\n" +\
-        "    Inputs: ('x',)\n" +\
-        "    Outputs: ('y',)\n" +\
-        "    Model set size: 1\n" +\
-        "    Parameters:\n" +\
-        "         offset\n" +\
-        "        -------\n" +\
-        "        -1024.0\n" +\
-        "\n" +\
-        "    Model: _SIP1D\n" +\
-        "    Inputs: ('x', 'y')\n" +\
-        "    Outputs: ('z',)\n" +\
-        "    Model set size: 1\n" +\
-        "    Order: 4\n" +\
-        "    Coeff. Prefix: A\n" +\
-        "    Parameters:\n" +\
-        "                A_2_0                 A_3_0          ...         A_3_1        \n" +\
-        "        --------------------- ---------------------- ... ---------------------\n" +\
-        "        8.551277582556502e-06 -4.730444829222791e-10 ... 1.971022971660309e-15\n" +\
-        "\n" +\
-        "    Model: _SIP1D\n" +\
-        "    Inputs: ('x', 'y')\n" +\
-        "    Outputs: ('z',)\n" +\
-        "    Model set size: 1\n" +\
-        "    Order: 4\n" +\
-        "    Coeff. Prefix: B\n" +\
-        "    Parameters:\n" +\
-        "                B_2_0                  B_3_0         ...         B_3_1         \n" +\
-        "        ---------------------- --------------------- ... ----------------------\n" +\
-        "        -1.746491877058669e-06 8.567635427816317e-11 ... -3.779506805487476e-15\n"
+    with conf.set_temp('max_width', 80):
+        assert str(sip) ==\
+            "Model: SIP\n" +\
+            "    Model: Shift\n" +\
+            "    Inputs: ('x',)\n" +\
+            "    Outputs: ('y',)\n" +\
+            "    Model set size: 1\n" +\
+            "    Parameters:\n" +\
+            "         offset\n" +\
+            "        -------\n" +\
+            "        -2048.0\n" +\
+            "\n" +\
+            "    Model: Shift\n" +\
+            "    Inputs: ('x',)\n" +\
+            "    Outputs: ('y',)\n" +\
+            "    Model set size: 1\n" +\
+            "    Parameters:\n" +\
+            "         offset\n" +\
+            "        -------\n" +\
+            "        -1024.0\n" +\
+            "\n" +\
+            "    Model: _SIP1D\n" +\
+            "    Inputs: ('x', 'y')\n" +\
+            "    Outputs: ('z',)\n" +\
+            "    Model set size: 1\n" +\
+            "    Order: 4\n" +\
+            "    Coeff. Prefix: A\n" +\
+            "    Parameters:\n" +\
+            "                A_2_0                 A_3_0          ...         A_3_1        \n" +\
+            "        --------------------- ---------------------- ... ---------------------\n" +\
+            "        8.551277582556502e-06 -4.730444829222791e-10 ... 1.971022971660309e-15\n" +\
+            "\n" +\
+            "    Model: _SIP1D\n" +\
+            "    Inputs: ('x', 'y')\n" +\
+            "    Outputs: ('z',)\n" +\
+            "    Model set size: 1\n" +\
+            "    Order: 4\n" +\
+            "    Coeff. Prefix: B\n" +\
+            "    Parameters:\n" +\
+            "                B_2_0                  B_3_0         ...         B_3_1         \n" +\
+            "        ---------------------- --------------------- ... ----------------------\n" +\
+            "        -1.746491877058669e-06 8.567635427816317e-11 ... -3.779506805487476e-15\n"
 
     # Test get num of coeffs
     assert sip.sip1d_a.get_num_coeff(1) == 6
