@@ -270,7 +270,8 @@ class CCDData(NDDataArray):
             self._uncertainty = value
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-               hdu_flags=None, wcs_relax=True, key_uncertainty_type='UTYPE'):
+               hdu_flags=None, wcs_relax=True,
+               key_uncertainty_type='UTYPE', as_image_hdu=False):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
@@ -296,6 +297,11 @@ class CCDData(NDDataArray):
             Default is ``UTYPE``.
 
             .. versionadded:: 3.1
+
+        as_image_hdu : bool
+            If this option is `True`, the first item of the returned
+            `~astropy.io.fits.HDUList` is a `~astropy.io.fits.ImageHDU`, instead
+             of the default `~astropy.io.fits.PrimaryHDU`.
 
         Raises
         ------
@@ -343,7 +349,11 @@ class CCDData(NDDataArray):
             # not header.
             wcs_header = self.wcs.to_header(relax=wcs_relax)
             header.extend(wcs_header, useblanks=False, update=True)
-        hdus = [fits.PrimaryHDU(self.data, header)]
+
+        if as_image_hdu:
+            hdus = [fits.ImageHDU(self.data, header)]
+        else:
+            hdus = [fits.PrimaryHDU(self.data, header)]
 
         if hdu_mask and self.mask is not None:
             # Always assuming that the mask is a np.ndarray (check that it has
@@ -667,7 +677,8 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 
 def fits_ccddata_writer(
         ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-        hdu_flags=None, key_uncertainty_type='UTYPE', **kwd):
+        hdu_flags=None, key_uncertainty_type='UTYPE', as_image_hdu=False,
+        **kwd):
     """
     Write CCDData object to FITS file.
 
@@ -691,6 +702,11 @@ def fits_ccddata_writer(
 
         .. versionadded:: 3.1
 
+    as_image_hdu : bool
+        If this option is `True`, the first item of the returned
+        `~astropy.io.fits.HDUList` is a `~astropy.io.fits.ImageHDU`, instead of
+        the default `~astropy.io.fits.PrimaryHDU`.
+
     kwd :
         All additional keywords are passed to :py:mod:`astropy.io.fits`
 
@@ -708,7 +724,10 @@ def fits_ccddata_writer(
     """
     hdu = ccd_data.to_hdu(
         hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
-        key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags)
+        key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags,
+        as_image_hdu=as_image_hdu)
+    if as_image_hdu:
+        hdu.insert(0, fits.PrimaryHDU())
     hdu.writeto(filename, **kwd)
 
 
