@@ -291,6 +291,14 @@ def test_to_hdu():
     np.testing.assert_array_equal(fits_hdulist[0].data, ccd_data.data)
 
 
+def test_to_hdu_as_imagehdu():
+    ccd_data = create_ccd_data()
+    fits_hdulist = ccd_data.to_hdu(as_image_hdu=False)
+    assert isinstance(fits_hdulist[0], fits.PrimaryHDU)
+    fits_hdulist = ccd_data.to_hdu(as_image_hdu=True)
+    assert isinstance(fits_hdulist[0], fits.ImageHDU)
+
+
 def test_copy():
     ccd_data = create_ccd_data()
     ccd_copy = ccd_data.copy()
