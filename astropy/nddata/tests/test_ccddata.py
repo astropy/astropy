@@ -203,8 +203,9 @@ def test_ccddata_writer_as_imagehdu(tmpdir):
     with fits.open('test.fits') as hdus:
         assert len(hdus) == 1
 
+    filename = tmpdir.join('test2.fits').strpath
     ccd_data.write(filename, as_image_hdu=True)
-    with fits.open('test.fits') as hdus:
+    with fits.open('test2.fits') as hdus:
         assert len(hdus) == 2
         assert isinstance(hdus[1], fits.ImageHDU)
 
