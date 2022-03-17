@@ -1,0 +1,4 @@
+The ``as_image_hdu`` option is now available for ``CCDData.to_hdu``. This option
+allows the user to get an ``ImageHDU`` as the first item of the returned
+``HDUList``, instead of the default ``PrimaryHDU``. Before this feature, there
+was no trivial way to get an ``ImageHDU`` from a ``CCDData`` object.
