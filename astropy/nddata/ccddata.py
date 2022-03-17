@@ -301,7 +301,7 @@ class CCDData(NDDataArray):
         as_image_hdu : bool
             If this option is `True`, the first item of the returned
             `~astropy.io.fits.HDUList` is a `~astropy.io.fits.ImageHDU`, instead
-             of the default `~astropy.io.fits.PrimaryHDU`.
+            of the default `~astropy.io.fits.PrimaryHDU`.
 
         Raises
         ------
