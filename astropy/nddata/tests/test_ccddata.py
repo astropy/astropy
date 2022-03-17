@@ -196,6 +196,19 @@ def test_ccddata_writer(tmpdir):
     np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
 
 
+def test_ccddata_writer_as_imagehdu(tmpdir):
+    ccd_data = create_ccd_data()
+    filename = tmpdir.join('test.fits').strpath
+    ccd_data.write(filename, as_image_hdu=False)
+    with fits.open('test.fits') as hdus:
+        assert len(hdus) == 1
+
+    ccd_data.write(filename, as_image_hdu=True)
+    with fits.open('test.fits') as hdus:
+        assert len(hdus) == 2
+        assert isinstance(hdus[1], fits.ImageHDU)
+
+
 def test_ccddata_meta_is_case_sensitive():
     ccd_data = create_ccd_data()
     key = 'SoMeKEY'
