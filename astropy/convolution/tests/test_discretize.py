@@ -62,6 +62,24 @@ def test_pixel_sum_2D(model_class, mode):
     assert_allclose(values.sum(), models_2D[model_class]['integral'], atol=0.0001)
 
 
+@pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_2D, modes)))
+def test_pixel_sum_compound_2D(model_class, mode):
+    """
+    Test if the sum of all pixels of a compound model corresponds nearly to the integral.
+    """
+    if model_class == Box2D and mode == "center":
+        pytest.skip("Non integrating mode. Skip integral test.")
+
+    parameters = models_2D[model_class]
+    model = create_model(model_class, parameters)
+
+    values = discretize_model(model + model, models_2D[model_class]['x_lim'],
+                              models_2D[model_class]['y_lim'], mode=mode)
+
+    model_integral = 2 * models_2D[model_class]['integral']
+    assert_allclose(values.sum(), model_integral, atol=0.0001)
+
+
 @pytest.mark.parametrize('mode', modes)
 def test_gaussian_eval_2D(mode):
     """
