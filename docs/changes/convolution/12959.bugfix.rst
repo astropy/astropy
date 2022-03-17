@@ -1,0 +1,2 @@
+Bugfix in ``astropy.convolution.utils.discretize_model`` which allows the function to handle a ``CompoundModel``.
+Before this fix, ``discretize_model`` was confusing ``CompoundModel`` with a callable function.

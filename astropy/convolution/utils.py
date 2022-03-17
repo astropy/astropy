@@ -3,7 +3,7 @@ import ctypes
 
 import numpy as np
 
-from astropy.modeling.core import FittableModel, custom_model
+from astropy.modeling.core import Model, custom_model
 
 __all__ = ['discretize_model', 'KernelSizeError']
 
@@ -89,9 +89,9 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
     Parameters
     ----------
-    model : `~astropy.modeling.FittableModel` or callable.
+    model : `~astropy.modeling.Model` or callable.
         Analytic model function to be discretized. Callables, which are not an
-        instances of `~astropy.modeling.FittableModel` are passed to
+        instances of `~astropy.modeling.Model` are passed to
         `~astropy.modeling.custom_model` and then evaluated.
     x_range : tuple
         x range in which the model is evaluated. The difference between the
@@ -153,7 +153,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     """
     if not callable(model):
         raise TypeError('Model must be callable.')
-    if not isinstance(model, FittableModel):
+    if not isinstance(model, Model):
         model = custom_model(model)()
     ndim = model.n_inputs
     if ndim > 2:
