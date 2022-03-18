@@ -238,24 +238,32 @@ class FLRW(Cosmology):
         # Validate / set units
         value = _validate_with_unit(self, param, value)
 
-        if is_structured(value):  # unstructure
-            value = rfn.structured_to_unstructured(value)
-
-        # Check values and data shapes
-        if value.shape not in ((), (nneutrinos,)):
+        # Checks
+        # ------
+        structured = is_structured(value)
+        # The structured check only finds incorrect number of masses
+        if structured and (ngot := len(value.dtype.names)) != nneutrinos:
             raise ValueError("unexpected number of neutrino masses — "
-                             f"expected {nneutrinos}, got {len(value)}.")
-        elif np.any(value.value < 0):
+                             f"expected {nneutrinos}, got {ngot}.")
+        # This check finds the same for unstructured arrays, but also checks
+        # that a structured array is scalar.
+        elif value.shape not in ((), (nneutrinos,)):
+            raise ValueError("unexpected number of neutrino masses — "
+                             f"expected {nneutrinos}, got {len(value)} (and "
+                             f"{len(value.dtype.names or ())} fields).")
+        # Check that all elts are positive. Works on structured arrays.
+        elif np.any(np.less(value.value.tolist(), 0)):
             raise ValueError("invalid (negative) neutrino mass encountered.")
 
-        # scalar -> array
-        if value.isscalar:
+        # Unstructured scalar -> array
+        if not structured and value.isscalar:
             value = np.full_like(value, value, shape=nneutrinos)
 
-        # create structured
-        dtype = [(f"nu{i+1}", "f8", ()) for i in range(nneutrinos)]
-        dunit = u.StructuredUnit((value.unit, ) * nneutrinos)
-        value = value.value.view(dtype=dtype)[0] << dunit
+        # Check / Create structure
+        dtype = value.dtype if structured else [(f"nu{i+1}", "f8", ()) for i in range(nneutrinos)]
+        dunit = u.StructuredUnit((param.unit[0], ) * nneutrinos)
+        i = 0 if not structured else ...  # (don't slice structured voids)
+        value = value.value.view(dtype=dtype)[i] << dunit
 
         return value
 

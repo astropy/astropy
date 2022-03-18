@@ -23,6 +23,7 @@ to a ``mypackage`` object.
 
 # THIRD PARTY
 import numpy.lib.recfunctions as rfn
+
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FLRW, Cosmology, FlatLambdaCDM
