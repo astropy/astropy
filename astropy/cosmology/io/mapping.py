@@ -11,8 +11,6 @@ via these methods.
 import copy
 from collections.abc import Mapping
 
-import numpy as np
-
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 

@@ -17,10 +17,8 @@ from mypackage.io import file_reader
 # skip all tests in module if import is missing
 astropy = pytest.importorskip("astropy", minversion="4.3")  # isort: skip
 # can now import freely from astropy
-import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology
-from astropy.io import registry as io_registry
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # the formats being registered with Astropy

@@ -4,7 +4,7 @@
 import pytest
 
 # LOCAL
-from astropy.cosmology import Cosmology, Planck18
+from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.table import from_table, to_table
 from astropy.table import QTable, Table, vstack

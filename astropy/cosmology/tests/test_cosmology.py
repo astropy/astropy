@@ -9,7 +9,7 @@ import pytest
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology import Cosmology, flrw, funcs
+from astropy.cosmology import flrw
 from astropy.cosmology.realizations import Planck18
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY

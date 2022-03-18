@@ -1,13 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import abc
-import functools
 import inspect
-from types import FunctionType, MappingProxyType
 
 import numpy as np
 
-import astropy.units as u
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData

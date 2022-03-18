@@ -4,7 +4,6 @@
 import pytest
 
 # LOCAL
-from astropy.cosmology import Cosmology
 from astropy.cosmology.io.cosmology import from_cosmology, to_cosmology
 
 from .base import IODirectTestBase, ToFromTestMixinBase
