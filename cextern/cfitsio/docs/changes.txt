@@ -1,4 +1,24 @@
                    Log of Changes Made to CFITSIO
+
+Version 4.1.0 - Feb 2022
+                   
+  - Calls to the zlib inflate() function in zcompress.c now handle
+    the Z_BUF_ERROR return value rather than exiting.
+
+  - The SUBTRACTIVE_DITHER_2 option has been removed when using the
+    HCOMPRESS algorithm.  
+    
+  - Updated fits_get_version function to return a float calculated
+    from 3 version fields.
+                       
+  - Added handling of SBYTE_IMG and ULONGLONG_IMG types to the
+    fits_resize_img function.
+    
+  - Updates made to C/Fortran interfacing in cfortran.h and f77_wrap.h
+    specifically driven by new Mac/ARM architecture.
+    
+  - Fix to the fits_insert_col functions to handle columns with
+    TULONGLONG data.
                    
 Version 4.0.0 - May 2021                   
 
