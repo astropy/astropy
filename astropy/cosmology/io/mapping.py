@@ -11,6 +11,8 @@ via these methods.
 import copy
 from collections.abc import Mapping
 
+from numpy.lib.recfunctions import structured_to_unstructured
+
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 
@@ -115,7 +117,8 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
     return cosmology(*ba.args, **ba.kwargs)
 
 
-def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_meta=False):
+def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False,
+               move_from_meta=False, unstructure=False):
     """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
@@ -134,6 +137,11 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
         Whether to add the Cosmology's metadata as an item to the mapping (if
         `False`, default) or to merge with the rest of the mapping, preferring
         the original values (if `True`)
+    unstructure : bool (optional, keyword-only)
+        Whether to convert parameters with structured dtypes to plain,
+        unstructured arrays.
+        See :func:`~numpy.lib.recfunctions.structured_to_unstructured` for
+        details.
 
     Returns
     -------
@@ -157,7 +165,7 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
          'm_nu': <Quantity (0., 0., 0.06) (eV, eV, eV)>, 'Ob0': 0.04897,
          'meta': ...
 
-    The dictionary type may be changed with the ``cls`` keyword argument:
+    With the ``cls`` kwarg, any mapping type can be used:
 
         >>> from collections import OrderedDict
         >>> Planck18.to_format('mapping', cls=OrderedDict)
@@ -184,6 +192,15 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
         >>> Planck18.to_format('mapping', move_from_meta=True)
         {'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>,
          'name': 'Planck18', 'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, ...
+
+    Usually a Cosmology is best represented with parameters unchanged, but if
+    needed, parameters can be unstructured to normal arrays / Quantities.
+
+        >>> Planck18.to_format('mapping', unstructure=True)
+        {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
+         ...
+         'm_nu': <Quantity [0.  , 0.  , 0.06] eV>,
+         ...
     """
     if not issubclass(cls, (dict, Mapping)):
         raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {cls}")
@@ -202,9 +219,13 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
         meta.pop("name", None)
         m.update(meta)
 
-    # Add all the immutable inputs
-    m.update({k: v for k, v in cosmology._init_arguments.items()
-              if k not in ("meta", "name")})
+    # All the inputs
+    for k, v in cosmology._init_arguments.items():
+        if k in ("meta", "name"):  # done separately for nice ordering
+            continue
+        if unstructure and hasattr(v, "dtype") and v.dtype.names is not None:
+            v = structured_to_unstructured(v)
+        m[k] = v
     # Lastly, add the metadata, if haven't already (above)
     if not move_from_meta:
         m["meta"] = meta  # TODO? should meta be type(cls)

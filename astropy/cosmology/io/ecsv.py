@@ -51,7 +51,7 @@ def read_ecsv(filename, index=None, *, move_to_meta=False, cosmology=None, **kwa
     return from_table(table, index=index, move_to_meta=move_to_meta, cosmology=cosmology)
 
 
-def write_ecsv(cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_meta=True, **kwargs):
+def write_ecsv(cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_meta=True, unstructure=True, **kwargs):
     """Serialize the cosmology into a ECSV.
 
     Parameters
@@ -68,6 +68,11 @@ def write_ecsv(cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_met
     cosmology_in_meta : bool
         Whether to put the cosmology class in the Table metadata (if `True`,
         default) or as the first column (if `False`).
+    unstructure : bool (optional, keyword-only)
+        Whether to convert parameters with structured dtypes to plain,
+        unstructured arrays.
+        See :func:`~numpy.lib.recfunctions.structured_to_unstructured` for
+        details.
     **kwargs
         Passed to ``cls.write``
 
@@ -76,7 +81,7 @@ def write_ecsv(cosmology, file, *, overwrite=False, cls=QTable, cosmology_in_met
     TypeError
         If kwarg (optional) 'cls' is not a subclass of `astropy.table.Table`
     """
-    table = to_table(cosmology, cls=cls, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(cosmology, cls=cls, cosmology_in_meta=cosmology_in_meta, unstructure=unstructure)
 
     kwargs["format"] = "ascii.ecsv"
     table.write(file, overwrite=overwrite, **kwargs)

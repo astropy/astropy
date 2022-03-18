@@ -63,6 +63,16 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
             assert tbl["cosmology"][0] == cosmo_cls.__qualname__
             assert "cosmology" not in tbl.meta
 
+    @pytest.mark.parametrize("unstructure", [True, False])
+    def test_to_table_unstructure(self, cosmo_cls, to_format, structured_parameters, unstructure):
+        """Test whether structured arrays are unstructured."""
+        tbl = to_format('astropy.table', unstructure=unstructure)
+
+        # for each structured param check it is correctly unstructured,
+        # if it meant to be unstructured
+        for k in structured_parameters:
+            assert (tbl[k].dtype.names is not None) is not unstructure
+
     # -----------------------
 
     def test_to_table(self, cosmo_cls, cosmo, to_format):

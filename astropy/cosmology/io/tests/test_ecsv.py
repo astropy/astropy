@@ -68,6 +68,19 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
             assert tbl["cosmology"][0] == cosmo_cls.__qualname__
             assert "cosmology" not in tbl.meta
 
+# FIXME! Table cannot read void dtype
+#     @pytest.mark.parametrize("unstructure", [True, False])
+#     def test_to_ecsv_unstructure(self, cosmo_cls, write, structured_parameters, unstructure, tmp_path, add_cu):
+#         """Test if serialized structured or unstructured."""
+#         fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
+#         write(fp, format='ascii.ecsv', unstructure=unstructure)
+# 
+#         tbl = QTable.read(fp)
+#         # for each structured param check it is correctly unstructured,
+#         # if it meant to be unstructured
+#         for k in structured_parameters:
+#             assert isinstance(tbl[k].unit, u.StructuredUnit) is not unstructure
+
     # -----------------------
 
     def test_readwrite_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):

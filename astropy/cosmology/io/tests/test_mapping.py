@@ -129,6 +129,16 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         assert got == cosmo  # (Doesn't check metadata)
         assert got.meta["mismatching"] == "will error"
 
+    @pytest.mark.parametrize("unstructure", [True, False])
+    def test_to_mapping_unstructure(self, cosmo, structured_parameters, to_format, unstructure):
+        """Test argument ``unstructure`` in ``to_mapping()``."""
+        params = to_format('mapping', unstructure=unstructure)
+
+        # for each structured param check it is correctly unstructured,
+        # if it meant to be unstructured
+        for k in structured_parameters:
+            assert isinstance(params[k].unit, u.StructuredUnit) is not unstructure
+
     # -----------------------------------------------------
 
     def test_from_not_mapping(self, cosmo, from_format):

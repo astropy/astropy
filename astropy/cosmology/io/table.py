@@ -137,7 +137,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology)
 
 
-def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
+def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, unstructure=True):
     """Serialize the cosmology into a `~astropy.table.QTable`.
 
     Parameters
@@ -152,6 +152,12 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
     cosmology_in_meta : bool
         Whether to put the cosmology class in the Table metadata (if `True`,
         default) or as the first column (if `False`).
+    unstructure : bool (optional, keyword-only)
+        Whether to convert parameters with structured dtypes to plain,
+        unstructured arrays. If `True` (default) the column shape will be
+        (number of rows, length of dtype).
+        See :func:`~numpy.lib.recfunctions.structured_to_unstructured` for
+        details.
 
     Returns
     -------
@@ -196,6 +202,18 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
         ------------- -------- ------------ ------- ------- ------- ----------- -------
         FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
+    Usually a cosmology is best represented with parameter columns converted to
+    normal arrays / Quantities, but if needed, parameters can be kept
+    structured.
+
+        >>> Planck18.to_format("astropy.table", unstructure=False)
+        <QTable length=1>
+          name        H0        Om0    Tcmb0    Neff       m_nu        Ob0  
+                 km / (Mpc s)            K             (eV, eV, eV)         
+          str8     float64    float64 float64 float64    void192     float64
+        -------- ------------ ------- ------- ------- -------------- -------
+        Planck18        67.66 0.30966  2.7255   3.046 (0., 0., 0.06) 0.04897
+
     Astropy recommends `~astropy.table.QTable` for tables with
     `~astropy.units.Quantity` columns. However the returned type may be
     overridden using the ``cls`` argument:
@@ -209,8 +227,7 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
         raise TypeError(f"'cls' must be a (sub)class of Table, not {type(cls)}")
 
     # Start by getting a map representation.
-    data = to_mapping(cosmology)
-    data["cosmology"] = data["cosmology"].__qualname__  # change to str
+    data = to_mapping(cosmology, unstructure=unstructure, cosmology_as_str=True)
 
     # Metadata
     meta = data.pop("meta")  # remove the meta

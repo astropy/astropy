@@ -81,7 +81,7 @@ def from_row(row, *, move_to_meta=False, cosmology=None):
     return from_mapping(mapping, move_to_meta=move_to_meta, cosmology=cosmology)
 
 
-def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable):
+def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, unstructure=True):
     """Serialize the cosmology into a `~astropy.table.Row`.
 
     Parameters
@@ -90,12 +90,17 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
-    table_cls : type (optional, keyword-only)
-        Astropy :class:`~astropy.table.Table` class or subclass type to use.
-        Default is :class:`~astropy.table.QTable`.
-    cosmology_in_meta : bool
+    cosmology_in_meta : bool (optional, keyword-only)
         Whether to put the cosmology class in the Table metadata (if `True`) or
         as the first column (if `False`, default).
+    table_cls: type (optional, keyword-only)
+        Astropy :class:`~astropy.table.Table` class or subclass type to use.
+        Default is :class:`~astropy.table.QTable`.
+    unstructure : bool (optional, keyword-only)
+        Whether to convert parameters with structured dtypes to plain,
+        unstructured arrays.
+        See :func:`~numpy.lib.recfunctions.structured_to_unstructured` for
+        details.
 
     Returns
     -------
@@ -121,10 +126,34 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable):
 
     The cosmological class and other metadata, e.g. a paper reference, are in
     the Table's metadata.
+
+    To move the cosmology class from the row to the metadata, set the
+    ``cosmology_in_meta`` argument to `True`:
+
+        >>> Planck18.to_format("astropy.row", cosmology_in_meta=True)
+        <Row index=0>
+          name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
+                 km / (Mpc s)            K                 eV            
+          str8     float64    float64 float64 float64   float64   float64
+        -------- ------------ ------- ------- ------- ----------- -------
+        Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+    Usually a cosmology is best represented with parameter columns converted to
+    normal arrays / Quantities, but if needed, parameters can be kept
+    structured.
+
+        >>> Planck18.to_format("astropy.row", unstructure=False)
+        <Row index=0>
+          cosmology     name        H0        Om0    Tcmb0    Neff       m_nu        Ob0  
+                               km / (Mpc s)            K             (eV, eV, eV)         
+            str13       str8     float64    float64 float64 float64    void192     float64
+        ------------- -------- ------------ ------- ------- ------- -------------- -------
+        FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 (0., 0., 0.06) 0.04897
     """
     from .table import to_table
 
-    table = to_table(cosmology, cls=table_cls, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(cosmology, cosmology_in_meta=cosmology_in_meta,
+                     cls=table_cls, unstructure=unstructure)
     return table[0]  # extract row from table
 
 

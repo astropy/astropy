@@ -79,6 +79,13 @@ class ReadWriteTestMixinBase(IOTestBase):
         with u.add_enabled_units(cu):
             yield
 
+    @pytest.fixture
+    def structured_parameters(self, cosmo):
+        """Return the set of name of the structured parameters on a cosmology."""
+        structured = {k for k, v in cosmo._init_arguments.items() if
+                      (hasattr(v, "dtype") and v.dtype.names is not None)}
+        return structured
+
 
 ##############################################################################
 
