@@ -387,7 +387,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 def __getattr__(attr):
     from . import flrw
 
-    if hasattr(flrw, attr):
+    if hasattr(flrw, attr) and attr not in ("__path__", ):
         import warnings
 
         from astropy.utils.exceptions import AstropyDeprecationWarning
