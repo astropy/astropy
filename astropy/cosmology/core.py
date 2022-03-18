@@ -123,14 +123,31 @@ class Cosmology(metaclass=abc.ABCMeta):
         """The name of the Cosmology instance."""
         return self._name
 
-    @property
     @abc.abstractmethod
-    def is_flat(self):
-        """
-        Return bool; `True` if the cosmology is flat.
+    def is_close_to_flat(self, *, tolerance=...):
+        """Return bool; `True` if the cosmology is close to flat.
+
         This is abstract and must be defined in subclasses.
+
+        .. versionadded:: 5.1
+
+        Parameters
+        ----------
+        tolerance : None or Ellipsis or `numbers.Number` or dict[str, number], optional
+            The tolerance for each parameter to be considered equivalent.
+            If `Ellipsis` (default) the parameters can match to each
+            parameter's precision (set by the dtype).
+            If `None` the parameters must be equal.
+            If `numbers.Number` this is the tolerance for all parameters.
+            If `dict` each parameter's tolerance can be specified by key,
+            defaulting to `Ellipsis` for missing keys.
         """
-        raise NotImplementedError("is_flat is not implemented")
+        raise NotImplementedError("is_close_to_flat is not implemented")
+
+    @property
+    def is_flat(self):
+        """Return bool; `True` if the cosmology is flat."""
+        return self.is_close_to_flat(tolerance=None)
 
     def clone(self, *, meta=None, **kwargs):
         """Returns a copy of this object with updated parameters, as specified.
@@ -229,7 +246,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
-        tolerance : None or Ellipsis or Number or dict[str, number], optional
+        tolerance : None or Ellipsis or `numbers.Number` or dict[str, number], optional
             The tolerance for each parameter to be considered equivalent.
             If `Ellipsis` (default) the parameters can match to each
             parameter's precision (set by the dtype).
@@ -287,7 +304,7 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> cosmo3.is_close(cosmo2)
             False
 
-        The `tolerance` argument can be used to specify how close two
+        The tolerance argument can be used to specify how close two
         parameters must be. All non-specified parameters must be close to
         within that parameter's `numpy.dtype` precision.
 
@@ -407,7 +424,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
-        tolerance : None or Ellipsis or Number or dict[str, number], optional
+        tolerance : None or Ellipsis or `numbers.Number` or dict[str, number], optional
             The tolerance for each parameter to be considered equivalent.
             If `Ellipsis` (default) the parameters can match to each
             parameter's precision (set by the dtype).
@@ -508,11 +525,17 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    @property
-    def is_flat(self):
-        """Return `True`, the cosmology is flat."""
+    def is_close_to_flat(self, tolerance=...):
+        """Return `True` since the cosmology is guaranteed to be flat.
+
+        .. versionadded:: 5.1
+        """
         return True
 
+    @property
+    def is_flat(self):
+        """Return `True` since the cosmology is guaranteed to be flat."""
+        return True
 
 # -----------------------------------------------------------------------------
 

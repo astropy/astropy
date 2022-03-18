@@ -510,6 +510,44 @@ class TestFLRW(CosmologyTest,
             assert u.allclose(cosmo.Onu(1.5), [0, 0, 0, 0])
             assert u.allclose(cosmo.Onu([0, 1, 2, 3]), [0, 0, 0, 0])
 
+    def test_is_close_to_flat(self, cosmo_cls, cosmo):
+        """
+        Test method ``is_close_to_flat``.
+        Overridden in FlatCosmologyMixinTest.
+        """
+        # Exact equality
+        isflat = cosmo.is_close_to_flat(tolerance=None)
+        assert isinstance(isflat, bool)
+        assert isflat is bool((cosmo.Ok0 == 0.0) and (cosmo.Otot0 == 1.0))
+
+        # For the following tests we need a close-to-flat cosmology
+        if isflat:
+            flatcosmo = cosmo
+        else:
+            ba = self.cls._init_signature.bind(*self.cls_args, **self.cls_kwargs)
+            ba.apply_defaults()
+
+            ba.arguments["Ode0"] = 1.0 - (cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + 0.0)
+            flatcosmo = cosmo_cls(*ba.args, **ba.kwargs)
+
+            assert flatcosmo.is_close_to_flat(1e-17)
+
+        # To within parameter variance
+        newcosmo = flatcosmo.clone(Om0=cosmo.Om0 + 1e-30)
+        assert newcosmo.is_close_to_flat(tolerance=...)
+
+        # Not close for dtype
+        newcosmo = flatcosmo.clone(Ode0=cosmo.Ode0 + 1e-12)
+        assert not newcosmo.is_close_to_flat(tolerance=...)
+
+        # To within specified variance
+        assert newcosmo.is_close_to_flat(tolerance=1e-3)
+        # Note the bad tolerance, b/c Ok0 is VERY sensitive
+
+        # The variance can also be a dictionary
+        assert not newcosmo.is_close_to_flat(tolerance=dict(Ode0=1e-3))
+        assert newcosmo.is_close_to_flat(tolerance=dict(Ok0=1e-3))
+
     # ---------------------------------------------------------------
     # Properties
 
@@ -861,13 +899,13 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
 
     def test_is_close_Ode0_also_changes(self, cosmo):
         """Test :meth:`astropy.cosmology.FlatFLRWMixin.is_close` Ode0 weirdness."""
-        newclone = cosmo.clone(Om0=cosmo.Om0 + 1e-12)
-        assert not newclone.is_close(cosmo, tolerance=...)  # not close for dtype
-        assert newclone.is_close(cosmo, tolerance=1e-10)  # can be made "close"
+        newcosmo = cosmo.clone(Om0=cosmo.Om0 + 1e-12)
+        assert not newcosmo.is_close(cosmo, tolerance=...)  # not close for dtype
+        assert newcosmo.is_close(cosmo, tolerance=1e-10)  # can be made "close"
 
         # Watch out, because some parameters can influence each other!
-        assert not newclone.is_close(cosmo, tolerance=dict(Om0=1e-10))
-        assert newclone.is_close(cosmo, tolerance=dict(Om0=1e-10, Ode0=1e-10))
+        assert not newcosmo.is_close(cosmo, tolerance=dict(Om0=1e-10))
+        assert newcosmo.is_close(cosmo, tolerance=dict(Om0=1e-10, Ode0=1e-10))
 
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):

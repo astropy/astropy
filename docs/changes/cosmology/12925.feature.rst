@@ -1,5 +1,5 @@
-A new method ``.is_close()`` has been added to ``Cosmology`` to check if the
-parameters in two cosmologies are close to within a specified tolerance.
+A new method -- ``.is_close()`` -- has been added to ``Cosmology`` to check if
+the parameters in two cosmologies are close to within a specified tolerance.
 The tolerance can be `None` (for strict equality), `Ellipsis` to infer the
 parameter's `numpy.dtype`'s maximum precision, or a dictionary of tolerances
 keyed by the parameter's name.
@@ -7,6 +7,6 @@ Like ``Cosmology.is_equivalent``, the method works on any Python object that
 can be converted to a Cosmology.
 
 A new abstract method -- ``.is_close_to_flat()`` -- has been added to
-``Cosmology`` to check if a cosmology is clost to being flat. The abstract
-property ``is_flat`` now calls ``is_close_to_flat``. ``.is_close_to_flat()``
-accepts the same tolerance parameter as ``is_close``.
+``Cosmology`` to check if a cosmology is clost to being flat. The property
+``is_flat`` now calls ``is_close_to_flat``, which accepts the same tolerance
+parameter as ``is_close``.

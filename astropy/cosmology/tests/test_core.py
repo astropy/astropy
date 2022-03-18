@@ -67,9 +67,8 @@ class SubCosmology(Cosmology):
         self.Tcmb0 = Tcmb0
         self.m_nu = m_nu
 
-    @property
-    def is_flat(self):
-        return super().is_flat()
+    def is_close_to_flat(self, tolerance=...):
+        return super().is_close_to_flat(tolerance=tolerance)
 
 
 ##############################################################################
@@ -200,9 +199,14 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         with pytest.raises(AttributeError, match="can't set"):
             cosmo.name = None
 
+    def test_is_close_to_flat(self, cosmo_cls, cosmo):
+        """Test method ``is_close_to_flat``. It's an ABC."""
+        with pytest.raises(NotImplementedError, match="is_close_to_flat is not implemented"):
+            cosmo.is_close_to_flat()
+
     def test_is_flat(self, cosmo_cls, cosmo):
         """Test property ``is_flat``. It's an ABC."""
-        with pytest.raises(NotImplementedError, match="is_flat is not implemented"):
+        with pytest.raises(NotImplementedError, match="is_close_to_flat is not implemented"):
             cosmo.is_flat
 
     # ------------------------------------------------
@@ -427,6 +431,10 @@ class CosmologySubclassTest(TestCosmology):
     # instance-level
 
     @abc.abstractmethod
+    def test_is_close_to_flat(self, cosmo_cls, cosmo):
+        """Test method ``is_close_to_flat``."""
+
+    @abc.abstractmethod
     def test_is_flat(self, cosmo_cls, cosmo):
         """Test property ``is_flat``."""
 
@@ -442,6 +450,23 @@ class FlatCosmologyMixinTest:
         class TestFlatSomeCosmology(FlatCosmologyMixinTest, TestSomeCosmology):
             ...
     """
+
+    def test_is_close_to_flat(self, cosmo_cls, cosmo):
+        """Test method ``is_close_to_flat``.
+
+        Normally this would pass up via super(), but ``is_close_to_flat`` is
+        meant to be overridden, so we skip super().
+        e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
+        vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
+        """
+        CosmologySubclassTest.test_is_close_to_flat(self, cosmo_cls, cosmo)
+
+        # it's always True
+        assert cosmo.is_close_to_flat() is True
+        assert cosmo.is_close_to_flat(tolerance=None) is True
+        assert cosmo.is_close_to_flat(tolerance=...) is True
+        assert cosmo.is_close_to_flat(tolerance=1e-20) is True
+        assert cosmo.is_close_to_flat(tolerance=dict(Ok0=1e-20, Otot0=1e-20)) is True
 
     def test_is_flat(self, cosmo_cls, cosmo):
         """Test property ``is_flat``."""

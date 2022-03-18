@@ -223,9 +223,8 @@ class ParameterTestMixin:
             def __init__(self, param, *, name=None, meta=None):
                 self.param = param
 
-            @property
-            def is_flat(self):
-                return super().is_flat()
+            def is_close_to_flat(self, tolerance=...):
+                return super().is_close_to_flat(tolerance=tolerance)
 
         assert Example(1).param == 1 * u.eV
         assert Example(1 * u.eV).param == 1 * u.eV
@@ -250,9 +249,8 @@ class TestParameter(ParameterTestMixin):
             def __init__(self, param=15):
                 self.param = param
 
-            @property
-            def is_flat(self):
-                return super().is_flat()
+            def is_close_to_flat(self, tolerance=...):
+                return super().is_close_to_flat(tolerance=tolerance)
 
         # with validator
         class Example2(Example1):

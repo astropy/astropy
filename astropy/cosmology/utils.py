@@ -148,7 +148,7 @@ def _parameters_close(param1, param2, tolerance, name):
     ----------
     param1, param2 : number or array[number] or None
         The parameter values.
-    tolerance : None or Ellipsis or Number or dict[str, number]
+    tolerance : None or Ellipsis or `numbers.Number` or dict[str, number]
         The tolerance for each parameter to be considered equivalent.
         If `Ellipsis` the parameters can match to the `numpy.dtype` precision.
         If `None` the parameters must be equal.
@@ -160,7 +160,7 @@ def _parameters_close(param1, param2, tolerance, name):
     Returns
     -------
     bool
-        Whether `param1` and `param2` are close within the tolerance.
+        Whether `param1` and `param2` are close within the `tolerance`.
     """
     # exact equality
     if tolerance is None or param1 is None or param2 is None:
