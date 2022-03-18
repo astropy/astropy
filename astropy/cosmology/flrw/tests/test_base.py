@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""Testing :mod:`astropy.cosmology.flrw`."""
+"""Testing :mod:`astropy.cosmology.flrw.base`."""
 
 ##############################################################################
 # IMPORTS
@@ -15,18 +15,16 @@ import pytest
 
 import astropy.constants as const
 # LOCAL
-import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM, LambdaCDM, Planck18,
-                               w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
+from astropy.cosmology.conftest import get_redshift_methods
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.flrw import H0units_to_invs, a_B_c2, critdens_const, ellipkinc, hyp2f1, quad
+from astropy.cosmology.flrw.base import H0units_to_invs, a_B_c2, critdens_const, quad
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
+from astropy.cosmology.tests.test_core import (FlatCosmologyMixinTest, ParameterTestMixin,
+                                               invalid_zs, valid_zs)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-from .conftest import get_redshift_methods
-from .test_core import CosmologySubclassTest as CosmologyTest
-from .test_core import FlatCosmologyMixinTest, ParameterTestMixin, invalid_zs, valid_zs
 
 ##############################################################################
 # SETUP / TEARDOWN
@@ -47,13 +45,6 @@ def test_optional_deps_functions():
     """Test stand-in functions when optional dependencies not installed."""
     with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.integrate'"):
         quad()
-
-    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.special'"):
-        ellipkinc()
-
-    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.special'"):
-        hyp2f1()
-
 
 ##############################################################################
 
@@ -649,7 +640,7 @@ class TestFLRW(CosmologyTest,
         # decouple first.
         if cosmo.has_massive_nu:  # Tcmb0 > 0 & has massive
             # check the expected formula
-            assert cosmo.Onu0 ==  cosmo.Ogamma0 * cosmo.nu_relative_density(0)
+            assert cosmo.Onu0 == cosmo.Ogamma0 * cosmo.nu_relative_density(0)
             # a sanity check on on the ratio of neutrinos to photons
             # technically it could be 1, but not for any of the tested cases.
             assert cosmo.nu_relative_density(0) <= 1
@@ -833,7 +824,7 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
     def test_Parameter_Ode0(self, cosmo_cls):
         """Test Parameter ``Ode0`` on the class."""
         super().test_Parameter_Ode0(cosmo_cls)
-        assert cosmo_cls.Ode0.derived == True
+        assert cosmo_cls.Ode0.derived in (True, np.True_)
 
     def test_Ode0(self, cosmo):
         """Test no-longer-Parameter ``Ode0``."""
@@ -947,8 +938,8 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         # flat, but not FlatFLRWMixin
         flat = nonflat_cosmo_cls(*self.cls_args,
-                                   Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
-                                   **self.cls_kwargs)
+                                 Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
+                                 **self.cls_kwargs)
         flat._Ok0 = 0.0
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
@@ -963,505 +954,3 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         # test eliminated Ode0 from parameters
         assert "Ode0" not in repr(cosmo)
-
-
-# -----------------------------------------------------------------------------
-
-
-class TestLambdaCDM(FLRWSubclassTest):
-    """Test :class:`astropy.cosmology.LambdaCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = LambdaCDM
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    _FLRW_redshift_methods = get_redshift_methods(LambdaCDM, allow_private=True, allow_z2=False) - {"_dS_age"}
-    # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
-    # so any input that doesn't trip up ``np.shape`` is "valid"
-
-    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
-    @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
-    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
-        """Test all the redshift methods for bad input."""
-        super().test_redshift_method_bad_input(cosmo, method, z, exc)
-
-    @pytest.mark.parametrize("z", valid_zs)
-    def test_w(self, cosmo, z):
-        """Test :meth:`astropy.cosmology.LambdaCDM.w`."""
-        super().test_w(cosmo, z)
-
-        w = cosmo.w(z)
-        assert u.allclose(w, -1.0)
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("LambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
-    """Test :class:`astropy.cosmology.FlatLambdaCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = FlatLambdaCDM
-
-    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
-    @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', TestLambdaCDM._FLRW_redshift_methods - {"Otot"})
-    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
-        """Test all the redshift methods for bad input."""
-        super().test_redshift_method_bad_input(cosmo, method, z, exc)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
-                    " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class Parameterw0TestMixin(ParameterTestMixin):
-    """Tests for `astropy.cosmology.Parameter` w0 on a Cosmology.
-
-    w0 is a descriptor, which are tested by mixin, here with ``TestFLRW``.
-    These tests expect dicts ``_cls_args`` and ``cls_kwargs`` which give the
-    args and kwargs for the cosmology class, respectively. See ``TestFLRW``.
-    """
-
-    def test_w0(self, cosmo_cls, cosmo):
-        """Test Parameter ``w0``."""
-        # on the class
-        assert isinstance(cosmo_cls.w0, Parameter)
-        assert "Dark energy equation of state" in cosmo_cls.w0.__doc__
-        assert cosmo_cls.w0.unit is None
-
-        # on the instance
-        assert cosmo.w0 is cosmo._w0
-        assert cosmo.w0 == self.cls_kwargs["w0"]
-
-    def test_init_w0(self, cosmo_cls, ba):
-        """Test initialization for values of ``w0``."""
-        # test that it works with units
-        ba.arguments["w0"] = ba.arguments["w0"] << u.one  # ensure units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.w0 == ba.arguments["w0"]
-
-        # also without units
-        ba.arguments["w0"] = ba.arguments["w0"].value  # strip units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.w0 == ba.arguments["w0"]
-
-        # must be dimensionless
-        ba.arguments["w0"] = 10 * u.km
-        with pytest.raises(TypeError):
-            cosmo_cls(*ba.args, **ba.kwargs)
-
-
-class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
-    """Test :class:`astropy.cosmology.wCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-
-        self.cls = wCDM
-        self.cls_kwargs.update(w0=-0.5)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    def test_clone_change_param(self, cosmo):
-        """Test method ``.clone()`` changing a(many) Parameter(s)."""
-        super().test_clone_change_param(cosmo)
-
-        # `w` params
-        c = cosmo.clone(w0=0.1)
-        assert c.w0 == 0.1
-        for n in (set(cosmo.__parameters__) - {"w0"}):
-            v = getattr(c, n)
-            if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
-
-    @pytest.mark.parametrize("z", valid_zs)
-    def test_w(self, cosmo, z):
-        """Test :meth:`astropy.cosmology.wCDM.w`."""
-        super().test_w(cosmo, z)
-
-        w = cosmo.w(z)
-        assert u.allclose(w, self.cls_kwargs["w0"])
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("wCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
-    """Test :class:`astropy.cosmology.FlatwCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = FlatwCDM
-        self.cls_kwargs.update(w0=-0.5)
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("FlatwCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " w0=-0.5, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class ParameterwaTestMixin(ParameterTestMixin):
-    """Tests for `astropy.cosmology.Parameter` wa on a Cosmology.
-
-    wa is a descriptor, which are tested by mixin, here with ``TestFLRW``.
-    These tests expect dicts ``_cls_args`` and ``cls_kwargs`` which give the
-    args and kwargs for the cosmology class, respectively. See ``TestFLRW``.
-    """
-
-    def test_wa(self, cosmo_cls, cosmo):
-        """Test Parameter ``wa``."""
-        # on the class
-        assert isinstance(cosmo_cls.wa, Parameter)
-        assert "Negative derivative" in cosmo_cls.wa.__doc__
-        assert cosmo_cls.wa.unit is None
-
-        # on the instance
-        assert cosmo.wa is cosmo._wa
-        assert cosmo.wa == self.cls_kwargs["wa"]
-
-    def test_init_wa(self, cosmo_cls, ba):
-        """Test initialization for values of ``wa``."""
-        # test that it works with units
-        ba.arguments["wa"] = ba.arguments["wa"] << u.one  # ensure units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wa == ba.arguments["wa"]
-
-        # also without units
-        ba.arguments["wa"] = ba.arguments["wa"].value  # strip units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wa == ba.arguments["wa"]
-
-        # must be dimensionless
-        ba.arguments["wa"] = 10 * u.km
-        with pytest.raises(TypeError):
-            cosmo_cls(*ba.args, **ba.kwargs)
-
-
-class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
-    """Test :class:`astropy.cosmology.w0waCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = w0waCDM
-        self.cls_kwargs.update(w0=-1, wa=-0.5)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    def test_clone_change_param(self, cosmo):
-        """Test method ``.clone()`` changing a(many) Parameter(s)."""
-        super().test_clone_change_param(cosmo)
-
-        # `w` params
-        c = cosmo.clone(w0=0.1, wa=0.2)
-        assert c.w0 == 0.1
-        assert c.wa == 0.2
-        for n in (set(cosmo.__parameters__) - {"w0", "wa"}):
-            v = getattr(c, n)
-            if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
-
-    # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
-    def test_w(self, cosmo):
-        """Test :meth:`astropy.cosmology.w0waCDM.w`."""
-        # super().test_w(cosmo, z)
-
-        assert u.allclose(cosmo.w(1.0), -1.25)
-        assert u.allclose(cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]),
-                          [-1, -1.16666667, -1.25, -1.3, -1.34848485])
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("w0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
-    """Test :class:`astropy.cosmology.Flatw0waCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = Flatw0waCDM
-        self.cls_kwargs.update(w0=-1, wa=-0.5)
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
-                    " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class ParameterwpTestMixin(ParameterTestMixin):
-    """Tests for `astropy.cosmology.Parameter` wp on a Cosmology.
-
-    wp is a descriptor, which are tested by mixin, here with ``TestFLRW``.
-    These tests expect dicts ``_cls_args`` and ``cls_kwargs`` which give the
-    args and kwargs for the cosmology class, respectively. See ``TestFLRW``.
-    """
-
-    def test_wp(self, cosmo_cls, cosmo):
-        """Test Parameter ``wp``."""
-        # on the class
-        assert isinstance(cosmo_cls.wp, Parameter)
-        assert "at the pivot" in cosmo_cls.wp.__doc__
-        assert cosmo_cls.wp.unit is None
-
-        # on the instance
-        assert cosmo.wp is cosmo._wp
-        assert cosmo.wp == self.cls_kwargs["wp"]
-
-    def test_init_wp(self, cosmo_cls, ba):
-        """Test initialization for values of ``wp``."""
-        # test that it works with units
-        ba.arguments["wp"] = ba.arguments["wp"] << u.one  # ensure units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wp == ba.arguments["wp"]
-
-        # also without units
-        ba.arguments["wp"] = ba.arguments["wp"].value  # strip units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wp == ba.arguments["wp"]
-
-        # must be dimensionless
-        ba.arguments["wp"] = 10 * u.km
-        with pytest.raises(TypeError):
-            cosmo_cls(*ba.args, **ba.kwargs)
-
-
-class ParameterzpTestMixin(ParameterTestMixin):
-    """Tests for `astropy.cosmology.Parameter` zp on a Cosmology.
-
-    zp is a descriptor, which are tested by mixin, here with ``TestFLRW``.
-    These tests expect dicts ``_cls_args`` and ``cls_kwargs`` which give the
-    args and kwargs for the cosmology class, respectively. See ``TestFLRW``.
-    """
-
-    def test_zp(self, cosmo_cls, cosmo):
-        """Test Parameter ``zp``."""
-        # on the class
-        assert isinstance(cosmo_cls.zp, Parameter)
-        assert "pivot redshift" in cosmo_cls.zp.__doc__
-        assert cosmo_cls.zp.unit == cu.redshift
-
-        # on the instance
-        assert cosmo.zp is cosmo._zp
-        assert cosmo.zp == self.cls_kwargs["zp"] << cu.redshift
-
-    def test_init_zp(self, cosmo_cls, ba):
-        """Test initialization for values of ``zp``."""
-        # test that it works with units
-        ba.arguments["zp"] = ba.arguments["zp"] << u.one  # ensure units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.zp == ba.arguments["zp"]
-
-        # also without units
-        ba.arguments["zp"] = ba.arguments["zp"].value  # strip units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.zp.value == ba.arguments["zp"]
-
-        # must be dimensionless
-        ba.arguments["zp"] = 10 * u.km
-        with pytest.raises(u.UnitConversionError):
-            cosmo_cls(*ba.args, **ba.kwargs)
-
-
-class TestwpwaCDM(FLRWSubclassTest,
-                  ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin):
-    """Test :class:`astropy.cosmology.wpwaCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = wpwaCDM
-        self.cls_kwargs.update(wp=-0.9, wa=0.2, zp=0.5)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    def test_clone_change_param(self, cosmo):
-        """Test method ``.clone()`` changing a(many) Parameter(s)."""
-        super().test_clone_change_param(cosmo)
-
-        # `w` params
-        c = cosmo.clone(wp=0.1, wa=0.2, zp=14)
-        assert c.wp == 0.1
-        assert c.wa == 0.2
-        assert c.zp == 14
-        for n in (set(cosmo.__parameters__) - {"wp", "wa", "zp"}):
-            v = getattr(c, n)
-            if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
-
-    # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
-    def test_w(self, cosmo):
-        """Test :meth:`astropy.cosmology.wpwaCDM.w`."""
-        # super().test_w(cosmo, z)
-
-        assert u.allclose(cosmo.w(0.5), -0.9)
-        assert u.allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
-                          [-0.94848485, -0.93333333, -0.9, -0.84666667,
-                           -0.82380952, -0.78266667])
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("wpwaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
-                    " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)")
-        assert repr(cosmo) == expected
-
-
-# -----------------------------------------------------------------------------
-
-
-class ParameterwzTestMixin(ParameterTestMixin):
-    """Tests for `astropy.cosmology.Parameter` wz on a Cosmology.
-
-    wz is a descriptor, which are tested by mixin, here with ``TestFLRW``.
-    These tests expect dicts ``_cls_args`` and ``cls_kwargs`` which give the
-    args and kwargs for the cosmology class, respectively. See ``TestFLRW``.
-    """
-
-    def test_wz(self, cosmo_cls, cosmo):
-        """Test Parameter ``wz``."""
-        # on the class
-        assert isinstance(cosmo_cls.wz, Parameter)
-        assert "Derivative of the dark energy" in cosmo_cls.wz.__doc__
-        assert cosmo_cls.wz.unit is None
-
-        # on the instance
-        assert cosmo.wz is cosmo._wz
-        assert cosmo.wz == self.cls_kwargs["wz"]
-
-    def test_init_wz(self, cosmo_cls, ba):
-        """Test initialization for values of ``wz``."""
-        # test that it works with units
-        ba.arguments["wz"] = ba.arguments["wz"] << u.one  # ensure units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wz == ba.arguments["wz"]
-
-        # also without units
-        ba.arguments["wz"] = ba.arguments["wz"].value  # strip units
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert cosmo.wz == ba.arguments["wz"]
-
-        # must be dimensionless
-        ba.arguments["wz"] = 10 * u.km
-        with pytest.raises(TypeError):
-            cosmo_cls(*ba.args, **ba.kwargs)
-
-
-class Testw0wzCDM(FLRWSubclassTest,
-                  Parameterw0TestMixin, ParameterwzTestMixin):
-    """Test :class:`astropy.cosmology.w0wzCDM`."""
-
-    def setup_class(self):
-        """Setup for testing."""
-        super().setup_class(self)
-        self.cls = w0wzCDM
-        self.cls_kwargs.update(w0=-1, wz=0.5)
-
-    # ===============================================================
-    # Method & Attribute Tests
-
-    def test_clone_change_param(self, cosmo):
-        """Test method ``.clone()`` changing a(many) Parameter(s)."""
-        super().test_clone_change_param(cosmo)
-
-        # `w` params
-        c = cosmo.clone(w0=0.1, wz=0.2)
-        assert c.w0 == 0.1
-        assert c.wz == 0.2
-        for n in (set(cosmo.__parameters__) - {"w0", "wz"}):
-            v = getattr(c, n)
-            if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
-
-    # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
-    def test_w(self, cosmo):
-        """Test :meth:`astropy.cosmology.w0wzCDM.w`."""
-        # super().test_w(cosmo, z)
-
-        assert u.allclose(cosmo.w(1.0), -0.5)
-        assert u.allclose(cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]),
-                          [-1.0, -0.75, -0.5, -0.25, 0.15])
-
-    def test_repr(self, cosmo_cls, cosmo):
-        """Test method ``.__repr__()``."""
-        super().test_repr(cosmo_cls, cosmo)
-
-        expected = ("w0wzCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
-        assert repr(cosmo) == expected

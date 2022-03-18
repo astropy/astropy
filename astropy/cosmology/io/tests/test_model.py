@@ -9,10 +9,9 @@ import numpy as np
 import pytest
 
 # LOCAL
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.conftest import get_redshift_methods
+from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
-from astropy.cosmology.tests.conftest import get_redshift_methods
-from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 

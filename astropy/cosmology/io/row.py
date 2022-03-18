@@ -3,8 +3,6 @@
 import copy
 from collections import defaultdict
 
-import numpy as np
-
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 from astropy.table import QTable, Row
