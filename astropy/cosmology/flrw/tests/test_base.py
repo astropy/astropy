@@ -11,8 +11,8 @@ import copy
 
 # THIRD PARTY
 import numpy as np
-import numpy.lib.recfunctions as rfn
 import pytest
+from numpy.lib.recfunctions import structured_to_unstructured
 
 import astropy.constants as const
 # LOCAL
@@ -294,10 +294,10 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
 
         # on the instance
         assert is_structured(cosmo.m_nu)
-        assert u.allclose(rfn.structured_to_unstructured(cosmo.m_nu), [0.0, 0.0, 0.0] * u.eV)
+        assert u.allclose(structured_to_unstructured(cosmo.m_nu), [0.0, 0.0, 0.0] * u.eV)
 
         # set differently depending on the other inputs
-        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
+        m_nu = structured_to_unstructured(cosmo.m_nu)
         if cosmo.Tnu0.value == 0:
             assert m_nu is None
         elif not cosmo._massivenu:  # only massless
@@ -315,14 +315,14 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         """
         # Test that it works when m_nu has units.
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(rfn.structured_to_unstructured(cosmo.m_nu) == ba.arguments["m_nu"])
+        assert np.all(structured_to_unstructured(cosmo.m_nu) == ba.arguments["m_nu"])
         assert not cosmo.has_massive_nu
         assert cosmo.m_nu.unit[0] == u.eV  # explicitly check unit once.
 
         # And it works when m_nu doesn't have units.
         ba.arguments["m_nu"] = ba.arguments["m_nu"].value  # strip units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(rfn.structured_to_unstructured(cosmo.m_nu.value) == ba.arguments["m_nu"])
+        assert np.all(structured_to_unstructured(cosmo.m_nu.value) == ba.arguments["m_nu"])
         assert not cosmo.has_massive_nu
 
         # A negative m_nu raises an exception.
@@ -347,7 +347,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # No neutrinos, but Neff
         tba.arguments["m_nu"] = 0
         cosmo = cosmo_cls(*tba.args, **tba.kwargs)
-        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
+        m_nu = structured_to_unstructured(cosmo.m_nu)
         assert not cosmo.has_massive_nu
         assert len(m_nu) == 4
         assert m_nu.unit == u.eV
@@ -358,7 +358,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # All massive neutrinos case, len from Neff
         tba.arguments["m_nu"] = 0.1 * u.eV
         cosmo = cosmo_cls(*tba.args, **tba.kwargs)
-        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
+        m_nu = structured_to_unstructured(cosmo.m_nu)
         assert cosmo.has_massive_nu
         assert len(m_nu) == 4
         assert m_nu.unit == u.eV
@@ -717,8 +717,8 @@ class TestFLRW(CosmologyTest,
             else:
                 # Value comparison. Might need to unstructure.
                 if is_structured(v):
-                    v = rfn.structured_to_unstructured(v)
-                    p = rfn.structured_to_unstructured(p)
+                    v = structured_to_unstructured(v)
+                    p = structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
@@ -738,8 +738,8 @@ class TestFLRW(CosmologyTest,
             else:
                 # Value comparison. Might need to unstructure.
                 if is_structured(v):
-                    v = rfn.structured_to_unstructured(v)
-                    p = rfn.structured_to_unstructured(p)
+                    v = structured_to_unstructured(v)
+                    p = structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)

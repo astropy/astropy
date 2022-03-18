@@ -241,7 +241,8 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, unstructure=T
     for k, v in data.items():
         if k in cosmology.__parameters__:
             col = convert_parameter_to_column(getattr(cosmo_cls, k), v,
-                                              meta=cosmology.meta.get(k))
+                                              meta=cosmology.meta.get(k),
+                                              unstructure=unstructure)
         else:
             col = Column([v])
         data[k] = col

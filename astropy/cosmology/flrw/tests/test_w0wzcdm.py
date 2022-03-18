@@ -5,16 +5,16 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
-
 # THIRD PARTY
 import pytest
+from numpy.lib.recfunctions import structured_to_unstructured
 
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import w0wzCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.cosmology.utils import is_structured
 
 from .test_base import FLRWSubclassTest
 from .test_w0cdm import Parameterw0TestMixin
@@ -89,8 +89,8 @@ class Testw0wzCDM(FLRWSubclassTest,
                 assert p is None  # matches `v`
             else: # Value comparison. Might need to unstructure.
                 if is_structured(v):
-                    v = rfn.structured_to_unstructured(v)
-                    p = rfn.structured_to_unstructured(p)
+                    v = structured_to_unstructured(v)
+                    p = structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below

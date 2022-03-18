@@ -198,7 +198,7 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False,
     needed, parameters can be unstructured to normal arrays / Quantities.
 
         >>> Planck18.to_format('mapping', unstructure=True)
-        {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
+        {'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>,
          ...
          'm_nu': <Quantity [0.  , 0.  , 0.06] eV>,
          ...

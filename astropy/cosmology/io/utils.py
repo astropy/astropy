@@ -21,7 +21,7 @@ FULLQUALNAME_SUBSTITUTIONS = {
 """Substitutions mapping the actual qualitative name to its preferred value."""
 
 
-def convert_parameter_to_column(parameter, value, meta=None):
+def convert_parameter_to_column(parameter, value, meta=None, unstructure=False):
     """Convert a |Cosmology| Parameter to a Table |Column|.
 
     Parameters
@@ -30,6 +30,12 @@ def convert_parameter_to_column(parameter, value, meta=None):
     value : Any
     meta : dict or None, optional
         Information from the Cosmology's metadata.
+    unstructure : bool (optional, keyword-only)
+        Whether to convert parameters with structured dtypes to plain,
+        unstructured arrays. If `True` (default) the column shape will be
+        (number of rows, length of dtype).
+        See :func:`~numpy.lib.recfunctions.structured_to_unstructured` for
+        details.
 
     Returns
     -------
@@ -38,10 +44,11 @@ def convert_parameter_to_column(parameter, value, meta=None):
     format = None if value is None else parameter.format_spec
     shape = (1,) + np.shape(value)  # minimum of 1d
 
-    if is_structured(value):
+    value = np.reshape(value, shape)
+    if unstructure and is_structured(value):
         value = structured_to_unstructured(value)
 
-    col = Column(data=np.reshape(value, shape),
+    col = Column(data=value,
                  name=parameter.name,
                  dtype=None,  # inferred from the data
                  description=parameter.__doc__,

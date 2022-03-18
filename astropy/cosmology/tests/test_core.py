@@ -12,8 +12,8 @@ import pickle
 
 # THIRD PARTY
 import numpy as np
-import numpy.lib.recfunctions as rfn
 import pytest
+from numpy.lib.recfunctions import structured_to_unstructured
 
 # LOCAL
 import astropy.cosmology.units as cu
@@ -327,7 +327,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
             v = getattr(cosmo, n)
             if is_structured(v):  # to compare values first need to unstructure
-                v = rfn.structured_to_unstructured(v)
+                v = structured_to_unstructured(v)
             assert np.all(tbl[n] == v)
 
         # check if Cosmology is in metadata or a column
