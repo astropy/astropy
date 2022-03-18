@@ -285,7 +285,7 @@ def with_redshift(cosmology=None, *,
     >>> z.to(u.K, equivalency)
     <Quantity 3000.225 K>
     """
-    from astropy.cosmology import default_cosmology, z_at_value
+    from astropy.cosmology import default_cosmology
 
     # get cosmology: None -> default and process str / class
     cosmology = cosmology if cosmology is not None else default_cosmology.get()

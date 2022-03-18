@@ -28,12 +28,7 @@ read it with ``mypackage``.
 
 """
 
-# STDLIB
-import json
-import os
-
 # THIRD PARTY
-import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.connect import readwrite_registry
 

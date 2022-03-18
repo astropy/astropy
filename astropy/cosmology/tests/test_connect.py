@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import copy
 import inspect
 import os
 
@@ -8,7 +7,7 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology.connect import CosmologyRead, readwrite_registry
+from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.tests import (test_cosmology, test_ecsv, test_json, test_mapping,
                                         test_model, test_row, test_table, test_yaml)

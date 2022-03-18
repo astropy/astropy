@@ -1,12 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import copy
-import warnings
-
 from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
-from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["CosmologyRead", "CosmologyWrite",
            "CosmologyFromFormat", "CosmologyToFormat"]

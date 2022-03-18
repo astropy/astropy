@@ -9,7 +9,6 @@
 import abc
 import inspect
 import pickle
-from types import MappingProxyType
 
 # THIRD PARTY
 import numpy as np
@@ -18,7 +17,7 @@ import pytest
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, core
+from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
@@ -244,7 +243,6 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         Test method ``.clone()`` changing a(many) Parameter(s).
         Nothing here b/c no Parameters.
         """
-        pass
 
     def test_clone_fail_unexpected_arg(self, cosmo):
         """Test when ``.clone()`` gets an unexpected argument."""
@@ -378,7 +376,6 @@ class CosmologySubclassTest(TestCosmology):
     @abc.abstractmethod
     def setup_class(self):
         """Setup for testing."""
-        pass
 
     # ===============================================================
     # Method & Attribute Tests

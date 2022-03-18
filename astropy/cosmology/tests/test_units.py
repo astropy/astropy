@@ -5,13 +5,11 @@
 ##############################################################################
 # IMPORTS
 
-import contextlib
-
 import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Planck13, default_cosmology, flrw
+from astropy.cosmology import Planck13, default_cosmology
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_ASDF, HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning

@@ -6,9 +6,7 @@
 # IMPORTS
 
 # STDLIB
-import ast
 import inspect
-import sys
 
 # THIRD PARTY
 import numpy as np
