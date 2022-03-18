@@ -173,7 +173,7 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False,
         OrderedDict([('cosmology', <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>),
           ('name', 'Planck18'), ('H0', <Quantity 67.66 km / (Mpc s)>),
           ('Om0', 0.30966), ('Tcmb0', <Quantity 2.7255 K>), ('Neff', 3.046),
-          ('m_nu', <Quantity [0.  , 0.  , 0.06] eV>), ('Ob0', 0.04897),
+          ('m_nu', <Quantity (0., 0., 0.06) (eV, eV, eV)>), ('Ob0', 0.04897),
           ('meta', ...
 
     Sometimes it is more useful to have the name of the cosmology class, not

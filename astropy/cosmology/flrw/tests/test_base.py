@@ -313,7 +313,6 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
 
         Note this requires the class to have a property ``has_massive_nu``.
         """
-        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
         # Test that it works when m_nu has units.
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         assert np.all(rfn.structured_to_unstructured(cosmo.m_nu) == ba.arguments["m_nu"])
@@ -348,20 +347,22 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # No neutrinos, but Neff
         tba.arguments["m_nu"] = 0
         cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
         assert not cosmo.has_massive_nu
-        assert len(cosmo.m_nu) == 4
-        assert cosmo.m_nu.unit == u.eV
-        assert u.allclose(cosmo.m_nu, 0 * u.eV)
+        assert len(m_nu) == 4
+        assert m_nu.unit == u.eV
+        assert u.allclose(m_nu, 0 * u.eV)
         # TODO! move this test when create ``test_nu_relative_density``
         assert u.allclose(cosmo.nu_relative_density(1.0), 0.22710731766 * 4.05, rtol=1e-6)
 
         # All massive neutrinos case, len from Neff
         tba.arguments["m_nu"] = 0.1 * u.eV
         cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
         assert cosmo.has_massive_nu
-        assert len(cosmo.m_nu) == 4
-        assert cosmo.m_nu.unit == u.eV
-        assert u.allclose(cosmo.m_nu, [0.1, 0.1, 0.1, 0.1] * u.eV)
+        assert len(m_nu) == 4
+        assert m_nu.unit == u.eV
+        assert u.allclose(m_nu, [0.1, 0.1, 0.1, 0.1] * u.eV)
 
     def test_init_m_nu_override_by_Tcmb0(self, cosmo_cls, ba):
         """Test initialization for values of ``m_nu``.

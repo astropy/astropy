@@ -13,9 +13,11 @@ import copy
 import inspect
 
 import numpy as np
+from numpy.lib.recfunctions import structured_to_unstructured
 
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.utils import is_structured
 from astropy.modeling import FittableModel, Model
 from astropy.utils.decorators import classproperty
 
@@ -213,6 +215,9 @@ def to_model(cosmology, *_, method):
 
         if default is None:  # skip unspecified parameters
             continue
+
+        if is_structured(default):
+            default = structured_to_unstructured(default)
 
         # add as Model Parameter
         cosmo_params[n] = default

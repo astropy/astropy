@@ -22,8 +22,8 @@ class Parameter:
     unit : unit-like, tuple[unit-like, Ellipsis], or None (optional, keyword-only)
         The `~astropy.units.Unit` for the Parameter. If None (default) no
         unit is assumed. For a structured parameter of an unknown length and
-        homogenous unit a 2-element tuple with the unit and an ellipsis may be
-        used -- e.g. ``(eV, ...)`` of `astropy.cosmology.FLRW.m_nu.unit`.
+        homogenous unit a 2-element tuple with the unit and an ellipsis should
+        be used -- e.g. ``(eV, ...)`` for ``FLRW.m_nu.unit``.
     equivalencies : `~astropy.units.Equivalency` or sequence thereof
         Unit equivalencies for this Parameter.
     fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)

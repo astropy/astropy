@@ -27,6 +27,12 @@ class IOTestBase:
     See ``TestCosmology`` for an example.
     """
 
+    @pytest.fixture
+    def structured_parameters(self, cosmo):
+        """Return the set of name of the structured parameters on a cosmology."""
+        structured = {k for k, v in cosmo._init_arguments.items() if is_structured(v)}
+        return structured
+
 
 class ToFromTestMixinBase(IOTestBase):
     """Tests for a Cosmology[To/From]Format with some ``format``.
@@ -79,12 +85,6 @@ class ReadWriteTestMixinBase(IOTestBase):
         # TODO! autoenable 'cu' if cosmology is imported?
         with u.add_enabled_units(cu):
             yield
-
-    @pytest.fixture
-    def structured_parameters(self, cosmo):
-        """Return the set of name of the structured parameters on a cosmology."""
-        structured = {k for k, v in cosmo._init_arguments.items() if is_structured(v)}
-        return structured
 
 
 ##############################################################################
