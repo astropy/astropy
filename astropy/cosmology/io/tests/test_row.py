@@ -44,7 +44,9 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         # for each structured param check it is correctly unstructured,
         # if it meant to be unstructured
         for k in structured_parameters:
-            assert (row[k].dtype.names is not None) is not unstructure
+            v = row[k]
+            is_structured = hasattr(v, "dtype") and (v.dtype.names is not None)
+            assert is_structured is not unstructure
 
     # -----------------------
 

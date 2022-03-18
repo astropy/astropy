@@ -326,7 +326,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
             # to compare values first need to unstructure
             v = getattr(cosmo, n)
-            if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+            if hasattr(v, "dtype") and v.dtype.names is not None:
                 v = rfn.structured_to_unstructured(v)
             assert np.all(tbl[n] == v)
 

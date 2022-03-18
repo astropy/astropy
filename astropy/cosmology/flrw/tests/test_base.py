@@ -292,7 +292,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert cosmo_cls.m_nu.format_spec == ""
 
         # on the instance
-        assert isinstance(cosmo.m_nu.unit, u.StructuredUnit)
+        assert cosmo.m_nu.dtype.names is not None
         assert u.allclose(rfn.structured_to_unstructured(cosmo.m_nu), [0.0, 0.0, 0.0] * u.eV)
 
         # set differently depending on the other inputs
@@ -714,7 +714,7 @@ class TestFLRW(CosmologyTest,
                 assert p is None  # matches `v`
             else:
                 # Value comparison. Might need to unstructure.
-                if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+                if hasattr(v, "dtype") and v.dtype.names is not None:
                     v = rfn.structured_to_unstructured(v)
                     p = rfn.structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
@@ -735,7 +735,7 @@ class TestFLRW(CosmologyTest,
                 assert p is None  # matches `v`
             else:
                 # Value comparison. Might need to unstructure.
-                if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+                if hasattr(v, "dtype") and v.dtype.names is not None:
                     v = rfn.structured_to_unstructured(v)
                     p = rfn.structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))

@@ -329,16 +329,14 @@ def _validate_with_unit(cosmology, param, value):
         if isinstance(unit, tuple) and (len(unit) == 2) and (unit[1] is Ellipsis):
             unit = unit[0]  # get unit from (unit, ...)
 
-            # check if any sub-unit is wrong / missing. If so, need to convert
-            # to structured quantity
-            if not (isinstance(value, u.Quantity)  # TODO! simplify this logic?
-                    and (value.unit == unit if not isinstance(value.unit, u.StructuredUnit)
-                         else all(vu == unit for vu in value.unit.values()))):
+            # check if any sub-unit is wrong / missing.
+            if (isinstance(value, u.Quantity)  # TODO! simplify this logic?
+                and (value.unit == unit if not isinstance(value.unit, u.StructuredUnit)
+                     else all(vu == unit for vu in value.unit.values()))):
+                pass  # all sub-units are correct.
+            else:  # need to convert
                 with u.add_enabled_equivalencies(param.equivalencies):
                     value = u.Quantity(value, unit=unit, copy=False)
-
-            else:  # all sub-units are correct.
-                pass  # AOK. Nothing further needed.
 
         # normal unit / pre-built structured
         else:

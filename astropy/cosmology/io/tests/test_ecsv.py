@@ -79,7 +79,9 @@ class ReadWriteECSVTestMixin(ReadWriteTestMixinBase):
 #         # for each structured param check it is correctly unstructured,
 #         # if it meant to be unstructured
 #         for k in structured_parameters:
-#             assert isinstance(tbl[k].unit, u.StructuredUnit) is not unstructure
+#             v = tbl[k]
+#             is_structured = hasattr(v, "dtype") and (v.dtype.names is not None)
+#             assert is_structured is not unstructure
 
     # -----------------------
 
