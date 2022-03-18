@@ -13,7 +13,7 @@ import pytest
 
 # LOCAL
 from astropy.cosmology import core
-from astropy.tests.helper import pickle_protocol  # noqa: F403
+from astropy.tests.helper import pickle_protocol  # noqa: F401
 
 ###############################################################################
 # FUNCTIONS
