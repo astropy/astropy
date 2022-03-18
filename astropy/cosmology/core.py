@@ -11,6 +11,7 @@ from astropy.utils.metadata import MetaData
 
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 from .parameter import Parameter
+from .utils import _parameters_close
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -199,6 +200,65 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
     # comparison methods
 
+    def is_close(self, other, *, tolerance=..., format=False):
+        r"""Check closeness between two Cosmologies.
+
+        In cosmology, what does "close" mean?
+        Different cosmological properties are differently sensitive to
+        different parameter values. In short, there's not really a good
+        "distance" metric in the space of cosmological parameters. Perhaps you 
+        mean that the scale parameters evolve similarly. Or maybe you don't.
+        This method leaves this definition to the user by providing a tolerance
+        parameter which sets how close each cosmology parameter must be.
+        If not specified, this method defaults to ``numpy.dtype`` resolution.
+
+        Two cosmologies may be close even if not the same class.
+        For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
+        and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+        tolerance : None or Ellipsis or dict[str, number], optional
+            The tolerance for each parameter to be considered equivalent.
+            If `Ellipsis` (default) the parameters can match to each
+            parameter's precision (set by the dtype).
+            If `None` the parameters must be equal.
+            If `dict` each parameter's tolerance can be specified by key,
+            defaulting to `Ellipsis` for missing keys.
+        format : bool or None or str, optional keyword-only
+            Whether to allow, before equivalence is checked, the object to be
+            converted to a |Cosmology|. This allows, e.g. a |Table| to be
+            equivalent to a Cosmology.
+            `False` (default) will not allow conversion. `True` or `None` will,
+            and will use the auto-identification to try to infer the correct
+            format. A `str` is assumed to be the correct format to use when
+            converting.
+
+        Returns
+        -------
+        bool
+            `True` if cosmologies are close, `False` otherwise.
+
+        Examples
+        --------
+        TODO!
+        """
+        # Allow for different formats to be considered equivalent.
+        if format is not False:
+            format = None if format is True else format  # str->str, None/True->None
+            try:
+                other = Cosmology.from_format(other, format=format)
+            except Exception:  # TODO! should enforce only TypeError
+                return False
+
+        close = self.__equiv__(other, tolerance=tolerance)
+        if close is NotImplemented and hasattr(other, "__equiv__"):
+            close = other.__equiv__(self, tolerance=tolerance)  # that failed, try from 'other'
+
+        return close if close is not NotImplemented else False
+
     def is_equivalent(self, other, *, format=False):
         r"""Check equivalence between Cosmologies.
 
@@ -263,30 +323,22 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck18.is_equivalent(tbl, format="yaml")
             True
         """
-        # Allow for different formats to be considered equivalent.
-        if format is not False:
-            format = None if format is True else format  # str->str, None/True->None
-            try:
-                other = Cosmology.from_format(other, format=format)
-            except Exception:  # TODO! should enforce only TypeError
-                return False
+        return self.is_close(other, tolerance=..., format=format)
 
-        # The options are: 1) same class & parameters; 2) same class, different
-        # parameters; 3) different classes, equivalent parameters; 4) different
-        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
-        equiv = self.__equiv__(other)
-        if equiv is NotImplemented and hasattr(other, "__equiv__"):
-            equiv = other.__equiv__(self)  # that failed, try from 'other'
-
-        return equiv if equiv is not NotImplemented else False
-
-    def __equiv__(self, other):
+    def __equiv__(self, other, tolerance=...):
         """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
 
         Parameters
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
+        tolerance : None or Ellipsis or dict[str, number], optional
+            The tolerance for each parameter to be considered equivalent.
+            If `Ellipsis` (default) the parameters can match to each
+            parameter's precision (set by the dtype).
+            If `None` the parameters must be equal.
+            If `dict` each parameter's tolerance can be specified by key,
+            defaulting to `Ellipsis` for missing keys.
 
         Returns
         -------
@@ -300,9 +352,12 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # check all parameters in 'other' match those in 'self' and 'other' has
         # no extra parameters (latter part should never happen b/c same class)
-        params_eq = (set(self.__all_parameters__) == set(other.__all_parameters__)
-                     and all(np.all(getattr(self, k) == getattr(other, k))
-                             for k in self.__all_parameters__))
+        params_eq = (
+            set(self.__all_parameters__) == set(other.__all_parameters__)
+            and all(
+                _parameters_close(getattr(self, k), getattr(other, k),
+                                  tolerance=tolerance, name=k)
+                for k in self.__all_parameters__))
         return params_eq
 
     def __eq__(self, other):
@@ -324,7 +379,7 @@ class Cosmology(metaclass=abc.ABCMeta):
             return NotImplemented  # allows other.__eq__
 
         # check all parameters in 'other' match those in 'self'
-        equivalent = self.__equiv__(other)
+        equivalent = self.__equiv__(other, tolerance=None)
         # non-Parameter checks: name
         name_eq = (self.name == other.name)
 

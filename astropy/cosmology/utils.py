@@ -139,3 +139,39 @@ def aszarr(z):
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value
+
+
+def _parameters_close(param1, param2, tolerance, name):
+    """Check if two cosmology values are close, within a tolerance.
+
+    Parameters
+    ----------
+    param1, param2 : number or array[number] or None
+        The parameter values.
+    tolerance : None or Ellipsis or dict[str, number]
+        The tolerance for each parameter to be considered equivalent.
+        If `Ellipsis` the parameters can match to the `numpy.dtype` precision.
+        If `None` the parameters must be equal.
+        If `dict` each parameter's tolerance can be specified by key,
+        defaulting to `Ellipsis` if the key is missing.
+    name : str
+        The name of the parameter that might be in `tolerance`.
+
+    Returns
+    -------
+    bool
+        Whether `param1` and `param2` are close within the tolerance.
+    """
+    # exact equality
+    if tolerance is None or param1 is None or param2 is None:
+        return np.all(param1 == param2)
+
+    # Some measure of closeness
+    if tolerance is Ellipsis or name not in tolerance:
+        r1 = np.finfo(getattr(param1, "dtype", type(param1))).resolution
+        r2 = np.finfo(getattr(param2, "dtype", type(param2))).resolution
+        tol = min(r1, r2)
+    else:  # specific to the parameter
+        tol = tolerance[k]
+
+    return np.all(np.isclose(param1, param2, rtol=tol, atol=tol))

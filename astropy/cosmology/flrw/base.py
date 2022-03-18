@@ -12,7 +12,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter, _validate_non_negative, _validate_with_unit
-from astropy.cosmology.utils import aszarr, vectorize_redshift_method
+from astropy.cosmology.utils import _parameters_close, aszarr, vectorize_redshift_method
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -252,10 +252,10 @@ class FLRW(Cosmology):
     # ---------------------------------------------------------------
     # properties
 
-    @property
-    def is_flat(self):
-        """Return bool; `True` if the cosmology is flat."""
-        return bool((self._Ok0 == 0.0) and (self.Otot0 == 1.0))
+    def is_close_to_flat(self, tolerance=None):
+        Ok0 = _parameters_close(self._Ok0, 0.0, tolerance=tolerance, name="Ok0")
+        Otot0 = _parameters_close(self.Otot0, 1.0, tolerance=tolerance, name="Otot0")
+        return bool(Ok0 and Otot0)
 
     @property
     def Otot0(self):
@@ -1442,13 +1442,25 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """
         return 1.0 if isinstance(z, (Number, np.generic)) else np.ones_like(z, subok=False)
 
-    def __equiv__(self, other):
+    def __equiv__(self, other, tolerance=...):
         """flat-FLRW equivalence. Use ``.is_equivalent()`` for actual check!
+
+        .. versionadded:: 5.0
 
         Parameters
         ----------
         other : `~astropy.cosmology.FLRW` subclass instance
             The object in which to compare.
+        tolerance : None or Ellipsis or `numbers.Number` or dict[str, number], optional
+            The tolerance for each parameter to be considered equivalent.
+            If `Ellipsis` (default) the parameters can match to each
+            parameter's precision (set by the dtype).
+            If `None` the parameters must be equal.
+            If `numbers.Number` this is the tolerance for all parameters.
+            If `dict` each parameter's tolerance can be specified by key,
+            defaulting to `Ellipsis` for missing keys.
+
+            .. versionadded:: 5.1
 
         Returns
         -------
@@ -1460,7 +1472,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """
         # check if case (1): same class & parameters
         if isinstance(other, FlatFLRWMixin):
-            return super().__equiv__(other)
+            return super().__equiv__(other, tolerance=tolerance)
 
         # check cases (3, 4), if other is the non-flat version of this class
         # this makes the assumption that any further subclass of a flat cosmo
@@ -1474,10 +1486,12 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # check all parameters in other match those in 'self' and 'other' has
         # no extra parameters (case (2)) except for 'Ode0' and that other
         params_eq = (
-            set(self.__all_parameters__) == set(other.__all_parameters__)  # no extra
-            and all(np.all(getattr(self, k) == getattr(other, k))  # equal
+            set(self.__all_parameters__) == set(other.__all_parameters__)
+                and all(
+                    _parameters_close(getattr(self, k), getattr(other, k),
+                                      tolerance=tolerance, name=k)
                     for k in self.__parameters__)
-            and other.is_flat
+                and other.is_close_to_flat(tolerance=tolerance)
         )
 
         return params_eq
