@@ -743,6 +743,25 @@ class TestFLRW(CosmologyTest,
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
+    def test_is_close(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.is_equivalent`.
+
+        .. todo::
+
+            This is the same test as ``test_is_equivalent``. Figure out how
+            to combine the tests!
+        """
+        super().test_is_close(cosmo)  # pass to CosmologySubclassTest
+
+        # test against a FlatFLRWMixin
+        # case (3) in FLRW.is_close
+        if isinstance(cosmo, FlatLambdaCDM):
+            assert cosmo.is_close(Planck18)
+            assert Planck18.is_close(cosmo)
+        else:
+            assert not cosmo.is_close(Planck18)
+            assert not Planck18.is_close(cosmo)
+
 
 class FLRWSubclassTest(TestFLRW):
     """
@@ -839,6 +858,16 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
         # Ode0 is not in the signature
         with pytest.raises(TypeError, match="Ode0"):
             cosmo_cls(*ba.args, **ba.kwargs, Ode0=1)
+
+    def test_is_close_Ode0_also_changes(self, cosmo):
+        """Test :meth:`astropy.cosmology.FlatFLRWMixin.is_close` Ode0 weirdness."""
+        newclone = cosmo.clone(Om0=cosmo.Om0 + 1e-12)
+        assert not newclone.is_close(cosmo, tolerance=...)  # not close for dtype
+        assert newclone.is_close(cosmo, tolerance=1e-10)  # can be made "close"
+        
+        # Watch out, because some parameters can influence each other!
+        assert not newclone.is_close(cosmo, tolerance=dict(Om0=1e-10))
+        assert newclone.is_close(cosmo, tolerance=dict(Om0=1e-10, Ode0=1e-10))
 
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
@@ -943,6 +972,37 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         flat._Ok0 = 0.0
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
+
+    def test_is_close(self, cosmo, nonflatcosmo):
+        """Test :meth:`astropy.cosmology.FLRW.is_close`.
+
+        .. todo::
+
+            This is the same test as ``test_is_equivalent``. Figure out how
+            to combine the tests!
+        """
+        super().test_is_close(cosmo)  # pass to TestFLRW
+
+        # against non-flat Cosmology
+        assert not cosmo.is_close(nonflatcosmo)
+        assert not nonflatcosmo.is_close(cosmo)
+
+        # non-flat version of class
+        nonflat_cosmo_cls = cosmo.__class__.mro()[3]
+        # keys check in `test_is_equivalent_nonflat_class_different_params`
+
+        # non-flat
+        nonflat = nonflat_cosmo_cls(*self.cls_args, Ode0=0.9, **self.cls_kwargs)
+        assert not nonflat.is_close(cosmo)
+        assert not cosmo.is_close(nonflat)
+
+        # flat, but not FlatFLRWMixin
+        flat = nonflat_cosmo_cls(*self.cls_args,
+                                 Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
+                                 **self.cls_kwargs)
+        flat._Ok0 = 0.0
+        assert flat.is_close(cosmo)
+        assert cosmo.is_close(flat)
 
     def test_repr(self, cosmo_cls, cosmo):
         """

@@ -210,21 +210,31 @@ class Cosmology(metaclass=abc.ABCMeta):
         mean that the scale parameters evolve similarly. Or maybe you don't.
         This method leaves this definition to the user by providing a tolerance
         parameter which sets how close each cosmology parameter must be.
-        If not specified, this method defaults to ``numpy.dtype`` resolution.
+        If not specified, this method defaults to the ``numpy.dtype``
+        resolution for each parameter.
 
-        Two cosmologies may be close even if not the same class.
+        Two cosmologies may be close even if not the same class, but only
+        if they are the flat and non-flat versions of the same class.
         For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
         and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
+
+        In future the notion of "closeness" might be extended so that any two
+        cosmologies may be compared, regardless of their class. But for now,
+        two cosmologies must be either the same class or of the flat-non-flat
+        pair.
+
+        .. versionadded:: 5.1
 
         Parameters
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
-        tolerance : None or Ellipsis or dict[str, number], optional
+        tolerance : None or Ellipsis or Number or dict[str, number], optional
             The tolerance for each parameter to be considered equivalent.
             If `Ellipsis` (default) the parameters can match to each
             parameter's precision (set by the dtype).
             If `None` the parameters must be equal.
+            If `numbers.Number` this is the tolerance for all parameters.
             If `dict` each parameter's tolerance can be specified by key,
             defaulting to `Ellipsis` for missing keys.
         format : bool or None or str, optional keyword-only
@@ -243,7 +253,70 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         Examples
         --------
-        TODO!
+        Two cosmologies are close if their parameters are close.
+        The simplest case is that a cosmology is close to itself.
+
+            >>> import astropy.units as u
+            >>> from astropy.cosmology import FlatLambdaCDM
+            >>> cosmo1 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3)
+            >>> cosmo1.is_close(cosmo1)
+            True
+
+        In this case the tolerance may be set to exact equality, from it's
+        default setting of `numpy.dtype` precision.
+
+            >>> cosmo1.is_close(cosmo1, tolerance=None)
+            True
+
+        Two cosmologies may be close even if they are not of the same class.
+        In this examples the ``LambdaCDM`` has ``Ode0`` set to the same value
+        calculated in ``FlatLambdaCDM``.
+
+            >>> from astropy.cosmology import LambdaCDM
+            >>> cosmo2 = LambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, 0.7)
+            >>> cosmo2.is_close(cosmo1, tolerance=None)
+            True
+
+            >>> cosmo1.is_close(cosmo2, tolerance=None)
+            True
+
+        While in this example, ``Ode0`` is quite different, so the cosmologies
+        are not close.
+
+            >>> cosmo3 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, Tcmb0=3 * u.K)
+            >>> cosmo3.is_close(cosmo2)
+            False
+
+        The `tolerance` argument can be used to specify how close two
+        parameters must be. All non-specified parameters must be close to
+        within that parameter's `numpy.dtype` precision.
+
+            >>> cosmo4 = cosmo2.clone(Ode0 = cosmo2.Ode0 + 1e-14)
+            >>> cosmo4.is_close(cosmo2)
+            False
+
+            >>> cosmo4.is_close(cosmo2, tolerance=dict(Ode0=1e-10))
+            True
+
+        Also, using the keyword argument, the notion of closeness is extended
+        to any Python object that can be converted to a |Cosmology|.
+
+            >>> from astropy.cosmology import Planck18
+            >>> tbl = Planck18.to_format("astropy.table")
+            >>> Planck18.is_close(tbl, format=True)
+            True
+
+        The list of valid formats, e.g. the |Table| in this example, may be
+        checked with ``Cosmology.from_format.list_formats()``.
+
+        As can be seen in the list of formats, not all formats can be
+        auto-identified by ``Cosmology.from_format.registry``. Objects of
+        these kinds can still be checked for equivalence, but the correct
+        format string must be used.
+
+            >>> tbl = Planck18.to_format("yaml")
+            >>> Planck18.is_close(tbl, format="yaml")
+            True
         """
         # Allow for different formats to be considered equivalent.
         if format is not False:
@@ -332,11 +405,12 @@ class Cosmology(metaclass=abc.ABCMeta):
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
             The object in which to compare.
-        tolerance : None or Ellipsis or dict[str, number], optional
+        tolerance : None or Ellipsis or Number or dict[str, number], optional
             The tolerance for each parameter to be considered equivalent.
             If `Ellipsis` (default) the parameters can match to each
             parameter's precision (set by the dtype).
             If `None` the parameters must be equal.
+            If `numbers.Number` this is the tolerance for all parameters.
             If `dict` each parameter's tolerance can be specified by key,
             defaulting to `Ellipsis` for missing keys.
 

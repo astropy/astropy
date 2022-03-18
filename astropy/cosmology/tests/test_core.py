@@ -269,6 +269,49 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # different class and not convertible to Cosmology.
         assert not cosmo.is_equivalent(2)
 
+    def test_is_close(self, cosmo):
+        """Test :meth:`astropy.cosmology.Cosmology.is_close`."""
+        # to self
+        assert cosmo.is_close(cosmo)
+        assert cosmo.is_close(cosmo, tolerance=...)  # dtype precision (default)
+        assert cosmo.is_close(cosmo, tolerance=None)  # exact equality
+
+        # same class, different instance
+        newclone = cosmo.clone(name="test_is_close")
+        assert cosmo.is_close(newclone)  # dtype precision (default)
+        assert newclone.is_close(cosmo)
+        assert cosmo.is_close(newclone, tolerance=None)  # exact equality
+        assert newclone.is_close(cosmo, tolerance=None)
+
+        # same class, different instance, not equal parameters
+        for n in cosmo.__parameters__:
+            if (p := getattr(cosmo, n)) is None:
+                continue
+
+            # Perturb value slightly
+            newclone = cosmo.clone(**{n: u.Quantity(p).value + 1e-12})
+
+            # Not equal b/c dtype precision is higher than this
+            assert not newclone.is_close(cosmo, tolerance=...)
+            assert not newclone.is_close(cosmo, tolerance=1e-15)
+
+            # Lower the tolerance and they become equal!
+            assert newclone.is_close(cosmo, tolerance=1e-10)
+
+            # watch out, because some parameters can influence each other!
+            # For FLRW classes this is tested specifically.
+            # (TestFLRW.test_is_close_parameter_influence)
+            # For non-FLRW classes, please write a test for this.
+            
+        # `tolerance` can be a dict
+        assert newclone.is_close(cosmo, tolerance={n: 1e-10 for n in newclone.__all_parameters__})
+        # Note __all_parameters__, because there are some fixed params that
+        # can change, eg in FlatFLRWMixin.
+        # Also, only need to run this test once, because tolerance is invariant
+
+        # different class and not convertible to Cosmology.
+        assert not cosmo.is_close(2)
+
     def test_equality(self, cosmo):
         """Test method ``.__eq__()."""
         # wrong class
@@ -416,6 +459,21 @@ class FlatCosmologyMixinTest:
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
         """
         CosmologySubclassTest.test_is_equivalent(self, cosmo)
+
+    def test_is_close(self, cosmo):
+        """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_close`.
+        
+        Normally this would pass up via super(), but ``__equiv__`` is meant
+        to be overridden, so we skip super().
+        e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
+        vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
+
+        .. todo::
+
+            This is the same test as ``test_is_equivalent``. Figure out how
+            to combine the tests!
+        """
+        CosmologySubclassTest.test_is_close(self, cosmo)
 
 
 # -----------------------------------------------------------------------------
