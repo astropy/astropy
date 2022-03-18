@@ -9,9 +9,9 @@ import numpy as np
 import pytest
 
 # LOCAL
-from astropy.cosmology.conftest import get_redshift_methods
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
+from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -33,7 +33,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def method_name(self, cosmo):
         # get methods, ignoring private and dunder
-        methods = get_redshift_methods(cosmo, allow_private=False, allow_z2=True)
+        methods = get_redshift_methods(cosmo, include_private=False, include_z2=True)
 
         # dynamically detect ABC and optional dependencies
         for n in tuple(methods):

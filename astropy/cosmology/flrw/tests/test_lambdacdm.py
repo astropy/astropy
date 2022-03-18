@@ -13,8 +13,8 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import FlatLambdaCDM, LambdaCDM
-from astropy.cosmology.conftest import get_redshift_methods
 from astropy.cosmology.flrw.lambdacdm import ellipkinc, hyp2f1
+from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import invalid_zs, valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -49,7 +49,7 @@ class TestLambdaCDM(FLRWSubclassTest):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = (get_redshift_methods(LambdaCDM, allow_private=True, allow_z2=False)
+    _FLRW_redshift_methods = (get_redshift_methods(LambdaCDM, include_private=True, include_z2=False)
                               - {"_dS_age"})
     # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
     # so any input that doesn't trip up ``np.shape`` is "valid"
