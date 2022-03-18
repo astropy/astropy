@@ -6,6 +6,7 @@ import pytest
 # LOCAL
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.io.row import from_row, to_row
+from astropy.cosmology.utils import is_structured
 from astropy.table import Row
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -44,9 +45,7 @@ class ToFromRowTestMixin(ToFromTestMixinBase):
         # for each structured param check it is correctly unstructured,
         # if it meant to be unstructured
         for k in structured_parameters:
-            v = row[k]
-            is_structured = hasattr(v, "dtype") and (v.dtype.names is not None)
-            assert is_structured is not unstructure
+            assert is_structured(row[k]) is not unstructure
 
     # -----------------------
 

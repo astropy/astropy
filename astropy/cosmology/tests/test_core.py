@@ -21,6 +21,7 @@ import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.utils import is_structured
 from astropy.table import Column, QTable, Table
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
@@ -324,9 +325,8 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         for n in ("name", *cosmo.__parameters__):
             assert n in tbl.colnames
 
-            # to compare values first need to unstructure
             v = getattr(cosmo, n)
-            if hasattr(v, "dtype") and v.dtype.names is not None:
+            if is_structured(v):  # to compare values first need to unstructure
                 v = rfn.structured_to_unstructured(v)
             assert np.all(tbl[n] == v)
 

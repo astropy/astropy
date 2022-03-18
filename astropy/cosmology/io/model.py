@@ -215,9 +215,10 @@ def to_model(cosmology, *_, method):
             continue
 
         # add as Model Parameter
-        cosmo_params[n] = v
+        cosmo_params[n] = default
         model_params[n] = convert_parameter_to_model_parameter(
-            default, v, meta=cosmology.meta.get(n))
+            parameter=getattr(cosmology.__class__, n), value=default,
+            meta=cosmology.meta.get(n))
 
     # class name is cosmology name + Cosmology + method name + Model
     qualname = cosmology.__class__.__qualname__

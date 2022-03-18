@@ -88,7 +88,7 @@ class Testw0wzCDM(FLRWSubclassTest,
             if v is None:
                 assert p is None  # matches `v`
             else: # Value comparison. Might need to unstructure.
-                if hasattr(v, "dtype") and v.dtype.names is not None:
+                if is_structured(v):
                     v = rfn.structured_to_unstructured(v)
                     p = rfn.structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))

@@ -11,6 +11,7 @@ import pytest
 # LOCAL
 from astropy.cosmology import Cosmology
 from astropy.cosmology.io.mapping import from_mapping, to_mapping
+from astropy.cosmology.utils import is_structured
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
@@ -137,9 +138,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         # For each structured param check it is correctly unstructured,
         # if it meant to be unstructured
         for k in structured_parameters:
-            v = params[k]
-            is_structured = hasattr(v, "dtype") and (v.dtype.names is not None)
-            assert is_structured is not unstructure
+            assert is_structured(params[k]) is not unstructure
 
     # -----------------------------------------------------
 

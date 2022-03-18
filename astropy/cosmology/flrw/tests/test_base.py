@@ -25,6 +25,7 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
 from astropy.cosmology.tests.test_core import (FlatCosmologyMixinTest, ParameterTestMixin,
                                                invalid_zs, valid_zs)
+from astropy.cosmology.utils import is_structured
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ##############################################################################
@@ -292,7 +293,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert cosmo_cls.m_nu.format_spec == ""
 
         # on the instance
-        assert cosmo.m_nu.dtype.names is not None
+        assert is_structured(cosmo.m_nu)
         assert u.allclose(rfn.structured_to_unstructured(cosmo.m_nu), [0.0, 0.0, 0.0] * u.eV)
 
         # set differently depending on the other inputs
@@ -714,7 +715,7 @@ class TestFLRW(CosmologyTest,
                 assert p is None  # matches `v`
             else:
                 # Value comparison. Might need to unstructure.
-                if hasattr(v, "dtype") and v.dtype.names is not None:
+                if is_structured(v):
                     v = rfn.structured_to_unstructured(v)
                     p = rfn.structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
@@ -735,7 +736,7 @@ class TestFLRW(CosmologyTest,
                 assert p is None  # matches `v`
             else:
                 # Value comparison. Might need to unstructure.
-                if hasattr(v, "dtype") and v.dtype.names is not None:
+                if is_structured(v):
                     v = rfn.structured_to_unstructured(v)
                     p = rfn.structured_to_unstructured(p)
                 assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))

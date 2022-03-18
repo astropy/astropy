@@ -9,6 +9,7 @@ from astropy.cosmology import Cosmology, Parameter, realizations
 from astropy.cosmology import units as cu
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.realizations import available
+from astropy.cosmology.utils import is_structured
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 
@@ -82,8 +83,7 @@ class ReadWriteTestMixinBase(IOTestBase):
     @pytest.fixture
     def structured_parameters(self, cosmo):
         """Return the set of name of the structured parameters on a cosmology."""
-        structured = {k for k, v in cosmo._init_arguments.items() if
-                      (hasattr(v, "dtype") and v.dtype.names is not None)}
+        structured = {k for k, v in cosmo._init_arguments.items() if is_structured(v)}
         return structured
 
 

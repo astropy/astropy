@@ -19,9 +19,11 @@ class Parameter:
         included in all methods. For reference, see ``Ode0`` in
         ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
         independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
-    unit : unit-like or None (optional, keyword-only)
+    unit : unit-like, tuple[unit-like, Ellipsis], or None (optional, keyword-only)
         The `~astropy.units.Unit` for the Parameter. If None (default) no
-        unit as assumed.
+        unit is assumed. For a structured parameter of an unknown length and
+        homogenous unit a 2-element tuple with the unit and an ellipsis may be
+        used -- e.g. ``(eV, ...)`` of `astropy.cosmology.FLRW.m_nu.unit`.
     equivalencies : `~astropy.units.Equivalency` or sequence thereof
         Unit equivalencies for this Parameter.
     fvalidate : callable[[object, object, Any], Any] or str (optional, keyword-only)
@@ -193,11 +195,6 @@ class Parameter:
         if key in cls._registry_validators:
             raise KeyError(f"validator {key!r} already registered with Parameter.")
 
-        # fvalidate directly passed
-        if fvalidate is not None:
-            cls._registry_validators[key] = fvalidate
-            return fvalidate
-
         # for use as a decorator
         def register(fvalidate):
             """Register validator function.
@@ -214,7 +211,7 @@ class Parameter:
             cls._registry_validators[key] = fvalidate
             return fvalidate
 
-        return register
+        return register if fvalidate is None else register(fvalidate)
 
     # -------------------------------------------
 
@@ -324,24 +321,21 @@ def _validate_with_unit(cosmology, param, value):
     Default Parameter value validator.
     Adds/converts units if Parameter has a unit.
     """
-    if (unit := param.unit) is not None:
-        # structured of unknown length
-        if isinstance(unit, tuple) and (len(unit) == 2) and (unit[1] is Ellipsis):
-            unit = unit[0]  # get unit from (unit, ...)
+    if (unit := param.unit) is None:
+        return value
 
-            # check if any sub-unit is wrong / missing.
-            if (isinstance(value, u.Quantity)  # TODO! simplify this logic?
-                and (value.unit == unit if not isinstance(value.unit, u.StructuredUnit)
-                     else all(vu == unit for vu in value.unit.values()))):
-                pass  # all sub-units are correct.
-            else:  # need to convert
-                with u.add_enabled_equivalencies(param.equivalencies):
-                    value = u.Quantity(value, unit=unit, copy=False)
+    # structured unit of unknown length (this will not create the structured unit)
+    if isinstance(unit, tuple):
+        unit = unit[0]  # get unit from (unit, ...)
 
-        # normal unit / pre-built structured
-        else:
-            with u.add_enabled_equivalencies(param.equivalencies):
-                value = u.Quantity(value, unit=unit, copy=False)
+    # Check if any (sub-)unit is wrong / missing.
+    # This checks on structured units, not dtype, as a struct-array can have 1 unit.
+    if not (isinstance(value, u.Quantity)
+            and (value.unit == unit if not isinstance(value.unit, u.StructuredUnit)
+                 else all(vu == unit for vu in value.unit.values()))):
+
+        with u.add_enabled_equivalencies(param.equivalencies):
+            value = u.Quantity(value, unit=unit, copy=False)
 
     return value
 

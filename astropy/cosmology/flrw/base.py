@@ -13,7 +13,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter, _validate_non_negative, _validate_with_unit
-from astropy.cosmology.utils import aszarr, vectorize_redshift_method
+from astropy.cosmology.utils import aszarr, is_structured, vectorize_redshift_method
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -238,7 +238,7 @@ class FLRW(Cosmology):
         # Validate / set units
         value = _validate_with_unit(self, param, value)
 
-        if value.dtype.names is not None:  # unstructure
+        if is_structured(value):  # unstructure
             value = rfn.structured_to_unstructured(value)
 
         # Check values and data shapes
