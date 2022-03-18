@@ -15,9 +15,8 @@ import inspect
 import numpy as np
 
 from astropy.cosmology.connect import convert_registry
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.core import Cosmology
 from astropy.modeling import FittableModel, Model
-from astropy.modeling import Parameter as ModelParameter
 from astropy.utils.decorators import classproperty
 
 from .utils import convert_parameter_to_model_parameter

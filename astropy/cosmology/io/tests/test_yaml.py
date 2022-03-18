@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # STDLIB
-import inspect
 
 # THIRD PARTY
 import pytest
@@ -12,7 +11,6 @@ from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
 from astropy.cosmology.io.yaml import from_yaml, to_yaml, yaml_constructor, yaml_representer
 from astropy.io.misc.yaml import AstropyDumper, dump, load
-from astropy.table import QTable, vstack
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
 
@@ -174,4 +172,3 @@ class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
         If directly calling the function there's no auto-identification.
         So this overrides the test from `ToFromYAMLTestMixin`
         """
-        pass

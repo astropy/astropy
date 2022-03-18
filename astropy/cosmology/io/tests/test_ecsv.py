@@ -4,7 +4,6 @@
 import pytest
 
 # LOCAL
-import astropy.units as u
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
 from astropy.table import QTable, Table, vstack

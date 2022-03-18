@@ -4,9 +4,6 @@
 Test that the conversion interface with Astropy works as expected.
 """
 
-# STDLIB
-import os
-
 # THIRD PARTY
 import pytest
 
@@ -18,7 +15,6 @@ astropy = pytest.importorskip("astropy", minversion="4.3")  # isort: skip
 # can now import freely from astropy
 from astropy import cosmology
 from astropy.cosmology import Cosmology
-from astropy.io import registry as io_registry
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # cosmology instances to test reading and writing

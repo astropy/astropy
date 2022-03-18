@@ -124,7 +124,7 @@ instances between packages!
     >>> from astropy.cosmology import Planck18
     >>> cm = Planck18.to_format("mapping")
     >>> cm
-    {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
+    {'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>,
      'name': 'Planck18',
      'H0': <Quantity 67.66 km / (Mpc s)>,
      'Om0': 0.30966,
