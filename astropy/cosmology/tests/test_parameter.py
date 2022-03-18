@@ -112,7 +112,7 @@ class ParameterTestMixin:
     def test_Parameter_unit(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.unit`."""
         assert hasattr(all_parameter, "unit")
-        assert isinstance(all_parameter.unit, (u.UnitBase, type(None)))
+        assert isinstance(all_parameter.unit, (u.UnitBase, tuple, type(None)))
         assert all_parameter.unit is all_parameter._unit
 
     def test_Parameter_equivalencies(self, all_parameter):

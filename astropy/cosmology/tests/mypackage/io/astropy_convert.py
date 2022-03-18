@@ -22,6 +22,7 @@ to a ``mypackage`` object.
 """
 
 # THIRD PARTY
+import numpy.lib.recfunctions as rfn
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FLRW, Cosmology, FlatLambdaCDM
@@ -112,7 +113,7 @@ def to_mypackage(cosmology, *args):
     m["initial_matter_density"] = m.pop("Om0")
     m["initial_temperature"] = m.pop("Tcmb0").to_value(u.K)
     # m["Neff"] = m.pop("Neff")  # skip b/c unchanged
-    m["neutrino_masses"] = m.pop("m_nu").to_value(u.eV)
+    m["neutrino_masses"] = rfn.structured_to_unstructured(m.pop("m_nu")).to_value(u.eV)
     m["initial_baryon_density"] = m.pop("Ob0")
     m["current_age"] = m.pop("t0", cosmology.age(0 * cu.redshift)).to_value(u.Gyr)
 

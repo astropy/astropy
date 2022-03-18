@@ -58,7 +58,15 @@ class Parameter:
         self.__doc__ = doc
 
         # units stuff
-        self._unit = u.Unit(unit) if unit is not None else None
+        # can be a unit-able, None, or a structured unit of unknown length.
+        # the latter is looks like (unit-able, ...)
+        # See `_validate_with_unit` for usage.
+        if unit is None:
+            self._unit = unit
+        elif isinstance(unit, tuple) and (len(unit) == 2) and (unit[1] is Ellipsis):
+            self._unit = (u.Unit(unit[0]), ...)
+        else:  # this also catches errors
+            self._unit = u.Unit(unit)
         self._equivalencies = equivalencies
 
         # Parse registered `fvalidate`
@@ -316,9 +324,27 @@ def _validate_with_unit(cosmology, param, value):
     Default Parameter value validator.
     Adds/converts units if Parameter has a unit.
     """
-    if param.unit is not None:
-        with u.add_enabled_equivalencies(param.equivalencies):
-            value = u.Quantity(value, param.unit)
+    if (unit := param.unit) is not None:
+        # structured of unknown length
+        if isinstance(unit, tuple) and (len(unit) == 2) and (unit[1] is Ellipsis):
+            unit = unit[0]  # get unit from (unit, ...)
+
+            # check if any sub-unit is wrong / missing. If so, need to convert
+            # to structured quantity
+            if not (isinstance(value, u.Quantity)  # TODO! simplify this logic?
+                    and (value.unit == unit if not isinstance(value.unit, u.StructuredUnit)
+                         else all(vu == unit for vu in value.unit.values()))):
+                with u.add_enabled_equivalencies(param.equivalencies):
+                    value = u.Quantity(value, unit=unit, copy=False)
+
+            else:  # all sub-units are correct.
+                pass  # AOK. Nothing further needed.
+
+        # normal unit / pre-built structured
+        else:
+            with u.add_enabled_equivalencies(param.equivalencies):
+                value = u.Quantity(value, unit=unit, copy=False)
+
     return value
 
 
@@ -331,7 +357,7 @@ def _validate_to_float(cosmology, param, value):
 
 @Parameter.register_validator("scalar")
 def _validate_to_scalar(cosmology, param, value):
-    """"""
+    """Parameter value validator, where value must be a scalar."""
     value = _validate_with_unit(cosmology, param, value)
     if not value.isscalar:
         raise ValueError(f"{param.name} is a non-scalar quantity")

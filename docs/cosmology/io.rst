@@ -181,7 +181,8 @@ the |Planck18| cosmology from which it was created.
     >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
     >>> cosmo
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=(0., 0., 0.06) (eV, eV, eV),
+                  Ob0=0.04897)
 
 Perhaps more usefully, |QTable| can be saved to ``latex`` and ``html`` formats,
 which can be copied into journal articles and websites, respectively.
@@ -202,8 +203,8 @@ Now you can fit cosmologies with data!
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
     >>> model
     <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
-        Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
-        name='Planck18')>
+        Tcmb0=2.7255 K, Neff=3.046, m_nu=(0., 0., 0.06) (eV, eV, eV),
+        Ob0=0.04897, name='Planck18')>
 
 Like for the other formats, the |Planck18| cosmology can be recovered with
 |Cosmology.from_format|.
@@ -335,7 +336,7 @@ metadata and which Cosmology class to use. Details of are in
     >>> import json, os
     >>> import astropy.units as u
     >>> from astropy.cosmology import Cosmology
-
+    >>>
     >>> def read_json(filename, **kwargs):
     ...     # read file, from path-like or file-like
     ...     if isinstance(filename, (str, bytes, os.PathLike)):
@@ -347,7 +348,9 @@ metadata and which Cosmology class to use. Details of are in
     ...     # deserialize Quantity
     ...     for k, v in mapping.items():
     ...         if isinstance(v, dict) and "value" in v and "unit" in v:
-    ...             mapping[k] = u.Quantity(v["value"], v["unit"])
+    ...             vv = v["value"]
+    ...             vv = tuple(vv) if isinstance(vv, list) else vv  # structure
+    ...             mapping[k] = u.Quantity(vv, v["unit"])
     ...     for k, v in mapping.get("meta", {}).items():  # also the metadata
     ...         if isinstance(v, dict) and "value" in v and "unit" in v:
     ...             mapping["meta"][k] = u.Quantity(v["value"], v["unit"])

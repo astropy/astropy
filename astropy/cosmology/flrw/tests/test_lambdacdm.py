@@ -74,8 +74,8 @@ class TestLambdaCDM(FLRWSubclassTest):
         super().test_repr(cosmo_cls, cosmo)
 
         expected = ("LambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
+                    " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04,"
+                    " m_nu=(0., 0., 0.) (eV, eV, eV), Ob0=0.03)")
         assert repr(cosmo) == expected
 
 
@@ -105,6 +105,6 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         super().test_repr(cosmo_cls, cosmo)
 
         expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
-                    " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
+                    " Om0=0.27, Tcmb0=3.0 K, Neff=3.04,"
+                    " m_nu=(0., 0., 0.) (eV, eV, eV), Ob0=0.03)")
         assert repr(cosmo) == expected

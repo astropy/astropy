@@ -81,8 +81,8 @@ classes::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725)
   >>> cosmo  # doctest: +FLOAT_CMP
-  FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
-                Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)
+  FlatLambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K, Neff=3.04,
+                m_nu=(0., 0., 0.) (eV, eV, eV), Ob0=None)
 
 Note the presence of additional cosmological parameters (e.g., ``Neff``, the
 number of effective neutrino species) with default values; these can also be
@@ -454,13 +454,13 @@ assumed to be shared equally between each species.
   >>> cosmo.has_massive_nu
   False
   >>> cosmo.m_nu  # doctest: +FLOAT_CMP
-  <Quantity [0., 0., 0.] eV>
+  <Quantity (0., 0., 0.) (eV, eV, eV)>
   >>> m_nu = [0.0, 0.05, 0.10] * u.eV
   >>> cosmo = FlatLambdaCDM(H0, 0.272, Tcmb0=2.725, m_nu=m_nu)
   >>> cosmo.has_massive_nu
   True
   >>> cosmo.m_nu  # doctest: +FLOAT_CMP
-  <Quantity [0.  , 0.05, 0.1 ] eV>
+  <Quantity (0., 0.05, 0.1) (eV, eV, eV)>
   >>> cosmo.Onu(np.array([0, 1.0, 15.0]))  # doctest: +FLOAT_CMP
   array([0.00327011, 0.00896845, 0.01257946])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP

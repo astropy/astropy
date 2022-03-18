@@ -123,10 +123,14 @@ class TestwpwaCDM(FLRWSubclassTest,
         assert c.zp == 14
         for n in (set(cosmo.__parameters__) - {"wp", "wa", "zp"}):
             v = getattr(c, n)
+            p = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
-            else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert p is None  # matches `v`
+            else:  # Value comparison. Might need to unstructure.
+                if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+                    v = rfn.structured_to_unstructured(v)
+                    p = rfn.structured_to_unstructured(p)
+                assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
@@ -144,5 +148,5 @@ class TestwpwaCDM(FLRWSubclassTest,
 
         expected = ("wpwaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
                     " Ode0=0.73, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
-                    " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)")
+                    " Neff=3.04, m_nu=(0., 0., 0.) (eV, eV, eV), Ob0=0.03)")
         assert repr(cosmo) == expected

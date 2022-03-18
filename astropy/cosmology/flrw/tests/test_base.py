@@ -11,6 +11,7 @@ import copy
 
 # THIRD PARTY
 import numpy as np
+import numpy.lib.recfunctions as rfn
 import pytest
 
 import astropy.constants as const
@@ -286,40 +287,42 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # on the class
         assert isinstance(cosmo_cls.m_nu, Parameter)
         assert "Mass of neutrino species" in cosmo_cls.m_nu.__doc__
-        assert cosmo_cls.m_nu.unit == u.eV
+        assert cosmo_cls.m_nu.unit == (u.eV, ...)
         assert cosmo_cls.m_nu.equivalencies == u.mass_energy()
         assert cosmo_cls.m_nu.format_spec == ""
 
         # on the instance
-        # assert cosmo.m_nu is cosmo._m_nu
-        assert u.allclose(cosmo.m_nu, [0.0, 0.0, 0.0] * u.eV)
+        assert isinstance(cosmo.m_nu.unit, u.StructuredUnit)
+        assert u.allclose(rfn.structured_to_unstructured(cosmo.m_nu), [0.0, 0.0, 0.0] * u.eV)
 
         # set differently depending on the other inputs
+        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
         if cosmo.Tnu0.value == 0:
-            assert cosmo.m_nu is None
+            assert m_nu is None
         elif not cosmo._massivenu:  # only massless
-            assert u.allclose(cosmo.m_nu, 0 * u.eV)
+            assert u.allclose(m_nu, 0 * u.eV)
         elif self._nmasslessnu == 0:  # only massive
-            assert cosmo.m_nu == cosmo._massivenu_mass
+            assert m_nu == cosmo._massivenu_mass
         else:  # a mix -- the most complicated case
-            assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
-            assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
+            assert u.allclose(m_nu[:self._nmasslessnu], 0 * u.eV)
+            assert u.allclose(m_nu[self._nmasslessnu], cosmo._massivenu_mass)
 
     def test_init_m_nu(self, cosmo_cls, ba):
         """Test initialization for values of ``m_nu``.
 
         Note this requires the class to have a property ``has_massive_nu``.
         """
+        m_nu = rfn.structured_to_unstructured(cosmo.m_nu)
         # Test that it works when m_nu has units.
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(cosmo.m_nu == ba.arguments["m_nu"])  # (& checks len, unit)
+        assert np.all(rfn.structured_to_unstructured(cosmo.m_nu) == ba.arguments["m_nu"])
         assert not cosmo.has_massive_nu
-        assert cosmo.m_nu.unit == u.eV  # explicitly check unit once.
+        assert cosmo.m_nu.unit[0] == u.eV  # explicitly check unit once.
 
         # And it works when m_nu doesn't have units.
         ba.arguments["m_nu"] = ba.arguments["m_nu"].value  # strip units
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        assert np.all(cosmo.m_nu.value == ba.arguments["m_nu"])
+        assert np.all(rfn.structured_to_unstructured(cosmo.m_nu.value) == ba.arguments["m_nu"])
         assert not cosmo.has_massive_nu
 
         # A negative m_nu raises an exception.
@@ -706,10 +709,15 @@ class TestFLRW(CosmologyTest,
         assert c.H0.value == 100
         for n in (set(cosmo.__parameters__) - {"H0"}):
             v = getattr(c, n)
+            p = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert p is None  # matches `v`
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                # Value comparison. Might need to unstructure.
+                if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+                    v = rfn.structured_to_unstructured(v)
+                    p = rfn.structured_to_unstructured(p)
+                assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -722,10 +730,15 @@ class TestFLRW(CosmologyTest,
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
         for n in (set(cosmo.__parameters__) - {"H0", "Tcmb0"}):
             v = getattr(c, n)
+            p = getattr(cosmo, n)
             if v is None:
-                assert v is getattr(cosmo, n)
+                assert p is None  # matches `v`
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                # Value comparison. Might need to unstructure.
+                if isinstance(getattr(v, "unit", None), u.StructuredUnit):
+                    v = rfn.structured_to_unstructured(v)
+                    p = rfn.structured_to_unstructured(p)
+                assert u.allclose(v, p, atol=1e-4 * getattr(v, "unit", 1))
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)

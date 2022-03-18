@@ -6,6 +6,7 @@ from math import exp, floor, log, pi, sqrt
 from numbers import Number
 
 import numpy as np
+import numpy.lib.recfunctions as rfn
 from numpy import inf, sin
 
 import astropy.constants as const
@@ -114,7 +115,7 @@ class FLRW(Cosmology):
                       unit="Kelvin", fvalidate="scalar")
     Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
     m_nu = Parameter(doc="Mass of neutrino species.",
-                     unit="eV", equivalencies=u.mass_energy())
+                     unit=("eV", ...), equivalencies=u.mass_energy(), fmt="")
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
@@ -127,7 +128,7 @@ class FLRW(Cosmology):
         self.Ode0 = Ode0
         self.Tcmb0 = Tcmb0
         self.Neff = Neff
-        self.m_nu = m_nu  # (reset later, this is just for unit validation)
+        self.m_nu = m_nu
         self.Ob0 = Ob0  # (must be after Om0)
 
         # Derived quantities:
@@ -177,10 +178,11 @@ class FLRW(Cosmology):
             # so, get the right number of masses. It is worth keeping track of
             # massless ones separately (since they are easy to deal with, and a
             # common use case is to have only one massive neutrino).
-            massive = np.nonzero(self._m_nu.value > 0)[0]
+            _m_nu = rfn.structured_to_unstructured(self._m_nu.value)
+            massive = np.nonzero(_m_nu)[0]
             self._massivenu = massive.size > 0
             self._nmassivenu = len(massive)
-            self._massivenu_mass = self._m_nu[massive].value if self._massivenu else None
+            self._massivenu_mass = _m_nu[massive] if self._massivenu else None
             self._nmasslessnu = self._nneutrinos - self._nmassivenu
 
         # Compute Neutrino Omega and total relativistic component for massive
@@ -236,6 +238,9 @@ class FLRW(Cosmology):
         # Validate / set units
         value = _validate_with_unit(self, param, value)
 
+        if value.dtype.names is not None:  # unstructure
+            value = rfn.structured_to_unstructured(value)
+
         # Check values and data shapes
         if value.shape not in ((), (nneutrinos,)):
             raise ValueError("unexpected number of neutrino masses — "
@@ -246,6 +251,11 @@ class FLRW(Cosmology):
         # scalar -> array
         if value.isscalar:
             value = np.full_like(value, value, shape=nneutrinos)
+
+        # create structured
+        dtype = [(f"nu{i+1}", "f8", ()) for i in range(nneutrinos)]
+        dunit = u.StructuredUnit((value.unit, ) * nneutrinos)
+        value = value.value.view(dtype=dtype)[0] << dunit
 
         return value
 

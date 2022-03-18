@@ -56,9 +56,9 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> cm = Planck18.to_format('mapping')
         >>> cm
         {'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>,
-         'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
-         'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
-         'm_nu': <Quantity [0. , 0. , 0.06] eV>, 'Ob0': 0.04897,
+         'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>,
+         'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
+         'm_nu': <Quantity (0., 0., 0.06) (eV, eV, eV)>, 'Ob0': 0.04897,
          'meta': ...
 
     Now this dict can be used to load a new cosmological instance identical
@@ -67,7 +67,8 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> cosmo = Cosmology.from_format(cm, format="mapping")
         >>> cosmo
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+                      Tcmb0=2.7255 K, Neff=3.046, m_nu=(0., 0., 0.06) (eV, eV, eV),
+                      Ob0=0.04897)
 
     Specific cosmology classes can be used to parse the data. The class'
     default parameter values are used to fill in any information missing in the
@@ -151,9 +152,9 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
         >>> from astropy.cosmology import Planck18
         >>> Planck18.to_format('mapping')
         {'cosmology': <class 'astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM'>,
-         'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
-         'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
-         'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
+         'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>,
+         'Om0': 0.30966, 'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
+         'm_nu': <Quantity (0., 0., 0.06) (eV, eV, eV)>, 'Ob0': 0.04897,
          'meta': ...
 
     The dictionary type may be changed with the ``cls`` keyword argument:

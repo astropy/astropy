@@ -57,7 +57,8 @@ def from_row(row, *, move_to_meta=False, cosmology=None):
         >>> cosmo = Cosmology.from_format(cr, format="astropy.row")
         >>> cosmo
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                      Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+                      Tcmb0=2.7255 K, Neff=3.046,
+                      m_nu=(0., 0., 0.06) (eV, eV, eV), Ob0=0.04897)
     """
     # special values
     name = row['name'] if 'name' in row.columns else None  # get name from column

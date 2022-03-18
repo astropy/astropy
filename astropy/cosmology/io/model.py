@@ -144,7 +144,8 @@ def from_model(model):
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
     >>> Cosmology.from_format(model)
     FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966,
-                  Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
+                  Tcmb0=2.7255 K, Neff=3.046, m_nu=(0., 0., 0.06) (eV, eV, eV),
+                  Ob0=0.04897)
     """
     cosmology = model.cosmology_class
     meta = copy.deepcopy(model.meta)
@@ -207,7 +208,8 @@ def to_model(cosmology, *_, method):
     attrs["n_inputs"] = n_inputs
     attrs["n_outputs"] = 1
 
-    params = {}  # Parameters (also class attributes)
+    cosmo_params = {}
+    model_params = {}  # Model Parameters (also class attributes)
     for n in cosmology.__parameters__:
         v = getattr(cosmology, n)  # parameter value
 
@@ -215,8 +217,9 @@ def to_model(cosmology, *_, method):
             continue
 
         # add as Model Parameter
-        params[n] = convert_parameter_to_model_parameter(getattr(cosmo_cls, n), v,
-                                                         cosmology.meta.get(n))
+        cosmo_params[n] = v
+        model_params[n] = convert_parameter_to_model_parameter(
+            getattr(cosmo_cls, n), v, meta=cosmology.meta.get(n))
 
     # class name is cosmology name + Cosmology + method name + Model
     clsname = (cosmo_cls.__qualname__.replace(".", "_")
@@ -225,16 +228,15 @@ def to_model(cosmology, *_, method):
                + "Model")
 
     # make Model class
-    CosmoModel = type(clsname, (_CosmologyModel, ), {**attrs, **params})
+    CosmoModel = type(clsname, (_CosmologyModel, ), {**attrs, **model_params})
     # override __signature__ and format the doc.
     setattr(CosmoModel.evaluate, "__signature__", msig)
     CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
         cosmo_cls=cosmo_cls.__qualname__, method=method)
 
     # instantiate class using default values
-    ps = {n: getattr(cosmology, n) for n in params.keys()}
-    model = CosmoModel(**ps, name=cosmology.name, meta=copy.deepcopy(cosmology.meta))
-
+    model = CosmoModel(**cosmo_params, name=cosmology.name,
+                       meta=copy.deepcopy(cosmology.meta))
     return model
 
 

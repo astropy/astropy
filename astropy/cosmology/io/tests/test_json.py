@@ -44,10 +44,16 @@ def read_json(filename, **kwargs):
     with u.add_enabled_units(cu.redshift):
         for k, v in mapping.items():
             if isinstance(v, dict) and "value" in v and "unit" in v:
-                mapping[k] = u.Quantity(v["value"], v["unit"])
+                unit = u.Unit(v["unit"])
+                value = (v["value"] if not isinstance(unit, u.StructuredUnit)
+                         else tuple(v["value"]))
+                mapping[k] = u.Quantity(value, unit)
         for k, v in mapping.get("meta", {}).items():  # also the metadata
             if isinstance(v, dict) and "value" in v and "unit" in v:
-                mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
+                unit = u.Unit(v["unit"])
+                value = (v["value"] if not isinstance(unit, u.StructuredUnit)
+                         else tuple(v["value"]))
+                mapping["meta"][k] = u.Quantity(value, unit)
 
     return Cosmology.from_format(mapping, format="mapping", **kwargs)
 

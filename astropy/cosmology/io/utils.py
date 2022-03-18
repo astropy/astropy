@@ -36,6 +36,10 @@ def convert_parameter_to_column(parameter, value, meta=None):
     format = None if value is None else parameter.format_spec
     shape = (1,) + np.shape(value)  # minimum of 1d
 
+    data = np.reshape(value, shape)
+    if data.dtype.names is not None:  # structured
+        data = rfn.structured_to_unstructured(data)
+
     col = Column(data=np.reshape(value, shape),
                  name=parameter.name,
                  dtype=None,  # inferred from the data
@@ -62,6 +66,10 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     -------
     `astropy.modeling.Parameter`
     """
+    # if value.dtype.names is not None:
+    #     value = rfn.structured_to_unstructured(value)
+    # unit = getattr(value, "unit", None)
+
     # Get from meta information relavant to Model
     extra = {k: v for k, v in (meta or {}).items()
              if k in ('getter', 'setter', 'fixed', 'tied', 'min', 'max',
