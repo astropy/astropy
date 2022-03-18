@@ -1,0 +1,7 @@
+The "magic" method ``__equiv__`` now takes a new argument, tolerance, that
+specifies how close two parameters must be and still considered equivalent.
+
+Cosmology equivalence, as checked by ``Cosmology.is_equivalent``, has been
+relaxed from strict parameter equality to each parameter's `numpy.dtype`'s
+maximum precision, so a difference of e.g. 1e-18 for a `numpy.float64` is
+considered equivalent.

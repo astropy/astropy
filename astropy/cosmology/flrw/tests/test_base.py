@@ -864,7 +864,7 @@ class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
         newclone = cosmo.clone(Om0=cosmo.Om0 + 1e-12)
         assert not newclone.is_close(cosmo, tolerance=...)  # not close for dtype
         assert newclone.is_close(cosmo, tolerance=1e-10)  # can be made "close"
-        
+
         # Watch out, because some parameters can influence each other!
         assert not newclone.is_close(cosmo, tolerance=dict(Om0=1e-10))
         assert newclone.is_close(cosmo, tolerance=dict(Om0=1e-10, Ode0=1e-10))

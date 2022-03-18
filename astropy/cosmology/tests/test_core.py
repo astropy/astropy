@@ -302,7 +302,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
             # For FLRW classes this is tested specifically.
             # (TestFLRW.test_is_close_parameter_influence)
             # For non-FLRW classes, please write a test for this.
-            
+
         # `tolerance` can be a dict
         assert newclone.is_close(cosmo, tolerance={n: 1e-10 for n in newclone.__all_parameters__})
         # Note __all_parameters__, because there are some fixed params that
@@ -462,7 +462,7 @@ class FlatCosmologyMixinTest:
 
     def test_is_close(self, cosmo):
         """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_close`.
-        
+
         Normally this would pass up via super(), but ``__equiv__`` is meant
         to be overridden, so we skip super().
         e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology

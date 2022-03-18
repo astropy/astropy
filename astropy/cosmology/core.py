@@ -206,7 +206,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         In cosmology, what does "close" mean?
         Different cosmological properties are differently sensitive to
         different parameter values. In short, there's not really a good
-        "distance" metric in the space of cosmological parameters. Perhaps you 
+        "distance" metric in the space of cosmological parameters. Perhaps you
         mean that the scale parameters evolve similarly. Or maybe you don't.
         This method leaves this definition to the user by providing a tolerance
         parameter which sets how close each cosmology parameter must be.
@@ -401,6 +401,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __equiv__(self, other, tolerance=...):
         """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
 
+        .. versionadded:: 5.0
+
         Parameters
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
@@ -413,6 +415,8 @@ class Cosmology(metaclass=abc.ABCMeta):
             If `numbers.Number` this is the tolerance for all parameters.
             If `dict` each parameter's tolerance can be specified by key,
             defaulting to `Ellipsis` for missing keys.
+
+            .. versionadded:: 5.1
 
         Returns
         -------
