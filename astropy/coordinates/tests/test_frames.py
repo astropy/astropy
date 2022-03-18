@@ -710,12 +710,9 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
     assert 'Invalid time input' in str(err.value)
 
-    # A vector time should work if the shapes match, but we don't automatically
-    # broadcast the basic data (just like time).
+    # A vector time should work if the shapes match or are broadcastable
     FK4([1, 2] * u.deg, [2, 3] * u.deg, obstime=['J2000', 'J2001'])
-    with pytest.raises(ValueError) as err:
-        FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
-    assert 'shape' in str(err.value)
+    FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
 
 
 def test_is_frame_attr_default():
@@ -1533,3 +1530,21 @@ def test_nameless_frame_subclass():
     # This subclassing is the test!
     class NewFrame(ICRS, Test):
         pass
+
+
+def test_transform_altaz_array_obstime():
+    """Note: Regression test for #12965"""
+    obstime = Time("2010-01-01T00:00:00")
+    location = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+
+    frame1 = AltAz(location=location, obstime=obstime)
+    coord1 = SkyCoord(alt=80 * u.deg, az=0 * u.deg, frame=frame1)
+
+    obstimes = obstime + np.linspace(0, 15, 50) * u.min
+    frame2 = AltAz(location=location, obstime=obstimes)
+    coord2 = SkyCoord(alt=coord1.alt, az=coord1.az, frame=frame2)
+    assert np.all(coord2.alt == 80 * u.deg)
+    assert np.all(coord2.az == 0 * u.deg)
+
+    # test transformation to ICRS works
+    assert len(coord2.icrs) == 50

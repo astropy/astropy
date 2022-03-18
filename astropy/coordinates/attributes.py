@@ -104,15 +104,20 @@ class Attribute:
         out, converted = self.convert_input(out)
         if instance is not None:
             instance_shape = getattr(instance, 'shape', None)  # None if instance (frame) has no data!
-            if instance_shape is not None and (getattr(out, 'shape', ()) and
-                                               out.shape != instance_shape):
-                # If the shapes do not match, try broadcasting.
+            out_shape = getattr(out, 'shape', ())
+            if (
+                instance_shape is not None
+                and out_shape != ()
+                and out_shape != instance_shape
+            ):
                 try:
+                    # If the shapes do not match, try broadcasting.
+                    target_shape = np.broadcast_shapes(out.shape, instance_shape)
                     if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np.broadcast_to, shape=instance_shape,
+                        out = out._apply(np.broadcast_to, shape=target_shape,
                                          subok=True)
                     else:
-                        out = np.broadcast_to(out, instance_shape, subok=True)
+                        out = np.broadcast_to(out, target_shape, subok=True)
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(
