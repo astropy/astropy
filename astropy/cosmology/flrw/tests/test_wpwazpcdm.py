@@ -2,9 +2,6 @@
 
 """Testing :mod:`astropy.cosmology.flrw.wpwazpcdm`."""
 
-##############################################################################
-# IMPORTS
-
 import numpy as np
 
 # THIRD PARTY
@@ -13,13 +10,19 @@ import pytest
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import wpwaCDM
+from astropy.cosmology import FlatwpwaCDM, wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .test_base import FLRWTest
+from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0wacdm import ParameterwaTestMixin
+
+##############################################################################
+# PARAMETERS
+
+COMOVING_DISTANCE_EXAMPLE_KWARGS = {"wp": -0.9, "zp": 0.5, "wa": 0.1, "Tcmb0": 0.0}
+
 
 ##############################################################################
 # TESTS
@@ -163,32 +166,34 @@ class TestwpwaCDM(
         [
             (  # no relativistic species
                 (75.0, 0.3, 0.6),
-                {"wp": -0.9, "zp": 0.5, "wa": 0.1, "Tcmb0": 0.0},
+                {},
                 [2954.68975298, 4599.83254834, 5643.04013201, 6373.36147627] * u.Mpc,
             ),
             (  # massless neutrinos
                 (75.0, 0.25, 0.5),
-                {
-                    "wp": -0.9,
-                    "zp": 0.4,
-                    "wa": 0.1,
-                    "Tcmb0": 3.0,
-                    "Neff": 3,
-                    "m_nu": u.Quantity(0.0, u.eV),
-                },
+                {"zp": 0.4, "Tcmb0": 3.0, "Neff": 3, "m_nu": 0 * u.eV},
                 [2919.00656215, 4558.0218123, 5615.73412391, 6366.10224229] * u.Mpc,
             ),
             (  # massive neutrinos
                 (75.0, 0.25, 0.5),
-                {
-                    "wp": -0.9,
-                    "zp": 1.0,
-                    "wa": 0.1,
-                    "Tcmb0": 3.0,
-                    "Neff": 4,
-                    "m_nu": u.Quantity(5.0, u.eV),
-                },
+                {"zp": 1.0, "Tcmb0": 3.0, "Neff": 4, "m_nu": 5 * u.eV},
                 [2629.48489827, 3874.13392319, 4614.31562397, 5116.51184842] * u.Mpc,
+            ),
+            # FLAT: these match the tests in TestFlatwpwaCDM, except Ode0 is set manually.
+            (  # no relativistic species
+                (75.0, 0.3, 0.7),
+                {},
+                [3030.70481348, 4745.82435272, 5828.73710847, 6582.60454542] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25, 0.75),
+                {"zp": 0.4, "Tcmb0": 3.0, "Neff": 3, "m_nu": 0 * u.eV},
+                [3113.62199365, 4943.28425668, 6114.45491003, 6934.07461377] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25, 0.2458794183661),  # to make Ok0 = 0, Otot0 = 1
+                {"zp": 1.0, "Tcmb0": 3.0, "Neff": 4, "m_nu": 5 * u.eV},
+                [2517.08634022, 3694.21111754, 4402.17802962, 4886.65787948] * u.Mpc,
             ),
         ],
     )
@@ -198,7 +203,60 @@ class TestwpwaCDM(
         These do not come from external codes -- they are just internal checks to make
         sure nothing changes if we muck with the distance calculators.
         """
-        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
+        super().test_comoving_distance_example(
+            cosmo_cls, args, {**COMOVING_DISTANCE_EXAMPLE_KWARGS, **kwargs}, expected
+        )
+
+
+class TestFlatwpwaCDM(FlatFLRWMixinTest, TestwpwaCDM):
+    """Test :class:`astropy.cosmology.FlatwpwaCDM`."""
+
+    def setup_class(self):
+        """Setup for testing."""
+        super().setup_class(self)
+        self.cls = FlatwpwaCDM
+
+    def test_repr(self, cosmo_cls, cosmo):
+        """Test method ``.__repr__()``."""
+        super().test_repr(cosmo_cls, cosmo)
+
+        expected = (
+            'FlatwpwaCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
+            " Om0=0.27, wp=-0.9, wa=0.2, zp=0.5 redshift, Tcmb0=3.0 K,"
+            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
+        assert repr(cosmo) == expected
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.3),
+                {},
+                [3030.70481348, 4745.82435272, 5828.73710847, 6582.60454542] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25),
+                {"zp": 0.4, "wa": 0.1, "Tcmb0": 3.0, "Neff": 3, "m_nu": 0.0 * u.eV},
+                [3113.62199365, 4943.28425668, 6114.45491003, 6934.07461377] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25),
+                {"zp": 1.0, "Tcmb0": 3.0, "Neff": 4, "m_nu": 5 * u.eV},
+                [2517.08634022, 3694.21111754, 4402.17802962, 4886.65787948] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(
+            cosmo_cls, args, {**COMOVING_DISTANCE_EXAMPLE_KWARGS, **kwargs}, expected
+        )
 
 
 ###############################################################################
@@ -247,4 +305,11 @@ def test_de_densityscale():
         cosmo.de_density_scale([1, 2, 3]),
         cosmo.de_density_scale([1.0, 2.0, 3.0]),
         rtol=1e-7,
+    )
+
+    # Flat tests
+    cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9, wa=0.2, zp=0.5)
+    flatcosmo = FlatwpwaCDM(H0=70, Om0=0.3, wp=-0.9, wa=0.2, zp=0.5)
+    assert u.allclose(
+        cosmo.de_density_scale(z), flatcosmo.de_density_scale(z), rtol=1e-7
     )
