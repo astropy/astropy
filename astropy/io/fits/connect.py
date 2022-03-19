@@ -97,6 +97,11 @@ def _decode_mixins(tbl):
     # Add serialized column information to table meta for use in constructing mixins
     tbl.meta['__serialized_columns__'] = info['meta']['__serialized_columns__']
 
+    # Add back the special __attributes__ key in the table meta. This handles
+    # TableAttributes such as `primary_key` or `pprint_exclude_names`.
+    if '__attributes__' in info['meta']:
+        tbl.meta['__attributes__'] = info['meta']['__attributes__']
+
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
     for col in info['datatype']:
@@ -317,13 +322,29 @@ def _encode_mixins(tbl):
     """Encode a Table ``tbl`` that may have mixin columns to a Table with only
     astropy Columns + appropriate meta-data to allow subsequent decoding.
     """
-    # Determine if information will be lost without serializing meta.  This is hardcoded
-    # to the set difference between column info attributes and what FITS can store
-    # natively (name, dtype, unit).  See _get_col_attributes() in table/meta.py for where
-    # this comes from.
-    info_lost = any(any(getattr(col.info, attr, None) not in (None, {})
-                        for attr in ('description', 'meta'))
-                    for col in tbl.itercols())
+    # If PyYAML is not available then check to see if there are any mixin cols
+    # that *require* YAML serialization.  FITS already has support for Time,
+    # Quantity, so if those are the only mixins the proceed without doing the
+    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
+    # Time or Quantity).  In this case other mixin column meta (e.g.
+    # description or meta) will be silently dropped, consistent with astropy <=
+    # 2.0 behavior.
+    info_lost = serialize._get_info_lost(tbl, ('description', 'meta'))
+    try:
+        import yaml  # noqa
+    except ImportError:
+        for col in tbl.itercols():
+            if (has_info_class(col, MixinInfo)
+                    and col.__class__ not in (u.Quantity, Time)):
+                raise TypeError("cannot write type {} column '{}' "
+                                "to FITS without PyYAML installed."
+                                .format(col.__class__.__name__, col.info.name))
+        else:
+            if info_lost:
+                warnings.warn(f"table contains {info_lost}. This meta-data"
+                              " will be dropped unless you install PyYAML.",
+                              AstropyUserWarning)
+            return tbl
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.  This ignores
@@ -359,8 +380,17 @@ def _encode_mixins(tbl):
     encode_tbl.meta.setdefault(ser_col, {})
 
     tbl_meta_copy = encode_tbl.meta.copy()
+
+    # Any TableAttributes like `primary_key` or `pprint_include_names` will
+    # result in meta having '__attribues__'. These cannot be handled with the
+    # native FITS keywords so pop them off of tbl_meta_copy here (which is what
+    # gets sent to FITS keywords later) and put the __attributes__ into the
+    # temporary encode_tbl.meta which gets used to generate `meta_yaml_lines`.
+    attributes = tbl_meta_copy.pop('__attributes__', None)
     try:
         encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
+        if attributes:
+            encode_tbl.meta['__attributes__'] = attributes
         meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
     finally:
         encode_tbl.meta = tbl_meta_copy

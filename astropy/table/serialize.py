@@ -380,3 +380,31 @@ def _construct_mixins_from_columns(tbl):
     out_cls = QTable if has_quantities else Table
 
     return out_cls(list(out.values()), names=out.colnames, copy=False, meta=meta)
+
+
+def _get_info_lost(tbl, attrs):
+    """Determine if information will be lost without serializing meta.
+
+    This is an internal function used in astropy/io/fits/connect.py and
+    astropy/io/misc/hdf5.py to check the Table ``tbl`` for meta['__attributes__']
+    or any columns with ``attrs`` attributes.
+    """
+    # Check for column attributes that cannot be serialized natively.
+    info_lost = ''
+    for col in tbl.itercols():
+        for attr in attrs:
+            if getattr(col.info, attr, None) not in (None, {}):
+                info_lost = f"column {col.info.name!r} with defined {attr!r} info attribute"
+                break
+        if info_lost:
+            break
+
+    # Check for any defined TableAttributes such as `primary_key` or
+    # `pprint_exclude_names` that are stored in tbl.meta['__attributes__'].
+    if '__attributes__' in tbl.meta:
+        if info_lost:
+            info_lost = info_lost + ', and '
+        lost_attrs = ', '.join(repr(key) for key in tbl.meta['__attributes__'])
+        info_lost = info_lost + f'defined table attribute(s) {lost_attrs}'
+
+    return info_lost

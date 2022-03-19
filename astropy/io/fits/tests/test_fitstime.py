@@ -14,6 +14,12 @@ from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
 
+try:
+    import yaml  # noqa
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 
 class TestFitsTime(FitsTestCase):
 
@@ -308,8 +314,17 @@ class TestFitsTime(FitsTestCase):
         t.add_index('b')
 
         # Test for default write behavior (full precision) and read it
-        # back using native astropy objects; thus, ensure its round-trip
-        t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        # back using native astropy objects; thus, ensure its round-trip.
+        # The index puts entries into `meta` so YAML is required for round-trip,
+        # otherwise a warning gets issued.
+        with pytest.warns(None) as warns:
+            t.write(self.temp('time.fits'), format='fits', overwrite=True)
+        if HAS_YAML:
+            assert len(warns) == 0
+        else:
+            assert len(warns) == 3
+            assert 'will be dropped unless you install PyYAML' in warns[0].message.args[0]
+
         tm = table_types.read(self.temp('time.fits'), format='fits',
                               astropy_native=True)
 

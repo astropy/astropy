@@ -4,10 +4,8 @@
 
 import pytest
 import numpy as np
-from io import StringIO
 
 from astropy import table
-from astropy.io import ascii
 from astropy.table import Table, QTable
 from astropy.table.table_helpers import simple_table
 from astropy import units as u
@@ -836,16 +834,17 @@ class TestColumnsShowHide:
         del t['a']
         assert t_hide_show() == ('b',)
 
-    def test_serialization(self):
-        # Serialization works for ECSV. Currently fails for FITS, works with
-        # HDF5.
+    @pytest.mark.parametrize('fmt', ('ecsv', 'fits', 'hdf5'))
+    def test_serialization(self, fmt, tmpdir):
         t = self.t
         t.pprint_exclude_names = ['a', 'y']
         t.pprint_include_names = ['b', 'z']
 
-        out = StringIO()
-        ascii.write(t, out, format='ecsv')
-        t2 = ascii.read(out.getvalue(), format='ecsv')
+        filename = str(tmpdir.join(f'out.{fmt}'))
+        kwargs = {'path': 'root',
+                  'serialize_meta': True} if fmt == 'hdf5' else {}
+        t.write(filename, **kwargs)
+        t2 = Table.read(filename)
 
         assert t2.pprint_exclude_names() == ('a', 'y')
         assert t2.pprint_include_names() == ('b', 'z')

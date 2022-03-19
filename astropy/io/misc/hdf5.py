@@ -242,7 +242,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
         ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.
     """
 
-    from astropy.table import meta
+    from astropy.table import meta, serialize
     try:
         import h5py
     except ImportError:
@@ -325,13 +325,11 @@ def write_table_hdf5(table, output, path=None, compression=False,
     # hardcoded to the set difference between column info attributes and what
     # HDF5 can store natively (name, dtype) with no meta.
     if serialize_meta is False:
-        for col in table.itercols():
-            for attr in ('unit', 'format', 'description', 'meta'):
-                if getattr(col.info, attr, None) not in (None, {}):
-                    warnings.warn("table contains column(s) with defined 'unit', 'format',"
-                                  " 'description', or 'meta' info attributes. These will"
-                                  " be dropped since serialize_meta=False.",
-                                  AstropyUserWarning)
+        info_lost = serialize._get_info_lost(table, ('description', 'meta', 'unit', 'format'))
+        if info_lost:
+            warnings.warn(f"table contains {info_lost}. This meta-data"
+                          " will be dropped since serialize_meta=False.",
+                          AstropyUserWarning)
 
     # Write the table to the file
     if compression:

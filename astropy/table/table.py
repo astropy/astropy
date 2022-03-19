@@ -539,6 +539,22 @@ class PprintIncludeExclude(TableAttribute):
         return ctx
 
 
+class PrimaryKeyAttribute(TableAttribute):
+    """Table attribute to store the index primary_key in table.meta.
+
+    This allows the primary_key to round-trip through pickling.
+    """
+    def __set__(self, instance, value):
+        # Like normal MetaAttribute set but if setting to None (the default)
+        # then delete the attribute. This allows code like below to run without
+        # making a ``meta`` entry if ``old_table.primary_key`` is None.
+        #   new_table.primary_key = old_table.primary_key
+        if value is None:
+            delattr(instance, self.name)
+        else:
+            super().__set__(instance, value)
+
+
 class Table:
     """A class to represent tables of heterogeneous data.
 
@@ -599,6 +615,8 @@ class Table:
 
     pprint_exclude_names = PprintIncludeExclude()
     pprint_include_names = PprintIncludeExclude()
+
+    primary_key = PrimaryKeyAttribute()
 
     def as_array(self, keep_byteorder=False, names=None):
         """
@@ -667,7 +685,6 @@ class Table:
         self.formatter = self.TableFormatter()
         self._copy_indices = True  # copy indices from this Table by default
         self._init_indices = copy_indices  # whether to copy indices in init
-        self.primary_key = None
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
