@@ -53,6 +53,46 @@ write_to = "astropy/_version.py"
     group_by_package = true
     indented_import_headings = false
 
+
+[tool.mypy]
+python_version = "3.9"
+files = ["astropy/**/*.py"]
+plugins = ["numpy.typing.mypy_plugin"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
+    [[tool.mypy.overrides]]
+    module = [
+        "astropy/logger",
+        "*/_erfa/*",
+        "*/config/*",
+        "*/constants/*",
+        "*/convolution/*",
+        "*/coordinates/*",
+        "*/cosmology/*",
+        "*/extern/*",
+        "*/io/*",
+        "*/modeling/*",
+        "*/nddata/*",
+        "*/samp/*",
+        "*/stats/*",
+        "*/table/*",
+        "*/tests/*",
+        "*/time/*",
+        "*/timeseries/*",
+        "*/uncertainty/*",
+        "*/units/*",
+        "*/utils/*",
+        "*/visualization/*",
+        "*/wcs/*",
+    ]
+    ignore_errors = true
+
+    [[tool.mypy.overrides]]
+    module = "*/tests/*"
+    ignore_errors = true
+
+
 [tool.towncrier]
     package = "astropy"
     filename = "CHANGES.rst"
