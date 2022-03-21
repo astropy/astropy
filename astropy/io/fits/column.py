@@ -1437,10 +1437,10 @@ class ColDefs(NotifierMixin):
             format = self._col_format_cls.from_recformat(ftype)
 
             # Determine the appropriate dimensions for items in the column
-            # (typically just 1D)
             dim = array.dtype[idx].shape[::-1]
             if dim and (len(dim) > 0 or 'A' in format):
                 if 'A' in format:
+                    # should take into account multidimensional items in the column
                     dimel = int(re.findall('[0-9]+', str(ftype.subdtype[0]))[0])
                     # n x m string arrays must include the max string
                     # length in their dimensions (e.g. l x n x m)
@@ -2370,7 +2370,7 @@ def _convert_record2fits(format):
                              and dtype.subdtype[0].char == 'U'):
         # Unicode dtype--itemsize is 4 times actual ASCII character length,
         # which what matters for FITS column formats
-        # Use dtype.base and dtype.subdtype --dtype may be a multi-dimensional dtype
+        # Use dtype.base and dtype.subdtype --dtype for multi-dimensional items
         itemsize = itemsize // 4
 
     option = str(itemsize)
