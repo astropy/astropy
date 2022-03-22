@@ -998,7 +998,7 @@ class TestInterpolationFunctions(MaskedArraySetup):
         mask_x = np.array([False, True])
         mx = Masked(x, mask=mask_x)
         out = np.interp(mx, xp, mfp)
-        expected = np.interp(x, xp[mask_fp], fp[mask_fp])
+        expected = np.interp(x, xp[~mask_fp], fp[~mask_fp])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, mask_x)
 
@@ -1021,6 +1021,22 @@ class TestInterpolationFunctions(MaskedArraySetup):
 
         with pytest.raises(ValueError, match='with 2 condition'):
             np.piecewise(self.ma, condlist2, [])
+
+    def test_regression_12978(self):
+        """Regression tests for https://github.com/astropy/astropy/pull/12978"""
+        # This case produced incorrect results
+        mask = [False, True, False]
+        x = np.array([1, 2, 3])
+        xp = Masked(np.array([1, 2, 3]), mask=mask)
+        fp =  Masked(np.array([1, 2, 3]), mask=mask)
+        result = np.interp(x, xp, fp)
+        assert_array_equal(result, x)
+
+        # This case raised a ValueError
+        xp = np.array([1, 3])
+        fp =  Masked(np.array([1, 3]))
+        result = np.interp(x, xp, fp)
+        assert_array_equal(result, x)
 
 
 class TestBincount(MaskedArraySetup):
