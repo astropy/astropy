@@ -1322,7 +1322,15 @@ int imcomp_init_table(fitsfile *outfptr,
 	
 	    if ( (outfptr->Fptr)->request_quantize_method == 0) 
               (outfptr->Fptr)->request_quantize_method = SUBTRACTIVE_DITHER_1;
-       
+            
+            /* HCompress must not use SUBTRACTIVE_DITHER_2. If user is requesting
+               this, assign SUBTRACTIVE_DITHER_1 instead. */
+            if ((outfptr->Fptr)->request_quantize_method == SUBTRACTIVE_DITHER_2
+              && !(strcmp(zcmptype,"HCOMPRESS_1"))) {
+                 (outfptr->Fptr)->request_quantize_method = SUBTRACTIVE_DITHER_1;
+               fprintf(stderr,"Warning: CFITSIO does not allow subtractive_dither_2 when using Hcompress algorithm.\nWill use subtractive_dither_1 instead.\n");
+            }
+                 
 	    if ((outfptr->Fptr)->request_quantize_method == SUBTRACTIVE_DITHER_1) {
 	      ffpkys(outfptr, "ZQUANTIZ", "SUBTRACTIVE_DITHER_1", 
 	        "Pixel Quantization Algorithm", status);
