@@ -118,8 +118,8 @@ int uncompress2mem(char *filename,  /* name of input file                 */
 
             if (err == Z_STREAM_END ) { /* We reached the end of the input */
 	        break; 
-            } else if (err == Z_OK ) { 
-
+            } else if (err == Z_OK || err == Z_BUF_ERROR) { 
+	        /* Z_BUF_ERROR means need more input data to make progress */
                 if (!d_stream.avail_in) break; /* need more input */
 		
                 /* need more space in output buffer */
@@ -221,7 +221,8 @@ int uncompress2mem_from_mem(
 
         if (err == Z_STREAM_END) { /* We reached the end of the input */
 	    break; 
-        } else if (err == Z_OK ) { /* need more space in output buffer */
+        } else if (err == Z_OK || err == Z_BUF_ERROR) { /* need more space in output buffer */
+	    /* Z_BUF_ERROR means need more input data to make progress */
 
             if (mem_realloc) {   
                 *buffptr = mem_realloc(*buffptr,*buffsize + BUFFINCR);
@@ -313,7 +314,8 @@ int uncompress2file(char *filename,  /* name of input file                  */
 
             if (err == Z_STREAM_END ) { /* We reached the end of the input */
 	        break; 
-            } else if (err == Z_OK ) { 
+            } else if (err == Z_OK || err == Z_BUF_ERROR) { 
+	        /* Z_BUF_ERROR means need more input data to make progress */
 
                 if (!d_stream.avail_in) break; /* need more input */
 		

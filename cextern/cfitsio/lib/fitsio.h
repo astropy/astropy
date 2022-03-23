@@ -34,9 +34,11 @@ SERVICES PROVIDED HEREUNDER."
 #ifndef _FITSIO_H
 #define _FITSIO_H
 
-#define CFITSIO_VERSION 4.0.0
+#define CFITSIO_VERSION 4.1.0
+/* Minor and micro numbers must not exceed 99 under current method
+   of version representataion in ffvers(). */
 #define CFITSIO_MICRO 0
-#define CFITSIO_MINOR 0
+#define CFITSIO_MINOR 1
 #define CFITSIO_MAJOR 4
 #define CFITSIO_SONAME 9
 
