@@ -800,8 +800,8 @@ int ffgpf(  fitsfile *fptr,   /* I - FITS file pointer                       */
 /*--------------------------------------------------------------------------*/
 int ffgcv(  fitsfile *fptr,   /* I - FITS file pointer                       */
             int  datatype,    /* I - datatype of the value                   */
-            int  colnum,      /* I - number of column to write (1 = 1st col) */
-            LONGLONG  firstrow,   /* I - first row to write (1 = 1st row)        */
+            int  colnum,      /* I - number of column to read (1 = 1st col) */
+            LONGLONG  firstrow,   /* I - first row to read (1 = 1st row)        */
             LONGLONG  firstelem,  /* I - first vector element to read (1 = 1st)  */
             LONGLONG nelem,       /* I - number of values to read                */
             void *nulval,     /* I - value for undefined pixels              */

@@ -68,11 +68,16 @@ int ffrsimll(fitsfile *fptr,    /* I - FITS file pointer           */
 
     longbitpix = bitpix;
 
-    /* test for the 2 special cases that represent unsigned integers */
+    /* test for the 4 special cases that represent unsigned integers 
+       or signed bytes */
     if (longbitpix == USHORT_IMG)
         longbitpix = SHORT_IMG;
     else if (longbitpix == ULONG_IMG)
         longbitpix = LONG_IMG;
+    else if (longbitpix == SBYTE_IMG)
+        longbitpix = BYTE_IMG;
+    else if (longbitpix == ULONGLONG_IMG)
+        longbitpix = LONGLONG_IMG;
 
     /* test that the new values are legal */
 
@@ -183,7 +188,8 @@ int ffrsimll(fitsfile *fptr,    /* I - FITS file pointer           */
         }
     }
 
-    /* Update the BSCALE and BZERO keywords, if an unsigned integer image */
+    /* Update the BSCALE and BZERO keywords, if an unsigned integer image
+       or a signed byte image.  */
     if (bitpix == USHORT_IMG)
     {
         strcpy(comment, "offset data range to that of unsigned short");
@@ -195,6 +201,20 @@ int ffrsimll(fitsfile *fptr,    /* I - FITS file pointer           */
     {
         strcpy(comment, "offset data range to that of unsigned long");
         ffukyg(fptr, "BZERO", 2147483648., 0, comment, status);
+        strcpy(comment, "default scaling factor");
+        ffukyg(fptr, "BSCALE", 1.0, 0, comment, status);
+    }
+    else if (bitpix == ULONGLONG_IMG)
+    {
+        strcpy(comment, "offset data range to that of unsigned long long");
+        ffukyg(fptr, "BZERO", 9223372036854775808., 0, comment, status);
+        strcpy(comment, "default scaling factor");
+        ffukyg(fptr, "BSCALE", 1.0, 0, comment, status);
+    }
+    else if (bitpix == SBYTE_IMG)
+    {
+        strcpy(comment, "offset data range to that of signed byte");
+        ffukyg(fptr, "BZERO", -128., 0, comment, status);
         strcpy(comment, "default scaling factor");
         ffukyg(fptr, "BSCALE", 1.0, 0, comment, status);
     }
@@ -1064,6 +1084,7 @@ int fficls(fitsfile *fptr,  /* I - FITS file pointer                        */
     LONGLONG tbcol, firstcol, delbyte;
     long nblock, width, repeat;
     char tfm[FLEN_VALUE], keyname[FLEN_KEYWORD], comm[FLEN_COMMENT], *cptr;
+    char card[FLEN_CARD];
     tcolumn *colptr;
 
     if (*status > 0)
@@ -1270,6 +1291,27 @@ int fficls(fitsfile *fptr,  /* I - FITS file pointer                        */
            strcpy(comm, "offset for unsigned integers");
 
            ffpkyg(fptr, keyname, 2147483648., 0, comm, status);
+
+           ffkeyn("TSCAL", colnum, keyname, status);
+           strcpy(comm, "data are not scaled");
+           ffpkyg(fptr, keyname, 1., 0, comm, status);
+        }
+        else if (abs(datacode) == TULONGLONG) 
+        {	   
+           /* Replace the 'W' with an 'K' in the TFORMn code */
+           cptr = tfm;
+           while (*cptr != 'W') 
+              cptr++;
+
+           *cptr = 'K';
+           ffpkys(fptr, keyname, tfm, comm, status);
+
+           /* write the TZEROn and TSCALn keywords */
+           ffkeyn("TZERO", colnum, card, status);
+           strcat(card, "     ");  /* make sure name is >= 8 chars long */
+           *(card+8) = '\0';
+	   strcat(card, "=  9223372036854775808 / offset for unsigned integers");
+	   fits_write_record(fptr, card, status);
 
            ffkeyn("TSCAL", colnum, keyname, status);
            strcpy(comm, "data are not scaled");
