@@ -17,10 +17,10 @@ import astropy.constants as const
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
-from astropy.cosmology.conftest import get_redshift_methods
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import H0units_to_invs, a_B_c2, critdens_const, quad
 from astropy.cosmology.parameter import Parameter
+from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
 from astropy.cosmology.tests.test_core import (FlatCosmologyMixinTest, ParameterTestMixin,
                                                invalid_zs, valid_zs)
@@ -761,7 +761,7 @@ class FLRWSubclassTest(TestFLRW):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = get_redshift_methods(FLRW, allow_private=True, allow_z2=False)
+    _FLRW_redshift_methods = get_redshift_methods(FLRW, include_private=True, include_z2=False)
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)

@@ -13,8 +13,6 @@ from astropy import cosmology
 from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import Planck13, default_cosmology
 
-from astropy.tests.helper import pickle_protocol  # isort: skip
-
 
 def test_realizations_in_toplevel_dir():
     """Test the realizations are in ``dir`` of :mod:`astropy.cosmology`."""
