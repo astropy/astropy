@@ -720,7 +720,7 @@ def test_prepare_outputs_single_entry_vector():
 
     output = model(np.array([1]), np.array([2]))
     assert output.shape == (1,)
-    np.testing.assert_array_equal(output, [0.9500411305585278])
+    np.testing.assert_allclose(output, [0.9500411305585278])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
