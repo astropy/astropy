@@ -1,0 +1,3 @@
+Add a ``mask_invalid`` option to ``Table.read`` to deactivate the masking of
+NaNs in float columns and empty strings in string columns. This option is
+necessary to allow effective use of memory-mapped reading with ``memmap=True``.
