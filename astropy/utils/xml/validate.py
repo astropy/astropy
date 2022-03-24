@@ -33,15 +33,15 @@ def validate_schema(filename, schema_file):
 
     base, ext = os.path.splitext(schema_file)
     if ext == '.xsd':
-        schema_part = '--schema ' + schema_file
+        schema_part = '--schema'
     elif ext == '.dtd':
-        schema_part = '--dtdvalid ' + schema_file
+        schema_part = '--dtdvalid'
     else:
         raise TypeError("schema_file must be a path to an XML Schema or DTD")
 
     p = subprocess.Popen(
-        f"xmllint --noout --nonet {schema_part} {filename}",
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ["xmllint", "--noout", "--nonet", schema_part, schema_file, filename],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     if p.returncode == 127:
