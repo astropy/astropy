@@ -223,8 +223,8 @@ class Result:
     def validate_with_votlint(self, path_to_stilts_jar):
         filename = self.get_vo_xml_path()
         p = subprocess.Popen(
-            f"java -jar {path_to_stilts_jar} votlint validate=false {filename}",
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ["java", "-jar", path_to_stilts_jar, "votlint", "validate=false", filename],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if len(stdout) or p.returncode:
             self['votlint'] = False
