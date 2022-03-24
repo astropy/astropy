@@ -43,6 +43,12 @@ Documentation on the ASDF Standard can be found `here
 module can be found `here <https://asdf.readthedocs.io>`__. Additional details
 for Astropy developers can be found in :ref:`asdf_dev`.
 
+.. note::
+   ``astropy.io.misc.asdf`` is being replaced by the **asdf-astropy** package.
+   It is recommended that you install this package if you wish to use **ASDF**
+   with ``astropy``. The documentation for **asdf-astropy** can be found
+   :ref:`asdf-astropy:asdf-astropy`.
+
 .. _asdf_io:
 
 Using ASDF With Table I/O
