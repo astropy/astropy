@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 7.7 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2021, Mark Calabretta
+  WCSLIB 7.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -20,7 +20,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
+  $Id: wcserr.c,v 7.9 2022/03/25 15:14:48 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
