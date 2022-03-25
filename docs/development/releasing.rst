@@ -541,7 +541,7 @@ tag locally, e.g.::
 
    git tag -d v5.0.1
 
-and on GitHub:
+and on GitHub::
 
    git push upstream :refs/tags/v5.0.1
 
