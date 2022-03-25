@@ -1,2 +1,0 @@
-Fix write and read FITS tables with multidimensional items, using ``from_columns``
-without previousely defined ``ColDefs`` structure.

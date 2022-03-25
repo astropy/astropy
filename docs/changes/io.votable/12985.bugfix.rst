@@ -1,1 +1,0 @@
-Fix VOTable linting to avoid use of shell option.
