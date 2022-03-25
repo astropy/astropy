@@ -356,6 +356,7 @@ This can be done for data classes that are defined in third-party packages and w
 you have no control over. As an example, we define a class
 that is not numpy-like and stores the data in a private attribute::
 
+    >>> import numpy as np
     >>> class ExampleDataClass:
     ...     def __init__(self):
     ...         self._data = np.array([0, 1, 3, 4], dtype=float)
