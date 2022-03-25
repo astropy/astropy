@@ -1389,7 +1389,8 @@ class TestWcsWithTime:
         cdelt = [self.header[val] for val in self.header["CDELT*"]]
         cunit = [self.header[val] for val in self.header["CUNIT*"]]
         assert list(self.w.wcs.ctype) == ctype
-        assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, 0]
+        time_axis_code = 4000 if _WCSLIB_VER >= Version('7.9') else 0
+        assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, time_axis_code]
         assert_allclose(self.w.wcs.crval, crval)
         assert_allclose(self.w.wcs.crpix, crpix)
         assert_allclose(self.w.wcs.cdelt, cdelt)

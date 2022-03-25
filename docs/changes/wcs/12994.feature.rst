@@ -1,0 +1,5 @@
+Updated bundled WCSLIB to version 7.9 with several bugfixes and added
+support for time coordinate axes in ``wcsset()`` and ``wcssub()``. The
+four-digit type code for the time axis will have the first digit set to 4,
+i.e., four digit code will be 4xxx where x is a digit 0-9. For a full list of
+bug fixes see https://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES
