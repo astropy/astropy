@@ -1,3 +1,48 @@
+WCSLIB version 7.9 (2022/03/26)
+-------------------------------
+
+* C library
+
+  - In wcsset(), bug fix for identifying time coordinate axes.
+    Reported by Mihai Cara with patch.
+
+
+WCSLIB version 7.8 (2022/03/25)
+-------------------------------
+
+* C library
+
+  - In wcssub(), bug fix for tabular coordinates that change axis
+    number, thus requiring tabprm::map to be updated.  Reported by
+    Mihai Cara with patch.
+
+    Also in wcssub():
+      - check that all axes of a multi-dimensional table are extracted
+        together,
+      - fixed potential memory leaks for tabular coordinate axes when
+        an attempt to subimage non-separable axes fails,
+      - the error messages for non-separable coordinate systems are
+        generally more informative,
+      - subimage extraction by coordinate type now recognises time
+        coordinate axis types via WCSSUB_TIME.
+
+  - wcsset() now identifies time coordinate axes in wcsprm::types.
+
+  - Extended test program twcssub to test the above modifications.
+
+* Installation
+
+  - Bug fix in the utils makefile for creating $(MANDIR)/man1.
+    Reported by Aleksander Kurek.
+
+  - Bug fix in the Fortran makefile for compiling and using 'tofits'.
+    Reported by Stefan Brüns.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.9.3 (was 1.9.1).
+
+
 WCSLIB version 7.7 (2021/07/12)
 -------------------------------
 
@@ -10,7 +55,7 @@ WCSLIB version 7.7 (2021/07/12)
     that caused it to be overly enthusiastic in stripping leading zeroes
     off addresses of function pointers.
 
-  - In wcspcx(), replaced variable length arrays will allocated memory
+  - In wcspcx(), replaced variable length arrays with allocated memory
     (portability issue).  Reported by Mihai Cara with patch.
 
   - Fixed buglets in wcsbth() and linsize() uncovered by gcc 11.1.0.
@@ -3263,4 +3308,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
+$Id: CHANGES,v 7.9 2022/03/25 15:14:49 mcalabre Exp $
