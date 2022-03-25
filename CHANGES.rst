@@ -1,3 +1,36 @@
+5.0.3 (2022-03-25)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Bugfix in ``astropy.convolution.utils.discretize_model`` which allows the function to handle a ``CompoundModel``.
+  Before this fix, ``discretize_model`` was confusing ``CompoundModel`` with a callable function. [#12959]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix write and read FITS tables with multidimensional items, using ``from_columns``
+  without previousely defined ``ColDefs`` structure. [#12863]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fix VOTable linting to avoid use of shell option. [#12985]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fix XML linting to avoid use of shell option. [#12985]
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 4.1.0. [#12967]
+
 5.0.2 (2022-03-10)
 ==================
 
