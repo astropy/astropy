@@ -330,7 +330,7 @@ Comparing Spherical Point Generation Methods
         pts = func(size=128)
 
         xyz = pts.to_cartesian().xyz
-        ax.plot(*xyz, ls='none')
+        ax.scatter(*xyz)
 
         ax.set(xlim=(-1, 1),
             ylim=(-1, 1),
