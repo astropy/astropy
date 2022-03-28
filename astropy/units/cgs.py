@@ -108,7 +108,7 @@ def_unit(['abC', 'abcoulomb'], Bi * s, namespace=_ns,
 
 def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, namespace=_ns, prefixes=True,
          doc="Gauss: CGS unit for magnetic field")
-def_unit(['Mx', 'Maxwell', 'maxwell'], 1e-8 * si.Wb, namespace=_ns, prefixes=True,
+def_unit(['Mx', 'Maxwell', 'maxwell'], 1e-8 * si.Wb, namespace=_ns,
          doc="Maxwell: CGS unit for magnetic flux")
 
 
