@@ -1,0 +1,1 @@
+Reverted ``astropy.utils.iers.iers.IERS_A_URL`` to ``maia.usno.navy.mil`` domain instead of NASA FTP.
