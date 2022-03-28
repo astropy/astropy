@@ -19,7 +19,8 @@ from astropy.modeling.core import FittableModel, Model, _ModelMeta
 from astropy.modeling.models import Gaussian2D
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.polynomial import PolynomialBase
-from astropy.modeling.powerlaws import SmoothlyBrokenPowerLaw1D
+from astropy.modeling.powerlaws import (BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
+                                        LogParabola1D, PowerLaw1D, SmoothlyBrokenPowerLaw1D)
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
@@ -354,6 +355,16 @@ class Fittable1DModelTester:
     This can be used as a base class for user defined model testing.
     """
 
+    # These models will fail fitting test, because built in fitting data
+    #   will produce non-finite values
+    _non_finite_models = [
+        BrokenPowerLaw1D,
+        ExponentialCutoffPowerLaw1D,
+        LogParabola1D,
+        PowerLaw1D,
+        SmoothlyBrokenPowerLaw1D
+    ]
+
     def setup_class(self):
         self.N = 100
         self.M = 100
@@ -486,6 +497,9 @@ class Fittable1DModelTester:
         Test the derivative of a model by comparing results with an estimated
         derivative.
         """
+
+        if model_class in self._non_finite_models:
+            return
 
         x_lim = test_parameters['x_lim']
 
