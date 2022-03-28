@@ -53,6 +53,12 @@ STATISTICS = [leastsquare]
 OPTIMIZERS = [Simplex, SLSQP]
 
 
+class NonFiniteValueError(RuntimeError):
+    """
+    Error raised when attempting to a non-finite value
+    """
+
+
 class Covariance():
     """Class for covariance matrix calculated by fitter. """
 
@@ -1082,10 +1088,16 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         weights = args[1]
         fitter_to_model_params(model, fps)
         meas = args[-1]
+
         if weights is None:
-            return np.ravel(model(*args[2: -1]) - meas)
+            value = np.ravel(model(*args[2: -1]) - meas)
         else:
-            return np.ravel(weights * (model(*args[2: -1]) - meas))
+            value = np.ravel(weights * (model(*args[2: -1]) - meas))
+
+        if not np.all(np.isfinite(value)):
+            raise NonFiniteValueError("Objective function has encountered a non-finite value, this will cause the fit to fail!")
+
+        return value
 
     @staticmethod
     def _add_fitting_uncertainties(model, cov_matrix):
@@ -1145,7 +1157,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             a copy of the input model with parameters set by the fitter
 
         """
-
         from scipy import optimize
 
         model_copy = _validate_model(model, self.supported_constraints)

@@ -1,0 +1,1 @@
+Add error to non-finite inputs to the ``LevMarLSQFitter``, to protect against soft scipy failure.
