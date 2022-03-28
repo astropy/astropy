@@ -17,8 +17,8 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (Fitter, FittingWithOutlierRemoval, JointFitter,
-                                      LevMarLSQFitter, LinearLSQFitter, SimplexLSQFitter,
-                                      SLSQPLSQFitter, populate_entry_points)
+                                      LevMarLSQFitter, LinearLSQFitter, NonFiniteValueError,
+                                      SimplexLSQFitter, SLSQPLSQFitter, populate_entry_points)
 from astropy.modeling.optimizers import Optimization
 from astropy.stats import sigma_clip
 from astropy.utils import NumpyRNGContext
@@ -1245,3 +1245,18 @@ class TestFittingUncertanties:
 
         # test indexing for stds class.
         assert fit_mod.stds[1] == fit_mod.stds['intercept']
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_non_finite_filter():
+    """Regression test filter introduced to solve issues #3575 and #12809"""
+
+    x = np.array([1, 2, 3, 4, 5, np.nan, 7, np.inf])
+    y = np.array([9, np.nan, 11, np.nan, 13, np.nan, 15, 16])
+
+    m_init = models.Gaussian1D()
+    fit = LevMarLSQFitter()
+
+    # Raise warning, notice fit fails due to nans
+    with pytest.raises(NonFiniteValueError, match=r"Objective function has encountered.*"):
+        fit(m_init, x, y)
