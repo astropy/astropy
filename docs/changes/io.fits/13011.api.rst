@@ -1,2 +1,2 @@
-Allow passing ``SORT_KEYWORD`` as an argument to ``fitsheader``: 
+Allow passing ``SORT_KEYWORD`` as an argument to ``fitsheader``:
 ``fitsheader -f/--fitsort [SORT_KEYWORD]``
