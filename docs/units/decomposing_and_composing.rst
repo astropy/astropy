@@ -96,7 +96,7 @@ imaginable. In that case, the system will do its best to reduce the
 unit to the fewest possible symbols::
 
    >>> (u.cd * u.sr * u.V * u.s).compose()
-   [Unit("lm Wb")]
+   [Unit("lm Wb"), Unit("1e+08 lm Mx")]
 
 .. EXAMPLE END
 
