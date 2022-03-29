@@ -432,7 +432,9 @@ def main(args=None):
                              'format; the default format is '
                              '"ascii.fixed_width" (can be "ascii.csv", '
                              '"ascii.html", "ascii.latex", "fits", etc)')
-    parser.add_argument('-f', '--fitsort', action='store_true',
+    parser.add_argument('-f', '--fitsort',
+                        nargs='?', action='store', const=True, default=False,
+                        metavar='SORT_KEYWORD',
                         help='print the headers as a table with each unique '
                              'keyword in a given column (fitsort format); '
                              'if a SORT_KEYWORD is specified, the result will be '
