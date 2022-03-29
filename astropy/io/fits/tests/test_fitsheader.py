@@ -121,12 +121,32 @@ class TestFITSheader_script(FitsTestCase):
         assert out[3].endswith('test0.fits 19/05/94')
 
         # check that COMMENT and HISTORY are excluded
-        fitsheader.main(['-e', '0', '-f', self.data('tb.fits')])
+        fitsheader.main(['-f', '-e', '0', self.data('tb.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
         assert len(out) == 3
         assert out[2].endswith('tb.fits   True     16     0   True '
                                'STScI-STSDAS/TABLES  tb.fits       1')
+
+    def test_fitsort_sorting_keyword(self, capsys):
+        # check that sorting by keyword works
+        fitsheader.main(['-f', '-k', 'NAXIS', '-e', '0',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_unsorted, err_unsorted = capsys.readouterr()
+        out_unsorted = out_unsorted.splitlines()
+
+        fitsheader.main(['-f', 'NAXIS', '-k', 'NAXIS', '-e', '0',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_sorted, err_sorted = capsys.readouterr()
+        out_sorted = out_sorted.splitlines()
+
+        assert len(out_unsorted) == 4
+        assert out_unsorted[2].endswith('group.fits     5')
+        assert out_unsorted[3].endswith('test0.fits     0')
+
+        assert len(out_sorted) == 4
+        assert out_sorted[2].endswith('test0.fits     0')
+        assert out_sorted[3].endswith('group.fits     5')
 
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
