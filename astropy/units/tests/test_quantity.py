@@ -139,12 +139,26 @@ class TestQuantityCreation:
         assert q5.dtype == object
 
     def test_numpy_style_dtype_inspect(self):
-        """Test that if ``dtype=Ellipsis``, NumPy's dtype inspection is used."""
-        q1 = u.Quantity(12, dtype=None)
-        assert not np.issubdtype(q1.dtype, np.integer)
-
-        q2 = u.Quantity(12, dtype=...)
+        """Test that if ``dtype=None``, NumPy's dtype inspection is used."""
+        q2 = u.Quantity(12, dtype=None)
         assert np.issubdtype(q2.dtype, np.integer)
+
+    def test_float_dtype_promotion(self):
+        """Test that if ``dtype=numpy.floating``, the minimum precision is float64."""
+        q1 = u.Quantity(12, dtype=np.floating)
+        assert not np.issubdtype(q1.dtype, np.integer)
+        assert q1.dtype == np.float64
+
+        q2 = u.Quantity(np.float64(12), dtype=np.floating)
+        assert q2.dtype == np.float64
+
+        if hasattr(np, "float16"):
+            q3 = u.Quantity(np.float16(12), dtype=np.floating)
+            assert q3.dtype == np.float16
+
+        if hasattr(np, "float128"):
+            q4 = u.Quantity(np.float128(12), dtype=np.floating)
+            assert q4.dtype == np.float128
 
     def test_copy(self):
 
