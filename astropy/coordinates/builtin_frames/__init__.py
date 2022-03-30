@@ -24,52 +24,80 @@ imported.  Placing the transformation functions in separate modules avoids
 circular dependencies, because they need references to the frame classes.
 """
 
-from .baseradec import BaseRADecFrame
-from .icrs import ICRS
-from .fk5 import FK5
-from .fk4 import FK4, FK4NoETerms
-from .galactic import Galactic
-from .galactocentric import Galactocentric, galactocentric_frame_defaults
-from .supergalactic import Supergalactic
-from .altaz import AltAz
-from .hadec import HADec
-from .gcrs import GCRS, PrecessedGeocentric
-from .cirs import CIRS
-from .itrs import ITRS
-from .hcrs import HCRS
-from .equatorial import TEME, TETE
+from . import baseradec
+from .baseradec import BaseRADecFrame  # noqa
+from . import icrs
+from .icrs import ICRS  # noqa
+from . import fk5
+from .fk5 import FK5  # noqa
+from . import fk4
+from .fk4 import FK4, FK4NoETerms  # noqa
+from . import galactic
+from .galactic import Galactic  # noqa
+from . import galactocentric
+from .galactocentric import Galactocentric, galactocentric_frame_defaults  # noqa
+from . import supergalactic
+from .supergalactic import Supergalactic  # noqa
+from . import altaz
+from .altaz import AltAz  # noqa
+from . import hadec
+from .hadec import HADec  # noqa
+from . import gcrs
+from .gcrs import GCRS, PrecessedGeocentric  # noqa
+from . import cirs
+from .cirs import CIRS  # noqa
+from . import itrs
+from .itrs import ITRS  # noqa
+from . import hcrs
+from .hcrs import HCRS  # noqa
+from . import equatorial
+from .equatorial import TEME, TETE  # noqa
 
-from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
-from .skyoffset import SkyOffsetFrame
+from . import ecliptic
+from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,   # noqa
+                       BaseEclipticFrame, GeocentricTrueEcliptic, BarycentricTrueEcliptic,  # noqa
+                       HeliocentricTrueEcliptic, HeliocentricEclipticIAU76, CustomBarycentricEcliptic)  # noqa
+from . import skyoffset
+from .skyoffset import SkyOffsetFrame  # noqa
 # need to import transformations so that they get registered in the graph
-from . import icrs_fk5_transforms
-from . import fk4_fk5_transforms
-from . import galactic_transforms
-from . import supergalactic_transforms
-from . import icrs_cirs_transforms
-from . import cirs_observed_transforms
-from . import icrs_observed_transforms
-from . import intermediate_rotation_transforms
-from . import ecliptic_transforms
+from . import icrs_fk5_transforms  # noqa
+from . import fk4_fk5_transforms  # noqa
+from . import galactic_transforms  # noqa
+from . import supergalactic_transforms  # noqa
+from . import icrs_cirs_transforms  # noqa
+from . import cirs_observed_transforms  # noqa
+from . import icrs_observed_transforms  # noqa
+from . import intermediate_rotation_transforms  # noqa
+from . import ecliptic_transforms  # noqa
 
 # Import this after importing other frames, since this requires various
-# transformtions to set up the LSR frames
-from .lsr import LSR, GalacticLSR, LSRK, LSRD
+# transformations to set up the LSR frames
+from . import lsr
+from .lsr import LSR, GalacticLSR, LSRK, LSRD  # noqa
 
 from astropy.coordinates.baseframe import frame_transform_graph
 
 # we define an __all__ because otherwise the transformation modules
 # get included
-__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'galactocentric_frame_defaults',
-           'Supergalactic', 'AltAz', 'HADec', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
-           'TEME', 'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
-           'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
-           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
-           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
+__all__ = []
+__all__.extend(icrs.__all__)
+__all__.extend(fk5.__all__)
+__all__.extend(fk4.__all__)
+__all__.extend(galactic.__all__)
+__all__.extend(galactocentric.__all__)
+__all__.extend(supergalactic.__all__)
+__all__.extend(altaz.__all__)
+__all__.extend(hadec.__all__)
+__all__.extend(gcrs.__all__)
+__all__.extend(cirs.__all__)
+__all__.extend(itrs.__all__)
+__all__.extend(hcrs.__all__)
+__all__.extend(equatorial.__all__)
+__all__.extend(ecliptic.__all__)
+__all__.extend(skyoffset.__all__)
+__all__.extend(lsr.__all__)
+__all__.extend(baseradec.__all__)
+__all__.append('make_transform_graph_docs')
 
 
 def make_transform_graph_docs(transform_graph):

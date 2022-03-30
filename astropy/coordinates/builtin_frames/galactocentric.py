@@ -24,7 +24,7 @@ from astropy.coordinates.errors import ConvertError
 
 from .icrs import ICRS
 
-__all__ = ['Galactocentric']
+__all__ = ['Galactocentric', 'galactocentric_frame_defaults']
 
 
 # Measured by minimizing the difference between a plane of coordinates along

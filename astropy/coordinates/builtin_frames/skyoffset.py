@@ -9,6 +9,7 @@ from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                                   matrix_product,
                                                   matrix_transpose)
 
+__all__ = ['SkyOffsetFrame']
 _skyoffset_cache = {}
 
 
