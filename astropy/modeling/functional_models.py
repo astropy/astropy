@@ -210,10 +210,12 @@ class Gaussian2D(Fittable2DModel):
         be None if a covariance matrix (``cov_matrix``) is provided. If no
         ``cov_matrix`` is given, ``None`` means the default value (1).
     theta : float or `~astropy.units.Quantity`, optional.
-        Rotation angle (value in radians). The rotation angle increases
-        counterclockwise.  Must be None if a covariance matrix (``cov_matrix``)
-        is provided. If no ``cov_matrix`` is given, ``None`` means the default
-        value (0).
+        The rotation angle as an angular quantity
+        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
+        or a value in radians (as a float). The rotation angle
+        increases counterclockwise. Must be `None` if a covariance matrix
+        (``cov_matrix``) is provided. If no ``cov_matrix`` is given,
+        `None` means the default value (0).
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
         ``y_stddev``, and ``theta`` defaults.
@@ -276,7 +278,9 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter(default=0, description="Peak position (along y axis) of Gaussian")
     x_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along x axis)")
     y_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along y axis)")
-    theta = Parameter(default=0.0, description="Rotation angle [in radians] (Optional parameter)")
+    theta = Parameter(default=0.0, description=("Rotation angle either as a "
+                                                "float (in radians) or a "
+                                                "|Quantity| angle (optional)"))
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
