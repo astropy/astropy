@@ -14,7 +14,6 @@ from astropy.coordinates.attributes import DifferentialAttribute
 from .baseradec import BaseRADecFrame, doc_components as doc_components_radec
 from .icrs import ICRS
 from .galactic import Galactic
-from .fk4 import FK4
 
 # For speed
 J2000 = Time('J2000')
