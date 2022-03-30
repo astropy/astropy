@@ -11,6 +11,11 @@ from .core import FunctionUnitBase, FunctionQuantity
 from .units import dex, dB, mag
 
 
+__all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
+           'LogQuantity', 'Magnitude', 'Decibel', 'Dex',
+           'STmag', 'ABmag', 'M_bol', 'm_bol']
+
+
 class LogUnit(FunctionUnitBase):
     """Logarithmic unit containing a physical one
 

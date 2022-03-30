@@ -5,6 +5,7 @@ from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
 
+__all__ = []
 
 doc_components = """
     ra : `~astropy.coordinates.Angle`, optional, keyword-only

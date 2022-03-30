@@ -9,6 +9,8 @@ import numpy as np
 from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError, UnitConversionError,
                            dimensionless_unscaled, Quantity)
 
+__all__ = ['FunctionUnitBase', 'FunctionQuantity']
+
 SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
     'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
     'rint', 'floor', 'ceil', 'trunc',

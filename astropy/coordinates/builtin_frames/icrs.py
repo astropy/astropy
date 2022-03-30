@@ -5,6 +5,8 @@ from astropy.utils.decorators import format_doc
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
+__all__ = []
+
 
 @format_doc(base_doc, components=doc_components, footer="")
 class ICRS(BaseRADecFrame):

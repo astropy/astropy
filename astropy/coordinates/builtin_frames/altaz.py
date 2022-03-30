@@ -11,6 +11,7 @@ from astropy.coordinates.attributes import (TimeAttribute,
                                             QuantityAttribute,
                                             EarthLocationAttribute)
 
+__all__ = []
 
 _90DEG = 90*u.deg
 

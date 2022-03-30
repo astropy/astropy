@@ -24,6 +24,7 @@ from astropy.coordinates.errors import ConvertError
 
 from .icrs import ICRS
 
+__all__ = []
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane

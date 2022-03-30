@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-
 from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
@@ -11,6 +9,7 @@ from astropy.coordinates.attributes import (TimeAttribute,
                                             QuantityAttribute,
                                             EarthLocationAttribute)
 
+__all__ = []
 
 doc_components = """
     ha : `~astropy.coordinates.Angle`, optional, keyword-only

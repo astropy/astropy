@@ -11,6 +11,7 @@ from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMap
 from .fk5 import FK5
 from .fk4 import FK4NoETerms
 
+__all__ = []
 
 doc_components = """
     l : `~astropy.coordinates.Angle`, optional, keyword-only

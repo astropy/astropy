@@ -7,6 +7,8 @@ from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.attributes import TimeAttribute
 from .utils import DEFAULT_OBSTIME
 
+__all__ = []
+
 
 @format_doc(base_doc, components="", footer="")
 class ITRS(BaseCoordinateFrame):

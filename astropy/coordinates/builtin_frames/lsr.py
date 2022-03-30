@@ -20,6 +20,7 @@ J2000 = Time('J2000')
 
 v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25]*u.km/u.s)
 
+__all__ = []
 
 doc_footer_lsr = """
     Other parameters
