@@ -66,11 +66,8 @@ To see a list of the available read/write file formats:
       Format   Read Write Auto-identify
     ---------- ---- ----- -------------
     ascii.ecsv  Yes   Yes           Yes
-      myformat  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
-"myformat" is from an `example 3rd-party package
-<https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage>`_.
 
 When a subclass of |Cosmology| is used to read a file, the subclass will provide
 a keyword argument ``cosmology=<class>`` to the registered read method. The
@@ -102,13 +99,9 @@ To see the a list of the available conversion formats:
           astropy.row  Yes   Yes           Yes
         astropy.table  Yes   Yes           Yes
               mapping  Yes   Yes           Yes
-            mypackage  Yes   Yes           Yes
                  yaml  Yes   Yes            No
 
 This list will include both built-in and registered 3rd-party formats.
-For instance, in the above, "mapping" is built-in while "mypackage" and
-is from an `example 3rd-party package
-<https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage>`_.
 
 |Cosmology.to_format| / |Cosmology.from_format| parse a Cosmology to/from
 another python object. This can be useful for e.g., iterating through an MCMC

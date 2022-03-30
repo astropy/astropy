@@ -48,7 +48,6 @@ write_to = "astropy/_version.py"
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy"]
-    known_local_folder = ["mypackage"]
     multi_line_output = 0
     group_by_package = true
     indented_import_headings = false
