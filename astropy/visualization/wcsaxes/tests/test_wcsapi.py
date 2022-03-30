@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import warnings
 from textwrap import dedent
 
@@ -343,7 +342,7 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 
 
 # parametrize here to pass to the fixture
-@pytest.mark.parametrize("wcs_slice", [np.s_[:,:,0,:]])
+@pytest.mark.parametrize("wcs_slice", [np.s_[:, :, 0, :]])
 def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
     slices_wcsaxes = [0, 'x', 'y']
 
@@ -367,6 +366,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
         assert coord_meta['default_ticks_position'] == ['', 'bltr', 'bltr']
 
         # Validate the axes initialize correctly
+        plt.clf()
         plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
 
 

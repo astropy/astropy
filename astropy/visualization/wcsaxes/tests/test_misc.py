@@ -196,6 +196,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
     with warnings.catch_warnings():
         # https://github.com/astropy/astropy/issues/9690
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
+        plt.clf()
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
         plt.savefig(tmpdir.join('test.png').strpath)
 
@@ -348,20 +349,26 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
     wcs2d = WCS(naxis=2)
     wcs2d.wcs.ctype = ['x', 'y']
 
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs2d)
     assert ax.frame_class is RectangularFrame
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=('x', 'y'))
     assert ax.frame_class is RectangularFrame
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=('y', 'x'))
     assert ax.frame_class is RectangularFrame
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
     assert ax.frame_class is RectangularFrame
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
     assert ax.frame_class is RectangularFrame1D
 
     wcs1d = WCS(naxis=1)
     wcs1d.wcs.ctype = ['x']
 
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs1d)
     assert ax.frame_class is RectangularFrame1D
 
@@ -408,6 +415,7 @@ def test_repr(ignore_matplotlibrc):
 
     # Now slice in a way that all world coordinates are still present:
 
+    plt.clf()
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
     assert repr(ax.coords) == EXPECTED_REPR_2
 
