@@ -6,7 +6,6 @@ import numpy as np
 from numpy import ma
 from numpy.testing import assert_allclose, assert_equal
 
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
@@ -265,6 +264,7 @@ def test_imshow_norm():
     import matplotlib.pyplot as plt
     image = np.random.randn(10, 10)
 
+    plt.clf()
     ax = plt.subplot(label='test_imshow_norm')
     imshow_norm(image, ax=ax)
 
@@ -276,9 +276,11 @@ def test_imshow_norm():
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
+    plt.clf()
     imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
     # make sure the pyplot version works
+    plt.clf()
     imres, norm = imshow_norm(image, ax=None)
 
     assert isinstance(norm, ImageNormalize)
