@@ -138,7 +138,13 @@ class Gaussian1D(Fittable1DModel):
         >>> from astropy.modeling.models import Gaussian1D
         >>> model = Gaussian1D(mean=0, stddev=2)
         >>> model.bounding_box
-        (-11.0, 11.0)
+        ModelBoundingBox(
+            intervals={
+                x: Interval(lower=-11.0, upper=11.0)
+            }
+            model=Gaussian1D(inputs=('x',))
+            order='C'
+        )
 
         This range can be set directly (see: `Model.bounding_box
         <astropy.modeling.Model.bounding_box>`) or by using a different factor,
@@ -146,7 +152,13 @@ class Gaussian1D(Fittable1DModel):
 
         >>> model.bounding_box = model.bounding_box(factor=2)
         >>> model.bounding_box
-        (-4.0, 4.0)
+        ModelBoundingBox(
+            intervals={
+                x: Interval(lower=-4.0, upper=4.0)
+            }
+            model=Gaussian1D(inputs=('x',))
+            order='C'
+        )
         """
 
         x0 = self.mean
@@ -348,7 +360,14 @@ class Gaussian2D(Fittable2DModel):
         >>> from astropy.modeling.models import Gaussian2D
         >>> model = Gaussian2D(x_mean=0, y_mean=0, x_stddev=1, y_stddev=2)
         >>> model.bounding_box
-        ((-11.0, 11.0), (-5.5, 5.5))
+        ModelBoundingBox(
+            intervals={
+                x: Interval(lower=-5.5, upper=5.5)
+                y: Interval(lower=-11.0, upper=11.0)
+            }
+            model=Gaussian2D(inputs=('x', 'y'))
+            order='C'
+        )
 
         This range can be set directly (see: `Model.bounding_box
         <astropy.modeling.Model.bounding_box>`) or by using a different factor
@@ -356,7 +375,14 @@ class Gaussian2D(Fittable2DModel):
 
         >>> model.bounding_box = model.bounding_box(factor=2)
         >>> model.bounding_box
-        ((-4.0, 4.0), (-2.0, 2.0))
+        ModelBoundingBox(
+            intervals={
+                x: Interval(lower=-2.0, upper=2.0)
+                y: Interval(lower=-4.0, upper=4.0)
+            }
+            model=Gaussian2D(inputs=('x', 'y'))
+            order='C'
+        )
         """
 
         a = factor * self.x_stddev
