@@ -324,16 +324,11 @@ Releasing the final version of the major release
 Rendering the changelog
 -----------------------
 
-.. warning:: Make sure that you have a very recent version of towncrier - at the time of
-             writing you will need the 21.9.0rc1 pre-release for things to work correctly::
-
-                $ pip install towncrier==21.9.0rc1
-
-We now need to render the changelog with towncrier. Since it is a good idea to
-review the changelog and fix any line wrap and other issues, we do this on
-a separate branch and open a pull request into the release branch to allow for
-easy review. First, create and switch to a new branch based off the release
-branch, e.g.::
+We now need to render the changelog with towncrier (21.9.0 or later). Since it
+is a good idea to review the changelog and fix any line wrap and other issues,
+we do this on a separate branch and open a pull request into the release branch
+to allow for easy review. First, create and switch to a new branch based off the
+release branch, e.g.::
 
    $ git checkout -b v5.0-changelog
 
