@@ -23,6 +23,7 @@ from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.collections import ClassWrapperMeta
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
+from astropy.utils.decorators import on_metaclass
 
 from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                APPLY_TO_BOTH_FUNCTIONS,
@@ -58,15 +59,10 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
         Whether the data and mask should be copied. Default: `False`.
     """
 
-    # This base implementation just uses the class initializer.
-    # Subclasses can override this in case the class does not work
-    # with this signature, or to provide a faster implementation.
-    @classmethod
-    def from_unmasked(cls, data, mask=None, copy=False):
-        """Create an instance from unmasked data and a mask."""
-        return cls(data, mask=mask, copy=copy)
+    # ---------------------------------------------------------------
+    # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
 
-    @classmethod
+    @on_metaclass
     def _get_wrapper_subclass_instance(cls, data, mask=None, copy=False):
         data, data_mask = cls._get_data_and_mask(data)
         if mask is None:
@@ -75,18 +71,17 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
         masked_cls = cls._get_wrapped_subclass(data.__class__)
         return masked_cls.from_unmasked(data, mask, copy)
 
-    @classmethod
+    @on_metaclass
     def _make_wrapped__doc__(cls, data_cls):
         return (f"Masked version of {data_cls.__name__}.\n\n"
                 "Except for the ability to pass in a ``mask``, parameters are\n"
                 f"as for `{data_cls.__module__}.{data_cls.__name__}`.")
 
-    @classmethod
-    def _make_wrapper_subclass(cls, data_cls, base_cls):
-        return type('Masked' + data_cls.__name__,
-                    (data_cls, base_cls), {}, data_cls=data_cls)
+    @on_metaclass
+    def _prepare_wrapper_subclass(cls, data_cls, base_cls):
+        return 'Masked' + data_cls.__name__, (data_cls, base_cls)
 
-    @classmethod
+    @on_metaclass
     def _get_wrapped_subclass(cls, data_cls):
         """Get the masked wrapper for a given data class.
 
@@ -99,6 +94,16 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
             return data_cls
 
         return type(cls)._get_wrapped_subclass(cls, data_cls)  # TODO! use super
+
+    # ---------------------------------------------------------------
+
+    # This base implementation just uses the class initializer.
+    # Subclasses can override this in case the class does not work
+    # with this signature, or to provide a faster implementation.
+    @classmethod
+    def from_unmasked(cls, data, mask=None, copy=False):
+        """Create an instance from unmasked data and a mask."""
+        return cls(data, mask=mask, copy=copy)
 
     @classmethod
     def _get_data_and_mask(cls, data, allow_ma_masked=False):

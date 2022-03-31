@@ -10,6 +10,7 @@ import numpy as np
 from astropy import units as u
 from astropy import stats
 from astropy.utils.collections import ClassWrapperMeta
+from astropy.utils.decorators import on_metaclass
 
 __all__ = ['Distribution']
 
@@ -37,18 +38,24 @@ class Distribution(metaclass=ClassWrapperMeta):
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
     """
-    @classmethod
-    def _make_wrapper_subclass(cls, data_cls, base_cls):
-        # TODO: try to deal with this at the lower level.  The problem is
-        # that array2string does not allow one to override how structured
-        # arrays are typeset, leading to all samples to be shown.  It may
-        # be possible to hack oneself out by temporarily becoming a void.
-        return type(data_cls.__name__ + cls.__name__,
-                    (_DistributionRepr, data_cls, base_cls),
-                    {}, data_cls=data_cls)
 
-    @classmethod
-    def _get_wrapper_subclass_instance(cls, data):
+    # ---------------------------------------------------------------
+    # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
+
+    @on_metaclass
+    def _prepare_wrapper_subclass(cls, data_cls, base_cls):
+        # The `bases` of `type()` requires adding `_DistributionRepr` higher
+        # in the MRO than `data_cls`. The problem is that array2string does not
+        # allow one to override how structured arrays are typeset, leading to
+        # all samples to be shown.
+        # TODO! define `__array_function__` to replace `_DistributionRepr`
+        # and have ``bases=(data_cls, base_cls)``.
+        name = data_cls.__name__ + cls.__name__
+        bases = (_DistributionRepr, data_cls, base_cls)
+        return name, bases
+
+    @on_metaclass
+    def _get_wrapper_subclass_instance(cls, data, *args, **kwargs):
         if isinstance(data, cls._wrapper_class_):
             data = data.distribution
         else:
@@ -65,9 +72,11 @@ class Distribution(metaclass=ClassWrapperMeta):
         self.shape = data.shape[:-1]
         return self
 
-    @classmethod
+    @on_metaclass
     def _make_wrapped__doc__(cls, data_cls):
         return cls._wrapper_class_.__doc__
+
+    # ---------------------------------------------------------------
 
     @property
     def distribution(self):
