@@ -193,6 +193,7 @@ subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
+.. _cosmology_mypackage:
 
 Astropy Interoperability: I/O and your Cosmology Package
 ========================================================
@@ -235,9 +236,6 @@ integrated within the code structure.
                 test_astropy_io.py
                 ...
 
-For a fully implemented example ``mypackage``, see
-https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage
-
 
 Converting Objects Between Packages
 -----------------------------------
@@ -248,9 +246,6 @@ to/from |Cosmology|. All the Astropy interface code is defined in
 necessary functions and how to register them with astropy's unified I/O to be
 automatically available to |Cosmology.from_format| and |Cosmology.to_format|.
 
-.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_convert.py
-   :language: python
-
 
 Reading and Writing
 -------------------
@@ -259,9 +254,6 @@ Everything Astropy read/write related is defined in
 ``mypackage/io/astropy_io.py``. The following is a rough outline of the read,
 write, and identify functions and how to register them with astropy's unified
 IO to be automatically available to |Cosmology.read| and |Cosmology.write|.
-
-.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_io.py
-   :language: python
 
 
 If Astropy is an optional dependency
@@ -273,9 +265,6 @@ important to detect if Astropy is installed (and the correct version) before
 importing ``astropy_io`` and ``astropy_convert``.
 We do this in ``mypackage/io/__init__.py``:
 
-.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/__init__.py
-   :language: python
-
 
 Astropy Interoperability Tests
 ------------------------------
@@ -285,9 +274,3 @@ all such tests are contained in ``mypackage/io/tests/test_astropy_io.py``.
 These tests require Astropy and will be skipped if it is not installed (and
 not the correct version), so at least one test in the test matrix should
 include ``astropy >= 5.0``.
-
-.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/tests/test_astropy_convert.py
-   :language: python
-
-.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/tests/test_astropy_io.py
-   :language: python
