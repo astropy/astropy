@@ -2661,3 +2661,12 @@ class TestCompoundBoundingBox:
         assert bbox._bounding_boxes[(1,)] == (-np.inf, np.inf)
         assert bbox._bounding_boxes[(1,)].order == 'F'
         assert len(bbox._bounding_boxes) == 2
+
+    def test_complex_compound_bounding_box(self):
+        model = Identity(4)
+        bounding_boxes = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
+        selector_args = (('x0', True), ('x1', True))
+
+        bbox = CompoundBoundingBox.validate(model, bounding_boxes, selector_args)
+        assert bbox[(2.5, 1.3)] == ModelBoundingBox(((-1, 1), (-3, 3)), model, ignored=['x0', 'x1'])
+        assert bbox[(2.5, 2.71)] == ModelBoundingBox(((-3, 3), (-1, 1)), model, ignored=['x0', 'x1'])
