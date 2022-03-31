@@ -1,2 +1,0 @@
-Fixed the ``Gaussian2D`` ``bounding_box`` when ``theta`` is an angular
-``Quantity``.
