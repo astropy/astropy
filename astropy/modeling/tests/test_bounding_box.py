@@ -2107,15 +2107,17 @@ class TestCompoundBoundingBox:
             "    bounding_boxes={\n" + \
             "        (1,) = ModelBoundingBox(\n" + \
             "                intervals={\n" + \
-            "                    x: Interval(lower=-1, upper=1)\n" + \
+            "                    y: Interval(lower=-1, upper=1)\n" + \
             "                }\n" + \
+            "                ignored=['x']\n" + \
             "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
             "                order='C'\n" + \
             "            )\n" + \
             "        (2,) = ModelBoundingBox(\n" + \
             "                intervals={\n" + \
-            "                    x: Interval(lower=-2, upper=2)\n" + \
+            "                    y: Interval(lower=-2, upper=2)\n" + \
             "                }\n" + \
+            "                ignored=['x']\n" + \
             "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
             "                order='C'\n" + \
             "            )\n" + \
