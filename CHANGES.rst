@@ -1,3 +1,31 @@
+5.0.4 (2022-03-31)
+==================
+
+Bug Fixes
+---------
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed the ``Gaussian2D`` ``bounding_box`` when ``theta`` is an angular
+  ``Quantity``. [#13021]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Reverted ``astropy.utils.iers.iers.IERS_A_URL`` to ``maia.usno.navy.mil`` domain instead
+  of NASA FTP to work around server issues. [#13004]
+
+Other Changes and Additions
+---------------------------
+
+- Updated bundled WCSLIB to version 7.9 with several bugfixes and added
+  support for time coordinate axes in ``wcsset()`` and ``wcssub()``. The
+  four-digit type code for the time axis will have the first digit set to 4,
+  i.e., four digit code will be 4xxx where x is a digit 0-9. For a full list of
+  bug fixes see https://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES [#12994]
+
+
 5.0.3 (2022-03-25)
 ==================
 
