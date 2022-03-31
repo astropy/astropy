@@ -261,17 +261,20 @@ def combine_labels(left, right):
 
 def ellipse_extent(a, b, theta):
     """
-    Calculates the extent of a box encapsulating a rotated 2D ellipse.
+    Calculates the half size of a box encapsulating a rotated 2D
+    ellipse.
 
     Parameters
     ----------
     a : float or `~astropy.units.Quantity`
-        Major axis.
+        The ellipse semimajor axis.
     b : float or `~astropy.units.Quantity`
-        Minor axis.
+        The ellipse semiminor axis.
     theta : float or `~astropy.units.Quantity` ['angle']
-        Rotation angle. If given as a floating-point value, it is assumed to be
-        in radians.
+        The rotation angle as an angular quantity
+        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`) or
+        a value in radians (as a float). The rotation angle increases
+        counterclockwise.
 
     Returns
     -------
@@ -294,14 +297,11 @@ def ellipse_extent(a, b, theta):
         y0 = 50
         a = 30
         b = 10
-        theta = np.pi/4
+        theta = np.pi / 4
 
         model = Ellipse2D(amplitude, x0, y0, a, b, theta)
-
         dx, dy = ellipse_extent(a, b, theta)
-
         limits = [x0 - dx, x0 + dx, y0 - dy, y0 + dy]
-
         model.bounding_box = limits
 
         image = render_model(model)
