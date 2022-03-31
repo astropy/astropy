@@ -225,7 +225,7 @@ integrated within the code structure.
                 ...
 
 For a fully implemented example ``mypackage``, see
-https://github.com/astropy/astropy/tree/main/astropy/cosmology/tests/mypackage
+https://github.com/astropy/astropy/tree/v5.0.x/astropy/cosmology/tests/mypackage
 
 
 Converting Objects Between Packages
