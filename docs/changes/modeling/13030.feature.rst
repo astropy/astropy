@@ -1,0 +1,2 @@
+Allow the ``Ellipse2D`` and ``Sersic2D`` theta parameter to be input as
+an angular quantity.
