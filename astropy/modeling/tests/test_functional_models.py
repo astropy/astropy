@@ -130,6 +130,17 @@ def test_Gaussian2D_invalid_inputs():
         models.Gaussian2D(theta=0, cov_matrix=cov_matrix)
 
 
+def test_Gaussian2D_theta_bbox():
+    y, x = np.mgrid[0:51, 0:51]
+    theta = Angle(90, 'deg')
+    model1 = models.Gaussian2D(1, 25, 25, 15, 5, theta=theta)
+
+    theta = theta.to('radian').value
+    model2 = models.Gaussian2D(1, 25, 25, 15, 5, theta=theta)
+
+    assert model1.bounding_box == model2.bounding_box
+
+
 @pytest.mark.parametrize('gamma', (10, -10))
 def test_moffat_fwhm(gamma):
     ans = 34.641016151377542
