@@ -358,7 +358,10 @@ class Gaussian2D(Fittable2DModel):
 
         a = factor * self.x_stddev
         b = factor * self.y_stddev
-        theta = self.theta.value
+        if self.theta.quantity is None:
+            theta = self.theta.value
+        else:
+            theta = self.theta.quantity
         dx, dy = ellipse_extent(a, b, theta)
 
         return ((self.y_mean - dy, self.y_mean + dy),
