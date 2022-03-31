@@ -278,7 +278,7 @@ For the example grouped table ``obs_by_name`` from above, we compute the group
 means with the :meth:`~astropy.table.groups.TableGroups.aggregate` method::
 
   >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SHOW_WARNINGS
-  AstropyUserWarning: Cannot aggregate column 'obs_date' with type '<U10': ufunc 'add' did not contain a loop with signature matching types (dtype('<U10'), dtype('<U10')) -> None
+  AstropyUserWarning: Cannot aggregate column 'obs_date' with type '<U10': ...
   >>> print(obs_mean)
   name mag_b mag_v
   ---- ----- -----
