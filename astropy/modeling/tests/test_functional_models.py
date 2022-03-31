@@ -140,6 +140,8 @@ def test_Gaussian2D_theta():
     assert model1.theta.quantity.to('radian').value == model2.theta.value
     assert model1.bounding_box == model2.bounding_box
 
+    assert model1(619.42, 31.314) == model2(619.42, 31.314)
+
 
 @pytest.mark.parametrize('gamma', (10, -10))
 def test_moffat_fwhm(gamma):
@@ -243,6 +245,8 @@ def test_Ellipse2D_theta():
 
     assert model1.theta.quantity.to('radian').value == model2.theta.value
     assert model1.bounding_box == model2.bounding_box
+
+    assert model1(619.42, 31.314) == model2(619.42, 31.314)
 
 
 def test_Scale_inverse():
@@ -528,6 +532,7 @@ def test_trig_inverse(trig):
     assert_allclose(mdl(mdl.inverse(x)), x, atol=1e-10)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_Sersic2D_theta():
     theta = Angle(90, 'deg')
     model1 = models.Sersic2D(1, 5, 4, 25, 25, 0.5, theta=theta)
@@ -536,3 +541,5 @@ def test_Sersic2D_theta():
     model2 = models.Sersic2D(1, 5, 4, 25, 25, 0.5, theta=theta2)
 
     assert model1.theta.quantity.to('radian').value == model2.theta.value
+
+    assert model1(619.42, 31.314) == model2(619.42, 31.314)
