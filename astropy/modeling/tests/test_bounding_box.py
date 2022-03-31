@@ -12,7 +12,7 @@ from astropy.modeling.bounding_box import (CompoundBoundingBox, ModelBoundingBox
                                            _ignored_interval, _Interval, _SelectorArgument,
                                            _SelectorArguments)
 from astropy.modeling.core import Model, fix_inputs
-from astropy.modeling.models import Gaussian1D, Gaussian2D, Identity, Scale, Shift
+from astropy.modeling.models import Gaussian1D, Gaussian2D, Identity, Polynomial2D, Scale, Shift
 
 
 class Test_Interval:
@@ -1632,6 +1632,15 @@ class TestModelBoundingBox:
         assert len(valid_index) == 1
         assert (valid_index[0] == []).all()
         assert all_out and isinstance(all_out, bool)
+
+    def test_bounding_box_ignore(self):
+        """Regression test for #13028"""
+
+        bbox_x = ModelBoundingBox((9, 10), Polynomial2D(1), ignored=["x"])
+        assert bbox_x.ignored_inputs == ['x']
+
+        bbox_y = ModelBoundingBox((11, 12), Polynomial2D(1), ignored=["y"])
+        assert bbox_y.ignored_inputs == ['y']
 
 
 class Test_SelectorArgument:

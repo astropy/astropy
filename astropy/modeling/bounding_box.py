@@ -724,10 +724,17 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             self._validate_sequence(bounding_box, order)
 
+    def _validate_single_input(self, bounding_box):
+        model_input_index = [self._get_index(_input) for _input in self._model.inputs]
+        avaliable_input_index = [_input for _input in model_input_index if _input not in self._ignored]
+        index = avaliable_input_index.pop(0)
+
+        self[index] = bounding_box
+
     def _validate(self, bounding_box, order: str = None):
         """Validate and set any representation"""
         if self._n_inputs == 1 and not isinstance(bounding_box, dict):
-            self[0] = bounding_box
+            self._validate_single_input(bounding_box)
         else:
             self._validate_iterable(bounding_box, order)
 
