@@ -643,14 +643,14 @@ def test_group_mixins():
     assert np.all(idxg == [1, 3, 2, 0])
 
 
-def test_group_mixins_unsupported():
+@pytest.mark.parametrize(
+    'col', [time.TimeDelta([1, 2], format='sec'),
+            time.Time([1, 2], format='cxcsec'),
+            coordinates.SkyCoord([1, 2], [3, 4], unit='deg,deg')])
+def test_group_mixins_unsupported(col):
     """Test that aggregating unsupported mixins produces a warning only"""
-    td = time.TimeDelta([1, 2], format='sec')
-    tm = time.Time([1, 2], format='cxcsec')
-    sc = coordinates.SkyCoord([1, 2], [3, 4], unit='deg,deg')
 
-    for col in [td, sc, tm]:
-        t = Table([[1, 1], [3, 4], col], names=['a', 'b', 'mix'])
-        tg = t.group_by('a')
-        with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
-            tg.groups.aggregate(np.sum)
+    t = Table([[1, 1], [3, 4], col], names=['a', 'b', 'mix'])
+    tg = t.group_by('a')
+    with pytest.warns(AstropyUserWarning, match="Cannot aggregate column 'mix'"):
+        tg.groups.aggregate(np.sum)
