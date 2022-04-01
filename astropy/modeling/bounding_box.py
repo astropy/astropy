@@ -693,6 +693,12 @@ class ModelBoundingBox(_BoundingDomain):
         for key, value in bounding_box.items():
             self[key] = value
 
+    @property
+    def _available_input_index(self):
+        model_input_index = [self._get_index(_input) for _input in self._model.inputs]
+
+        return [_input for _input in model_input_index if _input not in self._ignored]
+
     def _validate_sequence(self, bounding_box, order: str = None):
         """Validate passing tuple of tuples representation (or related) and setting them."""
         order = self._get_order(order)
@@ -702,7 +708,7 @@ class ModelBoundingBox(_BoundingDomain):
             bounding_box = bounding_box[::-1]
 
         for index, value in enumerate(bounding_box):
-            self[index] = value
+            self[self._available_input_index[index]] = value
 
     @property
     def _n_inputs(self) -> int:
@@ -726,7 +732,7 @@ class ModelBoundingBox(_BoundingDomain):
     def _validate(self, bounding_box, order: str = None):
         """Validate and set any representation"""
         if self._n_inputs == 1 and not isinstance(bounding_box, dict):
-            self[0] = bounding_box
+            self[self._available_input_index[0]] = bounding_box
         else:
             self._validate_iterable(bounding_box, order)
 
@@ -748,7 +754,7 @@ class ModelBoundingBox(_BoundingDomain):
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
-            bounding_box = bounding_box.intervals
+            bounding_box = bounding_box.named_intervals
 
         new = cls({}, model, ignored=ignored, order=order)
         new._validate(bounding_box)
