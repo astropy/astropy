@@ -455,7 +455,7 @@ def test_deprecated_did_you_mean_units():
 
     with pytest.warns(UnitsWarning, match=r'.* Did you mean 0\.1nm, Angstrom '
                       r'\(deprecated\) or angstrom \(deprecated\)\?') as w:
-        u.Unit('ANGSTROM', format='vounit')
+        u.Unit('ANGSTROM', format='vounit', parse_strict='warn')
     assert len(w) == 1
     assert str(w[0].message).count('0.1nm') == 1
 
@@ -485,7 +485,7 @@ def test_vounit_binary_prefix():
     u.Unit('Kibyte', format='vounit') == u.Unit('1024 B')
     u.Unit('Kibit', format='vounit') == u.Unit('1024 B')
     with pytest.warns(UnitsWarning) as w:
-        u.Unit('kibibyte', format='vounit')
+        u.Unit('kibibyte', format='vounit', parse_strict='warn')
     assert len(w) == 1
 
 
@@ -542,15 +542,13 @@ def test_vounit_custom():
     assert x_string == 'm mfoo'
 
 
-def test_vounit_implicit_custom():
-    # Yikes, this becomes "femto-urlong"...  But at least there's a warning.
-    with pytest.warns(UnitsWarning) as w:
-        x = u.Unit("furlong/week", format="vounit")
-    assert x.bases[0]._represents.scale == 1e-15
-    assert x.bases[0]._represents.bases[0].name == 'urlong'
-    assert len(w) == 2
-    assert 'furlong' in str(w[0].message)
-    assert 'week' in str(w[1].message)
+def test_vounit_no_more_implicit_custom():
+    # This becomes UnrecognizedUnit(furlong/week)
+    with pytest.warns(UnitsWarning, match="'furlong/week' did not parse as vounit unit") as w:
+        x = u.Unit("furlong/week", format="vounit", parse_strict='warn')
+    assert isinstance(x, u.UnrecognizedUnit)
+    assert x.name == "furlong/week"
+    assert len(w) == 1
 
 
 @pytest.mark.parametrize('scale, number, string',
