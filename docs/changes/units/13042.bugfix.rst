@@ -1,0 +1,2 @@
+Invalid VOUnit string no longer emits extraneous warning
+despite of ``parse_strict`` settings.

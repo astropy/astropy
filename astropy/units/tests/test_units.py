@@ -155,6 +155,26 @@ def test_multiple_solidus():
     assert x.to_string() == 'kg(3/10) m(5/2) / s'
 
 
+def test_unsupported_vounit():
+    unit_str = 'e'
+
+    # Should be completely silent.
+    unit = u.Unit(unit_str, format='vounit', parse_strict='silent')
+    assert isinstance(unit, u.UnrecognizedUnit)
+    assert unit.name == unit_str
+
+    # Only one warning.
+    with pytest.warns(u.UnitsWarning, match=r'.*did not parse as vounit unit.*') as w:
+        unit = u.Unit(unit_str, format='vounit', parse_strict='warn')
+    assert isinstance(unit, u.UnrecognizedUnit)
+    assert unit.name == unit_str
+    assert len(w) == 1
+
+    # Outright error.
+    with pytest.raises(ValueError, match=r'.*did not parse as vounit unit.*'):
+        u.Unit(unit_str, format='vounit', parse_strict='raise')
+
+
 def test_unknown_unit3():
     unit = u.Unit("FOO", parse_strict='silent')
     assert isinstance(unit, u.UnrecognizedUnit)

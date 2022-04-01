@@ -91,7 +91,10 @@ class VOUnit(generic.Generic):
             raise core.UnitsError(
                 "'{}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
-        result = cls._do_parse(s, debug=debug)
+        with warnings.catch_warnings():
+            # Unsupported warning should be handled by parse_strict in core.py
+            warnings.filterwarnings('error', message=r'.*not supported by the VOUnit standard.*')
+            result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "
                              "VOUnit.")
