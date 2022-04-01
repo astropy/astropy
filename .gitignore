@@ -17,6 +17,7 @@ astropy/modeling/src/projections.c
 # Other generated files
 MANIFEST
 astropy/cython_version.py
+astropy/modeling/src/wcsconfig.h
 astropy/wcs/include/wcsconfig.h
 astropy/_erfa/core.py
 astropy/_version.py
