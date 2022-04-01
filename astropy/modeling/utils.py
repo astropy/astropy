@@ -310,6 +310,13 @@ def ellipse_extent(a, b, theta):
                   extent = limits)
         plt.show()
     """
+    from .parameters import Parameter  # prevent circular import
+
+    if isinstance(theta, Parameter):
+        if theta.quantity is None:
+            theta = theta.value
+        else:
+            theta = theta.quantity
 
     t = np.arctan2(-b * np.tan(theta), a)
     dx = a * np.cos(t) * np.cos(theta) - b * np.sin(t) * np.sin(theta)

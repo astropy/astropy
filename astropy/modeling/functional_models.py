@@ -387,11 +387,7 @@ class Gaussian2D(Fittable2DModel):
 
         a = factor * self.x_stddev
         b = factor * self.y_stddev
-        if self.theta.quantity is None:
-            theta = self.theta.value
-        else:
-            theta = self.theta.quantity
-        dx, dy = ellipse_extent(a, b, theta)
+        dx, dy = ellipse_extent(a, b, self.theta)
 
         return ((self.y_mean - dy, self.y_mean + dy),
                 (self.x_mean - dx, self.x_mean + dx))
@@ -1893,10 +1889,11 @@ class Ellipse2D(Fittable2DModel):
     b : float
         The length of the semiminor axis.
 
-    theta : float
-        The rotation angle in radians of the semimajor axis.  The
-        rotation angle increases counterclockwise from the positive x
-        axis.
+    theta : float or `~astropy.units.Quantity`, optional
+        The rotation angle as an angular quantity
+        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
+        or a value in radians (as a float). The rotation angle
+        increases counterclockwise from the positive x axis.
 
     See Also
     --------
@@ -1947,7 +1944,9 @@ class Ellipse2D(Fittable2DModel):
     y_0 = Parameter(default=0, description="Y position of the center of the disk.")
     a = Parameter(default=1, description="The length of the semimajor axis")
     b = Parameter(default=1, description="The length of the semiminor axis")
-    theta = Parameter(default=0, description="The rotation angle in radians of the semimajor axis (Positive - counterclockwise)")
+    theta = Parameter(default=0.0, description=("Rotation angle either as a "
+                                                "float (in radians) or a "
+                                                "|Quantity| angle"))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1976,7 +1975,7 @@ class Ellipse2D(Fittable2DModel):
 
         a = self.a
         b = self.b
-        theta = self.theta.value
+        theta = self.theta
         dx, dy = ellipse_extent(a, b, theta)
 
         return ((self.y_0 - dy, self.y_0 + dy),
@@ -3012,9 +3011,11 @@ class Sersic2D(Fittable2DModel):
         y position of the center.
     ellip : float, optional
         Ellipticity.
-    theta : float, optional
-        Rotation angle in radians, counterclockwise from
-        the positive x-axis.
+    theta : float or `~astropy.units.Quantity`, optional
+        The rotation angle as an angular quantity
+        (`~astropy.units.Quantity` or `~astropy.coordinates.Angle`)
+        or a value in radians (as a float). The rotation angle
+        increases counterclockwise from the positive x axis.
 
     See Also
     --------
@@ -3073,7 +3074,9 @@ class Sersic2D(Fittable2DModel):
     x_0 = Parameter(default=0, description="X position of the center")
     y_0 = Parameter(default=0, description="Y position of the center")
     ellip = Parameter(default=0, description="Ellipticity")
-    theta = Parameter(default=0, description="Rotation angle in radians (counterclockwise-positive)")
+    theta = Parameter(default=0.0, description=("Rotation angle either as a "
+                                                "float (in radians) or a "
+                                                "|Quantity| angle"))
     _gammaincinv = None
 
     @classmethod
