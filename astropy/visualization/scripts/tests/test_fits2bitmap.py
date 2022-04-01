@@ -18,16 +18,19 @@ class TestFits2Bitmap:
         self.filename = 'test.fits'
         self.array = np.arange(16384).reshape((128, 128))
 
+    @pytest.mark.openfiles_ignore
     def test_function(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
         fits.writeto(filename, self.array)
         fits2bitmap(filename)
 
+    @pytest.mark.openfiles_ignore
     def test_script(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
         fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
+    @pytest.mark.openfiles_ignore
     def test_exten_num(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
         hdu1 = fits.PrimaryHDU()
@@ -36,6 +39,7 @@ class TestFits2Bitmap:
         hdulist.writeto(filename)
         main([filename, '-e', '1'])
 
+    @pytest.mark.openfiles_ignore
     def test_exten_name(self, tmpdir):
         filename = tmpdir.join(self.filename).strpath
         hdu1 = fits.PrimaryHDU()
@@ -52,6 +56,7 @@ class TestFits2Bitmap:
         fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
+    @pytest.mark.openfiles_ignore
     def test_orientation(self, tmpdir):
         """
         Regression test to check the image vertical orientation/origin.
