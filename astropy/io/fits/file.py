@@ -30,6 +30,9 @@ from .util import (
 if HAS_BZ2:
     import bz2
 
+from astropy.utils.compat.optional_deps import HAS_FSSPEC
+if HAS_FSSPEC:
+    import fsspec
 
 # Maps astropy.io.fits-specific file mode names to the appropriate file
 # modes to use for the underlying raw files.
@@ -105,7 +108,7 @@ class _File:
     """
 
     def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
-                 cache=True):
+                 cache=True, use_fsspec=None, fsspec_kwargs=None):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
@@ -117,6 +120,7 @@ class _File:
         self.compression = None
         self.readonly = False
         self.writeonly = False
+        self.use_fsspec = use_fsspec
 
         # Should the object be closed on error: see
         # https://github.com/astropy/astropy/issues/6168
@@ -144,6 +148,15 @@ class _File:
             mode = objmode
         if mode is None:
             mode = 'readonly'
+
+        # Handle remote or cloud URIs with fsspec
+        if use_fsspec:
+            if not HAS_FSSPEC:
+                raise ModuleNotFoundError("please install `fsspec` to access this file")
+            if fsspec_kwargs is None:
+                fsspec_kwargs = {}
+            fileopen = fsspec.open(fileobj, **fsspec_kwargs)
+            fileobj = fileopen.open()
 
         # Handle raw URLs
         if (isinstance(fileobj, (str, bytes)) and

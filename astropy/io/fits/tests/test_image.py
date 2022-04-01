@@ -454,6 +454,11 @@ class TestImageFunctions(FitsTestCase):
         assert np.array_equal(fs[0].section[..., ::2], dat[..., ::2])
         assert np.array_equal(fs[0].section[..., [1, 2, 4], 3],
                               dat[..., [1, 2, 4], 3])
+
+        # Can we use negative indices?
+        assert np.array_equal(fs[0].section[-1], dat[-1])
+        assert np.array_equal(fs[0].section[-9:-7], dat[-9:-7])
+        assert np.array_equal(fs[0].section[-4, -6:-3, -1], dat[-4, -6:-3, -1])
         fs.close()
 
     def test_section_data_single(self):
