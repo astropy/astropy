@@ -50,13 +50,19 @@ class Conf(_config.ConfigNamespace):
         'If True, use lazy loading of HDUs when opening FITS files by '
         'default; that is fits.open() will only seek for and read HDUs on '
         'demand rather than reading all HDUs at once.  See the documentation '
-        'for fits.open() for more datails.')
+        'for fits.open() for more details.')
     enable_uint = _config.ConfigItem(
         True,
         'If True, default to recognizing the convention for representing '
         'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
         'and BZERO = 2**BITPIX, represent the data as unsigned integers '
         'per this convention.')
+    use_fsspec = _config.ConfigItem(
+        False,
+        'Use the ``fsspec`` library to open FITS files? Defaults to `False` '
+        'unless the FITS file path starts with the Amazon S3 storage '
+        'prefix ``s3://`` or the Google Cloud Storage prefix ``gs://``. '
+        'See the documentation for fits.open() for more details.')
 
 
 conf = Conf()

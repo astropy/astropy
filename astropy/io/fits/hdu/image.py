@@ -185,9 +185,20 @@ class _ImageBaseHDU(_ValidHDU):
         return the appropriate slice of the data, and loads *only* that section
         into memory.
 
-        Sections are mostly obsoleted by memmap support, but should still be
-        used to deal with very large scaled images.  See the
-        :ref:`astropy:data-sections` section of the Astropy documentation for
+        Sections are useful for retrieving a small subset of data from a remote
+        file that has been opened with the ``use_fsspec=True`` parameter.
+        For example, you can use this feature to download a small cutout from
+        a large FITS image hosted in the Amazon S3 cloud (see the
+        :ref:`astropy:fits-cloud-files` section of the Astropy
+        documentation for more details.)
+
+        For local files, sections are mostly obsoleted by memmap support, but
+        should still be used to deal with very large scaled images.
+
+        Note that sections cannot currently be written to.  Moreover, any
+        in-memory updates to the image's `.data` property may not be
+        reflected in the slices obtained via `.section`. See the
+        :ref:`astropy:data-sections` section of the documentation for
         more details.
         """
 
@@ -923,10 +934,10 @@ class _ImageBaseHDU(_ValidHDU):
 
 class Section:
     """
-    Image section.
+    Class enabling subsets of ImageHDU data to be loaded lazily via slicing.
 
     Slices of this object load the corresponding section of an image array from
-    the underlying FITS file on disk, and applies any BSCALE/BZERO factors.
+    the underlying FITS file, and applies any BSCALE/BZERO factors.
 
     Section slices cannot be assigned to, and modifications to a section are
     not saved back to the underlying file.
@@ -938,7 +949,20 @@ class Section:
     def __init__(self, hdu):
         self.hdu = hdu
 
+    @property
+    def shape(self):
+        # Implementing `.shape` enables `astropy.nddata.Cutout2D` to accept
+        # `ImageHDU.section` in place of `.data`.
+        return self.hdu.shape
+
     def __getitem__(self, key):
+        """Returns a slice of HDU data specified by `key`.
+
+        If the image HDU is backed by a file handle, this method will only read
+        the chunks of the file needed to extract `key`, which is useful in
+        situations where the file is located on a slow or remote file system
+        (e.g., cloud storage).
+        """
         if not isinstance(key, tuple):
             key = (key,)
         naxis = len(self.hdu.shape)
@@ -983,6 +1007,8 @@ class Section:
             dims = tuple(dims) or (1,)
             bitpix = self.hdu._orig_bitpix
             offset = self.hdu._data_offset + offset * abs(bitpix) // 8
+            # Note: the actual file read operations are delegated to
+            # `util._array_from_file` via `ImageHDU._get_scaled_image_data`
             data = self.hdu._get_scaled_image_data(offset, dims)
         else:
             data = self._getdata(key)
@@ -1197,6 +1223,8 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 class _IndexInfo:
     def __init__(self, indx, naxis):
         if _is_int(indx):
+            if indx < 0:  # support negative indexing
+                indx = indx + naxis
             if 0 <= indx < naxis:
                 self.npts = 1
                 self.offset = indx

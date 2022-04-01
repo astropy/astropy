@@ -234,11 +234,15 @@ the images(s) ten rows at a time), the :attr:`~ImageHDU.section` attribute of an
 HDU can be used to alleviate such memory problems.
 
 With ``astropy``'s improved support for memory-mapping, the sections feature is
-not as necessary as it used to be for handling very large images. However, if
-the image's data is scaled with non-trivial BSCALE/BZERO values, accessing the
-data in sections may still be necessary under the current implementation.
-Memmap is also insufficient for loading images larger than 2 to 4 GB on a 32-bit
-system — in such cases it may be necessary to use sections.
+not as necessary as it used to be for handling large images stored in local files.
+However, it remains very useful in the following circumstances:
+
+* If the image's data is scaled with non-trivial BSCALE/BZERO values, accessing the
+  data in sections may still be necessary under the current implementation.
+* Memory mapping is insufficient for loading images larger than 2 to 4 GB on a 32-bit
+  system — in such cases it may be necessary to use sections.
+* Memory mapping does not work for accessing remote FITS files.
+  In this case sections may be your only option. See :ref:`astropy:fits_io_cloud`.
 
 Example
 -------

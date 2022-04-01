@@ -2,6 +2,8 @@
 Installation
 ************
 
+.. _installing-astropy:
+
 Installing ``astropy``
 ======================
 
