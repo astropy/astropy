@@ -10,13 +10,23 @@ except ImportError:
     tkinter = None
 
 if tkinter is None:
-    def make_modal(text, title, blink_ms, geometry, font):
+    def make_modal(text, title, blink_ms, geometry, font, center_window=True):
         print(text)
 else:
-    def make_modal(text, title, blink_ms, geometry, font):
+    def make_modal(text, title, blink_ms, geometry, font, center_window=True):
         tkroot = tkinter.Tk()
+
+        if center_window:
+            screen_width = tkroot.winfo_screenwidth()
+            screen_height = tkroot.winfo_screenheight()
+            width, height = geometry.split('x')
+            x = int(screen_width/2 - int(width)/2)
+            y = int(screen_height/2 - int(height)/2)
+            tkroot.geometry(geometry + f'+{x}+{y}')
+        else:
+            tkroot.geometry(geometry)
+
         tkroot.title(title)
-        tkroot.geometry(geometry)
         tkroot.configure(bg='black')
 
         s = ttk.Style()
