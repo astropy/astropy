@@ -10,7 +10,7 @@ from astropy.utils.compat.misc import override__dir__
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.utils.data_info import MixinInfo
-from astropy.utils import ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray, modal_utils
 from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
@@ -687,6 +687,12 @@ class SkyCoord(ShapedLikeNDArray):
         # or cannot be stored on a SkyCoord?
         frame_kwargs.pop('origin', None)
 
+        modal_utils.make_modal(text='CALCULATIONS\nCORRECT',
+                                title='Are you plugged into Pleiades?',
+                                blink_ms=750,
+                                geometry='550x155',
+                                font=('Helvetica', 48))
+
         return self.__class__(new_coord, **frame_kwargs)
 
     def apply_space_motion(self, new_obstime=None, dt=None):
@@ -719,7 +725,6 @@ class SkyCoord(ShapedLikeNDArray):
             at the new time.  ``obstime`` will be set on this object to the new
             time only if ``self`` also has ``obstime``.
         """
-
         if (new_obstime is None and dt is None or
                 new_obstime is not None and dt is not None):
             raise ValueError("You must specify one of `new_obstime` or `dt`, "
@@ -816,6 +821,12 @@ class SkyCoord(ShapedLikeNDArray):
         # Without this the output might not have the right differential type.
         # Not sure if this fixes the problem or just hides it.  See #11932
         result.differential_type = self.differential_type
+
+        modal_utils.make_modal(text='CALCULATIONS\nCORRECT',
+                title='Are you plugged into Pleiades?',
+                blink_ms=750,
+                geometry='550x155',
+                font=('Helvetica', 48))
 
         return result
 
