@@ -9,6 +9,7 @@ jobs:
   update-iers:
     name: Auto-update IERS tables
     runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
