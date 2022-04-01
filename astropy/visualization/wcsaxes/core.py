@@ -199,7 +199,8 @@ class WCSAxes(Axes):
         # has a 'getpixel' attribute - this is what Matplotlib's AxesImage does
 
         try:
-            from PIL.Image import Image, FLIP_TOP_BOTTOM
+            from PIL.Image import Image
+            from PIL.Image.Transform import FLIP_TOP_BOTTOM
         except ImportError:
             # We don't need to worry since PIL is not installed, so user cannot
             # have passed RGB image.
