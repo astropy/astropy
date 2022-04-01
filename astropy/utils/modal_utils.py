@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = 'make_modal'
+__all__ = ['make_modal']
 
 try:
     import tkinter
