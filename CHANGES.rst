@@ -1,5 +1,5 @@
-5.0.4 (2022-03-31)
-==================
+Version 5.0.4 (2022-03-31)
+==========================
 
 Bug Fixes
 ---------
@@ -26,8 +26,8 @@ Other Changes and Additions
   bug fixes see https://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES [#12994]
 
 
-5.0.3 (2022-03-25)
-==================
+Version 5.0.3 (2022-03-25)
+==========================
 
 Bug Fixes
 ---------
@@ -59,8 +59,8 @@ Other Changes and Additions
 
 - Updated the bundled CFITSIO library to 4.1.0. [#12967]
 
-5.0.2 (2022-03-10)
-==================
+Version 5.0.2 (2022-03-10)
+==========================
 
 Bug Fixes
 ---------
@@ -119,8 +119,8 @@ astropy.wcs
   unpickling WCS objects originally created using non-default values for
   ``key``, ``colsel``, and ``keysel`` parameters. [#12844]
 
-5.0.1 (2022-01-26)
-==================
+Version 5.0.1 (2022-01-26)
+==========================
 
 Bug Fixes
 ---------
@@ -211,8 +211,8 @@ astropy.utils
   warnings when ``astropy.utils.iers.conf.auto_max_age`` is set to ``None``. [#12713]
 
 
-5.0 (2021-11-15)
-================
+Version 5.0 (2021-11-15)
+========================
 
 
 New Features
@@ -913,8 +913,8 @@ Other Changes and Additions
   library, version 3.35 or later is required. [#12272]
 
 
-4.3.1 (2021-08-11)
-==================
+Version 4.3.1 (2021-08-11)
+==========================
 
 Bug Fixes
 ---------
@@ -961,8 +961,8 @@ astropy.utils
   written to, e.g., ECSV format with ``serialize_method='data_mask'``. [#11910]
 
 
-4.3 (2021-07-26)
-================
+Version 4.3 (2021-07-26)
+========================
 
 New Features
 ------------
@@ -1572,8 +1572,8 @@ Other Changes and Additions
 - The minimum supported version of ``pyerfa`` is now 1.7.3. [#11637]
 
 
-4.2.1 (2021-04-01)
-==================
+Version 4.2.1 (2021-04-01)
+==========================
 
 Bug Fixes
 ---------
@@ -1641,8 +1641,8 @@ Other Changes and Additions
   offset between TAI and UTC. [#11249]
 
 
-4.2 (2020-11-24)
-================
+Version 4.2 (2020-11-24)
+========================
 
 New Features
 ------------
@@ -1975,8 +1975,8 @@ Other Changes and Additions
 
 
 
-4.1 (2020-10-21)
-================
+Version 4.1 (2020-10-21)
+========================
 
 New Features
 ------------
@@ -2341,8 +2341,8 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-4.0.5 (2021-03-26)
-==================
+Version 4.0.5 (2021-03-26)
+==========================
 
 Bug Fixes
 ---------
@@ -2432,8 +2432,8 @@ astropy.wcs
 
 
 
-4.0.4 (2020-11-24)
-==================
+Version 4.0.4 (2020-11-24)
+==========================
 
 Bug Fixes
 ---------
@@ -2495,8 +2495,8 @@ astropy.visualization
   containing ``WCSAxes``. [#10797]
 
 
-4.0.3 (2020-10-14)
-==================
+Version 4.0.3 (2020-10-14)
+==========================
 
 Bug Fixes
 ---------
@@ -2513,8 +2513,8 @@ Other Changes and Additions
 - Fixed installation of the source distribution with pip<19. [#10837, #10852]
 
 
-4.0.2 (2020-10-10)
-==================
+Version 4.0.2 (2020-10-10)
+==========================
 
 New Features
 ------------
@@ -2794,8 +2794,8 @@ Other Changes and Additions
   input array is inconsistent with the ``fill_value``. [#10602]
 
 
-4.0.1 (2020-03-27)
-==================
+Version 4.0.1 (2020-03-27)
+==========================
 
 Bug fixes
 ---------
@@ -2992,8 +2992,8 @@ Other Changes and Additions
 
 
 
-4.0 (2019-12-16)
-================
+Version 4.0 (2019-12-16)
+========================
 
 New Features
 ------------
@@ -3812,8 +3812,8 @@ Other Changes and Additions
 
 
 
-3.2.3 (2019-10-27)
-==================
+Version 3.2.3 (2019-10-27)
+==========================
 
 Other Changes and Additions
 ---------------------------
@@ -3822,8 +3822,8 @@ Other Changes and Additions
 
 
 
-3.2.2 (2019-10-07)
-==================
+Version 3.2.2 (2019-10-07)
+==========================
 
 Bug fixes
 ---------
@@ -3974,8 +3974,8 @@ Other Changes and Additions
 
 
 
-3.2.1 (2019-06-14)
-==================
+Version 3.2.1 (2019-06-14)
+==========================
 
 Bug fixes
 ---------
@@ -4005,8 +4005,8 @@ astropy.wcs
 
 
 
-3.2 (2019-06-10)
-================
+Version 3.2 (2019-06-10)
+========================
 
 New Features
 ------------
@@ -4455,8 +4455,8 @@ Installation
 
 
 
-3.1.2 (2019-02-23)
-==================
+Version 3.1.2 (2019-02-23)
+==========================
 
 Bug fixes
 ---------
@@ -4491,8 +4491,8 @@ astropy.visualization.wcsaxes
   contour set. [#8321]
 
 
-3.1.1 (2018-12-31)
-==================
+Version 3.1.1 (2018-12-31)
+==========================
 
 Bug fixes
 ---------
@@ -4518,8 +4518,8 @@ astropy.units
 
 
 
-3.1 (2018-12-06)
-================
+Version 3.1 (2018-12-06)
+========================
 
 New Features
 ------------
@@ -5230,8 +5230,8 @@ Other Changes and Additions
 
 
 
-3.0.5 (2018-10-14)
-==================
+Version 3.0.5 (2018-10-14)
+==========================
 
 Bug Fixes
 ---------
@@ -5250,8 +5250,8 @@ astropy.tests
 
 
 
-3.0.4 (2018-08-02)
-==================
+Version 3.0.4 (2018-08-02)
+==========================
 
 API Changes
 -----------
@@ -5307,8 +5307,8 @@ Other Changes and Additions
 - Updated bundled wcslib to v 5.19.1 [#7688]
 
 
-3.0.3 (2018-06-01)
-==================
+Version 3.0.3 (2018-06-01)
+==========================
 
 Bug Fixes
 ---------
@@ -5335,8 +5335,8 @@ astropy.tests
   separated. [#7463]
 
 
-3.0.2 (2018-04-23)
-==================
+Version 3.0.2 (2018-04-23)
+==========================
 
 Bug Fixes
 ---------
@@ -5387,8 +5387,8 @@ astropy.units
   a new ``isclose`` function is also added and backported. [#7252]
 
 
-3.0.1 (2018-03-12)
-==================
+Version 3.0.1 (2018-03-12)
+==========================
 
 Bug Fixes
 ---------
@@ -5438,8 +5438,8 @@ astropy.units
 - ``quantity_helper`` no longer requires ``scipy>=0.18``. [#7219]
 
 
-3.0 (2018-02-12)
-================
+Version 3.0 (2018-02-12)
+========================
 
 New Features
 ------------
@@ -5892,8 +5892,8 @@ Other Changes and Additions
 
 
 
-2.0.16 (2019-10-27)
-===================
+Version 2.0.16 (2019-10-27)
+===========================
 
 Bug Fixes
 ---------
@@ -5912,8 +5912,8 @@ Other Changes and Additions
 
 
 
-2.0.15 (2019-10-06)
-===================
+Version 2.0.15 (2019-10-06)
+===========================
 
 Bug Fixes
 ---------
@@ -5986,8 +5986,8 @@ Other Changes and Additions
 
 
 
-2.0.14 (2019-06-14)
-===================
+Version 2.0.14 (2019-06-14)
+===========================
 
 Bug Fixes
 ---------
@@ -6021,8 +6021,8 @@ astropy.visualization
   are nested. [#8844]
 
 
-2.0.13 (2019-06-08)
-===================
+Version 2.0.13 (2019-06-08)
+===========================
 
 Bug Fixes
 ---------
@@ -6059,8 +6059,8 @@ astropy.units
 
 
 
-2.0.12 (2019-02-23)
-===================
+Version 2.0.12 (2019-02-23)
+===========================
 
 New Features
 ------------
@@ -6121,8 +6121,8 @@ Other Changes and Additions
 
 
 
-2.0.11 (2018-12-31)
-===================
+Version 2.0.11 (2018-12-31)
+===========================
 
 Bug Fixes
 ---------
@@ -6153,8 +6153,8 @@ astropy.utils
 
 
 
-2.0.10 (2018-12-04)
-===================
+Version 2.0.10 (2018-12-04)
+===========================
 
 Bug Fixes
 ---------
@@ -6225,8 +6225,8 @@ Other Changes and Additions
   ``AstropyDeprecationWarning``. [#8178]
 
 
-2.0.9 (2018-10-14)
-==================
+Version 2.0.9 (2018-10-14)
+==========================
 
 Bug Fixes
 ---------
@@ -6312,8 +6312,8 @@ Other Changes and Additions
 
 
 
-2.0.8 (2018-08-02)
-==================
+Version 2.0.8 (2018-08-02)
+==========================
 
 Bug Fixes
 ---------
@@ -6369,8 +6369,8 @@ astropy.wcs
   swapped. [#7691]
 
 
-2.0.7 (2018-06-01)
-==================
+Version 2.0.7 (2018-06-01)
+==========================
 
 Bug Fixes
 ---------
@@ -6423,8 +6423,8 @@ Other Changes and Additions
 - Bundled ``pytest-remotedata`` plugin is upgraded to 0.3. [#7493]
 
 
-2.0.6 (2018-04-23)
-==================
+Version 2.0.6 (2018-04-23)
+==========================
 
 Bug Fixes
 ---------
@@ -6460,8 +6460,8 @@ Other Changes and Additions
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7370]
 
 
-2.0.5 (2018-03-12)
-==================
+Version 2.0.5 (2018-03-12)
+==========================
 
 Bug Fixes
 ---------
@@ -6510,8 +6510,8 @@ Other Changes and Additions
   ``cextern/cfitsio/docs/changes.txt`` for additional information. [#7274, #7275]
 
 
-2.0.4 (2018-02-06)
-==================
+Version 2.0.4 (2018-02-06)
+==========================
 
 Bug Fixes
 ---------
@@ -6575,8 +6575,8 @@ Other Changes and Additions
   converting non-scalar ``coordinates.Angle`` objects to strings. [#7004]
 
 
-2.0.3 (2017-12-13)
-==================
+Version 2.0.3 (2017-12-13)
+==========================
 
 Bug Fixes
 ---------
@@ -6724,8 +6724,8 @@ Other Changes and Additions
 - Ensured that all tests use the Astropy data mirror if needed. [#6767]
 
 
-2.0.2 (2017-09-08)
-==================
+Version 2.0.2 (2017-09-08)
+==========================
 
 Bug Fixes
 ---------
@@ -6786,8 +6786,8 @@ astropy.utils
   where the deprecation warnings comes from. [#6422]
 
 
-2.0.1 (2017-07-30)
-==================
+Version 2.0.1 (2017-07-30)
+==========================
 
 Bug Fixes
 ---------
@@ -6846,8 +6846,8 @@ astropy.wcs
 
 
 
-2.0 (2017-07-07)
-================
+Version 2.0 (2017-07-07)
+========================
 
 New Features
 ------------
@@ -7400,8 +7400,8 @@ Other Changes and Additions
   for affiliated packages. [#5694]
 
 
-1.3.3 (2017-05-29)
-==================
+Version 1.3.3 (2017-05-29)
+==========================
 
 Bug Fixes
 ---------
@@ -7473,8 +7473,8 @@ astropy.visualization
   that empty tick labels do not cause any warnings. [#6063]
 
 
-1.3.2 (2017-03-30)
-==================
+Version 1.3.2 (2017-03-30)
+==========================
 
 Bug Fixes
 ---------
@@ -7509,8 +7509,8 @@ Other Changes and Additions
 - File permissions are revised in the released source distribution. [#5912]
 
 
-1.3.1 (2017-03-18)
-==================
+Version 1.3.1 (2017-03-18)
+==========================
 
 New Features
 ------------
@@ -7631,8 +7631,8 @@ Other Changes and Additions
 - Updated bundled astropy-helpers to v1.3.1. [#5880]
 
 
-1.3 (2016-12-22)
-================
+Version 1.3 (2016-12-22)
+========================
 
 New Features
 ------------
@@ -8110,8 +8110,8 @@ astropy.units
 - Deprecated escape sequences in strings (Python 3.6) have been removed. [#5489]
 
 
-1.2.2 (2016-12-22)
-==================
+Version 1.2.2 (2016-12-22)
+==========================
 
 Bug Fixes
 ---------
@@ -8185,8 +8185,8 @@ astropy.stats
 
 
 
-1.2.1 (2016-06-22)
-==================
+Version 1.2.1 (2016-06-22)
+==========================
 
 Bug Fixes
 ---------
@@ -8210,8 +8210,8 @@ astropy.units
   using ``astropy.units.magnitude_zero_points.enable()``. This makes it
   possible to round-trip magnitudes as originally intended.  [#5030]
 
-1.2 (2016-06-19)
-================
+Version 1.2 (2016-06-19)
+========================
 
 General
 -------
@@ -8790,8 +8790,8 @@ Other Changes and Additions
   snippets/examples. [#4734]
 
 
-1.1.2 (2016-03-10)
-==================
+Version 1.1.2 (2016-03-10)
+==========================
 
 New Features
 ------------
@@ -8891,8 +8891,8 @@ Other Changes and Additions
 - Updated bundled copy of WCSLIB to 5.14. [#4579]
 
 
-1.1.1 (2016-01-08)
-==================
+Version 1.1.1 (2016-01-08)
+==========================
 
 New Features
 ------------
@@ -8931,8 +8931,8 @@ Other Changes and Additions
 - Updated bundled astropy-helpers to v1.1.1. [#4413]
 
 
-1.1 (2015-12-11)
-================
+Version 1.1 (2015-12-11)
+========================
 
 New Features
 ------------
@@ -9540,8 +9540,8 @@ Other Changes and Additions
   filtering mechanisms). [#3779]
 
 
-1.0.13 (2017-05-29)
-===================
+Version 1.0.13 (2017-05-29)
+===========================
 
 Bug Fixes
 ---------
@@ -9555,8 +9555,8 @@ astropy.io.fits
   allow fixing the problematic cards. [#6084]
 
 
-1.0.12 (2017-03-05)
-===================
+Version 1.0.12 (2017-03-05)
+===========================
 
 Bug Fixes
 ---------
@@ -9592,8 +9592,8 @@ astropy.utils
   ``_register_patched_dtype_reduce``. [#5848]
 
 
-1.0.11 (2016-12-22)
-===================
+Version 1.0.11 (2016-12-22)
+===========================
 
 Bug Fixes
 ---------
@@ -9684,8 +9684,8 @@ Other Changes and Additions
 - The bundled ERFA was updated to version 1.3.0.  This includes the
   leap second planned for 2016 Dec 31. [#5418]
 
-1.0.10 (2016-06-09)
-===================
+Version 1.0.10 (2016-06-09)
+===========================
 
 Bug Fixes
 ---------
@@ -9768,8 +9768,8 @@ Other Changes and Additions
   generating test coverage reports. [#4176]
 
 
-1.0.9 (2016-03-10)
-==================
+Version 1.0.9 (2016-03-10)
+==========================
 
 New Features
 ------------
@@ -9849,8 +9849,8 @@ astropy.visualization
   compressed FITS files. [#4468]
 
 
-1.0.8 (2016-01-08)
-==================
+Version 1.0.8 (2016-01-08)
+==========================
 
 Bug Fixes
 ---------
@@ -9872,8 +9872,8 @@ astropy.utils
 - Fixed ``find_api_page`` to work correctly on python 3.x [#4378, #4379]
 
 
-1.0.7 (2015-12-04)
-==================
+Version 1.0.7 (2015-12-04)
+==========================
 
 Bug Fixes
 ---------
@@ -9927,8 +9927,8 @@ Other Changes and Additions
 - Updated bundled astropy-helpers to v1.0.6. [#4372]
 
 
-1.0.6 (2015-10-22)
-==================
+Version 1.0.6 (2015-10-22)
+==========================
 
 Bug Fixes
 ---------
@@ -9992,8 +9992,8 @@ Other Changes and Additions
   Numpy. [#4259]
 
 
-1.0.5 (2015-10-05)
-==================
+Version 1.0.5 (2015-10-05)
+==========================
 
 Bug Fixes
 ---------
@@ -10102,8 +10102,8 @@ Other Changes and Additions
   py.test to v2.7.3. [#4027]
 
 
-1.0.4 (2015-08-11)
-==================
+Version 1.0.4 (2015-08-11)
+==========================
 
 New Features
 ------------
@@ -10261,8 +10261,8 @@ Misc
   [#4056]
 
 
-1.0.3 (2015-06-05)
-==================
+Version 1.0.3 (2015-06-05)
+==========================
 
 New Features
 ------------
@@ -10365,8 +10365,8 @@ Other Changes and Additions
   updates. [#3802]
 
 
-0.4.6 (2015-05-29)
-==================
+Version 0.4.6 (2015-05-29)
+==========================
 
 Bug Fixes
 ---------
@@ -10377,8 +10377,8 @@ astropy.time
 - Fixed ERFA code to handle the 2015-Jun-30 leap second. [#3795]
 
 
-1.0.2 (2015-04-16)
-==================
+Version 1.0.2 (2015-04-16)
+==========================
 
 New Features
 ------------
@@ -10496,8 +10496,8 @@ astropy.vo
   provisionally re-enabled. [#3184]
 
 
-1.0.1 (2015-03-06)
-==================
+Version 1.0.1 (2015-03-06)
+==========================
 
 Bug Fixes
 ---------
@@ -10557,8 +10557,8 @@ Other Changes and Additions
   issues with some packages that depend on Astropy. [#3541]
 
 
-1.0 (2015-02-18)
-================
+Version 1.0 (2015-02-18)
+========================
 
 General
 -------
@@ -11231,8 +11231,8 @@ astropy.table
   be generated. [#3166]
 
 
-0.4.5 (2015-02-16)
-==================
+Version 0.4.5 (2015-02-16)
+==========================
 
 Bug Fixes
 ---------
@@ -11248,8 +11248,8 @@ Other Changes and Additions
 - Updated bundled copy of astropy-helpers to v0.4.6. [#3508]
 
 
-0.4.4 (2015-01-21)
-==================
+Version 0.4.4 (2015-01-21)
+==========================
 
 Bug Fixes
 ---------
@@ -11281,8 +11281,8 @@ astropy.wcs
   reported as fixed in v0.4.3) [#2909]
 
 
-0.4.3 (2015-01-15)
-==================
+Version 0.4.3 (2015-01-15)
+==========================
 
 Bug Fixes
 ---------
@@ -11436,8 +11436,8 @@ astropy.coordinates
   codes, and with the FK5 <-> FK4 <-> Galactic route. [#3107]
 
 
-0.4.2 (2014-09-23)
-==================
+Version 0.4.2 (2014-09-23)
+==========================
 
 Bug Fixes
 ---------
@@ -11542,8 +11542,8 @@ Other Changes and Additions
 - Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
   [#2937]
 
-0.4.1 (2014-08-08)
-==================
+Version 0.4.1 (2014-08-08)
+==========================
 
 Bug Fixes
 ---------
@@ -11657,8 +11657,8 @@ Other Changes and Additions
   astropy/extern/README file in the source tree.  [#2623]
 
 
-0.4 (2014-07-16)
-================
+Version 0.4 (2014-07-16)
+========================
 
 New Features
 ------------
@@ -12413,8 +12413,8 @@ Other Changes and Additions
   #2460, #2467, #2476, #2508, #2509]
 
 
-0.3.2 (2014-05-13)
-==================
+Version 0.3.2 (2014-05-13)
+==========================
 
 Bug Fixes
 ---------
@@ -12562,8 +12562,8 @@ Misc
   configuration as ``python setup.py test`` [#1811]
 
 
-0.3.1 (2014-03-04)
-==================
+Version 0.3.1 (2014-03-04)
+==========================
 
 Bug Fixes
 ---------
@@ -12819,8 +12819,8 @@ Other Changes and Additions
   in current directory. [#1877]
 
 
-0.3 (2013-11-20)
-================
+Version 0.3 (2013-11-20)
+========================
 
 New Features
 ------------
@@ -13614,8 +13614,8 @@ astropy.wcs
   inverted. [#1281]
 
 
-0.2.5 (2013-10-25)
-==================
+Version 0.2.5 (2013-10-25)
+==========================
 
 Bug Fixes
 ---------
@@ -13768,8 +13768,8 @@ Other Changes and Additions
   ``SystemExit`` exception. [#1269]
 
 
-0.2.4 (2013-07-24)
-==================
+Version 0.2.4 (2013-07-24)
+==========================
 
 Bug Fixes
 ---------
@@ -13869,8 +13869,8 @@ astropy.units
   a large number of elements. [#1231]
 
 
-0.2.3 (2013-05-30)
-==================
+Version 0.2.3 (2013-05-30)
+==========================
 
 Bug Fixes
 ---------
@@ -13891,8 +13891,8 @@ Misc
   Astropy's setup framework. [#1124]
 
 
-0.2.2 (2013-05-21)
-==================
+Version 0.2.2 (2013-05-21)
+==========================
 
 Bug Fixes
 ---------
@@ -14048,8 +14048,8 @@ Other Changes and Additions
   improving the time it takes to import the sub-package. [#1015]
 
 
-0.2.1 (2013-04-03)
-==================
+Version 0.2.1 (2013-04-03)
+==========================
 
 Bug Fixes
 ---------
@@ -14230,8 +14230,8 @@ Other Changes and Additions
   "microarcsecond" respectively. [#892]
 
 
-0.2 (2013-02-19)
-================
+Version 0.2 (2013-02-19)
+========================
 
 New Features
 ------------
@@ -14551,7 +14551,7 @@ astropy.wcs
   the former is deprecated. [#624]
 
 
-0.1 (2012-06-19)
-================
+Version 0.1 (2012-06-19)
+========================
 
 - Initial release.
