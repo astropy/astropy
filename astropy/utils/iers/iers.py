@@ -33,7 +33,7 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
            'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
            'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
-           'IERSRangeError', 'IERSStaleWarning',
+           'IERSRangeError', 'IERSStaleWarning', 'IERSWarning',
            'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
            'IETF_LEAP_SECOND_URL']
 
@@ -80,6 +80,25 @@ MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
               'Sep', 'Oct', 'Nov', 'Dec']
 
 
+class IERSWarning(AstropyWarning):
+    """
+    Generic warning class for IERS.
+    """
+
+
+class IERSDegradedAccuracyWarning(AstropyWarning):
+    """
+    IERS time conversion has degraded accuracy normally due to setting
+    ``conf.auto_download = False``.
+    """
+
+
+class IERSStaleWarning(IERSWarning):
+    """
+    Downloaded IERS table may be stale.
+    """
+
+
 def download_file(*args, **kwargs):
     """
     Overload astropy.utils.data.download_file within iers module to use a
@@ -100,10 +119,6 @@ def _none_to_float(value):
     for auto_max_age = None.
     """
     return (value if value is not None else np.finfo(float).max)
-
-
-class IERSStaleWarning(AstropyWarning):
-    pass
 
 
 class Conf(_config.ConfigNamespace):
@@ -351,8 +366,16 @@ class IERS(QTable):
         class because it has different requirements.
         """
         if np.any(indices_orig != indices_clipped):
-            raise IERSRangeError('(some) times are outside of range covered '
-                                 'by IERS table.')
+            if conf.auto_download:
+                msg = ('time(s) outside of range covered by IERS table, cannot convert '
+                       'with full accuracy. To allow conversion with degraded accuracy '
+                       'set `astropy.utils.iers.conf.auto_download = False`')
+                raise IERSRangeError(msg)
+            else:
+                # User has explicitly opted out of downloading recent IERS data
+                # so a warning here is sufficient.
+                msg = 'time(s) outside of range covered by IERS table, accuracy is degraded'
+                warn(msg, IERSWarning)
 
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
@@ -679,20 +702,28 @@ class IERS_Auto(IERS_A):
             if cls.iers_table.meta.get('data_url') in all_urls:
                 return cls.iers_table
 
-        try:
-            filename = download_file(all_urls[0], sources=all_urls, cache=True)
-        except Exception as err:
-            # Issue a warning here, perhaps user is offline.  An exception
-            # will be raised downstream when actually trying to interpolate
-            # predictive values.
-            warn(AstropyWarning(
-                f'failed to download {" and ".join(all_urls)}, '
-                f'using local IERS-B: {err}'))
-            cls.iers_table = IERS_B.open()
-            return cls.iers_table
+        for url in all_urls:
+            try:
+                filename = download_file(url, cache=True)
+            except Exception as err:
+                warn(f'failed to download {url}: {err}', IERSWarning)
+                continue
 
-        cls.iers_table = cls.read(file=filename)
-        cls.iers_table.meta['data_url'] = all_urls[0]
+            try:
+                cls.iers_table = cls.read(file=filename)
+            except Exception as err:
+                warn(f'malformed IERS table from {url}: {err}', IERSWarning)
+                continue
+            cls.iers_table.meta['data_url'] = url
+            break
+
+        else:
+            # Issue a warning here, perhaps user is offline.  An exception
+            # will be raised downstream if actually trying to interpolate
+            # predictive values.
+            warn('unable to download valid IERS file, using local IERS-B',
+                 IERSWarning)
+            cls.iers_table = IERS_B.open()
 
         return cls.iers_table
 
