@@ -1307,9 +1307,13 @@ class Quantity(np.ndarray):
 
             - 'latex': Return a LaTeX-formatted string
 
+            - 'latex_inline': Return a LaTeX-formatted string that uses
+              negative exponents instead of fractions
+
         subfmt : str, optional
-            Subformat of the result. For the moment,
-            only used for format="latex". Supported values are:
+            Subformat of the result. For the moment, only used for
+            ``format='latex'`` and ``format='latex_inline'``. Supported
+            values are:
 
             - 'inline': Use ``$ ... $`` as delimiters.
 
@@ -1332,6 +1336,7 @@ class Quantity(np.ndarray):
                 "display": (r"$\displaystyle ", r"$"),
             },
         }
+        formats['latex_inline'] = formats['latex']
 
         if format not in formats:
             raise ValueError(f"Unknown format '{format}'")
@@ -1344,7 +1349,7 @@ class Quantity(np.ndarray):
                 return np.array2string(self.value, precision=precision,
                                        floatmode="fixed") + self._unitstr
 
-        # else, for the moment we assume format="latex"
+        # else, for the moment we assume format="latex" or "latex_inline".
 
         # Set the precision if set, otherwise use numpy default
         pops = np.get_printoptions()
@@ -1375,9 +1380,12 @@ class Quantity(np.ndarray):
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
-        latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
-                      if self.unit is not None
-                      else _UNIT_NOT_INITIALISED)
+        if self.unit is None:
+            latex_unit = _UNIT_NOT_INITIALISED
+        elif format == 'latex':
+            latex_unit = self.unit._repr_latex_()[1:-1] # note this is unicode
+        elif format == 'latex_inline':
+            latex_unit = self.unit.to_string(format='latex_inline')[1:-1]
 
         delimiter_left, delimiter_right = formats[format][subfmt]
 
