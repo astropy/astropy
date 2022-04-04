@@ -196,9 +196,17 @@ class TestLogUnitStrings:
 
         lu4 = u.mag(u.ct)
         assert lu4.to_string('generic') == 'mag(ct)'
-        assert lu4.to_string('latex') == ('$\\mathrm{mag}$$\\mathrm{\\left( '
-                                          '\\mathrm{ct} \\right)}$')
-        assert lu4._repr_latex_() == lu4.to_string('latex')
+        latex_str = r'$\mathrm{mag}$$\mathrm{\left( \mathrm{ct} \right)}$'
+        assert lu4.to_string('latex') == latex_str
+        assert lu4.to_string('latex_inline') == latex_str
+        assert lu4._repr_latex_() == latex_str
+
+        lu5 = u.mag(u.ct/u.s)
+        assert lu5.to_string('latex') == (r'$\mathrm{mag}$$\mathrm{\left( '
+                                          r'\mathrm{\frac{ct}{s}} \right)}$')
+        latex_str = (r'$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} '
+                     r'\right)}$')
+        assert lu5.to_string('latex_inline') == latex_str
 
 
 class TestLogUnitConversion:
