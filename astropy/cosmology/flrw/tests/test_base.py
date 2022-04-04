@@ -18,7 +18,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.flrw.base import H0units_to_invs, a_B_c2, critdens_const, quad
+from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
@@ -610,7 +610,7 @@ class TestFLRW(CosmologyTest,
         assert cosmo.critical_density0 is cosmo._critical_density0
         assert cosmo.critical_density0.unit == u.g / u.cm ** 3
 
-        cd0value = critdens_const * (cosmo.H0.value * H0units_to_invs) ** 2
+        cd0value = _critdens_const * (cosmo.H0.value * _H0units_to_invs) ** 2
         assert cosmo.critical_density0.value == cd0value
 
     def test_Ogamma0(self, cosmo_cls, cosmo):
@@ -622,7 +622,7 @@ class TestFLRW(CosmologyTest,
         # on the instance
         assert cosmo.Ogamma0 is cosmo._Ogamma0
         # Ogamma cor \propto T^4/rhocrit
-        expect = a_B_c2 * cosmo.Tcmb0.value ** 4 / cosmo.critical_density0.value
+        expect = _a_B_c2 * cosmo.Tcmb0.value ** 4 / cosmo.critical_density0.value
         assert np.allclose(cosmo.Ogamma0, expect)
         # check absolute equality to 0 if Tcmb0 is 0
         if cosmo.Tcmb0 == 0:

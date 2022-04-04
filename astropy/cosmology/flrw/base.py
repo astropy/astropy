@@ -31,17 +31,17 @@ __doctest_requires__ = {'*': ['scipy']}
 
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
-H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
-sec_to_Gyr = u.s.to(u.Gyr)
+_H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
+_sec_to_Gyr = u.s.to(u.Gyr)
 # const in critical density in cgs units (g cm^-3)
-critdens_const = (3 / (8 * pi * const.G)).cgs.value
+_critdens_const = (3 / (8 * pi * const.G)).cgs.value
 # angle conversions
-radian_in_arcsec = (1 * u.rad).to(u.arcsec)
-radian_in_arcmin = (1 * u.rad).to(u.arcmin)
+_radian_in_arcsec = (1 * u.rad).to(u.arcsec)
+_radian_in_arcmin = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
-a_B_c2 = (4 * const.sigma_sb / const.c ** 3).cgs.value
+_a_B_c2 = (4 * const.sigma_sb / const.c ** 3).cgs.value
 # Boltzmann constant in eV / K
-kB_evK = const.k_B.to(u.eV / u.K)
+_kB_evK = const.k_B.to(u.eV / u.K)
 
 
 class FLRW(Cosmology):
@@ -139,16 +139,16 @@ class FLRW(Cosmology):
         # Hubble distance
         self._hubble_distance = (const.c / self._H0).to(u.Mpc)
         # H0 in s^-1
-        H0_s = self._H0.value * H0units_to_invs
+        H0_s = self._H0.value * _H0units_to_invs
         # Hubble time
-        self._hubble_time = (sec_to_Gyr / H0_s) << u.Gyr
+        self._hubble_time = (_sec_to_Gyr / H0_s) << u.Gyr
 
         # Critical density at z=0 (grams per cubic cm)
-        cd0value = critdens_const * H0_s ** 2
+        cd0value = _critdens_const * H0_s ** 2
         self._critical_density0 = cd0value << u.g / u.cm ** 3
 
         # Compute photon density from Tcmb
-        self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 / self._critical_density0.value
+        self._Ogamma0 = _a_B_c2 * self._Tcmb0.value ** 4 / self._critical_density0.value
 
         # Compute Neutrino temperature:
         # The constant in front is (4/11)^1/3 -- see any cosmology book for an
@@ -188,7 +188,7 @@ class FLRW(Cosmology):
         # to do integrals with (perhaps surprisingly! But small python lists
         # are more efficient than small NumPy arrays).
         if self._massivenu:  # (`_massivenu` set in `m_nu`)
-            nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
+            nu_y = self._massivenu_mass / (_kB_evK * self._Tnu0)
             self._nu_y = nu_y.value
             self._nu_y_list = self._nu_y.tolist()
             self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
@@ -1341,7 +1341,7 @@ class FLRW(Cosmology):
             The distance in comoving kpc corresponding to an arcmin at each
             input redshift.
         """
-        return self.comoving_transverse_distance(z).to(u.kpc) / radian_in_arcmin
+        return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def kpc_proper_per_arcmin(self, z):
         """
@@ -1359,7 +1359,7 @@ class FLRW(Cosmology):
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
-        return self.angular_diameter_distance(z).to(u.kpc) / radian_in_arcmin
+        return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
 
     def arcsec_per_kpc_comoving(self, z):
         """
@@ -1377,7 +1377,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
-        return radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
+        return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
     def arcsec_per_kpc_proper(self, z):
         """
@@ -1395,7 +1395,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
-        return radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
+        return _radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
 
 
 class FlatFLRWMixin(FlatCosmologyMixin):
