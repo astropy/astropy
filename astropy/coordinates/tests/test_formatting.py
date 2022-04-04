@@ -61,15 +61,20 @@ def test_to_string_decimal():
 
 def test_to_string_formats():
     a = Angle(1.113355, unit=u.deg)
-    assert a.to_string(format='latex') == r'$1^\circ06{}^\prime48.078{}^{\prime\prime}$'
+    latex_str = r'$1^\circ06{}^\prime48.078{}^{\prime\prime}$'
+    assert a.to_string(format='latex') == latex_str
+    assert a.to_string(format='latex_inline') == latex_str
     assert a.to_string(format='unicode') == '1°06′48.078″'
 
     a = Angle(1.113355, unit=u.hour)
-    assert a.to_string(format='latex') == r'$1^{\mathrm{h}}06^{\mathrm{m}}48.078^{\mathrm{s}}$'
+    latex_str = r'$1^{\mathrm{h}}06^{\mathrm{m}}48.078^{\mathrm{s}}$'
+    assert a.to_string(format='latex') == latex_str
+    assert a.to_string(format='latex_inline') == latex_str
     assert a.to_string(format='unicode') == '1ʰ06ᵐ48.078ˢ'
 
     a = Angle(1.113355, unit=u.radian)
     assert a.to_string(format='latex') == r'$1.11336\mathrm{rad}$'
+    assert a.to_string(format='latex_inline') == r'$1.11336\mathrm{rad}$'
     assert a.to_string(format='unicode') == '1.11336rad'
 
 
