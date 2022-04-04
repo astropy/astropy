@@ -416,7 +416,7 @@ class StructuredUnit:
         """
         parts = [part.to_string(format) for part in self.values()]
         out_fmt = '({})' if len(self) > 1 else '({},)'
-        if format == 'latex':
+        if format.startswith('latex'):
             # Strip $ from parts and add them on the outside.
             parts = [part[1:-1] for part in parts]
             out_fmt = '$' + out_fmt + '$'
