@@ -61,7 +61,7 @@ def split_mantissa_exponent(v, format_spec=".8g"):
     mantissa, exponent : tuple of strings
     """
     x = format(v, format_spec).split('e')
-    if x[0] != '1.' + '0' * (len(x[0]) - 2):
+    if x[0] != '1.' + '0' * (len(x[0]) - 2) and x[0] != "1":
         m = x[0]
     else:
         m = ''

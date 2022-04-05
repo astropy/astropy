@@ -45,7 +45,7 @@ class Latex(base.Base):
                 # a superscript, we need to spell out the unit to avoid double
                 # superscripts. For example, the logic below ensures that
                 # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
-                if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
+                if re.match(r".*\^{[^}]*}$", base_latex):  # ends w/ superscript?
                     base_latex = base.short_names[0]
                 out.append(f'{base_latex}^{{{utils.format_power(power)}}}')
         return r'\,'.join(out)
@@ -53,7 +53,7 @@ class Latex(base.Base):
     @classmethod
     def _format_bases(cls, unit):
         positives, negatives = utils.get_grouped_by_powers(
-                unit.bases, unit.powers)
+            unit.bases, unit.powers)
 
         if len(negatives):
             if len(positives):
@@ -144,3 +144,28 @@ class LatexInline(Latex):
     @classmethod
     def _format_bases(cls, unit):
         return cls._format_unit_list(zip(unit.bases, unit.powers))
+
+
+class LatexInline2(Latex):
+    """
+    Output LaTeX to display the unit using slash instead of \\flac.
+    """
+    name = 'latex_inline2'
+
+    @classmethod
+    def _format_bases(cls, unit):
+        positives, negatives = utils.get_grouped_by_powers(
+            unit.bases, unit.powers)
+
+        if len(negatives):
+            if len(positives):
+                positives = cls._format_unit_list(positives)
+            else:
+                positives = '1'
+            negatives = cls._format_unit_list(negatives)
+            s = r'{0}/{1}'.format(positives, negatives)
+        else:
+            positives = cls._format_unit_list(positives)
+            s = positives
+
+        return s
