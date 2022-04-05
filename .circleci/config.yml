@@ -12,6 +12,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+              sudo apt update
               sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
               pip install pip tox --upgrade
       - run:
@@ -28,6 +29,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+              sudo apt update
               sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
               pip install pip tox --upgrade
       - run:
