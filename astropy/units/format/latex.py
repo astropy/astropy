@@ -137,6 +137,31 @@ class Latex(base.Base):
                 return r'-\infty'
 
 
+class Latex2(Latex):
+    """
+    Output LaTeX to display the unit using \\dfrac instead of \\flac.
+    """
+    name = 'latex2'
+
+    @classmethod
+    def _format_bases(cls, unit):
+        positives, negatives = utils.get_grouped_by_powers(
+            unit.bases, unit.powers)
+
+        if len(negatives):
+            if len(positives):
+                positives = cls._format_unit_list(positives)
+            else:
+                positives = '1'
+            negatives = cls._format_unit_list(negatives)
+            s = fr'\dfrac{{{positives}}}{{{negatives}}}'
+        else:
+            positives = cls._format_unit_list(positives)
+            s = positives
+
+        return s
+
+
 class LatexInline(Latex):
     """
     Output LaTeX to display the unit based on IAU style guidelines with negative

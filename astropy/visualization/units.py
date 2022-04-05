@@ -96,7 +96,10 @@ def quantity_support(xlabel="", ylabel="", format=None):
                         u.dimensionless_angles]:
                 label = axis_label
             else:
-                label = "{}({})".format(axis_label, unit.to_string(format))
+                if isinstance(format, str) and format.startswith("latex"):
+                    label = r"{}$\left({}\right)$".format(axis_label, unit.to_string(format)[1:-1])
+                else:
+                    label = "{}({})".format(axis_label, unit.to_string(format))
 
             return label
 
