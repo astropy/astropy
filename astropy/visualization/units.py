@@ -7,7 +7,7 @@ import numpy as np
 __doctest_skip__ = ['quantity_support']
 
 
-def quantity_support(format='latex_inline'):
+def quantity_support(xlabel="", ylabel="", format='latex_inline'):
     """
     Enable support for plotting `astropy.units.Quantity` instances in
     matplotlib.
@@ -42,6 +42,7 @@ def quantity_support(format='latex_inline'):
 
     from matplotlib import units
     from matplotlib import ticker
+    import matplotlib
 
     # Get all subclass for Quantity, since matplotlib checks on class,
     # not subclass.
@@ -77,21 +78,37 @@ def quantity_support(format='latex_inline'):
                 units.registry[cls] = self
 
         @staticmethod
-        def axisinfo(unit, axis):
+        def axislabel(unit, axis, format=None):
+            if isinstance(axis, matplotlib.axis.XAxis):
+                axis_label = f"{xlabel} "
+            elif isinstance(axis, matplotlib.axis.YAxis):
+                axis_label = f"{ylabel} "
+            else:
+                axis_label = ""
+
+            if unit in [None, u.dimensionless_unscaled,
+                        u.dimensionless_angles]:
+                label = axis_label
+            else:
+                label = "{}({})".format(axis_label, unit.to_string(format))
+
+            return label
+
+        def axisinfo(self, unit, axis):
             if unit == u.radian:
                 return units.AxisInfo(
-                    majloc=ticker.MultipleLocator(base=np.pi/2),
+                    majloc=ticker.MultipleLocator(base=np.pi / 2),
                     majfmt=ticker.FuncFormatter(rad_fn),
-                    label=unit.to_string(),
+                    label=self.axislabel(unit, axis),
                 )
             elif unit == u.degree:
                 return units.AxisInfo(
                     majloc=ticker.AutoLocator(),
                     majfmt=ticker.FormatStrFormatter('%i°'),
-                    label=unit.to_string(),
+                    label=self.axislabel(unit, axis),
                 )
             elif unit is not None:
-                return units.AxisInfo(label=unit.to_string(format))
+                return units.AxisInfo(label=self.axislabel(unit, axis, format=format))
             return None
 
         @staticmethod
