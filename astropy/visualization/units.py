@@ -119,7 +119,7 @@ def quantity_support(xlabel="", ylabel="", format=None):
                     label=self.axislabel(unit, axis),
                 )
             elif unit is not None:
-                return units.AxisInfo(label=self.axislabel(unit, axis, format=fmt))
+                return units.AxisInfo(label=self.axislabel(unit, axis, fmt))
             return None
 
         @staticmethod

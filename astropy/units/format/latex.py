@@ -4,11 +4,14 @@
 Handles the "LaTeX" unit format.
 """
 
+from email.policy import default
 import re
 
 import numpy as np
 
 from . import base, core, utils
+
+default_format_spec = ".8g"
 
 
 class Latex(base.Base):
@@ -91,7 +94,7 @@ class Latex(base.Base):
         return fr'$\mathrm{{{s}}}$'
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
+    def format_exponential_notation(cls, val, format_spec=None):
         """
         Formats a value in exponential notation for LaTeX.
 
@@ -108,8 +111,13 @@ class Latex(base.Base):
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
         """
+        if format_spec is None:
+            fmt_spec = default_format_spec
+        else:
+            fmt_spec = format_spec
+
         if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val, format_spec)
+            m, ex = utils.split_mantissa_exponent(val, fmt_spec)
 
             parts = []
             if m:
