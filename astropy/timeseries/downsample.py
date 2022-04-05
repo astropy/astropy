@@ -170,11 +170,11 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
 
     # Figure out which bin each row falls in by sorting with respect
     # to the bin end times
-    indices = np.searchsorted(bin_end, ts_sorted.time[keep])
+    indices = np.searchsorted(bin_end.value, ts_sorted.time[keep].value)
 
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
-        indices_start = np.searchsorted(subset.time, bin_start[bin_start <= ts_sorted.time[-1]])
+        indices_start = np.searchsorted(subset.time.value, bin_start[bin_start <= ts_sorted.time[-1]].value)
         indices[indices_start] = np.arange(len(indices_start))
 
     # Determine rows where values are defined
