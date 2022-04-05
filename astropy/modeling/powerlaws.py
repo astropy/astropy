@@ -511,8 +511,9 @@ class LogParabola1D(Fittable1DModel):
 
 class Schechter1D(Fittable1DModel):
     r"""
-    Schechter luminosity function, parameterized in terms of
-    magnitudes.
+    Schechter luminosity function (`Schechter 1976
+    <https://ui.adsabs.harvard.edu/abs/1976ApJ...203..297S/abstract>`_),
+    parameterized in terms of magnitudes.
 
     Parameters
     ----------
@@ -547,6 +548,37 @@ class Schechter1D(Fittable1DModel):
     of the function cuts off into the exponential form. ``alpha`` is
     the power-law index, defining the faint-end slope of the luminosity
     function.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        from astropy.modeling.models import Schechter1D
+        import astropy.units as u
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        phi_star = 4.3e-4 * (u.Mpc ** -3)
+        m_star = -20.26
+        alpha = -1.98
+        model = Schechter1D(phi_star, m_star, alpha)
+        mag = np.linspace(-25, -17)
+
+        fig, ax = plt.subplots()
+        ax.plot(mag, model(mag))
+        ax.set_yscale('log')
+        ax.set_xlim(-22.6, -17)
+        ax.set_ylim(1.e-7, 1.e-2)
+        ax.set_xlabel('$M_{UV}$')
+        ax.set_ylabel('$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
+
+    References
+    ----------
+    .. [1] Schechter 1976; ApJ 203, 297
+           (https://ui.adsabs.harvard.edu/abs/1976ApJ...203..297S/abstract)
+
+    .. [2] `Luminosity function <https://en.wikipedia.org/wiki/Luminosity_function_(astronomy)>`_
     """
 
     phi_star = Parameter(default=1., description=('Normalization factor '
