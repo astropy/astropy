@@ -6,8 +6,10 @@ import numpy as np
 
 __doctest_skip__ = ['quantity_support']
 
+default_formt = 'latex_inline'
 
-def quantity_support(xlabel="", ylabel="", format='latex_inline'):
+
+def quantity_support(xlabel="", ylabel="", format=None):
     """
     Enable support for plotting `astropy.units.Quantity` instances in
     matplotlib.
@@ -27,6 +29,10 @@ def quantity_support(xlabel="", ylabel="", format='latex_inline'):
 
     Parameters
     ----------
+    xlable : str
+        The label for x-axis
+    ylabel : str
+        The label for y-axis
     format : `astropy.units.format.Base` instance or str
         The name of a format or a formatter object.  If not
         provided, defaults to ``latex_inline``.
@@ -95,6 +101,11 @@ def quantity_support(xlabel="", ylabel="", format='latex_inline'):
             return label
 
         def axisinfo(self, unit, axis):
+            if format is None:
+                fmt = default_formt
+            else:
+                fmt = format
+
             if unit == u.radian:
                 return units.AxisInfo(
                     majloc=ticker.MultipleLocator(base=np.pi / 2),
@@ -108,7 +119,7 @@ def quantity_support(xlabel="", ylabel="", format='latex_inline'):
                     label=self.axislabel(unit, axis),
                 )
             elif unit is not None:
-                return units.AxisInfo(label=self.axislabel(unit, axis, format=format))
+                return units.AxisInfo(label=self.axislabel(unit, axis, format=fmt))
             return None
 
         @staticmethod
