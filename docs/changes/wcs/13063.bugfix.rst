@@ -1,0 +1,1 @@
+Do not call ``wcstab`` on ``wcscopy`` and copy ``wtb`` members from the original WCS.
