@@ -1895,6 +1895,8 @@ PyWcsprm_sub(
           element_val = WCSSUB_SPECTRAL;
         } else if (strncmp(element_str, "stokes", 7) == 0) {
           element_val = WCSSUB_STOKES;
+        } else if (strncmp(element_str, "temporal", 9) == 0) {
+          element_val = WCSSUB_TIME;
         } else if (strncmp(element_str, "celestial", 10) == 0) {
           element_val = WCSSUB_CELESTIAL;
         } else {
@@ -4206,6 +4208,7 @@ _setup_wcsprm_type(
     CONSTANT(WCSSUB_CUBEFACE)  ||
     CONSTANT(WCSSUB_SPECTRAL)  ||
     CONSTANT(WCSSUB_STOKES)    ||
+    CONSTANT(WCSSUB_TIME)      ||
     CONSTANT(WCSSUB_CELESTIAL) ||
     CONSTANT(WCSHDR_IMGHEAD)   ||
     CONSTANT(WCSHDR_BIMGARR)   ||
