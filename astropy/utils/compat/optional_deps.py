@@ -27,6 +27,7 @@ def __getattr__(name):
         module_name = name[4:]
 
         if module_name == "YAML":
+            from astropy.utils.exceptions import AstropyDeprecationWarning
             warnings.warn(
                 "PyYaml is now a strict dependency. HAS_YAML is deprecated as "
                 "of v5.0 and will be removed in a subsequent version.",
