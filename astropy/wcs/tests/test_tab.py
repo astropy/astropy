@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from copy import deepcopy
 
 import numpy as np
 
@@ -53,9 +54,18 @@ def test_mixed_celest_and_1d_tab_roundtrip():
     # Tests WCS roundtripping for the case when there is one -TAB axis and
     # this axis is not the first axis. This tests a bug fixed in WCSLIB 7.6.
     filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
-    hdul = fits.open(filename)
-    w = wcs.WCS(hdul[0].header, hdul)
-    hdul.close()
+    with fits.open(filename) as hdul:
+        w = wcs.WCS(hdul[0].header, hdul)
 
     pts = np.random.random((10, 3)) * [[2047, 2047, 127]]
     assert np.allclose(pts, w.wcs_world2pix(w.wcs_pix2world(pts, 0), 0))
+
+
+def test_wcstab_swapaxes():
+    # Crash on deepcopy of swapped -TAB axes reported in #13036.
+    # Fixed in #13063.
+    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+    with fits.open(filename) as hdul:
+        w = wcs.WCS(hdul[0].header, hdul)
+    wswp = w.swapaxes(2, 0)
+    deepcopy(wswp)
