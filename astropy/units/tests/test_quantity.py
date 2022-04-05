@@ -929,6 +929,9 @@ class TestQuantityDisplay:
         res = r'$\displaystyle 1.5 \times 10^{14} \; \mathrm{m\,s^{-1}}$'
         assert qscalar.to_string(format="latex_inline", subfmt="display") == res
 
+        res = '[0 1 2] (Unit not initialised)'
+        assert np.arange(3).view(u.Quantity).to_string() == res
+
     def test_repr_latex(self):
         from astropy.units.quantity import conf
 
