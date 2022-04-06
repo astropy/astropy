@@ -232,7 +232,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         Parameters
         ----------
         other : `~astropy.cosmology.Cosmology` subclass instance
-            The object in which to compare.
+            The object to which to compare.
         format : bool or None or str, optional keyword-only
             Whether to allow, before equivalence is checked, the object to be
             converted to a |Cosmology|. This allows, e.g. a |Table| to be
@@ -241,6 +241,9 @@ class Cosmology(metaclass=abc.ABCMeta):
             and will use the auto-identification to try to infer the correct
             format. A `str` is assumed to be the correct format to use when
             converting.
+            `format` is broadcast to match the shape of `other`.
+            Note that the cosmology arguments are not broadcast against
+            `format`, so it cannot determine the output shape.
 
         Returns
         -------
@@ -286,22 +289,9 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck18.is_equivalent(tbl, format="yaml")
             True
         """
-        # Allow for different formats to be considered equivalent.
-        if format is not False:
-            format = None if format is True else format  # str->str, None/True->None
-            try:
-                other = Cosmology.from_format(other, format=format)
-            except Exception:  # TODO! should enforce only TypeError
-                return False
+        from .comparison import cosmology_equivalent
 
-        # The options are: 1) same class & parameters; 2) same class, different
-        # parameters; 3) different classes, equivalent parameters; 4) different
-        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
-        equiv = self.__equiv__(other)
-        if equiv is NotImplemented and hasattr(other, "__equiv__"):
-            equiv = other.__equiv__(self)  # that failed, try from 'other'
-
-        return equiv if equiv is not NotImplemented else False
+        return cosmology_equivalent(self, other, format=format)
 
     def __equiv__(self, other):
         """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
