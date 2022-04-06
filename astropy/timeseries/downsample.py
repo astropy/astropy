@@ -33,6 +33,21 @@ def reduceat(array, indices, function):
         return np.array(result)
 
 
+def _searchsorted(a: Time, v: Time) -> np.ndarray:
+    """Perform ``np.searchsorted()`` with ``Time`` objects efficiently."""
+    # Convert the time objects into plain ndarray
+    # so that they be searched by `np.searchsorted()` efficiently.
+    #
+    # Relative time in seconds with np.longdouble type is used to:
+    # - a consistent format for search, irrespective of the format/scale of the inputs,
+    # - retain the best precision possible
+    t_ref = a[0]
+    a_rel = np.asarray((a - t_ref).to_value(format="sec", subfmt="long"))
+    v_rel = (v - t_ref).to_value(format="sec", subfmt="long")
+
+    return np.searchsorted(a_rel, v_rel)
+
+
 def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None,
                          time_bin_end=None, n_bins=None, aggregate_func=None):
     """
@@ -170,11 +185,11 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
 
     # Figure out which bin each row falls in by sorting with respect
     # to the bin end times
-    indices = np.searchsorted(bin_end.value, ts_sorted.time[keep].value)
+    indices = _searchsorted(bin_end, ts_sorted.time[keep])
 
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
-        indices_start = np.searchsorted(subset.time.value, bin_start[bin_start <= ts_sorted.time[-1]].value)
+        indices_start = _searchsorted(subset.time, bin_start[bin_start <= ts_sorted.time[-1]])
         indices[indices_start] = np.arange(len(indices_start))
 
     # Determine rows where values are defined
