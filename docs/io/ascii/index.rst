@@ -83,6 +83,13 @@ If guessing the format does not work, as in the case for unusually formatted
 tables, you may need to give `astropy.io.ascii` additional hints about
 the format.
 
+To specify specific data types for one or more columns, use the ``converters``
+argument (see :ref:`io-ascii-read-converters` for details). For instance if the
+``obsid`` is actually a string identifier (instead of an integer) you can read
+the table with::
+
+  >>> data = ascii.read("sources.dat", converters={'obsid': str})  # doctest: +SKIP
+
 Writing Tables
 --------------
 

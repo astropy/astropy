@@ -1,0 +1,7 @@
+Simplify the way that the ``converters`` argument of ``io.ascii.read`` is
+provided. Previously this required wrapping each data type as the tuple returned
+by the ``io.ascii.convert_numpy()`` function and ensuring that the value is a
+``list``. With this update you can write ``converters={'col1': bool}`` to force
+conversion as a ``bool`` instead of the previous syntax ``converters={'col1':
+[io.ascii.convert_numpy(bool)]}``. Note that this update is back-compatible with
+the old behavior.
