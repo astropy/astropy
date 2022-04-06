@@ -175,8 +175,14 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # Find the subset of the table that is inside the union of all bins
     keep = ((ts_sorted.time >= bin_start[0]) & (ts_sorted.time <= bin_end[-1]))
 
-    # Find out indices to be removed because of uncontiguous bins
-    for ind in range(n_bins-1):
+    # Find out indices to be removed because of noncontiguous bins
+    #
+    # Only need to check when adjacent bins have gaps, i.e.,
+    # bin_start[ind + 1] > bin_end[ind]
+    # - see: https://github.com/astropy/astropy/issues/13058#issuecomment-1090846697
+    #   on thoughts on how to reduce the number of times to loop
+    noncontiguous_bins_indices = np.where(bin_start[1:] > bin_end[:-1])[0]
+    for ind in noncontiguous_bins_indices:
         delete_indices = np.where(np.logical_and(ts_sorted.time > bin_end[ind],
                                                  ts_sorted.time < bin_start[ind+1]))
         keep[delete_indices] = False
