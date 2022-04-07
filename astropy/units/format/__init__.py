@@ -9,18 +9,18 @@ A collection of different unit formats.
 # formatters that need access to the units.core module An entry for it should
 # exist in sys.modules since astropy.units.core imports this module
 import sys
+
 core = sys.modules['astropy.units.core']
 
 from .base import Base  # noqa
-from .generic import Generic, Unscaled  # noqa
 from .cds import CDS  # noqa
 from .console import Console  # noqa
 from .fits import Fits  # noqa
+from .generic import Generic, Unscaled  # noqa
 from .latex import Latex, LatexInline  # noqa
 from .ogip import OGIP  # noqa
 from .unicode_format import Unicode  # noqa
 from .vounit import VOUnit  # noqa
-
 
 __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'LatexInline',

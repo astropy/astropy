@@ -15,10 +15,9 @@ import numpy as np
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
-from .utils import (is_effectively_unity, sanitize_scale, validate_power,
-                    resolve_fractions)
-from . import format as unit_format
 
+from . import format as unit_format
+from .utils import is_effectively_unity, resolve_fractions, sanitize_scale, validate_power
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitTypeError',

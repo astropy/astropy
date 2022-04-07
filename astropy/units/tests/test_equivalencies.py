@@ -2,16 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Separate tests specifically for equivalencies."""
 
+import numpy as np
 # THIRD-PARTY
 import pytest
-import numpy as np
 from numpy.testing import assert_allclose
 
 # LOCAL
-from astropy import units as u
-from astropy.units.equivalencies import Equivalency
 from astropy import constants
+from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.units.equivalencies import Equivalency
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
