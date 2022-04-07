@@ -48,6 +48,10 @@ def _searchsorted(a: Time, v: Time) -> np.ndarray:
     return np.searchsorted(a_rel, v_rel)
 
 
+def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
+    return (time - rel_base).to_value(format="sec", subfmt="long")
+
+
 def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None,
                          time_bin_end=None, n_bins=None, aggregate_func=None):
     """
@@ -173,7 +177,14 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
         n_bins = len(bin_start)
 
     # Find the subset of the table that is inside the union of all bins
-    keep = ((ts_sorted.time >= bin_start[0]) & (ts_sorted.time <= bin_end[-1]))
+    # - output: `keep` a mask to create the subset
+    # - use relative time in seconds `np.longdouble`` in in creating `keep` to speed up
+    #   (`Time` object comparison is rather slow)
+    # - tiny sacrifice on precision (< 0.01ns on 64 bit platform)
+    rel_bin_start = _to_relative_longdouble(bin_start, ts_sorted.time[0])
+    rel_bin_end = _to_relative_longdouble(bin_end, ts_sorted.time[0])
+    rel_ts_sorted_time = _to_relative_longdouble(ts_sorted.time, ts_sorted.time[0])
+    keep = ((rel_ts_sorted_time >= rel_bin_start[0]) & (rel_ts_sorted_time <= rel_bin_end[-1]))
 
     # Find out indices to be removed because of noncontiguous bins
     #
@@ -181,10 +192,10 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # bin_start[ind + 1] > bin_end[ind]
     # - see: https://github.com/astropy/astropy/issues/13058#issuecomment-1090846697
     #   on thoughts on how to reduce the number of times to loop
-    noncontiguous_bins_indices = np.where(bin_start[1:] > bin_end[:-1])[0]
+    noncontiguous_bins_indices = np.where(rel_bin_start[1:] > rel_bin_end[:-1])[0]
     for ind in noncontiguous_bins_indices:
-        delete_indices = np.where(np.logical_and(ts_sorted.time > bin_end[ind],
-                                                 ts_sorted.time < bin_start[ind+1]))
+        delete_indices = np.where(np.logical_and(rel_ts_sorted_time > rel_bin_end[ind],
+                                                 rel_ts_sorted_time < rel_bin_start[ind+1]))
         keep[delete_indices] = False
 
     subset = ts_sorted[keep]
