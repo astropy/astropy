@@ -1,0 +1,2 @@
+``clone`` has been enhanced to allow for flat cosmologies to clone on the
+equivalent non-flat cosmology.
