@@ -3,21 +3,19 @@
 """Test the Quantity class and related."""
 
 import copy
-import pickle
 import decimal
 import numbers
+import pickle
 from fractions import Fraction
 
-import pytest
 import numpy as np
-from numpy.testing import (assert_allclose, assert_array_equal,
-                           assert_array_almost_equal)
+import pytest
+from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
 
-from astropy.utils import isiterable, minversion
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-
+from astropy.utils import isiterable, minversion
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -1408,7 +1406,8 @@ def test_quantity_from_table():
 
 def test_assign_slice_with_quantity_like():
     # Regression tests for gh-5961
-    from astropy.table import Table, Column
+    from astropy.table import Column, Table
+
     # first check directly that we can use a Column to assign to a slice.
     c = Column(np.arange(10.), unit=u.mm)
     q = u.Quantity(c)

@@ -4,11 +4,13 @@
 In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
+
 from .converters import *
+
+# isort: split
 # By importing helpers, all the unit conversion functions needed for
 # numpy ufuncs and functions are defined.
-from . import helpers, function_helpers
 # For scipy.special and erfa, importing the helper modules ensures
 # the definitions are added as modules to UFUNC_HELPERS, to be loaded
 # on demand.
-from . import scipy_special, erfa
+from . import erfa, function_helpers, helpers, scipy_special

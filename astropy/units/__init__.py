@@ -16,28 +16,29 @@ code under a BSD license.
 from .core import *
 from .quantity import *
 
-from . import si
-from . import cgs
-from . import astrophys
-from . import photometric
-from . import misc
+# isort: split
+from . import astrophys, cgs, misc, photometric, si
 from .function import units as function_units
 
-from .si import *
+# isort: split
 from .astrophys import *
-from .photometric import *
 from .cgs import *
-from .physical import *
 from .function.units import *
 from .misc import *
+from .photometric import *
+from .physical import *
+from .si import *
 
+# isort: split
 from .equivalencies import *
 
+# isort: split
 from .function.core import *
 from .function.logarithmic import *
 
-from .structured import *
+# isort: split
 from .decorators import *
+from .structured import *
 
 del bases
 

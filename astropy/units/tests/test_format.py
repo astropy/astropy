@@ -8,13 +8,13 @@ import warnings
 from contextlib import nullcontext
 from fractions import Fraction
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import core, dex, UnitsWarning
+from astropy.units import UnitsWarning, core, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 

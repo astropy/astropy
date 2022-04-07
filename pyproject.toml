@@ -38,7 +38,6 @@ write_to = "astropy/_version.py"
         "astropy/time/*",
         "astropy/timeseries/*",
         "astropy/uncertainty/*",
-        "astropy/units/*",
         "astropy/utils/*",
         "astropy/visualization/*",
         "astropy/wcs/*",

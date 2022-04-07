@@ -23,17 +23,19 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
     >>> cds.enable()  # doctest: +SKIP
 """
 
-
 _ns = globals()
 
 
 def _initialize_module():
+    """Initialize CDS units module."""
+
     # Local imports to avoid polluting top-level namespace
     import numpy as np
 
-    from . import core
     from astropy import units as u
     from astropy.constants import si as _si
+
+    from . import core
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
@@ -166,6 +168,7 @@ _initialize_module()
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
+
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
 
@@ -181,8 +184,9 @@ def enable():
     This may be used with the ``with`` statement to enable CDS
     units only temporarily.
     """
-    # Local import to avoid cyclical import
-    from .core import set_enabled_units
-    # Local import to avoid polluting namespace
+    # Local imports to avoid cyclical import and polluting namespace
     import inspect
+
+    from .core import set_enabled_units
+
     return set_enabled_units(inspect.getmodule(enable))

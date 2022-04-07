@@ -9,6 +9,7 @@ import warnings
 from fractions import Fraction
 
 from astropy.utils.misc import did_you_mean
+
 from ..utils import maybe_simple_fraction
 
 
