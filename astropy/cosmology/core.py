@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import Optional, Set, Type, TypeVar
+from typing import Mapping, Optional, Set, Type, TypeVar
 
 import numpy as np
 
@@ -155,16 +155,16 @@ class Cosmology(metaclass=abc.ABCMeta):
         meta : mapping or None (optional, keyword-only)
             Metadata that will update the current metadata.
         **kwargs
-            Cosmology parameter (and name) modifications.
-            If any parameter is changed and a new name is not given, the name
-            will be set to "[old name] (modified)".
+            Cosmology parameter (and name) modifications. If any parameter is
+            changed and a new name is not given, the name will be set to "[old
+            name] (modified)".
 
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
             A new instance of this class with updated parameters as specified.
-            If no modifications are requested, then a reference to this object
-            is returned instead of copy.
+            If no arguments are given, then a reference to this object is
+            returned instead of copy.
 
         Examples
         --------
@@ -172,7 +172,9 @@ class Cosmology(metaclass=abc.ABCMeta):
         density (``Om0``), and a new name:
 
             >>> from astropy.cosmology import Planck13
-            >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+            >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
+                          Om0=0.35, ...
 
         If no name is specified, the new name will note the modification.
 
@@ -185,18 +187,26 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # There are changed parameter or metadata values.
         # The name needs to be changed accordingly, if it wasn't already.
-        kwargs.setdefault("name", (self.name + " (modified)"
-                                   if self.name is not None else None))
+        _modname = self.name + " (modified)"
+        kwargs.setdefault("name", (_modname if self.name is not None else None))
 
         # mix new meta into existing, preferring the former.
-        new_meta = {**self.meta, **(meta or {})}
+        meta = meta if meta is not None else {}
+        new_meta = {**self.meta, **meta}
         # Mix kwargs into initial arguments, preferring the former.
         new_init = {**self._init_arguments, "meta": new_meta, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self._init_signature.bind_partial(**new_init)
-        # Return new instance, respecting args vs kwargs
-        return self.__class__(*ba.args, **ba.kwargs)
+        # Instantiate, respecting args vs kwargs
+        cloned = type(self)(*ba.args, **ba.kwargs)
+
+        # Check if nothing has changed.
+        # TODO! or should return self?
+        if (cloned.name == _modname) and not meta and cloned.is_equivalent(self):
+            cloned._name = self.name
+
+        return cloned
 
     @property
     def _init_arguments(self):
@@ -451,10 +461,61 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         """Return `True`, the cosmology is flat."""
         return True
 
-    @property
     @abc.abstractmethod
     def equivalent_nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
+
+    def clone(self, *, meta: Optional[Mapping] = None, to_nonflat: bool = False, **kwargs):
+        """Returns a copy of this object with updated parameters, as specified.
+
+        This cannot be used to change the type of the cosmology, except for
+        changing to the non-flat version of this cosmology.
+
+        Parameters
+        ----------
+        meta : mapping or None (optional, keyword-only)
+            Metadata that will update the current metadata.
+        to_nonflat : bool, optional keyword-only
+            Whether to change to the non-flat version of this cosmology.
+        **kwargs
+            Cosmology parameter (and name) modifications. If any parameter is
+            changed and a new name is not given, the name will be set to "[old
+            name] (modified)".
+
+        Returns
+        -------
+        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
+            A new instance of this class with updated parameters as specified.
+            If no arguments are given, then a reference to this object is
+            returned instead of copy.
+
+        Examples
+        --------
+        To make a copy of the ``Planck13`` cosmology with a different matter
+        density (``Om0``), and a new name:
+
+            >>> from astropy.cosmology import Planck13
+            >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
+                          Om0=0.35, ...
+
+        If no name is specified, the new name will note the modification.
+
+            >>> Planck13.clone(Om0=0.35).name
+            'Planck13 (modified)'
+
+        The keyword 'to_nonflat' can be used to clone on the non-flat equivalent
+        cosmology.
+
+            >>> Planck13.clone(to_nonflat=True)
+            LambdaCDM(name="Planck13", ...
+
+            >>> Planck13.clone(H0=70, to_nonflat=True)
+            LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
+        """
+        if to_nonflat:
+            return self.equivalent_nonflat.clone(meta=meta, **kwargs)
+        return super().clone(meta=meta, **kwargs)
 
 
 # -----------------------------------------------------------------------------
