@@ -33,22 +33,15 @@ def reduceat(array, indices, function):
         return np.array(result)
 
 
-def _searchsorted(a: Time, v: Time) -> np.ndarray:
-    """Perform ``np.searchsorted()`` with ``Time`` objects efficiently."""
+def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
     # Convert the time objects into plain ndarray
-    # so that they be searched by `np.searchsorted()` efficiently.
+    # so that they be used to make various operations faster, including
+    # - `np.searchsorted()`
+    # - time comparison.
     #
     # Relative time in seconds with np.longdouble type is used to:
     # - a consistent format for search, irrespective of the format/scale of the inputs,
     # - retain the best precision possible
-    t_ref = a[0]
-    a_rel = np.asarray((a - t_ref).to_value(format="sec", subfmt="long"))
-    v_rel = (v - t_ref).to_value(format="sec", subfmt="long")
-
-    return np.searchsorted(a_rel, v_rel)
-
-
-def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
     return (time - rel_base).to_value(format="sec", subfmt="long")
 
 
@@ -181,9 +174,10 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # - use relative time in seconds `np.longdouble`` in in creating `keep` to speed up
     #   (`Time` object comparison is rather slow)
     # - tiny sacrifice on precision (< 0.01ns on 64 bit platform)
-    rel_bin_start = _to_relative_longdouble(bin_start, ts_sorted.time[0])
-    rel_bin_end = _to_relative_longdouble(bin_end, ts_sorted.time[0])
-    rel_ts_sorted_time = _to_relative_longdouble(ts_sorted.time, ts_sorted.time[0])
+    rel_base = ts_sorted.time[0]
+    rel_bin_start = _to_relative_longdouble(bin_start, rel_base)
+    rel_bin_end = _to_relative_longdouble(bin_end, rel_base)
+    rel_ts_sorted_time = _to_relative_longdouble(ts_sorted.time, rel_base)
     keep = ((rel_ts_sorted_time >= rel_bin_start[0]) & (rel_ts_sorted_time <= rel_bin_end[-1]))
 
     # Find out indices to be removed because of noncontiguous bins
@@ -198,15 +192,18 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
                                                  rel_ts_sorted_time < rel_bin_start[ind+1]))
         keep[delete_indices] = False
 
-    subset = ts_sorted[keep]
+    rel_subset_time = rel_ts_sorted_time[keep]
 
     # Figure out which bin each row falls in by sorting with respect
     # to the bin end times
-    indices = _searchsorted(bin_end, ts_sorted.time[keep])
+    indices = np.searchsorted(rel_bin_end, rel_subset_time)
 
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
-    if len(indices) and np.all(bin_start[1:] >= bin_end[:-1]):
-        indices_start = _searchsorted(subset.time, bin_start[bin_start <= ts_sorted.time[-1]])
+    if len(indices) and np.all(rel_bin_start[1:] >= rel_bin_end[:-1]):
+        indices_start = np.searchsorted(
+            rel_subset_time,
+            rel_bin_start[rel_bin_start <= rel_ts_sorted_time[-1]]
+        )
         indices[indices_start] = np.arange(len(indices_start))
 
     # Determine rows where values are defined
@@ -220,7 +217,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     unique_indices = np.unique(indices)
 
     # Add back columns
-
+    subset = ts_sorted[keep]
     for colname in subset.colnames:
 
         if colname == 'time':
