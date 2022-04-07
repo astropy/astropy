@@ -230,6 +230,18 @@ class TimeFormat:
     def jd2_filled(self):
         return np.nan_to_num(self.jd2) if self.masked else self.jd2
 
+    @property
+    def precision(self):
+        return self._precision
+
+    @precision.setter
+    def precision(self, val):
+        #Verify precision is 0-9 (inclusive)
+        if not isinstance(val, int) or val < 0 or val > 9:
+            raise ValueError('precision attribute must be an int between '
+                             '0 and 9')
+        self._precision = val
+
     @lazyproperty
     def cache(self):
         """
