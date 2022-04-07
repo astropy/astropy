@@ -42,6 +42,14 @@ The list of valid formats, e.g. the Table in this example, may be
 checked with ``Cosmology.from_format.list_formats()``
 
 
+A new property ``equivalent_nonflat`` has been added to flat cosmologies
+(``FlatCosmologyMixin`` subclasses) to get an equivalent cosmology, but of the
+corresponding non-flat class.
+
+    >>> Planck18.equivalent_nonflat
+    LambdaCDM(name="Planck18", ...
+
+
 .. _whatsnew-doppler-redshift-eq:
 
 ``doppler_redshift`` equivalency
