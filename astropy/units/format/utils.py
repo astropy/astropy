@@ -43,7 +43,7 @@ def get_grouped_by_powers(bases, powers):
     return positive, negative
 
 
-def split_mantissa_exponent(v, format_spec=".8g"):
+def split_mantissa_exponent(v, format_spec=".8g", remove_one=False):
     """
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.  If the exponent is too small, it may be
@@ -55,13 +55,16 @@ def split_mantissa_exponent(v, format_spec=".8g"):
 
     format_spec : str, optional
         Number representation formatting string
+    remove_one : bool, optional
+        Whether remove 1 at the head of expontila representaion
+        Change ``1 \\times 10^{2}` to `10^{2}``
 
     Returns
     -------
     mantissa, exponent : tuple of strings
     """
     x = format(v, format_spec).split('e')
-    if x[0] != '1.' + '0' * (len(x[0]) - 2):
+    if x[0] != '1.' + '0' * (len(x[0]) - 2) and (not remove_one or x[0] != "1"):
         m = x[0]
     else:
         m = ''

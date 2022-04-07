@@ -6,8 +6,12 @@ import numpy as np
 
 __doctest_skip__ = ['quantity_support']
 
+default_formt = 'latex_inline'
+braket_normal = "{}({})"
+braket_latex = r"{}$\left({}\right)$"
 
-def quantity_support(format='latex_inline'):
+
+def quantity_support(xlabel="", ylabel="", format=None):
     """
     Enable support for plotting `astropy.units.Quantity` instances in
     matplotlib.
@@ -27,6 +31,10 @@ def quantity_support(format='latex_inline'):
 
     Parameters
     ----------
+    xlable : str
+        The label for x-axis
+    ylabel : str
+        The label for y-axis
     format : `astropy.units.format.Base` instance or str
         The name of a format or a formatter object.  If not
         provided, defaults to ``latex_inline``.
@@ -42,6 +50,7 @@ def quantity_support(format='latex_inline'):
 
     from matplotlib import units
     from matplotlib import ticker
+    import matplotlib
 
     # Get all subclass for Quantity, since matplotlib checks on class,
     # not subclass.
@@ -77,21 +86,38 @@ def quantity_support(format='latex_inline'):
                 units.registry[cls] = self
 
         @staticmethod
-        def axisinfo(unit, axis):
+        def axislabel(unit, axis, format=None):
+            axis_label = ""
+            if isinstance(axis, matplotlib.axis.XAxis):
+                axis_label = f"{xlabel} "
+            elif isinstance(axis, matplotlib.axis.YAxis):
+                axis_label = f"{ylabel} "
+
+            if unit in [None, u.dimensionless_unscaled,
+                        u.dimensionless_angles]:
+                label = axis_label
+            elif isinstance(format, str) and format.startswith("latex"):
+                label = braket_latex.format(axis_label, unit.to_string(format)[1:-1])
+            else:
+                label = braket_normal.format(axis_label, unit.to_string(format))
+
+            return label
+
+        def axisinfo(self, unit, axis):
             if unit == u.radian:
                 return units.AxisInfo(
-                    majloc=ticker.MultipleLocator(base=np.pi/2),
+                    majloc=ticker.MultipleLocator(base=np.pi / 2),
                     majfmt=ticker.FuncFormatter(rad_fn),
-                    label=unit.to_string(),
+                    label=self.axislabel(unit, axis),
                 )
             elif unit == u.degree:
                 return units.AxisInfo(
                     majloc=ticker.AutoLocator(),
                     majfmt=ticker.FormatStrFormatter('%i°'),
-                    label=unit.to_string(),
+                    label=self.axislabel(unit, axis),
                 )
             elif unit is not None:
-                return units.AxisInfo(label=unit.to_string(format))
+                return units.AxisInfo(label=self.axislabel(unit, axis, format or default_formt))
             return None
 
         @staticmethod

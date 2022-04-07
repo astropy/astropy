@@ -1,0 +1,2 @@
+The ``xlabel`` and ``ylabel`` option is now available for ``quantity_support``.
+``xlabel`` and ``ylabel`` are set to the label of x- and y-axis.

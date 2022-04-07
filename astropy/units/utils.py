@@ -17,8 +17,8 @@ from numpy import finfo
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
 # give a little margin since often multiple calculations happened
-_JUST_BELOW_UNITY = float(1.-4.*_float_finfo.epsneg)
-_JUST_ABOVE_UNITY = float(1.+4.*_float_finfo.eps)
+_JUST_BELOW_UNITY = float(1. - 4. * _float_finfo.epsneg)
+_JUST_ABOVE_UNITY = float(1. + 4. * _float_finfo.eps)
 
 
 def _get_first_sentence(s):
@@ -183,10 +183,10 @@ def sanitize_scale(scale):
     # have an "imag" attribute.
     if scale.imag:
         if abs(scale.real) > abs(scale.imag):
-            if is_effectively_unity(scale.imag/scale.real + 1):
+            if is_effectively_unity(scale.imag / scale.real + 1):
                 return scale.real
 
-        elif is_effectively_unity(scale.real/scale.imag + 1):
+        elif is_effectively_unity(scale.real / scale.imag + 1):
             return complex(0., scale.imag)
 
         return scale
@@ -212,12 +212,12 @@ def maybe_simple_fraction(p, max_denominator=100):
     n0, d0 = 1, 0
     n1, d1 = a, 1
     while d1 <= max_denominator:
-        if _JUST_BELOW_UNITY <= n1/(d1*p) <= _JUST_ABOVE_UNITY:
+        if _JUST_BELOW_UNITY <= n1 / (d1 * p) <= _JUST_ABOVE_UNITY:
             return Fraction(n1, d1)
-        n, d = d, n-a*d
+        n, d = d, n - a * d
         a = n // d
-        n0, n1 = n1, n0+a*n1
-        d0, d1 = d1, d0+a*d1
+        n0, n1 = n1, n0 + a * n1
+        d0, d1 = d1, d0 + a * d1
 
     return p
 
@@ -289,7 +289,8 @@ def resolve_fractions(a, b):
 
 def quantity_asanyarray(a, dtype=None):
     from .quantity import Quantity
-    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
+    if (not isinstance(a, np.ndarray) and not np.isscalar(a)
+            and any(isinstance(x, Quantity) for x in a)):
         return Quantity(a, dtype=dtype)
     else:
         return np.asanyarray(a, dtype=dtype)

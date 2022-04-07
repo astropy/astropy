@@ -1,0 +1,4 @@
+The ``remove_one`` option is now available for ``split_mantissa_exponent``.
+``remove_one`` omit 1 at the head of exponential expression.
+Add new formatter ``Latex2`` and ``LatexInline2``.
+``Latex2`` and ``LatexInline2`` are copy of ``Latex`` but use ``\dfrac`` and slash instead of ``\flac``.

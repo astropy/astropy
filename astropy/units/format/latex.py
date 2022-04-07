@@ -19,6 +19,10 @@ class Latex(base.Base):
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
     """
 
+    format_spec = ".8g"
+    remove_one = False
+    fromat_flac = r'\frac{{{}}}{{{}}}'
+
     @classmethod
     def _latex_escape(cls, name):
         # This doesn't escape arbitrary LaTeX strings, but it should
@@ -45,7 +49,7 @@ class Latex(base.Base):
                 # a superscript, we need to spell out the unit to avoid double
                 # superscripts. For example, the logic below ensures that
                 # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
-                if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
+                if re.match(r".*\^{[^}]*}$", base_latex):  # ends w/ superscript?
                     base_latex = base.short_names[0]
                 out.append(f'{base_latex}^{{{utils.format_power(power)}}}')
         return r'\,'.join(out)
@@ -53,7 +57,7 @@ class Latex(base.Base):
     @classmethod
     def _format_bases(cls, unit):
         positives, negatives = utils.get_grouped_by_powers(
-                unit.bases, unit.powers)
+            unit.bases, unit.powers)
 
         if len(negatives):
             if len(positives):
@@ -61,7 +65,7 @@ class Latex(base.Base):
             else:
                 positives = '1'
             negatives = cls._format_unit_list(negatives)
-            s = fr'\frac{{{positives}}}{{{negatives}}}'
+            s = cls.fromat_flac.format(positives, negatives)
         else:
             positives = cls._format_unit_list(positives)
             s = positives
@@ -91,7 +95,7 @@ class Latex(base.Base):
         return fr'$\mathrm{{{s}}}$'
 
     @classmethod
-    def format_exponential_notation(cls, val, format_spec=".8g"):
+    def format_exponential_notation(cls, val, format_spec=None):
         """
         Formats a value in exponential notation for LaTeX.
 
@@ -109,7 +113,8 @@ class Latex(base.Base):
             The value in exponential notation in a format suitable for LaTeX.
         """
         if np.isfinite(val):
-            m, ex = utils.split_mantissa_exponent(val, format_spec)
+            m, ex = utils.split_mantissa_exponent(
+                val, format_spec or cls.format_spec, cls.remove_one)
 
             parts = []
             if m:
@@ -129,6 +134,14 @@ class Latex(base.Base):
                 return r'-\infty'
 
 
+class Latex2(Latex):
+    """
+    Output LaTeX to display the unit using \\dfrac instead of \\flac.
+    """
+    name = 'latex2'
+    fromat_flac = r'\dfrac{{{}}}{{{}}}'
+
+
 class LatexInline(Latex):
     """
     Output LaTeX to display the unit based on IAU style guidelines with negative
@@ -144,3 +157,11 @@ class LatexInline(Latex):
     @classmethod
     def _format_bases(cls, unit):
         return cls._format_unit_list(zip(unit.bases, unit.powers))
+
+
+class LatexInline2(Latex):
+    """
+    Output LaTeX to display the unit using slash instead of \\flac.
+    """
+    name = 'latex_inline2'
+    fromat_flac = '{}/{}'

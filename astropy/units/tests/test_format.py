@@ -260,7 +260,7 @@ class TestRoundtripCDS(RoundtripBase):
         self.check_roundtrip_decompose(unit)
 
     @pytest.mark.parametrize('unit', [u.dex(unit) for unit in
-                                      (u.cm/u.s**2, u.K, u.Lsun)])
+                                      (u.cm / u.s**2, u.K, u.Lsun)])
     def test_roundtrip_dex(self, unit):
         string = unit.to_string(format='cds')
         recovered = u.Unit(string, format='cds')
@@ -343,6 +343,18 @@ def test_latex_inline_scale():
     latex_inline = (r'$\mathrm{1 \times 10^{-24}\,erg'
                     r'\,Hz^{-1}\,s^{-1}\,cm^{-2}}$')
     assert fluxunit.to_string('latex_inline') == latex_inline
+
+
+def test_latex2_scale():
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
+    latex2 = r'$\mathrm{1 \times 10^{-24}\,\dfrac{erg}{Hz\,s\,cm^{2}}}$'
+    assert fluxunit.to_string('latex2') == latex2
+
+
+def test_latex_inline2_scale():
+    fluxunit = u.Unit(1.e-24 * u.erg / (u.cm ** 2 * u.s * u.Hz))
+    latex_inline2 = r'$\mathrm{1 \times 10^{-24}\,erg/Hz\,s\,cm^{2}}$'
+    assert fluxunit.to_string('latex_inline2') == latex_inline2
 
 
 @pytest.mark.parametrize('format_spec, string', [
@@ -612,9 +624,9 @@ def test_double_superscript():
 
 
 @pytest.mark.parametrize('power,expected', (
-    (1., 'm'), (2., 'm2'), (-10, '1 / m10'), (1.5, 'm(3/2)'), (2/3, 'm(2/3)'),
-    (7/11, 'm(7/11)'), (-1/64, '1 / m(1/64)'), (1/100, 'm(1/100)'),
-    (2/101, 'm(0.019801980198019802)'), (Fraction(2, 101), 'm(2/101)')))
+    (1., 'm'), (2., 'm2'), (-10, '1 / m10'), (1.5, 'm(3/2)'), (2 / 3, 'm(2/3)'),
+    (7 / 11, 'm(7/11)'), (-1 / 64, '1 / m(1/64)'), (1 / 100, 'm(1/100)'),
+    (2 / 101, 'm(0.019801980198019802)'), (Fraction(2, 101), 'm(2/101)')))
 def test_powers(power, expected):
     """Regression test for #9279 - powers should not be oversimplified."""
     unit = u.m ** power

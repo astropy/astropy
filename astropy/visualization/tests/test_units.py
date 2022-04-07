@@ -135,3 +135,14 @@ def test_radian_formatter():
         fig.canvas.draw()
         labels = [tl.get_text() for tl in ax.yaxis.get_ticklabels()]
         assert labels == ['π/2', 'π', '3π/2', '2π', '5π/2', '3π', '7π/2']
+
+
+@pytest.mark.skipif('not HAS_PLT')
+def test_units_label():
+    plt.figure()
+
+    with quantity_support("$t$", "$x$"):
+        plt.plot([1, 2, 3] * u.s, [1, 2, 3] * u.m)
+
+        assert plt.gca().xaxis.get_label_text() == r"$t$ $\left(\mathrm{s}\right)$"
+        assert plt.gca().yaxis.get_label_text() == r"$x$ $\left(\mathrm{m}\right)$"
