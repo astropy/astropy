@@ -1,3 +1,3 @@
-A new set of comparison functions have been added -- ``cosmology_equal``,
-``cosmology_not_equal`` and ``cosmology_equivalent`` -- that mirror their
-numpy counterparts but allow for the arguments to be converted to a Cosmology.
+A new set of comparison functions have been added -- ``cosmology_equal`` and ``cosmology_not_equal`` -- that mirror their numpy counterparts but allow for
+the arguments to be converted to a Cosmology and to compare flat cosmologies
+with their non-flat equivalents.

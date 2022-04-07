@@ -289,9 +289,9 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck18.is_equivalent(tbl, format="yaml")
             True
         """
-        from .comparison import cosmology_equivalent
+        from .comparison import cosmology_equal
 
-        return cosmology_equivalent(self, other, format=format)
+        return cosmology_equial(self, other, format=format, allow_equivalent=True)
 
     def __equiv__(self, other):
         """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!

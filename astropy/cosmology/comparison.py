@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable, Iterator, List, Tuple, Union
+from typing import Any, Callable, Tuple, Union
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -97,7 +97,7 @@ def _parse_format(cosmo: Any, format: _FormatType, /,) -> Cosmology:
         return cosmo
 
     if format != False_:  # catches False and False_
-        format = None if format is True else format  # str->str, None/True->None
+        format = None if format == True_ else format  # str->str, None/True->None
         out = Cosmology.from_format(cosmo, format=format)  # this can error!
     elif not isinstance(cosmo, Cosmology):
         raise TypeError(f"if 'format' is False, arguments must be a Cosmology, not {cosmo}")
@@ -132,11 +132,10 @@ def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
     # Have to deal with things that do not broadcast well.
     # astropy.row cannot be used in an array, even if dtype=object
     # and will raise a segfault when used in a ufunc.
-    cosmos = list(cosmos)
-    towrap = [isinstance(cosmo, _CosmologyWrapper._cantbroadcast) for cosmo in cosmos]
-    cosmos = [(c if not wrap else _CosmologyWrapper(c)) for c, wrap in zip(cosmos, towrap)]
+    towrap = (isinstance(cosmo, _CosmologyWrapper._cantbroadcast) for cosmo in cosmos)
+    wcosmos = [(c if not wrap else _CosmologyWrapper(c)) for c, wrap in zip(cosmos, towrap)]
 
-    return _parse_format(cosmos, formats)
+    return _parse_format(wcosmos, formats)
 
 
 def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
@@ -191,8 +190,8 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @_comparison_decorator
-def cosmology_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
-    """Return (cosmo1 == cosmo2) element-wise.
+def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False) -> bool:
+    r"""Return element-wise equality check on the cosmologies.
 
     .. note::
 
@@ -215,14 +214,15 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         Note that the cosmology arguments are not broadcast against ``format``,
         so it cannot determine the output shape.
 
+    allow_equivalent : bool, optional keyword-only
+        Whether to allow cosmologies to be equal even if not of the same class.
+        For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
+        and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
+
     See Also
     --------
     astropy.cosmology.funcs.cosmology_not_equal
         Element-wise non-equality check, with argument conversion to Cosmology.
-    astropy.cosmology.funcs.cosmology_equivalent
-        Element-wise equivalence check (less strict than equality, allowing two
-        cosmologies to be equivalent even if not of the same class),
-        allowing for argument conversion to Cosmology.
 
     Examples
     --------
@@ -244,7 +244,24 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         >>> cosmology_equal(cosmo1, cosmo3)
         False
 
-    Also, using the keyword argument, the notion of equivalence is extended
+    Two cosmologies may be equivalent even if not of the same class.
+    In this examples the ``LambdaCDM`` has ``Ode0`` set to the same value
+    calculated in ``FlatLambdaCDM``.
+
+        >>> from astropy.cosmology import LambdaCDM
+        >>> cosmo3 = LambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, 0.7)
+        >>> cosmology_equal(cosmo1, cosmo3)
+        False
+        >>> cosmology_equal(cosmo1, cosmo3, allow_equivalent=True)
+        True
+
+    While in this example, the cosmologies are not equivalent.
+
+        >>> cosmo4 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, Tcmb0=3 * u.K)
+        >>> cosmology_equal(cosmo3, cosmo4, allow_equivalent=True)
+        False
+
+    Also, using the keyword argument, the notion of equality is extended
     to any Python object that can be converted to a |Cosmology|.
 
         >>> mapping = cosmo2.to_format("mapping")
@@ -274,7 +291,19 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         True
     """
     # Check parameter equality
-    eq = cosmo1 == cosmo2
+    if not allow_equivalent:
+        eq = (cosmo1 == cosmo2)
+
+    else:
+        # Check parameter equivalence
+        # The options are: 1) same class & parameters; 2) same class, different
+        # parameters; 3) different classes, equivalent parameters; 4) different
+        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
+        eq = cosmo1.__equiv__(cosmo2)
+        if eq is NotImplemented:
+            eq = cosmo2.__equiv__(cosmo1)  # that failed, try from 'other'
+
+        eq = eq if eq is not NotImplemented else False
 
     # TODO! include equality check of metadata
 
@@ -282,8 +311,8 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
 
 
 @_comparison_decorator
-def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
-    """Return (cosmo1 != cosmo2) element-wise.
+def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False) -> bool:
+    r"""Return element-wise cosmology non-equality check.
 
     .. note::
 
@@ -311,14 +340,15 @@ def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         Note that the cosmology arguments are not broadcast against ``format``,
         so it cannot determine the output shape.
 
+    allow_equivalent : bool, optional keyword-only
+        Whether to allow cosmologies to be equal even if not of the same class.
+        For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
+        and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
+
     See Also
     --------
     astropy.cosmology.funcs.cosmology_equal
         Element-wise equality check, with argument conversion to Cosmology.
-    astropy.cosmology.funcs.cosmology_equivalent
-        Element-wise equivalence check (less strict than equality, allowing two
-        cosmologies to be equivalent even if not of the same class),
-        allowing for argument conversion to Cosmology.
 
     Examples
     --------
@@ -340,7 +370,24 @@ def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         >>> cosmology_not_equal(cosmo1, cosmo3)
         True
 
-    Also, using the keyword argument, the notion of equivalence is extended
+    Two cosmologies may be equivalent even if not of the same class.
+    In this examples the ``LambdaCDM`` has ``Ode0`` set to the same value
+    calculated in ``FlatLambdaCDM``.
+
+        >>> from astropy.cosmology import LambdaCDM
+        >>> cosmo4 = LambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, 0.7)
+        >>> cosmology_not_equal(cosmo1, cosmo4)
+        True
+        >>> cosmology_not_equal(cosmo1, cosmo4, allow_equivalent=True)
+        False
+
+    While in this example, the cosmologies are not equivalent.
+
+        >>> cosmo5 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, Tcmb0=3 * u.K)
+        >>> cosmology_not_equal(cosmo4, cosmo5, allow_equivalent=True)
+        True
+
+    Also, using the keyword argument, the notion of equality is extended
     to any Python object that can be converted to a |Cosmology|.
 
         >>> mapping = cosmo2.to_format("mapping")
@@ -369,109 +416,8 @@ def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /) -> bool:
         >>> cosmology_not_equal(mapping, yml, format=[True, "yaml"])
         True
     """
-    # Check parameter equality
-    neq = cosmo1 != cosmo2
-
-    # TODO! include equality check of metadata
+    neq = not cosmology_equal(cosmo1, cosmo2, allow_equivalent=allow_equivalent)
+    # TODO! it might eventually be worth the speed boost to implement some of
+    #       the internals of cosmology_equal here, but for now it's a hassle.
 
     return neq
-
-
-@_comparison_decorator
-def cosmology_equivalent(cosmo1: Any, cosmo2: Any, /) -> bool:
-    r"""Element-wise check equivalence between Cosmologies.
-
-    Two cosmologies may be equivalent even if not the same class.
-    For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
-    and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
-
-    .. note::
-
-        Cosmologies are currently scalar in their parameters.
-
-    Parameters
-    ----------
-    cosmo1, cosmo2 : |Cosmology|-like
-        The objects to compare. Must be convertible to |Cosmology|, as
-        specified by `format`.
-
-    format : bool or None or str or tuple thereof, optional keyword-only
-        Whether to allow the arguments to be converted to a |Cosmology|.
-        This allows, e.g. a |Table| to be given instead a Cosmology.
-        `False` (default) will not allow conversion. `True` or `None` will,
-        and will use the auto-identification to try to infer the correct
-        format. A `str` is assumed to be the correct format to use when
-        converting.
-        `format` is broadcast to match the shape of the cosmology arguments.
-        Note that the cosmology arguments are not broadcast against `format`,
-        so it cannot determine the output shape.
-
-    Returns
-    -------
-    bool or array thereof
-        `True` if cosmologies are equivalent, `False` otherwise.
-
-    See Also
-    --------
-    astropy.cosmology.funcs.cosmology_equal
-        Element-wise equality check, with argument conversion to Cosmology.
-    astropy.cosmology.funcs.cosmology_not_equal
-        Element-wise non-equality check, with argument conversion to Cosmology.
-
-    Examples
-    --------
-    Two cosmologies may be equivalent even if not of the same class.
-    In this examples the ``LambdaCDM`` has ``Ode0`` set to the same value
-    calculated in ``FlatLambdaCDM``.
-
-        >>> import astropy.units as u
-        >>> from astropy.cosmology import LambdaCDM, FlatLambdaCDM
-        >>> cosmo1 = LambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, 0.7)
-        >>> cosmo2 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3)
-        >>> cosmology_equivalent(cosmo1, cosmo2)
-        True
-
-    While in this example, the cosmologies are not equivalent.
-
-        >>> cosmo3 = FlatLambdaCDM(70 * (u.km/u.s/u.Mpc), 0.3, Tcmb0=3 * u.K)
-        >>> cosmology_equivalent(cosmo3, cosmo2)
-        False
-
-    Also, using the keyword argument, the notion of equivalence is extended
-    to any Python object that can be converted to a |Cosmology|.
-
-        >>> from astropy.cosmology import Planck18
-        >>> tbl = Planck18.to_format("astropy.table")
-        >>> cosmology_equivalent(Planck18, tbl, format=True)
-        True
-
-    The list of valid formats, e.g. the |Table| in this example, may be
-    checked with ``Cosmology.from_format.list_formats()``.
-
-    As can be seen in the list of formats, not all formats can be
-    auto-identified by ``Cosmology.from_format.registry``. Objects of
-    these kinds can still be checked for equivalence, but the correct
-    format string must be used.
-
-        >>> yml = Planck18.to_format("yaml")
-        >>> cosmology_equivalent(Planck18, yml, format="yaml")
-        True
-
-    This also works with an array of 'format' matching the number of cosmologies.
-
-        >>> cosmology_equivalent(tbl, yml, format=[True, "yaml"])
-        True
-    """
-    # Check parameter equivalence
-    # The options are: 1) same class & parameters; 2) same class, different
-    # parameters; 3) different classes, equivalent parameters; 4) different
-    # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
-    equiv = cosmo1.__equiv__(cosmo2)
-    if equiv is NotImplemented:
-        equiv = cosmo2.__equiv__(cosmo1)  # that failed, try from 'other'
-
-    equiv = equiv if equiv is not NotImplemented else False
-
-    # TODO! include equality check of metadata
-
-    return equiv
