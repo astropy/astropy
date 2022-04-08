@@ -42,11 +42,11 @@ class Test_default_cosmology(object):
         """Test bad inputs to :meth:`astropy.cosmology.default_cosmology.get`."""
         # a not-valid option, but still a str
         with pytest.raises(ValueError, match="Unknown cosmology"):
-            cosmo = default_cosmology.get("fail!")
+            default_cosmology.get("fail!")
 
         # a not-valid type
         with pytest.raises(TypeError, match="'key' must be must be"):
-            cosmo = default_cosmology.get(object())
+            default_cosmology.get(object())
 
     def test_get_current(self):
         """Test :meth:`astropy.cosmology.default_cosmology.get` current value."""

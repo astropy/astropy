@@ -247,7 +247,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
     def test_clone_fail_unexpected_arg(self, cosmo):
         """Test when ``.clone()`` gets an unexpected argument."""
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            newclone = cosmo.clone(not_an_arg=4)
+            cosmo.clone(not_an_arg=4)
 
     def test_clone_fail_positional_arg(self, cosmo):
         with pytest.raises(TypeError, match="1 positional argument"):

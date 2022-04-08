@@ -19,7 +19,7 @@ __doctest_requires__ = {'*': ['scipy']}
 
 
 def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-                      method='Brent', bracket=None, verbose=False):
+                       method='Brent', bracket=None, verbose=False):
     """
     Find the redshift ``z`` at which ``func(z) = fval``.
     See :func:`astropy.cosmology.funcs.z_at_value`.
@@ -348,10 +348,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # make multi-dimensional iterator for all but `method`, `verbose`
     with np.nditer(
         [fval, zmin, zmax, ztol, maxfun, bracket, None],
-        flags = ['refs_ok'],
-        op_flags = [*[['readonly']] * 6,  # ← inputs  output ↓
-                    ['writeonly', 'allocate', 'no_subtype']],
-        op_dtypes = (*(None,)*6, fval.dtype),
+        flags=['refs_ok'],
+        op_flags=[*[['readonly']] * 6,  # ← inputs  output ↓
+                  ['writeonly', 'allocate', 'no_subtype']],
+        op_dtypes=(*(None,)*6, fval.dtype),
         casting="no",
     ) as it:
         for fv, zmn, zmx, zt, mfe, bkt, zs in it:  # ← eltwise unpack & eval ↓

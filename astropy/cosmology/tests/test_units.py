@@ -220,9 +220,7 @@ class Test_with_redshift:
 
     def test_temperature_off(self, cosmo):
         """Test ``with_redshift`` with the temperature off."""
-        default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
-        Tcmb = cosmo.Tcmb(z)
 
         # 1) Default (without specifying the cosmology)
         with default_cosmology.set(cosmo):
@@ -268,9 +266,7 @@ class Test_with_redshift:
     def test_hubble_off(self, cosmo):
         """Test ``with_redshift`` with Hubble off."""
         unit = u.km / u.s / u.Mpc
-        default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
-        H = cosmo.H(z)
 
         # 1) Default (without specifying the cosmology)
         with default_cosmology.set(cosmo):
@@ -326,7 +322,6 @@ class Test_with_redshift:
 
     def test_distance_off(self, cosmo):
         """Test ``with_redshift`` with the distance off."""
-        default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
 
         # 1) Default (without specifying the cosmology)

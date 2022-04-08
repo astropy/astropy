@@ -98,7 +98,7 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         # see test_from_yaml_autoidentify
 
     def test_from_yaml_autoidentify(self, cosmo, to_format, from_format,
-                                      xfail_if_not_registered_with_yaml):
+                                    xfail_if_not_registered_with_yaml):
         """As a non-path string, it does NOT auto-identifies 'format'.
 
         TODO! this says there should be different types of I/O registries.
