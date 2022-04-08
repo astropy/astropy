@@ -67,20 +67,20 @@ range of column values (*including* the bounds), or a :class:`list` or
 
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'), dtype=['i8', 'i8'])
    >>> t.add_index('a')
-   >>> t.loc[2]
+   >>> t.loc[2]  # the row(s) where a == 2
    <Row index=1>
      a     b
    int64 int64
    ----- -----
        2     1
-   >>> t.loc[[1, 4]]
+   >>> t.loc[[1, 4]]  # the row(s) where a in [1, 4]
    <Table length=2>
      a     b
    int64 int64
    ----- -----
        1    10
        4     9
-   >>> t.loc[1:3]
+   >>> t.loc[1:3]  # the row(s) where a in [1, 2, 3]
    <Table length=3>
      a     b
    int64 int64
