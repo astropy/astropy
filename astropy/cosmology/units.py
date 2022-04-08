@@ -315,6 +315,7 @@ def with_redshift(cosmology=None, *,
 
 # ===================================================================
 
+
 def with_H0(H0=None):
     """
     Convert between quantities with little-h and the equivalent physical units.
@@ -334,9 +335,10 @@ def with_H0(H0=None):
     """
     if H0 is None:
         from .realizations import default_cosmology
+
         H0 = default_cosmology.get().H0
 
-    h100_val_unit = u.Unit(100/(H0.to_value(u.km / u.s / u.Mpc)) * littleh)
+    h100_val_unit = u.Unit(100 / (H0.to_value((u.km / u.s) / u.Mpc)) * littleh)
 
     return u.Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
 

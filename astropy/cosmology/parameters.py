@@ -44,7 +44,8 @@ WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
 doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
 WMAP 3 year (WMAP3) parameters from Spergel et al. 2007, ApJS, 170, 377,
-doi:  10.1086/513700. Table 6. (WMAP + SNGold) Obtained from https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm
+doi:  10.1086/513700. Table 6. (WMAP + SNGold) Obtained from
+https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm
 Tcmb0 and Neff are the standard values as also used for WMAP5, 7, 9.
 Pending WMAP team approval and subject to change.
 

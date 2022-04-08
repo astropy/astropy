@@ -49,8 +49,9 @@ class TestLambdaCDM(FLRWSubclassTest):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = (get_redshift_methods(LambdaCDM, include_private=True, include_z2=False)
-                              - {"_dS_age"})
+    _FLRW_redshift_methods = (
+        get_redshift_methods(LambdaCDM, include_private=True, include_z2=False)
+        - {"_dS_age"})
     # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
     # so any input that doesn't trip up ``np.shape`` is "valid"
 

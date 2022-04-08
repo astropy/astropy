@@ -237,5 +237,4 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         super().__init__(instance, cls, "write", registry=convert_registry)
 
     def __call__(self, format, *args, **kwargs):
-        return self.registry.write(self._instance, None, *args, format=format,
-                                    **kwargs)
+        return self.registry.write(self._instance, None, *args, format=format, **kwargs)

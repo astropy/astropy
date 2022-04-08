@@ -39,4 +39,4 @@ def test_deprecated_private_variables(attr):
 def test_getattr_error_attr_not_found():
     """Test getattr raises error for DNE."""
     with pytest.raises(ImportError):
-        from astropy.cosmology.flrw import this_is_not_a_variable
+        from astropy.cosmology.flrw import this_is_not_a_variable  # noqa: F401
