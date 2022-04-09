@@ -357,7 +357,6 @@ def test_iers_a_dl():
         iers.IERS_A.close()
 
 
-@pytest.mark.xfail(reason="https://github.com/astropy/astropy/issues/12998")
 @pytest.mark.remote_data
 def test_iers_a_dl_mirror():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
