@@ -1721,8 +1721,12 @@ def test_read_converters_simplified():
         '    2.0     4.0 False false     6'
     ]
 
-    # Test failure
-    converters = {'*': [int, 1, bool, str]}
-    with pytest.raises(ValueError, match='Error: invalid format for converters'):
-        t2 = Table.read(out.getvalue(), format='ascii.basic', converters=converters,
-                        guess=False)
+    # Test failures
+    for converters in ({'*': [int, 1, bool, str]},  # bad converter type
+                       # Tuple converter where 2nd element is not a subclass of NoType
+                       {'a': [(int, int)]},
+                       # Tuple converter with 3 elements not 2
+                       {'a': [(int, int, int)]}):
+        with pytest.raises(ValueError, match='Error: invalid format for converters'):
+            t2 = Table.read(out.getvalue(), format='ascii.basic',
+                            converters=converters, guess=False)

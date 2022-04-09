@@ -153,9 +153,15 @@ Parameters for ``read()``
   the default behavior of the built-in `open` when no ``mode`` argument is
   provided.
 
-**converters** : ``dict`` of data type converters
-  Specify the data type or types for columns. See the
-  :ref:`io-ascii-read-converters` section for more information.
+**converters** : ``dict`` specifying output data types
+  See the :ref:`io-ascii-read-converters` section for examples. Each key in the
+  dictionary is a column name or else a name matching pattern including
+  wildcards. The value is one of:
+
+  - Python data type or numpy dtype such as ``int`` or ``np.float32``
+  - list of such types which is tried in order until conversion is successful
+  - list of converter tuples (this is not common, but see the
+    `~astropy.io.ascii.convert_numpy` function for an example).
 
 **names** : list of names corresponding to each data column
   Define the complete list of names for each data column. This will override
