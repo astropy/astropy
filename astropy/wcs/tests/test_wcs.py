@@ -1528,3 +1528,16 @@ def test_pixlist_wcs_colsel():
     assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
     assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
     assert np.allclose(w.wcs.lonpole, 180.)
+
+
+@pytest.mark.skipif(
+    _WCSLIB_VER < Version('7.8'),
+    reason="TIME axis extraction only works with wcslib 7.8 or later"
+)
+def test_time_axis_selection(tab_wcs_2di_f):
+    w = wcs.WCS(naxis=3)
+    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'TIME']
+    w.wcs.set()
+    assert list(w.sub([wcs.WCSSUB_TIME]).wcs.ctype) == ['TIME']
+    assert (w.wcs_pix2world([[1, 2, 3]], 0)[0, 2] ==
+            w.sub([wcs.WCSSUB_TIME]).wcs_pix2world([[3]], 0)[0, 0])

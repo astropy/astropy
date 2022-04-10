@@ -3061,7 +3061,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         the spectral axis, followed by any others.
         Assumes at least celestial axes are present.
         """
-        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])  # Defined by C-ext  # noqa: F821 E501
+        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES, WCSSUB_TIME])  # Defined by C-ext  # noqa: F821 E501
 
     def slice(self, view, numpy_order=True):
         """
