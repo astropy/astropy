@@ -3227,6 +3227,21 @@ reduce these to 2 dimensions using the naxis kwarg.
             return False
 
     @property
+    def temporal(self):
+        """
+        A copy of the current WCS with only the time axes included
+        """
+        return self.sub([WCSSUB_TIME])  # Defined by C-ext  # noqa: F821
+
+    @property
+    def is_temporal(self):
+        return self.has_temporal and self.naxis == 1
+
+    @property
+    def has_temporal(self):
+        return any(t // 1000 == 4 for t in self.wcs.axis_types)
+
+    @property
     def has_distortion(self):
         """
         Returns `True` if any distortion terms are present.
