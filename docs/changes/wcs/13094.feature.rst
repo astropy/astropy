@@ -1,0 +1,2 @@
+Add ``temporal`` properties for convenient access of/selection of/testing for
+the ``TIME`` axis introduced in WCSLIB version 7.8.
