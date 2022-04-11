@@ -1016,7 +1016,10 @@ class BaseOutputter:
     """Output table as a dict of column objects keyed on column name.  The
     table data are stored as plain python lists within the column objects.
     """
+    # User-defined converters which gets set in ascii.ui if a `converter` kwarg
+    # is supplied.
     converters = {}
+
     # Derived classes must define default_converters and __call__
 
     @staticmethod
@@ -1024,18 +1027,33 @@ class BaseOutputter:
         """Validate the format for the type converters and then copy those
         which are valid converters for this column (i.e. converter type is
         a subclass of col.type)"""
+        # Allow specifying a single converter instead of a list of converters.
+        # The input `converters` must be a ``type`` value that can init np.dtype.
+        try:
+            # Don't allow list-like things that dtype accepts
+            assert type(converters) is type
+            converters = [numpy.dtype(converters)]
+        except (AssertionError, TypeError):
+            pass
+
         converters_out = []
         try:
             for converter in converters:
-                converter_func, converter_type = converter
+                try:
+                    converter_func, converter_type = converter
+                except TypeError as err:
+                    if str(err).startswith('cannot unpack'):
+                        converter_func, converter_type = convert_numpy(converter)
+                    else:
+                        raise
                 if not issubclass(converter_type, NoType):
-                    raise ValueError()
+                    raise ValueError('converter_type must be a subclass of NoType')
                 if issubclass(converter_type, col.type):
                     converters_out.append((converter_func, converter_type))
 
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as err:
             raise ValueError('Error: invalid format for converters, see '
-                             'documentation\n{}'.format(converters))
+                             f'documentation\n{converters}: {err}')
         return converters_out
 
     def _convert_vals(self, cols):

@@ -153,8 +153,15 @@ Parameters for ``read()``
   the default behavior of the built-in `open` when no ``mode`` argument is
   provided.
 
-**converters** : ``dict`` of data type converters
-  See the `Converters`_ section for more information.
+**converters** : ``dict`` specifying output data types
+  See the :ref:`io-ascii-read-converters` section for examples. Each key in the
+  dictionary is a column name or else a name matching pattern including
+  wildcards. The value is one of:
+
+  - Python data type or numpy dtype such as ``int`` or ``np.float32``
+  - list of such types which is tried in order until conversion is successful
+  - list of converter tuples (this is not common, but see the
+    `~astropy.io.ascii.convert_numpy` function for an example).
 
 **names** : list of names corresponding to each data column
   Define the complete list of names for each data column. This will override
@@ -539,34 +546,25 @@ comments. Here is one example, where comments are of the form "# KEY = VALUE"::
 ..
   EXAMPLE END
 
-Converters
-==========
+.. _io-ascii-read-converters:
+
+Converters for Specifying Dtype
+===============================
 
 :mod:`astropy.io.ascii` converts the raw string values from the table into
 numeric data types by using converter functions such as the Python ``int`` and
-``float`` functions. For example, ``int("5.0")`` will fail while float("5.0")
-will succeed and return 5.0 as a Python float.
+``float`` functions or numpy dtype types such as ``np.float64``.
 
 The default converters are::
 
-    default_converters = [astropy.io.ascii.convert_numpy(numpy.int),
-                          astropy.io.ascii.convert_numpy(numpy.float),
-                          astropy.io.ascii.convert_numpy(numpy.str)]
-
-These take advantage of the :func:`~astropy.io.ascii.convert_numpy`
-function which returns a two-element tuple ``(converter_func, converter_type)``
-as described in the previous section. The type provided to
-:func:`~astropy.io.ascii.convert_numpy` must be a valid `NumPy type
-<https://numpy.org/doc/stable/user/basics.types.html>`_ such as
-``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
-``numpy.float``, ``numpy.float64``, or ``numpy.str``.
+    default_converters = [int, float, str]
 
 The default converters for each column can be overridden with the
 ``converters`` keyword::
 
   >>> import numpy as np
-  >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
-  ...               'col2': [ascii.convert_numpy(np.float32)]}
+  >>> converters = {'col1': np.uint,
+  ...               'col2': np.float32}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
 In addition to single column names you can use wildcards via `fnmatch` to
@@ -575,9 +573,50 @@ with a name starting with "col" to an unsigned integer while applying default
 converters to all other columns in the table::
 
   >>> import numpy as np
-  >>> converters = {'col*': [ascii.convert_numpy(np.uint)]}
+  >>> converters = {'col*': np.uint}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
+..
+  EXAMPLE START
+  Reading True / False values as boolean type
+
+The value in the converters ``dict`` can also be a list of types, in which case
+these will be tried in order. This allows for flexible type conversions. For
+example, imagine you get read the following table::
+
+  >>> txt = """\
+  ...   a   b    c
+  ... --- --- -----
+  ...   1 3.5  True
+  ...   2 4.0 False"""
+  >>> t = ascii.read(txt, format='fixed_width_two_line')
+
+By default the ``True`` and ``False`` values will be interpreted as strings.
+However, if you want those values to be read as booleans you can do the
+following::
+
+  >>> converters = {'*': [int, float, bool, str]}
+  >>> t = ascii.read(txt, format='fixed_width_two_line', converters=converters)
+  >>> print(t['c'].dtype)
+  bool
+
+..
+  EXAMPLE END
+
+Advanced usage
+--------------
+
+Internally type conversion uses the :func:`~astropy.io.ascii.convert_numpy`
+function which returns a two-element tuple ``(converter_func, converter_type)``.
+This two-element tuple can be used as the value in a ``converters`` dict.
+The type provided to
+:func:`~astropy.io.ascii.convert_numpy` must be a valid `NumPy type
+<https://numpy.org/doc/stable/user/basics.types.html>`_ such as
+``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
+``numpy.float``, ``numpy.float64``, or ``numpy.str``.
+
+It is also possible to directly pass an arbitary conversion function as the
+``converter_func`` element of the two-element tuple.
 
 .. _fortran_style_exponents:
 
