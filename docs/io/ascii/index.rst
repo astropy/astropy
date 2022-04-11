@@ -38,7 +38,7 @@ interface <pandas>` is an option to consider.
 
 .. note::
 
-    It is also possible and encouraged to use the functionality from
+    It is strongly encouraged to use the functionality from
     :mod:`astropy.io.ascii` through a higher level interface in the
     :ref:`Data Tables <astropy-table>` package. See :ref:`table_io` for more details.
 
@@ -82,6 +82,26 @@ by trying all of the `supported formats`_.
 If guessing the format does not work, as in the case for unusually formatted
 tables, you may need to give `astropy.io.ascii` additional hints about
 the format.
+
+To specify specific data types for one or more columns, use the ``converters``
+argument (see :ref:`io-ascii-read-converters` for details). For instance if the
+``obsid`` is actually a string identifier (instead of an integer) you can read
+the table with the code below. This also illustrates using the preferred
+:ref:`Table interface <table_io>` for reading::
+
+  >>> from astropy.table import Table
+  >>> sources = """
+  ... target observatory obsid
+  ... TW_Hya Chandra     22178
+  ... MP_Mus XMM         0406030101"""
+  >>> data = Table.read(sources, format='ascii', converters={'obsid': str})
+  >>> data
+  <Table length=2>
+  target observatory   obsid
+   str6      str7      str10
+  ------ ----------- ----------
+  TW_Hya     Chandra      22178
+  MP_Mus         XMM 0406030101
 
 Writing Tables
 --------------

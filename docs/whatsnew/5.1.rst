@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-5.1-cosmology`
 * :ref:`whatsnew-doppler-redshift-eq`
+* :ref:`whatsnew-io-ascii-converters`
 
 .. _whatsnew-5.1-cosmology:
 
@@ -49,6 +50,30 @@ checked with ``Cosmology.from_format.list_formats()``
 
 New :func:`astropy.units.equivalencies.doppler_redshift` is added to
 provide conversion between Doppler redshift and radial velocity.
+
+.. _whatsnew-io-ascii-converters:
+
+Specifying data types when reading ASCII tables
+===============================================
+
+The syntax for specifying the data type of columns when reading a table using
+:func:`astropy.io.ascii.read` has been simplified considerably. For instance,
+to force every column in a table to be read as a ``float`` you can now do:
+
+    >>> from astropy.table import Table
+    >>> t = Table.read('table.dat', format='ascii', converters={'*': float})  # doctest: +SKIP
+
+Previously, doing the same data type specification required using the
+:func:`~astropy.io.ascii.convert_numpy` function and providing the ``dict``
+value as a ``list`` even for only one element::
+
+    >>> from astropy.io.ascii import convert_numpy
+    >>> t = Table.read('table.dat', format='ascii',
+    ...                converters={'*': [convert_numpy(float)]})  # doctest: +SKIP
+
+Note that the previous syntax is still supported for backwards compatibility
+and there is no intent to remove this. See :ref:`io-ascii-read-converters` for
+details.
 
 Full change log
 ===============
