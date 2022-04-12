@@ -193,7 +193,8 @@ class ParameterTestMixin:
         class ExampleBase(cosmo_cls):
             param = Parameter()
 
-        class Example(ExampleBase): pass
+        class Example(ExampleBase):
+            pass
 
         assert Example.param is ExampleBase.param
         assert Example.__parameters__ == ExampleBase.__parameters__
@@ -298,7 +299,7 @@ class TestParameter(ParameterTestMixin):
         assert param._unit == u.m
         assert param._equivalencies == u.mass_energy()
         assert param._fmt == ""
-        assert param._derived == False
+        assert param._derived == np.False_
 
         # custom from set_name
         assert param._attr_name == "param"
@@ -388,10 +389,12 @@ class TestParameter(ParameterTestMixin):
             param.__class__.register_validator("default", None)
 
         # validator not None
+        def notnonefunc(x):
+            return x
+
         try:
-            func = lambda x: x
-            validator = param.__class__.register_validator("newvalidator", func)
-            assert validator is func
+            validator = param.__class__.register_validator("newvalidator", notnonefunc)
+            assert validator is notnonefunc
         finally:
             param.__class__._registry_validators.pop("newvalidator", None)
 
@@ -480,7 +483,8 @@ class TestParameter(ParameterTestMixin):
 
             param = Parameter(doc="example parameter")
 
-        class Example(ExampleBase): pass
+        class Example(ExampleBase):
+            pass
 
         assert Example.param is ExampleBase.param
 
@@ -488,7 +492,8 @@ class TestParameter(ParameterTestMixin):
         """Cosmology reinitializes all descriptors when a subclass is defined."""
 
         # define subclass to show param is same
-        class Example(cosmo_cls): pass
+        class Example(cosmo_cls):
+            pass
 
         assert Example.param is cosmo_cls.param
 

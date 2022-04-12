@@ -78,7 +78,7 @@ def test_varyde_lumdist_mathematica():
 # TODO! sort and refactor following tests.
 # overall systems tests stay here, specific tests go to new test suite.
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_units():
     """ Test if the right units are being returned"""
 
@@ -107,7 +107,7 @@ def test_units():
     assert cosmo.distmod(1.0).unit == u.mag
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distance_broadcast():
     """ Test array shape broadcasting for functions with single
     redshift inputs"""
@@ -213,7 +213,7 @@ class test_cos_subnu(flrw.FLRW):
         return self._w0 * np.ones_like(z)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_de_subclass():
     # This is the comparison object
     z = [0.2, 0.4, 0.6, 0.9]
@@ -239,7 +239,7 @@ def test_de_subclass():
     # Add neutrinos for efunc, inv_efunc
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_matter():
     # Test non-relativistic matter evolution
     tcos = flrw.FlatLambdaCDM(70.0, 0.3, Ob0=0.045)
@@ -259,7 +259,7 @@ def test_matter():
     assert allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_ocurv():
     # Test Ok evolution
     # Flat, boring case
@@ -282,7 +282,7 @@ def test_ocurv():
                     [1.0, 1.0, 1.0, 1.0], rtol=1e-5)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_ode():
     # Test Ode evolution, turn off neutrinos, cmb
     tcos = flrw.FlatLambdaCDM(70.0, 0.3, Tcmb0=0)
@@ -293,7 +293,7 @@ def test_ode():
                     rtol=1e-5)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_ogamma():
     """Tests the effects of changing the temperature of the CMB"""
 
@@ -360,7 +360,7 @@ def test_ogamma():
     assert allclose(cosmo.comoving_distance(z), targvals, rtol=1e-5)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_tcmb():
     cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=2.5)
     assert allclose(cosmo.Tcmb0, 2.5 * u.K)
@@ -374,7 +374,7 @@ def test_tcmb():
                     [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_tnu():
     cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
     assert allclose(cosmo.Tnu0, 2.1412975665108247 * u.K, rtol=1e-6)
@@ -388,7 +388,7 @@ def test_tnu():
     assert allclose(cosmo.Tnu(z), expected, rtol=1e-6)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_efunc_vs_invefunc_flrw():
     """ Test that efunc and inv_efunc give inverse values"""
     z0 = 0.5
@@ -406,20 +406,20 @@ def test_efunc_vs_invefunc_flrw():
     assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_kpc_methods():
     cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(cosmo.arcsec_per_kpc_comoving(3),
-                             0.0317179167 * u.arcsec / u.kpc)
+                    0.0317179167 * u.arcsec / u.kpc)
     assert allclose(cosmo.arcsec_per_kpc_proper(3),
-                             0.1268716668 * u.arcsec / u.kpc)
+                    0.1268716668 * u.arcsec / u.kpc)
     assert allclose(cosmo.kpc_comoving_per_arcmin(3),
-                             1891.6753126 * u.kpc / u.arcmin)
+                    1891.6753126 * u.kpc / u.arcmin)
     assert allclose(cosmo.kpc_proper_per_arcmin(3),
-                             472.918828 * u.kpc / u.arcmin)
+                    472.918828 * u.kpc / u.arcmin)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_comoving_volume():
 
     c_flat = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
@@ -437,14 +437,14 @@ def test_comoving_volume():
     # The wright calculator isn't very accurate, so we use a rather
     # modest precision
     assert allclose(c_flat.comoving_volume(redshifts), wright_flat,
-                             rtol=1e-2)
+                    rtol=1e-2)
     assert allclose(c_open.comoving_volume(redshifts),
-                             wright_open, rtol=1e-2)
+                    wright_open, rtol=1e-2)
     assert allclose(c_closed.comoving_volume(redshifts),
-                             wright_closed, rtol=1e-2)
+                    wright_closed, rtol=1e-2)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_differential_comoving_volume():
     from scipy.integrate import quad
 
@@ -463,9 +463,9 @@ def test_differential_comoving_volume():
                               358.992]) * u.Gpc**3
     # The wright calculator isn't very accurate, so we use a rather
     # modest precision.
-    ftemp = lambda x: c_flat.differential_comoving_volume(x).value
-    otemp = lambda x: c_open.differential_comoving_volume(x).value
-    ctemp = lambda x: c_closed.differential_comoving_volume(x).value
+    def ftemp(x): return c_flat.differential_comoving_volume(x).value
+    def otemp(x): return c_open.differential_comoving_volume(x).value
+    def ctemp(x): return c_closed.differential_comoving_volume(x).value
     # Multiply by solid_angle (4 * pi)
     assert allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0]
                               for redshift in redshifts]) * u.Mpc**3,
@@ -478,7 +478,7 @@ def test_differential_comoving_volume():
                     wright_closed, rtol=1e-2)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_flat_open_closed_icosmo():
     """ Test against the tabulated values generated from icosmo.org
     with three example cosmologies (flat, open and closed).
@@ -617,7 +617,7 @@ def test_flat_open_closed_icosmo():
     assert allclose(cosmo.luminosity_distance(redshifts), dl)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_integral():
     # Test integer vs. floating point inputs
     cosmo = flrw.LambdaCDM(H0=73.2, Om0=0.3, Ode0=0.50)
@@ -633,7 +633,7 @@ def test_integral():
                     cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_de_densityscale():
     cosmo = flrw.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
@@ -641,9 +641,9 @@ def test_de_densityscale():
                     [1.0, 1.0, 1.0, 1.0, 1.0])
     # Integer check
     assert allclose(cosmo.de_density_scale(3),
-                       cosmo.de_density_scale(3.0), rtol=1e-7)
+                    cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
-                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+                    cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
     cosmo = flrw.wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
     assert allclose(cosmo.de_density_scale(z),
@@ -668,9 +668,9 @@ def test_de_densityscale():
                     [0.9934201, 0.9767912, 0.897450,
                      0.622236, 0.4458753], rtol=1e-4)
     assert allclose(cosmo.de_density_scale(3),
-                       cosmo.de_density_scale(3.0), rtol=1e-7)
+                    cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
-                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+                    cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
     cosmo = flrw.wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9,
                          wa=0.2, zp=0.5)
@@ -683,7 +683,7 @@ def test_de_densityscale():
                     cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
@@ -705,7 +705,7 @@ def test_age():
     assert allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
@@ -716,7 +716,7 @@ def test_distmod():
                     [44.124857, 48.40167258] * u.mag)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_neg_distmod():
     # Cosmology with negative luminosity distances (perfectly okay,
     #  if obscure)
@@ -727,7 +727,7 @@ def test_neg_distmod():
                     [46.102167189, 48.355437790944] * u.mag)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_critical_density():
     from astropy.constants import codata2014
 
@@ -749,7 +749,7 @@ def test_critical_density():
         [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_comoving_distance_z1z2():
     tcos = flrw.LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
@@ -770,7 +770,7 @@ def test_comoving_distance_z1z2():
                     results)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age_in_special_cosmologies():
     """Check that age in de Sitter and Einstein-de Sitter Universes work.
 
@@ -789,7 +789,7 @@ def test_age_in_special_cosmologies():
     assert allclose(c_EdS.lookback_time(z=1), 4.213936442699092 * u.Gyr)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distance_in_special_cosmologies():
     """Check that de Sitter and Einstein-de Sitter Universes both work.
 
@@ -812,7 +812,7 @@ def test_distance_in_special_cosmologies():
     assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_comoving_transverse_distance_z1z2():
     tcos = flrw.FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
@@ -837,7 +837,7 @@ def test_comoving_transverse_distance_z1z2():
                1559.51679971,
                -643.21002593,
                1408.36365679,
-                 85.09286258) * u.Mpc
+               85.09286258) * u.Mpc
 
     assert allclose(tcos._comoving_transverse_distance_z1z2(z1, z2),
                     results)
@@ -876,7 +876,7 @@ def test_comoving_transverse_distance_z1z2():
                     results)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_angular_diameter_distance_z1z2():
     tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
@@ -921,7 +921,7 @@ def test_angular_diameter_distance_z1z2():
                     228.42914659246014 * u.Mpc)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_absorption_distance():
     tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.absorption_distance([1, 3]),
@@ -932,7 +932,7 @@ def test_absorption_distance():
     assert allclose(tcos.absorption_distance(3.), 7.98685853)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distances():
     # Test distance calculations for various special case
     #  scenarios (no relativistic species, normal, massive neutrinos)
@@ -964,12 +964,12 @@ def test_distances():
                     [3180.83488552, 5060.82054204, 6253.6721173,
                      7083.5374303] * u.Mpc, rtol=1e-4)
     cos = flrw.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3,
-                              m_nu=u.Quantity(0.0, u.eV))
+                             m_nu=u.Quantity(0.0, u.eV))
     assert allclose(cos.comoving_distance(z),
                     [3180.42662867, 5059.60529655, 6251.62766102,
                      7080.71698117] * u.Mpc, rtol=1e-4)
     cos = flrw.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3,
-                              m_nu=u.Quantity(10.0, u.eV))
+                             m_nu=u.Quantity(10.0, u.eV))
     assert allclose(cos.comoving_distance(z),
                     [2337.54183142, 3371.91131264, 3988.40711188,
                      4409.09346922] * u.Mpc, rtol=1e-4)
@@ -979,12 +979,12 @@ def test_distances():
                     [3216.8296894, 5117.2097601, 6317.05995437,
                      7149.68648536] * u.Mpc, rtol=1e-4)
     cos = flrw.FlatwCDM(75.0, 0.25, w0=-0.95, Tcmb0=3.0, Neff=3,
-                    m_nu=u.Quantity(0.0, u.eV))
+                        m_nu=u.Quantity(0.0, u.eV))
     assert allclose(cos.comoving_distance(z),
                     [3143.56537758, 5000.32196494, 6184.11444601,
                      7009.80166062] * u.Mpc, rtol=1e-4)
     cos = flrw.FlatwCDM(75.0, 0.25, w0=-0.9, Tcmb0=3.0, Neff=3,
-                    m_nu=u.Quantity(10.0, u.eV))
+                        m_nu=u.Quantity(10.0, u.eV))
     assert allclose(cos.comoving_distance(z),
                     [2337.76035371, 3372.1971387, 3988.71362289,
                      4409.40817174] * u.Mpc, rtol=1e-4)
@@ -1090,7 +1090,7 @@ def test_distances():
                      4901.96669755] * u.Mpc, rtol=1e-4)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_massivenu_density():
     # Testing neutrino density calculation
 
@@ -1117,8 +1117,7 @@ def test_massivenu_density():
                               m_nu=u.Quantity(0.25, u.eV))
     nurel_exp = nuprefac * tcos.Neff * np.array([429.924, 214.964, 143.312,
                                                  39.1005, 1.11086])
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
-                       rtol=5e-3)
+    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
 
     # For this one also test Onu directly
     onu_exp = np.array([0.01890217, 0.05244681, 0.0638236,
@@ -1144,9 +1143,8 @@ def test_massivenu_density():
     # Now a mixture of neutrino masses, with non-integer Neff
     tcos = flrw.FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3.04,
                               m_nu=u.Quantity([0.0, 0.01, 0.25], u.eV))
-    nurel_exp = nuprefac * tcos.Neff * \
-                np.array([149.386233, 74.87915, 50.0518,
-                          14.002403, 1.03702333])
+    nurel_exp = (nuprefac * tcos.Neff
+                 * np.array([149.386233, 74.87915, 50.0518, 14.002403, 1.03702333]))
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
                     rtol=5e-3)
     onu_exp = np.array([0.00584959, 0.01493142, 0.01772291,
@@ -1160,7 +1158,7 @@ def test_massivenu_density():
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_elliptic_comoving_distance_z1z2():
     """Regression test for #8388."""
     cosmo = flrw.LambdaCDM(70., 2.3, 0.05, Tcmb0=0)
@@ -1186,7 +1184,7 @@ ITERABLE_REDSHIFTS = [
 ]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 @pytest.mark.parametrize('cosmo', SPECIALIZED_COMOVING_DISTANCE_COSMOLOGIES)
 @pytest.mark.parametrize('z', ITERABLE_REDSHIFTS)
 def test_comoving_distance_iterable_argument(cosmo, z):
@@ -1199,7 +1197,7 @@ def test_comoving_distance_iterable_argument(cosmo, z):
                     cosmo._integral_comoving_distance_z1z2(0., z))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 @pytest.mark.parametrize('cosmo', SPECIALIZED_COMOVING_DISTANCE_COSMOLOGIES)
 def test_comoving_distance_broadcast(cosmo):
     """

@@ -94,7 +94,7 @@ class Test_ZatValue:
             z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=np.array([0, 4]))
 
         # now an object array of brackets
-        bracket=np.array([[0, 4], [0, 3, 4]], dtype=object)
+        bracket = np.array([[0, 4], [0, 3, 4]], dtype=object)
         assert allclose(
             z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=bracket),
             [3.1981206134773115, 3.1981206134773115], rtol=1e-6)

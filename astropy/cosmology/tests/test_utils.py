@@ -48,7 +48,8 @@ def test_vectorize_if_needed():
     `numpy.vectorize` which thoroughly tests the various inputs.
 
     """
-    func = lambda x: x ** 2
+    def func(x):
+        return x ** 2
 
     with pytest.warns(AstropyDeprecationWarning):
         # not vectorized
@@ -62,7 +63,7 @@ def test_vectorize_if_needed():
                           (1, inf),  # integer scalar should give float output
                           ([0.0, 1.0, 2.0, 3.0], (inf, inf, inf, inf)),
                           ([0, 1, 2, 3], (inf, inf, inf, inf)),  # integer list
-                         ])
+                          ])
 def test_inf_like(arr, expected):
     """
     Test :func:`astropy.cosmology.utils.inf_like`.

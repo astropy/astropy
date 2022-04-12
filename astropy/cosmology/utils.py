@@ -91,7 +91,8 @@ def vectorize_if_needed(f, *x, **vkw):
 
 @deprecated(
     since="5.0",
-    message="inf_like has been removed because it duplicates functionality provided by numpy.full_like()",
+    message=("inf_like has been removed because it duplicates "
+             "functionality provided by numpy.full_like()"),
     alternative="Use numpy.full_like(z, numpy.inf) instead for a target array 'z'"
 )
 def inf_like(x):

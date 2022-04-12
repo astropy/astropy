@@ -10,7 +10,7 @@ detailed usage examples and references.
 
 from . import core, flrw, funcs, parameter, units, utils  # noqa F401
 
-from . import io  # needed before 'realizations'  # isort: split
+from . import io  # needed before 'realizations'  # noqa: F401  # isort: split
 from . import realizations
 from .core import *  # noqa F401, F403
 from .flrw import *  # noqa F401, F403
