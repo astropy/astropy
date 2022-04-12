@@ -16,9 +16,9 @@ import astropy.units as u
 from astropy.convolution import convolve_models
 from astropy.modeling import models
 from astropy.modeling.bounding_box import CompoundBoundingBox, ModelBoundingBox
-from astropy.modeling.core import (SPECIAL_OPERATORS, CompoundModel, Model, _add_special_operator,
-                                   bind_bounding_box, bind_compound_bounding_box, custom_model,
-                                   fix_inputs)
+from astropy.modeling.core import (
+    SPECIAL_OPERATORS, CompoundModel, Model, _add_special_operator, bind_bounding_box,
+    bind_compound_bounding_box, custom_model, fix_inputs)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose

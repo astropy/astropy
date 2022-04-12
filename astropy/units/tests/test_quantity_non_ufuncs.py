@@ -8,11 +8,9 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units.quantity_helper.function_helpers import (ARRAY_FUNCTION_ENABLED,
-                                                            DISPATCHED_FUNCTIONS, FUNCTION_HELPERS,
-                                                            IGNORED_FUNCTIONS,
-                                                            SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS,
-                                                            UNSUPPORTED_FUNCTIONS)
+from astropy.units.quantity_helper.function_helpers import (
+    ARRAY_FUNCTION_ENABLED, DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, IGNORED_FUNCTIONS,
+    SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
 from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
 
 needs_array_function = pytest.mark.xfail(
