@@ -2,5 +2,5 @@
 
 """Configure the tests for :mod:`astropy.cosmology`."""
 
-from astropy.cosmology.tests.helper import clean_registry
-from astropy.tests.helper import pickle_protocol
+from astropy.cosmology.tests.helper import clean_registry  # noqa: F401, F403
+from astropy.tests.helper import pickle_protocol  # noqa: F401, F403
