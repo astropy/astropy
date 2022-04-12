@@ -11,8 +11,8 @@ from numpy.testing import assert_allclose
 from astropy.modeling import custom_model, models
 from astropy.modeling.core import ModelDefinitionError
 from astropy.modeling.models import Mapping
-from astropy.modeling.separable import (_arith_oper, _cdot, _coord_matrix, _cstack, is_separable,
-                                        separability_matrix)
+from astropy.modeling.separable import (
+    _arith_oper, _cdot, _coord_matrix, _cstack, is_separable, separability_matrix)
 
 sh1 = models.Shift(1, name='shift1')
 sh2 = models.Shift(2, name='sh2')

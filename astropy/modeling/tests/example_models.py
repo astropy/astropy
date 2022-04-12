@@ -52,18 +52,16 @@ Explanation of keywords of the dictionaries:
 
 import numpy as np
 
-from astropy.modeling.functional_models import (AiryDisk2D, ArcCosine1D, ArcSine1D, ArcTangent1D,
-                                                Box1D, Box2D, Const1D, Const2D, Cosine1D, Disk2D,
-                                                Exponential1D, Gaussian1D, Gaussian2D,
-                                                KingProjectedAnalytic1D, Linear1D, Logarithmic1D,
-                                                Lorentz1D, Moffat1D, Moffat2D, Planar2D,
-                                                RickerWavelet1D, RickerWavelet2D, Ring2D, Sersic1D,
-                                                Sersic2D, Sine1D, Tangent1D, Trapezoid1D,
-                                                TrapezoidDisk2D, Voigt1D)
+from astropy.modeling.functional_models import (
+    AiryDisk2D, ArcCosine1D, ArcSine1D, ArcTangent1D, Box1D, Box2D, Const1D, Const2D, Cosine1D,
+    Disk2D, Exponential1D, Gaussian1D, Gaussian2D, KingProjectedAnalytic1D, Linear1D, Logarithmic1D,
+    Lorentz1D, Moffat1D, Moffat2D, Planar2D, RickerWavelet1D, RickerWavelet2D, Ring2D, Sersic1D,
+    Sersic2D, Sine1D, Tangent1D, Trapezoid1D, TrapezoidDisk2D, Voigt1D)
 from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
-from astropy.modeling.powerlaws import (BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
-                                        LogParabola1D, PowerLaw1D, SmoothlyBrokenPowerLaw1D)
+from astropy.modeling.powerlaws import (
+    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D,
+    SmoothlyBrokenPowerLaw1D)
 
 # 1D Models
 models_1D = {

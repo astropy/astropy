@@ -10,8 +10,8 @@ from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.units.structured import StructuredUnit
 
 from . import UFUNC_HELPERS
-from .helpers import (_d, get_converter, helper_invariant, helper_multiplication,
-                      helper_twoarg_invariant)
+from .helpers import (
+    _d, get_converter, helper_invariant, helper_multiplication, helper_twoarg_invariant)
 
 erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',

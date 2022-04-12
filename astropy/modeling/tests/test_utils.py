@@ -5,8 +5,8 @@ from inspect import Parameter
 import numpy as np
 import pytest
 
-from astropy.modeling.utils import (_SpecialOperatorsDict, _validate_domain_window,
-                                    get_inputs_and_params, poly_map_domain)
+from astropy.modeling.utils import (
+    _SpecialOperatorsDict, _validate_domain_window, get_inputs_and_params, poly_map_domain)
 
 
 def test_poly_map_domain():
