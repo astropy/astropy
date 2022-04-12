@@ -1648,6 +1648,22 @@ class Header:
                      'TFIELDS'):
             self.remove(name, ignore_missing=True)
 
+    @property
+    def data_size(self):
+        """
+        Return the size (in bytes) of the data portion following the `Header`.
+        """
+        return _hdr_data_size(self)
+
+    @property
+    def data_size_padded(self):
+        """
+        Return the size (in bytes) of the data portion following the `Header`
+        including padding.
+        """
+        size = self.data_size
+        return size + _pad_length(size)
+
     def _update(self, card):
         """
         The real update code.  If keyword already exists, its value and/or
@@ -2044,6 +2060,22 @@ class _BasicHeader(collections.abc.Mapping):
     def index(self, keyword):
         return self._keys.index(keyword)
 
+    @property
+    def data_size(self):
+        """
+        Return the size (in bytes) of the data portion following the `Header`.
+        """
+        return _hdr_data_size(self)
+
+    @property
+    def data_size_padded(self):
+        """
+        Return the size (in bytes) of the data portion following the `Header`
+        including padding.
+        """
+        size = self.data_size
+        return size + _pad_length(size)
+
     @classmethod
     def fromfile(cls, fileobj):
         """The main method to parse a FITS header from a file. The parsing is
@@ -2276,3 +2308,18 @@ def _check_padding(header_str, block_size, is_eof, check_block_size=True):
         actual_len = len(header_str) - block_size + BLOCK_SIZE
         # TODO: Pass this error to validation framework
         raise ValueError(f'Header size is not multiple of {BLOCK_SIZE}: {actual_len}')
+
+
+def _hdr_data_size(header):
+    """Calculate the data size (in bytes) following the given `Header`"""
+    size = 0
+    naxis = header.get('NAXIS', 0)
+    if naxis > 0:
+        size = 1
+        for idx in range(naxis):
+            size = size * header['NAXIS' + str(idx + 1)]
+        bitpix = header['BITPIX']
+        gcount = header.get('GCOUNT', 1)
+        pcount = header.get('PCOUNT', 0)
+        size = abs(bitpix) * gcount * (pcount + size) // 8
+    return size
