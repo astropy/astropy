@@ -1,0 +1,4 @@
+``Quantity.to_string()`` and ``FunctionUnitBase.to_string()`` now accept the
+``'latex_inline'`` unit format. The output of ``StructuredUnit.to_string()``
+when called with ``format='latex_inline'`` is now more consistent with the
+output when called with ``format='latex'``.

@@ -187,6 +187,13 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert ldbody_unit == StructuredUnit(
             (u.Msun, Unit(u.rad**2 / 2), (u.AU, u.AU / u.day)))
 
+    def test_to_string(self):
+        su = StructuredUnit((u.km, u.km/u.s))
+        latex_str = r'$(\mathrm{km}, \mathrm{\frac{km}{s}})$'
+        assert su.to_string(format='latex') == latex_str
+        latex_str = r'$(\mathrm{km}, \mathrm{km\,s^{-1}})$'
+        assert su.to_string(format='latex_inline') == latex_str
+
     def test_str(self):
         su = StructuredUnit(((u.km, u.km/u.s), u.yr))
         assert str(su) == '((km, km / s), yr)'

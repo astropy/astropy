@@ -356,15 +356,15 @@ class FunctionUnitBase(metaclass=ABCMeta):
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-        if format not in ('generic', 'unscaled', 'latex'):
-            raise ValueError("Function units cannot be written in {} format. "
-                             "Only 'generic', 'unscaled' and 'latex' are "
-                             "supported.".format(format))
+        if format not in ('generic', 'unscaled', 'latex', 'latex_inline'):
+            raise ValueError(f"Function units cannot be written in {format} "
+                             "format. Only 'generic', 'unscaled', 'latex' and "
+                             "'latex_inline' are supported.")
         self_str = self.function_unit.to_string(format)
         pu_str = self.physical_unit.to_string(format)
         if pu_str == '':
             pu_str = '1'
-        if format == 'latex':
+        if format.startswith('latex'):
             self_str += r'$\mathrm{{\left( {0} \right)}}$'.format(
                 pu_str[1:-1])   # need to strip leading and trailing "$"
         else:
