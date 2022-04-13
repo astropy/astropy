@@ -1,0 +1,1 @@
+Add specific ``clear()`` function for ``CompImageHDU`` class.
