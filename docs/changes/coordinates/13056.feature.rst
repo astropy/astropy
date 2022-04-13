@@ -1,0 +1,1 @@
+``Angle.to_string()`` now accepts the ``'latex_inline'`` unit format.

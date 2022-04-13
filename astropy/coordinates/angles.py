@@ -252,6 +252,9 @@ class Angle(u.SpecificTypeQuantity):
 
             - 'latex': Return a LaTeX-formatted string
 
+            - 'latex_inline': Return a LaTeX-formatted string which is the
+              same as with ``format='latex'`` for |Angle| instances
+
             - 'unicode': Return a string containing non-ASCII unicode
               characters, such as the degree symbol
 
@@ -278,6 +281,9 @@ class Angle(u.SpecificTypeQuantity):
                 u.degree: '°′″',
                 u.hourangle: 'ʰᵐˢ'}
         }
+        # 'latex_inline' provides no functionality beyond what 'latex' offers,
+        # but it should be implemented to avoid ValueErrors in user code.
+        separators['latex_inline'] = separators['latex']
 
         if sep == 'fromunit':
             if format not in separators:
@@ -328,7 +334,7 @@ class Angle(u.SpecificTypeQuantity):
             elif sep == 'fromunit':
                 values = self.to_value(unit)
                 unit_string = unit.to_string(format=format)
-                if format == 'latex':
+                if format == 'latex' or format == 'latex_inline':
                     unit_string = unit_string[1:-1]
 
                 if precision is not None:
@@ -355,7 +361,7 @@ class Angle(u.SpecificTypeQuantity):
                 s = func(float(val))
                 if alwayssign and not s.startswith('-'):
                     s = '+' + s
-                if format == 'latex':
+                if format == 'latex' or format == 'latex_inline':
                     s = f'${s}$'
                 return s
             s = f"{val}"
