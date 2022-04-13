@@ -3,16 +3,15 @@
 """
 Test Structured units and quantities specifically with the ERFA ufuncs.
 """
-import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
 import erfa
+import numpy as np
+import pytest
 from erfa import ufunc as erfa_ufunc
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.introspection import minversion
-
 
 ERFA_LE_2_0_0 = not minversion(erfa, '2.0.0.1')
 

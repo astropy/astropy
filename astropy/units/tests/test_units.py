@@ -4,12 +4,12 @@
 import pickle
 from fractions import Fraction
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy import units as u
 from astropy import constants as c
+from astropy import units as u
 from astropy.units import utils
 
 
@@ -256,8 +256,8 @@ def test_decompose_bases():
     From issue #576
     """
 
-    from astropy.units import cgs
     from astropy.constants import e
+    from astropy.units import cgs
 
     d = e.esu.unit.decompose(bases=cgs.bases)
     assert d._bases == [u.cm, u.g, u.s]

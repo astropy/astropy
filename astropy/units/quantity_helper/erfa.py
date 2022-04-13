@@ -3,14 +3,15 @@
 """Quantity helpers for the ERFA ufuncs."""
 # Tests for these are in coordinates, not in units.
 
-from erfa import ufunc as erfa_ufunc, dt_pv, dt_eraLDBODY, dt_eraASTROM
+from erfa import dt_eraASTROM, dt_eraLDBODY, dt_pv
+from erfa import ufunc as erfa_ufunc
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.units.structured import StructuredUnit
-from . import UFUNC_HELPERS
-from .helpers import (get_converter, helper_invariant, helper_multiplication,
-                      helper_twoarg_invariant, _d)
 
+from . import UFUNC_HELPERS
+from .helpers import (
+    _d, get_converter, helper_invariant, helper_multiplication, helper_twoarg_invariant)
 
 erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',
@@ -143,7 +144,7 @@ def helper_pvm(f, unit1):
 
 def helper_pvstar(f, unit1):
     from astropy.units.astrophys import AU
-    from astropy.units.si import km, s, radian, day, year, arcsec
+    from astropy.units.si import arcsec, day, km, radian, s, year
 
     return [get_converter(unit1, StructuredUnit((AU, AU/day)))], (
         radian, radian, radian / year, radian / year, arcsec, km / s, None)
@@ -151,8 +152,8 @@ def helper_pvstar(f, unit1):
 
 def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd,
                   unit_px, unit_rv):
-    from astropy.units.si import km, s, day, year, radian, arcsec
     from astropy.units.astrophys import AU
+    from astropy.units.si import arcsec, day, km, radian, s, year
 
     return [get_converter(unit_ra, radian),
             get_converter(unit_dec, radian),
@@ -164,7 +165,7 @@ def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd,
 
 def helper_pvtob(f, unit_elong, unit_phi, unit_hm,
                  unit_xp, unit_yp, unit_sp, unit_theta):
-    from astropy.units.si import m, s, radian
+    from astropy.units.si import m, radian, s
 
     return [get_converter(unit_elong, radian),
             get_converter(unit_phi, radian),
@@ -192,16 +193,16 @@ def helper_s2xpv(f, unit1, unit2, unit_pv):
 
 
 def ldbody_unit():
+    from astropy.units.astrophys import AU, Msun
     from astropy.units.si import day, radian
-    from astropy.units.astrophys import Msun, AU
 
     return StructuredUnit((Msun, radian, (AU, AU/day)),
                           erfa_ufunc.dt_eraLDBODY)
 
 
 def astrom_unit():
-    from astropy.units.si import rad, year
     from astropy.units.astrophys import AU
+    from astropy.units.si import rad, year
     one = rel2c = dimensionless_unscaled
 
     return StructuredUnit((year, AU, one, AU, rel2c, one, one, rad, rad, rad, rad,
@@ -231,7 +232,7 @@ def helper_aper(f, unit_theta, unit_astrom):
 
 def helper_apio(f, unit_sp, unit_theta, unit_elong, unit_phi, unit_hm,
                 unit_xp, unit_yp, unit_refa, unit_refb):
-    from astropy.units.si import radian, m
+    from astropy.units.si import m, radian
     return [get_converter(unit_sp, radian),
             get_converter(unit_theta, radian),
             get_converter(unit_elong, radian),
@@ -244,7 +245,7 @@ def helper_apio(f, unit_sp, unit_theta, unit_elong, unit_phi, unit_hm,
 
 
 def helper_atciq(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom):
-    from astropy.units.si import radian, arcsec, year, km, s
+    from astropy.units.si import arcsec, km, radian, s, year
     return [get_converter(unit_rc, radian),
             get_converter(unit_dc, radian),
             get_converter(unit_pr, radian / year),
@@ -256,7 +257,7 @@ def helper_atciq(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_a
 
 def helper_atciqn(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom,
                   unit_b):
-    from astropy.units.si import radian, arcsec, year, km, s
+    from astropy.units.si import arcsec, km, radian, s, year
     return [get_converter(unit_rc, radian),
             get_converter(unit_dc, radian),
             get_converter(unit_pr, radian / year),

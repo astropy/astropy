@@ -6,8 +6,8 @@ import sys
 import typing
 
 # THIRD PARTY
-import pytest
 import numpy as np
+import pytest
 
 # LOCAL
 from astropy import units as u

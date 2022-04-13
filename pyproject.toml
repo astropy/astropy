@@ -38,7 +38,6 @@ write_to = "astropy/_version.py"
         "astropy/time/*",
         "astropy/timeseries/*",
         "astropy/uncertainty/*",
-        "astropy/units/*",
         "astropy/utils/*",
         "astropy/visualization/*",
         "astropy/wcs/*",
@@ -48,7 +47,7 @@ write_to = "astropy/_version.py"
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy"]
-    multi_line_output = 0
+    multi_line_output = 4
     group_by_package = true
     indented_import_headings = false
 
