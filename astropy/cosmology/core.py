@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import abc
 import inspect
+from typing import Optional, Set, Type, TypeVar
 
 import numpy as np
 
@@ -23,8 +26,18 @@ __all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 
 __doctest_requires__ = {}  # needed until __getattr__ removed
 
+
+##############################################################################
+# Parameters
+
 # registry of cosmology classes with {key=name : value=class}
 _COSMOLOGY_CLASSES = dict()
+
+# typing
+_CosmoT = TypeVar("_CosmoT", bound="Cosmology")
+_FlatCosmoT = TypeVar("_FlatCosmoT", bound="FlatCosmologyMixin")
+
+##############################################################################
 
 
 class CosmologyError(Exception):
@@ -375,10 +388,73 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
+    def __init_subclass__(cls: Type[_FlatCosmoT]) -> None:
+        super().__init_subclass__()
+
+        # Determine the non-flat class.
+        # This will raise a TypeError if the MRO is inconsistent.
+        cls._nonflat_cls_
+
+    # ===============================================================
+
+    @classmethod  # TODO! make metaclass-method
+    def _get_nonflat_cls(cls, kls: Optional[Type[_CosmoT]]=None) -> Optional[Type[Cosmology]]:
+        """Find the corresponding non-flat class.
+
+        The class' bases are searched recursively.
+
+        Parameters
+        ----------
+        kls : :class:`astropy.cosmology.Cosmology` class or None, optional
+            If `None` (default) this class is searched instead of `kls`.
+
+        Raises
+        ------
+        TypeError
+            If more than one non-flat class is found at the same level of the
+            inheritance. This is similar to the error normally raised by Python
+            for an inconsistent method resolution order.
+
+        Returns
+        -------
+        type
+            A :class:`Cosmology` subclass this class inherits from that is not a
+            :class:`FlatCosmologyMixin` subclass.
+        """
+        _kls = cls if kls is None else kls
+
+        # Find non-flat classes
+        nonflat: Set[Type[Cosmology]]
+        nonflat = {b for b in _kls.__bases__
+                   if issubclass(b, Cosmology) and not issubclass(b, FlatCosmologyMixin)}
+
+        if not nonflat:  # e.g. subclassing FlatLambdaCDM
+            nonflat = {k for b in _kls.__bases__ if (k := cls._get_nonflat_cls(b)) is not None}
+
+        if len(nonflat) > 1:
+            raise TypeError(
+                f"cannot create a consistent non-flat class resolution order "
+                f"for {_kls} with bases {nonflat} at the same inheritance level."
+            )
+        if not nonflat:  # e.g. FlatFLRWMixin(FlatCosmologyMixin)
+            return None
+
+        return nonflat.pop()
+
+    _nonflat_cls_ = classproperty(_get_nonflat_cls, lazy=True,
+                                  doc="Return the corresponding non-flat class.")
+
+    # ===============================================================
+
     @property
     def is_flat(self):
         """Return `True`, the cosmology is flat."""
         return True
+
+    @property
+    @abc.abstractmethod
+    def equivalent_nonflat(self: _FlatCosmoT) -> _CosmoT:
+        """Return the equivalent non-flat-class instance of this cosmology."""
 
 
 # -----------------------------------------------------------------------------

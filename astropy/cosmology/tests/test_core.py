@@ -17,7 +17,7 @@ import pytest
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology
+from astropy.cosmology import Cosmology, CosmologyError, FlatCosmologyMixin
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
@@ -400,12 +400,31 @@ class FlatCosmologyMixinTest:
             ...
     """
 
+    def test_nonflat_class_(self, cosmo_cls, cosmo):
+        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.nonflat_cls`.
+        """
+        # Test it's a method on the class
+        assert issubclass(cosmo_cls, cosmo_cls._nonflat_cls_)
+
+        # It also works from the instance. # TODO! as a "metaclassmethod"
+        assert issubclass(cosmo_cls, cosmo._nonflat_cls_)
+
+        # Maybe not the most robust test, but so far all Flat classes have the
+        # name of their parent class.
+        assert cosmo._nonflat_cls_.__name__ in cosmo_cls.__name__
+
     def test_is_flat(self, cosmo_cls, cosmo):
         """Test property ``is_flat``."""
         super().test_is_flat(cosmo_cls, cosmo)
 
         # it's always True
         assert cosmo.is_flat is True
+
+    def test_equivalent_nonflat(self, cosmo):
+        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.equivalent_nonflat`.
+        """
+        assert cosmo.equivalent_nonflat.is_equivalent(cosmo)
+        assert cosmo.is_equivalent(cosmo.equivalent_nonflat)
 
     def test_is_equivalent(self, cosmo):
         """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.
@@ -416,6 +435,60 @@ class FlatCosmologyMixinTest:
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
         """
         CosmologySubclassTest.test_is_equivalent(self, cosmo)
+
+    # ===============================================================
+    # Usage Tests
+
+    def test_subclassing(self, cosmo_cls):
+        """Test when subclassing a flat cosmology."""
+
+        class SubClass1(cosmo_cls):
+            pass
+
+        # The classes have the same non-flat parent class
+        assert SubClass1._nonflat_cls_ is cosmo_cls._nonflat_cls_
+
+        # A more complex example is when Mixin classes are used.
+        class Mixin:
+            pass
+
+        class SubClass2(Mixin, cosmo_cls):
+            pass
+
+        # The classes have the same non-flat parent class
+        assert SubClass2._nonflat_cls_ is cosmo_cls._nonflat_cls_
+
+        # The order of the Mixin should not matter
+        class SubClass3(cosmo_cls, Mixin):
+            pass
+
+        # The classes have the same non-flat parent class
+        assert SubClass3._nonflat_cls_ is cosmo_cls._nonflat_cls_
+
+
+def test_nonflat_cls_multiple_nonflat_inheritance():
+    """
+    Test :meth:`astropy.cosmology.core.FlatCosmologyMixin._nonflat_cls_`
+    when there's more than one non-flat class in the inheritance.
+    """
+    # Define a non-operable minimal subclass of Cosmology.
+    class SubCosmology2(Cosmology):
+
+        def __init__(self, H0, Tcmb0=0*u.K, m_nu=0*u.eV, name=None, meta=None):
+            super().__init__(name=name, meta=meta)
+
+        @property
+        def is_flat(self):
+            return False
+
+    # Now make an ambiguous flat cosmology from the two SubCosmologies
+    with pytest.raises(TypeError, match="cannot create a consistent non-flat class"):
+
+        class FlatSubCosmology(FlatCosmologyMixin, SubCosmology, SubCosmology2):
+
+            @property
+            def equivalent_nonflat(self):
+                pass
 
 
 # -----------------------------------------------------------------------------

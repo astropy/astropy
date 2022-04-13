@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
 import warnings
 from abc import abstractmethod
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
+from typing import TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -14,6 +17,7 @@ from astropy.cosmology.core import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.parameter import Parameter, _validate_non_negative, _validate_with_unit
 from astropy.cosmology.utils import aszarr, vectorize_redshift_method
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
@@ -29,6 +33,9 @@ __all__ = ["FLRW", "FlatFLRWMixin"]
 __doctest_requires__ = {'*': ['scipy']}
 
 
+##############################################################################
+# Parameters
+
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
 _H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
@@ -42,6 +49,13 @@ _radian_in_arcmin = (1 * u.rad).to(u.arcmin)
 _a_B_c2 = (4 * const.sigma_sb / const.c ** 3).cgs.value
 # Boltzmann constant in eV / K
 _kB_evK = const.k_B.to(u.eV / u.K)
+
+
+# typing
+_FLRWT = TypeVar("_FLRWT", bound="FLRW")
+_FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
+
+##############################################################################
 
 
 class FLRW(Cosmology):
@@ -1421,6 +1435,20 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # Do some twiddling after the fact to get flatness
         self._Ok0 = 0.0
         self._Ode0 = 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
+
+    @lazyproperty
+    def equivalent_nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
+        # Create BoundArgument to handle args versus kwargs.
+        # This also handles all errors from mismatched arguments
+        ba = self._nonflat_cls_._init_signature.bind_partial(**self._init_arguments,
+                                                             Ode0=self.Ode0)
+        # Make new instance, respecting args vs kwargs
+        inst = self._nonflat_cls_(*ba.args, **ba.kwargs)
+        # Because of machine precision, make sure parameters exactly match
+        for n in inst.__all_parameters__ + ("Ok0", ):
+            setattr(inst, "_" + n, getattr(self, n))
+
+        return inst
 
     @property
     def Otot0(self):
