@@ -16,7 +16,7 @@ FULLQUALNAME_SUBSTITUTIONS = {
     "astropy.cosmology.flrw.w0cdm.FlatwCDM": "astropy.cosmology.flrw.FlatwCDM",
     "astropy.cosmology.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.flrw.wpwaCDM",
 }
-"""Substitutions mapping the actual qualitative name to its preferred value."""
+"""Substitutions mapping the actual qualified name to its preferred value."""
 
 
 def convert_parameter_to_column(parameter, value, meta=None):
