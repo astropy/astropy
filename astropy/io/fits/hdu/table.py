@@ -537,27 +537,28 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """
 
         errs = super()._verify(option=option)
-        if not (isinstance(self._header[0], str) and
-                self._header[0].rstrip() == self._extension):
+        if (len(self._header) > 1):
+            if not (isinstance(self._header[0], str) and
+                    self._header[0].rstrip() == self._extension):
 
-            err_text = 'The XTENSION keyword must match the HDU type.'
-            fix_text = f'Converted the XTENSION keyword to {self._extension}.'
+                err_text = 'The XTENSION keyword must match the HDU type.'
+                fix_text = f'Converted the XTENSION keyword to {self._extension}.'
 
-            def fix(header=self._header):
-                header[0] = (self._extension, self._ext_comment)
+                def fix(header=self._header):
+                    header[0] = (self._extension, self._ext_comment)
 
-            errs.append(self.run_option(option, err_text=err_text,
-                                        fix_text=fix_text, fix=fix))
+                errs.append(self.run_option(option, err_text=err_text,
+                                            fix_text=fix_text, fix=fix))
 
-        self.req_cards('NAXIS', None, lambda v: (v == 2), 2, option, errs)
-        self.req_cards('BITPIX', None, lambda v: (v == 8), 8, option, errs)
-        self.req_cards('TFIELDS', 7,
-                       lambda v: (_is_int(v) and v >= 0 and v <= 999), 0,
-                       option, errs)
-        tfields = self._header['TFIELDS']
-        for idx in range(tfields):
-            self.req_cards('TFORM' + str(idx + 1), None, None, None, option,
-                           errs)
+            self.req_cards('NAXIS', None, lambda v: (v == 2), 2, option, errs)
+            self.req_cards('BITPIX', None, lambda v: (v == 8), 8, option, errs)
+            self.req_cards('TFIELDS', 7,
+                           lambda v: (_is_int(v) and v >= 0 and v <= 999), 0,
+                           option, errs)
+            tfields = self._header['TFIELDS']
+            for idx in range(tfields):
+                self.req_cards('TFORM' + str(idx + 1), None, None, None, option,
+                               errs)
         return errs
 
     def _summary(self):

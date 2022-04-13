@@ -7,6 +7,7 @@ import math
 import re
 import time
 import warnings
+import collections
 from contextlib import suppress
 
 import numpy as np
@@ -373,6 +374,16 @@ class CompImageHeader(Header):
                                                  repeat))
 
         return idx
+
+    def clear(self):
+        """
+        Remove all cards from the header.
+        """
+
+        self._table_header._cards = []
+        self._table_header._keyword_indices = collections.defaultdict(list)
+        self._table_header._rvkc_indices = collections.defaultdict(list)
+        super().clear()
 
 
 # TODO: Fix this class so that it doesn't actually inherit from BinTableHDU,
