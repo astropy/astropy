@@ -1,19 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import itertools
 import inspect
+import itertools
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
-from numpy.testing import assert_array_equal
-
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
-    ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
-    FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, TBD_FUNCTIONS)
+    ARRAY_FUNCTION_ENABLED, DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, IGNORED_FUNCTIONS,
+    SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
 from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
-
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED,

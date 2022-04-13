@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numbers
+
 import numpy as np
 
-from astropy.units import (dimensionless_unscaled, photometric, Unit,
-                           CompositeUnit, UnitsError, UnitTypeError,
-                           UnitConversionError)
+from astropy.units import (
+    CompositeUnit, Unit, UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
+    photometric)
 
-from .core import FunctionUnitBase, FunctionQuantity
-from .units import dex, dB, mag
-
+from .core import FunctionQuantity, FunctionUnitBase
+from .units import dB, dex, mag
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
            'LogQuantity', 'Magnitude', 'Decibel', 'Dex',

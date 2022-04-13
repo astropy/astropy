@@ -11,24 +11,19 @@
 # You can then commit the changes to the re-generated _lextab.py and
 # _parsetab.py files.
 
-"""
-Handles the CDS string format for units
-"""
-
+"""Handles the CDS string format for units."""
 
 import operator
 import os
 import re
 
-
-from .base import Base
-from . import core, utils
 from astropy.units.utils import is_effectively_unity
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
+from . import core, utils
+from .base import Base
 
-# TODO: Support logarithmic units using bracketed syntax
 
 class CDS(Base):
     """
@@ -69,8 +64,8 @@ class CDS(Base):
 
     @staticmethod
     def _generate_unit_names():
-        from astropy.units import cds
         from astropy import units as u
+        from astropy.units import cds
 
         names = {}
 
@@ -160,8 +155,8 @@ class CDS(Base):
                  | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET
                  | factor
             '''
-            from astropy.units.core import Unit
             from astropy.units import dex
+            from astropy.units.core import Unit
             if len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
             elif len(p) == 4:

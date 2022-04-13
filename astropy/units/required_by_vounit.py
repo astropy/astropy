@@ -16,9 +16,8 @@ _ns = globals()
 
 def _initialize_module():
     # Local imports to avoid polluting top-level namespace
-    from . import cgs
-    from . import astrophys
-    from .core import def_unit, _add_prefixes
+    from . import astrophys, cgs
+    from .core import _add_prefixes, def_unit
 
     _add_prefixes(astrophys.solMass, namespace=_ns, prefixes=True)
     _add_prefixes(astrophys.solRad, namespace=_ns, prefixes=True)
@@ -33,8 +32,9 @@ _initialize_module()
 
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
-from .utils import (generate_unit_summary as _generate_unit_summary,
-                    generate_prefixonly_unit_summary as _generate_prefixonly_unit_summary)
+from .utils import generate_prefixonly_unit_summary as _generate_prefixonly_unit_summary
+from .utils import generate_unit_summary as _generate_unit_summary
+
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
     __doc__ += _generate_prefixonly_unit_summary(globals())
@@ -48,9 +48,10 @@ def _enable():
     idiom.
     """
     # Local import to avoid cyclical import
-    from .core import add_enabled_units
     # Local import to avoid polluting namespace
     import inspect
+
+    from .core import add_enabled_units
     return add_enabled_units(inspect.getmodule(_enable))
 
 

@@ -1,24 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """A set of standard astronomical equivalencies."""
 
+import warnings
 from collections import UserList
 
 # THIRD-PARTY
 import numpy as np
-import warnings
 
 # LOCAL
 from astropy.constants import si as _si
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import isiterable
-from . import si
-from . import cgs
-from . import astrophys
-from . import misc
-from .function import units as function_units
-from . import dimensionless_unscaled
-from .core import UnitsError, Unit
 
+from . import astrophys, cgs, dimensionless_unscaled, misc, si
+from .core import Unit, UnitsError
+from .function import units as function_units
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'doppler_redshift', 'mass_energy',
@@ -825,6 +821,7 @@ def plate_scale(platescale):
 def __getattr__(attr):
     if attr == "with_H0":
         import warnings
+
         from astropy.cosmology.units import with_H0
         from astropy.utils.exceptions import AstropyDeprecationWarning
 

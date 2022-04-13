@@ -12,11 +12,11 @@ from fractions import Fraction
 
 import numpy as np
 
-from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 from astropy.units.core import (
-    UnitsError, UnitConversionError, UnitTypeError,
-    dimensionless_unscaled, get_current_unit_registry,
-    unit_scale_converter)
+    UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
+    get_current_unit_registry, unit_scale_converter)
+
+from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
 
 def _d(unit):

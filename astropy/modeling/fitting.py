@@ -36,8 +36,8 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
-from .spline import (SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter,
-                     SplineSplrepFitter)
+from .spline import (
+    SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
 from .statistic import leastsquare
 from .utils import _combine_equivalency_dict, poly_map_domain
 

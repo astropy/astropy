@@ -5,14 +5,14 @@ Test Structured units and quantities.
 """
 import copy
 
-import pytest
 import numpy as np
 import numpy.lib.recfunctions as rfn
+import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol
+from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
 from astropy.utils.compat import NUMPY_LT_1_21_1
 from astropy.utils.masked import Masked
 

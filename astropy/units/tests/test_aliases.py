@@ -5,7 +5,6 @@ import pytest
 
 import astropy.units as u
 
-
 trials = [
     ({"Angstroms": u.AA}, "Angstroms", u.AA),
     ({"counts": u.count}, "counts/s", u.count / u.s),

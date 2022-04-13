@@ -11,7 +11,6 @@ from fractions import Fraction
 from . import si
 from .core import UnitBase, def_unit
 
-
 _ns = globals()
 
 def_unit(['cm', 'centimeter'], si.cm, namespace=_ns, prefixes=False)
@@ -133,5 +132,6 @@ del Fraction
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
+
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
