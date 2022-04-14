@@ -1,0 +1,3 @@
+A new set of comparison functions have been added -- ``cosmology_equal``,
+``cosmology_not_equal`` and ``cosmology_equivalent`` -- that mirror their
+numpy counterparts but allow for the arguments to be converted to a Cosmology.

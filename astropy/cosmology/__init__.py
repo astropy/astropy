@@ -12,6 +12,7 @@ from . import core, flrw, funcs, parameter, units, utils  # noqa F401
 
 from . import io  # needed before 'realizations'  # noqa: F401  # isort: split
 from . import realizations
+from .comparison import cosmology_equal, cosmology_equivalent, cosmology_not_equal
 from .core import *  # noqa F401, F403
 from .flrw import *  # noqa F401, F403
 from .funcs import *  # noqa F401, F403
@@ -22,7 +23,8 @@ from .utils import *  # noqa F401, F403
 __all__ = (core.__all__ + flrw.__all__       # cosmology classes
            + realizations.__all__            # instances thereof
            + ["units"]
-           + funcs.__all__ + parameter.__all__ + utils.__all__)  # utils
+           + funcs.__all__ + parameter.__all__ + utils.__all__  # utils
+           + ["cosmology_equal", "cosmology_not_equal", "cosmology_equivalent"])
 
 
 def __getattr__(name):
