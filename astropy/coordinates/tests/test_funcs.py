@@ -63,6 +63,41 @@ def test_constellations(recwarn):
     assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()
 
 
+@pytest.mark.xfail
+def test_constellation_edge_cases():
+    from astropy.coordinates import FK5
+    from astropy.coordinates.funcs import get_constellation
+
+    # Test edge cases close to borders, using B1875.0 coordinates
+    # Look for HMS / DMS roundoff-to-decimal issues from Roman (1987) data,
+    # and misuse of PrecessedGeocentric, as documented in
+    # https://github.com/astropy/astropy/issues/9855
+
+    # Define eight test points.
+    # The first four cross the boundary at 06h14m30 == 6.2416666666666... hours
+    # with Monoceros on the west side of Orion at Dec +3.0.
+    ras = [6.24100, 6.24160, 6.24166, 6.24171]
+    # aka ['6h14m27.6s' '6h14m29.76s' '6h14m29.976s' '6h14m30.156s']
+
+    decs = [3.0, 3.0, 3.0, 3.0]
+
+    # Correct constellations for given RA/Dec coordinates
+    shortnames = ['Ori', 'Ori', 'Ori', 'Mon']
+
+    # The second four sample northward along RA 22 hours, crossing the boundary
+    # at 86° 10' == 86.1666... degrees between Cepheus and Ursa Minor
+    decs += [86.16, 86.1666, 86.16668, 86.1668]
+    ras += [22.0, 22.0, 22.0, 22.0]
+    shortnames += ['Cep', 'Cep', 'Umi', 'Umi']
+
+    testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1875')
+    npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames,
+      "get_constellation() error: misusing Roman approximations, vs IAU boundaries from Delporte?")
+
+    # TODO: When that's fixed, add other tests with coords that are in different constellations
+    # depending on equinox
+
+
 def test_concatenate():
     from astropy.coordinates import FK5, SkyCoord, ICRS
     from astropy.coordinates.funcs import concatenate
