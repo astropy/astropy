@@ -33,14 +33,13 @@ def convert_parameter_to_column(parameter, value, meta=None):
     -------
     `astropy.table.Column`
     """
-    format = None if value is None else parameter.format_spec
     shape = (1,) + np.shape(value)  # minimum of 1d
 
     col = Column(data=np.reshape(value, shape),
                  name=parameter.name,
                  dtype=None,  # inferred from the data
                  description=parameter.__doc__,
-                 format=format,
+                 format=None,
                  meta=meta)
 
     return col
