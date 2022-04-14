@@ -288,7 +288,6 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert "Mass of neutrino species" in cosmo_cls.m_nu.__doc__
         assert cosmo_cls.m_nu.unit == u.eV
         assert cosmo_cls.m_nu.equivalencies == u.mass_energy()
-        assert cosmo_cls.m_nu.format_spec == ""
 
         # on the instance
         # assert cosmo.m_nu is cosmo._m_nu

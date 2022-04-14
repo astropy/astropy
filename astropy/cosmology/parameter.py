@@ -3,6 +3,7 @@
 import copy
 
 import astropy.units as u
+from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument
 
 __all__ = ["Parameter"]
 
@@ -37,6 +38,9 @@ class Parameter:
         `format` specification, used when making string representation
         of the containing Cosmology.
         See https://docs.python.org/3/library/string.html#formatspec
+
+        .. deprecated::  5.1
+
     doc : str or None (optional, keyword-only)
         Parameter description.
 
@@ -47,16 +51,16 @@ class Parameter:
 
     _registry_validators = {}
 
+    @deprecated_renamed_argument("fmt", None, since="5.1")
     def __init__(self, *, derived=False, unit=None, equivalencies=[],
                  fvalidate="default", fmt="", doc=None):
-
         # attribute name on container cosmology class.
         # really set in __set_name__, but if Parameter is not init'ed as a
         # descriptor this ensures that the attributes exist.
         self._attr_name = self._attr_name_private = None
 
         self._derived = derived
-        self._fmt = str(fmt)  # @property is `format_spec`
+        self._format_spec = str(fmt)  # deprecated.
         self.__doc__ = doc
 
         # units stuff
@@ -97,10 +101,7 @@ class Parameter:
         """Equivalencies used when initializing Parameter."""
         return self._equivalencies
 
-    @property
-    def format_spec(self):
-        """String format specification."""
-        return self._fmt
+    format_spec = deprecated_attribute("format_spec", since="5.1")
 
     @property
     def derived(self):
@@ -240,8 +241,11 @@ class Parameter:
               # Validator is always turned into a function, but for ``repr`` it's nice
               # to know if it was originally a string.
               "fvalidate": self.fvalidate if processed else self._fvalidate_in,
-              "fmt": self.format_spec,
               "doc": self.__doc__}
+        # fmt will issue a deprecation warning if passed, so only passed if
+        # it's not the default.
+        if self._format_spec:
+            kw["fmt"] = self._format_spec
         return kw
 
     def clone(self, **kw):
@@ -258,11 +262,11 @@ class Parameter:
         >>> p = Parameter()
         >>> p
         Parameter(derived=False, unit=None, equivalencies=[],
-                  fvalidate='default', fmt='', doc=None)
+                  fvalidate='default', doc=None)
 
         >>> p.clone(unit="km")
         Parameter(derived=False, unit=Unit("km"), equivalencies=[],
-                  fvalidate='default', fmt='', doc=None)
+                  fvalidate='default', doc=None)
         """
         # Start with defaults, update from kw.
         kwargs = {**self._get_init_arguments(), **kw}
