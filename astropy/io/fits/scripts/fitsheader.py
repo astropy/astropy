@@ -37,7 +37,7 @@ Example uses of fitsheader:
     $ fitsheader --keyword ESO.INS.ID filename.fits
     $ fitsheader --keyword "ESO INS ID" filename.fits
 
-8. Compare the headers of different fites files, following ESO's ``fitsort``
+8. Compare the headers of different fits files, following ESO's ``fitsort``
    format::
 
     $ fitsheader --fitsort --extension 0 --keyword ESO.INS.ID *.fits
@@ -320,6 +320,7 @@ def print_headers_as_table(args):
     else:
         from astropy import table
         resulting_table = table.vstack(tables)
+
     # Print the string representation of the concatenated table
     resulting_table.write(sys.stdout, format=args.table)
 
@@ -390,8 +391,8 @@ def print_headers_as_comparison(args):
         final_tables.append(table.Table(final_table))
     final_table = table.vstack(final_tables)
     # Sort if requested
-    if args.fitsort is not True:  # then it must be a keyword, therefore sort
-        final_table.sort(args.fitsort)
+    if args.sort:
+        final_table.sort(args.sort)
     # Reorganise to keyword by columns
     final_table.pprint(max_lines=-1, max_width=-1)
 
@@ -426,17 +427,21 @@ def main(args=None):
                         help='specify a keyword; this argument can be '
                              'repeated to select multiple keywords; '
                              'also supports wildcards')
-    parser.add_argument('-t', '--table',
-                        nargs='?', default=False, metavar='FORMAT',
-                        help='print the header(s) in machine-readable table '
-                             'format; the default format is '
-                             '"ascii.fixed_width" (can be "ascii.csv", '
-                             '"ascii.html", "ascii.latex", "fits", etc)')
-    parser.add_argument('-f', '--fitsort', action='store_true',
-                        help='print the headers as a table with each unique '
-                             'keyword in a given column (fitsort format); '
-                             'if a SORT_KEYWORD is specified, the result will be '
-                             'sorted along that keyword')
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument('-t', '--table',
+                            nargs='?', default=False, metavar='FORMAT',
+                            help='print the header(s) in machine-readable table '
+                                 'format; the default format is '
+                                 '"ascii.fixed_width" (can be "ascii.csv", '
+                                 '"ascii.html", "ascii.latex", "fits", etc)')
+    mode_group.add_argument('-f', '--fitsort', action='store_true',
+                            help='print the headers as a table with each unique '
+                                 'keyword in a given column (fitsort format) ')
+    parser.add_argument('-s', '--sort', metavar='SORT_KEYWORD',
+                        action='append', type=str,
+                        help='sort output by the specified header keywords, '
+                             'can be repeated to sort by multiple keywords; '
+                             'Only supported with -f/--fitsort')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -450,6 +455,16 @@ def main(args=None):
     # then use ascii.fixed_width by default
     if args.table is None:
         args.table = 'ascii.fixed_width'
+
+    # TODO: This is a little nicer than the custom action approach requiring
+    #  the store keyword to agree and should do exactly the same
+    #  Approach should be unified to whatever method is chosen
+
+    if args.sort:
+        args.sort = [key.replace('.', ' ') for key in args.sort]
+        if not args.fitsort:
+            log.warning('Sorting is only supported in conjunction with -f/--fitsort. '
+                        'Sorting keywords are ignored.')
 
     # Now print the desired headers
     try:
