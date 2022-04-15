@@ -128,6 +128,37 @@ class TestFITSheader_script(FitsTestCase):
         assert out[2].endswith('tb.fits   True     16     0   True '
                                'STScI-STSDAS/TABLES  tb.fits       1')
 
+    def test_fitsort_sorting_keyword_fitsort(self, capsys):
+        """check that sorting by keyword works"""
+        fitsheader.main(['-f', '-k', 'NAXIS', '-e', '0',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_unsorted, err_unsorted = capsys.readouterr()
+        out_unsorted = out_unsorted.splitlines()
+
+        fitsheader.main(['-f', '-s', 'NAXIS', '-k', 'NAXIS', '-e', '0',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_sorted, err_sorted = capsys.readouterr()
+        out_sorted = out_sorted.splitlines()
+
+        assert len(out_unsorted) == 4
+        assert out_unsorted[2].endswith('group.fits     5')
+        assert out_unsorted[3].endswith('test0.fits     0')
+
+        assert len(out_sorted) == 4
+        assert out_sorted[2].endswith('test0.fits     0')
+        assert out_sorted[3].endswith('group.fits     5')
+
+    def test_fitsort_sorting_keyword_complains(self, capsys):
+        fitsheader.main(['-t', '-s', 'DUMMY',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_table, err_table = capsys.readouterr()
+        assert 'Sorting keywords are ignored' in err_table
+
+        fitsheader.main(['-s', 'DUMMY',
+                         self.data('group.fits'), self.data('test0.fits')])
+        out_default, err_default = capsys.readouterr()
+        assert 'Sorting keywords are ignored' in err_default
+
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
                          self.data('fixed-1890.fits')])
