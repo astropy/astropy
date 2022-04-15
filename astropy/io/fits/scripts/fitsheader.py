@@ -323,7 +323,6 @@ def print_headers_as_table(args):
     else:
         from astropy import table
         resulting_table = table.vstack(tables)
-
     # Print the string representation of the concatenated table
     resulting_table.write(sys.stdout, format=args.table)
 
