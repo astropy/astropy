@@ -44,7 +44,10 @@ Example uses of fitsheader:
 
 9. Same as above, sorting the output along a specified keyword::
 
-    $ fitsheader -f DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
+    $ fitsheader -f -s DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
+
+10. Sort first by OBJECT, then DATE-OBS::
+    $ fitsheader -f -s OBJECT -s DATE-OBS *.fits
 
 Note that compressed images (HDUs of type
 :class:`~astropy.io.fits.CompImageHDU`) really have two headers: a real
@@ -456,13 +459,17 @@ def main(args=None):
     if args.table is None:
         args.table = 'ascii.fixed_width'
 
-    # TODO: This is a little nicer than the custom action approach requiring
-    #  the store keyword to agree and should do exactly the same
+    # TODO: This is imho a little nicer than the custom action approach requiring
+    #  the store keyword.
     #  Approach should be unified to whatever method is chosen
-
     if args.sort:
         args.sort = [key.replace('.', ' ') for key in args.sort]
         if not args.fitsort:
+            # TODO Only really makes sense for fitsort format. Maybe for standard
+            #  but then it would chug for a while and not start printing
+            #  immediately if you pass many files.
+            #  Maybe this should be an error, but that seems hard
+            #  to do natively with argparse, i.e. exception looks different
             log.warning('Sorting is only supported in conjunction with -f/--fitsort. '
                         'Sorting keywords are ignored.')
 
