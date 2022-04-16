@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import pytest
 import numpy as np
 
@@ -37,6 +38,20 @@ def _default_values(dtype):
         return [b'abc', b'def', b'ghi']
     else:
         return [1, 2, 3]
+
+
+@pytest.fixture
+def home_is_tmpdir(monkeypatch, tmpdir):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmpdir))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmpdir))
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -823,3 +838,17 @@ def test_overwrite_serialized_meta():
         t2 = Table.read(out, path='data')
         assert all(t3 == t2)
         assert t3.info(out=None) == t2.info(out=None)
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_tilde_path(tmpdir, home_is_tmpdir):
+    test_file = os.path.join('~', 'test.hdf5')
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+
+    t1.write(test_file, path='tilde')
+
+    t1 = Table.read(test_file, path='tilde')
+    t1 = Table.read(test_file, path='tilde', format='hdf5')
+
+    assert not os.path.exists(test_file)
