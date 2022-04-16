@@ -167,6 +167,13 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         """
         ctx = None
         try:
+            # Conservatively attempt to apply expanduser to the first argument,
+            # which is only _probably_ a file path
+            if len(args) and isinstance(args[0], PATH_TYPES):
+                ex_user = os.path.expanduser(args[0])
+                if ex_user != args[0] and os.path.exists(ex_user):
+                    args = (ex_user,) + args[1:]
+
             if format is None:
                 path = None
                 fileobj = None
@@ -332,6 +339,12 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
             .. versionadded:: 4.3
         """
+        # Conservatively attempt to apply expanduser to the first argument,
+        # which is only _probably_ a file path
+        if len(args) and isinstance(args[0], PATH_TYPES):
+            ex_user = os.path.expanduser(args[0])
+            if ex_user != args[0] and os.path.exists(os.path.dirname(ex_user)):
+                args = (ex_user,) + args[1:]
 
         if format is None:
             path = None
