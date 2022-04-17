@@ -757,11 +757,10 @@ column name header::
   (3, 2, 2)
   >>> t.pprint()
        a
-  float64[2,2]
-  ------------
-   1.0 .. 20.0
-   3.0 .. 40.0
-   5.0 .. 60.0
+  -----------
+  1.0 .. 20.0
+  3.0 .. 40.0
+  5.0 .. 60.0
 
 In order to see all of the data values for a multidimensional column use the
 column representation. This uses the standard ``numpy`` mechanism for printing
