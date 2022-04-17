@@ -83,7 +83,7 @@ class SerializedColumn(dict):
         """Minimal shape implementation to allow use as a mixin column.
 
         Returns the shape of the first item that has a shape at all,
-        or `()` if none of the values has a shape attribute.
+        or ``()`` if none of the values has a shape attribute.
         """
         return next((value.shape for value in self.values()
                      if hasattr(value, 'shape')), ())

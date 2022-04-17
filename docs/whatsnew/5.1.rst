@@ -86,6 +86,9 @@ details.
 
 .. _whatsnew-structured-columns:
 
+Structured Columns
+==================
+
 Columns which are ``numpy`` structured arrays are now fully supported,
 effectively allowing tables within tables. This applies to |Column|,
 |MaskedColumn|, and |Quantity| columns, and includes possible structured
