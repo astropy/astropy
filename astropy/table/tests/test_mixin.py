@@ -749,7 +749,7 @@ def test_ndarray_mixin():
     assert t[1]['d'][0] == d[1][0]
     assert t[1]['d'][1] == d[1][1]
 
-    assert t.pformat() == [
+    assert t.pformat(show_dtype=True) == [
         '  a [f0, f1]     b [x, y]      c [rx, ry]      d    ',
         '(int32, str1) (int32, str2) (float64, str3) int64[2]',
         '------------- ------------- --------------- --------',

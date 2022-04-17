@@ -29,14 +29,14 @@ class TestMultiD():
                np.array([[5, 6],
                          [50, 60]], dtype=np.int64)]
         t = table_type(arr)
-        lines = t.pformat()
+        lines = t.pformat(show_dtype=True)
         assert lines == ['  col0     col1     col2  ',
                          'int64[2] int64[2] int64[2]',
                          '-------- -------- --------',
                          '  1 .. 2   3 .. 4   5 .. 6',
                          '10 .. 20 30 .. 40 50 .. 60']
 
-        lines = t.pformat(html=True)
+        lines = t.pformat(html=True, show_dtype=True)
         assert lines == [
             f'<table id="table{id(t)}">',
             '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
@@ -56,7 +56,7 @@ class TestMultiD():
             '</table></div>']
 
         t = table_type([arr])
-        lines = t.pformat()
+        lines = t.pformat(show_dtype=True)
         assert lines == ['   col0   ',
                          'int64[2,2]',
                          '----------',
@@ -73,7 +73,7 @@ class TestMultiD():
                np.array([[(5,)],
                          [(50,)]], dtype=np.int64)]
         t = table_type(arr)
-        lines = t.pformat()
+        lines = t.pformat(show_dtype=True)
         assert lines == [
             "   col0       col1       col2   ",
             "int64[1,1] int64[1,1] int64[1,1]",
@@ -81,7 +81,7 @@ class TestMultiD():
             "         1          3          5",
             "        10         30         50"]
 
-        lines = t.pformat(html=True)
+        lines = t.pformat(html=True, show_dtype=True)
         assert lines == [
             f'<table id="table{id(t)}">',
             '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
@@ -101,7 +101,7 @@ class TestMultiD():
             '</table></div>']
 
         t = table_type([arr])
-        lines = t.pformat()
+        lines = t.pformat(show_dtype=True)
         assert lines == ['    col0    ',
                          'int64[2,1,1]',
                          '------------',
@@ -391,11 +391,9 @@ class TestFormat():
         # mathematical function
         t['a'].format = lambda x: str(x * 3.)
         outstr = ('     a      \n'
-                  '  int64[2]  \n'
                   '------------\n'
                   '  3.0 .. 6.0\n'
                   '30.0 .. 60.0')
-        assert str(t['a']) == outstr
         assert str(t['a']) == outstr
 
     def test_column_format_func_not_str(self, table_type):
@@ -542,7 +540,6 @@ class TestFormatWithMaskedElements():
         # mathematical function
         t['a'].format = lambda x: str(x * 3.)
         outstr = ('    a     \n'
-                  ' int64[2] \n'
                   '----------\n'
                   ' 3.0 .. --\n'
                   '30.0 .. --')

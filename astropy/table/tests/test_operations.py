@@ -720,7 +720,7 @@ class TestJoin():
                '     3 0.0 .. 0.0    -- .. --',
                '     4 1.1 .. 1.0    -- .. --',
                '     5   -- .. --  0.5 .. 0.0']
-        assert str(t12).splitlines() == exp
+        assert t12.pformat(show_dtype=True) == exp
 
     def test_keys_left_right_basic(self):
         """Test using the keys_left and keys_right args to specify different
