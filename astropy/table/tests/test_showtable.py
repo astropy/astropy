@@ -107,7 +107,6 @@ def test_votable(capsys):
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         '   string_test    string_test_2 ...   bitarray2  ',
-        '      object          str10     ...    bool[16]  ',
         '----------------- ------------- ... -------------',
         '    String & test    Fixed stri ... True .. False',
         'String &amp; test    0123456789 ...      -- .. --',
