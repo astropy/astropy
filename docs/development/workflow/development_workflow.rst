@@ -576,7 +576,7 @@ can delete any backup branches that may have been created::
 
 .. include:: links.inc
 
-.. _Interactive tutorial: http://try.github.io/
+.. _Interactive tutorial: https://lab.github.com/
 .. _Git Basics: https://git-scm.com/book/en/Getting-Started-Git-Basics
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
