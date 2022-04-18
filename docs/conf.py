@@ -342,6 +342,7 @@ linkcheck_ignore = ['https://journals.aas.org/manuscript-preparation/',
                     'http://data.astropy.org',
                     'https://doi.org/10.1017/S0251107X00002406',  # internal server error
                     'https://doi.org/10.1017/pasa.2013.31',  # internal server error
+                    'https://pyfits.readthedocs.io/en/v3.2.1/',  # defunct page in CHANGES.rst
                     r'https://github\.com/astropy/astropy/(?:issues|pull)/\d+']
 linkcheck_timeout = 180
 linkcheck_anchors = False
