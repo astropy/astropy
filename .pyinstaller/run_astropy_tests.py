@@ -3,6 +3,7 @@ import shutil
 import sys
 
 import erfa  # noqa
+import matplotlib
 import pytest
 
 import astropy  # noqa
@@ -75,6 +76,10 @@ os.remove(os.path.join('astropy_tests', 'table', 'mixins', 'tests', 'test_regist
 # Copy the top-level conftest.py
 shutil.copy2(os.path.join(ROOT, 'astropy', 'conftest.py'),
              os.path.join('astropy_tests', 'conftest.py'))
+
+# matplotlib hook in pyinstaller 5.0 and later no longer collects every backend, see
+# https://github.com/pyinstaller/pyinstaller/issues/6760
+matplotlib.use('svg')
 
 # We skip a few tests, which are generally ones that rely on explicitly
 # checking the name of the current module (which ends up starting with
