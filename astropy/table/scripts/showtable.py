@@ -83,7 +83,7 @@ def showtable(filename, args):
             formatter = table.more if args.more else table.pprint
             formatter(max_lines=args.max_lines, max_width=args.max_width,
                       show_unit=(False if args.hide_unit else None),
-                      show_dtype=args.show_dtype)
+                      show_dtype=(True if args.show_dtype else None))
     except IOError as e:
         log.error(str(e))
 
@@ -128,7 +128,8 @@ def main(args=None):
            help='hide the header row for unit (which is shown '
            'only if one or more columns has a unit)')
     addarg('--show-dtype', action='store_true',
-           help='include a header row for column dtypes')
+           help='always include a header row for column dtypes '
+           '(otherwise shown only if any column is multidimensional)')
 
     # ASCII-specific arguments
     ascii_args = parser.add_argument_group('ASCII arguments')

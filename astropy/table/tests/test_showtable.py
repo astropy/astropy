@@ -106,14 +106,13 @@ def test_votable(capsys):
                     '--table-id', 'main_table', '--max-width', '50'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        '   string_test    string_test_2 ... bitarray2 [16]',
-        '----------------- ------------- ... --------------',
-        '    String & test    Fixed stri ...  True .. False',
-        'String &amp; test    0123456789 ...       -- .. --',
-        '             XXXX          XXXX ...       -- .. --',
-        '                                ...       -- .. --',
-        '                                ...       -- .. --',
-    ]
+        '   string_test    string_test_2 ...   bitarray2  ',
+        '----------------- ------------- ... -------------',
+        '    String & test    Fixed stri ... True .. False',
+        'String &amp; test    0123456789 ...      -- .. --',
+        '             XXXX          XXXX ...      -- .. --',
+        '                                ...      -- .. --',
+        '                                ...      -- .. --']
 
 
 def test_max_lines(capsys):

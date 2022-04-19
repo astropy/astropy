@@ -94,7 +94,7 @@ _pprint_docs = """
         for the unit.
 
     show_dtype : bool
-        Include a header row for column dtypes. Default is True.
+        Include a header row for column dtypes. Default is False.
 
     align : str or list or tuple or None
         Left/right alignment of columns. Default is right (None) for all
@@ -1869,7 +1869,7 @@ class Table:
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes. Default is True.
+            Include a header row for column dtypes. Default is False.
         """
         self.formatter._more_tabcol(self, max_lines, max_width, show_name=show_name,
                                     show_unit=show_unit, show_dtype=show_dtype)

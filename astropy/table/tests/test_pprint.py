@@ -29,16 +29,18 @@ class TestMultiD():
                np.array([[5, 6],
                          [50, 60]], dtype=np.int64)]
         t = table_type(arr)
-        lines = t.pformat()
-        assert lines == ['col0 [2] col1 [2] col2 [2]',
+        lines = t.pformat(show_dtype=True)
+        assert lines == ['  col0     col1     col2  ',
+                         'int64[2] int64[2] int64[2]',
                          '-------- -------- --------',
                          '  1 .. 2   3 .. 4   5 .. 6',
                          '10 .. 20 30 .. 40 50 .. 60']
 
-        lines = t.pformat(html=True)
+        lines = t.pformat(html=True, show_dtype=True)
         assert lines == [
             f'<table id="table{id(t)}">',
-            '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
+            '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
+            '<thead><tr><th>int64[2]</th><th>int64[2]</th><th>int64[2]</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
             '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
             '</table>']
@@ -47,15 +49,16 @@ class TestMultiD():
         assert t._repr_html_().splitlines() == [
             f'<div><i>{table_type.__name__} {masked}length=2</i>',
             f'<table id="table{id(t)}" class="{nbclass}">',
-            '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
-            '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
+            '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
+            '<thead><tr><th>int64[2]</th><th>int64[2]</th><th>int64[2]</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
             '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
             '</table></div>']
 
         t = table_type([arr])
-        lines = t.pformat()
-        assert lines == ['col0 [2,2]',
+        lines = t.pformat(show_dtype=True)
+        assert lines == ['   col0   ',
+                         'int64[2,2]',
                          '----------',
                          '   1 .. 20',
                          '   3 .. 40',
@@ -70,16 +73,19 @@ class TestMultiD():
                np.array([[(5,)],
                          [(50,)]], dtype=np.int64)]
         t = table_type(arr)
-        lines = t.pformat()
-        assert lines == ['col0 [1,1] col1 [1,1] col2 [1,1]',
-                         '---------- ---------- ----------',
-                         '         1          3          5',
-                         '        10         30         50']
+        lines = t.pformat(show_dtype=True)
+        assert lines == [
+            "   col0       col1       col2   ",
+            "int64[1,1] int64[1,1] int64[1,1]",
+            "---------- ---------- ----------",
+            "         1          3          5",
+            "        10         30         50"]
 
-        lines = t.pformat(html=True)
+        lines = t.pformat(html=True, show_dtype=True)
         assert lines == [
             f'<table id="table{id(t)}">',
-            '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
+            '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
+            '<thead><tr><th>int64[1,1]</th><th>int64[1,1]</th><th>int64[1,1]</th></tr></thead>',
             '<tr><td>1</td><td>3</td><td>5</td></tr>',
             '<tr><td>10</td><td>30</td><td>50</td></tr>',
             '</table>']
@@ -88,14 +94,16 @@ class TestMultiD():
         assert t._repr_html_().splitlines() == [
             f'<div><i>{table_type.__name__} {masked}length=2</i>',
             f'<table id="table{id(t)}" class="{nbclass}">',
-            '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
-            '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
-            '<tr><td>1</td><td>3</td><td>5</td></tr>', '<tr><td>10</td><td>30</td><td>50</td></tr>',
+            '<thead><tr><th>col0</th><th>col1</th><th>col2</th></tr></thead>',
+            '<thead><tr><th>int64[1,1]</th><th>int64[1,1]</th><th>int64[1,1]</th></tr></thead>',
+            '<tr><td>1</td><td>3</td><td>5</td></tr>',
+            '<tr><td>10</td><td>30</td><td>50</td></tr>',
             '</table></div>']
 
         t = table_type([arr])
-        lines = t.pformat()
-        assert lines == ['col0 [2,1,1]',
+        lines = t.pformat(show_dtype=True)
+        assert lines == ['    col0    ',
+                         'int64[2,1,1]',
                          '------------',
                          '     1 .. 10',
                          '     3 .. 30',
@@ -377,13 +385,15 @@ class TestFormat():
 
     def test_column_format_func_multiD(self, table_type):
         arr = [np.array([[1, 2],
-                         [10, 20]])]
+                         [10, 20]], dtype='i8')]
         t = table_type(arr, names=['a'])
 
         # mathematical function
         t['a'].format = lambda x: str(x * 3.)
-        outstr = '   a [2]    \n------------\n  3.0 .. 6.0\n30.0 .. 60.0'
-        assert str(t['a']) == outstr
+        outstr = ('     a      \n'
+                  '------------\n'
+                  '  3.0 .. 6.0\n'
+                  '30.0 .. 60.0')
         assert str(t['a']) == outstr
 
     def test_column_format_func_not_str(self, table_type):
@@ -523,13 +533,16 @@ class TestFormatWithMaskedElements():
 
     def test_column_format_func_multiD(self):
         arr = [np.array([[1, 2],
-                         [10, 20]])]
+                         [10, 20]], dtype='i8')]
         t = Table(arr, names=['a'], masked=True)
         t['a'].mask[0, 1] = True
         t['a'].mask[1, 1] = True
         # mathematical function
         t['a'].format = lambda x: str(x * 3.)
-        outstr = '  a [2]   \n----------\n 3.0 .. --\n30.0 .. --'
+        outstr = ('    a     \n'
+                  '----------\n'
+                  ' 3.0 .. --\n'
+                  '30.0 .. --')
         assert str(t['a']) == outstr
         assert str(t['a']) == outstr
 
@@ -555,6 +568,28 @@ def test_pprint_py3_bytes():
     dat = np.array([val, blah], dtype=[('col', 'S10')])
     t = table.Table(dat)
     assert t['col'].pformat() == ['col ', '----', ' val', 'bläh']
+
+
+def test_pprint_structured():
+    su = table.Column([(1, (1.5, [1.6, 1.7])),
+                       (2, (2.5, [2.6, 2.7]))],
+                      name='su',
+                      dtype=[('i', np.int64),
+                             ('f', [('p0', np.float64), ('p1', np.float64, (2,))])])
+    assert su.pformat() == [
+        "  su [i, f[p0, p1]]   ",
+        "----------------------",
+        "(1, (1.5, [1.6, 1.7]))",
+        "(2, (2.5, [2.6, 2.7]))"]
+    t = table.Table([su])
+    assert t.pformat() == su.pformat()
+    assert repr(t).splitlines() == [
+        "<Table length=2>",
+        "      su [i, f[p0, p1]]       ",
+        "(int64, (float64, float64[2]))",
+        "------------------------------",
+        "        (1, (1.5, [1.6, 1.7]))",
+        "        (2, (2.5, [2.6, 2.7]))"]
 
 
 def test_pprint_nameless_col():

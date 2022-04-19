@@ -4,6 +4,8 @@ Mixin columns for use in ascii/tests/test_ecsv.py, fits/tests/test_connect.py,
 and misc/tests/test_hdf5.py
 """
 
+import numpy as np
+
 from astropy import coordinates, table, time, units as u
 
 
@@ -39,6 +41,14 @@ tm2 = time.Time(tm, precision=3, format='iso')
 tm3 = time.Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
 obj = table.Column([{'a': 1}, {'b': [2]}], dtype='object')
+su = table.Column([(1, (1.5, 1.6)),
+                   (2, (2.5, 2.6))],
+                  name='su',
+                  dtype=[('i', np.int64),
+                         ('f', [('p0', np.float64), ('p1', np.float64)])])
+su2 = table.Column([(['d', 'c'], [1.6, 1.5]),
+                    (['b', 'a'], [2.5, 2.6])],
+                   dtype=[('s', 'U1', (2,)), ('f', 'f8', (2,))])
 
 # NOTE: for testing, the name of the column "x" for the
 # Quantity is important since it tests the fix for #10215
@@ -68,6 +78,8 @@ mixin_cols = {
     'srd': srd,
     'nd': table.NdarrayMixin([1, 2]),
     'obj': obj,
+    'su': su,
+    'su2': su2,
 }
 time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
               'in_subfmt', 'out_subfmt', 'location']
@@ -100,9 +112,8 @@ compare_attrs = {
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
     'obj': [],
-    'su': ['i', 'f'],
-    'tab': ['tm', 'c', 'x'],
-    'qtab': ['tm', 'c', 'x'],
+    'su': ['i', 'f.p0', 'f.p1'],
+    'su2': ['s', 'f'],
 }
 non_trivial_names = {
     'cr': ['cr.x', 'cr.y', 'cr.z'],
@@ -128,6 +139,8 @@ non_trivial_names = {
             'srd.differentials.s.d_lon_coslat',
             'srd.differentials.s.d_lat',
             'srd.differentials.s.d_distance'],
+    'su': ['su.i', 'su.f.p0', 'su.f.p1'],
+    'su2': ['su2.s', 'su2.f'],
     'tm': ['tm.jd1', 'tm.jd2'],
     'tm2': ['tm2.jd1', 'tm2.jd2'],
     'tm3': ['tm3.jd1', 'tm3.jd2',

@@ -462,8 +462,8 @@ pprint() method
 In order to fully control the print output use the `Table.pprint()
 <astropy.table.Table.pprint>` or `Column.pprint()
 <astropy.table.Column.pprint>` methods. These have keyword arguments
-``max_lines``, ``max_width``, ``show_name``, and ``show_unit``, with meanings
-as shown below::
+``max_lines``, ``max_width``, ``show_name``, ``show_unit``, and
+``show_dtype``, with meanings as shown below::
 
   >>> arr = np.arange(3000, dtype=float).reshape(100, 30)
   >>> t = Table(arr)
@@ -498,6 +498,16 @@ as shown below::
            ... ...          ...
   2.940000e+03 ...       2969.0
   2.970000e+03 ...       2999.0
+  Length = 100 rows
+
+  >>> t.pprint(max_lines=8, max_width=40, show_dtype=True)
+      col0       col1  ...    col29
+      km2              ... kg sec m**-2
+    float64    float64 ...   float64
+  ------------ ------- ... ------------
+  0.000000e+00     1.0 ...         29.0
+           ...     ... ...          ...
+  2.970000e+03  2971.0 ...       2999.0
   Length = 100 rows
 
 In order to force printing all values regardless of the output length or width
@@ -736,33 +746,33 @@ and last value of each row element and indicates the array dimensions in the
 column name header::
 
   >>> t = Table()
-  >>> arr = [ np.array([[ 1,  2],
-  ...                   [10, 20]]),
-  ...         np.array([[ 3,  4],
-  ...                   [30, 40]]),
-  ...         np.array([[ 5,  6],
-  ...                   [50, 60]]) ]
+  >>> arr = [ np.array([[ 1.,  2.],
+  ...                   [10., 20.]]),
+  ...         np.array([[ 3.,  4.],
+  ...                   [30., 40.]]),
+  ...         np.array([[ 5.,  6.],
+  ...                   [50., 60.]]) ]
   >>> t['a'] = arr
   >>> t['a'].shape
   (3, 2, 2)
   >>> t.pprint()
-  a [2,2]
-  -------
-  1 .. 20
-  3 .. 40
-  5 .. 60
+       a
+  -----------
+  1.0 .. 20.0
+  3.0 .. 40.0
+  5.0 .. 60.0
 
 In order to see all of the data values for a multidimensional column use the
 column representation. This uses the standard ``numpy`` mechanism for printing
 any array::
 
   >>> t['a'].data
-  array([[[ 1,  2],
-          [10, 20]],
-         [[ 3,  4],
-          [30, 40]],
-         [[ 5,  6],
-          [50, 60]]])
+  array([[[ 1.,  2.],
+          [10., 20.]],
+         [[ 3.,  4.],
+          [30., 40.]],
+         [[ 5.,  6.],
+          [50., 60.]]])
 
 .. _columns_with_units:
 

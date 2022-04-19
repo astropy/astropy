@@ -88,12 +88,23 @@ def dtype_info_name(dtype):
         String name of ``dtype``
     """
     dtype = np.dtype(dtype)
+    if dtype.names is not None:
+        return '({})'.format(', '.join(dtype_info_name(dt[0])
+                                       for dt in dtype.fields.values()))
+    if dtype.subdtype is not None:
+        dtype, shape = dtype.subdtype
+    else:
+        shape = ()
+
     if dtype.kind in ('S', 'U'):
         type_name = 'bytes' if dtype.kind == 'S' else 'str'
         length = re.search(r'(\d+)', dtype.str).group(1)
         out = type_name + length
     else:
         out = dtype.name
+
+    if shape:
+        out += f"[{','.join(str(n) for n in shape)}]"
 
     return out
 
