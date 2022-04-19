@@ -1,1 +1,1 @@
-Add specific ``clear()`` function for ``CompImageHDU`` class.
+Fix ``CompImageHeader.clear()``.
