@@ -8,7 +8,7 @@ import pytest
 import numpy as np
 
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename, clear_download_cache
 from astropy.utils.iers import iers
 from astropy import units as u
 from astropy.table import QTable
@@ -377,3 +377,52 @@ def test_iers_b_dl():
         assert 'UT1_UTC' in iersb_tab.colnames
     finally:
         iers.IERS_B.close()
+
+
+@pytest.mark.remote_data
+def test_iers_out_of_range_handling():
+    # Make sure we don't have IERS-A data available anywhere
+    clear_download_cache()
+    iers.IERS_A.close()
+    iers.IERS_Auto.close()
+    iers.IERS.close()
+    now = Time.now()
+    with iers.conf.set_temp('auto_download', False):
+        # Should be fine with built-in IERS_B
+        (now - 300 * u.day).ut1
+
+        # Default is to raise an error
+        with pytest.raises(iers.IERSRangeError,
+                           match=r'time\(s\) outside of range covered by IERS table'):
+            (now + 100 * u.day).ut1
+
+        with iers.conf.set_temp('iers_degraded_accuracy', 'warn'):
+            with pytest.warns(iers.IERSDegradedAccuracyWarning,
+                              match=r'time\(s\) outside of range covered by IERS table'):
+                (now + 100 * u.day).ut1
+
+        with iers.conf.set_temp('iers_degraded_accuracy', 'ignore'):
+            (now + 100 * u.day).ut1
+
+
+@pytest.mark.remote_data
+def test_iers_download_error_handling():
+    # Make sure we don't have IERS-A data available anywhere
+    clear_download_cache()
+    iers.IERS_A.close()
+    iers.IERS_Auto.close()
+    iers.IERS.close()
+    now = Time.now()
+
+    # bad site name
+    with iers.conf.set_temp('iers_auto_url', 'FAIL FAIL'):
+        # site that exists but doesn't have IERS data
+        with iers.conf.set_temp('iers_auto_url_mirror', 'https://google.com'):
+            with pytest.warns(iers.IERSWarning) as record:
+                with iers.conf.set_temp('iers_degraded_accuracy', 'ignore'):
+                    (now + 100 * u.day).ut1
+
+            assert len(record) == 3
+            assert str(record[0].message).startswith('failed to download FAIL FAIL: Malformed URL')
+            assert str(record[1].message).startswith('malformed IERS table from https://google.com')
+            assert str(record[2].message).startswith('unable to download valid IERS file, using local IERS-B')

@@ -89,7 +89,7 @@ class IERSWarning(AstropyWarning):
 class IERSDegradedAccuracyWarning(AstropyWarning):
     """
     IERS time conversion has degraded accuracy normally due to setting
-    ``conf.auto_download = False``.
+    ``conf.auto_download = False`` and ``conf.iers_degraded_accuracy = 'warn'``.
     """
 
 
@@ -156,6 +156,12 @@ class Conf(_config.ConfigNamespace):
     ietf_leap_second_auto_url = _config.ConfigItem(
         IETF_LEAP_SECOND_URL,
         'Alternate URL for auto-downloading leap seconds.')
+    iers_degraded_accuracy = _config.ConfigItem(
+        ['error', 'warn', 'ignore'],
+        'IERS behavior if the range of available IERS data does not '
+        'cover the times when converting time scales, potentially leading '
+        'to degraded accuracy.'
+    )
 
 
 conf = Conf()
@@ -366,16 +372,19 @@ class IERS(QTable):
         class because it has different requirements.
         """
         if np.any(indices_orig != indices_clipped):
-            if conf.auto_download:
+            if conf.iers_degraded_accuracy == 'error':
                 msg = ('time(s) outside of range covered by IERS table, cannot convert '
                        'with full accuracy. To allow conversion with degraded accuracy '
-                       'set `astropy.utils.iers.conf.auto_download = False`')
+                       'set `astropy.utils.iers.conf.iers_degraded_accuracy` '
+                       " to 'warn' or 'silent'")
                 raise IERSRangeError(msg)
-            else:
-                # User has explicitly opted out of downloading recent IERS data
-                # so a warning here is sufficient.
+            elif conf.iers_degraded_accuracy == 'warn':
+                # No IERS data covering the time(s) and user requested a warning.
                 msg = 'time(s) outside of range covered by IERS table, accuracy is degraded'
-                warn(msg, IERSWarning)
+                warn(msg, IERSDegradedAccuracyWarning)
+            else:
+                # No IERS data covering the time(s) and user is OK with no warning.
+                pass
 
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
