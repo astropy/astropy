@@ -1833,24 +1833,27 @@ PyWcsprm_sub(
     PyObject* args,
     PyObject* kwds) {
 
-  int        i              = -1;
-  Py_ssize_t tmp            = 0;
-  PyObject*  py_axes        = NULL;
-  PyWcsprm*  py_dest_wcs    = NULL;
-  PyObject*  element        = NULL;
-  PyObject*  element_utf8   = NULL;
-  char*      element_str    = NULL;
-  int        element_val    = 0;
-  int        nsub           = 0;
-  int*       axes           = NULL;
-  int        status         = -1;
-  const char*    keywords[] = {"axes", NULL};
+  int        i            = -1;
+  Py_ssize_t tmp          = 0;
+  PyObject*  py_axes      = NULL;
+  PyWcsprm*  py_dest_wcs  = NULL;
+  PyObject*  element      = NULL;
+  PyObject*  element_utf8 = NULL;
+  char*      element_str  = NULL;
+  int        element_val  = 0;
+  int        nsub         = 0;
+  int*       axes         = NULL;
+  int        status       = -1;
+  int        wcslib_ver[] = {0, 0, 0};
+  const char* keywords[]  = {"axes", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|O:sub", (char **)keywords,
           &py_axes)) {
     goto exit;
   }
+
+  wcslib_version(wcslib_ver);
 
   if (py_axes == NULL || py_axes == Py_None) {
     /* leave all variables as is */
@@ -1895,14 +1898,30 @@ PyWcsprm_sub(
           element_val = WCSSUB_SPECTRAL;
         } else if (strncmp(element_str, "stokes", 7) == 0) {
           element_val = WCSSUB_STOKES;
-        } else if (strncmp(element_str, "temporal", 9) == 0) {
+#if defined(WCSSUB_TIME)
+        } else if ((wcslib_ver[0] > 7 || (wcslib_ver[0] == 7 && wcslib_ver[1] >= 8)) &&
+                   strncmp(element_str, "temporal", 9) == 0) {
           element_val = WCSSUB_TIME;
+#else
+        } else if (strncmp(element_str, "temporal", 9) == 0) {
+          PyErr_Format(
+            PyExc_NotImplementedError,
+            "Support for 'temporal' axis requires WCSLIB version 7.8 or greater "\
+            "but linked WCSLIB version is %s", wcslib_version(NULL)
+          );
+          goto exit;
+#endif
         } else if (strncmp(element_str, "celestial", 10) == 0) {
           element_val = WCSSUB_CELESTIAL;
         } else {
           PyErr_SetString(
             PyExc_ValueError,
-            "string values for axis sequence must be one of 'latitude', 'longitude', 'cubeface', 'spectral', 'stokes', or 'celestial'");
+#if defined(WCSSUB_TIME)
+            "string values for axis sequence must be one of 'latitude', 'longitude', 'cubeface', 'spectral', 'stokes', 'temporal', or 'celestial'"
+#else
+            "string values for axis sequence must be one of 'latitude', 'longitude', 'cubeface', 'spectral', 'stokes', or 'celestial'"
+#endif
+            );
           goto exit;
         }
         Py_CLEAR(element_utf8);
@@ -4208,7 +4227,9 @@ _setup_wcsprm_type(
     CONSTANT(WCSSUB_CUBEFACE)  ||
     CONSTANT(WCSSUB_SPECTRAL)  ||
     CONSTANT(WCSSUB_STOKES)    ||
+#if defined(WCSSUB_TIME)
     CONSTANT(WCSSUB_TIME)      ||
+#endif
     CONSTANT(WCSSUB_CELESTIAL) ||
     CONSTANT(WCSHDR_IMGHEAD)   ||
     CONSTANT(WCSHDR_BIMGARR)   ||
