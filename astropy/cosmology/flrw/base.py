@@ -1437,7 +1437,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         self._Ode0 = 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
 
     @lazyproperty
-    def equivalent_nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
+    def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self._nonflat_cls_._init_signature.bind_partial(**self._init_arguments,

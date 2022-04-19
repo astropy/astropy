@@ -930,7 +930,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         # change to non-flat
         nc = cosmo.clone(to_nonflat=True, Ode0=cosmo.Ode0)
         assert isinstance(nc, cosmo._nonflat_cls_)
-        assert nc == cosmo.equivalent_nonflat
+        assert nc == cosmo.nonflat
 
         nc = cosmo.clone(to_nonflat=True, Ode0=1)
         assert nc.Ode0 == 1.0

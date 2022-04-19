@@ -425,11 +425,11 @@ class FlatCosmologyMixinTest:
         # it's always True
         assert cosmo.is_flat is True
 
-    def test_equivalent_nonflat(self, cosmo):
-        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.equivalent_nonflat`.
+    def test_nonflat(self, cosmo):
+        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.nonflat`.
         """
-        assert cosmo.equivalent_nonflat.is_equivalent(cosmo)
-        assert cosmo.is_equivalent(cosmo.equivalent_nonflat)
+        assert cosmo.nonflat.is_equivalent(cosmo)
+        assert cosmo.is_equivalent(cosmo.nonflat)
 
     # ------------------------------------------------
     # clone
@@ -439,7 +439,7 @@ class FlatCosmologyMixinTest:
         # just converting the class
         nc = cosmo.clone(to_nonflat=True)
         assert isinstance(nc, cosmo._nonflat_cls_)
-        assert nc == cosmo.equivalent_nonflat
+        assert nc == cosmo.nonflat
 
     @abc.abstractmethod
     def test_clone_to_nonflat_change_param(self, cosmo):
@@ -451,7 +451,7 @@ class FlatCosmologyMixinTest:
         # send to non-flat
         nc = cosmo.clone(to_nonflat=True)
         assert isinstance(nc, cosmo._nonflat_cls_)
-        assert nc == cosmo.equivalent_nonflat
+        assert nc == cosmo.nonflat
 
     # ------------------------------------------------
 
@@ -516,7 +516,7 @@ def test_nonflat_cls_multiple_nonflat_inheritance():
         class FlatSubCosmology(FlatCosmologyMixin, SubCosmology, SubCosmology2):
 
             @property
-            def equivalent_nonflat(self):
+            def nonflat(self):
                 pass
 
 

@@ -605,9 +605,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     >>> dc = cosmo.comoving_distance(z)
 
     To get an equivalent cosmology, but of type `astropy.cosmology.LambdaCDM`,
-    use :attr:`astropy.cosmology.FlatFLRWMixin.equivalent_nonflat`.
+    use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.equivalent_nonflat
+    >>> cosmo.nonflat
     LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
