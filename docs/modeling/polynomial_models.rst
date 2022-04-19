@@ -53,9 +53,8 @@ The terminology was adopted from numpy polynomials, which have the same
 confusion in meaning.
 
 
-**************
 1D Polynomials
-**************
+--------------
 
 - :class:`~astropy.modeling.polynomial.Polynomial1D`
 
@@ -65,9 +64,8 @@ confusion in meaning.
 
 - :class:`~astropy.modeling.polynomial.Hermite1D`
 
-**************
 2D Polynomials
-**************
+--------------
 
 - :class:`~astropy.modeling.polynomial.Polynomial2D`
 
