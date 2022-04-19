@@ -211,8 +211,8 @@ and comment must both be strings, whereas the value can be a string or an
 integer, floating point number, complex number, or ``True``/``False``. Keywords
 are usually unique within a header, except in a few special cases.
 
-The header attribute is a Header instance, another ``astropy`` object. To get
-the value associated with a header keyword, do (à la Python dicts)::
+The header attribute is a :class:`Header` instance, another ``astropy`` object.
+To get the value associated with a header keyword, do (à la Python dicts)::
 
     >>> hdul = fits.open(fits_image_filename)
     >>> hdul[0].header['DATE']
