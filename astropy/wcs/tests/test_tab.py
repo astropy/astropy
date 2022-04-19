@@ -69,3 +69,21 @@ def test_wcstab_swapaxes():
         w = wcs.WCS(hdul[0].header, hdul)
     wswp = w.swapaxes(2, 0)
     deepcopy(wswp)
+
+
+@pytest.mark.skipif(
+    _WCSLIB_VER < Version('7.8'),
+    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work."
+)
+def test_wcstab_swapaxes_same_val():
+    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+    with fits.open(filename) as hdul:
+        w = wcs.WCS(hdul[0].header, hdul)
+        w.wcs.ctype[-1] = 'FREQ-TAB'
+        w.wcs.set()
+        ws = w.sub([3, 2, 1])
+
+    val_ref = w.wcs_pix2world([[3, 5, 7]], 0)[0]
+    val_swapped = ws.wcs_pix2world([[7, 5, 3]], 0)[0]
+
+    assert np.allclose(val_ref, val_swapped[([2, 1, 0], )])

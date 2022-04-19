@@ -1555,3 +1555,18 @@ def test_temporal():
     assert w.sub([wcs.WCSSUB_TIME]).is_temporal
     assert (w.wcs_pix2world([[1, 2, 3]], 0)[0, 2] ==
             w.temporal.wcs_pix2world([[3]], 0)[0, 0])
+
+
+def test_swapaxes_same_val():
+    w = wcs.WCS(naxis=3)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
+    w.wcs.crpix = [32.5, 16.5, 1.]
+    w.wcs.crval = [5.63, -72.05, 1.]
+    w.wcs.pc = [[5.9e-06, 1.3e-05, 0.0], [-1.2e-05, 5.0e-06, 0.0], [0.0, 0.0, 1.0]]
+    w.wcs.cdelt = [1.0, 1.0, 1.0]
+    w.wcs.set()
+    ws = w.sub([3, 2, 1])
+    val_ref = w.wcs_pix2world([[3, 5, 7]], 0)[0]
+    val_swapped = ws.wcs_pix2world([[7, 5, 3]], 0)[0]
+
+    assert np.allclose(val_ref, val_swapped[([2, 1, 0], )])
