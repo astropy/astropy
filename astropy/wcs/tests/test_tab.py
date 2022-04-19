@@ -61,11 +61,17 @@ def test_mixed_celest_and_1d_tab_roundtrip():
     assert np.allclose(pts, w.wcs_world2pix(w.wcs_pix2world(pts, 0), 0))
 
 
+@pytest.mark.skipif(
+    _WCSLIB_VER < Version('7.8'),
+    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work."
+)
 def test_wcstab_swapaxes():
     # Crash on deepcopy of swapped -TAB axes reported in #13036.
     # Fixed in #13063.
     filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
     with fits.open(filename) as hdul:
         w = wcs.WCS(hdul[0].header, hdul)
+        w.wcs.ctype[-1] = 'FREQ-TAB'
+        w.wcs.set()
     wswp = w.swapaxes(2, 0)
     deepcopy(wswp)
