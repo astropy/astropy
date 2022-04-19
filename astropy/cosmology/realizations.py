@@ -3,6 +3,7 @@
 # STDLIB
 import pathlib
 import sys
+from typing import Optional, Union
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_path
@@ -72,80 +73,23 @@ class default_cosmology(ScienceState):
 
         >>> default_cosmology.get()
         FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966, ...
-
-    To get a specific cosmology:
-
-        >>> default_cosmology.get("Planck13")
-        FlatLambdaCDM(name="Planck13", H0=67.77 km / (Mpc s), Om0=0.30712, ...
     """
 
     _default_value = "Planck18"
     _value = "Planck18"
 
-    @classmethod
-    def get(cls, key=None):
-        """Get the science state value of ``key``.
-
-        Parameters
-        ----------
-        key : str or None
-            The built-in |Cosmology| realization to retrieve.
-            If None (default) get the current value.
-
-        Returns
-        -------
-        `astropy.cosmology.Cosmology` or None
-            `None` only if ``key`` is "no_default"
-
-        Raises
-        ------
-        TypeError
-            If ``key`` is not a str, |Cosmology|, or None.
-        ValueError
-            If ``key`` is a str, but not for a built-in Cosmology
-
-        Examples
-        --------
-        To get the default cosmology:
-
-        >>> default_cosmology.get()
-        FlatLambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), Om0=0.30966, ...
-
-        To get a specific cosmology:
-
-        >>> default_cosmology.get("Planck13")
-        FlatLambdaCDM(name="Planck13", H0=67.77 km / (Mpc s), Om0=0.30712, ...
-        """
-        if key is None:
-            key = cls._value
-
-        if isinstance(key, str):
-            # special-case one string
-            if key == "no_default":
-                return None
-            # all other options should be built-in realizations
-            try:
-                value = getattr(sys.modules[__name__], key)
-            except AttributeError:
-                raise ValueError(f"Unknown cosmology {key!r}. "
-                                 f"Valid cosmologies:\n{available}")
-        elif isinstance(key, Cosmology):
-            value = key
-        else:
-            raise TypeError("'key' must be must be None, a string, "
-                            f"or Cosmology instance, not {type(key)}.")
-
-        # validate value to `Cosmology`, if not already
-        return cls.validate(value)
-
     @deprecated("5.0", alternative="get")
     @classmethod
     def get_cosmology_from_string(cls, arg):
         """Return a cosmology instance from a string."""
-        return cls.get(arg)
+        if arg == "no_default":
+            value = None
+        else:
+            value = cls._get_from_registry(arg)
+        return value
 
     @classmethod
-    def validate(cls, value):
+    def validate(cls, value: Union[Cosmology, str, None]) -> Optional[Cosmology]:
         """Return a Cosmology given a value.
 
         Parameters
@@ -167,9 +111,45 @@ class default_cosmology(ScienceState):
 
         # Parse to Cosmology. Error if cannot.
         if isinstance(value, str):
-            value = cls.get(value)
+            # special-case one string
+            if value == "no_default":
+                value = None
+            else:
+                value = cls._get_from_registry(value)
         elif not isinstance(value, Cosmology):
             raise TypeError("default_cosmology must be a string or Cosmology instance, "
                             f"not {value}.")
+
+        return value
+
+    @classmethod
+    def _get_from_registry(cls, name: str) -> Cosmology:
+        """Get a registered Cosmology realization.
+
+        Parameters
+        ----------
+        name : str
+            The built-in |Cosmology| realization to retrieve.
+
+        Returns
+        -------
+        `astropy.cosmology.Cosmology`
+            The cosmology realization of `name`.
+
+        Raises
+        ------
+        ValueError
+            If ``name`` is a str, but not for a built-in Cosmology.
+        TypeError
+            If ``name`` is for a non-Cosmology object.
+        """
+        try:
+            value = getattr(sys.modules[__name__], name)
+        except AttributeError:
+            raise ValueError(f"Unknown cosmology {name!r}. "
+                             f"Valid cosmologies:\n{available}")
+
+        if not isinstance(value, Cosmology):
+            raise TypeError(f"cannot find a Cosmology realization called {name}.")
 
         return value
