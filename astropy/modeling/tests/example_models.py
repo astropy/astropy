@@ -60,8 +60,8 @@ from astropy.modeling.functional_models import (
 from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D,
-    Schechter1D, SmoothlyBrokenPowerLaw1D)
+    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D, Schechter1D,
+    SmoothlyBrokenPowerLaw1D)
 
 # 1D Models
 models_1D = {
