@@ -462,7 +462,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         return True
 
     @abc.abstractmethod
-    def equivalent_nonflat(self: _FlatCosmoT) -> _CosmoT:
+    def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
     def clone(self, *, meta: Optional[Mapping] = None, to_nonflat: bool = False, **kwargs):
@@ -514,7 +514,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
             LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
         """
         if to_nonflat:
-            return self.equivalent_nonflat.clone(meta=meta, **kwargs)
+            return self.nonflat.clone(meta=meta, **kwargs)
         return super().clone(meta=meta, **kwargs)
 
 

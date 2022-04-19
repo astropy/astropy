@@ -255,9 +255,9 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     >>> dc = cosmo.comoving_distance(z)
 
     To get an equivalent cosmology, but of type `astropy.cosmology.wCDM`,
-    use :attr:`astropy.cosmology.FlatFLRWMixin.equivalent_nonflat`.
+    use :attr:`astropy.cosmology.FlatFLRWMixin.nonflat`.
 
-    >>> cosmo.equivalent_nonflat
+    >>> cosmo.nonflat
     wCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
