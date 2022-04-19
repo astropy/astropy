@@ -539,8 +539,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
     using root-n throughout, largely in the interest of
     comprehensibility, but discusses other possibilities. The ATLAS
-    group also `discusses
-    <http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf>`_  several
+    group also discusses several
     possibilities but concludes that no single representation is
     suitable for all cases.  The suggestion has also been `floated
     <https://ui.adsabs.harvard.edu/abs/2012EPJP..127...24A>`_ that error
