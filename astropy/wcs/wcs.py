@@ -38,7 +38,8 @@ import textwrap
 import warnings
 import builtins
 
-# THIRD-PARTY
+# THIRD-
+from packaging.version import Version
 import numpy as np
 
 # LOCAL
@@ -70,8 +71,7 @@ __doctest_skip__ = ['WCS.all_world2pix']
 
 
 if _wcs is not None:
-    _parsed_version = _wcs.__version__.split('.')
-    if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
+    if Version(_wcs.__version__) < Version("5.8"):
         raise ImportError(
             "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
             "later on the 5.x series are known to work.  The version of wcslib "
@@ -81,6 +81,10 @@ if _wcs is not None:
         raise RuntimeError(
             "astropy.wcs did not pass its sanity check for your build "
             "on your platform.")
+
+    _WCSSUB_TIME_SUPPORT = Version(_wcs.__version__) >= Version("7.8")
+    _WCS_TPD_WARN_LT71 = Version(_wcs.__version__) < Version("7.1")
+    _WCS_TPD_WARN_LT74 = Version(_wcs.__version__) < Version("7.4")
 
     WCSBase = _wcs._Wcs
     DistortionLookupTable = _wcs.DistortionLookupTable
@@ -140,6 +144,10 @@ else:
     NonseparableSubimageCoordinateSystemError = None
     NoWcsKeywordsFoundError = None
     InvalidTabularParametersError = None
+
+    _WCSSUB_TIME_SUPPORT = False
+    _WCS_TPD_WARN_LT71 = False
+    _WCS_TPD_WARN_LT74 = False
 
 
 # Additional relax bit flags
@@ -2684,7 +2692,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if kw in header:
                     del header[kw]
             # Check if we can handle TPD distortion correctly
-            if int(_parsed_version[0]) * 10 + int(_parsed_version[1]) < 71:
+            if _WCS_TPD_WARN_LT71:
                 for kw, val in header.items():
                     if kw[:5] in ('CPDIS', 'CQDIS') and val == 'TPD':
                         warnings.warn(
@@ -2692,7 +2700,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                             f"{_wcs.__version__} is writing this in a format incompatible with "
                             f"current versions - please update to 7.4 or use the bundled WCSLIB.",
                             AstropyWarning)
-            elif int(_parsed_version[0]) * 10 + int(_parsed_version[1]) < 74:
+            elif _WCS_TPD_WARN_LT74:
                 for kw, val in header.items():
                     if kw[:5] in ('CPDIS', 'CQDIS') and val == 'TPD':
                         warnings.warn(
@@ -3231,6 +3239,12 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A copy of the current WCS with only the time axes included
         """
+        if not _WCSSUB_TIME_SUPPORT:
+            raise NotImplementedError(
+                "Support for 'temporal' axis requires WCSLIB version 7.8 or "
+                f"greater but linked WCSLIB version is {_wcs.__version__}"
+            )
+
         return self.sub([WCSSUB_TIME])  # Defined by C-ext  # noqa: F821
 
     @property

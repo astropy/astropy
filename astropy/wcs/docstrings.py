@@ -2312,7 +2312,7 @@ axes : int or a sequence.
 
     - ``'stokes'`` / ``WCSSUB_STOKES``: Stokes axis
 
-    - ``'temporal'`` / WCSSUB_TIME: Time axis
+    - ``'temporal'`` / ``WCSSUB_TIME``: Time axis (requires ``WCSLIB`` version 7.8 or greater)
 
     - ``'celestial'`` / ``WCSSUB_CELESTIAL``: An alias for the
       combination of ``'longitude'``, ``'latitude'`` and ``'cubeface'``.
