@@ -7,7 +7,6 @@ import math
 import re
 import time
 import warnings
-import collections
 from contextlib import suppress
 
 import numpy as np
@@ -380,9 +379,7 @@ class CompImageHeader(Header):
         Remove all cards from the header.
         """
 
-        self._table_header._cards = []
-        self._table_header._keyword_indices = collections.defaultdict(list)
-        self._table_header._rvkc_indices = collections.defaultdict(list)
+        self._table_header.clear()
         super().clear()
 
 
