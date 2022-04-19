@@ -343,6 +343,20 @@ class TableFormatter:
 
         return col_strs, outs
 
+    def _name_and_structure(self, name, dtype, sep=" "):
+        """Format a column name, including a possible structure.
+
+        Normally, just returns the name, but if it has a structured dtype,
+        will add the parts in between square brackets.  E.g.,
+        "name [f0, f1]" or "name [f0[sf0, sf1], f1]".
+        """
+        if dtype is None or dtype.names is None:
+            return name
+
+        structure = ', '.join([self._name_and_structure(name, dt, sep="")
+                               for name, (dt, _) in dtype.fields.items()])
+        return f"{name}{sep}[{structure}]"
+
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
                           show_dtype=False, show_length=None):
         """Iterator which yields formatted string representation of column values.
@@ -372,7 +386,7 @@ class TableFormatter:
             if the column is not shown completely.
         """
         max_lines, _ = self._get_pprint_size(max_lines, -1)
-
+        dtype = getattr(col, 'dtype', None)
         multidims = getattr(col, 'shape', [0])[1:]
         if multidims:
             multidim0 = tuple(0 for n in multidims)
@@ -386,10 +400,8 @@ class TableFormatter:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
             col_name = str(col.info.name)
-            if multidims:
-                col_name += f" [{','.join(str(n) for n in multidims)}]"
             n_header += 1
-            yield col_name
+            yield self._name_and_structure(col_name, dtype)
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
@@ -397,11 +409,11 @@ class TableFormatter:
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
-            try:
-                dtype = dtype_info_name(col.dtype)
-            except AttributeError:
-                dtype = col.__class__.__qualname__ or 'object'
-            yield str(dtype)
+            if dtype is not None:
+                col_dtype = dtype_info_name((dtype, multidims))
+            else:
+                col_dtype = col.__class__.__qualname__ or 'object'
+            yield col_dtype
         if show_unit or show_name or show_dtype:
             i_dashes = n_header
             n_header += 1
@@ -512,7 +524,7 @@ class TableFormatter:
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes. Default is False.
+            Include a header row for column dtypes. Default is to False.
 
         html : bool
             Format the output as an HTML table. Default is False.

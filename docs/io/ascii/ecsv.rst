@@ -348,11 +348,11 @@ We start by defining a table with 2 rows where each element in the second column
   >>> t['b'] = np.arange(12, dtype=np.float64).reshape(2, 3, 2)
   >>> t
   <Table length=2>
-   a     b [3,2]
-  str1   float64
-  ---- -----------
-     x  0.0 .. 5.0
-     y 6.0 .. 11.0
+   a        b
+  str1 float64[3,2]
+  ---- ------------
+     x   0.0 .. 5.0
+     y  6.0 .. 11.0
 
   >>> t['b'][0]
   array([[0., 1.],

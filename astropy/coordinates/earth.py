@@ -349,7 +349,7 @@ class EarthLocation(u.Quantity):
         GeodeticLocation(lon=<Longitude -155.47833333 deg>, lat=<Latitude 19.82833333 deg>, height=<Quantity 4160. m>)
         >>> keck.info  # doctest: +REMOTE_DATA
         name = W. M. Keck Observatory
-        dtype = void192
+        dtype = (float64, float64, float64)
         unit = m
         class = EarthLocation
         n_bad = 0

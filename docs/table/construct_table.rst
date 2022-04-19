@@ -128,14 +128,16 @@ of different data types to initialize a table::
   >>> a = (1., 4.)
   >>> b = np.array([[2, 3], [5, 6]], dtype=np.int64)  # vector column
   >>> c = Column(['x', 'y'], name='axis')
-  >>> arr = (a, b, c)
-  >>> Table(arr)
-  <Table length=2>
-    col0  col1 [2] axis
-  float64  int64   str1
-  ------- -------- ----
-      1.0   2 .. 3    x
-      4.0   5 .. 6    y
+  >>> d = u.Quantity([([1., 2., 3.], [.1, .2, .3]),
+  ...                 ([4., 5., 6.], [.4, .5, .6])], 'm,m/s')
+  >>> QTable([a, b, c, d])
+  <QTable length=2>
+    col0    col1   axis          col3 [f0, f1]
+                                    (m, m / s)
+  float64 int64[2] str1     (float64[3], float64[3])
+  ------- -------- ---- -------------------------------
+      1.0   2 .. 3    x ([1., 2., 3.], [0.1, 0.2, 0.3])
+      4.0   5 .. 6    y ([4., 5., 6.], [0.4, 0.5, 0.6])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -181,11 +183,11 @@ object::
   ...        'c': Column(['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))
   <Table length=2>
-    a   b [2]   c
-  float64 int64  str1
-  ------- ------ ----
-      1.0 2 .. 3    x
-      4.0 5 .. 6    y
+     a       b      c
+  float64 int64[2] str1
+  ------- -------- ----
+      1.0   2 .. 3    x
+      4.0   5 .. 6    y
 
 Notice that the key ``'c'`` takes precedence over the existing column name
 ``'axis'`` in the third column. Also see that the ``'b'`` column is a vector

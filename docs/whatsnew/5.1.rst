@@ -15,6 +15,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.1-cosmology`
 * :ref:`whatsnew-doppler-redshift-eq`
 * :ref:`whatsnew-io-ascii-converters`
+* :ref:`whatsnew-structured-columns`
 
 .. _whatsnew-5.1-cosmology:
 
@@ -82,6 +83,17 @@ value as a ``list`` even for only one element::
 Note that the previous syntax is still supported for backwards compatibility
 and there is no intent to remove this. See :ref:`io-ascii-read-converters` for
 details.
+
+.. _whatsnew-structured-columns:
+
+Structured Columns
+==================
+
+Columns which are ``numpy`` structured arrays are now fully supported,
+effectively allowing tables within tables. This applies to |Column|,
+|MaskedColumn|, and |Quantity| columns, and includes possible structured
+units. These structured data columns can be stored in ECSV, FITS, and HDF5
+formats.
 
 Full change log
 ===============
