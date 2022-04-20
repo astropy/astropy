@@ -49,7 +49,7 @@ fitters are:
   `scipy.optimize.least_squares` for more details. Note that this fitter supports parameter
   bounds in a sophisticated fashion which prevents fitting from "sticking" to one of the
   bounds provided. This fitter can be switched over to using the min/max bound method
-  by setting ``check_bounds=False`` when initializing the fitter. This is the recommended
+  by setting ``use_min_max_bounds=False`` when initializing the fitter. This is the recommended
   algorithm by scipy.
 
 * :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm

@@ -1037,7 +1037,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     calc_uncertainties : bool
         If the covarience matrix should be computed and set in the fit_info.
         Default: False
-    check_bounds : bool
+    use_min_max_bounds : bool
         If the set parameter bounds for a model will be enforced each given
         parameter while fitting via a simple min/max condition.
         Default: True
@@ -1048,10 +1048,10 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self, calc_uncertainties=False, check_bounds=True):
+    def __init__(self, calc_uncertainties=False, use_min_max_bounds=True):
         self.fit_info = None
         self._calc_uncertainties = calc_uncertainties
-        self._check_bounds = check_bounds
+        self._use_min_max_bounds = use_min_max_bounds
         super().__init__()
 
     def objective_function(self, fps, *args):
@@ -1069,7 +1069,7 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
         model = args[0]
         weights = args[1]
-        fitter_to_model_params(model, fps, self._check_bounds)
+        fitter_to_model_params(model, fps, self._use_min_max_bounds)
         meas = args[-1]
 
         if weights is None:
@@ -1322,7 +1322,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
     calc_uncertainties : bool
         If the covarience matrix should be computed and set in the fit_info.
         Default: False
-    check_bounds : bool
+    use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
         parameter while fitting via a simple min/max condition. A True setting
         will replicate how LevMarLSQFitter enforces bounds.
@@ -1335,8 +1335,8 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, method, calc_uncertainties=False, check_bounds=False):
-        super().__init__(calc_uncertainties, check_bounds)
+    def __init__(self, method, calc_uncertainties=False, use_min_max_bounds=False):
+        super().__init__(calc_uncertainties, use_min_max_bounds)
         self._method = method
 
     def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
@@ -1356,12 +1356,12 @@ class _NLLSQFitter(_NonLinearLSQFitter):
 
         init_values, _, bounds = model_to_fit_params(model)
 
-        # Note, if check_bounds is True we are defaulting to enforcing bounds
+        # Note, if use_min_max_bounds is True we are defaulting to enforcing bounds
         # using the old method employed by LevMarLSQFitter, this is different
         # from the method that optimize.least_squares employs to enforce bounds
         # thus we override the bounds being passed to optimize.least_squares so
         # that it will not enforce any bounding.
-        if self._check_bounds:
+        if self._use_min_max_bounds:
             bounds = (-np.inf, np.inf)
 
         self.fit_info = optimize.least_squares(
@@ -1397,7 +1397,7 @@ class TRFLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covarience matrix should be computed and set in the fit_info.
         Default: False
-    check_bounds : bool
+    use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
         parameter while fitting via a simple min/max condition. A True setting
         will replicate how LevMarLSQFitter enforces bounds.
@@ -1410,8 +1410,8 @@ class TRFLSQFitter(_NLLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, calc_uncertainties=False, check_bounds=False):
-        super().__init__('trf', calc_uncertainties, check_bounds)
+    def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
+        super().__init__('trf', calc_uncertainties, use_min_max_bounds)
 
 
 class DogBoxLSQFitter(_NLLSQFitter):
@@ -1423,7 +1423,7 @@ class DogBoxLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covarience matrix should be computed and set in the fit_info.
         Default: False
-    check_bounds : bool
+    use_min_max_bounds: bool
         If the set parameter bounds for a model will be enforced each given
         parameter while fitting via a simple min/max condition. A True setting
         will replicate how LevMarLSQFitter enforces bounds.
@@ -1436,8 +1436,8 @@ class DogBoxLSQFitter(_NLLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, calc_uncertainties=False, check_bounds=False):
-        super().__init__('dogbox', calc_uncertainties, check_bounds)
+    def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
+        super().__init__('dogbox', calc_uncertainties, use_min_max_bounds)
 
 
 class LMLSQFitter(_NLLSQFitter):
@@ -1812,7 +1812,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 # its own versions of these)
 # TODO: Most of this code should be entirely rewritten; it should not be as
 # inefficient as it is.
-def fitter_to_model_params(model, fps, check_bounds=True):
+def fitter_to_model_params(model, fps, use_min_max_bounds=True):
     """
     Constructs the full list of model parameters from the fitted and
     constrained parameters.
@@ -1823,7 +1823,7 @@ def fitter_to_model_params(model, fps, check_bounds=True):
         The model being fit
     fps :
         The fit parameter values to be assigned
-    check_bounds : bool
+    use_min_max_bounds: bool
         If the set parameter bounds for model will be enforced on each
         parameter with bounds.
         Default: True
@@ -1857,7 +1857,7 @@ def fitter_to_model_params(model, fps, check_bounds=True):
         values = fps[offset:offset + size]
 
         # Check bounds constraints
-        if model.bounds[name] != (None, None) and check_bounds:
+        if model.bounds[name] != (None, None) and use_min_max_bounds:
             _min, _max = model.bounds[name]
             if _min is not None:
                 values = np.fmax(values, _min)
