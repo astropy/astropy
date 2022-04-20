@@ -375,19 +375,6 @@ def isfile(f):
     return False
 
 
-def fileobj_open(filename, mode):
-    """
-    A wrapper around the `open()` builtin.
-
-    This exists because `open()` returns an `io.BufferedReader` by default.
-    This is bad, because `io.BufferedReader` doesn't support random access,
-    which we need in some cases.  We must call open with buffering=0 to get
-    a raw random-access file reader.
-    """
-
-    return open(filename, mode, buffering=0)
-
-
 def fileobj_name(f):
     """
     Returns the 'name' of file-like object *f*, if it has anything that could be
@@ -610,7 +597,12 @@ def _array_to_file(arr, outfile):
     `ndarray.tofile`.  Otherwise a slower Python implementation is used.
     """
 
-    if isfile(outfile) and not isinstance(outfile, io.BufferedIOBase):
+    try:
+        seekable = outfile.seekable()
+    except AttributeError:
+        seekable = False
+
+    if isfile(outfile) and seekable:
         write = lambda a, f: a.tofile(f)
     else:
         write = _array_to_file_like
