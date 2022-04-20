@@ -29,6 +29,42 @@ The rules for passing input to fitters are:
   `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
   ``x, y -> x', y'``).
 
+.. _modeling-getting-started-nonlinear-notes:
+
+Notes on Non-linear fitting
+---------------------------
+
+There are several non-linear fitters, which rely on several different optimization
+algorithms now. Choice of algorithm is problem dependent. The main non-linear
+fitters are:
+
+* :class:`~astropy.modeling.fitting.LevMarLSQFitter`, which uses the Levenberg-Marquardt
+  algorithm via the scipy legacy function `scipy.optimize.leastsq`. This fitter supports
+  parameter bounds via an unsophisticated min/max condition which can cause parameters
+  to "stick" to one of the bounds if during the fitting process the parameter gets close
+  to the bound during some of the intermediate fitting operations.
+
+* :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective
+  (TRF) algorithm that is particularly suitable for large sparse problems with bounds, see
+  `scipy.optimize.least_squares` for more details. Note that this fitter supports parameter
+  bounds in a sophisticated fashion which prevents fitting from "sticking" to one of the
+  bounds provided. This fitter can be switched over to using the min/max bound method
+  by setting ``check_bounds=False`` when initializing the fitter. This is the recommended
+  algorithm by scipy.
+
+* :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm
+  with rectangular trust regions, typical use case is small problems with bounds. Not
+  recommended for problems with rank-deficient Jacobian, see `scipy.optimize.least_squares`
+  for more details. This fitter supports bounds in the same fashion that
+  :class:`~astropy.modeling.fitting.TRFLSQFitter` does.
+
+* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
+  algorithm as implemented by `scipy.optimize.least_squares`. Doesn’t handle bounds and/or
+  sparse Jacobians. Usually the most efficient method for small unconstrained problems.
+  If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
+  you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
+  makes use of the recommended version of this algorithm in scipy.
+
 .. _modeling-getting-started-1d-fitting:
 
 Simple 1-D model fitting
@@ -124,39 +160,3 @@ background in an image.
     plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
     plt.title("Residual")
-
-.. _modeling-getting-started-nonlinear-notes:
-
-Notes on Non-linear fitting
----------------------------
-
-There are several non-linear fitters, which rely on several different optimization
-algorithms now. Choice of algorithm is problem dependent. The main non-linear
-fitters are:
-
-* :class:`~astropy.modeling.fitting.LevMarLSQFitter`, which uses the Levenberg-Marquardt
-  algorithm via the scipy legacy function `scipy.optimize.leastsq`. This fitter supports
-  parameter bounds via an unsophisticated min/max condition which can cause parameters
-  to "stick" to one of the bounds if during the fitting process the parameter gets close
-  to the bound during some of the intermediate fitting operations.
-
-* :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective
-  (TRF) algorithm that is particularly suitable for large sparse problems with bounds, see
-  `scipy.optimize.least_squares` for more details. Note that this fitter supports parameter
-  bounds in a sophisticated fashion which prevents fitting from "sticking" to one of the
-  bounds provided. This fitter can be switched over to using the min/max bound method
-  by setting ``check_bounds=False`` when initializing the fitter. This is the recommended
-  algorithm by scipy.
-
-* :class: `~astropy.modeling.fitting.DobBoxLSQFitter`, which uses the dogleg algorithm
-  with rectangular trust regions, typical use case is small problems with bounds. Not
-  recommended for problems with rank-deficient Jacobian, see `scipy.optimize.least_squares`
-  for more details. This fitter supports bounds in the same fashion that
-  :class:`~astropy.modeling.fitting.TRFLSQFitter` does.
-
-* :class: `~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
-  algorithm as implemented by `scipy.optimize.least_squares`. Doesn’t handle bounds and/or
-  sparse Jacobians. Usually the most efficient method for small unconstrained problems.
-  If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
-  you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
-  makes use of the recommended version of this algorithm in scipy.
