@@ -147,6 +147,11 @@ class Conf(_config.ConfigNamespace):
     remote_timeout = _config.ConfigItem(
         10.0,
         'Remote timeout downloading IERS file data (seconds).')
+    iers_degraded_accuracy = _config.ConfigItem(
+        ['error', 'warn', 'ignore'],
+        'IERS behavior if the range of available IERS data does not '
+        'cover the times when converting time scales, potentially leading '
+        'to degraded accuracy.')
     system_leap_second_file = _config.ConfigItem(
         '',
         'System file with leap seconds.')
@@ -156,12 +161,6 @@ class Conf(_config.ConfigNamespace):
     ietf_leap_second_auto_url = _config.ConfigItem(
         IETF_LEAP_SECOND_URL,
         'Alternate URL for auto-downloading leap seconds.')
-    iers_degraded_accuracy = _config.ConfigItem(
-        ['error', 'warn', 'ignore'],
-        'IERS behavior if the range of available IERS data does not '
-        'cover the times when converting time scales, potentially leading '
-        'to degraded accuracy.'
-    )
 
 
 conf = Conf()
@@ -373,7 +372,7 @@ class IERS(QTable):
         """
         if np.any(indices_orig != indices_clipped):
             if conf.iers_degraded_accuracy == 'error':
-                msg = ('time(s) outside of range covered by IERS table, cannot convert '
+                msg = ('(some) times are outside of range covered by IERS table. Cannot convert '
                        'with full accuracy. To allow conversion with degraded accuracy '
                        'set `astropy.utils.iers.conf.iers_degraded_accuracy` '
                        " to 'warn' or 'silent'")
