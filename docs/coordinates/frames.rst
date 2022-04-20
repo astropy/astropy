@@ -210,7 +210,7 @@ broadcast against each other. If you wish to determine the positions for a
 set of coordinates, you will need to make sure that the shapes allow this::
 
     >>> coo2 = ICRS(ra=[180., 225., 270.]*u.deg, dec=[51.5, 0., 51.5]*u.deg)
-    >>> coo2.transform_to(lf)  # doctest: +REMOTE_DATA
+    >>> coo2.transform_to(lf)
     Traceback (most recent call last):
     ...
     ValueError: operands could not be broadcast together...

@@ -45,7 +45,7 @@ One might expect that the following code snippet would produce an altitude of ex
     >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
     >>> altaz_frame = AltAz(obstime=t, location=home)
-    >>> obj.get_itrs(t).transform_to(altaz_frame).alt # doctest: +FLOAT_CMP +REMOTE_DATA
+    >>> obj.get_itrs(t).transform_to(altaz_frame).alt # doctest: +FLOAT_CMP
     <Latitude 86.32878441 deg>
 
 Why is the result over three degrees away from the zenith? It is only possible to understand by taking a very careful
