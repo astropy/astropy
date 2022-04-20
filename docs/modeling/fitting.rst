@@ -59,7 +59,7 @@ fitters are:
   :class:`~astropy.modeling.fitting.TRFLSQFitter` does.
 
 * :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM)
-  algorithm as implemented by `scipy.optimize.least_squares`. Doesn’t handle bounds and/or
+  algorithm as implemented by `scipy.optimize.least_squares`. Does not handle bounds and/or
   sparse Jacobians. Usually the most efficient method for small unconstrained problems.
   If a Levenberg-Marquardt algorithm is desired for your problem, it is now recommended that
   you use this fitter instead of :class:`~astropy.modeling.fitting.LevMarLSQFitter` as it
