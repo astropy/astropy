@@ -7,7 +7,7 @@ import pytest
 from astropy import units as u
 from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.modeling.core import fix_inputs
-from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.functional_models import (
     AiryDisk2D, ArcCosine1D, ArcSine1D, ArcTangent1D, Box1D, Box2D, Const1D, Const2D, Cosine1D,
     Disk2D, Ellipse2D, Exponential1D, Gaussian1D, Gaussian2D, KingProjectedAnalytic1D, Linear1D,
@@ -22,6 +22,8 @@ from astropy.modeling.powerlaws import (
     SmoothlyBrokenPowerLaw1D)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+
+fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
@@ -250,9 +252,40 @@ SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
 # These models will fail fitting test, because built in fitting data
 #   will produce non-finite values
-NON_FINITE_MODELS = [
+NON_FINITE_LevMar_MODELS = [
     Sersic1D,
     PowerLaw1D,
+    ExponentialCutoffPowerLaw1D,
+    LogParabola1D
+]
+
+# These models will fail the TRFLSQFitter fitting test due to non-finite
+NON_FINITE_TRF_MODELS = [
+    ArcSine1D,
+    ArcCosine1D,
+    Sersic1D,
+    Sersic2D,
+    PowerLaw1D,
+    ExponentialCutoffPowerLaw1D,
+    BrokenPowerLaw1D
+]
+
+# These models will fail the LMLSQFitter fitting test due to non-finite
+NON_FINITE_LM_MODELS = [
+    Sersic1D,
+    ArcSine1D,
+    ArcCosine1D,
+    PowerLaw1D,
+    LogParabola1D
+]
+
+# These models will fail the DogBoxLSQFitter fitting test due to non-finite
+NON_FINITE_DogBox_MODELS = [
+    Sersic1D,
+    Sersic2D,
+    ArcSine1D,
+    ArcCosine1D,
+    SmoothlyBrokenPowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     LogParabola1D
 ]
@@ -411,8 +444,14 @@ def test_compound_model_input_units_equivalencies_defaults(model):
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
 @pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 @pytest.mark.parametrize('model', MODELS)
-def test_models_fitting(model):
-    if model['class'] in NON_FINITE_MODELS:
+@pytest.mark.parametrize('fitter', fitters)
+def test_models_fitting(model, fitter):
+    fitter = fitter()
+
+    if (isinstance(fitter, LevMarLSQFitter) and model['class'] in NON_FINITE_LevMar_MODELS) or \
+            (isinstance(fitter, TRFLSQFitter) and model['class'] in NON_FINITE_TRF_MODELS) or\
+            (isinstance(fitter, LMLSQFitter) and model['class'] in NON_FINITE_LM_MODELS) or\
+            (isinstance(fitter, DogBoxLSQFitter) and model['class'] in NON_FINITE_DogBox_MODELS):
         return
 
     m = model['class'](**model['parameters'])
@@ -427,7 +466,6 @@ def test_models_fitting(model):
         args = [x, y, z]
 
     # Test that the model fits even if it has units on parameters
-    fitter = LevMarLSQFitter()
     m_new = fitter(m, *args)
 
     # Check that units have been put back correctly

@@ -26,6 +26,8 @@ model2d_params = [
     (models.Chebyshev2D, [1, 2])
 ]
 
+fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter, fitting.DogBoxLSQFitter]
+
 
 class TestInputType:
     """
@@ -164,47 +166,51 @@ class TestFitting:
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_nonlinear_lsqt_1set_1d(self):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_nonlinear_lsqt_1set_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter"""
+        fitter = fitter()
 
         g1 = models.Gaussian1D(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
-        gfit = fitting.LevMarLSQFitter()
-        model = gfit(g1, self.x1, y1)
+        model = fitter(g1, self.x1, y1)
         assert_allclose(model.parameters, [10, 3, .2])
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_nonlinear_lsqt_Nset_1d(self):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_nonlinear_lsqt_Nset_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
+        fitter = fitter()
 
         with pytest.raises(ValueError):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2],
                                    n_models=2)
             y1 = g1(self.x1, model_set_axis=False)
-            gfit = fitting.LevMarLSQFitter()
-            model = gfit(g1, self.x1, y1)
+            _ = fitter(g1, self.x1, y1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_nonlinear_lsqt_1set_2d(self):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_nonlinear_lsqt_1set_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter"""
+        fitter = fitter()
 
         g2 = models.Gaussian2D(10, x_mean=3, y_mean=4, x_stddev=.3,
                                y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
-        gfit = fitting.LevMarLSQFitter()
-        model = gfit(g2, self.x, self.y, z)
+        model = fitter(g2, self.x, self.y, z)
         assert_allclose(model.parameters, [10, 3, 4, .3, .2, 0])
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_nonlinear_lsqt_Nset_2d(self):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_nonlinear_lsqt_Nset_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
+        fitter = fitter()
 
         with pytest.raises(ValueError):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0], n_models=2)
             z = g2(self.x.flatten(), self.y.flatten())
-            gfit = fitting.LevMarLSQFitter()
-            model = gfit(g2, self.x, self.y, z)
+            _ = fitter(g2, self.x, self.y, z)
 
 
 class TestEvaluation:
