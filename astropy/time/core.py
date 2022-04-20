@@ -31,8 +31,7 @@ from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # noqa
-from .time_helper.function_helpers import (
-    CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
+from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS
 
 from astropy.extern import _strptime
 
