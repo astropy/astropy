@@ -114,8 +114,8 @@ least-squares optimization algorithm from scipy. These new fitters are:
 
 * :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective (TRF)
   algorithm.
-* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenburg-Marquardt (LM) algorithm,
-  via the :func:`scipy.optimize.lease_squares` function.
+* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM) algorithm,
+  via the `scipy.optimize.least_squares` function.
 * :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm.
 
 Full change log
