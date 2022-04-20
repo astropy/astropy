@@ -16,6 +16,7 @@ In particular, this release includes:
 * :ref:`whatsnew-doppler-redshift-eq`
 * :ref:`whatsnew-io-ascii-converters`
 * :ref:`whatsnew-structured-columns`
+* :ref:`whatsnew-fitters`
 
 .. _whatsnew-5.1-cosmology:
 
@@ -101,6 +102,21 @@ effectively allowing tables within tables. This applies to |Column|,
 |MaskedColumn|, and |Quantity| columns, and includes possible structured
 units. These structured data columns can be stored in ECSV, FITS, and HDF5
 formats.
+
+.. _whatsnew-fitters:
+
+New fitters have been added
+===========================
+
+New fitters have been added to :mod:`~astropy.modeling.fitting` based around the available
+algorithms provided by `scipy.optimize.least_squares`, which is now the recommended
+least-squares optimization algorithm from scipy. These new fitters are:
+
+* :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective (TRF)
+  algorithm.
+* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenburg-Marquardt (LM) algorithm,
+  via the :func:`scipy.optimize.lease_squares` function.
+* :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm.
 
 Full change log
 ===============
