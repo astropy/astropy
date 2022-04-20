@@ -38,31 +38,13 @@ class Test_default_cosmology(object):
     # -----------------------------------------------------
     # Get
 
-    def test_get_fail(self):
-        """Test bad inputs to :meth:`astropy.cosmology.default_cosmology.get`."""
-        # a not-valid option, but still a str
-        with pytest.raises(ValueError, match="Unknown cosmology"):
-            default_cosmology.get("fail!")
-
-        # a not-valid type
-        with pytest.raises(TypeError, match="'key' must be must be"):
-            default_cosmology.get(object())
-
     def test_get_current(self):
         """Test :meth:`astropy.cosmology.default_cosmology.get` current value."""
-        cosmo = default_cosmology.get(None)
-        assert cosmo is default_cosmology.get(default_cosmology._value)
+        cosmo = default_cosmology.get()
+        assert cosmo is default_cosmology.validate(default_cosmology._value)
 
-    def test_get_none(self):
-        """Test :meth:`astropy.cosmology.default_cosmology.get` to `None`."""
-        cosmo = default_cosmology.get("no_default")
-        assert cosmo is None
-
-    @pytest.mark.parametrize("name", parameters.available)
-    def test_get_valid(self, name):
-        """Test :meth:`astropy.cosmology.default_cosmology.get` from str."""
-        cosmo = default_cosmology.get(name)
-        assert cosmo is getattr(realizations, name)
+    # -----------------------------------------------------
+    # get_cosmology_from_string (deprecated)
 
     def test_get_cosmology_from_string(self, recwarn):
         """Test method ``get_cosmology_from_string``."""
@@ -84,6 +66,14 @@ class Test_default_cosmology(object):
         with pytest.raises(TypeError, match="must be a string or Cosmology"):
             default_cosmology.validate(TypeError)
 
+        # a not-valid option, but still a str
+        with pytest.raises(ValueError, match="Unknown cosmology"):
+            default_cosmology.validate("fail!")
+
+        # a not-valid type
+        with pytest.raises(TypeError, match="cannot find a Cosmology"):
+            default_cosmology.validate("available")
+
     def test_validate_default(self):
         """Test method ``validate`` for specific values."""
         value = default_cosmology.validate(None)
@@ -101,6 +91,11 @@ class Test_default_cosmology(object):
         cosmo = getattr(realizations, name)
         value = default_cosmology.validate(cosmo)
         assert value is cosmo
+
+    def test_validate_no_default(self):
+        """Test :meth:`astropy.cosmology.default_cosmology.get` to `None`."""
+        cosmo = default_cosmology.validate("no_default")
+        assert cosmo is None
 
 
 @pytest.mark.parametrize("name", parameters.available)
