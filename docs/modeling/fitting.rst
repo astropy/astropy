@@ -31,7 +31,7 @@ The rules for passing input to fitters are:
 
 .. _modeling-getting-started-nonlinear-notes:
 
-Notes on Non-linear fitting
+Notes on non-linear fitting
 ---------------------------
 
 There are several non-linear fitters, which rely on several different optimization
