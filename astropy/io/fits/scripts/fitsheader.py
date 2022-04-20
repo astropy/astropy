@@ -274,14 +274,14 @@ def print_headers_traditional(args):
         Arguments passed from the command-line as defined below.
     """
     for idx, filename in enumerate(args.filename):  # support wildcards
-        if idx > 0 and not args.keywords:
+        if idx > 0 and not args.keyword:
             print()  # print a newline between different files
 
         formatter = None
         try:
             formatter = HeaderFormatter(filename)
             print(formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed), end='')
         except OSError as e:
             log.error(str(e))
@@ -305,7 +305,7 @@ def print_headers_as_table(args):
         try:
             formatter = TableHeaderFormatter(filename)
             tbl = formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed)
             if tbl:
                 tables.append(tbl)
@@ -345,7 +345,7 @@ def print_headers_as_comparison(args):
         try:
             formatter = TableHeaderFormatter(filename, verbose=False)
             tbl = formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed)
             if tbl:
                 # Remove empty keywords
@@ -399,15 +399,6 @@ def print_headers_as_comparison(args):
     final_table.pprint(max_lines=-1, max_width=-1)
 
 
-class KeywordAppendAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        keyword = values.replace('.', ' ')
-        if namespace.keywords is None:
-            namespace.keywords = []
-        if keyword not in namespace.keywords:
-            namespace.keywords.append(keyword)
-
-
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
 
@@ -425,7 +416,7 @@ def main(args=None):
                              'this argument can be repeated '
                              'to select multiple extensions')
     parser.add_argument('-k', '--keyword', metavar='KEYWORD',
-                        action=KeywordAppendAction, dest='keywords',
+                        action='append', type=str,
                         help='specify a keyword; this argument can be '
                              'repeated to select multiple keywords; '
                              'also supports wildcards')
@@ -458,19 +449,15 @@ def main(args=None):
     if args.table is None:
         args.table = 'ascii.fixed_width'
 
-    # TODO: This is imho a little nicer than the custom action approach requiring
-    #  the store keyword.
-    #  Approach should be unified to whatever method is chosen
     if args.sort:
         args.sort = [key.replace('.', ' ') for key in args.sort]
         if not args.fitsort:
-            # TODO Only really makes sense for fitsort format. Maybe for standard
-            #  but then it would chug for a while and not start printing
-            #  immediately if you pass many files.
-            #  Maybe this should be an error, but that seems hard
-            #  to do natively with argparse, i.e. exception looks different
-            log.warning('Sorting is only supported in conjunction with -f/--fitsort. '
-                        'Sorting keywords are ignored.')
+            log.error('Sorting with -s/--sort is only supported in conjunction with -f/--fitsort')
+            # 2: Unix error convention for command line syntax
+            sys.exit(2)
+
+    if args.keyword:
+        args.keyword = [key.replace('.', ' ') for key in args.keyword]
 
     # Now print the desired headers
     try:

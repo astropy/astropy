@@ -149,15 +149,16 @@ class TestFITSheader_script(FitsTestCase):
         assert out_sorted[3].endswith('group.fits     5')
 
     def test_fitsort_sorting_keyword_complains(self, capsys):
-        fitsheader.main(['-t', '-s', 'DUMMY',
-                         self.data('group.fits'), self.data('test0.fits')])
+        with pytest.raises(SystemExit):
+            fitsheader.main(['-t', '-s', 'DUMMY',
+                             self.data('group.fits'), self.data('test0.fits')])
         out_table, err_table = capsys.readouterr()
-        assert 'Sorting keywords are ignored' in err_table
-
-        fitsheader.main(['-s', 'DUMMY',
-                         self.data('group.fits'), self.data('test0.fits')])
+        assert 'only supported in conjunction with -f/--fitsort' in err_table
+        with pytest.raises(SystemExit):
+            fitsheader.main(['-s', 'DUMMY',
+                             self.data('group.fits'), self.data('test0.fits')])
         out_default, err_default = capsys.readouterr()
-        assert 'Sorting keywords are ignored' in err_default
+        assert 'only supported in conjunction with -f/--fitsort' in err_default
 
     def test_dotkeyword(self, capsys):
         fitsheader.main(['-e', '0', '-k', 'ESO DET ID',
