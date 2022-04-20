@@ -6,7 +6,7 @@ import warnings
 from abc import abstractmethod
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import TypeVar
+from typing import Any, Mapping, Optional, TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -1437,7 +1437,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         self._Ode0 = 1.0 - (self._Om0 + self._Ogamma0 + self._Onu0 + self._Ok0)
 
     @lazyproperty
-    def equivalent_nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
+    def nonflat(self: _FlatFLRWMixinT) -> _FLRWT:
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         ba = self._nonflat_cls_._init_signature.bind_partial(**self._init_arguments,
@@ -1449,6 +1449,62 @@ class FlatFLRWMixin(FlatCosmologyMixin):
             setattr(inst, "_" + n, getattr(self, n))
 
         return inst
+
+    def clone(self, *, meta: Optional[Mapping] = None, to_nonflat: bool = None, **kwargs: Any):
+        """Returns a copy of this object with updated parameters, as specified.
+
+        This cannot be used to change the type of the cosmology, except for
+        changing to the non-flat version of this cosmology.
+
+        Parameters
+        ----------
+        meta : mapping or None (optional, keyword-only)
+            Metadata that will update the current metadata.
+        to_nonflat : bool or None, optional keyword-only
+            Whether to change to the non-flat version of this cosmology.
+        **kwargs
+            Cosmology parameter (and name) modifications. If any parameter is
+            changed and a new name is not given, the name will be set to "[old
+            name] (modified)".
+
+        Returns
+        -------
+        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
+            A new instance of this class with updated parameters as specified.
+            If no arguments are given, then a reference to this object is
+            returned instead of copy.
+
+        Examples
+        --------
+        To make a copy of the ``Planck13`` cosmology with a different matter
+        density (``Om0``), and a new name:
+
+            >>> from astropy.cosmology import Planck13
+            >>> Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+            FlatLambdaCDM(name="Modified Planck 2013", H0=67.77 km / (Mpc s),
+              Om0=0.35, ...
+
+        If no name is specified, the new name will note the modification.
+
+            >>> Planck13.clone(Om0=0.35).name
+            'Planck13 (modified)'
+
+        The keyword 'to_nonflat' can be used to clone on the non-flat equivalent
+        cosmology.
+
+            >>> Planck13.clone(to_nonflat=True)
+            LambdaCDM(name="Planck13", ...
+
+            >>> Planck13.clone(H0=70, to_nonflat=True)
+            LambdaCDM(name="Planck13 (modified)", H0=70.0 km / (Mpc s), ...
+
+        With 'to_nonflat' `True`, ``Ode0`` can be modified.
+
+            >>> Planck13.clone(to_nonflat=True, Ode0=1)
+            LambdaCDM(name="Planck13 (modified)", H0=67.77 km / (Mpc s),
+                      Om0=0.30712, Ode0=1.0, ...
+        """
+        return super().clone(meta=meta, to_nonflat=to_nonflat, **kwargs)
 
     @property
     def Otot0(self):

@@ -223,7 +223,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert c.meta == cosmo.meta
 
         # now change a different parameter and see how 'name' changes
-        c = cosmo.clone(meta={})
+        c = cosmo.clone(meta={"test_clone_name": True})
         assert c.name == cosmo.name + " (modified)"
 
     def test_clone_meta(self, cosmo):
@@ -394,6 +394,11 @@ class CosmologySubclassTest(TestCosmology):
 class FlatCosmologyMixinTest:
     """Tests for :class:`astropy.cosmology.core.FlatCosmologyMixin` subclasses.
 
+    The test suite structure mirrors the implementation of the tested code.
+    Just like :class:`astropy.cosmology.FlatCosmologyMixin` is an abstract
+    base class (ABC) that cannot be used by itself, so too is this corresponding
+    test class an ABC mixin.
+
     E.g to use this class::
 
         class TestFlatSomeCosmology(FlatCosmologyMixinTest, TestSomeCosmology):
@@ -420,11 +425,35 @@ class FlatCosmologyMixinTest:
         # it's always True
         assert cosmo.is_flat is True
 
-    def test_equivalent_nonflat(self, cosmo):
-        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.equivalent_nonflat`.
+    def test_nonflat(self, cosmo):
+        """Test :attr:`astropy.cosmology.core.FlatCosmologyMixin.nonflat`.
         """
-        assert cosmo.equivalent_nonflat.is_equivalent(cosmo)
-        assert cosmo.is_equivalent(cosmo.equivalent_nonflat)
+        assert cosmo.nonflat.is_equivalent(cosmo)
+        assert cosmo.is_equivalent(cosmo.nonflat)
+
+    # ------------------------------------------------
+    # clone
+
+    def test_clone_to_nonflat_equivalent(self, cosmo):
+        """Test method ``.clone()``to_nonflat argument."""
+        # just converting the class
+        nc = cosmo.clone(to_nonflat=True)
+        assert isinstance(nc, cosmo._nonflat_cls_)
+        assert nc == cosmo.nonflat
+
+    @abc.abstractmethod
+    def test_clone_to_nonflat_change_param(self, cosmo):
+        """
+        Test method ``.clone()`` changing a(many) Parameter(s). No parameters
+        are changed here because FlatCosmologyMixin has no Parameters.
+        See class docstring for why this test method exists.
+        """
+        # send to non-flat
+        nc = cosmo.clone(to_nonflat=True)
+        assert isinstance(nc, cosmo._nonflat_cls_)
+        assert nc == cosmo.nonflat
+
+    # ------------------------------------------------
 
     def test_is_equivalent(self, cosmo):
         """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.
@@ -487,7 +516,7 @@ def test_nonflat_cls_multiple_nonflat_inheritance():
         class FlatSubCosmology(FlatCosmologyMixin, SubCosmology, SubCosmology2):
 
             @property
-            def equivalent_nonflat(self):
+            def nonflat(self):
                 pass
 
 

@@ -693,10 +693,10 @@ class TestFLRW(CosmologyTest,
         # don't change any values
         kwargs = cosmo._init_arguments.copy()
         kwargs.pop("name", None)  # make sure not setting name
+        kwargs.pop("meta", None)  # make sure not setting name
         c = cosmo.clone(**kwargs)
         assert c.__class__ == cosmo.__class__
-        assert c.name == cosmo.name + " (modified)"
-        assert c.is_equivalent(cosmo)
+        assert c == cosmo
 
         # change ``H0``
         # Note that H0 affects Ode0 because it changes Ogamma0
@@ -916,6 +916,25 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
+
+    # ---------------------------------------------------------------
+
+    def test_clone_to_nonflat_change_param(self, cosmo):
+        """Test method ``.clone()`` changing a(many) Parameter(s)."""
+        super().test_clone_to_nonflat_change_param(cosmo)
+
+        # change Ode0, without non-flat
+        with pytest.raises(TypeError):
+            cosmo.clone(Ode0=1)
+
+        # change to non-flat
+        nc = cosmo.clone(to_nonflat=True, Ode0=cosmo.Ode0)
+        assert isinstance(nc, cosmo._nonflat_cls_)
+        assert nc == cosmo.nonflat
+
+        nc = cosmo.clone(to_nonflat=True, Ode0=1)
+        assert nc.Ode0 == 1.0
+        assert nc.name == cosmo.name + " (modified)"
 
     # ---------------------------------------------------------------
 
