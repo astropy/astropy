@@ -1,0 +1,1 @@
+Add ``-s/--sort`` argument to ``fitsheader`` to sort the fitsort-mode output.

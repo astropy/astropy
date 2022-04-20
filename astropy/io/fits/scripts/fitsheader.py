@@ -37,14 +37,18 @@ Example uses of fitsheader:
     $ fitsheader --keyword ESO.INS.ID filename.fits
     $ fitsheader --keyword "ESO INS ID" filename.fits
 
-8. Compare the headers of different fites files, following ESO's ``fitsort``
+8. Compare the headers of different fits files, following ESO's ``fitsort``
    format::
 
     $ fitsheader --fitsort --extension 0 --keyword ESO.INS.ID *.fits
 
 9. Same as above, sorting the output along a specified keyword::
 
-    $ fitsheader -f DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
+    $ fitsheader -f -s DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
+
+10. Sort first by OBJECT, then DATE-OBS::
+
+    $ fitsheader -f -s OBJECT -s DATE-OBS *.fits
 
 Note that compressed images (HDUs of type
 :class:`~astropy.io.fits.CompImageHDU`) really have two headers: a real
@@ -271,14 +275,14 @@ def print_headers_traditional(args):
         Arguments passed from the command-line as defined below.
     """
     for idx, filename in enumerate(args.filename):  # support wildcards
-        if idx > 0 and not args.keywords:
+        if idx > 0 and not args.keyword:
             print()  # print a newline between different files
 
         formatter = None
         try:
             formatter = HeaderFormatter(filename)
             print(formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed), end='')
         except OSError as e:
             log.error(str(e))
@@ -302,7 +306,7 @@ def print_headers_as_table(args):
         try:
             formatter = TableHeaderFormatter(filename)
             tbl = formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed)
             if tbl:
                 tables.append(tbl)
@@ -342,7 +346,7 @@ def print_headers_as_comparison(args):
         try:
             formatter = TableHeaderFormatter(filename, verbose=False)
             tbl = formatter.parse(args.extensions,
-                                  args.keywords,
+                                  args.keyword,
                                   args.compressed)
             if tbl:
                 # Remove empty keywords
@@ -390,19 +394,10 @@ def print_headers_as_comparison(args):
         final_tables.append(table.Table(final_table))
     final_table = table.vstack(final_tables)
     # Sort if requested
-    if args.fitsort is not True:  # then it must be a keyword, therefore sort
-        final_table.sort(args.fitsort)
+    if args.sort:
+        final_table.sort(args.sort)
     # Reorganise to keyword by columns
     final_table.pprint(max_lines=-1, max_width=-1)
-
-
-class KeywordAppendAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        keyword = values.replace('.', ' ')
-        if namespace.keywords is None:
-            namespace.keywords = []
-        if keyword not in namespace.keywords:
-            namespace.keywords.append(keyword)
 
 
 def main(args=None):
@@ -422,21 +417,25 @@ def main(args=None):
                              'this argument can be repeated '
                              'to select multiple extensions')
     parser.add_argument('-k', '--keyword', metavar='KEYWORD',
-                        action=KeywordAppendAction, dest='keywords',
+                        action='append', type=str,
                         help='specify a keyword; this argument can be '
                              'repeated to select multiple keywords; '
                              'also supports wildcards')
-    parser.add_argument('-t', '--table',
-                        nargs='?', default=False, metavar='FORMAT',
-                        help='print the header(s) in machine-readable table '
-                             'format; the default format is '
-                             '"ascii.fixed_width" (can be "ascii.csv", '
-                             '"ascii.html", "ascii.latex", "fits", etc)')
-    parser.add_argument('-f', '--fitsort', action='store_true',
-                        help='print the headers as a table with each unique '
-                             'keyword in a given column (fitsort format); '
-                             'if a SORT_KEYWORD is specified, the result will be '
-                             'sorted along that keyword')
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument('-t', '--table',
+                            nargs='?', default=False, metavar='FORMAT',
+                            help='print the header(s) in machine-readable table '
+                                 'format; the default format is '
+                                 '"ascii.fixed_width" (can be "ascii.csv", '
+                                 '"ascii.html", "ascii.latex", "fits", etc)')
+    mode_group.add_argument('-f', '--fitsort', action='store_true',
+                            help='print the headers as a table with each unique '
+                                 'keyword in a given column (fitsort format) ')
+    parser.add_argument('-s', '--sort', metavar='SORT_KEYWORD',
+                        action='append', type=str,
+                        help='sort output by the specified header keywords, '
+                             'can be repeated to sort by multiple keywords; '
+                             'Only supported with -f/--fitsort')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -450,6 +449,16 @@ def main(args=None):
     # then use ascii.fixed_width by default
     if args.table is None:
         args.table = 'ascii.fixed_width'
+
+    if args.sort:
+        args.sort = [key.replace('.', ' ') for key in args.sort]
+        if not args.fitsort:
+            log.error('Sorting with -s/--sort is only supported in conjunction with -f/--fitsort')
+            # 2: Unix error convention for command line syntax
+            sys.exit(2)
+
+    if args.keyword:
+        args.keyword = [key.replace('.', ' ') for key in args.keyword]
 
     # Now print the desired headers
     try:
