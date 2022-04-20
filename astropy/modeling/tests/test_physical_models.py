@@ -6,13 +6,16 @@ import pytest
 
 from astropy import cosmology
 from astropy import units as u
-from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.physical_models import NFW, BlackBody
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ["*"]
+
+
+fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
 
 # BlackBody tests
@@ -69,9 +72,16 @@ def test_blackbody_return_units():
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
-def test_blackbody_fit():
+@pytest.mark.parametrize("fitter", fitters)
+def test_blackbody_fit(fitter):
+    fitter = fitter()
 
-    fitter = LevMarLSQFitter()
+    if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, DogBoxLSQFitter):
+        rtol = 0.54
+        atol = 1e-15
+    else:
+        rtol = 1e-7
+        atol = 0
 
     b = BlackBody(3000 * u.K, scale=5e-17 * u.Jy / u.sr)
 
@@ -80,8 +90,8 @@ def test_blackbody_fit():
 
     b_fit = fitter(b, wav, fnu, maxiter=1000)
 
-    assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K)
-    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17)
+    assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K, rtol=rtol)
+    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17, atol=atol)
 
 
 def test_blackbody_overflow():
@@ -332,8 +342,14 @@ def test_NFW_evaluate(mass):
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
-def test_NFW_fit():
+@pytest.mark.parametrize('fitter', fitters)
+def test_NFW_fit(fitter):
     """Test linear fitting of NFW model."""
+    fitter = fitter()
+
+    if isinstance(fitter, DogBoxLSQFitter):
+        pytest.xfail("dogbox method is poor fitting method for NFW model")
+
     # Fixed parameters
     redshift = 0.63
     cosmo = cosmology.Planck15
@@ -349,8 +365,6 @@ def test_NFW_fit():
                           1.30776878e+06, 7.01004140e+05, 4.20678479e+05, 1.57421880e+05,
                           7.54669701e+04, 2.56319769e+04, 6.21976562e+03, 3.96522424e+02,
                           7.39336808e+01]) * (u.solMass / u.kpc ** 3)
-
-    fitter = LevMarLSQFitter()
 
     n200c = NFW(mass=1.8E15 * u.M_sun, concentration=7.0, redshift=redshift, cosmo=cosmo,
                 massfactor=massfactor)
@@ -369,8 +383,6 @@ def test_NFW_fit():
                           7.11559560e+04, 2.45737796e+04, 6.05459585e+03, 3.92183991e+02,
                           7.34674416e+01]) * (u.solMass / u.kpc ** 3)
 
-    fitter = LevMarLSQFitter()
-
     n200m = NFW(mass=1.8E15 * u.M_sun, concentration=7.0, redshift=redshift, cosmo=cosmo,
                 massfactor=massfactor)
     n200m.redshift.fixed = True
@@ -387,8 +399,6 @@ def test_NFW_fit():
                           1.18337370e+06, 6.43994654e+05, 3.90800249e+05, 1.48930537e+05,
                           7.21856397e+04, 2.48289464e+04, 6.09477095e+03, 3.93248818e+02,
                           7.35821787e+01]) * (u.solMass / u.kpc ** 3)
-
-    fitter = LevMarLSQFitter()
 
     nvir = NFW(mass=1.8E15 * u.M_sun, concentration=7.0, redshift=redshift, cosmo=cosmo,
                massfactor=massfactor)
