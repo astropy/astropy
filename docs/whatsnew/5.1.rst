@@ -105,8 +105,8 @@ formats.
 
 .. _whatsnew-fitters:
 
-New fitters have been added
-===========================
+New model fitters have been added
+=================================
 
 New fitters have been added to :mod:`~astropy.modeling.fitting` based around the available
 algorithms provided by `scipy.optimize.least_squares`, which is now the recommended
