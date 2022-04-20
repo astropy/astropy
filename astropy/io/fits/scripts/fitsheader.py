@@ -47,6 +47,7 @@ Example uses of fitsheader:
     $ fitsheader -f -s DATE-OBS -e 0 -k DATE-OBS -k ESO.INS.ID *.fits
 
 10. Sort first by OBJECT, then DATE-OBS::
+
     $ fitsheader -f -s OBJECT -s DATE-OBS *.fits
 
 Note that compressed images (HDUs of type
