@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 
 from astropy.io import fits
-from astropy.io.fits.verify import VerifyWarning
+from astropy.io.fits.verify import VerifyWarning, VerifyError
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
@@ -1036,6 +1036,16 @@ class TestHeaderFunctions(FitsTestCase):
         assert 'A' not in header
         assert 'C' not in header
         assert len(header) == 0
+
+    @pytest.mark.parametrize('fitsext', [fits.ImageHDU(), fits.CompImageHDU()])
+    def test_header_clear_write(self, fitsext):
+        hdulist = fits.HDUList([fits.PrimaryHDU(), fitsext])
+        hdulist[1].header['FOO'] = 'BAR'
+        hdulist[1].header.clear()
+        with pytest.raises(VerifyError) as err:
+            hdulist.writeto(self.temp('temp.fits'), overwrite=True)
+        err_msg = "'XTENSION' card does not exist."
+        assert err_msg in str(err.value)
 
     def test_header_fromkeys(self):
         header = fits.Header.fromkeys(['A', 'B'])

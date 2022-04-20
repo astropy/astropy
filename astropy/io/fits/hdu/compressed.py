@@ -374,6 +374,14 @@ class CompImageHeader(Header):
 
         return idx
 
+    def clear(self):
+        """
+        Remove all cards from the header.
+        """
+
+        self._table_header.clear()
+        super().clear()
+
 
 # TODO: Fix this class so that it doesn't actually inherit from BinTableHDU,
 # but instead has an internal BinTableHDU reference
