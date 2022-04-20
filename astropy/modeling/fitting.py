@@ -1306,7 +1306,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         - Trust Region Reflective
         - dogbox
         - Levenberg-Marqueardt
-    algorithms using theleast squares statistic.
+    algorithms using the least squares statistic.
 
     Parameters
     ----------
@@ -1356,7 +1356,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
 
         init_values, _, bounds = model_to_fit_params(model)
 
-        # Note, if check_bounds is True we are defaulting to enfocing bounds
+        # Note, if check_bounds is True we are defaulting to enforcing bounds
         # using the old method employed by LevMarLSQFitter, this is different
         # from the method that optimize.least_squares employs to enforce bounds
         # thus we override the bounds being passed to optimize.least_squares so
@@ -1817,7 +1817,8 @@ def fitter_to_model_params(model, fps, check_bounds=True):
     Constructs the full list of model parameters from the fitted and
     constrained parameters.
 
-    Parameters:
+    Parameters
+    ----------
     model :
         The model being fit
     fps :
