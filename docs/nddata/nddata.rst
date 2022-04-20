@@ -234,7 +234,7 @@ Examples
 Like the other properties the ``uncertainty`` can be set during
 initialization::
 
-    >>> from astropy.nddata import StdDevUncertainty
+    >>> from astropy.nddata import StdDevUncertainty, InverseVariance
     >>> array = np.array([10, 7, 12, 22])
     >>> uncert = StdDevUncertainty(np.sqrt(array))
     >>> ndd = NDData(array, uncertainty=uncert)
@@ -254,6 +254,11 @@ But it will print an info message if there is no ``uncertainty_type``::
     INFO: uncertainty should have attribute uncertainty_type. [astropy.nddata.nddata]
     >>> ndd.uncertainty
     UnknownUncertainty([ 5,  1,  2, 10])
+
+It is also possible to convert between uncertainty types::
+
+    >>> uncert.represent_as(InverseVariance)
+    InverseVariance([0.1       , 0.14285714, 0.08333333, 0.04545455])
 
 ..
   EXAMPLE END
