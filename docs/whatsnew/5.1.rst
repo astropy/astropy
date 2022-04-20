@@ -44,12 +44,19 @@ The list of valid formats, e.g. the Table in this example, may be
 checked with ``Cosmology.from_format.list_formats()``
 
 
-A new property ``equivalent_nonflat`` has been added to flat cosmologies
-(``FlatCosmologyMixin`` subclasses) to get an equivalent cosmology, but of the
-corresponding non-flat class.
+A new property ``nonflat`` has been added to flat cosmologies
+(:class:`astropy.cosmology.FlatCosmologyMixin` subclasses) to get an equivalent
+cosmology, but of the corresponding non-flat class.
 
-    >>> Planck18.equivalent_nonflat
-    LambdaCDM(name="Planck18", ...
+    >>> Planck18.nonflat
+    LambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), ...
+
+
+:meth:`astropy.cosmology.FlatCosmologyMixin.clone` has been enhanced to allow
+for flat cosmologies to clone on the equivalent non-flat cosmology. For example,
+
+    >>> Planck18.clone(to_nonflat=True, Ode0=1)
+    LambdaCDM(name="Planck18 (modified)", H0=67.66 km / (Mpc s), Om0=0.30966, Ode0=1.0, ...
 
 
 .. _whatsnew-doppler-redshift-eq:
