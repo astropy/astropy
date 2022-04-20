@@ -1,2 +1,2 @@
 Add support for calling ``numpy.linspace()`` with two ``Time`` instances to
-generate a linearly spaced set of times.
+generate a or multiple linearly spaced set(s) of times.
