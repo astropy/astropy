@@ -1,0 +1,2 @@
+Changes default FITS behavior to use buffered I/O
+rather than unbuffered I/O for performance reasons.

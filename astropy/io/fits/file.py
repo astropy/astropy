@@ -17,7 +17,7 @@ from functools import reduce
 
 import numpy as np
 
-from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
+from .util import (isreadable, iswritable, isfile, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string)
 from astropy.utils.data import download_file, _is_url
@@ -332,7 +332,10 @@ class _File:
         finally:
             # Make sure we leave the file in the position we found it; on
             # some platforms (e.g. Windows) mmaping a file handle can also
-            # reset its file pointer
+            # reset its file pointer.
+            # Also for Windows when using mmap seek() may return weird
+            # negative values, which is fixed by calling tell() before.
+            self._file.tell()
             self._file.seek(filepos)
 
     def writable(self):
@@ -482,7 +485,7 @@ class _File:
         if not closed:
             self._file = fileobj
         elif isfile(fileobj):
-            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
+            self._file = open(self.name, IO_FITS_MODES[mode])
 
         # Attempt to determine if the file represented by the open file object
         # is compressed
@@ -548,7 +551,7 @@ class _File:
             self._overwrite_existing(overwrite, None, True)
 
         if os.path.exists(self.name):
-            with fileobj_open(self.name, 'rb') as f:
+            with open(self.name, 'rb') as f:
                 magic = f.read(4)
         else:
             magic = b''
@@ -556,7 +559,7 @@ class _File:
         ext = os.path.splitext(self.name)[1]
 
         if not self._try_read_compressed(self.name, magic, mode, ext=ext):
-            self._file = fileobj_open(self.name, IO_FITS_MODES[mode])
+            self._file = open(self.name, IO_FITS_MODES[mode])
             self.close_on_error = True
 
         # Make certain we're back at the beginning of the file
