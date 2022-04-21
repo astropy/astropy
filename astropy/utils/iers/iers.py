@@ -34,6 +34,7 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_URL_MIRROR', 'IERS_A_README',
            'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README',
            'IERSRangeError', 'IERSStaleWarning', 'IERSWarning',
+           'IERSDegradedAccuracyWarning',
            'LeapSeconds', 'IERS_LEAP_SECOND_FILE', 'IERS_LEAP_SECOND_URL',
            'IETF_LEAP_SECOND_URL']
 
@@ -375,7 +376,10 @@ class IERS(QTable):
                 msg = ('(some) times are outside of range covered by IERS table. Cannot convert '
                        'with full accuracy. To allow conversion with degraded accuracy '
                        'set astropy.utils.iers.conf.iers_degraded_accuracy '
-                       ' to "warn" or "silent"')
+                       'to "warn" or "silent". For more information about setting this '
+                       'configuration parameter or controlling its value globally, see the '
+                       'Astropy configuration system documentation '
+                       'https://docs.astropy.org/en/stable/config/index.html.')
                 raise IERSRangeError(msg)
             elif conf.iers_degraded_accuracy == 'warn':
                 # No IERS data covering the time(s) and user requested a warning.

@@ -71,7 +71,7 @@ Configuration parameters
 ------------------------
 
 There are a number of IERS configuration parameters in `astropy.utils.iers.Conf`
-that control the behavior of the automatic IERS downloading. Three of the most
+that relate to automatic IERS downloading. Four of the most
 important to consider are the following:
 
   auto_download:
@@ -88,6 +88,14 @@ important to consider are the following:
   remote_timeout:
     Remote timeout downloading IERS file data (seconds)
 
+  iers_degraded_accuracy:
+    Some time conversions like UTC -> UT1 require IERS-A Earth rotation data
+    for full accuracy. In cases where full accuracy is not required and
+    downloading the IERS-A is not possible or desired (for instance running on
+    a cluster) then this option can be set to either ``'warn'`` or ``'ignore'``.
+    The default is ``'error'`` which will raise an exception if full accuracy
+    is not possible for a time conversion, ``'warn'`` will issue a warning, and
+    ``'ignore'`` will ignore the problem and use available IERS-B data.
 
 Auto refresh behavior
 ---------------------
@@ -145,6 +153,16 @@ downloaded and cached the IERS auto values previously, then do the following::
 This disables the check of whether the IERS values are sufficiently recent, and
 all the transformations (even those outside the time range of available IERS
 data) will succeed with at most warnings.
+
+**Allow degraded accuracy**
+
+*Only do this if you understand what you are doing, THIS CAN GIVE INACCURATE
+ANSWERS!*
+
+Set ``astropy.utils.iers.conf.iers_degraded_accuracy`` to either ``'warn'``
+or ``'ignore'``. These prevent the normal exception that occurs if a
+time conversion falls outside the bounds of available local IERS-B data.
+
 
 Direct table access
 -------------------
