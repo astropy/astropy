@@ -540,6 +540,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @property
     def value(self):
+        """
+        An alias for the existing ``data`` attribute.
+        """
         return self.data
 
     @property
@@ -1151,6 +1154,12 @@ class Column(BaseColumn):
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
+    
+    To access the ``Column`` data as a raw `np.ndarray` object, you can use 
+    one of the ``data`` or ``value`` attributes (which are equivalent)::
+
+        col.data
+        col.value
     """
 
     def __new__(cls, data=None, name=None,
@@ -1468,6 +1477,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
+    
+    To access the ``Column`` data as a raw `np.ma.MaskedArray` object, you can 
+    use one of the ``data`` or ``value`` attributes (which are equivalent)::
+
+        col.data
+        col.value
     """
     info = MaskedColumnInfo()
 
