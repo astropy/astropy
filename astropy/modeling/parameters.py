@@ -205,8 +205,8 @@ class Parameter:
         if isinstance(default, Quantity):
             if unit is not None and not unit.is_equivalent(default.unit):
                 raise ParameterDefinitionError(
-                    "parameter default {0} does not have units equivalent to "
-                    "the required unit {1}".format(default, unit))
+                    f"parameter default {default} does not have units equivalent to "
+                    f"the required unit {unit}")
             unit = default.unit
             default = default.value
 
@@ -229,8 +229,8 @@ class Parameter:
         if bounds is not None:
             if min is not None or max is not None:
                 raise ValueError(
-                    'bounds may not be specified simultaneously with min or '
-                    'max when instantiating Parameter {}'.format(name))
+                    "bounds may not be specified simultaneously with min or "
+                    f"max when instantiating Parameter {name}")
         else:
             bounds = (min, max)
 
@@ -271,7 +271,7 @@ class Parameter:
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
                     "Slice assignment outside the parameter dimensions for "
-                    "'{}'".format(self.name))
+                    f"'{self.name}'")
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
@@ -279,8 +279,8 @@ class Parameter:
                 oldvalue[key] = value
             except IndexError:
                 raise InputParameterError(
-                    "Input dimension {} invalid for {!r} parameter with "
-                    "dimension {}".format(key, self.name, value.shape[0]))  # likely wrong
+                    f"Input dimension {key} invalid for {self.name!r} parameter with "
+                    f"dimension {value.shape[0]}")  # likely wrong
 
     def __repr__(self):
         args = f"'{self._name}'"

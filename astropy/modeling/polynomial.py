@@ -1633,8 +1633,8 @@ class SIP(Model):
         self._outputs = ("x", "y")
 
     def __repr__(self):
-        return '<{}({!r})>'.format(self.__class__.__name__,
-                                   [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b])
+        return (f"<{self.__class__.__name__}"
+                f"({[self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]!r})>")
 
     def __str__(self):
         parts = [f'Model: {self.__class__.__name__}']

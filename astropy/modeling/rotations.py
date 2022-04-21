@@ -92,13 +92,12 @@ class RotationSequence3D(Model):
         self.axes = ['x', 'y', 'z']
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
-            raise ValueError("Unrecognized axis label {0}; "
-                             "should be one of {1} ".format(unrecognized,
-                                                            self.axes))
+            raise ValueError(f"Unrecognized axis label {unrecognized}; "
+                             f"should be one of {self.axes} ")
         self.axes_order = axes_order
         if len(angles) != len(axes_order):
-            raise ValueError("The number of angles {0} should match the number of axes {1}."
-                             .format(len(angles), len(axes_order)))
+            raise ValueError(f"The number of angles {len(angles)} should match "
+                             f"the number of axes {len(axes_order)}.")
         super().__init__(angles, name=name)
         self._inputs = ('x', 'y', 'z')
         self._outputs = ('x', 'y', 'z')
@@ -233,11 +232,11 @@ class EulerAngleRotation(_EulerRotation, Model):
         if len(axes_order) != 3:
             raise TypeError(
                 "Expected axes_order to be a character sequence of length 3, "
-                "got {}".format(axes_order))
+                f"got {axes_order}")
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
-            raise ValueError("Unrecognized axis label {}; "
-                             "should be one of {} ".format(unrecognized, self.axes))
+            raise ValueError(f"Unrecognized axis label {unrecognized}; "
+                             f"should be one of {self.axes} ")
         self.axes_order = axes_order
         qs = [isinstance(par, u.Quantity) for par in [phi, theta, psi]]
         if any(qs) and not all(qs):

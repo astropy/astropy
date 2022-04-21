@@ -103,7 +103,7 @@ class _Tabular(Model):
 
         if self.lookup_table.ndim != lookup_table.ndim:
             raise ValueError("lookup_table should be an array with "
-                             "{} dimensions.".format(self.lookup_table.ndim))
+                             f"{self.lookup_table.ndim} dimensions.")
 
         if points is None:
             points = tuple(np.arange(x, dtype=float)
@@ -115,15 +115,15 @@ class _Tabular(Model):
             if npts != lookup_table.ndim:
                 raise ValueError(
                     "Expected grid points in "
-                    "{} directions, got {}.".format(lookup_table.ndim, npts))
+                    f"{lookup_table.ndim} directions, got {npts}.")
             if (npts > 1 and isinstance(points[0], u.Quantity) and
                     len(set([getattr(p, 'unit', None) for p in points])) > 1):
                 raise ValueError('points must all have the same unit.')
 
         if isinstance(fill_value, u.Quantity):
             if not isinstance(lookup_table, u.Quantity):
-                raise ValueError('fill value is in {} but expected to be '
-                                 'unitless.'.format(fill_value.unit))
+                raise ValueError(f"fill value is in {fill_value.unit} but expected to be "
+                                 "unitless.")
             fill_value = fill_value.to(lookup_table.unit).value
 
         self.points = points
@@ -133,8 +133,8 @@ class _Tabular(Model):
         self.fill_value = fill_value
 
     def __repr__(self):
-        return "<{}(points={}, lookup_table={})>".format(
-            self.__class__.__name__, self.points, self.lookup_table)
+        return (f"<{self.__class__.__name__}(points={self.points}, "
+                f"lookup_table={self.lookup_table})>")
 
     def __str__(self):
         default_keywords = [

@@ -3176,7 +3176,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
             sig = mod(r)
 
 
-            plt.loglog(r, sig/sig[0], label='c ~ {:0.2f}'.format(mod.concentration))
+            plt.loglog(r, sig/sig[0], label=f"c ~ {mod.concentration:0.2f}")
 
         plt.xlabel("r")
         plt.ylabel(r"$\\sigma/\\sigma_0$")
