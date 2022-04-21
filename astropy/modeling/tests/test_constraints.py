@@ -12,10 +12,15 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 from astropy.utils.exceptions import AstropyUserWarning
 
-fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LevMarLSQFitter, fitting.DogBoxLSQFitter]
+fitters = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.LevMarLSQFitter,
+    fitting.DogBoxLSQFitter
+]
 
 
 class TestNonLinearConstraints:
@@ -129,8 +134,9 @@ class TestBounds:
                          1993.0, 2925.0, 2438.0, 1910.0, 1230.0, 738.0, 506.0, 461.0, 486.0, 597.0,
                          733.0, 1262.0, 1896.0, 2342.0, 1792.0, 1180.0, 667.0, 482.0, 454.0, 482.0,
                          504.0, 566.0, 789.0, 1194.0, 1545.0, 1361.0, 933.0, 562.0, 418.0, 463.0,
-                         435.0, 466.0, 528.0, 487.0, 664.0, 799.0, 746.0, 550.0, 478.0, 535.0, 443.0,
-                         416.0, 439.0, 472.0, 472.0, 492.0, 523.0, 569.0, 487.0, 441.0, 428.0])
+                         435.0, 466.0, 528.0, 487.0, 664.0, 799.0, 746.0, 550.0, 478.0, 535.0,
+                         443.0, 416.0, 439.0, 472.0, 472.0, 492.0, 523.0, 569.0, 487.0, 441.0,
+                         428.0])
         self.data = data.reshape(11, 11)
 
     @pytest.mark.parametrize("fitter", fitters)
@@ -181,7 +187,8 @@ class TestBounds:
         gauss = models.Gaussian2D(amplitude=10., x_mean=5., y_mean=5.,
                                   x_stddev=4., y_stddev=4., theta=0.5,
                                   bounds=bounds)
-        if isinstance(fitter, fitting.LevMarLSQFitter) or isinstance(fitter, fitting.DogBoxLSQFitter):
+        if (isinstance(fitter, fitting.LevMarLSQFitter) or
+                isinstance(fitter, fitting.DogBoxLSQFitter)):
             with pytest.warns(AstropyUserWarning,
                               match='The fit may be unsuccessful'):
                 model = fitter(gauss, X, Y, self.data)

@@ -8,10 +8,15 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.modeling import InputParameterError, fitting, models
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 from astropy.utils.exceptions import AstropyUserWarning
 
-fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter, fitting.DogBoxLSQFitter]
+fitters = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.LMLSQFitter,
+    fitting.DogBoxLSQFitter
+]
 
 
 def test_sigma_constant():
@@ -89,8 +94,7 @@ def test_Gaussian2DCovariance():
                   [-16, 27, 3.14]]
     with pytest.raises(ValueError) as err:
         models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
-    assert str(err.value) == \
-        "Covariance matrix must be 2x2"
+    assert str(err.value) == "Covariance matrix must be 2x2"
 
 
 def test_Gaussian2DRotation():
@@ -451,8 +455,7 @@ def test_Voigt1D(fitter):
     # Invalid method
     with pytest.raises(ValueError) as err:
         models.Voigt1D(method='test')
-    assert str(err.value) ==\
-        "Not a valid method for Voigt1D Faddeeva function: test."
+    assert str(err.value) == "Not a valid method for Voigt1D Faddeeva function: test."
 
 
 @pytest.mark.skipif("not HAS_SCIPY")

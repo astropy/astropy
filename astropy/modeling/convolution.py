@@ -4,7 +4,7 @@
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
 import numpy as np
 
-from .core import SPECIAL_OPERATORS, CompoundModel
+from .core import CompoundModel
 
 
 class Convolution(CompoundModel):
@@ -32,14 +32,14 @@ class Convolution(CompoundModel):
     -----
     This is wrapper is necessary to handle the limitations of the
     pseudospectral convolution binary operator implemented in
-    astropy.convolution under `~astropy.convolution.convolve_fft`. In this `~astropy.convolution.convolve_fft` it
-    is assumed that the inputs ``array`` and ``kernel`` span a sufficient
-    portion of the support of the functions of the convolution.
-    Consequently, the ``Compound`` created by the `~astropy.convolution.convolve_models` function
-    makes the assumption that one should pass an input array that
-    sufficiently spans this space. This means that slightly different
-    input arrays to this model will result in different outputs, even
-    on points of intersection between these arrays.
+    astropy.convolution under `~astropy.convolution.convolve_fft`. In this
+    `~astropy.convolution.convolve_fft` it is assumed that the inputs ``array``
+    and ``kernel`` span a sufficient portion of the support of the functions of
+    the convolution. Consequently, the ``Compound`` created by the
+    `~astropy.convolution.convolve_models` function makes the assumption that
+    one should pass an input array that sufficiently spans this space. This means
+    that slightly different input arrays to this model will result in different
+    outputs, even on points of intersection between these arrays.
 
     This issue is solved by requiring a ``bounding_box`` together with a
     resolution so that one can pre-calculate the entire domain and then

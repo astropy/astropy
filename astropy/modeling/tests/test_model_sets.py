@@ -8,12 +8,11 @@ import pytest
 from numpy.testing import assert_allclose
 
 from astropy.modeling.core import Model
-from astropy.modeling.fitting import FittingWithOutlierRemoval, LinearLSQFitter
+from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.models import (
     Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre1D, Legendre2D, Linear1D, Planar2D,
     Polynomial1D, Polynomial2D)
 from astropy.modeling.parameters import Parameter
-from astropy.stats import sigma_clip
 from astropy.utils import NumpyRNGContext
 
 x = np.arange(4)
@@ -143,7 +142,7 @@ def test_model2d_axis_2(model_class):
     can be evaluated with model_set_axis=False.
     """
     p2 = model_class(1, 1, c0_0=[[[0, 1, 2]]], c0_1=[[[3, 4, 5]]],
-                     c1_0=[[[5, 6, 7]]], c1_1=[[[1,1,1]]], n_models=3, model_set_axis=2)
+                     c1_0=[[[5, 6, 7]]], c1_1=[[[1, 1, 1]]], n_models=3, model_set_axis=2)
     t1 = model_class(1, 1, c0_0=0, c0_1=3, c1_0=5, c1_1=1)
     t2 = model_class(1, 1, c0_0=1, c0_1=4, c1_0=6, c1_1=1)
     t3 = model_class(1, 1, c0_0=2, c0_1=5, c1_0=7, c1_1=1)
@@ -301,19 +300,20 @@ def test_fitting_shapes():
 
     model = Linear1D(slope=[1, 2], intercept=[3, 4], n_models=2)
     y = model(xx)
-    fit_model = fitter(model, x, y)
+    fitter(model, x, y)
 
     model = Linear1D(slope=[[1, 2]], intercept=[[3, 4]], n_models=2, model_set_axis=1)
-    fit_model = fitter(model, x, y.T)
+    fitter(model, x, y.T)
 
     model = Planar2D(slope_x=[1, 2], slope_y=[1, 2], intercept=[3, 4], n_models=2)
     y = model(xx, xx)
-    fit_model = fitter(model, x, x, y)
+    fitter(model, x, x, y)
 
 
 def test_compound_model_sets():
     with pytest.raises(ValueError):
-        Polynomial1D(1, n_models=2, model_set_axis=1) | Polynomial1D(1, n_models=2, model_set_axis=0)
+        (Polynomial1D(1, n_models=2, model_set_axis=1) |
+         Polynomial1D(1, n_models=2, model_set_axis=0))
 
 
 def test_linear_fit_model_set_errors():

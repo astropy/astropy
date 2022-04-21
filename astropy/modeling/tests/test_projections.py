@@ -307,22 +307,21 @@ def test_AffineTransformation2D():
     # Matrix validation error
     with pytest.raises(InputParameterError) as err:
         model.matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    assert str(err.value) ==\
-        "Expected transformation matrix to be a 2x2 array"
+    assert str(err.value) == "Expected transformation matrix to be a 2x2 array"
 
     # Translation validation error
     with pytest.raises(InputParameterError) as err:
         model.translation = [1, 2, 3]
-    assert str(err.value) ==\
-        "Expected translation vector to be a 2 element row or column vector array"
+    assert str(err.value) == ("Expected translation vector to be a "
+                              "2 element row or column vector array")
     with pytest.raises(InputParameterError) as err:
         model.translation = [[1], [2]]
-    assert str(err.value) ==\
-        "Expected translation vector to be a 2 element row or column vector array"
+    assert str(err.value) == ("Expected translation vector to be a "
+                              "2 element row or column vector array")
     with pytest.raises(InputParameterError) as err:
         model.translation = [[1, 2, 3]]
-    assert str(err.value) ==\
-        "Expected translation vector to be a 2 element row or column vector array"
+    assert str(err.value) == ("Expected translation vector to be a "
+                              "2 element row or column vector array")
 
     # Incompatible shape error
     a = np.array([[1], [2], [3], [4]])
@@ -344,8 +343,7 @@ def test_AffineTransformation2D():
     y = np.array([1, 2, 3])
     with pytest.raises(ValueError) as err:
         model.evaluate(x, y, model.matrix, model.translation)
-    assert str(err.value) ==\
-        "Expected input arrays to have the same shape"
+    assert str(err.value) == "Expected input arrays to have the same shape"
 
 
 def test_AffineTransformation2D_inverse():
@@ -377,8 +375,7 @@ def test_AffineTransformation2D_inverse():
         matrix=[[1.2, 3.4], [5.6, 7.8]] * u.m, translation=[9.1, 10.11] * u.km)
     with pytest.raises(ValueError) as err:
         model4.inverse(*model4(x * u.m, y * u.m))
-    assert str(err.value) ==\
-        "matrix and translation must have the same units."
+    assert str(err.value) == "matrix and translation must have the same units."
 
 
 def test_c_projection_striding():

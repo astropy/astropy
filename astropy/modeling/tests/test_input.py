@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel, FittableModel, Model
 from astropy.modeling.parameters import Parameter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 model1d_params = [
     (models.Polynomial1D, [2]),
@@ -26,7 +26,12 @@ model2d_params = [
     (models.Chebyshev2D, [1, 2])
 ]
 
-fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter, fitting.DogBoxLSQFitter]
+fitters = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.LMLSQFitter,
+    fitting.DogBoxLSQFitter
+]
 
 
 class TestInputType:
@@ -144,7 +149,7 @@ class TestFitting:
             y1 = p1(self.x1)
             p1 = models.Polynomial1D(5, n_models=2)
             pfit = fitting.LinearLSQFitter()
-            model = pfit(p1, self.x1, y1)
+            pfit(p1, self.x1, y1)
 
     def test_wrong_pset(self):
         """A case of 1 set of x and multiple sets of y and parameters."""
@@ -291,12 +296,6 @@ class TestEvaluation:
         assert_allclose(xx.shape, yy.shape)
         yy1 = p1(xx, model_set_axis=1)
         assert_allclose(yy, yy1)
-        #x1 = xx[:, 0]
-        #x2 = xx[:, 1]
-        #p1 = models.Polynomial1D(5)
-        #assert_allclose(p1(x1), yy[0, :], atol=10 ** (-12))
-        #p1 = models.Polynomial1D(5)
-        #assert_allclose(p1(x2), yy[1, :], atol=10 ** (-12))
 
     def test_evaluate_gauss2d(self):
         cov = np.array([[1., 0.8], [0.8, 3]])
@@ -404,7 +403,7 @@ class TestSingleInputSingleOutputSingleModel:
 
         with pytest.raises(ValueError):
             # Doesn't broadcast
-            y3 = t([100, 200, 300])
+            t([100, 200, 300])
 
     def test_2d_array_parameters_2d_array_input(self):
         """
@@ -427,7 +426,7 @@ class TestSingleInputSingleOutputSingleModel:
 
         with pytest.raises(ValueError):
             # Doesn't broadcast
-            y3 = t([[100, 200, 300], [400, 500, 600]])
+            t([[100, 200, 300], [400, 500, 600]])
 
     def test_mixed_array_parameters_1d_array_input(self):
         """
@@ -436,8 +435,8 @@ class TestSingleInputSingleOutputSingleModel:
         """
 
         t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
-                           [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
-                          [1, 2, 3])
+                        [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
+                       [1, 2, 3])
 
         y1 = t([10, 20, 30])
         assert np.shape(y1) == (2, 2, 3)
@@ -496,7 +495,7 @@ class TestSingleInputSingleOutputTwoModel:
         t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
         with pytest.raises(ValueError):
-            y = t(np.arange(5) * 100)
+            t(np.arange(5) * 100)
 
         y1 = t([100, 200])
         assert np.shape(y1) == (2,)
@@ -525,7 +524,7 @@ class TestSingleInputSingleOutputTwoModel:
         y1 = t(np.arange(6).reshape(2, 3) * 100)
         assert np.shape(y1) == (2, 3)
         assert np.all(y1 == [[11, 111, 211],
-                            [322, 422, 522]])
+                             [322, 422, 522]])
 
         y2 = t(np.arange(6).reshape(2, 3) * 100, model_set_axis=False)
         assert np.shape(y2) == (2, 2, 3)
@@ -559,7 +558,7 @@ class TestSingleInputSingleOutputTwoModel:
         """
 
         t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
-                          [[10, 20, 30], [40, 50, 60]], n_models=2)
+                       [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         y = t(100)
         assert np.shape(y) == (2, 3)
@@ -575,7 +574,7 @@ class TestSingleInputSingleOutputTwoModel:
         """
 
         t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
-                          [[10, 20, 30], [40, 50, 60]], n_models=2)
+                       [[10, 20, 30], [40, 50, 60]], n_models=2)
 
         with pytest.raises(ValueError):
             y1 = t([100, 200, 300])
@@ -595,8 +594,8 @@ class TestSingleInputSingleOutputTwoModel:
 
     def test_2d_array_parameters_2d_array_input(self):
         t = TModel_1_1([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
-                          [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
-                          n_models=2)
+                       [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+                       n_models=2)
         y1 = t([[100, 200], [300, 400]])
         assert np.shape(y1) == (2, 2, 2)
         assert np.all(y1 == [[[111, 222], [133, 244]],
@@ -612,8 +611,8 @@ class TestSingleInputSingleOutputTwoModel:
 
     def test_mixed_array_parameters_1d_array_input(self):
         t = TModel_1_1([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
-                           [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
-                          [[1, 2, 3], [4, 5, 6]], n_models=2)
+                        [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
+                       [[1, 2, 3], [4, 5, 6]], n_models=2)
 
         with pytest.raises(ValueError):
             y = t([10, 20, 30])
@@ -626,7 +625,7 @@ class TestSingleInputSingleOutputTwoModel:
 
 class TModel_1_2(FittableModel):
 
-    n_inputs =1
+    n_inputs = 1
     n_outputs = 2
 
     p1 = Parameter()
@@ -750,7 +749,7 @@ class TestSingleInputDoubleOutputSingleModel:
         """
 
         t = TModel_1_2([[1, 2], [3, 4]], [[10, 20], [30, 40]],
-                          [[1000, 2000], [3000, 4000]])
+                       [[1000, 2000], [3000, 4000]])
 
         y1, z1 = t([[100, 200], [300, 400]])
         assert np.shape(y1) == np.shape(z1) == (2, 2)
@@ -779,8 +778,8 @@ class TestSingleInputDoubleOutputSingleModel:
         """
 
         t = TModel_1_2([[[0.01, 0.02, 0.03], [0.04, 0.05, 0.06]],
-                           [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
-                          [1, 2, 3], [100, 200, 300])
+                        [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
+                       [1, 2, 3], [100, 200, 300])
 
         y1, z1 = t([10, 20, 30])
         assert np.shape(y1) == np.shape(z1) == (2, 2, 3)
@@ -976,9 +975,10 @@ def test_format_input_arrays_transposed():
 
 @pytest.mark.parametrize('model',
                          [models.Gaussian2D(), models.Polynomial2D(1,),
-                          models.Pix2Sky_TAN(), models.Tabular2D(lookup_table=np.ones((4,5)))])
+                          models.Rotation2D(), models.Pix2Sky_TAN(),
+                          models.Tabular2D(lookup_table=np.ones((4, 5)))])
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_call_keyword_args_2(model):
+def test_call_keyword_args_1(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
     """
@@ -1003,10 +1003,9 @@ def test_call_keyword_args_2(model):
 
 @pytest.mark.parametrize('model',
                          [models.Gaussian1D(), models.Polynomial1D(1,),
-                          models.Tabular1D(lookup_table=np.ones((5,))),
-                          models.Rotation2D(), models.Pix2Sky_TAN()])
+                          models.Tabular1D(lookup_table=np.ones((5,)))])
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_call_keyword_args_1(model):
+def test_call_keyword_args_2(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
     """
@@ -1034,13 +1033,13 @@ def test_call_keyword_args_1(model):
                           models.Gaussian2D() * models.Polynomial2D(1,),
                           models.Identity(2) | models.Polynomial2D(1),
                           models.Mapping((1,)) | models.Polynomial1D(1)])
-def test_call_keyword_args_1(model):
+def test_call_keyword_args_3(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
     """
     positional = model(1, 2)
     model.inputs = ('r', 't')
-    assert_allclose(positional, model(r=1, t = 2))
+    assert_allclose(positional, model(r=1, t=2))
 
     assert_allclose(positional, model(1, t=2))
 

@@ -18,7 +18,6 @@ import copy
 import functools
 import inspect
 import itertools
-import numbers
 import operator
 import types
 from collections import defaultdict, deque
@@ -296,8 +295,7 @@ class _ModelMeta(abc.ABCMeta):
             # However, if the method takes additional arguments then this is a
             # parameterized bounding box and should be callable
             if len(sig.parameters) > 1:
-                bounding_box = \
-                        cls._create_bounding_box_subclass(bounding_box, sig)
+                bounding_box = cls._create_bounding_box_subclass(bounding_box, sig)
 
         # See the Model.bounding_box getter definition for how this attribute
         # is used
@@ -1113,9 +1111,11 @@ class Model(metaclass=_ModelMeta):
         n_all_args = n_args + len(new_inputs)
 
         if n_all_args < self.n_inputs:
-            raise ValueError(f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}")
+            raise ValueError(f"Missing input arguments - expected {self.n_inputs},"
+                             f" got {n_all_args}")
         elif n_all_args > self.n_inputs:
-            raise ValueError(f"Too many input arguments - expected {self.n_inputs}, got {n_all_args}")
+            raise ValueError(f"Too many input arguments - expected {self.n_inputs},"
+                             f" got {n_all_args}")
         if n_args == 0:
             # Create positional arguments from the keyword arguments in ``new_inputs``.
             new_args = []
@@ -2077,9 +2077,11 @@ class Model(metaclass=_ModelMeta):
                         # we need to be sure that we evaluate the model in
                         # its own frame of reference. If input_units_strict
                         # is set, we also need to convert to the input units.
-                        if len(input_units_equivalencies) > 0 or self.input_units_strict[input_name]:
+                        if (len(input_units_equivalencies) > 0 or
+                                self.input_units_strict[input_name]):
                             inputs[i] = inputs[i].to(input_unit,
-                                                     equivalencies=input_units_equivalencies[input_name])
+                                                     equivalencies=input_units_equivalencies[
+                                                         input_name])
 
                     else:
 
@@ -2111,14 +2113,14 @@ class Model(metaclass=_ModelMeta):
                     # input values without conversion, otherwise we raise an
                     # exception.
 
-                    if (not self.input_units_allow_dimensionless[input_name] and
-                        input_unit is not dimensionless_unscaled and
-                        input_unit is not None):
+                    if (not self.input_units_allow_dimensionless[input_name]
+                            and input_unit is not dimensionless_unscaled
+                            and input_unit is not None):
                         if np.any(inputs[i] != 0):
-                            raise UnitsError("{0}: Units of input '{1}', (dimensionless), could not be "
-                                             "converted to required input units of "
-                                             "{2} ({3})".format(name, self.inputs[i], input_unit,
-                                                                input_unit.physical_type))
+                            raise UnitsError(f"{name}: Units of input '{self.inputs[i]}',"
+                                             " (dimensionless), could not be converted to required "
+                                             f"input units of {input_unit} "
+                                             f"({input_unit.physical_type})")
         return inputs
 
     def _process_output_units(self, inputs, outputs):
@@ -2291,7 +2293,8 @@ class Model(metaclass=_ModelMeta):
 
             for unit in [model_units.get(i) for i in self.inputs]:
                 if unit is not None and unit != dimensionless_unscaled:
-                    raise ValueError("Cannot specify input_units for model with existing input units")
+                    raise ValueError("Cannot specify input_units for model with "
+                                     "existing input units")
 
             if isinstance(input_units, dict):
                 if input_units.keys() != set(self.inputs):
@@ -2327,7 +2330,8 @@ class Model(metaclass=_ModelMeta):
 
             for unit in [model_units.get(i) for i in self.outputs]:
                 if unit is not None and unit != dimensionless_unscaled:
-                    raise ValueError("Cannot specify return_units for model with existing output units")
+                    raise ValueError("Cannot specify return_units for model "
+                                     "with existing output units")
 
             if isinstance(return_units, dict):
                 if return_units.keys() != set(self.outputs):
@@ -2345,7 +2349,8 @@ class Model(metaclass=_ModelMeta):
                 )
                 raise ValueError(message)
 
-            mapping = tuple((model_units.get(i), unit) for i, unit in zip(self.outputs, return_units))
+            mapping = tuple((model_units.get(i), unit)
+                            for i, unit in zip(self.outputs, return_units))
             return_mapping = UnitsMapping(mapping)
             return_mapping.inputs = self.outputs
             return_mapping.outputs = self.outputs
@@ -2923,8 +2928,8 @@ class CompoundModel(Model):
         self._model_set_axis = left.model_set_axis
 
         if op in ['+', '-', '*', '/', '**'] or op in SPECIAL_OPERATORS:
-            if (left.n_inputs != right.n_inputs) or \
-               (left.n_outputs != right.n_outputs):
+            if (left.n_inputs != right.n_inputs or
+                    left.n_outputs != right.n_outputs):
                 raise ModelDefinitionError(
                     'Both operands must match numbers of inputs and outputs')
             self.n_inputs = left.n_inputs
@@ -2952,7 +2957,8 @@ class CompoundModel(Model):
             self.outputs = right.outputs
         elif op == 'fix_inputs':
             if not isinstance(left, Model):
-                raise ValueError('First argument to "fix_inputs" must be an instance of an astropy Model.')
+                raise ValueError('First argument to "fix_inputs" must be an instance of '
+                                 'an astropy Model.')
             if not isinstance(right, dict):
                 raise ValueError('Expected a dictionary for second argument of "fix_inputs".')
 
@@ -2998,8 +3004,7 @@ class CompoundModel(Model):
             # If so, remove the appropriate dimensions and set it for this
             # instance.
             try:
-                self.bounding_box = \
-                    self.left.bounding_box.fix_inputs(self, right)
+                self.bounding_box = self.left.bounding_box.fix_inputs(self, right)
             except NotImplementedError:
                 pass
 
@@ -3026,7 +3031,7 @@ class CompoundModel(Model):
         if op == '&':
             # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             return args[self.left.n_inputs: self.left.n_inputs + self.right.n_inputs]
-        elif op == '|' or  op == 'fix_inputs':
+        elif op == '|' or op == 'fix_inputs':
             return None
         else:
             return args[:self.left.n_inputs]
@@ -3053,7 +3058,7 @@ class CompoundModel(Model):
     def _get_kwarg_model_parameters_as_positional(self, args, kwargs):
         # could do it with inserts but rebuilding seems like simpilist way
 
-        #TODO: Check if any param names are in kwargs maybe as an intersection of sets?
+        # TODO: Check if any param names are in kwargs maybe as an intersection of sets?
         if self.op == "&":
             new_args = list(args[:self.left.n_inputs + self.right.n_inputs])
             args_pos = self.left.n_inputs + self.right.n_inputs
@@ -3172,8 +3177,8 @@ class CompoundModel(Model):
         )
 
         try:
-            linv = self.left.inverse
-            rinv = self.right.inverse
+            self.left.inverse
+            self.right.inverse
         except NotImplementedError:
             return False
 
@@ -3428,7 +3433,7 @@ class CompoundModel(Model):
         operands = deque()
 
         if format_leaf is None:
-            format_leaf = lambda i, l: f'[{i}]'
+            format_leaf = lambda i, l: f'[{i}]'  # noqa: E731
 
         for node in self.traverse_postorder():
             if not isinstance(node, CompoundModel):
@@ -3707,9 +3712,11 @@ class CompoundModel(Model):
                         outputs_map[out] = self.left, self.left.outputs[i]
                 else:  # Get from right
                     if isinstance(self.right, CompoundModel):
-                        outputs_map[out] = r_outputs_map[self.right.outputs[i - len(self.left.outputs)]]
+                        outputs_map[out] = r_outputs_map[self.right.outputs[
+                            i - len(self.left.outputs)]]
                     else:
-                        outputs_map[out] = self.right, self.right.outputs[i - len(self.left.outputs)]
+                        outputs_map[out] = self.right, self.right.outputs[
+                            i - len(self.left.outputs)]
         elif self.op == 'fix_inputs':
             return self.left.outputs_map()
         else:
@@ -3874,7 +3881,7 @@ class CompoundModel(Model):
             # Do this check first in order to raise a more helpful Exception,
             # although it would fail trying to construct the new CompoundModel
             if (old_model.n_inputs != model.n_inputs or
-                        old_model.n_outputs != model.n_outputs):
+                    old_model.n_outputs != model.n_outputs):
                 raise ValueError("New model must match numbers of inputs and "
                                  "outputs of existing model")
 

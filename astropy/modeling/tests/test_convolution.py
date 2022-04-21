@@ -5,13 +5,7 @@ import pytest
 
 from astropy.convolution import convolve_models_fft
 from astropy.modeling.models import Const1D, Const2D
-
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -96,5 +90,4 @@ def test__convolution_inputs():
     # Error
     with pytest.raises(ValueError) as err:
         model._convolution_inputs(grid0[0], grid1[1])
-    assert str(err.value) ==\
-        "Values have differing shapes"
+    assert str(err.value) == "Values have differing shapes"

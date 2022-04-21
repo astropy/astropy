@@ -288,15 +288,13 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         if i.max():
             # In this case the main formula reduces to a simple power
             # law with index `alpha_2`.
-            f[i] = amplitude * xx[i] ** (-alpha_2) \
-                   / (2. ** ((alpha_1 - alpha_2) * delta))
+            f[i] = amplitude * xx[i] ** (-alpha_2) / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = logt < -threshold
         if i.max():
             # In this case the main formula reduces to a simple power
             # law with index `alpha_1`.
-            f[i] = amplitude * xx[i] ** (-alpha_1) \
-                   / (2. ** ((alpha_1 - alpha_2) * delta))
+            f[i] = amplitude * xx[i] ** (-alpha_1) / (2. ** ((alpha_1 - alpha_2) * delta))
 
         i = np.abs(logt) <= threshold
         if i.max():
@@ -304,8 +302,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             # we will evaluate the whole formula.
             t = np.exp(logt[i])
             r = (1. + t) / 2.
-            f[i] = amplitude * xx[i] ** (-alpha_1) \
-                   * r ** ((alpha_1 - alpha_2) * delta)
+            f[i] = amplitude * xx[i] ** (-alpha_1) * r ** ((alpha_1 - alpha_2) * delta)
 
         if return_unit:
             return Quantity(f, unit=return_unit, copy=False)
@@ -357,14 +354,14 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             t = np.exp(logt[i])
             r = (1. + t) / 2.
             f[i] = amplitude * xx[i] ** (-alpha_1) \
-                   * r ** ((alpha_1 - alpha_2) * delta)
+                * r ** ((alpha_1 - alpha_2) * delta)
 
             d_amplitude[i] = f[i] / amplitude
             d_x_break[i] = f[i] * (alpha_1 - (alpha_1 - alpha_2) * t / 2. / r) / x_break
             d_alpha_1[i] = f[i] * (-np.log(xx[i]) + delta * np.log(r))
             d_alpha_2[i] = f[i] * (-delta * np.log(r))
             d_delta[i] = f[i] * (alpha_1 - alpha_2) \
-                         * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
+                * (np.log(r) - t / (1. + t) / delta * np.log(xx[i]))
 
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2, d_delta]
 
@@ -465,9 +462,12 @@ class LogParabola1D(Fittable1DModel):
 
     Notes
     -----
-    Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha`` and :math:`\\beta` for ``beta``):
+    Model formula (with :math:`A` for ``amplitude`` and
+    :math:`\\alpha` for ``alpha`` and :math:`\\beta` for ``beta``):
 
-        .. math:: f(x) = A \\left(\\frac{x}{x_{0}}\\right)^{- \\alpha - \\beta \\log{\\left (\\frac{x}{x_{0}} \\right )}}
+        .. math:: f(x) = A \\left(
+                \\frac{x}{x_{0}}\\right)^{- \\alpha - \\beta \\log{\\left (\\frac{x}{x_{0}}
+            \\right )}}
 
     """
 
