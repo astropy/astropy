@@ -49,9 +49,6 @@ class SetterModel(FittableModel):
     def evaluate(self, x, y, xc, yc):
         return (x - xc)**2 + (y - yc)**2
 
-    def do_something(self, v):
-        pass
-
 
 class TParModel(Model):
     """
@@ -89,8 +86,7 @@ def test__tofloat():
     assert np.all([isinstance(val, float) for val in value])
     with pytest.raises(InputParameterError) as err:
         _tofloat('test')
-    assert str(err.value) == \
-        "Parameter of <class 'str'> could not be converted to float"
+    assert str(err.value) == "Parameter of <class 'str'> could not be converted to float"
 
     # quantity
     assert _tofloat(1 * u.m) == 1 * u.m
@@ -134,8 +130,7 @@ def test__tofloat():
         pass
     with pytest.raises(InputParameterError) as err:
         _tofloat(Value)
-    assert str(err.value) == \
-        "Don't know how to convert parameter of <class 'type'> to float"
+    assert str(err.value) == "Don't know how to convert parameter of <class 'type'> to float"
 
 
 def test_parameter_properties():
@@ -397,8 +392,8 @@ class TestParameters:
         assert param.bounds == (1, 2)
 
         # Errors __init__
-        message = "bounds may not be specified simultaneously with min or max" +\
-            " when instantiating Parameter test"
+        message = ("bounds may not be specified simultaneously with min or max"
+                   " when instantiating Parameter test")
         with pytest.raises(ValueError) as err:
             Parameter(bounds=(1, 2), min=1, name='test')
         assert str(err.value) == message
@@ -416,12 +411,10 @@ class TestParameters:
         # Set errors
         with pytest.raises(TypeError) as err:
             param.bounds = ('test', None)
-        assert str(err.value) == \
-            "Min value must be a number or a Quantity"
+        assert str(err.value) == "Min value must be a number or a Quantity"
         with pytest.raises(TypeError) as err:
             param.bounds = (None, 'test')
-        assert str(err.value) == \
-            "Max value must be a number or a Quantity"
+        assert str(err.value) == "Max value must be a number or a Quantity"
 
         # Set number
         param.bounds = (1, 2)
@@ -438,13 +431,11 @@ class TestParameters:
         # Errors
         with pytest.raises(InputParameterError) as err:
             param[slice(0, 0)] = 2
-        assert str(err.value) == \
-            "Slice assignment outside the parameter dimensions for 'test'"
+        assert str(err.value) == "Slice assignment outside the parameter dimensions for 'test'"
 
         with pytest.raises(InputParameterError) as err:
             param[3] = np.array([5])
-        assert str(err.value) == \
-            "Input dimension 3 invalid for 'test' parameter with dimension 1"
+        assert str(err.value) == "Input dimension 3 invalid for 'test' parameter with dimension 1"
 
         # assignment of a slice
         param[slice(0, 2)] = [4, 5]
@@ -461,8 +452,8 @@ class TestParameters:
         # No force Error (no existing unit)
         with pytest.raises(ValueError) as err:
             param._set_unit(u.m)
-        assert str(err.value) == \
-            "Cannot attach units to parameters that were not initially specified with units"
+        assert str(err.value) == ("Cannot attach units to parameters that were "
+                                  "not initially specified with units")
 
         # Force
         param._set_unit(u.m, True)
@@ -471,8 +462,8 @@ class TestParameters:
         # No force Error (existing unit)
         with pytest.raises(ValueError) as err:
             param._set_unit(u.K)
-        assert str(err.value) == \
-            "Cannot change the unit attribute directly, instead change the parameter to a new quantity"
+        assert str(err.value) == ("Cannot change the unit attribute directly, instead change the "
+                                  "parameter to a new quantity")
 
     def test_quantity(self):
         param = Parameter(name='test', default=[1, 2, 3])
@@ -490,8 +481,7 @@ class TestParameters:
         # Reshape error
         with pytest.raises(ValueError) as err:
             param.shape = (5,)
-        assert str(err.value) == \
-            "cannot reshape array of size 4 into shape (5,)"
+        assert str(err.value) == "cannot reshape array of size 4 into shape (5,)"
         # Reshape success
         param.shape = (2, 2)
         assert param.shape == (2, 2)
@@ -503,8 +493,7 @@ class TestParameters:
         # Reshape error
         with pytest.raises(ValueError) as err:
             param.shape = (5,)
-        assert str(err.value) == \
-            "Cannot assign this shape to a scalar quantity"
+        assert str(err.value) == "Cannot assign this shape to a scalar quantity"
         param.shape = (1,)
 
         # single value
@@ -513,8 +502,7 @@ class TestParameters:
         # Reshape error
         with pytest.raises(ValueError) as err:
             param.shape = (5,)
-        assert str(err.value) == \
-            "Cannot assign this shape to a scalar quantity"
+        assert str(err.value) == "Cannot assign this shape to a scalar quantity"
         param.shape = ()
 
     def test_size(self):
@@ -529,42 +517,46 @@ class TestParameters:
 
     def test_std(self):
         param = Parameter(name='test', default=[1, 2, 3, 4])
-        assert param.std == None == param._std
+        assert param.std is None
+        assert param._std is None
 
         param.std = 5
         assert param.std == 5 == param._std
 
     def test_fixed(self):
         param = Parameter(name='test', default=[1, 2, 3, 4])
-        assert param.fixed == False == param._fixed
+        assert param.fixed is False
+        assert param._fixed is False
 
         # Set error
         with pytest.raises(ValueError) as err:
             param.fixed = 3
-        assert str(err.value) == \
-            "Value must be boolean"
+        assert str(err.value) == "Value must be boolean"
 
         # Set
         param.fixed = True
-        assert param.fixed == True == param._fixed
+        assert param.fixed is True
+        assert param._fixed is True
 
     def test_tied(self):
         param = Parameter(name='test', default=[1, 2, 3, 4])
-        assert param.tied == False == param._tied
+        assert param.tied is False
+        assert param._tied is False
 
         # Set error
         with pytest.raises(TypeError) as err:
             param.tied = mk.NonCallableMagicMock()
-        assert str(err.value) == \
-            "Tied must be a callable or set to False or None"
+        assert str(err.value) == "Tied must be a callable or set to False or None"
 
         # Set None
         param.tied = None
-        assert param.tied == None == param._tied
+        assert param.tied is None
+        assert param._tied is None
 
         # Set False
         param.tied = False
-        assert param.tied == False == param._tied
+        assert param.tied is False
+        assert param._tied is False
 
         # Set other
         tied = mk.MagicMock()
@@ -581,10 +573,9 @@ class TestParameters:
 
         with pytest.raises(ValueError) as err:
             param.validator(mk.NonCallableMagicMock())
-        assert str(err.value) == \
-            "This decorator method expects a callable.\n" +\
-            "The use of this method as a direct validator is\n" +\
-            "deprecated; use the new validate method instead\n"
+        assert str(err.value) == ("This decorator method expects a callable.\n"
+                                  "The use of this method as a direct validator is\n"
+                                  "deprecated; use the new validate method instead\n")
 
     def test_validate(self):
         param = Parameter(name='test', default=[1, 2, 3, 4])
@@ -616,8 +607,9 @@ class TestParameters:
 
     def test_model(self):
         param = Parameter(name='test', default=[1, 2, 3, 4])
-        assert param.model == None == param._model
-        assert param._model_required == False
+        assert param.model is None
+        assert param._model is None
+        assert param._model_required is False
         assert (param._value == [1, 2, 3, 4]).all()
 
         setter = mk.MagicMock()
@@ -696,8 +688,8 @@ class TestParameters:
         # Bad ufunc
         with pytest.raises(TypeError) as err:
             param._create_value_wrapper(np.add, mk.MagicMock())
-        assert str(err.value) == \
-            "A numpy.ufunc used for Parameter getter/setter may only take one input argument"
+        assert str(err.value) == ("A numpy.ufunc used for Parameter getter/setter "
+                                  "may only take one input argument")
         # Good ufunc
         assert param._create_value_wrapper(np.negative, mk.MagicMock()) == np.negative
 
@@ -713,9 +705,9 @@ class TestParameters:
         def wrapper2(a, b):
             pass
         # model is None
-        assert param._model_required == False
+        assert param._model_required is False
         assert param._create_value_wrapper(wrapper2, None) == wrapper2
-        assert param._model_required == True
+        assert param._model_required is True
         # model is not None
         param._model_required = False
         model = mk.MagicMock()
@@ -727,8 +719,8 @@ class TestParameters:
             pass
         with pytest.raises(TypeError) as err:
             param._create_value_wrapper(wrapper3, mk.MagicMock())
-        assert str(err.value) == \
-            "Parameter getter/setter must be a function of either one or two arguments"
+        assert str(err.value) == ("Parameter getter/setter must be a function "
+                                  "of either one or two arguments")
 
     def test_bool(self):
         # single value is true
@@ -871,7 +863,7 @@ class TestParameterInitialization:
     def test_single_model_1d_array_different_length_parameters(self):
         with pytest.raises(InputParameterError):
             # Not broadcastable
-            t = TParModel([1, 2], [3, 4, 5])
+            TParModel([1, 2], [3, 4, 5])
 
     def test_single_model_2d_array_parameters(self):
         t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
@@ -1030,8 +1022,8 @@ class TestParameterInitialization:
         assert np.all(t.param_sets[1] == [[[1, 3], [2, 4], [3, 5]]])
         assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 30, 70, 40, 80,
                                        50, 90, 1, 3, 2, 4, 3, 5])
-        assert t.coeff.shape == (2, 3, 2) # note change in api
-        assert t.e.shape == (3, 2) # note change in api
+        assert t.coeff.shape == (2, 3, 2)  # note change in api
+        assert t.e.shape == (3, 2)  # note change in api
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
@@ -1041,18 +1033,18 @@ class TestParameterInitialization:
 
     def test_wrong_number_of_params2(self):
         with pytest.raises(InputParameterError):
-            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
+            TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
         with pytest.raises(InputParameterError):
-            m = TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
+            TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
 
     def test_array_parameter1(self):
         with pytest.raises(InputParameterError):
-            t = TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
+            TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
         with pytest.raises(InputParameterError):
-            m = TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
-                          model_set_axis=0)
+            TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
+                      model_set_axis=0)
 
     def test_array_parameter4(self):
         """

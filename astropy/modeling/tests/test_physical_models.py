@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.physical_models import NFW, BlackBody
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 from astropy.utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ["*"]
@@ -68,7 +68,8 @@ def test_blackbody_return_units():
     assert b(1.0 * u.micron).unit == u.MJy / u.sr
 
     # scale has units but evaluate scale has no units
-    assert_quantity_allclose(b.evaluate(1.0 * u.micron, 1000.0 * u.K, 4.0), 89668184.86321202 * u.MJy / u.sr)
+    assert_quantity_allclose(b.evaluate(1.0 * u.micron, 1000.0 * u.K, 4.0),
+                             89668184.86321202 * u.MJy / u.sr)
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -490,8 +491,8 @@ def test_NFW_exceptions_and_warnings_and_misc():
     with pytest.raises(ValueError) as exc:
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor="not virial")
-    assert exc.value.args[0] == "Massfactor not virial string not of the form '#m', '#c', " \
-                                "or 'virial'"
+    assert exc.value.args[0] == ("Massfactor not virial string not of the form "
+                                 "'#m', '#c', or 'virial'")
     with pytest.raises(TypeError) as exc:
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor=200)

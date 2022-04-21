@@ -70,8 +70,8 @@ class _Interval(_BaseInterval):
 
         valid_shape = shape in ((2,), (1, 2), (2, 0))
         if not valid_shape:
-            valid_shape = (len(shape) > 0) and (shape[0] == 2) and \
-                all(isinstance(b, np.ndarray) for b in interval)
+            valid_shape = (len(shape) > 0 and shape[0] == 2 and
+                           all(isinstance(b, np.ndarray) for b in interval))
 
         if not isiterable(interval) or not valid_shape:
             raise ValueError(MESSAGE)
@@ -789,7 +789,7 @@ class ModelBoundingBox(_BoundingDomain):
             ignored = None
 
         return ModelBoundingBox.validate(model, new.named_intervals,
-                                    ignored=ignored, order=new._order)
+                                         ignored=ignored, order=new._order)
 
     @property
     def dimension(self):
@@ -1110,7 +1110,7 @@ class _SelectorArguments(tuple):
         return self._kept_ignore
 
     @classmethod
-    def validate(cls, model, arguments, kept_ignore: List=None):
+    def validate(cls, model, arguments, kept_ignore: List = None):
         """
         Construct a valid Selector description for a CompoundBoundingBox.
 
@@ -1381,9 +1381,9 @@ class CompoundBoundingBox(_BoundingDomain):
 
     def __eq__(self, value):
         if isinstance(value, CompoundBoundingBox):
-            return (self.bounding_boxes == value.bounding_boxes) and \
-                (self.selector_args == value.selector_args) and \
-                (self.create_selector == value.create_selector)
+            return (self.bounding_boxes == value.bounding_boxes and
+                    self.selector_args == value.selector_args and
+                    self.create_selector == value.create_selector)
         else:
             return False
 
@@ -1418,7 +1418,8 @@ class CompoundBoundingBox(_BoundingDomain):
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:
-            raise ValueError("Selector arguments must be provided (can be passed as part of bounding_box argument)!")
+            raise ValueError("Selector arguments must be provided "
+                             "(can be passed as part of bounding_box argument)")
 
         return cls(bounding_box, model, selector_args,
                    create_selector=create_selector, ignored=ignored, order=order)
@@ -1504,7 +1505,7 @@ class CompoundBoundingBox(_BoundingDomain):
         bounding_boxes = {}
         for selector_key, bbox in self._bounding_boxes.items():
             bounding_boxes[selector_key] = bbox.fix_inputs(self._model, {argument: value},
-                                                        _keep_ignored=True)
+                                                           _keep_ignored=True)
 
         return CompoundBoundingBox(bounding_boxes, self._model,
                                    self.selector_args.add_ignore(self._model, argument))

@@ -120,7 +120,8 @@ class Gaussian1D(Fittable1DModel):
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
     # stddev must be non-zero and positive.
-    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Standard deviation of the Gaussian")
+    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
+                       description="Standard deviation of the Gaussian")
 
     def bounding_box(self, factor=5.5):
         """
@@ -258,7 +259,9 @@ class Gaussian2D(Fittable2DModel):
 
     If using a ``cov_matrix``, the model is of the form:
         .. math::
-            f(x, y) = A e^{-0.5 \left(\vec{x} - \vec{x}_{0}\right)^{T} \Sigma^{-1} \left(\vec{x} - \vec{x}_{0}\right)}
+            f(x, y) = A e^{-0.5 \left(
+                    \vec{x} - \vec{x}_{0}\right)^{T} \Sigma^{-1} \left(\vec{x} - \vec{x}_{0}
+                \right)}
 
     where :math:`\vec{x} = [x, y]`, :math:`\vec{x}_{0} = [x_{0}, y_{0}]`,
     and :math:`\Sigma` is the covariance matrix:
@@ -578,7 +581,8 @@ class Scale(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(self.evaluate(x, self.factor)
+                                     for x in self.bounding_box.bounding_box())
 
         return inv
 
@@ -628,7 +632,8 @@ class Multiply(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(self.evaluate(x, self.factor)
+                                     for x in self.bounding_box.bounding_box())
 
         return inv
 
@@ -693,7 +698,8 @@ class RedshiftScaleFactor(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.z) for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(self.evaluate(x, self.z)
+                                     for x in self.bounding_box.bounding_box())
 
         return inv
 
@@ -1727,13 +1733,13 @@ class Voigt1D(Fittable1DModel):
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
 
         zz = z * z
-        w  = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))
+        w = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))
 
         if np.any(z.imag < s):
-            mask  = abs(z.real) + z.imag < s  # returns true for interior points
+            mask = abs(z.real) + z.imag < s  # returns true for interior points
             # returns small complex array covering only the interior region
-            Z     = z[np.where(mask)] + 1.35j
-            ZZ    = Z * Z
+            Z = z[np.where(mask)] + 1.35j
+            ZZ = Z * Z
             numer = (((((((((((((((AA[15]*Z + AA[14])*Z + AA[13])*Z + AA[12])*Z + AA[11])*Z +
                                AA[10])*Z + AA[9])*Z + AA[8])*Z + AA[7])*Z + AA[6])*Z +
                           AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
@@ -2736,7 +2742,9 @@ class AiryDisk2D(Fittable2DModel):
     -----
     Model formula:
 
-        .. math:: f(r) = A \\left[\\frac{2 J_1(\\frac{\\pi r}{R/R_z})}{\\frac{\\pi r}{R/R_z}}\\right]^2
+        .. math:: f(r) = A \\left[
+                \\frac{2 J_1(\\frac{\\pi r}{R/R_z})}{\\frac{\\pi r}{R/R_z}}
+            \\right]^2
 
     Where :math:`J_1` is the first order Bessel function of the first
     kind, :math:`r` is radial distance from the maximum of the Airy
@@ -2871,7 +2879,8 @@ class Moffat1D(Fittable1DModel):
         """
         Moffat full width at half maximum.
         Derivation of the formula is available in
-        `this notebook by Yoonsoo Bach <https://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
+        `this notebook by Yoonsoo Bach
+        <https://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
         """
         return 2.0 * np.abs(self.gamma) * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
@@ -2947,7 +2956,8 @@ class Moffat2D(Fittable2DModel):
         """
         Moffat full width at half maximum.
         Derivation of the formula is available in
-        `this notebook by Yoonsoo Bach <https://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
+        `this notebook by Yoonsoo Bach
+        <https://nbviewer.jupyter.org/github/ysbach/AO_2017/blob/master/04_Ground_Based_Concept.ipynb#1.2.-Moffat>`_.
         """
         return 2.0 * np.abs(self.gamma) * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
@@ -3027,7 +3037,9 @@ class Sersic2D(Fittable2DModel):
 
     .. math::
 
-        I(x,y) = I(r) = I_e\exp\left\{-b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]\right\}
+        I(x,y) = I(r) = I_e\exp\left\{
+                -b_n\left[\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+            \right\}
 
     The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
     luminosity, and can be solved for numerically.
@@ -3176,9 +3188,12 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     .. [1] https://ui.adsabs.harvard.edu/abs/1962AJ.....67..471K
     """
 
-    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Amplitude or scaling factor")
-    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Core Radius")
-    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None), description="Tidal Radius")
+    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
+                          description="Amplitude or scaling factor")
+    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
+                       description="Core Radius")
+    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None),
+                       description="Tidal Radius")
 
     @property
     def concentration(self):
@@ -3210,9 +3225,9 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
         d_r_core = 2 * amplitude * r_core ** 2 * (r_core/(r_core ** 2 + r_tide ** 2) ** (3/2) -
                                                   r_core/(r_core ** 2 + x ** 2) ** (3/2)) * \
-                   (1./np.sqrt(r_core ** 2 + x ** 2) - 1./np.sqrt(r_core ** 2 + r_tide ** 2)) + \
-                   2 * amplitude * r_core * (1./np.sqrt(r_core ** 2 + x ** 2) -
-                                             1./np.sqrt(r_core ** 2 + r_tide ** 2)) ** 2
+            (1./np.sqrt(r_core ** 2 + x ** 2) - 1./np.sqrt(r_core ** 2 + r_tide ** 2)) + \
+            2 * amplitude * r_core * (1./np.sqrt(r_core ** 2 + x ** 2) -
+                                      1./np.sqrt(r_core ** 2 + r_tide ** 2)) ** 2
 
         d_r_tide = (2 * amplitude * r_core ** 2 * r_tide *
                     (1./np.sqrt(r_core ** 2 + x ** 2) -

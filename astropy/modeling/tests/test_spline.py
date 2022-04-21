@@ -12,7 +12,7 @@ from astropy.modeling.fitting import (
     SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.spline import Spline1D, _Spline, _SplineFitter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 # pylint: disable=invalid-name
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -67,8 +67,7 @@ class TestSpline:
             coeffs = mk.MagicMock()
             bounds = mk.MagicMock()
             spl = self.Spline(knots=knots, coeffs=coeffs, bounds=bounds)
-            assert mkInit.call_args_list == \
-                [mk.call(spl, knots, coeffs, bounds)]
+            assert mkInit.call_args_list == [mk.call(spl, knots, coeffs, bounds)]
 
             assert spl._t is None
             assert spl._c is None
@@ -79,8 +78,7 @@ class TestSpline:
         # Coeffs but no knots
         with pytest.raises(ValueError) as err:
             self.Spline(coeffs=mk.MagicMock())
-        assert str(err.value) == \
-            "If one passes a coeffs vector one needs to also pass knots!"
+        assert str(err.value) == "If one passes a coeffs vector one needs to also pass knots!"
 
     def test_param_names(self):
         # no parameters
@@ -196,10 +194,8 @@ class TestSpline:
             with mk.patch.object(FittableModel, "__call__",
                                  autospec=True) as mkCall:
                 assert mkCall.return_value == spl(*args, **kwargs)
-                assert mkCall.call_args_list == \
-                    [mk.call(spl, *args, **new_kwargs)]
-                assert mkIntercept.call_args_list == \
-                    [mk.call(spl, **kwargs)]
+                assert mkCall.call_args_list == [mk.call(spl, *args, **new_kwargs)]
+                assert mkIntercept.call_args_list == [mk.call(spl, **kwargs)]
 
     def test__create_parameter(self):
         np.random.seed(37)
@@ -272,28 +268,27 @@ class TestSpline:
                              autospec=True) as mkCreate:
             params = spl._create_parameters("test_param", "test", fixed)
             assert params == tuple([f"test_param{idx}" for idx in range(20)])
-            assert mkCreate.call_args_list == \
-                [mk.call(spl, f"test_param{idx}", idx, 'test', fixed) for idx in range(20)]
+            assert mkCreate.call_args_list == [
+                mk.call(spl, f"test_param{idx}", idx, 'test', fixed) for idx in range(20)
+            ]
 
     def test__init_parameters(self):
         spl = self.Spline()
 
         with pytest.raises(NotImplementedError) as err:
             spl._init_parameters()
-        assert str(err.value) == \
-            "This needs to be implemented"
+        assert str(err.value) == "This needs to be implemented"
 
     def test__init_data(self):
         spl = self.Spline()
 
         with pytest.raises(NotImplementedError) as err:
             spl._init_data(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == \
-            "This needs to be implemented"
+        assert str(err.value) == "This needs to be implemented"
+
         with pytest.raises(NotImplementedError) as err:
             spl._init_data(mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == \
-            "This needs to be implemented"
+        assert str(err.value) == "This needs to be implemented"
 
     def test__init_spline(self):
         spl = self.Spline()
@@ -510,15 +505,13 @@ class TestSpline1D:
         knots = 3.5
         with pytest.raises(ValueError) as err:
             Spline1D(knots=knots)
-        assert str(err.value) ==\
-            f"Knots: {knots} must be iterable or value"
+        assert str(err.value) == f"Knots: {knots} must be iterable or value"
 
         # Not enough knots
         for idx in range(8):
             with pytest.raises(ValueError) as err:
                 Spline1D(knots=np.arange(idx))
-            assert str(err.value) ==\
-                "Must have at least 8 knots."
+            assert str(err.value) == "Must have at least 8 knots."
 
         # Bad scipy spline
         t = np.arange(20)[::-1]
@@ -699,8 +692,7 @@ class TestSpline1D:
         # test set
         with pytest.raises(ValueError) as err:
             spl.t = mk.MagicMock()
-        assert str(err.value) ==\
-            "The model parameters must be initialized before setting knots."
+        assert str(err.value) == "The model parameters must be initialized before setting knots."
 
         # with parameters
         spl = Spline1D(10)
@@ -720,8 +712,7 @@ class TestSpline1D:
                 continue
             with pytest.raises(ValueError) as err:
                 spl.t = np.arange(idx)
-            assert str(err.value) == \
-                "There must be exactly as many knots as previously defined."
+            assert str(err.value) == "There must be exactly as many knots as previously defined."
 
     def test_c(self):
         # no parameters
@@ -732,8 +723,7 @@ class TestSpline1D:
         # test set
         with pytest.raises(ValueError) as err:
             spl.c = mk.MagicMock()
-        assert str(err.value) ==\
-            "The model parameters must be initialized before setting coeffs."
+        assert str(err.value) == "The model parameters must be initialized before setting coeffs."
 
         # with parameters
         spl = Spline1D(10)
@@ -751,8 +741,7 @@ class TestSpline1D:
                 continue
             with pytest.raises(ValueError) as err:
                 spl.c = np.arange(idx)
-            assert str(err.value) == \
-                "There must be exactly as many coeffs as previously defined."
+            assert str(err.value) == "There must be exactly as many coeffs as previously defined."
 
     def test_degree(self):
         # default degree
@@ -838,8 +827,7 @@ class TestSpline1D:
         # Error
         with pytest.raises(ValueError) as err:
             spl.tck = (t, c, 4)
-        assert str(err.value) ==\
-            "tck has incompatible degree!"
+        assert str(err.value) == "tck has incompatible degree!"
 
     def test_bspline(self):
         from scipy.interpolate import BSpline
@@ -999,16 +987,14 @@ class TestSpline1D:
                 assert spl._t is None
                 with pytest.raises(ValueError) as err:
                     spl._init_knots(knots, False, lower, upper)
-                assert str(err.value) == \
-                    "Must have at least 8 knots."
+                assert str(err.value) == "Must have at least 8 knots."
 
         # Error
         spl = Spline1D()
         assert spl._t is None
         with pytest.raises(ValueError) as err:
             spl._init_knots(0.5, False, lower, upper)
-        assert str(err.value) ==\
-            "Knots: 0.5 must be iterable or value"
+        assert str(err.value) == "Knots: 0.5 must be iterable or value"
 
     def test__init_coeffs(self):
         np.random.seed(492)
@@ -1071,11 +1057,9 @@ class TestSpline1D:
             with mk.patch.object(Spline1D, "bspline",
                                  new_callable=mk.PropertyMock) as mkBspline:
                 assert mkBspline.return_value.return_value == spl.evaluate(*args, **kwargs)
-                assert mkBspline.return_value.call_args_list == \
-                    [mk.call(args[0], **new_kwargs)]
+                assert mkBspline.return_value.call_args_list == [mk.call(args[0], **new_kwargs)]
                 assert mkBspline.call_args_list == [mk.call()]
-                assert mkEval.call_args_list == \
-                    [mk.call(spl, *args, **kwargs)]
+                assert mkEval.call_args_list == [mk.call(spl, *args, **kwargs)]
 
         # Error
         for idx in range(5, 8):
@@ -1083,8 +1067,7 @@ class TestSpline1D:
                                  return_value={'nu': idx}):
                 with pytest.raises(RuntimeError) as err:
                     spl.evaluate(*args, **kwargs)
-                assert str(err.value) == \
-                    "Cannot evaluate a derivative of order higher than 4"
+                assert str(err.value) == "Cannot evaluate a derivative of order higher than 4"
 
     def check_knots_created(self, spl, k):
         def value0(idx):
@@ -1270,8 +1253,7 @@ class TestSpline1D:
         spl = Spline1D(degree=k)
         with pytest.raises(RuntimeError) as err:
             fitter(spl, self.x, self.y, weights=w)
-        assert str(err.value) ==\
-            "No knots have been provided"
+        assert str(err.value) == "No knots have been provided"
 
     @pytest.mark.parametrize('w', wieght_tests)
     @pytest.mark.parametrize('k', degree_tests)
@@ -1443,8 +1425,7 @@ class TestSpline1D:
         for nu in range(4, 9):
             with pytest.raises(ValueError) as err:
                 spl.derivative(nu=nu)
-            assert str(err.value) == \
-                "Must have nu <= 3"
+            assert str(err.value) == "Must have nu <= 3"
 
     def test_antiderivative(self):
         bspline = self.generate_spline()
@@ -1492,8 +1473,8 @@ class TestSpline1D:
         for nu in range(3, 9):
             with pytest.raises(ValueError) as err:
                 spl.antiderivative(nu=nu)
-            assert str(err.value) == \
-                f"Supported splines can have max degree 5, antiderivative degree will be {nu + 3}"
+            assert str(err.value) == ("Supported splines can have max degree 5, "
+                                      f"antiderivative degree will be {nu + 3}")
 
     def test__SplineFitter_error(self):
         spl = Spline1D()
@@ -1506,15 +1487,12 @@ class TestSpline1D:
 
         with pytest.raises(ValueError) as err:
             fitter(spl, mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) ==\
-            "1D model can only have 2 data points."
+        assert str(err.value) == "1D model can only have 2 data points."
 
         with pytest.raises(ModelDefinitionError) as err:
             fitter(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) ==\
-            "Only spline models are compatible with this fitter."
+        assert str(err.value) == "Only spline models are compatible with this fitter."
 
         with pytest.raises(NotImplementedError) as err:
             fitter(spl, mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) ==\
-            "This has not been implemented for _SplineFitter."
+        assert str(err.value) == "This has not been implemented for _SplineFitter."

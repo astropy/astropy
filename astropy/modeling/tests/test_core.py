@@ -22,7 +22,7 @@ from astropy.modeling.core import (
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 
 class NonFittableModel(Model):
@@ -278,13 +278,13 @@ def test_custom_model_regected_parameters():
     with pytest.raises(ValueError,
                        match=r"Parameter 'n_inputs' cannot be a model property: *"):
         @custom_model
-        def model(x, y, n_outputs=2, n_inputs=3):
+        def model1(x, y, n_outputs=2, n_inputs=3):
             return x+1, y+1
 
     with pytest.raises(ValueError,
                        match=r"Parameter 'uses_quantity' cannot be a model property: *"):
         @custom_model
-        def model(x, y, n_outputs=2, uses_quantity=True):
+        def model2(x, y, n_outputs=2, uses_quantity=True):
             return x+1, y+1
 
 
@@ -549,7 +549,7 @@ def test_rename_path(tmpdir):
     # Regression test for a bug that caused the path to the class to be
     # incorrect in a renamed model's __repr__.
 
-    assert repr(RENAMED_MODEL).splitlines()[0] == "<class 'astropy.modeling.tests.test_core.CustomGaussian'>"
+    assert repr(RENAMED_MODEL).splitlines()[0] == "<class 'astropy.modeling.tests.test_core.CustomGaussian'>"  # noqa: E501
 
     # Make sure that when called from a user script, the class name includes
     # __main__.
@@ -712,8 +712,8 @@ def test_prepare_outputs_complex_reshape():
 
 def test_prepare_outputs_single_entry_vector():
     """
-    jwst and gwcs both require that single entry vectors produce single entry output vectors, not scalars. This
-    tests for that behavior.
+    jwst and gwcs both require that single entry vectors produce single
+    entry output vectors, not scalars. This tests for that behavior.
     """
 
     model = models.Gaussian2D(1, 2, 3, 4, 5)
@@ -795,7 +795,8 @@ def test_coerce_units():
         model.coerce_units((u.m, u.s))
 
     model_with_existing_input_units = models.BlackBody()
-    with pytest.raises(ValueError, match=r"Cannot specify input_units for model with existing input units"):
+    with pytest.raises(ValueError,
+                       match=r"Cannot specify input_units for model with existing input units"):
         model_with_existing_input_units.coerce_units({"x": u.m})
 
     with pytest.raises(ValueError, match=r"return_units keys.*do not match model outputs"):
@@ -838,19 +839,23 @@ def test_print_special_operator_CompoundModel(capsys):
 
     model = convolve_models(models.Sersic2D(), models.Gaussian2D())
     with astropy.conf.set_temp('max_width', 80):
-        assert str(model) == "Model: CompoundModel\n" +\
-                             "Inputs: ('x', 'y')\n" +\
-                             "Outputs: ('z',)\n" +\
-                             "Model set size: 1\n" +\
-                             "Expression: convolve_fft (([0]), ([1]))\n" +\
-                             "Components: \n" +\
-                             "    [0]: <Sersic2D(amplitude=1., r_eff=1., n=4., x_0=0., y_0=0., ellip=0., theta=0.)>\n" +\
-                             "\n" +\
-                             "    [1]: <Gaussian2D(amplitude=1., x_mean=0., y_mean=0., x_stddev=1., y_stddev=1., theta=0.)>\n" +\
-                             "Parameters:\n" +\
-                             "    amplitude_0 r_eff_0 n_0 x_0_0 y_0_0 ... y_mean_1 x_stddev_1 y_stddev_1 theta_1\n" +\
-                             "    ----------- ------- --- ----- ----- ... -------- ---------- ---------- -------\n" +\
-                             "            1.0     1.0 4.0   0.0   0.0 ...      0.0        1.0        1.0     0.0"
+        assert str(model) == (
+            "Model: CompoundModel\n"
+            "Inputs: ('x', 'y')\n"
+            "Outputs: ('z',)\n"
+            "Model set size: 1\n"
+            "Expression: convolve_fft (([0]), ([1]))\n"
+            "Components: \n"
+            "    [0]: <Sersic2D(amplitude=1., r_eff=1., n=4., "
+            "x_0=0., y_0=0., ellip=0., theta=0.)>\n"
+            "\n"
+            "    [1]: <Gaussian2D(amplitude=1., x_mean=0., y_mean=0., "
+            "x_stddev=1., y_stddev=1., theta=0.)>\n"
+            "Parameters:\n"
+            "    amplitude_0 r_eff_0 n_0 x_0_0 y_0_0 ... y_mean_1 x_stddev_1 y_stddev_1 theta_1\n"
+            "    ----------- ------- --- ----- ----- ... -------- ---------- ---------- -------\n"
+            "            1.0     1.0 4.0   0.0   0.0 ...      0.0        1.0        1.0     0.0"
+        )
 
 
 def test__validate_input_shape():
@@ -866,22 +871,19 @@ def test__validate_input_shape():
     # Fail number of axes
     with pytest.raises(ValueError) as err:
         model._validate_input_shape(_input, 0, model.inputs, 2, True)
-    assert str(err.value) == \
-        "For model_set_axis=2, all inputs must be at least 3-dimensional."
+    assert str(err.value) == "For model_set_axis=2, all inputs must be at least 3-dimensional."
 
     # Fail number of models (has argname)
     with pytest.raises(ValueError) as err:
         model._validate_input_shape(_input, 0, model.inputs, 1, True)
-    assert str(err.value) == \
-        "Input argument 'x' does not have the correct dimensions in model_set_axis=1 " +\
-        "for a model set with n_models=2."
+    assert str(err.value) == ("Input argument 'x' does not have the correct dimensions in "
+                              "model_set_axis=1 for a model set with n_models=2.")
 
     # Fail number of models  (no argname)
     with pytest.raises(ValueError) as err:
         model._validate_input_shape(_input, 0, [], 1, True)
-    assert str(err.value) == \
-        "Input argument '0' does not have the correct dimensions in model_set_axis=1 " +\
-        "for a model set with n_models=2."
+    assert str(err.value) == ("Input argument '0' does not have the correct dimensions "
+                              "in model_set_axis=1 for a model set with n_models=2.")
 
 
 def test__validate_input_shapes():
@@ -897,12 +899,13 @@ def test__validate_input_shapes():
                          autospec=True, side_effect=all_shapes) as mkValidate:
         with mk.patch.object(core, 'check_broadcast',
                              autospec=True) as mkCheck:
-            assert mkCheck.return_value == \
-                model._validate_input_shapes(inputs, argnames, model_set_axis)
+            assert mkCheck.return_value == model._validate_input_shapes(inputs, argnames,
+                                                                        model_set_axis)
             assert mkCheck.call_args_list == [mk.call(*all_shapes)]
-            assert mkValidate.call_args_list == \
-                [mk.call(model, _input, idx, argnames, model_set_axis, True)
-                 for idx, _input in enumerate(inputs)]
+            assert mkValidate.call_args_list == [
+                mk.call(model, _input, idx, argnames, model_set_axis, True)
+                for idx, _input in enumerate(inputs)
+            ]
 
     # Fail check_broadcast
     with mk.patch.object(Model, '_validate_input_shape',
@@ -911,12 +914,12 @@ def test__validate_input_shapes():
                              autospec=True, return_value=None) as mkCheck:
             with pytest.raises(ValueError) as err:
                 model._validate_input_shapes(inputs, argnames, model_set_axis)
-            assert str(err.value) == \
-                "All inputs must have identical shapes or must be scalars."
+            assert str(err.value) == "All inputs must have identical shapes or must be scalars."
             assert mkCheck.call_args_list == [mk.call(*all_shapes)]
-            assert mkValidate.call_args_list == \
-                [mk.call(model, _input, idx, argnames, model_set_axis, True)
-                 for idx, _input in enumerate(inputs)]
+            assert mkValidate.call_args_list == [
+                mk.call(model, _input, idx, argnames, model_set_axis, True)
+                for idx, _input in enumerate(inputs)
+            ]
 
 
 def test__remove_axes_from_shape():
@@ -1115,7 +1118,8 @@ def test_model_copy_with_bounding_box():
     # No bbox
     model_copy = model.copy()
     assert id(model_copy) != id(model)
-    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model.get_bounding_box() is None
 
     # with bbox
     model.bounding_box = bbox
@@ -1131,18 +1135,21 @@ def test_model_copy_with_bounding_box():
     model1 = model | models.Identity(1)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model1.get_bounding_box() is None
 
 
 def test_compound_model_copy_with_bounding_box():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
-    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)),
+                                     order='F')
 
     # No bbox
     model_copy = model.copy()
     assert id(model_copy) != id(model)
-    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model.get_bounding_box() is None
 
     # with bbox
     model.bounding_box = bbox
@@ -1158,7 +1165,8 @@ def test_compound_model_copy_with_bounding_box():
     model1 = model | models.Identity(3)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model1.get_bounding_box() is None
 
 
 def test_model_copy_with_compound_bounding_box():
@@ -1170,7 +1178,8 @@ def test_model_copy_with_compound_bounding_box():
     # No cbbox
     model_copy = model.copy()
     assert id(model_copy) != id(model)
-    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model.get_bounding_box() is None
 
     # with cbbox
     model.bounding_box = cbbox
@@ -1189,7 +1198,8 @@ def test_model_copy_with_compound_bounding_box():
     model1 = model | models.Identity(1)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model1.get_bounding_box() is None
 
 
 def test_compound_model_copy_with_compound_bounding_box():
@@ -1202,7 +1212,8 @@ def test_compound_model_copy_with_compound_bounding_box():
     # No cbbox
     model_copy = model.copy()
     assert id(model_copy) != id(model)
-    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model.get_bounding_box() is None
 
     # with cbbox
     model.bounding_box = cbbox
@@ -1221,7 +1232,8 @@ def test_compound_model_copy_with_compound_bounding_box():
     model1 = model | models.Identity(3)
     model_copy = model1.copy()
     assert id(model_copy) != id(model1)
-    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+    assert model_copy.get_bounding_box() is None
+    assert model1.get_bounding_box() is None
 
 
 def test_compound_model_copy_user_attribute():
@@ -1257,7 +1269,8 @@ def test_compound_model_mixed_array_scalar_bounding_box():
 
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
-    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)),
+                                     order='F')
     model.bounding_box = bbox
     x = np.array([1000, 1001])
     y = np.array([2000, 2001])
