@@ -113,7 +113,7 @@ jobs:
     # TODO: Do we need --gcov-glob "*cextern*" ?
     - name: Upload coverage to codecov
       if: ${{ contains(matrix.toxenv,'-cov') }}
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
 
