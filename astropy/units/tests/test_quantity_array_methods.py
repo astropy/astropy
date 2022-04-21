@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_21_1
+from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_21_1, NUMPY_LT_1_22
 
 
 class TestQuantityArrayCopy:
@@ -168,6 +168,11 @@ class TestQuantityStatsFuncs:
         assert qi2 is qi
         assert qi == 3.6 * u.m
 
+    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
+    def test_mean_where(self):
+        q1 = np.array([1., 2., 4., 5., 6., 7.]) * u.m
+        assert_array_equal(np.mean(q1, where=q1 < 7 * u.m), 3.6 * u.m)
+
     def test_std(self):
         q1 = np.array([1., 2.]) * u.m
         assert_array_equal(np.std(q1), 0.5 * u.m)
@@ -179,6 +184,11 @@ class TestQuantityStatsFuncs:
         np.std(q1, out=qi)
         assert qi == 0.5 * u.m
 
+    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
+    def test_std_where(self):
+        q1 = np.array([1., 2., 3.]) * u.m
+        assert_array_equal(np.std(q1, where=q1 < 3 * u.m), 0.5 * u.m)
+
     def test_var(self):
         q1 = np.array([1., 2.]) * u.m
         assert_array_equal(np.var(q1), 0.25 * u.m ** 2)
@@ -189,6 +199,11 @@ class TestQuantityStatsFuncs:
         qi = 1.5 * u.s
         np.var(q1, out=qi)
         assert qi == 0.25 * u.m ** 2
+
+    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
+    def test_var_where(self):
+        q1 = np.array([1., 2., 3.]) * u.m
+        assert_array_equal(np.var(q1, where=q1 < 3 * u.m), 0.25 * u.m ** 2)
 
     def test_median(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
@@ -210,6 +225,10 @@ class TestQuantityStatsFuncs:
         np.min(q1, out=qi)
         assert qi == 1. * u.m
 
+    def test_min_where(self):
+        q1 = np.array([0., 1., 2., 4., 5., 6.]) * u.m
+        assert np.min(q1, initial=10 * u.m, where=q1 > 0 * u.m) == 1. * u.m
+
     def test_argmin(self):
         q1 = np.array([6., 2., 4., 5., 6.]) * u.m
         assert np.argmin(q1) == 1
@@ -223,6 +242,10 @@ class TestQuantityStatsFuncs:
         qi = 1.5 * u.s
         np.max(q1, out=qi)
         assert qi == 6. * u.m
+
+    def test_max_where(self):
+        q1 = np.array([1., 2., 4., 5., 6., 7.]) * u.m
+        assert np.max(q1, initial=0 * u.m, where=q1 < 7 * u.m) == 6. * u.m
 
     def test_argmax(self):
         q1 = np.array([5., 2., 4., 5., 6.]) * u.m
@@ -285,6 +308,14 @@ class TestQuantityStatsFuncs:
         np.sum(q1, out=qi)
         assert qi == 9. * u.m
 
+    def test_sum_where(self):
+
+        q1 = np.array([1., 2., 6., 7.]) * u.m
+        initial = 0 * u.m
+        where = q1 < 7 * u.m
+        assert np.all(q1.sum(initial=initial, where=where) == 9. * u.m)
+        assert np.all(np.sum(q1, initial=initial, where=where) == 9. * u.m)
+
     def test_cumsum(self):
 
         q1 = np.array([1, 2, 6]) * u.m
@@ -326,6 +357,15 @@ class TestQuantityStatsFuncs:
         qout2 = np.nansum(q1, out=qi2)
         assert qout2 is qi2
         assert qi2 == np.nansum(q1.value) * q1.unit
+
+    @pytest.mark.xfail(NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22")
+    def test_nansum_where(self):
+
+        q1 = np.array([1., 2., np.nan, 4.]) * u.m
+        initial = 0 * u.m
+        where = q1 < 4 * u.m
+        assert np.all(q1.nansum(initial=initial, where=where) == 3. * u.m)
+        assert np.all(np.nansum(q1, initial=initial, where=where) == 3. * u.m)
 
     def test_prod(self):
 
