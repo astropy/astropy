@@ -131,7 +131,7 @@ Here, note the conversion of the timescale to TAI. Time differences
 can only have scales in which one day is always equal to 86400 seconds.
 
   >>> import numpy as np
-  >>> t[0] + dt * np.linspace(0.,1.,12)
+  >>> t[0] + dt * np.linspace(0., 1., 12)
   <Time object: scale='utc' format='isot' value=['1999-01-01T00:00:00.123' '2000-01-01T06:32:43.930'
    '2000-12-31T13:05:27.737' '2001-12-31T19:38:11.544'
    '2003-01-01T02:10:55.351' '2004-01-01T08:43:39.158'
@@ -147,6 +147,16 @@ You can also use time-based `~astropy.units.Quantity` for time arithmetic:
   >>> import astropy.units as u
   >>> Time("2020-01-01") + 5 * u.day
   <Time object: scale='utc' format='iso' value=2020-01-06 00:00:00.000>
+
+As of Astropy version 5.1, |Time| objects can also be passed directly to
+`numpy.linspace` to create even-sampled time arrays, including support for
+non-scalar ``start`` and/or ``stop`` points - given compatible shapes.
+
+  >>> np.linspace(t, t+[4, 120] * u.day, 4, endpoint=False)
+  <Time object: scale='utc' format='isot' value=[['1999-01-01T00:00:00.123' '2010-01-01T00:00:00.000']
+   ['1999-01-02T00:00:00.123' '2010-01-31T00:00:00.000']
+   ['1999-01-03T00:00:00.123' '2010-03-02T00:00:00.000']
+   ['1999-01-04T00:00:00.123' '2010-04-01T00:00:00.000']]>
 
 Using `astropy.time`
 ====================
