@@ -373,6 +373,20 @@ class TestSingleTable:
         assert any(tab.mask)
         assert tab.mask[2]
 
+    def test_mask_str_on_read(self, tmpdir):
+        filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
+        col = fits.Column(name='a', array=np.array([b'foo', b'bar', b''], dtype='|S3'),
+                          format='A3')
+        bin_table_hdu = fits.BinTableHDU.from_columns([col])
+        bin_table_hdu.writeto(filename, overwrite=True)
+
+        tab = Table.read(filename)
+        assert any(tab.mask)
+        assert tab.mask[2]
+
+        tab = Table.read(filename, mask_invalid=False)
+        assert tab.mask is None
+
 
 class TestMultipleHDU:
 
