@@ -7,6 +7,7 @@ import os.path
 import unittest.mock as mk
 import warnings
 from importlib.metadata import EntryPoint
+from itertools import combinations
 from unittest import mock
 
 import numpy as np
@@ -17,8 +18,9 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
-    Fitter, FittingWithOutlierRemoval, JointFitter, LevMarLSQFitter, LinearLSQFitter,
-    NonFiniteValueError, SimplexLSQFitter, SLSQPLSQFitter, populate_entry_points)
+    DogBoxLSQFitter, Fitter, FittingWithOutlierRemoval, JointFitter, LevMarLSQFitter,
+    LinearLSQFitter, LMLSQFitter, NonFiniteValueError, SimplexLSQFitter, SLSQPLSQFitter,
+    TRFLSQFitter, _NLLSQFitter, populate_entry_points)
 from astropy.modeling.optimizers import Optimization
 from astropy.stats import sigma_clip
 from astropy.utils import NumpyRNGContext
@@ -33,12 +35,13 @@ if HAS_SCIPY:
 
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
+non_linear_fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
 _RANDOM_SEED = 0x1337
 
 
 class TestPolynomial2D:
-    """Tests for 2D polynomail fitting."""
+    """Tests for 2D polynomial fitting."""
 
     def setup_class(self):
         self.model = models.Polynomial2D(2)
@@ -61,13 +64,29 @@ class TestPolynomial2D:
         assert_allclose(new_model(self.x, self.y), self.z)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_polynomial2D_nonlinear_fitting(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_nonlinear_fitting(self, fitter):
+        fitter = fitter()
+
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
-        nlfitter = LevMarLSQFitter()
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            new_model = nlfitter(self.model, self.x, self.y, self.z)
+            new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_compare_nonlinear_fitting(self):
+        self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
+        fit_models = []
+        for fitter in non_linear_fitters:
+            fitter = fitter()
+
+            with pytest.warns(AstropyUserWarning,
+                              match=r'Model is linear in parameters'):
+                fit_models.append(fitter(self.model, self.x, self.y, self.z))
+
+        for pair in combinations(fit_models, 2):
+            assert_allclose(pair[0].parameters, pair[1].parameters)
 
 
 class TestICheb2D:
@@ -100,29 +119,33 @@ class TestICheb2D:
         assert_almost_equal(self.z, z1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_chebyshev2D_nonlinear_fitting(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_chebyshev2D_nonlinear_fitting(self, fitter):
+        fitter = fitter()
+
         cheb2d = models.Chebyshev2D(2, 2)
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
-        nlfitter = LevMarLSQFitter()
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            model = nlfitter(cheb2d, self.x, self.y, z)
+            model = fitter(cheb2d, self.x, self.y, z)
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    def test_chebyshev2D_nonlinear_fitting_with_weights(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_chebyshev2D_nonlinear_fitting_with_weights(self, fitter):
+        fitter = fitter()
+
         cheb2d = models.Chebyshev2D(2, 2)
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
-        nlfitter = LevMarLSQFitter()
         weights = np.ones_like(self.y)
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            model = nlfitter(cheb2d, self.x, self.y, z, weights=weights)
+            model = fitter(cheb2d, self.x, self.y, z, weights=weights)
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
 
@@ -362,40 +385,47 @@ class TestNonLinearFitters:
         self.ydata = func(self.initial_values, self.xdata) + yerror
         self.gauss = models.Gaussian1D(100, 5, stddev=1)
 
-    def test_estimated_vs_analytic_deriv(self):
+    @pytest.mark.parametrize('fitter0', non_linear_fitters)
+    @pytest.mark.parametrize('fitter1', non_linear_fitters)
+    def test_estimated_vs_analytic_deriv(self, fitter0, fitter1):
         """
-        Runs `LevMarLSQFitter` with estimated and analytic derivatives of a
-        `Gaussian1D`.
+        Runs `LevMarLSQFitter` and `TRFLSQFitter` with estimated and
+        analytic derivatives of a `Gaussian1D`.
         """
-
-        fitter = LevMarLSQFitter()
-        model = fitter(self.gauss, self.xdata, self.ydata)
+        fitter0 = fitter0()
+        model = fitter0(self.gauss, self.xdata, self.ydata)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
-        efitter = LevMarLSQFitter()
-        emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
+
+        fitter1 = fitter1()
+        emodel = fitter1(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    def test_estimated_vs_analytic_deriv_with_weights(self):
+    @pytest.mark.parametrize('fitter0', non_linear_fitters)
+    @pytest.mark.parametrize('fitter1', non_linear_fitters)
+    def test_estimated_vs_analytic_deriv_with_weights(self, fitter0, fitter1):
         """
-        Runs `LevMarLSQFitter` with estimated and analytic derivatives of a
-        `Gaussian1D`.
+        Runs `LevMarLSQFitter` and `TRFLSQFitter` with estimated and
+        analytic derivatives of a `Gaussian1D`.
         """
 
         weights = 1.0 / (self.ydata / 10.)
 
-        fitter = LevMarLSQFitter()
-        model = fitter(self.gauss, self.xdata, self.ydata, weights=weights)
+        fitter0 = fitter0()
+        model = fitter0(self.gauss, self.xdata, self.ydata, weights=weights)
         g1e = models.Gaussian1D(100, 5.0, stddev=1)
-        efitter = LevMarLSQFitter()
-        emodel = efitter(g1e, self.xdata, self.ydata, weights=weights, estimate_jacobian=True)
+
+        fitter1 = fitter1()
+        emodel = fitter1(g1e, self.xdata, self.ydata, weights=weights, estimate_jacobian=True)
         assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
-    def test_with_optimize(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_with_optimize(self, fitter):
         """
-        Tests results from `LevMarLSQFitter` against `scipy.optimize.leastsq`.
+        Tests results from `LevMarLSQFitter` and `TRFLSQFitter` against
+        `scipy.optimize.leastsq`.
         """
+        fitter = fitter()
 
-        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata,
                        estimate_jacobian=True)
 
@@ -409,12 +439,14 @@ class TestNonLinearFitters:
                                   args=(self.xdata, self.ydata))
         assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
-    def test_with_weights(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_with_weights(self, fitter):
         """
-        Tests results from `LevMarLSQFitter` with weights.
+        Tests results from `LevMarLSQFitter` and `TRFLSQFitter` with weights.
         """
+        fitter = fitter()
+
         # part 1: weights are equal to 1
-        fitter = LevMarLSQFitter()
         model = fitter(self.gauss, self.xdata, self.ydata,
                        estimate_jacobian=True)
         withw = fitter(self.gauss, self.xdata, self.ydata,
@@ -437,43 +469,49 @@ class TestNonLinearFitters:
     @pytest.mark.filterwarnings(r'ignore:.* Maximum number of iterations reached')
     @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
     @pytest.mark.parametrize('fitter_class', fitters)
-    def test_fitter_against_LevMar(self, fitter_class):
-        """Tests results from non-linear fitters against `LevMarLSQFitter`."""
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_fitter_against_LevMar(self, fitter_class, fitter):
+        """
+        Tests results from non-linear fitters against `LevMarLSQFitter`
+        and `TRFLSQFitter`
+        """
+        fitter = fitter()
 
-        levmar = LevMarLSQFitter()
-        fitter = fitter_class()
+        fitter_cls = fitter_class()
         # This emits a warning from fitter that we need to ignore with
         # pytest.mark.filterwarnings above.
-        new_model = fitter(self.gauss, self.xdata, self.ydata)
-        model = levmar(self.gauss, self.xdata, self.ydata)
+        new_model = fitter_cls(self.gauss, self.xdata, self.ydata)
+        model = fitter(self.gauss, self.xdata, self.ydata)
         assert_allclose(model.parameters, new_model.parameters,
                         rtol=10 ** (-4))
 
     @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
-    def test_LSQ_SLSQP_with_constraints(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_LSQ_SLSQP_with_constraints(self, fitter):
         """
-        Runs `LevMarLSQFitter` and `SLSQPLSQFitter` on a model with
-        constraints.
+        Runs `LevMarLSQFitter`/`TRFLSQFitter` and `SLSQPLSQFitter` on a
+        model with constraints.
         """
+        fitter = fitter()
 
         g1 = models.Gaussian1D(100, 5, stddev=1)
         g1.mean.fixed = True
-        fitter = LevMarLSQFitter()
         fslsqp = SLSQPLSQFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         assert_allclose(model.parameters, slsqp_model.parameters,
                         rtol=10 ** (-4))
 
-    def test_LevMar_with_weights(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_non_linear_lsq_fitter_with_weights(self, fitter):
         """
         Tests that issue #11581 has been solved.
         """
+        fitter = fitter()
 
         np.random.seed(42)
         norder = 2
 
-        fitter1 = LevMarLSQFitter()
         fitter2 = LinearLSQFitter()
 
         model = models.Polynomial1D(norder)
@@ -485,7 +523,7 @@ class TestNonLinearFitters:
         ty += np.random.normal(0.0, 1.5, npts)
 
         with pytest.warns(AstropyUserWarning, match=r'Model is linear in parameters'):
-            tf1 = fitter1(model, tx, ty, weights=tw)
+            tf1 = fitter(model, tx, ty, weights=tw)
         tf2 = fitter2(model, tx, ty, weights=tw)
 
         assert_allclose(tf1.parameters, tf2.parameters,
@@ -494,7 +532,11 @@ class TestNonLinearFitters:
                         rtol=10 ** (-2), atol=10 ** (-2))
 
         model = models.Gaussian1D()
-        fitter1(model, tx, ty, weights=tw)
+        if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, LMLSQFitter):
+            with pytest.warns(AstropyUserWarning, match=r'The fit may be unsuccessful; *.'):
+                fitter(model, tx, ty, weights=tw)
+        else:
+            fitter(model, tx, ty, weights=tw)
 
         model = models.Polynomial2D(norder)
         nxpts = 100
@@ -508,7 +550,7 @@ class TestNonLinearFitters:
         tz += np.random.normal(0.0, 1.5, npts).reshape(nxpts, nypts)
 
         with pytest.warns(AstropyUserWarning, match=r'Model is linear in parameters'):
-            tf1 = fitter1(model, tx, ty, tz, weights=tw)
+            tf1 = fitter(model, tx, ty, tz, weights=tw)
         tf2 = fitter2(model, tx, ty, tz, weights=tw)
 
         assert_allclose(tf1.parameters, tf2.parameters,
@@ -538,11 +580,14 @@ class TestNonLinearFitters:
 
         assert_allclose(r_f.parameters, [1.0, 100.0], rtol=1e-2)
 
-    def test_param_cov(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_param_cov(self, fitter):
         """
         Tests that the 'param_cov' fit_info entry gets the right answer for
         *linear* least squares, where the answer is exact
         """
+        fitter = fitter()
+
         a = 2
         b = 100
 
@@ -561,7 +606,6 @@ class TestNonLinearFitters:
 
         # now do the non-linear least squares fit
         mod = models.Linear1D(a, b)
-        fitter = LevMarLSQFitter()
 
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
@@ -671,30 +715,22 @@ class Test1DFittingWithOutlierRemoval:
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
     @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
-    def test_with_fitters_and_sigma_clip(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
+    def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
+
+        fitter = fitter()
 
         np.random.seed(0)
         c = stats.bernoulli.rvs(0.25, size=self.x.shape)
-        self.y += (np.random.normal(0., 0.2, self.x.shape) +
-                   c*np.random.normal(3.0, 5.0, self.x.shape))
+        y = self.y + (np.random.normal(0., 0.2, self.x.shape) +
+                      c*np.random.normal(3.0, 5.0, self.x.shape))
 
         g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
-        # test with Levenberg-Marquardt Least Squares fitter
-        fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+        fit = FittingWithOutlierRemoval(fitter, sigma_clip,
                                         niter=3, sigma=3.0)
-        fitted_model, _ = fit(g_init, self.x, self.y)
+        fitted_model, _ = fit(g_init, self.x, y)
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
-        # test with Sequential Least Squares Programming fitter
-        fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip,
-                                        niter=3, sigma=3.0)
-        fitted_model, _ = fit(g_init, self.x, self.y)
-        assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
-        # test with Simplex LSQ fitter
-        fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
-                                        niter=3, sigma=3.0)
-        fitted_model, _ = fit(g_init, self.x, self.y)
-        assert_allclose(fitted_model.parameters, self.model_params, atol=1e-1)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -733,35 +769,25 @@ class Test2DFittingWithOutlierRemoval:
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
     @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
-    def test_with_fitters_and_sigma_clip(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
+    def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
+
+        fitter = fitter()
 
         np.random.seed(0)
         c = stats.bernoulli.rvs(0.25, size=self.z.shape)
-        self.z += (np.random.normal(0., 0.2, self.z.shape) +
-                   c*np.random.normal(self.z, 2.0, self.z.shape))
+        z = self.z + (np.random.normal(0., 0.2, self.z.shape) +
+                      c*np.random.normal(self.z, 2.0, self.z.shape))
 
         guess = self.initial_guess(self.z, np.array([self.y, self.x]))
         g2_init = models.Gaussian2D(amplitude=guess[0], x_mean=guess[1],
                                     y_mean=guess[2], x_stddev=0.75,
                                     y_stddev=1.25)
 
-        # test with Levenberg-Marquardt Least Squares fitter
-        fit = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+        fit = FittingWithOutlierRemoval(fitter, sigma_clip,
                                         niter=3, sigma=3.)
-        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
-        assert_allclose(fitted_model.parameters[0:5], self.model_params,
-                        atol=1e-1)
-        # test with Sequential Least Squares Programming fitter
-        fit = FittingWithOutlierRemoval(SLSQPLSQFitter(), sigma_clip, niter=3,
-                                        sigma=3.)
-        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
-        assert_allclose(fitted_model.parameters[0:5], self.model_params,
-                        atol=1e-1)
-        # test with Simplex LSQ fitter
-        fit = FittingWithOutlierRemoval(SimplexLSQFitter(), sigma_clip,
-                                        niter=3, sigma=3.)
-        fitted_model, _ = fit(g2_init, self.x, self.y, self.z)
+        fitted_model, _ = fit(g2_init, self.x, self.y, z)
         assert_allclose(fitted_model.parameters[0:5], self.model_params,
                         atol=1e-1)
 
@@ -886,9 +912,11 @@ class TestWeightedFittingWithOutlierRemoval:
         assert(mask[0, 0] and mask[0, 1])
         assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
 
-    def test_2d_with_weights_without_sigma_clip(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_2d_with_weights_without_sigma_clip(self, fitter):
+        fitter = fitter()
+
         model = models.Polynomial2D(0)
-        fitter = LevMarLSQFitter()  # LinearLSQFitter doesn't handle weights properly in 2D
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
             fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
@@ -900,16 +928,18 @@ class TestWeightedFittingWithOutlierRemoval:
         fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 1.0)     # outliers pulled it high
 
-    def test_2d_with_weights_with_sigma_clip(self):
+    @pytest.mark.parametrize('base_fitter', non_linear_fitters)
+    def test_2d_with_weights_with_sigma_clip(self, base_fitter):
         """smoke test for #7020 - fails without fitting.py patch because
         weights does not propagate"""
+        base_fitter = base_fitter()
+
         model = models.Polynomial2D(0)
-        fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
+        fitter = FittingWithOutlierRemoval(base_fitter, sigma_clip,
                                            niter=3, sigma=3.)
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            fit, filtered = fitter(model, self.x, self.y, self.z,
-                                   weights=self.weights)
+            fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
@@ -918,17 +948,21 @@ class TestWeightedFittingWithOutlierRemoval:
         model = models.Polynomial2D(0)
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
-        fit, filtered = fitter(model, self.x, self.y, self.z,
-                               weights=self.weights)
+        fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_fitters_with_weights():
+@pytest.mark.parametrize('fitter', non_linear_fitters)
+def test_fitters_with_weights(fitter):
     """Issue #5737 """
+    fitter = fitter()
+
+    if isinstance(fitter, _NLLSQFitter):
+        pytest.xfail("This test is poorly designed and causes issues for scipy.optimize.least_squares based fitters")
+
     Xin, Yin = np.mgrid[0:21, 0:21]
-    fitter = LevMarLSQFitter()
 
     with NumpyRNGContext(_RANDOM_SEED):
         zsig = np.random.normal(0, 0.01, size=Xin.shape)
@@ -982,25 +1016,27 @@ def test_linear_fitter_with_weights_flat():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
-def test_fitters_interface():
+@pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
+def test_fitters_interface(fitter):
     """
     Test that ``**kwargs`` work with all optimizers.
     This is a basic smoke test.
     """
-    levmar = LevMarLSQFitter()
-    slsqp = SLSQPLSQFitter()
-    simplex = SimplexLSQFitter()
+    fitter = fitter()
 
-    kwargs = {'maxiter': 77, 'verblevel': 1, 'epsilon': 1e-2, 'acc': 1e-6}
-    simplex_kwargs = {'maxiter': 77, 'verblevel': 1, 'acc': 1e-6}
     model = models.Gaussian1D(10, 4, .3)
     x = np.arange(21)
     y = model(x)
 
-    _ = slsqp(model, x, y, **kwargs)
-    _ = simplex(model, x, y, **simplex_kwargs)
-    kwargs.pop('verblevel')
-    _ = levmar(model, x, y, **kwargs)
+    if isinstance(fitter, SimplexLSQFitter):
+        kwargs = {'maxiter': 77, 'verblevel': 1, 'acc': 1e-6}
+    else:
+        kwargs = {'maxiter': 77, 'verblevel': 1, 'epsilon': 1e-2, 'acc': 1e-6}
+
+    if isinstance(fitter, LevMarLSQFitter) or isinstance(fitter, _NLLSQFitter):
+        kwargs.pop('verblevel')
+
+    _ = fitter(model, x, y, **kwargs)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1121,6 +1157,7 @@ class TestFittingUncertanties:
                        models.Linear1D(n_models=2, slope=[1., 1.], intercept=[0, 0])]
 
     def setup_class(self):
+        np.random.seed(619)
         self.x = np.arange(10)
         self.x_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
         self.y_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
@@ -1129,12 +1166,14 @@ class TestFittingUncertanties:
 
     @pytest.mark.parametrize(('single_model', 'model_set'),
                              list(zip(example_1D_models, example_1D_sets)))
-    def test_1d_models(self, single_model, model_set):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_1d_models(self, single_model, model_set, fitter):
         """ Test that fitting uncertainties are computed correctly for 1D models
             and 1D model sets. Use covariance/stds given by LevMarLSQFitter as
             a benchmark since they are returned by the numpy fitter.
         """
-        levmar_fitter = LevMarLSQFitter(calc_uncertainties=True)
+        fitter = fitter(calc_uncertainties=True)
+
         linlsq_fitter = LinearLSQFitter(calc_uncertainties=True)
 
         # test 1D single models
@@ -1142,15 +1181,15 @@ class TestFittingUncertanties:
         y = single_model(self.x) + self.rand
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            fit_model_levmar = levmar_fitter(single_model, self.x, y)
-        cov_model_levmar = fit_model_levmar.cov_matrix.cov_matrix
+            fit_model = fitter(single_model, self.x, y)
+        cov_model = fit_model.cov_matrix.cov_matrix
 
         # fit single model w/ linlsq fitter
         fit_model_linlsq = linlsq_fitter(single_model, self.x, y)
         cov_model_linlsq = fit_model_linlsq.cov_matrix.cov_matrix
 
         # check covariance, stds computed correctly computed
-        assert_allclose(cov_model_linlsq, cov_model_levmar)
+        assert_allclose(cov_model_linlsq, cov_model)
         assert_allclose(np.sqrt(np.diag(cov_model_linlsq)),
                         fit_model_linlsq.stds.stds)
 
@@ -1164,17 +1203,19 @@ class TestFittingUncertanties:
 
         # make sure cov matrix from single model fit w/ levmar fitter matches
         # the cov matrix of first model in the set
-        assert_allclose(cov_1d_set_linlsq[0], cov_model_levmar)
+        assert_allclose(cov_1d_set_linlsq[0], cov_model)
         assert_allclose(np.sqrt(np.diag(cov_1d_set_linlsq[0])),
                         fit_1d_set_linlsq.stds[0].stds)
 
-    def test_2d_models(self):
+    @pytest.mark.parametrize('fitter', non_linear_fitters)
+    def test_2d_models(self, fitter):
         """
         Test that fitting uncertainties are computed correctly for 2D models
         and 2D model sets. Use covariance/stds given by LevMarLSQFitter as
         a benchmark since they are returned by the numpy fitter.
         """
-        levmar_fitter = LevMarLSQFitter(calc_uncertainties=True)
+        fitter = fitter(calc_uncertainties=True)
+
         linlsq_fitter = LinearLSQFitter(calc_uncertainties=True)
         single_model = models.Polynomial2D(2, c0_0=2)
         model_set = models.Polynomial2D(degree=2, n_models=2, c0_0=[2, 3],
@@ -1184,15 +1225,15 @@ class TestFittingUncertanties:
         z_grid = single_model(self.x_grid, self.y_grid) + self.rand_grid
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            fit_model_levmar = levmar_fitter(single_model, self.x_grid,
+            fit_model = fitter(single_model, self.x_grid,
                                              self.y_grid, z_grid)
-        cov_model_levmar = fit_model_levmar.cov_matrix.cov_matrix
+        cov_model = fit_model.cov_matrix.cov_matrix
 
         # fit single model w/ nonlinear fitter
         fit_model_linlsq = linlsq_fitter(single_model, self.x_grid,
                                          self.y_grid, z_grid)
         cov_model_linlsq = fit_model_linlsq.cov_matrix.cov_matrix
-        assert_allclose(cov_model_levmar, cov_model_linlsq)
+        assert_allclose(cov_model, cov_model_linlsq)
         assert_allclose(np.sqrt(np.diag(cov_model_linlsq)),
                         fit_model_linlsq.stds.stds)
 
@@ -1206,7 +1247,7 @@ class TestFittingUncertanties:
 
         # make sure cov matrix from single model fit w/ levmar fitter matches
         # the cov matrix of first model in the set
-        assert_allclose(cov_2d_set_linlsq[0], cov_model_levmar)
+        assert_allclose(cov_2d_set_linlsq[0], cov_model)
         assert_allclose(np.sqrt(np.diag(cov_2d_set_linlsq[0])),
                         fit_2d_set_linlsq.stds[0].stds)
 
@@ -1222,22 +1263,22 @@ class TestFittingUncertanties:
         print(fit_mod.cov_matrix)
         captured = capsys.readouterr()
         assert "slope    | 0.001" in captured.out
-        assert "intercept| -0.006,  0.041" in captured.out
+        assert "intercept| -0.005,  0.03" in captured.out
 
         print(fit_mod.stds)
         captured = capsys.readouterr()
-        assert "slope    | 0.038" in captured.out
-        assert "intercept| 0.203" in captured.out
+        assert "slope    | 0.032" in captured.out
+        assert "intercept| 0.173" in captured.out
 
         # test 'pprint' for Covariance/stds
         print(fit_mod.cov_matrix.pprint(round_val=5, max_lines=1))
         captured = capsys.readouterr()
-        assert "slope    | 0.00144" in captured.out
+        assert "slope    | 0.00105" in captured.out
         assert "intercept" not in captured.out
 
         print(fit_mod.stds.pprint(max_lines=1, round_val=5))
         captured = capsys.readouterr()
-        assert "slope    | 0.03799" in captured.out
+        assert "slope    | 0.03241" in captured.out
         assert "intercept" not in captured.out
 
         # test indexing for Covariance class.

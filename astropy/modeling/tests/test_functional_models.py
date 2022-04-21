@@ -11,6 +11,8 @@ from astropy.modeling import InputParameterError, fitting, models
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.exceptions import AstropyUserWarning
 
+fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter, fitting.DogBoxLSQFitter]
+
 
 def test_sigma_constant():
     """
@@ -295,15 +297,16 @@ def test_Shift_inverse_bounding_box():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_Shift_model_levmar_fit():
+@pytest.mark.parametrize('fitter', fitters)
+def test_Shift_model_levmar_fit(fitter):
     """Test fitting Shift model with LevMarLSQFitter (issue #6103)."""
+    fitter = fitter()
 
     init_model = models.Shift()
 
     x = np.arange(10)
     y = x + 0.1
 
-    fitter = fitting.LevMarLSQFitter()
     with pytest.warns(AstropyUserWarning,
                       match='Model is linear in parameters'):
         fitted_model = fitter(init_model, x, y)
@@ -434,12 +437,14 @@ def test_Ring2D_rout():
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
-def test_Voigt1D():
+@pytest.mark.parametrize('fitter', fitters)
+def test_Voigt1D(fitter):
+    fitter = fitter()
+
     voi = models.Voigt1D(amplitude_L=-0.5, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
     xarr = np.linspace(-5.0, 5.0, num=40)
     yarr = voi(xarr)
     voi_init = models.Voigt1D(amplitude_L=-1.0, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
-    fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
 
@@ -483,12 +488,14 @@ def test_Voigt1D_hum2(doppler):
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
-def test_KingProjectedAnalytic1D_fit():
+@pytest.mark.parametrize('fitter', fitters)
+def test_KingProjectedAnalytic1D_fit(fitter):
+    fitter = fitter()
+
     km = models.KingProjectedAnalytic1D(amplitude=1, r_core=1, r_tide=2)
     xarr = np.linspace(0.1, 2, 10)
     yarr = km(xarr)
     km_init = models.KingProjectedAnalytic1D(amplitude=1, r_core=1, r_tide=1)
-    fitter = fitting.LevMarLSQFitter()
     km_fit = fitter(km_init, xarr, yarr)
     assert_allclose(km_fit.param_sets, km.param_sets)
     assert_allclose(km_fit.concentration, 0.30102999566398136)
