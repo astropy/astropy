@@ -192,3 +192,35 @@ def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
         assert down['a'].mask.all()        # all bins placed *beyond* the time span of the data
     elif ts.time.min() < time_bin_start[1]:
         assert down['a'][0] == ts['a'][0]  # single-valued time series falls in *first* bin
+
+
+@pytest.mark.parametrize("diff_from_base",
+                         [1 * u.year, 10 * u.year, 50 * u.year, 100 * u.year])
+def test_time_precision_limit(diff_from_base):
+    """
+    A test on time precision limit supported by downsample().
+
+    It is related to an implementation details: that time comparison (and sorting indirectly)
+    is done with relative time for computational efficiency.
+    The relative time converted has a slight loss of precision, which worsens
+    as the gap between a time and the base time increases, e.g., when downsampling
+    a timeseries that combines current observation with archival data years back.
+
+    This test is to document the acceptable precision limit.
+
+    see also: https://github.com/astropy/astropy/pull/13069#issuecomment-1093069184
+    """
+    precision_limit = 500 * u.ns
+
+    from astropy.timeseries.downsample import _to_relative_longdouble
+
+    t_base = Time('1980-01-01T12:30:31.000', format='isot', scale='tdb')
+    t2 = t_base + diff_from_base
+    t3 = t2 + precision_limit
+
+    r_t2 = _to_relative_longdouble(t2, t_base)
+    r_t3 = _to_relative_longdouble(t3, t_base)
+
+    # ensure in the converted relative time,
+    # t2 and t3 can still be correctly compared
+    assert r_t3 > r_t2
