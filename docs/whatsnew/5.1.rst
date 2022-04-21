@@ -121,11 +121,11 @@ least-squares optimization algorithm from scipy. These new fitters are:
 
 .. _whatsnew-iers-handling:
 
-Allow time conversions without predictive Earth rotation data (IERS-B)
+Allow time conversions without predictive Earth rotation data (IERS-A)
 ======================================================================
 
 Some time conversions like UTC -> UT1 require additional Earth rotation data for
-full accuracy. These data are provided by the online IERS service as the IERS-B
+full accuracy. These data are provided by the online IERS service as the IERS-A
 tables and are downloaded as required. In some use cases this download is not
 desired or possible. Examples include an application where full accuracy is not
 required, running on a cluster, or the rare instances when the IERS server and
