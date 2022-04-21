@@ -21,6 +21,10 @@ def linspace(tstart, tstop, *args, **kwargs):
         if not isinstance(tstop, Time):
             return NotImplemented
 
-    offsets = np.linspace(np.zeros(tstart.shape), np.ones(tstop.shape),
-                          *args, **kwargs)
-    return tstart + (tstop - tstart) * offsets
+    if kwargs.get('retstep'):
+        offsets, step = np.linspace(np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs)
+        tdelta = tstop - tstart
+        return tstart + tdelta * offsets, tdelta * step
+    else:
+        offsets = np.linspace(np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs)
+        return tstart + (tstop - tstart) * offsets

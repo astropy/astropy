@@ -148,11 +148,13 @@ You can also use time-based `~astropy.units.Quantity` for time arithmetic:
   >>> Time("2020-01-01") + 5 * u.day
   <Time object: scale='utc' format='iso' value=2020-01-06 00:00:00.000>
 
-As of Astropy version 5.1, |Time| objects can also be passed directly to
+As of v5.1, |Time| objects can also be passed directly to
 `numpy.linspace` to create even-sampled time arrays, including support for
 non-scalar ``start`` and/or ``stop`` points - given compatible shapes.
 
-  >>> np.linspace(t, t+[4, 120] * u.day, 4, endpoint=False)
+  >>> stop = ['1999-01-05T00:00:00.123456789', '2010-05-01T00:00:00']
+  >>> tstp = Time(stop, format='isot', scale='utc')
+  >>> np.linspace(t, tstp, 4, endpoint=False)
   <Time object: scale='utc' format='isot' value=[['1999-01-01T00:00:00.123' '2010-01-01T00:00:00.000']
    ['1999-01-02T00:00:00.123' '2010-01-31T00:00:00.000']
    ['1999-01-03T00:00:00.123' '2010-03-02T00:00:00.000']

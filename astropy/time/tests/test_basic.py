@@ -2344,6 +2344,21 @@ def test_linspace():
     assert all(ts[6].isclose(Time(['2021-01-01 01:00:00', '2021-12-28 00:00:00']), atol=atol))
 
 
+def test_linspace_steps():
+    """Test `np.linspace` `retstep` option.
+    """
+    t1 = Time(['2021-01-01 00:00:00', '2021-01-01 12:00:00'])
+    t2 = Time('2021-01-02 00:00:00')
+    atol = 1 * u.ps
+
+    ts, st = np.linspace(t1, t2, 7, retstep=True)
+    assert ts.shape == (7, 2)
+    assert st.shape == (2,)
+    assert all(ts[1].isclose(ts[0] + st, atol=atol))
+    assert all(ts[6].isclose(ts[0] + 6 * st, atol=atol))
+    assert all(st.isclose(TimeDelta([14400, 7200], format='sec'), atol=atol))
+
+
 def test_linspace_fmts():
     """Test `np.linspace` `__array_func__` implementation for start/endpoints
     from different formats/systems.
