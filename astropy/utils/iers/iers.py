@@ -374,17 +374,15 @@ class IERS(QTable):
             if conf.iers_degraded_accuracy == 'error':
                 msg = ('(some) times are outside of range covered by IERS table. Cannot convert '
                        'with full accuracy. To allow conversion with degraded accuracy '
-                       'set `astropy.utils.iers.conf.iers_degraded_accuracy` '
-                       " to 'warn' or 'silent'")
+                       'set astropy.utils.iers.conf.iers_degraded_accuracy '
+                       ' to "warn" or "silent"')
                 raise IERSRangeError(msg)
             elif conf.iers_degraded_accuracy == 'warn':
                 # No IERS data covering the time(s) and user requested a warning.
                 msg = ('(some) times are outside of range covered by IERS table, '
                        'accuracy is degraded.')
                 warn(msg, IERSDegradedAccuracyWarning)
-            else:
-                # No IERS data covering the time(s) and user is OK with no warning.
-                pass
+            # No IERS data covering the time(s) and user is OK with no warning.
 
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
