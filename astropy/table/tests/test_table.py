@@ -8,6 +8,7 @@ import sys
 import copy
 from io import StringIO
 from collections import OrderedDict
+import pathlib
 import pickle
 
 import pytest
@@ -3040,10 +3041,14 @@ def test_remove_columns_invalid_names_messages():
         t.remove_columns(['c', 'd', 'e'])
 
 
-def test_read_write_tilde_path(home_is_tmpdir):
-    test_file = os.path.join('~', 'test.csv')
+@pytest.mark.parametrize("path_type", ['str', 'Path'])
+def test_read_write_tilde_path(path_type, home_is_tmpdir):
+    if path_type == 'str':
+        test_file = os.path.join('~', 'test.csv')
+    else:
+        test_file = pathlib.Path('~', 'test.csv')
     t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1['a'] = [1, 2, 3]
     t1.write(test_file)
     t2 = Table.read(test_file)
     assert np.all(t2['a'] == [1, 2, 3])

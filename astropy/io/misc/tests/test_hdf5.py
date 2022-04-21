@@ -844,11 +844,12 @@ def test_overwrite_serialized_meta():
 def test_read_write_tilde_path(tmpdir, home_is_tmpdir):
     test_file = os.path.join('~', 'test.hdf5')
     t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1['a'] = [1, 2, 3]
 
-    t1.write(test_file, path='tilde')
+    t1.write(test_file, path='the_table')
 
-    t1 = Table.read(test_file, path='tilde')
-    t1 = Table.read(test_file, path='tilde', format='hdf5')
+    t1 = Table.read(test_file, path='the_table')
+    t1 = Table.read(test_file, path='the_table', format='hdf5')
 
+    # Ensure the data wasn't written to the literal tilde-prefixed path
     assert not os.path.exists(test_file)
