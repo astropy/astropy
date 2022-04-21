@@ -146,6 +146,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         fit the table in memory, you may be better off leaving memory mapping
         off. However, if your table would not fit in memory, you should set this
         to `True`.
+        When set to `True` then ``mask_invalid`` is set to `False` since the
+        masking would cause loading the full data array.
     character_as_bytes : bool, optional
         If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
         and are converted on-the-fly to unicode strings when accessing
@@ -220,6 +222,11 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         table = input
 
     else:
+
+        if memmap and mask_invalid:
+            # using memmap is not compatible with masking invalid value by
+            # default so we deactivate the masking
+            mask_invalid = False
 
         hdulist = fits_open(input, character_as_bytes=character_as_bytes,
                             memmap=memmap)

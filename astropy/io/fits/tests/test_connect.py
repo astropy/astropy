@@ -362,6 +362,10 @@ class TestSingleTable:
         tab = Table.read(filename, mask_invalid=False)
         assert tab.mask is None
 
+        # using memmap also deactivate the masking
+        tab = Table.read(filename, memmap=True)
+        assert tab.mask is None
+
     def test_mask_null_on_read(self, tmpdir):
         filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
         col = fits.Column(name='a', array=np.array([1, 2, 99, 60000], dtype='u2'),
