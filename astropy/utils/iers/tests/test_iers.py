@@ -392,13 +392,12 @@ def test_iers_out_of_range_handling():
         (now - 300 * u.day).ut1
 
         # Default is to raise an error
-        with pytest.raises(iers.IERSRangeError,
-                           match=r'time\(s\) outside of range covered by IERS table'):
+        match = r'\(some\) times are outside of range covered by IERS table'
+        with pytest.raises(iers.IERSRangeError, match=match):
             (now + 100 * u.day).ut1
 
         with iers.conf.set_temp('iers_degraded_accuracy', 'warn'):
-            with pytest.warns(iers.IERSDegradedAccuracyWarning,
-                              match=r'time\(s\) outside of range covered by IERS table'):
+            with pytest.warns(iers.IERSDegradedAccuracyWarning, match=match):
                 (now + 100 * u.day).ut1
 
         with iers.conf.set_temp('iers_degraded_accuracy', 'ignore'):

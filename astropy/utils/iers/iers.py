@@ -379,7 +379,8 @@ class IERS(QTable):
                 raise IERSRangeError(msg)
             elif conf.iers_degraded_accuracy == 'warn':
                 # No IERS data covering the time(s) and user requested a warning.
-                msg = 'time(s) outside of range covered by IERS table, accuracy is degraded'
+                msg = ('(some) times are outside of range covered by IERS table, '
+                       'accuracy is degraded.')
                 warn(msg, IERSDegradedAccuracyWarning)
             else:
                 # No IERS data covering the time(s) and user is OK with no warning.
