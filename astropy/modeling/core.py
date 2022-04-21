@@ -3156,9 +3156,14 @@ class CompoundModel(Model):
         return tuple(newnames)
 
     def both_inverses_exist(self):
-        '''
+        """
         if both members of this compound model have inverses return True
-        '''
+        """
+
+        import warnings
+
+        from astropy.utils.exceptions import AstropyDeprecationWarning
+
         warnings.warn(
             "CompoundModel.both_inverses_exist is deprecated. "
             "Use has_inverse instead.",
