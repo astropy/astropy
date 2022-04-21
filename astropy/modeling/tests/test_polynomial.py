@@ -84,6 +84,9 @@ linear2d = {
     }
 }
 
+fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter,
+           fitting.DogBoxLSQFitter]
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting:
@@ -99,7 +102,6 @@ class TestFitting:
         self.n2 = rsn.standard_normal(self.x2.size)
         self.n2.shape = self.x2.shape
         self.linear_fitter = fitting.LinearLSQFitter()
-        self.non_linear_fitter = fitting.LevMarLSQFitter()
 
     # TODO: Most of these test cases have some pretty repetitive setup that we
     # could probably factor out
@@ -140,8 +142,10 @@ class TestFitting:
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
                              list(product(sorted(linear1d, key=str), (False, True))))
-    def test_non_linear_fitter_1D(self, model_class, constraints):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_non_linear_fitter_1D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
+        fitter = fitter()
 
         model_args = linear1d[model_class]
         kwargs = {}
@@ -156,7 +160,7 @@ class TestFitting:
         y1 = model(self.x1)
         with pytest.warns(AstropyUserWarning,
                           match='Model is linear in parameters'):
-            model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
+            model_nlin = fitter(model, self.x1, y1 + self.n1)
 
         if constraints:
             fixed = model_args['constraints'].get('fixed', None)
@@ -202,8 +206,10 @@ class TestFitting:
 
     @pytest.mark.parametrize(('model_class', 'constraints'),
                              list(product(sorted(linear2d, key=str), (False, True))))
-    def test_non_linear_fitter_2D(self, model_class, constraints):
+    @pytest.mark.parametrize('fitter', fitters)
+    def test_non_linear_fitter_2D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
+        fitter = fitter()
 
         model_args = linear2d[model_class]
         kwargs = {}
@@ -218,8 +224,7 @@ class TestFitting:
         z = model(self.x2, self.y2)
         with pytest.warns(AstropyUserWarning,
                           match='Model is linear in parameters'):
-            model_nlin = self.non_linear_fitter(model, self.x2, self.y2,
-                                                z + self.n2)
+            model_nlin = fitter(model, self.x2, self.y2, z + self.n2)
 
         if constraints:
             fixed = model_args['constraints'].get('fixed', None)
@@ -558,24 +563,24 @@ def test_zero_degree_polynomial(cls):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_2d_orthopolynomial_in_compound_model():
+@pytest.mark.parametrize('fitter', fitters)
+def test_2d_orthopolynomial_in_compound_model(fitter):
     """
     Ensure that OrthoPolynomialBase (ie. Chebyshev2D & Legendre2D) models get
     evaluated & fitted correctly when part of a compound model.
 
     Regression test for https://github.com/astropy/astropy/pull/6085.
     """
+    fitter = fitter()
 
     y, x = np.mgrid[0:5, 0:5]
     z = x + y
 
-    fitter = fitting.LevMarLSQFitter()
     simple_model = Chebyshev2D(2, 2)
     with pytest.warns(AstropyUserWarning,
                       match='Model is linear in parameters'):
         simple_fit = fitter(simple_model, x, y, z)
 
-    fitter = fitting.LevMarLSQFitter()  # re-init to compare like with like
     compound_model = Identity(2) | Chebyshev2D(2, 2)
     compound_model.fittable = True
     compound_model.linear = True
@@ -583,7 +588,7 @@ def test_2d_orthopolynomial_in_compound_model():
                       match='Model is linear in parameters'):
         compound_fit = fitter(compound_model, x, y, z)
 
-    assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-15)
+    assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-11)
 
 
 def test_Hermite1D_clenshaw():

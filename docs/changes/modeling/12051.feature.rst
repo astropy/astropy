@@ -1,0 +1,6 @@
+Add new fitters based on ``scipy.optimize.least_squares`` method of non-linear
+least-squares optimization:
+
+    - ``TRFLSQFitter`` using the Trust Region Reflective algorithm.
+    - ``LMLSQFitter`` using the Levenberg-Marquardt algorithm (implemented by ``scipy.optimize.least_squares``).
+    - ``DogBoxLSQFitter`` using the dogleg algorithm.
