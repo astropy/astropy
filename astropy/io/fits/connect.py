@@ -159,6 +159,12 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         :class:`~astropy.units.core.UnrecognizedUnit`.
         Values are the ones allowed by the ``parse_strict`` argument of
         :class:`~astropy.units.core.Unit`: ``raise``, ``warn`` and ``silent``.
+    mask_invalid : bool, optional
+        By default the code masks NaNs in float columns and empty strings in
+        string columns. Set this parameter to `False` to avoid the performance
+        penalty of doing this masking step. It's also needing when using
+        ``memmap=True`` because otherwise reading the float/string columns to
+        mask them will cause the loading of the data.
 
     """
 
@@ -223,6 +229,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
                 hdulist, hdu=hdu,
                 astropy_native=astropy_native,
                 unit_parse_strict=unit_parse_strict,
+                mask_invalid=mask_invalid,
             )
         finally:
             hdulist.close()
