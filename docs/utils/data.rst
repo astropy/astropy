@@ -265,11 +265,20 @@ systems. The parallel access to the home directory can also trigger concurrency
 problems in the Astropy data cache, though we have tried to minimize these. We
 therefore recommend the following guidelines:
 
- * Write a simple script that sets ``astropy.utils.iers.conf.auto_download = True``
-   and then accesses all cached resources your code will need, including source name
-   lookups and IERS tables. Run it on the head node from time to time (frequently
-   enough to beat the timeout ``astropy.utils.iers.conf.auto_max_age``, which
-   defaults to 30 days) to ensure all data is up to date.
+ * Do one of the following:
+
+   * Write a simple script that sets ``astropy.utils.iers.conf.auto_download =
+     True`` and then accesses all cached resources your code will need,
+     including source name lookups and IERS tables. Run it on the head node from
+     time to time (frequently enough to beat the timeout
+     ``astropy.utils.iers.conf.auto_max_age``, which defaults to 30 days) to
+     ensure all data is up to date.
+   * Set ``astropy.utils.iers.conf.auto_download = False`` in your code and set
+     ``astropy.utils.iers.conf.iers_degraded_accuracy`` to either ``'warn'``
+     or ``'ignore'``. These prevent the normal exception that occurs if a
+     time conversion falls outside the bounds of available (local) IERS data.
+     **WARNING**: only use this option if your application does not need full
+     accuracy time conversions.
 
  * Make an Astropy config file (see :ref:`astropy_config`) that sets
    ``astropy.utils.iers.conf.auto_download = False`` so that the worker jobs will
