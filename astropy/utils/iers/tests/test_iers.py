@@ -424,4 +424,5 @@ def test_iers_download_error_handling():
             assert len(record) == 3
             assert str(record[0].message).startswith('failed to download FAIL FAIL: Malformed URL')
             assert str(record[1].message).startswith('malformed IERS table from https://google.com')
-            assert str(record[2].message).startswith('unable to download valid IERS file, using local IERS-B')
+            assert str(record[2].message).startswith('unable to download valid IERS file, '
+                                                     'using local IERS-B')
