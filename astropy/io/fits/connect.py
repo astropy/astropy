@@ -164,9 +164,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
     mask_invalid : bool, optional
         By default the code masks NaNs in float columns and empty strings in
         string columns. Set this parameter to `False` to avoid the performance
-        penalty of doing this masking step. It's also needing when using
-        ``memmap=True`` because otherwise reading the float/string columns to
-        mask them will cause the loading of the data.
+        penalty of doing this masking step. The masking is always deactivated
+        when using ``memmap=True`` (see above).
 
     """
 
@@ -223,7 +222,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
     else:
 
-        if memmap and mask_invalid:
+        if memmap:
             # using memmap is not compatible with masking invalid value by
             # default so we deactivate the masking
             mask_invalid = False
