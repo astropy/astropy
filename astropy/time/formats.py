@@ -1743,7 +1743,7 @@ class TimeBesselianEpoch(TimeEpochDate):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if hasattr(val1, 'to') and hasattr(val1, 'unit'):
+        if hasattr(val1, 'to') and hasattr(val1, 'unit') and val1.unit is not None:
             raise ValueError("Cannot use Quantities for 'byear' format, "
                              "as the interpretation would be ambiguous. "
                              "Use float with Besselian year instead. ")
