@@ -1,0 +1,9 @@
+Improve handling of unavailable IERS-A (predictive future Earth rotation) data
+in two ways. First, allow conversions with degraded accuracy if the IERS-A data
+are missing or do not cover the required time span. This is done with a new
+config item ``conf.iers_degraded_accuracy`` which specifies the behavior when
+times are outside the range of IERS table. The options are 'error' (raise an
+``IERSRangeError``, default), 'warn' (issue a ``IERSDegradedAccuracyWarning``)
+or 'ignore' (ignore the problem). Second, the logic for auto-downloads was
+changed to guarantee that no matter what happens with the IERS download
+operations, only warnings will be issued.
