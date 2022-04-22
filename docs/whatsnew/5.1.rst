@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-io-ascii-converters`
 * :ref:`whatsnew-structured-columns`
 * :ref:`whatsnew-fitters`
+* :ref:`whatsnew-iers-handling`
 
 .. _whatsnew-5.1-cosmology:
 
@@ -117,6 +118,28 @@ least-squares optimization algorithm from scipy. These new fitters are:
 * :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM) algorithm,
   via the `scipy.optimize.least_squares` function.
 * :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm.
+
+.. _whatsnew-iers-handling:
+
+Allow time conversions without predictive Earth rotation data (IERS-A)
+======================================================================
+
+Some time conversions like UTC -> UT1 require additional Earth rotation data for
+full accuracy. These data are provided by the online IERS service as the IERS-A
+tables and are downloaded as required. In some use cases this download is not
+desired or possible. Examples include an application where full accuracy is not
+required, running on a cluster node without internet access, or the rare
+instances when the IERS server and mirror are not available. For these cases
+there is a new config item `iers.conf.iers_degraded_accuracy
+<astropy.utils.iers.Conf.iers_degraded_accuracy>` that specifies the behavior
+when times are outside the range of available IERS data. The options are
+``'error'`` (default to raise an :class:`~astropy.utils.iers.IERSRangeError`),
+``'warn'`` (issue an class:`~astropy.utils.iers.IERSDegradedAccuracyWarning`) or
+``'ignore'`` (ignore the warning).
+
+In addition, the logic for auto-downloads was changed to guarantee that no matter
+what happens with the IERS download operations, only warnings will be issued.
+These warnings can be ignored if desired.
 
 Full change log
 ===============
