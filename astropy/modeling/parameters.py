@@ -178,6 +178,8 @@ class Parameter:
     bounds : tuple
         specify min and max as a single tuple--bounds may not be specified
         simultaneously with min or max
+    mag : bool
+        Specify if the unit of the parameter can be a Magnitude unit or not
     """
 
     constraints = ('fixed', 'tied', 'bounds')
@@ -368,8 +370,8 @@ class Parameter:
     def _set_unit(self, unit, force=False):
         if force:
             if isinstance(unit, MagUnit) and not self._mag:
-                raise ParameterDefinitionError(
-                    f"This model does not support the magnitude units such as {unit}"
+                raise ValueError(
+                    f"This parameter does not support the magnitude units such as {unit}"
                 )
             self._unit = unit
         else:
