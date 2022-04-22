@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-structured-columns`
 * :ref:`whatsnew-fitters`
 * :ref:`whatsnew-iers-handling`
+* :ref:`whatsnew-schechter1d-model`
 
 .. _whatsnew-5.1-cosmology:
 
@@ -140,6 +141,15 @@ when times are outside the range of available IERS data. The options are
 In addition, the logic for auto-downloads was changed to guarantee that no matter
 what happens with the IERS download operations, only warnings will be issued.
 These warnings can be ignored if desired.
+
+.. _whatsnew-schechter1d-model:
+
+Schechter1D Model
+=================
+
+A new :class:`astropy.modeling.powerlaws.Schechter1D` model,
+parameterized in terms of magnitudes, for luminosity functions was
+added.
 
 Full change log
 ===============

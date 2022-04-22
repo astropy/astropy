@@ -60,7 +60,7 @@ from astropy.modeling.functional_models import (
 from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D,
+    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D, Schechter1D,
     SmoothlyBrokenPowerLaw1D)
 
 # 1D Models
@@ -220,6 +220,14 @@ models_1D = {
                      3.33823780e-19],
         'x_lim': [0.01, 100],
         'log_fit': True
+    },
+
+    Schechter1D: {
+        'parameters': [1., -20., -1.],
+        'x_values': [-25., -23., -21., -19., -17.],
+        'y_values': [3.42631659e-44, 1.20551329e-07, 7.47097466e-02,
+                     6.18557294e-01, 8.64716111e-01],
+        'x_lim': [-25, -17.],
     },
 
     LogParabola1D: {
