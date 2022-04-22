@@ -11,7 +11,7 @@ from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
 __all__ = ['PowerLaw1D', 'BrokenPowerLaw1D', 'SmoothlyBrokenPowerLaw1D',
-           'ExponentialCutoffPowerLaw1D', 'LogParabola1D']
+           'ExponentialCutoffPowerLaw1D', 'LogParabola1D', 'Schechter1D']
 
 
 class PowerLaw1D(Fittable1DModel):
@@ -507,3 +507,119 @@ class LogParabola1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'x_0': inputs_unit[self.inputs[0]],
                 'amplitude': outputs_unit[self.outputs[0]]}
+
+
+class Schechter1D(Fittable1DModel):
+    r"""
+    Schechter luminosity function (`Schechter 1976
+    <https://ui.adsabs.harvard.edu/abs/1976ApJ...203..297S/abstract>`_),
+    parameterized in terms of magnitudes.
+
+    Parameters
+    ----------
+    phi_star : float
+        The normalization factor in units of number density.
+
+    m_star : float
+        The characteristic magnitude where the power-law form of the
+        function cuts off. Must not have units.
+
+    alpha : float
+        The power law index, also known as the faint-end slope. Must not
+        have units.
+
+    See Also
+    --------
+    PowerLaw1D, ExponentialCutoffPowerLaw1D, BrokenPowerLaw1D
+
+    Notes
+    -----
+    Model formula (with :math:`\phi^{*}` for ``phi_star``, :math:`M^{*}`
+    for ``m_star``, and :math:`\alpha` for ``alpha``):
+
+    .. math::
+
+        n(M) \ dM = (0.4 \ln 10) \ \phi^{*} \
+            [{10^{0.4 (M^{*} - M)}}]^{\alpha + 1} \
+            \exp{[-10^{0.4 (M^{*} - M)}]} \ dM
+
+    ``phi_star`` is the normalization factor in units of number density.
+    ``m_star`` is the characteristic magnitude where the power-law form
+    of the function cuts off into the exponential form. ``alpha`` is
+    the power-law index, defining the faint-end slope of the luminosity
+    function.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        from astropy.modeling.models import Schechter1D
+        import astropy.units as u
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        phi_star = 4.3e-4 * (u.Mpc ** -3)
+        m_star = -20.26
+        alpha = -1.98
+        model = Schechter1D(phi_star, m_star, alpha)
+        mag = np.linspace(-25, -17)
+
+        fig, ax = plt.subplots()
+        ax.plot(mag, model(mag))
+        ax.set_yscale('log')
+        ax.set_xlim(-22.6, -17)
+        ax.set_ylim(1.e-7, 1.e-2)
+        ax.set_xlabel('$M_{UV}$')
+        ax.set_ylabel('$\phi$ [mag$^{-1}$ Mpc$^{-3}]$')
+
+    References
+    ----------
+    .. [1] Schechter 1976; ApJ 203, 297
+           (https://ui.adsabs.harvard.edu/abs/1976ApJ...203..297S/abstract)
+
+    .. [2] `Luminosity function <https://en.wikipedia.org/wiki/Luminosity_function_(astronomy)>`_
+    """
+
+    phi_star = Parameter(default=1., description=('Normalization factor '
+                                                  'in units of number density'))
+    m_star = Parameter(default=-20., description='Characteristic magnitude')
+    alpha = Parameter(default=-1., description='Faint-end slope')
+
+    @staticmethod
+    def evaluate(mag, phi_star, m_star, alpha):
+        """Schechter luminosity function model function."""
+        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
+            raise ValueError('mag and m_star must not have units')
+        factor = 10 ** (0.4 * (m_star - mag))
+
+        return (0.4 * np.log(10) * phi_star * factor**(alpha + 1)
+                * np.exp(-factor))
+
+    @staticmethod
+    def fit_deriv(mag, phi_star, m_star, alpha):
+        """
+        Schechter luminosity function derivative with respect to
+        parameters.
+        """
+        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
+            raise ValueError('mag and m_star must not have units')
+        factor = 10 ** (0.4 * (m_star - mag))
+
+        d_phi_star = 0.4 * np.log(10) * factor**(alpha + 1) * np.exp(-factor)
+        func = phi_star * d_phi_star
+        d_m_star = ((alpha + 1) * 0.4 * np.log(10) * func
+                    - (0.4 * np.log(10) * func * factor))
+        d_alpha = func * np.log(factor)
+
+        return [d_phi_star, d_m_star, d_alpha]
+
+    @property
+    def input_units(self):
+        if self.m_star.unit is None:
+            return None
+        return {self.inputs[0]: self.m_star.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {'m_star': inputs_unit[self.inputs[0]],
+                'phi_star': outputs_unit[self.outputs[0]]}
