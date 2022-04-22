@@ -509,7 +509,7 @@ class Rotation2D(Model):
         x, y = result[0], result[1]
         x.shape = y.shape = orig_shape
         if has_units:
-            return u.Quantity(x, unit=x_unit), u.Quantity(y, unit=y_unit)
+            return u.Quantity(x, unit=x_unit, subok=True), u.Quantity(y, unit=y_unit, subok=True)
         return x, y
 
     @staticmethod
