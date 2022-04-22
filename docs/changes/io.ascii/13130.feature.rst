@@ -1,0 +1,3 @@
+Added support in ``io.ascii`` for reading and writing file paths of the form
+``~/file.csv`` or ``~<username>/file.csv``, referring to the home directory of
+the current user or the specified user, respectively.
