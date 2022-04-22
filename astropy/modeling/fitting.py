@@ -892,8 +892,8 @@ class FittingWithOutlierRemoval:
         if len(model) == 1:
             model_set_axis = None
         else:
-            if not hasattr(self.fitter, 'supports_masked_input') or \
-               self.fitter.supports_masked_input is not True:
+            if (not hasattr(self.fitter, 'supports_masked_input') or
+                    self.fitter.supports_masked_input is not True):
                 raise ValueError(f"{type(self.fitter).__name__} cannot fit model sets with masked "
                                  "values")
 
