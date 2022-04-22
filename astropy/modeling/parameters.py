@@ -678,7 +678,7 @@ class Parameter:
         arr = np.asarray(self.value, dtype=dtype)
 
         if self.unit is not None:
-            arr = Quantity(arr, self.unit, copy=False)
+            arr = Quantity(arr, self.unit, copy=False, subok=True)
 
         return arr
 
