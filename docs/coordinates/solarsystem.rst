@@ -10,7 +10,8 @@ also use more precise ones using the JPL ephemerides (which are derived from
 dynamical models). The default JPL ephemerides (DE430) provide predictions
 valid roughly for the years between 1550 and 2650. The file is 115 MB and will
 need to be downloaded the first time you use this functionality, but will be
-cached after that.
+cached after that. Other JPL ephemerides can be requested by name for specific
+use cases you may have (see the examples below).
 
 .. note::
    Using JPL ephemerides requires that the `jplephem
@@ -26,7 +27,7 @@ latter returns a `~astropy.coordinates.CartesianRepresentation` of the
 barycentric position of a body (i.e., in the `~astropy.coordinates.ICRS` frame).
 
 Examples
---------
+========
 
 ..
   EXAMPLE START
@@ -128,6 +129,14 @@ For a list of the bodies for which positions can be calculated, do:
     polynomial model (as this requires no special download). So it is not safe
     to assume that ``get_body(time, 'sun')`` and ``get_sun(time)`` will give
     the same result.
+
+.. note :: 
+    When using JPL ephemerides, be aware that answers may change at levels that
+    can be surprising if you are not careful about understanding the frame you
+    are in or .  See for example the case of the DE440s ephemerides, which is
+    described in more detail in 
+    `astropy PR #11608 <https://github.com/astropy/astropy/pull/11608>`_. So
+    it is usually best to stay within the same ephemerides for consistency.
 
 .. _astropy-coordinates-solarsystem-erfa-precision:
 
