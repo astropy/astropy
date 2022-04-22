@@ -157,8 +157,8 @@ variance into the desired uncertainty. A simple example of this is::
     >>> from astropy.nddata import InverseVariance, StdDevUncertainty
     >>> StdDevUncertainty(np.arange(1, 10)).represent_as(InverseVariance)
     InverseVariance([1.        , 0.25      , 0.11111111, 0.0625    ,
-                 0.04      , 0.02777778, 0.02040816, 0.015625  ,
-                 0.01234568])
+                     0.04      , 0.02777778, 0.02040816, 0.015625  ,
+                     0.01234568])
 
 .. _whatsnew-schechter1d-model:
 
