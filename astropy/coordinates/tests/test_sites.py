@@ -44,6 +44,11 @@ def test_online_sites():
     assert 'keck' in names
     assert 'ctio' in names
 
+    # The JSON file contains `name` and `aliases` for each site, and astropy
+    # should use names from both, but not empty strings [#12721].
+    assert '' not in names
+    assert 'Royal Observatory Greenwich' in names
+
     with pytest.raises(KeyError) as exc:
         reg['nonexistent site']
     assert exc.value.args[0] == "Site 'nonexistent site' not in database. Use the 'names' attribute to see available sites."

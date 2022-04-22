@@ -105,8 +105,11 @@ class SiteRegistry(Mapping):
             location = EarthLocation.from_geodetic(site_info.pop('longitude') * u.Unit(site_info.pop('longitude_unit')),
                                                    site_info.pop('latitude') * u.Unit(site_info.pop('latitude_unit')),
                                                    site_info.pop('elevation') * u.Unit(site_info.pop('elevation_unit')))
-            location.info.name = site_info.pop('name')
-            aliases = site_info.pop('aliases')
+            name = site_info.pop('name')
+            location.info.name = name
+            aliases = [alias for alias in site_info.pop('aliases') if alias]
+            if name not in aliases and name != site:
+                aliases.append(name)
             location.info.meta = site_info  # whatever is left
 
             reg.add_site([site] + aliases, location)

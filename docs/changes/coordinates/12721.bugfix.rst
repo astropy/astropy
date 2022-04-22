@@ -1,0 +1,4 @@
+The machinery that makes observatory locations available as ``EarthLocation``
+objects is now smarter about processing observatory names from its data files.
+More names are available for use and the empty string is no longer considered
+to be a valid name.
