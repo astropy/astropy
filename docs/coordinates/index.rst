@@ -340,7 +340,10 @@ a quick way to get an `~astropy.coordinates.EarthLocation` - the
     <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
 To see the list of site names available, use
-:func:`astropy.coordinates.EarthLocation.get_site_names`.
+:func:`~astropy.coordinates.EarthLocation.get_site_names`::
+
+    >>> EarthLocation.get_site_names()  # doctest: +REMOTE_DATA
+    ['ALMA', 'ATST', 'Anglo-Australian Observatory', ...]
 
 For arbitrary Earth addresses (e.g., not observatory sites), use the
 `~astropy.coordinates.EarthLocation.of_address` classmethod. Any address passed
