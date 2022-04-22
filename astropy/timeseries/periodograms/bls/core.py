@@ -128,7 +128,7 @@ class BoxLeastSquares(BasePeriodogram):
         minimum_period, maximum_period : float or `~astropy.units.Quantity` ['time'], optional
             The minimum/maximum periods to search. If not provided, these will
             be computed as described in the notes below.
-        minimum_n_transits : int, optional
+        minimum_n_transit : int, optional
             If ``maximum_period`` is not provided, this is used to compute the
             maximum period to search by asserting that any systems with at
             least ``minimum_n_transits`` will be within the range of searched
@@ -574,7 +574,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        t_model : array-like or `~astropy.units.Quantity` ['time']
+        t : array-like or `~astropy.units.Quantity` ['time']
             Times where the mask should be evaluated.
         period : float or `~astropy.units.Quantity` ['time']
             The period of the transits.
