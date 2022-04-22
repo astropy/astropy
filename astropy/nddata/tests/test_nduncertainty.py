@@ -74,14 +74,9 @@ uncertainty_types_to_be_tested = [
 ]
 
 uncertainty_types_with_conversion_support = (
-    StdDevUncertainty,
-    VarianceUncertainty,
-    InverseVariance,
-)
+    StdDevUncertainty, VarianceUncertainty, InverseVariance)
 uncertainty_types_without_conversion_support = (
-    FakeUncertainty,
-    UnknownUncertainty,
-)
+    FakeUncertainty, UnknownUncertainty)
 
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
@@ -366,9 +361,7 @@ def test_assigning_uncertainty_with_bad_unit_to_parent_fails(NDClass,
         ndd.uncertainty = v
 
 
-@pytest.mark.parametrize(
-    'UncertClass', uncertainty_types_with_conversion_support
-)
+@pytest.mark.parametrize('UncertClass', uncertainty_types_with_conversion_support)
 def test_self_conversion_via_variance_supported(UncertClass):
     uncert = np.arange(1, 11).reshape(2, 5) * u.adu
     start_uncert = UncertClass(uncert)
@@ -392,9 +385,7 @@ def test_conversion_to_from_variance_supported(UncertClass, to_variance_func):
     assert start_uncert.unit == final_uncert.unit
 
 
-@pytest.mark.parametrize(
-    'UncertClass', uncertainty_types_without_conversion_support
-)
+@pytest.mark.parametrize('UncertClass', uncertainty_types_without_conversion_support)
 def test_self_conversion_via_variance_not_supported(UncertClass):
     uncert = np.arange(1, 11).reshape(2, 5) * u.adu
     start_uncert = UncertClass(uncert)

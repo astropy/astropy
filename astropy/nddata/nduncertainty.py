@@ -789,10 +789,8 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     @classmethod
     def _convert_from_variance(cls, var_uncert):
-        new_array = None if var_uncert.array is None else \
-            var_uncert.array ** (1 / 2)
-        new_unit = None if var_uncert.unit is None else \
-            var_uncert.unit ** (1 / 2)
+        new_array = None if var_uncert.array is None else var_uncert.array ** (1 / 2)
+        new_unit = None if var_uncert.unit is None else var_uncert.unit ** (1 / 2)
         return cls(new_array, unit=new_unit)
 
 
