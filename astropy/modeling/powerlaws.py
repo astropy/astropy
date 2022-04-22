@@ -583,18 +583,19 @@ class Schechter1D(Fittable1DModel):
 
     phi_star = Parameter(default=1., description=('Normalization factor '
                                                   'in units of number density'))
-    m_star = Parameter(default=-20., description='Characteristic magnitude')
+    m_star = Parameter(default=-20., description='Characteristic magnitude', mag=True)
     alpha = Parameter(default=-1., description='Faint-end slope')
 
     @staticmethod
     def evaluate(mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
-        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
-            raise ValueError('mag and m_star must not have units')
-        factor = 10 ** (0.4 * (m_star - mag))
 
-        return (0.4 * np.log(10) * phi_star * factor**(alpha + 1)
-                * np.exp(-factor))
+        factor_exp = 0.4 * (m_star - mag)
+        if isinstance(factor_exp, Quantity):
+            factor_exp = factor_exp.value
+        factor = 10 ** factor_exp
+
+        return 0.4 * np.log(10) * phi_star * factor**(alpha + 1) * np.exp(-factor)
 
     @staticmethod
     def fit_deriv(mag, phi_star, m_star, alpha):
@@ -602,8 +603,6 @@ class Schechter1D(Fittable1DModel):
         Schechter luminosity function derivative with respect to
         parameters.
         """
-        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
-            raise ValueError('mag and m_star must not have units')
         factor = 10 ** (0.4 * (m_star - mag))
 
         d_phi_star = 0.4 * np.log(10) * factor**(alpha + 1) * np.exp(-factor)
