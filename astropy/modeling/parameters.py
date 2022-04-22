@@ -15,7 +15,7 @@ import operator
 
 import numpy as np
 
-from astropy.units import Quantity
+from astropy.units import MagUnit, Quantity
 from astropy.utils import isiterable
 
 from .utils import array_repr_oneline, get_inputs_and_params
@@ -191,7 +191,7 @@ class Parameter:
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, prior=None, posterior=None):
+                 max=None, bounds=None, prior=None, posterior=None, mag=False):
         super().__init__()
 
         self._model = None
@@ -211,7 +211,9 @@ class Parameter:
             default = default.value
 
         self._default = default
-        self._unit = unit
+
+        self._mag = mag
+        self._set_unit(unit, force=True)
         # Internal units correspond to raw_units held by the model in the
         # previous implementation. The private _getter and _setter methods
         # use this to convert to and from the public unit defined for the
@@ -365,6 +367,10 @@ class Parameter:
 
     def _set_unit(self, unit, force=False):
         if force:
+            if isinstance(unit, MagUnit) and not self._mag:
+                raise ParameterDefinitionError(
+                    f"This model does not support the magnitude units such as {unit}"
+                )
             self._unit = unit
         else:
             self.unit = unit
@@ -399,7 +405,7 @@ class Parameter:
             raise TypeError("The .quantity attribute should be set "
                             "to a Quantity object")
         self.value = quantity.value
-        self._unit = quantity.unit
+        self._set_unit(quantity.unit, force=True)
 
     @property
     def shape(self):

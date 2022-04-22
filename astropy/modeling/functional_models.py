@@ -1791,7 +1791,7 @@ class Const1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function")
+    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
     linear = True
 
     @staticmethod
@@ -1846,7 +1846,7 @@ class Const2D(Fittable2DModel):
         .. math:: f(x, y) = A
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function")
+    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
     linear = True
 
     @staticmethod
@@ -1945,7 +1945,7 @@ class Ellipse2D(Fittable2DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Value of the ellipse")
+    amplitude = Parameter(default=1, description="Value of the ellipse", mag=True)
     x_0 = Parameter(default=0, description="X position of the center of the disk.")
     y_0 = Parameter(default=0, description="Y position of the center of the disk.")
     a = Parameter(default=1, description="The length of the semimajor axis")
@@ -2041,7 +2041,7 @@ class Disk2D(Fittable2DModel):
                    \\right.
     """
 
-    amplitude = Parameter(default=1, description="Value of disk function")
+    amplitude = Parameter(default=1, description="Value of disk function", mag=True)
     x_0 = Parameter(default=0, description="X position of center of the disk")
     y_0 = Parameter(default=0, description="Y position of center of the disk")
     R_0 = Parameter(default=1, description="Radius of the disk")
@@ -2126,7 +2126,7 @@ class Ring2D(Fittable2DModel):
     Where :math:`r_{out} = r_{in} + r_{width}`.
     """
 
-    amplitude = Parameter(default=1, description="Value of the disk function")
+    amplitude = Parameter(default=1, description="Value of the disk function", mag=True)
     x_0 = Parameter(default=0, description="X position of center of disc")
     y_0 = Parameter(default=0, description="Y position of center of disc")
     r_in = Parameter(default=1, description="Inner radius of the ring")
@@ -2258,7 +2258,7 @@ class Box1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Amplitude A")
+    amplitude = Parameter(default=1, description="Amplitude A", mag=True)
     x_0 = Parameter(default=0, description="Position of center of box function")
     width = Parameter(default=1, description="Width of the box")
 
@@ -2336,7 +2336,7 @@ class Box2D(Fittable2DModel):
 
     """
 
-    amplitude = Parameter(default=1, description="Amplitude")
+    amplitude = Parameter(default=1, description="Amplitude", mag=True)
     x_0 = Parameter(default=0, description="X position of the center of the box function")
     y_0 = Parameter(default=0, description="Y position of the center of the box function")
     x_width = Parameter(default=1, description="Width in x direction of the box")

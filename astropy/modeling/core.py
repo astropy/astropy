@@ -2537,7 +2537,9 @@ class Model(metaclass=_ModelMeta):
             raise InputParameterError(
                 f"{self.__class__.__name__}.__init__() requires a Quantity for parameter "
                 f"{param_name!r}")
+
         param._unit = unit
+        param._set_unit(unit, force=True)
         param.internal_unit = None
         if param._setter is not None:
             if unit is not None:
