@@ -1,0 +1,1 @@
+Convert ``NoConvergence`` errors to warnings in ``world_to_pixel_values`` so that callers can work at least with the non converged solution.
