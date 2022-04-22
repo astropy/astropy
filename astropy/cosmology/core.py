@@ -356,15 +356,11 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
 
     def __repr__(self):
-        ps = {k: getattr(self, k) for k in self.__parameters__}  # values
-        cps = {k: getattr(self.__class__, k) for k in self.__parameters__}  # Parameter objects
-
         namelead = f"{self.__class__.__qualname__}("
         if self.name is not None:
             namelead += f"name=\"{self.name}\", "
         # nicely formatted parameters
-        fmtps = (k + '=' + format(v, cps[k].format_spec if v is not None else '')
-                 for k, v in ps.items())
+        fmtps = (f'{k}={getattr(self, k)}' for k in self.__parameters__)
 
         return namelead + ", ".join(fmtps) + ")"
 

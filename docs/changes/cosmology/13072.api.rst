@@ -1,0 +1,3 @@
+The Cosmology Parameter argument "fmt" for specifying a format spec
+has been deprecated in favor of using the built-in string representation from
+the Parameter's value's dtype.
