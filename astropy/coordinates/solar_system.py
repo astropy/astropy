@@ -78,12 +78,13 @@ One can check which bodies are covered by a given ephemeris using::
 class solar_system_ephemeris(ScienceState):
     """Default ephemerides for calculating positions of Solar-System bodies.
 
-    This can be one of the following::
+    This can be one of the following:
 
     - 'builtin': polynomial approximations to the orbital elements.
-    - 'dexxx[s]', for a JPL dynamical model, where xxx is the three digit version number
-      (e.g. de430), and the s is optional to specify the 'small' version of a kernel.
-      The version number must correspond to an ephemeris file available at
+    - 'dexxx[s]', for a JPL dynamical model, where xxx is the three digit
+      version number (e.g. de430), and the 's' is optional to specify the
+      'small' version of a kernel. The version number must correspond to an
+      ephemeris file available at:
       https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
