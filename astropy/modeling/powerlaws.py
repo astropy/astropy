@@ -588,11 +588,11 @@ class Schechter1D(Fittable1DModel):
 
     @staticmethod
     def _factor(magnitude, m_star):
-        factor_exp = (m_star - magnitude)
+        factor_exp = (magnitude - m_star)
         if isinstance(factor_exp, Quantity):
-            return (-1 * factor_exp).to(dimensionless_unscaled)
+            return factor_exp.to(dimensionless_unscaled)
         else:
-            return 10 ** (0.4 * factor_exp)
+            return 10 ** (-0.4 * factor_exp)
 
     def evaluate(self, mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
