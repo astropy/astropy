@@ -326,6 +326,14 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
 
+    sip_requires_ctype_prefix : bool, optional
+        Specify whether SIP coefficients should only be read in if CTYPE ends
+        in ``-SIP`` (`True`), or whether SIP coefficients should always be read
+        in when present even if CTYPE does not end in ``-SIP`` (`False`). The
+        default is `False`. If this option is not explicitly specified, an INFO
+        message is emitted when SIP coefficients are present but CTYPE does not
+        end in ``-SIP``.
+
     Raises
     ------
     MemoryError
@@ -387,7 +395,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=True, naxis=None, keysel=None, colsel=None,
-                 fix=True, translate_units='', _do_set=True):
+                 fix=True, translate_units='', _do_set=True,
+                 sip_requires_ctype_prefix=None):
         close_fds = []
 
         # these parameters are stored to be used when unpickling a WCS object:
@@ -484,7 +493,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header, wcskey=key)
+            sip = self._read_sip_kw(header, wcskey=key,
+                                    sip_requires_ctype_prefix=sip_requires_ctype_prefix)
             self._remove_sip_kw(header)
 
             header_string = header.tostring()
@@ -1075,7 +1085,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                        if m is not None):
             del header[key]
 
-    def _read_sip_kw(self, header, wcskey=""):
+    def _read_sip_kw(self, header, wcskey="", sip_requires_ctype_prefix=None):
         """
         Reads `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
         object.
@@ -1120,22 +1130,28 @@ reduce these to 2 dimensions using the naxis kwarg.
             ctype = [header[f'CTYPE{nax}{wcskey}'] for nax in range(1, self.naxis + 1)]
             if any(not ctyp.endswith('-SIP') for ctyp in ctype):
                 message = """
-                Inconsistent SIP distortion information is present in the FITS header and the WCS object:
-                SIP coefficients were detected, but CTYPE is missing a "-SIP" suffix.
-                astropy.wcs is using the SIP distortion coefficients,
-                therefore the coordinates calculated here might be incorrect.
+                Inconsistent SIP distortion information is present in the FITS header and the
+                WCS object: SIP coefficients were detected, but CTYPE is missing a "-SIP"
+                suffix. astropy.wcs is using the SIP distortion coefficients, therefore the
+                coordinates calculated here might be incorrect.
 
-                If you do not want to apply the SIP distortion coefficients,
-                please remove the SIP coefficients from the FITS header or the
-                WCS object.  As an example, if the image is already distortion-corrected
-                (e.g., drizzled) then distortion components should not apply and the SIP
-                coefficients should be removed.
+                If you do not want to apply the SIP distortion coefficients, you can pass
+                ``sip_requires_ctype_prefix=True`` to ``WCS``. Alternatively, you should remove
+                the SIP coefficients from the FITS header or the WCS object. As an example, if
+                the image is already distortion-corrected (e.g., drizzled) then distortion
+                components should not apply and the SIP coefficients should be removed.
 
-                While the SIP distortion coefficients are being applied here, if that was indeed the intent,
-                for consistency please append "-SIP" to the CTYPE in the FITS header or the WCS object.
-
+                If you do intend to use the SIP coefficients and want to avoid seeing this
+                message, you can pass ``sip_requires_ctype_prefix=False`` to ``WCS``, or if you
+                can, you should append "-SIP" to the CTYPE in the FITS header or the WCS
+                object.
                 """  # noqa: E501
-                log.info(message)
+                # We only show the message if the user did not explicitly
+                # opt in or out of using the SIP coefficients.
+                if sip_requires_ctype_prefix is None:
+                    log.info(message)
+                elif sip_requires_ctype_prefix:
+                    return None
         elif "B_ORDER" in header and header['B_ORDER'] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
