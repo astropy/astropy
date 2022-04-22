@@ -305,7 +305,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f[i] = amplitude * xx[i] ** (-alpha_1) * r ** ((alpha_1 - alpha_2) * delta)
 
         if return_unit:
-            return Quantity(f, unit=return_unit, copy=False)
+            return Quantity(f, unit=return_unit, copy=False, subok=True)
         return f
 
     @staticmethod

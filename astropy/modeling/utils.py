@@ -324,7 +324,7 @@ def ellipse_extent(a, b, theta):
     dy = b * np.sin(t) * np.cos(theta) + a * np.cos(t) * np.sin(theta)
 
     if isinstance(dx, u.Quantity) or isinstance(dy, u.Quantity):
-        return np.abs(u.Quantity([dx, dy]))
+        return np.abs(u.Quantity([dx, dy], subok=True))
     return np.abs([dx, dy])
 
 
