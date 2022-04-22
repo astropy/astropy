@@ -14,8 +14,7 @@ from astropy.modeling.models import (
     Chebyshev1D, Chebyshev2D, Const1D, Gaussian1D, Gaussian2D, Identity, Legendre1D, Legendre2D,
     Linear1D, Mapping, Polynomial1D, Polynomial2D, Rotation2D, Scale, Shift, Tabular1D, fix_inputs)
 from astropy.modeling.parameters import Parameter
-from astropy.utils import minversion
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -482,7 +481,7 @@ def test_inherit_constraints():
     assert model[1].mean.fixed is False
 
     # Now turn off syncing of constraints
-    assert model.bounds['stddev_0']  == (0.1, 0.5)
+    assert model.bounds['stddev_0'] == (0.1, 0.5)
     model.sync_constraints = False
     model[0].stddev.bounds = (0, 0.2)
     assert model.bounds['stddev_0'] == (0.1, 0.5)

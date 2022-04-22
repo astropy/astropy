@@ -36,7 +36,7 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
-from .spline import (
+from .spline import (  # noqa: F401
     SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
 from .statistic import leastsquare
 from .utils import _combine_equivalency_dict, poly_map_domain
@@ -76,8 +76,8 @@ class Covariance():
         for i, row in enumerate(self.cov_matrix):
             if i <= max_lines-1:
                 param = self.param_names[i]
-                ret_str += fstring.replace(' '*len(param), param, 1).\
-                           format(repr(np.round(row[:i+1], round_val))[7:-2])
+                ret_str += (fstring.replace(' '*len(param), param, 1)
+                            .format(repr(np.round(row[:i+1], round_val))[7:-2]))
             else:
                 ret_str += '...'
         return(ret_str.rstrip())
@@ -373,7 +373,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                          'singular_values': None,
                          'params': None
                          }
-        self._calc_uncertainties=calc_uncertainties
+        self._calc_uncertainties = calc_uncertainties
 
     @staticmethod
     def _is_invertible(m):
@@ -426,7 +426,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                                   'currently supported.\n',
                                   AstropyUserWarning)
                     return
-                xx, yy = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
+                xx, _ = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
                 # len(xx) instead of xx.count. this will break if values are masked?
                 RSS = [(1/(len(xx)-n_coeff)) * resids]
             else:
@@ -784,8 +784,10 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
-        if hasattr(model_copy, '_order') and len(model_copy) == 1 \
-                and not has_fixed and rank != model_copy._order:
+        if (hasattr(model_copy, '_order') and
+                len(model_copy) == 1 and
+                not has_fixed and
+                rank != model_copy._order):
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
 
@@ -793,7 +795,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         if self._calc_uncertainties:
             if len(y) > len(lacoef):
                 self._add_fitting_uncertainties(model_copy, a*scl,
-                                               len(lacoef), x, y, z, resids)
+                                                len(lacoef), x, y, z, resids)
         model_copy.sync_constraints = True
         return model_copy
 
@@ -896,8 +898,8 @@ class FittingWithOutlierRemoval:
         if len(model) == 1:
             model_set_axis = None
         else:
-            if not hasattr(self.fitter, 'supports_masked_input') or \
-               self.fitter.supports_masked_input is not True:
+            if (not hasattr(self.fitter, 'supports_masked_input') or
+                    self.fitter.supports_masked_input is not True):
                 raise ValueError("{} cannot fit model sets with masked "
                                  "values".format(type(self.fitter).__name__))
 
@@ -1078,7 +1080,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             value = np.ravel(weights * (model(*args[2: -1]) - meas))
 
         if not np.all(np.isfinite(value)):
-            raise NonFiniteValueError("Objective function has encountered a non-finite value, this will cause the fit to fail!")
+            raise NonFiniteValueError("Objective function has encountered a non-finite value, "
+                                      "this will cause the fit to fail!")
 
         return value
 
@@ -1997,7 +2000,8 @@ def populate_entry_points(entry_points):
 
     Notes
     -----
-    An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
+    An explanation of entry points can be found `here
+    <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_
     """
 
     for entry_point in entry_points:

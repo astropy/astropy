@@ -266,7 +266,8 @@ class UnitsMapping(Model):
         self._rebuild_units()
 
     def _rebuild_units(self):
-        self._input_units = {input_name: input_unit for input_name, (input_unit, _) in zip(self.inputs, self.mapping)}
+        self._input_units = {input_name: input_unit
+                             for input_name, (input_unit, _) in zip(self.inputs, self.mapping)}
 
     @property
     def n_inputs(self):

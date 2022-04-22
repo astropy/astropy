@@ -6,8 +6,6 @@ Statistic functions used in `~astropy.modeling.fitting`.
 # pylint: disable=invalid-name
 import numpy as np
 
-from astropy.utils.decorators import format_doc
-
 __all__ = ["leastsquare", "leastsquare_1d", "leastsquare_2d", "leastsquare_3d"]
 
 

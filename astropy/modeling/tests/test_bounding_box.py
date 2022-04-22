@@ -24,8 +24,7 @@ class Test_Interval:
         assert interval.upper == upper
         assert interval == (lower, upper)
 
-        assert interval.__repr__() == \
-            f"Interval(lower={lower}, upper={upper})"
+        assert interval.__repr__() == f"Interval(lower={lower}, upper={upper})"
 
     def test_copy(self):
         interval = _Interval(0.5, 1.5)
@@ -152,7 +151,7 @@ class Test_Interval:
         assert (interval.lower == np.array([-2.5, -3.5])).all()
         assert (interval.upper == np.array([2.5, 3.5])).all()
         interval = _Interval.validate((np.array([-2.5, -3.5, -4.5]),
-                                     np.array([2.5, 3.5, 4.5])))
+                                       np.array([2.5, 3.5, 4.5])))
         assert (interval.lower == np.array([-2.5, -3.5, -4.5])).all()
         assert (interval.upper == np.array([2.5, 3.5, 4.5])).all()
 
@@ -279,9 +278,8 @@ class Test_BoundingDomain:
         order = mk.MagicMock()
         with pytest.raises(ValueError) as err:
             bounding_box._get_order(order)
-        assert str(err.value) ==\
-            "order must be either 'C' (C/python order) or " +\
-            f"'F' (Fortran/mathematical order), got: {order}."
+        assert str(err.value) == ("order must be either 'C' (C/python order) or "
+                                  f"'F' (Fortran/mathematical order), got: {order}.")
 
     def test__get_index(self):
         bounding_box = self.BoundingDomain(Gaussian2D())
@@ -293,8 +291,7 @@ class Test_BoundingDomain:
         # Pass invalid input name
         with pytest.raises(ValueError) as err:
             bounding_box._get_index('z')
-        assert str(err.value) ==\
-            "'z' is not one of the inputs: ('x', 'y')."
+        assert str(err.value) == "'z' is not one of the inputs: ('x', 'y')."
 
         # Pass valid index
         assert bounding_box._get_index(0) == 0
@@ -317,15 +314,13 @@ class Test_BoundingDomain:
         assert str(err.value) == MESSAGE
         with pytest.raises(IndexError) as err:
             bounding_box._get_index(-1)
-        assert str(err.value) ==\
-            "Integer key: -1 must be non-negative and < 2."
+        assert str(err.value) == "Integer key: -1 must be non-negative and < 2."
 
         # Pass invalid key
         value = mk.MagicMock()
         with pytest.raises(ValueError) as err:
             bounding_box._get_index(value)
-        assert str(err.value) ==\
-            f"Key value: {value} must be string or integer."
+        assert str(err.value) == f"Key value: {value} must be string or integer."
 
     def test__get_name(self):
         model = mk.MagicMock()
@@ -387,9 +382,8 @@ class Test_BoundingDomain:
 
         with pytest.raises(RuntimeError) as err:
             bounding_box(*args, **kwargs)
-        assert str(err.value) ==\
-            "This bounding box is fixed by the model and does not have " +\
-            "adjustable parameters."
+        assert str(err.value) == ("This bounding box is fixed by the model and does not have "
+                                  "adjustable parameters.")
 
     def test_fix_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -398,16 +392,14 @@ class Test_BoundingDomain:
 
         with pytest.raises(NotImplementedError) as err:
             bounding_box.fix_inputs(model, fixed_inputs)
-        assert str(err.value) ==\
-            "This should be implemented by a child class."
+        assert str(err.value) == "This should be implemented by a child class."
 
     def test__prepare_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
         with pytest.raises(NotImplementedError) as err:
             bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == \
-            "This has not been implemented for BoundingDomain."
+        assert str(err.value) == "This has not been implemented for BoundingDomain."
 
     def test__base_ouput(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -466,14 +458,16 @@ class Test_BoundingDomain:
         with mk.patch.object(_BoundingDomain, '_base_output', autospec=True,
                              return_value=np.asanyarray(0)) as mkBase:
             assert (np.array([1, 2, 3]) ==
-                    bounding_box._modify_output([1, 2, 3], valid_index, input_shape, fill_value)).all()
+                    bounding_box._modify_output([1, 2, 3], valid_index,
+                                                input_shape, fill_value)).all()
             assert mkBase.call_args_list == [mk.call(input_shape, fill_value)]
 
         # Replacement
         with mk.patch.object(_BoundingDomain, '_base_output', autospec=True,
                              return_value=np.array([1, 2, 3, 4, 5, 6])) as mkBase:
             assert (np.array([7, 2, 8, 4, 9, 6]) ==
-                    bounding_box._modify_output([7, 8, 9], np.array([[0, 2, 4]]), input_shape, fill_value)).all()
+                    bounding_box._modify_output([7, 8, 9], np.array([[0, 2, 4]]),
+                                                input_shape, fill_value)).all()
             assert mkBase.call_args_list == [mk.call(input_shape, fill_value)]
 
     def test__prepare_outputs(self):
@@ -488,9 +482,10 @@ class Test_BoundingDomain:
                              side_effect=effects) as mkModify:
             assert effects == bounding_box._prepare_outputs(valid_outputs, valid_index,
                                                             input_shape, fill_value)
-            assert mkModify.call_args_list == \
-                [mk.call(bounding_box, valid_outputs[idx], valid_index, input_shape, fill_value)
-                 for idx in range(3)]
+            assert mkModify.call_args_list == [
+                mk.call(bounding_box, valid_outputs[idx], valid_index, input_shape, fill_value)
+                for idx in range(3)
+            ]
 
     def test_prepare_outputs(self):
         model = mk.MagicMock()
@@ -504,18 +499,24 @@ class Test_BoundingDomain:
         with mk.patch.object(_BoundingDomain, '_prepare_outputs', autospec=True) as mkPrepare:
             # Reshape valid_outputs
             model.n_outputs = 1
-            assert mkPrepare.return_value == \
-                bounding_box.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
-            assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box, [valid_outputs], valid_index, input_shape, fill_value)]
+            assert mkPrepare.return_value == bounding_box.prepare_outputs(valid_outputs,
+                                                                          valid_index,
+                                                                          input_shape,
+                                                                          fill_value)
+            assert mkPrepare.call_args_list == [
+                mk.call(bounding_box, [valid_outputs], valid_index, input_shape, fill_value)
+            ]
             mkPrepare.reset_mock()
 
             # No reshape valid_outputs
             model.n_outputs = 2
-            assert mkPrepare.return_value == \
-                bounding_box.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
-            assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box, valid_outputs, valid_index, input_shape, fill_value)]
+            assert mkPrepare.return_value == bounding_box.prepare_outputs(valid_outputs,
+                                                                          valid_index,
+                                                                          input_shape,
+                                                                          fill_value)
+            assert mkPrepare.call_args_list == [
+                mk.call(bounding_box, valid_outputs, valid_index, input_shape, fill_value)
+            ]
 
     def test__get_valid_outputs_unit(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -545,15 +546,14 @@ class Test_BoundingDomain:
                                  autospec=True) as mkPrepare:
                 assert bounding_box._evaluate_model(evaluate, valid_inputs,
                                                     valid_index, input_shape,
-                                                    fill_value, with_units) == \
-                    (mkPrepare.return_value, mkGet.return_value)
-                assert mkPrepare.call_args_list == \
-                    [mk.call(bounding_box, evaluate.return_value, valid_index,
-                             input_shape, fill_value)]
-                assert mkGet.call_args_list == \
-                    [mk.call(evaluate.return_value, with_units)]
-                assert evaluate.call_args_list == \
-                    [mk.call(valid_inputs)]
+                                                    fill_value, with_units) == (
+                                                        mkPrepare.return_value,
+                                                        mkGet.return_value
+                                                    )
+                assert mkPrepare.call_args_list == [mk.call(bounding_box, evaluate.return_value,
+                                                            valid_index, input_shape, fill_value)]
+                assert mkGet.call_args_list == [mk.call(evaluate.return_value, with_units)]
+                assert evaluate.call_args_list == [mk.call(valid_inputs)]
 
     def test__evaluate(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -576,27 +576,23 @@ class Test_BoundingDomain:
                                      autospec=True) as mkEvaluate:
                     # all_out
                     assert bounding_box._evaluate(evaluate, inputs, input_shape,
-                                                  fill_value, with_units) == \
-                        mkAll.return_value
-                    assert mkAll.call_args_list == \
-                        [mk.call(bounding_box, input_shape, fill_value)]
+                                                  fill_value, with_units) == mkAll.return_value
+                    assert mkAll.call_args_list == [mk.call(bounding_box, input_shape, fill_value)]
                     assert mkEvaluate.call_args_list == []
-                    assert mkPrepare.call_args_list == \
-                        [mk.call(bounding_box, input_shape, inputs)]
+                    assert mkPrepare.call_args_list == [mk.call(bounding_box, input_shape, inputs)]
 
                     mkAll.reset_mock()
                     mkPrepare.reset_mock()
 
                     # not all_out
                     assert bounding_box._evaluate(evaluate, inputs, input_shape,
-                                                  fill_value, with_units) == \
-                        mkEvaluate.return_value
+                                                  fill_value, with_units) == mkEvaluate.return_value
                     assert mkAll.call_args_list == []
-                    assert mkEvaluate.call_args_list == \
-                        [mk.call(bounding_box, evaluate, valid_inputs, valid_index,
-                                 input_shape, fill_value, with_units)]
-                    assert mkPrepare.call_args_list == \
-                        [mk.call(bounding_box, input_shape, inputs)]
+                    assert mkEvaluate.call_args_list == [mk.call(bounding_box, evaluate,
+                                                                 valid_inputs, valid_index,
+                                                                 input_shape, fill_value,
+                                                                 with_units)]
+                    assert mkPrepare.call_args_list == [mk.call(bounding_box, input_shape, inputs)]
 
     def test__set_outputs_unit(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -624,15 +620,14 @@ class Test_BoundingDomain:
                 with mk.patch.object(Model, 'input_shape', autospec=True) as mkShape:
                     with mk.patch.object(Model, 'bbox_with_units',
                                          new_callable=mk.PropertyMock) as mkUnits:
-                        assert tuple(mkSet.return_value) == \
-                            bounding_box.evaluate(evaluate, inputs, fill_value)
-                        assert mkSet.call_args_list == \
-                            [mk.call(outputs, valid_outputs_unit)]
-                        assert mkEvaluate.call_args_list == \
-                            [mk.call(bounding_box, evaluate, inputs, mkShape.return_value,
-                                     fill_value, mkUnits.return_value)]
-                        assert mkShape.call_args_list == \
-                            [mk.call(bounding_box._model, inputs)]
+                        assert tuple(mkSet.return_value) == bounding_box.evaluate(evaluate, inputs,
+                                                                                  fill_value)
+                        assert mkSet.call_args_list == [mk.call(outputs, valid_outputs_unit)]
+                        assert mkEvaluate.call_args_list == [mk.call(bounding_box, evaluate, inputs,
+                                                                     mkShape.return_value,
+                                                                     fill_value,
+                                                                     mkUnits.return_value)]
+                        assert mkShape.call_args_list == [mk.call(bounding_box._model, inputs)]
                         assert mkUnits.call_args_list == [mk.call()]
 
 
@@ -759,29 +754,31 @@ class TestModelBoundingBox:
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals)
 
-        assert bounding_box.__repr__() ==\
-            "ModelBoundingBox(\n" +\
-            "    intervals={\n" +\
-            "        x: Interval(lower=-1, upper=1)\n" +\
-            "        y: Interval(lower=-4, upper=4)\n" +\
-            "    }\n" +\
-            "    model=Gaussian2D(inputs=('x', 'y'))\n" +\
-            "    order='C'\n" +\
+        assert bounding_box.__repr__() == (
+            "ModelBoundingBox(\n"
+            "    intervals={\n"
+            "        x: Interval(lower=-1, upper=1)\n"
+            "        y: Interval(lower=-4, upper=4)\n"
+            "    }\n"
+            "    model=Gaussian2D(inputs=('x', 'y'))\n"
+            "    order='C'\n"
             ")"
+        )
 
         intervals = {0: _Interval(-1, 1)}
         model = Gaussian2D()
         bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'])
 
-        assert bounding_box.__repr__() ==\
-            "ModelBoundingBox(\n" +\
-            "    intervals={\n" +\
-            "        x: Interval(lower=-1, upper=1)\n" +\
-            "    }\n" +\
-            "    ignored=['y']\n" +\
-            "    model=Gaussian2D(inputs=('x', 'y'))\n" +\
-            "    order='C'\n" +\
+        assert bounding_box.__repr__() == (
+            "ModelBoundingBox(\n"
+            "    intervals={\n"
+            "        x: Interval(lower=-1, upper=1)\n"
+            "    }\n"
+            "    ignored=['y']\n"
+            "    model=Gaussian2D(inputs=('x', 'y'))\n"
+            "    order='C'\n"
             ")"
+        )
 
     def test___len__(self):
         intervals = {0: _Interval(-1, 1)}
@@ -1064,8 +1061,7 @@ class TestModelBoundingBox:
         # Delete an ignored item
         with pytest.raises(RuntimeError) as err:
             del bounding_box[0]
-        assert str(err.value) ==\
-            "Cannot delete ignored input: 0!"
+        assert str(err.value) == "Cannot delete ignored input: 0!"
 
         # Using key
         assert 1 in bounding_box.intervals
@@ -1081,8 +1077,7 @@ class TestModelBoundingBox:
         # Delete an ignored item
         with pytest.raises(RuntimeError) as err:
             del bounding_box['y']
-        assert str(err.value) ==\
-            "Cannot delete ignored input: y!"
+        assert str(err.value) == "Cannot delete ignored input: y!"
 
     def test__validate_dict(self):
         model = Gaussian2D()
@@ -1247,8 +1242,7 @@ class TestModelBoundingBox:
         assert 'y' not in bounding_box
         with pytest.raises(ValueError) as err:
             bounding_box._validate_iterable(((-4, 4), (-1, 1), (-3, 3)))
-        assert str(err.value) ==\
-            "Found 3 intervals, but must have exactly 2."
+        assert str(err.value) == "Found 3 intervals, but must have exactly 2."
         assert len(bounding_box.intervals) == 0
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
@@ -1256,15 +1250,13 @@ class TestModelBoundingBox:
         intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
         with pytest.raises(ValueError) as err:
             bounding_box._validate_iterable(intervals)
-        assert str(err.value) ==\
-            "Found 2 intervals, but must have exactly 1."
+        assert str(err.value) == "Found 2 intervals, but must have exactly 1."
         assert len(bounding_box.intervals) == 0
         bounding_box._ignored = []
         intervals = {0: _Interval(-1, 1)}
         with pytest.raises(ValueError) as err:
             bounding_box._validate_iterable(intervals)
-        assert str(err.value) ==\
-            "Found 1 intervals, but must have exactly 2."
+        assert str(err.value) == "Found 1 intervals, but must have exactly 2."
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         assert len(bounding_box.intervals) == 0
@@ -1698,7 +1690,8 @@ class Test_SelectorArgument:
         # multi entry numpy array
         inputs = [np.array([idx + 27, idx - 31]) for idx in range(3)]
         for index in range(3):
-            assert _SelectorArgument(index, mk.MagicMock()).get_selector(*inputs) == tuple(inputs[index])
+            assert _SelectorArgument(index,
+                                     mk.MagicMock()).get_selector(*inputs) == tuple(inputs[index])
 
     def test_name(self):
         model = Gaussian2D()
@@ -1708,15 +1701,10 @@ class Test_SelectorArgument:
     def test_pretty_repr(self):
         model = Gaussian2D()
 
-        assert _SelectorArgument(0, False).pretty_repr(model) ==\
-            "Argument(name='x', ignore=False)"
-        assert _SelectorArgument(0, True).pretty_repr(model) ==\
-            "Argument(name='x', ignore=True)"
-
-        assert _SelectorArgument(1, False).pretty_repr(model) ==\
-            "Argument(name='y', ignore=False)"
-        assert _SelectorArgument(1, True).pretty_repr(model) ==\
-            "Argument(name='y', ignore=True)"
+        assert _SelectorArgument(0, False).pretty_repr(model) == "Argument(name='x', ignore=False)"
+        assert _SelectorArgument(0, True).pretty_repr(model) == "Argument(name='x', ignore=True)"
+        assert _SelectorArgument(1, False).pretty_repr(model) == "Argument(name='y', ignore=False)"
+        assert _SelectorArgument(1, True).pretty_repr(model) == "Argument(name='y', ignore=True)"
 
     def test_get_fixed_value(self):
         model = Gaussian2D()
@@ -1732,20 +1720,19 @@ class Test_SelectorArgument:
         values = {0: 5}
         with pytest.raises(RuntimeError) as err:
             _SelectorArgument(1, True).get_fixed_value(model, values)
-        assert str(err.value) == \
-            "Argument(name='y', ignore=True) was not found in {0: 5}"
+        assert str(err.value) == "Argument(name='y', ignore=True) was not found in {0: 5}"
 
     def test_is_argument(self):
         model = Gaussian2D()
         argument = _SelectorArgument.validate(model, 0)
 
         # Is true
-        assert argument.is_argument(model, 0) == True
-        assert argument.is_argument(model, 'x') == True
+        assert argument.is_argument(model, 0) is True
+        assert argument.is_argument(model, 'x') is True
 
         # Is false
-        assert argument.is_argument(model, 1) == False
-        assert argument.is_argument(model, 'y') == False
+        assert argument.is_argument(model, 1) is False
+        assert argument.is_argument(model, 'y') is False
 
         # Fail
         with pytest.raises(ValueError):
@@ -1759,8 +1746,8 @@ class Test_SelectorArgument:
         model = Gaussian2D()
         for index in range(model.n_inputs):
             ignore = mk.MagicMock()
-            assert _SelectorArgument(index, ignore).named_tuple(model) == \
-                (model.inputs[index], ignore)
+            assert _SelectorArgument(index, ignore).named_tuple(model) == (model.inputs[index],
+                                                                           ignore)
 
 
 class Test_SelectorArguments:
@@ -1771,7 +1758,8 @@ class Test_SelectorArguments:
         assert arguments._kept_ignore == []
 
         kept_ignore = mk.MagicMock()
-        arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)), kept_ignore)
+        arguments = _SelectorArguments((_SelectorArgument(0, True),
+                                        _SelectorArgument(1, False)), kept_ignore)
         assert isinstance(arguments, _SelectorArguments)
         assert arguments == ((0, True), (1, False))
         assert arguments._kept_ignore == kept_ignore
@@ -1780,25 +1768,26 @@ class Test_SelectorArguments:
         model = Gaussian2D()
         arguments = _SelectorArguments((_SelectorArgument(0, True), _SelectorArgument(1, False)))
 
-        assert arguments.pretty_repr(model) ==\
-            "SelectorArguments(\n" +\
-            "    Argument(name='x', ignore=True)\n" +\
-            "    Argument(name='y', ignore=False)\n" +\
+        assert arguments.pretty_repr(model) == (
+            "SelectorArguments(\n"
+            "    Argument(name='x', ignore=True)\n"
+            "    Argument(name='y', ignore=False)\n"
             ")"
+        )
 
     def test_ignore(self):
         assert _SelectorArguments((_SelectorArgument(0, True),
-                               _SelectorArgument(1, True))).ignore == [0, 1]
+                                   _SelectorArgument(1, True))).ignore == [0, 1]
         assert _SelectorArguments((_SelectorArgument(0, True),
-                               _SelectorArgument(1, True)), [13, 4]).ignore == [0, 1, 13, 4]
+                                   _SelectorArgument(1, True)), [13, 4]).ignore == [0, 1, 13, 4]
         assert _SelectorArguments((_SelectorArgument(0, True),
-                               _SelectorArgument(1, False))).ignore == [0]
+                                   _SelectorArgument(1, False))).ignore == [0]
         assert _SelectorArguments((_SelectorArgument(0, False),
-                               _SelectorArgument(1, True))).ignore == [1]
+                                   _SelectorArgument(1, True))).ignore == [1]
         assert _SelectorArguments((_SelectorArgument(0, False),
-                               _SelectorArgument(1, False))).ignore == []
+                                   _SelectorArgument(1, False))).ignore == []
         assert _SelectorArguments((_SelectorArgument(0, False),
-                               _SelectorArgument(1, False)), [17, 14]).ignore == [17, 14]
+                                   _SelectorArgument(1, False)), [17, 14]).ignore == [17, 14]
 
     def test_validate(self):
         # Integer key and passed ignore
@@ -1820,13 +1809,13 @@ class Test_SelectorArguments:
         assert arguments.kept_ignore == []
 
         # Test kept_ignore option
-        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments, [11, 5, 8])
+        new_arguments = _SelectorArguments.validate(Gaussian2D(), arguments, [11, 5, 8])
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True), (1, False))
         assert new_arguments.kept_ignore == [11, 5, 8]
 
         arguments._kept_ignore = [13, 17, 14]
-        new_arguments= _SelectorArguments.validate(Gaussian2D(), arguments)
+        new_arguments = _SelectorArguments.validate(Gaussian2D(), arguments)
         assert isinstance(new_arguments, _SelectorArguments)
         assert new_arguments == ((0, True), (1, False))
         assert new_arguments.kept_ignore == [13, 17, 14]
@@ -1842,88 +1831,80 @@ class Test_SelectorArguments:
         # Invalid, repeated argument
         with pytest.raises(ValueError) as err:
             _SelectorArguments.validate(Gaussian2D(), ((0, True), (0, False)))
-        assert str(err.value) == \
-            "Input: 'x' has been repeated."
+        assert str(err.value) == "Input: 'x' has been repeated."
 
         # Invalid, no arguments
         with pytest.raises(ValueError) as err:
             _SelectorArguments.validate(Gaussian2D(), ())
-        assert str(err.value) == \
-            "There must be at least one selector argument."
+        assert str(err.value) == "There must be at least one selector argument."
 
     def test_get_selector(self):
         inputs = [idx + 19 for idx in range(4)]
 
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).get_selector(*inputs) ==\
-            tuple(inputs[:2])
+                                           ((0, True),
+                                            (1, False))).get_selector(*inputs) == tuple(inputs[:2])
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((1, True), (0, False))).get_selector(*inputs) ==\
-            tuple(inputs[:2][::-1])
+                                           ((1, True),
+                                            (0, False))).get_selector(*inputs) == tuple(inputs[:2][::-1])  # noqa: E501
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((1, False),)).get_selector(*inputs) ==\
-            (inputs[1],)
+                                           ((1, False),)).get_selector(*inputs) == (inputs[1],)
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True),)).get_selector(*inputs) ==\
-            (inputs[0],)
+                                           ((0, True),)).get_selector(*inputs) == (inputs[0],)
 
     def test_is_selector(self):
         # Is Selector
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True), (1, False))).is_selector((0.5, 2.5))
+                                           ((0, True), (1, False))).is_selector((0.5, 2.5))
         assert _SelectorArguments.validate(Gaussian2D(),
-                                       ((0, True),)).is_selector((0.5,))
+                                           ((0, True),)).is_selector((0.5,))
 
         # Is not selector
         assert not _SelectorArguments.validate(Gaussian2D(),
-                                           ((0, True), (1, False))).is_selector((0.5, 2.5, 3.5))
+                                               ((0, True), (1, False))).is_selector((0.5, 2.5, 3.5))
         assert not _SelectorArguments.validate(Gaussian2D(),
-                                           ((0, True), (1, False))).is_selector((0.5,))
+                                               ((0, True), (1, False))).is_selector((0.5,))
         assert not _SelectorArguments.validate(Gaussian2D(),
-                                           ((0, True), (1, False))).is_selector(0.5)
+                                               ((0, True), (1, False))).is_selector(0.5)
         assert not _SelectorArguments.validate(Gaussian2D(),
-                                           ((0, True),)).is_selector((0.5, 2.5))
+                                               ((0, True),)).is_selector((0.5, 2.5))
         assert not _SelectorArguments.validate(Gaussian2D(),
-                                           ((0, True),)).is_selector(2.5)
+                                               ((0, True),)).is_selector(2.5)
 
     def test_get_fixed_values(self):
         model = Gaussian2D()
 
-        assert _SelectorArguments.validate(model,
-                                       ((0, True), (1, False))).get_fixed_values(model, {0: 11, 1: 7}) \
-            == (11, 7)
-        assert _SelectorArguments.validate(model,
-                                       ((0, True), (1, False))).get_fixed_values(model, {0: 5, 'y': 47}) \
-            == (5, 47)
-        assert _SelectorArguments.validate(model,
-                                       ((0, True), (1, False))).get_fixed_values(model, {'x': 2, 'y': 9}) \
-            == (2, 9)
-        assert _SelectorArguments.validate(model,
-                                       ((0, True), (1, False))).get_fixed_values(model, {'x': 12, 1: 19}) \
-            == (12, 19)
+        assert _SelectorArguments.validate(model, ((0, True), (1, False))).get_fixed_values(
+            model, {0: 11, 1: 7}) == (11, 7)
+        assert _SelectorArguments.validate(model, ((0, True), (1, False))).get_fixed_values(
+            model, {0: 5, 'y': 47}) == (5, 47)
+        assert _SelectorArguments.validate(model, ((0, True), (1, False))).get_fixed_values(
+            model, {'x': 2, 'y': 9}) == (2, 9)
+        assert _SelectorArguments.validate(model, ((0, True), (1, False))).get_fixed_values(
+            model, {'x': 12, 1: 19}) == (12, 19)
 
     def test_is_argument(self):
         model = Gaussian2D()
 
         # Is true
         arguments = _SelectorArguments.validate(model, ((0, True), (1, False)))
-        assert arguments.is_argument(model, 0) == True
-        assert arguments.is_argument(model, 'x') == True
-        assert arguments.is_argument(model, 1) == True
-        assert arguments.is_argument(model, 'y') == True
+        assert arguments.is_argument(model, 0) is True
+        assert arguments.is_argument(model, 'x') is True
+        assert arguments.is_argument(model, 1) is True
+        assert arguments.is_argument(model, 'y') is True
 
         # Is true and false
         arguments = _SelectorArguments.validate(model, ((0, True),))
-        assert arguments.is_argument(model, 0) == True
-        assert arguments.is_argument(model, 'x') == True
-        assert arguments.is_argument(model, 1) == False
-        assert arguments.is_argument(model, 'y') == False
+        assert arguments.is_argument(model, 0) is True
+        assert arguments.is_argument(model, 'x') is True
+        assert arguments.is_argument(model, 1) is False
+        assert arguments.is_argument(model, 'y') is False
 
         arguments = _SelectorArguments.validate(model, ((1, False),))
-        assert arguments.is_argument(model, 0) == False
-        assert arguments.is_argument(model, 'x') == False
-        assert arguments.is_argument(model, 1) == True
-        assert arguments.is_argument(model, 'y') == True
+        assert arguments.is_argument(model, 0) is False
+        assert arguments.is_argument(model, 'x') is False
+        assert arguments.is_argument(model, 1) is True
+        assert arguments.is_argument(model, 'y') is True
 
     def test_selector_index(self):
         model = Gaussian2D()
@@ -1944,8 +1925,7 @@ class Test_SelectorArguments:
         arguments = _SelectorArguments.validate(model, ((0, True),))
         with pytest.raises(ValueError) as err:
             arguments.selector_index(model, 'y')
-        assert str(err.value) ==\
-            "y does not correspond to any selector argument."
+        assert str(err.value) == "y does not correspond to any selector argument."
 
     def test_add_ignore(self):
         model = Gaussian2D()
@@ -1969,8 +1949,7 @@ class Test_SelectorArguments:
         # Error
         with pytest.raises(ValueError) as err:
             arguments.add_ignore(model, 0)
-        assert str(err.value) ==\
-            "0: is a selector argument and cannot be ignored."
+        assert str(err.value) == "0: is a selector argument and cannot be ignored."
 
     def test_reduce(self):
         model = Gaussian2D()
@@ -2015,7 +1994,8 @@ class TestCompoundBoundingBox:
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
         create_selector = mk.MagicMock()
 
-        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, create_selector, order='F')
+        bounding_box = CompoundBoundingBox(bounding_boxes, model,
+                                           selector_args, create_selector, order='F')
         assert (bounding_box._model.parameters == model.parameters).all()
         assert bounding_box._selector_args == selector_args
         for _selector, bbox in bounding_boxes.items():
@@ -2030,7 +2010,8 @@ class TestCompoundBoundingBox:
         assert bounding_box._order == 'F'
 
     def test_copy(self):
-        bounding_box = CompoundBoundingBox.validate(Gaussian2D(), {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
+        bounding_box = CompoundBoundingBox.validate(Gaussian2D(),
+                                                    {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
                                                     ((0, True),), mk.MagicMock())
         copy = bounding_box.copy()
 
@@ -2085,11 +2066,11 @@ class TestCompoundBoundingBox:
 
                 # Same float values have will have same id
                 assert interval.lower == copy.bounding_boxes[selector].intervals[index].lower
-                assert id(interval.lower) == id(copy.bounding_boxes[selector].intervals[index].lower)
+                assert id(interval.lower) == id(copy.bounding_boxes[selector].intervals[index].lower)  # noqa: E501
 
                 # Same float values have will have same id
                 assert interval.upper == copy.bounding_boxes[selector].intervals[index].upper
-                assert id(interval.upper) == id(copy.bounding_boxes[selector].intervals[index].upper)
+                assert id(interval.upper) == id(copy.bounding_boxes[selector].intervals[index].upper)  # noqa: E501
             assert len(bbox.intervals) == len(copy.bounding_boxes[selector].intervals)
             assert bbox.intervals.keys() == copy.bounding_boxes[selector].intervals.keys()
         assert len(bounding_box.bounding_boxes) == len(copy.bounding_boxes)
@@ -2101,30 +2082,31 @@ class TestCompoundBoundingBox:
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
 
-        assert bounding_box.__repr__() ==\
-            "CompoundBoundingBox(\n" + \
-            "    bounding_boxes={\n" + \
-            "        (1,) = ModelBoundingBox(\n" + \
-            "                intervals={\n" + \
-            "                    y: Interval(lower=-1, upper=1)\n" + \
-            "                }\n" + \
-            "                ignored=['x']\n" + \
-            "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
-            "                order='C'\n" + \
-            "            )\n" + \
-            "        (2,) = ModelBoundingBox(\n" + \
-            "                intervals={\n" + \
-            "                    y: Interval(lower=-2, upper=2)\n" + \
-            "                }\n" + \
-            "                ignored=['x']\n" + \
-            "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
-            "                order='C'\n" + \
-            "            )\n" + \
-            "    }\n" + \
-            "    selector_args = SelectorArguments(\n" + \
-            "            Argument(name='x', ignore=True)\n" + \
-            "        )\n" + \
+        assert bounding_box.__repr__() == (
+            "CompoundBoundingBox(\n"
+            "    bounding_boxes={\n"
+            "        (1,) = ModelBoundingBox(\n"
+            "                intervals={\n"
+            "                    y: Interval(lower=-1, upper=1)\n"
+            "                }\n"
+            "                ignored=['x']\n"
+            "                model=Gaussian2D(inputs=('x', 'y'))\n"
+            "                order='C'\n"
+            "            )\n"
+            "        (2,) = ModelBoundingBox(\n"
+            "                intervals={\n"
+            "                    y: Interval(lower=-2, upper=2)\n"
+            "                }\n"
+            "                ignored=['x']\n"
+            "                model=Gaussian2D(inputs=('x', 'y'))\n"
+            "                order='C'\n"
+            "            )\n"
+            "    }\n"
+            "    selector_args = SelectorArguments(\n"
+            "            Argument(name='x', ignore=True)\n"
+            "        )\n"
             ")"
+        )
 
     def test_bounding_boxes(self):
         model = Gaussian2D()
@@ -2192,8 +2174,7 @@ class TestCompoundBoundingBox:
         assert (7, 13) not in bounding_box._bounding_boxes
         with pytest.raises(ValueError) as err:
             bounding_box[(7, 13)] = (-7, 7)
-        assert str(err.value) == \
-            "(7, 13) is not a selector!"
+        assert str(err.value) == "(7, 13) is not a selector!"
         assert (7, 13) not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
         # Invalid bounding box
@@ -2217,8 +2198,7 @@ class TestCompoundBoundingBox:
         assert (14, 11) not in bounding_box._bounding_boxes
         with pytest.raises(ValueError) as err:
             bounding_box[(14, 11)] = ((-7, 7), (-12, 12))
-        assert str(err.value) == \
-            "(14, 11) is not a selector!"
+        assert str(err.value) == "(14, 11) is not a selector!"
         assert (14, 11) not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
         # Invalid bounding box
@@ -2246,8 +2226,10 @@ class TestCompoundBoundingBox:
         assert bounding_box._bounding_boxes == bounding_boxes
 
     def test___eq__(self):
-        bounding_box_1 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)}, Gaussian2D(), ((0, True),))
-        bounding_box_2 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)}, Gaussian2D(), ((0, True),))
+        bounding_box_1 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)},
+                                             Gaussian2D(), ((0, True),))
+        bounding_box_2 = CompoundBoundingBox({(1,): (-1, 1), (2,): (-2, 2)},
+                                             Gaussian2D(), ((0, True),))
 
         # Equal
         assert bounding_box_1 == bounding_box_2
@@ -2281,8 +2263,8 @@ class TestCompoundBoundingBox:
         # Fail selector_args
         with pytest.raises(ValueError) as err:
             CompoundBoundingBox.validate(model, bounding_boxes)
-        assert str(err.value) ==\
-            "Selector arguments must be provided (can be passed as part of bounding_box argument)!"
+        assert str(err.value) == ("Selector arguments must be provided "
+                                  "(can be passed as part of bounding_box argument)")
 
         # Normal validate
         bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args,
@@ -2361,16 +2343,14 @@ class TestCompoundBoundingBox:
         # no selector
         with pytest.raises(RuntimeError) as err:
             bounding_box[(3,)]
-        assert str(err.value) == \
-            "No bounding box is defined for selector: (3,)."
+        assert str(err.value) == "No bounding box is defined for selector: (3,)."
 
         # Create a selector
         bounding_box._create_selector = mk.MagicMock()
         with mk.patch.object(CompoundBoundingBox, '_create_bounding_box',
                              autospec=True) as mkCreate:
             assert bounding_box[(3,)] == mkCreate.return_value
-            assert mkCreate.call_args_list == \
-                [mk.call(bounding_box, (3,))]
+            assert mkCreate.call_args_list == [mk.call(bounding_box, (3,))]
 
     def test__select_bounding_box(self):
         model = Gaussian2D()
@@ -2384,10 +2364,8 @@ class TestCompoundBoundingBox:
             with mk.patch.object(CompoundBoundingBox, '__getitem__',
                                  autospec=True) as mkGet:
                 assert bounding_box._select_bounding_box(inputs) == mkGet.return_value
-                assert mkGet.call_args_list == \
-                    [mk.call(bounding_box, mkSelector.return_value)]
-                assert mkSelector.call_args_list == \
-                    [mk.call(bounding_box.selector_args, *inputs)]
+                assert mkGet.call_args_list == [mk.call(bounding_box, mkSelector.return_value)]
+                assert mkSelector.call_args_list == [mk.call(bounding_box.selector_args, *inputs)]
 
     def test_prepare_inputs(self):
         model = Gaussian2D()
@@ -2399,18 +2377,20 @@ class TestCompoundBoundingBox:
         with mk.patch.object(ModelBoundingBox, 'prepare_inputs',
                              autospec=True) as mkPrepare:
             assert bounding_box.prepare_inputs(input_shape, [1, 2, 3]) == mkPrepare.return_value
-            assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box[(1,)], input_shape, [1, 2, 3])]
+            assert mkPrepare.call_args_list == [mk.call(bounding_box[(1,)], input_shape, [1, 2, 3])]
             mkPrepare.reset_mock()
             assert bounding_box.prepare_inputs(input_shape, [2, 2, 3]) == mkPrepare.return_value
-            assert mkPrepare.call_args_list == \
-                [mk.call(bounding_box[(2,)], input_shape, [2, 2, 3])]
+            assert mkPrepare.call_args_list == [mk.call(bounding_box[(2,)], input_shape, [2, 2, 3])]
             mkPrepare.reset_mock()
 
     def test__matching_bounding_boxes(self):
         # Single selector index
         selector_args = ((0, False),)
-        bounding_boxes = {(1,): ((-1, 1), (-2, 2)), (2,): ((-2, 2), (-3, 3)), (3,): ((-3, 3), (-4, 4))}
+        bounding_boxes = {
+            (1,): ((-1, 1), (-2, 2)),
+            (2,): ((-2, 2), (-3, 3)),
+            (3,): ((-3, 3), (-4, 4))
+        }
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
@@ -2429,7 +2409,11 @@ class TestCompoundBoundingBox:
 
         # Multiple selector index
         selector_args = ((0, False), (1, False))
-        bounding_boxes = {(1, 3): ((-1, 1), (-2, 2)), (2, 2): ((-2, 2), (-3, 3)), (3, 1): ((-3, 3), (-4, 4))}
+        bounding_boxes = {
+            (1, 3): ((-1, 1), (-2, 2)),
+            (2, 2): ((-2, 2), (-3, 3)),
+            (3, 1): ((-3, 3), (-4, 4))
+        }
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
@@ -2462,8 +2446,12 @@ class TestCompoundBoundingBox:
         # Real fix input of slicing input
         model = Shift(1) & Scale(2) & Identity(1)
         model.inputs = ('x', 'y', 'slit_id')
-        bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
-        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
+        bounding_boxes = {
+            (0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5))
+        }
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes,
+                                                    selector_args=[('slit_id', True)], order='F')
 
         matching = bounding_box._matching_bounding_boxes('slit_id', 0)
         assert isinstance(matching, dict)
@@ -2490,13 +2478,17 @@ class TestCompoundBoundingBox:
         # Errors
         with pytest.raises(ValueError) as err:
             bounding_box._matching_bounding_boxes('slit_id', 2)
-        assert str(err.value) ==\
-            "Attempting to fix input slit_id, but there are no bounding boxes for argument value 2."
+        assert str(err.value) == ("Attempting to fix input slit_id, but "
+                                  "there are no bounding boxes for argument value 2.")
 
     def test__fix_input_selector_arg(self):
         # Single selector index
         selector_args = ((0, False),)
-        bounding_boxes = {(1,): ((-1, 1), (-2, 2)), (2,): ((-2, 2), (-3, 3)), (3,): ((-3, 3), (-4, 4))}
+        bounding_boxes = {
+            (1,): ((-1, 1), (-2, 2)),
+            (2,): ((-2, 2), (-3, 3)),
+            (3,): ((-3, 3), (-4, 4))
+        }
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
@@ -2512,7 +2504,11 @@ class TestCompoundBoundingBox:
 
         # Multiple selector index
         selector_args = ((0, False), (1, False))
-        bounding_boxes = {(1, 3): ((-1, 1), (-2, 2)), (2, 2): ((-2, 2), (-3, 3)), (3, 1): ((-3, 3), (-4, 4))}
+        bounding_boxes = {
+            (1, 3): ((-1, 1), (-2, 2)),
+            (2, 2): ((-2, 2), (-3, 3)),
+            (3, 1): ((-3, 3), (-4, 4))
+        }
         bounding_box = CompoundBoundingBox(bounding_boxes, Gaussian2D(), selector_args)
 
         for value in [1, 2, 3]:
@@ -2549,8 +2545,12 @@ class TestCompoundBoundingBox:
         # Real fix input of slicing input
         model = Shift(1) & Scale(2) & Identity(1)
         model.inputs = ('x', 'y', 'slit_id')
-        bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
-        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
+        bounding_boxes = {
+            (0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5))
+        }
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes,
+                                                    selector_args=[('slit_id', True)], order='F')
 
         bbox = bounding_box._fix_input_selector_arg('slit_id', 0)
         assert isinstance(bbox, ModelBoundingBox)
@@ -2571,8 +2571,12 @@ class TestCompoundBoundingBox:
     def test__fix_input_bbox_arg(self):
         model = Shift(1) & Scale(2) & Identity(1)
         model.inputs = ('x', 'y', 'slit_id')
-        bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
-        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
+        bounding_boxes = {
+            (0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5))
+        }
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes,
+                                                    selector_args=[('slit_id', True)], order='F')
 
         bbox = bounding_box._fix_input_bbox_arg('x', 5)
         assert isinstance(bbox, CompoundBoundingBox)
@@ -2595,8 +2599,12 @@ class TestCompoundBoundingBox:
     def test_fix_inputs(self):
         model = Shift(1) & Scale(2) & Identity(1)
         model.inputs = ('x', 'y', 'slit_id')
-        bounding_boxes = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)), (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
-        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
+        bounding_boxes = {
+            (0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5))
+        }
+        bounding_box = CompoundBoundingBox.validate(model, bounding_boxes,
+                                                    selector_args=[('slit_id', True)], order='F')
         model.bounding_box = bounding_box
 
         # Fix selector argument
@@ -2663,9 +2671,14 @@ class TestCompoundBoundingBox:
 
     def test_complex_compound_bounding_box(self):
         model = Identity(4)
-        bounding_boxes = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
+        bounding_boxes = {
+            (2.5, 1.3): ((-1, 1), (-3, 3)),
+            (2.5, 2.71): ((-3, 3), (-1, 1))
+        }
         selector_args = (('x0', True), ('x1', True))
 
         bbox = CompoundBoundingBox.validate(model, bounding_boxes, selector_args)
-        assert bbox[(2.5, 1.3)] == ModelBoundingBox(((-1, 1), (-3, 3)), model, ignored=['x0', 'x1'])
-        assert bbox[(2.5, 2.71)] == ModelBoundingBox(((-3, 3), (-1, 1)), model, ignored=['x0', 'x1'])
+        assert bbox[(2.5, 1.3)] == ModelBoundingBox(((-1, 1), (-3, 3)),
+                                                    model, ignored=['x0', 'x1'])
+        assert bbox[(2.5, 2.71)] == ModelBoundingBox(((-3, 3), (-1, 1)),
+                                                     model, ignored=['x0', 'x1'])

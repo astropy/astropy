@@ -319,7 +319,8 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
     where:
 
     .. math::
-        R = \frac{180^{\circ}}{\pi} \frac{(\mu + 1) \cos \theta}{(\mu + \sin \theta) + \cos \theta \cos \phi \tan \gamma}
+        R = \frac{180^{\circ}}{\pi} \frac{(\mu + 1) \cos \theta}
+            {(\mu + \sin \theta) + \cos \theta \cos \phi \tan \gamma}
 
     Parameters
     ----------
@@ -616,7 +617,8 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
     See `Zenithal` for a definition of the full transformation.
 
     .. math::
-        R_\theta = -2 \frac{180^\circ}{\pi}\left(\frac{\ln(\cos \xi)}{\tan \xi} + \frac{\ln(\cos \xi_b)}{\tan^2 \xi_b} \tan \xi \right)
+        R_\theta = -2 \frac{180^\circ}{\pi}\left(\frac{\ln(\cos \xi)}{\tan \xi} +
+            \frac{\ln(\cos \xi_b)}{\tan^2 \xi_b} \tan \xi \right)
 
     where:
 
@@ -631,7 +633,8 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
         in degrees.  Default is 90°.
 
     """
-    theta_b = _ParameterDS(default=90.0, description="The latitude at which to minimize the error,in degrees")
+    theta_b = _ParameterDS(default=90.0,
+                           description="The latitude at which to minimize the error,in degrees")
 
 
 class Cylindrical(Projection):
@@ -885,7 +888,10 @@ class Pix2Sky_Molleweide(Pix2SkyProjection, PseudoCylindrical):
 
     .. math::
         \phi &= \frac{\pi x}{2 \sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}} \\
-        \theta &= \sin^{-1}\left(\frac{1}{90^\circ}\sin^{-1}\left(\frac{\pi}{180^\circ}\frac{y}{\sqrt{2}}\right) + \frac{y}{180^\circ}\sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}\right)
+        \theta &= \sin^{-1}\left(
+                \frac{1}{90^\circ}\sin^{-1}\left(\frac{\pi}{180^\circ}\frac{y}{\sqrt{2}}\right)
+                + \frac{y}{180^\circ}\sqrt{2 - \left(\frac{\pi}{180^\circ}y\right)^2}
+            \right)
     """
 
 
@@ -1035,8 +1041,10 @@ class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
 
     .. math::
         C &= \gamma / 2 \\
-        R_\theta &= \frac{180^\circ}{\pi} \frac{2}{\gamma} \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin \theta} \\
-        Y_0 &= \frac{180^\circ}{\pi} \frac{2}{\gamma} \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin((\theta_1 + \theta_2)/2)}
+        R_\theta &= \frac{180^\circ}{\pi} \frac{2}{\gamma}
+            \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin \theta} \\
+        Y_0 &= \frac{180^\circ}{\pi} \frac{2}{\gamma}
+            \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin((\theta_1 + \theta_2)/2)}
 
     where:
 
@@ -1069,8 +1077,10 @@ class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
 
     .. math::
         C &= \gamma / 2 \\
-        R_\theta &= \frac{180^\circ}{\pi} \frac{2}{\gamma} \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin \theta} \\
-        Y_0 &= \frac{180^\circ}{\pi} \frac{2}{\gamma} \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin((\theta_1 + \theta_2)/2)}
+        R_\theta &= \frac{180^\circ}{\pi} \frac{2}{\gamma}
+            \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin \theta} \\
+        Y_0 &= \frac{180^\circ}{\pi} \frac{2}{\gamma}
+            \sqrt{1 + \sin \theta_1 \sin \theta_2 - \gamma \sin((\theta_1 + \theta_2)/2)}
 
     where:
 

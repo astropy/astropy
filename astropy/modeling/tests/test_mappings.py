@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.models import Gaussian1D, Identity, Mapping, Rotation2D, Shift, UnitsMapping
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
@@ -66,8 +66,7 @@ def test_bad_inputs(name):
 
         with pytest.raises(TypeError) as err:
             mapping.evaluate(*x[:idx])
-        assert str(err.value) == \
-            f"{name} expects 2 inputs; got {idx}"
+        assert str(err.value) == f"{name} expects 2 inputs; got {idx}"
 
 
 def test_identity():
@@ -148,8 +147,7 @@ class TestUnitsMapping:
         # Error
         with pytest.raises(ValueError) as err:
             UnitsMapping(((u.m, None), (u.m, u.K)))
-        assert str(err.value) == \
-            "If one return unit is None, then all must be None"
+        assert str(err.value) == "If one return unit is None, then all must be None"
 
     def test_evaluate(self):
         model = UnitsMapping(((u.m, None),))

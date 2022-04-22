@@ -142,11 +142,12 @@ def test_parameter_set_value():
     # If we try setting it to a Quantity, we raise an error
     with pytest.raises(TypeError) as exc:
         g.amplitude.value = 3 * u.Jy
-    assert exc.value.args[0] == \
-        ("The .value property on parameters should be set"
-         " to unitless values, not Quantity objects. To set"
-         "a parameter to a quantity simply set the "
-         "parameter directly without using .value")
+    assert exc.value.args[0] == (
+        "The .value property on parameters should be set"
+        " to unitless values, not Quantity objects. To set"
+        "a parameter to a quantity simply set the "
+        "parameter directly without using .value"
+    )
 
 
 def test_parameter_quantity_property():
@@ -332,9 +333,9 @@ def test_parameter_quantity_comparison():
 
 
 def test_parameters_compound_models():
-    tan = Pix2Sky_TAN()
+    Pix2Sky_TAN()
     sky_coords = coord.SkyCoord(ra=5.6, dec=-72, unit=u.deg)
     lon_pole = 180 * u.deg
     n2c = RotateNative2Celestial(sky_coords.ra, sky_coords.dec, lon_pole)
     rot = Rotation2D(23)
-    m = rot | n2c
+    rot | n2c
