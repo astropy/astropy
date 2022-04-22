@@ -660,3 +660,72 @@ def test_input_unit_mismatch_error(model):
         with pytest.raises(u.UnitsError) as err:
             m.without_units_for_data(**kwargs)
         assert str(err.value) == message
+
+
+mag_models = [
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.ABmag, 3 * u.ABmag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.mag, 3 * u.ABmag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.mag},
+        'evaluation': [(0.6 * u.ABmag, 3 * u.mag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.mag},
+        'evaluation': [(0.6 * u.mag, 3 * u.mag)],
+    },
+    {
+        'class': Const2D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.micron, 0.2 * u.m, 3 * u.ABmag)],
+    },
+    {
+        'class': Ellipse2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'a': 300 * u.cm, 'b': 200 * u.cm, 'theta': 45 * u.deg},
+        'evaluation': [(4 * u.m, 300 * u.cm, 3 * u.ABmag)],
+    },
+    {
+        'class': Disk2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'R_0': 300 * u.cm},
+        'evaluation': [(5.8 * u.m, 201 * u.cm, 3 * u.ABmag)],
+    },
+    {
+        'class': Ring2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm},
+        'evaluation': [(302.05 * u.cm, 2 * u.m + 10 * u.um, 3 * u.ABmag)],
+    },
+    {
+        'class': Box2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.s,
+                       'x_width': 4 * u.cm, 'y_width': 3 * u.s},
+        'evaluation': [(301 * u.cm, 3 * u.s, 3 * u.ABmag)],
+    },
+    {
+        'class': SmoothlyBrokenPowerLaw1D,
+        'parameters': {'amplitude': 5 * u.ABmag, 'x_break': 10 * u.cm,
+                       'alpha_1': 1, 'alpha_2': -1, 'delta': 1},
+        'evaluation': [(1 * u.cm, 15.125 * u.ABmag), (1 * u.m, 15.125 * u.ABmag)],
+    },
+]
+
+
+@pytest.mark.parametrize('model', mag_models)
+def test_models_evaluate_magunits(model):
+    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+        pytest.skip()
+
+    m = model['class'](**model['parameters'])
+    for args in model['evaluation']:
+        assert_quantity_allclose(m(*args[:-1]), args[-1])
