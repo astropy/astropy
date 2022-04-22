@@ -1,8 +1,9 @@
 import sys
 
-from astropy.samp.hub_script import hub_script
+import pytest
 
 from astropy.samp import conf
+from astropy.samp.hub_script import hub_script
 
 
 def setup_module(module):
@@ -18,6 +19,7 @@ def teardown_function(function):
     sys.argv = function.sys_argv_orig
 
 
+@pytest.mark.slow
 def test_hub_script():
     sys.argv.append('-m')  # run in multiple mode
     sys.argv.append('-w')  # disable web profile

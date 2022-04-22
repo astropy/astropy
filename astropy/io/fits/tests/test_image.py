@@ -1241,6 +1241,7 @@ class TestCompressedImage(FitsTestCase):
         # opening and closing it.
         assert mtime == os.stat(self.temp('comp.fits')).st_mtime
 
+    @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/88 2
