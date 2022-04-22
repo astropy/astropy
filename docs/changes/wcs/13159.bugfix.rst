@@ -1,0 +1,1 @@
+Do not load SIP coefficients when celestial axes are not present.

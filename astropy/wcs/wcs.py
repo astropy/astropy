@@ -551,6 +551,15 @@ reduce these to 2 dimensions using the naxis kwarg.
         for fd in close_fds:
             fd.close()
 
+        try:
+            # disable SIP for non-celestial axes - see #13105
+            if not (self.wcs.lng >= 0 and self.wcs.lat >= 0):
+                self.sip = None
+        except (InconsistentAxisTypesError, InvalidTransformError,
+                InvalidPrjParametersError, InvalidSubimageSpecificationError,
+                NonseparableSubimageCoordinateSystemError):
+            self.sip = None
+
         self._pixel_bounds = None
 
     def __copy__(self):
