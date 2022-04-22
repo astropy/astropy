@@ -130,11 +130,11 @@ For a list of the bodies for which positions can be calculated, do:
     to assume that ``get_body(time, 'sun')`` and ``get_sun(time)`` will give
     the same result.
 
-.. note :: 
+.. note ::
     When using JPL ephemerides, be aware that answers may change at levels that
     can be surprising if you are not careful about understanding the frame you
-    are in or .  See for example the case of the DE440s ephemerides, which is
-    described in more detail in 
+    are in.  See for example the case of the DE440s ephemerides, which is
+    described in more detail in
     `astropy PR #11608 <https://github.com/astropy/astropy/pull/11608>`_. So
     it is usually best to stay within the same ephemerides for consistency.
 
