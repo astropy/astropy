@@ -750,3 +750,15 @@ def test_models_evaluate_magunits(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
         assert_quantity_allclose(m(*args[:-1]), args[-1])
+
+
+def test_Schechter1D_errors():
+    # Non magnitude units are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.km, alpha=-1.9)
+    with pytest.raises(u.UnitConversionError):
+        model(-23 * u.km)
+
+    # Differing magnitude systems are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
+    with pytest.raises(u.UnitsError):
+        model(-23 * u.STmag)

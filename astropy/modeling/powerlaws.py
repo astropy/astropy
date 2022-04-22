@@ -5,7 +5,7 @@ Power law model variants
 # pylint: disable=invalid-name
 import numpy as np
 
-from astropy.units import Quantity
+from astropy.units import Quantity, dimensionless_unscaled
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
@@ -587,23 +587,26 @@ class Schechter1D(Fittable1DModel):
     alpha = Parameter(default=-1., description='Faint-end slope')
 
     @staticmethod
-    def evaluate(mag, phi_star, m_star, alpha):
+    def _factor(magnitude, m_star):
+        factor_exp = (m_star - magnitude)
+        if isinstance(factor_exp, Quantity):
+            return (-1 * factor_exp).to(dimensionless_unscaled)
+        else:
+            return 10 ** (0.4 * factor_exp)
+
+    def evaluate(self, mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
 
-        factor_exp = 0.4 * (m_star - mag)
-        if isinstance(factor_exp, Quantity):
-            factor_exp = factor_exp.value
-        factor = 10 ** factor_exp
+        factor = self._factor(mag, m_star)
 
         return 0.4 * np.log(10) * phi_star * factor**(alpha + 1) * np.exp(-factor)
 
-    @staticmethod
-    def fit_deriv(mag, phi_star, m_star, alpha):
+    def fit_deriv(self, mag, phi_star, m_star, alpha):
         """
         Schechter luminosity function derivative with respect to
         parameters.
         """
-        factor = 10 ** (0.4 * (m_star - mag))
+        factor = self._factor(mag, m_star)
 
         d_phi_star = 0.4 * np.log(10) * factor**(alpha + 1) * np.exp(-factor)
         func = phi_star * d_phi_star
