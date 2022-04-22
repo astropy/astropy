@@ -250,6 +250,22 @@ def _validate_read_write_kwargs(read_write, **kwargs):
             raise TypeError(err_msg)
 
 
+def _expand_user_if_path(argument):
+    if isinstance(argument, (str, bytes, os.PathLike)):
+        # For the `read()` method, a `str` input can be either a file path or
+        # the table data itself. File names for io.ascii cannot have newlines
+        # in them and io.ascii does not accept table data as `bytes`, so we can
+        # attempt to detect data strings like this.
+        is_str_data = (isinstance(argument, str)
+                and ('\n' in argument or '\r' in argument))
+        if not is_str_data:
+            # Remain conservative in expanding the presumed-path
+            ex_user = os.path.expanduser(argument)
+            if os.path.exists(ex_user):
+                argument = ex_user
+    return argument
+
+
 def read(table, guess=None, **kwargs):
     # This the final output from reading. Static analysis indicates the reading
     # logic (which is indeed complex) might not define `dat`, thus do so here.
@@ -314,6 +330,7 @@ def read(table, guess=None, **kwargs):
         if 'readme' not in new_kwargs:
             encoding = kwargs.get('encoding')
             try:
+                table = _expand_user_if_path(table)
                 with get_readable_fileobj(table, encoding=encoding) as fileobj:
                     table = fileobj.read()
             except ValueError:  # unreadable or invalid binary file
@@ -348,12 +365,7 @@ def read(table, guess=None, **kwargs):
             reader = get_reader(**new_kwargs)
             format = reader._format_name
 
-        if isinstance(table, (str, bytes, os.PathLike)):
-            # Conservatively attempt to expand `table`, which could be a file
-            # path or the actual data of a table.
-            ex_user = os.path.expanduser(table)
-            if os.path.exists(ex_user):
-                table = ex_user
+        table = _expand_user_if_path(table)
 
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test

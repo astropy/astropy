@@ -268,8 +268,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout, sources=sources,
                 http_headers=http_headers)
-        else:
-            name_or_obj = os.path.expanduser(name_or_obj)
         fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)
