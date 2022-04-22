@@ -114,8 +114,8 @@ class Mapping(FittableModel):
                             for idx in range(self.n_inputs))
         except ValueError:
             raise NotImplementedError(
-                "Mappings such as {} that drop one or more of their inputs "
-                "are not invertible at this time.".format(self.mapping))
+                f"Mappings such as {self.mapping} that drop one or more of their inputs "
+                "are not invertible at this time.")
 
         inv = self.__class__(mapping)
         inv._inputs = self._outputs
