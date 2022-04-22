@@ -1,1 +1,1 @@
-Bugfix for using `MagUnit` units on model parameters.
+Bugfix for using ``MagUnit`` units on model parameters.
