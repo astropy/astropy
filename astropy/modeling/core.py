@@ -1215,7 +1215,7 @@ class Model(metaclass=_ModelMeta):
         except ValueError as e:
             raise InputParameterError(
                 "Input parameter values not compatible with the model "
-                f"parameters array: {e}")
+                f"parameters array: {e!r}")
         self._array_to_parameters()
 
     @property

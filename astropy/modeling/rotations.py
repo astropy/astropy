@@ -236,7 +236,7 @@ class EulerAngleRotation(_EulerRotation, Model):
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
             raise ValueError(f"Unrecognized axis label {unrecognized}; "
-                             f"should be one of {self.axes} ")
+                             f"should be one of {self.axes}")
         self.axes_order = axes_order
         qs = [isinstance(par, u.Quantity) for par in [phi, theta, psi]]
         if any(qs) and not all(qs):
