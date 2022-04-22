@@ -34,7 +34,7 @@ from .formats import TimeFromEpoch  # noqa
 
 from astropy.extern import _strptime
 
-__all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
+__all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'TimeInfoBase', 'update_leap_seconds',
            'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError', 'TimeDeltaMissingUnitWarning']
 
