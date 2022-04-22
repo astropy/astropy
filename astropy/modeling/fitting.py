@@ -114,13 +114,11 @@ class StandardDeviations():
     def pprint(self, max_lines, round_val):
         longest_name = max([len(x) for x in self.param_names])
         ret_str = 'standard deviations\n'
-        fstring = '{0}{1}| {2}\n'
         for i, std in enumerate(self.stds):
             if i <= max_lines-1:
                 param = self.param_names[i]
-                ret_str += fstring.format(param,
-                                          ' ' * (longest_name - len(param)),
-                                          str(np.round(std, round_val)))
+                ret_str += (f"{param}{' ' * (longest_name - len(param))}| "
+                            f"{np.round(std, round_val)}\n")
             else:
                 ret_str += '...'
         return(ret_str.rstrip())
@@ -670,8 +668,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         # failures below. Ultimately, np.linalg.lstsq can't handle >2D matrices,
         # so just raise a slightly more informative error when this happens:
         if np.asanyarray(lhs).ndim > 2:
-            raise ValueError('{} gives unsupported >2D derivative matrix for '
-                             'this x/y'.format(type(model_copy).__name__))
+            raise ValueError(f"{type(model_copy).__name__} gives unsupported >2D "
+                             "derivative matrix for this x/y")
 
         # Subtract any terms fixed by the user from (a copy of) the RHS, in
         # order to fit the remaining terms correctly:
@@ -843,19 +841,15 @@ class FittingWithOutlierRemoval:
         self.fit_info = {'niter': None}
 
     def __str__(self):
-        return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
-                ("\nOutlier func. args.: {3}"))\
-                .format(self.fitter.__class__.__name__,
-                        self.outlier_func.__name__, self.niter,
-                        self.outlier_kwargs)
+        return (f"Fitter: {self.fitter.__class__.__name__}\n"
+                f"Outlier function: {self.outlier_func.__name__}\n"
+                f"Num. of iterations: {self.niter}\n"
+                f"Outlier func. args.: {self.outlier_kwargs}")
 
     def __repr__(self):
-        return ("{0}(fitter: {1}, outlier_func: {2}," +
-                " niter: {3}, outlier_kwargs: {4})")\
-                 .format(self.__class__.__name__,
-                         self.fitter.__class__.__name__,
-                         self.outlier_func.__name__, self.niter,
-                         self.outlier_kwargs)
+        return (f"{self.__class__.__name__}(fitter: {self.fitter.__class__.__name__}, "
+                f"outlier_func: {self.outlier_func.__name__},"
+                f" niter: {self.niter}, outlier_kwargs: {self.outlier_kwargs})")
 
     def __call__(self, model, x, y, z=None, weights=None, **kwargs):
         """
@@ -900,8 +894,8 @@ class FittingWithOutlierRemoval:
         else:
             if (not hasattr(self.fitter, 'supports_masked_input') or
                     self.fitter.supports_masked_input is not True):
-                raise ValueError("{} cannot fit model sets with masked "
-                                 "values".format(type(self.fitter).__name__))
+                raise ValueError(f"{type(self.fitter).__name__} cannot fit model sets with masked "
+                                 "values")
 
             # Fitters use their input model's model_set_axis to determine how
             # their input data are stacked:
@@ -1706,11 +1700,11 @@ class JointFitter(metaclass=_FitterMeta):
             raise TypeError(f"Expected >1 models, {len(self.models)} is given")
         if len(self.jointparams.keys()) < 2:
             raise TypeError("At least two parameters are expected, "
-                            "{} is given".format(len(self.jointparams.keys())))
+                            f"{len(self.jointparams.keys())} is given")
         for j in self.jointparams.keys():
             if len(self.jointparams[j]) != len(self.initvals):
-                raise TypeError("{} parameter(s) provided but {} expected".format(
-                    len(self.jointparams[j]), len(self.initvals)))
+                raise TypeError(f"{len(self.jointparams[j])} parameter(s) "
+                                f"provided but {len(self.initvals)} expected")
 
     def __call__(self, *args):
         """
@@ -1721,9 +1715,8 @@ class JointFitter(metaclass=_FitterMeta):
         from scipy import optimize
 
         if len(args) != reduce(lambda x, y: x + 1 + y + 1, self.modeldims):
-            raise ValueError("Expected {} coordinates in args but {} provided"
-                             .format(reduce(lambda x, y: x + 1 + y + 1,
-                                            self.modeldims), len(args)))
+            raise ValueError(f"Expected {reduce(lambda x, y: x + 1 + y + 1, self.modeldims)} "
+                             f"coordinates in args but {len(args)} provided")
 
         self.fitparams[:], _ = optimize.leastsq(self.objective_function,
                                                 self.fitparams, args=args)
@@ -2023,8 +2016,8 @@ def populate_entry_points(entry_points):
                     __all__.append(name)
                 else:
                     warnings.warn(AstropyUserWarning(
-                        'Modeling entry point {} expected to extend '
-                        'astropy.modeling.Fitter' .format(name)))
+                        f"Modeling entry point {name} expected to extend "
+                        "astropy.modeling.Fitter"))
 
 
 def _populate_ep():

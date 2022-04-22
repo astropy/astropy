@@ -336,17 +336,17 @@ class _ModelMeta(abc.ABCMeta):
 
             if param.default is param.empty:
                 raise ModelDefinitionError(
-                    'The bounding_box method for {0} is not correctly '
-                    'defined: If defined as a method all arguments to that '
-                    'method (besides self) must be keyword arguments with '
-                    'default values that can be used to compute a default '
-                    'bounding box.'.format(cls.name))
+                    f"The bounding_box method for {cls.name} is not correctly "
+                    "defined: If defined as a method all arguments to that "
+                    "method (besides self) must be keyword arguments with "
+                    "default values that can be used to compute a default "
+                    "bounding box.")
 
             kwargs.append((param.name, param.default))
 
         __call__.__signature__ = sig
 
-        return type(f'{cls.name}ModelBoundingBox', (ModelBoundingBox,),
+        return type(f"{cls.name}ModelBoundingBox", (ModelBoundingBox,),
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members, pdict):
@@ -900,9 +900,8 @@ class Model(metaclass=_ModelMeta):
             if (np.size(value) != esize or
                     self._strip_ones(vshape) != self._strip_ones(eshape)):
                 raise InputParameterError(
-                    "Value for parameter {0} does not match shape or size\n"
-                    "expected by model ({1}, {2}) vs ({3}, {4})".format(
-                        attr, vshape, np.size(value), eshape, esize))
+                    f"Value for parameter {attr} does not match shape or size\n"
+                    f"expected by model ({vshape}, {np.size(value)}) vs ({eshape}, {esize})")
             if param.unit is None:
                 if isinstance(value, Quantity):
                     param._unit = value.unit
@@ -1216,7 +1215,7 @@ class Model(metaclass=_ModelMeta):
         except ValueError as e:
             raise InputParameterError(
                 "Input parameter values not compatible with the model "
-                "parameters array: {0}".format(e))
+                f"parameters array: {e!r}")
         self._array_to_parameters()
 
     @property
@@ -1535,7 +1534,7 @@ class Model(metaclass=_ModelMeta):
             return self._separable
         raise NotImplementedError(
             'The "separable" property is not defined for '
-            'model {}'.format(self.__class__.__name__))
+            f'model {self.__class__.__name__}')
 
     # *** Public methods ***
 
@@ -1885,10 +1884,9 @@ class Model(metaclass=_ModelMeta):
                         broadcast = input_shape
                 except IncompatibleShapeError:
                     raise ValueError(
-                        "self input argument {0!r} of shape {1!r} cannot be "
-                        "broadcast with parameter {2!r} of shape "
-                        "{3!r}.".format(self.inputs[idx], input_shape,
-                                        param.name, param.shape))
+                        f"self input argument {self.inputs[idx]!r} of shape {input_shape!r} "
+                        f"cannot be broadcast with parameter {param.name!r} of shape "
+                        f"{param.shape!r}.")
 
                 if len(broadcast) > len(max_broadcast):
                     max_broadcast = broadcast
@@ -1947,12 +1945,9 @@ class Model(metaclass=_ModelMeta):
                                                                  model_set_axis_param))
                 except IncompatibleShapeError:
                     raise ValueError(
-                        "Model input argument {0!r} of shape {1!r} cannot be "
-                        "broadcast with parameter {2!r} of shape "
-                        "{3!r}.".format(self.inputs[idx], input_shape,
-                                        param.name,
-                                        self._remove_axes_from_shape(param.shape,
-                                                                     model_set_axis_param)))
+                        f"Model input argument {self.inputs[idx]!r} of shape {input_shape!r} "
+                        f"cannot be broadcast with parameter {param.name!r} of shape "
+                        f"{self._remove_axes_from_shape(param.shape, model_set_axis_param)!r}.")
 
                 if len(param.shape) - 1 > len(max_param_shape):
                     max_param_shape = self._remove_axes_from_shape(param.shape,
@@ -2089,24 +2084,17 @@ class Model(metaclass=_ModelMeta):
                         # to be able to raise more appropriate/nicer exceptions
 
                         if input_unit is dimensionless_unscaled:
-                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}),"
+                            raise UnitsError(f"{name}: Units of input '{self.inputs[i]}', "
+                                             f"{inputs[i].unit} ({inputs[i].unit.physical_type}),"
                                              "could not be converted to "
                                              "required dimensionless "
-                                             "input".format(name,
-                                                            self.inputs[i],
-                                                            inputs[i].unit,
-                                                            inputs[i].unit.physical_type))
+                                             "input")
                         else:
-                            raise UnitsError("{0}: Units of input '{1}', {2} ({3}),"
+                            raise UnitsError(f"{name}: Units of input '{self.inputs[i]}', "
+                                             f"{inputs[i].unit} ({inputs[i].unit.physical_type}),"
                                              " could not be "
                                              "converted to required input"
-                                             " units of {4} ({5})".format(
-                                                 name,
-                                                 self.inputs[i],
-                                                 inputs[i].unit,
-                                                 inputs[i].unit.physical_type,
-                                                 input_unit,
-                                                 input_unit.physical_type))
+                                             f" units of {input_unit} ({input_unit.physical_type})")
                 else:
 
                     # If we allow dimensionless input, we add the units to the
@@ -2398,7 +2386,7 @@ class Model(metaclass=_ModelMeta):
                 "n_models must be either None (in which case it is "
                 "determined from the model_set_axis of the parameter initial "
                 "values) or it must be a positive integer "
-                "(got {0!r})".format(n_models))
+                f"(got {n_models!r})")
 
         model_set_axis = kwargs.pop('model_set_axis', None)
         if model_set_axis is None:
@@ -2414,8 +2402,7 @@ class Model(metaclass=_ModelMeta):
                 raise ValueError(
                     "model_set_axis must be either False or an integer "
                     "specifying the parameter array axis to map to each "
-                    "model in a set of models (got {0!r}).".format(
-                        model_set_axis))
+                    f"model in a set of models (got {model_set_axis!r}).")
 
         # Process positional arguments by matching them up with the
         # corresponding parameters in self.param_names--if any also appear as
@@ -2423,9 +2410,8 @@ class Model(metaclass=_ModelMeta):
         params = set()
         if len(args) > len(self.param_names):
             raise TypeError(
-                "{0}.__init__() takes at most {1} positional arguments ({2} "
-                "given)".format(self.__class__.__name__, len(self.param_names),
-                                len(args)))
+                f"{self.__class__.__name__}.__init__() takes at most "
+                f"{len(self.param_names)} positional arguments ({len(args)} given)")
 
         self._model_set_axis = model_set_axis
         self._param_metrics = defaultdict(dict)
@@ -2451,8 +2437,8 @@ class Model(metaclass=_ModelMeta):
             if param_name in kwargs:
                 if param_name in params:
                     raise TypeError(
-                        "{0}.__init__() got multiple values for parameter "
-                        "{1!r}".format(self.__class__.__name__, param_name))
+                        f"{self.__class__.__name__}.__init__() got multiple values for parameter "
+                        f"{param_name!r}")
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
@@ -2474,8 +2460,8 @@ class Model(metaclass=_ModelMeta):
             for kwarg in kwargs:
                 # Just raise an error on the first unrecognized argument
                 raise TypeError(
-                    '{0}.__init__() got an unrecognized parameter '
-                    '{1!r}'.format(self.__class__.__name__, kwarg))
+                    f"{self.__class__.__name__}.__init__() got an unrecognized parameter "
+                    f"{kwarg!r}")
 
         # Determine the number of model sets: If the model_set_axis is
         # None then there is just one parameter set; otherwise it is determined
@@ -2495,9 +2481,8 @@ class Model(metaclass=_ModelMeta):
                 if param_ndim < min_ndim:
                     raise InputParameterError(
                         "All parameter values must be arrays of dimension "
-                        "at least {0} for model_set_axis={1} (the value "
-                        "given for {2!r} is only {3}-dimensional)".format(
-                            min_ndim, model_set_axis, name, param_ndim))
+                        f"at least {min_ndim} for model_set_axis={model_set_axis} (the value "
+                        f"given for {name!r} is only {param_ndim}-dimensional)")
 
                 max_ndim = max(max_ndim, param_ndim)
 
@@ -2507,10 +2492,9 @@ class Model(metaclass=_ModelMeta):
                     n_models = value.shape[model_set_axis]
                 elif value.shape[model_set_axis] != n_models:
                     raise InputParameterError(
-                        "Inconsistent dimensions for parameter {0!r} for "
-                        "{1} model sets.  The length of axis {2} must be the "
-                        "same for all input parameter values".format(
-                            name, n_models, model_set_axis))
+                        f"Inconsistent dimensions for parameter {name!r} for "
+                        f"{n_models} model sets.  The length of axis {model_set_axis} must be the "
+                        "same for all input parameter values")
 
             self._check_param_broadcast(max_ndim)
         else:
@@ -2539,8 +2523,8 @@ class Model(metaclass=_ModelMeta):
                 # No value was supplied for the parameter and the
                 # parameter does not have a default, therefore the model
                 # is underspecified
-                raise TypeError("{0}.__init__() requires a value for parameter "
-                                "{1!r}".format(self.__class__.__name__, param_name))
+                raise TypeError(f"{self.__class__.__name__}.__init__() requires a value for "
+                                f"parameter {param_name!r}")
             value = default
             unit = param.unit
         else:
@@ -2551,8 +2535,8 @@ class Model(metaclass=_ModelMeta):
                 unit = None
         if unit is None and param.unit is not None:
             raise InputParameterError(
-                "{0}.__init__() requires a Quantity for parameter "
-                "{1!r}".format(self.__class__.__name__, param_name))
+                f"{self.__class__.__name__}.__init__() requires a Quantity for parameter "
+                f"{param_name!r}")
         param._unit = unit
         param.internal_unit = None
         if param._setter is not None:
@@ -2658,11 +2642,10 @@ class Model(metaclass=_ModelMeta):
             param_b = self.param_names[shape_b_idx]
 
             raise InputParameterError(
-                "Parameter {0!r} of shape {1!r} cannot be broadcast with "
-                "parameter {2!r} of shape {3!r}.  All parameter arrays "
+                f"Parameter {param_a!r} of shape {shape_a!r} cannot be broadcast with "
+                f"parameter {param_b!r} of shape {shape_b!r}.  All parameter arrays "
                 "must have shapes that are mutually compatible according "
-                "to the broadcasting rules.".format(param_a, shape_a,
-                                                    param_b, shape_b))
+                "to the broadcasting rules.")
 
     def _param_sets(self, raw=False, units=False):
         """
@@ -2944,12 +2927,11 @@ class CompoundModel(Model):
         elif op == '|':
             if left.n_outputs != right.n_inputs:
                 raise ModelDefinitionError(
-                    "Unsupported operands for |: {0} (n_inputs={1}, "
-                    "n_outputs={2}) and {3} (n_inputs={4}, n_outputs={5}); "
+                    f"Unsupported operands for |: {left.name} (n_inputs={left.n_inputs}, "
+                    f"n_outputs={left.n_outputs}) and {right.name} "
+                    f"(n_inputs={right.n_inputs}, n_outputs={right.n_outputs}); "
                     "n_outputs for the left-hand model must match n_inputs "
-                    "for the right-hand model.".format(
-                        left.name, left.n_inputs, left.n_outputs, right.name,
-                        right.n_inputs, right.n_outputs))
+                    "for the right-hand model.")
 
             self.n_inputs = left.n_inputs
             self.n_outputs = right.n_outputs
@@ -3373,8 +3355,8 @@ class CompoundModel(Model):
         if len(found) == 0:
             raise IndexError(f"No component with name '{str_index}' found")
         if len(found) > 1:
-            raise IndexError("Multiple components found using '{}' as name\n"
-                             "at indices {}".format(str_index, found))
+            raise IndexError(f"Multiple components found using '{str_index}' as name\n"
+                             f"at indices {found}")
         return found[0]
 
     @property
@@ -3465,7 +3447,7 @@ class CompoundModel(Model):
     def _format_components(self):
         if self._parameters_ is None:
             self._map_parameters()
-        return '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
+        return "\n\n".join(f"[{idx}]: {m!r}"
                            for idx, m in enumerate(self._leaflist))
 
     def __str__(self):
@@ -4257,10 +4239,10 @@ def custom_model(*args, fit_deriv=None):
         return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
     else:
         raise TypeError(
-            "{0} takes at most one positional argument (the callable/"
+            f"{__name__} takes at most one positional argument (the callable/"
             "function to be turned into a model.  When used as a decorator "
             "it should be passed keyword arguments only (if "
-            "any).".format(__name__))
+            "any).")
 
 
 def _custom_model_inputs(func):
