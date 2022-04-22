@@ -904,7 +904,7 @@ def test_multidim_column_error(fmt_name_class):
     # Skip tests for ecsv or HTML without bs4. See the comment in latex.py
     # Latex class where max_ndim = None is defined regarding latex and aastex.
     if ((fmt_name == 'html' and not HAS_BS4)
-            or fmt_name in ('ecsv', 'latex', 'aastex')):
+            or fmt_name in ('ecsv', 'ecsv_fixed_width', 'latex', 'aastex')):
         return
 
     out = StringIO()

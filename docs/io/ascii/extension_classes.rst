@@ -17,6 +17,8 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.CommentedHeader`: column names given in a line that begins with the comment character.
 * :class:`~astropy.io.ascii.Csv`: comma-separated values.
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package.
+* :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables
+* :class:`~astropy.io.ascii.EcsvFixedWidth`: ECSV but with fixed width output
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`).
 * :class:`~astropy.io.ascii.FixedWidthNoHeader`: table with fixed-width columns and no header.
 * :class:`~astropy.io.ascii.FixedWidthTwoLine`: table with fixed-width columns and a two-line header.

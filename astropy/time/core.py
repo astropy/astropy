@@ -1106,7 +1106,7 @@ class TimeBase(ShapedLikeNDArray):
         new_format = self.format if format is None else format
 
         if callable(method):
-            apply_method = lambda array: method(array, *args, **kwargs)
+            apply_method = lambda array: method(array, *args, **kwargs)  # noqa: E731
 
         else:
             if method == 'replicate':

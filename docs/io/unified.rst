@@ -195,6 +195,7 @@ detection.
                   ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
               ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
                  ascii.ecsv    Yes   .ecsv  :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
+     ascii.ecsv_fixed_width    Yes          :class:`~astropy.io.ascii.EcsvFixedWidth`: ECSV but with fixed width output
           ascii.fixed_width    Yes          :class:`~astropy.io.ascii.FixedWidth`: Fixed width
 ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
  ascii.fixed_width_two_line    Yes          :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line

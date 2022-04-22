@@ -874,7 +874,6 @@ def test_bad_info_class():
 
     t = Table()
     t['tm'] = MyArrayWrapper([0, 1, 2])
-    out = StringIO()
     match = r"failed to represent column 'tm' \(MyArrayWrapper\) as one or more Column subclasses"
     with pytest.raises(TypeError, match=match):
         represent_mixins_as_columns(t)

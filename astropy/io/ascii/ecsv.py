@@ -4,7 +4,6 @@ Define the Enhanced Character-Separated-Values (ECSV) which allows for reading a
 writing all the meta data associated with an astropy Table object.
 """
 
-import itertools
 import re
 from collections import OrderedDict
 import warnings
@@ -512,7 +511,7 @@ class EcsvFixedWidthData(EcsvData):
 
         # Make the column header line
         lines.append(self._join_fixed([col.info.name for col in self.cols],
-                                     widths))
+                                      widths))
 
         # Make the data lines, using zip(*) to transpose the columns and write
         # one row at a time.
@@ -537,26 +536,33 @@ class EcsvFixedWidth(Ecsv):
     Examples
     --------
 
+    >>> from astropy.table import Table
+    >>> import astropy.units as u
+    >>> from astropy.io import ascii
     >>> t = Table()
-    >>> t['col0'] = [1, 2, 30000, -5]
-    >>> t['col1'] = ['x z', 'y,z', 'z, x', 'hello!']
-    >>> t['col2'] = [1.0, -20000.0, 3.0, 4.0]
+    >>> t['velocity'] = [1, 2, 30000, -5] * u.m / u.s
+    >>> t['text'] = ['x z', 'y,z', 'z, x', 'hello!']
+    >>> t['number'] = [1.0, -20000.0, 3.0, 4.0]
 
     >>> ascii.write(t, format='ecsv_fixed_width')
     # %ECSV 1.0
     # ---
     # datatype:
-    # - {name: col0, datatype: int64}
-    # - {name: col1, datatype: string}
-    # - {name: col2, datatype: float64}
+    # - {name: velocity, unit: m / s, datatype: float64}
+    # - {name: text, datatype: string}
+    # - {name: number, datatype: float64}
     # schema: astropy-2.0
-    col0   col1     col2
-        1  "x z"      1.0
-        2    y,z -20000.0
-    30000 "z, x"      3.0
-       -5 hello!      4.0
+    velocity    text    number
+         1.0   "x z"       1.0
+         2.0     y,z  -20000.0
+     30000.0  "z, x"       3.0
+        -5.0  hello!       4.0
     """
     _format_name = 'ecsv_fixed_width'
     _description = 'Enhanced CSV Fixed Width'
+
+    # Disable inherited .ecsv suffix for the FixedWidth flavor of ECSV so the
+    # base ECSV always gets used for *.ecsv files.
+    _io_registry_suffix = ''
 
     data_class = EcsvFixedWidthData

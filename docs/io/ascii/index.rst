@@ -192,6 +192,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``csv``                     Yes  Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
 ``daophot``                          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
 ``ecsv``                    Yes      :class:`~astropy.io.ascii.Ecsv`: Enhanced CSV format (**recommended**)
+``ecsv_fixed_width``        Yes      :class:`~astropy.io.ascii.EcsvFixedWidth`: ECSV but with fixed width output
 ``fixed_width``             Yes      :class:`~astropy.io.ascii.FixedWidth`: Fixed width
 ``fixed_width_no_header``   Yes      :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed-width with no header
 ``fixed_width_two_line``    Yes      :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed-width with second header line

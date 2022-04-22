@@ -1,0 +1,5 @@
+Add a "human readable" variant of ECSV to the ``io.ascii`` formats that adds
+spaces to the data values so that they are aligned in columns (i.e. fixed
+width). This is done as a new format name ``'ecsv_fixed_width'`` to make it
+clear that this is not strictly ECSV although the output is readable by the
+Python ECSV reader for both space and comma-delimited outputs.

@@ -15,6 +15,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.1-cosmology`
 * :ref:`whatsnew-doppler-redshift-eq`
 * :ref:`whatsnew-io-ascii-converters`
+* :ref:`whatsnew-io-ascii-fixed-width-ecsv`
 * :ref:`whatsnew-structured-columns`
 * :ref:`whatsnew-fitters`
 * :ref:`whatsnew-iers-handling`
@@ -92,6 +93,43 @@ value as a ``list`` even for only one element::
 Note that the previous syntax is still supported for backwards compatibility
 and there is no intent to remove this. See :ref:`io-ascii-read-converters` for
 details.
+
+.. _whatsnew-io-ascii-fixed-width-ecsv:
+
+Fixed width ASCII table output with units and meta-data
+=======================================================
+
+A long-time feature request in astropy has been to write tables in a
+human-readable fixed-width format that also includes column units and
+potentially other meta-data. This is now available in as a fixed-width variant
+of the ECSV format which captures all units, data types and other meta-data in
+the header. This is done as a new format name ``'ecsv_fixed_width'`` to make it
+clear that this is not strictly ECSV although the output is readable by the
+Python ECSV reader for both space and comma-delimited outputs.
+
+Example::
+
+    >>> from astropy.table import Table
+    >>> import astropy.units as u
+    >>> from astropy.io import ascii
+    >>> t = Table()
+    >>> t['velocity'] = [1, 2, 30000, -5] * u.m / u.s
+    >>> t['text'] = ['x z', 'y,z', 'z, x', 'hello!']
+    >>> t['number'] = [1.0, -20000.0, 3.0, 4.0]
+
+    >>> ascii.write(t, format='ecsv_fixed_width')
+    # %ECSV 1.0
+    # ---
+    # datatype:
+    # - {name: velocity, unit: m / s, datatype: float64}
+    # - {name: text, datatype: string}
+    # - {name: number, datatype: float64}
+    # schema: astropy-2.0
+    velocity    text    number
+         1.0   "x z"       1.0
+         2.0     y,z  -20000.0
+     30000.0  "z, x"       3.0
+        -5.0  hello!       4.0
 
 .. _whatsnew-structured-columns:
 

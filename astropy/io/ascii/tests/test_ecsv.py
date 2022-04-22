@@ -22,6 +22,7 @@ from astropy.units import QuantityInfo
 
 from astropy.utils.compat import NUMPY_LT_1_19_1
 from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
+from astropy.io.ascii.tests.test_c_reader import assert_table_equal
 from astropy.io import ascii
 from astropy import units as u
 
@@ -251,7 +252,7 @@ def test_csv_ecsv_colnames_mismatch():
 @pytest.mark.parametrize('delimiter', [' ', ','])
 def test_ecsv_fixed_width(delimiter):
     t = Table()
-    t['col0'] = [1, 2, 30000, -5]
+    t['col0'] = np.array([1, 2, 30000, -5], dtype=np.int64)
     t['col1'] = ['x z', 'y,z', 'z, x', 'hello!']
     t['col2'] = [1.0, -20000.0, 3.0, 4.0]
     out = StringIO()
@@ -286,6 +287,12 @@ def test_ecsv_fixed_width(delimiter):
 
     t.write(out, format='ascii.ecsv_fixed_width', delimiter=delimiter)
     assert out.getvalue() == exp
+
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv_fixed_width', delimiter=delimiter)
+    assert_table_equal(t, t2)
+
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv', delimiter=delimiter)
+    assert_table_equal(t, t2)
 
 
 def test_regression_5604():
