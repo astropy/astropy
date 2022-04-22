@@ -238,7 +238,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1, min=0, description="Peak value at break point")
+    amplitude = Parameter(default=1, min=0, description="Peak value at break point", mag=True)
     x_break = Parameter(default=1, description="Break point")
     alpha_1 = Parameter(default=-2, description="Power law index before break point")
     alpha_2 = Parameter(default=2, description="Power law index after break point")

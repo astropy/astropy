@@ -718,6 +718,12 @@ mag_models = [
                        'alpha_1': 1, 'alpha_2': -1, 'delta': 1},
         'evaluation': [(1 * u.cm, 15.125 * u.ABmag), (1 * u.m, 15.125 * u.ABmag)],
     },
+    {
+        'class': Box1D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 4.4 * u.um, 'width': 1 * u.um},
+        'evaluation': [(4200 * u.nm, 3 * u.ABmag), (1 * u.m, 0 * u.ABmag)],
+        'bounding_box': [3.9, 4.9] * u.um
+    },
 ]
 
 
