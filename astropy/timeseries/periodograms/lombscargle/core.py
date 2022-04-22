@@ -338,13 +338,7 @@ class LombScargle(BasePeriodogram):
             or 'fast'.
         normalization : {'standard', 'model', 'log', 'psd'}, optional
             If specified, override the normalization specified at instantiation.
-        fit_mean : bool, optional
-            If True, include a constant offset as part of the model at each
-            frequency. This can lead to more accurate results, especially in
-            the case of incomplete phase coverage.
-        center_data : bool, optional
-            If True, pre-center the data by subtracting the weighted mean of
-            the input data. This is especially important if fit_mean = False.
+
         method_kwds : dict, optional
             additional keywords to pass to the lomb-scargle method
 
