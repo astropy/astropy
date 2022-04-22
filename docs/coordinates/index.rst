@@ -1,13 +1,12 @@
-.. We call EarthLocation.of_site here first to force the downloading
-.. of sites.json so that future doctest output isn't cluttered with
-.. "Downloading ... [done]". This can be removed once we have a better
-.. way of ignoring output lines based on pattern-matching, e.g.:
+.. Force downloading of sites.json so that future doctest output isn't
+.. cluttered with "Downloading ... [done]". This can be removed once we have a
+.. better way of ignoring output lines based on pattern-matching, e.g.:
 .. https://github.com/astropy/pytest-doctestplus/issues/11
 
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT +IGNORE_WARNINGS
+    >>> EarthLocation._get_site_registry(force_download=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 .. _astropy-coordinates:
 
