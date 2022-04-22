@@ -664,7 +664,8 @@ class LombScargle(BasePeriodogram):
         - "naive" : the approximate probability based on an estimated
           effective number of independent frequencies.
         - "bootstrap" : the approximate probability based on bootstrap
-          resamplings of the input data.
+          resamplings of the input data. The number of samples can
+          be set with the method-specific keyword "n_bootstraps" (default=1000).
 
         Note also that for normalization='psd', the distribution can only be
         computed for periodograms constructed with errors specified.
