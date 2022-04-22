@@ -5,7 +5,6 @@ Module to test fitting routines
 # pylint: disable=invalid-name
 import os.path
 import unittest.mock as mk
-import warnings
 from importlib.metadata import EntryPoint
 from itertools import combinations
 from unittest import mock
@@ -467,7 +466,8 @@ class TestNonLinearFitters:
         assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
 
     @pytest.mark.filterwarnings(r'ignore:.* Maximum number of iterations reached')
-    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, '
+                                r'clipping to bounds')
     @pytest.mark.parametrize('fitter_class', fitters)
     @pytest.mark.parametrize('fitter', non_linear_fitters)
     def test_fitter_against_LevMar(self, fitter_class, fitter):
@@ -485,7 +485,8 @@ class TestNonLinearFitters:
         assert_allclose(model.parameters, new_model.parameters,
                         rtol=10 ** (-4))
 
-    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, '
+                                r'clipping to bounds')
     @pytest.mark.parametrize('fitter', non_linear_fitters)
     def test_LSQ_SLSQP_with_constraints(self, fitter):
         """
@@ -618,9 +619,6 @@ class TestNonLinearFitters:
 class TestEntryPoint:
     """Tests population of fitting with entry point fitters"""
 
-    def setup_class(self):
-        self.exception_not_thrown = Exception("The test should not have gotten here. There was no exception thrown")
-
     def successfulimport(self):
         # This should work
         class goodclass(Fitter):
@@ -652,54 +650,33 @@ class TestEntryPoint:
 
     def test_import_error(self):
         """This raises an import error on load to test that it is handled correctly"""
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
-            try:
-                mock_entry_importerror = mock.create_autospec(EntryPoint)
-                mock_entry_importerror.name = "IErr"
-                mock_entry_importerror.load = self.raiseimporterror
-                populate_entry_points([mock_entry_importerror])
-            except AstropyUserWarning as w:
-                if "ImportError" in w.args[0]:  # any error for this case should have this in it.
-                    pass
-                else:
-                    raise w
-            else:
-                raise self.exception_not_thrown
+
+        mock_entry_importerror = mock.create_autospec(EntryPoint)
+        mock_entry_importerror.name = "IErr"
+        mock_entry_importerror.load = self.raiseimporterror
+
+        with pytest.warns(AstropyUserWarning, match=r".*ImportError.*"):
+            populate_entry_points([mock_entry_importerror])
 
     def test_bad_func(self):
         """This returns a function which fails the type check"""
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
-            try:
-                mock_entry_badfunc = mock.create_autospec(EntryPoint)
-                mock_entry_badfunc.name = "BadFunc"
-                mock_entry_badfunc.load = self.returnbadfunc
-                populate_entry_points([mock_entry_badfunc])
-            except AstropyUserWarning as w:
-                if "Class" in w.args[0]:  # any error for this case should have this in it.
-                    pass
-                else:
-                    raise w
-            else:
-                raise self.exception_not_thrown
+
+        mock_entry_badfunc = mock.create_autospec(EntryPoint)
+        mock_entry_badfunc.name = "BadFunc"
+        mock_entry_badfunc.load = self.returnbadfunc
+
+        with pytest.warns(AstropyUserWarning, match=r".*Class.*"):
+            populate_entry_points([mock_entry_badfunc])
 
     def test_bad_class(self):
         """This returns a class which doesn't inherient from fitter """
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
-            try:
-                mock_entry_badclass = mock.create_autospec(EntryPoint)
-                mock_entry_badclass.name = "BadClass"
-                mock_entry_badclass.load = self.returnbadclass
-                populate_entry_points([mock_entry_badclass])
-            except AstropyUserWarning as w:
-                if 'modeling.Fitter' in w.args[0]:  # any error for this case should have this in it.
-                    pass
-                else:
-                    raise w
-            else:
-                raise self.exception_not_thrown
+
+        mock_entry_badclass = mock.create_autospec(EntryPoint)
+        mock_entry_badclass.name = "BadClass"
+        mock_entry_badclass.load = self.returnbadclass
+
+        with pytest.warns(AstropyUserWarning, match=r".*BadClass.*"):
+            populate_entry_points([mock_entry_badclass])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -714,7 +691,8 @@ class Test1DFittingWithOutlierRemoval:
         self.y = func(self.model_params, self.x)
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
-    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, '
+                                r'clipping to bounds')
     @pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
@@ -768,7 +746,8 @@ class Test2DFittingWithOutlierRemoval:
         return amplitude, x_mean, y_mean
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
-    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, '
+                                r'clipping to bounds')
     @pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):
         import scipy.stats as stats
@@ -868,13 +847,17 @@ class TestWeightedFittingWithOutlierRemoval:
         assert(fit.parameters[0] > 1.0)     # outliers pulled it high
 
     def test_1d_with_weights_with_sigma_clip(self):
-        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        """
+            smoke test for #7020 - fails without fitting.py
+            patch because weights does not propagate
+        """
         model = models.Polynomial1D(0)
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
         fit, filtered = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
-        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+        # outliers didn't pull it out of [-1:1] because they had been removed
+        assert(fit.parameters[0] < 1.0)
 
     def test_1d_set_with_common_weights_with_sigma_clip(self):
         """added for #6819 (1D model set with weights in common)"""
@@ -941,7 +924,8 @@ class TestWeightedFittingWithOutlierRemoval:
                           match=r'Model is linear in parameters'):
             fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
-        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+        # outliers didn't pull it out of [-1:1] because they had been removed
+        assert(fit.parameters[0] < 1.0)
 
     def test_2d_linear_with_weights_with_sigma_clip(self):
         """same as test above with a linear fitter."""
@@ -950,7 +934,8 @@ class TestWeightedFittingWithOutlierRemoval:
                                            niter=3, sigma=3.)
         fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
-        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+        # outliers didn't pull it out of [-1:1] because they had been removed
+        assert(fit.parameters[0] < 1.0)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -960,7 +945,8 @@ def test_fitters_with_weights(fitter):
     fitter = fitter()
 
     if isinstance(fitter, _NLLSQFitter):
-        pytest.xfail("This test is poorly designed and causes issues for scipy.optimize.least_squares based fitters")
+        pytest.xfail("This test is poorly designed and causes issues for "
+                     "scipy.optimize.least_squares based fitters")
 
     Xin, Yin = np.mgrid[0:21, 0:21]
 
@@ -1060,8 +1046,7 @@ def test_optimizers(fitter_class):
     assert fitter._opt_method.acc == 1e-16
 
     # Test repr
-    assert repr(fitter._opt_method) ==\
-        f"{fitter._opt_method.__class__.__name__}()"
+    assert repr(fitter._opt_method) == f"{fitter._opt_method.__class__.__name__}()"
 
     fitparams = mk.MagicMock()
     final_func_val = mk.MagicMock()
@@ -1105,8 +1090,7 @@ def test_Optimization_abstract_call():
     optimization = Optimization(mk.MagicMock())
     with pytest.raises(NotImplementedError) as err:
         optimization()
-    assert str(err.value) ==\
-        "Subclasses should implement this method"
+    assert str(err.value) == "Subclasses should implement this method"
 
 
 def test_fitting_with_outlier_removal_niter():
@@ -1195,8 +1179,7 @@ class TestFittingUncertanties:
 
         # now test 1D model sets
         # fit set of models w/ linear fitter
-        y = model_set(self.x, model_set_axis=False) +\
-            np.array([self.rand, self.rand])
+        y = model_set(self.x, model_set_axis=False) + np.array([self.rand, self.rand])
         fit_1d_set_linlsq = linlsq_fitter(model_set, self.x, y)
         cov_1d_set_linlsq = [j.cov_matrix for j in
                              fit_1d_set_linlsq.cov_matrix]
@@ -1225,8 +1208,7 @@ class TestFittingUncertanties:
         z_grid = single_model(self.x_grid, self.y_grid) + self.rand_grid
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
-            fit_model = fitter(single_model, self.x_grid,
-                                             self.y_grid, z_grid)
+            fit_model = fitter(single_model, self.x_grid, self.y_grid, z_grid)
         cov_model = fit_model.cov_matrix.cov_matrix
 
         # fit single model w/ nonlinear fitter

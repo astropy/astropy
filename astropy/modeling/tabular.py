@@ -17,7 +17,6 @@ Examples
 
 """
 # pylint: disable=invalid-name
-import abc
 
 import numpy as np
 

@@ -179,9 +179,8 @@ def make_binary_operator_eval(oper, f, g):
     (30,)
     """
 
-    return lambda inputs, params: \
-            tuple(oper(x, y) for x, y in zip(f(inputs, params),
-                                             g(inputs, params)))
+    return (lambda inputs, params:
+            tuple(oper(x, y) for x, y in zip(f(inputs, params), g(inputs, params))))
 
 
 def poly_map_domain(oldx, domain, window):
@@ -239,7 +238,7 @@ def array_repr_oneline(array):
     Represents a multi-dimensional Numpy array flattened onto a single line.
     """
     r = np.array2string(array, separator=', ', suppress_small=True)
-    return ' '.join(l.strip() for l in r.splitlines())
+    return ' '.join(line.strip() for line in r.splitlines())
 
 
 def combine_labels(left, right):
@@ -253,8 +252,8 @@ def combine_labels(left, right):
     """
 
     if set(left).intersection(right):
-        left = tuple(l + '0' for l in left)
-        right = tuple(r + '1' for r in right)
+        left = tuple(label + '0' for label in left)
+        right = tuple(label + '1' for label in right)
 
     return left + right
 

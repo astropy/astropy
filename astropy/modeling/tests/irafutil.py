@@ -75,8 +75,8 @@ class Record:
 
     def aslist(self):
         reclist = self.recstr.split('\n')
-        reclist = [l.strip() for l in reclist]
-        [reclist.remove(l) for l in reclist if len(l) == 0]
+        reclist = [entry.strip() for entry in reclist]
+        [reclist.remove(entry) for entry in reclist if len(entry) == 0]
         return reclist
 
     def get_fields(self):
@@ -108,10 +108,10 @@ class Record:
 
     def read_array_field(self, fieldlist):
         # Turn an iraf record array field into a numpy array
-        fieldline = [l.split() for l in fieldlist[1:]]
+        fieldline = [entry.split() for entry in fieldlist[1:]]
         # take only the first 3 columns
         # identify writes also strings at the end of some field lines
-        xyz = [l[:3] for l in fieldline]
+        xyz = [entry[:3] for entry in fieldline]
         try:
             farr = np.array(xyz)
         except Exception:

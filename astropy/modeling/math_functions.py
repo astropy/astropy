@@ -5,7 +5,6 @@ Define Numpy Ufuncs as Models.
 import numpy as np
 
 from astropy.modeling.core import Model
-from astropy.utils.exceptions import AstropyUserWarning
 
 trig_ufuncs = ["sin", "cos", "tan", "arcsin", "arccos", "arctan", "arctan2",
                "hypot", "sinh", "cosh", "tanh", "arcsinh", "arccosh",

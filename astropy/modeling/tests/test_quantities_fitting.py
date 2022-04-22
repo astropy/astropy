@@ -13,7 +13,7 @@ from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should
@@ -70,9 +70,10 @@ class CustomInputNamesModel(Fittable1DModel):
             return {'inn': self.b.unit / self.a.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'a': outputs_unit['out'] / inputs_unit['inn'],
-                'b': outputs_unit['out']
-               }
+        return {
+            'a': outputs_unit['out'] / inputs_unit['inn'],
+            'b': outputs_unit['out']
+        }
 
 
 def models_with_custom_names():
@@ -146,7 +147,7 @@ def test_fitting_missing_data_units(fitter):
     # follow the order defined in _parameter_units_for_data_units method.
     with pytest.raises(UnitsError) as exc:
         fitter(g_init, [1, 2, 3],
-              [4, 5, 6] * (u.erg / (u.s * u.cm * u.cm * u.Hz)))
+               [4, 5, 6] * (u.erg / (u.s * u.cm * u.cm * u.Hz)))
     assert exc.value.args[0] == ("'cm' (length) and '' (dimensionless) are "
                                  "not convertible")
 

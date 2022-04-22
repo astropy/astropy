@@ -75,8 +75,7 @@ class PolynomialModel(PolynomialBase):
         else:
             minshape = ()
         for param_name in self._param_names:
-            self._parameters_[param_name] = \
-                Parameter(param_name, default=np.zeros(minshape))
+            self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
 
         super().__init__(
             n_models=n_models, model_set_axis=model_set_axis, name=name,
@@ -179,7 +178,7 @@ class _PolyDomainWindow1D(PolynomialModel):
         return self._format_str([('Degree', self.degree),
                                  ('Domain', self.domain),
                                  ('Window', self.window)],
-                                 self._default_domain_window)
+                                self._default_domain_window)
 
 
 class OrthoPolynomialBase(PolynomialBase):
@@ -242,8 +241,7 @@ class OrthoPolynomialBase(PolynomialBase):
             minshape = ()
 
         for param_name in self._param_names:
-            self._parameters_[param_name] = \
-                Parameter(param_name, default=np.zeros(minshape))
+            self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
         super().__init__(
             n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
@@ -296,7 +294,7 @@ class OrthoPolynomialBase(PolynomialBase):
              ('Y_Domain', self.y_domain),
              ('X_Window', self.x_window),
              ('Y_Window', self.y_window)],
-             self._default_domain_window)
+            self._default_domain_window)
 
     def get_num_coeff(self):
         """
@@ -1075,7 +1073,7 @@ class Polynomial2D(PolynomialModel):
                                  ('Y_Domain', self.y_domain),
                                  ('X_Window', self.x_window),
                                  ('Y_Window', self.y_window)],
-                                 self._default_domain_window)
+                                self._default_domain_window)
 
     def fit_deriv(self, x, y, *params):
         """
@@ -1169,7 +1167,9 @@ class Polynomial2D(PolynomialModel):
                 if i + j > 2:
                     continue
                 par = getattr(self, f'c{i}_{j}')
-                mapping[par.name] = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]] ** i / inputs_unit[self.inputs[1]] ** j  # noqa
+                mapping[par.name] = (outputs_unit[self.outputs[0]]
+                                     / inputs_unit[self.inputs[0]] ** i
+                                     / inputs_unit[self.inputs[1]] ** j)
         return mapping
 
     @property
@@ -1497,8 +1497,7 @@ class _SIP1D(PolynomialBase):
         else:
             minshape = ()
         for param_name in self._param_names:
-            self._parameters_[param_name] = \
-                Parameter(param_name, default=np.zeros(minshape))
+            self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
         super().__init__(n_models=n_models, model_set_axis=model_set_axis,
                          name=name, meta=meta, **params)
 
@@ -1601,7 +1600,8 @@ class SIP(Model):
 
     References
     ----------
-    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
+    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005
+        <https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
     n_inputs = 2

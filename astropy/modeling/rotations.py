@@ -85,7 +85,8 @@ class RotationSequence3D(Model):
     n_inputs = 3
     n_outputs = 3
 
-    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian, description="Angles of rotation in deg in the order of axes_order")
+    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian,
+                       description="Angles of rotation in deg in the order of axes_order")
 
     def __init__(self, angles, axes_order, name=None):
         self.axes = ['x', 'y', 'z']
@@ -221,11 +222,11 @@ class EulerAngleRotation(_EulerRotation, Model):
     n_outputs = 2
 
     phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-    description="1st Euler angle (Quantity or value in deg)")
+                    description="1st Euler angle (Quantity or value in deg)")
     theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-    description="2nd Euler angle (Quantity or value in deg)")
+                      description="2nd Euler angle (Quantity or value in deg)")
     psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-    description="3rd Euler angle (Quantity or value in deg)")
+                    description="3rd Euler angle (Quantity or value in deg)")
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
         self.axes = ['x', 'y', 'z']
@@ -263,9 +264,12 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Latitude")
-    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Longtitude")
-    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Longitude of a pole")
+    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
+                    description="Latitude")
+    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
+                    description="Longtitude")
+    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
+                         description="Longitude of a pole")
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
@@ -454,7 +458,7 @@ class Rotation2D(Model):
     _separable = False
 
     angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-    description="Angle of rotation (Quantity or value in deg)")
+                      description="Angle of rotation (Quantity or value in deg)")
 
     def __init__(self, angle=angle, **kwargs):
         super().__init__(angle=angle, **kwargs)

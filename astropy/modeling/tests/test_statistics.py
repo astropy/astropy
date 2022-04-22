@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.models import Identity, Mapping
 from astropy.modeling.statistic import leastsquare, leastsquare_1d, leastsquare_2d, leastsquare_3d
 

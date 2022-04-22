@@ -25,11 +25,16 @@ from astropy.modeling.powerlaws import (
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 from .example_models import models_1D, models_2D
 
-fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter, fitting.DogBoxLSQFitter]
+fitters = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.LMLSQFitter,
+    fitting.DogBoxLSQFitter
+]
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -859,8 +864,7 @@ def test_tabular_grid_shape_mismatch_error():
     lt = np.mgrid[0:5, 0:5][0]
     with pytest.raises(ValueError) as err:
         models.Tabular2D(points, lt)
-    assert str(err.value) ==\
-        "Expected grid points in 2 directions, got 5."
+    assert str(err.value) == "Expected grid points in 2 directions, got 5."
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -868,20 +872,20 @@ def test_tabular_repr():
     points = np.arange(5)
     lt = np.arange(5)
     t = models.Tabular1D(points, lt)
-    assert repr(t) ==\
-        "<Tabular1D(points=(array([0, 1, 2, 3, 4]),), lookup_table=[0 1 2 3 4])>"
+    assert repr(t) == "<Tabular1D(points=(array([0, 1, 2, 3, 4]),), lookup_table=[0 1 2 3 4])>"
 
     table = np.arange(5*5).reshape(5, 5)
     points = np.arange(0, 5)
     points = (points, points)
     t = models.Tabular2D(points=points, lookup_table=table)
-    assert repr(t) ==\
-        "<Tabular2D(points=(array([0, 1, 2, 3, 4]), array([0, 1, 2, 3, 4])), " +\
-        "lookup_table=[[ 0  1  2  3  4]\n" +\
-        " [ 5  6  7  8  9]\n" +\
-        " [10 11 12 13 14]\n" +\
-        " [15 16 17 18 19]\n" +\
+    assert repr(t) == (
+        "<Tabular2D(points=(array([0, 1, 2, 3, 4]), array([0, 1, 2, 3, 4])), "
+        "lookup_table=[[ 0  1  2  3  4]\n"
+        " [ 5  6  7  8  9]\n"
+        " [10 11 12 13 14]\n"
+        " [15 16 17 18 19]\n"
         " [20 21 22 23 24]])>"
+    )
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -889,35 +893,37 @@ def test_tabular_str():
     points = np.arange(5)
     lt = np.arange(5)
     t = models.Tabular1D(points, lt)
-    assert str(t) ==\
-        "Model: Tabular1D\n" +\
-        "N_inputs: 1\n" +\
-        "N_outputs: 1\n" +\
-        "Parameters: \n" +\
-        "  points: (array([0, 1, 2, 3, 4]),)\n" +\
-        "  lookup_table: [0 1 2 3 4]\n" +\
-        "  method: linear\n" +\
-        "  fill_value: nan\n" +\
+    assert str(t) == (
+        "Model: Tabular1D\n"
+        "N_inputs: 1\n"
+        "N_outputs: 1\n"
+        "Parameters: \n"
+        "  points: (array([0, 1, 2, 3, 4]),)\n"
+        "  lookup_table: [0 1 2 3 4]\n"
+        "  method: linear\n"
+        "  fill_value: nan\n"
         "  bounds_error: True"
+    )
 
     table = np.arange(5*5).reshape(5, 5)
     points = np.arange(0, 5)
     points = (points, points)
     t = models.Tabular2D(points=points, lookup_table=table)
-    assert str(t) ==\
-        "Model: Tabular2D\n" +\
-        "N_inputs: 2\n" +\
-        "N_outputs: 1\n" +\
-        "Parameters: \n" +\
-        "  points: (array([0, 1, 2, 3, 4]), array([0, 1, 2, 3, 4]))\n" +\
-        "  lookup_table: [[ 0  1  2  3  4]\n" +\
-        " [ 5  6  7  8  9]\n" +\
-        " [10 11 12 13 14]\n" +\
-        " [15 16 17 18 19]\n" +\
-        " [20 21 22 23 24]]\n" +\
-        "  method: linear\n" +\
-        "  fill_value: nan\n" +\
+    assert str(t) == (
+        "Model: Tabular2D\n"
+        "N_inputs: 2\n"
+        "N_outputs: 1\n"
+        "Parameters: \n"
+        "  points: (array([0, 1, 2, 3, 4]), array([0, 1, 2, 3, 4]))\n"
+        "  lookup_table: [[ 0  1  2  3  4]\n"
+        " [ 5  6  7  8  9]\n"
+        " [10 11 12 13 14]\n"
+        " [15 16 17 18 19]\n"
+        " [20 21 22 23 24]]\n"
+        "  method: linear\n"
+        "  fill_value: nan\n"
         "  bounds_error: True"
+    )
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -995,13 +1001,11 @@ def test_parameter_description():
 def test_SmoothlyBrokenPowerLaw1D_validators():
     with pytest.raises(InputParameterError) as err:
         SmoothlyBrokenPowerLaw1D(amplitude=-1)
-    assert str(err.value) ==\
-        "amplitude parameter must be > 0"
+    assert str(err.value) == "amplitude parameter must be > 0"
 
     with pytest.raises(InputParameterError) as err:
         SmoothlyBrokenPowerLaw1D(delta=0)
-    assert str(err.value) ==\
-        "delta parameter must be >= 0.001"
+    assert str(err.value) == "delta parameter must be >= 0.001"
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

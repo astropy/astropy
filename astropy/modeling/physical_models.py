@@ -101,7 +101,8 @@ class BlackBody(Fittable1DModel):
         if hasattr(scale, 'unit') and not scale.unit.is_equivalent(u.dimensionless_unscaled):
             output_units = scale.unit
             if not output_units.is_equivalent(self._native_units, u.spectral_density(1*u.AA)):
-                raise ValueError(f"scale units not dimensionless or in surface brightness: {output_units}")
+                raise ValueError("scale units not dimensionless or in "
+                                 f"surface brightness: {output_units}")
 
             kwargs['scale'] = scale.value
             self._output_units = output_units
@@ -383,8 +384,10 @@ class Plummer1D(Fittable1DModel):
     .. [1] https://ui.adsabs.harvard.edu/abs/1911MNRAS..71..460P
     """
 
-    mass = Parameter(default=1.0, description="Total mass of cluster")
-    r_plum = Parameter(default=1.0, description="Scale parameter which sets the size of the cluster core")
+    mass = Parameter(default=1.0,
+                     description="Total mass of cluster")
+    r_plum = Parameter(default=1.0,
+                       description="Scale parameter which sets the size of the cluster core")
 
     @staticmethod
     def evaluate(x, mass, r_plum):
@@ -463,7 +466,7 @@ class NFW(Fittable1DModel):
 
     # NFW Profile mass
     mass = Parameter(default=1.0, min=1.0, unit=u.M_sun,
-           description="Peak mass within specified overdensity radius")
+                     description="Peak mass within specified overdensity radius")
 
     # NFW profile concentration
     concentration = Parameter(default=1.0, min=1.0, description="Concentration")

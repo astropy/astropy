@@ -141,7 +141,8 @@ def test_arith_oper():
     assert_allclose(result, np.array([[1, 1], [1, 1]]))
 
     # Error
-    with pytest.raises(ModelDefinitionError, match=r"Unsupported operands for arithmetic operator: .*"):
+    with pytest.raises(ModelDefinitionError,
+                       match=r"Unsupported operands for arithmetic operator: .*"):
         _arith_oper(sh1, map1)
 
 
