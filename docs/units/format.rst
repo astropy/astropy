@@ -12,9 +12,9 @@ strings using the `Python Format String Syntax
 (demonstrated below using `f-strings
 <https://www.python.org/dev/peps/pep-0498/>`_).
 
-For quantities, format specifiers, like ``0.003f`` will be applied to
+For quantities, format specifiers, like ``.3f`` will be applied to
 the |Quantity| value, without affecting the unit. Specifiers like
-``20s``, which would only apply to a string, will be applied to the
+``^20s``, which would only apply to a string, will be applied to the
 whole string representation of the |Quantity|.
 
 Examples
@@ -31,23 +31,23 @@ To render |Quantity| or |Unit| objects as strings::
     <Quantity  10.5 km>
     >>> f"{q}"
     '10.5 km'
-    >>> f"{q:+0.03f}"
+    >>> f"{q:+.3f}"
     '+10.500 km'
-    >>> f"{q:20s}"
-    '10.5 km             '
+    >>> f"{q:^20s}"
+    '     10.5 km        '
 
 To format both the value and the unit separately, you can access the |Quantity|
-class attributes within format strings::
+attributes within format strings::
 
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
-    >>> f"{q.value:0.003f} in {q.unit:s}"
+    >>> f"{q.value:.3f} in {q.unit}"
     '10.500 in km'
 
-Because ``numpy`` arrays do not accept most format specifiers, using specifiers
-like ``0.003f`` will not work when applied to a ``numpy`` array or non-scalar
-|Quantity|. Use :func:`numpy.array_str` instead. For instance::
+Because |ndarray| does not accept most format specifiers, using specifiers like
+``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
+:func:`numpy.array_str` instead. For instance::
 
     >>> q = np.linspace(0,1,10) * u.m
     >>> f"{np.array_str(q.value, precision=1)} {q.unit}"  # doctest: +FLOAT_CMP
@@ -72,15 +72,15 @@ parameter to select a different format, including ``"latex"``, ``"unicode"``,
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
-    u'erg / (cm2 s)'
+    'erg / (cm2 s)'
     >>> print(f"{fluxunit:console}")
      erg
     ------
     s cm^2
     >>> f"{fluxunit:latex}"
-    u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+    '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
     >>> f"{fluxunit:>20s}"
-    u'       erg / (cm2 s)'
+    '       erg / (cm2 s)'
 
 The :meth:`~astropy.units.core.UnitBase.to_string` method is an alternative way
 to format units as strings, and is the underlying implementation of the
@@ -88,7 +88,7 @@ to format units as strings, and is the underlying implementation of the
 
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> fluxunit.to_string('latex')
-    u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+    '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
 
 Creating Units from Strings
 ===========================
@@ -110,7 +110,7 @@ formats using the `~astropy.units.Unit` class::
    Creating units from strings requires the use of a specialized
    parser for the unit language, which results in a performance
    penalty if units are created using strings. Thus, it is much
-   faster to use unit objects directly (e.g., ``unit = u.degree /
+   faster to use |Unit| objects directly (e.g., ``unit = u.degree /
    u.minute``) instead of via string parsing (``unit =
    u.Unit('deg/min')``). This parser is very useful, however, if your
    unit definitions are coming from a file format such as FITS or
@@ -151,7 +151,7 @@ following formats:
     `IAU Style Manual
     <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation. This format is
-    automatically used when printing a unit in the IPython notebook::
+    automatically used when printing a unit in the `IPython`_ notebook::
 
       >>> fluxunit  # doctest: +SKIP
 
