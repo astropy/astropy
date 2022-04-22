@@ -83,7 +83,6 @@ class ToFromTableTestMixin(ToFromTestMixinBase):
             # Compare the two
             assert col.info.name == P.name
             assert col.info.description == P.__doc__
-            assert col.info.format == (None if col[0] is None else P.format_spec)
             assert col.info.meta == (cosmo.meta.get(n) or {})
 
     # -----------------------

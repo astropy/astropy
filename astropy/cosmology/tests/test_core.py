@@ -305,10 +305,10 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
         cps = {k: getattr(cosmo_cls, k) for k in cosmo.__parameters__}
         for k, v in ps.items():
-            sv = format(v, cps[k].format_spec if v is not None else '')
-            assert (k + '=' + sv) in r
+            sv = f"{k}={v}"
+            assert sv in r
             assert r.index(k) == 0
-            r = r[len((k + '=' + sv)) + 2:]  # remove
+            r = r[len(sv) + 2:]  # remove
 
     # ------------------------------------------------
 
