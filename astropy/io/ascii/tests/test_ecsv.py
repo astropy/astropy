@@ -822,13 +822,13 @@ exps['2-d regular array'] = [
      'name': '2-d regular array',
      'subtype': 'float16[2,2]'}]
 
-cols['scalar object'] = np.array([{'a': 1}, {'b':2}], dtype=object)
+cols['scalar object'] = np.array([{'a': 1}, {'b': 2}], dtype=object)
 exps['scalar object'] = [
     {'datatype': 'string', 'name': 'scalar object', 'subtype': 'json'}]
 
 cols['1-d object'] = np.array(
-    [[{'a': 1}, {'b':2}],
-     [{'a': 1}, {'b':2}]], dtype=object)
+    [[{'a': 1}, {'b': 2}],
+     [{'a': 1}, {'b': 2}]], dtype=object)
 exps['1-d object'] = [
     {'datatype': 'string',
      'name': '1-d object',
@@ -966,7 +966,7 @@ def test_masked_vals_in_array_subtypes():
     assert t2.colnames == t.colnames
     for name in t2.colnames:
         assert t2[name].dtype == t[name].dtype
-        assert type(t2[name]) is type(t[name])
+        assert type(t2[name]) is type(t[name])  # noqa
         for val1, val2 in zip(t2[name], t[name]):
             if isinstance(val1, np.ndarray):
                 assert val1.dtype == val2.dtype

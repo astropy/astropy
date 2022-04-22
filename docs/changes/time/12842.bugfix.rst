@@ -1,0 +1,4 @@
+Fix an issue when writing ``Time`` table columns to a file when the time
+``format`` is one of ``datetime``, ``datetime64``, or ``ymdhms``. Previously,
+writing a ``Time`` column with one of these formats could result in an exception
+or else an incorrect output file that cannot be read back in.

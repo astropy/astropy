@@ -6,6 +6,7 @@ import functools
 import datetime
 from copy import deepcopy
 from decimal import Decimal, localcontext
+from io import StringIO
 
 import numpy as np
 import pytest
@@ -20,7 +21,7 @@ from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy.table import Column, Table
-from astropy.utils.compat.optional_deps import HAS_PYTZ  # noqa
+from astropy.utils.compat.optional_deps import HAS_PYTZ, HAS_H5PY  # noqa
 
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
@@ -2219,6 +2220,66 @@ def test_ymdhms_output():
     # NOTE: actually comes back as np.void for some reason
     # NOTE: not necessarily a python int; might be an int32
     assert t.ymdhms.year == 2015
+
+
+@pytest.mark.parametrize('fmt', TIME_FORMATS)
+def test_write_every_format_to_ecsv(fmt):
+    """Test special-case serialization of certain Time formats"""
+    t = Table()
+    # Use a time that tests the default serialization of the time format
+    tm = (Time('2020-01-01')
+          + [[1, 1 / 7],
+             [3, 4.5]] * u.s)
+    tm.format = fmt
+    t['a'] = tm
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t['a'].format == t2['a'].format
+    # Some loss of precision in the serialization
+    assert not np.all(t['a'] == t2['a'])
+    # But no loss in the format representation
+    assert np.all(t['a'].value == t2['a'].value)
+
+
+@pytest.mark.parametrize('fmt', TIME_FORMATS)
+def test_write_every_format_to_fits(fmt, tmp_path):
+    """Test special-case serialization of certain Time formats"""
+    t = Table()
+    # Use a time that tests the default serialization of the time format
+    tm = (Time('2020-01-01')
+          + [[1, 1 / 7],
+             [3, 4.5]] * u.s)
+    tm.format = fmt
+    t['a'] = tm
+    out = tmp_path / 'out.fits'
+    t.write(out, format='fits')
+    t2 = Table.read(out, format='fits', astropy_native=True)
+    # Currently the format is lost in FITS so set it back
+    t2['a'].format = fmt
+    # No loss of precision in the serialization or representation
+    assert np.all(t['a'] == t2['a'])
+    assert np.all(t['a'].value == t2['a'].value)
+
+
+@pytest.mark.skipif(not HAS_H5PY, reason='Needs h5py')
+@pytest.mark.parametrize('fmt', TIME_FORMATS)
+def test_write_every_format_to_hdf5(fmt, tmp_path):
+    """Test special-case serialization of certain Time formats"""
+    t = Table()
+    # Use a time that tests the default serialization of the time format
+    tm = (Time('2020-01-01')
+          + [[1, 1 / 7],
+             [3, 4.5]] * u.s)
+    tm.format = fmt
+    t['a'] = tm
+    out = tmp_path / 'out.h5'
+    t.write(str(out), format='hdf5', path='root', serialize_meta=True)
+    t2 = Table.read(str(out), format='hdf5', path='root')
+    assert t['a'].format == t2['a'].format
+    # No loss of precision in the serialization or representation
+    assert np.all(t['a'] == t2['a'])
+    assert np.all(t['a'].value == t2['a'].value)
 
 
 # There are two stages of validation now - one on input into a format, so that
