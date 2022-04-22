@@ -80,7 +80,8 @@ def _probably_html(table, maxchars=100000):
             return True
 
         # Filename ending in .htm or .html which exists
-        if re.search(r'\.htm[l]?$', table[-5:], re.IGNORECASE) and os.path.exists(table):
+        if (re.search(r'\.htm[l]?$', table[-5:], re.IGNORECASE) and
+                os.path.exists(os.path.expanduser(table))):
             return True
 
         # Table starts with HTML document type declaration
@@ -346,6 +347,13 @@ def read(table, guess=None, **kwargs):
         if format is None:
             reader = get_reader(**new_kwargs)
             format = reader._format_name
+
+        if isinstance(table, (str, bytes, os.PathLike)):
+            # Conservatively attempt to expand `table`, which could be a file
+            # path or the actual data of a table.
+            ex_user = os.path.expanduser(table)
+            if os.path.exists(ex_user):
+                table = ex_user
 
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
@@ -801,7 +809,8 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
     _validate_read_write_kwargs('write', format=format, fast_writer=fast_writer,
                                 overwrite=overwrite, **kwargs)
 
-    if isinstance(output, str):
+    if isinstance(output, (str, bytes, os.PathLike)):
+        output = os.path.expanduser(output)
         if not overwrite and os.path.lexists(output):
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
