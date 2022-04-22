@@ -69,7 +69,7 @@ jobs:
             python: 3.9
             toxenv: py39-test-alldeps
             toxargs: -v --develop
-            toxposargs: --open-files
+            toxposargs: --open-files --run-slow
 
           - name: Python 3.8 with oldest supported version of all dependencies
             os: ubuntu-18.04
@@ -87,7 +87,7 @@ jobs:
             os: macos-latest
             python: 3.9
             toxenv: py39-test-alldeps
-            toxposargs: --durations=50
+            toxposargs: --durations=50 --run-slow
 
     steps:
     - name: Checkout code

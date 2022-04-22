@@ -99,6 +99,7 @@ def test_gaussian_eval_2D(mode):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.slow
 def test_gaussian_eval_2D_integrate_mode():
     """
     Discretize Gaussian with integrate mode

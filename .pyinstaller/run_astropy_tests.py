@@ -106,7 +106,8 @@ SKIP_TESTS = ['test_exception_logging_origin',
 # Run the tests!
 sys.exit(pytest.main(['astropy_tests',
                       '-k ' + ' and '.join('not ' + test for test in SKIP_TESTS)],
-                     plugins=['pytest_doctestplus.plugin',
+                     plugins=['pytest_astropy.plugin',
+                              'pytest_doctestplus.plugin',
                               'pytest_openfiles.plugin',
                               'pytest_remotedata.plugin',
                               'pytest_astropy_header.display']))
