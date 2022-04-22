@@ -4,7 +4,7 @@ import pickle
 
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_allclose
 
 from astropy.nddata.nduncertainty import (StdDevUncertainty,
                              VarianceUncertainty,
@@ -378,13 +378,16 @@ def test_self_conversion_via_variance_supported(UncertClass):
 
 
 @pytest.mark.parametrize(
-    'UncertClass', uncertainty_types_with_conversion_support
+    'UncertClass,to_variance_func',
+    zip(uncertainty_types_with_conversion_support,
+    (lambda x: x ** 2, lambda x: x, lambda x: 1 / x))
 )
-def test_conversion_to_from_variance_supported(UncertClass):
+def test_conversion_to_from_variance_supported(UncertClass, to_variance_func):
     uncert = np.arange(1, 11).reshape(2, 5) * u.adu
     start_uncert = UncertClass(uncert)
     var_uncert = start_uncert.represent_as(VarianceUncertainty)
     final_uncert = var_uncert.represent_as(UncertClass)
+    assert_allclose(to_variance_func(start_uncert.array), var_uncert.array)
     assert_array_equal(start_uncert.array, final_uncert.array)
     assert start_uncert.unit == final_uncert.unit
 
