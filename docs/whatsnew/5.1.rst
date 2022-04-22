@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-structured-columns`
 * :ref:`whatsnew-fitters`
 * :ref:`whatsnew-iers-handling`
+* :ref:`whatsnew-uncertainty-represent`
 * :ref:`whatsnew-schechter1d-model`
 
 .. _whatsnew-5.1-cosmology:
@@ -141,6 +142,23 @@ when times are outside the range of available IERS data. The options are
 In addition, the logic for auto-downloads was changed to guarantee that no matter
 what happens with the IERS download operations, only warnings will be issued.
 These warnings can be ignored if desired.
+
+.. _whatsnew-uncertainty-represent:
+
+Uncertainty classes can be transformed into each other
+======================================================
+
+Subclasses of :class:`astropy.nddata.NDUncertainty` can now be
+converted between each other. This is done via transforming the original
+uncertainty values into a variance (if possible), and then transforming the
+variance into the desired uncertainty. A simple example of this is::
+
+    >>> import numpy as np
+    >>> from astropy.nddata import InverseVariance, StdDevUncertainty
+    >>> StdDevUncertainty(np.arange(1, 10)).represent_as(InverseVariance)
+    InverseVariance([1.        , 0.25      , 0.11111111, 0.0625    ,
+                     0.04      , 0.02777778, 0.02040816, 0.015625  ,
+                     0.01234568])
 
 .. _whatsnew-schechter1d-model:
 

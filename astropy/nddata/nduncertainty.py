@@ -395,6 +395,40 @@ class NDUncertainty(metaclass=ABCMeta):
     def _propagate_divide(self, other_uncert, result_data, correlation):
         return None
 
+    def represent_as(self, other_uncert):
+        """Convert this uncertainty to a different uncertainty type.
+
+        Parameters
+        ----------
+        other_uncert : `NDUncertainty` subclass
+            The `NDUncertainty` subclass to convert to.
+
+        Returns
+        -------
+        resulting_uncertainty : `NDUncertainty` instance
+            An instance of ``other_uncert`` subclass containing the uncertainty
+            converted to the new uncertainty type.
+
+        Raises
+        ------
+        TypeError
+            If either the initial or final subclasses do not support
+            conversion, a `TypeError` is raised.
+        """
+        as_variance = getattr(self, "_convert_to_variance", None)
+        if as_variance is None:
+            raise TypeError(
+                f"{type(self)} does not support conversion to another "
+                "uncertainty type."
+            )
+        from_variance = getattr(other_uncert, "_convert_from_variance", None)
+        if from_variance is None:
+            raise TypeError(
+                f"{other_uncert.__name__} does not support conversion from "
+                "another uncertainty type."
+            )
+        return from_variance(as_variance())
+
 
 class UnknownUncertainty(NDUncertainty):
     """This class implements any unknown uncertainty type.
@@ -748,6 +782,17 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
     def _data_unit_to_uncertainty_unit(self, value):
         return value
 
+    def _convert_to_variance(self):
+        new_array = None if self.array is None else self.array ** 2
+        new_unit = None if self.unit is None else self.unit ** 2
+        return VarianceUncertainty(new_array, unit=new_unit)
+
+    @classmethod
+    def _convert_from_variance(cls, var_uncert):
+        new_array = None if var_uncert.array is None else var_uncert.array ** (1 / 2)
+        new_unit = None if var_uncert.unit is None else var_uncert.unit ** (1 / 2)
+        return cls(new_array, unit=new_unit)
+
 
 class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
     """
@@ -833,6 +878,13 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     def _data_unit_to_uncertainty_unit(self, value):
         return value ** 2
+
+    def _convert_to_variance(self):
+        return self
+
+    @classmethod
+    def _convert_from_variance(cls, var_uncert):
+        return var_uncert
 
 
 def _inverse(x):
@@ -933,3 +985,14 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
 
     def _data_unit_to_uncertainty_unit(self, value):
         return 1 / value ** 2
+
+    def _convert_to_variance(self):
+        new_array = None if self.array is None else 1 / self.array
+        new_unit = None if self.unit is None else 1 / self.unit
+        return VarianceUncertainty(new_array, unit=new_unit)
+
+    @classmethod
+    def _convert_from_variance(cls, var_uncert):
+        new_array = None if var_uncert.array is None else 1 / var_uncert.array
+        new_unit = None if var_uncert.unit is None else 1 / var_uncert.unit
+        return cls(new_array, unit=new_unit)
