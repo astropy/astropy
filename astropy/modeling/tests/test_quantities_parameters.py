@@ -11,7 +11,8 @@ import pytest
 from astropy import coordinates as coord
 from astropy import units as u
 from astropy.modeling.core import Fittable1DModel, InputParameterError
-from astropy.modeling.models import Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial, Rotation2D
+from astropy.modeling.models import (
+    Const1D, Gaussian1D, Pix2Sky_TAN, RotateNative2Celestial, Rotation2D)
 from astropy.modeling.parameters import Parameter, ParameterDefinitionError
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
@@ -339,3 +340,13 @@ def test_parameters_compound_models():
     n2c = RotateNative2Celestial(sky_coords.ra, sky_coords.dec, lon_pole)
     rot = Rotation2D(23)
     rot | n2c
+
+
+def test_magunit_parameter():
+    """Regression test for bug reproducer in issue #13133"""
+
+    unit = u.ABmag
+    c = -20.0 * unit
+    model = Const1D(c)
+
+    assert model(-23.0 * unit) == c
