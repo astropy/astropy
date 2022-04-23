@@ -340,7 +340,9 @@ class ColumnInfo(BaseColumnInfo):
     This is required when the object is used as a mixin column within a table,
     but can be used as a general way to store meta information.
     """
-    attrs_from_parent = BaseColumnInfo.attr_names
+    attr_names = BaseColumnInfo.attr_names | {'groups'}
+    _attrs_no_copy = BaseColumnInfo._attrs_no_copy | {'groups'}
+    attrs_from_parent = attr_names
     _supports_indexing = True
     # For structured columns, data is used to store a dict of columns.
     # Store entries in that dict as name.key instead of name.data.key.

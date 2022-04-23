@@ -178,16 +178,17 @@ def mixin_cols(request):
 
 @pytest.fixture(params=[False, True])
 def T1(request):
-    T = Table.read([' a b c d',
-                    ' 2 c 7.0 0',
-                    ' 2 b 5.0 1',
-                    ' 2 b 6.0 2',
-                    ' 2 a 4.0 3',
-                    ' 0 a 0.0 4',
-                    ' 1 b 3.0 5',
-                    ' 1 a 2.0 6',
-                    ' 1 a 1.0 7',
-                    ], format='ascii')
+    T = QTable.read([' a b c d',
+                     ' 2 c 7.0 0',
+                     ' 2 b 5.0 1',
+                     ' 2 b 6.0 2',
+                     ' 2 a 4.0 3',
+                     ' 0 a 0.0 4',
+                     ' 1 b 3.0 5',
+                     ' 1 a 2.0 6',
+                     ' 1 a 1.0 7',
+                     ], format='ascii')
+    T['q'] = np.arange(len(T)) * u.m
     T.meta.update({'ta': 1})
     T['c'].meta.update({'a': 1})
     T['c'].description = 'column c'

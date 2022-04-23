@@ -214,7 +214,7 @@ class BaseGroups:
 class ColumnGroups(BaseGroups):
     def __init__(self, parent_column, indices=None, keys=None):
         self.parent_column = parent_column  # parent Column
-        self.parent_table = parent_column.parent_table
+        self.parent_table = parent_column.info.parent_table
         self._indices = indices
         self._keys = keys
 
@@ -238,7 +238,8 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from .column import MaskedColumn
+        from .column import MaskedColumn, Column
+        from astropy.utils.compat import NUMPY_LT_1_20
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
@@ -248,6 +249,15 @@ class ColumnGroups(BaseGroups):
         mean_case = func is np.mean
         try:
             if not masked and (reduceat or sum_case or mean_case):
+                # For numpy < 1.20 there is a bug where reduceat will fail to
+                # raise an exception for mixin columns that do not support the
+                # operation. For details see:
+                # https://github.com/astropy/astropy/pull/12825#issuecomment-1082412447
+                # Instead we try the function directly with a 2-element version
+                # of the column
+                if NUMPY_LT_1_20 and not isinstance(par_col, Column) and len(par_col) > 0:
+                    func(par_col[[0, 0]])
+
                 if mean_case:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:
@@ -256,17 +266,18 @@ class ColumnGroups(BaseGroups):
                     vals = func.reduceat(par_col, i0s)
             else:
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
+            out = par_col.__class__(vals)
         except Exception as err:
-            raise TypeError("Cannot aggregate column '{}' with type '{}'"
-                            .format(par_col.info.name,
-                                    par_col.info.dtype)) from err
+            raise TypeError("Cannot aggregate column '{}' with type '{}': {}"
+                            .format(par_col.info.name, par_col.info.dtype, err)) from err
 
-        out = par_col.__class__(data=vals,
-                                name=par_col.info.name,
-                                description=par_col.info.description,
-                                unit=par_col.info.unit,
-                                format=par_col.info.format,
-                                meta=par_col.info.meta)
+        out_info = out.info
+        for attr in ('name', 'unit', 'format', 'description', 'meta'):
+            try:
+                setattr(out_info, attr, getattr(par_col.info, attr))
+            except AttributeError:
+                pass
+
         return out
 
     def filter(self, func):
@@ -354,7 +365,7 @@ class TableGroups(BaseGroups):
                 new_col = col.take(i0s)
             else:
                 try:
-                    new_col = col.groups.aggregate(func)
+                    new_col = col.info.groups.aggregate(func)
                 except TypeError as err:
                     warnings.warn(str(err), AstropyUserWarning)
                     continue
