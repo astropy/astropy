@@ -14,6 +14,16 @@ __all__ = ['UnifiedIORegistry', 'UnifiedInputRegistry', 'UnifiedOutputRegistry']
 PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
 
 
+def _expand_user_in_args(args):
+    # Conservatively attempt to apply `os.path.expanduser` to the first
+    # argument, which can be either a path or the contents of a table.
+    if len(args) and isinstance(args[0], PATH_TYPES):
+        ex_user = os.path.expanduser(args[0])
+        if ex_user != args[0] and os.path.exists(os.path.dirname(ex_user)):
+            args = (ex_user,) + args[1:]
+    return args
+
+
 # -----------------------------------------------------------------------------
 
 class UnifiedInputRegistry(_UnifiedIORegistryBase):
@@ -167,6 +177,9 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         """
         ctx = None
         try:
+            # Expand a tilde-prefixed path if present in args[0]
+            args = _expand_user_in_args(args)
+
             if format is None:
                 path = None
                 fileobj = None
@@ -332,6 +345,8 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
 
             .. versionadded:: 4.3
         """
+        # Expand a tilde-prefixed path if present in args[0]
+        args = _expand_user_in_args(args)
 
         if format is None:
             path = None

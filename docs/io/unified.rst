@@ -109,6 +109,12 @@ fine control of the way to write out certain columns, for instance
 writing an ISO format Time column as a pair of JD1/JD2 floating
 point values (for full resolution) or as a formatted ISO date string.
 
+Both the :meth:`~astropy.table.Table.read` and
+:meth:`~astropy.table.Table.write` methods can accept file paths of the form
+``~/data/file.csv`` or ``~username/data/file.csv``. These tilde-prefixed paths
+are expanded in the same way as is done by many command-line utilities, to
+represent the home directory of the current or specified user, respectively.
+
 ..
   EXAMPLE END
 

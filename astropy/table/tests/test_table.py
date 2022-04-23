@@ -3,10 +3,12 @@
 
 from astropy.utils.tests.test_metadata import MetaBaseTest
 import gc
+import os
 import sys
 import copy
 from io import StringIO
 from collections import OrderedDict
+import pathlib
 import pickle
 
 import pytest
@@ -27,6 +29,20 @@ from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
 from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+
+
+@pytest.fixture
+def home_is_tmpdir(monkeypatch, tmpdir):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmpdir))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmpdir))
 
 
 class SetupData:
@@ -3023,3 +3039,18 @@ def test_remove_columns_invalid_names_messages():
     with pytest.raises(KeyError,
                        match='columns {\'[de]\', \'[de]\'} do not exist'):
         t.remove_columns(['c', 'd', 'e'])
+
+
+@pytest.mark.parametrize("path_type", ['str', 'Path'])
+def test_read_write_tilde_path(path_type, home_is_tmpdir):
+    if path_type == 'str':
+        test_file = os.path.join('~', 'test.csv')
+    else:
+        test_file = pathlib.Path('~', 'test.csv')
+    t1 = Table()
+    t1['a'] = [1, 2, 3]
+    t1.write(test_file)
+    t2 = Table.read(test_file)
+    assert np.all(t2['a'] == [1, 2, 3])
+    # Ensure the data wasn't written to the literal tilde-prefixed path
+    assert not os.path.exists(test_file)

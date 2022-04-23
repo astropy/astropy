@@ -1,0 +1,4 @@
+``cosmology`` file I/O uses the Unified Table I/O interface, which has added
+support for reading and writing file paths of the form ``~/file.ecsv`` or
+``~<username>/file.ecsv``, referring to the home directory of the current user
+or the specified user, respectively.
