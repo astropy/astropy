@@ -278,7 +278,7 @@ For the example grouped table ``obs_by_name`` from above, we compute the group
 means with the :meth:`~astropy.table.groups.TableGroups.aggregate` method::
 
   >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SHOW_WARNINGS
-  AstropyUserWarning: Cannot aggregate column 'obs_date' with type '<U10'
+  AstropyUserWarning: Cannot aggregate column 'obs_date' with type '<U10': ...
   >>> print(obs_mean)
   name mag_b mag_v
   ---- ----- -----
@@ -289,7 +289,7 @@ means with the :meth:`~astropy.table.groups.TableGroups.aggregate` method::
 It seems the magnitude values were successfully averaged, but what about the
 :class:`~astropy.utils.exceptions.AstropyUserWarning`? Since the ``obs_date``
 column is a string-type array, the :func:`numpy.mean` function failed and
-raised an exception.  Any time this happens
+raised an exception ``cannot perform reduceat with flexible type``.  Any time this happens
 :meth:`~astropy.table.groups.TableGroups.aggregate` will issue a warning and
 then drop that column from the output result. Note that the ``name`` column is
 one of the ``keys`` used to determine the grouping so it is automatically

@@ -200,28 +200,6 @@ work.
 Masking of mixin columns is enabled by the |Masked| class. See
 :ref:`utils-masked` for details.
 
-**High-level table operations**
-
-Some :ref:`grouped-operations` can be used with a |QTable| with |Quantity|
-columns, but performing aggregation on such a |QTable| fails::
-
-  >>> import numpy as np
-  >>> t = QTable()
-  >>> t['name'] = ['foo', 'foo', 'bar']
-  >>> t['a'] = np.arange(3)*u.m
-  >>> t_grouped = t.group_by('name')
-  >>> print(t_grouped)
-  name  a
-        m
-  ---- ---
-   bar 2.0
-   foo 0.0
-   foo 1.0
-  >>> t_grouped.groups.aggregate(np.mean)
-  Traceback (most recent call last):
-  ...
-  AttributeError: 'Quantity' object has no 'groups' member
-
 **ASCII table writing**
 
 Tables with mixin columns can be written out to file using the
@@ -378,6 +356,7 @@ This can be done for data classes that are defined in third-party packages and w
 you have no control over. As an example, we define a class
 that is not numpy-like and stores the data in a private attribute::
 
+    >>> import numpy as np
     >>> class ExampleDataClass:
     ...     def __init__(self):
     ...         self._data = np.array([0, 1, 3, 4], dtype=float)
