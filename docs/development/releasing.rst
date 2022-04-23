@@ -108,6 +108,10 @@ The procedure for the feature freeze is as follows:
 
 #. Inform the Astropy developer community that the branching has occurred.
 
+#. Once the feature freeze has happened, you should go through the PRs labeled
+   with ``backport-v<prev_version>.x`` to see if they must also be labeled with
+   the new version backport label.
+
 .. _release-procedure-first-rc:
 
 Releasing the first major release candidate
@@ -141,7 +145,7 @@ To find the statistics and contributors, use the `generate_releaserst.xsh`_
 script. This requires `xonsh <https://xon.sh/>`_ and `docopt
 <http://docopt.org/>`_ which you can install with::
 
-   pip install xonsh docopt
+   pip install xonsh docopt requests
 
 You should then run the script in the root of the astropy repository as follows::
 
@@ -217,6 +221,21 @@ the release branch.
 
 Ensure continuous integration and intensive tests pass
 ------------------------------------------------------
+
+Update ``.github/workflows/ci_workflows.yml`` so that pushes on the release
+branch trigger a build with Github Actions, e.g.::
+
+  on:
+    push:
+      branches:
+      - v5.1.x
+    pull_request:
+      branches:
+      - v5.1.x
+
+You also need to activate builds on the release branch for ReadTheDocs. Go to
+`RTD's Settings <https://readthedocs.org/projects/astropy/versions/>`_ and check
+"Activate" and "Hidden" for the new release branch.
 
 Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
 for the `astropy core repository`_ branch you are going to release. Also check that
@@ -448,13 +467,15 @@ Post-Release procedures
    https://doi.org/10.5281/zenodo.4670728 . If you encounter problems during this
    step, please contact the Astropy Coordination Committee.
 
-#. Once the release(s) are available on the default ``conda`` channels,
-   prepare the public announcement. Use the previous announcement as a template,
-   but link to the release tag instead of ``stable``. For a new major release,
-   you should coordinate with the rest of the Astropy release team and the
-   community engagement coordinators. Meanwhile, for a bugfix release, you can
+#. Once the release(s) are available on the default ``conda`` channels, prepare
+   the public announcement. For a new major release, copy the `latest
+   announcement
+   <https://github.com/astropy/astropy.github.com/tree/main/announcements>`_ and
+   edit it to update the version number and links. Once it is merged, you can
    proceed to send out an email to the ``astropy-dev`` and Astropy mailing
-   lists.
+   lists. For a bugfix release, use the previous announcement as a template.
+   You should also coordinate with the rest of the Astropy release team and the
+   community engagement coordinators.
 
 .. _release-procedure-bug-fix:
 
@@ -569,7 +590,7 @@ Backporting fixes from main
     freeze but before its release.
 
 Most pull requests will be backported automatically by a backport bot, which
-opens pull requests with the backports aganist the release branch. Make sure
+opens pull requests with the backports against the release branch. Make sure
 that any such pull requests are merged in before starting the release process
 for a new bugfix release.
 
