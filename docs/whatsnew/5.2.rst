@@ -1,0 +1,24 @@
+.. _whatsnew-5.2:
+
+**************************
+What's New in Astropy 5.2?
+**************************
+
+Overview
+========
+
+Astropy 5.2 is a major release that adds significant new functionality since
+the 5.1 release.
+
+In particular, this release includes:
+
+* nothing yet
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v5.2, including changes in
+API, please see the :ref:`changelog`.
+
+Renamed/removed functionality
+=============================
