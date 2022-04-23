@@ -1,4 +1,4 @@
-*******************
+    ******************r
 Authors and Credits
 *******************
 
@@ -9,6 +9,7 @@ Core Package Contributors
 * Aarya Patil
 * Abhinuv Nitin Pitale
 * Abigail Stevens
+* Adam Broussard
 * Adam Ginsburg
 * Adele Plunkett
 * Aditya Sharma
@@ -34,6 +35,7 @@ Core Package Contributors
 * Andreas Baumbach
 * Andrej Rode
 * Andrew Hearin
+* Andrii Oriekhov
 * Aniket Kulkarni
 * Aniket Sanghi
 * Anirudh Katipally
@@ -139,6 +141,7 @@ Core Package Contributors
 * Evert Rol
 * Felix Yan
 * fockez
+* Francesc Vilardell
 * Francesco Biscani
 * Francesco Montanari
 * Francesco Montesano
@@ -165,6 +168,7 @@ Core Package Contributors
 * Helen Sherwood-Taylor
 * Himanshu Pathak
 * homeboy445
+* Hsin Fan
 * Hugo Buddelmeijer
 * Humna Awan
 * iamsoto
@@ -191,6 +195,7 @@ Core Package Contributors
 * Jeffrey McBeth
 * Jero Bado
 * jimboH
+* Jo Bovy
 * Joanna Power
 * Joe Hunkeler
 * Joe Lyman
@@ -199,6 +204,7 @@ Core Package Contributors
 * John Parejko
 * Johnny Greco
 * Jonas Große Sundrup
+* Jonas Kemmer
 * Jonathan Eisenhamer
 * Jonathan Foster
 * Jonathan Sick
@@ -229,7 +235,9 @@ Core Package Contributors
 * Kris Stern
 * Kristin Berry
 * Kyle Barbary
+* Kyle Conroy
 * Kyle Oman
+* kYwzor
 * Larry Bradley
 * Laura Hayes
 * Laura Watkins
@@ -258,6 +266,7 @@ Core Package Contributors
 * Magali Mebsout
 * maggiesam
 * Maik Nijhuis
+* Malynda Chizek Frouard
 * Manas Satish Bedmutha
 * Maneesh Yadav
 * Mangala Gowri Krishnamoorthy
@@ -305,6 +314,7 @@ Core Package Contributors
 * Moataz Hisham
 * Mohan Agrawal
 * Molly Peeples
+* mzhengxi
 * Nabil Freij
 * Nadia Dencheva
 * Nathanial Hendler
@@ -379,10 +389,12 @@ Core Package Contributors
 * Sara Ogaz
 * Sarah Graves
 * Sarah Kendrew
+* Sarah Weissman
 * Sashank Mishra
 * sashmish
 * Saurav Sachidanand
 * Scott Thomas
+* Sebastian Meßlinger
 * Semyeong Oh
 * Serge Montagnac
 * Sergio Pascual
