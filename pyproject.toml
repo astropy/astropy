@@ -26,7 +26,7 @@ write_to = "astropy/_version.py"
     directory = "docs/changes"
     underlines = "=-^"
     template = "docs/changes/template.rst"
-    title_format = "{version} ({project_date})"
+    title_format = "Version {version} ({project_date})"
 
     [[tool.towncrier.type]]
         directory = "feature"
