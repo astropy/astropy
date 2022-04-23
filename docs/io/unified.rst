@@ -487,7 +487,8 @@ sentinel values according to the FITS standard:
 
 When the file is read back those elements are marked as masked in the returned
 table, but see `issue #4708 <https://github.com/astropy/astropy/issues/4708>`_
-for problems in all three cases.
+for problems in all three cases. It is possible to deactivate the masking with
+``mask_invalid=False``.
 
 The FITS standard has a few limitations:
 
