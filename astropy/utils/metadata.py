@@ -3,7 +3,10 @@
 This module contains helper functions and classes for handling metadata.
 """
 
+from __future__ import annotations
+
 from functools import wraps
+from typing import Generic, Optional, Type, TypeVar, overload
 
 import warnings
 
@@ -20,6 +23,9 @@ __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
            'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',
            'MergeStrategyMeta', 'enable_merge_strategies', 'merge', 'MetaData',
            'MetaAttribute']
+
+
+_ObjT = TypeVar("_ObjT")
 
 
 class MergeConflictError(TypeError):
@@ -368,7 +374,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
     return out
 
 
-class MetaData:
+class MetaData(Generic[_ObjT]):
     """
     A descriptor for classes that have a ``meta`` property.
 
@@ -390,26 +396,60 @@ class MetaData:
         .. versionadded:: 1.2
     """
 
-    def __init__(self, doc="", copy=True):
+    copy: bool
+
+    def __init__(self, doc: str = "", copy: bool = True) -> None:
         self.__doc__ = doc
         self.copy = copy
 
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        if not hasattr(instance, '_meta'):
-            instance._meta = OrderedDict()
-        return instance._meta
+    def __set_name__(self, objtype: Type[_ObjT], name: str) -> None:
+        pass
 
-    def __set__(self, instance, value):
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[_ObjT]]) -> MetaData:
+        ...
+
+    @overload
+    def __get__(self, obj: _ObjT, objtype: Optional[Type[_ObjT]]) -> Mapping:
+        ...
+
+    def __get__(self, obj: Optional[_ObjT], objtype: Optional[Type[_ObjT]]
+               ) -> Union[Mapping, MetaData]:
+        """
+        Get the metadata mapping, if calling ``meta`` from the instance,
+        or this descriptor object, if calling from the objtype class.
+
+        Parameters
+        ----------
+        obj : object or None
+        objtype : instance or None
+
+        Return
+        ------
+        Mapping or MetaData
+        """
+        if obj is None:
+            return self
+        if not hasattr(obj, "_meta"):
+            obj._meta = OrderedDict()
+        return obj._meta
+
+    def __set__(self, obj: _ObjT, value: Optional[Mapping]) -> None:
+        """Set the metadata to any valid `~collections.abc.Mapping`.
+
+        Parameters
+        ----------
+        obj : object or None
+        value : Mapping or None
+        """
         if value is None:
-            instance._meta = OrderedDict()
+            obj._meta = OrderedDict()
         else:
             if isinstance(value, Mapping):
                 if self.copy:
-                    instance._meta = deepcopy(value)
+                    obj._meta = deepcopy(value)
                 else:
-                    instance._meta = value
+                    obj._meta = value
             else:
                 raise TypeError("meta attribute must be dict-like")
 

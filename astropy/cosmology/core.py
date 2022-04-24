@@ -68,7 +68,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
-    meta = MetaData()
+    meta = MetaData[_CosmoT]()
 
     # Unified I/O object interchange methods
     from_format = UnifiedReadWriteMethod(CosmologyFromFormat)
