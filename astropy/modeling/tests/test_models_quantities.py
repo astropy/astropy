@@ -739,6 +739,12 @@ mag_models = [
                        'alpha': -1.9},
         'evaluation': [(-23 * u.ABmag, 1.002702276867279e-12 * (u.Mpc ** -3))],
     },
+    {
+        'class': Schechter1D,
+        'parameters': {'phi_star': 1.e-4 * (u.Mpc ** -3), 'm_star': -20. * u.mag,
+                       'alpha': -1.9},
+        'evaluation': [(-23 * u.mag, 1.002702276867279e-12 * (u.Mpc ** -3))],
+    },
 ]
 
 
@@ -755,7 +761,7 @@ def test_models_evaluate_magunits(model):
 def test_Schechter1D_errors():
     # Non magnitude units are bad
     model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.km, alpha=-1.9)
-    with pytest.raises(u.UnitConversionError):
+    with pytest.raises(u.UnitsError):
         model(-23 * u.km)
 
     # Differing magnitude systems are bad

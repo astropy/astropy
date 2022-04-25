@@ -5,7 +5,7 @@ Power law model variants
 # pylint: disable=invalid-name
 import numpy as np
 
-from astropy.units import Quantity, dimensionless_unscaled
+from astropy.units import Magnitude, Quantity, UnitsError, dimensionless_unscaled, mag
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
@@ -589,8 +589,14 @@ class Schechter1D(Fittable1DModel):
     @staticmethod
     def _factor(magnitude, m_star):
         factor_exp = (magnitude - m_star)
+
         if isinstance(factor_exp, Quantity):
-            return factor_exp.to(dimensionless_unscaled)
+            if factor_exp.unit == mag:
+                factor_exp = Magnitude(factor_exp.value, unit=mag)
+
+                return factor_exp.to(dimensionless_unscaled)
+            else:
+                raise UnitsError("The units of magnitude and m_star must be a magnitude")
         else:
             return 10 ** (-0.4 * factor_exp)
 
