@@ -973,7 +973,9 @@ When we try to read that with ``guess=False``, astropy throws an
   ... alpha Cen G2V+K1
   ... '''
   >>> ascii.read(table, guess=False)
-  InconsistentTableError: Number of header columns (2) inconsistent with data columns in data line 1
+  Traceback (most recent call last):
+      ...
+  astropy.io.ascii.core.InconsistentTableError: Number of header columns (2) inconsistent with data columns in data line 1
   
 This points us to the line with the problem, here line 1 (starting to count
 after the header lines and counting the data lines from 0 as usual in Python). In this table with
