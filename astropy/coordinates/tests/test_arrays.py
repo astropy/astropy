@@ -71,14 +71,6 @@ def test_dms():
     npt.assert_almost_equal(m, [0, 30, -30])
     npt.assert_almost_equal(s, [0, 0, -0])
 
-    dms = a1.dms
-    degrees = dms_to_degrees(*dms)
-    npt.assert_almost_equal(a1.degree, degrees)
-
-    a2 = Angle(dms, unit=u.degree)
-
-    npt.assert_almost_equal(a2.radian, a1.radian)
-
 
 def test_hms():
     a1 = Angle([0, 11.5, -11.5], unit=u.hour)
