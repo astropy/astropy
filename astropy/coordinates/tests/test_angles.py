@@ -36,10 +36,7 @@ def test_create_angles():
     a4 = Angle("54.12412 deg")
     a5 = Angle("54.12412 degrees")
     a6 = Angle("54.12412°")  # because we like Unicode
-    a7 = Angle((54, 7, 26.832), unit=u.degree)
     a8 = Angle("54°07'26.832\"")
-    # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
-    # because of the need to eventually support arrays of coordinates
     a9 = Angle([54, 7, 26.832], unit=u.degree)
     assert_allclose(a9.value, [54, 7, 26.832])
     assert a9.unit is u.degree
@@ -82,13 +79,12 @@ def test_create_angles():
     a24 = Angle("+ 3h", unit=u.hour)
 
     # ensure the above angles that should match do
-    assert a1 == a2 == a3 == a4 == a5 == a6 == a7 == a8 == a18 == a19 == a20
+    assert a1 == a2 == a3 == a4 == a5 == a6 == a8 == a18 == a19 == a20
     assert_allclose(a1.radian, a2.radian)
     assert_allclose(a2.degree, a3.degree)
     assert_allclose(a3.radian, a4.radian)
     assert_allclose(a4.radian, a5.radian)
     assert_allclose(a5.radian, a6.radian)
-    assert_allclose(a6.radian, a7.radian)
 
     assert_allclose(a10.degree, a11.degree)
     assert a11 == a12 == a13 == a14
@@ -432,7 +428,6 @@ def test_radec():
     ra = Longitude("12h43m23s")
     assert_allclose(ra.hour, 12.7230555556)
 
-    ra = Longitude((56, 14, 52.52), unit=u.degree)      # can accept tuples
     # TODO: again, fix based on >24 behavior
     # ra = Longitude((56,14,52.52))
     with pytest.raises(u.UnitsError):
@@ -440,8 +435,6 @@ def test_radec():
     with pytest.raises(u.UnitsError):
         ra = Longitude((12, 14, 52))  # ambiguous w/o units
     ra = Longitude((12, 14, 52), unit=u.hour)
-
-    ra = Longitude([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
 
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
@@ -901,11 +894,10 @@ def test_empty_sep():
 
 def test_create_tuple():
     """
-    Tests creation of an angle with a (d,m,s) or (h,m,s) tuple
-    """
-    a1 = Angle((1, 30, 0), unit=u.degree)
-    assert a1.value == 1.5
+    Tests creation of an angle with an (h,m,s) tuple
 
+    (d, m, s) tuples are not tested because of sign ambiguity issues (#13162)
+    """
     a1 = Angle((1, 30, 0), unit=u.hourangle)
     assert a1.value == 1.5
 
