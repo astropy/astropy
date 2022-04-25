@@ -874,8 +874,8 @@ Obtain the data table in a different format
 -------------------------------------------
 Sometimes it is easy to obtain the data in a more structured format that
 more clearly defines columns and metadata, e.g. a fits or VO/XML table, or
-an ASCII table that uses a different colum separator (e.g. comma instead of 
-white space) or fixed-width columns. 
+an ASCII table that uses a different colum separator (e.g. comma instead of
+white space) or fixed-width columns.
 In that case, the fastest solution can be to simply download or export the
 data again in a different format.
 
@@ -895,7 +895,7 @@ Making a table easier to read
 Sometimes, the parameters for `astropy.io.ascii.read` to specify e.g.
 ``format``, ``delimiter``, ``comment``, ``quote_char``, ``header_start``,
 ``data_start``, ``data_end``, and ``encoding`` are not enough.
-To read just a single table that has a format close to, but not identical 
+To read just a single table that has a format close to, but not identical
 with, any of the :ref:`supported_formats`, the fastest solution is often to open
 that one table file in a text editor to modify it until it does conform to a
 format that can be read. On the other hand, if we need to
@@ -976,7 +976,7 @@ When we try to read that with ``guess=False``, astropy throws an
   Traceback (most recent call last):
       ...
   astropy.io.ascii.core.InconsistentTableError: Number of header columns (2) inconsistent with data columns in data line 1
-  
+
 This points us to the line with the problem, here line 1 (starting to count
 after the header lines and counting the data lines from 0 as usual in Python). In this table with
 just two lines the problem is easy to spot, but for longer tables, the line number is
