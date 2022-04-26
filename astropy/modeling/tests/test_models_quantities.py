@@ -768,3 +768,8 @@ def test_Schechter1D_errors():
     model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
     with pytest.raises(u.UnitsError):
         model(-23 * u.STmag)
+
+    # Differing magnitude systems are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
+    with pytest.raises(u.UnitsError):
+        model(-23 * u.mag)
