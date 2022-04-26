@@ -21,6 +21,16 @@ In particular, this release includes:
 * :ref:`whatsnew-uncertainty-represent`
 * :ref:`whatsnew-schechter1d-model`
 
+In addition to these major changes, Astropy v5.1 includes a large number of
+smaller improvements and bug fixes, which are described in the Full Changelog.
+By the numbers:
+
+* 1031 commits have been added since 5.0
+* 141 issues have been closed since 5.0
+* 267 pull requests have been merged since 5.0
+* 58 people have contributed since 5.0
+* 13 of which are new contributors
+
 .. _whatsnew-5.1-cosmology:
 
 Updates to ``Cosmology``
@@ -175,5 +185,71 @@ Full change log
 To see a detailed list of all changes in version v5.1, including changes in
 API, please see the :ref:`changelog`.
 
-Renamed/removed functionality
-=============================
+Contributors to the v5.0 release
+================================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+-  Aarya Patil
+-  Adam Broussard  *
+-  Adam Ginsburg
+-  Adrian Price-Whelan
+-  Albert Y. Shih
+-  Andrii Oriekhov  *
+-  Brian Soto
+-  Chiara Marmo
+-  Clare Shanahan
+-  Clément Robert
+-  David Stansby
+-  Derek Homeier
+-  E. Madison Bray
+-  Ed Slavich
+-  Eero Vaher
+-  Emir Karamehmetoglu
+-  Erik Tollerud
+-  Francesc Vilardell  *
+-  Geert Barentsen
+-  Hans Moritz Günther
+-  Hsin Fan  *
+-  James Tocknell
+-  Jero Bado
+-  Jerry Ma
+-  Jo Bovy  *
+-  Jonas Kemmer  *
+-  Karl Gordon
+-  Karl Wessel
+-  Kelle Cruz
+-  Kyle Conroy  *
+-  Larry Bradley
+-  Laurie Stephey
+-  Leo Singer
+-  Malynda Chizek Frouard  *
+-  Marten van Kerkwijk
+-  Matteo Bachetti
+-  Matthew Craig
+-  Maximilian Nöthe
+-  Mihai Cara
+-  Nabil Freij
+-  Nathaniel Starkman
+-  Neal McBurnett
+-  Ole Streicher
+-  Pey Lian Lim
+-  Robel Geda
+-  Roy Smart
+-  Sam Van Kooten
+-  Sarah Weissman  *
+-  Sebastian Meßlinger  *
+-  Simon Conseil
+-  Stuart Mumford
+-  Thomas Robitaille
+-  Tom Aldcroft
+-  William Jamieson
+-  github-actions  *
+-  kYwzor  *
+-  mzhengxi  *
+-  orionlee
+
+Where a * indicates that this release contains their first contribution to astropy.
