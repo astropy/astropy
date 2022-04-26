@@ -69,8 +69,6 @@ class Angle(u.SpecificTypeQuantity):
       <Angle 1.04166667 hourangle>
       >>> Angle('-1:2.5', unit=u.deg)
       <Angle -1.04166667 deg>
-      >>> Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
-      <Angle 10.18666667 hourangle>
       >>> Angle(10.2345 * u.deg)
       <Angle 10.2345 deg>
       >>> Angle(Angle(10.2345 * u.deg))
