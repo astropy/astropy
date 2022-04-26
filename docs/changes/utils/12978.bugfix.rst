@@ -1,0 +1,2 @@
+Fixed a bug which caused ``numpy.interp`` to produce incorrect
+results when ``Masked`` arrays were passed.
