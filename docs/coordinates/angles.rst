@@ -54,8 +54,6 @@ There are a number of ways to create an |Angle|::
     <Angle -1.03416667 hourangle>
     >>> Angle('-1h2m3sW')               # Hour, minute, second, direction  # doctest: +FLOAT_CMP
     <Angle 1.03416667 hourangle>
-    >>> Angle((-1, 2, 3), unit=u.deg)  # (degree, arcmin, arcsec)  # doctest: +FLOAT_CMP
-    <Angle -1.03416667 deg>
     >>> Angle(10.2345 * u.deg)         # From a Quantity object in degrees  # doctest: +FLOAT_CMP
     <Angle 10.2345 deg>
     >>> Angle(Angle(10.2345 * u.deg))  # From another Angle object  # doctest: +FLOAT_CMP
