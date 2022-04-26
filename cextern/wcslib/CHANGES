@@ -1,3 +1,30 @@
+WCSLIB version 7.11 (2022/04/26)
+--------------------------------
+
+* C library
+
+  - In tabini(), the default index array should contain a 1-relative
+    sequence: {1, 2,... N}.  Previously it was 0-relative.
+
+
+WCSLIB version 7.10 (2022/04/24)
+--------------------------------
+
+* C library
+
+  - In tabcpy(), collapse degenerate table index arrays if they are
+    collapsed in the source struct.  Minor fix for output formatting
+    in tabprt().
+
+  - In the C test suite, added calls to wcstrim() in twcsfix to tidy
+    the structs before printing.
+
+* Utilities
+
+  - The default option in wcsware now trims the wcsprm struct before
+    printing it.  Use the '-p' option to print the untrimmed struct.
+
+
 WCSLIB version 7.9 (2022/03/26)
 -------------------------------
 
@@ -3308,4 +3335,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.9 2022/03/25 15:14:49 mcalabre Exp $
+$Id: CHANGES,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
