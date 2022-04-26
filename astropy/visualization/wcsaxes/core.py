@@ -269,6 +269,43 @@ class WCSAxes(Axes):
 
         return cset
 
+    def _transform_plot_args(self, *args, **kwargs):
+        """
+        Apply transformations to arguments to ``plot_coord`` and 
+        ``scatter_coord``
+        """
+        if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
+
+            # Extract the frame from the first argument.
+            frame0 = args[0]
+            if isinstance(frame0, SkyCoord):
+                frame0 = frame0.frame
+
+            native_frame = self._transform_pixel2world.frame_out
+            # Transform to the native frame of the plot
+            frame0 = frame0.transform_to(native_frame)
+
+            plot_data = []
+            for coord in self.coords:
+                if coord.coord_type == 'longitude':
+                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
+                elif coord.coord_type == 'latitude':
+                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
+                else:
+                    raise NotImplementedError("Coordinates cannot be plotted with this "
+                                              "method because the WCS does not represent longitude/latitude.")
+
+            if 'transform' in kwargs.keys():
+                raise TypeError("The 'transform' keyword argument is not allowed,"
+                                " as it is automatically determined by the input coordinate frame.")
+
+            transform = self.get_transform(native_frame)
+            kwargs.update({'transform': transform})
+
+            args = tuple(plot_data) + args[1:]
+        
+        return args, kwargs
+
     def plot_coord(self, *args, **kwargs):
         """
         Plot `~astropy.coordinates.SkyCoord` or
@@ -294,36 +331,8 @@ class WCSAxes(Axes):
 
         """
 
-        if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
-
-            # Extract the frame from the first argument.
-            frame0 = args[0]
-            if isinstance(frame0, SkyCoord):
-                frame0 = frame0.frame
-
-            native_frame = self._transform_pixel2world.frame_out
-            # Transform to the native frame of the plot
-            frame0 = frame0.transform_to(native_frame)
-
-            plot_data = []
-            for coord in self.coords:
-                if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
-                elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
-                else:
-                    raise NotImplementedError("Coordinates cannot be plotted with this "
-                                              "method because the WCS does not represent longitude/latitude.")
-
-            if 'transform' in kwargs.keys():
-                raise TypeError("The 'transform' keyword argument is not allowed,"
-                                " as it is automatically determined by the input coordinate frame.")
-
-            transform = self.get_transform(native_frame)
-            kwargs.update({'transform': transform})
-
-            args = tuple(plot_data) + args[1:]
-
+        args, kwargs = self._transform_plot_args(*args, **kwargs)
+        
         return super().plot(*args, **kwargs)
 
     def scatter_coord(self, *args, **kwargs):
@@ -349,36 +358,8 @@ class WCSAxes(Axes):
         matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
         """
 
-        if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
-
-            # Extract the frame from the first argument.
-            frame0 = args[0]
-            if isinstance(frame0, SkyCoord):
-                frame0 = frame0.frame
-
-            native_frame = self._transform_pixel2world.frame_out
-            # Transform to the native frame of the plot
-            frame0 = frame0.transform_to(native_frame)
-
-            plot_data = []
-            for coord in self.coords:
-                if coord.coord_type == 'longitude':
-                    plot_data.append(frame0.spherical.lon.to_value(u.deg))
-                elif coord.coord_type == 'latitude':
-                    plot_data.append(frame0.spherical.lat.to_value(u.deg))
-                else:
-                    raise NotImplementedError("Coordinates cannot be plotted with this "
-                                              "method because the WCS does not represent longitude/latitude.")
-
-            if 'transform' in kwargs.keys():
-                raise TypeError("The 'transform' keyword argument is not allowed,"
-                                " as it is automatically determined by the input coordinate frame.")
-
-            transform = self.get_transform(native_frame)
-            kwargs.update({'transform': transform})
-
-            args = tuple(plot_data) + args[1:]
-
+        args, kwargs = self._transform_plot_args(*args, **kwargs)
+        
         return super().scatter(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
