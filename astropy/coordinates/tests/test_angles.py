@@ -43,9 +43,11 @@ def test_create_angles():
 
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
-    a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
-    # Regression test for #5001
-    a13 = Angle((3, 36, 29.7888000120), unit='hour')
+    with pytest.warns(AstropyDeprecationWarning, match='hms_to_hour'):
+        a12 = Angle((3, 36, 29.7888000120), unit=u.hour)  # *must* be a tuple
+    with pytest.warns(AstropyDeprecationWarning, match='hms_to_hour'):
+        # Regression test for #5001
+        a13 = Angle((3, 36, 29.7888000120), unit='hour')
 
     Angle(0.944644098745, unit=u.radian)
 
@@ -434,7 +436,8 @@ def test_radec():
         ra = Longitude((56, 14, 52.52))
     with pytest.raises(u.UnitsError):
         ra = Longitude((12, 14, 52))  # ambiguous w/o units
-    ra = Longitude((12, 14, 52), unit=u.hour)
+    with pytest.warns(AstropyDeprecationWarning, match='hms_to_hours'):
+        ra = Longitude((12, 14, 52), unit=u.hour)
 
     # Units can be specified
     ra = Longitude("4:08:15.162342", unit=u.hour)
@@ -898,7 +901,8 @@ def test_create_tuple():
 
     (d, m, s) tuples are not tested because of sign ambiguity issues (#13162)
     """
-    a1 = Angle((1, 30, 0), unit=u.hourangle)
+    with pytest.warns(AstropyDeprecationWarning, match='hms_to_hours'):
+        a1 = Angle((1, 30, 0), unit=u.hourangle)
     assert a1.value == 1.5
 
 
