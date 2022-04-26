@@ -460,11 +460,10 @@ class TestParameters:
         assert param.unit == u.m
 
         # Force magnitude unit (mag=False)
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError,
+                           match=r"This parameter does not support the magnitude units such as .*"):
             param._set_unit(u.ABmag, True)
-        assert str(err.value) == (
-            "This parameter does not support the magnitude units such as mag(AB)"
-        )
+
         # Force magnitude unit (mag=True)
         param._mag = True
         param._set_unit(u.ABmag, True)
