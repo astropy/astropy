@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import Mapping, Optional, Set, Type, TypeVar
+from typing import Any, Mapping, Optional, Set, Type, TypeVar
 
 import numpy as np
 
@@ -68,7 +68,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
-    meta = MetaData[_CosmoT]()
+    meta = MetaData[_CosmoT, str, Any]()
 
     # Unified I/O object interchange methods
     from_format = UnifiedReadWriteMethod(CosmologyFromFormat)

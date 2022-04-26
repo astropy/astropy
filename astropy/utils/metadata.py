@@ -6,7 +6,7 @@ This module contains helper functions and classes for handling metadata.
 from __future__ import annotations
 
 from functools import wraps
-from typing import Generic, Optional, Type, TypeVar, overload
+from typing import Generic, Optional, Type, TypeVar, Union, overload
 
 import warnings
 
@@ -25,7 +25,9 @@ __all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
            'MetaAttribute']
 
 
-_ObjT = TypeVar("_ObjT")
+_EnclT = TypeVar("_EnclT")
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 
 
 class MergeConflictError(TypeError):
@@ -374,7 +376,7 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
     return out
 
 
-class MetaData(Generic[_ObjT]):
+class MetaData(Generic[_EnclT, _KT, _VT]):
     """
     A descriptor for classes that have a ``meta`` property.
 
@@ -386,14 +388,29 @@ class MetaData(Generic[_ObjT]):
         Documentation for the attribute of the class.
         Default is ``""``.
 
-        .. versionadded:: 1.2
-
     copy : `bool`, optional
-        If ``True`` the the value is deepcopied before setting, otherwise it
-        is saved as reference.
-        Default is ``True``.
+        If `True` (default) a `~copy.deepcopy` of the value is made before
+        setting, otherwise it is saved as reference.
 
-        .. versionadded:: 1.2
+    Examples
+    --------
+    >>> class Object:
+    ...     meta = MetaData()
+    ...     def __init__(self, **kw):
+    ...         self.meta.update(kw)
+
+    >>> obj = Object(a=1, b=2)
+    >>> obj.meta
+    OrderedDict([('a', 1), ('b', 2)])
+
+    MetaData is `typing.Generic` with respect to the enclosing class and the
+    key-value types. The following indicates MetaData is attached to ``Object``
+    or a subclass and the dictionary has string keys and integer values.
+
+    >>> from typing import TypeVar
+    >>> ObjT = TypeVar("ObjT", bound="Object")
+    >>> class Object:
+    ...     meta = MetaData[ObjT, str, int]()
     """
 
     copy: bool
@@ -402,19 +419,16 @@ class MetaData(Generic[_ObjT]):
         self.__doc__ = doc
         self.copy = copy
 
-    def __set_name__(self, objtype: Type[_ObjT], name: str) -> None:
-        pass
-
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[_ObjT]]) -> MetaData:
+    def __get__(self, obj: None, _: Optional[Type[_EnclT]]) -> MetaData[_EnclT, _KT, _VT]:
         ...
 
     @overload
-    def __get__(self, obj: _ObjT, objtype: Optional[Type[_ObjT]]) -> Mapping:
+    def __get__(self, obj: _EnclT, _: Optional[Type[_EnclT]]) -> Mapping[_KT, _VT]:
         ...
 
-    def __get__(self, obj: Optional[_ObjT], objtype: Optional[Type[_ObjT]]
-               ) -> Union[Mapping, MetaData]:
+    def __get__(self, obj: Optional[_EnclT], _: Optional[Type[_EnclT]]
+               ) -> Union[Mapping[_KT, _VT], MetaData[_EnclT, _KT, _VT]]:
         """
         Get the metadata mapping, if calling ``meta`` from the instance,
         or this descriptor object, if calling from the objtype class.
@@ -434,7 +448,7 @@ class MetaData(Generic[_ObjT]):
             obj._meta = OrderedDict()
         return obj._meta
 
-    def __set__(self, obj: _ObjT, value: Optional[Mapping]) -> None:
+    def __set__(self, obj: _EnclT, value: Optional[Mapping[_KT, _VT]]) -> None:
         """Set the metadata to any valid `~collections.abc.Mapping`.
 
         Parameters
@@ -444,14 +458,10 @@ class MetaData(Generic[_ObjT]):
         """
         if value is None:
             obj._meta = OrderedDict()
+        elif isinstance(value, Mapping):
+            obj._meta = deepcopy(value) if self.copy else value
         else:
-            if isinstance(value, Mapping):
-                if self.copy:
-                    obj._meta = deepcopy(value)
-                else:
-                    obj._meta = value
-            else:
-                raise TypeError("meta attribute must be dict-like")
+            raise TypeError("meta attribute must be dict-like")
 
 
 class MetaAttribute:
