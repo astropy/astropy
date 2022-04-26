@@ -271,7 +271,7 @@ class WCSAxes(Axes):
 
     def _transform_plot_args(self, *args, **kwargs):
         """
-        Apply transformations to arguments to ``plot_coord`` and 
+        Apply transformations to arguments to ``plot_coord`` and
         ``scatter_coord``
         """
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
@@ -303,7 +303,7 @@ class WCSAxes(Axes):
             kwargs.update({'transform': transform})
 
             args = tuple(plot_data) + args[1:]
-        
+
         return args, kwargs
 
     def plot_coord(self, *args, **kwargs):
@@ -332,7 +332,7 @@ class WCSAxes(Axes):
         """
 
         args, kwargs = self._transform_plot_args(*args, **kwargs)
-        
+
         return super().plot(*args, **kwargs)
 
     def scatter_coord(self, *args, **kwargs):
@@ -359,7 +359,7 @@ class WCSAxes(Axes):
         """
 
         args, kwargs = self._transform_plot_args(*args, **kwargs)
-        
+
         return super().scatter(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
