@@ -346,9 +346,7 @@ class WCSAxes(Axes):
 
         See Also
         --------
-
         matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
-
         """
 
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
