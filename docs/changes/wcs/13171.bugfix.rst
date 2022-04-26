@@ -1,0 +1,4 @@
+Updated bundled WCSLIB version to 7.11. This update together with 7.10
+includes bug fixes to ``tabini()`` and ``tabcpy()`` as well as several
+print formatting enhancements. For a full list of
+changes - see http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES
