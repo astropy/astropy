@@ -789,8 +789,8 @@ def interp(x, xp, fp, *args, **kwargs):
         if xp.ndim == fp.ndim == 1:
             # Avoid making arrays 1-D; will just raise below.
             m = xpm | fpm
-            xp = xp[m]
-            fp = fp[m]
+            xp = xp[~m]
+            fp = fp[~m]
 
     result = np.interp(xd, xp, fp, *args, **kwargs)
     return result if xm is None else Masked(result, xm.copy())
