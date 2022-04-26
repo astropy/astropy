@@ -69,10 +69,6 @@ class Angle(u.SpecificTypeQuantity):
       <Angle 1.04166667 hourangle>
       >>> Angle('-1:2.5', unit=u.deg)
       <Angle -1.04166667 deg>
-      >>> Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
-      <Angle 10.18666667 hourangle>
-      >>> Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
-      <Angle -1.03416667 deg>
       >>> Angle(10.2345 * u.deg)
       <Angle 10.2345 deg>
       >>> Angle(Angle(10.2345 * u.deg))
@@ -124,7 +120,15 @@ class Angle(u.SpecificTypeQuantity):
                     angle_unit = unit
 
                 if isinstance(angle, tuple):
-                    angle = cls._tuple_to_float(angle, angle_unit)
+                    if angle_unit == u.hourangle:
+                        form._check_hour_range(angle[0])
+                    form._check_minute_range(angle[1])
+                    a = np.abs(angle[0]) + angle[1] / 60.
+                    if len(angle) == 3:
+                        form._check_second_range(angle[2])
+                        a += angle[2] / 3600.
+
+                    angle = np.copysign(a, angle[0])
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.

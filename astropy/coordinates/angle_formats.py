@@ -27,6 +27,7 @@ from .errors import (IllegalHourWarning, IllegalHourError,
                      IllegalMinuteWarning, IllegalMinuteError,
                      IllegalSecondWarning, IllegalSecondError)
 from astropy.utils import format_exception, parsing
+from astropy.utils.decorators import deprecated
 from astropy import units as u
 
 
@@ -409,11 +410,14 @@ def degrees_to_dms(d):
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
+@deprecated("dms_to_degrees (or creating an Angle with a tuple) has ambiguous "
+            "behavior when the degree value is 0",
+            alternative="another way of creating angles instead (e.g. a less "
+                         "ambiguous string like '-0d1m2.3s'")
 def dms_to_degrees(d, m, s=None):
     """
     Convert degrees, arcminute, arcsecond to a float degrees value.
     """
-
     _check_minute_range(m)
     _check_second_range(s)
 
@@ -436,6 +440,10 @@ def dms_to_degrees(d, m, s=None):
     return sign * (d + m / 60. + s / 3600.)
 
 
+@deprecated("hms_to_hours (or creating an Angle with a tuple) has ambiguous "
+            "behavior when the hour value is 0",
+            alternative="another way of creating angles instead (e.g. a less "
+                         "ambiguous string like '-0h1m2.3s'")
 def hms_to_hours(h, m, s=None):
     """
     Convert hour, minute, second to a float hour value.
