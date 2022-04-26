@@ -1,0 +1,4 @@
+The ``dms_to_degrees`` and ``hms_to_hours`` functions (and implicitly
+tuple-based initialization of ``Angle``) is now deprecated, as it was
+difficult to be sure about the intent of the user for signed values of
+the degrees/hours, minutes, and seconds.

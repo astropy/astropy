@@ -10,6 +10,7 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.utils.compat import NUMPY_LT_1_19
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
                                  CartesianRepresentation)
@@ -71,14 +72,6 @@ def test_dms():
     npt.assert_almost_equal(m, [0, 30, -30])
     npt.assert_almost_equal(s, [0, 0, -0])
 
-    dms = a1.dms
-    degrees = dms_to_degrees(*dms)
-    npt.assert_almost_equal(a1.degree, degrees)
-
-    a2 = Angle(dms, unit=u.degree)
-
-    npt.assert_almost_equal(a2.radian, a1.radian)
-
 
 def test_hms():
     a1 = Angle([0, 11.5, -11.5], unit=u.hour)
@@ -88,10 +81,11 @@ def test_hms():
     npt.assert_almost_equal(s, [0, 0, -0])
 
     hms = a1.hms
-    hours = hms_to_hours(*hms)
+    hours = hms[0] + hms[1] / 60. + hms[2] / 3600.
     npt.assert_almost_equal(a1.hour, hours)
 
-    a2 = Angle(hms, unit=u.hour)
+    with pytest.warns(AstropyDeprecationWarning, match='hms_to_hours'):
+        a2 = Angle(hms, unit=u.hour)
 
     npt.assert_almost_equal(a2.radian, a1.radian)
 
