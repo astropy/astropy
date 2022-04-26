@@ -122,7 +122,15 @@ class Angle(u.SpecificTypeQuantity):
                     angle_unit = unit
 
                 if isinstance(angle, tuple):
-                    angle = cls._tuple_to_float(angle, angle_unit)
+                    if angle_unit == u.hourangle:
+                        form._check_hour_range(angle[0])
+                    form._check_minute_range(angle[1])
+                    a = np.abs(angle[0]) + angle[1] / 60.
+                    if len(angle) == 3:
+                        form._check_second_range(angle[2])
+                        a += angle[2] / 3600.
+
+                    angle = np.copysign(a, angle[0])
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.
