@@ -1528,3 +1528,26 @@ def test_pixlist_wcs_colsel():
     assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
     assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
     assert np.allclose(w.wcs.lonpole, 180.)
+
+
+def test_swapaxes_same_val_roundtrip():
+    w = wcs.WCS(naxis=3)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
+    w.wcs.crpix = [32.5, 16.5, 1.]
+    w.wcs.crval = [5.63, -72.05, 1.]
+    w.wcs.pc = [[5.9e-06, 1.3e-05, 0.0], [-1.2e-05, 5.0e-06, 0.0], [0.0, 0.0, 1.0]]
+    w.wcs.cdelt = [1.0, 1.0, 1.0]
+    w.wcs.set()
+    axes_order = [3, 2, 1]
+    axes_order0 = list(i - 1 for i in axes_order)
+    ws = w.sub(axes_order)
+    imcoord = np.array([3, 5, 7])
+    imcoords = imcoord[axes_order0]
+    val_ref = w.wcs_pix2world([imcoord], 0)[0]
+    val_swapped = ws.wcs_pix2world([imcoords], 0)[0]
+
+    # check original axis and swapped give same results
+    assert np.allclose(val_ref[axes_order0], val_swapped, rtol=0, atol=1e-8)
+
+    # check round-tripping:
+    assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
