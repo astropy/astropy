@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.9 - an implementation of the FITS WCS standard.
+  WCSLIB 7.11 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 7.9 2022/03/25 15:14:48 mcalabre Exp $
+  $Id: wcs.c,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1299,6 +1299,7 @@ int wcssub(
       int i = wcssrc->tab[itab].map[m];
 
       if (map[i]) {
+        tab->flag = -1;
         if ((status = tabcpy(1, wcssrc->tab + itab, tab))) {
           wcserr_set(WCS_ERRMSG(wcs_taberr[status]));
           goto cleanup;

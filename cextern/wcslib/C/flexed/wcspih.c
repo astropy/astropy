@@ -20763,7 +20763,7 @@ static const yy_state_type yy_NUL_trans[1152] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcspih.l"
 /*============================================================================
-  WCSLIB 7.9 - an implementation of the FITS WCS standard.
+  WCSLIB 7.11 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20783,7 +20783,7 @@ static const yy_state_type yy_NUL_trans[1152] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 7.9 2022/03/25 15:14:48 mcalabre Exp $
+  $Id: wcspih.c,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
