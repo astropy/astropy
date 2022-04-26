@@ -306,11 +306,11 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
-    
+
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                    tolerance=0, style={})
-    def test_plot_scatter(self):
+    def test_scatter_coord(self):
         from matplotlib.collections import PathCollection
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
@@ -320,7 +320,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 720.5)
 
         c = SkyCoord(266 * u.deg, -29 * u.deg)
-        sc = ax.plot_scatter(c, 'o')
+        sc = ax.scatter_coord(c, 'o')
 
         # Test that plot_coord returns the results from ax.plot
         assert isinstance(sc, PathCollection)
@@ -332,7 +332,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_format_unit(u.degree)
 
         return fig
-    
+
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_plot_line(self):

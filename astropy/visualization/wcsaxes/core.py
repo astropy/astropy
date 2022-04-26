@@ -335,13 +335,13 @@ class WCSAxes(Axes):
         :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
         coordinate, which will then be converted to the first two parameters to
         `matplotlib.axes.Axes.scatter`. All other arguments are the same as
-        `matplotlib.axes.Axes.scatter`. If not specified a ``transform`` 
+        `matplotlib.axes.Axes.scatter`. If not specified a ``transform``
         keyword argument will be created based on the coordinate.
 
         Parameters
         ----------
         coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate object to scatter on the axes. This is converted to 
+            The coordinate object to scatter on the axes. This is converted to
             the first two arguments to `matplotlib.axes.Axes.scatter`.
 
         See Also
@@ -382,7 +382,7 @@ class WCSAxes(Axes):
             args = tuple(plot_data) + args[1:]
 
         return super().scatter(*args, **kwargs)
-    
+
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
         Reset the current Axes, to use a new WCS object.
