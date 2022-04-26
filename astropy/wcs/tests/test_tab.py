@@ -75,3 +75,35 @@ def test_wcstab_swapaxes():
         w.wcs.set()
     wswp = w.swapaxes(2, 0)
     deepcopy(wswp)
+
+
+@pytest.mark.skipif(
+    _WCSLIB_VER < Version('7.8'),
+    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work."
+)
+@pytest.mark.xfail(
+    Version('7.8') <= _WCSLIB_VER < Version('7.10'),
+    reason="Requires WCSLIB >= 7.10 for swapped -TAB axes to produce same results."
+)
+def test_wcstab_swapaxes_same_val_roundtrip():
+    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+
+    axes_order = [3, 2, 1]
+    axes_order0 = list(i - 1 for i in axes_order)
+
+    with fits.open(filename) as hdul:
+        w = wcs.WCS(hdul[0].header, hdul)
+        w.wcs.ctype[-1] = 'FREQ-TAB'
+        w.wcs.set()
+        ws = w.sub(axes_order)
+
+    imcoord = np.array([3, 5, 7])
+    imcoords = imcoord[axes_order0]
+    val_ref = w.wcs_pix2world([imcoord], 0)[0]
+    val_swapped = ws.wcs_pix2world([imcoords], 0)[0]
+
+    # check original axis and swapped give same results
+    assert np.allclose(val_ref[axes_order0], val_swapped, rtol=0, atol=1e-8)
+
+    # check round-tripping:
+    assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
