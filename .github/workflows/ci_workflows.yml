@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-    - main
-    tags:
-    - '*'
+    - v5.1.x
   pull_request:
+    branches:
+    - v5.1.x
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
