@@ -996,9 +996,9 @@ class Table:
         colnames : str or list
             List of column names (or a single column name) to index
         engine : type or None
-            Indexing engine class to use, from among SortedArray, BST,
-            and SCEngine. If the supplied argument is None
-            (by default), use SortedArray.
+            Indexing engine class to use, either `~astropy.table.SortedArray`,
+            `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
+            argument is None (by default), use `~astropy.table.SortedArray`.
         unique : bool
             Whether the values of the index must be unique. Default is False.
         '''
