@@ -193,63 +193,63 @@ The people who have contributed to the code for this release are:
 .. hlist::
   :columns: 4
 
--  Aarya Patil
--  Adam Broussard  *
--  Adam Ginsburg
--  Adrian Price-Whelan
--  Albert Y. Shih
--  Andrii Oriekhov  *
--  Brian Soto
--  Chiara Marmo
--  Clare Shanahan
--  Clément Robert
--  David Stansby
--  Derek Homeier
--  E. Madison Bray
--  Ed Slavich
--  Eero Vaher
--  Emir Karamehmetoglu
--  Erik Tollerud
--  Francesc Vilardell  *
--  Geert Barentsen
--  Hans Moritz Günther
--  Hsin Fan  *
--  James Tocknell
--  Jero Bado
--  Jerry Ma
--  Jo Bovy  *
--  Jonas Kemmer  *
--  Karl Gordon
--  Karl Wessel
--  Kelle Cruz
--  Kyle Conroy  *
--  Larry Bradley
--  Laurie Stephey
--  Leo Singer
--  Malynda Chizek Frouard  *
--  Marten van Kerkwijk
--  Matteo Bachetti
--  Matthew Craig
--  Maximilian Nöthe
--  Mihai Cara
--  Nabil Freij
--  Nathaniel Starkman
--  Neal McBurnett
--  Ole Streicher
--  Pey Lian Lim
--  Robel Geda
--  Roy Smart
--  Sam Van Kooten
--  Sarah Weissman  *
--  Sebastian Meßlinger  *
--  Simon Conseil
--  Stuart Mumford
--  Thomas Robitaille
--  Tom Aldcroft
--  William Jamieson
--  github-actions  *
--  kYwzor  *
--  mzhengxi  *
--  orionlee
+  -  Aarya Patil
+  -  Adam Broussard  *
+  -  Adam Ginsburg
+  -  Adrian Price-Whelan
+  -  Albert Y. Shih
+  -  Andrii Oriekhov  *
+  -  Brian Soto
+  -  Chiara Marmo
+  -  Clare Shanahan
+  -  Clément Robert
+  -  David Stansby
+  -  Derek Homeier
+  -  E. Madison Bray
+  -  Ed Slavich
+  -  Eero Vaher
+  -  Emir Karamehmetoglu
+  -  Erik Tollerud
+  -  Francesc Vilardell  *
+  -  Geert Barentsen
+  -  Hans Moritz Günther
+  -  Hsin Fan  *
+  -  James Tocknell
+  -  Jero Bado
+  -  Jerry Ma
+  -  Jo Bovy  *
+  -  Jonas Kemmer  *
+  -  Karl Gordon
+  -  Karl Wessel
+  -  Kelle Cruz
+  -  Kyle Conroy  *
+  -  Larry Bradley
+  -  Laurie Stephey
+  -  Leo Singer
+  -  Malynda Chizek Frouard  *
+  -  Marten van Kerkwijk
+  -  Matteo Bachetti
+  -  Matthew Craig
+  -  Maximilian Nöthe
+  -  Mihai Cara
+  -  Nabil Freij
+  -  Nathaniel Starkman
+  -  Neal McBurnett
+  -  Ole Streicher
+  -  Pey Lian Lim
+  -  Robel Geda
+  -  Roy Smart
+  -  Sam Van Kooten
+  -  Sarah Weissman  *
+  -  Sebastian Meßlinger  *
+  -  Simon Conseil
+  -  Stuart Mumford
+  -  Thomas Robitaille
+  -  Tom Aldcroft
+  -  William Jamieson
+  -  github-actions  *
+  -  kYwzor  *
+  -  mzhengxi  *
+  -  orionlee
 
 Where a * indicates that this release contains their first contribution to astropy.
