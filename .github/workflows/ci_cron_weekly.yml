@@ -8,6 +8,10 @@ on:
     branches:
     - v5.0.x
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IS_CRON: 'true'
 
