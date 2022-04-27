@@ -140,7 +140,8 @@ def test_scatter_coord_transform(ignore_matplotlibrc):
 
     c = SkyCoord(359.76045223*u.deg, 0.26876217*u.deg)
     with pytest.raises(TypeError):
-        ax.plot_scatter(c, marker='o', transform=ax.get_transform('galactic'))
+        ax.scatter_coord(c, marker='o', 
+                         transform=ax.get_transform('galactic'))
 
 
 def test_set_label_properties(ignore_matplotlibrc):
