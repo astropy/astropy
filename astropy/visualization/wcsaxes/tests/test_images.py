@@ -320,7 +320,7 @@ class TestBasic(BaseImageTests):
         ax.set_ylim(-0.5, 720.5)
 
         c = SkyCoord(266 * u.deg, -29 * u.deg)
-        sc = ax.scatter_coord(c, 'o')
+        sc = ax.scatter_coord(c, marker='o')
 
         # Test that plot_coord returns the results from ax.plot
         assert isinstance(sc, PathCollection)
