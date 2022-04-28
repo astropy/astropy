@@ -74,7 +74,7 @@ class SCEngine:
 
     def __init__(self, data, row_index, unique=False):
         if not HAS_SORTEDCONTAINERS:
-            raise ImportError("`sortedcontainers` is needed for using `SCEngine`")
+            raise ImportError("sortedcontainers is needed for using SCEngine")
 
         node_keys = map(tuple, data)
         self._nodes = SortedList(starmap(Node, zip(node_keys, row_index)))
