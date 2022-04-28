@@ -112,7 +112,7 @@ def _decode_mixins(tbl):
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
-                    character_as_bytes=True):
+                    character_as_bytes=True, mask_invalid=True):
     """
     Read a Table object from an FITS file
 
@@ -145,6 +145,8 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         fit the table in memory, you may be better off leaving memory mapping
         off. However, if your table would not fit in memory, you should set this
         to `True`.
+        When set to `True` then ``mask_invalid`` is set to `False` since the
+        masking would cause loading the full data array.
     character_as_bytes : bool, optional
         If `True`, string columns are stored as Numpy byte arrays (dtype ``S``)
         and are converted on-the-fly to unicode strings when accessing
@@ -152,6 +154,12 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         ``U``) internally, you should set this to `False`, but note that this
         will use more memory. If set to `False`, string columns will not be
         memory-mapped even if ``memmap`` is `True`.
+    mask_invalid : bool, optional
+        By default the code masks NaNs in float columns and empty strings in
+        string columns. Set this parameter to `False` to avoid the performance
+        penalty of doing this masking step. The masking is always deactivated
+        when using ``memmap=True`` (see above).
+
     """
 
     if isinstance(input, HDUList):
@@ -207,12 +215,20 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
     else:
 
+        if memmap:
+            # using memmap is not compatible with masking invalid value by
+            # default so we deactivate the masking
+            mask_invalid = False
+
         hdulist = fits_open(input, character_as_bytes=character_as_bytes,
                             memmap=memmap)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu,
-                                   astropy_native=astropy_native)
+            return read_table_fits(
+                hdulist, hdu=hdu,
+                astropy_native=astropy_native,
+                mask_invalid=mask_invalid,
+            )
         finally:
             hdulist.close()
 
@@ -236,9 +252,9 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
-        elif issubclass(coltype, np.inexact):
+        elif mask_invalid and issubclass(coltype, np.inexact):
             mask = np.isnan(data[col.name])
-        elif issubclass(coltype, np.character):
+        elif mask_invalid and issubclass(coltype, np.character):
             mask = col.array == b''
 
         if masked or np.any(mask):

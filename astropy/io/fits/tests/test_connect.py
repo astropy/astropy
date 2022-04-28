@@ -345,15 +345,37 @@ class TestSingleTable:
         assert any(tab.mask)
         assert tab.mask[2]
 
+        tab = Table.read(filename, mask_invalid=False)
+        assert tab.mask is None
+
+        # using memmap also deactivate the masking
+        tab = Table.read(filename, memmap=True)
+        assert tab.mask is None
+
     def test_mask_null_on_read(self, tmpdir):
         filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
-        col = fits.Column(name='a', array=np.array([1, 2, 99, 60000], dtype='u2'), format='I', null=99, bzero=32768)
+        col = fits.Column(name='a', array=np.array([1, 2, 99, 60000], dtype='u2'),
+                          format='I', null=99, bzero=32768)
         bin_table_hdu = fits.BinTableHDU.from_columns([col])
         bin_table_hdu.writeto(filename, overwrite=True)
 
         tab = Table.read(filename)
         assert any(tab.mask)
         assert tab.mask[2]
+
+    def test_mask_str_on_read(self, tmpdir):
+        filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
+        col = fits.Column(name='a', array=np.array([b'foo', b'bar', b''], dtype='|S3'),
+                          format='A3')
+        bin_table_hdu = fits.BinTableHDU.from_columns([col])
+        bin_table_hdu.writeto(filename, overwrite=True)
+
+        tab = Table.read(filename)
+        assert any(tab.mask)
+        assert tab.mask[2]
+
+        tab = Table.read(filename, mask_invalid=False)
+        assert tab.mask is None
 
 
 class TestMultipleHDU:
