@@ -350,8 +350,11 @@ SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 #   will produce non-finite values
 NON_FINITE_LevMar_MODELS = [
     Sersic1D,
+    ArcSine1D,
+    ArcCosine1D,
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
+    BrokenPowerLaw1D,
     LogParabola1D
 ]
 
@@ -372,7 +375,9 @@ NON_FINITE_LM_MODELS = [
     ArcSine1D,
     ArcCosine1D,
     PowerLaw1D,
-    LogParabola1D
+    LogParabola1D,
+    ExponentialCutoffPowerLaw1D,
+    BrokenPowerLaw1D
 ]
 
 # These models will fail the DogBoxLSQFitter fitting test due to non-finite
