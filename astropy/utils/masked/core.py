@@ -481,12 +481,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             cls.__new__ = __new__
 
         if 'info' not in cls.__dict__ and hasattr(cls._data_cls, 'info'):
+            # Make a MaskedInfo from an Info
             data_info = cls._data_cls.info
             attr_names = data_info.attr_names | {'serialize_method'}
             new_info = type(cls.__name__+'Info',
                             (MaskedArraySubclassInfo, data_info.__class__),
                             dict(attr_names=attr_names))
+            # Attach MaskedInfo descriptor, also setting the parent_attr
             cls.info = new_info()
+            cls.info._parent_attr = data_info._parent_attr
 
     # The two pieces typically overridden.
     @classmethod

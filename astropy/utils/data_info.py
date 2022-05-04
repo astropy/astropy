@@ -29,6 +29,7 @@ from contextlib import contextmanager
 import numpy as np
 
 from . import metadata
+from .descriptors import SlotsInstanceDescriptor
 
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
@@ -263,7 +264,7 @@ class DataInfoMeta(type):
                             InfoAttribute(attr, cls._attr_defaults.get(attr)))
 
 
-class DataInfo(metaclass=DataInfoMeta):
+class DataInfo(SlotsInstanceDescriptor, metaclass=DataInfoMeta):
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be
@@ -286,7 +287,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _attr_defaults = {'dtype': np.dtype('O')}
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    __slots__ = ['_parent_cls', '_parent_ref', '_attrs']
+    __slots__ = ['_parent_attr', '_parent_cls', '_parent_ref', '_attrs']
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -310,6 +311,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _represent_as_dict_primary_data = None
 
     def __init__(self, bound=False):
+        super().__init__()
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values. Default of None for "unset"
         # except for dtype where the default is object.
@@ -338,17 +340,10 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
     def __get__(self, instance, owner_cls):
         if instance is None:
             # This is an unbound descriptor on the class
+            # NOTE! _parent_cls is not threadsafe
             self._parent_cls = owner_cls
             return self
-
-        info = instance.__dict__.get('info')
-        if info is None:
-            info = instance.__dict__['info'] = self.__class__(bound=True)
-        # We set _parent_ref on every call, since if one makes copies of
-        # instances, 'info' will be copied as well, which will lose the
-        # reference.
-        info._parent_ref = weakref.ref(instance)
-        return info
+        return super().__get__(instance, owner_cls, bound=True)
 
     def __set__(self, instance, value):
         if instance is None:
@@ -356,7 +351,10 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             raise ValueError('cannot set unbound descriptor')
 
         if isinstance(value, DataInfo):
-            info = instance.__dict__['info'] = self.__class__(bound=True)
+            info = type(self)(bound=True)
+            info._parent_attr = self._parent_attr
+            instance.__dict__[self._parent_attr] = info
+
             attr_names = info.attr_names
             if value.__class__ is self.__class__:
                 # For same class, attributes are guaranteed to be stored in
