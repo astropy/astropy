@@ -1000,7 +1000,7 @@ def format_doc(docstring, *args, **kwargs):
                 result of num1 - num2
             Notes : This one has additional notes.
 
-    These methods can be combined an even taking the docstring from another
+    These methods can be combined; even taking the docstring from another
     object is possible as docstring attribute. You just have to specify the
     object::
 
