@@ -244,9 +244,9 @@ class Cosmology(metaclass=abc.ABCMeta):
             and will use the auto-identification to try to infer the correct
             format. A `str` is assumed to be the correct format to use when
             converting.
-            `format` is broadcast to match the shape of ``other``.
+            ``format`` is broadcast to match the shape of ``other``.
             Note that the cosmology arguments are not broadcast against
-            `format`, so it cannot determine the output shape.
+            ``format``, so it cannot determine the output shape.
 
         Returns
         -------
