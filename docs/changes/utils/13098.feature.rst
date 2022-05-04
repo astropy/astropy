@@ -1,0 +1,3 @@
+New bases classes -- ``SlotsInstanceDescriptor`` and ``InstanceDescriptor`` --
+have been added for creating descriptors that are stored on and can access the
+enclosing instance.
