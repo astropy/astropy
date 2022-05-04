@@ -22,6 +22,7 @@ from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData, MetaAttribute
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, DataInfo
 from astropy.utils.decorators import format_doc
+from astropy.utils.descriptors import InstanceDescriptor
 from astropy.io.registry import UnifiedReadWriteMethod
 
 from . import groups
@@ -373,7 +374,7 @@ class TableAttribute(MetaAttribute):
     """
 
 
-class PprintIncludeExclude(TableAttribute):
+class PprintIncludeExclude(InstanceDescriptor, TableAttribute):
     """Maintain tuple that controls table column visibility for print output.
 
     This is a descriptor that inherits from MetaAttribute so that the attribute
@@ -382,28 +383,7 @@ class PprintIncludeExclude(TableAttribute):
     This gets used for the ``pprint_include_names`` and ``pprint_exclude_names`` Table
     attributes.
     """
-    def __get__(self, instance, owner_cls):
-        """Get the attribute.
-
-        This normally returns an instance of this class which is stored on the
-        owner object.
-        """
-        # For getting from class not an instance
-        if instance is None:
-            return self
-
-        # If not already stored on `instance`, make a copy of the class
-        # descriptor object and put it onto the instance.
-        value = instance.__dict__.get(self.name)
-        if value is None:
-            value = deepcopy(self)
-            instance.__dict__[self.name] = value
-
-        # We set _instance_ref on every call, since if one makes copies of
-        # instances, this attribute will be copied as well, which will lose the
-        # reference.
-        value._instance_ref = weakref.ref(instance)
-        return value
+    _get_deepcopy: bool = True  # For ``InstanceDescriptor``
 
     def __set__(self, instance, names):
         """Set value of ``instance`` attribute to ``names``.
@@ -434,11 +414,11 @@ class PprintIncludeExclude(TableAttribute):
             Include/exclude names
         """
         # Get the value from instance.meta['__attributes__']
-        instance = self._instance_ref()
-        return super().__get__(instance, instance.__class__)
+        instance = self._parent
+        return TableAttribute.__get__(self, instance, instance.__class__)
 
     def __repr__(self):
-        if hasattr(self, '_instance_ref'):
+        if hasattr(self, '_parent_ref'):
             out = f'<{self.__class__.__name__} name={self.name} value={self()}>'
         else:
             out = super().__repr__()
@@ -453,8 +433,8 @@ class PprintIncludeExclude(TableAttribute):
         """
         names = [names] if isinstance(names, str) else list(names)
         # Get the value. This is the same as self() but we need `instance` here.
-        instance = self._instance_ref()
-        value = super().__get__(instance, instance.__class__)
+        instance = self._parent
+        value = TableAttribute.__get__(self, instance, type(instance))
         value = [] if value is None else list(value)
         return instance, names, value
 
@@ -525,7 +505,7 @@ class PprintIncludeExclude(TableAttribute):
 
             def __exit__(self, type, value, tb):
                 descriptor_self = self.descriptor_self
-                instance = descriptor_self._instance_ref()
+                instance = descriptor_self._parent
                 descriptor_self.__set__(instance, self.names_orig)
 
             def __repr__(self):
@@ -533,7 +513,7 @@ class PprintIncludeExclude(TableAttribute):
 
         ctx = _Context(descriptor_self=self)
 
-        instance = self._instance_ref()
+        instance = self._parent
         self.__set__(instance, names)
 
         return ctx

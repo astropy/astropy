@@ -3,6 +3,7 @@
 """Descriptors."""
 
 # STDLIB
+from copy import deepcopy
 import weakref
 from typing import Any, Optional, Type, TypeVar
 
@@ -19,10 +20,24 @@ class SlotsInstanceDescriptor:
     __slots__ = ("_parent_attr", "_parent_ref")
 
     _parent_attr: str
-    _parent_ref: weakref.ReferenceType
+    """Return the name of the attribute on the parent object"""
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__()
+    _parent_ref: weakref.ReferenceType
+    """Weak reference to the parent object."""
+
+    _get_deepcopy: bool = False
+    """
+    Whether ``__get__`` uses `copy.deepcopy` or the normal class constructor
+    to make descriptor instances.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        # Depending on the placement in an inheritance chain __init__
+        # may or may not take arguments. Both options are supported.
+        try:
+            super().__init__(*args, **kwargs)
+        except TypeError:
+            super().__init__()
 
     @property
     def _parent(self) -> _EnclType:
@@ -37,7 +52,15 @@ class SlotsInstanceDescriptor:
 
         return parent
 
-    def __set_name__(self, _: Any, name: str) -> None:
+    def __set_name__(self, objcls: Any, name: str) -> None:
+        # Depending on the placement in an inheritance chain __set_name__
+        # may or may not exist. Both options are supported.
+        try:
+            super().__set_name__(objcls, name)
+        except AttributeError:
+            pass
+
+        # The name of the attribute on the parent object
         self._parent_attr = name
 
     def __get__(self: _SIDT, obj: Optional[_EnclType], objcls: Optional[Type[_EnclType]], **kwargs: Any) -> _SIDT:
@@ -50,7 +73,7 @@ class SlotsInstanceDescriptor:
         descriptor: Optional[_SIDT] = obj.__dict__.get(self._parent_attr)  # get from obj
         if descriptor is None:  # hasn't been created on the obj
             # Make a new ``self``-like descriptor
-            descriptor = type(self)(**kwargs)
+            descriptor = type(self)(**kwargs) if not self._get_deepcopy else deepcopy(self)
             # Copy over attributes from ``__set_name__``.
             # If a subclass has others, either set them in that ``__get__``
             # or use the ``deepcopy`` option.
@@ -60,7 +83,7 @@ class SlotsInstanceDescriptor:
 
         # We set `_parent_ref` on every call, since if one makes copies of objs,
         # 'descriptor' will be copied as well, which will lose the reference.
-        descriptor._parent_ref = weakref.ref(obj)  # type: ignore
+        descriptor._parent_ref = weakref.ref(obj)
 
         return descriptor
 
