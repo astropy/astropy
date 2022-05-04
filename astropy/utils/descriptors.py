@@ -15,15 +15,18 @@ _SIDT = TypeVar("_SIDT", bound="SlotsInstanceDescriptor")
 
 
 class SlotsInstanceDescriptor:
-    """Descriptor that provides access to its parent instance."""
+    """Descriptor that provides access to its enclosing instance."""
 
-    __slots__ = ("_parent_attr", "_parent_ref")
+    __slots__ = ("__weakref__", "_parent_attr", "_parent_ref")
+    # __weakref__ so a weakref can be made to a SlotsInstanceDescriptor
 
     _parent_attr: str
-    """Return the name of the attribute on the parent object"""
+    """Return the name of the attribute on the enclosing object"""
 
-    _parent_ref: weakref.ReferenceType
+    _parent_ref: Optional[weakref.ReferenceType]
     """Weak reference to the parent object."""
+
+    _parent_ref_missing_msg = "no reference exists to the original enclosing object"
 
     _get_deepcopy: bool = False
     """
@@ -39,18 +42,20 @@ class SlotsInstanceDescriptor:
         except TypeError:
             super().__init__()
 
+        self._parent_ref = None
+
     @property
     def _parent(self) -> _EnclType:
-        """Parent instance."""
-        if isinstance(getattr(self, "_parent_ref", None), weakref.ReferenceType):
-            parent = self._parent_ref()
+        """Enclosing instance."""
+        if isinstance(self._parent_ref, weakref.ReferenceType):
+            enclosing: Optional[_EnclType] = self._parent_ref()
         else:
-            parent = None
+            enclosing = None
 
-        if parent is None:
-            raise ValueError("no reference exists to the original parent object")
+        if enclosing is None:
+            raise AttributeError(self._parent_ref_missing_msg)
 
-        return parent
+        return enclosing
 
     def __set_name__(self, objcls: Any, name: str) -> None:
         # Depending on the placement in an inheritance chain __set_name__
@@ -60,7 +65,7 @@ class SlotsInstanceDescriptor:
         except AttributeError:
             pass
 
-        # The name of the attribute on the parent object
+        # The name of the attribute on the enclosing object
         self._parent_attr = name
 
     def __get__(self: _SIDT, obj: Optional[_EnclType], objcls: Optional[Type[_EnclType]], **kwargs: Any) -> _SIDT:
@@ -78,7 +83,7 @@ class SlotsInstanceDescriptor:
             # If a subclass has others, either set them in that ``__get__``
             # or use the ``deepcopy`` option.
             descriptor._parent_attr = self._parent_attr
-            # put descriptor in parent instance's dictionary
+            # put descriptor in enclosing instance's dictionary
             obj.__dict__[self._parent_attr] = descriptor
 
         # We set `_parent_ref` on every call, since if one makes copies of objs,

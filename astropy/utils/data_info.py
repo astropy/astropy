@@ -310,6 +310,15 @@ class DataInfo(SlotsInstanceDescriptor, metaclass=DataInfoMeta):
     # usual "<name>.<attr>".
     _represent_as_dict_primary_data = None
 
+    _parent_ref_missing_msg = """\
+failed to access "info" attribute on a temporary object.
+
+It looks like you have done something like ``col[3:5].info`` or
+``col.quantity.info``, i.e.  you accessed ``info`` from a temporary slice
+object that only exists momentarily.  This has failed because the reference to
+that temporary object is now lost.  Instead force a permanent reference (e.g.
+``c = col[3:5]`` followed by ``c.info``)."""
+
     def __init__(self, bound=False):
         super().__init__()
         # If bound to a data object instance then create the dict of attributes
@@ -318,29 +327,10 @@ class DataInfo(SlotsInstanceDescriptor, metaclass=DataInfoMeta):
         if bound:
             self._attrs = {}
 
-    @property
-    def _parent(self):
-        try:
-            parent = self._parent_ref()
-        except AttributeError:
-            return None
-
-        if parent is None:
-            raise AttributeError("""\
-failed to access "info" attribute on a temporary object.
-
-It looks like you have done something like ``col[3:5].info`` or
-``col.quantity.info``, i.e.  you accessed ``info`` from a temporary slice
-object that only exists momentarily.  This has failed because the reference to
-that temporary object is now lost.  Instead force a permanent reference (e.g.
-``c = col[3:5]`` followed by ``c.info``).""")
-
-        return parent
-
     def __get__(self, instance, owner_cls):
         if instance is None:
             # This is an unbound descriptor on the class
-            # NOTE! _parent_cls is not threadsafe
+            # NOTE! _parent_cls is not safe
             self._parent_cls = owner_cls
             return self
         return super().__get__(instance, owner_cls, bound=True)

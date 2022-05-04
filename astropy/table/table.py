@@ -418,10 +418,10 @@ class PprintIncludeExclude(InstanceDescriptor, TableAttribute):
         return TableAttribute.__get__(self, instance, instance.__class__)
 
     def __repr__(self):
-        if hasattr(self, '_parent_ref'):
-            out = f'<{self.__class__.__name__} name={self.name} value={self()}>'
-        else:
+        if self._parent_ref is None:  # not linked to enclosing instance
             out = super().__repr__()
+        else:
+            out = f'<{self.__class__.__name__} name={self.name} value={self()}>'
         return out
 
     def _add_remove_setup(self, names):
