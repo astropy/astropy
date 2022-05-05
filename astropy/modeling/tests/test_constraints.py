@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 
+import platform
 import types
 import warnings
 
@@ -389,6 +390,11 @@ def test_fit_with_fixed_and_bound_constraints(fitter):
     Currently doesn't test that the fit is any *good*--just that parameters
     stay within their given constraints.
     """
+
+    # DogBoxLSQFitter causes failure on s390x, aremel possibly others (not x86_64 or arm64)
+    if fitter == fitting.DogBoxLSQFitter and (platform.machine() not in ('x86_64', 'arm64')):
+        pytest.xfail("DogBoxLSQFitter can to be unstable on non-standard platforms leading to "
+                     "random test failures")
 
     fitter = fitter()
 
