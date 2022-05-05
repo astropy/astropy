@@ -119,9 +119,6 @@ jobs:
         sudo apt-get install language-pack-fr tzdata
     - name: Install tox
       run: python -m pip install --upgrade tox
-    - name: Install codecov
-      if: ${{ contains(matrix.toxenv,'-cov') }}
-      run: python -m pip install codecov
     - name: Run tests
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
     # TODO: Do we need --gcov-glob "*cextern*" ?
@@ -130,6 +127,7 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
+        verbose: true
 
   allowed_failures:
     name: ${{ matrix.name }}
