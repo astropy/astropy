@@ -33,41 +33,41 @@ By the numbers:
 
 .. _whatsnew-5.1-cosmology:
 
-Updates to ``Cosmology``
-========================
+Updates to :mod:`~astropy.cosmology`
+====================================
 
-:class:`~astropy.cosmology.Cosmology` is now an abstract base class,
-and subclasses must override the abstract property ``is_flat``.
-For :class:`~astropy.cosmology.FLRW`, ``is_flat`` checks that ``Ok0=0`` and
-``Otot0=1``.
+|Cosmology| is now an abstract base class, and subclasses must override the
+abstract property :attr:`~astropy.cosmology.Cosmology.is_flat`. For |FLRW|,
+:attr:`~astropy.cosmology.FLRW.is_flat` checks that ``Ok0 == 0`` and ``Otot0 ==
+1``.
 
-Astropy v5.0 introduced Cosmological equivalency -- with method
+Astropy v5.0 introduced cosmological equivalency -- with method
 :meth:`~astropy.cosmology.Cosmology.is_equivalent` -- where two cosmologies may
 be equivalent even if not of the same class. For example, an instance of
-:class:`~astropy.cosmology.LambdaCDM` might have :math:`\Omega_0=1` and
-:math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
-Now the keyword argument ``format`` is added to extend the notion of
-equivalence to any Python object that can be converted to a Cosmology.
+|LambdaCDM| might have :math:`\Omega_0=1` and :math:`\Omega_k=0` and therefore
+be flat, like |FlatLambdaCDM|. Now the keyword argument ``format`` is added to
+extend the notion of equivalence to any Python object that can be converted to
+a |Cosmology|::
 
     >>> from astropy.cosmology import Planck18
     >>> tbl = Planck18.to_format("astropy.table")
     >>> Planck18.is_equivalent(tbl, format=True)
     True
 
-The list of valid formats, e.g. the Table in this example, may be
-checked with ``Cosmology.from_format.list_formats()``
+The list of valid formats, e.g. the |Table| in this example, may be
+checked with ``Cosmology.from_format.list_formats()``.
 
-
-A new property ``nonflat`` has been added to flat cosmologies
-(:class:`astropy.cosmology.FlatCosmologyMixin` subclasses) to get an equivalent
-cosmology, but of the corresponding non-flat class.
+A new property :attr:`~astropy.cosmology.FlatCosmologyMixin.nonflat` has been
+added to flat cosmologies (|FlatCosmologyMixin| subclasses) to get an
+equivalent |Cosmology|, but of the corresponding non-flat class::
 
     >>> Planck18.nonflat
     LambdaCDM(name="Planck18", H0=67.66 km / (Mpc s), ...
 
 
 :meth:`astropy.cosmology.FlatCosmologyMixin.clone` has been enhanced to allow
-for flat cosmologies to clone on the equivalent non-flat cosmology. For example,
+for a flat |Cosmology| to clone on the equivalent non-flat |Cosmology|. For
+example::
 
     >>> Planck18.clone(to_nonflat=True, Ode0=1)
     LambdaCDM(name="Planck18 (modified)", H0=67.66 km / (Mpc s), Om0=0.30966, Ode0=1.0, ...
@@ -75,8 +75,8 @@ for flat cosmologies to clone on the equivalent non-flat cosmology. For example,
 
 .. _whatsnew-doppler-redshift-eq:
 
-``doppler_redshift`` equivalency
-================================
+:func:`~astropy.units.equivalencies.doppler_redshift` equivalency
+=================================================================
 
 New :func:`astropy.units.equivalencies.doppler_redshift` is added to
 provide conversion between Doppler redshift and radial velocity.
@@ -88,14 +88,14 @@ Specifying data types when reading ASCII tables
 
 The syntax for specifying the data type of columns when reading a table using
 :func:`astropy.io.ascii.read` has been simplified considerably. For instance,
-to force every column in a table to be read as a ``float`` you can now do:
+to force every column in a table to be read as a `float` you can now do::
 
     >>> from astropy.table import Table
     >>> t = Table.read('table.dat', format='ascii', converters={'*': float})  # doctest: +SKIP
 
 Previously, doing the same data type specification required using the
-:func:`~astropy.io.ascii.convert_numpy` function and providing the ``dict``
-value as a ``list`` even for only one element::
+:func:`~astropy.io.ascii.convert_numpy` function and providing the `dict`
+value as a `list` even for only one element::
 
     >>> from astropy.io.ascii import convert_numpy
     >>> t = Table.read('table.dat', format='ascii',
@@ -121,14 +121,16 @@ formats.
 New model fitters have been added
 =================================
 
-New fitters have been added to :mod:`~astropy.modeling.fitting` based around the available
-algorithms provided by `scipy.optimize.least_squares`, which is now the recommended
-least-squares optimization algorithm from scipy. These new fitters are:
+New fitters have been added to :mod:`~astropy.modeling.fitting` based around
+the available algorithms provided by :func:`scipy.optimize.least_squares`,
+which is now the recommended least-squares optimization algorithm from
+``scipy``. These new fitters are:
 
-* :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region Reflective (TRF)
-  algorithm.
-* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the Levenberg-Marquardt (LM) algorithm,
-  via the `scipy.optimize.least_squares` function.
+* :class:`~astropy.modeling.fitting.TRFLSQFitter`, which uses the Trust Region
+  Reflective (TRF) algorithm.
+* :class:`~astropy.modeling.fitting.LMLSQFitter`, which uses the
+  Levenberg-Marquardt (LM) algorithm, via the
+  :func:`scipy.optimize.least_squares` function.
 * :class:`~astropy.modeling.fitting.DogBoxLSQFitter`, which uses the dogleg algorithm.
 
 .. _whatsnew-iers-handling:
@@ -146,7 +148,7 @@ there is a new config item `iers.conf.iers_degraded_accuracy
 <astropy.utils.iers.Conf.iers_degraded_accuracy>` that specifies the behavior
 when times are outside the range of available IERS data. The options are
 ``'error'`` (default to raise an :class:`~astropy.utils.iers.IERSRangeError`),
-``'warn'`` (issue an class:`~astropy.utils.iers.IERSDegradedAccuracyWarning`) or
+``'warn'`` (issue an :class:`~astropy.utils.iers.IERSDegradedAccuracyWarning`) or
 ``'ignore'`` (ignore the warning).
 
 In addition, the logic for auto-downloads was changed to guarantee that no matter
