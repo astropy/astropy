@@ -1096,3 +1096,60 @@ def test_non_convergence_warning():
     with pytest.warns(UserWarning):
         assert_allclose(wcs.world_to_pixel_values(test_pos_x, test_pos_y),
                         expected)
+
+
+HEADER_SPECTRAL_1D = """
+CTYPE1  = 'FREQ'
+CRVAL1  =    1.37835117405E+09
+CDELT1  =      9.765625000E+04
+CRPIX1  =                 32.0
+CUNIT1  = 'Hz'
+SPECSYS = 'TOPOCENT'
+RESTFRQ =      1.420405752E+09 / [Hz]
+RADESYS = 'FK5'
+"""
+
+@pytest.fixture
+def header_spectral_1d():
+    return Header.fromstring(HEADER_SPECTRAL_1D, sep='\n')
+
+
+@pytest.mark.parametrize(('ctype1', 'observer'), product(['ZOPT', 'BETA', 'VELO', 'VRAD', 'VOPT'], [False, True]))
+def test_spectral_1d(header_spectral_1d, ctype1, observer):
+
+    # This is a regression test for issues that happened with 1-d WCS
+    # where the target is not defined.
+
+    header = header_spectral_1d.copy()
+    header['CTYPE1'] = ctype1
+    header['CRVAL1'] = 0.1
+    header['CDELT1'] = 0.001
+
+    if ctype1[0] == 'V':
+        header['CUNIT1'] = 'm s-1'
+    else:
+        header['CUNIT1'] = ''
+
+    header['RESTWAV'] = 1.420405752E+09
+    header['MJD-OBS'] = 55197
+
+    if observer:
+        header['OBSGEO-L'] = 144.2
+        header['OBSGEO-B'] = -20.2
+        header['OBSGEO-H'] = 0.
+        header['SPECSYS'] = 'BARYCENT'
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header)
+
+    spectralcoord = wcs.pixel_to_world(31)
+
+    assert isinstance(spectralcoord, SpectralCoord)
+    assert spectralcoord.target is None
+    assert (spectralcoord.observer is not None) is observer
+
+    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        pix = wcs.world_to_pixel(spectralcoord)
+
+    assert_allclose(pix, [31], rtol=1e-6)
