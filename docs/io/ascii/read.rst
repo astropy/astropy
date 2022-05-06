@@ -640,6 +640,8 @@ All values and exponent characters in the input data are
 case-insensitive; any value other than the default ``'E'`` implies the
 automatic setting of ``'use_fast_converter': True``.
 
+.. _advanced_customization:
+
 Advanced Customization
 ======================
 
@@ -859,3 +861,156 @@ them at the end.
 
   ..
     EXAMPLE END
+
+.. _io_ascii_how_to_examples:
+
+How to Find and Fix Problems Reading a Table
+============================================
+
+The purpose of this section is to provide a few examples how we can
+deal with tables that fail to read.
+
+Obtain the Data Table in a Different Format
+-------------------------------------------
+Sometimes it is easy to obtain the data in a more structured format that
+more clearly defines columns and metadata, e.g. a FITS or VO/XML table, or
+an ASCII table that uses a different colum separator (e.g. comma instead of
+white space) or fixed-width columns.
+In that case, the fastest solution can be to simply download or export the
+data again in a different format.
+
+Find the Problem
+----------------
+Usually, `astropy.io.ascii.read` tries many different formats until one
+succeeds in reading. If it works, that saves you from finding and
+setting right options for reading. However, if it fails to find any combination
+of format and format options that correctly parses the file, then you will get
+a long exception message which shows every format that was tried and ends
+with this advice::
+
+  ************************************************************************
+  ** ERROR: Unable to guess table format with the guesses listed above. **
+  **                                                                    **
+  ** To figure out why the table did not read, use guess=False and      **
+  ** fast_reader=False, along with any appropriate arguments to read(). **
+  ** In particular specify the format and any known attributes like the **
+  ** delimiter.                                                         **
+  ************************************************************************
+
+To expand on this a bit, you probably know from looking at the file
+what format it is in, which must be one of the :ref:`supported_formats`.
+For instance maybe it is a basic space-delimited file but has the header
+line as a comment like below, which corresponds to the ``commented_header``
+format::
+
+  >>> table = """# name id
+  ... Jill 1232
+  ... Jack Johnson 456"""
+
+In order to find the actual problem with the reading this file, you would do::
+
+  >>> ascii.read(table, format='commented_header', delimiter=' ', guess=False, fast_reader=False)
+  Traceback (most recent call last):
+    ...
+  astropy.io.ascii.core.InconsistentTableError: Number of header columns (2) inconsistent with data columns (3) at data line 1
+  Header values: ['name', 'id']
+  Data values: ['Jack', 'Johnson', '456']
+
+At this point you can see that the problem is that the 2nd data line has 3 columns while the header says there should be only 2. You might be initially confused by the ``data line 1`` since the problem was in the 3rd line of the file. There are two things happening here. First, ``data line 1`` refers to the count of data lines and does not include any header lines, blank lines, or commented out lines. Second, the count starts from zero, so that ``1`` is the 2nd data line.
+See the :ref:`guess_formats` section for additional details on format guessing.
+
+
+Make the Table Easier to Read
+-----------------------------
+
+Sometimes, the parameters for `astropy.io.ascii.read` to specify, for example
+``format``, ``delimiter``, ``comment``, ``quote_char``, ``header_start``,
+``data_start``, ``data_end``, and ``encoding`` are not enough.
+To read just a single table that has a format close to, but not identical
+with, any of the :ref:`supported_formats`, the fastest solution may be to open
+that one table file in a text editor to modify it until it does conform to a
+format that can be read. On the other hand, if we need to
+read tables of that specific format again and again, it is better to find a way
+to read them with `~astropy.io.ascii` without modifying every file by hand.
+
+
+Badly formatted header line
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following table will fail to parse (raising an
+`~astropy.io.ascii.InconsistentTableError`) because the header line looks as
+if there were three columns, while in fact, there are only two::
+
+  Name spectral type
+  Vega A0
+  Altair A7
+
+Opening this file in a text editor to fix the format is easy::
+
+  Name "spectral type"
+  Vega A0
+  Altair A7
+
+or::
+
+  Name spectral_type
+  Vega A0
+  Altair A7
+
+With either of the above changes you can read the file with no problem using default settings.
+
+..
+  EXAMPLE START
+  Make a table easier to read
+
+To read the table without editing the files, we need to ignore the badly formatted header line and
+pass in the names of the column ourselves.
+That can be done without any modification of the table file by setting the ``data_start`` parameter::
+
+   >>> table = """
+   ... Star spectral type
+   ... Vega A0
+   ... Altair A7
+   ... """
+   >>> ascii.read(table, names=["Star", "spectral type"], data_start=1)
+   <Table length=2>
+    Star  spectral type
+    str6       str2
+   ------ -------------
+     Vega            A0
+   Altair            A7
+
+..
+  EXAMPLE END
+
+Badly formatted data line
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Similar principles apply to badly formatted data lines. Here is a
+table where the number of columns is not consistent (``alpha Cen``
+should be written as ``"alpha Cen"`` to make clear that the two words
+"alpha" and "Cen" are part of the same column)::
+
+  Star SpT
+  Vega A0
+  alpha Cen G2V+K1
+
+When we try to read that with ``guess=False``, astropy throws an
+`astropy.io.ascii.InconsistentTableError`::
+
+  >>> from astropy.io import ascii
+  >>> table = '''
+  ... Star SpT
+  ... Vega A0
+  ... alpha Cen G2V+K1
+  ... '''
+  >>> ascii.read(table, guess=False)
+  Traceback (most recent call last):
+      ...
+  astropy.io.ascii.core.InconsistentTableError: Number of header columns (2) inconsistent with data columns in data line 1
+
+This points us to the line with the problem, here line 1 (starting to count
+after the header lines and counting the data lines from 0 as usual in Python). In this table with
+just two lines the problem is easy to spot, but for longer tables, the line number is
+very helpful. We can now fix that line by hand in the file by adding quotes
+around ``"alpha Cen"``. Then we can try to read the table again and see
+if it works or if there is a another badly formatted data line.
