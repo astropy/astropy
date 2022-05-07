@@ -267,12 +267,6 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
-    # For a column that is a native astropy Column, ignore the specified
-    # `attrs`. This happens for a mixin like Quantity that is stored in a
-    # `Table` (not QTable).
-    if isinstance(obj1, Column):
-        attrs = []
-
     assert obj1.shape == obj2.shape
 
     info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
@@ -416,7 +410,12 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
 
     for colname in t.colnames:
         assert len(t2[colname].shape) == ndim
-        compare = ['data'] if colname in ('c1', 'c2') else compare_attrs[colname]
+        if colname in ('c1', 'c2'):
+            compare = ['data']
+        else:
+            # Storing Longitude as Column loses wrap_angle.
+            compare = [attr for attr in compare_attrs[colname]
+                       if not (attr == 'wrap_angle' and table_cls is Table)]
         assert_objects_equal(t[colname], t2[colname], compare)
 
     # Special case to make sure Column type doesn't leak into Time class data
