@@ -269,7 +269,8 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
 
     assert obj1.shape == obj2.shape
 
-    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description',
+                  'info.dtype']
     for attr in attrs + info_attrs:
         a1 = obj1
         a2 = obj2

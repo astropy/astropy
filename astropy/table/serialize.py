@@ -352,24 +352,26 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     for name in data_attrs_map.values():
         del obj_attrs[name]
 
-    # Get the index where to add new column
-    idx = min(out.colnames.index(name) for name in data_attrs_map)
+    # The order of data_attrs_map may not match the actual order, as it is set
+    # by the yaml description.  So, sort names by position in the serialized table.
+    # Keep the index of the first column, so we can insert the new one there later.
+    names = sorted(data_attrs_map, key=out.colnames.index)
+    idx = out.colnames.index(names[0])
 
     # Name is the column name in the table (e.g. "coord.ra") and
     # data_attr is the object attribute name  (e.g. "ra").  A different
     # example would be a formatted time object that would have (e.g.)
     # "time_col" and "value", respectively.
-    for name, data_attr in data_attrs_map.items():
-        obj_attrs[data_attr] = out[name]
+    for name in names:
+        obj_attrs[data_attrs_map[name]] = out[name]
         del out[name]
 
     info = obj_attrs.pop('__info__', {})
-    if len(data_attrs_map) == 1:
+    if len(names) == 1:
         # col is the first and only serialized column; in that case, use info
         # stored on the column. First step is to get that first column which
         # has been moved from `out` to `obj_attrs` above.
-        data_attr = next(iter(data_attrs_map.values()))
-        col = obj_attrs[data_attr]
+        col = obj_attrs[data_attrs_map[name]]
 
         # Now copy the relevant attributes
         for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
