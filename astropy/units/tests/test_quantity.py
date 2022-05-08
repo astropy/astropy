@@ -144,20 +144,23 @@ class TestQuantityCreation:
         assert np.issubdtype(q2.dtype, np.integer)
 
     def test_float_dtype_promotion(self):
-        """Test that if ``dtype=numpy.floating``, the minimum precision is float64."""
-        q1 = u.Quantity(12, dtype=np.floating)
+        """Test that if ``dtype=numpy.inexact``, the minimum precision is float64."""
+        q1 = u.Quantity(12, dtype=np.inexact)
         assert not np.issubdtype(q1.dtype, np.integer)
         assert q1.dtype == np.float64
 
-        q2 = u.Quantity(np.float64(12), dtype=np.floating)
+        q2 = u.Quantity(np.float64(12), dtype=np.inexact)
         assert q2.dtype == np.float64
 
+        q3 = u.Quantity(np.float32(12), dtype=np.inexact)
+        assert q3.dtype == np.float32
+
         if hasattr(np, "float16"):
-            q3 = u.Quantity(np.float16(12), dtype=np.floating)
+            q3 = u.Quantity(np.float16(12), dtype=np.inexact)
             assert q3.dtype == np.float16
 
         if hasattr(np, "float128"):
-            q4 = u.Quantity(np.float128(12), dtype=np.floating)
+            q4 = u.Quantity(np.float128(12), dtype=np.inexact)
             assert q4.dtype == np.float128
 
     def test_copy(self):

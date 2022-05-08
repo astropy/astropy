@@ -528,8 +528,8 @@ argument.
     >>> q.dtype
     dtype('float32')
 
-Like for `numpy.ndarray`, ``dtype`` does not have to be specified, in which
-case the data is inspected to find the best ``dtype``. For `numpy` this means
+Like for `numpy.ndarray`, ``dtype`` does not have to be specified, in which case
+the data is inspected to find the best ``dtype``. For `numpy` this means
 integers remain integers, while |Quantity| instead upcasts integers to floats.
 
     >>> v = np.array(1)
@@ -540,19 +540,17 @@ integers remain integers, while |Quantity| instead upcasts integers to floats.
     >>> np.issubdtype(q.dtype, np.integer)
     False
 
-|Quantity| promotes integer to floating types because it has a different
-default value for ``dtype`` than `numpy` -- `numpy.floating` versus `None`.
-For |Quantity| to use the same ``dtype`` inspection as `numpy`,
-|Quantity| likewise accepts ``dtype=None``.
+|Quantity| promotes integer to floating types because it has a different default
+value for ``dtype`` than `numpy` -- `numpy.inexact` versus `None`. For |Quantity|
+to use the same ``dtype`` inspection as `numpy`, use ``dtype=None``.
 
     >>> q = u.Quantity(1, dtype=None)
     >>> np.issubdtype(q.dtype, np.integer)
     True
 
-Note that `numpy.floating` is a deprecated ``dtype`` argument for
-`numpy.ndarray`, currently an alias for `numpy.float64`. |Quantity| instead
-sets `numpy.float64` as default type, but not change data that is already a
-float.
+Note that `numpy.inexact` is a deprecated ``dtype`` argument for
+`numpy.ndarray`. |Quantity| changes `numpy.inexact` to `numpy.float64`, but does
+not change data that are already floating point or complex.
 
 
 QTable

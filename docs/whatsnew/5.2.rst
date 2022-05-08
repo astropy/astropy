@@ -18,10 +18,10 @@ In particular, this release includes:
 ``Quantity`` data types
 =======================
 
-The default dtype argument for ``Quantity`` has been changed from `None`
-to ``numpy.floating``. With this dtype, Quantity will still upcast integers
-to floats, with a default dtype of ``float64``. Now ``dtype=None`` means the
-same thing as ``numpy``.
+The default dtype argument for ``Quantity`` has been changed, so that one can
+now explicitly give ``dtype=None`` to get the same behaviour as :mod:`numpy`.
+Without an explicit argument, any integer values are still upcast to floating
+point, since that makes more sense for physical quantities.
 
 
 Full change log
