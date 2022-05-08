@@ -483,7 +483,7 @@ class FunctionQuantity(Quantity):
     _supported_ufuncs = SUPPORTED_UFUNCS
     _supported_functions = SUPPORTED_FUNCTIONS
 
-    def __new__(cls, value, unit=None, dtype=np.floating, copy=True, order=None,
+    def __new__(cls, value, unit=None, dtype=np.inexact, copy=True, order=None,
                 subok=False, ndmin=0):
 
         if unit is not None:

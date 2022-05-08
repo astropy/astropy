@@ -100,7 +100,7 @@ class Distance(u.SpecificTypeQuantity):
     _include_easy_conversion_members = True
 
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, parallax=None, dtype=np.floating, copy=True,
+                distmod=None, parallax=None, dtype=np.inexact, copy=True,
                 order=None, subok=False, ndmin=0, allow_negative=False):
 
         n_not_none = sum(x is not None for x in [value, z, distmod, parallax])
