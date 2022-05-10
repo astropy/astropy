@@ -293,14 +293,18 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
     # untrusted code by only importing known astropy classes.
     cls_full_name = obj_attrs.pop('__class__', None)
     if cls_full_name is None:
-        cls = SerializedColumn
-    elif cls_full_name not in __construct_mixin_classes:
-        raise ValueError(f'unsupported class for construct {cls_full_name}')
-    else:
-        mod_name, _, cls_name = cls_full_name.rpartition('.')
-        module = import_module(mod_name)
-        cls = getattr(module, cls_name)
+        # We're dealing with a SerializedColumn holding columns, stored in
+        # obj_attrs. For this case, info holds the name (and nothing else).
+        mixin = SerializedColumn(obj_attrs)
+        mixin.info.name = info['name']
+        return mixin
 
+    if cls_full_name not in __construct_mixin_classes:
+        raise ValueError(f'unsupported class for construct {cls_full_name}')
+
+    mod_name, _, cls_name = cls_full_name.rpartition('.')
+    module = import_module(mod_name)
+    cls = getattr(module, cls_name)
     for attr, value in info.items():
         if attr in cls.info.attrs_from_parent:
             obj_attrs[attr] = value
@@ -342,7 +346,11 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     data_attrs_map = {}
     for name, val in obj_attrs.items():
         if isinstance(val, SerializedColumn):
-            if 'name' in val:
+            # A SerializedColumn can just link to a serialized column using a name
+            # (e.g., time.jd1), or itself be a mixin (e.g., coord.obstime).  Note
+            # that in principle a mixin could have include a column called 'name',
+            # hence we check whether the value is actually a string (see gh-13232).
+            if 'name' in val and isinstance(val['name'], str):
                 data_attrs_map[val['name']] = name
             else:
                 out_name = f'{new_name}.{name}'
@@ -352,24 +360,26 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     for name in data_attrs_map.values():
         del obj_attrs[name]
 
-    # Get the index where to add new column
-    idx = min(out.colnames.index(name) for name in data_attrs_map)
+    # The order of data_attrs_map may not match the actual order, as it is set
+    # by the yaml description.  So, sort names by position in the serialized table.
+    # Keep the index of the first column, so we can insert the new one there later.
+    names = sorted(data_attrs_map, key=out.colnames.index)
+    idx = out.colnames.index(names[0])
 
     # Name is the column name in the table (e.g. "coord.ra") and
     # data_attr is the object attribute name  (e.g. "ra").  A different
     # example would be a formatted time object that would have (e.g.)
     # "time_col" and "value", respectively.
-    for name, data_attr in data_attrs_map.items():
-        obj_attrs[data_attr] = out[name]
+    for name in names:
+        obj_attrs[data_attrs_map[name]] = out[name]
         del out[name]
 
     info = obj_attrs.pop('__info__', {})
-    if len(data_attrs_map) == 1:
+    if len(names) == 1:
         # col is the first and only serialized column; in that case, use info
         # stored on the column. First step is to get that first column which
         # has been moved from `out` to `obj_attrs` above.
-        data_attr = next(iter(data_attrs_map.values()))
-        col = obj_attrs[data_attr]
+        col = obj_attrs[data_attrs_map[name]]
 
         # Now copy the relevant attributes
         for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
