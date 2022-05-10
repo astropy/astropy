@@ -45,7 +45,7 @@ su = table.Column([(1, (1.5, 1.6)),
                    (2, (2.5, 2.6))],
                   name='su',
                   dtype=[('i', np.int64),
-                         ('f', [('p0', np.float64), ('p1', np.float64)])])
+                         ('f', [('p1', np.float64), ('p0', np.float64)])])
 su2 = table.Column([(['snake', 'c'], [1.6, 1.5]),
                     (['eal', 'a'], [2.5, 2.6])],
                    dtype=[('name', 'U5', (2,)), ('f', 'f8', (2,))])
@@ -139,7 +139,7 @@ non_trivial_names = {
             'srd.differentials.s.d_lon_coslat',
             'srd.differentials.s.d_lat',
             'srd.differentials.s.d_distance'],
-    'su': ['su.i', 'su.f.p0', 'su.f.p1'],
+    'su': ['su.i', 'su.f.p1', 'su.f.p0'],
     'su2': ['su2.name', 'su2.f'],
     'tm': ['tm.jd1', 'tm.jd2'],
     'tm2': ['tm2.jd1', 'tm2.jd2'],
