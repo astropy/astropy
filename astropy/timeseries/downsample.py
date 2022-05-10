@@ -197,19 +197,19 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
         values = subset[colname]
 
         # FIXME: figure out how to avoid the following, if possible
-        if not isinstance(values, (np.ndarray, u.Quantity)):
-            warnings.warn("Skipping column {0} since it has a mix-in type", AstropyUserWarning)
-            continue
 
         if isinstance(values, u.Quantity):
             data = u.Quantity(np.repeat(np.nan,  n_bins), unit=values.unit)
             data[unique_indices] = u.Quantity(reduceat(values.value, groups, aggregate_func),
                                               values.unit, copy=False)
-        else:
+        elif isinstance(values, np.ndarray):
             data = np.ma.zeros(n_bins, dtype=values.dtype)
             data.mask = 1
-            data[unique_indices] = reduceat(values, groups, aggregate_func)
+            data[unique_indices] = reduceat(values.value, groups, aggregate_func)
             data.mask[unique_indices] = 0
+        else:
+            warnings.warn("Skipping column {0} since it has a mix-in type", AstropyUserWarning)
+            continue
 
         binned[colname] = data
 
