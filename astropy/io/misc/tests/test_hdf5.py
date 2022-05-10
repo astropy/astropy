@@ -13,6 +13,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.io.misc.hdf5 import meta_path
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
 if HAS_H5PY:
     import h5py
@@ -651,7 +652,8 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
-    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description', 'info.meta']
+    info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description', 'info.meta',
+                  'info.dtype']
     for attr in attrs + info_attrs:
         a1 = obj1
         a2 = obj2
@@ -673,6 +675,15 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
 
         if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
             assert quantity_allclose(a1, a2, rtol=1e-15)
+        elif isinstance(a1, np.dtype):
+            # HDF5 does not perfectly preserve dtype: byte order can change, and
+            # unicode gets stored as bytes.  So, we just check safe casting, to
+            # ensure we do not, e.g., accidentally change integer to float, etc.
+            if NUMPY_LT_1_22 and a1.names:
+                # For old numpy, can_cast does not deal well with structured dtype.
+                assert a1.names == a2.names
+            else:
+                assert np.can_cast(a2, a1, casting='safe')
         else:
             assert np.all(a1 == a2)
 
