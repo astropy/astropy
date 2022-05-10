@@ -507,7 +507,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                          unit=u.m, observer=observer, target=target)
 
                 def redshift_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
                     if (observer is None
                             or spectralcoord.observer is None
                             or spectralcoord.target is None):
@@ -539,7 +540,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                          observer=observer, target=target)
 
                 def beta_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
                     if (observer is None
                             or spectralcoord.observer is None
@@ -581,7 +583,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     return SpectralCoord(value, observer=observer, target=target, **kwargs)
 
                 def value_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
                     if (observer is None
                             or spectralcoord.observer is None
                             or spectralcoord.target is None):
