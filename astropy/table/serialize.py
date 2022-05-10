@@ -296,7 +296,6 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
         # We're dealing with a SerializedColumn holding columns, stored in
         # obj_attrs. For this case, info holds the name (and nothing else).
         mixin = SerializedColumn(obj_attrs)
-        assert len(info) == 1, 'info for SerializedColumn should only hold name'
         mixin.info.name = info['name']
         return mixin
 
