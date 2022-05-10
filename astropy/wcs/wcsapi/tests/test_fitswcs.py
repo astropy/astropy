@@ -1109,6 +1109,7 @@ RESTFRQ =      1.420405752E+09 / [Hz]
 RADESYS = 'FK5'
 """
 
+
 @pytest.fixture
 def header_spectral_1d():
     return Header.fromstring(HEADER_SPECTRAL_1D, sep='\n')
