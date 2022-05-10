@@ -146,12 +146,13 @@ backends such as Amazon and Google Cloud Storage. For example, you can access a
 Hubble Space Telescope image located in the Hubble's public
 Amazon S3 bucket as follows:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
+
     >>> # Location of a large Hubble archive image in Amazon S3 (213 MB)
     >>> uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
     ...
     >>> # Extract a 10-by-20 pixel cutout image
-    >>> with fits.open(uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:
+    >>> with fits.open(uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
     ...    cutout = hdul[1].section[10:20, 30:50]
 
 Note that the example above obtains a cutout image using the `ImageHDU.section`

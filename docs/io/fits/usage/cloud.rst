@@ -46,12 +46,12 @@ You can improve the performance for large files by passing the parameters
 Astropy use ``fsspec`` to download only the necessary parts of the FITS file.
 For example:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
 
     >>> from astropy.io import fits
     ...
     >>> # `fits.open` will download the primary header
-    >>> with fits.open(url, use_fsspec=True, lazy_load_hdus=True) as hdul:
+    >>> with fits.open(url, use_fsspec=True, lazy_load_hdus=True) as hdul:  # doctest: +REMOTE_DATA
     ...
     ...     # Download a single header
     ...     header = hdul[1].header
@@ -88,7 +88,7 @@ this page.
 
 
 Subsetting FITS files hosted in Amazon S3 cloud storage
-======================================================
+=======================================================
 
 The FITS file used in the example above also happens to be available via
 Amazon cloud storage, where it is stored in a
@@ -100,9 +100,10 @@ location::
 With ``use_fsspec`` enabled, you can obtain a small cutout from a file stored
 in Amazon S3 cloud storage in the same way as above.  For example:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
+
     >>> # Download a small 10-by-20 pixel cutout from a FITS file stored in Amazon S3
-    >>> with fits.open(s3_uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:
+    >>> with fits.open(s3_uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 
@@ -173,11 +174,12 @@ We also know that the radius of the galaxy is approximately 5 arcseconds::
 Given this sky position and radius, we can use `~astropy.nddata.Cutout2D`
 in combination with ``use_fsspec=True`` and ``.section`` as follows:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
+
     >>> from astropy.nddata import Cutout2D
     >>> from astropy.wcs import WCS
     ...
-    >>> with fits.open(s3_uri, use_fsspec=True) as hdul:
+    >>> with fits.open(s3_uri, use_fsspec=True) as hdul:  # doctest: +REMOTE_DATA
     ...     wcs = WCS(hdul[1].header)
     ...     cutout = Cutout2D(hdul[1].section,  # use `.section` rather than `.data`!
     ...                       position=position,
@@ -186,14 +188,15 @@ in combination with ``use_fsspec=True`` and ``.section`` as follows:
 
 As a final step, you can plot the cutout using Matplotlib as follows:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
+
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
     ...
-    >>> plt.style.use(astropy_mpl_style)
-    >>> plt.figure()
-    >>> plt.imshow(cutout.data, cmap='gray')
-    >>> plt.colorbar()
+    >>> plt.style.use(astropy_mpl_style)  # doctest: +REMOTE_DATA
+    >>> plt.figure()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.imshow(cutout.data, cmap='gray')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> plt.colorbar()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 See :ref:`cutout_images` for more details on this feature.
 
@@ -252,10 +255,10 @@ these parameters via the ``fsspec_kwargs`` argument of `astropy.io.fits.open`.
 For example, we can configure fsspec to make buffered reads with a minimum
 ``block_size`` of 1 MB as follows:
 
-.. doctest-remote-data::
+.. doctest-requires:: fsspec
 
     >>> fsspec_kwargs = {"block_size": 1_000_000, "cache_type": "bytes"}
-    >>> with fits.open(url, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:
+    >>> with fits.open(url, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 The ideal configuration will depend on the latency and throughput of the
