@@ -5,5 +5,5 @@ coverage:
       default:
         target: auto
         # adjust accordingly based on how flaky your tests are
-        # this allows a 0.02% drop from the previous base commit coverage
-        threshold: 0.02%
+        # this allows a 0.01% drop from the previous base commit coverage
+        threshold: 0.01%
