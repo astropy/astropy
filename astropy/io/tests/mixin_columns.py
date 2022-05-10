@@ -45,10 +45,10 @@ su = table.Column([(1, (1.5, 1.6)),
                    (2, (2.5, 2.6))],
                   name='su',
                   dtype=[('i', np.int64),
-                         ('f', [('p0', np.float64), ('p1', np.float64)])])
-su2 = table.Column([(['d', 'c'], [1.6, 1.5]),
-                    (['b', 'a'], [2.5, 2.6])],
-                   dtype=[('s', 'U1', (2,)), ('f', 'f8', (2,))])
+                         ('f', [('p1', np.float64), ('p0', np.float64)])])
+su2 = table.Column([(['snake', 'c'], [1.6, 1.5]),
+                    (['eal', 'a'], [2.5, 2.6])],
+                   dtype=[('name', 'U5', (2,)), ('f', 'f8', (2,))])
 
 # NOTE: for testing, the name of the column "x" for the
 # Quantity is important since it tests the fix for #10215
@@ -113,7 +113,7 @@ compare_attrs = {
             'differentials.s.d_lat', 'differentials.s.d_distance'],
     'obj': [],
     'su': ['i', 'f.p0', 'f.p1'],
-    'su2': ['s', 'f'],
+    'su2': ['name', 'f'],
 }
 non_trivial_names = {
     'cr': ['cr.x', 'cr.y', 'cr.z'],
@@ -139,8 +139,8 @@ non_trivial_names = {
             'srd.differentials.s.d_lon_coslat',
             'srd.differentials.s.d_lat',
             'srd.differentials.s.d_distance'],
-    'su': ['su.i', 'su.f.p0', 'su.f.p1'],
-    'su2': ['su2.s', 'su2.f'],
+    'su': ['su.i', 'su.f.p1', 'su.f.p0'],
+    'su2': ['su2.name', 'su2.f'],
     'tm': ['tm.jd1', 'tm.jd2'],
     'tm2': ['tm2.jd1', 'tm2.jd2'],
     'tm3': ['tm3.jd1', 'tm3.jd2',
