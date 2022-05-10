@@ -196,8 +196,8 @@ class _ImageBaseHDU(_ValidHDU):
         should still be used to deal with very large scaled images.
 
         Note that sections cannot currently be written to.  Moreover, any
-        in-memory updates to the image's `.data` property may not be
-        reflected in the slices obtained via `.section`. See the
+        in-memory updates to the image's ``.data`` property may not be
+        reflected in the slices obtained via ``.section``. See the
         :ref:`astropy:data-sections` section of the documentation for
         more details.
         """
