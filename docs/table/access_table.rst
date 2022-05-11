@@ -774,6 +774,48 @@ any array::
          [[ 5.,  6.],
           [50., 60.]]])
 
+.. _format_stuctured_array_columns:
+
+Structured array columns
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. EXAMPLE START: Creating a formatted Astropy Table with a Structured Column
+
+For columns which are structured arrays, the format string must be a a string
+that uses `"new style" format strings
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_  with
+parameter substitutions corresponding to the field names in the structured
+array. Consider the example below including a column of parameters values where
+the value, min and max are stored in the in the column as fields named ``val``,
+``min``, and ``max``. By defaul the field values are shown as a tuple::
+
+    >>> pars = np.array(
+    ...   [(1.2345678, -20, 3),
+    ...    (12.345678, 4.5678, 33)],
+    ...   dtype=[('val', 'f8'), ('min', 'f8'), ('max', 'f8')]
+    ... )
+    >>> t = Table()
+    >>> t['a'] = [1, 2]
+    >>> t['par'] = pars
+    >>> print(t)
+     a    par [val, min, max]
+    --- ------------------------
+      1    (1.2345678, -20., 3.)
+      2 (12.345678, 4.5678, 33.)
+
+
+However, setting the format string appropriately allows formatting each of the
+field values and controlling the overall output::
+
+    >>> t['par'].info.format = '{val:6.2f} ({min:5.1f}, {max:5.1f})'
+    >>> print(t)
+     a   par [val, min, max]
+    --- ---------------------
+      1   1.23 (-20.0,   3.0)
+      2  12.35 (  4.6,  33.0)
+
+.. EXAMPLE END
+
 .. _columns_with_units:
 
 Columns with Units
