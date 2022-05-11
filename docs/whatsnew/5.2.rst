@@ -12,7 +12,17 @@ the 5.1 release.
 
 In particular, this release includes:
 
-* nothing yet
+
+.. _whatsnew-quantity-dtype:
+
+``Quantity`` data types
+=======================
+
+The default dtype argument for ``Quantity`` has been changed from `None`
+to ``numpy.floating``. With this dtype, Quantity will still upcast integers
+to floats, with a default dtype of ``float64``. Now ``dtype=None`` means the
+same thing as ``numpy``.
+
 
 Full change log
 ===============
