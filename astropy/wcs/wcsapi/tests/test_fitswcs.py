@@ -1067,3 +1067,104 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
             pix = wcs.world_to_pixel(skycoord, spectralcoord)
 
     assert_allclose(pix, [0, 0, 31], rtol=1e-6)
+
+
+HEADER_SPECTRAL_1D = """
+CTYPE1  = 'FREQ'
+CRVAL1  =    1.37835117405E+09
+CDELT1  =      9.765625000E+04
+CRPIX1  =                 32.0
+CUNIT1  = 'Hz'
+SPECSYS = 'TOPOCENT'
+RESTFRQ =      1.420405752E+09 / [Hz]
+RADESYS = 'FK5'
+"""
+
+
+@pytest.fixture
+def header_spectral_1d():
+    return Header.fromstring(HEADER_SPECTRAL_1D, sep='\n')
+
+
+@pytest.mark.parametrize(('ctype1', 'observer'), product(['ZOPT', 'BETA', 'VELO', 'VRAD', 'VOPT'], [False, True]))
+def test_spectral_1d(header_spectral_1d, ctype1, observer):
+
+    # This is a regression test for issues that happened with 1-d WCS
+    # where the target is not defined but observer is.
+
+    header = header_spectral_1d.copy()
+    header['CTYPE1'] = ctype1
+    header['CRVAL1'] = 0.1
+    header['CDELT1'] = 0.001
+
+    if ctype1[0] == 'V':
+        header['CUNIT1'] = 'm s-1'
+    else:
+        header['CUNIT1'] = ''
+
+    header['RESTWAV'] = 1.420405752E+09
+    header['MJD-OBS'] = 55197
+
+    if observer:
+        header['OBSGEO-L'] = 144.2
+        header['OBSGEO-B'] = -20.2
+        header['OBSGEO-H'] = 0.
+        header['SPECSYS'] = 'BARYCENT'
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', FITSFixedWarning)
+        wcs = WCS(header)
+
+    # First ensure that transformations round-trip
+
+    spectralcoord = wcs.pixel_to_world(31)
+
+    assert isinstance(spectralcoord, SpectralCoord)
+    assert spectralcoord.target is None
+    assert (spectralcoord.observer is not None) is observer
+
+    if observer:
+        expected_message = 'No target defined on SpectralCoord'
+    else:
+        expected_message = 'No observer defined on WCS'
+
+    with pytest.warns(AstropyUserWarning, match=expected_message):
+        pix = wcs.world_to_pixel(spectralcoord)
+
+    assert_allclose(pix, [31], rtol=1e-6)
+
+    # Also make sure that we can convert a SpectralCoord on which the observer
+    # is not defined but the target is.
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        spectralcoord_no_obs = SpectralCoord(spectralcoord.quantity,
+                                             doppler_rest=spectralcoord.doppler_rest,
+                                             doppler_convention=spectralcoord.doppler_convention,
+                                             target=ICRS(10 * u.deg, 20 * u.deg, distance=1 * u.kpc))
+
+    if observer:
+        expected_message = 'No observer defined on SpectralCoord'
+    else:
+        expected_message = 'No observer defined on WCS'
+
+    with pytest.warns(AstropyUserWarning, match=expected_message):
+        pix2 = wcs.world_to_pixel(spectralcoord_no_obs)
+    assert_allclose(pix2, [31], rtol=1e-6)
+
+    # And finally check case when both observer and target are defined on the
+    # SpectralCoord
+
+    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+        spectralcoord_no_obs = SpectralCoord(spectralcoord.quantity,
+                                             doppler_rest=spectralcoord.doppler_rest,
+                                             doppler_convention=spectralcoord.doppler_convention,
+                                             observer=ICRS(10 * u.deg, 20 * u.deg, distance=0 * u.kpc),
+                                             target=ICRS(10 * u.deg, 20 * u.deg, distance=1 * u.kpc))
+
+    if observer:
+        pix3 = wcs.world_to_pixel(spectralcoord_no_obs)
+    else:
+        with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+            pix3 = wcs.world_to_pixel(spectralcoord_no_obs)
+
+    assert_allclose(pix3, [31], rtol=1e-6)
