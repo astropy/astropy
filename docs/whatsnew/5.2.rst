@@ -12,7 +12,17 @@ the 5.1 release.
 
 In particular, this release includes:
 
-* nothing yet
+
+.. _whatsnew-quantity-dtype:
+
+``Quantity`` data types
+=======================
+
+The default dtype argument for ``Quantity`` has been changed, so that one can
+now explicitly give ``dtype=None`` to get the same behaviour as :mod:`numpy`.
+Without an explicit argument, any integer values are still upcast to floating
+point, since that makes more sense for physical quantities.
+
 
 Full change log
 ===============

@@ -138,6 +138,31 @@ class TestQuantityCreation:
         q5 = u.Quantity(decimal.Decimal('10.25'), u.m, dtype=object)
         assert q5.dtype == object
 
+    def test_numpy_style_dtype_inspect(self):
+        """Test that if ``dtype=None``, NumPy's dtype inspection is used."""
+        q2 = u.Quantity(12, dtype=None)
+        assert np.issubdtype(q2.dtype, np.integer)
+
+    def test_float_dtype_promotion(self):
+        """Test that if ``dtype=numpy.inexact``, the minimum precision is float64."""
+        q1 = u.Quantity(12, dtype=np.inexact)
+        assert not np.issubdtype(q1.dtype, np.integer)
+        assert q1.dtype == np.float64
+
+        q2 = u.Quantity(np.float64(12), dtype=np.inexact)
+        assert q2.dtype == np.float64
+
+        q3 = u.Quantity(np.float32(12), dtype=np.inexact)
+        assert q3.dtype == np.float32
+
+        if hasattr(np, "float16"):
+            q3 = u.Quantity(np.float16(12), dtype=np.inexact)
+            assert q3.dtype == np.float16
+
+        if hasattr(np, "float128"):
+            q4 = u.Quantity(np.float128(12), dtype=np.inexact)
+            assert q4.dtype == np.float128
+
     def test_copy(self):
 
         # By default, a new quantity is constructed, but not if copy=False
