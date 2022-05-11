@@ -304,7 +304,7 @@ Development Repository
 The latest development version of ``astropy`` can be cloned from GitHub
 using this command::
 
-   git clone git://github.com/astropy/astropy.git
+   git clone https://github.com/astropy/astropy.git
 
 If you wish to participate in the development of ``astropy``, see the
 :ref:`developer-docs`. The present document covers only the basics necessary to
