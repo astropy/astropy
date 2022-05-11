@@ -37,7 +37,7 @@ Let's say you have some changes that need to go into trunk
 The changes are in some branch that you are currently on. For example, you are
 looking at someone's changes like this::
 
-    git remote add someone git://github.com/someone/astropy.git
+    git remote add someone https://github.com/someone/astropy.git
     git fetch someone
     git branch cool-feature --track someone/cool-feature
     git checkout cool-feature

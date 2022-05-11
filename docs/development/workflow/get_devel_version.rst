@@ -152,14 +152,14 @@ Change into the ``astropy`` directory you created in the previous step and
 let `git`_ know about about the astropy remote::
 
     cd astropy
-    git remote add astropy git://github.com/astropy/astropy.git
+    git remote add astropy https://github.com/astropy/astropy.git
 
 You can check that everything is set up properly so far by asking `git`_ to
 show you all of the remotes it knows about for your local repository of
 `Astropy`_ with ``git remote -v``, which should display something like::
 
-    astropy   git://github.com/astropy/astropy.git (fetch)
-    astropy   git://github.com/astropy/astropy.git (push)
+    astropy   https://github.com/astropy/astropy.git (fetch)
+    astropy   https://github.com/astropy/astropy.git (push)
     origin     git@github.com:your-user-name/astropy.git (fetch)
     origin     git@github.com:your-user-name/astropy.git (push)
 
