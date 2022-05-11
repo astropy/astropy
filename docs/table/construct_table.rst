@@ -337,6 +337,32 @@ print the table to see what we made. In real code you might do something like::
     1 2.0   x
     4 5.0   y
 
+.. _structured-array-as-a-column:
+
+Structured Array as a Column
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some cases it is convenient to include a structured array as a single column
+in a table. The `~astropy.coordinates.EarthLocation` class is one case in
+astropy where this is done, where the structured column has three elements
+``x``, ``y`` and ``z``. Another example would be a modeling parameter that has a
+value, a minimum allowed value and a maximum allowed value. Here we demonstrate
+including the simple structured array defined previously as a column::
+
+  >>> table = Table()
+  >>> table['name'] = ['Micah', 'Mazzy']
+  >>> table['arr'] = arr
+  >>> print(table)
+   name arr [a, b, c]
+  ----- -------------
+  Micah  (1, 2., 'x')
+  Mazzy  (4, 5., 'y')
+
+You can access or print a single field in the structured column as follows::
+
+  >>> print(table['arr']['b'])
+  [2. 5.]
+
 **New column names**
 
 The column names can be changed from the original values by providing the
@@ -917,7 +943,9 @@ work.
 .. EXAMPLE START: Initialization Options for Column Objects
 
 The greatest flexibility can be achieved by setting a formatting function. This
-function must accept a single argument (the value) and return a string. In the
+function must accept a single argument (the value) and return a string. One
+caveat is that such a format function cannot be saved to file and you will get
+an exception if you attempt to do so. In the
 following example this is used to make a LaTeX ready output::
 
     >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
@@ -940,6 +968,14 @@ following example this is used to make a LaTeX ready output::
     \end{table}
 
 .. EXAMPLE END
+
+**Format string for structured array column**
+
+For columns which are structured arrays, the format string must be a a string
+that uses  `"new style" format strings
+<https://docs.python.org/3/library/string.html#format-string-syntax>`_ with
+parameter substitutions corresponding to the field names in the structured
+array. See :ref:`format_stuctured_array_columns` for an example.
 
 TableColumns
 ------------
