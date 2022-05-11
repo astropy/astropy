@@ -52,6 +52,18 @@ repos:
       - id: python-check-blanket-noqa
         # Enforce that all noqa annotations always occur with specific codes.
 
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.2.0
+    hooks:
+      - id: pyupgrade
+        args: ["--py38-plus"]
+        exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
+
+  - repo: https://github.com/asottile/yesqa
+    rev: v1.4.0
+    hooks:
+      - id: yesqa
+
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1
     hooks:
@@ -67,17 +79,10 @@ repos:
         types: [cython]
         additional_dependencies: [toml]
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.2.0
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
     hooks:
-      - id: pyupgrade
-        args: ["--py38-plus"]
-        exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
-
-  - repo: https://github.com/asottile/yesqa
-    rev: v1.4.0
-    hooks:
-      - id: yesqa
+      - id: black
 
   # We list the warnings/errors to check for here rather than in setup.cfg because
   # we don't want these options to apply whenever anyone calls flake8 from the
