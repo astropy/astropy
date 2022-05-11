@@ -19,6 +19,7 @@ write_to = "astropy/_version.py"
         enabled = false
 
 [tool.isort]
+    profile = "black"
     extend_skip_glob = [
         "docs/*",
         "examples/*",
@@ -47,7 +48,6 @@ write_to = "astropy/_version.py"
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy"]
-    multi_line_output = 4
     group_by_package = true
     indented_import_headings = false
 
