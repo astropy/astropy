@@ -361,7 +361,10 @@ including the simple structured array defined previously as a column::
 You can access or print a single field in the structured column as follows::
 
   >>> print(table['arr']['b'])
-  [2. 5.]
+  arr
+  ---
+  2.0
+  5.0
 
 **New column names**
 
