@@ -45,16 +45,13 @@ archs = ["x86_64", "arm64"]
 archs = ["auto", "aarch64"]
 
 [tool.isort]
+    profile = "black"
     extend_skip_glob = [
         "astropy/extern/*",
     ]
-    line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy", "extension_helpers"]
-    multi_line_output = 4
     group_by_package = true
-    indented_import_headings = false
-    use_parentheses = true
 
 [tool.coverage]
 
