@@ -1,5 +1,4 @@
 Quantity normally upcasts integer dtypes to floats, unless the dtype is
 specifically provided.
-Now, to force |Quantity| to use a similar ``dtype`` inspection as `numpy` when
-the dtype is not specified, |Quantity| accepts ``dtype=...`` (aka `Ellipsis`)
-as a valid argument.
+Before this happened when ``dtype=None``; now the default has been changed to
+``dtype=numpy.floating`` and ``dtype=None`` has the same meaning as in `numpy`.
