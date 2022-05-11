@@ -497,9 +497,18 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                          unit=u.m, observer=observer, target=target)
 
                 def redshift_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
-                    if observer is None:
-                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
+                    if (observer is None
+                            or spectralcoord.observer is None
+                            or spectralcoord.target is None):
+                        if observer is None:
+                            msg = 'No observer defined on WCS'
+                        elif spectralcoord.observer is None:
+                            msg = 'No observer defined on SpectralCoord'
+                        else:
+                            msg = 'No target defined on SpectralCoord'
+                        warnings.warn(f'{msg}, SpectralCoord '
                                       'will be converted without any velocity '
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
@@ -521,10 +530,19 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                          observer=observer, target=target)
 
                 def beta_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
-                    if observer is None:
-                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                    if (observer is None
+                            or spectralcoord.observer is None
+                            or spectralcoord.target is None):
+                        if observer is None:
+                            msg = 'No observer defined on WCS'
+                        elif spectralcoord.observer is None:
+                            msg = 'No observer defined on SpectralCoord'
+                        else:
+                            msg = 'No target defined on SpectralCoord'
+                        warnings.warn(f'{msg}, SpectralCoord '
                                       'will be converted without any velocity '
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
@@ -550,12 +568,23 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         kwargs['doppler_rest'] = self.wcs.restwav * u.m
 
                 def spectralcoord_from_value(value):
+                    if isinstance(value, SpectralCoord):
+                        return value
                     return SpectralCoord(value, observer=observer, target=target, **kwargs)
 
                 def value_from_spectralcoord(spectralcoord):
-                    # TODO: check target is consistent
-                    if observer is None:
-                        warnings.warn('No observer defined on WCS, SpectralCoord '
+                    # TODO: check target is consistent between WCS and SpectralCoord,
+                    # if they are not the transformation doesn't make conceptual sense.
+                    if (observer is None
+                            or spectralcoord.observer is None
+                            or spectralcoord.target is None):
+                        if observer is None:
+                            msg = 'No observer defined on WCS'
+                        elif spectralcoord.observer is None:
+                            msg = 'No observer defined on SpectralCoord'
+                        else:
+                            msg = 'No target defined on SpectralCoord'
+                        warnings.warn(f'{msg}, SpectralCoord '
                                       'will be converted without any velocity '
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(**kwargs)
