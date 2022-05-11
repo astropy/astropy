@@ -42,6 +42,7 @@ def _possible_string_format_functions(format_):
     yield lambda format_, val: format(val, format_)
     yield lambda format_, val: format_.format(val)
     yield lambda format_, val: format_ % val
+    yield lambda format_, val: format_.format(**{k: val[k] for k in val.dtype.names})
 
 
 def get_auto_format_func(

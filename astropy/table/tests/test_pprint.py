@@ -592,6 +592,22 @@ def test_pprint_structured():
         "        (2, (2.5, [2.6, 2.7]))"]
 
 
+def test_pprint_structured_with_format():
+    dtype = np.dtype([('par', 'f8'), ('min', 'f8'), ('id', 'i4'), ('name', 'U4')])
+    c = table.Column([(1.2345678, -20, 3, 'bar'),
+                      (12.345678, 4.5678, 33, 'foo')], dtype=dtype)
+    t = table.Table()
+    t['a'] = [1, 2]
+    t['c'] = c
+    t['c'].info.format = '{par:6.2f} {min:5.1f} {id:03d} {name:4s}'
+    exp = [
+        ' a  c [par, min, id, name]',
+        '--- ----------------------',
+        '  1    1.23 -20.0 003 bar ',
+        '  2   12.35   4.6 033 foo ']
+    assert t.pformat_all() == exp
+
+
 def test_pprint_nameless_col():
     """Regression test for #2213, making sure a nameless column can be printed
     using None as the name.
