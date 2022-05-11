@@ -2916,6 +2916,21 @@ def test_data_to_col_convert_strategy():
     assert np.all(t['b'] == [2, 2])
 
 
+def test_structured_masked_column():
+    """Test that adding a masked ndarray with a structured dtype works"""
+    dtype = np.dtype([('z', 'f8'), ('x', 'f8'), ('y', 'i4')])
+    t = Table()
+    t['a'] = np.ma.array([(1, 2, 3),
+                          (4, 5, 6)],
+                         mask=[(False, False, True),
+                               (False, True, False)],
+                         dtype=dtype)
+    assert np.all(t['a']['z'].mask == [False, False])
+    assert np.all(t['a']['x'].mask == [False, True])
+    assert np.all(t['a']['y'].mask == [True, False])
+    assert isinstance(t['a'], MaskedColumn)
+
+
 def test_rows_with_mixins():
     """Test for #9165 to allow adding a list of mixin objects.
     Also test for fix to #9357 where group_by() failed due to
