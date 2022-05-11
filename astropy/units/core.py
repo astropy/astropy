@@ -824,7 +824,7 @@ class UnitBase:
         # Cannot handle this as Unit, re-try as Quantity.
         try:
             from .quantity import Quantity
-            return Quantity(1, self) * m
+            return Quantity(1, unit=self) * m
         except TypeError:
             return NotImplemented
 
@@ -842,7 +842,7 @@ class UnitBase:
                 result *= self
                 return result
             else:
-                return Quantity(m, self)
+                return Quantity(m, unit=self)
         except TypeError:
             return NotImplemented
 

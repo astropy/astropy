@@ -517,6 +517,42 @@ It can also be used for in-place conversion::
     >>> a  # doctest: +FLOAT_CMP
     array([-100.,  100.,  200.,  300.,  400.])
 
+
+The `numpy.dtype` of a Quantity
+===============================
+
+|Quantity| subclasses `numpy.ndarray` and similarly accepts a ``dtype``
+argument.
+
+    >>> q = u.Quantity(1.0, dtype=np.float32)
+    >>> q.dtype
+    dtype('float32')
+
+Like for `numpy.ndarray`, ``dtype`` does not have to be specified, in which case
+the data is inspected to find the best ``dtype``. For `numpy` this means
+integers remain integers, while |Quantity| instead upcasts integers to floats.
+
+    >>> v = np.array(1)
+    >>> np.issubdtype(v.dtype, np.integer)
+    True
+
+    >>> q = u.Quantity(1)
+    >>> np.issubdtype(q.dtype, np.integer)
+    False
+
+|Quantity| promotes integer to floating types because it has a different default
+value for ``dtype`` than `numpy` -- `numpy.inexact` versus `None`. For |Quantity|
+to use the same ``dtype`` inspection as `numpy`, use ``dtype=None``.
+
+    >>> q = u.Quantity(1, dtype=None)
+    >>> np.issubdtype(q.dtype, np.integer)
+    True
+
+Note that `numpy.inexact` is a deprecated ``dtype`` argument for
+`numpy.ndarray`. |Quantity| changes `numpy.inexact` to `numpy.float64`, but does
+not change data that are already floating point or complex.
+
+
 QTable
 ======
 

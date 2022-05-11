@@ -105,7 +105,7 @@ class Angle(u.SpecificTypeQuantity):
     _equivalent_unit = u.radian
     _include_easy_conversion_members = True
 
-    def __new__(cls, angle, unit=None, dtype=None, copy=True, **kwargs):
+    def __new__(cls, angle, unit=None, dtype=np.inexact, copy=True, **kwargs):
 
         if not isinstance(angle, u.Quantity):
             if unit is not None:
