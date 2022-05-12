@@ -2099,7 +2099,7 @@ def test_unitphysics(unitphysics):
 
     assph = obj.represent_as(SphericalRepresentation)
     assert assph.lon == obj.phi
-    assert assph.lat == 80*u.deg
+    assert_allclose_quantity(assph.lat, 80*u.deg)
     assert_allclose_quantity(assph.distance, 1*u.dimensionless_unscaled)
 
     with pytest.raises(TypeError, match='got multiple values'):

@@ -13,7 +13,9 @@ jobs:
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10409
-      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_wcsapi_extension" --pyargs astropy
+      # We also exclude test_set_locale as it sometimes relies on the correct locale
+      # packages being installed, which it isn't always.
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_wcsapi_extension and not test_set_locale" --pyargs astropy
       targets: |
         # Linux wheels
         - cp38-manylinux_i686
@@ -43,9 +45,9 @@ jobs:
 
         # TODO: Add support for musllinux here (which seems to be new in cibuildwheel 2.2)
         # This seems to introduce real numerical issues
-        # - cp38-musllinux_x86_64
-        # - cp39-musllinux_x86_64
-        # - cp310-musllinux_x86_64
+        - cp38-musllinux_x86_64
+        - cp39-musllinux_x86_64
+        - cp310-musllinux_x86_64
         # TODO: The aarch64 builds take longer than an hour to complete so get killed
         # - cp38-manylinux_aarch64
         # - cp39-manylinux_aarch64
