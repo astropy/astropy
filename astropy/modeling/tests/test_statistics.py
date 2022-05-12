@@ -3,6 +3,7 @@
 Module to test statistic functions
 """
 import numpy as np
+
 # pylint: disable=invalid-name
 import pytest
 from numpy.testing import assert_almost_equal

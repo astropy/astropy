@@ -31,15 +31,26 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (
-    IncompatibleShapeError, check_broadcast, find_current_module, indent, isiterable, metadata,
-    sharedmethod)
+    IncompatibleShapeError,
+    check_broadcast,
+    find_current_module,
+    indent,
+    isiterable,
+    metadata,
+    sharedmethod,
+)
 from astropy.utils.codegen import make_function_with_signature
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
 from .utils import (
-    _combine_equivalency_dict, _ConstraintsDict, _SpecialOperatorsDict, combine_labels,
-    get_inputs_and_params, make_binary_operator_eval)
+    _combine_equivalency_dict,
+    _ConstraintsDict,
+    _SpecialOperatorsDict,
+    combine_labels,
+    get_inputs_and_params,
+    make_binary_operator_eval,
+)
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'CompoundModel', 'fix_inputs', 'custom_model', 'ModelDefinitionError',

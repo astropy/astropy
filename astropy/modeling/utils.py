@@ -4,6 +4,7 @@
 This module provides utility functions for the models package.
 """
 import warnings
+
 # pylint: disable=invalid-name
 from collections import UserDict
 from collections.abc import MutableMapping

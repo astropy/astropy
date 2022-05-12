@@ -17,8 +17,18 @@ from astropy.modeling import fitting
 from astropy.modeling.functional_models import Linear1D
 from astropy.modeling.mappings import Identity
 from astropy.modeling.polynomial import (
-    SIP, Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre1D, Legendre2D,
-    OrthoPolynomialBase, Polynomial1D, Polynomial2D, PolynomialBase)
+    SIP,
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre1D,
+    Legendre2D,
+    OrthoPolynomialBase,
+    Polynomial1D,
+    Polynomial2D,
+    PolynomialBase,
+)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning

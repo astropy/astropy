@@ -7,6 +7,7 @@ Compare the results of some models with other programs.
 import unittest.mock as mk
 
 import numpy as np
+
 # pylint: disable=invalid-name, no-member
 import pytest
 from numpy.testing import assert_allclose, assert_equal
@@ -20,8 +21,12 @@ from astropy.modeling.models import Gaussian2D
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.polynomial import PolynomialBase
 from astropy.modeling.powerlaws import (
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D,
-    SmoothlyBrokenPowerLaw1D)
+    BrokenPowerLaw1D,
+    ExponentialCutoffPowerLaw1D,
+    LogParabola1D,
+    PowerLaw1D,
+    SmoothlyBrokenPowerLaw1D,
+)
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
