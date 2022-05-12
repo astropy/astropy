@@ -114,7 +114,16 @@ Columns which are ``numpy`` structured arrays are now fully supported,
 effectively allowing tables within tables. This applies to |Column|,
 |MaskedColumn|, and |Quantity| columns, and includes possible structured
 units. These structured data columns can be stored in ECSV, FITS, and HDF5
-formats.
+formats. A new way to specify the formatting of a structured column is now
+available using parameter substitutions corresponding to the structure field
+names. See :ref:`format_stuctured_array_columns` for details and an example.
+
+As part of this update, there is an API change in the behavior when a structured
+``numpy.ndarray`` is added as a column to a ``Table``. Previously this was
+converted to a ``NdarrayMixin`` subclass of ``ndarray`` and added as a mixin
+column. This was because saving as a file (e.g. HDF5, FITS, ECSV) was not
+supported for structured array columns. Now a structured ``numpy.ndarray`` is
+added to the table as a native ``Column`` and saving to file is supported.
 
 .. _whatsnew-fitters:
 
