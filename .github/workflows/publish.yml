@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  publish:
+    # TODO: currently this will publish wheels to PyPI for any tag starting with
+    # 'v' but we need to exclude '.dev' tags.
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
+    with:
+      test_extras: test
+      # FIXME: we exclude the test_data_out_of_range test since it
+      # currently fails, see https://github.com/astropy/astropy/issues/10409
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_wcsapi_extension" --pyargs astropy
+      targets: |
+        # Linux wheels
+        - cp38-manylinux_i686
+        - cp39-manylinux_i686
+        # - cp310*linux_i686  # We can't build this as PyYAML doesn't have i686 wheels for 3.10 yet so the build takes too long
+        - cp38-manylinux_x86_64
+        - cp39-manylinux_x86_64
+        - cp310-manylinux_x86_64
+
+        # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
+        # do not build universal2 wheels. Note that the arm64 wheels are not actually tested so we
+        # rely on local manual testing of these to make sure they are ok.
+        - cp38*macosx_x86_64
+        - cp39*macosx_x86_64
+        - cp310*macosx_x86_64
+        - cp38*macosx_arm64
+        - cp39*macosx_arm64
+        - cp310*macosx_arm64
+
+        # Windows wheels
+        - cp38*win32
+        - cp38*win_amd64
+        - cp39*win32
+        - cp39*win_amd64
+        - cp310*win32
+        - cp310*win_amd64
+
+        # TODO: Add support for musllinux here (which seems to be new in cibuildwheel 2.2)
+        # This seems to introduce real numerical issues
+        # - cp38-musllinux_x86_64
+        # - cp39-musllinux_x86_64
+        # - cp310-musllinux_x86_64
+        # TODO: The aarch64 builds take longer than an hour to complete so get killed
+        # - cp38-manylinux_aarch64
+        # - cp39-manylinux_aarch64
+        # - cp310-manylinux_aarch64
+
+    secrets:
+      pypi_token: ${{ secrets.pypi_token }}
