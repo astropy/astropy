@@ -14,10 +14,18 @@ from .parameters import Parameter
 from .utils import _validate_domain_window, comb, poly_map_domain
 
 __all__ = [
-    'Chebyshev1D', 'Chebyshev2D', 'Hermite1D', 'Hermite2D',
-    'InverseSIP', 'Legendre1D', 'Legendre2D', 'Polynomial1D',
-    'Polynomial2D', 'SIP', 'OrthoPolynomialBase',
-    'PolynomialModel'
+    "Chebyshev1D",
+    "Chebyshev2D",
+    "Hermite1D",
+    "Hermite2D",
+    "InverseSIP",
+    "Legendre1D",
+    "Legendre2D",
+    "Polynomial1D",
+    "Polynomial2D",
+    "SIP",
+    "OrthoPolynomialBase",
+    "PolynomialModel",
 ]
 
 
@@ -63,8 +71,7 @@ class PolynomialModel(PolynomialBase):
     default values, names and ordering.
     """
 
-    def __init__(self, degree, n_models=None, model_set_axis=None,
-                 name=None, meta=None, **params):
+    def __init__(self, degree, n_models=None, model_set_axis=None, name=None, meta=None, **params):
         self._degree = degree
         self._order = self.get_num_coeff(self.n_inputs)
         self._param_names = self._generate_coeff_names(self.n_inputs)
@@ -78,8 +85,8 @@ class PolynomialModel(PolynomialBase):
             self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
 
         super().__init__(
-            n_models=n_models, model_set_axis=model_set_axis, name=name,
-            meta=meta, **params)
+            n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta, **params
+        )
 
     @property
     def degree(self):
@@ -116,16 +123,16 @@ class PolynomialModel(PolynomialBase):
         names = []
         if ndim == 1:
             for n in range(self._order):
-                names.append(f'c{n}')
+                names.append(f"c{n}")
         else:
             for i in range(self.degree + 1):
-                names.append(f'c{i}_{0}')
+                names.append(f"c{i}_{0}")
             for i in range(1, self.degree + 1):
-                names.append(f'c{0}_{i}')
+                names.append(f"c{0}_{i}")
             for i in range(1, self.degree):
                 for j in range(1, self.degree):
                     if i + j < self.degree + 1:
-                        names.append(f'c{i}_{j}')
+                        names.append(f"c{i}_{j}")
         return tuple(names)
 
 
@@ -133,10 +140,19 @@ class _PolyDomainWindow1D(PolynomialModel):
     """
     This class sets ``domain`` and ``window`` of 1D polynomials.
     """
-    def __init__(self, degree, domain=None, window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
-        super().__init__(
-            degree, n_models, model_set_axis, name=name, meta=meta, **params)
+
+    def __init__(
+        self,
+        degree,
+        domain=None,
+        window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
+        super().__init__(degree, n_models, model_set_axis, name=name, meta=meta, **params)
 
         self._set_default_domain_window(domain, window)
 
@@ -162,23 +178,22 @@ class _PolyDomainWindow1D(PolynomialModel):
 
         """
 
-        self._default_domain_window = {'domain': None,
-                                       'window': (-1, 1)
-                                       }
+        self._default_domain_window = {"domain": None, "window": (-1, 1)}
         self.window = window or (-1, 1)
         self.domain = domain
 
     def __repr__(self):
-        return self._format_repr([self.degree],
-                                 kwargs={'domain': self.domain, 'window': self.window},
-                                 defaults=self._default_domain_window
-                                 )
+        return self._format_repr(
+            [self.degree],
+            kwargs={"domain": self.domain, "window": self.window},
+            defaults=self._default_domain_window,
+        )
 
     def __str__(self):
-        return self._format_str([('Degree', self.degree),
-                                 ('Domain', self.domain),
-                                 ('Window', self.window)],
-                                self._default_domain_window)
+        return self._format_str(
+            [("Degree", self.degree), ("Domain", self.domain), ("Window", self.window)],
+            self._default_domain_window,
+        )
 
 
 class OrthoPolynomialBase(PolynomialBase):
@@ -213,22 +228,33 @@ class OrthoPolynomialBase(PolynomialBase):
     n_inputs = 2
     n_outputs = 1
 
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
-                 y_domain=None, y_window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        x_degree,
+        y_degree,
+        x_domain=None,
+        x_window=None,
+        y_domain=None,
+        y_window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         self.x_degree = x_degree
         self.y_degree = y_degree
         self._order = self.get_num_coeff()
         # Set the ``x/y_domain`` and ``x/y_wndow`` attributes in subclasses.
         self._default_domain_window = {
-            'x_window': (-1, 1),
-            'y_window': (-1, 1),
-            'x_domain': None,
-            'y_domain': None
-            }
+            "x_window": (-1, 1),
+            "y_window": (-1, 1),
+            "x_domain": None,
+            "y_domain": None,
+        }
 
-        self.x_window = x_window or self._default_domain_window['x_window']
-        self.y_window = y_window or self._default_domain_window['y_window']
+        self.x_window = x_window or self._default_domain_window["x_window"]
+        self.y_window = y_window or self._default_domain_window["y_window"]
         self.x_domain = x_domain
         self.y_domain = y_domain
 
@@ -243,8 +269,8 @@ class OrthoPolynomialBase(PolynomialBase):
         for param_name in self._param_names:
             self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
         super().__init__(
-            n_models=n_models, model_set_axis=model_set_axis,
-            name=name, meta=meta, **params)
+            n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta, **params
+        )
 
     @property
     def x_domain(self):
@@ -279,22 +305,29 @@ class OrthoPolynomialBase(PolynomialBase):
         self._y_window = _validate_domain_window(val)
 
     def __repr__(self):
-        return self._format_repr([self.x_degree, self.y_degree],
-                                 kwargs={'x_domain': self.x_domain,
-                                         'y_domain': self.y_domain,
-                                         'x_window': self.x_window,
-                                         'y_window': self.y_window},
-                                 defaults=self._default_domain_window)
+        return self._format_repr(
+            [self.x_degree, self.y_degree],
+            kwargs={
+                "x_domain": self.x_domain,
+                "y_domain": self.y_domain,
+                "x_window": self.x_window,
+                "y_window": self.y_window,
+            },
+            defaults=self._default_domain_window,
+        )
 
     def __str__(self):
         return self._format_str(
-            [('X_Degree', self.x_degree),
-             ('Y_Degree', self.y_degree),
-             ('X_Domain', self.x_domain),
-             ('Y_Domain', self.y_domain),
-             ('X_Window', self.x_window),
-             ('Y_Window', self.y_window)],
-            self._default_domain_window)
+            [
+                ("X_Degree", self.x_degree),
+                ("Y_Degree", self.y_degree),
+                ("X_Domain", self.x_domain),
+                ("Y_Domain", self.y_domain),
+                ("X_Window", self.x_window),
+                ("Y_Window", self.y_window),
+            ],
+            self._default_domain_window,
+        )
 
     def get_num_coeff(self):
         """
@@ -328,7 +361,7 @@ class OrthoPolynomialBase(PolynomialBase):
         yvar = np.arange(self.y_degree + 1)
         for j in yvar:
             for i in xvar:
-                name = f'c{i}_{j}'
+                name = f"c{i}_{j}"
                 coeff = coeffs[self.param_names.index(name)]
                 invlex_coeffs.append(coeff)
         return np.array(invlex_coeffs[::-1])
@@ -358,28 +391,28 @@ class OrthoPolynomialBase(PolynomialBase):
         y_terms = self.y_degree + 1
         nterms = x_terms + y_terms
         for n in range(1, nterms + 1 + 3):
-            setattr(self, 'r' + str(n), 0.)
+            setattr(self, "r" + str(n), 0.0)
 
         for n in range(1, nalpha):
             k = karr[n - 1].nonzero()[0].max() + 1
             rsum = 0
             for i in range(1, k + 1):
-                rsum = rsum + getattr(self, 'r' + str(i))
+                rsum = rsum + getattr(self, "r" + str(i))
             val = kfunc[k - 1] * (r0 + rsum)
-            setattr(self, 'r' + str(k), val)
+            setattr(self, "r" + str(k), val)
             r0 = _coeff[n]
             for i in range(1, k):
-                setattr(self, 'r' + str(i), 0.)
+                setattr(self, "r" + str(i), 0.0)
         result = r0
         for i in range(1, nterms + 1 + 3):
-            result = result + getattr(self, 'r' + str(i))
+            result = result + getattr(self, "r" + str(i))
         return result
 
     def _generate_coeff_names(self):
         names = []
         for j in range(self.y_degree + 1):
             for i in range(self.x_degree + 1):
-                names.append(f'c{i}_{j}')
+                names.append(f"c{i}_{j}")
         return tuple(names)
 
     def _fcache(self, x, y):
@@ -451,11 +484,28 @@ class Chebyshev1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        degree,
+        domain=None,
+        window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
 
-        super().__init__(degree, domain=domain, window=window, n_models=n_models,
-                         model_set_axis=model_set_axis, name=name, meta=meta, **params)
+        super().__init__(
+            degree,
+            domain=domain,
+            window=window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def fit_deriv(self, x, *params):
         """
@@ -558,11 +608,27 @@ class Hermite1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        degree,
+        domain=None,
+        window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         super().__init__(
-            degree, domain, window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            degree,
+            domain,
+            window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def fit_deriv(self, x, *params):
         """
@@ -671,13 +737,33 @@ class Hermite2D(OrthoPolynomialBase):
     """
     _separable = False
 
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
-                 y_domain=None, y_window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        x_degree,
+        y_degree,
+        x_domain=None,
+        x_window=None,
+        y_domain=None,
+        y_window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         super().__init__(
-            x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
-            x_window=x_window, y_window=y_window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            x_degree,
+            y_degree,
+            x_domain=x_domain,
+            y_domain=y_domain,
+            x_window=x_window,
+            y_window=y_window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def _fcache(self, x, y):
         """
@@ -798,11 +884,27 @@ class Legendre1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        degree,
+        domain=None,
+        window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         super().__init__(
-            degree, domain, window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            degree,
+            domain,
+            window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def prepare_inputs(self, x, **kwargs):
         inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
@@ -894,19 +996,36 @@ class Polynomial1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(self, degree, domain=None, window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        degree,
+        domain=None,
+        window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         super().__init__(
-            degree, domain, window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            degree,
+            domain,
+            window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
         # Set domain separately because it's different from
         # the orthogonal polynomials.
-        self._default_domain_window = {'domain': (-1, 1),
-                                       'window': (-1, 1),
-                                       }
-        self.domain = domain or self._default_domain_window['domain']
-        self.window = window or self._default_domain_window['window']
+        self._default_domain_window = {
+            "domain": (-1, 1),
+            "window": (-1, 1),
+        }
+        self.domain = domain or self._default_domain_window["domain"]
+        self.window = window or self._default_domain_window["window"]
 
     def prepare_inputs(self, x, **kwargs):
         inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
@@ -964,7 +1083,7 @@ class Polynomial1D(_PolyDomainWindow1D):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
         for i in range(self.degree + 1):
-            par = getattr(self, f'c{i}')
+            par = getattr(self, f"c{i}")
             mapping[par.name] = outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]] ** i
         return mapping
 
@@ -1013,24 +1132,34 @@ class Polynomial2D(PolynomialModel):
 
     _separable = False
 
-    def __init__(self, degree, x_domain=None, y_domain=None,
-                 x_window=None, y_window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        degree,
+        x_domain=None,
+        y_domain=None,
+        x_window=None,
+        y_window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         super().__init__(
-            degree, n_models=n_models, model_set_axis=model_set_axis,
-            name=name, meta=meta, **params)
+            degree, n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta, **params
+        )
 
         self._default_domain_window = {
-            'x_domain': (-1, 1),
-            'y_domain': (-1, 1),
-            'x_window': (-1, 1),
-            'y_window': (-1, 1)
-            }
+            "x_domain": (-1, 1),
+            "y_domain": (-1, 1),
+            "x_window": (-1, 1),
+            "y_window": (-1, 1),
+        }
 
-        self.x_domain = x_domain or self._default_domain_window['x_domain']
-        self.y_domain = y_domain or self._default_domain_window['y_domain']
-        self.x_window = x_window or self._default_domain_window['x_window']
-        self.y_window = y_window or self._default_domain_window['y_window']
+        self.x_domain = x_domain or self._default_domain_window["x_domain"]
+        self.y_domain = y_domain or self._default_domain_window["y_domain"]
+        self.x_window = x_window or self._default_domain_window["x_window"]
+        self.y_window = y_window or self._default_domain_window["y_window"]
 
     def prepare_inputs(self, x, y, **kwargs):
 
@@ -1060,20 +1189,28 @@ class Polynomial2D(PolynomialModel):
         return result
 
     def __repr__(self):
-        return self._format_repr([self.degree],
-                                 kwargs={'x_domain': self.x_domain,
-                                         'y_domain': self.y_domain,
-                                         'x_window': self.x_window,
-                                         'y_window': self.y_window},
-                                 defaults=self._default_domain_window)
+        return self._format_repr(
+            [self.degree],
+            kwargs={
+                "x_domain": self.x_domain,
+                "y_domain": self.y_domain,
+                "x_window": self.x_window,
+                "y_window": self.y_window,
+            },
+            defaults=self._default_domain_window,
+        )
 
     def __str__(self):
-        return self._format_str([('Degree', self.degree),
-                                 ('X_Domain', self.x_domain),
-                                 ('Y_Domain', self.y_domain),
-                                 ('X_Window', self.x_window),
-                                 ('Y_Window', self.y_window)],
-                                self._default_domain_window)
+        return self._format_str(
+            [
+                ("Degree", self.degree),
+                ("X_Domain", self.x_domain),
+                ("Y_Domain", self.y_domain),
+                ("X_Window", self.x_window),
+                ("Y_Window", self.y_window),
+            ],
+            self._default_domain_window,
+        )
 
     def fit_deriv(self, x, y, *params):
         """
@@ -1099,7 +1236,7 @@ class Polynomial2D(PolynomialModel):
         if y.ndim == 2:
             y = y.flatten()
         if x.size != y.size:
-            raise ValueError('Expected x and y to be of equal size')
+            raise ValueError("Expected x and y to be of equal size")
 
         designx = x[:, None] ** np.arange(self.degree + 1)
         designy = y[:, None] ** np.arange(1, self.degree + 1)
@@ -1108,7 +1245,7 @@ class Polynomial2D(PolynomialModel):
         for i in range(1, self.degree):
             for j in range(1, self.degree):
                 if i + j <= self.degree:
-                    designmixed.append((x ** i) * (y ** j))
+                    designmixed.append((x**i) * (y**j))
         designmixed = np.array(designmixed).T
         if designmixed.any():
             v = np.hstack([designx, designy, designmixed])
@@ -1122,7 +1259,7 @@ class Polynomial2D(PolynomialModel):
         for i in lencoeff:
             for j in lencoeff:
                 if i + j <= self.degree:
-                    name = f'c{j}_{i}'
+                    name = f"c{j}_{i}"
                     coeff = coeffs[self.param_names.index(name)]
                     invlex_coeffs.append(coeff)
         return invlex_coeffs[::-1]
@@ -1157,8 +1294,10 @@ class Polynomial2D(PolynomialModel):
     def input_units(self):
         if self.degree == 0 or (self.c1_0.unit is None and self.c0_1.unit is None):
             return None
-        return {self.inputs[0]: self.c0_0.unit / self.c1_0.unit,
-                self.inputs[1]: self.c0_0.unit / self.c0_1.unit}
+        return {
+            self.inputs[0]: self.c0_0.unit / self.c1_0.unit,
+            self.inputs[1]: self.c0_0.unit / self.c0_1.unit,
+        }
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         mapping = {}
@@ -1166,10 +1305,12 @@ class Polynomial2D(PolynomialModel):
             for j in range(self.degree + 1):
                 if i + j > 2:
                     continue
-                par = getattr(self, f'c{i}_{j}')
-                mapping[par.name] = (outputs_unit[self.outputs[0]]
-                                     / inputs_unit[self.inputs[0]] ** i
-                                     / inputs_unit[self.inputs[1]] ** j)
+                par = getattr(self, f"c{i}_{j}")
+                mapping[par.name] = (
+                    outputs_unit[self.outputs[0]]
+                    / inputs_unit[self.inputs[0]] ** i
+                    / inputs_unit[self.inputs[1]] ** j
+                )
         return mapping
 
     @property
@@ -1253,14 +1394,34 @@ class Chebyshev2D(OrthoPolynomialBase):
     """
     _separable = False
 
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
-                 y_domain=None, y_window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        x_degree,
+        y_degree,
+        x_domain=None,
+        x_window=None,
+        y_domain=None,
+        y_window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
 
         super().__init__(
-            x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
-            x_window=x_window, y_window=y_window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            x_degree,
+            y_degree,
+            x_domain=x_domain,
+            y_domain=y_domain,
+            x_window=x_window,
+            y_window=y_window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def _fcache(self, x, y):
         """
@@ -1392,14 +1553,34 @@ class Legendre2D(OrthoPolynomialBase):
     """
     _separable = False
 
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
-                 y_domain=None, y_window=None, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        x_degree,
+        y_degree,
+        x_domain=None,
+        x_window=None,
+        y_domain=None,
+        y_window=None,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
 
         super().__init__(
-            x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
-            x_window=x_window, y_window=y_window, n_models=n_models,
-            model_set_axis=model_set_axis, name=name, meta=meta, **params)
+            x_degree,
+            y_degree,
+            x_domain=x_domain,
+            y_domain=y_domain,
+            x_window=x_window,
+            y_window=y_window,
+            n_models=n_models,
+            model_set_axis=model_set_axis,
+            name=name,
+            meta=meta,
+            **params,
+        )
 
     def _fcache(self, x, y):
         """
@@ -1415,11 +1596,11 @@ class Legendre2D(OrthoPolynomialBase):
         kfunc[x_terms] = np.ones(y.shape)
         kfunc[x_terms + 1] = y.copy()
         for n in range(2, x_terms):
-            kfunc[n] = (((2 * (n - 1) + 1) * x * kfunc[n - 1] -
-                         (n - 1) * kfunc[n - 2]) / n)
+            kfunc[n] = ((2 * (n - 1) + 1) * x * kfunc[n - 1] - (n - 1) * kfunc[n - 2]) / n
         for n in range(2, y_terms):
-            kfunc[n + x_terms] = ((2 * (n - 1) + 1) * y * kfunc[n + x_terms - 1] -
-                                  (n - 1) * kfunc[n + x_terms - 2]) / (n)
+            kfunc[n + x_terms] = (
+                (2 * (n - 1) + 1) * y * kfunc[n + x_terms - 1] - (n - 1) * kfunc[n + x_terms - 2]
+            ) / (n)
         return kfunc
 
     def fit_deriv(self, x, y, *params):
@@ -1484,8 +1665,16 @@ class _SIP1D(PolynomialBase):
 
     _separable = False
 
-    def __init__(self, order, coeff_prefix, n_models=None,
-                 model_set_axis=None, name=None, meta=None, **params):
+    def __init__(
+        self,
+        order,
+        coeff_prefix,
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+        **params,
+    ):
         self.order = order
         self.coeff_prefix = coeff_prefix
         self._param_names = self._generate_coeff_names(coeff_prefix)
@@ -1498,16 +1687,15 @@ class _SIP1D(PolynomialBase):
             minshape = ()
         for param_name in self._param_names:
             self._parameters_[param_name] = Parameter(param_name, default=np.zeros(minshape))
-        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
-                         name=name, meta=meta, **params)
+        super().__init__(
+            n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta, **params
+        )
 
     def __repr__(self):
         return self._format_repr(args=[self.order, self.coeff_prefix])
 
     def __str__(self):
-        return self._format_str(
-            [('Order', self.order),
-             ('Coeff. Prefix', self.coeff_prefix)])
+        return self._format_str([("Order", self.order), ("Coeff. Prefix", self.coeff_prefix)])
 
     def evaluate(self, x, y, *coeffs):
         # TODO: Rewrite this so that it uses a simpler method of determining
@@ -1531,34 +1719,34 @@ class _SIP1D(PolynomialBase):
     def _generate_coeff_names(self, coeff_prefix):
         names = []
         for i in range(2, self.order + 1):
-            names.append(f'{coeff_prefix}_{i}_{0}')
+            names.append(f"{coeff_prefix}_{i}_{0}")
         for i in range(2, self.order + 1):
-            names.append(f'{coeff_prefix}_{0}_{i}')
+            names.append(f"{coeff_prefix}_{0}_{i}")
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    names.append(f'{coeff_prefix}_{i}_{j}')
+                    names.append(f"{coeff_prefix}_{i}_{j}")
         return tuple(names)
 
     def _coeff_matrix(self, coeff_prefix, coeffs):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            attr = f'{coeff_prefix}_{i}_{0}'
+            attr = f"{coeff_prefix}_{i}_{0}"
             mat[i, 0] = coeffs[self.param_names.index(attr)]
         for i in range(2, self.order + 1):
-            attr = f'{coeff_prefix}_{0}_{i}'
+            attr = f"{coeff_prefix}_{0}_{i}"
             mat[0, i] = coeffs[self.param_names.index(attr)]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    attr = f'{coeff_prefix}_{i}_{j}'
+                    attr = f"{coeff_prefix}_{i}_{j}"
                     mat[i, j] = coeffs[self.param_names.index(attr)]
         return mat
 
     def _eval_sip(self, x, y, coef):
         x = np.asarray(x, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
-        if self.coeff_prefix == 'A':
+        if self.coeff_prefix == "A":
             result = np.zeros(x.shape)
         else:
             result = np.zeros(y.shape)
@@ -1566,7 +1754,7 @@ class _SIP1D(PolynomialBase):
         for i in range(coef.shape[0]):
             for j in range(coef.shape[1]):
                 if 1 < i + j < self.order + 1:
-                    result = result + coef[i, j] * x ** i * y ** j
+                    result = result + coef[i, j] * x**i * y**j
         return result
 
 
@@ -1609,9 +1797,22 @@ class SIP(Model):
 
     _separable = False
 
-    def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
-                 ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
-                 n_models=None, model_set_axis=None, name=None, meta=None):
+    def __init__(
+        self,
+        crpix,
+        a_order,
+        b_order,
+        a_coeff={},
+        b_coeff={},
+        ap_order=None,
+        bp_order=None,
+        ap_coeff={},
+        bp_coeff={},
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+    ):
         self._crpix = crpix
         self._a_order = a_order
         self._b_order = b_order
@@ -1623,32 +1824,34 @@ class SIP(Model):
         self._bp_coeff = bp_coeff
         self.shift_a = Shift(-crpix[0])
         self.shift_b = Shift(-crpix[1])
-        self.sip1d_a = _SIP1D(a_order, coeff_prefix='A', n_models=n_models,
-                              model_set_axis=model_set_axis, **a_coeff)
-        self.sip1d_b = _SIP1D(b_order, coeff_prefix='B', n_models=n_models,
-                              model_set_axis=model_set_axis, **b_coeff)
-        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
-                         name=name, meta=meta)
+        self.sip1d_a = _SIP1D(
+            a_order, coeff_prefix="A", n_models=n_models, model_set_axis=model_set_axis, **a_coeff
+        )
+        self.sip1d_b = _SIP1D(
+            b_order, coeff_prefix="B", n_models=n_models, model_set_axis=model_set_axis, **b_coeff
+        )
+        super().__init__(n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta)
         self._inputs = ("u", "v")
         self._outputs = ("x", "y")
 
     def __repr__(self):
-        return (f"<{self.__class__.__name__}"
-                f"({[self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]!r})>")
+        return (
+            f"<{self.__class__.__name__}"
+            f"({[self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]!r})>"
+        )
 
     def __str__(self):
-        parts = [f'Model: {self.__class__.__name__}']
+        parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]:
             parts.append(indent(str(model), width=4))
-            parts.append('')
+            parts.append("")
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     @property
     def inverse(self):
-        if (self._ap_order is not None and self._bp_order is not None):
-            return InverseSIP(self._ap_order, self._bp_order,
-                              self._ap_coeff, self._bp_coeff)
+        if self._ap_order is not None and self._bp_order is not None:
+            return InverseSIP(self._ap_order, self._bp_order, self._ap_coeff, self._bp_coeff)
         else:
             raise NotImplementedError("SIP inverse coefficients are not available.")
 
@@ -1682,41 +1885,47 @@ class InverseSIP(Model):
 
     _separable = False
 
-    def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
-                 n_models=None, model_set_axis=None, name=None, meta=None):
+    def __init__(
+        self,
+        ap_order,
+        bp_order,
+        ap_coeff={},
+        bp_coeff={},
+        n_models=None,
+        model_set_axis=None,
+        name=None,
+        meta=None,
+    ):
         self._ap_order = ap_order
         self._bp_order = bp_order
         self._ap_coeff = ap_coeff
         self._bp_coeff = bp_coeff
 
         # define the 0th term in order to use Polynomial2D
-        ap_coeff.setdefault('AP_0_0', 0)
-        bp_coeff.setdefault('BP_0_0', 0)
+        ap_coeff.setdefault("AP_0_0", 0)
+        bp_coeff.setdefault("BP_0_0", 0)
 
-        ap_coeff_params = dict((k.replace('AP_', 'c'), v)
-                               for k, v in ap_coeff.items())
-        bp_coeff_params = dict((k.replace('BP_', 'c'), v)
-                               for k, v in bp_coeff.items())
+        ap_coeff_params = dict((k.replace("AP_", "c"), v) for k, v in ap_coeff.items())
+        bp_coeff_params = dict((k.replace("BP_", "c"), v) for k, v in bp_coeff.items())
 
-        self.sip1d_ap = Polynomial2D(degree=ap_order,
-                                     model_set_axis=model_set_axis,
-                                     **ap_coeff_params)
-        self.sip1d_bp = Polynomial2D(degree=bp_order,
-                                     model_set_axis=model_set_axis,
-                                     **bp_coeff_params)
-        super().__init__(n_models=n_models, model_set_axis=model_set_axis,
-                         name=name, meta=meta)
+        self.sip1d_ap = Polynomial2D(
+            degree=ap_order, model_set_axis=model_set_axis, **ap_coeff_params
+        )
+        self.sip1d_bp = Polynomial2D(
+            degree=bp_order, model_set_axis=model_set_axis, **bp_coeff_params
+        )
+        super().__init__(n_models=n_models, model_set_axis=model_set_axis, name=name, meta=meta)
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}({[self.sip1d_ap, self.sip1d_bp]!r})>'
+        return f"<{self.__class__.__name__}({[self.sip1d_ap, self.sip1d_bp]!r})>"
 
     def __str__(self):
-        parts = [f'Model: {self.__class__.__name__}']
+        parts = [f"Model: {self.__class__.__name__}"]
         for model in [self.sip1d_ap, self.sip1d_bp]:
             parts.append(indent(str(model), width=4))
-            parts.append('')
+            parts.append("")
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     def evaluate(self, x, y):
         x1 = self.sip1d_ap.evaluate(x, y, *self.sip1d_ap.param_sets)

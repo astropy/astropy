@@ -82,29 +82,32 @@ class BlackBody(Fittable1DModel):
     _input_units_allow_dimensionless = True
 
     # We enable the spectral equivalency by default for the spectral axis
-    input_units_equivalencies = {'x': u.spectral()}
+    input_units_equivalencies = {"x": u.spectral()}
 
     # Store the native units returned by B_nu equation
-    _native_units = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+    _native_units = u.erg / (u.cm**2 * u.s * u.Hz * u.sr)
 
     # Store the base native output units.  If scale is not dimensionless, it
     # must be equivalent to one of these.  If equivalent to SLAM, then
     # input_units will expect AA for 'x', otherwise Hz.
-    _native_output_units = {'SNU': u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr),
-                            'SLAM': u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)}
+    _native_output_units = {
+        "SNU": u.erg / (u.cm**2 * u.s * u.Hz * u.sr),
+        "SLAM": u.erg / (u.cm**2 * u.s * u.AA * u.sr),
+    }
 
     def __init__(self, *args, **kwargs):
-        scale = kwargs.get('scale', None)
+        scale = kwargs.get("scale", None)
 
         # Support scale with non-dimensionless unit by stripping the unit and
         # storing as self._output_units.
-        if hasattr(scale, 'unit') and not scale.unit.is_equivalent(u.dimensionless_unscaled):
+        if hasattr(scale, "unit") and not scale.unit.is_equivalent(u.dimensionless_unscaled):
             output_units = scale.unit
-            if not output_units.is_equivalent(self._native_units, u.spectral_density(1*u.AA)):
-                raise ValueError("scale units not dimensionless or in "
-                                 f"surface brightness: {output_units}")
+            if not output_units.is_equivalent(self._native_units, u.spectral_density(1 * u.AA)):
+                raise ValueError(
+                    "scale units not dimensionless or in " f"surface brightness: {output_units}"
+                )
 
-            kwargs['scale'] = scale.value
+            kwargs["scale"] = scale.value
             self._output_units = output_units
         else:
             self._output_units = self._native_units
@@ -158,7 +161,7 @@ class BlackBody(Fittable1DModel):
         if not isinstance(x, u.Quantity):
             # then we assume it has input_units which depends on the
             # requested output units (either Hz or AA)
-            in_x = u.Quantity(x, self.input_units['x'])
+            in_x = u.Quantity(x, self.input_units["x"])
         else:
             in_x = x
 
@@ -180,11 +183,11 @@ class BlackBody(Fittable1DModel):
         boltzm1 = np.expm1(log_boltz)
 
         # Calculate blackbody flux
-        bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
+        bb_nu = 2.0 * const.h * freq**3 / (const.c**2 * boltzm1) / u.sr
 
         if self.scale.unit is not None:
             # Will be dimensionless at this point, but may not be dimensionless_unscaled
-            if not hasattr(scale, 'unit'):
+            if not hasattr(scale, "unit"):
                 # during fitting, scale will be passed without units
                 # but we still need to convert from the input dimensionless
                 # to dimensionless unscaled
@@ -205,7 +208,7 @@ class BlackBody(Fittable1DModel):
     def input_units(self):
         # The input units are those of the 'x' value, which will depend on the
         # units compatible with the expected output units.
-        if self._output_units.is_equivalent(self._native_output_units['SNU']):
+        if self._output_units.is_equivalent(self._native_output_units["SNU"]):
             return {self.inputs[0]: u.Hz}
         else:
             # only other option is equivalent with SLAM
@@ -224,11 +227,9 @@ class BlackBody(Fittable1DModel):
             scale = self.scale.value
 
         # bolometric flux in the native units of the planck function
-        native_bolflux = (
-            scale * const.sigma_sb * self.temperature ** 4 / np.pi
-        )
+        native_bolflux = scale * const.sigma_sb * self.temperature**4 / np.pi
         # return in more "astro" units
-        return native_bolflux.to(u.erg / (u.cm ** 2 * u.s))
+        return native_bolflux.to(u.erg / (u.cm**2 * u.s))
 
     @property
     def lambda_max(self):
@@ -292,11 +293,7 @@ class Drude1D(Fittable1DModel):
         """
         One dimensional Drude model function
         """
-        return (
-            amplitude
-            * ((fwhm / x_0) ** 2)
-            / ((x / x_0 - x_0 / x) ** 2 + (fwhm / x_0) ** 2)
-        )
+        return amplitude * ((fwhm / x_0) ** 2) / ((x / x_0 - x_0 / x) ** 2 + (fwhm / x_0) ** 2)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
@@ -311,11 +308,8 @@ class Drude1D(Fittable1DModel):
             * (
                 (1 / x_0)
                 + d_amplitude
-                * (x_0 ** 2 / fwhm ** 2)
-                * (
-                    (-x / x_0 - 1 / x) * (x / x_0 - x_0 / x)
-                    - (2 * fwhm ** 2 / x_0 ** 3)
-                )
+                * (x_0**2 / fwhm**2)
+                * ((-x / x_0 - 1 / x) * (x / x_0 - x_0 / x) - (2 * fwhm**2 / x_0**3))
             )
         )
         d_fwhm = (2 * amplitude * d_amplitude / fwhm) * (1 - d_amplitude)
@@ -342,7 +336,7 @@ class Drude1D(Fittable1DModel):
 
     @x_0.validator
     def x_0(self, val):
-        """ Ensure `x_0` is not 0."""
+        """Ensure `x_0` is not 0."""
         if np.any(val == 0):
             raise InputParameterError("0 is not an allowed value for x_0")
 
@@ -384,26 +378,27 @@ class Plummer1D(Fittable1DModel):
     .. [1] https://ui.adsabs.harvard.edu/abs/1911MNRAS..71..460P
     """
 
-    mass = Parameter(default=1.0,
-                     description="Total mass of cluster")
-    r_plum = Parameter(default=1.0,
-                       description="Scale parameter which sets the size of the cluster core")
+    mass = Parameter(default=1.0, description="Total mass of cluster")
+    r_plum = Parameter(
+        default=1.0, description="Scale parameter which sets the size of the cluster core"
+    )
 
     @staticmethod
     def evaluate(x, mass, r_plum):
         """
         Evaluate plummer density profile model.
         """
-        return (3*mass)/(4 * np.pi * r_plum**3) * (1+(x/r_plum)**2)**(-5/2)
+        return (3 * mass) / (4 * np.pi * r_plum**3) * (1 + (x / r_plum) ** 2) ** (-5 / 2)
 
     @staticmethod
     def fit_deriv(x, mass, r_plum):
         """
         Plummer1D model derivatives.
         """
-        d_mass = 3 / ((4*np.pi*r_plum**3) * (((x/r_plum)**2 + 1)**(5/2)))
-        d_r_plum = (6*mass*x**2-9*mass*r_plum**2) / ((4*np.pi * r_plum**6) *
-                                                     (1+(x/r_plum)**2)**(7/2))
+        d_mass = 3 / ((4 * np.pi * r_plum**3) * (((x / r_plum) ** 2 + 1) ** (5 / 2)))
+        d_r_plum = (6 * mass * x**2 - 9 * mass * r_plum**2) / (
+            (4 * np.pi * r_plum**6) * (1 + (x / r_plum) ** 2) ** (7 / 2)
+        )
         return [d_mass, d_r_plum]
 
     @property
@@ -414,8 +409,10 @@ class Plummer1D(Fittable1DModel):
             return {self.inputs[0]: self.r_plum.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'mass': outputs_unit[self.outputs[0]] * inputs_unit[self.inputs[0]] ** 3,
-                'r_plum': inputs_unit[self.inputs[0]]}
+        return {
+            "mass": outputs_unit[self.outputs[0]] * inputs_unit[self.inputs[0]] ** 3,
+            "r_plum": inputs_unit[self.inputs[0]],
+        }
 
 
 class NFW(Fittable1DModel):
@@ -465,8 +462,12 @@ class NFW(Fittable1DModel):
     # Model Parameters
 
     # NFW Profile mass
-    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun,
-                     description="Peak mass within specified overdensity radius")
+    mass = Parameter(
+        default=1.0,
+        min=1.0,
+        unit=u.M_sun,
+        description="Peak mass within specified overdensity radius",
+    )
 
     # NFW profile concentration
     concentration = Parameter(default=1.0, min=1.0, description="Concentration")
@@ -478,9 +479,15 @@ class NFW(Fittable1DModel):
     # in this case the input r values are assumed to be lengths / positions in kpc.
     _input_units_allow_dimensionless = True
 
-    def __init__(self, mass=u.Quantity(mass.default, mass.unit),
-                 concentration=concentration.default, redshift=redshift.default,
-                 massfactor=("critical", 200), cosmo=None,  **kwargs):
+    def __init__(
+        self,
+        mass=u.Quantity(mass.default, mass.unit),
+        concentration=concentration.default,
+        redshift=redshift.default,
+        massfactor=("critical", 200),
+        cosmo=None,
+        **kwargs,
+    ):
         # Set default cosmology
         if cosmo is None:
             # LOCAL
@@ -545,8 +552,9 @@ class NFW(Fittable1DModel):
         # Density distribution
         # \rho (r)=\frac{\rho_0}{\frac{r}{R_s}\left(1~+~\frac{r}{R_s}\right)^2}
         #   also update scale density
-        density = self._density_s(mass, concentration) / (radius_reduced *
-                                                          (u.Quantity(1.0) + radius_reduced) ** 2)
+        density = self._density_s(mass, concentration) / (
+            radius_reduced * (u.Quantity(1.0) + radius_reduced) ** 2
+        )
 
         if hasattr(mass, "unit"):
             return density
@@ -570,14 +578,16 @@ class NFW(Fittable1DModel):
             elif massfactor[0].lower() == "critical":
                 # Critical or Mean Overdensity Mass
                 delta = float(massfactor[1])
-                masstype = 'c'
+                masstype = "c"
             elif massfactor[0].lower() == "mean":
                 # Critical or Mean Overdensity Mass
                 delta = float(massfactor[1])
-                masstype = 'm'
+                masstype = "m"
             else:
-                raise ValueError("Massfactor '" + str(massfactor[0]) + "' not one of 'critical', "
-                                                                       "'mean', or 'virial'")
+                raise ValueError(
+                    "Massfactor '" + str(massfactor[0]) + "' not one of 'critical', "
+                    "'mean', or 'virial'"
+                )
         else:
             try:
                 # String options
@@ -588,25 +598,26 @@ class NFW(Fittable1DModel):
                     # Virial Mass
                     delta = None
                     masstype = massfactor.lower()
-                elif massfactor[-1].lower() == 'c' or massfactor[-1].lower() == 'm':
+                elif massfactor[-1].lower() == "c" or massfactor[-1].lower() == "m":
                     # Critical or Mean Overdensity Mass
                     delta = float(massfactor[0:-1])
                     masstype = massfactor[-1].lower()
                 else:
-                    raise ValueError("Massfactor " + str(massfactor) + " string not of the form "
-                                                                       "'#m', '#c', or 'virial'")
+                    raise ValueError(
+                        "Massfactor " + str(massfactor) + " string not of the form "
+                        "'#m', '#c', or 'virial'"
+                    )
             except (AttributeError, TypeError):
-                raise TypeError("Massfactor " + str(
-                    massfactor) + " not a tuple or string")
+                raise TypeError("Massfactor " + str(massfactor) + " not a tuple or string")
 
         # Set density from masstype specification
         if masstype == "virial":
             Om_c = cosmo.Om(redshift) - 1.0
-            d_c = 18.0 * np.pi ** 2 + 82.0 * Om_c - 39.0 * Om_c ** 2
+            d_c = 18.0 * np.pi**2 + 82.0 * Om_c - 39.0 * Om_c**2
             self.density_delta = d_c * cosmo.critical_density(redshift)
-        elif masstype == 'c':
+        elif masstype == "c":
             self.density_delta = delta * cosmo.critical_density(redshift)
-        elif masstype == 'm':
+        elif masstype == "m":
             self.density_delta = delta * cosmo.critical_density(redshift) * cosmo.Om(redshift)
 
         return self.density_delta
@@ -638,8 +649,9 @@ class NFW(Fittable1DModel):
 
         # Calculate scale density
         # M_{200} = 4\pi \rho_{s} R_{s}^3 \left[\ln(1+c) - \frac{c}{1+c}\right].
-        self.density_s = in_mass / (4.0 * np.pi * self._radius_s(in_mass, concentration) ** 3 *
-                                    self.A_NFW(concentration))
+        self.density_s = in_mass / (
+            4.0 * np.pi * self._radius_s(in_mass, concentration) ** 3 * self.A_NFW(concentration)
+        )
 
         return self.density_s
 
@@ -664,8 +676,9 @@ class NFW(Fittable1DModel):
         # M_{200}=\frac{4}{3}\pi r_{200}^3 200 \rho_{c}
         # And delta radius is related to the NFW scale radius by
         # c = R / r_{\\rm s}
-        self.radius_s = (((3.0 * in_mass) / (4.0 * np.pi * self.density_delta)) ** (
-                          1.0 / 3.0)) / concentration
+        self.radius_s = (
+            ((3.0 * in_mass) / (4.0 * np.pi * self.density_delta)) ** (1.0 / 3.0)
+        ) / concentration
 
         # Set radial units to kiloparsec by default (unit will be rescaled by units of radius
         # in evaluate)
@@ -734,8 +747,9 @@ class NFW(Fittable1DModel):
             in_r = u.Quantity(r, u.kpc)
 
         # Mass factor defined velocity (i.e. V200c for M200c, Rvir for Mvir)
-        v_profile = np.sqrt(self.mass * const.G.to(in_r.unit**3 / (self.mass.unit * u.s**2)) /
-                            self.r_virial)
+        v_profile = np.sqrt(
+            self.mass * const.G.to(in_r.unit**3 / (self.mass.unit * u.s**2)) / self.r_virial
+        )
 
         # Define reduced radius (r / r_{\\rm s})
         reduced_radius = in_r / self.r_virial.to(in_r.unit)
@@ -743,8 +757,10 @@ class NFW(Fittable1DModel):
         # Circular velocity given by:
         # v^2=\frac{1}{x}\frac{\ln(1+cx)-(cx)/(1+cx)}{\ln(1+c)-c/(1+c)}
         # where x=r/r_{200}
-        velocity = np.sqrt((v_profile**2 * self.A_NFW(self.concentration * reduced_radius)) /
-                           (reduced_radius * self.A_NFW(self.concentration)))
+        velocity = np.sqrt(
+            (v_profile**2 * self.A_NFW(self.concentration * reduced_radius))
+            / (reduced_radius * self.A_NFW(self.concentration))
+        )
 
         return velocity.to(u.km / u.s)
 
@@ -757,12 +773,10 @@ class NFW(Fittable1DModel):
     def return_units(self):
         # The units for the 'density' variable should be a matter density (default M_sun / kpc^3)
 
-        if (self.mass.unit is None):
+        if self.mass.unit is None:
             return {self.outputs[0]: u.M_sun / self.input_units[self.inputs[0]] ** 3}
         else:
             return {self.outputs[0]: self.mass.unit / self.input_units[self.inputs[0]] ** 3}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'mass': u.M_sun,
-                "concentration": None,
-                "redshift": None}
+        return {"mass": u.M_sun, "concentration": None, "redshift": None}

@@ -83,9 +83,11 @@ def test_parameter_lose_units():
 
     with pytest.raises(UnitsError) as exc:
         g.amplitude = 2
-    assert exc.value.args[0] == ("The 'amplitude' parameter should be given as "
-                                 "a Quantity because it was originally "
-                                 "initialized as a Quantity")
+    assert exc.value.args[0] == (
+        "The 'amplitude' parameter should be given as "
+        "a Quantity because it was originally "
+        "initialized as a Quantity"
+    )
 
 
 def test_parameter_add_units():
@@ -112,14 +114,17 @@ def test_parameter_change_unit():
     # Setting a unit on a unitless parameter should not work
     with pytest.raises(ValueError) as exc:
         g.amplitude.unit = u.Jy
-    assert exc.value.args[0] == ("Cannot attach units to parameters that were "
-                                 "not initially specified with units")
+    assert exc.value.args[0] == (
+        "Cannot attach units to parameters that were " "not initially specified with units"
+    )
 
     # But changing to another unit should not, even if it is an equivalent unit
     with pytest.raises(ValueError) as exc:
         g.mean.unit = u.cm
-    assert exc.value.args[0] == ("Cannot change the unit attribute directly, "
-                                 "instead change the parameter to a new quantity")
+    assert exc.value.args[0] == (
+        "Cannot change the unit attribute directly, "
+        "instead change the parameter to a new quantity"
+    )
 
 
 def test_parameter_set_value():
@@ -183,13 +188,16 @@ def test_parameter_default_units_match():
 
     # If the unit and default quantity units are different, raise an error
     with pytest.raises(ParameterDefinitionError) as exc:
+
         class TestC(Fittable1DModel):
             a = Parameter(default=1.0 * u.m, unit=u.Jy)
-    assert exc.value.args[0] == ("parameter default 1.0 m does not have units "
-                                 "equivalent to the required unit Jy")
+
+    assert exc.value.args[0] == (
+        "parameter default 1.0 m does not have units " "equivalent to the required unit Jy"
+    )
 
 
-@pytest.mark.parametrize(('unit', 'default'), ((u.m, 1.0), (None, 1 * u.m)))
+@pytest.mark.parametrize(("unit", "default"), ((u.m, 1.0), (None, 1 * u.m)))
 def test_parameter_defaults(unit, default):
     """
     Test that default quantities are correctly taken into account
@@ -236,8 +244,7 @@ def test_parameter_defaults(unit, default):
     # Instantiating with different units works, and just replaces the original unit
     with pytest.raises(InputParameterError) as exc:
         TestModel(1.0)
-    assert exc.value.args[0] == ("TestModel.__init__() requires a "
-                                 "Quantity for parameter 'a'")
+    assert exc.value.args[0] == ("TestModel.__init__() requires a " "Quantity for parameter 'a'")
 
 
 def test_parameter_quantity_arithmetic():
@@ -257,8 +264,8 @@ def test_parameter_quantity_arithmetic():
     assert 2 * g.mean == (2 * u.m)
 
     # Multiplication by a quantity should result in units being multiplied
-    assert g.mean * (2 * u.m) == (2 * (u.m ** 2))
-    assert (2 * u.m) * g.mean == (2 * (u.m ** 2))
+    assert g.mean * (2 * u.m) == (2 * (u.m**2))
+    assert (2 * u.m) * g.mean == (2 * (u.m**2))
 
     # Negation should work properly too
     assert -g.mean == (-1 * u.m)
@@ -267,16 +274,20 @@ def test_parameter_quantity_arithmetic():
     # However, addition of a quantity + scalar should not work
     with pytest.raises(UnitsError) as exc:
         g.mean + 1
-    assert exc.value.args[0] == ("Can only apply 'add' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'add' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
     with pytest.raises(UnitsError) as exc:
         1 + g.mean
-    assert exc.value.args[0] == ("Can only apply 'add' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'add' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
 
 
 def test_parameter_quantity_comparison():
@@ -298,17 +309,21 @@ def test_parameter_quantity_comparison():
 
     with pytest.raises(UnitsError) as exc:
         g.mean < 2
-    assert exc.value.args[0] == ("Can only apply 'less' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'less' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
 
     with pytest.raises(UnitsError) as exc:
         2 > g.mean
-    assert exc.value.args[0] == ("Can only apply 'less' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'less' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
 
     g = Gaussian1D([1, 2] * u.J, [1, 2] * u.m, [0.1, 0.2] * u.m)
 
@@ -319,17 +334,21 @@ def test_parameter_quantity_comparison():
 
     with pytest.raises(UnitsError) as exc:
         g.mean < [3, 4]
-    assert exc.value.args[0] == ("Can only apply 'less' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'less' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
 
     with pytest.raises(UnitsError) as exc:
         [3, 4] > g.mean
-    assert exc.value.args[0] == ("Can only apply 'less' function to "
-                                 "dimensionless quantities when other argument "
-                                 "is not a quantity (unless the latter is all "
-                                 "zero/infinity/nan)")
+    assert exc.value.args[0] == (
+        "Can only apply 'less' function to "
+        "dimensionless quantities when other argument "
+        "is not a quantity (unless the latter is all "
+        "zero/infinity/nan)"
+    )
 
 
 def test_parameters_compound_models():

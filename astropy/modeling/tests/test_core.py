@@ -48,15 +48,16 @@ class NonFittableModel(Model):
 def test_Model_instance_repr_and_str():
     m = NonFittableModel(42.5)
     assert repr(m) == "<NonFittableModel(a=42.5)>"
-    assert (str(m) ==
-            "Model: NonFittableModel\n"
-            "Inputs: ()\n"
-            "Outputs: ()\n"
-            "Model set size: 1\n"
-            "Parameters:\n"
-            "     a  \n"
-            "    ----\n"
-            "    42.5")
+    assert (
+        str(m) == "Model: NonFittableModel\n"
+        "Inputs: ()\n"
+        "Outputs: ()\n"
+        "Model set size: 1\n"
+        "Parameters:\n"
+        "     a  \n"
+        "    ----\n"
+        "    42.5"
+    )
 
     assert len(m) == 1
 
@@ -124,39 +125,60 @@ def test_custom_model_signature():
     assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     sig = signature(model_a.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'args', 'meta', 'name', 'kwargs']
+    assert list(sig.parameters.keys()) == ["self", "args", "meta", "name", "kwargs"]
     sig = signature(model_a.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
-                                           'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map', 'new_inputs']
+    assert list(sig.parameters.keys()) == [
+        "self",
+        "inputs",
+        "model_set_axis",
+        "with_bounding_box",
+        "fill_value",
+        "equivalencies",
+        "inputs_map",
+        "new_inputs",
+    ]
 
     @custom_model
     def model_b(x, a=1, b=2):
         return x + a + b
 
-    assert model_b.param_names == ('a', 'b')
+    assert model_b.param_names == ("a", "b")
     assert model_b.n_inputs == 1
     sig = signature(model_b.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'a', 'b', 'kwargs']
+    assert list(sig.parameters.keys()) == ["self", "a", "b", "kwargs"]
     assert [x.default for x in sig.parameters.values()] == [sig.empty, 1, 2, sig.empty]
     sig = signature(model_b.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
-                                           'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map', 'new_inputs']
+    assert list(sig.parameters.keys()) == [
+        "self",
+        "inputs",
+        "model_set_axis",
+        "with_bounding_box",
+        "fill_value",
+        "equivalencies",
+        "inputs_map",
+        "new_inputs",
+    ]
 
     @custom_model
     def model_c(x, y, a=1, b=2):
         return x + y + a + b
 
-    assert model_c.param_names == ('a', 'b')
+    assert model_c.param_names == ("a", "b")
     assert model_c.n_inputs == 2
     sig = signature(model_c.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'a', 'b', 'kwargs']
+    assert list(sig.parameters.keys()) == ["self", "a", "b", "kwargs"]
     assert [x.default for x in sig.parameters.values()] == [sig.empty, 1, 2, sig.empty]
     sig = signature(model_c.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
-                                           'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map', 'new_inputs']
+    assert list(sig.parameters.keys()) == [
+        "self",
+        "inputs",
+        "model_set_axis",
+        "with_bounding_box",
+        "fill_value",
+        "equivalencies",
+        "inputs_map",
+        "new_inputs",
+    ]
 
 
 def test_custom_model_subclass():
@@ -173,16 +195,23 @@ def test_custom_model_subclass():
             return -super().evaluate(x, a)
 
     b = model_b()
-    assert b.param_names == ('a',)
+    assert b.param_names == ("a",)
     assert b.a == 1
     assert b(1) == -1
 
     sig = signature(model_b.__init__)
-    assert list(sig.parameters.keys()) == ['self', 'a', 'kwargs']
+    assert list(sig.parameters.keys()) == ["self", "a", "kwargs"]
     sig = signature(model_b.__call__)
-    assert list(sig.parameters.keys()) == ['self', 'inputs', 'model_set_axis',
-                                           'with_bounding_box', 'fill_value',
-                                           'equivalencies', 'inputs_map', 'new_inputs']
+    assert list(sig.parameters.keys()) == [
+        "self",
+        "inputs",
+        "model_set_axis",
+        "with_bounding_box",
+        "fill_value",
+        "equivalencies",
+        "inputs_map",
+        "new_inputs",
+    ]
 
 
 def test_custom_model_parametrized_decorator():
@@ -210,28 +239,27 @@ def test_custom_model_n_outputs():
 
     @custom_model
     def model(x, y, n_outputs=2):
-        return x+1, y+1
+        return x + 1, y + 1
 
     m = model()
     assert not isinstance(m.n_outputs, Parameter)
     assert isinstance(m.n_outputs, int)
     assert m.n_outputs == 2
-    assert m.outputs == ('x0', 'x1')
-    assert (separability_matrix(m) == [[True, True],
-                                       [True, True]]).all()
+    assert m.outputs == ("x0", "x1")
+    assert (separability_matrix(m) == [[True, True], [True, True]]).all()
 
     @custom_model
     def model(x, y, z, n_outputs=3):
-        return x+1, y+1, z+1
+        return x + 1, y + 1, z + 1
 
     m = model()
     assert not isinstance(m.n_outputs, Parameter)
     assert isinstance(m.n_outputs, int)
     assert m.n_outputs == 3
-    assert m.outputs == ('x0', 'x1', 'x2')
-    assert (separability_matrix(m) == [[True, True, True],
-                                       [True, True, True],
-                                       [True, True, True]]).all()
+    assert m.outputs == ("x0", "x1", "x2")
+    assert (
+        separability_matrix(m) == [[True, True, True], [True, True, True], [True, True, True]]
+    ).all()
 
 
 def test_custom_model_settable_parameters():
@@ -242,9 +270,10 @@ def test_custom_model_settable_parameters():
         should/shouldn't be allowed. In this case, settable parameters
         should be allowed to have defaults set.
     """
+
     @custom_model
     def model(x, y, n_outputs=2, bounding_box=((1, 2), (3, 4))):
-        return x+1, y+1
+        return x + 1, y + 1
 
     m = model()
     assert m.n_outputs == 2
@@ -258,19 +287,19 @@ def test_custom_model_settable_parameters():
     assert m.bounding_box == ((9, 10), (11, 12))
 
     @custom_model
-    def model(x, y, n_outputs=2, outputs=('z0', 'z1')):
-        return x+1, y+1
+    def model(x, y, n_outputs=2, outputs=("z0", "z1")):
+        return x + 1, y + 1
 
     m = model()
     assert m.n_outputs == 2
-    assert m.outputs == ('z0', 'z1')
-    m.outputs = ('a0', 'a1')
-    assert m.outputs == ('a0', 'a1')
-    m = model(outputs=('w0', 'w1'))
+    assert m.outputs == ("z0", "z1")
+    m.outputs = ("a0", "a1")
+    assert m.outputs == ("a0", "a1")
+    m = model(outputs=("w0", "w1"))
     assert m.n_outputs == 2
-    assert m.outputs == ('w0', 'w1')
-    m.outputs = ('a0', 'a1')
-    assert m.outputs == ('a0', 'a1')
+    assert m.outputs == ("w0", "w1")
+    m.outputs = ("a0", "a1")
+    assert m.outputs == ("a0", "a1")
 
 
 def test_custom_model_regected_parameters():
@@ -282,17 +311,19 @@ def test_custom_model_regected_parameters():
         should raise an error (unexpected behavior may occur).
     """
 
-    with pytest.raises(ValueError,
-                       match=r"Parameter 'n_inputs' cannot be a model property: *"):
+    with pytest.raises(ValueError, match=r"Parameter 'n_inputs' cannot be a model property: *"):
+
         @custom_model
         def model1(x, y, n_outputs=2, n_inputs=3):
-            return x+1, y+1
+            return x + 1, y + 1
 
-    with pytest.raises(ValueError,
-                       match=r"Parameter 'uses_quantity' cannot be a model property: *"):
+    with pytest.raises(
+        ValueError, match=r"Parameter 'uses_quantity' cannot be a model property: *"
+    ):
+
         @custom_model
         def model2(x, y, n_outputs=2, uses_quantity=True):
-            return x+1, y+1
+            return x + 1, y + 1
 
 
 def test_custom_inverse():
@@ -300,7 +331,7 @@ def test_custom_inverse():
 
     p = models.Polynomial1D(1, c0=-2, c1=3)
     # A trivial inverse for a trivial polynomial
-    inv = models.Polynomial1D(1, c0=(2./3.), c1=(1./3.))
+    inv = models.Polynomial1D(1, c0=(2.0 / 3.0), c1=(1.0 / 3.0))
 
     with pytest.raises(NotImplementedError):
         p.inverse
@@ -323,7 +354,7 @@ def test_custom_inverse_reset():
 
     class TestModel(Model):
         n_inputs = 0
-        outputs = ('y',)
+        outputs = ("y",)
 
         @property
         def inverse(self):
@@ -398,7 +429,7 @@ def test_render_model_1d():
     test_pts = [0, 49.1, 49.5, 49.9, 100]
 
     # test widths
-    test_stdv = np.arange(5.5, 6.7, .2)
+    test_stdv = np.arange(5.5, 6.7, 0.2)
 
     for x0, stdv in [(p, s) for p in test_pts for s in test_stdv]:
         model.mean = x0
@@ -419,13 +450,13 @@ def test_render_model_1d():
                     assert ((flux - np.sum(boxed)) / flux) < 1e-7
 
 
-@pytest.mark.filterwarnings('ignore:invalid value encountered in less')
+@pytest.mark.filterwarnings("ignore:invalid value encountered in less")
 def test_render_model_3d():
     imshape = (17, 21, 27)
     image = np.zeros(imshape)
     coords = np.indices(imshape)
 
-    def ellipsoid(x, y, z, x0=13., y0=10., z0=8., a=4., b=3., c=2., amp=1.):
+    def ellipsoid(x, y, z, x0=13.0, y0=10.0, z0=8.0, a=4.0, b=3.0, c=2.0, amp=1.0):
         rsq = ((x - x0) / a) ** 2 + ((y - y0) / b) ** 2 + ((z - z0) / c) ** 2
         val = (rsq < 1) * amp
         return val
@@ -433,9 +464,11 @@ def test_render_model_3d():
     class Ellipsoid3D(custom_model(ellipsoid)):
         @property
         def bounding_box(self):
-            return ((self.z0 - self.c, self.z0 + self.c),
-                    (self.y0 - self.b, self.y0 + self.b),
-                    (self.x0 - self.a, self.x0 + self.a))
+            return (
+                (self.z0 - self.c, self.z0 + self.c),
+                (self.y0 - self.b, self.y0 + self.b),
+                (self.x0 - self.a, self.x0 + self.a),
+            )
 
     model = Ellipsoid3D()
 
@@ -517,7 +550,7 @@ def test_compound_deepcopy():
     assert id(model[2]) != id(new_model[2])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_units_with_bounding_box():
     points = np.arange(10, 20)
     table = np.arange(10) * u.Angstrom
@@ -529,7 +562,7 @@ def test_units_with_bounding_box():
     assert_quantity_allclose(t(10), t(10, with_bounding_box=True))
 
 
-RENAMED_MODEL = models.Gaussian1D.rename('CustomGaussian')
+RENAMED_MODEL = models.Gaussian1D.rename("CustomGaussian")
 
 MODEL_RENAME_CODE = """
 from astropy.modeling.models import Gaussian1D
@@ -556,36 +589,38 @@ def test_rename_path(tmpdir):
     # Regression test for a bug that caused the path to the class to be
     # incorrect in a renamed model's __repr__.
 
-    assert repr(RENAMED_MODEL).splitlines()[0] == "<class 'astropy.modeling.tests.test_core.CustomGaussian'>"  # noqa: E501
+    assert (
+        repr(RENAMED_MODEL).splitlines()[0]
+        == "<class 'astropy.modeling.tests.test_core.CustomGaussian'>"
+    )  # noqa: E501
 
     # Make sure that when called from a user script, the class name includes
     # __main__.
 
     env = os.environ.copy()
     paths = [os.path.dirname(astropy.__path__[0])] + sys.path
-    env['PYTHONPATH'] = os.pathsep.join(paths)
+    env["PYTHONPATH"] = os.pathsep.join(paths)
 
-    script = tmpdir.join('rename.py').strpath
-    with open(script, 'w') as f:
+    script = tmpdir.join("rename.py").strpath
+    with open(script, "w") as f:
         f.write(MODEL_RENAME_CODE)
 
     output = subprocess.check_output([sys.executable, script], env=env)
     assert output.splitlines() == MODEL_RENAME_EXPECTED.splitlines()
 
 
-@pytest.mark.parametrize('model_class',
-                         [models.Gaussian1D, models.Polynomial1D,
-                          models.Shift, models.Tabular1D])
+@pytest.mark.parametrize(
+    "model_class", [models.Gaussian1D, models.Polynomial1D, models.Shift, models.Tabular1D]
+)
 def test_rename_1d(model_class):
-    new_model = model_class.rename(name='Test1D')
-    assert new_model.name == 'Test1D'
+    new_model = model_class.rename(name="Test1D")
+    assert new_model.name == "Test1D"
 
 
-@pytest.mark.parametrize('model_class',
-                         [models.Gaussian2D, models.Polynomial2D, models.Tabular2D])
+@pytest.mark.parametrize("model_class", [models.Gaussian2D, models.Polynomial2D, models.Tabular2D])
 def test_rename_2d(model_class):
-    new_model = model_class.rename(name='Test2D')
-    assert new_model.name == 'Test2D'
+    new_model = model_class.rename(name="Test2D")
+    assert new_model.name == "Test2D"
 
 
 def test_fix_inputs_integer():
@@ -622,7 +657,7 @@ def test_rename_inputs_outputs():
     assert g2.outputs == ("z",)
 
     with pytest.raises(ValueError):
-        g2.inputs = ("w", )
+        g2.inputs = ("w",)
 
     with pytest.raises(ValueError):
         g2.outputs = ("w", "e")
@@ -632,19 +667,15 @@ def test__prepare_output_single_model():
     model = models.Gaussian1D()
 
     # No broadcast
-    assert (np.array([1, 2]) ==
-            model._prepare_output_single_model(np.array([1, 2]), None)).all()
+    assert (np.array([1, 2]) == model._prepare_output_single_model(np.array([1, 2]), None)).all()
 
     # Broadcast to scalar
     assert 1 == model._prepare_output_single_model(np.array([1]), ())
     assert 2 == model._prepare_output_single_model(np.asanyarray(2), ())
 
     # Broadcast reshape
-    output = np.array([[1, 2, 3],
-                       [4, 5, 6]])
-    reshape = np.array([[1, 2],
-                        [3, 4],
-                        [5, 6]])
+    output = np.array([[1, 2, 3], [4, 5, 6]])
+    reshape = np.array([[1, 2], [3, 4], [5, 6]])
     assert (output == model._prepare_output_single_model(output, (2, 3))).all()
     assert (reshape == model._prepare_output_single_model(output, (3, 2))).all()
 
@@ -677,12 +708,8 @@ def test_prepare_outputs_mixed_broadcast():
 
 
 def test_prepare_outputs_complex_reshape():
-    x = np.array([[1,  2,  3,  4,  5],
-                  [6,  7,  8,  9,  10],
-                  [11, 12, 13, 14, 15]])
-    y = np.array([[16, 17, 18, 19, 20],
-                  [21, 22, 23, 24, 25],
-                  [26, 27, 28, 29, 30]])
+    x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]])
+    y = np.array([[16, 17, 18, 19, 20], [21, 22, 23, 24, 25], [26, 27, 28, 29, 30]])
 
     m = models.Identity(3) | models.Mapping((2, 1, 0))
     m.bounding_box = ((0, 100), (0, 200), (0, 50))
@@ -730,8 +757,8 @@ def test_prepare_outputs_single_entry_vector():
     np.testing.assert_allclose(output, [0.9500411305585278])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.filterwarnings('ignore: Using a non-tuple')
+@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.filterwarnings("ignore: Using a non-tuple")
 def test_prepare_outputs_sparse_grid():
     """
     Test to show that #11060 has been solved.
@@ -744,23 +771,21 @@ def test_prepare_outputs_sparse_grid():
     points = [np.arange(size) * points_unit for size in shape]
 
     kwargs = {
-        'bounds_error': False,
-        'fill_value': np.nan,
-        'method': 'nearest',
+        "bounds_error": False,
+        "fill_value": np.nan,
+        "method": "nearest",
     }
 
     transform = models.Tabular2D(points, data, **kwargs)
-    truth = np.array([[0., 1., 2.],
-                      [3., 4., 5.],
-                      [6., 7., 8.]]) * u.m / u.s
+    truth = np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]) * u.m / u.s
 
-    points = np.meshgrid(np.arange(3), np.arange(3), indexing='ij', sparse=True)
+    points = np.meshgrid(np.arange(3), np.arange(3), indexing="ij", sparse=True)
     x = points[0] * u.pix
     y = points[1] * u.pix
     value = transform(x, y)
     assert (value == truth).all()
 
-    points = np.meshgrid(np.arange(3), np.arange(3), indexing='ij', sparse=False) * u.pix
+    points = np.meshgrid(np.arange(3), np.arange(3), indexing="ij", sparse=False) * u.pix
     value = transform(*points)
     assert (value == truth).all()
 
@@ -802,8 +827,9 @@ def test_coerce_units():
         model.coerce_units((u.m, u.s))
 
     model_with_existing_input_units = models.BlackBody()
-    with pytest.raises(ValueError,
-                       match=r"Cannot specify input_units for model with existing input units"):
+    with pytest.raises(
+        ValueError, match=r"Cannot specify input_units for model with existing input units"
+    ):
         model_with_existing_input_units.coerce_units({"x": u.m})
 
     with pytest.raises(ValueError, match=r"return_units keys.*do not match model outputs"):
@@ -828,10 +854,10 @@ def test_bounding_box_general_inverse():
 
 
 def test__add_special_operator():
-    sop_name = 'name'
-    sop = 'value'
+    sop_name = "name"
+    sop = "value"
 
-    key = _add_special_operator(sop_name, 'value')
+    key = _add_special_operator(sop_name, "value")
     assert key[0] == sop_name
     assert key[1] == SPECIAL_OPERATORS._unique_id
 
@@ -845,7 +871,7 @@ def test_print_special_operator_CompoundModel(capsys):
     """
 
     model = convolve_models(models.Sersic2D(), models.Gaussian2D())
-    with astropy.conf.set_temp('max_width', 80):
+    with astropy.conf.set_temp("max_width", 80):
         assert str(model) == (
             "Model: CompoundModel\n"
             "Inputs: ('x', 'y')\n"
@@ -869,8 +895,7 @@ def test__validate_input_shape():
     model = models.Gaussian1D()
     model._n_models = 2
 
-    _input = np.array([[1, 2, 3],
-                       [4, 5, 6]])
+    _input = np.array([[1, 2, 3], [4, 5, 6]])
 
     # Successful validation
     assert model._validate_input_shape(_input, 0, model.inputs, 1, False) == (2, 3)
@@ -883,14 +908,18 @@ def test__validate_input_shape():
     # Fail number of models (has argname)
     with pytest.raises(ValueError) as err:
         model._validate_input_shape(_input, 0, model.inputs, 1, True)
-    assert str(err.value) == ("Input argument 'x' does not have the correct dimensions in "
-                              "model_set_axis=1 for a model set with n_models=2.")
+    assert str(err.value) == (
+        "Input argument 'x' does not have the correct dimensions in "
+        "model_set_axis=1 for a model set with n_models=2."
+    )
 
     # Fail number of models  (no argname)
     with pytest.raises(ValueError) as err:
         model._validate_input_shape(_input, 0, [], 1, True)
-    assert str(err.value) == ("Input argument '0' does not have the correct dimensions "
-                              "in model_set_axis=1 for a model set with n_models=2.")
+    assert str(err.value) == (
+        "Input argument '0' does not have the correct dimensions "
+        "in model_set_axis=1 for a model set with n_models=2."
+    )
 
 
 def test__validate_input_shapes():
@@ -902,12 +931,13 @@ def test__validate_input_shapes():
     all_shapes = [mk.MagicMock() for _ in inputs]
 
     # Successful validation
-    with mk.patch.object(Model, '_validate_input_shape',
-                         autospec=True, side_effect=all_shapes) as mkValidate:
-        with mk.patch.object(core, 'check_broadcast',
-                             autospec=True) as mkCheck:
-            assert mkCheck.return_value == model._validate_input_shapes(inputs, argnames,
-                                                                        model_set_axis)
+    with mk.patch.object(
+        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
+    ) as mkValidate:
+        with mk.patch.object(core, "check_broadcast", autospec=True) as mkCheck:
+            assert mkCheck.return_value == model._validate_input_shapes(
+                inputs, argnames, model_set_axis
+            )
             assert mkCheck.call_args_list == [mk.call(*all_shapes)]
             assert mkValidate.call_args_list == [
                 mk.call(model, _input, idx, argnames, model_set_axis, True)
@@ -915,10 +945,10 @@ def test__validate_input_shapes():
             ]
 
     # Fail check_broadcast
-    with mk.patch.object(Model, '_validate_input_shape',
-                         autospec=True, side_effect=all_shapes) as mkValidate:
-        with mk.patch.object(core, 'check_broadcast',
-                             autospec=True, return_value=None) as mkCheck:
+    with mk.patch.object(
+        Model, "_validate_input_shape", autospec=True, side_effect=all_shapes
+    ) as mkValidate:
+        with mk.patch.object(core, "check_broadcast", autospec=True, return_value=None) as mkCheck:
             with pytest.raises(ValueError) as err:
                 model._validate_input_shapes(inputs, argnames, model_set_axis)
             assert str(err.value) == "All inputs must have identical shapes or must be scalars."
@@ -967,8 +997,9 @@ def test_get_bounding_box():
     assert model.get_bounding_box(True) == ((0, 1), (0, 1))
 
     # CompoundBoundingBox with no removal
-    bbox = CompoundBoundingBox.validate(model, {(1,): ((-1, 0), (-1, 0)), (2,): ((0, 1), (0, 1))},
-                                        selector_args=[('y', False)])
+    bbox = CompoundBoundingBox.validate(
+        model, {(1,): ((-1, 0), (-1, 0)), (2,): ((0, 1), (0, 1))}, selector_args=[("y", False)]
+    )
     model.bounding_box = bbox
     assert isinstance(model.bounding_box, CompoundBoundingBox)
     # Get using argument not with_bbox
@@ -981,10 +1012,12 @@ def test_get_bounding_box():
 def test_compound_bounding_box():
     model = models.Gaussian1D()
     truth = models.Gaussian1D()
-    bbox1 = CompoundBoundingBox.validate(model, {(1,): (-1, 0), (2,): (0, 1)},
-                                         selector_args=[('x', False)])
-    bbox2 = CompoundBoundingBox.validate(model, {(-0.5,): (-1, 0), (0.5,): (0, 1)},
-                                         selector_args=[('x', False)])
+    bbox1 = CompoundBoundingBox.validate(
+        model, {(1,): (-1, 0), (2,): (0, 1)}, selector_args=[("x", False)]
+    )
+    bbox2 = CompoundBoundingBox.validate(
+        model, {(-0.5,): (-1, 0), (0.5,): (0, 1)}, selector_args=[("x", False)]
+    )
 
     # Using with_bounding_box to pass a selector
     model.bounding_box = bbox1
@@ -1036,14 +1069,14 @@ def test_bind_bounding_box():
     bind_bounding_box(model, bbox)
     assert model.get_bounding_box() is not None
     assert model.bounding_box == bbox
-    assert model.bounding_box['x'] == (-2, 2)
-    assert model.bounding_box['y'] == (-1, 1)
+    assert model.bounding_box["x"] == (-2, 2)
+    assert model.bounding_box["y"] == (-1, 1)
 
-    bind_bounding_box(model, bbox, order='F')
+    bind_bounding_box(model, bbox, order="F")
     assert model.get_bounding_box() is not None
     assert model.bounding_box == bbox
-    assert model.bounding_box['x'] == (-1, 1)
-    assert model.bounding_box['y'] == (-2, 2)
+    assert model.bounding_box["x"] == (-1, 1)
+    assert model.bounding_box["y"] == (-2, 2)
 
 
 def test_bind_compound_bounding_box_using_with_bounding_box_select():
@@ -1057,10 +1090,10 @@ def test_bind_compound_bounding_box_using_with_bounding_box_select():
 
     bbox = (0, 1)
     with pytest.raises(AttributeError):
-        bind_compound_bounding_box(model, bbox, 'x')
+        bind_compound_bounding_box(model, bbox, "x")
 
     bbox = {0: (-1, 0), 1: (0, 1)}
-    bind_compound_bounding_box(model, bbox, [('x', False)])
+    bind_compound_bounding_box(model, bbox, [("x", False)])
 
     # No bounding box
     assert model(-0.5) == truth(-0.5)
@@ -1092,35 +1125,43 @@ def test_fix_inputs_compound_bounding_box():
     base_model = models.Gaussian2D(1, 2, 3, 4, 5)
     bbox = {2.5: (-1, 1), 3.14: (-7, 3)}
 
-    model = fix_inputs(base_model, {'y': 2.5}, bounding_boxes=bbox)
+    model = fix_inputs(base_model, {"y": 2.5}, bounding_boxes=bbox)
     assert model.bounding_box == (-1, 1)
-    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox)
+    model = fix_inputs(base_model, {"x": 2.5}, bounding_boxes=bbox)
     assert model.bounding_box == (-1, 1)
 
-    model = fix_inputs(base_model, {'y': 2.5}, bounding_boxes=bbox, selector_args=(('y', True),))
+    model = fix_inputs(base_model, {"y": 2.5}, bounding_boxes=bbox, selector_args=(("y", True),))
     assert model.bounding_box == (-1, 1)
-    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox, selector_args=(('x', True),))
+    model = fix_inputs(base_model, {"x": 2.5}, bounding_boxes=bbox, selector_args=(("x", True),))
     assert model.bounding_box == (-1, 1)
-    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox, selector_args=((0, True),))
+    model = fix_inputs(base_model, {"x": 2.5}, bounding_boxes=bbox, selector_args=((0, True),))
     assert model.bounding_box == (-1, 1)
 
     base_model = models.Identity(4)
     bbox = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
 
-    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox)
+    model = fix_inputs(base_model, {"x0": 2.5, "x1": 1.3}, bounding_boxes=bbox)
     assert model.bounding_box == ((-1, 1), (-3, 3))
 
-    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox,
-                       selector_args=(('x0', True), ('x1', True)))
+    model = fix_inputs(
+        base_model,
+        {"x0": 2.5, "x1": 1.3},
+        bounding_boxes=bbox,
+        selector_args=(("x0", True), ("x1", True)),
+    )
     assert model.bounding_box == ((-1, 1), (-3, 3))
-    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox,
-                       selector_args=((0, True), (1, True)))
+    model = fix_inputs(
+        base_model,
+        {"x0": 2.5, "x1": 1.3},
+        bounding_boxes=bbox,
+        selector_args=((0, True), (1, True)),
+    )
     assert model.bounding_box == ((-1, 1), (-3, 3))
 
 
 def test_model_copy_with_bounding_box():
     model = models.Polynomial2D(2)
-    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5)), order="F")
 
     # No bbox
     model_copy = model.copy()
@@ -1148,9 +1189,10 @@ def test_model_copy_with_bounding_box():
 
 def test_compound_model_copy_with_bounding_box():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
-    model.inputs = ('x', 'y', 'slit_id')
-    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)),
-                                     order='F')
+    model.inputs = ("x", "y", "slit_id")
+    bbox = ModelBoundingBox.validate(
+        model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order="F"
+    )
 
     # No bbox
     model_copy = model.copy()
@@ -1178,9 +1220,8 @@ def test_compound_model_copy_with_bounding_box():
 
 def test_model_copy_with_compound_bounding_box():
     model = models.Polynomial2D(2)
-    bbox = {(0,): (-0.5, 1047.5),
-            (1,): (-0.5, 3047.5)}
-    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('x', True)], order='F')
+    bbox = {(0,): (-0.5, 1047.5), (1,): (-0.5, 3047.5)}
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[("x", True)], order="F")
 
     # No cbbox
     model_copy = model.copy()
@@ -1211,10 +1252,12 @@ def test_model_copy_with_compound_bounding_box():
 
 def test_compound_model_copy_with_compound_bounding_box():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
-    model.inputs = ('x', 'y', 'slit_id')
-    bbox = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
-            (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
-    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)], order='F')
+    model.inputs = ("x", "y", "slit_id")
+    bbox = {
+        (0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+        (1,): ((-0.5, 3047.5), (-0.5, 4047.5)),
+    }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[("slit_id", True)], order="F")
 
     # No cbbox
     model_copy = model.copy()
@@ -1247,21 +1290,21 @@ def test_compound_model_copy_user_attribute():
     """Regression test for issue #12370"""
 
     model = models.Gaussian2D(100, 25, 25, 5, 5) | models.Identity(1)
-    model.xname = 'x_mean'  # user-defined attribute
-    assert hasattr(model, 'xname')
-    assert model.xname == 'x_mean'
+    model.xname = "x_mean"  # user-defined attribute
+    assert hasattr(model, "xname")
+    assert model.xname == "x_mean"
 
     model_copy = model.copy()
     model_copy.xname
-    assert hasattr(model_copy, 'xname')
-    assert model_copy.xname == 'x_mean'
+    assert hasattr(model_copy, "xname")
+    assert model_copy.xname == "x_mean"
 
 
 def test_model_mixed_array_scalar_bounding_box():
     """Regression test for issue #12319"""
 
     model = models.Gaussian2D()
-    bbox = ModelBoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order="F")
     model.bounding_box = bbox
 
     x = np.array([-0.5, 0.5])
@@ -1275,9 +1318,10 @@ def test_compound_model_mixed_array_scalar_bounding_box():
     """Regression test for issue #12319"""
 
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
-    model.inputs = ('x', 'y', 'slit_id')
-    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)),
-                                     order='F')
+    model.inputs = ("x", "y", "slit_id")
+    bbox = ModelBoundingBox.validate(
+        model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order="F"
+    )
     model.bounding_box = bbox
     x = np.array([1000, 1001])
     y = np.array([2000, 2001])
@@ -1331,37 +1375,41 @@ def test_bounding_box_pass_with_ignored():
     """Test the possiblity of setting ignored variables in bounding box"""
 
     model = models.Polynomial2D(2)
-    bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=['y'])
+    bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=["y"])
     model.bounding_box = bbox
     assert model.bounding_box.bounding_box() == (-1, 1)
     assert model.bounding_box == bbox
 
     model = models.Polynomial2D(2)
-    bind_bounding_box(model, (-1, 1), ignored=['y'])
+    bind_bounding_box(model, (-1, 1), ignored=["y"])
     assert model.bounding_box.bounding_box() == (-1, 1)
     assert model.bounding_box == bbox
 
 
 def test_compound_bounding_box_pass_with_ignored():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
-    model.inputs = ('x', 'y', 'slit_id')
-    bbox = {(0,): (-0.5, 1047.5),
-            (1,): (-0.5, 2047.5), }
-    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)],
-                                         ignored=['y'], order='F')
+    model.inputs = ("x", "y", "slit_id")
+    bbox = {
+        (0,): (-0.5, 1047.5),
+        (1,): (-0.5, 2047.5),
+    }
+    cbbox = CompoundBoundingBox.validate(
+        model, bbox, selector_args=[("slit_id", True)], ignored=["y"], order="F"
+    )
     model.bounding_box = cbbox
 
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
-    model.inputs = ('x', 'y', 'slit_id')
-    bind_compound_bounding_box(model, bbox, selector_args=[('slit_id', True)],
-                               ignored=['y'], order='F')
+    model.inputs = ("x", "y", "slit_id")
+    bind_compound_bounding_box(
+        model, bbox, selector_args=[("slit_id", True)], ignored=["y"], order="F"
+    )
     assert model.bounding_box == cbbox
 
 
-@pytest.mark.parametrize('int_type', [int, np.int32, np.int64, np.uint32, np.uint64])
+@pytest.mark.parametrize("int_type", [int, np.int32, np.int64, np.uint32, np.uint64])
 def test_model_integer_indexing(int_type):
     """Regression for PR 12561; verify that compound model components
-     can be accessed by integer index"""
+    can be accessed by integer index"""
     gauss = models.Gaussian2D()
     airy = models.AiryDisk2D()
     compound = gauss + airy
@@ -1372,12 +1420,12 @@ def test_model_integer_indexing(int_type):
 
 def test_model_string_indexing():
     """Regression for PR 12561; verify that compound model components
-     can be accessed by indexing with model name"""
+    can be accessed by indexing with model name"""
     gauss = models.Gaussian2D()
-    gauss.name = 'Model1'
+    gauss.name = "Model1"
     airy = models.AiryDisk2D()
-    airy.name = 'Model2'
+    airy.name = "Model2"
     compound = gauss + airy
 
-    assert compound['Model1'] == gauss
-    assert compound['Model2'] == airy
+    assert compound["Model1"] == gauss
+    assert compound["Model2"] == airy

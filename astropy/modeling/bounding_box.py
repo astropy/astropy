@@ -16,10 +16,10 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils import isiterable
 
-__all__ = ['ModelBoundingBox', 'CompoundBoundingBox']
+__all__ = ["ModelBoundingBox", "CompoundBoundingBox"]
 
 
-_BaseInterval = namedtuple('_BaseInterval', "lower upper")
+_BaseInterval = namedtuple("_BaseInterval", "lower upper")
 
 
 class _Interval(_BaseInterval):
@@ -70,8 +70,11 @@ class _Interval(_BaseInterval):
 
         valid_shape = shape in ((2,), (1, 2), (2, 0))
         if not valid_shape:
-            valid_shape = (len(shape) > 0 and shape[0] == 2 and
-                           all(isinstance(b, np.ndarray) for b in interval))
+            valid_shape = (
+                len(shape) > 0
+                and shape[0] == 2
+                and all(isinstance(b, np.ndarray) for b in interval)
+            )
 
         if not isiterable(interval) or not valid_shape:
             raise ValueError(MESSAGE)
@@ -80,8 +83,11 @@ class _Interval(_BaseInterval):
     def _validate_bounds(cls, lower, upper):
         """Validate the bounds are reasonable and construct an interval from them."""
         if (np.asanyarray(lower) > np.asanyarray(upper)).all():
-            warnings.warn(f"Invalid interval: upper bound {upper} "
-                          f"is strictly less than lower bound {lower}.", RuntimeWarning)
+            warnings.warn(
+                f"Invalid interval: upper bound {upper} "
+                f"is strictly less than lower bound {lower}.",
+                RuntimeWarning,
+            )
 
         return cls(lower, upper)
 
@@ -186,7 +192,7 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model, ignored: List[int] = None, order: str = 'C'):
+    def __init__(self, model, ignored: List[int] = None, order: str = "C"):
         self._model = model
         self._ignored = self._validate_ignored(ignored)
         self._order = self._get_order(order)
@@ -211,9 +217,11 @@ class _BoundingDomain(abc.ABC):
         if order is None:
             order = self._order
 
-        if order not in ('C', 'F'):
-            raise ValueError("order must be either 'C' (C/python order) or "
-                             f"'F' (Fortran/mathematical order), got: {order}.")
+        if order not in ("C", "F"):
+            raise ValueError(
+                "order must be either 'C' (C/python order) or "
+                f"'F' (Fortran/mathematical order), got: {order}."
+            )
 
         return order
 
@@ -243,8 +251,8 @@ class _BoundingDomain(abc.ABC):
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
-            "This bounding box is fixed by the model and does not have "
-            "adjustable parameters.")
+            "This bounding box is fixed by the model and does not have " "adjustable parameters."
+        )
 
     @abc.abstractmethod
     def fix_inputs(self, model, fixed_inputs: dict):
@@ -322,8 +330,9 @@ class _BoundingDomain(abc.ABC):
         A full set of outputs for case that all inputs are outside domain.
         """
 
-        return [self._base_output(input_shape, fill_value)
-                for _ in range(self._model.n_outputs)], None
+        return [
+            self._base_output(input_shape, fill_value) for _ in range(self._model.n_outputs)
+        ], None
 
     def _modify_output(self, valid_output, valid_index, input_shape, fill_value):
         """
@@ -426,10 +435,17 @@ class _BoundingDomain(abc.ABC):
         """
 
         if with_units:
-            return getattr(valid_outputs, 'unit', None)
+            return getattr(valid_outputs, "unit", None)
 
-    def _evaluate_model(self, evaluate: Callable, valid_inputs, valid_index,
-                        input_shape, fill_value, with_units: bool):
+    def _evaluate_model(
+        self,
+        evaluate: Callable,
+        valid_inputs,
+        valid_index,
+        input_shape,
+        fill_value,
+        with_units: bool,
+    ):
         """
         Evaluate the model using the given evaluate routine
 
@@ -460,11 +476,12 @@ class _BoundingDomain(abc.ABC):
         valid_outputs = evaluate(valid_inputs)
         valid_outputs_unit = self._get_valid_outputs_unit(valid_outputs, with_units)
 
-        return self.prepare_outputs(valid_outputs, valid_index,
-                                    input_shape, fill_value), valid_outputs_unit
+        return (
+            self.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value),
+            valid_outputs_unit,
+        )
 
-    def _evaluate(self, evaluate: Callable, inputs, input_shape,
-                  fill_value, with_units: bool):
+    def _evaluate(self, evaluate: Callable, inputs, input_shape, fill_value, with_units: bool):
         """
         Perform model evaluation steps:
             prepare_inputs -> evaluate -> prepare_outputs
@@ -498,8 +515,9 @@ class _BoundingDomain(abc.ABC):
         if all_out:
             return self._all_out_output(input_shape, fill_value)
         else:
-            return self._evaluate_model(evaluate, valid_inputs, valid_index,
-                                        input_shape, fill_value, with_units)
+            return self._evaluate_model(
+                evaluate, valid_inputs, valid_index, input_shape, fill_value, with_units
+            )
 
     @staticmethod
     def _set_outputs_unit(outputs, valid_outputs_unit):
@@ -547,8 +565,9 @@ class _BoundingDomain(abc.ABC):
         # NOTE: CompoundModel does not currently support units during
         #   evaluation for bounding_box so this feature is turned off
         #   for CompoundModel(s).
-        outputs, valid_outputs_unit = self._evaluate(evaluate, inputs, input_shape,
-                                                     fill_value, self._model.bbox_with_units)
+        outputs, valid_outputs_unit = self._evaluate(
+            evaluate, inputs, input_shape, fill_value, self._model.bbox_with_units
+        )
         return tuple(self._set_outputs_unit(outputs, valid_outputs_unit))
 
 
@@ -576,8 +595,9 @@ class ModelBoundingBox(_BoundingDomain):
         (default), 'F': Fortran/mathematical notation order, e.g. x, y, z.
     """
 
-    def __init__(self, intervals: Dict[int, _Interval], model,
-                 ignored: List[int] = None, order: str = 'C'):
+    def __init__(
+        self, intervals: Dict[int, _Interval], model, ignored: List[int] = None, order: str = "C"
+    ):
         super().__init__(model, ignored, order)
 
         self._intervals = {}
@@ -585,15 +605,12 @@ class ModelBoundingBox(_BoundingDomain):
             self._validate(intervals, order=order)
 
     def copy(self, ignored=None):
-        intervals = {index: interval.copy()
-                     for index, interval in self._intervals.items()}
+        intervals = {index: interval.copy() for index, interval in self._intervals.items()}
 
         if ignored is None:
             ignored = self._ignored.copy()
 
-        return ModelBoundingBox(intervals, self._model,
-                                ignored=ignored,
-                                order=self._order)
+        return ModelBoundingBox(intervals, self._model, ignored=ignored, order=self._order)
 
     @property
     def intervals(self) -> Dict[int, _Interval]:
@@ -606,23 +623,20 @@ class ModelBoundingBox(_BoundingDomain):
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
 
     def __repr__(self):
-        parts = [
-            'ModelBoundingBox(',
-            '    intervals={'
-        ]
+        parts = ["ModelBoundingBox(", "    intervals={"]
 
         for name, interval in self.named_intervals.items():
             parts.append(f"        {name}: {interval}")
 
-        parts.append('    }')
+        parts.append("    }")
         if len(self._ignored) > 0:
             parts.append(f"    ignored={self.ignored_inputs}")
 
-        parts.append(f'    model={self._model.__class__.__name__}(inputs={self._model.inputs})')
+        parts.append(f"    model={self._model.__class__.__name__}(inputs={self._model.inputs})")
         parts.append(f"    order='{self._order}'")
-        parts.append(')')
+        parts.append(")")
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     def __len__(self):
         return len(self._intervals)
@@ -655,7 +669,7 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             order = self._get_order(order)
             inputs = self._model.inputs
-            if order == 'C':
+            if order == "C":
                 inputs = inputs[::-1]
 
             bbox = tuple([tuple(self[input_name]) for input_name in inputs])
@@ -703,7 +717,7 @@ class ModelBoundingBox(_BoundingDomain):
     def _validate_sequence(self, bounding_box, order: str = None):
         """Validate passing tuple of tuples representation (or related) and setting them."""
         order = self._get_order(order)
-        if order == 'C':
+        if order == "C":
             # If bounding_box is C/python ordered, it needs to be reversed
             # to be in Fortran/mathematical/input order.
             bounding_box = bounding_box[::-1]
@@ -722,8 +736,9 @@ class ModelBoundingBox(_BoundingDomain):
     def _validate_iterable(self, bounding_box, order: str = None):
         """Validate and set any iterable representation"""
         if len(bounding_box) != self._n_inputs:
-            raise ValueError(f"Found {len(bounding_box)} intervals, "
-                             f"but must have exactly {self._n_inputs}.")
+            raise ValueError(
+                f"Found {len(bounding_box)} intervals, " f"but must have exactly {self._n_inputs}."
+            )
 
         if isinstance(bounding_box, dict):
             self._validate_dict(bounding_box)
@@ -738,8 +753,15 @@ class ModelBoundingBox(_BoundingDomain):
             self._validate_iterable(bounding_box, order)
 
     @classmethod
-    def validate(cls, model, bounding_box,
-                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwargs):
+    def validate(
+        cls,
+        model,
+        bounding_box,
+        ignored: list = None,
+        order: str = "C",
+        _preserve_ignore: bool = False,
+        **kwargs,
+    ):
         """
         Construct a valid bounding box for a model.
 
@@ -788,8 +810,9 @@ class ModelBoundingBox(_BoundingDomain):
         else:
             ignored = None
 
-        return ModelBoundingBox.validate(model, new.named_intervals,
-                                         ignored=ignored, order=new._order)
+        return ModelBoundingBox.validate(
+            model, new.named_intervals, ignored=ignored, order=new._order
+        )
 
     @property
     def dimension(self):
@@ -798,12 +821,12 @@ class ModelBoundingBox(_BoundingDomain):
     def domain(self, resolution, order: str = None):
         inputs = self._model.inputs
         order = self._get_order(order)
-        if order == 'C':
+        if order == "C":
             inputs = inputs[::-1]
 
         return [self[input_name].domain(resolution) for input_name in inputs]
 
-    def _outside(self,  input_shape, inputs):
+    def _outside(self, input_shape, inputs):
         """
         Get all the input positions which are outside the bounding_box,
         so that the corresponding outputs can be filled with the fill
@@ -902,7 +925,7 @@ class ModelBoundingBox(_BoundingDomain):
         return tuple(valid_inputs), valid_index, all_out
 
 
-_BaseSelectorArgument = namedtuple('_BaseSelectorArgument', "index ignore")
+_BaseSelectorArgument = namedtuple("_BaseSelectorArgument", "index ignore")
 
 
 class _SelectorArgument(_BaseSelectorArgument):
@@ -1087,14 +1110,12 @@ class _SelectorArguments(tuple):
         model : `~astropy.modeling.Model`
             The Model these selector arguments are for.
         """
-        parts = ['SelectorArguments(']
+        parts = ["SelectorArguments("]
         for argument in self:
-            parts.append(
-                f"    {argument.pretty_repr(model)}"
-            )
-        parts.append(')')
+            parts.append(f"    {argument.pretty_repr(model)}")
+        parts.append(")")
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     @property
     def ignore(self):
@@ -1295,9 +1316,16 @@ class CompoundBoundingBox(_BoundingDomain):
         The ordering that is assumed for the tuple representation of the
         bounding_boxes.
     """
-    def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
-                 selector_args: _SelectorArguments, create_selector: Callable = None,
-                 ignored: List[int] = None, order: str = 'C'):
+
+    def __init__(
+        self,
+        bounding_boxes: Dict[Any, ModelBoundingBox],
+        model,
+        selector_args: _SelectorArguments,
+        create_selector: Callable = None,
+        ignored: List[int] = None,
+        order: str = "C",
+    ):
         super().__init__(model, ignored, order)
 
         self._create_selector = create_selector
@@ -1307,33 +1335,37 @@ class CompoundBoundingBox(_BoundingDomain):
         self._validate(bounding_boxes)
 
     def copy(self):
-        bounding_boxes = {selector: bbox.copy(self.selector_args.ignore)
-                          for selector, bbox in self._bounding_boxes.items()}
+        bounding_boxes = {
+            selector: bbox.copy(self.selector_args.ignore)
+            for selector, bbox in self._bounding_boxes.items()
+        }
 
-        return CompoundBoundingBox(bounding_boxes, self._model,
-                                   selector_args=self._selector_args,
-                                   create_selector=copy.deepcopy(self._create_selector),
-                                   order=self._order)
+        return CompoundBoundingBox(
+            bounding_boxes,
+            self._model,
+            selector_args=self._selector_args,
+            create_selector=copy.deepcopy(self._create_selector),
+            order=self._order,
+        )
 
     def __repr__(self):
-        parts = ['CompoundBoundingBox(',
-                 '    bounding_boxes={']
+        parts = ["CompoundBoundingBox(", "    bounding_boxes={"]
         # bounding_boxes
         for _selector, bbox in self._bounding_boxes.items():
-            bbox_repr = bbox.__repr__().split('\n')
+            bbox_repr = bbox.__repr__().split("\n")
             parts.append(f"        {_selector} = {bbox_repr.pop(0)}")
             for part in bbox_repr:
                 parts.append(f"            {part}")
-        parts.append('    }')
+        parts.append("    }")
 
         # selector_args
-        selector_args_repr = self.selector_args.pretty_repr(self._model).split('\n')
+        selector_args_repr = self.selector_args.pretty_repr(self._model).split("\n")
         parts.append(f"    selector_args = {selector_args_repr.pop(0)}")
         for part in selector_args_repr:
             parts.append(f"        {part}")
-        parts.append(')')
+        parts.append(")")
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     @property
     def bounding_boxes(self) -> Dict[Any, ModelBoundingBox]:
@@ -1347,8 +1379,11 @@ class CompoundBoundingBox(_BoundingDomain):
     def selector_args(self, value):
         self._selector_args = _SelectorArguments.validate(self._model, value)
 
-        warnings.warn("Overriding selector_args may cause problems you should re-validate "
-                      "the compound bounding box before use!", RuntimeWarning)
+        warnings.warn(
+            "Overriding selector_args may cause problems you should re-validate "
+            "the compound bounding box before use!",
+            RuntimeWarning,
+        )
 
     @property
     def named_selector_tuple(self) -> tuple:
@@ -1371,9 +1406,9 @@ class CompoundBoundingBox(_BoundingDomain):
             raise ValueError(f"{_selector} is not a selector!")
 
         ignored = self.selector_args.ignore + self.ignored
-        self._bounding_boxes[_selector] = ModelBoundingBox.validate(self._model, value,
-                                                                    ignored,
-                                                                    order=self._order)
+        self._bounding_boxes[_selector] = ModelBoundingBox.validate(
+            self._model, value, ignored, order=self._order
+        )
 
     def _validate(self, bounding_boxes: dict):
         for _selector, bounding_box in bounding_boxes.items():
@@ -1381,15 +1416,26 @@ class CompoundBoundingBox(_BoundingDomain):
 
     def __eq__(self, value):
         if isinstance(value, CompoundBoundingBox):
-            return (self.bounding_boxes == value.bounding_boxes and
-                    self.selector_args == value.selector_args and
-                    self.create_selector == value.create_selector)
+            return (
+                self.bounding_boxes == value.bounding_boxes
+                and self.selector_args == value.selector_args
+                and self.create_selector == value.create_selector
+            )
         else:
             return False
 
     @classmethod
-    def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwarg):
+    def validate(
+        cls,
+        model,
+        bounding_box: dict,
+        selector_args=None,
+        create_selector=None,
+        ignored: list = None,
+        order: str = "C",
+        _preserve_ignore: bool = False,
+        **kwarg,
+    ):
         """
         Construct a valid compound bounding box for a model.
 
@@ -1418,11 +1464,19 @@ class CompoundBoundingBox(_BoundingDomain):
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:
-            raise ValueError("Selector arguments must be provided "
-                             "(can be passed as part of bounding_box argument)")
+            raise ValueError(
+                "Selector arguments must be provided "
+                "(can be passed as part of bounding_box argument)"
+            )
 
-        return cls(bounding_box, model, selector_args,
-                   create_selector=create_selector, ignored=ignored, order=order)
+        return cls(
+            bounding_box,
+            model,
+            selector_args,
+            create_selector=create_selector,
+            ignored=ignored,
+            order=order,
+        )
 
     def __contains__(self, key):
         return key in self._bounding_boxes
@@ -1479,16 +1533,17 @@ class CompoundBoundingBox(_BoundingDomain):
                 new_selector_key.pop(selector_index)
 
                 if bbox.has_interval(argument):
-                    new_bbox = bbox.fix_inputs(self._model, {argument: value},
-                                               _keep_ignored=True)
+                    new_bbox = bbox.fix_inputs(self._model, {argument: value}, _keep_ignored=True)
                 else:
                     new_bbox = bbox.copy()
 
                 matching[tuple(new_selector_key)] = new_bbox
 
         if len(matching) == 0:
-            raise ValueError(f"Attempting to fix input {argument}, but there are no "
-                             f"bounding boxes for argument value {value}.")
+            raise ValueError(
+                f"Attempting to fix input {argument}, but there are no "
+                f"bounding boxes for argument value {value}."
+            )
 
         return matching
 
@@ -1498,17 +1553,22 @@ class CompoundBoundingBox(_BoundingDomain):
         if len(self.selector_args) == 1:
             return matching_bounding_boxes[()]
         else:
-            return CompoundBoundingBox(matching_bounding_boxes, self._model,
-                                       self.selector_args.reduce(self._model, argument))
+            return CompoundBoundingBox(
+                matching_bounding_boxes,
+                self._model,
+                self.selector_args.reduce(self._model, argument),
+            )
 
     def _fix_input_bbox_arg(self, argument, value):
         bounding_boxes = {}
         for selector_key, bbox in self._bounding_boxes.items():
-            bounding_boxes[selector_key] = bbox.fix_inputs(self._model, {argument: value},
-                                                           _keep_ignored=True)
+            bounding_boxes[selector_key] = bbox.fix_inputs(
+                self._model, {argument: value}, _keep_ignored=True
+            )
 
-        return CompoundBoundingBox(bounding_boxes, self._model,
-                                   self.selector_args.add_ignore(self._model, argument))
+        return CompoundBoundingBox(
+            bounding_boxes, self._model, self.selector_args.add_ignore(self._model, argument)
+        )
 
     def fix_inputs(self, model, fixed_inputs: dict):
         """
@@ -1544,5 +1604,6 @@ class CompoundBoundingBox(_BoundingDomain):
             selector_args = None
             bbox_dict = bbox.named_intervals
 
-        return bbox.__class__.validate(model, bbox_dict,
-                                       order=bbox.order, selector_args=selector_args)
+        return bbox.__class__.validate(
+            model, bbox_dict, order=bbox.order, selector_args=selector_args
+        )

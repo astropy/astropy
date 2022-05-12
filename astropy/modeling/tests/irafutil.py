@@ -8,10 +8,7 @@ import numpy as np
 
 from astropy.logger import log
 
-iraf_models_map = {1.: 'Chebyshev',
-                   2.: 'Legendre',
-                   3.: 'Spline3',
-                   4.: 'Spline1'}
+iraf_models_map = {1.0: "Chebyshev", 2.0: "Legendre", 3.0: "Spline3", 4.0: "Spline1"}
 
 
 def get_records(fname):
@@ -30,7 +27,7 @@ def get_records(fname):
     f = open(fname)
     dtb = f.read()
     f.close()
-    recs = dtb.split('begin')[1:]
+    recs = dtb.split("begin")[1:]
     records = [Record(r) for r in recs]
     return records
 
@@ -68,13 +65,14 @@ class Record:
     taskname: string
             the name of the task which created the database file
     """
+
     def __init__(self, recstr):
         self.recstr = recstr
         self.fields = self.get_fields()
         self.taskname = self.get_task_name()
 
     def aslist(self):
-        reclist = self.recstr.split('\n')
+        reclist = self.recstr.split("\n")
         reclist = [entry.strip() for entry in reclist]
         [reclist.remove(entry) for entry in reclist if len(entry) == 0]
         return reclist
@@ -90,8 +88,7 @@ class Record:
                 field = line.split()
                 if i + 1 < numfields:
                     if not flist[i + 1][0].isalpha():
-                        fields[field[0]] = self.read_array_field(
-                            flist[i:i + int(field[1]) + 1])
+                        fields[field[0]] = self.read_array_field(flist[i : i + int(field[1]) + 1])
                     else:
                         fields[field[0]] = " ".join(s for s in field[1:])
                 else:
@@ -102,7 +99,7 @@ class Record:
 
     def get_task_name(self):
         try:
-            return self.fields['task']
+            return self.fields["task"]
         except KeyError:
             return None
 
@@ -144,12 +141,13 @@ class IdentifyRecord(Record):
     coeff: array
         function (modelname) coefficients
     """
+
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._flatcoeff = self.fields['coefficients'].flatten()
-        self.x = self.fields['features'][:, 0]
+        self._flatcoeff = self.fields["coefficients"].flatten()
+        self.x = self.fields["features"][:, 0]
         self.y = self.get_ydata()
-        self.z = self.fields['features'][:, 1]
+        self.z = self.fields["features"][:, 1]
         self.modelname = self.get_model_name()
         self.nterms = self.get_nterms()
         self.mrange = self.get_range()
@@ -170,12 +168,12 @@ class IdentifyRecord(Record):
         return self._flatcoeff[4:]
 
     def get_ydata(self):
-        image = self.fields['image']
-        left = image.find('[') + 1
-        right = image.find(']')
+        image = self.fields["image"]
+        left = image.find("[") + 1
+        right = image.find("]")
         section = image[left:right]
-        if ',' in section:
-            yind = image.find(',') + 1
+        if "," in section:
+            yind = image.find(",") + 1
             return int(image[yind:-1])
         else:
             return int(section)
@@ -202,9 +200,10 @@ class FitcoordsRecord(Record):
         function coefficients
 
     """
+
     def __init__(self, recstr):
         super().__init__(recstr)
-        self._surface = self.fields['surface'].flatten()
+        self._surface = self.fields["surface"].flatten()
         self.modelname = iraf_models_map[self._surface[0]]
         self.xorder = self._surface[1]
         self.yorder = self._surface[2]
@@ -228,6 +227,7 @@ class IDB:
     numrecords: int
              number of records
     """
+
     def __init__(self, dtbstr):
         self.records = [IdentifyRecord(rstr) for rstr in self.aslist(dtbstr)]
         self.numrecords = len(self.records)
@@ -235,12 +235,12 @@ class IDB:
     def aslist(self, dtb):
         # return a list of records
         # if the first one is a comment remove it from the list
-        rl = dtb.split('begin')
+        rl = dtb.split("begin")
         try:
-            rl0 = rl[0].split('\n')
+            rl0 = rl[0].split("\n")
         except Exception:
             return rl
-        if len(rl0) == 2 and rl0[0].startswith('#') and not rl0[1].strip():
+        if len(rl0) == 2 and rl0[0].startswith("#") and not rl0[1].strip():
             return rl[1:]
         else:
             return rl
@@ -251,6 +251,7 @@ class ReidentifyRecord(IDB):
     """
     Represents a database record for the onedspec.reidentify task
     """
+
     def __init__(self, databasestr):
         super().__init__(databasestr)
         self.x = np.array([r.x for r in self.records])

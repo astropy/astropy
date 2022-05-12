@@ -53,16 +53,43 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,  # noqa: F405
-    Const1D, Const2D, Ellipse2D, Disk2D,  # noqa: F405
-    Gaussian1D, Gaussian2D,  # noqa: F405
-    Linear1D, Lorentz1D, RickerWavelet1D, RickerWavelet2D,  # noqa: F405
-    PowerLaw1D, Sersic1D, Sersic2D,  # noqa: F405
-    Sine1D, Cosine1D, Tangent1D, ArcSine1D, ArcCosine1D, ArcTangent1D,  # noqa: F405
-    Trapezoid1D, TrapezoidDisk2D,  # noqa: F405
-    Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre2D, Legendre1D,  # noqa: F405
-    Polynomial1D, Polynomial2D, Voigt1D, KingProjectedAnalytic1D,  # noqa: F405
-    NFW  # noqa: F405
+    AiryDisk2D,
+    Moffat1D,
+    Moffat2D,
+    Box1D,
+    Box2D,  # noqa: F405
+    Const1D,
+    Const2D,
+    Ellipse2D,
+    Disk2D,  # noqa: F405
+    Gaussian1D,
+    Gaussian2D,  # noqa: F405
+    Linear1D,
+    Lorentz1D,
+    RickerWavelet1D,
+    RickerWavelet2D,  # noqa: F405
+    PowerLaw1D,
+    Sersic1D,
+    Sersic2D,  # noqa: F405
+    Sine1D,
+    Cosine1D,
+    Tangent1D,
+    ArcSine1D,
+    ArcCosine1D,
+    ArcTangent1D,  # noqa: F405
+    Trapezoid1D,
+    TrapezoidDisk2D,  # noqa: F405
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre2D,
+    Legendre1D,  # noqa: F405
+    Polynomial1D,
+    Polynomial2D,
+    Voigt1D,
+    KingProjectedAnalytic1D,  # noqa: F405
+    NFW,  # noqa: F405
 ]
 
 

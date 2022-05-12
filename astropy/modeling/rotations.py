@@ -31,8 +31,14 @@ from .core import Model
 from .parameters import Parameter
 from .utils import _to_orig_unit, _to_radian
 
-__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
-           'EulerAngleRotation', 'RotationSequence3D', 'SphericalRotationSequence']
+__all__ = [
+    "RotateCelestial2Native",
+    "RotateNative2Celestial",
+    "Rotation2D",
+    "EulerAngleRotation",
+    "RotationSequence3D",
+    "SphericalRotationSequence",
+]
 
 
 def _create_matrix(angles, axes_order):
@@ -80,27 +86,35 @@ class RotationSequence3D(Model):
     >>> model = RotationSequence3D([1.1, 2.1, 3.1, 4.1], axes_order='xyzx')
 
     """
+
     standard_broadcasting = False
     _separable = False
     n_inputs = 3
     n_outputs = 3
 
-    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian,
-                       description="Angles of rotation in deg in the order of axes_order")
+    angles = Parameter(
+        default=[],
+        getter=_to_orig_unit,
+        setter=_to_radian,
+        description="Angles of rotation in deg in the order of axes_order",
+    )
 
     def __init__(self, angles, axes_order, name=None):
-        self.axes = ['x', 'y', 'z']
+        self.axes = ["x", "y", "z"]
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
-            raise ValueError(f"Unrecognized axis label {unrecognized}; "
-                             f"should be one of {self.axes} ")
+            raise ValueError(
+                f"Unrecognized axis label {unrecognized}; " f"should be one of {self.axes} "
+            )
         self.axes_order = axes_order
         if len(angles) != len(axes_order):
-            raise ValueError(f"The number of angles {len(angles)} should match "
-                             f"the number of axes {len(axes_order)}.")
+            raise ValueError(
+                f"The number of angles {len(angles)} should match "
+                f"the number of axes {len(axes_order)}."
+            )
         super().__init__(angles, name=name)
-        self._inputs = ('x', 'y', 'z')
-        self._outputs = ('x', 'y', 'z')
+        self._inputs = ("x", "y", "z")
+        self._outputs = ("x", "y", "z")
 
     @property
     def inverse(self):
@@ -138,6 +152,7 @@ class SphericalRotationSequence(RotationSequence3D):
         axis of rotation and matching the order in ``angles``.
 
     """
+
     def __init__(self, angles, axes_order, name=None, **kwargs):
         self._n_inputs = 2
         self._n_outputs = 2
@@ -188,15 +203,13 @@ class _EulerRotation:
 
     @property
     def input_units(self):
-        """ Input units. """
-        return {self.inputs[0]: u.deg,
-                self.inputs[1]: u.deg}
+        """Input units."""
+        return {self.inputs[0]: u.deg, self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
-        """ Output units. """
-        return {self.outputs[0]: u.deg,
-                self.outputs[1]: u.deg}
+        """Output units."""
+        return {self.outputs[0]: u.deg, self.outputs[1]: u.deg}
 
 
 class EulerAngleRotation(_EulerRotation, Model):
@@ -220,38 +233,50 @@ class EulerAngleRotation(_EulerRotation, Model):
     n_inputs = 2
     n_outputs = 2
 
-    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                    description="1st Euler angle (Quantity or value in deg)")
-    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                      description="2nd Euler angle (Quantity or value in deg)")
-    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                    description="3rd Euler angle (Quantity or value in deg)")
+    phi = Parameter(
+        default=0,
+        getter=_to_orig_unit,
+        setter=_to_radian,
+        description="1st Euler angle (Quantity or value in deg)",
+    )
+    theta = Parameter(
+        default=0,
+        getter=_to_orig_unit,
+        setter=_to_radian,
+        description="2nd Euler angle (Quantity or value in deg)",
+    )
+    psi = Parameter(
+        default=0,
+        getter=_to_orig_unit,
+        setter=_to_radian,
+        description="3rd Euler angle (Quantity or value in deg)",
+    )
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
-        self.axes = ['x', 'y', 'z']
+        self.axes = ["x", "y", "z"]
         if len(axes_order) != 3:
             raise TypeError(
-                "Expected axes_order to be a character sequence of length 3, "
-                f"got {axes_order}")
+                "Expected axes_order to be a character sequence of length 3, " f"got {axes_order}"
+            )
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:
-            raise ValueError(f"Unrecognized axis label {unrecognized}; "
-                             f"should be one of {self.axes}")
+            raise ValueError(
+                f"Unrecognized axis label {unrecognized}; " f"should be one of {self.axes}"
+            )
         self.axes_order = axes_order
         qs = [isinstance(par, u.Quantity) for par in [phi, theta, psi]]
         if any(qs) and not all(qs):
             raise TypeError("All parameters should be of the same type - float or Quantity.")
 
         super().__init__(phi=phi, theta=theta, psi=psi, **kwargs)
-        self._inputs = ('alpha', 'delta')
-        self._outputs = ('alpha', 'delta')
+        self._inputs = ("alpha", "delta")
+        self._outputs = ("alpha", "delta")
 
     @property
     def inverse(self):
-        return self.__class__(phi=-self.psi,
-                              theta=-self.theta,
-                              psi=-self.phi,
-                              axes_order=self.axes_order[::-1])
+        return self.__class__(
+            phi=-self.psi, theta=-self.theta, psi=-self.phi, axes_order=self.axes_order[::-1]
+        )
 
     def evaluate(self, alpha, delta, phi, theta, psi):
         a, b = super().evaluate(alpha, delta, phi, theta, psi, self.axes_order)
@@ -263,23 +288,21 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                    description="Latitude")
-    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                    description="Longtitude")
-    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian,
-                         description="Longitude of a pole")
+    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Latitude")
+    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Longtitude")
+    lon_pole = Parameter(
+        default=0, getter=_to_orig_unit, setter=_to_radian, description="Longitude of a pole"
+    )
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
         if any(qs) and not all(qs):
             raise TypeError("All parameters should be of the same type - float or Quantity.")
         super().__init__(lon, lat, lon_pole, **kwargs)
-        self.axes_order = 'zxz'
+        self.axes_order = "zxz"
 
     def _evaluate(self, phi, theta, lon, lat, lon_pole):
-        alpha, delta = super().evaluate(phi, theta, lon, lat, lon_pole,
-                                        self.axes_order)
+        alpha, delta = super().evaluate(phi, theta, lon, lat, lon_pole, self.axes_order)
         mask = alpha < 0
         if isinstance(mask, np.ndarray):
             alpha[mask] += 360
@@ -313,19 +336,18 @@ class RotateNative2Celestial(_SkyRotation):
 
     @property
     def input_units(self):
-        """ Input units. """
-        return {self.inputs[0]: u.deg,
-                self.inputs[1]: u.deg}
+        """Input units."""
+        return {self.inputs[0]: u.deg, self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
-        """ Output units. """
+        """Output units."""
         return {self.outputs[0]: u.deg, self.outputs[1]: u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)
-        self.inputs = ('phi_N', 'theta_N')
-        self.outputs = ('alpha_C', 'delta_C')
+        self.inputs = ("phi_N", "theta_N")
+        self.outputs = ("alpha_C", "delta_C")
 
     def evaluate(self, phi_N, theta_N, lon, lat, lon_pole):
         """
@@ -352,7 +374,7 @@ class RotateNative2Celestial(_SkyRotation):
             lon_pole = lon_pole.value
         # Convert to Euler angles
         phi = lon_pole - np.pi / 2
-        theta = - (np.pi / 2 - lat)
+        theta = -(np.pi / 2 - lat)
         psi = -(np.pi / 2 + lon)
         alpha_C, delta_C = super()._evaluate(phi_N, theta_N, phi, theta, psi)
         return alpha_C, delta_C
@@ -382,28 +404,27 @@ class RotateCelestial2Native(_SkyRotation):
     in units of deg. Inputs are angles on the celestial sphere.
     Outputs are angles on the native sphere.
     """
+
     n_inputs = 2
     n_outputs = 2
 
     @property
     def input_units(self):
-        """ Input units. """
-        return {self.inputs[0]: u.deg,
-                self.inputs[1]: u.deg}
+        """Input units."""
+        return {self.inputs[0]: u.deg, self.inputs[1]: u.deg}
 
     @property
     def return_units(self):
-        """ Output units. """
-        return {self.outputs[0]: u.deg,
-                self.outputs[1]: u.deg}
+        """Output units."""
+        return {self.outputs[0]: u.deg, self.outputs[1]: u.deg}
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         super().__init__(lon, lat, lon_pole, **kwargs)
 
         # Inputs are angles on the celestial sphere
-        self.inputs = ('alpha_C', 'delta_C')
+        self.inputs = ("alpha_C", "delta_C")
         # Outputs are angles on the native sphere
-        self.outputs = ('phi_N', 'theta_N')
+        self.outputs = ("phi_N", "theta_N")
 
     def evaluate(self, alpha_C, delta_C, lon, lat, lon_pole):
         """
@@ -428,8 +449,8 @@ class RotateCelestial2Native(_SkyRotation):
             lat = lat.value
             lon_pole = lon_pole.value
         # Convert to Euler angles
-        phi = (np.pi / 2 + lon)
-        theta = (np.pi / 2 - lat)
+        phi = np.pi / 2 + lon
+        theta = np.pi / 2 - lat
         psi = -(lon_pole - np.pi / 2)
         phi_N, theta_N = super()._evaluate(alpha_C, delta_C, phi, theta, psi)
 
@@ -451,13 +472,18 @@ class Rotation2D(Model):
     angle : float or `~astropy.units.Quantity` ['angle']
         Angle of rotation (if float it should be in deg).
     """
+
     n_inputs = 2
     n_outputs = 2
 
     _separable = False
 
-    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-                      description="Angle of rotation (Quantity or value in deg)")
+    angle = Parameter(
+        default=0.0,
+        getter=_to_orig_unit,
+        setter=_to_radian,
+        description="Angle of rotation (Quantity or value in deg)",
+    )
 
     def __init__(self, angle=angle, **kwargs):
         super().__init__(angle=angle, **kwargs)
@@ -489,8 +515,8 @@ class Rotation2D(Model):
             raise ValueError("Expected input arrays to have the same shape")
 
         # If one argument has units, enforce they both have units and they are compatible.
-        x_unit = getattr(x, 'unit', None)
-        y_unit = getattr(y, 'unit', None)
+        x_unit = getattr(x, "unit", None)
+        y_unit = getattr(y, "unit", None)
         has_units = x_unit is not None and y_unit is not None
         if x_unit != y_unit:
             if has_units and y_unit.is_equivalent(x_unit):
@@ -514,6 +540,7 @@ class Rotation2D(Model):
 
     @staticmethod
     def _compute_matrix(angle):
-        return np.array([[math.cos(angle), -math.sin(angle)],
-                         [math.sin(angle), math.cos(angle)]],
-                        dtype=np.float64)
+        return np.array(
+            [[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]],
+            dtype=np.float64,
+        )

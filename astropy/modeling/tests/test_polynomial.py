@@ -35,70 +35,74 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 linear1d = {
     Chebyshev1D: {
-        'args': (3,),
-        'kwargs': {'domain': [1, 10]},
-        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': True}}
+        "args": (3,),
+        "kwargs": {"domain": [1, 10]},
+        "parameters": {"c0": 1.2, "c1": 2, "c2": 2.3, "c3": 0.2},
+        "constraints": {"fixed": {"c0": True}},
     },
     Hermite1D: {
-        'args': (3,),
-        'kwargs': {'domain': [1, 10]},
-        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': True}}
+        "args": (3,),
+        "kwargs": {"domain": [1, 10]},
+        "parameters": {"c0": 1.2, "c1": 2, "c2": 2.3, "c3": 0.2},
+        "constraints": {"fixed": {"c0": True}},
     },
     Legendre1D: {
-        'args': (3,),
-        'kwargs': {'domain': [1, 10]},
-        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': True}}
+        "args": (3,),
+        "kwargs": {"domain": [1, 10]},
+        "parameters": {"c0": 1.2, "c1": 2, "c2": 2.3, "c3": 0.2},
+        "constraints": {"fixed": {"c0": True}},
     },
     Polynomial1D: {
-        'args': (3,),
-        'kwargs': {'domain': [1, 10]},
-        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
-        'constraints': {'fixed': {'c0': True}}
+        "args": (3,),
+        "kwargs": {"domain": [1, 10]},
+        "parameters": {"c0": 1.2, "c1": 2, "c2": 2.3, "c3": 0.2},
+        "constraints": {"fixed": {"c0": True}},
     },
     Linear1D: {
-        'args': (),
-        'kwargs': {},
-        'parameters': {'intercept': 1.2, 'slope': 23.1},
-        'constraints': {'fixed': {'intercept': True}}
-    }
+        "args": (),
+        "kwargs": {},
+        "parameters": {"intercept": 1.2, "slope": 23.1},
+        "constraints": {"fixed": {"intercept": True}},
+    },
 }
 
 
 linear2d = {
     Chebyshev2D: {
-        'args': (1, 1),
-        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
-        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': True}}
+        "args": (1, 1),
+        "kwargs": {"x_domain": [0, 99], "y_domain": [0, 82]},
+        "parameters": {"c0_0": 1.2, "c1_0": 2, "c0_1": 2.3, "c1_1": 0.2},
+        "constraints": {"fixed": {"c0_0": True}},
     },
     Hermite2D: {
-        'args': (1, 1),
-        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
-        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': True}}
+        "args": (1, 1),
+        "kwargs": {"x_domain": [0, 99], "y_domain": [0, 82]},
+        "parameters": {"c0_0": 1.2, "c1_0": 2, "c0_1": 2.3, "c1_1": 0.2},
+        "constraints": {"fixed": {"c0_0": True}},
     },
     Legendre2D: {
-        'args': (1, 1),
-        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
-        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
-        'constraints': {'fixed': {'c0_0': True}}
+        "args": (1, 1),
+        "kwargs": {"x_domain": [0, 99], "y_domain": [0, 82]},
+        "parameters": {"c0_0": 1.2, "c1_0": 2, "c0_1": 2.3, "c1_1": 0.2},
+        "constraints": {"fixed": {"c0_0": True}},
     },
     Polynomial2D: {
-        'args': (1,),
-        'kwargs': {},
-        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3},
-        'constraints': {'fixed': {'c0_0': True}}
-    }
+        "args": (1,),
+        "kwargs": {},
+        "parameters": {"c0_0": 1.2, "c1_0": 2, "c0_1": 2.3},
+        "constraints": {"fixed": {"c0_0": True}},
+    },
 }
 
-fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter,
-           fitting.DogBoxLSQFitter]
+fitters = [
+    fitting.LevMarLSQFitter,
+    fitting.TRFLSQFitter,
+    fitting.LMLSQFitter,
+    fitting.DogBoxLSQFitter,
+]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 class TestFitting:
     """Test linear fitter with polynomial models."""
 
@@ -108,7 +112,7 @@ class TestFitting:
         self.x1 = np.linspace(1, 10, 100)
         self.y2, self.x2 = np.mgrid[:100, :83]
         rsn = np.random.default_rng(0)
-        self.n1 = rsn.standard_normal(self.x1.size) * .1
+        self.n1 = rsn.standard_normal(self.x1.size) * 0.1
         self.n2 = rsn.standard_normal(self.x2.size)
         self.n2.shape = self.x2.shape
         self.linear_fitter = fitting.LinearLSQFitter()
@@ -116,139 +120,136 @@ class TestFitting:
     # TODO: Most of these test cases have some pretty repetitive setup that we
     # could probably factor out
 
-    @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(sorted(linear1d, key=str), (False, True))))
+    @pytest.mark.parametrize(
+        ("model_class", "constraints"), list(product(sorted(linear1d, key=str), (False, True)))
+    )
     def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
         model_args = linear1d[model_class]
         kwargs = {}
-        kwargs.update(model_args['kwargs'])
-        kwargs.update(model_args['parameters'])
+        kwargs.update(model_args["kwargs"])
+        kwargs.update(model_args["parameters"])
 
         if constraints:
-            kwargs.update(model_args['constraints'])
+            kwargs.update(model_args["constraints"])
 
-        model = model_class(*model_args['args'], **kwargs)
+        model = model_class(*model_args["args"], **kwargs)
 
         y1 = model(self.x1)
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', message=r'The fit may be poorly conditioned',
-                category=AstropyUserWarning)
+                "ignore", message=r"The fit may be poorly conditioned", category=AstropyUserWarning
+            )
             model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
 
         if constraints:
             # For the constraints tests we're not checking the overall fit,
             # just that the constraint was maintained
-            fixed = model_args['constraints'].get('fixed', None)
+            fixed = model_args["constraints"].get("fixed", None)
             if fixed:
                 for param, value in fixed.items():
-                    expected = model_args['parameters'][param]
+                    expected = model_args["parameters"][param]
                     assert getattr(model_lin, param).value == expected
         else:
-            assert_allclose(model_lin.parameters, model.parameters,
-                            atol=0.2)
+            assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(sorted(linear1d, key=str), (False, True))))
-    @pytest.mark.parametrize('fitter', fitters)
+    @pytest.mark.parametrize(
+        ("model_class", "constraints"), list(product(sorted(linear1d, key=str), (False, True)))
+    )
+    @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_1D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
         fitter = fitter()
 
         model_args = linear1d[model_class]
         kwargs = {}
-        kwargs.update(model_args['kwargs'])
-        kwargs.update(model_args['parameters'])
+        kwargs.update(model_args["kwargs"])
+        kwargs.update(model_args["parameters"])
 
         if constraints:
-            kwargs.update(model_args['constraints'])
+            kwargs.update(model_args["constraints"])
 
-        model = model_class(*model_args['args'], **kwargs)
+        model = model_class(*model_args["args"], **kwargs)
 
         y1 = model(self.x1)
-        with pytest.warns(AstropyUserWarning,
-                          match='Model is linear in parameters'):
+        with pytest.warns(AstropyUserWarning, match="Model is linear in parameters"):
             model_nlin = fitter(model, self.x1, y1 + self.n1)
 
         if constraints:
-            fixed = model_args['constraints'].get('fixed', None)
+            fixed = model_args["constraints"].get("fixed", None)
             if fixed:
                 for param, value in fixed.items():
-                    expected = model_args['parameters'][param]
+                    expected = model_args["parameters"][param]
                     assert getattr(model_nlin, param).value == expected
         else:
-            assert_allclose(model_nlin.parameters, model.parameters,
-                            atol=0.2)
+            assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(sorted(linear2d, key=str), (False, True))))
+    @pytest.mark.parametrize(
+        ("model_class", "constraints"), list(product(sorted(linear2d, key=str), (False, True)))
+    )
     def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
         model_args = linear2d[model_class]
         kwargs = {}
-        kwargs.update(model_args['kwargs'])
-        kwargs.update(model_args['parameters'])
+        kwargs.update(model_args["kwargs"])
+        kwargs.update(model_args["parameters"])
 
         if constraints:
-            kwargs.update(model_args['constraints'])
+            kwargs.update(model_args["constraints"])
 
-        model = model_class(*model_args['args'], **kwargs)
+        model = model_class(*model_args["args"], **kwargs)
 
         z = model(self.x2, self.y2)
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore', message=r'The fit may be poorly conditioned',
-                category=AstropyUserWarning)
+                "ignore", message=r"The fit may be poorly conditioned", category=AstropyUserWarning
+            )
             model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
 
         if constraints:
-            fixed = model_args['constraints'].get('fixed', None)
+            fixed = model_args["constraints"].get("fixed", None)
             if fixed:
                 for param, value in fixed.items():
-                    expected = model_args['parameters'][param]
+                    expected = model_args["parameters"][param]
                     assert getattr(model_lin, param).value == expected
         else:
-            assert_allclose(model_lin.parameters, model.parameters,
-                            atol=0.2)
+            assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
 
-    @pytest.mark.parametrize(('model_class', 'constraints'),
-                             list(product(sorted(linear2d, key=str), (False, True))))
-    @pytest.mark.parametrize('fitter', fitters)
+    @pytest.mark.parametrize(
+        ("model_class", "constraints"), list(product(sorted(linear2d, key=str), (False, True)))
+    )
+    @pytest.mark.parametrize("fitter", fitters)
     def test_non_linear_fitter_2D(self, model_class, constraints, fitter):
         """Test fitting with non-linear LevMarLSQFitter"""
         fitter = fitter()
 
         model_args = linear2d[model_class]
         kwargs = {}
-        kwargs.update(model_args['kwargs'])
-        kwargs.update(model_args['parameters'])
+        kwargs.update(model_args["kwargs"])
+        kwargs.update(model_args["parameters"])
 
         if constraints:
-            kwargs.update(model_args['constraints'])
+            kwargs.update(model_args["constraints"])
 
-        model = model_class(*model_args['args'], **kwargs)
+        model = model_class(*model_args["args"], **kwargs)
 
         z = model(self.x2, self.y2)
-        with pytest.warns(AstropyUserWarning,
-                          match='Model is linear in parameters'):
+        with pytest.warns(AstropyUserWarning, match="Model is linear in parameters"):
             model_nlin = fitter(model, self.x2, self.y2, z + self.n2)
 
         if constraints:
-            fixed = model_args['constraints'].get('fixed', None)
+            fixed = model_args["constraints"].get("fixed", None)
             if fixed:
                 for param, value in fixed.items():
-                    expected = model_args['parameters'][param]
+                    expected = model_args["parameters"][param]
                     assert getattr(model_nlin, param).value == expected
         else:
-            assert_allclose(model_nlin.parameters, model.parameters,
-                            atol=0.2)
+            assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
 
 
-@pytest.mark.parametrize('model_class',
-                         [cls for cls in list(linear1d) + list(linear2d)])
+@pytest.mark.parametrize("model_class", [cls for cls in list(linear1d) + list(linear2d)])
 def test_polynomial_init_with_constraints(model_class):
     """
     Test that polynomial models can be instantiated with constraints, but no
@@ -260,13 +261,13 @@ def test_polynomial_init_with_constraints(model_class):
     # Just determine which parameter to place a constraint on; it doesn't
     # matter which parameter it is to exhibit the problem so long as it's a
     # valid parameter for the model
-    if '1D' in model_class.__name__:
-        param = 'c0'
+    if "1D" in model_class.__name__:
+        param = "c0"
     else:
-        param = 'c0_0'
+        param = "c0_0"
 
     if issubclass(model_class, Linear1D):
-        param = 'intercept'
+        param = "intercept"
 
     if issubclass(model_class, OrthoPolynomialBase):
         degree = (2, 2)
@@ -279,8 +280,10 @@ def test_polynomial_init_with_constraints(model_class):
     assert getattr(m, param).fixed is True
 
     if issubclass(model_class, OrthoPolynomialBase):
-        assert repr(m) == (f"<{model_class.__name__}(2, 2, c0_0=0., c1_0=0., c2_0=0., c0_1=0., "
-                           "c1_1=0., c2_1=0., c0_2=0., c1_2=0., c2_2=0.)>")
+        assert repr(m) == (
+            f"<{model_class.__name__}(2, 2, c0_0=0., c1_0=0., c2_0=0., c0_1=0., "
+            "c1_1=0., c2_1=0., c0_2=0., c1_2=0., c2_2=0.)>"
+        )
         assert str(m) == (
             f"Model: {model_class.__name__}\n"
             "Inputs: ('x', 'y')\n"
@@ -294,9 +297,10 @@ def test_polynomial_init_with_constraints(model_class):
             "     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
         )
     else:
-        if model_class.__name__ == 'Polynomial2D':
-            assert repr(m) == ("<Polynomial2D(2, c0_0=0., c1_0=0., c2_0=0., "
-                               "c0_1=0., c0_2=0., c1_1=0.)>")
+        if model_class.__name__ == "Polynomial2D":
+            assert repr(m) == (
+                "<Polynomial2D(2, c0_0=0., c1_0=0., c2_0=0., " "c0_1=0., c0_2=0., c1_1=0.)>"
+            )
             assert str(m) == (
                 "Model: Polynomial2D\n"
                 "Inputs: ('x', 'y')\n"
@@ -308,7 +312,7 @@ def test_polynomial_init_with_constraints(model_class):
                 "    ---- ---- ---- ---- ---- ----\n"
                 "     0.0  0.0  0.0  0.0  0.0  0.0"
             )
-        elif model_class.__name__ == 'Linear1D':
+        elif model_class.__name__ == "Linear1D":
             assert repr(m) == "<Linear1D(slope=2., intercept=0.)>"
             assert str(m) == (
                 "Model: Linear1D\n"
@@ -338,15 +342,15 @@ def test_polynomial_init_with_constraints(model_class):
 def test_sip_hst():
     """Test SIP against astropy.wcs"""
 
-    test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
+    test_file = get_pkg_data_filename(os.path.join("data", "hst_sip.hdr"))
     hdr = fits.Header.fromtextfile(test_file)
-    crpix1 = hdr['CRPIX1']
-    crpix2 = hdr['CRPIX2']
+    crpix1 = hdr["CRPIX1"]
+    crpix2 = hdr["CRPIX2"]
     wobj = wcs.WCS(hdr)
-    a_pars = dict(**hdr['A_*'])
-    b_pars = dict(**hdr['B_*'])
-    a_order = a_pars.pop('A_ORDER')
-    b_order = b_pars.pop('B_ORDER')
+    a_pars = dict(**hdr["A_*"])
+    b_pars = dict(**hdr["B_*"])
+    a_order = a_pars.pop("A_ORDER")
+    b_order = b_pars.pop("B_ORDER")
     sip = SIP([crpix1, crpix2], a_order, b_order, a_pars, b_pars)
     coords = [1, 1]
     rel_coords = [1 - crpix1, 1 - crpix2]
@@ -368,7 +372,7 @@ def test_sip_hst():
         "B_0_3=-0., B_0_4=-0., B_1_1=0.00000618, B_1_2=-0., B_1_3=0., "
         "B_2_1=-0., B_2_2=-0., B_3_1=-0.)>])>"
     )
-    with conf.set_temp('max_width', 80):
+    with conf.set_temp("max_width", 80):
         assert str(sip) == (
             "Model: SIP\n"
             "    Model: Shift\n"
@@ -429,32 +433,39 @@ def test_sip_hst():
 def test_sip_irac():
     """Test forward and inverse SIP against astropy.wcs"""
 
-    test_file = get_pkg_data_filename(os.path.join('data', 'irac_sip.hdr'))
+    test_file = get_pkg_data_filename(os.path.join("data", "irac_sip.hdr"))
     hdr = fits.Header.fromtextfile(test_file)
-    crpix1 = hdr['CRPIX1']
-    crpix2 = hdr['CRPIX2']
+    crpix1 = hdr["CRPIX1"]
+    crpix2 = hdr["CRPIX2"]
     wobj = wcs.WCS(hdr)
-    a_pars = dict(**hdr['A_*'])
-    b_pars = dict(**hdr['B_*'])
-    ap_pars = dict(**hdr['AP_*'])
-    bp_pars = dict(**hdr['BP_*'])
-    a_order = a_pars.pop('A_ORDER')
-    b_order = b_pars.pop('B_ORDER')
-    ap_order = ap_pars.pop('AP_ORDER')
-    bp_order = bp_pars.pop('BP_ORDER')
-    del a_pars['A_DMAX']
-    del b_pars['B_DMAX']
+    a_pars = dict(**hdr["A_*"])
+    b_pars = dict(**hdr["B_*"])
+    ap_pars = dict(**hdr["AP_*"])
+    bp_pars = dict(**hdr["BP_*"])
+    a_order = a_pars.pop("A_ORDER")
+    b_order = b_pars.pop("B_ORDER")
+    ap_order = ap_pars.pop("AP_ORDER")
+    bp_order = bp_pars.pop("BP_ORDER")
+    del a_pars["A_DMAX"]
+    del b_pars["B_DMAX"]
     pix = [200, 200]
     rel_pix = [200 - crpix1, 200 - crpix2]
-    sip = SIP([crpix1, crpix2], a_order, b_order, a_pars, b_pars,
-              ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
-              bp_coeff=bp_pars)
+    sip = SIP(
+        [crpix1, crpix2],
+        a_order,
+        b_order,
+        a_pars,
+        b_pars,
+        ap_order=ap_order,
+        ap_coeff=ap_pars,
+        bp_order=bp_order,
+        bp_coeff=bp_pars,
+    )
 
     foc = wobj.sip_pix2foc([pix], 1)
     newpix = wobj.sip_foc2pix(foc, 1)[0]
     assert_allclose(sip(*pix), foc[0] - rel_pix)
-    assert_allclose(sip.inverse(*foc[0]) +
-                    foc[0] - rel_pix, newpix - pix)
+    assert_allclose(sip.inverse(*foc[0]) + foc[0] - rel_pix, newpix - pix)
 
     # Test inverse representations
     assert repr(sip.inverse) == (
@@ -489,8 +500,8 @@ def test_sip_irac():
 
 def test_sip_no_coeff():
     sip = SIP([10, 12], 2, 2)
-    assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
-    assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
+    assert_allclose(sip.sip1d_a.parameters, [0.0, 0.0, 0])
+    assert_allclose(sip.sip1d_b.parameters, [0.0, 0.0, 0])
     with pytest.raises(NotImplementedError):
         sip.inverse
 
@@ -500,8 +511,9 @@ def test_sip_no_coeff():
     assert sip.sip1d_b.model_set_axis == 0
 
 
-@pytest.mark.parametrize('cls', (Polynomial1D, Chebyshev1D, Legendre1D,
-                                 Polynomial2D, Chebyshev2D, Legendre2D))
+@pytest.mark.parametrize(
+    "cls", (Polynomial1D, Chebyshev1D, Legendre1D, Polynomial2D, Chebyshev2D, Legendre2D)
+)
 def test_zero_degree_polynomial(cls):
     """
     A few tests that degree=0 polynomials are correctly evaluated and
@@ -540,8 +552,12 @@ def test_zero_degree_polynomial(cls):
             # different shaped x and y inputs
             a = np.array([1, 2, 3])
             b = np.array([1, 2])
-            with mk.patch.object(PolynomialBase, 'prepare_inputs', autospec=True,
-                                 return_value=((a, b), mk.MagicMock())):
+            with mk.patch.object(
+                PolynomialBase,
+                "prepare_inputs",
+                autospec=True,
+                return_value=((a, b), mk.MagicMock()),
+            ):
                 with pytest.raises(ValueError) as err:
                     p2.prepare_inputs(mk.MagicMock(), mk.MagicMock())
                 assert str(err.value) == "Expected input arrays to have the same shape"
@@ -577,8 +593,8 @@ def test_zero_degree_polynomial(cls):
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-@pytest.mark.parametrize('fitter', fitters)
+@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.parametrize("fitter", fitters)
 def test_2d_orthopolynomial_in_compound_model(fitter):
     """
     Ensure that OrthoPolynomialBase (ie. Chebyshev2D & Legendre2D) models get
@@ -592,15 +608,13 @@ def test_2d_orthopolynomial_in_compound_model(fitter):
     z = x + y
 
     simple_model = Chebyshev2D(2, 2)
-    with pytest.warns(AstropyUserWarning,
-                      match='Model is linear in parameters'):
+    with pytest.warns(AstropyUserWarning, match="Model is linear in parameters"):
         simple_fit = fitter(simple_model, x, y, z)
 
     compound_model = Identity(2) | Chebyshev2D(2, 2)
     compound_model.fittable = True
     compound_model.linear = True
-    with pytest.warns(AstropyUserWarning,
-                      match='Model is linear in parameters'):
+    with pytest.warns(AstropyUserWarning, match="Model is linear in parameters"):
         compound_fit = fitter(compound_model, x, y, z)
 
     assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-11)
@@ -628,7 +642,7 @@ def test__fcache():
         3: np.asanyarray(1),
         4: 2,
         2: 2.0,
-        5: -4.0
+        5: -4.0,
     }
 
     model = Legendre2D(x_degree=2, y_degree=2)
@@ -638,7 +652,7 @@ def test__fcache():
         2: 1.0,
         3: np.asanyarray(1),
         4: np.asanyarray(1),
-        5: 1.0
+        5: 1.0,
     }
 
     model = Chebyshev2D(x_degree=2, y_degree=2)
@@ -648,7 +662,7 @@ def test__fcache():
         2: 1.0,
         3: np.asanyarray(1),
         4: np.asanyarray(1),
-        5: 1.0
+        5: 1.0,
     }
 
 
