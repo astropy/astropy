@@ -53,41 +53,41 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D,
-    Moffat1D,
-    Moffat2D,
-    Box1D,
+    AiryDisk2D,  # noqa: F405
+    Moffat1D,  # noqa: F405
+    Moffat2D,  # noqa: F405
+    Box1D,  # noqa: F405
     Box2D,  # noqa: F405
-    Const1D,
-    Const2D,
-    Ellipse2D,
+    Const1D,  # noqa: F405
+    Const2D,  # noqa: F405
+    Ellipse2D,  # noqa: F405
     Disk2D,  # noqa: F405
-    Gaussian1D,
+    Gaussian1D,  # noqa: F405
     Gaussian2D,  # noqa: F405
-    Linear1D,
-    Lorentz1D,
-    RickerWavelet1D,
+    Linear1D,  # noqa: F405
+    Lorentz1D,  # noqa: F405
+    RickerWavelet1D,  # noqa: F405
     RickerWavelet2D,  # noqa: F405
-    PowerLaw1D,
-    Sersic1D,
+    PowerLaw1D,  # noqa: F405
+    Sersic1D,  # noqa: F405
     Sersic2D,  # noqa: F405
-    Sine1D,
-    Cosine1D,
-    Tangent1D,
-    ArcSine1D,
-    ArcCosine1D,
+    Sine1D,  # noqa: F405
+    Cosine1D,  # noqa: F405
+    Tangent1D,  # noqa: F405
+    ArcSine1D,  # noqa: F405
+    ArcCosine1D,  # noqa: F405
     ArcTangent1D,  # noqa: F405
-    Trapezoid1D,
+    Trapezoid1D,  # noqa: F405
     TrapezoidDisk2D,  # noqa: F405
-    Chebyshev1D,
-    Chebyshev2D,
-    Hermite1D,
-    Hermite2D,
-    Legendre2D,
+    Chebyshev1D,  # noqa: F405
+    Chebyshev2D,  # noqa: F405
+    Hermite1D,  # noqa: F405
+    Hermite2D,  # noqa: F405
+    Legendre2D,  # noqa: F405
     Legendre1D,  # noqa: F405
-    Polynomial1D,
-    Polynomial2D,
-    Voigt1D,
+    Polynomial1D,  # noqa: F405
+    Polynomial2D,  # noqa: F405
+    Voigt1D,  # noqa: F405
     KingProjectedAnalytic1D,  # noqa: F405
     NFW,  # noqa: F405
 ]

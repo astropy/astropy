@@ -582,7 +582,7 @@ class Schechter1D(Fittable1DModel):
     """
 
     phi_star = Parameter(
-        default=1.0, description=("Normalization factor " "in units of number density")
+        default=1.0, description=("Normalization factor in units of number density")
     )
     m_star = Parameter(default=-20.0, description="Characteristic magnitude")
     alpha = Parameter(default=-1.0, description="Faint-end slope")

@@ -466,7 +466,7 @@ class TestParameters:
         with pytest.raises(ValueError) as err:
             param._set_unit(u.m)
         assert str(err.value) == (
-            "Cannot attach units to parameters that were " "not initially specified with units"
+            "Cannot attach units to parameters that were not initially specified with units"
         )
 
         # Force
@@ -701,7 +701,7 @@ class TestParameters:
         with pytest.raises(TypeError) as err:
             param._create_value_wrapper(np.add, mk.MagicMock())
         assert str(err.value) == (
-            "A numpy.ufunc used for Parameter getter/setter " "may only take one input argument"
+            "A numpy.ufunc used for Parameter getter/setter may only take one input argument"
         )
         # Good ufunc
         assert param._create_value_wrapper(np.negative, mk.MagicMock()) == np.negative
@@ -736,7 +736,7 @@ class TestParameters:
         with pytest.raises(TypeError) as err:
             param._create_value_wrapper(wrapper3, mk.MagicMock())
         assert str(err.value) == (
-            "Parameter getter/setter must be a function " "of either one or two arguments"
+            "Parameter getter/setter must be a function of either one or two arguments"
         )
 
     def test_bool(self):

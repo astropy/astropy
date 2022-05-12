@@ -1508,7 +1508,7 @@ class AffineTransformation2D(Model):
             or (np.ndim(value) == 2 and np.shape(value) == (1, 2))
         ):
             raise InputParameterError(
-                "Expected translation vector to be a 2 element row or column " "vector array"
+                "Expected translation vector to be a 2 element row or column vector array"
             )
 
     def __init__(self, matrix=matrix, translation=translation, **kwargs):

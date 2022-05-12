@@ -104,7 +104,7 @@ class BlackBody(Fittable1DModel):
             output_units = scale.unit
             if not output_units.is_equivalent(self._native_units, u.spectral_density(1 * u.AA)):
                 raise ValueError(
-                    "scale units not dimensionless or in " f"surface brightness: {output_units}"
+                    f"scale units not dimensionless or in surface brightness: {output_units}"
                 )
 
             kwargs["scale"] = scale.value
@@ -585,8 +585,7 @@ class NFW(Fittable1DModel):
                 masstype = "m"
             else:
                 raise ValueError(
-                    "Massfactor '" + str(massfactor[0]) + "' not one of 'critical', "
-                    "'mean', or 'virial'"
+                    f"Massfactor '{massfactor[0]}' not one of 'critical', 'mean', or 'virial'"
                 )
         else:
             try:
@@ -604,11 +603,10 @@ class NFW(Fittable1DModel):
                     masstype = massfactor[-1].lower()
                 else:
                     raise ValueError(
-                        "Massfactor " + str(massfactor) + " string not of the form "
-                        "'#m', '#c', or 'virial'"
+                        f"Massfactor {massfactor} string not of the form '#m', '#c', or 'virial'"
                     )
             except (AttributeError, TypeError):
-                raise TypeError("Massfactor " + str(massfactor) + " not a tuple or string")
+                raise TypeError(f"Massfactor {massfactor} not a tuple or string")
 
         # Set density from masstype specification
         if masstype == "virial":

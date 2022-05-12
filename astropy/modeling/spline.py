@@ -514,7 +514,7 @@ class Spline1D(_Spline):
         if "nu" in kwargs:
             if kwargs["nu"] > self.degree + 1:
                 raise RuntimeError(
-                    "Cannot evaluate a derivative of " f"order higher than {self.degree + 1}"
+                    f"Cannot evaluate a derivative of order higher than {self.degree + 1}"
                 )
 
         return self.bspline(x, **kwargs)

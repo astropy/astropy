@@ -327,7 +327,7 @@ class Gaussian2D(Fittable2DModel):
     theta = Parameter(
         default=0.0,
         description=(
-            "Rotation angle either as a " "float (in radians) or a " "|Quantity| angle (optional)"
+            "Rotation angle either as a float (in radians) or a |Quantity| angle (optional)"
         ),
     )
 
@@ -351,7 +351,7 @@ class Gaussian2D(Fittable2DModel):
                 theta = self.__class__.theta.default
         else:
             if x_stddev is not None or y_stddev is not None or theta is not None:
-                raise InputParameterError("Cannot specify both cov_matrix and " "x/y_stddev/theta")
+                raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev/theta")
             # Compute principle coordinate system transformation
             cov_matrix = np.array(cov_matrix)
 
@@ -1772,48 +1772,26 @@ class Voigt1D(Fittable1DModel):
 
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
-        AA = np.array(
-            [
-                +46236.3358828121,
-                -147726.58393079657j,  # noqa: N806
-                -206562.80451354137,
-                281369.1590631087j,
-                +183092.74968253175,
-                -184787.96830696272j,
-                -66155.39578477248,
-                57778.05827983565j,
-                +11682.770904216826,
-                -9442.402767960672j,
-                -1052.8438624933142,
-                814.0996198624186j,
-                +45.94499030751872,
-                -34.59751573708725j,
-                -0.7616559377907136,
-                0.5641895835476449j,
-            ]
-        )  # 1j/sqrt(pi) to the 12. digit
+        # fmt: off
+        AA = np.array([+46236.3358828121,   -147726.58393079657j,   # noqa: N806
+                       -206562.80451354137,  281369.1590631087j,
+                       +183092.74968253175, -184787.96830696272j,
+                       -66155.39578477248,   57778.05827983565j,
+                       +11682.770904216826, -9442.402767960672j,
+                       -1052.8438624933142,  814.0996198624186j,
+                       +45.94499030751872,  -34.59751573708725j,
+                       -0.7616559377907136,  0.5641895835476449j])  # 1j/sqrt(pi) to the 12. digit
 
-        bb = np.array(
-            [
-                +7918.06640624997,
-                0.0,
-                -126689.0625,
-                0.0,
-                +295607.8125,
-                0.0,
-                -236486.25,
-                0.0,
-                +84459.375,
-                0.0,
-                -15015.0,
-                0.0,
-                +1365.0,
-                0.0,
-                -60.0,
-                0.0,
-                +1.0,
-            ]
-        )
+        bb = np.array([+7918.06640624997, 0.0,
+                       -126689.0625,      0.0,
+                       +295607.8125,      0.0,
+                       -236486.25,        0.0,
+                       +84459.375,        0.0,
+                       -15015.0,          0.0,
+                       +1365.0,           0.0,
+                       -60.0,             0.0,
+                       +1.0])
+        # fmt: on
 
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
 
@@ -2088,7 +2066,7 @@ class Ellipse2D(Fittable2DModel):
     b = Parameter(default=1, description="The length of the semiminor axis")
     theta = Parameter(
         default=0.0,
-        description=("Rotation angle either as a " "float (in radians) or a " "|Quantity| angle"),
+        description=("Rotation angle either as a float (in radians) or a |Quantity| angle"),
     )
 
     @staticmethod
@@ -3240,7 +3218,7 @@ class Sersic2D(Fittable2DModel):
     ellip = Parameter(default=0, description="Ellipticity")
     theta = Parameter(
         default=0.0,
-        description=("Rotation angle either as a " "float (in radians) or a " "|Quantity| angle"),
+        description=("Rotation angle either as a float (in radians) or a |Quantity| angle"),
     )
     _gammaincinv = None
 

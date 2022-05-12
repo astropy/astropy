@@ -251,7 +251,7 @@ class _BoundingDomain(abc.ABC):
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
-            "This bounding box is fixed by the model and does not have " "adjustable parameters."
+            "This bounding box is fixed by the model and does not have adjustable parameters."
         )
 
     @abc.abstractmethod
@@ -737,7 +737,7 @@ class ModelBoundingBox(_BoundingDomain):
         """Validate and set any iterable representation"""
         if len(bounding_box) != self._n_inputs:
             raise ValueError(
-                f"Found {len(bounding_box)} intervals, " f"but must have exactly {self._n_inputs}."
+                f"Found {len(bounding_box)} intervals, but must have exactly {self._n_inputs}."
             )
 
         if isinstance(bounding_box, dict):

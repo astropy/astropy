@@ -133,7 +133,7 @@ class StandardDeviations:
             if i <= max_lines - 1:
                 param = self.param_names[i]
                 ret_str += (
-                    f"{param}{' ' * (longest_name - len(param))}| " f"{np.round(std, round_val)}\n"
+                    f"{param}{' ' * (longest_name - len(param))}| {np.round(std, round_val)}\n"
                 )
             else:
                 ret_str += "..."
@@ -284,7 +284,7 @@ def fitter_unit_support(func):
             else:
 
                 raise NotImplementedError(
-                    "This model does not support being " "fit to data with units."
+                    "This model does not support being fit to data with units."
                 )
 
         else:
@@ -554,7 +554,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         if not model.linear:
             raise ModelLinearityError(
-                "Model is not linear in parameters, " "linear fit methods should not be used."
+                "Model is not linear in parameters, linear fit methods should not be used."
             )
 
         if hasattr(model, "submodel_names"):
@@ -1357,7 +1357,7 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
         self.fit_info["ierr"] = ierr
         if ierr not in [1, 2, 3, 4]:
             warnings.warn(
-                "The fit may be unsuccessful; check " "fit_info['message'] for more information.",
+                "The fit may be unsuccessful; check fit_info['message'] for more information.",
                 AstropyUserWarning,
             )
 
@@ -1453,7 +1453,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         fitter_to_model_params(model, self.fit_info.x, False)
         if not self.fit_info.success:
             warnings.warn(
-                "The fit may be unsuccessful; check: \n" f"    {self.fit_info.message}",
+                f"The fit may be unsuccessful; check: \n    {self.fit_info.message}",
                 AstropyUserWarning,
             )
 
@@ -1782,7 +1782,7 @@ class JointFitter(metaclass=_FitterMeta):
             raise TypeError(f"Expected >1 models, {len(self.models)} is given")
         if len(self.jointparams.keys()) < 2:
             raise TypeError(
-                "At least two parameters are expected, " f"{len(self.jointparams.keys())} is given"
+                f"At least two parameters are expected, {len(self.jointparams.keys())} is given"
             )
         for j in self.jointparams.keys():
             if len(self.jointparams[j]) != len(self.initvals):
@@ -2050,12 +2050,12 @@ def _validate_model(model, supported_constraints):
         raise ValueError("Model does not appear to be fittable.")
     if model.linear:
         warnings.warn(
-            "Model is linear in parameters; " "consider using linear fitting methods.",
+            "Model is linear in parameters; consider using linear fitting methods.",
             AstropyUserWarning,
         )
     elif len(model) != 1:
         # for now only single data sets ca be fitted
-        raise ValueError("Non-linear fitters can only fit " "one data set at a time.")
+        raise ValueError("Non-linear fitters can only fit one data set at a time.")
     _validate_constraints(supported_constraints, model)
 
     model_copy = model.copy()

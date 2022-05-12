@@ -248,12 +248,12 @@ class Simplex(Optimization):
         self.fit_info["num_function_calls"] = funcalls
         if self.fit_info["exit_mode"] == 1:
             warnings.warn(
-                "The fit may be unsuccessful; " "Maximum number of function evaluations reached.",
+                "The fit may be unsuccessful; Maximum number of function evaluations reached.",
                 AstropyUserWarning,
             )
         if self.fit_info["exit_mode"] == 2:
             warnings.warn(
-                "The fit may be unsuccessful; " "Maximum number of iterations reached.",
+                "The fit may be unsuccessful; Maximum number of iterations reached.",
                 AstropyUserWarning,
             )
         return fitparams, self.fit_info

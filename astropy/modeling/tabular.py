@@ -111,7 +111,7 @@ class _Tabular(Model):
 
         if self.lookup_table.ndim != lookup_table.ndim:
             raise ValueError(
-                "lookup_table should be an array with " f"{self.lookup_table.ndim} dimensions."
+                f"lookup_table should be an array with {self.lookup_table.ndim} dimensions."
             )
 
         if points is None:
@@ -122,7 +122,7 @@ class _Tabular(Model):
             npts = len(points)
             if npts != lookup_table.ndim:
                 raise ValueError(
-                    "Expected grid points in " f"{lookup_table.ndim} directions, got {npts}."
+                    f"Expected grid points in {lookup_table.ndim} directions, got {npts}."
                 )
             if (
                 npts > 1
@@ -133,9 +133,7 @@ class _Tabular(Model):
 
         if isinstance(fill_value, u.Quantity):
             if not isinstance(lookup_table, u.Quantity):
-                raise ValueError(
-                    f"fill value is in {fill_value.unit} but expected to be " "unitless."
-                )
+                raise ValueError(f"fill value is in {fill_value.unit} but expected to be unitless.")
             fill_value = fill_value.to(lookup_table.unit).value
 
         self.points = points
@@ -278,7 +276,7 @@ class _Tabular(Model):
                 fill_value=self.fill_value,
             )
         raise NotImplementedError(
-            "An analytical inverse transform " "has not been implemented for this model."
+            "An analytical inverse transform has not been implemented for this model."
         )
 
 

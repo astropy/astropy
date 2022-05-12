@@ -685,7 +685,7 @@ class Test1DFittingWithOutlierRemoval:
 
     @pytest.mark.filterwarnings("ignore:The fit may be unsuccessful")
     @pytest.mark.filterwarnings(
-        r"ignore:Values in x were outside bounds during a minimize step, " r"clipping to bounds"
+        r"ignore:Values in x were outside bounds during a minimize step, clipping to bounds"
     )
     @pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):
@@ -742,7 +742,7 @@ class Test2DFittingWithOutlierRemoval:
 
     @pytest.mark.filterwarnings("ignore:The fit may be unsuccessful")
     @pytest.mark.filterwarnings(
-        r"ignore:Values in x were outside bounds during a minimize step, " r"clipping to bounds"
+        r"ignore:Values in x were outside bounds during a minimize step, clipping to bounds"
     )
     @pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
     def test_with_fitters_and_sigma_clip(self, fitter):

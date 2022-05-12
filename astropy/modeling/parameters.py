@@ -283,7 +283,7 @@ class Parameter:
         if isinstance(key, slice):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
-                    "Slice assignment outside the parameter dimensions for " f"'{self.name}'"
+                    f"Slice assignment outside the parameter dimensions for '{self.name}'"
                 )
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
@@ -373,7 +373,7 @@ class Parameter:
     def unit(self, unit):
         if self.unit is None:
             raise ValueError(
-                "Cannot attach units to parameters that were " "not initially specified with units"
+                "Cannot attach units to parameters that were not initially specified with units"
             )
         else:
             raise ValueError(
@@ -414,7 +414,7 @@ class Parameter:
     @quantity.setter
     def quantity(self, quantity):
         if not isinstance(quantity, Quantity):
-            raise TypeError("The .quantity attribute should be set " "to a Quantity object")
+            raise TypeError("The .quantity attribute should be set to a Quantity object")
         self.value = quantity.value
         self._unit = quantity.unit
 
@@ -696,7 +696,7 @@ class Parameter:
                     wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
                 raise TypeError(
-                    "Parameter getter/setter must be a function " "of either one or two arguments"
+                    "Parameter getter/setter must be a function of either one or two arguments"
                 )
 
         return wrapper

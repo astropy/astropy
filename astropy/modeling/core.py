@@ -1148,11 +1148,11 @@ class Model(metaclass=_ModelMeta):
 
         if n_all_args < self.n_inputs:
             raise ValueError(
-                f"Missing input arguments - expected {self.n_inputs}," f" got {n_all_args}"
+                f"Missing input arguments - expected {self.n_inputs}, got {n_all_args}"
             )
         elif n_all_args > self.n_inputs:
             raise ValueError(
-                f"Too many input arguments - expected {self.n_inputs}," f" got {n_all_args}"
+                f"Too many input arguments - expected {self.n_inputs}, got {n_all_args}"
             )
         if n_args == 0:
             # Create positional arguments from the keyword arguments in ``new_inputs``.
@@ -1253,7 +1253,7 @@ class Model(metaclass=_ModelMeta):
             self._parameters[start:stop] = value
         except ValueError as e:
             raise InputParameterError(
-                "Input parameter values not compatible with the model " f"parameters array: {e!r}"
+                f"Input parameter values not compatible with the model parameters array: {e!r}"
             )
         self._array_to_parameters()
 
@@ -1576,7 +1576,7 @@ class Model(metaclass=_ModelMeta):
         if self._separable is not None:
             return self._separable
         raise NotImplementedError(
-            'The "separable" property is not defined for ' f"model {self.__class__.__name__}"
+            f'The "separable" property is not defined for model {self.__class__.__name__}'
         )
 
     # *** Public methods ***
@@ -1806,7 +1806,7 @@ class Model(metaclass=_ModelMeta):
         ndim = self.n_inputs
 
         if (coords is None) and (out is None) and (bbox is None):
-            raise ValueError("If no bounding_box is set, " "coords or out must be input.")
+            raise ValueError("If no bounding_box is set, coords or out must be input.")
 
         # for consistent indexing
         if ndim == 1:
@@ -1828,7 +1828,7 @@ class Model(metaclass=_ModelMeta):
         if out is not None:
             out = np.asanyarray(out)
             if out.ndim != ndim:
-                raise ValueError("the array and model must have the same " "number of dimensions.")
+                raise ValueError("the array and model must have the same number of dimensions.")
 
         if bbox is not None:
             # Assures position is at center pixel,
@@ -2347,7 +2347,7 @@ class Model(metaclass=_ModelMeta):
             for unit in [model_units.get(i) for i in self.inputs]:
                 if unit is not None and unit != dimensionless_unscaled:
                     raise ValueError(
-                        "Cannot specify input_units for model with " "existing input units"
+                        "Cannot specify input_units for model with existing input units"
                     )
 
             if isinstance(input_units, dict):
@@ -2385,7 +2385,7 @@ class Model(metaclass=_ModelMeta):
             for unit in [model_units.get(i) for i in self.outputs]:
                 if unit is not None and unit != dimensionless_unscaled:
                     raise ValueError(
-                        "Cannot specify return_units for model " "with existing output units"
+                        "Cannot specify return_units for model with existing output units"
                     )
 
             if isinstance(return_units, dict):
@@ -3016,7 +3016,7 @@ class CompoundModel(Model):
         elif op == "fix_inputs":
             if not isinstance(left, Model):
                 raise ValueError(
-                    'First argument to "fix_inputs" must be an instance of ' "an astropy Model."
+                    'First argument to "fix_inputs" must be an instance of an astropy Model.'
                 )
             if not isinstance(right, dict):
                 raise ValueError('Expected a dictionary for second argument of "fix_inputs".')
@@ -3035,21 +3035,21 @@ class CompoundModel(Model):
                 if np.issubdtype(type(key), np.integer):
                     if key >= left.n_inputs or key < 0:
                         raise ValueError(
-                            "Substitution key integer value " "not among possible input choices."
+                            "Substitution key integer value not among possible input choices."
                         )
                     if key in input_ind:
-                        raise ValueError("Duplicate specification of " "same input (index/name).")
+                        raise ValueError("Duplicate specification of same input (index/name).")
                     input_ind.append(key)
                 elif isinstance(key, str):
                     if key not in left.inputs:
                         raise ValueError(
-                            "Substitution key string not among possible " "input choices."
+                            "Substitution key string not among possible input choices."
                         )
                     # Check to see it doesn't match positional
                     # specification.
                     ind = left.inputs.index(key)
                     if ind in input_ind:
-                        raise ValueError("Duplicate specification of " "same input (index/name).")
+                        raise ValueError("Duplicate specification of same input (index/name).")
                     input_ind.append(ind)
             # Remove substituted inputs
             input_ind.sort()
@@ -3328,9 +3328,7 @@ class CompoundModel(Model):
                 if kwkey in self.inputs:
                     ind = self.inputs.index(kwkey)
                     if ind < len(args):
-                        raise ValueError(
-                            "Keyword argument duplicates " "positional value supplied."
-                        )
+                        raise ValueError("Keyword argument duplicates positional value supplied.")
                     kwind.append(ind)
                     kwval.append(kw[kwkey])
                     del kw[kwkey]
@@ -3384,7 +3382,7 @@ class CompoundModel(Model):
         tdict = self._tdict
         if isinstance(index, slice):
             if index.step:
-                raise ValueError("Steps in slices not supported " "for compound models")
+                raise ValueError("Steps in slices not supported for compound models")
             if index.start is not None:
                 if isinstance(index.start, str):
                     start = self._str_index_to_int(index.start)
@@ -3431,7 +3429,7 @@ class CompoundModel(Model):
             raise IndexError(f"No component with name '{str_index}' found")
         if len(found) > 1:
             raise IndexError(
-                f"Multiple components found using '{str_index}' as name\n" f"at indices {found}"
+                f"Multiple components found using '{str_index}' as name\nat indices {found}"
             )
         return found[0]
 
@@ -3855,7 +3853,7 @@ class CompoundModel(Model):
         ndim = self.n_inputs
 
         if (coords is None) and (out is None) and (bbox is None):
-            raise ValueError("If no bounding_box is set, " "coords or out must be input.")
+            raise ValueError("If no bounding_box is set, coords or out must be input.")
 
         # for consistent indexing
         if ndim == 1:
@@ -3877,7 +3875,7 @@ class CompoundModel(Model):
         if out is not None:
             out = np.asanyarray(out)
             if out.ndim != ndim:
-                raise ValueError("the array and model must have the same " "number of dimensions.")
+                raise ValueError("the array and model must have the same number of dimensions.")
 
         if bbox is not None:
             # Assures position is at center pixel, important when using
@@ -3942,13 +3940,13 @@ class CompoundModel(Model):
 
             old_model = submodels.pop()
             if len(old_model) != len(model):
-                raise ValueError("New and old models must have equal values " "for n_models")
+                raise ValueError("New and old models must have equal values for n_models")
 
             # Do this check first in order to raise a more helpful Exception,
             # although it would fail trying to construct the new CompoundModel
             if old_model.n_inputs != model.n_inputs or old_model.n_outputs != model.n_outputs:
                 raise ValueError(
-                    "New model must match numbers of inputs and " "outputs of existing model"
+                    "New model must match numbers of inputs and outputs of existing model"
                 )
 
             tree = _get_submodel_path(self, name)
@@ -4406,7 +4404,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     if not callable(func):
         raise ModelDefinitionError(
-            "func is not callable; it must be a function or other callable " "object"
+            "func is not callable; it must be a function or other callable object"
         )
 
     if fit_deriv is not None and not callable(fit_deriv):
@@ -4420,7 +4418,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     if fit_deriv is not None and len(fit_deriv.__defaults__) != len(params):
         raise ModelDefinitionError(
-            "derivative function should accept " "same number of parameters as func."
+            "derivative function should accept same number of parameters as func."
         )
 
     params = {param: Parameter(param, default=default) for param, default in params.items()}
@@ -4482,7 +4480,7 @@ def render_model(model, arr=None, coords=None):
     bbox = model.bounding_box
 
     if (coords is None) & (arr is None) & (bbox is None):
-        raise ValueError("If no bounding_box is set," "coords or arr must be input.")
+        raise ValueError("If no bounding_box is set, coords or arr must be input.")
 
     # for consistent indexing
     if model.n_inputs == 1:
@@ -4495,17 +4493,15 @@ def render_model(model, arr=None, coords=None):
         arr = arr.copy()
         # Check dimensions match model
         if arr.ndim != model.n_inputs:
-            raise ValueError(
-                "number of array dimensions inconsistent with " "number of model inputs."
-            )
+            raise ValueError("number of array dimensions inconsistent with number of model inputs.")
     if coords is not None:
         # Check dimensions match arr and model
         coords = np.array(coords)
         if len(coords) != model.n_inputs:
-            raise ValueError("coordinate length inconsistent with the number " "of model inputs.")
+            raise ValueError("coordinate length inconsistent with the number of model inputs.")
         if arr is not None:
             if coords[0].shape != arr.shape:
-                raise ValueError("coordinate shape inconsistent with the " "array shape.")
+                raise ValueError("coordinate shape inconsistent with the array shape.")
         else:
             arr = np.zeros(coords[0].shape)
 

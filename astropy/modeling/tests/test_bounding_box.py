@@ -130,7 +130,7 @@ class Test_Interval:
         # Fails
         with pytest.warns(
             RuntimeWarning,
-            match="Invalid interval: upper bound 1 is strictly " r"less than lower bound 2\.",
+            match=r"Invalid interval: upper bound 1 is strictly less than lower bound 2\.",
         ):
             _Interval._validate_bounds(2, 1)
         with pytest.warns(
@@ -393,7 +393,7 @@ class Test_BoundingDomain:
         with pytest.raises(RuntimeError) as err:
             bounding_box(*args, **kwargs)
         assert str(err.value) == (
-            "This bounding box is fixed by the model and does not have " "adjustable parameters."
+            "This bounding box is fixed by the model and does not have adjustable parameters."
         )
 
     def test_fix_inputs(self):
@@ -1908,9 +1908,7 @@ class Test_SelectorArguments:
         ) == tuple(inputs[:2])
         assert _SelectorArguments.validate(Gaussian2D(), ((1, True), (0, False))).get_selector(
             *inputs
-        ) == tuple(
-            inputs[:2][::-1]
-        )  # noqa: E501
+        ) == tuple(inputs[:2][::-1])
         assert _SelectorArguments.validate(Gaussian2D(), ((1, False),)).get_selector(*inputs) == (
             inputs[1],
         )
