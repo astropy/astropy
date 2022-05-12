@@ -12,8 +12,11 @@ the 5.1 release.
 
 In particular, this release includes:
 
+* :ref:`whatsnew-5.2-quantity-dtype`
+* :ref:`whatsnew-5.2-cosmology`
 
-.. _whatsnew-quantity-dtype:
+
+.. _whatsnew-5.2-quantity-dtype:
 
 ``Quantity`` data types
 =======================
@@ -22,6 +25,25 @@ The default dtype argument for ``Quantity`` has been changed, so that one can
 now explicitly give ``dtype=None`` to get the same behaviour as :mod:`numpy`.
 Without an explicit argument, any integer values are still upcast to floating
 point, since that makes more sense for physical quantities.
+
+
+.. _whatsnew-5.2-cosmology:
+
+Updates to :mod:`astropy.cosmology`
+===================================
+
+A new set of comparison functions have been added -- ``cosmology_equal`` and
+``cosmology_not_equal`` -- that mirror their numpy counterparts but allow for
+the arguments to be converted to a Cosmology and to compare flat cosmologies
+with their non-flat equivalents.
+
+    >>> from astropy.cosmology import cosmology_equal
+    >>> from astropy.cosmology import FlatLambdaCDM, LambdaCDM
+    >>> cosmo1 = FlatLambdaCDM(70, 0.3)
+    >>> cosmo2 = LambdaCDM(70, 0.3, 0.7)
+    >>> cosmology_equal(cosmo1.to_format("mapping"), cosmo2,
+    ...                 format=("mapping", None), allow_equivalent=True)
+    True
 
 
 Full change log
