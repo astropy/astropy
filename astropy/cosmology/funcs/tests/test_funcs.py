@@ -17,7 +17,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_z_at_value_scalar():
     # These are tests of expected values, and hence have less precision
     # than the roundtrip tests below (test_z_at_value_roundtrip);
@@ -48,7 +48,7 @@ def test_z_at_value_scalar():
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 class Test_ZatValue:
 
     def setup_class(self):
@@ -114,7 +114,7 @@ class Test_ZatValue:
         assert z.shape == ()
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_z_at_value_numpyvectorize():
     """Test that numpy vectorize fails on Quantities.
 
@@ -127,7 +127,7 @@ def test_z_at_value_numpyvectorize():
         z_at_value(Planck15.age, 10*u.Gyr)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_z_at_value_verbose(monkeypatch):
     cosmo = Planck13
 
@@ -139,7 +139,7 @@ def test_z_at_value_verbose(monkeypatch):
     assert str(resx.value) in mock_stdout.getvalue()  # test "verbose" prints res
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 @pytest.mark.parametrize('method', ['Brent', 'Golden', 'Bounded'])
 def test_z_at_value_bracketed(method):
     """
@@ -186,7 +186,7 @@ def test_z_at_value_bracketed(method):
                        bracket=(3.9, 5.0), zmin=4.)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 @pytest.mark.parametrize('method', ['Brent', 'Golden', 'Bounded'])
 def test_z_at_value_unconverged(method):
     """
@@ -211,7 +211,7 @@ def test_z_at_value_unconverged(method):
     assert allclose(z1, 8.18551, rtol=ztol[method][1])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 @pytest.mark.parametrize('cosmo', [Planck13, Planck15, Planck18, WMAP1, WMAP3, WMAP5, WMAP7, WMAP9,
                                    flrw.LambdaCDM, flrw.FlatLambdaCDM, flrw.wpwaCDM, flrw.w0wzCDM,
                                    flrw.wCDM, flrw.FlatwCDM, flrw.w0waCDM, flrw.Flatw0waCDM])

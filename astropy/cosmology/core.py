@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import Mapping, Optional, Set, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Set, Type, TypeVar
 
 import numpy as np
 
@@ -14,6 +14,9 @@ from astropy.utils.metadata import MetaData
 
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 from .parameter import Parameter
+
+if TYPE_CHECKING:  # pragma: no cover
+    from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
@@ -222,7 +225,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     # ---------------------------------------------------------------
     # comparison methods
 
-    def is_equivalent(self, other, *, format=False):
+    def is_equivalent(self, other: Any, /, *, format: _FormatType = False) -> bool:
         r"""Check equivalence between Cosmologies.
 
         Two cosmologies may be equivalent even if not the same class.
@@ -231,8 +234,8 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance
-            The object in which to compare.
+        other : `~astropy.cosmology.Cosmology` subclass instance, positional-only
+            The object to which to compare.
         format : bool or None or str, optional keyword-only
             Whether to allow, before equivalence is checked, the object to be
             converted to a |Cosmology|. This allows, e.g. a |Table| to be
@@ -241,6 +244,9 @@ class Cosmology(metaclass=abc.ABCMeta):
             and will use the auto-identification to try to infer the correct
             format. A `str` is assumed to be the correct format to use when
             converting.
+            ``format`` is broadcast to match the shape of ``other``.
+            Note that the cosmology arguments are not broadcast against
+            ``format``, so it cannot determine the output shape.
 
         Returns
         -------
@@ -286,29 +292,22 @@ class Cosmology(metaclass=abc.ABCMeta):
             >>> Planck18.is_equivalent(tbl, format="yaml")
             True
         """
-        # Allow for different formats to be considered equivalent.
-        if format is not False:
-            format = None if format is True else format  # str->str, None/True->None
-            try:
-                other = Cosmology.from_format(other, format=format)
-            except Exception:  # TODO! should enforce only TypeError
-                return False
+        from .funcs import cosmology_equal
 
-        # The options are: 1) same class & parameters; 2) same class, different
-        # parameters; 3) different classes, equivalent parameters; 4) different
-        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
-        equiv = self.__equiv__(other)
-        if equiv is NotImplemented and hasattr(other, "__equiv__"):
-            equiv = other.__equiv__(self)  # that failed, try from 'other'
+        try:
+            return cosmology_equal(self, other, format=(None, format), allow_equivalent=True)
+        except Exception:
+            # `is_equivalent` allows `other` to be any object and returns False
+            # if `other` cannot be converted to a Cosmology, rather than
+            # raising an Exception.
+            return False
 
-        return equiv if equiv is not NotImplemented else False
-
-    def __equiv__(self, other):
+    def __equiv__(self, other: Any, /) -> bool:
         """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
 
         Parameters
         ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance
+        other : `~astropy.cosmology.Cosmology` subclass instance, positional-only
             The object in which to compare.
 
         Returns
@@ -328,14 +327,14 @@ class Cosmology(metaclass=abc.ABCMeta):
                              for k in self.__all_parameters__))
         return params_eq
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any, /) -> bool:
         """Check equality between Cosmologies.
 
         Checks the Parameters and immutable fields (i.e. not "meta").
 
         Parameters
         ----------
-        other : `~astropy.cosmology.Cosmology` subclass instance
+        other : `~astropy.cosmology.Cosmology` subclass instance, positional-only
             The object in which to compare.
 
         Returns
