@@ -29,6 +29,27 @@ The rules for passing input to fitters are:
   `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
   ``x, y -> x', y'``).
 
+.. note::
+    In general, non-linear fitters do not support fitting to data which contains
+    non-finite values: ``NaN``, ``Inf``, or ``-Inf``. This is a limitation of the
+    underlying scipy library. As a consequence, an error will be raised whenever
+    any non-finite value is present in the data to be fitted. To avoid this error
+    users should "filter" the non-finite values from their data, for example
+    when fitting a ``model``, with a ``fitter`` using ``data`` containing non-finite
+    values one can "filter" these problems as follows for the 1D case::
+
+          # Filter non-finite values from data
+          mask = np.isfinite(data)
+          # Fit model to filtered data
+          model = fitter(model, x[mask], data[mask])
+
+    or for the 2D case::
+
+          # Filter non-finite values from data
+          mask = np.isfinite(data)
+          # Fit model to filtered data
+          model = fitter(model, x[mask], y[mask], data[mask])
+
 .. _modeling-getting-started-nonlinear-notes:
 
 Notes on non-linear fitting
