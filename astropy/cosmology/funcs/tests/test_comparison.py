@@ -7,10 +7,10 @@ import re
 import numpy as np
 import pytest
 
-from astropy.cosmology import (Cosmology, FlatCosmologyMixin, Planck18, cosmology_equal,
-                               cosmology_not_equal)
-from astropy.cosmology.comparison import _CosmologyWrapper, _parse_format, _parse_formats
+from astropy.cosmology import (
+    Cosmology, FlatCosmologyMixin, Planck18, cosmology_equal, cosmology_not_equal)
 from astropy.cosmology.connect import convert_registry
+from astropy.cosmology.funcs.comparison import _CosmologyWrapper, _parse_format, _parse_formats
 from astropy.cosmology.io.tests.base import ToFromTestMixinBase
 
 
@@ -34,8 +34,8 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def cosmo_eqvxflat(self, cosmo):
         if isinstance(cosmo, FlatCosmologyMixin):
-            return cosmo.equivalent_nonflat
-    
+            return cosmo.nonflat
+
         pytest.skip("cosmology is not flat, "
                     "so does not have an equivalent non-flat cosmology.")
 
@@ -66,8 +66,8 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def pert_cosmo_eqvxflat(self, pert_cosmo):
         if isinstance(pert_cosmo, FlatCosmologyMixin):
-            return pert_cosmo.equivalent_nonflat
-    
+            return pert_cosmo.nonflat
+
         pytest.skip("cosmology is not flat, "
                     "so does not have an equivalent non-flat cosmology.")
 
@@ -168,6 +168,10 @@ class Test_cosmology_equal(ComparisonFunctionTestBase):
 
         assert cosmology_equal(pert_cosmo, pert_cosmo_eqvxflat, allow_equivalent=True) is True
         assert cosmology_equal(pert_cosmo, pert_cosmo_eqvxflat, allow_equivalent=False) is False
+
+    def test_cosmology_equal_too_many_cosmo(self, cosmo):
+        with pytest.raises(TypeError, match="cosmology_equal takes 2 positional arguments"):
+            cosmology_equal(cosmo, cosmo, cosmo)
 
     def test_cosmology_equal_format_error(self, cosmo, converted):
         # Not converting `converted`
