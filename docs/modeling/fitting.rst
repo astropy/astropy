@@ -36,7 +36,7 @@ The rules for passing input to fitters are:
     any non-finite value is present in the data to be fitted. To avoid this error
     users should "filter" the non-finite values from their data, for example
     when fitting a ``model``, with a ``fitter`` using ``data`` containing non-finite
-    values one can "filter" these problems as follow for the 1D case::
+    values one can "filter" these problems as follows for the 1D case::
 
           # Filter non-finite values from data
           mask = np.isfinite(data)
