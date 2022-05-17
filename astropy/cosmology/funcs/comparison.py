@@ -16,8 +16,8 @@ from typing import Any, Callable, Tuple, Union
 import numpy as np
 from numpy import False_, True_, ndarray
 
-from astropy.cosmology.core import Cosmology
 from astropy import table
+from astropy.cosmology.core import Cosmology
 
 __all__ = []  # Nothing is scoped here
 
@@ -26,7 +26,7 @@ __all__ = []  # Nothing is scoped here
 # PARAMETERS
 
 _FormatType = Union[bool, None, str]
-_FormatsType = Union[_FormatType, Tuple[_FormatType, ...]]
+_FormatsT = Union[_FormatType, Tuple[_FormatType, ...]]
 
 
 ##############################################################################
@@ -92,12 +92,12 @@ def _parse_format(cosmo: Any, format: _FormatType, /,) -> Cosmology:
 
     # Shortcut if already a cosmology
     if isinstance(cosmo, Cosmology):
-        if format not in (None, True_, False_):  # also catches real bool
+        if format not in (None, True_, False_, "astropy.cosmology"):  # also catches real bool
             raise ValueError(f"for a Cosmology, 'format' must be None or True, not {format}")
         return cosmo
 
     if format != False_:  # catches False and False_
-        format = None if format == True_ else format  # str->str, None/True->None
+        format = None if format == True_ else format  # str->str, None/True/True_->None
         out = Cosmology.from_format(cosmo, format=format)  # this can error!
     elif not isinstance(cosmo, Cosmology):
         raise TypeError(f"if 'format' is False, arguments must be a Cosmology, not {cosmo}")
@@ -107,7 +107,7 @@ def _parse_format(cosmo: Any, format: _FormatType, /,) -> Cosmology:
     return out
 
 
-def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
+def _parse_formats(*cosmos: object, format: _FormatsT) -> ndarray:
     """Parse Cosmology-like to |Cosmology|, using provided formats.
 
     `format` is broadcast to match the shape of the cosmology arguments.
@@ -126,7 +126,7 @@ def _parse_formats(*cosmos: object, format: _FormatsType) -> ndarray:
         If any in 'cosmos' is not a |Cosmology| and the corresponding 'format'
         equals `numpy.False_`.
     """
-    formats = np.broadcast_to(format, len(cosmos))
+    formats = np.broadcast_to(np.array(format, dtype=object), len(cosmos))
     # parse each cosmo & format
 
     # Have to deal with things that do not broadcast well.
@@ -172,9 +172,10 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
     # Make wrapper function that parses cosmology-like inputs
     @functools.wraps(pyfunc)
-    def wrapper(*cosmos: Any, format: _FormatsType=False, **kwargs: Any) -> bool:
+    def wrapper(*cosmos: Any, format: _FormatsT = False, **kwargs: Any) -> bool:
         if len(cosmos) > nin:
-            raise TypeError
+            raise TypeError(f"{wrapper.__wrapped__.__name__} takes {nin} positional"
+                            f" arguments but {len(cosmos)} were given")
         # Parse cosmologies to format. Only do specified number.
         cosmos = _parse_formats(*cosmos, format=format)
         # Evaluate pyfunc, erroring if didn't match specified number.
@@ -221,7 +222,7 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False
 
     See Also
     --------
-    astropy.cosmology.funcs.cosmology_not_equal
+    astropy.cosmology.cosmology_not_equal
         Element-wise non-equality check, with argument conversion to Cosmology.
 
     Examples
@@ -282,7 +283,7 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False
     format string must be used.
 
         >>> yml = cosmo2.to_format("yaml")
-        >>> cosmology_equal(cosmo1, yml, format="yaml")
+        >>> cosmology_equal(cosmo1, yml, format=(None, "yaml"))
         True
 
     This also works with an array of 'format' matching the number of cosmologies.
@@ -347,7 +348,7 @@ def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=F
 
     See Also
     --------
-    astropy.cosmology.funcs.cosmology_equal
+    astropy.cosmology.cosmology_equal
         Element-wise equality check, with argument conversion to Cosmology.
 
     Examples
@@ -408,7 +409,7 @@ def cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=F
     format string must be used.
 
         >>> yml = cosmo3.to_format("yaml")
-        >>> cosmology_not_equal(cosmo1, yml, format="yaml")
+        >>> cosmology_not_equal(cosmo1, yml, format=(None, "yaml"))
         True
 
     This also works with an array of 'format' matching the number of cosmologies.
