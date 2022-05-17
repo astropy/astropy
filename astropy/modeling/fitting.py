@@ -1075,7 +1075,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
         if not np.all(np.isfinite(value)):
             raise NonFiniteValueError("Objective function has encountered a non-finite value, "
-                                      "this will cause the fit to fail!")
+                                      "this will cause the fit to fail!\n"
+                                      "Please remove non-finite values from your input data before fitting to avoid this error.")
 
         return value
 
