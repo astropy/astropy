@@ -33,7 +33,7 @@ The rules for passing input to fitters are:
     In general, non-linear fitters do not support fitting to data which contains
     non-finite values: ``NaN``, ``Inf``, or ``-Inf``. This is a limitation of the
     underlying scipy library. As a consequence, an error will be raised whenever
-    an non-finite value is present in the data to be fitted. To avoid this error
+    any non-finite value is present in the data to be fitted. To avoid this error
     users should "filter" the non-finite values from their data, for example
     when fitting a ``model``, with a ``fitter`` using ``data`` containing non-finite
     values one can "filter" these problems via::
