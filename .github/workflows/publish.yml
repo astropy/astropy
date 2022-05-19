@@ -1,15 +1,44 @@
-name: CI
+name: Wheel building
 
 on:
+  schedule:
+    # run every day at 4am UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
   push:
   pull_request:
 
 jobs:
-  publish:
-    # TODO: currently this will publish wheels to PyPI for any tag starting with
-    # 'v' but we need to exclude '.dev' tags.
+
+  test_wheel_building:
+    # This ensures that a couple of targets work fine in pull requests and pushes
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
+    if: (github.event_name == 'push' || github.event_name == 'pull_request')
     with:
+      upload_to_pypi: false
+      upload_to_anaconda: false
+      test_extras: test
+      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_wcsapi_extension and not test_set_locale" --pyargs astropy
+      targets: |
+        - cp39-manylinux_x86_64
+
+  build_and_publish:
+    # This does the actual wheel building and publishing as part of the cron job
+    # or if triggered manually via the workflow dispatch.
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    with:
+
+      # TODO: currently this will publish wheels to PyPI for any tag starting with
+      # 'v' but we need to exclude '.dev' tags.
+
+      # For now, we upload all successful builds to anaconda.org, and we don't
+      # ever upload to PyPI. Once the Azure pipelines configuration is removed,
+      # we can enable PyPI uploads here.
+      upload_to_pypi: false
+      upload_to_anaconda: true
+      anaconda_user: astropy
+
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10409
@@ -55,3 +84,4 @@ jobs:
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
+      anaconda_token: ${{ secrets.anaconda_token }}
