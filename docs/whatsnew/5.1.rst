@@ -25,9 +25,9 @@ In addition to these major changes, Astropy v5.1 includes a large number of
 smaller improvements and bug fixes, which are described in the Full Changelog.
 By the numbers:
 
-* 1031 commits have been added since 5.0
-* 141 issues have been closed since 5.0
-* 267 pull requests have been merged since 5.0
+* 1077 commits have been added since 5.0
+* 155 issues have been closed since 5.0
+* 289 pull requests have been merged since 5.0
 * 58 people have contributed since 5.0
 * 13 of which are new contributors
 
