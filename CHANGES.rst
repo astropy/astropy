@@ -394,7 +394,7 @@ astropy.table
   writing a ``Time`` column with one of these formats could result in an exception
   or else an incorrect output file that cannot be read back in. [#12842]
 
-- Fixed a bug where it is not possible to set the `.info.format` property of a
+- Fixed a bug where it is not possible to set the ``.info.format`` property of a
   table structured column and get formatted output. [#13233]
 
 - Fixed a bug when adding a masked structured array to a table. Previously this
