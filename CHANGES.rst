@@ -117,11 +117,11 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Add new fitters based on ``scipy.optimize.least_squares`` method of non-linear
-  least-squares optimization:
+  least-squares optimization: [#12051]
 
       - ``TRFLSQFitter`` using the Trust Region Reflective algorithm.
       - ``LMLSQFitter`` using the Levenberg-Marquardt algorithm (implemented by ``scipy.optimize.least_squares``).
-      - ``DogBoxLSQFitter`` using the dogleg algorithm. [#12051]
+      - ``DogBoxLSQFitter`` using the dogleg algorithm.
 
 - Enable direct use of the ``ignored`` feature of ``ModelBoundingBox`` by users in
   addition to its use as part of enabling ``CompoundBoundingBox``. [#12384]
@@ -320,14 +320,14 @@ astropy.tests
   instead. [#12633]
 
 - The following are deprecated and will be removed in a future release.
-  Use ``pytest`` warning and exception handling instead:
+  Use ``pytest`` warning and exception handling instead: [#12633]
 
   * ``astropy.io.ascii.tests.common.raises``
   * ``astropy.tests.helper.catch_warnings``
   * ``astropy.tests.helper.ignore_warnings``
   * ``astropy.tests.helper.raises``
   * ``astropy.tests.helper.enable_deprecations_as_exceptions``
-  * ``astropy.tests.helper.treat_deprecations_as_exceptions`` [#12633]
+  * ``astropy.tests.helper.treat_deprecations_as_exceptions``
 
 - Backward-compatible plugin ``astropy.tests.plugins.display``
   has been removed; use ``pytest-astropy-header`` instead. [#12633]
