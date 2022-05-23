@@ -335,6 +335,40 @@ def proj_plane_pixel_scales(wcs):
     return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=float))
 
 
+def square_pixel_scale(wcs, maxerr=1e-5):
+    """
+    Return the one-dimensional pixel scale for square pixels.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        A world coordinate system object.
+
+    Returns
+    -------
+    scale : float
+        The size of a pixel edge in degrees.
+
+    Raises
+    ------
+    ValueError if the pixels are not square
+
+    See Also
+    --------
+    astropy.wcs.utils.proj_plane_pixel_area,
+    astropy.wcs.utils.proj_plane_pixel_scales
+
+    """
+    pixel_scales = proj_plane_pixel_scales(wcs)
+
+    if pixel_scales[0] != pixel_scales[1]:
+        raise ValueError("Pixels are not square.")
+    if is_proj_plane_distorted(wcs, maxerr=maxerr):
+        raise ValueError("Projected plane is distorted; pixels are not square.")
+
+    return pixel_scales[0]
+
+
 def proj_plane_pixel_area(wcs):
     """
     For a **celestial** WCS (see `astropy.wcs.WCS.celestial`) returns pixel
