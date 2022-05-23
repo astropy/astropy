@@ -1,3 +1,0 @@
-A new property ``nonflat`` has been added to flat cosmologies
-(``FlatCosmologyMixin`` subclasses) to get an equivalent cosmology, but of the
-corresponding non-flat class.

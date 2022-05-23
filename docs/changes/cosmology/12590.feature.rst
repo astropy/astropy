@@ -1,2 +1,0 @@
-Add methods ``Otot`` and ``Otot0`` to FLRW cosmologies to calculate the total
-energy density of the Universe.

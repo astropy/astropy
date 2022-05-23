@@ -1,3 +1,0 @@
-Fixed a bug in ``Table.show_in_browser`` using the ``jsviewer=True`` option
-to display the table with sortable columns. Previously the sort direction arrows
-were not being shown due to missing image files for the arrows.
