@@ -1,7 +1,6 @@
 Version 5.1 (2022-05-23)
 ========================
 
-
 New Features
 ------------
 
@@ -33,7 +32,6 @@ astropy.cosmology
   energy density of the Universe. [#12590]
 
 - Add property ``is_flat`` to cosmologies to calculate the curvature of the Universe.
-
   ``Cosmology`` is now an abstract class and subclasses must override the
   abstract property ``is_flat``. [#12606]
 
@@ -231,7 +229,6 @@ astropy.wcs
 - Add ``temporal`` properties for convenient access of/selection of/testing for
   the ``TIME`` axis introduced in WCSLIB version 7.8. [#13094]
 
-
 API Changes
 -----------
 
@@ -255,7 +252,6 @@ astropy.cosmology
 
 - In I/O, conversions of Parameters move more relevant information from the
   Parameter to the Column.
-
   The default Parameter ``format_spec`` is changed from ``".3g"`` to ``""``. [#12612]
 
 - Units of redshift are added to ``z_reion`` in built-in realizations' metadata. [#12624]
@@ -346,7 +342,6 @@ astropy.time
   This also affects statements like ``Time("2020-01-01") + 5`` or
   ``Time("2020-01-05") - Time("2020-01-03") < 5``, which implicitly
   transform the right-hand side into an `~astropy.time.TimeDelta` instance. [#12888]
-
 
 Bug Fixes
 ---------
@@ -439,8 +434,6 @@ astropy.wcs
 - Fixed error that occurred in ``WCS.world_to_pixel`` for ``WCS`` objects with a
   spectral axis and observer location information when passing a ``SpectralCoord``
   that had missing observer or target information. [#13228]
-
-
 
 Version 5.0.4 (2022-03-31)
 ==========================
