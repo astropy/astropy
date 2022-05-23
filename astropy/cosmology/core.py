@@ -320,7 +320,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__equiv__
 
-        # check all parameters in 'other' match those in 'self' and 'other' has
+        # Check all parameters in 'other' match those in 'self' and 'other' has
         # no extra parameters (latter part should never happen b/c same class)
         params_eq = (set(self.__all_parameters__) == set(other.__all_parameters__)
                      and all(np.all(getattr(self, k) == getattr(other, k))
@@ -345,12 +345,18 @@ class Cosmology(metaclass=abc.ABCMeta):
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__eq__
 
-        # check all parameters in 'other' match those in 'self'
-        equivalent = self.__equiv__(other)
-        # non-Parameter checks: name
-        name_eq = (self.name == other.name)
+        eq = (
+            # non-Parameter checks: name
+            self.name == other.name
+            # check all parameters in 'other' match those in 'self' and 'other'
+            # has no extra parameters (latter part should never happen b/c same
+            # class) TODO! element-wise when there are array cosmologies
+            and set(self.__all_parameters__) == set(other.__all_parameters__)
+            and all(np.all(getattr(self, k) == getattr(other, k))
+                    for k in self.__all_parameters__)
+        )
 
-        return equivalent and name_eq
+        return eq
 
     # ---------------------------------------------------------------
 
