@@ -8,7 +8,7 @@ New Features
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The ephemeris used in `astropy.coordinates` can now be set to any version of
+- The ephemeris used in ``astropy.coordinates`` can now be set to any version of
   the JPL ephemeris available from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/. [#12541]
 
 - ``Angle.to_string()`` now accepts the ``'latex_inline'`` unit format. [#13056]
@@ -38,7 +38,7 @@ astropy.cosmology
   abstract property ``is_flat``. [#12606]
 
 - For converting a cosmology to a mapping, two new boolean keyword arguments are
-  added: ``cosmology_as_str`` for turning the the class reference to a string,
+  added: ``cosmology_as_str`` for turning the class reference to a string,
   instead of the class object itself, and ``move_from_meta`` to merge the
   metadata with the rest of the returned mapping instead of adding it as a
   nested dictionary. [#12710]
@@ -436,13 +436,10 @@ astropy.wcs
   print formatting enhancements. For a full list of
   changes - see http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES [#13171]
 
-- Fixed error that occured in ``WCS.world_to_pixel`` for ``WCS`` objects with a
+- Fixed error that occurred in ``WCS.world_to_pixel`` for ``WCS`` objects with a
   spectral axis and observer location information when passing a ``SpectralCoord``
   that had missing observer or target information. [#13228]
 
-
-Other Changes and Additions
----------------------------
 
 
 Version 5.0.4 (2022-03-31)
