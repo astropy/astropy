@@ -1,1 +1,0 @@
-Removed deprecated ``clobber`` argument from functions in ``astropy.io.fits``.

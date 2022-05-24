@@ -1,2 +1,0 @@
-The new module ``cosmology/tests/helper.py`` has been added to provide tools
-for testing the cosmology module and related extensions.

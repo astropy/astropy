@@ -1,3 +1,0 @@
-Fixed error that occured in ``WCS.world_to_pixel`` for ``WCS`` objects with a
-spectral axis and observer location information when passing a ``SpectralCoord``
-that had missing observer or target information.

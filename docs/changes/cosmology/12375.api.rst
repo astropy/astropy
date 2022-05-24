@@ -1,3 +1,0 @@
-``default_cosmology.get_cosmology_from_string`` is deprecated and will be
-removed in two minor versions.
-Use ``getattr(astropy.cosmology, <str>)`` instead.
