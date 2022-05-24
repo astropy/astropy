@@ -1,6 +1,0 @@
-Changed behavior when a structured ``numpy.ndarray`` is added as a column to a
-``Table``. Previously this was converted to a ``NdarrayMixin`` subclass of
-``ndarray`` and added as a mixin column. This was because saving as a file (e.g.
-HDF5, FITS, ECSV) was not supported for structured array columns. Now a
-structured ``numpy.ndarray`` is added to the table as a native ``Column`` and
-saving to file is supported.

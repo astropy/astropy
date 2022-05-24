@@ -1,1 +1,0 @@
-Added ``Schechter1D`` model.

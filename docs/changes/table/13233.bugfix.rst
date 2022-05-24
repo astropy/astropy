@@ -1,2 +1,0 @@
-Fixed a bug where it is not possible to set the `.info.format` property of a
-table structured column and get formatted output.

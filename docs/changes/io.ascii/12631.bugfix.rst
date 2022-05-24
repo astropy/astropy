@@ -1,3 +1,0 @@
-Fixed ``io.ascii`` read and write functions for most formats to correctly handle
-data fields with embedded newlines for both the fast and pure-Python readers and
-writers.
