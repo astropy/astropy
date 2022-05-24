@@ -1,2 +1,0 @@
-Bugfix for ``ignore`` functionality failing in ``ModelBoundingBox`` when using
-``ignore`` option alongside passing bounding box data as tuples.
