@@ -1,0 +1,2 @@
+Fixed a bug that prevented ``SkyOffsetFrame`` instances to be pickled (see issue
+#9249).
