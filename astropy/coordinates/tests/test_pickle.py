@@ -2,6 +2,7 @@ import pickle
 import pytest
 import numpy as np
 
+import astropy.units as u
 from astropy.coordinates import Longitude
 from astropy import coordinates as coord
 from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
@@ -69,3 +70,15 @@ def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
         pytest.xfail()
     original = name(*args, **kwargs)
     check_pickling_recovery(original, pickle_protocol)
+
+
+def test_skyoffset_pickle(pickle_protocol):
+    """
+    This is a regression test for issue #9249:
+    https://github.com/astropy/astropy/issues/9249
+    """
+    frame = coord.SkyOffsetFrame(origin=coord.ICRS(0*u.deg, 0*u.deg))
+    check_pickling_recovery(frame, pickle_protocol)
+
+    frame = coord.SkyOffsetFrame(origin=coord.Galactic(0*u.deg, 0*u.deg))
+    check_pickling_recovery(frame, pickle_protocol)
