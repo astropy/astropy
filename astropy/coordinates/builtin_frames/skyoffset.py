@@ -8,6 +8,9 @@ from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribut
 from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                                   matrix_product,
                                                   matrix_transpose)
+from astropy.coordinates import builtin_frames
+
+__all__ = ['SkyOffsetFrame', 'make_skyoffset_cls']
 
 _skyoffset_cache = {}
 
@@ -47,13 +50,16 @@ def make_skyoffset_cls(framecls):
     name = 'SkyOffset' + framecls.__name__
     _SkyOffsetFramecls = type(
         name, (SkyOffsetFrame, framecls),
-        {'origin': CoordinateAttribute(frame=framecls, default=None),
-         # The following two have to be done because otherwise we use the
-         # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
-         '_default_representation': framecls._default_representation,
-         '_default_differential': framecls._default_differential,
-         '__doc__': SkyOffsetFrame.__doc__,
-         })
+        {
+            'origin': CoordinateAttribute(frame=framecls, default=None),
+            # The following two have to be done because otherwise we use the
+            # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
+            '_default_representation': framecls._default_representation,
+            '_default_differential': framecls._default_differential,
+            '__doc__': SkyOffsetFrame.__doc__,
+            '__module__': __name__
+        }
+    )
 
     @frame_transform_graph.transform(FunctionTransform, _SkyOffsetFramecls, _SkyOffsetFramecls)
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):
@@ -177,3 +183,20 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         data = super().represent_as(base, s, in_frame_units=in_frame_units)
         self._set_skyoffset_data_lon_wrap_angle(data)
         return data
+
+
+def __getattr__(name):
+    if name in __all__ and name in globals():
+        return globals()[name]
+
+    if not name.startswith('SkyOffset'):
+        raise AttributeError(f"Module {__name__!r} has no attribute {name!r}.")
+
+    if name in _skyoffset_cache:
+        return _skyoffset_cache[name]
+
+    else:
+        # builtin_frames
+        frame_name = name[9:]
+        FrameCls = getattr(builtin_frames, frame_name, None)
+        return make_skyoffset_cls(FrameCls)
