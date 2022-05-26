@@ -26,7 +26,7 @@ jobs:
     # This does the actual wheel building and publishing as part of the cron job
     # or if triggered manually via the workflow dispatch.
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))
+    if: ((github.repository == 'astropy/astropy' && github.event_name == 'schedule') || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels'))
     with:
 
       # TODO: currently this will publish wheels to PyPI for any tag starting with
@@ -36,7 +36,7 @@ jobs:
       # ever upload to PyPI. Once the Azure pipelines configuration is removed,
       # we can enable PyPI uploads here.
       upload_to_pypi: false
-      upload_to_anaconda: true
+      upload_to_anaconda: ${{ ((github.repository == 'astropy/astropy' && github.event_name == 'schedule') || github.event_name == 'workflow_dispatch') }}
       anaconda_user: astropy
 
       test_extras: test
