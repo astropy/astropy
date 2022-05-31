@@ -1066,7 +1066,7 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
         with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
             pix = wcs.world_to_pixel(skycoord, spectralcoord)
 
-    assert_allclose(pix, [0, 0, 31], rtol=1e-6)
+    assert_allclose(pix, [0, 0, 31], rtol=1e-6, atol=1e-9)
 
 
 def test_non_convergence_warning():
