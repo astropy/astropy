@@ -26,7 +26,7 @@ del units
 from . import cgs  # noqa
 from . import si  # noqa
 from . import utils as _utils  # noqa
-from .config import codata, iaudata  # noqa
+from .config import codata, iaudata, planets  # noqa
 from .constant import Constant, EMConstant  # noqa
 
 # for updating the constants module docstring
@@ -40,7 +40,7 @@ _lines = [
 # Catch warnings about "already has a definition in the None system"
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'Constant .*already has a definition')
-    _utils._set_c(codata, iaudata, find_current_module(),
+    _utils._set_c(codata, iaudata, planets, find_current_module(),
                   not_in_module_only=True, doclines=_lines, set_class=True)
 
 _lines.append(_lines[1])

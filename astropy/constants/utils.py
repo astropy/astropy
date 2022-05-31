@@ -5,7 +5,7 @@ import itertools
 __all__ = []
 
 
-def _get_c(codata, iaudata, module, not_in_module_only=True):
+def _get_c(codata, iaudata, planets, module, not_in_module_only=True):
     """
     Generator to return a Constant object.
 
@@ -30,14 +30,15 @@ def _get_c(codata, iaudata, module, not_in_module_only=True):
     from .constant import Constant
 
     for _nm, _c in itertools.chain(sorted(vars(codata).items()),
-                                   sorted(vars(iaudata).items())):
+                                   sorted(vars(iaudata).items()),
+                                   sorted(vars(planets).items())):
         if not isinstance(_c, Constant):
             continue
         elif (not not_in_module_only) or (_c.abbrev not in module.__dict__):
             yield _c
 
 
-def _set_c(codata, iaudata, module, not_in_module_only=True, doclines=None,
+def _set_c(codata, iaudata, planets, module, not_in_module_only=True, doclines=None,
            set_class=False):
     """
     Set constants in a given module namespace.
@@ -64,7 +65,7 @@ def _set_c(codata, iaudata, module, not_in_module_only=True, doclines=None,
         instead of just ``_c`` from :func:`_get_c`.
 
     """
-    for _c in _get_c(codata, iaudata, module,
+    for _c in _get_c(codata, iaudata, planets, module,
                      not_in_module_only=not_in_module_only):
         if set_class:
             value = _c.__class__(_c.abbrev, _c.name, _c.value,

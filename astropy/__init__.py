@@ -129,6 +129,20 @@ class astronomical_constants(base_constants_version):
                      astropyconst40='iau2015', astropyconst20='iau2015',
                      astropyconst13='iau2012')
 
+class planetology_constants(base_constants_version):
+    """
+    The version of planetology constants to use
+    """
+    # Maintainers: update when new constants are added
+    _value = 'planets2022'
+
+    #_versions = dict(planets2022='planets2022')
+    _versions = dict(iau2015='planets2022', iau2012='planets2022',
+                     astropyconst40='planets2022', astropyconst20='planets2022',
+                     astropyconst13='planets2022', planets2022='planets2022')
+
+
+
 
 # Create the test() function
 from .tests.runner import TestRunner  # noqa: E402
@@ -205,7 +219,8 @@ def online_help(query):
 __dir_inc__ = ['__version__', '__githash__',
                '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
                'online_docs_root', 'conf', 'physical_constants',
-               'astronomical_constants']
+               'astronomical_constants',
+               'planetology_constants']
 
 
 from types import ModuleType as __module_type__  # noqa: E402
