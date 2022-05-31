@@ -129,6 +129,7 @@ class astronomical_constants(base_constants_version):
                      astropyconst40='iau2015', astropyconst20='iau2015',
                      astropyconst13='iau2012')
 
+
 class planetology_constants(base_constants_version):
     """
     The version of planetology constants to use
