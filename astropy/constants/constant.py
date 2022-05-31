@@ -75,10 +75,33 @@ class ConstantMeta(type):
 
 
 class Constant(Quantity, metaclass=ConstantMeta):
-    """A physical or astronomical constant.
+    """
+    A physical or astronomical constant.
 
     These objects are quantities that are meant to represent physical
     constants.
+
+    Parameters
+    ----------
+    abbrev : str
+        A typical ASCII text abbreviation of the constant, generally
+        the same as the Python variable used for this constant.
+    name : str
+        Full constant name.
+    value : numbers.Real
+        Constant value. Note that this should be a bare number, not a
+        quantity.
+    unit : str
+        String representation of the constant units.
+    uncertainty : numbers.Real
+        Absolute uncertainty in constant value. Note that this should be
+        a bare number, not a quantity.
+    reference : str, optional
+        Reference where the value is taken from.
+    system : str
+        System of units in which the constant is defined. This can be
+        `None` when the constant's units can be directly converted
+        between systems.
     """
     _registry = {}
     _has_incompatible_units = set()
