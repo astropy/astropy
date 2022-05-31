@@ -33,7 +33,7 @@ def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          doc="Solar radius", prefixes=False,
          format={'latex': r'R_{\odot}', 'unicode': 'R\N{SUN}'})
 
-# Planets 
+# Planets
 planet_names = ["mercury", "venus", "earth", "mars", "jupyter", "saturn", "uranus", "neptune",
         # dwarf planets
         "ceres", "pluto", "eris", "makemake", "haumea",
@@ -58,7 +58,7 @@ for pn in planet_names:
         unc_sym = planet_unc_sym[pn]
     else:
         unc_sym = r'\N' + pn.upper()
- 
+
     # radius
     def_unit([f'{pn}Rad', f'R_{pn}', f'R{pn}'], eval(f"_si.R_{pn}"), namespace=_ns,
              prefixes=False, doc=f"{pn.capitalize()} radius",
@@ -69,7 +69,7 @@ for pn in planet_names:
              prefixes=False, doc=f"{pn.capitalize()} mass",
              # LaTeX symbol requires wasysym
              format={'latex': r'M_{'+tex_sym+r'}', 'unicode': r'M'+unc_sym})
- 
+
 
 
 

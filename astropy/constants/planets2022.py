@@ -140,5 +140,3 @@ R_haumea = Planetology("R_haumea", "Haumea equatorial radius", .870e6, "m", 0.,
 M_haumea = Planetology("M_haumea", "Haumea mass", 4006.e18, "kg", 40.e18,
                 "Parker, Alex et al. (2018) DPS meeting# 50 id. 509.02",
                 system="si")
-
-
