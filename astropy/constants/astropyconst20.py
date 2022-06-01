@@ -8,13 +8,14 @@ import warnings
 
 from astropy.utils import find_current_module
 
-from . import codata2014, iau2015
+from . import codata2014, iau2015, planets2022
 from . import utils as _utils
 
 codata = codata2014
 iaudata = iau2015
+planets = planets2022
 
-_utils._set_c(codata, iaudata, find_current_module())
+_utils._set_c(codata, iaudata, planets, find_current_module())
 
 # Overwrite the following for consistency.
 # https://github.com/astropy/astropy/issues/8920
