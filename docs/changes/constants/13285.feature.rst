@@ -1,0 +1,1 @@
+Planet masses and equatorial radii were added for Mercury, Venus, Mars, Saturn, Uranus, Neptune, Ceres, Pluto, Eris, Makemake, and Haumea.
