@@ -55,11 +55,11 @@ M_mars = Planetology("M_mars", "Mars mass", .641691e24, "kg", .00003e24,
         system="si")
 
 # JUPYTER
-R_jupyter = Planetology("R_jupyter", "Jupyter equatorial radius", 7.1492e7, "m", 4.e3,
+R_jupiter = Planetology("R_jupiter", "Jupyter equatorial radius", 7.1492e7, "m", 4.e3,
                 "Archinal, B.A. et al. 2018. 'Report of the IAU/IAG Working Group on cartographic coordinates and rotational elements: 2015'",
                 system="si")
 
-M_jupyter = Planetology("M_jupyter", "Jupyter mass", 1898.125e24, "kg", .088e24,
+M_jupiter = Planetology("M_jupiter", "Jupyter mass", 1898.125e24, "kg", .088e24,
         "Jacobson, R.A. 2013. 'Jovian Satellite ephemeris - JUP310' private communication",
         system="si")
 

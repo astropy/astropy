@@ -647,7 +647,7 @@ def test_powers(power, expected):
     ('L☉', u.Lsun),  # \N{SUN}
     ('M⊕', u.Mearth),  # normal earth symbol = \N{CIRCLED PLUS}
     ('M♁', u.Mearth),  # be generous with \N{EARTH}
-    ('R♃', u.Rjupyter),  # \N{JUPITER}
+    ('R♃', u.Rjupiter),  # \N{JUPITER}
     ('′', u.arcmin),  # \N{PRIME}
     ('R∞', u.Ry),
     ('Mₚ', u.M_p),

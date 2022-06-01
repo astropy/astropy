@@ -34,14 +34,14 @@ def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          format={'latex': r'R_{\odot}', 'unicode': 'R\N{SUN}'})
 
 # Planets
-planet_names = ["mercury", "venus", "earth", "mars", "jupyter", "saturn", "uranus", "neptune",
+planet_names = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune",
         # dwarf planets
         "ceres", "pluto", "eris", "makemake", "haumea",
         # moons
         ]
 planet_tex_sym = {
         "earth":r"\oplus",
-        "jupyter":r"\rm J",
+        "jupiter":r"\rm J",
         }
 
 planet_unc_sym = {
