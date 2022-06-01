@@ -1,2 +1,0 @@
-Made ``astropy.modeling.fitting._fitter_to_model_params`` and ``astropy.modeling.fitting._model_to_fit_params``
-public methods.

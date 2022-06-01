@@ -1,1 +1,0 @@
-Fixed HAS_YAML not working as intended.
