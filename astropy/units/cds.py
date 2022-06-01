@@ -89,7 +89,7 @@ def _initialize_module():
         (['inch'], 0.0254 * u.m, "inch"),
         (['J'], u.J, "Joule"),
         (['JD'], u.d, "Julian day", ['M']),
-        (['jovMass', 'Mjup'], u.M_jup, "Jupiter mass"),
+        (['jovMass', 'Mjup'], u.M_jupyter, "Jupiter mass"),
         (['Jy'], u.Jy, "Jansky"),
         (['K'], u.K, "Kelvin"),
         (['k'], _si.k_B, "Boltzmann"),
