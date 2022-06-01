@@ -75,8 +75,7 @@ class ConstantMeta(type):
 
 
 class Constant(Quantity, metaclass=ConstantMeta):
-    """
-    A physical or astronomical constant.
+    """A physical or astronomical constant.
 
     These objects are quantities that are meant to represent physical
     constants.
@@ -90,12 +89,12 @@ class Constant(Quantity, metaclass=ConstantMeta):
         Full constant name.
     value : numbers.Real
         Constant value. Note that this should be a bare number, not a
-        quantity.
+        |Quantity|.
     unit : str
         String representation of the constant units.
     uncertainty : numbers.Real
         Absolute uncertainty in constant value. Note that this should be
-        a bare number, not a quantity.
+        a bare number, not a |Quantity|.
     reference : str, optional
         Reference where the value is taken from.
     system : str
