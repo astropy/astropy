@@ -1,2 +1,0 @@
-Added the ``where`` keyword argument to the ``mean()``,``var()``, ``std()`` and ``nansum()`` methods of
-``astropy.units.Quantity``. Also added the ``intial`` keyword argument to ``astropy.units.Quantity.nansum()``.
