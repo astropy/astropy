@@ -119,7 +119,7 @@ def _initialize_module():
         (['R'], _si.R, "gas constant"),
         (['rad'], u.radian, "radian"),
         (['Rgeo'], _si.R_earth, "Earth equatorial radius"),
-        (['Rjup'], _si.R_jup, "Jupiter equatorial radius"),
+        (['Rjup'], _si.R_jupyter, "Jupiter equatorial radius"),
         (['Rsun', 'solRad'], u.solRad, "solar radius"),
         (['Ry'], u.Ry, "Rydberg"),
         (['S'], u.S, "Siemens"),
