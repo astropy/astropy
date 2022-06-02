@@ -136,18 +136,3 @@ def test_gaussian_2d_kernel_quantity():
     kernel1 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=45 * u.deg)
     kernel2 = Gaussian2DKernel(x_stddev=2, y_stddev=4, theta=np.pi / 4)
     assert_allclose(kernel1.array, kernel2.array)
-
-
-def test_deprecated_hat():
-
-    # 'MexicanHat' was deprecated as a name for the kernels which are now
-    # 'RickerWavelet'. This test ensures that the kernels are correctly
-    # deprecated, and can be imported from the top-level package.
-
-    from astropy.convolution import MexicanHat1DKernel, MexicanHat2DKernel
-
-    with pytest.warns(AstropyDeprecationWarning):
-        MexicanHat1DKernel(2)
-
-    with pytest.warns(AstropyDeprecationWarning):
-        MexicanHat2DKernel(2)
