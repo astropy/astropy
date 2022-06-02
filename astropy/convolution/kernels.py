@@ -976,16 +976,6 @@ class Model2DKernel(Kernel2D):
         super().__init__(**kwargs)
 
 
-class PSFKernel(Kernel2D):
-    """
-    Initialize filter kernel from astropy PSF instance.
-    """
-    _separable = False
-
-    def __init__(self):
-        raise NotImplementedError('Not yet implemented')
-
-
 class CustomKernel(Kernel):
     """
     Create filter kernel from list or array.
