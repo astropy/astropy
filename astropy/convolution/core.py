@@ -48,9 +48,10 @@ class Kernel:
     @property
     def truncation(self):
         """
-        Deviation from the normalization to one.
+        Absolute deviation of the sum of the kernel array values from
+        one.
         """
-        return self._truncation
+        return np.abs(1. - self._array.sum())
 
     @property
     def is_bool(self):

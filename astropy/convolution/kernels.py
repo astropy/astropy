@@ -88,7 +88,6 @@ class Gaussian1DKernel(Kernel1D):
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = np.abs(1. - self._array.sum())
 
 
 class Gaussian2DKernel(Kernel2D):
@@ -166,7 +165,6 @@ class Gaussian2DKernel(Kernel2D):
             8 * np.max([x_stddev, y_stddev]))
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = np.abs(1. - self._array.sum())
 
 
 class Box1DKernel(Kernel1D):
@@ -235,7 +233,6 @@ class Box1DKernel(Kernel1D):
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -307,7 +304,6 @@ class Box2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -369,7 +365,6 @@ class Tophat2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(2 * radius)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = 0
 
 
 class Ring2DKernel(Kernel2D):
@@ -432,7 +427,6 @@ class Ring2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = 0
 
 
 class Trapezoid1DKernel(Kernel1D):
@@ -491,7 +485,6 @@ class Trapezoid1DKernel(Kernel1D):
         self._model = models.Trapezoid1D(1, 0, width, slope)
         self._default_size = _round_up_to_odd_integer(width + 2. / slope)
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -553,7 +546,6 @@ class TrapezoidDisk2DKernel(Kernel2D):
         self._model = models.TrapezoidDisk2D(1, 0, 0, radius, slope)
         self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -630,7 +622,6 @@ class RickerWavelet1DKernel(Kernel1D):
         self._model = models.RickerWavelet1D(amplitude, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
-        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class RickerWavelet2DKernel(Kernel2D):
@@ -709,7 +700,6 @@ class RickerWavelet2DKernel(Kernel2D):
         self._model = models.RickerWavelet2D(amplitude, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
-        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class AiryDisk2DKernel(Kernel2D):
@@ -773,7 +763,6 @@ class AiryDisk2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(8 * radius)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = None
 
 
 class Moffat2DKernel(Kernel2D):
@@ -842,7 +831,6 @@ class Moffat2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(4.0 * self._model.fwhm)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = None
 
 
 class Model1DKernel(Kernel1D):
@@ -1048,5 +1036,3 @@ class CustomKernel(Kernel):
         ones = self._array == 1.
         zeros = self._array == 0
         self._is_bool = bool(np.all(np.logical_or(ones, zeros)))
-
-        self._truncation = 0.0
