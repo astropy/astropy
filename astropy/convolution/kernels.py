@@ -87,6 +87,7 @@ class Gaussian1DKernel(Kernel1D):
                                         0, stddev)
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super().__init__(**kwargs)
+        self.normalize()
         self._truncation = np.abs(1. - self._array.sum())
 
 
@@ -164,6 +165,7 @@ class Gaussian2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(
             8 * np.max([x_stddev, y_stddev]))
         super().__init__(**kwargs)
+        self.normalize()
         self._truncation = np.abs(1. - self._array.sum())
 
 
@@ -366,6 +368,7 @@ class Tophat2DKernel(Kernel2D):
         self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(2 * radius)
         super().__init__(**kwargs)
+        self.normalize()
         self._truncation = 0
 
 
@@ -428,6 +431,7 @@ class Ring2DKernel(Kernel2D):
                                     0, 0, radius_in, width)
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super().__init__(**kwargs)
+        self.normalize()
         self._truncation = 0
 
 
