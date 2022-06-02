@@ -8,7 +8,7 @@ from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 
 from .core import Kernel, Kernel1D, Kernel2D
-from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
+from .utils import has_even_axis, raise_even_kernel_exception
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',

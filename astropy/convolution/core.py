@@ -366,8 +366,7 @@ def kernel_arithmetics(kernel, value, operation):
         new_kernel._is_bool = kernel._is_bool or value._is_bool
 
     # kernel and number
-    elif ((isinstance(kernel, Kernel1D) or isinstance(kernel, Kernel2D))
-        and np.isscalar(value)):
+    elif isinstance(kernel, (Kernel1D, Kernel2D)) and np.isscalar(value):
         if operation == "mul":
             new_kernel = copy.copy(kernel)
             new_kernel._array *= value
