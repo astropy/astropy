@@ -40,7 +40,7 @@ class Gaussian1DKernel(Kernel1D):
         Standard deviation of the Gaussian kernel.
     x_size : int, optional
         Size of the kernel array. Default = ⌊8*stddev+1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -112,7 +112,7 @@ class Gaussian2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*stddev + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -186,14 +186,14 @@ class Box1DKernel(Kernel1D):
     ----------
     width : number
         Width of the filter kernel.
-    mode : str, optional
+    mode : {'linear_interp', 'center', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
-            * 'center'
-                Discretize model by taking the value
-                at the center of the bin.
             * 'linear_interp' (default)
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -255,14 +255,14 @@ class Box2DKernel(Kernel2D):
     ----------
     width : number
         Width of the filter kernel.
-    mode : str, optional
+    mode : {'linear_interp', 'center', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
-            * 'center'
-                Discretize model by taking the value
-                at the center of the bin.
             * 'linear_interp' (default)
                 Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -322,7 +322,7 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -384,7 +384,7 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -444,7 +444,7 @@ class Trapezoid1DKernel(Kernel1D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -504,7 +504,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -581,7 +581,7 @@ class RickerWavelet1DKernel(Kernel1D):
         of the Gaussian function from which it is derived.
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -659,7 +659,7 @@ class RickerWavelet2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -724,7 +724,7 @@ class AiryDisk2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -790,7 +790,7 @@ class Moffat2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -854,7 +854,7 @@ class Model1DKernel(Kernel1D):
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -921,7 +921,7 @@ class Model2DKernel(Kernel2D):
         Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
