@@ -438,5 +438,3 @@ Reference/API
 
 .. automodapi:: astropy.convolution
     :no-inheritance-diagram:
-    :skip: MexicanHat1DKernel
-    :skip: MexicanHat2DKernel
