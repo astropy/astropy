@@ -58,11 +58,9 @@ class Gaussian1DKernel(Kernel1D):
         Factor of oversampling. Default factor = 10. If the factor
         is too large, evaluation can be very slow.
 
-
     See Also
     --------
     Box1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
-
 
     Examples
     --------
@@ -79,6 +77,7 @@ class Gaussian1DKernel(Kernel1D):
         plt.ylabel('value')
         plt.show()
     """
+
     _separable = True
     _is_bool = False
 
@@ -129,7 +128,6 @@ class Gaussian2DKernel(Kernel2D):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
 
-
     See Also
     --------
     Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel, Ring2DKernel,
@@ -150,8 +148,8 @@ class Gaussian2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     _separable = True
     _is_bool = False
 
@@ -181,7 +179,6 @@ class Box1DKernel(Kernel1D):
     weighting the edge pixels with 1/2. E.g a Box kernel with an effective
     smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
 
-
     Parameters
     ----------
     width : number
@@ -207,7 +204,6 @@ class Box1DKernel(Kernel1D):
     --------
     Gaussian1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
 
-
     Examples
     --------
     Kernel response function:
@@ -223,8 +219,8 @@ class Box1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
+
     _separable = True
     _is_bool = True
 
@@ -249,7 +245,6 @@ class Box2DKernel(Kernel2D):
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2.
 
-
     Parameters
     ----------
     width : number
@@ -270,7 +265,6 @@ class Box2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -296,6 +290,7 @@ class Box2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _separable = True
     _is_bool = True
 
@@ -337,7 +332,6 @@ class Tophat2DKernel(Kernel2D):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
 
-
     See Also
     --------
     Gaussian2DKernel, Box2DKernel, RickerWavelet2DKernel, Ring2DKernel,
@@ -358,8 +352,8 @@ class Tophat2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(2 * radius)
@@ -420,6 +414,7 @@ class Ring2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     def __init__(self, radius_in, width, **kwargs):
         radius_out = radius_in + width
         self._model = models.Ring2D(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
@@ -479,6 +474,7 @@ class Trapezoid1DKernel(Kernel1D):
         plt.xlim(-1, 28)
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, width, slope=1., **kwargs):
@@ -538,8 +534,8 @@ class TrapezoidDisk2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     _is_bool = False
 
     def __init__(self, radius, slope=1., **kwargs):
@@ -594,7 +590,6 @@ class RickerWavelet1DKernel(Kernel1D):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
 
-
     See Also
     --------
     Box1DKernel, Gaussian1DKernel, Trapezoid1DKernel
@@ -613,8 +608,8 @@ class RickerWavelet1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
+
     _is_bool = True
 
     def __init__(self, width, **kwargs):
@@ -671,7 +666,6 @@ class RickerWavelet2DKernel(Kernel2D):
     factor : number, optional
         Factor of oversampling. Default factor = 10.
 
-
     See Also
     --------
     Gaussian2DKernel, Box2DKernel, Tophat2DKernel, Ring2DKernel,
@@ -693,6 +687,7 @@ class RickerWavelet2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, width, **kwargs):
@@ -756,6 +751,7 @@ class AiryDisk2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, radius, **kwargs):
@@ -821,6 +817,7 @@ class Moffat2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, gamma, alpha, **kwargs):
@@ -887,6 +884,7 @@ class Model1DKernel(Kernel1D):
 
     This kernel can now be used like a usual Astropy kernel.
     """
+
     _separable = False
     _is_bool = False
 
@@ -953,8 +951,8 @@ class Model2DKernel(Kernel2D):
         >>> gauss_kernel = Model2DKernel(gauss, x_size=9)
 
     This kernel can now be used like a usual astropy kernel.
-
     """
+
     _is_bool = False
     _separable = False
 
@@ -1005,6 +1003,7 @@ class CustomKernel(Kernel):
         >>> kernel.dimension
         2
     """
+
     def __init__(self, array):
         self.array = array
         super().__init__(self._array)
