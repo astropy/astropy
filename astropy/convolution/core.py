@@ -48,9 +48,10 @@ class Kernel:
     @property
     def truncation(self):
         """
-        Deviation from the normalization to one.
+        Absolute deviation of the sum of the kernel array values from
+        one.
         """
-        return self._truncation
+        return np.abs(1. - self._array.sum())
 
     @property
     def is_bool(self):
@@ -365,8 +366,7 @@ def kernel_arithmetics(kernel, value, operation):
         new_kernel._is_bool = kernel._is_bool or value._is_bool
 
     # kernel and number
-    elif ((isinstance(kernel, Kernel1D) or isinstance(kernel, Kernel2D))
-        and np.isscalar(value)):
+    elif isinstance(kernel, (Kernel1D, Kernel2D)) and np.isscalar(value):
         if operation == "mul":
             new_kernel = copy.copy(kernel)
             new_kernel._array *= value
