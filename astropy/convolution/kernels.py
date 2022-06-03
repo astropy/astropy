@@ -8,7 +8,7 @@ from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 
 from .core import Kernel, Kernel1D, Kernel2D
-from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
+from .utils import has_even_axis, raise_even_kernel_exception
 
 __all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
            'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -40,7 +40,7 @@ class Gaussian1DKernel(Kernel1D):
         Standard deviation of the Gaussian kernel.
     x_size : int, optional
         Size of the kernel array. Default = ⌊8*stddev+1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -58,11 +58,9 @@ class Gaussian1DKernel(Kernel1D):
         Factor of oversampling. Default factor = 10. If the factor
         is too large, evaluation can be very slow.
 
-
     See Also
     --------
     Box1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
-
 
     Examples
     --------
@@ -79,6 +77,7 @@ class Gaussian1DKernel(Kernel1D):
         plt.ylabel('value')
         plt.show()
     """
+
     _separable = True
     _is_bool = False
 
@@ -87,7 +86,7 @@ class Gaussian1DKernel(Kernel1D):
                                         0, stddev)
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super().__init__(**kwargs)
-        self._truncation = np.abs(1. - self._array.sum())
+        self.normalize()
 
 
 class Gaussian2DKernel(Kernel2D):
@@ -112,7 +111,7 @@ class Gaussian2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*stddev + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -128,7 +127,6 @@ class Gaussian2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -150,8 +148,8 @@ class Gaussian2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     _separable = True
     _is_bool = False
 
@@ -164,7 +162,7 @@ class Gaussian2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(
             8 * np.max([x_stddev, y_stddev]))
         super().__init__(**kwargs)
-        self._truncation = np.abs(1. - self._array.sum())
+        self.normalize()
 
 
 class Box1DKernel(Kernel1D):
@@ -181,19 +179,18 @@ class Box1DKernel(Kernel1D):
     weighting the edge pixels with 1/2. E.g a Box kernel with an effective
     smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
 
-
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    mode : str, optional
+    mode : {'linear_interp', 'center', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
-            * 'center'
-                Discretize model by taking the value
-                at the center of the bin.
             * 'linear_interp' (default)
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -206,7 +203,6 @@ class Box1DKernel(Kernel1D):
     See Also
     --------
     Gaussian1DKernel, Trapezoid1DKernel, RickerWavelet1DKernel
-
 
     Examples
     --------
@@ -223,8 +219,8 @@ class Box1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
+
     _separable = True
     _is_bool = True
 
@@ -233,7 +229,6 @@ class Box1DKernel(Kernel1D):
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -250,19 +245,18 @@ class Box2DKernel(Kernel2D):
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2.
 
-
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    mode : str, optional
+    mode : {'linear_interp', 'center', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
-            * 'center'
-                Discretize model by taking the value
-                at the center of the bin.
             * 'linear_interp' (default)
                 Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -271,7 +265,6 @@ class Box2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -297,6 +290,7 @@ class Box2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _separable = True
     _is_bool = True
 
@@ -305,7 +299,6 @@ class Box2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -322,7 +315,7 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -338,7 +331,6 @@ class Tophat2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -360,13 +352,13 @@ class Tophat2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(2 * radius)
         super().__init__(**kwargs)
-        self._truncation = 0
+        self.normalize()
 
 
 class Ring2DKernel(Kernel2D):
@@ -384,7 +376,7 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -422,13 +414,14 @@ class Ring2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     def __init__(self, radius_in, width, **kwargs):
         radius_out = radius_in + width
         self._model = models.Ring2D(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
                                     0, 0, radius_in, width)
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super().__init__(**kwargs)
-        self._truncation = 0
+        self.normalize()
 
 
 class Trapezoid1DKernel(Kernel1D):
@@ -444,7 +437,7 @@ class Trapezoid1DKernel(Kernel1D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -481,13 +474,13 @@ class Trapezoid1DKernel(Kernel1D):
         plt.xlim(-1, 28)
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1D(1, 0, width, slope)
         self._default_size = _round_up_to_odd_integer(width + 2. / slope)
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -504,7 +497,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -541,15 +534,14 @@ class TrapezoidDisk2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
+
     _is_bool = False
 
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2D(1, 0, 0, radius, slope)
         self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
         super().__init__(**kwargs)
-        self._truncation = 0
         self.normalize()
 
 
@@ -581,7 +573,7 @@ class RickerWavelet1DKernel(Kernel1D):
         of the Gaussian function from which it is derived.
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -597,7 +589,6 @@ class RickerWavelet1DKernel(Kernel1D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -617,8 +608,8 @@ class RickerWavelet1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
+
     _is_bool = True
 
     def __init__(self, width, **kwargs):
@@ -626,7 +617,6 @@ class RickerWavelet1DKernel(Kernel1D):
         self._model = models.RickerWavelet1D(amplitude, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
-        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class RickerWavelet2DKernel(Kernel2D):
@@ -659,7 +649,7 @@ class RickerWavelet2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -675,7 +665,6 @@ class RickerWavelet2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -698,6 +687,7 @@ class RickerWavelet2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, width, **kwargs):
@@ -705,7 +695,6 @@ class RickerWavelet2DKernel(Kernel2D):
         self._model = models.RickerWavelet2D(amplitude, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
-        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class AiryDisk2DKernel(Kernel2D):
@@ -724,7 +713,7 @@ class AiryDisk2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -762,6 +751,7 @@ class AiryDisk2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, radius, **kwargs):
@@ -769,7 +759,6 @@ class AiryDisk2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(8 * radius)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = None
 
 
 class Moffat2DKernel(Kernel2D):
@@ -790,7 +779,7 @@ class Moffat2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -828,6 +817,7 @@ class Moffat2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
+
     _is_bool = False
 
     def __init__(self, gamma, alpha, **kwargs):
@@ -838,7 +828,6 @@ class Moffat2DKernel(Kernel2D):
         self._default_size = _round_up_to_odd_integer(4.0 * self._model.fwhm)
         super().__init__(**kwargs)
         self.normalize()
-        self._truncation = None
 
 
 class Model1DKernel(Kernel1D):
@@ -854,7 +843,7 @@ class Model1DKernel(Kernel1D):
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -895,6 +884,7 @@ class Model1DKernel(Kernel1D):
 
     This kernel can now be used like a usual Astropy kernel.
     """
+
     _separable = False
     _is_bool = False
 
@@ -921,7 +911,7 @@ class Model2DKernel(Kernel2D):
         Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
-    mode : str, optional
+    mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -961,8 +951,8 @@ class Model2DKernel(Kernel2D):
         >>> gauss_kernel = Model2DKernel(gauss, x_size=9)
 
     This kernel can now be used like a usual astropy kernel.
-
     """
+
     _is_bool = False
     _separable = False
 
@@ -1013,6 +1003,7 @@ class CustomKernel(Kernel):
         >>> kernel.dimension
         2
     """
+
     def __init__(self, array):
         self.array = array
         super().__init__(self._array)
@@ -1044,5 +1035,3 @@ class CustomKernel(Kernel):
         ones = self._array == 1.
         zeros = self._array == 0
         self._is_bool = bool(np.all(np.logical_or(ones, zeros)))
-
-        self._truncation = 0.0

@@ -255,6 +255,7 @@ class TestKernels:
         stddev = 5.
         gauss = Gaussian1D(1. / np.sqrt(2 * np.pi * stddev**2), 0, stddev)
         model_gauss_kernel = Model1DKernel(gauss, x_size=21)
+        model_gauss_kernel.normalize()
         gauss_kernel = Gaussian1DKernel(stddev, x_size=21)
         assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
                             decimal=12)
@@ -266,6 +267,7 @@ class TestKernels:
         stddev = 5.
         gauss = Gaussian2D(1. / (2 * np.pi * stddev**2), 0, 0, stddev, stddev)
         model_gauss_kernel = Model2DKernel(gauss, x_size=21)
+        model_gauss_kernel.normalize()
         gauss_kernel = Gaussian2DKernel(stddev, x_size=21)
         assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
                             decimal=12)
@@ -327,7 +329,7 @@ class TestKernels:
                           r'normalized because it sums to zero'):
             custom.normalize()
 
-        assert custom.truncation == 0.
+        assert custom.truncation == 1.
         assert custom._kernel_sum == 0.
 
     def test_custom_2D_kernel_zerosum(self):
@@ -343,7 +345,7 @@ class TestKernels:
                           r'normalized because it sums to zero'):
             custom.normalize()
 
-        assert custom.truncation == 0.
+        assert custom.truncation == 1.
         assert custom._kernel_sum == 0.
 
     def test_custom_kernel_odd_error(self):
@@ -411,11 +413,11 @@ class TestKernels:
         gauss = Gaussian2DKernel(
             x_stddev=3, y_stddev=1.5, theta=0.7853981633974483,
             x_size=5, y_size=5)  # rotated 45 deg ccw
-        ans = [[0.02267712, 0.02464785, 0.02029238, 0.01265463, 0.00597762],
-               [0.02464785, 0.03164847, 0.03078144, 0.02267712, 0.01265463],
-               [0.02029238, 0.03078144, 0.03536777, 0.03078144, 0.02029238],
-               [0.01265463, 0.02267712, 0.03078144, 0.03164847, 0.02464785],
-               [0.00597762, 0.01265463, 0.02029238, 0.02464785, 0.02267712]]
+        ans = [[0.04087193, 0.04442386, 0.03657381, 0.02280797, 0.01077372],
+               [0.04442386, 0.05704137, 0.05547869, 0.04087193, 0.02280797],
+               [0.03657381, 0.05547869, 0.06374482, 0.05547869, 0.03657381],
+               [0.02280797, 0.04087193, 0.05547869, 0.05704137, 0.04442386],
+               [0.01077372, 0.02280797, 0.03657381, 0.04442386, 0.04087193]]
         assert_allclose(gauss, ans, rtol=0.001)  # Rough comparison at 0.1 %
 
     def test_normalize_peak(self):
