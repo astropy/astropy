@@ -177,3 +177,10 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         data = super().represent_as(base, s, in_frame_units=in_frame_units)
         self._set_skyoffset_data_lon_wrap_angle(data)
         return data
+
+    def __reduce__(self):
+        return (_skyoffset_reducer, (self.data, {'origin': self.origin}), self.__dict__)
+
+
+def _skyoffset_reducer(*args):
+    return SkyOffsetFrame(*args[:-1], **args[-1])
