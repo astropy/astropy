@@ -179,8 +179,8 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         return data
 
     def __reduce__(self):
-        return (_skyoffset_reducer, ({'origin': self.origin}, ), self.__dict__)
+        return (_skyoffset_reducer, (self.origin,), self.__dict__)
 
 
-def _skyoffset_reducer(kw):
-    return SkyOffsetFrame(**kw)
+def _skyoffset_reducer(origin):
+    return SkyOffsetFrame.__new__(SkyOffsetFrame, origin=origin)
