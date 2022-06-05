@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Set, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Set, Tuple, Type, TypeVar
 
 import numpy as np
 
@@ -82,8 +82,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    __parameters__ = ()
-    __all_parameters__ = ()
+    __parameters__: Tuple[str, ...]  = ()
+    __all_parameters__: Tuple[str, ...] = ()
 
     # ---------------------------------------------------------------
 
@@ -313,9 +313,10 @@ class Cosmology(metaclass=abc.ABCMeta):
         Returns
         -------
         bool or `NotImplemented`
-            `NotImplemented` if 'other' is from a different class.
-            `True` if 'other' is of the same class and has matching parameters
-            and parameter values. `False` otherwise.
+            `NotImplemented` if ``other`` is from a different class.
+            `True` if ``other`` is of the same class and has matching parameters
+            and parameter values.
+            `False` otherwise.
         """
         if other.__class__ is not self.__class__:
             return NotImplemented  # allows other.__equiv__
@@ -398,6 +399,9 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
     but ``FlatLambdaCDM`` **will** be flat.
     """
+
+    __all_parameters__: Tuple[str, ...]
+    __parameters__: Tuple[str, ...]
 
     def __init_subclass__(cls: Type[_FlatCosmoT]) -> None:
         super().__init_subclass__()
@@ -518,6 +522,50 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
             return self.nonflat.clone(meta=meta, **kwargs)
         return super().clone(meta=meta, **kwargs)
 
+    # ===============================================================
+
+    def __equiv__(self, other):
+        """flat-|Cosmology| equivalence.
+
+        Use `astropy.cosmology.funcs.cosmology_equal` with
+        ``allow_equivalent=True`` for actual checks!
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object to which to compare for equivalence.
+
+        Returns
+        -------
+        bool or `NotImplemented`
+            `True` if ``other`` is of the same class / non-flat class (e.g.
+            |FlatLambdaCDM| and |LambdaCDM|) has matching parameters and
+            parameter values.
+            `False` if ``other`` is of the same class but has different
+            parameters.
+            `NotImplemented` otherwise.
+        """
+        if isinstance(other, FlatCosmologyMixin):
+            return super().__equiv__(other)  # super gets from Cosmology
+
+        # check if `other` is the non-flat version of this class this makes the
+        # assumption that any further subclass of a flat cosmo keeps the same
+        # physics.
+        if not issubclass(other.__class__, self._nonflat_cls_):
+            return NotImplemented
+
+        # Check if have equivalent parameters and all parameters in `other`
+        # match those in `self`` and `other`` has no extra parameters.
+        params_eq = (
+            set(self.__all_parameters__) == set(other.__all_parameters__)  # no extra
+            # equal
+            and all(np.all(getattr(self, k) == getattr(other, k))
+                    for k in self.__parameters__)
+            # flatness check
+            and other.is_flat
+        )
+
+        return params_eq
 
 # -----------------------------------------------------------------------------
 
