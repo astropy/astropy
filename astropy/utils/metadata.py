@@ -73,7 +73,7 @@ def common_dtype(arrs):
                        dtype_bytes_or_chars(arr.dtype)]
 
     arr_common = np.array([arr[0] for arr in arrs])
-    return arr_common.dtype.str
+    return arr_common.dtype.str if arr_common.dtype.names is None else arr_common.dtype.descr
 
 
 class MergeStrategyMeta(type):
