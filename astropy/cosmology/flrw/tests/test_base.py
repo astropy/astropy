@@ -946,7 +946,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         assert not nonflatcosmo.is_equivalent(cosmo)
 
         # non-flat version of class
-        nonflat_cosmo_cls = cosmo.__class__.mro()[3]
+        nonflat_cosmo_cls = cosmo._nonflat_cls_
         # keys check in `test_is_equivalent_nonflat_class_different_params`
 
         # non-flat

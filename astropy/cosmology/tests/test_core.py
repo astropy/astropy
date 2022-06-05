@@ -465,6 +465,9 @@ class FlatCosmologyMixinTest:
         """
         CosmologySubclassTest.test_is_equivalent(self, cosmo)
 
+        # See FlatFLRWMixinTest for tests. It's a bit hard here since this class
+        # is for an ABC.
+
     # ===============================================================
     # Usage Tests
 
