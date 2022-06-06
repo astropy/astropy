@@ -586,7 +586,7 @@ provides default properties for the components so that they can be accessed
 using ``<instance>.<component>``. For the machinery to work, the following
 must be defined:
 
-* ``attr_classes`` class attribute (``OrderedDict``):
+* ``attr_classes`` class attribute (:class:`dict`):
 
   Defines through its keys the names of the components (as well as the default
   order), and through its values defines the class of which they should be
@@ -650,9 +650,11 @@ In pseudo-code, this means that a class will look like::
 
     class MyRepresentation(BaseRepresentation):
 
-        attr_classes = OrderedDict([('comp1', ComponentClass1),
-                                     ('comp2', ComponentClass2),
-                                     ('comp3', ComponentClass3)])
+        attr_classes = {
+            "comp1": ComponentClass1,
+            "comp2": ComponentClass2,
+            "comp3": ComponentClass3,
+        }
 
 	# __init__ is optional
         def __init__(self, comp1, comp2, comp3, copy=True):
