@@ -431,7 +431,7 @@ Guess Table Format
 If the ``guess`` parameter in |read| is set to True, then
 |read| will try to guess the table format by cycling through a number of
 possible table format permutations and attempting to read the table in each
-case. The first format which succeeds and will be used to read the table. To
+case. The first format which succeeds will be used to read the table. To
 succeed, the table must be successfully parsed by the Reader and satisfy the
 following column requirements:
 
