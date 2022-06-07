@@ -931,7 +931,7 @@ class _dir_:
 
     Python hides descriptors. To directly access an attribute on this
     descriptor, e.g. ``exclude``, use
-    ``<instance>.__dir__.__func__.__self__.exclude``.
+    ``vars(<class>)["__dir__"].exclude``.
     """
 
     fget: Optional[Callable[[object], Collection[str]]] = dataclasses.field(default=None)
@@ -1049,15 +1049,15 @@ class on_metaclass(classmethod):
     _attr_name: str
 
     def __set_name__(self, encl_cls, attr_name: str) -> None:
+        # The wrapped attrs / method
+        self._attr_name = attr_name
+
         # Make the ``__dir__`` filterable, if not already.
-        wrapped_dir = getattr(getattr(encl_cls.__dir__, "__func__", None), "__self__", None)
-        if not isinstance(wrapped_dir, _dir_):
-            encl_cls.__dir__ = _dir_()
+        if not isinstance(vars(encl_cls).get("__dir__"), _dir_):
+            encl_cls.__dir__ = _dir_(encl_cls.__dir__)
 
         # Add this method to the ``__dir__`` filter.
-        encl_cls.__dir__.__func__.__self__.exclude.add(attr_name)
-
-        self._attr_name = attr_name
+        vars(encl_cls)["__dir__"].exclude.add(attr_name)
 
     def __get__(self, encl_inst: Optional[object], encl_cls: Optional[type]=None):
         # @classmethod, but restricting to getting from `encl_cls`
@@ -1066,11 +1066,9 @@ class on_metaclass(classmethod):
                    f"has no attribute {self._attr_name!r}")
             raise AttributeError(msg)
 
-        if hasattr(self.__func__, '__get__'):  # Allows decorator stacking
-            res = self.__func__.__get__(encl_cls, None)
-        else:
-            res = super().__get__(encl_inst, encl_cls)
-        return res
+        if hasattr(type(self.__func__), '__get__'):  # Allows descriptor stacking
+            return self.__func__.__get__(encl_cls, None)
+        return super().__get__(encl_inst, encl_cls)
 
 
 def format_doc(docstring, *args, **kwargs):
