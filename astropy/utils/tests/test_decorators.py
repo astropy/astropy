@@ -3,6 +3,7 @@
 import concurrent.futures
 import inspect
 import pickle
+import sys
 
 import pytest
 
@@ -811,7 +812,12 @@ def make_on_metaclass_examples():
         def method(cls):
             return cls.__name__
 
-    return [ExampleNoMethod, ExampleOnMeta, ExampleMetaclassMethod, ExampleClassProperty, ExampleMetaClassProperty]
+    classes = [ExampleNoMethod, ExampleOnMeta, ExampleMetaclassMethod, ExampleClassProperty]
+    # py3.8- doesn't allow classmethod to stack on a property.
+    if sys.version_info >= (3, 9):
+        classes.append(ExampleMetaClassProperty)
+
+    return classes
 
 
 @pytest.mark.parametrize("kls", make_on_metaclass_examples())

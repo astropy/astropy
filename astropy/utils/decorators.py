@@ -905,7 +905,7 @@ class _dir_:
     ``_dir_`` can also be used to decorate a user-defined ``__dir__`` override:
 
         >>> class Example:
-        ...    @_dir_(exclude=['_private']).getter
+        ...    @_dir_(exclude=['_private'])
         ...    def __dir__(self):
         ...        return super().__dir__() + ["special_method"]
         ...    @classmethod
@@ -959,6 +959,8 @@ class _dir_:
 
     def getter(self, fget: MethodType) -> "_dir_":
         return dataclasses.replace(self, fget=fget)
+
+    __call__ = getter
 
 
 class on_metaclass(classmethod):
