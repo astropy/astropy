@@ -36,7 +36,6 @@ archs = ["auto", "aarch64"]
         "docs/*",
         "examples/*",
         "astropy/_dev/*",
-        "astropy/_erfa/*",
         "astropy/config/*",
         "astropy/constants/*",
         "astropy/convolution/*",
@@ -77,7 +76,6 @@ archs = ["auto", "aarch64"]
             "astropy/utils/compat/*",
             "astropy/version*",
             "astropy/wcs/docstrings*",
-            "astropy/_erfa/*",
             "*/astropy/__init__*",
             "*/astropy/conftest.py",
             "*/astropy/*setup*",
@@ -87,7 +85,6 @@ archs = ["auto", "aarch64"]
             "*/astropy/utils/compat/*",
             "*/astropy/version*",
             "*/astropy/wcs/docstrings*",
-            "*/astropy/_erfa/*",
         ]
 
     [tool.coverage.report]
