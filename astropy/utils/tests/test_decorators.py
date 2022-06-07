@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated, on_metaclass,
+from astropy.utils.decorators import (_dir_, deprecated_attribute, deprecated, on_metaclass,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
@@ -818,6 +818,41 @@ def make_on_metaclass_examples():
         classes.append(ExampleMetaClassProperty)
 
     return classes
+
+
+class Test_dir_:
+    """Test `astropy.utils.decorators._dir_`."""
+
+    def test_replace(self):
+        """Test basic replacing of ``__dir__`` with ``_dir_``."""
+        class Example:
+            __dir__ = _dir_(exclude=['_private'])
+
+            @classmethod
+            def _private(cls):
+                return
+
+        # It's in the class
+        assert "_private" in dir(Example)
+
+        # But not the instance
+        ex = Example()
+        assert "_private" not in dir(ex)
+
+    def test_custom_dir(self):
+        """Test custom dir method."""
+        class Example:
+            @_dir_(exclude=['_private'])
+            def __dir__(self):
+                return list(super().__dir__()) + ["special_method"]
+
+            @classmethod
+            def _private(cls):
+                return
+
+        ex = Example()
+        assert "_private" not in dir(ex)
+        assert "special_method" in dir(ex)
 
 
 @pytest.mark.parametrize("kls", make_on_metaclass_examples())
