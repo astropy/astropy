@@ -10,7 +10,6 @@ import numpy as np
 from astropy import units as u
 from astropy import stats
 from astropy.utils.metaclasses import ClassWrapperMeta
-from astropy.utils.decorators import on_metaclass
 
 __all__ = ['Distribution']
 
@@ -42,7 +41,7 @@ class Distribution(metaclass=ClassWrapperMeta):
     # ---------------------------------------------------------------
     # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
 
-    @on_metaclass
+    @classmethod
     def _prepare_wrapper_subclass(cls, data_cls, base_cls):
         # The `bases` of `type()` requires adding `_DistributionRepr` higher
         # in the MRO than `data_cls`. The problem is that array2string does not
@@ -54,7 +53,7 @@ class Distribution(metaclass=ClassWrapperMeta):
         bases = (_DistributionRepr, data_cls, base_cls)
         return name, bases
 
-    @on_metaclass
+    @classmethod
     def _get_wrapper_subclass_instance(cls, data, *args, **kwargs):
         if isinstance(data, cls._wrapper_class_):
             data = data.distribution
@@ -72,7 +71,7 @@ class Distribution(metaclass=ClassWrapperMeta):
         self.shape = data.shape[:-1]
         return self
 
-    @on_metaclass
+    @classmethod
     def _make_wrapped__doc__(cls, data_cls):
         return cls._wrapper_class_.__doc__
 

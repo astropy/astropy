@@ -23,7 +23,6 @@ from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.collections import ClassWrapperMeta
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.decorators import on_metaclass
 
 from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                APPLY_TO_BOTH_FUNCTIONS,
@@ -62,7 +61,7 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
     # ---------------------------------------------------------------
     # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
 
-    @on_metaclass
+    @classmethod
     def _get_wrapper_subclass_instance(cls, data, mask=None, copy=False):
         data, data_mask = cls._get_data_and_mask(data)
         if mask is None:
@@ -71,17 +70,17 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
         masked_cls = cls._get_wrapped_subclass(data.__class__)
         return masked_cls.from_unmasked(data, mask, copy)
 
-    @on_metaclass
+    @classmethod
     def _make_wrapped__doc__(cls, data_cls):
         return (f"Masked version of {data_cls.__name__}.\n\n"
                 "Except for the ability to pass in a ``mask``, parameters are\n"
                 f"as for `{data_cls.__module__}.{data_cls.__name__}`.")
 
-    @on_metaclass
+    @classmethod
     def _prepare_wrapper_subclass(cls, data_cls, base_cls):
         return 'Masked' + data_cls.__name__, (data_cls, base_cls)
 
-    @on_metaclass
+    @classmethod
     def _get_wrapped_subclass(cls, data_cls):
         """Get the masked wrapper for a given data class.
 
