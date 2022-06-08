@@ -5,16 +5,15 @@
 
 import weakref
 from abc import ABCMeta, abstractmethod
-from typing import Tuple, Type, Dict, Any, Optional, Union
+from typing import Tuple, Type, Dict, Any, Optional, TypeVar, Union
 
-# try:
-#     from typing import Self
-# except ImportError:
-#     try:
-#         from typing_extensions import Self
-#     except ImportError:
-#         Self = TypeVar("Self", bound="InheritanceInMixMeta")
-from typing_extensions import Self
+try:
+    from typing import Self
+except ImportError:
+    try:
+        from typing_extensions import Self
+    except ImportError:
+        Self = TypeVar("Self", bound="InheritanceInMixMeta")
 
 
 __all__ = []  # InheritanceInMixMeta is in development
