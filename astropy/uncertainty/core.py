@@ -42,7 +42,7 @@ class Distribution(metaclass=InheritanceInMixMeta):
     # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
 
     @classmethod
-    def _prepare_wrapper_subclass(cls, data_cls, base_cls):
+    def _inmix_prepare_bases(cls, data_cls, base_cls):
         # The `bases` of `type()` requires adding `_DistributionRepr` higher
         # in the MRO than `data_cls`. The problem is that array2string does not
         # allow one to override how structured arrays are typeset, leading to
@@ -54,8 +54,8 @@ class Distribution(metaclass=InheritanceInMixMeta):
         return name, bases
 
     @classmethod
-    def _get_wrapper_subclass_instance(cls, data, *args, **kwargs):
-        if isinstance(data, cls._wrapper_class_):
+    def _inmix_make_instance(cls, data, *args, **kwargs):
+        if isinstance(data, cls.__inmixbase__):
             data = data.distribution
         else:
             data = np.asanyarray(data, order='C')
@@ -65,15 +65,15 @@ class Distribution(metaclass=InheritanceInMixMeta):
 
         new_dtype = np.dtype({'names': ['samples'],
                              'formats': [(data.dtype, (data.shape[-1],))]})
-        distr_cls = cls._get_wrapped_subclass(data.__class__)
+        distr_cls = cls._inmix_make_class(data.__class__)
         self = data.view(dtype=new_dtype, type=distr_cls)
         # Get rid of trailing dimension of 1.
         self.shape = data.shape[:-1]
         return self
 
     @classmethod
-    def _make_wrapped__doc__(cls, data_cls):
-        return cls._wrapper_class_.__doc__
+    def _inmix_make__doc__(cls, data_cls):
+        return cls.__inmixbase__.__doc__
 
     # ---------------------------------------------------------------
 
@@ -309,7 +309,7 @@ class ArrayDistribution(Distribution, np.ndarray, base_cls=np.ndarray):
         result = super().__getitem__(item)
         if item == 'samples':
             # Here, we need to avoid our own redefinition of view.
-            return super(ArrayDistribution, result).view(self._wrapped_data_cls)
+            return super(ArrayDistribution, result).view(self.__intomixclass__)
         elif isinstance(result, np.void):
             return result.view((ScalarDistribution, result.dtype))
         else:
@@ -346,7 +346,3 @@ class _DistributionRepr:
 
 class NdarrayDistribution(_DistributionRepr, ArrayDistribution, data_cls=np.ndarray):
     pass
-
-
-# # Ensure our base NdarrayDistribution is known.
-# Distribution._wrapper_generated_subclasses[np.ndarray] = NdarrayDistribution
