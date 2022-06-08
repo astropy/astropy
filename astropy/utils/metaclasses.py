@@ -254,7 +254,7 @@ class InheritanceInMixMeta(ABCMeta):
 
         return wcls
 
-    def _inmix_prepare_bases(self, data_cls: type, base_cls: type) -> Tuple[str, Tuple[type, ...]]:
+    def _inmix_prepare_type(self, data_cls: type, base_cls: type) -> Tuple[str, Tuple[type, ...], Dict[str, Any]]:
         """Prepare a subclass of the wrapper class.
 
         Generally in the MRO the wrapper class is after the data class.
@@ -273,7 +273,7 @@ class InheritanceInMixMeta(ABCMeta):
         """
         name: str = data_cls.__name__ + self.__name__
         bases: Tuple[type, ...] = (data_cls, base_cls)
-        return name, bases
+        return name, bases, {}
 
     def _inmix_make__doc__(self, data_cls: type) -> Optional[str]:
         """
@@ -326,9 +326,9 @@ class InheritanceInMixMeta(ABCMeta):
             # Create (and therefore register) new wrapper subclass for the
             # given data_cls. Generally in the MRO the wrapper class is
             # inserted below the data class, but the specifics are controlled
-            # by `_inmix_prepare_bases`.
-            name, bases = self._inmix_prepare_bases(data_cls, base_cls)
-            inmixed = type(name, bases, {}, data_cls=data_cls)
+            # by `_inmix_prepare_type`.
+            name, bases, namespace = self._inmix_prepare_type(data_cls, base_cls)
+            inmixed = type(name, bases, namespace, data_cls=data_cls)
 
         return inmixed
 

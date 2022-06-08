@@ -77,8 +77,8 @@ class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
                 f"as for `{data_cls.__module__}.{data_cls.__name__}`.")
 
     @classmethod
-    def _inmix_prepare_bases(cls, data_cls, base_cls):
-        return 'Masked' + data_cls.__name__, (data_cls, base_cls)
+    def _inmix_prepare_type(cls, data_cls, base_cls):
+        return 'Masked' + data_cls.__name__, (data_cls, base_cls), {}
 
     @classmethod
     def _inmix_make_class(cls, data_cls):

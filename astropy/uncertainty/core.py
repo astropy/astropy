@@ -42,7 +42,7 @@ class Distribution(metaclass=InheritanceInMixMeta):
     # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
 
     @classmethod
-    def _inmix_prepare_bases(cls, data_cls, base_cls):
+    def _inmix_prepare_type(cls, data_cls, base_cls):
         # The `bases` of `type()` requires adding `_DistributionRepr` higher
         # in the MRO than `data_cls`. The problem is that array2string does not
         # allow one to override how structured arrays are typeset, leading to
@@ -51,7 +51,7 @@ class Distribution(metaclass=InheritanceInMixMeta):
         # and have ``bases=(data_cls, base_cls)``.
         name = data_cls.__name__ + cls.__name__
         bases = (_DistributionRepr, data_cls, base_cls)
-        return name, bases
+        return name, bases, {}
 
     @classmethod
     def _inmix_make_instance(cls, data, *args, **kwargs):
