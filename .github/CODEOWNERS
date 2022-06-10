@@ -1,0 +1,56 @@
+# Despite the name of this file, the people listed here DO NOT OWN the code in astropy subpackages,
+# the copyright is held by the project as a whole - see the license file for details.
+#
+# However, github currently (2022) does not offer a mechanism on their website to subscribe to
+# a fraction of newly open PRs in astropy. Either one chooses the "watch" the entire repository and
+# receives  a large number of emails or one needs to manually check is new PRs for a certain sub-package
+# exist. This file is a workaround for that problem.
+# All names listed here by sub-packages will be requested for review for any new PR
+# and thus get an email notification.
+
+
+# If you have maintainer permissions for astropy, you may add your github username to opt-in to automatic
+# review requests for specific sub-packages here:
+
+# astropy/constants
+# astropy/convolution
+# astropy/coordinates
+astropy/cosmology           @astropy/cosmology
+astropy/io/ascii            @taldcroft          @dhomeier
+astropy/io/fits             @saimn
+astropy/io/misc             @WilliamJamieson    @matteobachetti
+astropy/io/registry         @nstarman
+# astropy/io/votable
+astropy/modeling            @astropy/modeling
+# astropy/nddata
+# astropy/samp
+# astropy/stats
+astropy/table               @taldcroft
+astropy/time                @taldcroft
+# astropy/timeseries
+# astropy/uncertainty
+# astropy/units
+# astropy/utils
+astropy/visualization       @astrofrog          @Cadair
+# astropy/wcs
+astropy/wcs/wcsapi          @astrofrog          @Cadair
+
+# docs/constants
+# docs/convolution
+# docs/coordinates
+docs/cosmology              @astropy/cosmology
+docs/io/ascii               @taldcroft          @dhomeier
+docs/io/fits                @saimn
+# docs/io/votable
+docs/modeling               @astropy/modeling
+# docs/nddata
+# docs/samp
+# docs/stats
+docs/table                  @taldcroft
+docs/time                   @taldcroft
+# docs/timeseries
+# docs/uncertainty
+# docs/units
+# docs/utils
+docs/visualization          @astrofrog          @Cadair
+# docs/wcs
