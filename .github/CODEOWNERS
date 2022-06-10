@@ -1,16 +1,17 @@
 # Despite the name of this file, the people listed here DO NOT OWN the code in astropy subpackages,
-# the copyright is held by the project as a whole - see the license file for details.
+# the copyright is held by the Astropy Project as a whole - see the license file for details.
 #
-# However, github currently (2022) does not offer a mechanism on their website to subscribe to
-# a fraction of newly open PRs in astropy. Either one chooses the "watch" the entire repository and
-# receives  a large number of emails or one needs to manually check is new PRs for a certain sub-package
-# exist. This file is a workaround for that problem.
-# All names listed here by sub-packages will be requested for review for any new PR
-# and thus get an email notification.
-
-
-# If you have maintainer permissions for astropy, you may add your github username to opt-in to automatic
-# review requests for specific sub-packages here:
+# This file exists because as of 2022, GitHub does not offer a mechanism to subscribe to only
+# a fraction of new PRs in astropy. Either one chooses to "watch" the entire repository and
+# receives a large number of notifications or one needs to manually check for new PRs for
+# sub-package(s) of interest.
+#
+# All names listed here by sub-packages will be requested to review any new PR
+# and thus get notified. Only people with maintainer-level permission can be added as
+# PR reviewers.
+#
+# Instructions for core maintainers -- Add your GitHub username to opt-in to automatic
+# review requests for specific sub-packages below:
 
 # astropy/constants
 # astropy/convolution
