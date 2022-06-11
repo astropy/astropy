@@ -24,7 +24,10 @@ from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
-TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
+
+# We cannot use matplotlib.checkdep_usetex() anymore, see
+# https://github.com/matplotlib/matplotlib/issues/23244
+TEX_UNAVAILABLE = True
 
 MATPLOTLIB_DEV = Version(matplotlib.__version__).is_devrelease
 
