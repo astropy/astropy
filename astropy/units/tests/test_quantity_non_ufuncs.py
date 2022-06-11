@@ -461,6 +461,10 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
+        if not NUMPY_LT_1_20:
+            # dtype argument only introduced in numpy 1.20
+            # regression test for gh-13322.
+            self.check(np.concatenate, dtype='f4')
 
         self.check(np.concatenate, q_list=[np.zeros(self.q1.shape), self.q1, self.q2],
                    q_ref=self.q1)
