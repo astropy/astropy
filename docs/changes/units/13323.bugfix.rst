@@ -1,0 +1,1 @@
+Ensure that ``np.concatenate`` on quantities can take a ``dtype`` argument (added in numpy 1.20).

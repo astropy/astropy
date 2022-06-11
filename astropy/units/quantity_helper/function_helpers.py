@@ -377,10 +377,10 @@ def _iterable_helper(*args, out=None, **kwargs):
 
 
 @function_helper
-def concatenate(arrays, axis=0, out=None):
+def concatenate(arrays, axis=0, out=None, **kwargs):
     # TODO: make this smarter by creating an appropriately shaped
     # empty output array and just filling it.
-    arrays, kwargs, unit, out = _iterable_helper(*arrays, out=out, axis=axis)
+    arrays, kwargs, unit, out = _iterable_helper(*arrays, out=out, axis=axis, **kwargs)
     return (arrays,), kwargs, unit, out
 
 
