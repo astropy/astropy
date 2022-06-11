@@ -472,6 +472,9 @@ class TestConcatenate(MaskedArraySetup):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
         self.check(np.concatenate, ma_list=[self.a, self.ma])
+        if not NUMPY_LT_1_20:
+            # Check that we can accept a dtype argument (introduced in numpy 1.20)
+            self.check(np.concatenate, dtype='f4')
 
         out = Masked(np.empty((4, 3)))
         result = np.concatenate([self.ma, self.ma], out=out)
