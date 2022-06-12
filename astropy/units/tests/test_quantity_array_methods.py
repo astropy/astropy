@@ -233,6 +233,12 @@ class TestQuantityStatsFuncs:
         q1 = np.array([6., 2., 4., 5., 6.]) * u.m
         assert np.argmin(q1) == 1
 
+    @pytest.mark.skipif(NUMPY_LT_1_22,
+                        reason='keepdims only introduced in numpy 1.22')
+    def test_argmin_keepdims(self):
+        q1 = np.array([[6., 2.], [4., 5.]]) * u.m
+        assert_array_equal(q1.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
+
     def test_max(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.max(q1) == 6. * u.m
@@ -250,6 +256,12 @@ class TestQuantityStatsFuncs:
     def test_argmax(self):
         q1 = np.array([5., 2., 4., 5., 6.]) * u.m
         assert np.argmax(q1) == 4
+
+    @pytest.mark.skipif(NUMPY_LT_1_22,
+                        reason='keepdims only introduced in numpy 1.22')
+    def test_argmax_keepdims(self):
+        q1 = np.array([[6., 2.], [4., 5.]]) * u.m
+        assert_array_equal(q1.argmax(axis=0, keepdims=True), np.array([[0, 1]]))
 
     def test_clip(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
