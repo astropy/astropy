@@ -311,10 +311,26 @@ class TestQuantityStatsFuncs:
     def test_sum_where(self):
 
         q1 = np.array([1., 2., 6., 7.]) * u.m
-        initial = 0 * u.m
         where = q1 < 7 * u.m
-        assert np.all(q1.sum(initial=initial, where=where) == 9. * u.m)
-        assert np.all(np.sum(q1, initial=initial, where=where) == 9. * u.m)
+        assert np.all(q1.sum(where=where) == 9. * u.m)
+        assert np.all(np.sum(q1, where=where) == 9. * u.m)
+
+    @pytest.mark.parametrize('initial', [0, 0*u.m, 1*u.km])
+    def test_sum_initial(self, initial):
+        q1 = np.array([1., 2., 6., 7.]) * u.m
+        expected = 16*u.m + initial
+        assert q1.sum(initial=initial) == expected
+        assert np.sum(q1, initial=initial) == expected
+
+    def test_sum_dimensionless_initial(self):
+        q1 = np.array([1., 2., 6., 7.]) * u.one
+        assert q1.sum(initial=1000) == 1016*u.one
+
+    @pytest.mark.parametrize('initial', [10, 1*u.s])
+    def test_sum_initial_exception(self, initial):
+        q1 = np.array([1., 2., 6., 7.]) * u.m
+        with pytest.raises(u.UnitsError):
+            q1.sum(initial=initial)
 
     def test_cumsum(self):
 
