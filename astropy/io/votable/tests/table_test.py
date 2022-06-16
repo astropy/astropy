@@ -4,6 +4,7 @@ Test the conversion to/from astropy.table
 """
 import io
 import os
+import warnings
 
 import pathlib
 import pytest
@@ -23,7 +24,11 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 def test_table(tmpdir):
     # Read the VOTABLE
-    votable = parse(get_pkg_data_filename('data/regression.xml'))
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/13341
+        warnings.filterwarnings(
+            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
+        votable = parse(get_pkg_data_filename('data/regression.xml'))
     table = votable.get_first_table()
     astropy_table = table.to_table()
 
@@ -76,8 +81,12 @@ def test_table(tmpdir):
 
 
 def test_read_through_table_interface(tmpdir):
-    with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
-        t = Table.read(fd, format='votable', table_id='main_table')
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/13341
+        warnings.filterwarnings(
+            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
+        with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
+            t = Table.read(fd, format='votable', table_id='main_table')
 
     assert len(t) == 5
 
@@ -97,8 +106,12 @@ def test_read_through_table_interface(tmpdir):
 
 
 def test_read_through_table_interface2():
-    with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
-        t = Table.read(fd, format='votable', table_id='last_table')
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/13341
+        warnings.filterwarnings(
+            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
+        with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
+            t = Table.read(fd, format='votable', table_id='last_table')
 
     assert len(t) == 0
 
