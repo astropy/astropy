@@ -1,5 +1,7 @@
 import os
 import re
+import warnings
+
 import pytest
 
 from astropy.table.scripts import showtable
@@ -102,8 +104,12 @@ def test_ascii_delimiter(capsys):
 
 
 def test_votable(capsys):
-    showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
-                    '--table-id', 'main_table', '--max-width', '50'])
+    with warnings.catch_warnings():
+        # https://github.com/astropy/astropy/issues/13341
+        warnings.filterwarnings(
+            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
+        showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
+                        '--table-id', 'main_table', '--max-width', '50'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         '   string_test    string_test_2 ...   bitarray2  ',
