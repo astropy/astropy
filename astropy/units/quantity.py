@@ -608,6 +608,15 @@ class Quantity(np.ndarray):
             # Ensure output argument remains a tuple.
             kwargs['out'] = (out_array,) if function.nout == 1 else out_array
 
+        if method == 'reduce' and 'initial' in kwargs and unit is not None:
+            # Special-case for initial argument for reductions like
+            # np.add.reduce.  This should be converted to the output unit as
+            # well, which is typically the same as the input unit (but can
+            # in principle be different: unitless for np.equal, radian
+            # for np.arctan2, though those are not necessarily useful!)
+            kwargs['initial'] = self._to_own_unit(kwargs['initial'],
+                                                  check_precision=False, unit=unit)
+
         # Same for inputs, but here also convert if necessary.
         arrays = []
         for input_, converter in zip(inputs, converters):
@@ -1516,9 +1525,32 @@ class Quantity(np.ndarray):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
                                   "list of values with q.value.tolist()")
 
-    def _to_own_unit(self, value, check_precision=True):
+    def _to_own_unit(self, value, check_precision=True, *, unit=None):
+        """Convert value to one's own unit (or that given).
+
+        Here, non-quantities are treated as dimensionless, and care is taken
+        for values of 0, infinity or nan, which are allowed to have any unit.
+
+        Parameters
+        ----------
+        value : anything convertible to `~astropy.units.Quantity`
+            The value to be converted to the requested unit.
+        check_precision : bool
+            Whether to forbit conversion of float to integer if that changes
+            the input number.  Default: `True`.
+        unit : `~astropy.units.Unit` or None
+            The unit to convert to.  By default, the unit of ``self``.
+
+        Returns
+        -------
+        value : number or `~numpy.ndarray`
+            In the requested units.
+
+        """
+        if unit is None:
+            unit = self.unit
         try:
-            _value = value.to_value(self.unit)
+            _value = value.to_value(unit)
         except AttributeError:
             # We're not a Quantity.
             # First remove two special cases (with a fast test):
@@ -1534,7 +1566,7 @@ class Quantity(np.ndarray):
             # but anything with a unit attribute will use that.
             try:
                 as_quantity = Quantity(value)
-                _value = as_quantity.to_value(self.unit)
+                _value = as_quantity.to_value(unit)
             except UnitsError:
                 # last chance: if this was not something with a unit
                 # and is all 0, inf, or nan, we treat it as arbitrary unit.
@@ -1862,7 +1894,11 @@ class Quantity(np.ndarray):
             return self._wrap_function(np.nansum, axis,
                                        out=out, keepdims=keepdims)
     else:
+        # TODO: deprecate this method? It is not on ndarray, and we do not
+        # support nanmean, etc., so why this one?
         def nansum(self, axis=None, out=None, keepdims=False, *, initial=None, where=True):
+            if initial is not None:
+                initial = self._to_own_unit(initial)
             return self._wrap_function(np.nansum, axis,
                                        out=out, keepdims=keepdims, initial=initial, where=where)
 
