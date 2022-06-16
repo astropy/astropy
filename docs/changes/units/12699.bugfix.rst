@@ -1,0 +1,3 @@
+Significantly improved the performance of parsing composite units with the FITS
+format, by ensuring the ``detailed_exception`` argument is properly passed on
+and thus used.
