@@ -408,7 +408,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Determine the non-flat class.
         # This will raise a TypeError if the MRO is inconsistent.
-        cls._nonflat_cls_
+        cls.__nonflatclass__
 
     # ===============================================================
 
@@ -456,8 +456,8 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         return nonflat.pop()
 
-    _nonflat_cls_ = classproperty(_get_nonflat_cls, lazy=True,
-                                  doc="Return the corresponding non-flat class.")
+    __nonflatclass__ = classproperty(_get_nonflat_cls, lazy=True,
+                                     doc="Return the corresponding non-flat class.")
 
     # ===============================================================
 
@@ -551,7 +551,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         # check if `other` is the non-flat version of this class this makes the
         # assumption that any further subclass of a flat cosmo keeps the same
         # physics.
-        if not issubclass(other.__class__, self._nonflat_cls_):
+        if not issubclass(other.__class__, self.__nonflatclass__):
             return NotImplemented
 
         # Check if have equivalent parameters and all parameters in `other`
