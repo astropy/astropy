@@ -1,6 +1,8 @@
 import os
 import re
 
+import numpy as np
+
 from astropy.table.scripts import showtable
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -96,8 +98,10 @@ def test_ascii_delimiter(capsys):
 
 
 def test_votable(capsys):
-    showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
-                    '--table-id', 'main_table', '--max-width', '50'])
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        showtable.main([os.path.join(VOTABLE_ROOT, 'data/regression.xml'),
+                        '--table-id', 'main_table', '--max-width', '50'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         '   string_test    string_test_2 ... bitarray2 [16]',
