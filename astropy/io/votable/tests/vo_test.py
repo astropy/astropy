@@ -10,7 +10,6 @@ import io
 import pathlib
 import sys
 import gzip
-import warnings
 from unittest import mock
 
 # THIRD-PARTY
@@ -45,20 +44,16 @@ def assert_validate_schema(filename, version):
 
 
 def test_parse_single_table():
-    with warnings.catch_warnings():
+    with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
-        warnings.filterwarnings(
-            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
         table = parse_single_table(get_pkg_data_filename('data/regression.xml'))
     assert isinstance(table, tree.Table)
     assert len(table.array) == 5
 
 
 def test_parse_single_table2():
-    with warnings.catch_warnings():
+    with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
-        warnings.filterwarnings(
-            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
         table2 = parse_single_table(get_pkg_data_filename('data/regression.xml'),
                                     table_number=1)
     assert isinstance(table2, tree.Table)
@@ -198,10 +193,8 @@ def test_regression_binary2(tmpdir):
 
 class TestFixups:
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             self.table = parse(
                 get_pkg_data_filename('data/regression.xml')).get_first_table()
         self.array = self.table.array
@@ -214,10 +207,8 @@ class TestFixups:
 
 class TestReferences:
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             self.votable = parse(get_pkg_data_filename('data/regression.xml'))
         self.table = self.votable.get_first_table()
         self.array = self.table.array
@@ -282,10 +273,8 @@ def test_select_columns_by_name():
 
 class TestParse:
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             self.votable = parse(get_pkg_data_filename('data/regression.xml'))
         self.table = self.votable.get_first_table()
         self.array = self.table.array
@@ -615,10 +604,8 @@ class TestParse:
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             votable = parse(get_pkg_data_filename('data/regression.xml'))
 
         self.xmlout = bio = io.BytesIO()
@@ -652,10 +639,8 @@ class TestThroughTableData(TestParse):
 
 class TestThroughBinary(TestParse):
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             votable = parse(get_pkg_data_filename('data/regression.xml'))
         votable.get_first_table().format = 'binary'
 
@@ -685,10 +670,8 @@ class TestThroughBinary(TestParse):
 
 class TestThroughBinary2(TestParse):
     def setup_class(self):
-        with warnings.catch_warnings():
+        with np.errstate(over="ignore"):
             # https://github.com/astropy/astropy/issues/13341
-            warnings.filterwarnings(
-                'ignore', message='overflow encountered in cast', category=RuntimeWarning)
             votable = parse(get_pkg_data_filename('data/regression.xml'))
         votable.version = '1.3'
         votable.get_first_table()._config['version_1_3_or_later'] = True
@@ -743,16 +726,14 @@ def table_from_scratch():
     votable.to_xml(out)
 
 
+# https://github.com/astropy/astropy/issues/13341
+@np.errstate(over="ignore")
 def test_open_files():
-    with warnings.catch_warnings():
-        # https://github.com/astropy/astropy/issues/13341
-        warnings.filterwarnings(
-            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
-        for filename in get_pkg_data_filenames('data', pattern='*.xml'):
-            if (filename.endswith('custom_datatype.xml') or
-                    filename.endswith('timesys_errors.xml')):
-                continue
-            parse(filename)
+    for filename in get_pkg_data_filenames('data', pattern='*.xml'):
+        if (filename.endswith('custom_datatype.xml') or
+                filename.endswith('timesys_errors.xml')):
+            continue
+        parse(filename)
 
 
 def test_too_many_columns():
@@ -858,10 +839,8 @@ def test_validate_path_object():
 
 
 def test_gzip_filehandles(tmpdir):
-    with warnings.catch_warnings():
+    with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
-        warnings.filterwarnings(
-            'ignore', message='overflow encountered in cast', category=RuntimeWarning)
         votable = parse(get_pkg_data_filename('data/regression.xml'))
 
     # W39: Bit values can not be masked
