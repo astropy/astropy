@@ -1180,7 +1180,10 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                 dldir = _get_download_cache_loc(pkgname)
                 check_free_space_in_dir(dldir, size)
 
-        if show_progress and sys.stdout.isatty():
+        # If a user has overridden sys.stdout it might not have the
+        # isatty method, in that case assume it's not a tty
+        is_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+        if show_progress and is_tty:
             progress_stream = sys.stdout
         else:
             progress_stream = io.StringIO()
