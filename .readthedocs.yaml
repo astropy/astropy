@@ -6,6 +6,9 @@ build:
     - graphviz
   tools:
     python: "3.9"
+  jobs:
+    post_install:
+      - pip install -U git+https://github.com/ayshih/sphinx@svg_urls_3.5.4
 
 sphinx:
   builder: html
