@@ -1287,7 +1287,7 @@ def test_int_out_of_order(guess):
     shows up first, it will produce a string column - with both readers.
     Broken with the parallel fast_reader.
     """
-    imax = np.iinfo(int).max - 1
+    imax = np.iinfo(np.int64).max - 1
     text = f'A B\n 12.3 {imax:d}0\n {imax:d}0 45.6e7'
     expected = Table([[12.3, 10. * imax], [f'{imax:d}0', '45.6e7']],
                      names=('A', 'B'))

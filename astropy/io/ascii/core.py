@@ -1092,13 +1092,18 @@ class BaseOutputter:
                     col.converters.pop(0)
                     last_err = err
                 except OverflowError as err:
-                    # Overflow during conversion (most likely an int that
-                    # doesn't fit in native C long). Put string at the top of
-                    # the converters list for the next while iteration.
-                    warnings.warn(
-                        "OverflowError converting to {} in column {}, reverting to String."
-                        .format(converter_type.__name__, col.name), AstropyWarning)
-                    col.converters.insert(0, convert_numpy(numpy.str))
+                        # Overflow during conversion (most likely an int that
+                        # doesn't fit in native C long).
+                    if converter_type == IntType and not isinstance(last_err, OverflowError):
+                        # First attempt: use an int64, which may help on 32-bit platforms
+                        col.converters[0] = convert_numpy(numpy.int64)
+                    else:
+                        # Last resort: Put string at the top of the
+                        # converters list for the next while iteration.
+                        warnings.warn(
+                            "OverflowError converting to {} in column {}, reverting to String."
+                            .format(converter_type.__name__, col.name), AstropyWarning)
+                        col.converters[0] = convert_numpy(numpy.str)
                     last_err = err
 
 
