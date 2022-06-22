@@ -42,6 +42,13 @@ jobs:
             python: 3.8
             toxenv: pyinstaller
 
+          - name: Python 3.10 with all optional dependencies and pre-releases
+            os: ubuntu-latest
+            python: '3.10'
+            toxenv: py310-test-alldeps-predeps
+            toxargs: -v
+            toxposargs: --remote-data=any
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
