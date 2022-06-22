@@ -81,15 +81,23 @@ def test_time_with_location_1_0_0(tmpdir):
 
 
 def test_isot(tmpdir):
+    isot = time.Time('2000-01-01T00:00:00.000')
+
     tree = {
-        'time': time.Time('2000-01-01T00:00:00.000')
+        'time': isot
     }
 
     helpers.assert_roundtrip_tree(tree, tmpdir)
 
     ff = asdf.AsdfFile(tree)
     tree = yamlutil.custom_tree_to_tagged_tree(ff.tree, ff)
-    assert isinstance(tree['time'], str)
+    if isinstance(tree['time'], str):
+        assert str(tree['time']) == isot.value
+    elif isinstance(tree['time'], dict):
+        assert str(tree['time']['value']) == isot.value
+        assert str(tree['time']['base_format']) == "isot"
+    else:
+        assert False
 
 
 def test_isot_array(tmpdir):
