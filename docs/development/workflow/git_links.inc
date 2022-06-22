@@ -25,7 +25,6 @@
 .. _git ready: http://gitready.com/
 .. _git casts: https://services.github.com/
 .. _Fernando's git page: http://www.fperez.org/py4science/git.html
-.. _git magic: http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html
 .. _git concepts: https://www.sbf5.com/~cduan/technical/git/
 .. _git clone: http://schacon.github.io/git/git-clone.html
 .. _git checkout: http://schacon.github.io/git/git-checkout.html
