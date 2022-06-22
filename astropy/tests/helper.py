@@ -414,7 +414,13 @@ def generic_recursive_equality_test(a, b, class_history):
     for key in dict_a:
         assert key in dict_b,\
           f"Did not pickle {key}"
-        if hasattr(dict_a[key], '__eq__'):
+
+        if dict_a[key].__class__.__eq__ is not object.__eq__:
+            # Only compare if the class defines a proper equality test.
+            # E.g., info does not define __eq__, and hence defers to
+            # object.__eq__, which is equivalent to checking that two
+            # instances are the same.  This will generally not be true
+            # after pickling.
             eq = (dict_a[key] == dict_b[key])
             if '__iter__' in dir(eq):
                 eq = (False not in eq)
