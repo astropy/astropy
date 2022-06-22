@@ -304,7 +304,7 @@ class LombScargle(BasePeriodogram):
                            assume_regular_frequency=True)
         return frequency, power
 
-    def power(self, frequency, normalization=None, method='auto',
+    def power(self, frequency, Df=None, normalization=None, method='auto',
               assume_regular_frequency=False, method_kwds=None):
         """Compute the Lomb-Scargle power at the given frequencies.
 
@@ -314,6 +314,9 @@ class LombScargle(BasePeriodogram):
             frequencies (not angular frequencies) at which to evaluate the
             periodogram. Note that in order to use method='fast', frequencies
             must be regularly-spaced.
+        Df : float or array-like, optional
+             shift of each frequency (not angular frequencies) associated with 
+             times t
         method : str, optional
             specify the lomb scargle implementation to use. Options are:
 
@@ -358,6 +361,7 @@ class LombScargle(BasePeriodogram):
         frequency = self._validate_frequency(frequency)
         power = lombscargle(*strip_units(self._trel, self.y, self.dy),
                             frequency=strip_units(frequency),
+                            Df=Df,
                             center_data=self.center_data,
                             fit_mean=self.fit_mean,
                             nterms=self.nterms,

@@ -10,6 +10,7 @@ __all__ = ['lombscargle', 'available_methods']
 import numpy as np
 
 from .slow_impl import lombscargle_slow
+from .slow_Df_impl import lombscargle_slow_Df
 from .fast_impl import lombscargle_fast
 from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
@@ -18,6 +19,7 @@ from .cython_impl import lombscargle_cython
 
 
 METHODS = {'slow': lombscargle_slow,
+           'slow_Df': lombscargle_slow_Df,
            'fast': lombscargle_fast,
            'chi2': lombscargle_chi2,
            'scipy': lombscargle_scipy,
@@ -26,7 +28,7 @@ METHODS = {'slow': lombscargle_slow,
 
 
 def available_methods():
-    methods = ['auto', 'slow', 'chi2', 'cython', 'fast', 'fastchi2']
+    methods = ['auto', 'slow', 'slow_Df', 'chi2', 'cython', 'fast', 'fastchi2']
 
     # Scipy required for scipy algorithm (obviously)
     try:
@@ -110,6 +112,7 @@ def validate_method(method, dy, fit_mean, nterms,
 
 def lombscargle(t, y, dy=None,
                 frequency=None,
+                Df=None,
                 method='auto',
                 assume_regular_frequency=False,
                 normalization='standard',
@@ -126,6 +129,9 @@ def lombscargle(t, y, dy=None,
         sequence of observations associated with times t
     dy : float or array-like, optional
         error or sequence of observational errors associated with times t
+    Df : float or array-like, optional
+        shift of each frequency (not angular frequencies) associated with 
+        times t
     frequency : array-like
         frequencies (not angular frequencies) at which to evaluate the
         periodogram. If not specified, optimal frequencies will be chosen using
@@ -140,6 +146,8 @@ def lombscargle(t, y, dy=None,
           evenly-spaced frequencies: by default this will be checked unless
           ``assume_regular_frequency`` is set to True.
         - `slow`: use the O[N^2] pure-python implementation
+        - `slow_Df`: use the O[N^2] pure-python implementation, with Df
+          modification
         - `chi2`: use the O[N^2] chi2/linear-fitting implementation
         - `fastchi2`: use the O[N log N] chi2 implementation. Note that this
           requires evenly-spaced frequencies: by default this will be checked
@@ -212,6 +220,9 @@ def lombscargle(t, y, dy=None,
         if kwds.pop('nterms') != 1:
             raise ValueError("nterms != 1 only supported with 'chi2' "
                              "or 'fastchi2' methods")
+    # only Df methods require Df kwd
+    if 'Df' in method:
+        kwds.update(Df=Df)
 
     PLS = METHODS[method](*args, **kwds)
     return PLS.reshape(output_shape)
