@@ -521,7 +521,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # Do some basic validation of the list elements: all have a length and all
             # lengths the same
             try:
-                n_coords = sorted(set(len(x) for x in vals))
+                n_coords = sorted({len(x) for x in vals})
             except Exception as err:
                 raise ValueError('One or more elements of input sequence '
                                  'does not have a length.') from err

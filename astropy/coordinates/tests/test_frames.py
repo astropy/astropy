@@ -114,7 +114,7 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.obstime.value == 'B1980.000'
     assert mfk4.newattr == 'newattr'
 
-    assert set(mfk4.get_frame_attr_names()) == set(['equinox', 'obstime', 'newattr'])
+    assert set(mfk4.get_frame_attr_names()) == {'equinox', 'obstime', 'newattr'}
 
     mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')
     assert mfk4.equinox.value == 'J1980.000'

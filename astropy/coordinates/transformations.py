@@ -511,8 +511,8 @@ class TransformGraph:
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(f, [k for k, v in self._cached_names.items() if v == f])
-                              for f in self.frame_set])
+        invclsaliases = {f: [k for k, v in self._cached_names.items() if v == f]
+                         for f in self.frame_set}
         for n in nodes:
             if n in invclsaliases:
                 aliases = '`\\n`'.join(invclsaliases[n])
@@ -1163,8 +1163,8 @@ class BaseAffineTransform(CoordinateTransform):
         # Convert the representation and differentials to cartesian without
         # having them attached to a frame
         rep = data.to_cartesian()
-        diffs = dict([(k, diff.represent_as(CartesianDifferential, data))
-                      for k, diff in data.differentials.items()])
+        diffs = {k: diff.represent_as(CartesianDifferential, data)
+                 for k, diff in data.differentials.items()}
         rep = rep.with_differentials(diffs)
 
         # Only do transform if matrix is specified. This is for speed in
@@ -1204,8 +1204,7 @@ class BaseAffineTransform(CoordinateTransform):
                 _unit_cls = fromcoord.data.differentials['s']._unit_differential
                 newdiff = newdiff.represent_as(_unit_cls, newrep)
 
-                kwargs = dict([(comp, getattr(newdiff, comp))
-                               for comp in newdiff.components])
+                kwargs = {comp: getattr(newdiff, comp) for comp in newdiff.components}
                 kwargs['d_distance'] = fromcoord.data.differentials['s'].d_distance
                 diffs = {'s': fromcoord.data.differentials['s'].__class__(
                     copy=False, **kwargs)}
