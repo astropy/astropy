@@ -1,4 +1,3 @@
-# This Python file uses the following encoding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
@@ -564,7 +563,7 @@ def test_pprint_py3_bytes():
     is printed correctly (without the "b" prefix like b'string').
     """
     val = bytes('val', encoding='utf-8')
-    blah = 'bläh'.encode('utf-8')
+    blah = 'bläh'.encode()
     dat = np.array([val, blah], dtype=[('col', 'S10')])
     t = table.Table(dat)
     assert t['col'].pformat() == ['col ', '----', ' val', 'bläh']

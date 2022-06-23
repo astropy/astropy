@@ -553,7 +553,7 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
 
-    n_rows = set(len(table) for table in tables)
+    n_rows = {len(table) for table in tables}
     if len(n_rows) != 1:
         raise ValueError('Table lengths must all match for dstack')
     n_row = n_rows.pop()
@@ -946,7 +946,7 @@ def get_descrs(arrays, col_name_map):
                                   .format(names[0], tme._incompat_types)) from tme
 
         # Make sure all input shapes are the same
-        uniq_shapes = set(col.shape[1:] for col in in_cols)
+        uniq_shapes = {col.shape[1:] for col in in_cols}
         if len(uniq_shapes) != 1:
             raise TableMergeError(f'Key columns {names!r} have different shape')
         shape = uniq_shapes.pop()
