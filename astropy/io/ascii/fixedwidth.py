@@ -132,7 +132,7 @@ class FixedWidthHeader(basic.BasicHeader):
                 # slice col_ends but expects inclusive col_ends on input (for
                 # more intuitive user interface).
                 line = self.get_line(lines, position_line)
-                if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
+                if len(set(line) - {self.splitter.delimiter, ' '}) != 1:
                     raise InconsistentTableError(
                         'Position line should only contain delimiters and '
                         'one other character, e.g. "--- ------- ---".')
@@ -142,7 +142,7 @@ class FixedWidthHeader(basic.BasicHeader):
                     # spaces are so common everywhere that practicality beats
                     # purity here.
                 charset = self.set_of_position_line_characters.union(
-                    set([self.splitter.delimiter, ' ']))
+                    {self.splitter.delimiter, ' '})
                 if not set(line).issubset(charset):
                     raise InconsistentTableError(
                         f'Characters in position line must be part of {charset}')
@@ -245,7 +245,7 @@ class FixedWidthData(basic.BasicData):
             vals_list.append(vals)
 
         for i, col in enumerate(self.cols):
-            col.width = max([len(vals[i]) for vals in vals_list])
+            col.width = max(len(vals[i]) for vals in vals_list)
             if self.header.start_line is not None:
                 col.width = max(col.width, len(col.info.name))
 

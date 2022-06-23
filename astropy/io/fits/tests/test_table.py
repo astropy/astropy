@@ -978,8 +978,8 @@ class TestTableFunctions(FitsTestCase):
         """
 
         dtype = [
-            (str('x'), (str, 5)),        # 1D column of 5-character strings
-            (str('y'), (str, 3), (4,)),  # 2D column; each row is four 3-char strings
+            ('x', (str, 5)),        # 1D column of 5-character strings
+            ('y', (str, 3), (4,)),  # 2D column; each row is four 3-char strings
         ]
         data = np.zeros(2, dtype=dtype)
         data['x'] = ['abcde', 'xyz']

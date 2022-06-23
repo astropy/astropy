@@ -86,7 +86,7 @@ class DaophotHeader(core.BaseHeader):
         self.col_widths = col_widths
 
         # merge the multi-line header data into single line data
-        coldef_dict = dict((k, sum(v, [])) for (k, v) in coldef_dict.items())
+        coldef_dict = {k: sum(v, []) for (k, v) in coldef_dict.items()}
 
         return coldef_dict
 

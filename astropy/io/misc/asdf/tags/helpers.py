@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 from astropy.coordinates.tests.helper import skycoord_equal as _skycoord_equal
 from astropy.utils.decorators import deprecated
 

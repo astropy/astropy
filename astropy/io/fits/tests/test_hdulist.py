@@ -604,7 +604,7 @@ class TestHDUListFunctions(FitsTestCase):
         padding_len = 2880 - padding_start
         with open(self.temp('temp.fits'), 'r+b') as f:
             f.seek(padding_start)
-            f.write('\0'.encode('ascii') * padding_len)
+            f.write(b'\0' * padding_len)
 
         with pytest.warns(AstropyUserWarning, match='contains null bytes instead of spaces') as w:
             with fits.open(self.temp('temp.fits')) as hdul:

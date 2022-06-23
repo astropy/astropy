@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 from astropy.units.equivalencies import Equivalency
 from astropy.units import equivalencies
 from astropy.io.misc.asdf.types import AstropyType

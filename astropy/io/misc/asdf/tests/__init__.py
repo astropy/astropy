@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 
 # Define a constant to know if the entry points are installed, since this impacts
 # whether we can run the tests.

@@ -13,6 +13,7 @@ import math
 import warnings
 import numpy as np
 from io import StringIO
+from math import floor, ceil
 
 from . import core
 from . import fixedwidth, cds
@@ -237,7 +238,7 @@ class MrtHeader(cds.CdsHeader):
             vals_list.append(vals)
 
         for i, col in enumerate(self.cols):
-            col.width = max([len(vals[i]) for vals in vals_list])
+            col.width = max(len(vals[i]) for vals in vals_list)
             if self.start_line is not None:
                 col.width = max(col.width, len(col.info.name))
         widths = [col.width for col in self.cols]
@@ -268,7 +269,7 @@ class MrtHeader(cds.CdsHeader):
             col.has_null = isinstance(col, MaskedColumn)
 
             if col.format is not None:
-                col.formatted_width = max([len(sval) for sval in col.str_vals])
+                col.formatted_width = max(len(sval) for sval in col.str_vals)
 
             # Set MRTColumn type, size and format.
             if np.issubdtype(col.dtype, np.integer):
@@ -340,15 +341,14 @@ class MrtHeader(cds.CdsHeader):
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
                         if col.min == col.max:
-                            lim_vals = "[{0}]".format(col.min)
+                            lim_vals = f"[{col.min}]"
                         else:
-                            lim_vals = "[{0}/{1}]".format(col.min, col.max)
+                            lim_vals = f"[{col.min}/{col.max}]"
                 elif col.fortran_format[0] in ('E', 'F'):
-                    lim_vals = "[{0}/{1}]".format(math.floor(col.min * 100) / 100.,
-                                                  math.ceil(col.max * 100) / 100.)
+                    lim_vals = f"[{floor(col.min * 100) / 100.}/{ceil(col.max * 100) / 100.}]"
 
             if lim_vals != '' or nullflag != '':
-                description = "{0}{1} {2}".format(lim_vals, nullflag, description)
+                description = f"{lim_vals}{nullflag} {description}"
 
             # Find the maximum label and description column widths.
             if len(col.name) > max_label_width:
