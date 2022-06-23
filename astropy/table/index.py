@@ -234,7 +234,7 @@ class Index:
             Whether to reorder indices after removal
         '''
         # for removal, form a key consisting of column values in this row
-        if not self.data.remove(tuple([col[row] for col in self.columns]), row):
+        if not self.data.remove(tuple(col[row] for col in self.columns), row):
             raise ValueError(f"Could not remove row {row} from index")
         # decrement the row number of all later rows
         if reorder:
@@ -337,7 +337,7 @@ class Index:
         col_slice : list
             Indices to slice
         '''
-        row_map = dict((row, i) for i, row in enumerate(col_slice))
+        row_map = {row: i for i, row in enumerate(col_slice)}
         self.data.replace_rows(row_map)
 
     def sort(self):
@@ -633,7 +633,7 @@ def get_index(table, table_copy=None, names=None):
 
     for name in names:
         for index in table[name].info.indices:
-            if set([col.info.name for col in index.columns]) == names:
+            if {col.info.name for col in index.columns} == names:
                 return index
 
     return None

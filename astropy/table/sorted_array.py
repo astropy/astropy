@@ -179,14 +179,14 @@ class SortedArray:
         if lower_pos == len(self.row_index):
             return []
 
-        lower_bound = tuple([col[lower_pos] for col in self.cols])
+        lower_bound = tuple(col[lower_pos] for col in self.cols)
         if not bounds[0] and lower_bound == lower:
             lower_pos += 1  # data[lower_pos] > lower
 
         # data[lower_pos] >= lower
         # data[upper_pos] >= upper
         if upper_pos < len(self.row_index):
-            upper_bound = tuple([col[upper_pos] for col in self.cols])
+            upper_bound = tuple(col[upper_pos] for col in self.cols)
             if not bounds[1] and upper_bound == upper:
                 upper_pos -= 1  # data[upper_pos] < upper
             elif upper_bound > upper:
