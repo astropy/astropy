@@ -111,20 +111,20 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     attrs1 = {'equinox': equinox1, 'obstime': obstime1}
 
     # Remove None values
-    attrs0 = dict((k, v) for k, v in attrs0.items() if v is not None)
-    attrs1 = dict((k, v) for k, v in attrs1.items() if v is not None)
+    attrs0 = {k: v for k, v in attrs0.items() if v is not None}
+    attrs1 = {k: v for k, v in attrs1.items() if v is not None}
 
     # Go out and back
     sc = SkyCoord(RA, DEC, frame=frame0, **attrs0)
 
     # Keep only frame attributes for frame1
-    attrs1 = dict((attr, val) for attr, val in attrs1.items()
-                  if attr in frame1.get_frame_attr_names())
+    attrs1 = {attr: val for attr, val in attrs1.items()
+              if attr in frame1.get_frame_attr_names()}
     sc2 = sc.transform_to(frame1(**attrs1))
 
     # When coming back only keep frame0 attributes for transform_to
-    attrs0 = dict((attr, val) for attr, val in attrs0.items()
-                  if attr in frame0.get_frame_attr_names())
+    attrs0 = {attr: val for attr, val in attrs0.items()
+              if attr in frame0.get_frame_attr_names()}
     # also, if any are None, fill in with defaults
     for attrnm in frame0.get_frame_attr_names():
         if attrs0.get(attrnm, None) is None:

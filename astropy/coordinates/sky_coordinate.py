@@ -37,7 +37,7 @@ class SkyCoordInfo(MixinInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    attrs_from_parent = set(['unit'])  # Unit is read-only
+    attrs_from_parent = {'unit'}  # Unit is read-only
     _supports_indexing = False
 
     @staticmethod
@@ -927,7 +927,7 @@ class SkyCoord(ShapedLikeNDArray):
                 dir_values.add(name)
 
         # Add public attributes of self.frame
-        dir_values.update(set(attr for attr in dir(self.frame) if not attr.startswith('_')))
+        dir_values.update({attr for attr in dir(self.frame) if not attr.startswith('_')})
 
         # Add all possible frame attributes
         dir_values.update(frame_transform_graph.frame_attributes.keys())
