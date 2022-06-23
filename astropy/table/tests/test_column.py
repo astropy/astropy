@@ -752,6 +752,7 @@ def test_col_unicode_sandwich_bytes(Column):
         assert np.all(ok == [True, False])
 
 
+@pytest.mark.filterwarnings("ignore:.*elementwise comparison failed.*")
 def test_col_unicode_sandwich_unicode():
     """
     Sanity check that Unicode Column behaves normally.
@@ -773,6 +774,8 @@ def test_col_unicode_sandwich_unicode():
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
+    # The following emits a FutureWarning in numpy >=1.24, which is OK,
+    # so filtered out above.
     assert np.all(c != [uba8, b'def'])
 
 
