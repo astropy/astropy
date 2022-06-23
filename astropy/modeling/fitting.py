@@ -70,7 +70,7 @@ class Covariance():
     def pprint(self, max_lines, round_val):
         # Print and label lower triangle of covariance matrix
         # Print rows for params up to `max_lines`, round floats to 'round_val'
-        longest_name = max([len(x) for x in self.param_names])
+        longest_name = max(len(x) for x in self.param_names)
         ret_str = 'parameter variances / covariances \n'
         fstring = f'{"": <{longest_name}}| {{0}}\n'
         for i, row in enumerate(self.cov_matrix):
@@ -112,7 +112,7 @@ class StandardDeviations():
         return stds
 
     def pprint(self, max_lines, round_val):
-        longest_name = max([len(x) for x in self.param_names])
+        longest_name = max(len(x) for x in self.param_names)
         ret_str = 'standard deviations\n'
         for i, std in enumerate(self.stds):
             if i <= max_lines-1:

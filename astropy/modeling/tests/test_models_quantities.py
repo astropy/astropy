@@ -344,7 +344,7 @@ POLY_MODELS = [
 MODELS = (FUNC_MODELS_1D + SCALE_MODELS + FUNC_MODELS_2D + POWERLAW_MODELS +
           PHYS_MODELS_1D + POLY_MODELS)
 
-SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
+SCIPY_MODELS = {Sersic1D, Sersic2D, AiryDisk2D}
 
 # These models will fail fitting test, because built in fitting data
 #   will produce non-finite values

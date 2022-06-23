@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name
 """
 Implements projections--particularly sky projections defined in WCS Paper II
@@ -162,7 +161,7 @@ class Pix2SkyProjection(Projection):
     def __new__(cls, *args, **kwargs):
         long_name = cls.name.split('_')[1]
         cls.prj_code = _PROJ_NAME_CODE_MAP[long_name]
-        return super(Pix2SkyProjection, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -209,7 +208,7 @@ class Sky2PixProjection(Projection):
     def __new__(cls, *args, **kwargs):
         long_name = cls.name.split('_')[1]
         cls.prj_code = _PROJ_NAME_CODE_MAP[long_name]
-        return super(Sky2PixProjection, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
