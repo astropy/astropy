@@ -1,4 +1,3 @@
-
 """
 The modules in the accuracy testing subpackage are primarily intended for
 comparison with "known-good" (or at least "known-familiar") datasets. More

@@ -209,9 +209,8 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
         cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
         ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
         cnames = data.get_pkg_data_contents('data/constellation_names.dat', encoding='UTF8')
-        cnames_short_to_long = dict([(l[:3], l[4:])
-                                     for l in cnames.split('\n')
-                                     if not l.startswith('#')])
+        cnames_short_to_long = {l[:3]: l[4:] for l in cnames.split('\n')
+                                if not l.startswith('#')}
         cnames_long = np.array([cnames_short_to_long[nm] for nm in ctable['name']])
 
         _constellation_data['ctable'] = ctable

@@ -784,7 +784,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 # to update as needed for this frame.
                 nms = repr_attrs[repr_diff_cls]['names']
                 uns = repr_attrs[repr_diff_cls]['units']
-                comptomap = dict([(m.reprname, m) for m in mappings])
+                comptomap = {m.reprname: m for m in mappings}
                 for i, c in enumerate(repr_diff_cls.attr_classes.keys()):
                     if c in comptomap:
                         mapp = comptomap[c]
@@ -1081,8 +1081,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             # set of names and units, then use that.
             new_attrs = self.representation_info.get(representation_cls)
             if new_attrs and in_frame_units:
-                datakwargs = dict((comp, getattr(data, comp))
-                                  for comp in data.components)
+                datakwargs = {comp: getattr(data, comp) for comp in data.components}
                 for comp, new_attr_unit in zip(data.components, new_attrs['units']):
                     if new_attr_unit:
                         datakwargs[comp] = datakwargs[comp].to(new_attr_unit)
@@ -1096,8 +1095,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 # defined set of names and units, then use that.
                 new_attrs = self.representation_info.get(differential_cls)
                 if new_attrs and in_frame_units:
-                    diffkwargs = dict((comp, getattr(diff, comp))
-                                      for comp in diff.components)
+                    diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
                     for comp, new_attr_unit in zip(diff.components,
                                                    new_attrs['units']):
                         # Some special-casing to treat a situation where the
@@ -1408,8 +1406,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 comp_str, _, part2 = remainder.partition(')')
                 comp_names = comp_str.split(', ')
                 # Swap in frame-specific component names
-                invnames = dict([(nmrepr, nmpref) for nmpref, nmrepr
-                                 in self.representation_component_names.items()])
+                invnames = {nmrepr: nmpref
+                            for nmpref, nmrepr in self.representation_component_names.items()}
                 for i, name in enumerate(comp_names):
                     comp_names[i] = invnames.get(name, name)
                 # Reassemble the repr string

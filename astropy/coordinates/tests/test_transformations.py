@@ -271,8 +271,8 @@ def test_affine_transform_succeed(transfunc, rep):
     M, offset = transfunc(c, TCoo2)
 
     _rep = rep.to_cartesian()
-    diffs = dict([(k, diff.represent_as(r.CartesianDifferential, rep))
-                  for k, diff in rep.differentials.items()])
+    diffs = {k: diff.represent_as(r.CartesianDifferential, rep)
+             for k, diff in rep.differentials.items()}
     expected_rep = _rep.with_differentials(diffs)
 
     if M is not None:
