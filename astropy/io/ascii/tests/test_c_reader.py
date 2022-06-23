@@ -438,8 +438,8 @@ def test_quoted_fields(parallel, read_basic):
     ('data_start', -1),  # data_start negative
     ('quotechar', '##'),  # multi-char quote signifier
     ('header_start', -1),  # negative header_start
-    ('converters', dict((i + 1, ascii.convert_numpy(np.uint))
-                        for i in range(3))),  # passing converters
+    ('converters', {i + 1: ascii.convert_numpy(np.uint)
+                    for i in range(3)}),  # passing converters
     ('Inputter', ascii.ContinuationLinesInputter),  # passing Inputter
     ('header_Splitter', ascii.DefaultSplitter),  # passing Splitter
     ('data_Splitter', ascii.DefaultSplitter)])
@@ -1062,7 +1062,7 @@ def test_read_big_table(tmpdir):
     t = None
 
     print("Counting the number of lines in the csv, it should be {NB_ROWS} + 1 (header).")
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         assert sum(1 for line in f) == NB_ROWS + 1
 
     print("Reading the file with astropy.")
@@ -1089,7 +1089,7 @@ def test_read_big_table2(tmpdir):
     t = None
 
     print("Counting the number of lines in the csv, it should be {NB_ROWS} + 1 (header).")
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         assert sum(1 for line in f) == NB_ROWS + 1
 
     print("Reading the file with astropy.")

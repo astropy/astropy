@@ -165,7 +165,6 @@ class _ErrList(list):
                                            shift=shift)
                     yield first_line
 
-                for line in next_lines:
-                    yield line
+                yield from next_lines
 
                 element += 1

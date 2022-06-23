@@ -552,8 +552,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
-                sorted_keys = sorted([x for x in sorted(kwargs)
-                                      if x not in ('Reader', 'Outputter')])
+                sorted_keys = sorted(x for x in sorted(kwargs) if x not in ('Reader', 'Outputter'))
                 reader_repr = repr(kwargs.get('Reader', basic.Basic))
                 keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 import warnings
 
 from asdf import tagged
@@ -113,8 +112,7 @@ class RemapAxesType(TransformType):
             return Mapping(tuple(mapping), n_inputs)
 
         if n_inputs is None:
-            n_inputs = max([x for x in mapping
-                            if isinstance(x, int)]) + 1
+            n_inputs = max(x for x in mapping if isinstance(x, int)) + 1
 
         transform = Identity(n_inputs)
         new_mapping = []

@@ -1602,7 +1602,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
         else:
             del kwargs['fast_reader']  # Otherwise ignore fast_reader parameter
 
-    reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
+    reader_kwargs = {k: v for k, v in kwargs.items() if k not in extra_reader_pars}
     reader = Reader(**reader_kwargs)
 
     if Inputter is not None:
@@ -1711,7 +1711,7 @@ def _get_writer(Writer, fast_writer, **kwargs):
         kwargs['fast_writer'] = fast_writer
         return FAST_CLASSES[f'fast_{Writer._format_name}'](**kwargs)
 
-    writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
+    writer_kwargs = {k: v for k, v in kwargs.items() if k not in extra_writer_pars}
     writer = Writer(**writer_kwargs)
 
     if 'delimiter' in kwargs:

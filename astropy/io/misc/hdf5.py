@@ -170,7 +170,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         if 'meta' in list(header.keys()):
             table.meta = header['meta']
 
-        header_cols = dict((x['name'], x) for x in header['datatype'])
+        header_cols = {x['name']: x for x in header['datatype']}
         for col in table.columns.values():
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:
