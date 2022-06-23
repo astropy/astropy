@@ -1536,7 +1536,7 @@ def fold_intervals(intervals):
     breaks.add(0.)
     breaks.add(1.)
     breaks = sorted(breaks)
-    breaks_map = dict([(f, i) for (i, f) in enumerate(breaks)])
+    breaks_map = {f: i for (i, f) in enumerate(breaks)}
     totals = np.zeros(len(breaks) - 1)
     totals += tot
     for (a, b, wt) in r:
