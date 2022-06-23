@@ -1531,10 +1531,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
-        if fill_value is None and getattr(data, 'fill_value', None) is not None:
-            # Coerce the fill_value to the correct type since `data` may be a
-            # different dtype than self.
-            fill_value = np.array(data.fill_value, self.dtype)[()]
+        if fill_value is None:
+            data_fill_value = getattr(data, 'fill_value', None)
+            if (data_fill_value is not None
+                    and data_fill_value != np.ma.default_fill_value(data.dtype)):
+                fill_value = np.array(data_fill_value, self.dtype)[()]
         self.fill_value = fill_value
 
         self.parent_table = None
