@@ -303,7 +303,7 @@ def get_extensions():
     cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
-    cfg = dict((str(key), val) for key, val in cfg.items())
+    cfg = {str(key): val for key, val in cfg.items()}
 
     # Copy over header files from WCSLIB into the installed version of Astropy
     # so that other Python packages can write extensions that link to it. We

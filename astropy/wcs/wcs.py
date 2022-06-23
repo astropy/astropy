@@ -624,7 +624,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         # Subset pixel_shape and pixel_bounds
         if self.pixel_shape:
-            copy.pixel_shape = tuple([None if i is None else self.pixel_shape[i] for i in keep])
+            copy.pixel_shape = tuple(None if i is None else self.pixel_shape[i] for i in keep)
         if self.pixel_bounds:
             copy.pixel_bounds = [None if i is None else self.pixel_bounds[i] for i in keep]
 
@@ -1071,8 +1071,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         # Never pass SIP coefficients to wcslib
         # CTYPE must be passed with -SIP to wcslib
-        for key in set(m.group() for m in map(SIP_KW.match, list(header))
-                       if m is not None):
+        for key in {m.group() for m in map(SIP_KW.match, list(header))
+                    if m is not None}:
             del header[key]
 
     def _read_sip_kw(self, header, wcskey=""):
