@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Set, Tuple, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Mapping, TypeVar
 
 import numpy as np
 
@@ -82,8 +82,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    __parameters__: Tuple[str, ...]  = ()
-    __all_parameters__: Tuple[str, ...] = ()
+    __parameters__: tuple[str, ...]  = ()
+    __all_parameters__: tuple[str, ...] = ()
 
     # ---------------------------------------------------------------
 
@@ -400,10 +400,10 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
-    __all_parameters__: Tuple[str, ...]
-    __parameters__: Tuple[str, ...]
+    __all_parameters__: tuple[str, ...]
+    __parameters__: tuple[str, ...]
 
-    def __init_subclass__(cls: Type[_FlatCosmoT]) -> None:
+    def __init_subclass__(cls: type[_FlatCosmoT]) -> None:
         super().__init_subclass__()
 
         # Determine the non-flat class.
@@ -413,7 +413,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     # ===============================================================
 
     @classmethod  # TODO! make metaclass-method
-    def _get_nonflat_cls(cls, kls: Optional[Type[_CosmoT]]=None) -> Optional[Type[Cosmology]]:
+    def _get_nonflat_cls(cls, kls: type[_CosmoT] | None=None) -> type[Cosmology] | None:
         """Find the corresponding non-flat class.
 
         The class' bases are searched recursively.
@@ -439,7 +439,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         _kls = cls if kls is None else kls
 
         # Find non-flat classes
-        nonflat: Set[Type[Cosmology]]
+        nonflat: set[type[Cosmology]]
         nonflat = {b for b in _kls.__bases__
                    if issubclass(b, Cosmology) and not issubclass(b, FlatCosmologyMixin)}
 
@@ -470,7 +470,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     def nonflat(self: _FlatCosmoT) -> _CosmoT:
         """Return the equivalent non-flat-class instance of this cosmology."""
 
-    def clone(self, *, meta: Optional[Mapping] = None, to_nonflat: bool = False, **kwargs):
+    def clone(self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs):
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, except for

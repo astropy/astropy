@@ -83,7 +83,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert isinstance(model, _CosmologyModel)
 
         # Parameters
-        expect = tuple([n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None])
+        expect = tuple(n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None)
         assert model.param_names == expect
 
         # scalar result

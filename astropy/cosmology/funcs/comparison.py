@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable, Set, Tuple, Union
+from typing import Any, Callable, Tuple, Union
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -29,7 +29,7 @@ _FormatType = Union[bool, None, str]
 _FormatsT = Union[_FormatType, Tuple[_FormatType, ...]]
 _CompFnT = Callable[[Any, _FormatType], Cosmology]
 
-_COSMO_AOK: Set[Any] = {None, True_, False_, "astropy.cosmology"}
+_COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # The numpy bool also catches real bool for ops "==" and "in"
 
 
@@ -46,7 +46,7 @@ class _CosmologyWrapper:
     __slots__ = ("wrapped", )
     # Use less memory and speed up initilization.
 
-    _cantbroadcast: Tuple[type, ...] = (table.Row, table.Table)
+    _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
     """
     Have to deal with things that do not broadcast well. e.g.
     `~astropy.table.Row` cannot be used in an array, even if ``dtype=object``
