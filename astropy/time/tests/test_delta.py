@@ -298,10 +298,10 @@ class TestTimeDeltaScales:
         # pick a date that includes a leap second for better testing
         self.iso_times = ['2012-06-30 12:00:00', '2012-06-30 23:59:59',
                           '2012-07-01 00:00:00', '2012-07-01 12:00:00']
-        self.t = dict((scale, Time(self.iso_times, scale=scale, precision=9))
-                      for scale in TIME_SCALES)
-        self.dt = dict((scale, self.t[scale] - self.t[scale][0])
-                       for scale in TIME_SCALES)
+        self.t = {scale: Time(self.iso_times, scale=scale, precision=9)
+                  for scale in TIME_SCALES}
+        self.dt = {scale: self.t[scale] - self.t[scale][0]
+                   for scale in TIME_SCALES}
 
     def test_delta_scales_definition(self):
         for scale in list(TIME_DELTA_SCALES) + [None]:
