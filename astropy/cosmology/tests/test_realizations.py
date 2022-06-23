@@ -32,7 +32,7 @@ def test_realizations_in_realizations_dir():
         assert n in d
 
 
-class Test_default_cosmology(object):
+class Test_default_cosmology:
     """Tests for :class:`~astropy.cosmology.realizations.default_cosmology`."""
 
     # -----------------------------------------------------

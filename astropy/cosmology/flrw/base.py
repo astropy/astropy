@@ -6,7 +6,7 @@ import warnings
 from abc import abstractmethod
 from math import exp, floor, log, pi, sqrt
 from numbers import Number
-from typing import Any, Mapping, Optional, TypeVar
+from typing import Any, Mapping, TypeVar
 
 import numpy as np
 from numpy import inf, sin
@@ -1450,7 +1450,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
 
         return inst
 
-    def clone(self, *, meta: Optional[Mapping] = None, to_nonflat: bool = None, **kwargs: Any):
+    def clone(self, *, meta: Mapping | None = None, to_nonflat: bool = None, **kwargs: Any):
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, except for
