@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
@@ -286,9 +285,8 @@ class BoxLeastSquares(BasePeriodogram):
             objective = "likelihood"
         allowed_objectives = ["snr", "likelihood"]
         if objective not in allowed_objectives:
-            raise ValueError(("Unrecognized method '{0}'\n"
-                              "allowed methods are: {1}")
-                             .format(objective, allowed_objectives))
+            raise ValueError(f"Unrecognized method '{objective}'\n"
+                             f"allowed methods are: {allowed_objectives}")
         use_likelihood = (objective == "likelihood")
 
         # Select the computational method
@@ -296,9 +294,8 @@ class BoxLeastSquares(BasePeriodogram):
             method = "fast"
         allowed_methods = ["fast", "slow"]
         if method not in allowed_methods:
-            raise ValueError(("Unrecognized method '{0}'\n"
-                              "allowed methods are: {1}")
-                             .format(method, allowed_methods))
+            raise ValueError(f"Unrecognized method '{method}'\n"
+                             f"allowed methods are: {allowed_methods}")
 
         # Format and check the input arrays
         t = np.ascontiguousarray(strip_units(self._trel), dtype=np.float64)
