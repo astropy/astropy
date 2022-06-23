@@ -501,8 +501,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     @property
     def _units(self):
         """Return a dictionary with the units of the coordinate components."""
-        return dict([(component, getattr(self, component).unit)
-                     for component in self.components])
+        return {cmpnt: getattr(self, cmpnt).unit for cmpnt in self.components}
 
     @property
     def _unitstr(self):
@@ -817,8 +816,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                              "as a dictionary with keys equal to a string "
                              "representation of the unit of the derivative "
                              "for each differential stored with this "
-                             "representation object ({0})"
-                             .format(self.differentials))
+                             f"representation object ({self.differentials})")
 
         new_diffs = dict()
         for k in self.differentials:
@@ -1010,9 +1008,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """
         rep = super()._apply(method, *args, **kwargs)
 
-        rep._differentials = dict(
-            [(k, diff._apply(method, *args, **kwargs))
-             for k, diff in self._differentials.items()])
+        rep._differentials = {k: diff._apply(method, *args, **kwargs)
+                              for k, diff in self._differentials.items()}
         return rep
 
     def __setitem__(self, item, value):
@@ -1400,8 +1397,8 @@ class CartesianRepresentation(BaseRepresentation):
         # transformed representation
         rep = self.__class__(p, xyz_axis=-1, copy=False)
         # Handle differentials attached to this representation
-        new_diffs = dict((k, d.transform(matrix, self, rep))
-                         for k, d in self.differentials.items())
+        new_diffs = {k: d.transform(matrix, self, rep)
+                     for k, d in self.differentials.items()}
         return rep.with_differentials(new_diffs)
 
     def _combine_operation(self, op, other, reverse=False):
@@ -1654,8 +1651,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
             lon, lat = erfa_ufunc.c2s(p)
             rep = self.__class__(lon=lon, lat=lat)
             # handle differentials
-            new_diffs = dict((k, d.transform(matrix, self, rep))
-                             for k, d in self.differentials.items())
+            new_diffs = {k: d.transform(matrix, self, rep)
+                         for k, d in self.differentials.items()}
             rep = rep.with_differentials(new_diffs)
 
         else:  # switch to dimensional representation
@@ -2050,8 +2047,8 @@ class SphericalRepresentation(BaseRepresentation):
         rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur)
 
         # handle differentials
-        new_diffs = dict((k, d.transform(matrix, self, rep))
-                         for k, d in self.differentials.items())
+        new_diffs = {k: d.transform(matrix, self, rep)
+                     for k, d in self.differentials.items()}
         return rep.with_differentials(new_diffs)
 
     def norm(self):
@@ -2255,8 +2252,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # reapplying the distance scaling
         rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur)
 
-        new_diffs = dict((k, d.transform(matrix, self, rep))
-                         for k, d in self.differentials.items())
+        new_diffs = {k: d.transform(matrix, self, rep)
+                     for k, d in self.differentials.items()}
         return rep.with_differentials(new_diffs)
 
     def norm(self):
