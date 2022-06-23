@@ -46,7 +46,7 @@ class ConstantMeta(type):
 
                 if (not self.system and
                         name_lower in self._has_incompatible_units):
-                    systems = sorted([x for x in instances if x])
+                    systems = sorted(x for x in instances if x)
                     raise TypeError(
                         'Constant {!r} does not have physically compatible '
                         'units across all systems of units and cannot be '
@@ -60,11 +60,11 @@ class ConstantMeta(type):
 
         # The wrapper applies to so many of the __ methods that it's easier to
         # just exclude the ones it doesn't apply to
-        exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
-                       '__dir__', '__getattr__', '__init__', '__str__',
-                       '__repr__', '__hash__', '__iter__', '__getitem__',
-                       '__len__', '__bool__', '__quantity_subclass__',
-                       '__setstate__'])
+        exclude = {'__new__', '__array_finalize__', '__array_wrap__',
+                   '__dir__', '__getattr__', '__init__', '__str__',
+                   '__repr__', '__hash__', '__iter__', '__getitem__',
+                   '__len__', '__bool__', '__quantity_subclass__',
+                   '__setstate__'}
         for attr, value in vars(Quantity).items():
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
