@@ -132,7 +132,7 @@ class SAMPHubServer:
                 self._host_name = socket.getfqdn()
                 socket.getaddrinfo(self._addr or self._host_name,
                                    self._port or 0)
-            except socket.error:
+            except OSError:
                 self._host_name = "127.0.0.1"
 
         # Threading stuff
@@ -266,7 +266,7 @@ class SAMPHubServer:
             self._web_profile_server.register_introspection_functions()
             self._register_web_profile_api(self._web_profile_server)
             log.info("Hub set to run with Web Profile support enabled.")
-        except socket.error:
+        except OSError:
             log.warning("Port {} already in use. Impossible to run the "
                         "Hub with Web Profile support.".format(self._web_port),
                         SAMPWarning)

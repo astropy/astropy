@@ -230,7 +230,7 @@ def check_running_hub(lockfilename):
             # There is a protocol error (e.g. for authentication required),
             # but the server is alive
             is_running = True
-        except socket.error:
+        except OSError:
             pass
 
     return is_running, lockfiledict

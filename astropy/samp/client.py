@@ -95,7 +95,7 @@ class SAMPClient:
             try:
                 self._host_name = socket.getfqdn()
                 socket.getaddrinfo(self._addr or self._host_name, self._port or 0)
-            except socket.error:
+            except OSError:
                 self._host_name = "127.0.0.1"
 
         self.hub = hub
