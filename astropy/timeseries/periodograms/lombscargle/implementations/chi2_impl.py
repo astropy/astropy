@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from .mle import design_matrix

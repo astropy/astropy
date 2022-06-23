@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from .utils import trig_sum
@@ -100,8 +99,8 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     # Now create an indexing scheme so we can quickly
     # build-up matrices at each frequency
     order = [('C', 0)] if fit_mean else []
-    order.extend(sum([[('S', i), ('C', i)]
-                      for i in range(1, nterms + 1)], []))
+    order.extend(sum(([('S', i), ('C', i)]
+                      for i in range(1, nterms + 1)), []))
 
     funcs = dict(S=lambda m, i: Syw[m][i],
                  C=lambda m, i: Cyw[m][i],
