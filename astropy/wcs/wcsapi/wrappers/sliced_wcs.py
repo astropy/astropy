@@ -27,7 +27,7 @@ def sanitize_slices(slices, ndim):
             f"The dimensionality of the specified slice {slices} can not be greater "
             f"than the dimensionality ({ndim}) of the wcs.")
 
-    if any((isiterable(s) for s in slices)):
+    if any(isiterable(s) for s in slices):
         raise IndexError("This slice is invalid, only integer or range slices are supported.")
 
     slices = list(slices)
