@@ -1693,10 +1693,8 @@ class InverseSIP(Model):
         ap_coeff.setdefault('AP_0_0', 0)
         bp_coeff.setdefault('BP_0_0', 0)
 
-        ap_coeff_params = dict((k.replace('AP_', 'c'), v)
-                               for k, v in ap_coeff.items())
-        bp_coeff_params = dict((k.replace('BP_', 'c'), v)
-                               for k, v in bp_coeff.items())
+        ap_coeff_params = {k.replace('AP_', 'c'): v for k, v in ap_coeff.items()}
+        bp_coeff_params = {k.replace('BP_', 'c'): v for k, v in bp_coeff.items()}
 
         self.sip1d_ap = Polynomial2D(degree=ap_order,
                                      model_set_axis=model_set_axis,
