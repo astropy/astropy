@@ -1,4 +1,3 @@
-
 from numpy.testing import assert_allclose
 
 from astropy.stats.info_theory import bayesian_info_criterion, bayesian_info_criterion_lsq

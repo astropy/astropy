@@ -489,7 +489,7 @@ class SigmaClip:
                     # points won't "grow" in that dimension:
                     if n not in axis:
                         dim[dim != cenidx] = size
-            kernel = (sum(((idx - cenidx)**2 for idx in indices))
+            kernel = (sum((idx - cenidx)**2 for idx in indices)
                       <= self.grow**2)
             del indices
 
