@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This package defines the CGS units.  They are also available in the
@@ -114,7 +113,7 @@ def_unit(['Mx', 'Maxwell', 'maxwell'], 1e-8 * si.Wb, namespace=_ns,
 ###########################################################################
 # BASES
 
-bases = set([cm, g, s, rad, cd, K, mol])
+bases = {cm, g, s, rad, cd, K, mol}
 
 
 ###########################################################################

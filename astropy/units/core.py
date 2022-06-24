@@ -1201,7 +1201,7 @@ class UnitBase:
         # Store final results that reduce to a single unit or pair of
         # units
         if len(unit.bases) == 0:
-            final_results = [set([unit]), set()]
+            final_results = [{unit}, set()]
         else:
             final_results = [set(), set()]
 
@@ -1644,8 +1644,7 @@ class UnitBase:
         results = self.compose(
             equivalencies=equivalencies, units=units, max_depth=1,
             include_prefix_units=include_prefix_units)
-        results = set(
-            x.bases[0] for x in results if len(x.bases) == 1)
+        results = {x.bases[0] for x in results if len(x.bases) == 1}
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):

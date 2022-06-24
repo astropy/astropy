@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # The idea for this module (but no code) was borrowed from the
 # quantities (http://pythonhosted.org/quantities/) package.
