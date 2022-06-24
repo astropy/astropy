@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Regression tests for the units.format package

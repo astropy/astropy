@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 import pickle
@@ -269,7 +268,7 @@ def test_complex_compose():
     complex = u.cd * u.sr * u.Wb
     composed = complex.compose()
 
-    assert set(composed[0]._bases) == set([u.lm, u.Wb])
+    assert set(composed[0]._bases) == {u.lm, u.Wb}
 
 
 def test_equiv_compose():

@@ -55,10 +55,10 @@ class VOUnit(generic.Generic):
         binary_prefixes = [
             'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei'
         ]
-        deprecated_units = set([
+        deprecated_units = {
             'a', 'angstrom', 'Angstrom', 'au', 'Ba', 'barn', 'ct',
             'erg', 'G', 'ph', 'pix'
-        ])
+        }
 
         def do_defines(bases, prefixes, skips=[]):
             for base in bases:

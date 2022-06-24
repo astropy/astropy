@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This package defines the SI units.  They are also available in the
@@ -220,7 +219,7 @@ def_unit(['Ci', 'curie'], Bq * 3.7e10, namespace=_ns, prefixes=False,
 ###########################################################################
 # BASES
 
-bases = set([m, s, kg, A, cd, rad, K, mol])
+bases = {m, s, kg, A, cd, rad, K, mol}
 
 
 ###########################################################################
