@@ -453,7 +453,7 @@ def test_find_all_wcs_crash():
 @pytest.mark.filterwarnings("ignore")
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
-    results_txt = sorted(set([x.strip() for x in repr(results).splitlines()]))
+    results_txt = sorted({x.strip() for x in repr(results).splitlines()})
     if _WCSLIB_VER >= Version('7.6'):
         filename = 'data/validate.7.6.txt'
     elif _WCSLIB_VER >= Version('7.4'):
@@ -466,9 +466,9 @@ def test_validate():
         filename = 'data/validate.5.0.txt'
     else:
         filename = 'data/validate.txt'
-    with open(get_pkg_data_filename(filename), "r") as fd:
+    with open(get_pkg_data_filename(filename)) as fd:
         lines = fd.readlines()
-    assert sorted(set([x.strip() for x in lines])) == results_txt
+    assert sorted({x.strip() for x in lines}) == results_txt
 
 
 def test_validate_with_2_wcses():
@@ -666,7 +666,7 @@ def test_footprint_to_file(tmpdir):
     testfile = str(tmpdir.join('test.txt'))
     w.footprint_to_file(testfile)
 
-    with open(testfile, 'r') as f:
+    with open(testfile) as f:
         lines = f.readlines()
 
     assert len(lines) == 4
@@ -675,7 +675,7 @@ def test_footprint_to_file(tmpdir):
 
     w.footprint_to_file(testfile, coordsys='FK5', color='red')
 
-    with open(testfile, 'r') as f:
+    with open(testfile) as f:
         lines = f.readlines()
 
     assert len(lines) == 4

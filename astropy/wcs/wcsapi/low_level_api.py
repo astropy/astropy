@@ -343,7 +343,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
 UCDS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'ucds.txt')
 with open(UCDS_FILE) as f:
-    VALID_UCDS = set([x.strip() for x in f.read().splitlines()[1:]])
+    VALID_UCDS = {x.strip() for x in f.read().splitlines()[1:]}
 
 
 def validate_physical_types(physical_types):

@@ -860,7 +860,7 @@ def test_pixel_to_pixel_correlation_matrix_nonsquare():
     # coordinates - the idea is to make sure that things work fine in cases
     # where the number of input and output pixel coordinates do not match.
 
-    class FakeWCS(object):
+    class FakeWCS:
         pass
 
     wcs_in = FakeWCS()
@@ -1233,7 +1233,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     y, x = (10, 200)
 
     center_coord = SkyCoord(ffi_wcs.all_pix2world([[xi+x//2, yi+y//2]], 0), unit='deg')[0]
-    ypix, xpix = [arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y]]
+    ypix, xpix = (arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y])
     world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit='deg')
 
     fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point='center')
