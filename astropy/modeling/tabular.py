@@ -117,7 +117,7 @@ class _Tabular(Model):
                     "Expected grid points in "
                     f"{lookup_table.ndim} directions, got {npts}.")
             if (npts > 1 and isinstance(points[0], u.Quantity) and
-                    len(set([getattr(p, 'unit', None) for p in points])) > 1):
+                    len({getattr(p, 'unit', None) for p in points}) > 1):
                 raise ValueError('points must all have the same unit.')
 
         if isinstance(fill_value, u.Quantity):
@@ -161,7 +161,7 @@ class _Tabular(Model):
         pts = self.points[0]
         if not isinstance(pts, u.Quantity):
             return None
-        return dict([(x, pts.unit) for x in self.inputs])
+        return {x: pts.unit for x in self.inputs}
 
     @property
     def return_units(self):

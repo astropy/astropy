@@ -85,11 +85,11 @@ class TestSpline:
         spl = self.Spline()
         assert spl.param_names == ()
 
-        knot_names = tuple([mk.MagicMock() for _ in range(3)])
+        knot_names = tuple(mk.MagicMock() for _ in range(3))
         spl._knot_names = knot_names
         assert spl.param_names == knot_names
 
-        coeff_names = tuple([mk.MagicMock() for _ in range(3)])
+        coeff_names = tuple(mk.MagicMock() for _ in range(3))
         spl._coeff_names = coeff_names
         assert spl.param_names == knot_names + coeff_names
 
@@ -186,7 +186,7 @@ class TestSpline:
     def test___call__(self):
         spl = self.Spline()
 
-        args = tuple([mk.MagicMock() for _ in range(3)])
+        args = tuple(mk.MagicMock() for _ in range(3))
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
         new_kwargs = {f"new_test{idx}": mk.MagicMock() for idx in range(3)}
         with mk.patch.object(_Spline, "_intercept_optional_inputs",
@@ -267,7 +267,7 @@ class TestSpline:
         with mk.patch.object(_Spline, '_create_parameter',
                              autospec=True) as mkCreate:
             params = spl._create_parameters("test_param", "test", fixed)
-            assert params == tuple([f"test_param{idx}" for idx in range(20)])
+            assert params == tuple(f"test_param{idx}" for idx in range(20))
             assert mkCreate.call_args_list == [
                 mk.call(spl, f"test_param{idx}", idx, 'test', fixed) for idx in range(20)
             ]
@@ -1048,7 +1048,7 @@ class TestSpline1D:
     def test_evaluate(self):
         spl = Spline1D()
 
-        args = tuple([mk.MagicMock() for _ in range(3)])
+        args = tuple(mk.MagicMock() for _ in range(3))
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
         new_kwargs = {f"new_test{idx}": mk.MagicMock() for idx in range(3)}
 

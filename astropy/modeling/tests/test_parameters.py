@@ -126,7 +126,7 @@ def test__tofloat():
     assert str(err.value) == message
 
     # other
-    class Value(object):
+    class Value:
         pass
     with pytest.raises(InputParameterError) as err:
         _tofloat(Value)

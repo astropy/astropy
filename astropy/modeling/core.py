@@ -127,7 +127,7 @@ class _ModelMeta(abc.ABCMeta):
         return cls
 
     def __init__(cls, name, bases, members, **kwds):
-        super(_ModelMeta, cls).__init__(name, bases, members, **kwds)
+        super().__init__(name, bases, members, **kwds)
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
         pdict = {}
@@ -1835,7 +1835,7 @@ class Model(metaclass=_ModelMeta):
             annotations.pop('return', None)
             if annotations:
                 # If there are not annotations for all inputs this will error.
-                return dict((name, annotations[name]) for name in self.inputs)
+                return {name: annotations[name] for name in self.inputs}
         else:
             # None means any unit is accepted
             return None
@@ -2120,8 +2120,8 @@ class Model(metaclass=_ModelMeta):
             else:
                 return_units = self.return_units
 
-            outputs = tuple([Quantity(out, return_units.get(out_name, None), subok=True)
-                             for out, out_name in zip(outputs, self.outputs)])
+            outputs = tuple(Quantity(out, return_units.get(out_name, None), subok=True)
+                             for out, out_name in zip(outputs, self.outputs))
         return outputs
 
     @staticmethod
@@ -3534,7 +3534,7 @@ class CompoundModel(Model):
                     param_map[new_param_name] = (lindex, param_name)
         self._param_metrics = {}
         self._param_map = param_map
-        self._param_map_inverse = dict((v, k) for k, v in param_map.items())
+        self._param_map_inverse = {v: k for k, v in param_map.items()}
         self._initialize_slices()
         self._param_names = tuple(self._param_names)
 
@@ -4014,8 +4014,8 @@ def binary_operation(binoperator, left, right):
     Perform binary operation. Operands may be matching tuples of operands.
     '''
     if isinstance(left, tuple) and isinstance(right, tuple):
-        return tuple([binoperator(item[0], item[1])
-                      for item in zip(left, right)])
+        return tuple(binoperator(item[0], item[1])
+                      for item in zip(left, right))
     return binoperator(left, right)
 
 
@@ -4088,7 +4088,7 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
     model = CompoundModel('fix_inputs', modelinstance, values)
     if bounding_boxes is not None:
         if selector_args is None:
-            selector_args = tuple([(key, True) for key in values.keys()])
+            selector_args = tuple((key, True) for key in values.keys())
         bbox = CompoundBoundingBox.validate(modelinstance, bounding_boxes, selector_args)
         _selector = bbox.selector_args.get_fixed_values(modelinstance, values)
 
