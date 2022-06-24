@@ -377,7 +377,7 @@ class Test_BoundingDomain:
     def test___call__(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
-        args = tuple([mk.MagicMock() for _ in range(3)])
+        args = tuple(mk.MagicMock() for _ in range(3))
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
 
         with pytest.raises(RuntimeError) as err:

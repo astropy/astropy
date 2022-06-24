@@ -658,7 +658,7 @@ class ModelBoundingBox(_BoundingDomain):
             if order == 'C':
                 inputs = inputs[::-1]
 
-            bbox = tuple([tuple(self[input_name]) for input_name in inputs])
+            bbox = tuple(tuple(self[input_name]) for input_name in inputs)
             if len(bbox) == 1:
                 bbox = bbox[0]
 
@@ -1152,7 +1152,7 @@ class _SelectorArguments(tuple):
         *inputs :
             All the processed model evaluation inputs.
         """
-        return tuple([argument.get_selector(*inputs) for argument in self])
+        return tuple(argument.get_selector(*inputs) for argument in self)
 
     def is_selector(self, _selector):
         """
@@ -1177,7 +1177,7 @@ class _SelectorArguments(tuple):
         values : dict
             Dictionary of fixed inputs.
         """
-        return tuple([argument.get_fixed_value(model, values) for argument in self])
+        return tuple(argument.get_fixed_value(model, values) for argument in self)
 
     def is_argument(self, model, argument) -> bool:
         """
@@ -1265,7 +1265,7 @@ class _SelectorArguments(tuple):
         model : `~astropy.modeling.Model`
             The Model these selector arguments are for.
         """
-        return tuple([selector_arg.named_tuple(model) for selector_arg in self])
+        return tuple(selector_arg.named_tuple(model) for selector_arg in self)
 
 
 class CompoundBoundingBox(_BoundingDomain):
