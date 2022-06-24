@@ -101,7 +101,7 @@ def get_descrs(arrays, col_name_map):
                                   .format(names[0], tme._incompat_types)) from tme
 
         # Make sure all input shapes are the same
-        uniq_shapes = set(col.shape[1:] for col in in_cols)
+        uniq_shapes = {col.shape[1:] for col in in_cols}
         if len(uniq_shapes) != 1:
             raise TableMergeError('Key columns have different shape')
         shape = uniq_shapes.pop()
@@ -121,8 +121,8 @@ def common_dtype(cols):
     np.bool_, np.object_, np.number, np.character, np.void
     """
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
-    uniq_types = set(tuple(issubclass(col.dtype.type, np_type) for np_type in np_types)
-                     for col in cols)
+    uniq_types = {tuple(issubclass(col.dtype.type, np_type) for np_type in np_types)
+                  for col in cols}
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [col.dtype.name for col in cols]

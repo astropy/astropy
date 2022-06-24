@@ -956,7 +956,7 @@ class Table:
         lst = []
         for column in self.columns.values():
             for index in column.info.indices:
-                if sum([index is x for x in lst]) == 0:  # ensure uniqueness
+                if sum(index is x for x in lst) == 0:  # ensure uniqueness
                     lst.append(index)
         return TableIndices(lst)
 
@@ -1376,7 +1376,7 @@ class Table:
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column or mixin objects"""
 
-        lengths = set(len(col) for col in cols)
+        lengths = {len(col) for col in cols}
         if len(lengths) > 1:
             raise ValueError(f'Inconsistent data column lengths: {lengths}')
 
@@ -2701,7 +2701,7 @@ class Table:
                     # Quasi-manually copy info attributes.  Unfortunately
                     # DataInfo.__set__ does not do the right thing in this case
                     # so newcol.info = col.info does not get the old info attributes.
-                    for attr in col.info.attr_names - col.info._attrs_no_copy - set(['dtype']):
+                    for attr in col.info.attr_names - col.info._attrs_no_copy - {'dtype'}:
                         value = deepcopy(getattr(col.info, attr))
                         setattr(newcol.info, attr, value)
 
