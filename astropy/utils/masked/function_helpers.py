@@ -75,7 +75,7 @@ been lack of time.  Issues or PRs for support for functions are welcome.
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name) for name in np.core.fromnumeric.__all__
-    if name not in ({'choose', 'put', 'resize', 'searchsorted', 'where', 'alen'})}
+    if name not in {'choose', 'put', 'resize', 'searchsorted', 'where', 'alen'}}
 
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
