@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Function Units and Quantities."""
 
@@ -12,18 +11,18 @@ from astropy.units import (
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
-SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
+SUPPORTED_UFUNCS = {getattr(np.core.umath, ufunc) for ufunc in (
     'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
     'rint', 'floor', 'ceil', 'trunc',
-    '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
+    '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc)}
 
 # TODO: the following could work if helper changed relative to Quantity:
 # - spacing should return dimensionless, not same unit
 # - negative should negate unit too,
 # - add, subtract, comparisons can work if units added/subtracted
 
-SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
-                          ('clip', 'trace', 'mean', 'min', 'max', 'round'))
+SUPPORTED_FUNCTIONS = {getattr(np, function) for function in
+                       ('clip', 'trace', 'mean', 'min', 'max', 'round')}
 
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring

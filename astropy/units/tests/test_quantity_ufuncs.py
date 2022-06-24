@@ -55,8 +55,8 @@ class TestUfuncHelpers:
     def test_coverage(self):
         """Test that we cover all ufunc's"""
 
-        all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
-                             if isinstance(ufunc, np.ufunc)])
+        all_np_ufuncs = {ufunc for ufunc in np.core.umath.__dict__.values()
+                         if isinstance(ufunc, np.ufunc)}
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
@@ -65,8 +65,8 @@ class TestUfuncHelpers:
         # Check that all ufuncs we cover come from numpy or erfa.
         # (Since coverage for erfa is incomplete, we do not check
         # this the other way).
-        all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
-                               if isinstance(ufunc, np.ufunc)])
+        all_erfa_ufuncs = {ufunc for ufunc in erfa_ufunc.__dict__.values()
+                           if isinstance(ufunc, np.ufunc)}
         assert (all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set())
 
     def test_scipy_registered(self):
