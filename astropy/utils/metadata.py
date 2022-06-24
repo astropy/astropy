@@ -54,8 +54,8 @@ def common_dtype(arrs):
         return getattr(arr, 'dtype', np.dtype('O'))
 
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
-    uniq_types = set(tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
-                     for arr in arrs)
+    uniq_types = {tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
+                  for arr in arrs}
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [dtype(arr).name for arr in arrs]

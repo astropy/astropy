@@ -100,14 +100,12 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
     data = read(buffersize)
     while data:
         Parse(data, False)
-        for elem in queue:
-            yield elem
+        yield from queue
         del queue[:]
         data = read(buffersize)
 
     Parse('', True)
-    for elem in queue:
-        yield elem
+    yield from queue
 
 
 # Try to import the C version of the iterparser, otherwise fall back

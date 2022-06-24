@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
@@ -89,7 +88,7 @@ def can_rename_directory_in_use():
         with open(f1, "wt") as f:
             f.write("some contents\n")
         try:
-            with open(f1, "rt"):
+            with open(f1):
                 os.rename(d1, d2)
         except PermissionError:
             return False
@@ -173,7 +172,7 @@ def readonly_cache(tmpdir, valid_urls):
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
-            us = set(u for u, c in islice(valid_urls, FEW))
+            us = {u for u, c in islice(valid_urls, FEW)}
             urls = {u: download_file(u, cache=True) for u in us}
             files = set(d.iterdir())
             with readonly_dir(d):
@@ -206,7 +205,7 @@ def fake_readonly_cache(tmpdir, valid_urls, monkeypatch):
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
-            us = set(u for u, c in islice(valid_urls, FEW))
+            us = {u for u, c in islice(valid_urls, FEW)}
             urls = {u: download_file(u, cache=True) for u in us}
             files = set(d.iterdir())
             monkeypatch.setattr(os, "mkdir", no_mkdir)
@@ -700,7 +699,7 @@ def test_download_parallel_fills_cache(tmpdir, valid_urls, method):
             [u for (u, c) in urls], multiprocessing_start_method=method
         )
         assert len(rs) == len(urls)
-        url_set = set(u for (u, c) in urls)
+        url_set = {u for (u, c) in urls}
         assert url_set <= set(get_cached_urls())
         for r, (u, c) in zip(rs, urls):
             assert get_file_contents(r) == c
@@ -1340,7 +1339,7 @@ def test_export_import_roundtrip_different_location(tmpdir, valid_urls):
     zip_file_name = tmpdir / "the.zip"
 
     urls = list(islice(valid_urls, FEW))
-    initial_urls_in_cache = set(u for (u, c) in urls)
+    initial_urls_in_cache = {u for (u, c) in urls}
     with paths.set_temp_cache(original_cache):
         for u, c in urls:
             download_file(u, cache=True)
@@ -1488,7 +1487,7 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
 
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
-    assert set(e.value.bad_files) == set([bf1, bf2, bf3, bf4])
+    assert set(e.value.bad_files) == {bf1, bf2, bf3, bf4}
     for bf in e.value.bad_files:
         clear_download_cache(bf)
     # download cache will be checked on exit
@@ -1618,7 +1617,7 @@ def test_get_fileobj_binary(a_binary_file):
 
 def test_get_fileobj_already_open_text(a_file):
     fn, c = a_file
-    with open(fn, "r") as f:
+    with open(fn) as f:
         with get_readable_fileobj(f) as rf:
             with pytest.raises(TypeError):
                 rf.read()

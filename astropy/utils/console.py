@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Utilities for console input and output.
@@ -458,7 +457,7 @@ def human_file_size(size):
     return f"{str_value:>3s}{suffix}"
 
 
-class _mapfunc(object):
+class _mapfunc:
     """
     A function wrapper to support ProgressBar.map().
     """
