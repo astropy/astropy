@@ -33,7 +33,7 @@ def read_json(filename, **kwargs):
     """
     # read
     if isinstance(filename, (str, bytes, os.PathLike)):
-        with open(filename, "r") as file:
+        with open(filename) as file:
             data = file.read()
     else:  # file-like : this also handles errors in dumping
         data = filename.read()
@@ -74,7 +74,7 @@ def write_json(cosmology, file, *, overwrite=False):
 
     # check that file exists and whether to overwrite.
     if os.path.exists(file) and not overwrite:
-        raise IOError(f"{file} exists. Set 'overwrite' to write over.")
+        raise OSError(f"{file} exists. Set 'overwrite' to write over.")
     with open(file, "w") as write_file:
         json.dump(data, write_file)
 
@@ -125,7 +125,7 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         cosmo.write(fp, format="json")
 
         # partial information
-        with open(fp, "r") as file:
+        with open(fp) as file:
             L = file.readlines()[0]
         L = L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]  # remove cosmology  # noqa: #203
         i = L.index('"Tcmb0":')  # delete Tcmb0
