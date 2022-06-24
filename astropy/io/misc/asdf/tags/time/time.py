@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -13,7 +12,7 @@ from astropy.io.misc.asdf.types import AstropyAsdfType
 
 __all__ = ['TimeType']
 
-_guessable_formats = set(['iso', 'byear', 'jyear', 'yday'])
+_guessable_formats = {'iso', 'byear', 'jyear', 'yday'}
 
 _astropy_format_to_asdf_format = {
     'isot': 'iso',

@@ -518,7 +518,7 @@ class Ipac(basic.Basic):
 
         # get header and data as strings to find width of each column
         for i, col in enumerate(table.columns.values()):
-            col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
+            col.headwidth = max(len(vals[i]) for vals in self.header.str_vals())
         # keep data_str_vals because they take some time to make
         data_str_vals = []
         col_str_iters = self.data.str_vals()
@@ -529,7 +529,7 @@ class Ipac(basic.Basic):
             # FIXME: In Python 3.4, use max([], default=0).
             # See: https://docs.python.org/3/library/functions.html#max
             if data_str_vals:
-                col.width = max([len(vals[i]) for vals in data_str_vals])
+                col.width = max(len(vals[i]) for vals in data_str_vals)
             else:
                 col.width = 0
 

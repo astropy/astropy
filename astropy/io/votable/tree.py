@@ -2113,8 +2113,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
             if isinstance(entry, Param):
                 yield entry
             elif isinstance(entry, Group):
-                for field in entry.iter_fields_and_params():
-                    yield field
+                yield from entry.iter_fields_and_params()
 
     def iter_groups(self):
         """
@@ -2124,8 +2123,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
         for entry in self.entries:
             if isinstance(entry, Group):
                 yield entry
-                for group in entry.iter_groups():
-                    yield group
+                yield from entry.iter_groups()
 
 
 class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
@@ -3041,13 +3039,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         Recursively iterate over all FIELD and PARAM elements in the
         TABLE.
         """
-        for param in self.params:
-            yield param
-        for field in self.fields:
-            yield field
+        yield from self.params
+        yield from self.fields
         for group in self.groups:
-            for field in group.iter_fields_and_params():
-                yield field
+            yield from group.iter_fields_and_params()
 
     get_field_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_fields_and_params', 'FIELD or PARAM',
@@ -3074,8 +3069,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """
         for group in self.groups:
             yield group
-            for g in group.iter_groups():
-                yield g
+            yield from group.iter_groups()
 
     get_group_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_groups', 'GROUP',
@@ -3092,8 +3086,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """)
 
     def iter_info(self):
-        for info in self.infos:
-            yield info
+        yield from self.infos
 
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
@@ -3319,61 +3312,49 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         Recursively iterates over all tables in the resource and
         nested resources.
         """
-        for table in self.tables:
-            yield table
+        yield from self.tables
         for resource in self.resources:
-            for table in resource.iter_tables():
-                yield table
+            yield from resource.iter_tables()
 
     def iter_fields_and_params(self):
         """
         Recursively iterates over all FIELD_ and PARAM_ elements in
         the resource, its tables and nested resources.
         """
-        for param in self.params:
-            yield param
+        yield from self.params
         for table in self.tables:
-            for param in table.iter_fields_and_params():
-                yield param
+            yield from table.iter_fields_and_params()
         for resource in self.resources:
-            for param in resource.iter_fields_and_params():
-                yield param
+            yield from resource.iter_fields_and_params()
 
     def iter_coosys(self):
         """
         Recursively iterates over all the COOSYS_ elements in the
         resource and nested resources.
         """
-        for coosys in self.coordinate_systems:
-            yield coosys
+        yield from self.coordinate_systems
         for resource in self.resources:
-            for coosys in resource.iter_coosys():
-                yield coosys
+            yield from resource.iter_coosys()
 
     def iter_timesys(self):
         """
         Recursively iterates over all the TIMESYS_ elements in the
         resource and nested resources.
         """
-        for timesys in self.time_systems:
-            yield timesys
+        yield from self.time_systems
         for resource in self.resources:
-            for timesys in resource.iter_timesys():
-                yield timesys
+            yield from resource.iter_timesys()
 
     def iter_info(self):
         """
         Recursively iterates over all the INFO_ elements in the
         resource and nested resources.
         """
-        for info in self.infos:
-            yield info
+        yield from self.infos
         for table in self.tables:
-            for info in table.iter_info():
-                yield info
+            yield from table.iter_info()
         for resource in self.resources:
-            for info in resource.iter_info():
-                yield info
+            yield from resource.iter_info()
 
 
 class VOTableFile(Element, _IDProperty, _DescriptionProperty):
@@ -3704,8 +3685,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         ignoring the nesting of resources etc.
         """
         for resource in self.resources:
-            for table in resource.iter_tables():
-                yield table
+            yield from resource.iter_tables()
 
     def get_first_table(self):
         """
@@ -3747,8 +3727,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         VOTABLE_ file.
         """
         for resource in self.resources:
-            for field in resource.iter_fields_and_params():
-                yield field
+            yield from resource.iter_fields_and_params()
 
     get_field_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_fields_and_params', 'FIELD',
@@ -3791,8 +3770,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         file.
         """
         for table in self.iter_tables():
-            for group in table.iter_groups():
-                yield group
+            yield from table.iter_groups()
 
     get_group_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_groups', 'GROUP',
@@ -3813,11 +3791,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Recursively iterate over all COOSYS_ elements in the VOTABLE_
         file.
         """
-        for coosys in self.coordinate_systems:
-            yield coosys
+        yield from self.coordinate_systems
         for resource in self.resources:
-            for coosys in resource.iter_coosys():
-                yield coosys
+            yield from resource.iter_coosys()
 
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
@@ -3828,11 +3804,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Recursively iterate over all TIMESYS_ elements in the VOTABLE_
         file.
         """
-        for timesys in self.time_systems:
-            yield timesys
+        yield from self.time_systems
         for resource in self.resources:
-            for timesys in resource.iter_timesys():
-                yield timesys
+            yield from resource.iter_timesys()
 
     get_timesys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_timesys', 'TIMESYS',
@@ -3843,11 +3817,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Recursively iterate over all INFO_ elements in the VOTABLE_
         file.
         """
-        for info in self.infos:
-            yield info
+        yield from self.infos
         for resource in self.resources:
-            for info in resource.iter_info():
-                yield info
+            yield from resource.iter_info()
 
     get_info_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_info', 'INFO',

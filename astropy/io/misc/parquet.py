@@ -212,7 +212,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
                           f"Guessing {{strlen}} for schema.",
                           AstropyUserWarning)
         else:
-            strlen = max([len(row.as_py()) for row in pa_table[name]])
+            strlen = max(len(row.as_py()) for row in pa_table[name])
             warnings.warn(f"No {md_name} found in metadata. "
                           f"Using longest string ({{strlen}} characters).",
                           AstropyUserWarning)
@@ -231,7 +231,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
     if meta_hdr is not None:
         # Set description, format, unit, meta from the column
         # metadata that was serialized with the table.
-        header_cols = dict((x['name'], x) for x in meta_hdr['datatype'])
+        header_cols = {x['name']: x for x in meta_hdr['datatype']}
         for col in table.columns.values():
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:

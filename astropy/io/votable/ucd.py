@@ -30,8 +30,7 @@ class UCDWords:
         with data.get_pkg_data_fileobj(
                 "data/ucd1p-words.txt", encoding='ascii') as fd:
             for line in fd.readlines():
-                type, name, descr = [
-                    x.strip() for x in line.split('|')]
+                type, name, descr = (x.strip() for x in line.split('|'))
                 name_lower = name.lower()
                 if type in 'QPEVC':
                     self._primary.add(name_lower)

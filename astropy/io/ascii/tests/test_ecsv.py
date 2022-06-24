@@ -613,7 +613,7 @@ a
 
 def test_write_not_json_serializable():
     t = Table()
-    t['a'] = np.array([set([1, 2]), 1], dtype=object)
+    t['a'] = np.array([{1, 2}, 1], dtype=object)
     match = "could not convert column 'a' to string: Object of type set is not JSON serializable"
     out = StringIO()
     with pytest.raises(TypeError, match=match):

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -30,14 +29,14 @@ class TabularType(TransformType):
                                               method=node['method'], bounds_error=node['bounds_error'],
                                               fill_value=fill_value)
         elif dim == 2:
-            points = tuple([p[:] for p in node['points']])
+            points = tuple(p[:] for p in node['points'])
             model = modeling.models.Tabular2D(points=points, lookup_table=lookup_table,
                                               method=node['method'], bounds_error=node['bounds_error'],
                                               fill_value=fill_value)
 
         else:
             tabular_class = modeling.models.tabular_model(dim, name)
-            points = tuple([p[:] for p in node['points']])
+            points = tuple(p[:] for p in node['points'])
             model = tabular_class(points=points, lookup_table=lookup_table,
                                   method=node['method'], bounds_error=node['bounds_error'],
                                   fill_value=fill_value)
