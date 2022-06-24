@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Wrappers for PLY to provide thread safety.
@@ -30,7 +29,7 @@ _LOCK = threading.RLock()
 
 
 def _add_tab_header(filename, package):
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         contents = f.read()
 
     with open(filename, 'w') as f:

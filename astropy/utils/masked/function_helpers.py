@@ -73,9 +73,9 @@ been lack of time.  Issues or PRs for support for functions are welcome.
 """
 
 # Almost all from np.core.fromnumeric defer to methods so are OK.
-MASKED_SAFE_FUNCTIONS |= set(
+MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name) for name in np.core.fromnumeric.__all__
-    if name not in ({'choose', 'put', 'resize', 'searchsorted', 'where', 'alen'}))
+    if name not in {'choose', 'put', 'resize', 'searchsorted', 'where', 'alen'}}
 
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -136,8 +136,7 @@ IGNORED_FUNCTIONS |= {
 }
 
 # Really should do these...
-IGNORED_FUNCTIONS |= set(getattr(np, setopsname)
-                         for setopsname in np.lib.arraysetops.__all__)
+IGNORED_FUNCTIONS |= {getattr(np, setopsname) for setopsname in np.lib.arraysetops.__all__}
 
 
 if NUMPY_LT_1_23:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """This module contains functions and methods that relate to the DataInfo class
@@ -282,7 +281,7 @@ class DataInfo(metaclass=DataInfoMeta):
     """
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
-    attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
+    attr_names = {'name', 'unit', 'dtype', 'format', 'description', 'meta'}
     _attr_defaults = {'dtype': np.dtype('O')}
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
@@ -523,7 +522,7 @@ class BaseColumnInfo(DataInfo):
     without importing the table package.
     """
     attr_names = DataInfo.attr_names | {'parent_table', 'indices'}
-    _attrs_no_copy = set(['parent_table', 'indices'])
+    _attrs_no_copy = {'parent_table', 'indices'}
 
     # Context for serialization.  This can be set temporarily via
     # ``serialize_context_as(context)`` context manager to allow downstream
@@ -578,8 +577,7 @@ class BaseColumnInfo(DataInfo):
             formatter = self.parent_table.formatter
 
         _pformat_col_iter = formatter._pformat_col_iter
-        for str_val in _pformat_col_iter(col, -1, False, False, {}):
-            yield str_val
+        yield from _pformat_col_iter(col, -1, False, False, {})
 
     @property
     def indices(self):
@@ -721,7 +719,7 @@ class BaseColumnInfo(DataInfo):
         out['dtype'] = metadata.common_dtype(cols)
 
         # Make sure all input shapes are the same
-        uniq_shapes = set(col.shape[1:] for col in cols)
+        uniq_shapes = {col.shape[1:] for col in cols}
         if len(uniq_shapes) != 1:
             raise TableMergeError('columns have different shapes')
         out['shape'] = uniq_shapes.pop()
@@ -776,4 +774,4 @@ class MixinInfo(BaseColumnInfo):
 class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""
 
-    attrs_from_parent = set(['dtype'])  # dtype and unit taken from parent
+    attrs_from_parent = {'dtype'}  # dtype and unit taken from parent

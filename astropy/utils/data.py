@@ -1043,7 +1043,7 @@ class _FTPTLSHandler(urllib.request.FTPHandler):
                               persistent=False)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
     """
     Helper for building a `urllib.request.build_opener` which handles TLS/SSL.

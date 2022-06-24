@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A "grab bag" of relatively small general-purpose utilities that don't have
@@ -293,8 +292,8 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    signal_to_name_map = dict((k, v) for v, k in signal.__dict__.items()
-                              if v.startswith('SIG'))
+    signal_to_name_map = {k: v for v, k in signal.__dict__.items()
+                          if v.startswith('SIG')}
 
     return signal_to_name_map.get(signum, 'UNKNOWN')
 
@@ -791,8 +790,7 @@ class OrderedDescriptorContainer(type):
             instances = OrderedDict((key, value) for value, key in instances)
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
-        super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
-                                                        members)
+        super().__init__(cls_name, bases, members)
 
 
 LOCALE_LOCK = threading.Lock()
