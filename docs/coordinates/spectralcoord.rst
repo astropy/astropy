@@ -237,7 +237,7 @@ velocity frame transformation)::
     >>> from astropy.time import Time
     >>> alma = location.get_itrs(obstime=Time('2019-04-24T02:32:10'))
     >>> alma  # doctest: +FLOAT_CMP
-    <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+    <ITRS Coordinate (obstime=2019-04-24T02:32:10.000, location=(0., 0., 0.) km): (x, y, z) in m
         (2225015.30883296, -5440016.41799762, -2481631.27428014)>
 
 ITRS here stands for International Terrestrial Reference System which is a 3D
@@ -269,7 +269,7 @@ have been measured (for the purposes of the example here we will assume we have 
     ...                         observer=alma, target=ttau)  # doctest: +IGNORE_WARNINGS
     >>> sc_ttau  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
-       (observer: <ITRS Coordinate (obstime=2019-04-24T02:32:10.000): (x, y, z) in m
+       (observer:  <ITRS Coordinate (obstime=2019-04-24T02:32:10.000, location=(0., 0., 0.) km): (x, y, z) in m
                       (2225015.30883296, -5440016.41799762, -2481631.27428014)
                    (v_x, v_y, v_z) in km / s
                       (0., 0., 0.)>
