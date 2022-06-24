@@ -27,20 +27,20 @@ def test_common_dtype():
                 fail.add(f'{name1} {name2}')
 
     # known bad combinations
-    bad = set(['str int', 'str bool', 'uint8 bool', 'uint8 str', 'object float32',
-               'bool object', 'uni uint8', 'int str', 'bool str', 'bool float64',
-               'bool uni', 'str float32', 'uni float64', 'uni object', 'bool uint8',
-               'object float64', 'float32 bool', 'str uint8', 'uni bool', 'float64 bool',
-               'float64 object', 'int bool', 'uni int', 'uint8 object', 'int uni', 'uint8 uni',
-               'float32 uni', 'object uni', 'bool float32', 'uni float32', 'object str',
-               'int object', 'str float64', 'object int', 'float64 uni', 'bool int',
-               'object bool', 'object uint8', 'float32 object', 'str object', 'float64 str',
-               'float32 str'])
+    bad = {'str int', 'str bool', 'uint8 bool', 'uint8 str', 'object float32',
+           'bool object', 'uni uint8', 'int str', 'bool str', 'bool float64',
+           'bool uni', 'str float32', 'uni float64', 'uni object', 'bool uint8',
+           'object float64', 'float32 bool', 'str uint8', 'uni bool', 'float64 bool',
+           'float64 object', 'int bool', 'uni int', 'uint8 object', 'int uni', 'uint8 uni',
+           'float32 uni', 'object uni', 'bool float32', 'uni float32', 'object str',
+           'int object', 'str float64', 'object int', 'float64 uni', 'bool int',
+           'object bool', 'object uint8', 'float32 object', 'str object', 'float64 str',
+           'float32 str'}
     assert fail == bad
 
-    good = set(['float64 int', 'int int', 'uint8 float64', 'uint8 int', 'str uni',
-                'float32 float32', 'float64 float64', 'float64 uint8', 'float64 float32',
-                'int uint8', 'int float32', 'uni str', 'int float64', 'uint8 float32',
-                'float32 int', 'float32 uint8', 'bool bool', 'uint8 uint8', 'str str',
-                'float32 float64', 'object object', 'uni uni'])
+    good = {'float64 int', 'int int', 'uint8 float64', 'uint8 int', 'str uni',
+            'float32 float32', 'float64 float64', 'float64 uint8', 'float64 float32',
+            'int uint8', 'int float32', 'uni str', 'int float64', 'uint8 float32',
+            'float32 int', 'float32 uint8', 'bool bool', 'uint8 uint8', 'str str',
+            'float32 float64', 'object object', 'uni uni'}
     assert succeed == good

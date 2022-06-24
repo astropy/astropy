@@ -49,10 +49,10 @@ def _auto_names(n_cols):
 # list of one and two-dimensional comparison functions, which sometimes return
 # a Column class and sometimes a plain array. Used in __array_wrap__ to ensure
 # they only return plain (masked) arrays (see #1446 and #1685)
-_comparison_functions = set(
-    [np.greater, np.greater_equal, np.less, np.less_equal,
-     np.not_equal, np.equal,
-     np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
+_comparison_functions = {
+    np.greater, np.greater_equal, np.less, np.less_equal,
+    np.not_equal, np.equal,
+    np.isfinite, np.isinf, np.isnan, np.sign, np.signbit}
 
 
 def col_copy(col, copy_indices=True):
@@ -772,9 +772,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         # Iterate over formatted values with no max number of lines, no column
         # name, no unit, and ignoring the returned header info in outs.
         _pformat_col_iter = self._formatter._pformat_col_iter
-        for str_val in _pformat_col_iter(self, -1, show_name=False, show_unit=False,
-                                         show_dtype=False, outs={}):
-            yield str_val
+        yield from _pformat_col_iter(self, -1, show_name=False, show_unit=False,
+                                     show_dtype=False, outs={})
 
     def attrs_equal(self, col):
         """Compare the column attributes of ``col`` to this object.

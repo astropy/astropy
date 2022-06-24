@@ -13,7 +13,7 @@ if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
 
-class Node(object):
+class Node:
     __slots__ = ('key', 'value')
 
     def __init__(self, key, value):

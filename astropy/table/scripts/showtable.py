@@ -84,7 +84,7 @@ def showtable(filename, args):
             formatter(max_lines=args.max_lines, max_width=args.max_width,
                       show_unit=(False if args.hide_unit else None),
                       show_dtype=(True if args.show_dtype else None))
-    except IOError as e:
+    except OSError as e:
         log.error(str(e))
 
 
