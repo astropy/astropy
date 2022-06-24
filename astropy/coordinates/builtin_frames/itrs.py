@@ -39,15 +39,24 @@ class ITRS(BaseCoordinateFrame):
     Topocentric ITRS frames are convenient for observations of near Earth objects where
     stellar aberration is not included. One can merely subtract the observing site's
     EarthLocation geocentric ITRS coordinates from the object's geocentric ITRS coordinates,
-    put the resulting vector into a topocentric ITRS frame and then transform to AltAz
-    or HADec. The other way around is to transfrom an observed AltAz or HADec position
-    to a topocentric ITRS frame and add the observing site's EarthLocation geocentric
+    put the resulting vector into a topocentric ITRS frame and then transform to
+    `~astropy.coordinates.AltAz` or `~astropy.coordinates.HADec`. The other way around is
+    to transform an observed `~astropy.coordinates.AltAz` or `~astropy.coordinates.HADec`
+    position to a topocentric ITRS frame and add the observing site's EarthLocation geocentric
     ITRS coordinates to yield the object's geocentric ITRS coordinates.
 
+    On the other hand, direct transforms between geocentric ITRS coordinates and observed
+    `~astropy.coordinates.AltAz` or `~astropy.coordinates.HADec` coordinates include the
+    difference between stellar aberration from the point of view of an observer at the
+    geocenter and stellar aberration from the point of view of an observer on the surface
+    of the Earth. If the geocentric ITRS coordinates of the object include stellar aberration
+    at the geocenter, then this is the way to go.
+
     Note to ILRS ephemeris users: Astropy does not currently consider relativistic
-    effects of the Earth's gravatational field. Nor do the AltAz or HADec refraction
-    corrections compute the change in the range due to the curved path of light through
-    the atmosphere, so Astropy is no substitute for the ILRS software in these respects.
+    effects of the Earth's gravatational field. Nor do the `~astropy.coordinates.AltAz`
+    or `~astropy.coordinates.HADec` refraction corrections compute the change in the
+    range due to the curved path of light through the atmosphere, so Astropy is no
+    substitute for the ILRS software in these respects.
 
     """
 
