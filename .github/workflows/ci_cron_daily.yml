@@ -28,6 +28,9 @@ env:
   ARCH_ON_CI: "normal"
   IS_CRON: "true"
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
