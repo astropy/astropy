@@ -99,7 +99,7 @@ class Result:
         def fail(reason):
             reason = str(reason)
             with open(path, 'wb') as fd:
-                fd.write(f'FAILED: {reason}\n'.encode('utf-8'))
+                fd.write(f'FAILED: {reason}\n'.encode())
             self['network_error'] = reason
 
         r = None
@@ -116,7 +116,7 @@ class Result:
         except http.client.HTTPException as e:
             fail(f"HTTPException: {str(e)}")
             return
-        except (socket.timeout, socket.error) as e:
+        except (socket.timeout, OSError) as e:
             fail("Timeout")
             return
 

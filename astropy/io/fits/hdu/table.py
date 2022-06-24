@@ -1311,7 +1311,7 @@ class BinTableHDU(_TableBaseHDU):
         close_file = False
 
         if isinstance(fileobj, str):
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj)
             close_file = True
 
         initialpos = fileobj.tell()  # We'll be returning here later
@@ -1454,7 +1454,7 @@ class BinTableHDU(_TableBaseHDU):
         close_file = False
 
         if isinstance(fileobj, str):
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj)
             close_file = True
 
         columns = []

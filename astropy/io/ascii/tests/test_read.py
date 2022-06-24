@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy.io.ascii.core import convert_numpy
 import re
-from io import BytesIO, open
+from io import BytesIO
 from collections import OrderedDict
 import locale
 import platform
@@ -266,8 +265,8 @@ def test_guess_all_files():
         print(f"\n\n******** READING {testfile['name']}")
         for filter_read_opts in (['Reader', 'delimiter', 'quotechar'], []):
             # Copy read options except for those in filter_read_opts
-            guess_opts = dict((k, v) for k, v in testfile['opts'].items()
-                              if k not in filter_read_opts)
+            guess_opts = {k: v for k, v in testfile['opts'].items()
+                          if k not in filter_read_opts}
             table = ascii.read(testfile['name'], guess=True, **guess_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
@@ -1478,7 +1477,7 @@ def test_read_chunks_input_types():
     fpath = 'data/test5.dat'
     t1 = ascii.read(fpath, header_start=1, data_start=3, )
 
-    with open(fpath, 'r') as fd1, open(fpath, 'r') as fd2:
+    with open(fpath) as fd1, open(fpath) as fd2:
         for fp in (fpath, fd1, fd2.read()):
             t_gen = ascii.read(fp, header_start=1, data_start=3,
                                guess=False, format='fast_basic',
@@ -1493,7 +1492,7 @@ def test_read_chunks_input_types():
             t2 = table.vstack(ts)
             assert np.all(t1 == t2)
 
-    with open(fpath, 'r') as fd1, open(fpath, 'r') as fd2:
+    with open(fpath) as fd1, open(fpath) as fd2:
         for fp in (fpath, fd1, fd2.read()):
             # Now read the full table in chunks
             t3 = ascii.read(fp, header_start=1, data_start=3,

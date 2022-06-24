@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This is a set of regression tests for vo.
@@ -142,11 +141,9 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     with open(
         get_pkg_data_filename(
-            f'data/regression.bin.tabledata.truth.{votable.version}.xml'),
-            'rt', encoding='utf-8') as fd:
+            f'data/regression.bin.tabledata.truth.{votable.version}.xml'), encoding='utf-8') as fd:
         truth = fd.readlines()
-    with open(str(tmpdir.join("regression.bin.tabledata.xml")),
-              'rt', encoding='utf-8') as fd:
+    with open(str(tmpdir.join("regression.bin.tabledata.xml")), encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
@@ -806,8 +803,7 @@ def test_validate(test_path_object=False):
     #    fd.write(u''.join(output))
 
     with open(
-        get_pkg_data_filename('data/validation.txt'),
-            'rt', encoding='utf-8') as fd:
+        get_pkg_data_filename('data/validation.txt'), encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
@@ -978,8 +974,7 @@ def test_no_resource_check():
     #     fd.write(u''.join(output))
 
     with open(
-        get_pkg_data_filename('data/no_resource.txt'),
-            'rt', encoding='utf-8') as fd:
+        get_pkg_data_filename('data/no_resource.txt'), encoding='utf-8') as fd:
         truth = fd.readlines()
 
     truth = truth[1:]
