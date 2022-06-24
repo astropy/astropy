@@ -438,8 +438,7 @@ def test_quoted_fields(parallel, read_basic):
     ('data_start', -1),  # data_start negative
     ('quotechar', '##'),  # multi-char quote signifier
     ('header_start', -1),  # negative header_start
-    ('converters', {i + 1: ascii.convert_numpy(np.uint)
-                    for i in range(3)}),  # passing converters
+    ('converters', {i + 1: ascii.convert_numpy(np.uint) for i in range(3)}),  # passing converters
     ('Inputter', ascii.ContinuationLinesInputter),  # passing Inputter
     ('header_Splitter', ascii.DefaultSplitter),  # passing Splitter
     ('data_Splitter', ascii.DefaultSplitter)])
