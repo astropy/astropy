@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module defines structured units and quantities.
@@ -223,7 +222,7 @@ class StructuredUnit:
             If given, should be a subclass of `~numpy.void`. By default,
             will return a new `~astropy.units.StructuredUnit` instance.
         """
-        results = np.array(tuple([func(part) for part in self.values()]),
+        results = np.array(tuple(func(part) for part in self.values()),
                            self._units.dtype)[()]
         if cls is not None:
             return results.view((cls, results.dtype))

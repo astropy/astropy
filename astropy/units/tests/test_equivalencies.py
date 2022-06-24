@@ -1,4 +1,3 @@
-# coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Separate tests specifically for equivalencies."""
 
@@ -532,10 +531,10 @@ def test_equivalent_units():
     with u.add_enabled_units(imperial):
         units = u.g.find_equivalent_units()
         units_set = set(units)
-        match = set(
-            [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u, u.M_earth,
+        match = {
+            u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u, u.M_earth,
              u.M_jup, imperial.oz, imperial.lb, imperial.st, imperial.ton,
-             imperial.slug])
+             imperial.slug}
         assert units_set == match
 
     r = repr(units)
@@ -544,28 +543,28 @@ def test_equivalent_units():
 
 def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
-    match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-         u.jupiterRad])
+    match = {
+        u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
+        u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
+        u.jupiterRad}
     assert units == match
 
     from astropy.units import imperial
     with u.add_enabled_units(imperial):
         units = set(u.Hz.find_equivalent_units(u.spectral()))
-        match = set(
-            [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
-             imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
-             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi, u.lsec,
-             imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-             imperial.nmi, u.k, u.earthRad, u.jupiterRad])
+        match = {
+            u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
+            imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
+            imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi, u.lsec,
+            imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
+            imperial.nmi, u.k, u.earthRad, u.jupiterRad}
         assert units == match
 
     units = set(u.Hz.find_equivalent_units(u.spectral()))
-    match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
-         u.jupiterRad])
+    match = {
+        u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
+        u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
+        u.jupiterRad}
     assert units == match
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numbers
 
@@ -158,7 +157,7 @@ class DexUnit(LogUnit):
             else:
                 return f"[{self.physical_unit.to_string(format=format)}]"
         else:
-            return super(DexUnit, self).to_string()
+            return super().to_string()
 
 
 class DecibelUnit(LogUnit):
@@ -382,8 +381,8 @@ class LogQuantity(FunctionQuantity):
                                    unit=self.unit._copy(dimensionless_unscaled))
 
     _supported_functions = (FunctionQuantity._supported_functions |
-                            set(getattr(np, function) for function in
-                                ('var', 'std', 'ptp', 'diff', 'ediff1d')))
+                            {getattr(np, function) for function in
+                                ('var', 'std', 'ptp', 'diff', 'ediff1d')})
 
 
 class Dex(LogQuantity):
