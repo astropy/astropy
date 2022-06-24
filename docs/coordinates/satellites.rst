@@ -2,6 +2,10 @@
 
 Working with Earth Satellites Using Astropy Coordinates
 *******************************************************
+This document discusses Two-Line Element ephemerides and the True Equator, Mean Equinox frame.
+For satellite ephemerides given directly in geocentric ITRS coordinates
+(e.g. `ILRS ephemeris format <https://ilrs.gsfc.nasa.gov/data_and_products/formats/cpf.html>`_)
+please see the documentation of the ITRS frame.
 
 Satellite data is normally provided in the Two-Line Element (TLE) format
 (see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
