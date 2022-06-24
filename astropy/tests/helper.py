@@ -106,16 +106,16 @@ class raises:
 # TODO: Remove these when deprecation period of things deprecated in PR 12633 are removed.
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
-_modules_to_ignore_on_import = set([
+_modules_to_ignore_on_import = {
     r'compiler',  # A deprecated stdlib module used by pytest
     r'scipy',
     r'pygments',
     r'ipykernel',
     r'IPython',   # deprecation warnings for async and await
-    r'setuptools'])
-_warnings_to_ignore_entire_module = set([])
+    r'setuptools'}
+_warnings_to_ignore_entire_module = set()
 _warnings_to_ignore_by_pyver = {
-    None: set([  # Python version agnostic
+    None: {  # Python version agnostic
         # https://github.com/astropy/astropy/pull/7372
         (r"Importing from numpy\.testing\.decorators is deprecated, "
          r"import from numpy\.testing instead\.", DeprecationWarning),
@@ -128,12 +128,12 @@ _warnings_to_ignore_by_pyver = {
         (r"split\(\) requires a non-empty pattern match", FutureWarning),
         # Package resolution warning that we can do nothing about
         (r"can't resolve package from __spec__ or __package__, "
-         r"falling back on __name__ and __path__", ImportWarning)]),
-    (3, 7): set([
+         r"falling back on __name__ and __path__", ImportWarning)},
+    (3, 7): {
         # Deprecation warning for collections.abc, fixed in Astropy but still
         # used in lxml, and maybe others
         (r"Using or importing the ABCs from 'collections'",
-         DeprecationWarning)])
+         DeprecationWarning)}
 }
 
 

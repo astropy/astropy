@@ -333,7 +333,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             self.testing_path, self.package_name.replace('.', '/'),
             'tests', 'coveragerc')
 
-        with open(coveragerc, 'r') as fd:
+        with open(coveragerc) as fd:
             coveragerc_content = fd.read()
 
         coveragerc_content = coveragerc_content.replace(
