@@ -71,7 +71,7 @@ def tete_to_itrs_mat(time, rbpn=None):
     sp = erfa.sp00(*get_jd12(time, 'tt'))
     pmmat = erfa.pom00(xp, yp, sp)
 
-    # now determine the greenwich apparent siderial time for the input obstime
+    # now determine the greenwich apparent sidereal time for the input obstime
     # we use the 2006A model for consistency with RBPN matrix use in GCRS <-> TETE
     ujd1, ujd2 = get_jd12(time, 'ut1')
     jd1, jd2 = get_jd12(time, 'tt')
@@ -146,9 +146,9 @@ def tete_to_gcrs(tete_coo, gcrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, ITRS)
 def tete_to_itrs(tete_coo, itrs_frame):
-    # first get us to TETE at the target obstime, and geocentric position
+    # first get us to TETE at the target obstime, and location (no-op if same)
     tete_coo2 = tete_coo.transform_to(TETE(obstime=itrs_frame.obstime,
-                                           location=EARTH_CENTER))
+                                           location=itrs_frame.location))
 
     # now get the pmatrix
     pmat = tete_to_itrs_mat(itrs_frame.obstime)
@@ -161,9 +161,9 @@ def itrs_to_tete(itrs_coo, tete_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = tete_to_itrs_mat(itrs_coo.obstime)
     newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
-    tete = TETE(newrepr, obstime=itrs_coo.obstime)
+    tete = TETE(newrepr, obstime=itrs_coo.obstime, location=itrs_coo.location)
 
-    # now do any needed offsets (no-op if same obstime)
+    # now do any needed offsets (no-op if same obstime and location)
     return tete.transform_to(tete_frame)
 
 
@@ -196,9 +196,9 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ITRS)
 def cirs_to_itrs(cirs_coo, itrs_frame):
-    # first get us to geocentric CIRS at the target obstime
+    # first get us to CIRS at the target obstime, and location (no-op if same)
     cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime,
-                                           location=EARTH_CENTER))
+                                           location=itrs_frame.location))
 
     # now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)
@@ -211,9 +211,9 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = cirs_to_itrs_mat(itrs_coo.obstime)
     newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
-    cirs = CIRS(newrepr, obstime=itrs_coo.obstime)
+    cirs = CIRS(newrepr, obstime=itrs_coo.obstime, location=itrs_coo.location)
 
-    # now do any needed offsets (no-op if same obstime)
+    # now do any needed offsets (no-op if same obstime and location)
     return cirs.transform_to(cirs_frame)
 
 
