@@ -4,8 +4,7 @@
 Distribution class and associated machinery.
 """
 import builtins
-from ctypes import Union
-from typing import Any, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -24,6 +23,15 @@ SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 class DistributionMeta(FactoryMeta):
 
     def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> TypeArgs:
+        """Prepare the information to create a Distribution for ``data_cls``.
+
+        Generally, for a given ``data_cls``, `Distribution` has to be inserted
+        below ``data_cls`` but above the class holding the actual data. For
+        instance, for ``Quantity``, one wants (Quantity, Distribution, ndarray).
+        We use ``base_cls`` as the base that has `Distribution` on top (in this
+        case, just ``ArrayDistribution``).
+
+        """
         # The `bases` of `type()` requires adding `_DistributionRepr` higher
         # in the MRO than `data_cls`. The problem is that array2string does not
         # allow one to override how structured arrays are typeset, leading to
@@ -45,7 +53,7 @@ class DistributionMeta(FactoryMeta):
 
         new_dtype = np.dtype({'names': ['samples'],
                              'formats': [(data.dtype, (data.shape[-1],))]})
-        distr_cls = self._inmix_make_class(data.__class__)
+        distr_cls = self._inmix_get_subclass(data.__class__)
         self = data.view(dtype=new_dtype, type=distr_cls)
         # Get rid of trailing dimension of 1.
         self.shape = data.shape[:-1]
@@ -260,7 +268,7 @@ class Distribution(metaclass=DistributionMeta):
         return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)
 
 
-class ScalarDistribution(Distribution, np.void, base_cls=np.void, data_cls=np.void):
+class ScalarDistribution(Distribution, np.void, data_cls=np.void, base_cls=np.void):
     """Scalar distribution.
 
     This class mostly exists to make `~numpy.array2print` possible for

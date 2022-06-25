@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from typing import Type
+from typing import Any, Type
 from astropy import units as u
 from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
 from astropy.coordinates.baseframe import (frame_transform_graph,
@@ -10,7 +10,7 @@ from astropy.coordinates.matrix_utilities import (rotation_matrix,
                                                   matrix_product,
                                                   matrix_transpose)
 from astropy.utils.decorators import deprecated
-from astropy.utils.metaclasses import FactoryMeta, TypeArgs
+from astropy.utils.metaclasses import FactoryMeta, TypeArgs, Self
 
 
 @deprecated("v5.2", alternative="SkyOffsetFrame(<type>)")
@@ -92,29 +92,33 @@ class SkyOffsetFrameMeta(FactoryMeta):
 
         return name, bases, namespace
 
-    def _inmix_make_class(self, framecls: Type[BaseCoordinateFrame], /) -> type:
+    def _inmix_get_subclass(self, framecls: Type[BaseCoordinateFrame], /) -> type:
         if not issubclass(framecls, BaseCoordinateFrame):
-            raise TypeError
+            raise TypeError(f"the class {framecls} must be a subclass of {framecls}")
 
-        # Call super
-        skyoffset_framecls = super()._inmix_make_class(framecls)
+        # Call super to actully make the class
+        skyoffset_subclass = super()._inmix_get_subclass(framecls)
 
         # Register transformations
-        frame_transform_graph.transform(FunctionTransform, skyoffset_framecls, skyoffset_framecls)(_skyoffset_to_skyoffset)
-        frame_transform_graph.transform(DynamicMatrixTransform, framecls, skyoffset_framecls)(_reference_to_skyoffset)
-        frame_transform_graph.transform(DynamicMatrixTransform, skyoffset_framecls, framecls)(_skyoffset_to_reference)
+        frame_transform_graph.transform(FunctionTransform, skyoffset_subclass, skyoffset_subclass)(_skyoffset_to_skyoffset)
+        frame_transform_graph.transform(DynamicMatrixTransform, framecls, skyoffset_subclass)(_reference_to_skyoffset)
+        frame_transform_graph.transform(DynamicMatrixTransform, skyoffset_subclass, framecls)(_skyoffset_to_reference)
 
-        return skyoffset_framecls
+        return skyoffset_subclass
 
-    def _inmix_make_instance(self, *args, **kwargs):
+    def _inmix_make_instance(self, *args: Any, **kwargs: Any):
+        # Check there is enough info to make the frame
         try:
             origin_frame = kwargs['origin']
         except KeyError:
             raise TypeError("Can't initialize an SkyOffsetFrame without origin= keyword.") from None
+
+        # SkyCoord-like -> frame
         if hasattr(origin_frame, 'frame'):
             origin_frame = origin_frame.frame
 
-        inmixcls = self._inmix_make_class(type(origin_frame))
+        # Make (or find) and instantiate the class
+        inmixcls = self._inmix_get_subclass(type(origin_frame))
         return inmixcls(*args, **kwargs)
 
 
@@ -160,15 +164,6 @@ class SkyOffsetFrame(BaseCoordinateFrame, metaclass=SkyOffsetFrameMeta):
     rotation = QuantityAttribute(default=0, unit=u.deg)
     origin = CoordinateAttribute(default=None, frame=None)
 
-    def __new__(cls, *args, **kwargs):
-        # http://stackoverflow.com/questions/19277399/why-does-object-new-work-differently-in-these-three-cases
-        # See above for why this is necessary. Basically, because some child
-        # may override __new__, we must override it here to never pass
-        # arguments to the object.__new__ method.
-        if super().__new__ is object.__new__:
-            return super().__new__(cls)
-        return super().__new__(cls, *args, **kwargs)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.origin is not None and not self.origin.has_data:
@@ -180,7 +175,7 @@ class SkyOffsetFrame(BaseCoordinateFrame, metaclass=SkyOffsetFrameMeta):
     @staticmethod
     def _set_skyoffset_data_lon_wrap_angle(data):
         if hasattr(data, 'lon'):
-            data.lon.wrap_angle = 180.0 * u.deg
+            data.lon.wrap_angle = 180. * u.deg
         return data
 
     def represent_as(self, base, s='base', in_frame_units=False):

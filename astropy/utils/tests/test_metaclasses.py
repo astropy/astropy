@@ -18,7 +18,7 @@ class Test_SupportsAsType(FactoryMeta_TestBase):
 
             @classmethod
             def _inmix_make_instance(cls, data, /, *args, **kwargs):
-                inmixcls = cls._inmix_make_class(type(data))
+                inmixcls = cls._inmix_get_subclass(type(data))
                 return inmixcls(data, *args, **kwargs)
 
             def astype(self, dtype):

@@ -9,7 +9,6 @@ import threading
 import types
 import warnings
 from inspect import signature
-from typing import Callable, List, Set
 
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)

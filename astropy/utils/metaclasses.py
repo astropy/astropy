@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Astropy's ABCs."""
 
+from __future__ import annotations
+from ast import Raise
+import inspect
 
 import sys
 import weakref
-from abc import ABCMeta, abstractmethod
-from typing import List, Sequence, Tuple, Type, Dict, Any, Optional, TypeVar, Union
+from abc import ABCMeta
+from typing import Sequence, Dict, Any, Tuple, TypeVar, Union
 from astropy.utils.compat.optional_deps import HAS_TYPING_EXTENSIONS
 
 if sys.version_info >= (3, 11):
@@ -15,13 +17,12 @@ elif HAS_TYPING_EXTENSIONS:
     from typing_extensions import Self
 else:
     Self = TypeVar("Self", bound="FactoryMeta")
-    # Self = Any
 
 
-__all__: List[str] = []  # FactoryMeta is in development
+__all__: list[str] = []  # FactoryMeta is in development
 
 
-TypeArgs = Union[str, Sequence[type], Dict[str, Any]]
+TypeArgs = Tuple[str, Sequence[type], Dict[str, Any]]
 
 
 class FactoryMeta(ABCMeta):
@@ -37,16 +38,16 @@ class FactoryMeta(ABCMeta):
         The bases of the class. See `type` for details.
     namespace: dict[str, Any]
         The namespace of the class. See `type` for details.
+    data_cls : type or None, optional keyword-only
+        The un-mixed type when defining an intermixed class.
+        Passing the ``data_cls`` means the generted intermixed class can be
+        reused.
+
     base_cls : type or None, optional keyword-only
         The un-mixed type when defining an intermixed class that should be
         used as a base class for future generated intermixed classes.
-        This is useful when a type is base class for many derived classes,
-        e.g. `numpy.ndarray` for the entire `astropy.units.Quantity` family.
-    data_cls : type or None, optional keyword-only
-        The un-mixed type when defining an intermixed class.
-    **kwargs : Any
-        A valid option is ``default_inmixed_class``. This should only be given
-        to the base inmix class. In Examples this is ``SupportsAsType``.
+        This is useful when a type is a base class for many derived classes,
+        e.g. `numpy.ndarray` for the entire ``MaskedNDArray`` family.
 
     Warnings
     --------
@@ -70,7 +71,7 @@ class FactoryMeta(ABCMeta):
         >>> class SupportsAsType(metaclass=FactoryMeta):
         ...     @classmethod
         ...     def _inmix_make_instance(cls, data, *args, **kwargs):
-        ...         inmixcls = cls._inmix_make_class(type(data))
+        ...         inmixcls = cls._inmix_get_subclass(type(data))
         ...         return inmixcls(data, *args, **kwargs)
         ...     def astype(self, dtype):
         ...         return type(self)([dtype(x) for x in self])
@@ -135,13 +136,15 @@ class FactoryMeta(ABCMeta):
     # ---------------------------------------------------------------
     # Construct class from metaclass
 
+    __inmixbase__: type
+
     def __new__(
-        cls: Type[Self],
+        cls: type[Self],
         name: str,
-        bases: Tuple[type, ...],
-        namespace: Dict[str, Any],
-        base_cls: Optional[type]=None,
-        data_cls: Optional[type]=None,
+        bases: tuple[type, ...],
+        namespace: dict[str, Any],
+        base_cls: type | None=None,
+        data_cls: type | None=None,
         **_: Any
     ) -> Self:
         # Make a new class. `__new__` is required to prevent class-level kwargs
@@ -155,17 +158,8 @@ class FactoryMeta(ABCMeta):
         # `__init_subclass__` can use it.
         namespace["__intomixclass__"] = data_cls
 
-        return super().__new__(cls, name, bases, namespace)
+        self = super().__new__(cls, name, bases, namespace)
 
-    def __init__(
-        self: Self,
-        name: str,
-        bases: Tuple[type, ...],
-        namespace: Dict[str, Any],
-        base_cls: Optional[type]=None,
-        data_cls: Optional[type]=None,
-        **_: Any
-    ) -> None:
         # check that this `cls` is the top-most in the MRO to be a
         # `FactoryMeta` type.
         # TODO! allow for subclasses of a
@@ -181,12 +175,26 @@ class FactoryMeta(ABCMeta):
             self.__inmixed_generated_classes = weakref.WeakKeyDictionary()
             """See ``_inmixed_generated_classes``."""
 
+        elif not inspect.isclass(getattr(self, "__inmixbase__", None)):
+            raise TypeError(f"type {self} does not have a defined '__inmixbase__'")
+
+        return self
+
+    def __init__(
+        self: Self,
+        name: str,
+        bases: tuple[type, ...],
+        namespace: dict[str, Any],
+        base_cls: type | None=None,
+        data_cls: type | None=None,
+        **_: Any
+    ) -> None:
         # Optionally register base class and data class information. This can be
         # done when creating the base inmix class, or subclasses thereof.
         if base_cls is not None:
             self.__inmixbase__.__inmixed_base_classes[base_cls] = weakref.ref(self)
 
-        self.__intomixclass__: Optional[type] = None
+        self.__intomixclass__: type | None = None
         if data_cls is not None:
             self.__intomixclass__ = data_cls  # (also injected into namespace in __new__)
             self.__inmixbase__.__inmixed_generated_classes[data_cls] = weakref.ref(self)
@@ -196,7 +204,7 @@ class FactoryMeta(ABCMeta):
 
         super().__init__(name, bases, namespace)
 
-    def _inmix_make__doc__(self, data_cls: type, /) -> Optional[str]:
+    def _inmix_make__doc__(self, data_cls: type, /) -> str | None:
         """
         Make the docstring for the intermixed class.
         The default is to use the docstring of the data class.
@@ -207,7 +215,7 @@ class FactoryMeta(ABCMeta):
     # Construct instance from class
     # This is when an intermixed class can be generated.
 
-    def __call__(self: Self, *args: Any, **kwargs: Any) -> Union[Self, Any]:
+    def __call__(self: Self, *args: Any, **kwargs: Any) -> Self | Any:
         # Make an instance of the class. Before ``cls.__new__``` is called this
         # decides whether 1 of 2 things happens:
         # 1) Normal class instantiation proceeds
@@ -217,7 +225,7 @@ class FactoryMeta(ABCMeta):
             # Defining a new class -- a sub-class of the argument, with an
             # injected inheritance.
             if not kwargs and len(args) == 1 and isinstance(args[0], type):
-                return self._inmix_make_class(args[0])
+                return self._inmix_get_subclass(args[0])
             # Making an instance of a dependency-injected class.
             else:
                 return self._inmix_make_instance(*args, **kwargs)
@@ -225,7 +233,7 @@ class FactoryMeta(ABCMeta):
         # Normal class instantiation
         return super().__call__(*args, **kwargs)
 
-    def _inmix_make_class(self: Self, data_cls: type, /) -> Self:
+    def _inmix_get_subclass(self: Self, data_cls: type, /) -> Self:
         """Get the inmix class for a given data class.
 
         Parameters
@@ -268,7 +276,7 @@ class FactoryMeta(ABCMeta):
 
         return inmixed
 
-    def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> Tuple[str, Tuple[type, ...], Dict[str, Any]]:
+    def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> TypeArgs:
         """Prepare a subclass of the inmix class.
 
         Generally in the MRO the inmix class is after the data class.
@@ -293,11 +301,11 @@ class FactoryMeta(ABCMeta):
         --------
         type
             For details of the arguments
-        astropy.utils.metaclasses.FactoryMeta._inmix_make_class
+        astropy.utils.metaclasses.FactoryMeta._inmix_get_subclass
             For where this method is called.
         """
         name: str = data_cls.__name__ + self.__name__
-        bases: Tuple[type, ...] = (data_cls, base_cls)
+        bases: tuple[type, ...] = (data_cls, base_cls)
         return name, bases, {}
 
     def _inmix_make_instance(self: Self, data: Any, /,*args: Any, **kwargs: Any) -> Any:
@@ -316,7 +324,7 @@ class FactoryMeta(ABCMeta):
         -------
         object
         """
-        inmixedcls = self._inmix_make_class(type(data))
+        inmixedcls = self._inmix_get_subclass(type(data))
         return inmixedcls(data, *args, **kwargs)
 
     # ---------------------------------------------------------------
@@ -351,7 +359,7 @@ class FactoryMeta(ABCMeta):
         """
         return self.__inmixbase__.__inmixed_base_classes
 
-    def _inmixed_base_classes_get(self, base_cls: type) -> Optional[type]:
+    def _inmixed_base_classes_get(self, base_cls: type) -> type | None:
         """Get an intermixed class given its unmixed base class.
 
         Parameters
@@ -376,7 +384,7 @@ class FactoryMeta(ABCMeta):
         return inmixed
 
     @property
-    def inmixed_default_cls(self: Self) -> Optional[Self]:
+    def inmixed_default_cls(self: Self) -> Self | None:
         """The default inmix base class.
 
         Returns
@@ -415,7 +423,7 @@ class FactoryMeta(ABCMeta):
         """
         return self.__inmixbase__.__inmixed_generated_classes
 
-    def _inmixed_generated_classes_get(self, data_cls: type) -> Optional[type]:
+    def _inmixed_generated_classes_get(self, data_cls: type) -> type | None:
         """Get an intermixed class given its unmixed data class.
 
         Parameters

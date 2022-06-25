@@ -19,9 +19,10 @@ which can also be overridden if needed.
 from __future__ import annotations
 
 import builtins
-from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Union
 
 import numpy as np
+from numpy import ndarray
 
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.metaclasses import FactoryMeta, Self, TypeArgs
@@ -36,13 +37,7 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 
 __all__ = ['Masked', 'MaskedNDArray']
 
-MaskT = Union[bool, np.ndarray]
-
-get__doc__ = """Masked version of {0.__name__}.
-
-Except for the ability to pass in a ``mask``, parameters are
-as for `{0.__module__}.{0.__name__}`.
-""".format
+MaskT = Union[bool, ndarray]
 
 
 class MaskedMeta(FactoryMeta):
@@ -52,27 +47,10 @@ class MaskedMeta(FactoryMeta):
         """Return the default inmix base class."""
         return MaskedNDArray
 
-    def _inmix_make_instance(
-        self: Self, data: Any, mask: Union[None, bool, np.ndarray]=None, copy: bool=False
-    ) -> Any:
-        data, data_mask = self._get_data_and_mask(data)
-        if mask is None:
-            mask = False if data_mask is None else data_mask
-
-        masked_cls = self._inmix_make_class(data.__class__)
-        return masked_cls.from_unmasked(data, mask, copy)
-
-    def _inmix_make__doc__(self, data_cls: type, /) -> str:
-        return (
-            f"Masked version of {data_cls.__name__}.\n\n"
-            "Except for the ability to pass in a ``mask``, parameters are\n"
-            f"as for `{data_cls.__module__}.{data_cls.__name__}`."
-        )
-
     def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> TypeArgs:
         return 'Masked' + data_cls.__name__, (data_cls, base_cls), {}
 
-    def _inmix_make_class(self, data_cls: type, /) -> type:
+    def _inmix_get_subclass(self, data_cls: type, /) -> type:
         """Get the masked wrapper for a given data class.
 
         If the data class does not exist yet but is a subclass of any of the
@@ -83,12 +61,29 @@ class MaskedMeta(FactoryMeta):
         if issubclass(data_cls, np.ma.MaskedArray):
             return data_cls
 
-        return super()._inmix_make_class(data_cls)
+        return super()._inmix_get_subclass(data_cls)
+
+    def _inmix_make_instance(
+        self: Self, data: Any, mask: None | bool | ndarray=None, copy: bool=False
+    ) -> Any:
+        data, data_mask = self._get_data_and_mask(data)
+        if mask is None:
+            mask = False if data_mask is None else data_mask
+
+        masked_cls = self._inmix_get_subclass(data.__class__)
+        return masked_cls.from_unmasked(data, mask, copy)
+
+    def _inmix_make__doc__(self, data_cls: type, /) -> str:
+        return (
+            f"Masked version of {data_cls.__name__}.\n\n"
+            "Except for the ability to pass in a ``mask``, parameters are\n"
+            f"as for `{data_cls.__module__}.{data_cls.__name__}`."
+        )
 
     # ---------------------------------------------------------------
 
     def from_unmasked(
-        self, data: object, mask: Union[None, bool, np.ndarray]=None, copy: bool=False
+        self, data: object, mask: None | bool | ndarray=None, copy: bool=False
     ) -> object:
         """Create an instance from unmasked data and a mask.
 
@@ -129,7 +124,7 @@ class Masked(NDArrayShapeMethods, metaclass=MaskedMeta):
     @classmethod
     def _get_data_and_mask(
         cls, data: object, allow_ma_masked: bool=False
-    ) -> Tuple[Optional[object], Optional[MaskT]]:
+    ) -> tuple[object | None, MaskT | None]:
         """Split data into unmasked and mask, if present.
 
         Parameters
@@ -170,7 +165,7 @@ class Masked(NDArrayShapeMethods, metaclass=MaskedMeta):
         return data, mask
 
     @classmethod
-    def _get_data_and_masks(cls, *args: Any) -> Tuple[Tuple[object, ...], Tuple[MaskT, ...]]:
+    def _get_data_and_masks(cls, *args: Any) -> tuple[tuple[object, ...], tuple[MaskT, ...]]:
         data_masks = [cls._get_data_and_mask(arg) for arg in args]
         return (tuple(data for data, _ in data_masks),
                 tuple(mask for _, mask in data_masks))
@@ -393,7 +388,7 @@ class MaskedIterator:
         mask = self._maskiter.__getitem__(indx)
         # For single elements, ndarray.flat.__getitem__ returns scalars; these
         # need a new view as a Masked array.
-        if not isinstance(out, np.ndarray):
+        if not isinstance(out, ndarray):
             out = out[...]
             mask = mask[...]
 
@@ -416,7 +411,7 @@ class MaskedIterator:
     next = __next__
 
 
-class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray):
+class MaskedNDArray(Masked, ndarray, base_cls=ndarray, data_cls=ndarray):
     _mask = None
 
     info = MaskedNDArrayInfo()
@@ -469,14 +464,14 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return super().view(self.__intomixclass__)
 
     @classmethod
-    def _inmix_make_class(cls, data_cls):
+    def _inmix_get_subclass(cls, data_cls):
         # Short-cuts
-        if data_cls is np.ndarray:
+        if data_cls is ndarray:
             return MaskedNDArray
         elif data_cls is None:  # for .view()
             return cls
 
-        return type(cls)._inmix_make_class(cls, data_cls)
+        return type(cls)._inmix_get_subclass(cls, data_cls)
 
     @property
     def flat(self):
@@ -505,11 +500,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         Like `numpy.ndarray.view`, but always returning a masked array subclass.
         """
         if type is None and (isinstance(dtype, builtins.type)
-                             and issubclass(dtype, np.ndarray)):
-            return super().view(self._inmix_make_class(dtype))
+                             and issubclass(dtype, ndarray)):
+            return super().view(self._inmix_get_subclass(dtype))
 
         if dtype is None:
-            return super().view(self._inmix_make_class(type))
+            return super().view(self._inmix_get_subclass(type))
 
         dtype = np.dtype(dtype)
         if not (dtype.itemsize == self.dtype.itemsize
@@ -519,11 +514,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 f"{self.__class__} cannot be viewed with a dtype with a "
                 f"with a different number of fields or size.")
 
-        return super().view(dtype, self._inmix_make_class(type))
+        return super().view(dtype, self._inmix_get_subclass(type))
 
     def __array_finalize__(self, obj):
         # If we're a new object or viewing an ndarray, nothing has to be done.
-        if obj is None or obj.__class__ is np.ndarray:
+        if obj is None or obj.__class__ is ndarray:
             return
 
         # Logically, this should come from ndarray and hence be None, but
@@ -820,7 +815,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # knows what to do with us, for which we should return NotImplemented.
         # But if there is ndarray (or a non-Masked subclass of it) around,
         # it quite likely coerces, so we should just break.
-        if any(issubclass(t, np.ndarray) and not issubclass(t, Masked)
+        if any(issubclass(t, ndarray) and not issubclass(t, Masked)
                for t in types):
             raise TypeError("the MaskedNDArray implementation cannot handle {} "
                             "with the given arguments."
