@@ -20,9 +20,9 @@ import builtins
 import numpy as np
 
 from astropy.utils.compat import NUMPY_LT_1_22
+from astropy.utils.collections import ClassWrapperMeta
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.misc import ClassWrapperMeta
 
 from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                APPLY_TO_BOTH_FUNCTIONS,
@@ -61,7 +61,9 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta):
     def __init_subclass__(cls, **kwargs):  # base_cls=None, data_cls=None,
         super().__init_subclass__(**kwargs)  # base_cls=base_cls, data_cls=data_cls
 
-        # this is what's preventing using the metaclass over the baseclass
+        # __init_subclass__ gets called by type.__new__ before `data_cls`
+        # can be set on the new class. So `_data_cls` is injected into the
+        # namespace and can be used here.
         if getattr(cls, "_data_cls", None) is not None and cls.__doc__ is None:
             cls.__doc__ = get__doc__(cls._data_cls)
 
