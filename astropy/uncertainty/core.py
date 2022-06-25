@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy import stats
-from astropy.utils.collections import ClassWrapperMeta
+from astropy.utils.metaclasses import ClassWrapperMeta
 from astropy.utils.decorators import on_metaclass
 
 __all__ = ['Distribution']
