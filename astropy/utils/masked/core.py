@@ -20,7 +20,7 @@ import builtins
 import numpy as np
 
 from astropy.utils.compat import NUMPY_LT_1_22
-from astropy.utils.collections import ClassWrapperMeta
+from astropy.utils.metaclasses import InheritanceInMixMeta
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
 
@@ -40,7 +40,7 @@ as for `{0.__module__}.{0.__name__}`.
 """.format
 
 
-class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
+class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
              default_wrapped_class="MaskedNDArray"):
     """A scalar value or array of values with associated mask.
 
@@ -59,7 +59,7 @@ class Masked(NDArrayShapeMethods, metaclass=ClassWrapperMeta,
     """
 
     # ---------------------------------------------------------------
-    # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
+    # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
 
     @classmethod
     def _get_wrapper_subclass_instance(cls, data, mask=None, copy=False):

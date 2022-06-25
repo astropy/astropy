@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy import stats
-from astropy.utils.metaclasses import ClassWrapperMeta
+from astropy.utils.metaclasses import InheritanceInMixMeta
 
 __all__ = ['Distribution']
 
@@ -19,7 +19,7 @@ __all__ = ['Distribution']
 SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 
 
-class Distribution(metaclass=ClassWrapperMeta):
+class Distribution(metaclass=InheritanceInMixMeta):
     """
     A scalar value or array values with associated uncertainty distribution.
 
@@ -39,7 +39,7 @@ class Distribution(metaclass=ClassWrapperMeta):
     """
 
     # ---------------------------------------------------------------
-    # `astropy.utils.metaclasses.ClassWrapperMeta` customizations
+    # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
 
     @classmethod
     def _prepare_wrapper_subclass(cls, data_cls, base_cls):

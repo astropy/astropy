@@ -7,18 +7,19 @@ from abc import ABCMeta, abstractmethod
 from typing import Tuple, Type, Dict, Any, Optional, TypeVar, Union
 
 
-__all__ = []  # ClassWrapperMeta is in development
+__all__ = []  # InheritanceInMixMeta is in development
 
 
-CWT = TypeVar("CWT", bound="ClassWrapperMeta")
+CWT = TypeVar("CWT", bound="InheritanceInMixMeta")
 
 
-class ClassWrapperMeta(ABCMeta):
-    """Meta-class for creation of wrapper classes around different data classes.
+class InheritanceInMixMeta(ABCMeta):
+    """Meta-class for generating classes of a data class.
 
     Parameters
     ----------
     base_cls : type or None, optional
+
     data_cls : type or None, optional
     **kwargs : Any
         A valid option is ``default_wrapped_class``. This should only be given
@@ -38,41 +39,41 @@ class ClassWrapperMeta(ABCMeta):
     Let's say we like how `numpy.ndarray` can cast elements of an array to
     different datatypes and we want to add this functionality to some builtin
     types.
-    This starts by defining the wrapper base class, using `ClassWrapperMeta`
+    This starts by defining the inter-mix base class, using `InheritanceInMixMeta`
     as a metaclass. The ``_get_wrapper_subclass_instance`` defines how new
     instances are constructed. In this case it's just calling the same args
-    and kwargs. We also add a method ``asfloats`` for casting each element
+    and kwargs. We also add a method ``astype`` for casting each element
     of self to a float.
 
-        >>> class ExampleWrapper(metaclass=ClassWrapperMeta):
+        >>> class SupportsAsType(metaclass=InheritanceInMixMeta):
         ...     @classmethod
         ...     def _get_wrapper_subclass_instance(cls, data, *args, **kwargs):
         ...         wrapper_cls = cls._get_wrapped_subclass(data.__class__)
         ...         return wrapper_cls(data, *args, **kwargs)
-        ...     def asfloats(self):
-        ...         return self.__class__([float(x) for x in self])
+        ...     def astype(self, type):
+        ...         return self.__class__([type(x) for x in self])
 
-    Now implementations must be made by subclassing ``ExampleWrapper``
+    Now implementations must be made by subclassing ``SupportsAsType``
     and also inheriting from the desired type.
 
-        >>> class ExampleList(ExampleWrapper, list, data_cls=list):
+        >>> class SupportsAsTypeList(SupportsAsType, list, data_cls=list):
         ...     pass
 
     The kwarg ``data_cls`` registered `list`, so the following is possible.
 
-        >>> cls = ExampleWrapper(list)
+        >>> cls = SupportsAsType(list)
         >>> cls
-        <class 'astropy.utils.metaclasses.ExampleList'>
+        <class 'astropy.utils.metaclasses.SupportsAsTypeList'>
 
-    ``ExampleList`` can make list-like objects...
+    ``SupportsAsTypeList`` can make list-like objects...
 
         >>> x = cls([1, 2, 3])
         >>> x
         [1, 2, 3]
 
-    with the added method ``asfloats``.
+    with the added method ``astype``.
 
-        >>> x.asfloats()
+        >>> x.astype(float)
         [1.0, 2.0, 3.0]
     """
 
@@ -82,11 +83,11 @@ class ClassWrapperMeta(ABCMeta):
         # Make a new class. `__new__` is required to prevent class-level
         # kwargs from going to the superclass (ABCMeta), which does not take
         # any kwargs. Also, `__init_subclass__`, which may be defined on the
-        # classes `ClassWrapperMeta` is trying to make, will not have access
+        # classes `InheritanceInMixMeta` is trying to make, will not have access
         # to certain class-level attributes that are made during the class
         # creation process.
 
-        # ABCMeta takes no kwargs. This is still passed to ClassWrapperMeta.__init__.
+        # ABCMeta takes no kwargs. This is still passed to InheritanceInMixMeta.__init__.
         kwargs.pop("default_wrapped_class", None)
 
         # inject data_cls into namespace before `__new__` so
@@ -99,10 +100,10 @@ class ClassWrapperMeta(ABCMeta):
     def __init__(cls: CWT, name: str, bases: Tuple[type, ...],
                  namespace: Dict[str, Any], base_cls: Optional[type]=None,
                  data_cls: Optional[type]=None, **kwargs: Any) -> None:
-        # check that this `cls` is the top-most in the MRO to be a `ClassWrapperMeta` type
-        # TODO! allow for subclasses of a ClassWrapperMeta class to be considered
-        # a baseclass.
-        isbaseclass = all([not issubclass(base.__class__, ClassWrapperMeta) for base in bases])
+        # check that this `cls` is the top-most in the MRO to be a
+        # `InheritanceInMixMeta` type TODO! allow for subclasses of a
+        # InheritanceInMixMeta class to be considered a baseclass.
+        isbaseclass = all([not issubclass(base.__class__, InheritanceInMixMeta) for base in bases])
         if isbaseclass:
             cls._wrapper_class_: CWT = cls
             """Base class."""
@@ -147,10 +148,11 @@ class ClassWrapperMeta(ABCMeta):
         #    an instance of a wrapped class.
 
         if cls is cls._wrapper_class_:  # "Factory" mode
-            # Defining a new wrapped class.
+            # Defining a new class -- a sub-class of the argument, with an
+            # injected inheritance.
             if not kwargs and len(args) == 1 and isinstance(args[0], type):
                 return cls._get_wrapped_subclass(args[0])
-            # Making an instance of a wrapped class
+            # Making an instance of a dependency-injected class.
             else:
                 return cls._get_wrapper_subclass_instance(*args, **kwargs)
 
