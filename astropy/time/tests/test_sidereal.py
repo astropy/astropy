@@ -123,7 +123,7 @@ class TestST:
         # And with it, one should reach full precision.
         sp = erfa.sp00(t.tt.jd1, t.tt.jd2)
         iers_table = iers.earth_orientation_table.get()
-        xp, yp = [c.to_value(u.rad) for c in iers_table.pm_xy(t)]
+        xp, yp = (c.to_value(u.rad) for c in iers_table.pm_xy(t))
         r = erfa.rx(-yp, erfa.ry(-xp, erfa.rz(sp, np.eye(3))))
         expected1 = expected + (np.arctan2(r[0, 1], r[0, 0]) << u.radian)
         assert np.abs(era - expected1) < 1e-12 * u.radian

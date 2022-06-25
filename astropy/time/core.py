@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 The astropy.time package provides functionality for manipulating times and
@@ -42,8 +41,7 @@ __all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'TimeInfoBase', 'update_
 
 STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 LOCAL_SCALES = ('local',)
-TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES)
-                  for scale in scales)
+TIME_TYPES = {scale: scales for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES) for scale in scales}
 TIME_SCALES = STANDARD_TIME_SCALES + LOCAL_SCALES
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
@@ -64,9 +62,9 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
 GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
 BARYCENTRIC_SCALES = ('tcb', 'tdb')
 ROTATIONAL_SCALES = ('ut1',)
-TIME_DELTA_TYPES = dict((scale, scales)
-                        for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
-                                       ROTATIONAL_SCALES, LOCAL_SCALES) for scale in scales)
+TIME_DELTA_TYPES = {scale: scales
+                    for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
+                                   ROTATIONAL_SCALES, LOCAL_SCALES) for scale in scales}
 TIME_DELTA_SCALES = GEOCENTRIC_SCALES + BARYCENTRIC_SCALES + ROTATIONAL_SCALES + LOCAL_SCALES
 # For time scale changes, we need L_G and L_B, which are stored in erfam.h as
 #   /* L_G = 1 - d(TT)/d(TCG) */
