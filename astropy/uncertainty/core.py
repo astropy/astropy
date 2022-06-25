@@ -38,11 +38,7 @@ class Distribution(metaclass=ClassWrapperMeta):
         distribution).
     """
     @classmethod
-    def _get_fallback_generated_subclass(cls):
-        return ArrayDistribution
-
-    @classmethod
-    def _make_generated_subclass(cls, data_cls, base_cls):
+    def _make_wrapper_subclass(cls, data_cls, base_cls):
         # TODO: try to deal with this at the lower level.  The problem is
         # that array2string does not allow one to override how structured
         # arrays are typeset, leading to all samples to be shown.  It may
@@ -52,7 +48,7 @@ class Distribution(metaclass=ClassWrapperMeta):
                     {}, data_cls=data_cls)
 
     @classmethod
-    def _get_generated_subclass_instance(cls, data):
+    def _get_wrapper_subclass_instance(cls, data):
         if isinstance(data, cls._wrapper_class_):
             data = data.distribution
         else:
@@ -63,11 +59,15 @@ class Distribution(metaclass=ClassWrapperMeta):
 
         new_dtype = np.dtype({'names': ['samples'],
                              'formats': [(data.dtype, (data.shape[-1],))]})
-        distr_cls = cls._get_generated_subclass(data.__class__)
+        distr_cls = cls._get_wrapped_subclass(data.__class__)
         self = data.view(dtype=new_dtype, type=distr_cls)
         # Get rid of trailing dimension of 1.
         self.shape = data.shape[:-1]
         return self
+
+    @classmethod
+    def _make_wrapped__doc__(cls, data_cls):
+        return cls._wrapper_class_.__doc__
 
     @property
     def distribution(self):
@@ -301,7 +301,7 @@ class ArrayDistribution(Distribution, np.ndarray, base_cls=np.ndarray):
         result = super().__getitem__(item)
         if item == 'samples':
             # Here, we need to avoid our own redefinition of view.
-            return super(ArrayDistribution, result).view(self._data_cls)
+            return super(ArrayDistribution, result).view(self._wrapped_data_cls)
         elif isinstance(result, np.void):
             return result.view((ScalarDistribution, result.dtype))
         else:
@@ -341,4 +341,4 @@ class NdarrayDistribution(_DistributionRepr, ArrayDistribution, data_cls=np.ndar
 
 
 # # Ensure our base NdarrayDistribution is known.
-# Distribution._generated_subclasses[np.ndarray] = NdarrayDistribution
+# Distribution._wrapper_generated_subclasses[np.ndarray] = NdarrayDistribution

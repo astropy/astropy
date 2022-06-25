@@ -29,7 +29,7 @@ VARIOUS_ITEMS = [
 
 
 class ArraySetup:
-    _data_cls = np.ndarray
+    _wrapped_data_cls = np.ndarray
 
     @classmethod
     def setup_class(self):
@@ -53,7 +53,7 @@ class ArraySetup:
 
 
 class QuantitySetup(ArraySetup):
-    _data_cls = Quantity
+    _wrapped_data_cls = Quantity
 
     @classmethod
     def setup_class(self):
@@ -66,7 +66,7 @@ class QuantitySetup(ArraySetup):
 
 
 class LongitudeSetup(ArraySetup):
-    _data_cls = Longitude
+    _wrapped_data_cls = Longitude
 
     @classmethod
     def setup_class(self):
@@ -140,13 +140,13 @@ class TestMaskedClassCreation:
     """
     @classmethod
     def setup_class(self):
-        self._base_classes_orig = Masked._base_classes.copy()
-        self._masked_classes_orig = Masked._generated_subclasses.copy()
+        self._base_classes_orig = Masked._wrapper_base_classes.copy()
+        self._masked_classes_orig = Masked._wrapper_generated_subclasses.copy()
 
         class MaskedList(Masked, list, base_cls=list, data_cls=list):
             def __new__(cls, *args, mask=None, copy=False, **kwargs):
                 self = super().__new__(cls)
-                self._unmasked = self._data_cls(*args, **kwargs)
+                self._unmasked = self._wrapped_data_cls(*args, **kwargs)
                 self.mask = mask
                 return self
 
@@ -158,8 +158,8 @@ class TestMaskedClassCreation:
         self.MaskedList = MaskedList
 
     def teardown_class(self):
-        Masked._base_classes = self._base_classes_orig
-        Masked._generated_subclasses = self._masked_classes_orig
+        Masked._wrapper_base_classes = self._base_classes_orig
+        Masked._wrapper_generated_subclasses = self._masked_classes_orig
 
     def test_setup(self):
         assert issubclass(self.MaskedList, Masked)
@@ -207,10 +207,10 @@ class TestMaskedNDArraySubclassCreation:
         self.m = np.array([True, False], dtype=bool)
 
     def teardown_method(self, method):
-        Masked._generated_subclasses.pop(self.MyArray, None)
+        Masked._wrapper_generated_subclasses.pop(self.MyArray, None)
 
     def test_direct_creation(self):
-        assert self.MyArray not in Masked._generated_subclasses
+        assert self.MyArray not in Masked._wrapper_generated_subclasses
         mcls = Masked(self.MyArray)
         assert issubclass(mcls, Masked)
         assert issubclass(mcls, self.MyArray)
@@ -240,13 +240,13 @@ class TestMaskedNDArraySubclassCreation:
         assert_array_equal(mms.mask, self.m)
 
     def test_indirect_creation(self):
-        assert self.MyArray not in Masked._generated_subclasses
+        assert self.MyArray not in Masked._wrapper_generated_subclasses
         mms = Masked(self.a, mask=self.m)
         assert isinstance(mms, Masked)
         assert isinstance(mms, self.MyArray)
         assert_array_equal(mms.unmasked, self.a)
         assert_array_equal(mms.mask, self.m)
-        assert self.MyArray in Masked._generated_subclasses
+        assert self.MyArray in Masked._wrapper_generated_subclasses
         assert Masked(self.MyArray) is type(mms)
 
     def test_can_initialize_with_masked_values(self):
@@ -272,7 +272,7 @@ class TestMaskedNDArraySubclassCreation:
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     def test_masked_quantity_class_init(self):
         # TODO: class definitions should be more easily accessible.
-        mcls = Masked._generated_subclasses[self.a.__class__]
+        mcls = Masked._wrapper_generated_subclasses[self.a.__class__]
         # This is not a very careful test.
         mq = mcls([1., 2.], mask=[True, False], unit=u.s)
         assert mq.unit == u.s
@@ -281,7 +281,7 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
         assert np.all(mq.mask == [True, False])
 
     def test_masked_quantity_getting(self):
-        mcls = Masked._generated_subclasses[self.a.__class__]
+        mcls = Masked._wrapper_generated_subclasses[self.a.__class__]
         MQ = Masked(Quantity)
         assert MQ is mcls
 
@@ -1069,9 +1069,9 @@ class TestMaskedArrayMethods(MaskedArraySetup):
                        [3., 4.]])
         a2 = np.array([[1., 0.],
                        [3., 4.]])
-        if self._data_cls is not np.ndarray:
-            a1 = self._data_cls(a1, self.a.unit)
-            a2 = self._data_cls(a2, self.a.unit)
+        if self._wrapped_data_cls is not np.ndarray:
+            a1 = self._wrapped_data_cls(a1, self.a.unit)
+            a2 = self._wrapped_data_cls(a2, self.a.unit)
         ma1 = Masked(a1, mask=[[False, False],
                                [True, True]])
         ma2 = Masked(a2, mask=[[False, True],
@@ -1303,7 +1303,7 @@ class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
         """Check that we can initialize a MaskedArray properly."""
         np_ma = np.ma.MaskedArray(self.ma)
         assert type(np_ma) is np.ma.MaskedArray
-        assert type(np_ma.data) is self._data_cls
+        assert type(np_ma.data) is self._wrapped_data_cls
         assert type(np_ma.mask) is np.ndarray
         assert_array_equal(np_ma.data, self.a)
         assert_array_equal(np_ma.mask, self.mask_a)
@@ -1312,7 +1312,7 @@ class TestMaskedArrayInteractionWithNumpyMA(MaskedArraySetup):
         """Test that we can be viewed as a MaskedArray."""
         np_ma = self.ma.view(np.ma.MaskedArray)
         assert type(np_ma) is np.ma.MaskedArray
-        assert type(np_ma.data) is self._data_cls
+        assert type(np_ma.data) is self._wrapped_data_cls
         assert type(np_ma.mask) is np.ndarray
         assert_array_equal(np_ma.data, self.a)
         assert_array_equal(np_ma.mask, self.mask_a)
