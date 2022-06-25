@@ -15,12 +15,16 @@ The `Masked` class itself provides a base ``mask`` property,
 which can also be overridden if needed.
 
 """
+
+from __future__ import annotations
+
 import builtins
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
 
 import numpy as np
 
 from astropy.utils.compat import NUMPY_LT_1_22
-from astropy.utils.metaclasses import InheritanceInMixMeta
+from astropy.utils.metaclasses import FactoryMeta, Self, TypeArgs
 from astropy.utils.shapes import NDArrayShapeMethods
 from astropy.utils.data_info import ParentDtypeInfo
 
@@ -32,6 +36,7 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 
 __all__ = ['Masked', 'MaskedNDArray']
 
+MaskT = Union[bool, np.ndarray]
 
 get__doc__ = """Masked version of {0.__name__}.
 
@@ -40,8 +45,71 @@ as for `{0.__module__}.{0.__name__}`.
 """.format
 
 
-class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
-             default_inmixed_class="MaskedNDArray"):
+class MaskedMeta(FactoryMeta):
+
+    @property
+    def inmixed_default_cls(self) -> type:
+        """Return the default inmix base class."""
+        return MaskedNDArray
+
+    def _inmix_make_instance(
+        self: Self, data: Any, mask: Union[None, bool, np.ndarray]=None, copy: bool=False
+    ) -> Any:
+        data, data_mask = self._get_data_and_mask(data)
+        if mask is None:
+            mask = False if data_mask is None else data_mask
+
+        masked_cls = self._inmix_make_class(data.__class__)
+        return masked_cls.from_unmasked(data, mask, copy)
+
+    def _inmix_make__doc__(self, data_cls: type, /) -> str:
+        return (
+            f"Masked version of {data_cls.__name__}.\n\n"
+            "Except for the ability to pass in a ``mask``, parameters are\n"
+            f"as for `{data_cls.__module__}.{data_cls.__name__}`."
+        )
+
+    def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> TypeArgs:
+        return 'Masked' + data_cls.__name__, (data_cls, base_cls), {}
+
+    def _inmix_make_class(self, data_cls: type, /) -> type:
+        """Get the masked wrapper for a given data class.
+
+        If the data class does not exist yet but is a subclass of any of the
+        registered base data classes, it is automatically generated (except we
+        skip `~numpy.ma.MaskedArray` subclasses, since then the masking
+        mechanisms would interfere).
+        """
+        if issubclass(data_cls, np.ma.MaskedArray):
+            return data_cls
+
+        return super()._inmix_make_class(data_cls)
+
+    # ---------------------------------------------------------------
+
+    def from_unmasked(
+        self, data: object, mask: Union[None, bool, np.ndarray]=None, copy: bool=False
+    ) -> object:
+        """Create an instance from unmasked data and a mask.
+
+        This implementation just uses the class initializer. Subclasses can
+        override this in case the class does not work with this signature, or to
+        provide a faster implementation.
+
+        Parameters
+        ----------
+        data : array-like
+            The data for which a mask is to be added.  The result will be a
+            a subclass of the type of ``data``.
+        mask : array-like of bool, optional
+            The initial mask to assign.  If not given, taken from the data.
+        copy : bool
+            Whether the data and mask should be copied. Default: `False`.
+        """
+        return self(data, mask=mask, copy=copy)
+
+
+class Masked(NDArrayShapeMethods, metaclass=MaskedMeta):
     """A scalar value or array of values with associated mask.
 
     The resulting instance will take its exact type from whatever the
@@ -58,54 +126,10 @@ class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
         Whether the data and mask should be copied. Default: `False`.
     """
 
-    # ---------------------------------------------------------------
-    # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
-
     @classmethod
-    def _inmix_make_instance(cls, data, mask=None, copy=False):
-        data, data_mask = cls._get_data_and_mask(data)
-        if mask is None:
-            mask = False if data_mask is None else data_mask
-
-        masked_cls = cls._inmix_make_class(data.__class__)
-        return masked_cls.from_unmasked(data, mask, copy)
-
-    @classmethod
-    def _inmix_make__doc__(cls, data_cls):
-        return (f"Masked version of {data_cls.__name__}.\n\n"
-                "Except for the ability to pass in a ``mask``, parameters are\n"
-                f"as for `{data_cls.__module__}.{data_cls.__name__}`.")
-
-    @classmethod
-    def _inmix_prepare_type(cls, data_cls, base_cls):
-        return 'Masked' + data_cls.__name__, (data_cls, base_cls), {}
-
-    @classmethod
-    def _inmix_make_class(cls, data_cls):
-        """Get the masked wrapper for a given data class.
-
-        If the data class does not exist yet but is a subclass of any of the
-        registered base data classes, it is automatically generated
-        (except we skip `~numpy.ma.MaskedArray` subclasses, since then the
-        masking mechanisms would interfere).
-        """
-        if issubclass(data_cls, np.ma.MaskedArray):
-            return data_cls
-
-        return type(cls)._inmix_make_class(cls, data_cls)  # TODO! use super
-
-    # ---------------------------------------------------------------
-
-    # This base implementation just uses the class initializer.
-    # Subclasses can override this in case the class does not work
-    # with this signature, or to provide a faster implementation.
-    @classmethod
-    def from_unmasked(cls, data, mask=None, copy=False):
-        """Create an instance from unmasked data and a mask."""
-        return cls(data, mask=mask, copy=copy)
-
-    @classmethod
-    def _get_data_and_mask(cls, data, allow_ma_masked=False):
+    def _get_data_and_mask(
+        cls, data: object, allow_ma_masked: bool=False
+    ) -> Tuple[Optional[object], Optional[MaskT]]:
         """Split data into unmasked and mask, if present.
 
         Parameters
@@ -127,7 +151,6 @@ class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
         ------
         ValueError
             If `~numpy.ma.masked` is passed in and ``allow_ma_masked`` is not set.
-
         """
         mask = getattr(data, 'mask', None)
         if mask is not None:
@@ -147,7 +170,7 @@ class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
         return data, mask
 
     @classmethod
-    def _get_data_and_masks(cls, *args):
+    def _get_data_and_masks(cls, *args: Any) -> Tuple[Tuple[object, ...], Tuple[MaskT, ...]]:
         data_masks = [cls._get_data_and_mask(arg) for arg in args]
         return (tuple(data for data, _ in data_masks),
                 tuple(mask for _, mask in data_masks))
@@ -220,7 +243,7 @@ class Masked(NDArrayShapeMethods, metaclass=InheritanceInMixMeta,
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=False)
+        result = type(self).from_unmasked(data, mask, copy=False)
         if 'info' in self.__dict__:
             result.info = self.info
 
@@ -453,7 +476,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         elif data_cls is None:  # for .view()
             return cls
 
-        return super()._inmix_make_class(data_cls)
+        return type(cls)._inmix_make_class(cls, data_cls)
 
     @property
     def flat(self):
@@ -618,7 +641,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 elif out_mask is None:
                     out_mask = m
 
-        unmasked, masks = self._get_data_and_masks(*inputs)
+        unmasked, masks = type(self)._get_data_and_masks(*inputs)
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with

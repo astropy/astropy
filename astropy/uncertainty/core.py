@@ -4,12 +4,14 @@
 Distribution class and associated machinery.
 """
 import builtins
+from ctypes import Union
+from typing import Any, Tuple
 
 import numpy as np
 
 from astropy import units as u
 from astropy import stats
-from astropy.utils.metaclasses import InheritanceInMixMeta
+from astropy.utils.metaclasses import FactoryMeta, TypeArgs
 
 __all__ = ['Distribution']
 
@@ -19,7 +21,41 @@ __all__ = ['Distribution']
 SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
 
 
-class Distribution(metaclass=InheritanceInMixMeta):
+class DistributionMeta(FactoryMeta):
+
+    def _inmix_prepare_type(self, data_cls: type, base_cls: type, /) -> TypeArgs:
+        # The `bases` of `type()` requires adding `_DistributionRepr` higher
+        # in the MRO than `data_cls`. The problem is that array2string does not
+        # allow one to override how structured arrays are typeset, leading to
+        # all samples to be shown.
+        # TODO! define `__array_function__` to replace `_DistributionRepr`
+        # and have ``bases=(data_cls, base_cls)``.
+        name = data_cls.__name__ + self.__name__
+        bases = (_DistributionRepr, data_cls, base_cls)
+        return name, bases, {}
+
+    def _inmix_make_instance(self, data: Any, /) -> object:
+        if isinstance(data, self.__inmixbase__):
+            data = data.distribution
+        else:
+            data = np.asanyarray(data, order='C')
+
+        if data.shape == ():
+            raise TypeError('Attempted to initialize a Distribution with a scalar')
+
+        new_dtype = np.dtype({'names': ['samples'],
+                             'formats': [(data.dtype, (data.shape[-1],))]})
+        distr_cls = self._inmix_make_class(data.__class__)
+        self = data.view(dtype=new_dtype, type=distr_cls)
+        # Get rid of trailing dimension of 1.
+        self.shape = data.shape[:-1]
+        return self
+
+    def _inmix_make__doc__(self, _: type, /) -> str:
+        return self.__inmixbase__.__doc__
+
+
+class Distribution(metaclass=DistributionMeta):
     """
     A scalar value or array values with associated uncertainty distribution.
 
@@ -37,45 +73,6 @@ class Distribution(metaclass=InheritanceInMixMeta):
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
     """
-
-    # ---------------------------------------------------------------
-    # `astropy.utils.metaclasses.InheritanceInMixMeta` customizations
-
-    @classmethod
-    def _inmix_prepare_type(cls, data_cls, base_cls):
-        # The `bases` of `type()` requires adding `_DistributionRepr` higher
-        # in the MRO than `data_cls`. The problem is that array2string does not
-        # allow one to override how structured arrays are typeset, leading to
-        # all samples to be shown.
-        # TODO! define `__array_function__` to replace `_DistributionRepr`
-        # and have ``bases=(data_cls, base_cls)``.
-        name = data_cls.__name__ + cls.__name__
-        bases = (_DistributionRepr, data_cls, base_cls)
-        return name, bases, {}
-
-    @classmethod
-    def _inmix_make_instance(cls, data, *args, **kwargs):
-        if isinstance(data, cls.__inmixbase__):
-            data = data.distribution
-        else:
-            data = np.asanyarray(data, order='C')
-
-        if data.shape == ():
-            raise TypeError('Attempted to initialize a Distribution with a scalar')
-
-        new_dtype = np.dtype({'names': ['samples'],
-                             'formats': [(data.dtype, (data.shape[-1],))]})
-        distr_cls = cls._inmix_make_class(data.__class__)
-        self = data.view(dtype=new_dtype, type=distr_cls)
-        # Get rid of trailing dimension of 1.
-        self.shape = data.shape[:-1]
-        return self
-
-    @classmethod
-    def _inmix_make__doc__(cls, data_cls):
-        return cls.__inmixbase__.__doc__
-
-    # ---------------------------------------------------------------
 
     @property
     def distribution(self):

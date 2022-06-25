@@ -2,22 +2,22 @@
 
 import numpy as np
 import pytest
-from astropy.utils.metaclasses import InheritanceInMixMeta
+from astropy.utils.metaclasses import FactoryMeta
 
 
-class InheritanceInMixMeta_TestBase:
+class FactoryMeta_TestBase:
     pass
 
 
-class Test_SupportsAsType(InheritanceInMixMeta_TestBase):
+class Test_SupportsAsType(FactoryMeta_TestBase):
 
     @pytest.fixture
     def inmixbase(self):
 
-        class SupportsAsType(metaclass=InheritanceInMixMeta):
+        class SupportsAsType(metaclass=FactoryMeta):
 
             @classmethod
-            def _inmix_make_instance(cls, data, *args, **kwargs):
+            def _inmix_make_instance(cls, data, /, *args, **kwargs):
                 inmixcls = cls._inmix_make_class(type(data))
                 return inmixcls(data, *args, **kwargs)
 

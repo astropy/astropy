@@ -140,7 +140,7 @@ class TestMaskedClassCreation:
     """
     @classmethod
     def setup_class(self):
-        self._base_classes_orig = Masked._inmixed_predefined_classes.copy()
+        self._base_classes_orig = Masked._inmixed_base_classes.copy()
         self._masked_classes_orig = Masked._inmixed_generated_classes.copy()
 
         class MaskedList(Masked, list, base_cls=list, data_cls=list):
@@ -158,8 +158,8 @@ class TestMaskedClassCreation:
         self.MaskedList = MaskedList
 
     def teardown_class(self):
-        Masked._inmixed_predefined_classes.clear()
-        Masked._inmixed_predefined_classes.update(self._base_classes_orig)
+        Masked._inmixed_base_classes.clear()
+        Masked._inmixed_base_classes.update(self._base_classes_orig)
 
         Masked._inmixed_generated_classes.clear()
         Masked._inmixed_generated_classes.update(self._masked_classes_orig)
