@@ -5,7 +5,8 @@ Working with Earth Satellites Using Astropy Coordinates
 This document discusses Two-Line Element ephemerides and the True Equator, Mean Equinox frame.
 For satellite ephemerides given directly in geocentric ITRS coordinates
 (e.g. `ILRS ephemeris format <https://ilrs.gsfc.nasa.gov/data_and_products/formats/cpf.html>`_)
-please see the documentation of the ITRS frame.
+please see the documentation of the ITRS frame and the example transform to `~astropy.coordinates.AltAz`
+below starting with the geocentric ITRS coordinate frame.
 
 Satellite data is normally provided in the Two-Line Element (TLE) format
 (see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
@@ -88,8 +89,8 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 .. doctest-requires:: sgp4
 
     >>> from astropy.coordinates import ITRS
-    >>> itrs = teme.transform_to(ITRS(obstime=t))  # doctest: +IGNORE_WARNINGS
-    >>> location = itrs.earth_location
+    >>> itrs_geo = teme.transform_to(ITRS(obstime=t))  # doctest: +IGNORE_WARNINGS
+    >>> location = itrs_geo.earth_location
     >>> location.geodetic  # doctest: +FLOAT_CMP
     GeodeticLocation(lon=<Longitude 160.34199789 deg>, lat=<Latitude -24.6609379 deg>, height=<Quantity 420.17927591 km>)
 
@@ -104,10 +105,12 @@ Or, if you want to find the altitude and azimuth of the satellite from a particu
 
     >>> from astropy.coordinates import EarthLocation, AltAz
     >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +SKIP
-    >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +IGNORE_WARNINGS
+    >>> topo_itrs_repr = itrs_geo.cartesian - siding_spring.get_itrs(t).cartesian  # doctest: +IGNORE_WARNINGS
+    >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)  # doctest: +IGNORE_WARNINGS
+    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +IGNORE_WARNINGS
     >>> aa.alt  # doctest: +FLOAT_CMP
-    <Latitude 10.95229446 deg>
+    <Latitude 10.94799670 deg>
     >>> aa.az  # doctest: +FLOAT_CMP
-    <Longitude 59.30081255 deg>
+    <Longitude 59.28803392 deg>
 
 .. EXAMPLE END
