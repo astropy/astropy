@@ -259,6 +259,20 @@ class TestBasic:
         assert t.iso == '2010-01-01 00:00:00.000000000'
         assert t.tai.utc.iso == '2010-01-01 00:00:00.000000000'
 
+    def test_precision_input(self):
+        """Verifies that precision can only be 0-9 (inclusive). Any other
+        value should raise a ValueError exception."""
+
+        err_message = 'precision attribute must be an int'
+
+        with pytest.raises(ValueError, match=err_message):
+            t = Time('2010-01-01 00:00:00', format='iso', scale='utc',
+                     precision=10)
+
+        with pytest.raises(ValueError, match=err_message):
+            t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
+            t.precision = -1
+
     def test_transforms(self):
         """Transform from UTC to all supported time scales (TAI, TCB, TCG,
         TDB, TT, UT1, UTC).  This requires auxiliary information (latitude and
