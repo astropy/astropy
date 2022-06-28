@@ -1799,15 +1799,13 @@ class Const1D(Fittable1DModel):
 
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
-            x = np.empty_like(x, subok=False)
+            x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
             x.fill(amplitude.item())
         else:
             # This case is less likely but could occur if the amplitude
             # parameter is given an array-like value
             x = amplitude * np.ones_like(x, subok=False)
 
-        if isinstance(amplitude, Quantity):
-            return Quantity(x, unit=amplitude.unit, copy=False)
         return x
 
     @staticmethod
@@ -1854,15 +1852,13 @@ class Const2D(Fittable2DModel):
 
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
-            x = np.empty_like(x, subok=False)
+            x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
             x.fill(amplitude.item())
         else:
             # This case is less likely but could occur if the amplitude
             # parameter is given an array-like value
             x = amplitude * np.ones_like(x, subok=False)
 
-        if isinstance(amplitude, Quantity):
-            return Quantity(x, unit=amplitude.unit, copy=False)
         return x
 
     @property
