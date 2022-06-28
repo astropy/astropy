@@ -876,12 +876,18 @@ class MaskedFormat:
     """
     def __init__(self, format_function):
         self.format_function = format_function
-        # Special case for structured void: we need to make all the
+        # Special case for structured void and subarray: we need to make all the
         # format functions for the items masked as well.
         # TODO: maybe is a separate class is more logical?
         ffs = getattr(format_function, 'format_functions', None)
         if ffs:
+            # StructuredVoidFormat: multiple format functions to be changed.
             self.format_function.format_functions = [MaskedFormat(ff) for ff in ffs]
+
+        ff = getattr(format_function, 'format_function', None)
+        if ff:
+            # SubarrayFormat: change format function for the elements.
+            self.format_function.format_function = MaskedFormat(ff)
 
     def __call__(self, x):
         if x.dtype.names:
@@ -890,6 +896,13 @@ class MaskedFormat:
             # np.void but not an array scalar.
             return self.format_function([x[field] for field in x.dtype.names])
 
+        if x.shape:
+            # For a subarray pass on the data directly, since the
+            # items will be iterated on inside the function.
+            return self.format_function(x)
+
+        # Single element: first just typeset it normally, replace with masked
+        # string if needed.
         string = self.format_function(x.unmasked[()])
         if x.mask:
             # Strikethrough would be neat, but terminal needs a different
