@@ -1015,7 +1015,7 @@ def test_fitters_interface(fitter):
     y = model(x)
 
     if isinstance(fitter, SimplexLSQFitter):
-        kwargs = {'maxiter': 77, 'verblevel': 1, 'acc': 1e-6}
+        kwargs = {'maxiter': 79, 'verblevel': 1, 'acc': 1e-6}
     else:
         kwargs = {'maxiter': 77, 'verblevel': 1, 'epsilon': 1e-2, 'acc': 1e-6}
 
