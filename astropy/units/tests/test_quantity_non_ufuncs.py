@@ -25,7 +25,7 @@ def get_wrapped_functions(*modules):
     wrapped_functions = {}
     for mod in modules:
         for name, f in mod.__dict__.items():
-            if f is np.printoptions:
+            if f is np.printoptions or name.startswith('_'):
                 continue
             if callable(f) and hasattr(f, '__wrapped__'):
                 wrapped_functions[name] = f
