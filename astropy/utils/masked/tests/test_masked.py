@@ -50,6 +50,16 @@ class ArraySetup:
         self.sb = np.array([(1., 2.), (-3., 4.)], dtype=self.sdt)
         self.mask_sb = np.array([(True, False), (False, False)],
                                 dtype=self.mask_sdt)
+        self.scdt = np.dtype([('sa', '2f8'), ('sb', 'i8', (2, 2))])
+        self.sc = np.array([([1., 2.], [[1, 2], [3, 4]]),
+                            ([-1., -2.], [[-1, -2], [-3, -4]])],
+                           dtype=self.scdt)
+        self.mask_scdt = np.dtype([('sa', '2?'), ('sb', '?', (2, 2))])
+        self.mask_sc = np.array([([True, False], [[False, False],
+                                                  [True, True]]),
+                                 ([False, True], [[True, False],
+                                                  [False, True]])],
+                                dtype=self.mask_scdt)
 
 
 class QuantitySetup(ArraySetup):
@@ -385,6 +395,7 @@ class MaskedArraySetup(ArraySetup):
         self.mc = Masked(self.c, mask=self.mask_c)
         self.msa = Masked(self.sa, mask=self.mask_sa)
         self.msb = Masked(self.sb, mask=self.mask_sb)
+        self.msc = Masked(self.sc, mask=self.mask_sc)
 
 
 class TestViewing(MaskedArraySetup):
@@ -1225,12 +1236,15 @@ class TestMaskedArrayRepr(MaskedArraySetup):
         str(self.mc)
         str(self.msa)
         str(self.msb)
+        str(self.msc)
 
     def test_scalar_str(self):
         assert self.mb[0].shape == ()
         str(self.mb[0])
         assert self.msb[0].shape == ()
         str(self.msb[0])
+        assert self.msc[0].shape == ()
+        str(self.msc[0])
 
     def test_array_repr(self):
         repr(self.ma)
@@ -1238,10 +1252,12 @@ class TestMaskedArrayRepr(MaskedArraySetup):
         repr(self.mc)
         repr(self.msa)
         repr(self.msb)
+        repr(self.msc)
 
     def test_scalar_repr(self):
         repr(self.mb[0])
         repr(self.msb[0])
+        repr(self.msc[0])
 
 
 class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
