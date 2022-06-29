@@ -993,7 +993,7 @@ def test_fitters_interface():
     simplex = SimplexLSQFitter()
 
     kwargs = {'maxiter': 77, 'verblevel': 1, 'epsilon': 1e-2, 'acc': 1e-6}
-    simplex_kwargs = {'maxiter': 77, 'verblevel': 1, 'acc': 1e-6}
+    simplex_kwargs = {'maxiter': 79, 'verblevel': 1, 'acc': 1e-6}
     model = models.Gaussian1D(10, 4, .3)
     x = np.arange(21)
     y = model(x)
