@@ -237,7 +237,7 @@ class Simplex(Optimization):
             warnings.warn("The fit may be unsuccessful; "
                           "Maximum number of function evaluations reached.",
                           AstropyUserWarning)
-        if self.fit_info['exit_mode'] == 2:
+        elif self.fit_info['exit_mode'] == 2:
             warnings.warn("The fit may be unsuccessful; "
                           "Maximum number of iterations reached.",
                           AstropyUserWarning)
