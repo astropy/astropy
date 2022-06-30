@@ -101,11 +101,11 @@ def test_initialization_with_time_in_data():
 
     ts1 = TimeSeries(data=data)
 
-    assert set(ts1.colnames) == set(['time', 'a', 'b', 'c'])
+    assert set(ts1.colnames) == {'time', 'a', 'b', 'c'}
     assert all(ts1.time == INPUT_TIME)
 
     ts2 = TimeSeries(data=[[10, 2, 3], INPUT_TIME], names=['a', 'time'])
-    assert set(ts2.colnames) == set(['time', 'a'])
+    assert set(ts2.colnames) == {'time', 'a'}
     assert all(ts2.time == INPUT_TIME)
 
     with pytest.raises(TypeError) as exc:
