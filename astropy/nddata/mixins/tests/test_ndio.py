@@ -1,4 +1,3 @@
-
 from astropy.nddata import NDData, NDIOMixin, NDDataRef
 
 
