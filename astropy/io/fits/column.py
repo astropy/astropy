@@ -1212,7 +1212,9 @@ class Column(NotifierMixin):
                 )
 
             if dims_tuple:
-                if reduce(operator.mul, dims_tuple) > format.repeat:
+                if isinstance(recformat, _FormatP):
+                    msg = None
+                elif reduce(operator.mul, dims_tuple) > format.repeat:
                     msg = (
                         "The repeat count of the column format {!r} for column {!r} "
                         "is fewer than the number of elements per the TDIM "
@@ -1388,8 +1390,7 @@ class Column(NotifierMixin):
         else:
             format = self.format
             dims = self._dims
-
-            if dims:
+            if dims and format.format not in "PQ":
                 shape = dims[:-1] if "A" in format else dims
                 shape = (len(array),) + shape
                 array = array.reshape(shape)
@@ -1720,7 +1721,7 @@ class ColDefs(NotifierMixin):
                 # filled with undefined values.
                 offsets.append(offsets[-1] + dt.itemsize)
 
-            if dim:
+            if dim and format_.format not in "PQ":
                 if format_.format == "A":
                     dt = np.dtype((dt.char + str(dim[-1]), dim[:-1]))
                 else:
@@ -2123,7 +2124,9 @@ class _VLF(np.ndarray):
         else:
             value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
-        self.max = max(self.max, len(value))
+        nelem = value.shape
+        len_value = np.prod(nelem)
+        self.max = max(self.max, len_value)
 
     def tolist(self):
         return [list(item) for item in super().tolist()]
@@ -2285,9 +2288,10 @@ def _makep(array, descr_output, format, nrows=None):
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
-        descr_output[idx, 0] = len(data_output[idx])
+        nelem = data_output[idx].shape
+        descr_output[idx, 0] = np.prod(nelem)
         descr_output[idx, 1] = _offset
-        _offset += len(data_output[idx]) * _nbytes
+        _offset += descr_output[idx, 0] * _nbytes
 
     return data_output
 

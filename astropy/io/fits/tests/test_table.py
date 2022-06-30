@@ -3270,6 +3270,65 @@ class TestVLATables(FitsTestCase):
                 [np.array([], dtype=np.int32), np.array([], dtype=np.int32)],
             )
 
+    def test_multidim_VLA_tables(self):
+        """
+        Check if multidimensional VLF are correctly write and read.
+        See https://github.com/astropy/astropy/issues/12860
+        """
+        a = np.ones((5, 1))
+        b = np.ones((7, 1))
+        array = np.array([a, b], dtype=object)
+        col = fits.Column(name="test", format="PD(7)", dim="(1,7)", array=array)
+        fits.BinTableHDU.from_columns([col]).writeto(self.temp("test.fits"))
+
+        with fits.open(self.temp("test.fits")) as hdus:
+            assert hdus[1].columns.formats == ["PD(7)"]
+            np.array_equal(
+                hdus[1].data["test"],
+                [
+                    np.array([[1.0, 1.0, 1.0, 1.0, 1.0]]),
+                    np.array([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]]),
+                ],
+            )
+
+        a = np.ones((5, 2))
+        b = np.ones((7, 2))
+        array = np.array([a, b], dtype=object)
+        col = fits.Column(name="test", format="PD(14)", dim="(2,7)", array=array)
+        fits.BinTableHDU.from_columns([col]).writeto(self.temp("test2.fits"))
+
+        with fits.open(self.temp("test2.fits")) as hdus:
+            assert hdus[1].columns.formats == ["PD(14)"]
+            np.array_equal(
+                hdus[1].data["test"],
+                [
+                    np.array(
+                        [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]
+                    ),
+                    np.array(
+                        [
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                            [1.0, 1.0],
+                        ]
+                    ),
+                ],
+            )
+
+    def test_MBFITS_VLA_tables(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/7810
+        """
+        filename = self.data("P190mm-PAFBE-FEBEPAR.fits")
+
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            np.array_equal(hdu.data["USEFEED"], np.array([[1]], dtype=np.int32))
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
