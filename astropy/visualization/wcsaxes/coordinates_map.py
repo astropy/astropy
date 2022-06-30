@@ -120,8 +120,7 @@ class CoordinatesMap:
         raise NotImplementedError()
 
     def __iter__(self):
-        for coord in self._coords:
-            yield coord
+        yield from self._coords
 
     def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
