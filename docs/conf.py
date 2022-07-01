@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
 # Astropy documentation build configuration file.
@@ -120,7 +119,7 @@ extensions += ["sphinx_changelog"]  # noqa: F405
 setup_cfg = configparser.ConfigParser()
 setup_cfg.read(os.path.join(os.path.pardir, 'setup.cfg'))
 __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=', '')
-project = u'Astropy'
+project = 'Astropy'
 
 min_versions = {}
 for line in metadata.requires('astropy'):
@@ -130,7 +129,7 @@ for line in metadata.requires('astropy'):
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-with open("common_links.txt", "r") as cl:
+with open("common_links.txt") as cl:
     rst_epilog += cl.read().format(minimum_python=__minimum_python_version__,
                                    **min_versions)
 
@@ -188,7 +187,7 @@ numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
 # -- Project information ------------------------------------------------------
 
-author = u'The Astropy Developers'
+author = 'The Astropy Developers'
 copyright = f'2011–{datetime.utcnow().year}, ' + author
 
 # The version info for the project you're documenting, acts as replacement for
@@ -271,7 +270,7 @@ html_context = {
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [('index', project + '.tex', project + u' Documentation',
+latex_documents = [('index', project + '.tex', project + ' Documentation',
                     author, 'manual')]
 
 latex_logo = '_static/astropy_logo.pdf'
@@ -281,7 +280,7 @@ latex_logo = '_static/astropy_logo.pdf'
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [('index', project.lower(), project + u' Documentation',
+man_pages = [('index', project.lower(), project + ' Documentation',
               [author], 1)]
 
 # Setting this URL is requited by sphinx-astropy

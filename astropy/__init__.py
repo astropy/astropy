@@ -159,7 +159,7 @@ def _initialize_astropy():
 def _get_bibtex():
     citation_file = os.path.join(os.path.dirname(__file__), 'CITATION')
 
-    with open(citation_file, 'r') as citation:
+    with open(citation_file) as citation:
         refs = citation.read().split('@ARTICLE')[1:]
         if len(refs) == 0:
             return ''

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ==========================================================
 Create a new coordinate class (for the Sagittarius stream)

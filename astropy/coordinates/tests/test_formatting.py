@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
