@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
@@ -336,7 +335,7 @@ def test_configitem_options(tmpdir):
     f = tmpdir.join('astropy.cfg')
     with open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
-    with open(f.strpath, 'r', encoding='utf-8') as fd:
+    with open(f.strpath, encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert 'tstnmo = op2' in lns
@@ -405,7 +404,7 @@ def test_empty_config_file():
     from astropy.config.configuration import is_unedited_config_file
 
     def get_content(fn):
-        with open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
+        with open(get_pkg_data_filename(fn), encoding='latin-1') as fd:
             return fd.read()
 
     content = get_content('data/empty.cfg')

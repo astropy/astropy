@@ -945,7 +945,7 @@ class SkyCoord(ShapedLikeNDArray):
         if data:
             data = ': ' + data
 
-        return '<{clsnm} ({coonm}{frameattrs}){data}>'.format(**locals())
+        return f'<{clsnm} ({coonm}{frameattrs}){data}>'
 
     def to_string(self, style='decimal', **kwargs):
         """

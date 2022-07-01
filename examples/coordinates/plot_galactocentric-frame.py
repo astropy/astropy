@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ========================================================================
 Transforming positions and velocities to and from a Galactocentric frame
