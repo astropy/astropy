@@ -48,6 +48,11 @@ jobs:
             python: '3.10'
             toxenv: py310-test-devdeps
 
+          - name: Python 3.10 with dev version of infrastructure dependencies
+            os: ubuntu-latest
+            python: '3.10'
+            toxenv: py310-test-devinfra
+
           - name: Documentation link check
             os: ubuntu-latest
             python: 3.8
