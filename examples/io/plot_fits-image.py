@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 =======================================
 Read and plot an image from a FITS file

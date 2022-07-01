@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 =====================================================
 Convert a 3-color image (JPG) to separate FITS images

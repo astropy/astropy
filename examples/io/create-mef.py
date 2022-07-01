@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 =====================================================
 Create a multi-extension FITS (MEF) file from scratch

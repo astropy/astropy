@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ================================================================
 Convert a radial velocity to the Galactic Standard of Rest (GSR)

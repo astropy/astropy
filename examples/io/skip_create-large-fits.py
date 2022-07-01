@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ==========================================
 Create a very large FITS file from scratch

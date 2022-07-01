@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 =====================================================================
 Accessing data stored as a table in a multi-extension FITS (MEF) file
