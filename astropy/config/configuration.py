@@ -772,13 +772,13 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
 
     cfgfn = get_config(pkg, rootname=rootname).filename
 
-    with open(default_cfgfn, 'rt', encoding='latin-1') as fr:
+    with open(default_cfgfn, encoding='latin-1') as fr:
         template_content = fr.read()
 
     doupdate = False
     if cfgfn is not None:
         if path.exists(cfgfn):
-            with open(cfgfn, 'rt', encoding='latin-1') as fd:
+            with open(cfgfn, encoding='latin-1') as fd:
                 content = fd.read()
 
             identical = (content == template_content)
@@ -863,7 +863,7 @@ def create_config_file(pkg, rootname='astropy', overwrite=False):
 
     # if the file already exists, check that it has not been modified
     if cfgfn is not None and path.exists(cfgfn):
-        with open(cfgfn, 'rt', encoding='latin-1') as fd:
+        with open(cfgfn, encoding='latin-1') as fd:
             content = fd.read()
 
         doupdate = is_unedited_config_file(content, template_content)

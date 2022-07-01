@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ===================================================================
 Determining and plotting the altitude/azimuth of a celestial object
