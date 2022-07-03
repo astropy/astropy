@@ -125,10 +125,14 @@ different cells.
 
 A variable length array table can have one or more fields (columns) which are
 variable length. The rest of the fields (columns) in the same table can still
-be regular, fixed-length ones. ``astropy`` will automatically detect what kind
+be regular, fixed-length ones.
+The data for the variable-length arrays in a table are not
+stored in the main data table; they are stored in a supplemental
+data area, the heap, following the main data table.
+``astropy`` will automatically detect what kind
 of field it is during reading; no special action is needed from the user. The
 data type specification (i.e., the value of the TFORM keyword) uses an extra
-letter 'P' and the format is:
+letter 'P' (or 'Q') and the format is:
 
 .. parsed-literal::
 
@@ -140,6 +144,19 @@ variable length arrays), ``t`` is one of the letter codes for basic data types
 array field in ``astropy``), and ``max`` is the maximum number of elements of
 any array in the column. So, for a variable length field of int16, the
 corresponding format spec is, for example, 'PJ(100)'.
+What is stored in the main data table field is an array descriptor.
+This consists of two 32-bit signed integer values in the case of ’P’ format,
+(or two 64-bit signed integer values in the case of ’Q’ format):
+the number of elements (array length) of the stored array,
+followed by the zero-indexed byte offset of the first
+element of the array, measured from the start of the heap area.
+
+.. note::
+    While P format uses 32-bit signed integers, the FITS standard does not define
+    the meaning for negative values. P format indexes from byte 0 to $2^{32} - 1$.
+    Depending of the format of the variable arrays (int or float or double) and 
+    the number of rows it might be necessary to use the Q format to allocate enough
+    heap space.
 
 Example
 -------
