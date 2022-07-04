@@ -297,31 +297,23 @@ def _make_compare(oper):
     oper : str
         Operator name
     """
-    swapped_oper = {'__eq__': '__eq__',
-                    '__ne__': '__ne__',
-                    '__gt__': '__lt__',
-                    '__lt__': '__gt__',
-                    '__ge__': '__le__',
-                    '__le__': '__ge__'}[oper]
-
     def _compare(self, other):
         op = oper  # copy enclosed ref to allow swap below
 
-        # Special case to work around #6838.  Other combinations work OK,
-        # see tests.test_column.test_unicode_sandwich_compare().  In this
-        # case just swap self and other.
-        #
-        # This is related to an issue in numpy that was addressed in np 1.13.
-        # However that fix does not make this problem go away, but maybe
-        # future numpy versions will do so.  NUMPY_LT_1_13 to get the
-        # attention of future maintainers to check (by deleting or versioning
-        # the if block below).  See #6899 discussion.
-        # 2019-06-21: still needed with numpy 1.16.
-        if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U'
-                and isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
-            self, other = other, self
-            op = swapped_oper
+        # If other is a Quantity, we should let it do the work, since
+        # it can deal with our possible unit (which, for MaskedColumn,
+        # would get dropped below, as '.data' is accessed in super()).
+        if isinstance(other, Quantity):
+            return NotImplemented
 
+        # If we are unicode and other is a column with bytes, defer to it for
+        # doing the unicode sandwich.  This avoids problems like those
+        # discussed in #6838 and #6899.
+        if (self.dtype.kind == 'U'
+                and isinstance(other, Column) and other.dtype.kind == 'S'):
+            return NotImplemented
+
+        # If we are bytes, encode other as needed.
         if self.dtype.char == 'S':
             other = self._encode_str(other)
 
@@ -1532,10 +1524,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
-        if fill_value is None and getattr(data, 'fill_value', None) is not None:
-            # Coerce the fill_value to the correct type since `data` may be a
-            # different dtype than self.
-            fill_value = np.array(data.fill_value, self.dtype)[()]
+        if fill_value is None:
+            data_fill_value = getattr(data, 'fill_value', None)
+            if (data_fill_value is not None
+                    and data_fill_value != np.ma.default_fill_value(data.dtype)):
+                fill_value = np.array(data_fill_value, self.dtype)[()]
         self.fill_value = fill_value
 
         self.parent_table = None
