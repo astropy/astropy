@@ -3,6 +3,7 @@
 
 from astropy.utils.tests.test_metadata import MetaBaseTest
 import operator
+import warnings
 
 import pytest
 import numpy as np
@@ -775,7 +776,10 @@ def test_col_unicode_sandwich_unicode():
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
-    assert np.all(c != [uba8, b'def'])
+    with warnings.catch_warnings():
+        # Ignore the FutureWarning in numpy >=1.24 (it is OK).
+        warnings.filterwarnings('ignore', message='.*elementwise comparison failed.*')
+        assert np.all(c != [uba8, b'def'])
 
 
 def test_masked_col_unicode_sandwich():
