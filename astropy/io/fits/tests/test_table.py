@@ -3035,6 +3035,32 @@ class TestVLATables(FitsTestCase):
             assert hdu.data.tolist() == [[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]
             assert hdu.data['var'].tolist() == [[45, 56], [11, 12, 13]]
 
+    def test_heapsize_P_limit(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/10812
+
+        Check if the error is raised when the heap size is bigger than what can be
+        indexed with a 32 bit signed int.
+        """
+
+        # a matrix with variable length array elements is created
+        nrows = 30000
+        matrix = np.zeros(nrows, dtype=np.object_)
+        xcol = np.ones(nrows)
+        for i in range(0, nrows):
+            matrix[i] = np.arange(0., float(i+1))
+
+        col = fits.Column(name='MATRIX', format='PD('+str(nrows)+')',
+                          unit='', array=matrix)
+
+        cols=fits.ColDefs([col])
+        t = fits.BinTableHDU.from_columns(cols)
+        t.name='MATRIX'
+
+        with pytest.raises(ValueError) as err:
+            t.writeto(self.temp('matrix.fits'))
+
+        assert "Please consider using the 'Q' format for your file." in str(err.value)
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there

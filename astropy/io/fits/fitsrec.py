@@ -1166,6 +1166,12 @@ class FITS_rec(np.recarray):
                            np.array([ord('T')], dtype=np.int8)[0])
                 raw_field[:] = np.choose(field, choices)
 
+        if isinstance(recformat, _FormatP):
+            P_heap_limit = ((2**32) / 2) - 1
+            if recformat._format_code == 'P' and heapsize > P_heap_limit:
+                raise ValueError("The heapsize limit for 'P' format has been reached. "
+                                 "Please consider using the 'Q' format for your file.")
+
         # Store the updated heapsize
         self._heapsize = heapsize
 
