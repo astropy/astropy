@@ -3061,6 +3061,7 @@ class TestVLATables(FitsTestCase):
 
         assert "Please consider using the 'Q' format for your file." in str(err.value)
 
+
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
 # are few of these but I expect there to be more as I improve the test coverage
