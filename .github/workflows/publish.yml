@@ -29,12 +29,8 @@ jobs:
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
     with:
 
-      # TODO: currently this will publish wheels to PyPI for any tag starting with
-      # 'v' but we need to exclude '.dev' tags.
-
-      # For now, we upload all successful builds to anaconda.org, and we don't
-      # ever upload to PyPI. Once the Azure pipelines configuration is removed,
-      # we can enable PyPI uploads here.
+      # We upload to PyPI for all tags starting with v but not ones ending in .dev
+      upload_to_pypi: ${{ startsWith(github.ref, 'refs/tags/v') && !endsWith(github.ref, '.dev') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
       upload_to_anaconda: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       anaconda_user: astropy
 
