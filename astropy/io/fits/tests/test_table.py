@@ -3046,16 +3046,15 @@ class TestVLATables(FitsTestCase):
         # a matrix with variable length array elements is created
         nrows = 30000
         matrix = np.zeros(nrows, dtype=np.object_)
-        xcol = np.ones(nrows)
         for i in range(0, nrows):
             matrix[i] = np.arange(0., float(i+1))
 
         col = fits.Column(name='MATRIX', format='PD('+str(nrows)+')',
                           unit='', array=matrix)
 
-        cols=fits.ColDefs([col])
+        cols = fits.ColDefs([col])
         t = fits.BinTableHDU.from_columns(cols)
-        t.name='MATRIX'
+        t.name = 'MATRIX'
 
         with pytest.raises(ValueError) as err:
             t.writeto(self.temp('matrix.fits'))
