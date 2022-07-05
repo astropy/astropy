@@ -154,8 +154,8 @@ element of the array, measured from the start of the heap area.
 .. note::
     While P format uses 32-bit signed integers, the FITS standard does not define
     the meaning for negative values. P format indexes from byte 0 to
-    $frac{2^{32}}{2} - 1$.
-    Depending of the format of the variable arrays (int or float or double) and
+    :math:`frac{2^{32}}{2} - 1`.
+    Depending on the format of the variable arrays (int or float or double) and
     the number of rows it might be necessary to use the Q format to allocate enough
     heap space.
 
