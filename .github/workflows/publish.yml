@@ -35,7 +35,6 @@ jobs:
       # For now, we upload all successful builds to anaconda.org, and we don't
       # ever upload to PyPI. Once the Azure pipelines configuration is removed,
       # we can enable PyPI uploads here.
-      upload_to_pypi: false
       upload_to_anaconda: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       anaconda_user: astropy
 
