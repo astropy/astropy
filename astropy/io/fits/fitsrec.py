@@ -1111,6 +1111,9 @@ class FITS_rec(np.recarray):
                 # Even if this VLA has not been read or updated, we need to
                 # include the size of its constituent arrays in the heap size
                 # total
+                if heapsize >= 2**31:
+                    raise ValueError("The heapsize limit for 'P' format has been reached. "
+                                     "Please consider using the 'Q' format for your file.")
 
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)
@@ -1165,11 +1168,6 @@ class FITS_rec(np.recarray):
                 choices = (np.array([ord('F')], dtype=np.int8)[0],
                            np.array([ord('T')], dtype=np.int8)[0])
                 raw_field[:] = np.choose(field, choices)
-
-        if isinstance(recformat, _FormatP):
-            if recformat._format_code=='P' and heapsize >= 2**31:
-                raise ValueError("The heapsize limit for 'P' format has been reached. "
-                                 "Please consider using the 'Q' format for your file.")
 
         # Store the updated heapsize
         self._heapsize = heapsize
