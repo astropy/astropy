@@ -13,6 +13,8 @@ from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
+JQUERY_MIN_JS = 'jquery-3.1.1.min.js'
+
 
 REFERENCE = """
 <html>
@@ -101,7 +103,7 @@ def test_write_jsviewer_default(tmpdir):
         display_length='10, 25, 50, 100, 500, 1000',
         datatables_css_url='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css',
         datatables_js_url='https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js',
-        jquery_url='https://code.jquery.com/jquery-3.1.1.min.js'
+        jquery_url='https://code.jquery.com/' + JQUERY_MIN_JS
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
@@ -144,7 +146,7 @@ def test_write_jsviewer_mixin(tmpdir, mixin):
         display_length='10, 25, 50, 100, 500, 1000',
         datatables_css_url='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css',
         datatables_js_url='https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js',
-        jquery_url='https://code.jquery.com/jquery-3.1.1.min.js'
+        jquery_url='https://code.jquery.com/' + JQUERY_MIN_JS
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
@@ -170,7 +172,7 @@ def test_write_jsviewer_options(tmpdir):
         display_length='5, 10, 25, 50, 100, 500, 1000',
         datatables_css_url='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css',
         datatables_js_url='https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js',
-        jquery_url='https://code.jquery.com/jquery-3.1.1.min.js'
+        jquery_url='https://code.jquery.com/' + JQUERY_MIN_JS
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
@@ -194,7 +196,7 @@ def test_write_jsviewer_local(tmpdir):
         display_length='10, 25, 50, 100, 500, 1000',
         datatables_css_url='file://' + join(EXTERN_DIR, 'css', 'jquery.dataTables.css'),
         datatables_js_url='file://' + join(EXTERN_DIR, 'js', 'jquery.dataTables.min.js'),
-        jquery_url='file://' + join(EXTERN_DIR, 'js', 'jquery-3.1.1.min.js')
+        jquery_url='file://' + join(EXTERN_DIR, 'js', JQUERY_MIN_JS)
     )
     with open(tmpfile) as f:
         assert f.read().strip() == ref.strip()
