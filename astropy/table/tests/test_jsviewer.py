@@ -13,7 +13,7 @@ from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
-JQUERY_MIN_JS = 'jquery-3.1.1.min.js'
+JQUERY_MIN_JS = 'jquery-3.6.0.min.js'
 
 
 REFERENCE = """
