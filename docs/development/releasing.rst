@@ -238,8 +238,7 @@ You also need to activate builds on the release branch for ReadTheDocs. Go to
 "Activate" and "Hidden" for the new release branch.
 
 Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
-for the `astropy core repository`_ branch you are going to release. Also check that
-the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
+for the `astropy core repository`_ branch you are going to release.
 Also make sure that the ReadTheDocs build is passing for the release branch.
 
 One of the continuous integration tasks that should be run periodically is the updates to the
@@ -290,7 +289,7 @@ Push up the tag to the `astropy core repository`_, e.g.::
    but this should *not* be done, as it might push up some unintended tags.
 
 At this point if all goes well, the wheels and sdist will be build
-in the `Azure core package pipeline`_ and uploaded to PyPI!
+in the release workflow and uploaded to PyPI!
 
 In the event there are any issues with the wheel building for the tag
 (which shouldn't really happen if it was passing for the release branch),
@@ -548,7 +547,7 @@ Push up the tag to the `astropy core repository`_, e.g.::
    but this should *not* be done, as it might push up some unintended tags.
 
 At this point if all goes well, the wheels and sdist will be build
-in the `Azure core package pipeline`_ and uploaded to PyPI!
+in the release workflow and uploaded to PyPI!
 
 In the event there are any issues with the wheel building for the tag
 (which shouldn't really happen if it was passing for the release branch),
@@ -656,5 +655,4 @@ it's harder for commits that need to be backported from getting lost.
 .. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
-.. _Azure core package pipeline: https://dev.azure.com/astropy-project/astropy/_build
 .. _generate_releaserst.xsh: https://raw.githubusercontent.com/sunpy/sunpy/main/tools/generate_releaserst.xsh

@@ -17,7 +17,6 @@ testing:
   - codecov.yml
   - conftest.py
   - '**/conftest.py'
-  - azure-pipelines.yml
   - tox.ini
   - .circleci/*
   - .github/**/*.yml
