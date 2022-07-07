@@ -83,8 +83,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git checkout v1.2.x
 
 #. Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
-   for the `astropy core repository`_ branch you are going to release. Also check that
-   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
+   for the `astropy core repository`_ branch you are going to release.
    You may also want to locally run the tests (with remote data on to ensure all
    of the tests actually run), using tox to do a thorough test in an isolated
    environment::
@@ -107,7 +106,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git push upstream v1.2.x
 
-   and make sure that the CI services mentioned above (includnig the Azure pipeline)
+   and make sure that the CI services mentioned above (including the release workflow)
    are still passing.
 
    .. note::
@@ -132,7 +131,7 @@ packages that use the full bugfix/maintenance branch approach.)
       but this should *not* be done, as it might push up some unintended tags.
 
    At this point if all goes well, the wheels and sdist will be build
-   in the `Azure core package pipeline`_ and uploaded to PyPI!
+   in the release workflow and uploaded to PyPI!
 
 #. In the event there are any issues with the wheel building for the tag
    (which shouldn't really happen if it was passing for the release branch),
@@ -672,4 +671,3 @@ that for you.  You can delete this tag by doing::
 .. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
-.. _Azure core package pipeline: https://dev.azure.com/astropy-project/astropy/_build
