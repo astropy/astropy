@@ -90,8 +90,8 @@ to format units as strings, and is the underlying implementation of the
     >>> fluxunit.to_string('latex')
     '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
 
-Creating Units from Strings
-===========================
+Converting from Strings
+=======================
 
 .. EXAMPLE START: Creating Units from Strings
 
@@ -105,16 +105,19 @@ formats using the `~astropy.units.Unit` class::
   >>> u.Unit("erg.s-1.cm-2", format="cds")
   Unit("erg / (cm2 s)")
 
+It is also possible to create a scalar |Quantity| from a string::
+
+    >>> u.Quantity("3m/s")
+    <Quantity 3. m / s>
+
 .. note::
 
-   Creating units from strings requires the use of a specialized
-   parser for the unit language, which results in a performance
-   penalty if units are created using strings. Thus, it is much
-   faster to use |Unit| objects directly (e.g., ``unit = u.degree /
-   u.minute``) instead of via string parsing (``unit =
-   u.Unit('deg/min')``). This parser is very useful, however, if your
-   unit definitions are coming from a file format such as FITS or
-   VOTable.
+   Converting from strings requires the use of a specialized parser for the
+   unit language, which results in a performance penalty. It is much faster to
+   use |Unit| objects directly (e.g., ``unit = u.degree / u.minute``) instead
+   of via string parsing (``unit = u.Unit('deg/min')``). This parser is very
+   useful, however, if your unit definitions are coming from a file format such
+   as FITS or VOTable.
 
 .. EXAMPLE END
 
