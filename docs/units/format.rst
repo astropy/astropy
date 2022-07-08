@@ -45,6 +45,16 @@ attributes within format strings::
     >>> f"{q.value:.3f} in {q.unit}"
     '10.500 in km'
 
+This might not work well with LaTeX strings, in which case it would be better
+to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>`
+method::
+
+    >>> q = 1.2478e12 * u.pc/u.Myr
+    >>> f"{q.value:.3e} {q.unit:latex}"  # The value is not in LaTeX
+    '1.248e+12 $\\mathrm{\\frac{pc}{Myr}}$'
+    >>> q.to_string(format="latex", precision=4)  # Right number of LaTeX digits
+    '$1.248 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
+
 Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
 :func:`numpy.array_str` instead. For instance::
@@ -63,9 +73,8 @@ different styles. By default, the string format used is referred to as the
 <https://fits.gsfc.nasa.gov/fits_standard.html>`_ format for representing
 units, but supports all of the units defined within the :mod:`astropy.units`
 framework, including user-defined units. The format specifier (and
-:meth:`~astropy.units.core.UnitBase.to_string`) functions also take an optional
-parameter to select a different format, including ``"latex"``, ``"unicode"``,
-``"cds"``, and others, defined below::
+`UnitBase.to_string() <astropy.units.core.UnitBase.to_string>`) functions also
+take an optional parameter to select a different format::
 
     >>> q = 10 * u.km
     >>> f"{q.value:0.003f} in {q.unit:latex}"
@@ -82,9 +91,9 @@ parameter to select a different format, including ``"latex"``, ``"unicode"``,
     >>> f"{fluxunit:>20s}"
     '       erg / (cm2 s)'
 
-The :meth:`~astropy.units.core.UnitBase.to_string` method is an alternative way
-to format units as strings, and is the underlying implementation of the
-`format`-style usage::
+The `UnitBase.to_string() <astropy.units.core.UnitBase.to_string>` method is an
+alternative way to format units as strings, and is the underlying
+implementation of the `format`-style usage::
 
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> fluxunit.to_string('latex')
