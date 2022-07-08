@@ -16,10 +16,10 @@ Each file should be named like ``<PULL REQUEST>.<TYPE>.rst``, where
 * ``bugfix``: Bug fix.
 * ``other``: Other changes and additions.
 
-If the change concern a sub-package, the file should go in the sub-directory
-relative to this sub-package.
+If the change concerns a sub-package, the file should go in the sub-directory
+relative to this sub-package. Type ``other`` is not allowed in sub-directories.
 
-It is possible to add two files with different categories (and text) if both
+It is possible to add two files with different types (and text) if both
 are relevant. For example a change may add a new feature but introduce an API
 change.
 

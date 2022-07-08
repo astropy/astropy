@@ -15,7 +15,7 @@ class Conf(_config.ConfigNamespace):
     """
 
     jquery_url = _config.ConfigItem(
-        'https://code.jquery.com/jquery-3.1.1.min.js',
+        'https://code.jquery.com/jquery-3.6.0.min.js',
         'The URL to the jquery library.')
 
     datatables_url = _config.ConfigItem(
@@ -134,7 +134,7 @@ class JSViewer:
     @property
     def jquery_urls(self):
         if self._use_local_files:
-            return ['file://' + join(EXTERN_JS_DIR, 'jquery-3.1.1.min.js'),
+            return ['file://' + join(EXTERN_JS_DIR, 'jquery-3.6.0.min.js'),
                     'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
         else:
             return [conf.jquery_url, conf.datatables_url]
