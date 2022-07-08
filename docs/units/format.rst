@@ -153,7 +153,10 @@ following formats:
     recommendations for unit presentation. This format is
     automatically used when printing a unit in the `IPython`_ notebook::
 
-      >>> fluxunit  # doctest: +SKIP
+        >>> f"{fluxunit:latex}"
+        '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+
+    which renders as
 
     .. math::
 
@@ -167,7 +170,10 @@ following formats:
     <https://journals.aas.org/manuscript-preparation/>`_).
     Best suited for unit representation inline with text::
 
-      >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP
+        >>> fluxunit.to_string('latex_inline')
+        '$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$'
+
+    which renders as
 
     .. math::
 
