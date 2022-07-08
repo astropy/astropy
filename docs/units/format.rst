@@ -1,10 +1,10 @@
 .. _astropy-units-format:
 
-String Representations of Units
-*******************************
+String Representations of Units and Quantities
+**********************************************
 
-Converting Units to String Representations
-==========================================
+Converting to Strings
+=====================
 
 You can control the way that |Quantity| and |Unit| objects are rendered as
 strings using the `Python Format String Syntax
@@ -25,7 +25,6 @@ Examples
 To render |Quantity| or |Unit| objects as strings::
 
     >>> from astropy import units as u
-    >>> import numpy as np
     >>> q = 10.5 * u.km
     >>> q
     <Quantity  10.5 km>
@@ -33,6 +32,8 @@ To render |Quantity| or |Unit| objects as strings::
     '10.5 km'
     >>> f"{q:+.3f}"
     '+10.500 km'
+    >>> f"{q:^20}"
+    '        10.5         km'
     >>> f"{q:^20s}"
     '     10.5 km        '
 
@@ -59,6 +60,7 @@ Because |ndarray| does not accept most format specifiers, using specifiers like
 ``.3f`` will not work when applied to a |ndarray| or non-scalar |Quantity|. Use
 :func:`numpy.array_str` instead. For instance::
 
+    >>> import numpy as np
     >>> q = np.linspace(0,1,10) * u.m
     >>> f"{np.array_str(q.value, precision=1)} {q.unit}"  # doctest: +FLOAT_CMP
     '[0.  0.1 0.2 0.3 0.4 0.6 0.7 0.8 0.9 1. ] m'
@@ -67,9 +69,9 @@ Examine the NumPy documentation for more examples with :func:`numpy.array_str`.
 
 .. EXAMPLE END
 
-Units, or the unit part of a quantity, can also be formatted in a number of
-different styles. By default, the string format used is referred to as the
-"generic" format, which is based on syntax of the `FITS standard
+A |Unit|, or the unit part of a |Quantity|, can also be formatted in a number
+of different styles. By default, the string format used is the "generic"
+format, which is based on syntax of the `FITS standard
 <https://fits.gsfc.nasa.gov/fits_standard.html>`_ format for representing
 units, but supports all of the units defined within the :mod:`astropy.units`
 framework, including user-defined units. The format specifier (and
