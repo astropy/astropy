@@ -3049,11 +3049,10 @@ class TestVLATables(FitsTestCase):
         for i in range(0, nrows):
             matrix[i] = np.arange(0., float(i+1))
 
-        col = fits.Column(name='MATRIX', format='PD('+str(nrows)+')',
+        col = fits.Column(name='MATRIX', format=f'PD({nrows})',
                           unit='', array=matrix)
 
-        cols = fits.ColDefs([col])
-        t = fits.BinTableHDU.from_columns(cols)
+        t = fits.BinTableHDU.from_columns([cols])
         t.name = 'MATRIX'
 
         with pytest.raises(ValueError) as err:
