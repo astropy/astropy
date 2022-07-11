@@ -150,6 +150,7 @@ class FITS_rec(np.recarray):
 
     _record_type = FITS_record
     _character_as_bytes = False
+    _heaperror = ''
 
     def __new__(subtype, input):
         """
@@ -1112,8 +1113,14 @@ class FITS_rec(np.recarray):
                 # include the size of its constituent arrays in the heap size
                 # total
                 if heapsize >= 2**31:
-                    raise ValueError("The heapsize limit for 'P' format has been reached. "
-                                     "Please consider using the 'Q' format for your file.")
+                    try:
+                        raise ValueError("The heapsize limit for 'P' format "
+                                         "has been reached. "
+                                         "Please consider using the 'Q' format "
+                                         "for your file.")
+                    except ValueError as error:
+                        self._heaperror = error
+                        return
 
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)

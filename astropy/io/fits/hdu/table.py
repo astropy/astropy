@@ -504,6 +504,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         if self._has_data:
             self.data._scale_back(
                 update_heap_pointers=not self._manages_own_heap)
+            if self.data._heaperror != '':
+                errormsg = self.data._heaperror
+                print(self)
+                self._close(closed=True)
+                raise ValueError(errormsg)
             # check TFIELDS and NAXIS2
             self._header['TFIELDS'] = len(self.data._coldefs)
             self._header['NAXIS2'] = self.data.shape[0]
