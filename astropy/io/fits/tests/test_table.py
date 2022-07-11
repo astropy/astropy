@@ -3035,6 +3035,7 @@ class TestVLATables(FitsTestCase):
             assert hdu.data.tolist() == [[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]
             assert hdu.data['var'].tolist() == [[45, 56], [11, 12, 13]]
 
+    #@pytest.mark.hugemem
     def test_heapsize_P_limit(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/10812
@@ -3044,15 +3045,14 @@ class TestVLATables(FitsTestCase):
         """
 
         # a matrix with variable length array elements is created
-        nrows = 30000
-        matrix = np.zeros(nrows, dtype=np.object_)
-        for i in range(0, nrows):
-            matrix[i] = np.arange(0., float(i+1))
+        nelem = 2**28
+        matrix = np.zeros(1, dtype=np.object_)
+        matrix[0] = np.arange(0., float(nelem+1))
 
-        col = fits.Column(name='MATRIX', format=f'PD({nrows})',
+        col = fits.Column(name='MATRIX', format=f'PD({nelem})',
                           unit='', array=matrix)
 
-        t = fits.BinTableHDU.from_columns([cols])
+        t = fits.BinTableHDU.from_columns([col])
         t.name = 'MATRIX'
 
         with pytest.raises(ValueError) as err:
