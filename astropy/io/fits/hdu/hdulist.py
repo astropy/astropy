@@ -943,12 +943,14 @@ class HDUList(list, _Verify):
         except (AttributeError, TypeError):
             dirname = None
 
-        with _free_space_check(self, dirname=dirname):
-            for hdu in self:
-                hdu._prewriteto(checksum=checksum)
-                hdu._writeto(hdulist._file)
-                hdu._postwriteto()
-        hdulist.close(output_verify=output_verify, closed=closed)
+        try:
+            with _free_space_check(self, dirname=dirname):
+                for hdu in self:
+                    hdu._prewriteto(checksum=checksum)
+                    hdu._writeto(hdulist._file)
+                    hdu._postwriteto()
+        finally:
+            hdulist.close(output_verify=output_verify, closed=closed)
 
     def close(self, output_verify='exception', verbose=False, closed=True):
         """
