@@ -1284,7 +1284,10 @@ def _kraft_burrows_nousek(N, B, CL):
     '''
     from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH
 
-    if HAS_SCIPY and N <= 100:
+    if HAS_SCIPY:
+        if N <= 100:
+            raise ValueError('SciPy does not support N<=100. Need mpmath package for input numbers this '
+                                 'large.')
         try:
             return _scipy_kraft_burrows_nousek(N, B, CL)
         except OverflowError:
