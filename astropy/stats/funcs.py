@@ -1286,7 +1286,7 @@ def _kraft_burrows_nousek(N, B, CL):
 
     if HAS_SCIPY:
         if N > 100:
-            raise ValueError('SciPy does not support N<=100. Need mpmath package for input numbers this '
+            raise ValueError('SciPy does not support N>100. Need mpmath package for input numbers this '
                                  'large.')
         try:
             return _scipy_kraft_burrows_nousek(N, B, CL)
