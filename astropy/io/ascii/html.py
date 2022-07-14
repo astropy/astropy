@@ -250,12 +250,6 @@ class HTMLData(core.BaseData):
             return None
         return last_index + 1
 
-    def _set_col_formats(self, cols):
-        """WRITE: set column formats."""
-        for col in cols:
-            if col.info.name in self.formats:
-                col.info.format = self.formats[col.info.name]
-
 
 class HTML(core.BaseReader):
     """HTML format table.
@@ -355,12 +349,13 @@ class HTML(core.BaseReader):
         cols = list(table.columns.values())
 
         self.data.header.cols = cols
+        self.data.cols = cols
 
         if isinstance(self.data.fill_values, tuple):
             self.data.fill_values = [self.data.fill_values]
 
         self.data._set_fill_values(cols)
-        self.data._set_col_formats(cols)
+        self.data._set_col_formats()
 
         lines = []
 
