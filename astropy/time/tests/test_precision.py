@@ -310,7 +310,10 @@ def test_two_sum(i, f):
         assert_almost_equal(a, b, atol=Decimal(tiny), rtol=Decimal(0))
 
 
-@given(floats(), floats())
+# For why bounds are set, see
+# https://github.com/astropy/astropy/issues/12955#issuecomment-1186293703
+@given(floats(min_value=np.finfo('f8').min * 0.5, max_value=np.finto('f8').max * 0.5),
+       floats(min_value=np.finfo('f8').min * 0.5, max_value=np.finto('f8').max * 0.5))
 def test_two_sum_symmetric(f1, f2):
     np.testing.assert_equal(two_sum(f1, f2), two_sum(f2, f1))
 
@@ -339,9 +342,12 @@ def test_day_frac_harmless(i, f):
 
 @given(integers(-2**52+2, 2**52-2), floats(-0.5, 0.5))
 @example(i=65536, f=3.637978807091714e-12)
+@example(i=1, f=0.49999999999999994)
 def test_day_frac_exact(i, f):
     assume(abs(f) < 0.5 or i % 2 == 0)
     i_d, f_d = day_frac(i, f)
+    # FIXME: Might be a real bug we need to fix in time/utils.py
+    # i = 1, f = 0.49999999999999994 --> (2, -0.5)
     assert i == i_d
     assert f == f_d
 
@@ -389,6 +395,7 @@ def test_resolution_never_decreases(scale, jds):
 
 
 @given(reasonable_jd())
+@example(jds=(2442777.5, 0.9999999999999999))
 def test_resolution_never_decreases_utc(jds):
     """UTC is very unhappy with unreasonable times"""
     jd1, jd2 = jds
@@ -502,6 +509,9 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
        jds=reasonable_jd(),
        delta=floats(-3*tiny, 3*tiny))
 @example(scale='tai', jds=(0.0, 3.5762786865234384), delta=2.220446049250313e-16)
+@example(scale='tai', jds=(2441316.5, 0.0), delta=6.938893903907228e-17)
+@example(scale='tai', jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
+@example(scale='tai', jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
 def test_time_argminmaxsort(scale, jds, delta):
     jd1, jd2 = jds
     t = Time(jd1, jd2+np.array([0, delta]), scale=scale, format="jd")
