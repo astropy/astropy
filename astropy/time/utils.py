@@ -60,14 +60,16 @@ def day_frac(val1, val2, factor=None, divisor=None):
 
     # get integer fraction
     day = np.round(sum12)
-    extra, frac = two_sum(sum12, -day)
-    frac += extra + err12
-    # Our fraction can now have gotten >0.5 or <-0.5, which means we would
-    # loose one bit of precision. So, correct for that.
-    excess = np.round(frac)
+    # Calculate remaining fraction. This can have gotten >0.5 or <-0.5, which means
+    # we would lose one bit of precision. So, correct for that.  Here, we need
+    # particular care for the case that frac=0.5 and check>0 or frac=-0.5 and check<0,
+    # since in that case if check is large enough, rounding was done the wrong way.
+    frac, check = two_sum(sum12 - day, err12)
+    excess = np.where(frac * np.sign(check) != 0.5, np.round(frac),
+                      np.round(frac+2*check))
     day += excess
-    extra, frac = two_sum(sum12, -day)
-    frac += extra + err12
+    frac = sum12 - day
+    frac += err12
     return day, frac
 
 
