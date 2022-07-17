@@ -359,7 +359,7 @@ def test_day_frac_idempotent(i, f):
     assert (i_d, f_d) == day_frac(i_d, f_d)
 
 
-@given(integers(-2**52+2, 2**52-2), floats(-1, 1))
+@given(integers(-2**52+2, 2**52-int(erfa.DJM0)-3), floats(-1, 1))
 @example(i=65536, f=3.637978807091714e-12)
 def test_mjd_initialization_precise(i, f):
     t = Time(val=i, val2=f, format="mjd", scale="tai")
@@ -383,12 +383,12 @@ def test_day_frac_round_to_even(jd1, jd2):
     assert (abs(t_jd2) == 0.5) and (t_jd1 % 2 == 0)
 
 
-@given(scale=sampled_from(STANDARD_TIME_SCALES), jds=unreasonable_jd())
+@given(scale=sampled_from([sc for sc in STANDARD_TIME_SCALES if sc != 'utc']),
+       jds=unreasonable_jd())
 @example(scale="tai", jds=(0.0, 0.0))
 @example(scale="tai", jds=(0.0, -31738.500000000346))
 def test_resolution_never_decreases(scale, jds):
     jd1, jd2 = jds
-    assume(not scale == 'utc' or 2440000 < jd1 + jd2 < 2460000)
     t = Time(jd1, jd2, format="jd", scale=scale)
     with quiet_erfa():
         assert t != t + dt_tiny
@@ -397,11 +397,18 @@ def test_resolution_never_decreases(scale, jds):
 @given(reasonable_jd())
 @example(jds=(2442777.5, 0.9999999999999999))
 def test_resolution_never_decreases_utc(jds):
-    """UTC is very unhappy with unreasonable times"""
+    """UTC is very unhappy with unreasonable times,
+
+    Unlike for the other timescales, in which addition is done
+    directly, here the time is transformed to TAI before addition, and
+    then back to UTC.  Hence, some rounding errors can occur and only
+    a change of 2*dt_tiny is guaranteed to give a different time.
+
+    """
     jd1, jd2 = jds
     t = Time(jd1, jd2, format="jd", scale="utc")
     with quiet_erfa():
-        assert t != t + dt_tiny
+        assert t != t + 2*dt_tiny
 
 
 @given(scale1=sampled_from(STANDARD_TIME_SCALES),
@@ -429,6 +436,8 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
        scale2=sampled_from(STANDARD_TIME_SCALES),
        jds=unreasonable_jd())
 @example(scale1='tai', scale2='utc', jds=(0.0, 0.0))
+@example(scale1='utc', scale2='ut1', jds=(2441316.5, 0.9999999999999991))
+@example(scale1='ut1', scale2='tai', jds=(2441498.5, 0.9999999999999999))
 def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     """Check that time ordering remains if we convert to another scale.
 
@@ -447,7 +456,9 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     try:
         with quiet_erfa():
             t2 = t + tiny
-            assert getattr(t, scale2) < getattr(t2, scale2)
+            t_scale2 = getattr(t, scale2)
+            t2_scale2 = getattr(t2, scale2)
+            assert t_scale2 < t2_scale2
     except iers.IERSRangeError:  # UT1 conversion needs IERS data
         assume(scale1 != 'ut1' or 2440000 < jd1 + jd2 < 2458000)
         assume(scale2 != 'ut1' or 2440000 < jd1 + jd2 < 2458000)
@@ -460,6 +471,19 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
         barycentric = {scale1, scale2}.issubset({'tcb', 'tdb'})
         geocentric = {scale1, scale2}.issubset({'tai', 'tt', 'tcg'})
         assume(jd1 + jd2 >= -31738.5 or geocentric or barycentric)
+        raise
+    except AssertionError:
+        # Before 1972, TAI-UTC changed smoothly but not always very
+        # consistently; this can cause trouble on day boundaries for UTC to
+        # UT1; it is not clear whether this will ever be resolved (and is
+        # unlikely ever to matter).
+        # Furthermore, exactly at leap-second boundaries, it is possible to
+        # get the wrong leap-second correction due to rounding errors.
+        # The latter is xfail'd for now, but should be fixed; see gh-13517.
+        if 'ut1' in (scale1, scale2):
+            if abs(t_scale2 - t2_scale2 - 1 * u.s) < 1*u.ms:
+                pytest.xfail()
+            assume(t.jd > 2441317.5 or t.jd2 < 0.4999999)
         raise
 
 
@@ -484,9 +508,11 @@ def test_leap_stretch_mjd(d, f):
          jds=(2441682.5, 2.2204460492503136e-16),
          delta=7.327471962526035e-12)
 @example(scale='utc', jds=(0.0, 5.787592627370942e-13), delta=0.0)
+@example(scale='utc', jds=(1.0, 0.25000000023283064), delta=-1.0)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
-    if scale == 'utc' and abs(jd1+jd2) < 1:
+    if scale == 'utc' and (jd1+jd2 < 1
+                           or jd1+jd2+delta < 1):
         # Near-zero UTC JDs degrade accuracy; not clear why,
         # but also not so relevant, so ignoring.
         thresh = 100*u.us
@@ -505,20 +531,25 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
         raise
 
 
-@given(scale=sampled_from(STANDARD_TIME_SCALES),
+@given(scale=sampled_from(TimeDelta.SCALES),
        jds=reasonable_jd(),
        delta=floats(-3*tiny, 3*tiny))
 @example(scale='tai', jds=(0.0, 3.5762786865234384), delta=2.220446049250313e-16)
 @example(scale='tai', jds=(2441316.5, 0.0), delta=6.938893903907228e-17)
 @example(scale='tai', jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
-@example(scale='tai', jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
+@example(scale='tai', jds=(2440001.0, 0.49999999999999994), delta=5.551115123125783e-17)
 def test_time_argminmaxsort(scale, jds, delta):
     jd1, jd2 = jds
-    t = Time(jd1, jd2+np.array([0, delta]), scale=scale, format="jd")
+    t = (Time(jd1, jd2, scale=scale, format="jd")
+         + TimeDelta([0, delta], scale=scale, format='jd'))
     imin = t.argmin()
     imax = t.argmax()
     isort = t.argsort()
-    diff = (t.jd1[1]-t.jd1[0]) + (t.jd2[1]-t.jd2[0])
+    # Be careful in constructing diff, for case that abs(jd2[1]-jd2[0]) ~ 1.
+    # and that is compensated by jd1[1]-jd1[0] (see example above).
+    diff, extra = two_sum(t.jd2[1], -t.jd2[0])
+    diff += t.jd1[1]-t.jd1[0]
+    diff += extra
     if diff < 0:  # item 1 smaller
         assert delta < 0
         assert imin == 1 and imax == 0 and np.all(isort == [1, 0])
