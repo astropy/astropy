@@ -310,10 +310,12 @@ def test_two_sum(i, f):
         assert_almost_equal(a, b, atol=Decimal(tiny), rtol=Decimal(0))
 
 
-# For why bounds are set, see
-# https://github.com/astropy/astropy/issues/12955#issuecomment-1186293703
-@given(floats(min_value=np.finfo('f8').min * 0.5, max_value=np.finto('f8').max * 0.5),
-       floats(min_value=np.finfo('f8').min * 0.5, max_value=np.finto('f8').max * 0.5))
+# The bounds are here since we want to be sure the sum does not go to infinity,
+# which does not have to be completely symmetric; e.g., this used to fail:
+#     @example(f1=-3.089785075544792e307, f2=1.7976931348623157e308)
+# See https://github.com/astropy/astropy/issues/12955#issuecomment-1186293703
+@given(floats(min_value=np.finfo(float).min/2, max_value=np.finfo(float).max/2),
+       floats(min_value=np.finfo(float).min/2, max_value=np.finfo(float).max/2))
 def test_two_sum_symmetric(f1, f2):
     np.testing.assert_equal(two_sum(f1, f2), two_sum(f2, f1))
 
@@ -346,8 +348,6 @@ def test_day_frac_harmless(i, f):
 def test_day_frac_exact(i, f):
     assume(abs(f) < 0.5 or i % 2 == 0)
     i_d, f_d = day_frac(i, f)
-    # FIXME: Might be a real bug we need to fix in time/utils.py
-    # i = 1, f = 0.49999999999999994 --> (2, -0.5)
     assert i == i_d
     assert f == f_d
 
