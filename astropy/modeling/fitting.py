@@ -1170,10 +1170,34 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
     def _run_fitter(self, model, farg, maxiter, acc, epsilon, estimate_jacobian):
         return None, None, None
 
+    def _filter_non_finite(self, x, y, z=None):
+        """
+        Filter out non-finite values in x, y, z.
+
+        Returns
+        -------
+        x, y, z : ndarrays
+            x, y, and z with non-finite values filtered out.
+        """
+
+        MESSAGE = "Non-Finite input data has been removed by the fitter."
+
+        if z is None:
+            mask = np.isfinite(y)
+            if not np.all(mask):
+                warnings.warn(MESSAGE, AstropyUserWarning)
+            return x[mask], y[mask], None
+        else:
+            mask = np.isfinite(z)
+            if not np.all(mask):
+                warnings.warn(MESSAGE, AstropyUserWarning)
+            return x[mask], y[mask], z[mask]
+
     @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
-                 epsilon=DEFAULT_EPS, estimate_jacobian=False):
+                 epsilon=DEFAULT_EPS, estimate_jacobian=False,
+                 filter_non_finite=False):
         """
         Fit data to this model.
 
@@ -1208,6 +1232,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         equivalencies : list or None, optional, keyword-only
             List of *additional* equivalencies that are should be applied in
             case x, y and/or z have units. Default is None.
+        filter_non_finite : bool, optional
+            Whether or not to filter data with non-finite values. Default is False
 
         Returns
         -------
@@ -1218,6 +1244,9 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
 
         model_copy = _validate_model(model, self.supported_constraints)
         model_copy.sync_constraints = False
+
+        if filter_non_finite:
+            x, y, z = self._filter_non_finite(x, y, z)
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
 
         init_values, fitparams, cov_x = self._run_fitter(model_copy, farg,
