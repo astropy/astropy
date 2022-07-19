@@ -124,4 +124,4 @@ class AltAz(BaseCoordinateFrame):
         return _90DEG.to(self.alt.unit) - self.alt
 
 
-# self-transform defined in cirs_observed_transforms.py
+# self-transform defined in icrs_observed_transforms.py
