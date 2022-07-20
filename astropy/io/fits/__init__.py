@@ -57,12 +57,6 @@ class Conf(_config.ConfigNamespace):
         'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
         'and BZERO = 2**BITPIX, represent the data as unsigned integers '
         'per this convention.')
-    use_fsspec = _config.ConfigItem(
-        False,
-        'Use the ``fsspec`` library to open FITS files? Defaults to `False` '
-        'unless the FITS file path starts with the Amazon S3 storage '
-        'prefix ``s3://`` or the Google Cloud Storage prefix ``gs://``. '
-        'See the documentation for fits.open() for more details.')
 
 
 conf = Conf()

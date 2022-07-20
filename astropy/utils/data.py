@@ -32,6 +32,7 @@ except ImportError:
 
 import astropy.config.paths
 from astropy import config as _config
+from astropy.utils.compat.optional_deps import HAS_FSSPEC
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
@@ -152,6 +153,11 @@ def is_url(string):
 _is_url = is_url
 
 
+def _requires_fsspec(url):
+    """Does the `url` require the optional ``fsspec`` dependency to open?"""
+    return isinstance(url, str) and url.startswith(("s3://", "gs://"))
+
+
 def _is_inside(path, parent_path):
     # We have to try realpath too to avoid issues with symlinks, but we leave
     # abspath because some systems like debian have the absolute path (with no
@@ -164,7 +170,9 @@ def _is_inside(path, parent_path):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None,
-                         sources=None, http_headers=None):
+                         sources=None, http_headers=None,
+                         use_fsspec=None, fsspec_kwargs=None,
+                         close_files=True):
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
@@ -235,6 +243,32 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
 
+    use_fsspec : bool, optional
+        Use the ``fsspec`` library to open the file? Defaults to `False` unless
+        ``name_or_obj`` starts with the Amazon S3 storage prefix ``s3://``
+        or the Google Cloud Storage prefix ``gs://``.  Can also be used for paths
+        with other prefixes (e.g. ``http://``) but in this case you must
+        explicitely pass ``use_fsspec=True``.
+        Use of this feature requires the optional ``fsspec`` package.
+        A ``ModuleNotFoundError`` will be raised if the dependency is missing.
+
+        .. versionadded:: 5.2
+
+    fsspec_kwargs : dict, optional
+        Keyword arguments passed on to `fsspec.open`. This can be used to
+        configure cloud storage credentials and caching behavior.
+        Defaults to ``{"anon": True}`` for paths with prefix ``s3://``
+        which is required for reading data from Amazon S3 open data buckets.
+        See ``fsspec``'s documentation for available parameters.
+
+        .. versionadded:: 5.2
+
+    close_files : bool, optional
+        Close the file object when exiting the context manager.
+        Default is `True`.
+
+        .. versionadded:: 5.2
+
     Returns
     -------
     file : readable file-like
@@ -254,22 +288,48 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # use configfile default
         remote_timeout = conf.remote_timeout
 
+    # Have `use_fsspec` default to ``True`` if the user passed an Amazon S3
+    # or Google Cloud Storage URI.
+    if use_fsspec is None and _requires_fsspec(name_or_obj):
+        use_fsspec = True
+
+    if use_fsspec:
+        if not isinstance(name_or_obj, str):
+            raise TypeError("`name_or_obj` must be a string when `use_fsspec=True`")
+        # For s3:// paths, it is useful to have fsspec default to `anon=True`
+        # because Hubble/JWST's data archive is available via a public S3 buckets.
+        # Accessing a public bucket without credentials raises a
+        # `NoCredentialsError` unless `anon=True` is passed explicitely.
+        if fsspec_kwargs is None:
+            if name_or_obj.startswith("s3://"):
+                fsspec_kwargs = {'anon': True}
+            else:
+                fsspec_kwargs = {}
+
     # name_or_obj could be an os.PathLike object
     if isinstance(name_or_obj, os.PathLike):
         name_or_obj = os.fspath(name_or_obj)
 
     # Get a file object to the content
     if isinstance(name_or_obj, str):
-        is_url = _is_url(name_or_obj)
-        if is_url:
-            name_or_obj = download_file(
-                name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=remote_timeout, sources=sources,
-                http_headers=http_headers)
-        fileobj = io.FileIO(name_or_obj, 'r')
-        if is_url and not cache:
-            delete_fds.append(fileobj)
-        close_fds.append(fileobj)
+        # Use fsspec to open certain cloud-hosted files (e.g., AWS S3, Google Cloud Storage)
+        if use_fsspec or _requires_fsspec(name_or_obj):
+            if not HAS_FSSPEC:
+                raise ModuleNotFoundError("please install `fsspec` to open this file")
+            import fsspec  # local import because it is a niche dependency
+            fileobj = fsspec.open(name_or_obj, **fsspec_kwargs).open()
+            close_fds.append(fileobj)
+        else:
+            is_url = _is_url(name_or_obj)
+            if is_url:
+                name_or_obj = download_file(
+                    name_or_obj, cache=cache, show_progress=show_progress,
+                    timeout=remote_timeout, sources=sources,
+                    http_headers=http_headers)
+            fileobj = io.FileIO(name_or_obj, 'r')
+            if is_url and not cache:
+                delete_fds.append(fileobj)
+            close_fds.append(fileobj)
     else:
         fileobj = name_or_obj
 
@@ -395,8 +455,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     try:
         yield fileobj
     finally:
-        for fd in close_fds:
-            fd.close()
+        if close_files:
+            for fd in close_fds:
+                fd.close()
         for fd in delete_fds:
             os.remove(fd.name)
 
