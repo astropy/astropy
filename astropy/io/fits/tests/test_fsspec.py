@@ -4,7 +4,7 @@
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS  # noqa
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename, conf
 
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
@@ -15,12 +15,10 @@ import pytest
 def test_fsspec_local():
     """Can we use fsspec to read a local file?"""
     fn = get_pkg_data_filename('data/test0.fits')
-    hdulist_classic = fits.open(fn, use_fsspec=False)
+    hdulist_classic = fits.open(fn)
     hdulist_fsspec = fits.open(fn, use_fsspec=True)
     assert_array_equal(hdulist_classic[2].data, hdulist_fsspec[2].data)
     assert_array_equal(hdulist_classic[2].section[3:5], hdulist_fsspec[2].section[3:5])
-    assert "partially read" not in repr(hdulist_classic)
-    assert "partially read" in repr(hdulist_fsspec)
     hdulist_classic.close()
     hdulist_fsspec.close()
 
@@ -43,7 +41,7 @@ def test_fsspec_local_write(tmpdir):
     with fits.open(fn_tmp) as hdul:
         assert hdul[1].data[2,3] == -999
 
-    # Does fsspec support `mode="update"`?
+    # Does fsspec support `mode="update"` for local files?
     with fits.open(str(fn_tmp), use_fsspec=True, mode="update") as hdul:
         hdul[1].data[2,3] = 42
     with fits.open(fn_tmp) as hdul:
@@ -58,8 +56,8 @@ def test_fsspec_http():
     # Expected array was obtained by downloading the file locally and executing:
     # with fits.open(local_path) as hdul:
     #     hdul[1].data[1000:1002, 2000:2003]
-    expected = np.array([[0.00545289, 0.0051066, -0.00034149],
-                         [0.00120684, 0.00782754, 0.00546404]])
+    expected = np.array([[0.00600598, 0.00546154, 0.00134362],
+                         [0.00073434, 0.00825543, 0.0059365]])
     with fits.open(uri, use_fsspec=True) as hdul:
         # Do we retrieve the expected array?
         assert_allclose(hdul[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
@@ -67,6 +65,14 @@ def test_fsspec_http():
         # the repr and string representation should reflect this.
         assert "partially read" in repr(hdul)
         assert "partially read" in str(hdul)
+
+    # Can the user also pass an fsspec file object directly to fits open?
+    import fsspec
+    with fsspec.open(uri) as fileobj:
+        with fits.open(fileobj) as hdul2:
+            assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
+            assert "partially read" in repr(hdul)
+            assert "partially read" in str(hdul)
 
 
 @pytest.mark.remote_data
@@ -77,8 +83,8 @@ def test_fsspec_s3():
     # Expected array was obtained by downloading the file locally and executing:
     # with fits.open(local_path) as hdul:
     #     hdul[1].data[1000:1002, 2000:2003]
-    expected = np.array([[0.00545289, 0.0051066, -0.00034149],
-                         [0.00120684, 0.00782754, 0.00546404]])
+    expected = np.array([[0.00600598, 0.00546154, 0.00134362],
+                         [0.00073434, 0.00825543, 0.0059365]])
     with fits.open(uri) as hdul:  # s3:// paths should default to use_fsspec=True
         # Do we retrieve the expected array?
         assert_allclose(hdul[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
@@ -86,6 +92,14 @@ def test_fsspec_s3():
         # the repr and string representation should reflect this.
         assert "partially read" in repr(hdul)
         assert "partially read" in str(hdul)
+
+    # Can the user also pass an fsspec file object directly to fits open?
+    import fsspec
+    with fsspec.open(uri, anon=True) as fileobj:
+        with fits.open(fileobj) as hdul2:
+            assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
+            assert "partially read" in repr(hdul)
+            assert "partially read" in str(hdul)
 
 
 @pytest.mark.skipif("not HAS_FSSPEC")

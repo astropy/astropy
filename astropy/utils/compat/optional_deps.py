@@ -10,7 +10,7 @@ import warnings
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
 _optional_deps = ['asdf', 'asdf_astropy', 'bleach', 'bottleneck', 'bs4', 'bz2',
-                  'fsspec', 'gcsfs', 'h5py', 'html5lib', 'IPython', 'jplephem',
+                  'fsspec', 'h5py', 'html5lib', 'IPython', 'jplephem',
                   'lxml', 'matplotlib', 'mpmath', 'pandas', 'PIL', 'pytz',
                   's3fs', 'scipy', 'skyfield', 'sortedcontainers', 'lzma',
                   'pyarrow']
