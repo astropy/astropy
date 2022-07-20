@@ -8,45 +8,42 @@ from astropy.coordinates.representation import CartesianRepresentation
 from .altaz import AltAz
 from .hadec import HADec
 from .itrs import ITRS
-from .utils import PIOVER2
 
 # Minimum cos(alt) and sin(alt) for refraction purposes
 CELMIN = 1e-6
 SELMIN = 0.05
+# Latitude of the north pole.
+NORTH_POLE = 90.0*u.deg
 
 
 def itrs_to_altaz_mat(lon, lat):
     # form ITRS to AltAz matrix
-    elat = lat.to_value(u.radian)
-    elong = lon.to_value(u.radian)
     # AltAz frame is left handed
     minus_x = np.eye(3)
     minus_x[0][0] = -1.0
     mat = (minus_x
-           @ rotation_matrix(PIOVER2 - elat, 'y', unit=u.radian)
-           @ rotation_matrix(elong, 'z', unit=u.radian))
+           @ rotation_matrix(NORTH_POLE - lat, 'y')
+           @ rotation_matrix(lon, 'z'))
     return mat
 
 
 def itrs_to_hadec_mat(lon):
     # form ITRS to HADec matrix
-    elong = lon.to_value(u.radian)
     # HADec frame is left handed
     minus_y = np.eye(3)
     minus_y[1][1] = -1.0
     mat = (minus_y
-           @ rotation_matrix(elong, 'z', unit=u.radian))
+           @ rotation_matrix(lon, 'z'))
     return mat
 
 
 def altaz_to_hadec_mat(lat):
     # form AltAz to HADec matrix
-    elat = lat.to_value(u.radian)
     z180 = np.eye(3)
     z180[0][0] = -1.0
     z180[1][1] = -1.0
     mat = (z180
-           @ rotation_matrix(PIOVER2 - elat, 'y', unit=u.radian))
+           @ rotation_matrix(NORTH_POLE - lat, 'y'))
     return mat
 
 
@@ -58,7 +55,7 @@ def add_refraction(aa_crepr, observed_frame):
         observed_frame.relative_humidity.value,
         observed_frame.obswl.to_value(u.micron)
     )
-    #reference: erfa.atioq()
+    # reference: erfa.atioq()
     norm, uv = erfa.pn(aa_crepr.get_xyz(xyz_axis=-1).to_value())
     # Cosine and sine of altitude, with precautions.
     sel = np.maximum(uv[..., 2], SELMIN)
@@ -108,6 +105,7 @@ def remove_refraction(aa_crepr, observed_frame):
 def itrs_to_observed(itrs_coo, observed_frame):
     if (np.any(itrs_coo.location != observed_frame.location) or
             np.any(itrs_coo.obstime != observed_frame.obstime)):
+        # This transform will go through the CIRS and alter stellar aberration.
         itrs_coo = itrs_coo.transform_to(ITRS(obstime=observed_frame.obstime,
                                               location=observed_frame.location))
 
@@ -142,5 +140,6 @@ def observed_to_itrs(observed_coo, itrs_frame):
 
     itrs_at_obs_time = ITRS(crepr, obstime=observed_coo.obstime,
                             location=observed_coo.location)
-    # this final transform may be a no-op if the obstimes and locations are the same
+    # This final transform may be a no-op if the obstimes and locations are the same.
+    # Otherwise, this transform will go through the CIRS and alter stellar aberration.
     return itrs_at_obs_time.transform_to(itrs_frame)

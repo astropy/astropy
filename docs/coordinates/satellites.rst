@@ -5,8 +5,8 @@ Working with Earth Satellites Using Astropy Coordinates
 This document discusses Two-Line Element ephemerides and the True Equator, Mean Equinox frame.
 For satellite ephemerides given directly in geocentric ITRS coordinates
 (e.g. `ILRS ephemeris format <https://ilrs.gsfc.nasa.gov/data_and_products/formats/cpf.html>`_)
-please see the documentation of the ITRS frame and the example transform to `~astropy.coordinates.AltAz`
-below starting with the geocentric ITRS coordinate frame.
+please see the example transform to `~astropy.coordinates.AltAz` below starting with
+the geocentric ITRS coordinate frame.
 
 Satellite data is normally provided in the Two-Line Element (TLE) format
 (see `here <https://www.celestrak.com/NORAD/documentation/tle-fmt.php>`_
@@ -89,7 +89,7 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 .. doctest-requires:: sgp4
 
     >>> from astropy.coordinates import ITRS
-    >>> itrs_geo = teme.transform_to(ITRS(obstime=t))  # doctest: +IGNORE_WARNINGS
+    >>> itrs_geo = teme.transform_to(ITRS(obstime=t))
     >>> location = itrs_geo.earth_location
     >>> location.geodetic  # doctest: +FLOAT_CMP
     GeodeticLocation(lon=<Longitude 160.34199789 deg>, lat=<Latitude -24.6609379 deg>, height=<Quantity 420.17927591 km>)
@@ -101,16 +101,33 @@ For example, to find the overhead latitude, longitude, and height of the satelli
 
 Or, if you want to find the altitude and azimuth of the satellite from a particular location:
 
+.. note ::
+    In this example, the intermediate step of manually setting up a topocentric `~astropy.coordinates.ITRS`
+    frame is necessary in order to avoid the change in stellar aberration that would occur if a direct
+    transform from geocentric to topocentric coordinates using ``transform_to`` was used. Please see
+    the documentation of the `~astropy.coordinates.ITRS` frame for more details.
+
 .. doctest-requires:: sgp4
 
     >>> from astropy.coordinates import EarthLocation, AltAz
     >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +SKIP
-    >>> topo_itrs_repr = itrs_geo.cartesian - siding_spring.get_itrs(t).cartesian  # doctest: +IGNORE_WARNINGS
-    >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)  # doctest: +IGNORE_WARNINGS
-    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +IGNORE_WARNINGS
+    >>> topo_itrs_repr = itrs_geo.cartesian.without_differentials() - siding_spring.get_itrs(t).cartesian
+    >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)
+    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=siding_spring))
     >>> aa.alt  # doctest: +FLOAT_CMP
     <Latitude 10.94799670 deg>
     >>> aa.az  # doctest: +FLOAT_CMP
     <Longitude 59.28803392 deg>
+
+For a stationary observer, velocity in the `~astropy.coordinates.ITRS` is independent of location,
+so if you want to carry the velocity to the topocentric frame, you can do so as follows:
+
+.. doctest-requires:: sgp4
+
+    >>> itrs_geo_p = itrs_geo.cartesian.without_differentials()
+    >>> itrs_geo_v = itrs_geo.cartesian.differentials['s']
+    >>> topo_itrs_p = itrs_geo_p - siding_spring.get_itrs(t).cartesian
+    >>> topo_itrs_repr = topo_itrs_p.with_differentials(itrs_geo_v)
+    >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)
 
 .. EXAMPLE END
