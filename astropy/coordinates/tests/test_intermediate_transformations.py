@@ -203,22 +203,22 @@ def test_itrs_topo_to_altaz_with_refraction():
     altaz_frame1 = AltAz(obstime = 'J2000', location=loc)
     altaz_frame2 = AltAz(obstime = 'J2000', location=loc, pressure=1000.0 * u.hPa,
                          relative_humidity=0.5)
+    cirs_frame = CIRS(obstime = 'J2000', location=loc)
     itrs_frame = ITRS(location=loc)
 
-    #Normal route
-    #No Refraction
+    # Normal route
+    # No Refraction
     altaz1 = icrs.transform_to(altaz_frame1)
 
-    #Refraction added
+    # Refraction added
     altaz2 = icrs.transform_to(altaz_frame2)
 
-    #Refraction removed
-    cirs_frame = CIRS(obstime = 'J2000', location=loc)
+    # Refraction removed
     cirs = altaz2.transform_to(cirs_frame)
     altaz3 = cirs.transform_to(altaz_frame1)
 
-    #Through ITRS
-    #No Refraction
+    # Through ITRS
+    # No Refraction
     itrs = icrs.transform_to(itrs_frame)
     altaz11 = itrs.transform_to(altaz_frame1)
 
@@ -226,14 +226,21 @@ def test_itrs_topo_to_altaz_with_refraction():
     assert_allclose(altaz11.alt - altaz1.alt, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(altaz11.distance - altaz1.distance, 0*u.cm, atol=10.0*u.cm)
 
-    #Refraction added
+    # Round trip
+    itrs11 = altaz11.transform_to(itrs_frame)
+
+    assert_allclose(itrs11.x, itrs.x)
+    assert_allclose(itrs11.y, itrs.y)
+    assert_allclose(itrs11.z, itrs.z)
+
+    # Refraction added
     altaz22 = itrs.transform_to(altaz_frame2)
 
     assert_allclose(altaz22.az - altaz2.az, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(altaz22.alt - altaz2.alt, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(altaz22.distance - altaz2.distance, 0*u.cm, atol=10.0*u.cm)
 
-    #Refraction removed
+    # Refraction removed
     itrs = altaz22.transform_to(itrs_frame)
     altaz33 = itrs.transform_to(altaz_frame1)
 
@@ -251,22 +258,22 @@ def test_itrs_topo_to_hadec_with_refraction():
     hadec_frame1 = HADec(obstime = 'J2000', location=loc)
     hadec_frame2 = HADec(obstime = 'J2000', location=loc, pressure=1000.0 * u.hPa,
                          relative_humidity=0.5)
+    cirs_frame = CIRS(obstime = 'J2000', location=loc)
     itrs_frame = ITRS(location=loc)
 
-    #Normal route
-    #No Refraction
+    # Normal route
+    # No Refraction
     hadec1 = icrs.transform_to(hadec_frame1)
 
-    #Refraction added
+    # Refraction added
     hadec2 = icrs.transform_to(hadec_frame2)
 
-    #Refraction removed
-    cirs_frame = CIRS(obstime = 'J2000', location=loc)
+    # Refraction removed
     cirs = hadec2.transform_to(cirs_frame)
     hadec3 = cirs.transform_to(hadec_frame1)
 
-    #Through ITRS
-    #No Refraction
+    # Through ITRS
+    # No Refraction
     itrs = icrs.transform_to(itrs_frame)
     hadec11 = itrs.transform_to(hadec_frame1)
 
@@ -274,20 +281,28 @@ def test_itrs_topo_to_hadec_with_refraction():
     assert_allclose(hadec11.dec - hadec1.dec, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(hadec11.distance - hadec1.distance, 0*u.cm, atol=10.0*u.cm)
 
-    #Refraction added
+    # Round trip
+    itrs11 = hadec11.transform_to(itrs_frame)
+
+    assert_allclose(itrs11.x, itrs.x)
+    assert_allclose(itrs11.y, itrs.y)
+    assert_allclose(itrs11.z, itrs.z)
+
+    # Refraction added
     hadec22 = itrs.transform_to(hadec_frame2)
 
     assert_allclose(hadec22.ha - hadec2.ha, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(hadec22.dec - hadec2.dec, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(hadec22.distance - hadec2.distance, 0*u.cm, atol=10.0*u.cm)
 
-    #Refraction removed
+    # Refraction removed
     itrs = hadec22.transform_to(itrs_frame)
     hadec33 = itrs.transform_to(hadec_frame1)
 
     assert_allclose(hadec33.ha - hadec3.ha, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(hadec33.dec - hadec3.dec, 0*u.mas, atol=0.1*u.mas)
     assert_allclose(hadec33.distance - hadec3.distance, 0*u.cm, atol=10.0*u.cm)
+
 
 def test_gcrs_itrs():
     """
@@ -939,8 +954,7 @@ def test_itrs_straight_overhead():
     itrs_repr = itrs_geo - obsrepr
 
     # create a ITRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
-    topocentric_itrs_frame = ITRS(obstime=t, location=home)
-    itrs_topo = topocentric_itrs_frame.realize_frame(itrs_repr)
+    itrs_topo = ITRS(itrs_repr, obstime=t, location=home)
 
     # Check AltAz (though Azimuth can be anything so is not tested).
     aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
@@ -950,6 +964,7 @@ def test_itrs_straight_overhead():
     hd = itrs_topo.transform_to(HADec(obstime=t, location=home))
     assert_allclose(hd.ha, 0*u.hourangle, atol=1*u.uas, rtol=0)
     assert_allclose(hd.dec, 52*u.deg, atol=1*u.uas, rtol=0)
+
 
 def jplephem_ge(minversion):
     """Check if jplephem is installed and has version >= minversion."""

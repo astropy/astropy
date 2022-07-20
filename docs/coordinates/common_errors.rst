@@ -44,8 +44,8 @@ One might expect that the following code snippet would produce an altitude of ex
     >>> t = Time('J2010')
     >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
-    >>> altaz_frame = AltAz(obstime=t, location=home)
-    >>> obj.get_itrs(t).transform_to(altaz_frame).alt # doctest: +FLOAT_CMP
+    >>> aa = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+    >>> aa.alt # doctest: +FLOAT_CMP
     <Latitude 86.32878441 deg>
 
 Why is the result over three degrees away from the zenith? It is only possible to understand by taking a very careful
@@ -59,10 +59,10 @@ around 600 metres away from where it appears to be. This 600 metre shift, for an
 is an angular difference of just over three degrees - which is why this object does not appear overhead for a topocentric
 observer - one on the surface of the Earth.
 
-The correct way to construct a |SkyCoord| object for a source that is directly overhead a topocentric observer is
+The correct way to construct a |SkyCoord| object for a source that is directly overhead for a topocentric observer is
 as follows::
 
-    >>> from astropy.coordinates import EarthLocation, AltAz, ITRS, CIRS
+    >>> from astropy.coordinates import EarthLocation, AltAz, ITRS
     >>> from astropy.time import Time
     >>> from astropy import units as u
 
@@ -70,17 +70,13 @@ as follows::
     >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
 
-    >>> # Now we make a ITRS vector of a straight overhead object
+    >>> # First we make an ITRS vector of a straight overhead object
     >>> itrs_vec = obj.get_itrs(t).cartesian - home.get_itrs(t).cartesian
 
-    >>> # Now we create a topocentric coordinate with this data
-    >>> # Any topocentric frame will work, we use CIRS
-    >>> # Start by transforming the ITRS vector to CIRS
-    >>> cirs_vec = ITRS(itrs_vec, obstime=t).transform_to(CIRS(obstime=t)).cartesian
-    >>> # Finally, make CIRS frame object with the correct data
-    >>> cirs_topo = CIRS(cirs_vec, obstime=t, location=home)
+    >>> # Now we create a topocentric ITRS frame with this data
+    >>> itrs_topo = ITRS(itrs_vec, obstime=t, location=home)
 
     >>> # convert to AltAz
-    >>> aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
+    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
     >>> aa.alt # doctest: +FLOAT_CMP
     <Latitude 90. deg>

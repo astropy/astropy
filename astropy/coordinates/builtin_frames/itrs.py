@@ -45,12 +45,13 @@ class ITRS(BaseCoordinateFrame):
     position to a topocentric ITRS frame and add the observing site's EarthLocation geocentric
     ITRS coordinates to yield the object's geocentric ITRS coordinates.
 
-    On the other hand, direct transforms between geocentric ITRS coordinates and observed
-    `~astropy.coordinates.AltAz` or `~astropy.coordinates.HADec` coordinates include the
-    difference between stellar aberration from the point of view of an observer at the
-    geocenter and stellar aberration from the point of view of an observer on the surface
-    of the Earth. If the geocentric ITRS coordinates of the object include stellar aberration
-    at the geocenter, then this is the way to go.
+    On the other hand, using ``transform_to`` to transform geocentric ITRS coordinates to
+    topocentric ITRS, observed `~astropy.coordinates.AltAz`, or observed
+    `~astropy.coordinates.HADec` coordinates includes the difference between stellar aberration
+    from the point of view of an observer at the geocenter and stellar aberration from the
+    point of view of an observer on the surface of the Earth. If the geocentric ITRS
+    coordinates of the object include stellar aberration at the geocenter (e.g. certain ILRS
+    ephemerides), then this is the way to go.
 
     Note to ILRS ephemeris users: Astropy does not currently consider relativistic
     effects of the Earth's gravatational field. Nor do the `~astropy.coordinates.AltAz`
