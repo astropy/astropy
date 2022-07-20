@@ -122,4 +122,4 @@ class HADec(BaseCoordinateFrame):
         return data
 
 
-# self-transform defined in cirs_observed_transforms.py
+# self-transform defined in icrs_observed_transforms.py
