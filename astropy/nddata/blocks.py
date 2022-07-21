@@ -113,12 +113,13 @@ def block_reduce(data, block_size, func=np.sum):
         ``block_size`` will be used for for every axis.
 
     func : callable, optional
-        The method to use to downsample the data.  Must be a callable
-        that takes in a `~numpy.ndarray` along with an ``axis`` keyword,
-        which defines the axis or axes along which the function is
-        applied.  The ``axis`` keyword must accept multiple axes as a
-        tuple.  The default is `~numpy.sum`, which provides block
-        summation (and conserves the data sum).
+        The method to use to downsample the data. Must be a callable
+        that takes in a 4D `~numpy.ndarray` (the 2D `~numpy.ndarray`
+        input into `block_reduce` gets reshaped as 4D) and has an
+        ``axis`` keyword that accepts tuples. This function will be
+        called with ``axis=(2, 3)`` and it should return a 2D array. The
+        default is `~numpy.sum`, which provides block summation (and
+        conserves the data sum).
 
     Returns
     -------
