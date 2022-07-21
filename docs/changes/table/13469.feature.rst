@@ -1,0 +1,2 @@
+A list of Astropy tables can now be converted to an NumPy object array of
+tables.
