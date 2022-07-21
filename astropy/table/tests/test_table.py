@@ -1405,6 +1405,14 @@ class TestConvertNumpyArray():
                 assert (data[colname].dtype.byteorder
                         == arr2[colname].dtype.byteorder)
 
+    def test_convert_numpy_object_array(self, table_types):
+        d = table_types.Table([[1, 2], [3, 4]], names=('a', 'b'))
+        ds = [d, d, d]
+
+        np_ds = np.array(ds, dtype=object)
+        assert all(isinstance(t, table_types.Table) for t in np_ds)
+        assert all(np.array_equal(t, d) for t in np_ds)
+
 
 def _assert_copies(t, t2, deep=True):
     assert t.colnames == t2.colnames
