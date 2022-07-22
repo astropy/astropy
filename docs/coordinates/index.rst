@@ -346,21 +346,30 @@ To see the list of site names available, use
     ['ALMA', 'ATST', 'Anglo-Australian Observatory', ...]
 
 For arbitrary Earth addresses (e.g., not observatory sites), use the
-`~astropy.coordinates.EarthLocation.of_address` classmethod. Any address passed
-to this function uses Google maps to retrieve the latitude and longitude and can
-also (optionally) query Google maps to get the height of the location. As with
-Google maps, this works with fully specified addresses, location names, city
-names, etc.:
+:func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
+the latitude and longitude. This works with fully specified addresses, location
+names, city names, etc:
 
 .. doctest-skip::
 
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')
-    <EarthLocation (-26726.98216371, -4997009.8604809, 3950271.16507911) m>
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
-    ...                          get_height=True)
-    <EarthLocation (-26727.6272786, -4997130.47437768, 3950367.15622108) m>
-    >>> EarthLocation.of_address('Danbury, CT')
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
+    <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
+    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +FLOAT_CMP
     <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
+
+By default the `OpenStreetMap Nominatim service
+<https://wiki.openstreetmap.org/wiki/Nominatim>`_ is used, but by providing a
+`Google Geocoding API key
+<https://developers.google.com/maps/documentation/geocoding/get-api-key>`_ with
+the ``google_api_key`` argument it is possible to use Google Maps instead. It
+is also possible to query the height of the location in addition to its
+longitude and latitude, but only with the Google queries::
+
+    >>> EarthLocation.of_address("Cape Town", get_height=True)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+      ...
+    ValueError: Currently, `get_height` only works when using the Google
+    geocoding API...
 
 .. note::
     `~astropy.coordinates.SkyCoord.from_name`,
