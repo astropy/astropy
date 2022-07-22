@@ -24,6 +24,29 @@ dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
 signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 
+@numba.vectorize(cache=True)
+def _wrap_angle(angle, wrap_angle, degree=False):
+    if degree:
+        full_circle = 360
+    else:
+        full_circle = 2 * np.pi
+
+    wrap_angle_floor = wrap_angle - full_circle
+
+    n_wraps = (angle - wrap_angle_floor) // full_circle
+    if n_wraps != 0:
+        angle -= n_wraps * full_circle
+
+    # Rounding errors can cause problems.
+    if angle >= wrap_angle:
+        angle -= full_circle
+
+    elif angle < wrap_angle_floor:
+        angle += full_circle
+
+    return angle
+
+
 class Angle(u.SpecificTypeQuantity):
     """
     One or more angular value(s) with units equivalent to radians or degrees.
@@ -383,26 +406,23 @@ class Angle(u.SpecificTypeQuantity):
         Implementation that assumes ``angle`` is already validated
         and that wrapping is inplace.
         """
-        # Convert the wrap angle and 360 degrees to the native unit of
-        # this Angle, then do all the math on raw Numpy arrays rather
-        # than Quantity objects for speed.
-        a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = wrap_angle.to_value(self.unit)
-        wrap_angle_floor = wrap_angle - a360
-        self_angle = self.view(np.ndarray)
-        # Do the wrapping, but only if any angles need to be wrapped
-        #
-        # This invalid catch block is needed both for the floor division
-        # and for the comparisons later on (latter not really needed
-        # any more for >= 1.19 (NUMPY_LT_1_19), but former is).
-        with np.errstate(invalid='ignore'):
-            wraps = (self_angle - wrap_angle_floor) // a360
-            np.nan_to_num(wraps, copy=False)
-            if np.any(wraps != 0):
-                self_angle -= wraps*a360
-                # Rounding errors can cause problems.
-                self_angle[self_angle >= wrap_angle] -= a360
-                self_angle[self_angle < wrap_angle_floor] += a360
+        # special case for deg to improve performance by avoiding trafo
+        if self.unit == u.deg:
+            angle_deg = self.to_value(u.deg)
+            wrap_angle_deg = wrap_angle.to_value(u.deg)
+            with np.errstate(invalid="ignore"):
+                wrapped = _wrap_angle(angle_deg, wrap_angle_deg, True)
+        else:
+            # anything else goes through rad
+            angle_rad = self.to_value(u.rad)
+            wrap_angle_rad = wrap_angle.to_value(u.rad)
+            with np.errstate(invalid="ignore"):
+                wrapped = _wrap_angle(angle_rad, wrap_angle_rad, False)
+
+            if self.unit != u.rad:
+                wrapped = u.rad.to(self.unit, wrapped)
+
+        self.view(np.ndarray)[...] = wrapped
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
