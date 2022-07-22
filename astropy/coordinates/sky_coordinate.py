@@ -16,7 +16,6 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
-from .builtin_frames import ICRS, SkyOffsetFrame
 from .distances import Distance
 from .representation import (
     RadialDifferential, SphericalDifferential, SphericalRepresentation,
@@ -672,8 +671,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         # Finally make the new SkyCoord object from the `new_coord` and
         # remaining frame_kwargs that are not frame_attributes in `new_coord`.
-        for attr in (set(new_coord.get_frame_attr_names()) &
-                     set(frame_kwargs.keys())):
+        for attr in (set(new_coord.frame_attributes) & set(frame_kwargs.keys())):
             frame_kwargs.pop(attr)
 
         # Always remove the origin frame attribute, as that attribute only makes
@@ -715,6 +713,7 @@ class SkyCoord(ShapedLikeNDArray):
             at the new time.  ``obstime`` will be set on this object to the new
             time only if ``self`` also has ``obstime``.
         """
+        from .builtin_frames.icrs import ICRS
 
         if (new_obstime is None and dt is None or
                 new_obstime is not None and dt is not None):
@@ -835,7 +834,7 @@ class SkyCoord(ShapedLikeNDArray):
             # here. If the attr is relevant for the current frame then delegate
             # to self.frame otherwise get it from self._<attr>.
             if attr in frame_transform_graph.frame_attributes:
-                if attr in self.frame.get_frame_attr_names():
+                if attr in self.frame.frame_attributes:
                     return getattr(self.frame, attr)
                 else:
                     return getattr(self, '_' + attr, None)
@@ -1272,6 +1271,7 @@ class SkyCoord(ShapedLikeNDArray):
         spherical_offsets_to : compute the angular offsets to another coordinate
         directional_offset_by : offset a coordinate by an angle in a direction
         """
+        from .builtin_frames.skyoffset import SkyOffsetFrame
         return self.__class__(
             SkyOffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))
 
@@ -1626,6 +1626,7 @@ class SkyCoord(ShapedLikeNDArray):
             particular position angle in the un-rotated system will be sent to
             the positive latitude (z) direction in the final frame.
         """
+        from .builtin_frames.skyoffset import SkyOffsetFrame
         return SkyOffsetFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):

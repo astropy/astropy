@@ -17,7 +17,7 @@ import numpy as np
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
 # Project
-from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from . import representation as r
@@ -289,6 +289,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         super().__init_subclass__(**kwargs)
 
+        # call this once here to initialize defaults
+        # (via FrameAttribute.__get__/convert_input)
+        cls.get_frame_attr_defaults()
+
     def __init__(self, *args, copy=True, representation_type=None,
                  differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
@@ -299,7 +303,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # Set frame attributes, if any
 
         values = {}
-        for fnm, fdefault in self.get_frame_attr_names().items():
+        for fnm, fdefault in self.get_frame_attr_defaults().items():
             # Read-only frame attributes are defined as FrameAttribute
             # descriptors which are not settable, so set 'real' attributes as
             # the name prefaced with an underscore.
@@ -691,9 +695,25 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return self.has_data and self.data.isscalar
 
     @classmethod
-    def get_frame_attr_names(cls):
+    def get_frame_attr_defaults(cls):
+        """Return a dict with the defaults for each frame attribute"""
         return {name: getattr(cls, name)
                 for name in cls.frame_attributes}
+
+    @deprecated(
+        "5.2",
+        alternative="get_frame_attr_defaults",
+        message=(
+            "The {func}() {obj_type} is deprecated and may be removed in a future"
+            " version. Use {alternative}() to obtain a dict of frame attribute names"
+            " and default values."
+            " The fastest way to obtain the names is frame_attributes.keys()"
+        )
+    )
+    @classmethod
+    def get_frame_attr_names(cls):
+        """Return a dict with the defaults for each frame attribute"""
+        return cls.get_frame_attr_defaults()
 
     def get_representation_cls(self, which='base'):
         """The class used for part of this frame's data.
@@ -868,7 +888,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         if copy and data is not None:
             data = data.copy()
 
-        for attr in self.get_frame_attr_names():
+        for attr in self.frame_attributes:
             if (attr not in self._attr_names_with_defaults
                     and attr not in kwargs):
                 value = getattr(self, attr)
@@ -1347,7 +1367,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             If ``other`` isn't a `BaseCoordinateFrame` or subclass.
         """
         if self.__class__ == other.__class__:
-            for frame_attr_name in self.get_frame_attr_names():
+            for frame_attr_name in self.frame_attributes:
                 if not self._frameattr_equiv(getattr(self, frame_attr_name),
                                              getattr(other, frame_attr_name)):
                     return False
@@ -1443,7 +1463,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Returns a string representation of the frame's attributes, if any.
         """
         attr_strs = []
-        for attribute_name in self.get_frame_attr_names():
+        for attribute_name in self.frame_attributes:
             attr = getattr(self, attribute_name)
             # Check to see if this object has a way of representing itself
             # specific to being an attribute of a frame. (Note, this is not the
@@ -1880,7 +1900,7 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError(f'no {name}')
 
     def __setattr__(self, name, value):
-        if name in self.get_frame_attr_names():
+        if name in self.frame_attributes:
             raise AttributeError(f"can't set frame attribute '{name}'")
         else:
             super().__setattr__(name, value)
