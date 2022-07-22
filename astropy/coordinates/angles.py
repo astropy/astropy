@@ -13,6 +13,7 @@ import numpy as np
 from . import angle_formats as form
 from astropy import units as u
 from astropy.utils import isiterable
+import numba
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -518,6 +519,11 @@ def _no_angle_subclass(obj):
     return obj.view(Angle) if isinstance(obj, (Latitude, Longitude)) else obj
 
 
+@numba.njit(cache=True)
+def _has_invalid_latitude_values(value_rad):
+    return np.any(np.abs(value_rad) > 0.5 * np.pi)
+
+
 class Latitude(Angle):
     """
     Latitude-like angle(s) which must be in the range -90 to +90 deg.
@@ -582,14 +588,10 @@ class Latitude(Angle):
         # objects, for speed.
         if angles is None:
             angles = self
-        lower = u.degree.to(angles.unit, -90.0)
-        upper = u.degree.to(angles.unit, 90.0)
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            invalid_angles = (np.any(angles.value < lower) or
-                              np.any(angles.value > upper))
-        if invalid_angles:
+
+        # numba currently does not support any on a single bool
+        values_rad = np.array(angles.to_value(u.rad), ndmin=1, copy=False)
+        if _has_invalid_latitude_values(values_rad):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {}'.format(angles.to(u.degree)))
 
