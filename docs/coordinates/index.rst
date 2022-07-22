@@ -323,19 +323,14 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 ..
   EXAMPLE END
 
-.. testsetup::
-
-    >>> from astropy.coordinates import EarthLocation, SkyCoord
-    >>> apo = EarthLocation(-1463969.30185172, -5166673.34223433, 3434985.71204565, unit='m')
-    >>> keck = EarthLocation(-5464487.81759887, -2492806.59108569, 2151240.19451846, unit='m')
-    >>> target = SkyCoord(10.68470833, 41.26875, unit='deg')  # M31
-
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an `~astropy.coordinates.EarthLocation` - the
-`~astropy.coordinates.EarthLocation.of_site` method::
+`~astropy.coordinates.EarthLocation.of_site` method:
+
+.. doctest-remote-data::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> apo = EarthLocation.of_site('Apache Point Observatory')  # doctest: +SKIP
+    >>> apo = EarthLocation.of_site('Apache Point Observatory')
     >>> apo  # doctest: +FLOAT_CMP
     <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
@@ -350,7 +345,7 @@ For arbitrary Earth addresses (e.g., not observatory sites), use the
 the latitude and longitude. This works with fully specified addresses, location
 names, city names, etc:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
     <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
@@ -388,13 +383,15 @@ longitude and latitude, but only with the Google queries::
 
 This functionality can be combined to do more complicated tasks like computing
 barycentric corrections to radial velocity observations (also a supported
-high-level |SkyCoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
+high-level |SkyCoord| method - see :ref:`astropy-coordinates-rv-corrs`):
+
+.. doctest-remote-data::
 
     >>> from astropy.time import Time
     >>> obstime = Time('2017-2-14')
-    >>> target = SkyCoord.from_name('M31')  # doctest: +SKIP
-    >>> keck = EarthLocation.of_site('Keck')  # doctest: +SKIP
-    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP  +REMOTE_DATA
+    >>> target = SkyCoord.from_name('M31')
+    >>> keck = EarthLocation.of_site('Keck')
+    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP
     <Quantity -22.359784554780255 km / s>
 
 While ``astropy.coordinates`` does not natively support converting an Earth
