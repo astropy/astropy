@@ -1030,7 +1030,7 @@ def test_angle_wrap_at_nan():
     # Check that no attempt is made to wrap a NaN angle
     angle = Angle([0, np.nan, 1] * u.deg)
     angle.flags.writeable = False  # to force an error if a write is attempted
-    angle.wrap_at(180*u.deg, inplace=True)
+    np.testing.assert_array_equal(angle.degree, np.array([0, np.nan, 1]))
 
 
 def test_angle_multithreading():
