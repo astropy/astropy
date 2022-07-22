@@ -324,8 +324,8 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
   EXAMPLE END
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a quick way to get an `~astropy.coordinates.EarthLocation` - the
-`~astropy.coordinates.EarthLocation.of_site` method:
+a quick way to get an |EarthLocation| - the
+:func:`~astropy.coordinates.EarthLocation.of_site` classmethod:
 
 .. doctest-remote-data::
 
@@ -367,17 +367,17 @@ longitude and latitude, but only with the Google queries::
     geocoding API...
 
 .. note::
-    `~astropy.coordinates.SkyCoord.from_name`,
-    `~astropy.coordinates.EarthLocation.of_site`, and
-    `~astropy.coordinates.EarthLocation.of_address` are for convenience, and
-    hence are by design relatively low precision. If you need more precise coordinates for an
+    :func:`~astropy.coordinates.SkyCoord.from_name`,
+    :func:`~astropy.coordinates.EarthLocation.of_site`, and
+    :func:`~astropy.coordinates.EarthLocation.of_address` are designed for
+    convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
     <http://www.astropy.org/astroquery/>`_ or `astroplan
     <https://astroplan.readthedocs.io/>`_ affiliated packages.
 
     Also note that these methods retrieve data from the internet to
-    determine the celestial or Earth coordinates. The online data may be
+    determine the celestial or geographic coordinates. The online data may be
     updated, so if you need to guarantee that your scripts are reproducible
     in the long term, see the :doc:`remote_methods` section.
 
