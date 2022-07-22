@@ -159,7 +159,7 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     if np.any(gcrs_coo.obstime != hcrs_frame.obstime):
         # if they GCRS obstime and HCRS obstime are not the same, we first
         # have to move to a GCRS where they are.
-        frameattrs = gcrs_coo.get_frame_attr_names()
+        frameattrs = gcrs_coo.get_frame_attr_defaults()
         frameattrs['obstime'] = hcrs_frame.obstime
         gcrs_coo = gcrs_coo.transform_to(GCRS(**frameattrs))
 

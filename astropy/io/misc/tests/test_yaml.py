@@ -100,8 +100,8 @@ def compare_coord(c, cy):
     assert c.shape == cy.shape
     assert c.frame.name == cy.frame.name
 
-    assert list(c.get_frame_attr_names()) == list(cy.get_frame_attr_names())
-    for attr in c.get_frame_attr_names():
+    assert list(c.frame_attributes) == list(cy.frame_attributes)
+    for attr in c.frame_attributes:
         assert getattr(c, attr) == getattr(cy, attr)
 
     assert (list(c.representation_component_names) ==
