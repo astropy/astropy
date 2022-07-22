@@ -421,7 +421,7 @@ Post-Release procedures
       $ git push upstream stable --force
 
 #. If this is an LTS release (whether or not it is being supported alongside
-   a more recent version), update the "LTS" branch to ponit to the new LTS
+   a more recent version), update the "LTS" branch to point to the new LTS
    release::
 
       $ git checkout LTS
