@@ -92,39 +92,64 @@ class Attribute:
         """
         return value, False
 
+    def validate(self, instance):
+        """
+        Validate the current value using `convert_input` and update the
+        value with the validated result if it changed.
+        """
+        name = f"_{self.name}"
+        value = getattr(instance, name)
+
+        # we do not change / validate None here
+        if value is None:
+            return
+
+        value, changed = self.convert_input(value)
+        if changed:
+            setattr(instance, name, value)
+
+        return value
+
+    def broadcast(self, instance):
+        """
+        Apply broadcasting to this attribute for the given instance.
+        """
+
+        name = f"_{self.name}"
+        out = getattr(instance, name)
+        out_shape = getattr(out, 'shape', ())
+
+        instance_shape = getattr(instance, 'shape', None)  # None if instance (frame) has no data!
+        converted = False
+        if instance_shape is not None and out_shape != () and out_shape != instance_shape:
+            # If the shapes do not match, try broadcasting.
+            try:
+                if isinstance(out, ShapedLikeNDArray):
+                    out = out._apply(np.broadcast_to, shape=instance_shape,
+                                     subok=True)
+                else:
+                    out = np.broadcast_to(out, instance_shape, subok=True)
+            except ValueError:
+                # raise more informative exception.
+                raise ValueError(
+                    "attribute {} should be scalar or have shape {}, "
+                    "but is has shape {} and could not be broadcast."
+                    .format(self.name, instance_shape, out.shape))
+
+            converted = True
+
+        if converted:
+            setattr(instance, name, out)
+
     def __get__(self, instance, frame_cls=None):
         if instance is None:
-            out = self.default
-        else:
-            out = getattr(instance, '_' + self.name, self.default)
-            if out is None:
-                out = getattr(instance, self.secondary_attribute, self.default)
+            return self.default
 
-        out, converted = self.convert_input(out)
-        if instance is not None:
-            instance_shape = getattr(instance, 'shape', None)  # None if instance (frame) has no data!
-            if instance_shape is not None and (getattr(out, 'shape', ()) and
-                                               out.shape != instance_shape):
-                # If the shapes do not match, try broadcasting.
-                try:
-                    if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np.broadcast_to, shape=instance_shape,
-                                         subok=True)
-                    else:
-                        out = np.broadcast_to(out, instance_shape, subok=True)
-                except ValueError:
-                    # raise more informative exception.
-                    raise ValueError(
-                        "attribute {} should be scalar or have shape {}, "
-                        "but is has shape {} and could not be broadcast."
-                        .format(self.name, instance_shape, out.shape))
+        out = getattr(instance, f'_{self.name}', self.default)
+        if out is not None:
+            return out
 
-                converted = True
-
-            if converted:
-                setattr(instance, '_' + self.name, out)
-
-        return out
+        return getattr(instance, self.secondary_attribute, self.default)
 
     def __set__(self, instance, val):
         raise AttributeError('Cannot set frame attribute')
@@ -440,7 +465,7 @@ class CoordinateAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from astropy.coordinates import SkyCoord
+        from .sky_coordinate import SkyCoord
 
         if value is None:
             return None, False

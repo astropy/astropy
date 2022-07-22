@@ -873,9 +873,9 @@ class SkyCoord(ShapedLikeNDArray):
             # variable.  See __getattr__ above.
             super().__setattr__('_' + attr, val)
             # Validate it
-            frame_transform_graph.frame_attributes[attr].__get__(self)
+            frame_transform_graph.frame_attributes[attr].validate(self)
             # And add to set of extra attributes
-            self._extra_frameattr_names |= {attr}
+            self._extra_frameattr_names.add(attr)
 
         else:
             # Otherwise, do the standard Python attribute setting

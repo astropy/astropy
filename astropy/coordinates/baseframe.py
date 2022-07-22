@@ -303,15 +303,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             # Read-only frame attributes are defined as FrameAttribute
             # descriptors which are not settable, so set 'real' attributes as
             # the name prefaced with an underscore.
+            attribute = self.frame_attributes[fnm]
 
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, '_' + fnm, value)
-                # Validate attribute by getting it. If the instance has data,
-                # this also checks its shape is OK. If not, we do it below.
-                values[fnm] = getattr(self, fnm)
+                value = attribute.validate(self)
+                values[fnm] = value
             else:
                 setattr(self, '_' + fnm, fdefault)
+                attribute.validate(self)
                 self._attr_names_with_defaults.append(fnm)
 
         if kwargs:
@@ -334,17 +335,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     except ValueError as err:
                         raise ValueError(
                             f"non-scalar attributes with inconsistent shapes: {shapes}") from err
-
-                    # Above, we checked that it is possible to broadcast all
-                    # shapes.  By getting and thus validating the attributes,
-                    # we verify that the attributes can in fact be broadcast.
-                    for fnm in shapes:
-                        getattr(self, fnm)
                 else:
                     self._no_data_shape = shapes.popitem()[1]
-
             else:
                 self._no_data_shape = ()
+
+        # broadcast attributes
+        for name in values:
+            self.frame_attributes[name].broadcast(self)
 
         # The logic of this block is not related to the previous one
         if self._data is not None:
