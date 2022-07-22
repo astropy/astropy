@@ -1507,3 +1507,28 @@ def test_nameless_frame_subclass():
     # This subclassing is the test!
     class NewFrame(ICRS, Test):
         pass
+
+
+def test_frame_coord_comparison():
+    """Test that frame can be compared to a SkyCoord"""
+    frame = ICRS(0 * u.deg, 0 * u.deg)
+    coord = SkyCoord(frame)
+    other = SkyCoord(ICRS(0 * u.deg, 1 * u.deg))
+
+    assert frame == coord
+    assert frame != other
+    assert not (frame == other)
+    error_msg = "objects must have equivalent frames"
+    with pytest.raises(TypeError, match=error_msg):
+        frame == SkyCoord(AltAz("0d", "1d"))
+
+    coord = SkyCoord(ra=12 * u.hourangle, dec=5 * u.deg, frame=FK5(equinox="J1950"))
+    frame = FK5(ra=12 * u.hourangle, dec=5 * u.deg, equinox="J2000")
+    with pytest.raises(TypeError, match=error_msg):
+        coord == frame
+
+    frame = ICRS()
+    coord = SkyCoord(0 * u.deg, 0 * u.deg, frame=frame)
+    error_msg = "Can only compare SkyCoord to Frame with data"
+    with pytest.raises(ValueError, match=error_msg):
+        frame == coord

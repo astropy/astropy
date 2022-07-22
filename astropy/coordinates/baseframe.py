@@ -1650,6 +1650,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         This implements strict equality and requires that the frames are
         equivalent and that the representation data are exactly equal.
         """
+        if not isinstance(value, BaseCoordinateFrame):
+            return NotImplemented
+
         is_equiv = self.is_equivalent_frame(value)
 
         if self._data is None and value._data is None:
@@ -1661,8 +1664,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                             f'{self.replicate_without_data()} vs. '
                             f'{value.replicate_without_data()}')
 
-        if ((value._data is None and self._data is not None)
-                or (self._data is None and value._data is not None)):
+        if (value._data is None) != (self._data is None):
             raise ValueError('cannot compare: one frame has data and the other '
                              'does not')
 
