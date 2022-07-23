@@ -9,7 +9,7 @@ from numpy import testing as npt
 from astropy import units as u
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.utils.compat import NUMPY_LT_1_19
+from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_24
 
 from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
                                  CartesianRepresentation)
@@ -43,14 +43,17 @@ def test_angle_arrays():
     assert a6.unit is u.degree
 
     with ExitStack() as stack:
-        stack.enter_context(pytest.raises(TypeError))
-        # Arrays where the elements are Angle objects are not supported -- it's
-        # really tricky to do correctly, if at all, due to the possibility of
-        # nesting.
-        if not NUMPY_LT_1_19:
-            stack.enter_context(
-                pytest.warns(DeprecationWarning,
-                             match='automatic object dtype is deprecated'))
+        if NUMPY_LT_1_24:
+            stack.enter_context(pytest.raises(TypeError))
+            # Arrays where the elements are Angle objects are not supported -- it's
+            # really tricky to do correctly, if at all, due to the possibility of
+            # nesting.
+            if not NUMPY_LT_1_19:
+                stack.enter_context(
+                    pytest.warns(DeprecationWarning,
+                                 match='automatic object dtype is deprecated'))
+        else:
+            stack.enter_context(pytest.raises(ValueError))
 
         a7 = Angle([a1, a2, a3], unit=u.degree)
 
