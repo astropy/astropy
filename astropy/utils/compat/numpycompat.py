@@ -9,7 +9,7 @@ from astropy.utils import minversion
 
 __all__ = ['NUMPY_LT_1_19', 'NUMPY_LT_1_19_1', 'NUMPY_LT_1_20',
            'NUMPY_LT_1_21_1', 'NUMPY_LT_1_22', 'NUMPY_LT_1_22_1',
-           'NUMPY_LT_1_23']
+           'NUMPY_LT_1_23', 'NUMPY_LT_1_24']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
@@ -20,4 +20,5 @@ NUMPY_LT_1_20 = not minversion(np, '1.20')
 NUMPY_LT_1_21_1 = not minversion(np, '1.21.1')
 NUMPY_LT_1_22 = not minversion(np, '1.22')
 NUMPY_LT_1_22_1 = not minversion(np, '1.22.1')
-NUMPY_LT_1_23 = not minversion(np, '1.23dev0')
+NUMPY_LT_1_23 = not minversion(np, '1.23')
+NUMPY_LT_1_24 = not minversion(np, '1.24dev0')
