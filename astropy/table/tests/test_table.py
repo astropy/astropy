@@ -28,6 +28,7 @@ from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
 from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+from astropy.utils.compat.numpycompat import NUMPY_LT_1_20
 
 
 @pytest.fixture
@@ -1407,11 +1408,19 @@ class TestConvertNumpyArray():
 
     def test_convert_numpy_object_array(self, table_types):
         d = table_types.Table([[1, 2], [3, 4]], names=('a', 'b'))
-        ds = [d, d, d]
 
+        # Single table
+        np_d = np.array(d, dtype=object)
+        assert isinstance(np_d, np.ndarray)
+        assert np_d[()] is d
+
+    @pytest.mark.xfail(NUMPY_LT_1_20, reason="numpy array introspection changed")
+    def test_convert_list_numpy_object_array(self, table_types):
+        d = table_types.Table([[1, 2], [3, 4]], names=('a', 'b'))
+        ds = [d, d, d]
         np_ds = np.array(ds, dtype=object)
-        assert all(isinstance(t, table_types.Table) for t in np_ds)
-        assert all(np.array_equal(t, d) for t in np_ds)
+        assert all([isinstance(t, table_types.Table) for t in np_ds])
+        assert all([np.array_equal(t, d) for t in np_ds])
 
 
 def _assert_copies(t, t2, deep=True):
