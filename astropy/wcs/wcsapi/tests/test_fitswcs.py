@@ -1223,6 +1223,7 @@ TIMESYS = 'UTC'
 """
 
 
+@pytest.fixture
 def header_spectral_with_time():
     return Header.fromstring(HEADER_SPECTRAL_WITH_TIME, sep='\n')
 
