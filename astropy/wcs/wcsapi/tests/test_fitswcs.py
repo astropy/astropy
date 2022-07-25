@@ -990,7 +990,7 @@ def test_spectralcoord_frame(header_spectral_frames):
 
     with iers.conf.set_temp('auto_download', False):
 
-        obstime = Time(f"2009-05-04T04:44:23", scale='utc')
+        obstime = Time("2009-05-04T04:44:23", scale='utc')
 
         header = header_spectral_frames.copy()
         header['MJD-OBS'] = obstime.mjd
@@ -1197,3 +1197,79 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
             pix3 = wcs.world_to_pixel(spectralcoord_no_obs)
 
     assert_allclose(pix3, [31], rtol=1e-6)
+
+
+HEADER_SPECTRAL_WITH_TIME = """
+WCSAXES = 3
+CTYPE1  = 'RA---TAN'
+CTYPE2  = 'DEC--TAN'
+CTYPE3  = 'WAVE'
+CRVAL1  = 98.83153
+CRVAL2  = -66.818
+CRVAL3  = 6.4205
+CRPIX1  = 21.
+CRPIX2  = 22.
+CRPIX3  = 1.
+CDELT1  = 3.6111E-05
+CDELT2  = 3.6111E-05
+CDELT3  = 0.001
+CUNIT1  = 'deg'
+CUNIT2  = 'deg'
+CUNIT3  = 'um'
+MJD-AVG = 59045.41466
+RADESYS = 'ICRS'
+SPECSYS = 'BARYCENT'
+TIMESYS = 'UTC'
+"""
+
+
+@pytest.fixture
+def header_spectral_with_time():
+    return Header.fromstring(HEADER_SPECTRAL_WITH_TIME, sep='\n')
+
+
+def test_spectral_with_time_kw(header_spectral_with_time):
+    def check_wcs(header):
+        assert_allclose(w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval)
+        sky, spec = w.pixel_to_world(*w.wcs.crpix)
+        assert_allclose((sky.spherical.lon.degree, sky.spherical.lat.degree, spec.value),
+                        w.wcs.crval, rtol=1e-3)
+
+    # Chek with MJD-AVG and TIMESYS
+    hdr = header_spectral_with_time.copy()
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        # Make sure the correct keyword is used in a test
+        assert ~np.isnan(w.wcs.mjdavg)
+        assert np.isnan(w.wcs.mjdobs)
+
+    check_wcs(w)
+
+    # Check fall back to MJD-OBS
+    hdr['MJD-OBS'] = hdr['MJD-AVG']
+    del hdr['MJD-AVG']
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        # Make sure the correct keyword is used in a test
+        assert ~np.isnan(w.wcs.mjdobs)
+        assert np.isnan(w.wcs.mjdavg)
+    check_wcs(w)
+
+    # Check fall back to DATE--OBS
+    hdr['DATE-OBS'] = '2020-07-15'
+    del hdr['MJD-OBS']
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        w = WCS(hdr)
+        w.wcs.mjdobs = np.nan
+        # Make sure the correct keyword is used in a test
+        assert np.isnan(w.wcs.mjdobs)
+        assert np.isnan(w.wcs.mjdavg)
+        assert w.wcs.dateobs != ""
+    check_wcs(hdr)
+
+    # Check fall back to scale='utc'
+    del hdr['TIMESYS']
+    check_wcs(hdr)
