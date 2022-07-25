@@ -582,13 +582,19 @@ class Latitude(Angle):
         # objects, for speed.
         if angles is None:
             angles = self
-        lower = u.degree.to(angles.unit, -90.0)
-        upper = u.degree.to(angles.unit, 90.0)
+
+        if angles.unit is u.deg:
+            limit = 90
+        elif angles.unit is u.rad:
+            limit = 0.5 * np.pi
+        else:
+            limit = u.degree.to(angles.unit, 90.0)
+
         # This invalid catch block can be removed when the minimum numpy
         # version is >= 1.19 (NUMPY_LT_1_19)
         with np.errstate(invalid='ignore'):
-            invalid_angles = (np.any(angles.value < lower) or
-                              np.any(angles.value > upper))
+            invalid_angles = (np.any(angles.value < -limit) or
+                              np.any(angles.value > limit))
         if invalid_angles:
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {}'.format(angles.to(u.degree)))
