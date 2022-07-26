@@ -103,6 +103,7 @@ Computations and utilities
 
    cosmology/index
    convolution/index
+   utils/iers
    visualization/index
    stats/index
 
