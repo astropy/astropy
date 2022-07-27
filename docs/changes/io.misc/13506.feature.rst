@@ -1,0 +1,1 @@
+Implement ``Table`` reader and writer methods to wrap ``pandas`` I/O methods for Excel.
