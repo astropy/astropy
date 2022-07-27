@@ -19,7 +19,9 @@ PANDAS_FMTS = {'csv': {'read': {},
                'html': {'read': {},
                         'write': {'index': False}},
                'json': {'read': {},
-                        'write': {}}}
+                        'write': {'index': False}},
+               'excel': {'read': {},
+                        'write': {'index': False}}}
 
 PANDAS_PREFIX = 'pandas.'
 
@@ -111,6 +113,7 @@ def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     return write_method(filespec, **write_kwargs)
 
 
+# Register all formats listed in PANDAS_FMTS through io_registry
 for pandas_fmt, defaults in PANDAS_FMTS.items():
     fmt = PANDAS_PREFIX + pandas_fmt  # Full format specifier
 
