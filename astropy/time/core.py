@@ -1356,6 +1356,82 @@ class TimeBase(ShapedLikeNDArray):
         return self[self._advanced_index(self.argsort(axis), axis,
                                          keepdims=True)]
 
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False, *, where=True):
+        """Mean along a given axis.
+
+        This is similar to :meth:`~numpy.ndarray.mean`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2`` is
+        used, and that corresponding attributes are copied.
+
+        Note that the ``out`` argument is present only for compatibility with
+        ``np.mean``; since `Time` instances are immutable, it is not possible
+        to have an actual ``out`` to store the result in.
+
+        Similarly, the ``dtype`` argument is also present for compatibility
+        only; it has no meaning for `Time`.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes along which the means are computed. The default is to
+            compute the mean of the flattened array.
+        dtype : None
+            Only present for compatibility with :meth:`~numpy.ndarray.mean`,
+            must be `None`.
+        out : None
+            Only present for compatibility with :meth:`~numpy.ndarray.mean`,
+            must be `None`.
+        keepdims : bool, optional
+            If this is set to True, the axes which are reduced are left
+            in the result as dimensions with size one. With this option,
+            the result will broadcast correctly against the input array.
+        where : array_like of bool, optional
+            Elements to include in the mean. See `~numpy.ufunc.reduce` for
+            details.
+
+        Returns
+        -------
+        m : Time
+            A new Time instance containing the mean values
+        """
+        if dtype is not None:
+            raise ValueError('Cannot set ``dtype`` on `Time` instances')
+        if out is not None:
+            raise ValueError("Since `Time` instances are immutable, ``out`` "
+                             "cannot be set to anything but ``None``.")
+
+        where = where & ~self.mask
+        where_broadcasted = np.broadcast_to(where, self.shape)
+
+        kwargs = dict(
+            axis=axis,
+            keepdims=keepdims,
+            where=where,
+        )
+
+        divisor = np.sum(where_broadcasted, axis=axis, keepdims=keepdims)
+        if np.any(divisor == 0):
+            raise ValueError(
+                'Mean over zero elements is not supported as it would give an undefined time;'
+                'see issue https://github.com/astropy/astropy/issues/6509'
+            )
+
+        jd1, jd2 = day_frac(
+            val1=np.sum(np.ma.getdata(self.jd1), **kwargs),
+            val2=np.sum(np.ma.getdata(self.jd2), **kwargs),
+            divisor=divisor,
+        )
+
+        result = type(self)(
+            val=jd1,
+            val2=jd2,
+            format='jd',
+            scale=self.scale,
+            copy=False,
+        )
+        result.format = self.format
+        return result
+
     @property
     def cache(self):
         """
@@ -2274,6 +2350,44 @@ class Time(TimeBase):
     # but there is no case of <something> - T, so no __rsub__.
     def __radd__(self, other):
         return self.__add__(other)
+
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False, *, where=True):
+
+        scale = self.scale
+        if scale == 'utc':
+            self = self.tai
+        result = super().mean(axis=axis, dtype=dtype, out=out, keepdims=keepdims, where=where)
+        if scale == 'utc':
+            result = result.utc
+
+        result.out_subfmt = self.out_subfmt
+
+        location = self.location
+        if self.location is not None:
+            if self.location.shape:
+
+                if axis is None:
+                    axis_normalized = tuple(range(self.ndim))
+                elif isinstance(axis, int):
+                    axis_normalized = axis,
+                else:
+                    axis_normalized = axis
+
+                sl = [slice(None)] * self.location.ndim
+                for a in axis_normalized:
+                    sl[a] = slice(0, 1)
+
+                if np.any(self.location != self.location[tuple(sl)]):
+                    raise ValueError("`location` must be constant over the reduction axes.")
+
+                if not keepdims:
+                    for a in axis_normalized:
+                        sl[a] = 0
+
+                location = self.location[tuple(sl)]
+
+        result.location = location
+        return result
 
     def __array_function__(self, function, types, args, kwargs):
         """

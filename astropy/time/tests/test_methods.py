@@ -7,7 +7,9 @@ import warnings
 import numpy as np
 import pytest
 
+import astropy.units as u
 from astropy.time import Time
+from astropy.time.utils import day_frac
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
 
@@ -479,9 +481,17 @@ class TestArithmetic:
             'masked': mjd + frac_masked
             }
 
+        cls.t2 = {
+            'not_masked': Time(mjd + frac, format='mjd', scale='utc',
+                               location=(np.arange(len(frac)), np.arange(len(frac)))),
+            'masked': Time(mjd + frac_masked, format='mjd', scale='utc',
+                           location=(np.arange(len(frac_masked)), np.arange(len(frac_masked)))),
+        }
+
     def create_data(self, use_mask):
         self.t0 = self.__class__.t0[use_mask]
         self.t1 = self.__class__.t1[use_mask]
+        self.t2 = self.__class__.t2[use_mask]
         self.jd = self.__class__.jd[use_mask]
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
@@ -618,6 +628,92 @@ class TestArithmetic:
             # Bit superfluous, but good to check.
             assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
             assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
+
+    @pytest.mark.parametrize('axis', [None, 0, 1, 2, (0, 1)])
+    @pytest.mark.parametrize('where', [True, np.array([True, False, True, True, False])[..., np.newaxis]])
+    @pytest.mark.parametrize('keepdims', [False, True])
+    def test_mean(self, use_mask, axis, where, keepdims):
+        self.create_data(use_mask)
+
+        kwargs = dict(axis=axis, where=where, keepdims=keepdims)
+
+        def is_consistent(time):
+
+            where_expected = where & ~time.mask
+            where_expected = np.broadcast_to(where_expected, time.shape)
+
+            kw = kwargs.copy()
+            kw['where'] = where_expected
+
+            divisor = where_expected.sum(axis=axis, keepdims=keepdims)
+
+            if np.any(divisor == 0):
+                with pytest.raises(ValueError):
+                    time.mean(**kwargs)
+
+            else:
+                time_mean = time.mean(**kwargs)
+                time_expected = Time(
+                    *day_frac(
+                        val1=np.ma.getdata(time.tai.jd1).sum(**kw),
+                        val2=np.ma.getdata(time.tai.jd2).sum(**kw),
+                        divisor=divisor
+                    ),
+                    format='jd',
+                    scale='tai',
+                )
+                time_expected._set_scale(time.scale)
+                assert np.all(time_mean == time_expected)
+
+        is_consistent(self.t0)
+        is_consistent(self.t1)
+
+        axes_location_not_constant = [None, 2]
+        if axis in axes_location_not_constant:
+            with pytest.raises(ValueError):
+                self.t2.mean(**kwargs)
+        else:
+            is_consistent(self.t2)
+
+    def test_mean_precision(self, use_mask):
+
+        scale = 'tai'
+        epsilon = 1 * u.ns
+
+        t0 = Time('2021-07-27T00:00:00', scale=scale)
+        t1 = Time('2022-07-27T00:00:00', scale=scale)
+        t2 = Time('2023-07-27T00:00:00', scale=scale)
+
+        t = Time([t0, t2 + epsilon])
+
+        if use_mask == 'masked':
+            t[0] = np.ma.masked
+            assert t.mean() == (t2 + epsilon)
+
+        else:
+            assert t.mean() == (t1 + epsilon / 2)
+
+    def test_mean_dtype(self, use_mask):
+        self.create_data(use_mask)
+        with pytest.raises(ValueError):
+            self.t0.mean(dtype=int)
+
+    def test_mean_out(self, use_mask):
+        self.create_data(use_mask)
+        with pytest.raises(ValueError):
+            self.t0.mean(out=Time(np.zeros_like(self.t0.jd1), format='jd'))
+
+    def test_mean_leap_second(self, use_mask):
+        # Check that leap second is dealt with correctly: for UTC, across a leap
+        # second bounday, one cannot just average jd, but has to go through TAI.
+        if use_mask == 'not_masked':
+            t = Time(['2012-06-30 23:59:60.000', '2012-07-01 00:00:01.000'])
+            mean_expected = t[0] + (t[1] - t[0]) / 2
+            mean_expected_explicit = Time('2012-07-01 00:00:00')
+            mean_test = t.mean()
+            assert mean_expected == mean_expected_explicit
+            assert mean_expected == mean_test
+            assert mean_test != Time(*day_frac(t.jd1.sum(), t.jd2.sum(), divisor=2), format='jd')
 
 
 def test_regression():

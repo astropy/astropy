@@ -67,7 +67,7 @@ def test_table_info_stats(table_types):
     a = np.array([1, 2, 1, 2], dtype='int32')
     b = np.array([1, 2, 1, 2], dtype='float32')
     c = np.array(['a', 'c', 'e', 'f'], dtype='|S1')
-    d = time.Time([1, 2, 1, 2], format='mjd')
+    d = time.Time([1, 2, 1, 2], format='mjd', scale='tai')
     t = table_types.Table([a, b, c, d], names=['a', 'b', 'c', 'd'])
 
     # option = 'stats'
@@ -81,14 +81,14 @@ def test_table_info_stats(table_types):
            '   a  1.5 0.5   1   2',
            '   b  1.5 0.5   1   2',
            '   c   --  --  --  --',
-           '   d   --  -- 1.0 2.0']
+           '   d  1.5  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
 
     # option = ['attributes', 'stats']
     tinfo = t.info(['attributes', 'stats'], out=None)
     assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format', 'description',
                               'class', 'mean', 'std', 'min', 'max', 'n_bad', 'length']
-    assert np.all(tinfo['mean'] == ['1.5', '1.5', '--', '--'])
+    assert np.all(tinfo['mean'] == ['1.5', '1.5', '--', '1.5'])
     assert np.all(tinfo['std'] == ['0.5', '0.5', '--', '--'])
     assert np.all(tinfo['min'] == ['1', '1', '--', '1.0'])
     assert np.all(tinfo['max'] == ['2', '2', '--', '2.0'])
@@ -101,7 +101,7 @@ def test_table_info_stats(table_types):
            '   a  1.5 0.5   1   2',
            '   b  1.5 0.5   1   2',
            '   c   --  --  --  --',
-           '   d   --  -- 1.0 2.0']
+           '   d  1.5  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
 
     # option = ['attributes', custom]
