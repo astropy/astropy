@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-5.2-quantity-dtype`
 * :ref:`whatsnew-5.2-cosmology`
+* :ref:`whatsnew-5.2-coordinates`
 
 
 .. _whatsnew-5.2-quantity-dtype:
@@ -44,6 +45,38 @@ cosmologies with their non-flat equivalents.
     >>> cosmology_equal(cosmo1.to_format("mapping"), cosmo2,
     ...                 format=("mapping", None), allow_equivalent=True)
     True
+
+
+.. _whatsnew-5.2-coordinates:
+
+Topocentric ITRS Frame
+======================
+
+A topocentric ITRS frame has been added that makes dealing with near-Earth objects
+easier and more intuitive.::
+
+    >>> from astropy.coordinates import EarthLocation, AltAz, ITRS
+    >>> from astropy.time import Time
+    >>> from astropy import units as u
+
+    >>> t = Time('J2010')
+    >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
+    >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
+
+    >>> # Direction of object from GEOCENTER
+    >>> itrs_geo = obj.get_itrs(t).cartesian
+
+    >>> # now get the Geocentric ITRS position of observatory
+    >>> obsrepr = home.get_itrs(t).cartesian
+
+    >>> # topocentric ITRS position of a straight overhead object
+    >>> itrs_repr = itrs_geo - obsrepr
+
+    >>> # create an ITRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
+    >>> itrs_topo = ITRS(itrs_repr, obstime=t, location=home)
+
+    >>> # convert to AltAz
+    >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
 
 
 Full change log
