@@ -1080,8 +1080,8 @@ the following functions / methods:
     ``pandas.csv``;`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__;`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_;`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
     ``pandas.json``;`JSON <http://www.json.org/>`__;`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_;`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
     ``pandas.html``;`HTML <https://en.wikipedia.org/wiki/HTML>`__;`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_;`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
-    ``pandas.fwf``;Fixed Width;`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_
-    ``pandas.excel``;`Excel <https://en.wikipedia.org/wiki/Microsoft_Excel>`__;`read_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#excel-files>`_;`to_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-excel-writer>`_;
+    ``pandas.fwf``;Fixed Width;`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_;
+    ``pandas.excel``;`Excel <https://en.wikipedia.org/wiki/Microsoft_Excel>`__;`read_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#excel-files>`_;`to_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-excel-writer>`_
 
 **Notes**:
 
