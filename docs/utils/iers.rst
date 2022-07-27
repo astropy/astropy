@@ -21,11 +21,10 @@ orientation for celestial-to-terrestrial coordinate transformations.
           is not discussed below.  For details, see the documentation of
           `~astropy.utils.iers.LeapSeconds`.
 
-There are two IERS data products that are commonly used in the :ref:`astropy-time`
-package:
+There are two IERS data products that we discuss here:
 
 - **Bulletin A** (:class:`~astropy.utils.iers.IERS_A`) is updated weekly and has
-  historical data starting from 1972 and predictive data for 1 year into the
+  historical data starting from 1973 and predictive data for 1 year into the
   future. It contains Earth orientation parameters x/y pole, UT1-UTC and their
   errors at daily intervals. This data file needs to be download from an IERS
   data service or mirror.
