@@ -221,6 +221,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                  pandas.fwf     No          Wrapper around ``pandas.read_fwf()`` (fixed width format)
                 pandas.html    Yes          Wrapper around ``pandas.read_html()`` and ``pandas.to_html()``
                 pandas.json    Yes          Wrapper around ``pandas.read_json()`` and ``pandas.to_json()``
+               pandas.excel    Yes   .xlsx  Wrapper around ``pandas.read_excel()`` and ``pandas.to_excel()``
                     votable    Yes    auto  :mod:`~astropy.io.votable`: Table format used by Virtual Observatory (VO) initiative
 ===========================  =====  ======  ============================================================================================
 
@@ -1079,13 +1080,15 @@ the following functions / methods:
     ``pandas.csv``;`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__;`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_;`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
     ``pandas.json``;`JSON <http://www.json.org/>`__;`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_;`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
     ``pandas.html``;`HTML <https://en.wikipedia.org/wiki/HTML>`__;`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_;`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
-    ``pandas.fwf``;Fixed Width;`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_;
+    ``pandas.fwf``;Fixed Width;`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_
+    ``pandas.excel``;`Excel <https://en.wikipedia.org/wiki/Microsoft_Excel>`__;`read_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#excel-files>`_;`to_excel() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-excel-writer>`_;
 
 **Notes**:
 
 - There is no fixed-width writer in pandas_.
 - Reading HTML requires `BeautifulSoup4 <https://pypi.org/project/beautifulsoup4/>`_ and
   `html5lib <https://pypi.org/project/html5lib/>`_ to be installed.
+- Reading from and writing to Excel files requires `openpyxl <https://pypi.org/project/openpyxl/>`_ to be installed.
 
 When reading or writing a table, any keyword arguments apart from the
 ``format`` and file name are passed through to pandas, for instance:

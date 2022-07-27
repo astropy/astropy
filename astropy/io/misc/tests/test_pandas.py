@@ -18,33 +18,51 @@ pandas = pytest.importorskip("pandas")
 connect.import_html_libs()
 HAS_HTML_DEPS = connect._HAS_LXML or (connect._HAS_BS4 and connect._HAS_HTML5LIB)
 
+connect.import_excel_libs()
+HAS_EXCEL_DEPS = connect._HAS_OPENPYXL
 
 WRITE_FMTS = [fmt for fmt in connect.PANDAS_FMTS
               if 'write' in connect.PANDAS_FMTS[fmt]]
 
 
 @pytest.mark.parametrize('fmt', WRITE_FMTS)
-def test_read_write_format(fmt):
+def test_read_write_format(tmpdir, fmt):
     """
     Test round-trip through pandas write/read for supported formats.
 
-    :param fmt: format name, e.g. csv, html, json
+    :param fmt: format name, e.g. csv, html, json, excel
     :return:
     """
-    # Skip the reading tests
+    # Skip the reading tests for HTML
     if fmt == 'html' and not HAS_HTML_DEPS:
         pytest.skip('Missing lxml or bs4 + html5lib for HTML read/write test')
+
+    # Skip the reading tests for Excel
+    if fmt == 'excel' and not HAS_EXCEL_DEPS:
+        pytest.skip('Missing openpyxl required for Excel read/write test')
 
     pandas_fmt = 'pandas.' + fmt
     # Explicitly provide dtype to avoid casting 'a' to int32.
     # See https://github.com/astropy/astropy/issues/8682
     t = Table([[1, 2, 3], [1.0, 2.5, 5.0], ['a', 'b', 'c']],
               dtype=(np.int64, np.float64, str))
-    buf = StringIO()
-    t.write(buf, format=pandas_fmt)
 
-    buf.seek(0)
-    t2 = Table.read(buf, format=pandas_fmt)
+    # Determine tmpfile extension. All formats except excel has extension == fmt.
+    # For excel:
+    # Openpyxl does not handle StringIO() well;
+    # pandas also checks for file extension before writing to an excel file.
+    # So for an excel file we must manually add extension xlsx after file
+    # and perform test in a tmpdir.
+    if fmt == 'excel':
+        ext = 'xlsx'
+    else:
+        ext = fmt
+
+    tmpfile = tmpdir.join('test.' + ext).strpath
+    pandas_fmt = 'pandas.' + fmt
+
+    t.write(tmpfile, format=pandas_fmt)
+    t2 = Table.read(tmpfile, format=pandas_fmt)
 
     assert t.colnames == t2.colnames
     assert np.all(t == t2)
@@ -53,7 +71,16 @@ def test_read_write_format(fmt):
 @pytest.mark.parametrize('fmt', WRITE_FMTS)
 def test_write_overwrite(tmpdir, fmt):
     """Test overwriting."""
-    tmpfile = tmpdir.join('test.' +  fmt).strpath
+
+    if fmt == 'excel' and not HAS_EXCEL_DEPS:
+        pytest.skip('Missing Openpyxl required for Excel overwriting test')
+
+    if fmt == 'excel':
+        ext = 'xlsx'
+    else:
+        ext = fmt
+
+    tmpfile = tmpdir.join('test.' +  ext).strpath
     pandas_fmt = 'pandas.' + fmt
 
     # Explicitly provide dtype to avoid casting 'a' to int32.

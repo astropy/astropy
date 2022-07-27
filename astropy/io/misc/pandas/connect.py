@@ -19,17 +19,33 @@ PANDAS_FMTS = {'csv': {'read': {},
                'html': {'read': {},
                         'write': {'index': False}},
                'json': {'read': {},
-                        'write': {'index': False}},
+                        'write': {}},
                'excel': {'read': {},
                         'write': {'index': False}}}
 
 PANDAS_PREFIX = 'pandas.'
 
 # Imports for reading HTML
-_IMPORTS = False
+_HTML_IMPORTS = False # True marks that check has been done
 _HAS_BS4 = False
 _HAS_LXML = False
 _HAS_HTML5LIB = False
+
+# Imports for reading Excel
+_HAS_OPENPYXL = False
+
+
+def import_excel_libs():
+    """Try importing dependencies for reading Excel.
+
+    """
+
+    global _HAS_OPENPYXL
+    if _HAS_OPENPYXL:
+        return
+    from astropy.utils.compat.optional_deps import (
+       HAS_OPENPYXL as _HAS_OPENPYXL
+    )
 
 
 def import_html_libs():
@@ -40,8 +56,8 @@ def import_html_libs():
     # import things we need
     # but make this done on a first use basis
 
-    global _IMPORTS
-    if _IMPORTS:
+    global _HTML_IMPORTS
+    if _HTML_IMPORTS:
         return
 
     global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
@@ -51,7 +67,7 @@ def import_html_libs():
         HAS_LXML as _HAS_LXML,
         HAS_HTML5LIB as _HAS_HTML5LIB
     )
-    _IMPORTS = True
+    _HTML_IMPORTS = True
 
 
 def _pandas_read(fmt, filespec, **kwargs):

@@ -164,6 +164,10 @@ The further dependencies provide more specific features:
   :class:`~astropy.table.table.Table` objects from HTML files using the
   `pandas <https://pandas.pydata.org/>`_ reader.
 
+- `openpyxl <https://openpyxl.readthedocs.io/en/stable/>`_: To read Excel files into
+  :class:`~astropy.table.table.Table` objects using the
+  `pandas <https://pandas.pydata.org/>`_ reader, or vice versa.
+
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
