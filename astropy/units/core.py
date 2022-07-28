@@ -672,10 +672,7 @@ class UnitBase:
         """
         if self._type_id is None:
             unit = self.decompose()
-            r = zip([x.name for x in unit.bases], unit.powers)
-            # bases and powers are already sorted in a unique way
-            # r.sort()
-            self._type_id = tuple(r)
+            self._type_id = tuple(zip((base.name for base in unit.bases), unit.powers))
 
         return self._type_id
 
