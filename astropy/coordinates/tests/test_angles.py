@@ -1042,12 +1042,36 @@ def test_angle_wrap_at_nd():
     """
     Test that wrapping works for nd angles
     """
-    values = np.linspace(-730, 730, 320).reshape((16, 5, 2))
+    values = np.linspace(-730, 730, 320).reshape((16, 5, 4))
 
     angle = Angle(values,  u.deg)
     wrapped = angle.wrap_at(180 * u.deg)
     assert np.all(wrapped.to_value(u.deg) >= -180)
     assert np.all(wrapped.to_value(u.deg) < 180)
+
+
+def test_wrap_at_non_native():
+    values = np.linspace(-730, 730, 320).reshape((16, 5, 4))
+
+    # switch to non-native byteorder
+    values = values.byteswap().newbyteorder()
+
+    angle = Angle(values,  u.deg)
+    assert angle.dtype.byteorder != "="
+
+    wrapped = angle.wrap_at(180 * u.deg)
+    # test output retains byteorder
+    assert wrapped.dtype.byteorder != "="
+    assert np.all(wrapped.to_value(u.deg) >= -180)
+    assert np.all(wrapped.to_value(u.deg) < 180)
+
+    # same for inplace
+    angle = Angle(values,  u.deg)
+    angle.wrap_at(180 * u.deg, inplace=True)
+    assert angle.dtype.byteorder != "="
+    assert np.all(angle.to_value(u.deg) >= -180)
+    assert np.all(angle.to_value(u.deg) < 180)
+
 
 
 def test_angle_multithreading():

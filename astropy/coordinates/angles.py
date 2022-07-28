@@ -393,26 +393,41 @@ class Angle(u.SpecificTypeQuantity):
 
         view = self.view(np.ndarray)
 
+        # to support the case of non-native byteorder (not supported by cython)
+        # we have to switch to native. We later switch back to keep the input byteorder
+        # this was still faster in benchmarks than the previous numpy solution
+        switch_byteorder = False
+        if view.dtype.byteorder != "=":
+            data = view.byteswap().newbyteorder()
+            switch_byteorder = True
+        else:
+            data = view
+
         # if the underlying array is read-only, we only check if it wraps
         # and raise an error if any value wraps
         if not view.flags.writeable:
-            if _needs_wrapping(view, wrap_angle, a360):
+            if _needs_wrapping(data, wrap_angle, a360):
                 raise ValueError("Angle is not writeable but contains values outside wrapping range")
             else:
                 return
 
-        if view.ndim == 0:
-            _wrap_at(view[np.newaxis], wrap_angle, a360)
-        elif view.ndim == 1:
-            _wrap_at(view, wrap_angle, a360)
+        if data.ndim == 0:
+            _wrap_at(data[np.newaxis], wrap_angle, a360)
+        elif data.ndim == 1:
+            _wrap_at(data, wrap_angle, a360)
         else:
             iter = np.nditer(
-                view,
+                data,
                 op_flags=['readwrite'],
                 flags=["external_loop"],
             )
             for chunk in iter:
                 _wrap_at(chunk, wrap_angle, a360)
+
+        # swap back and mutate self
+        if switch_byteorder:
+            data = data.byteswap().newbyteorder()
+            view[...] = data
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
