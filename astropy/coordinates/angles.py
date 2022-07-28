@@ -15,6 +15,8 @@ from astropy.utils import isiterable
 
 from . import angle_formats as form
 
+from ._optimizations import _wrap_at, _needs_wrapping
+
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
@@ -387,22 +389,30 @@ class Angle(u.SpecificTypeQuantity):
         # this Angle, then do all the math on raw Numpy arrays rather
         # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = wrap_angle.to_value(self.unit)
-        wrap_angle_floor = wrap_angle - a360
-        self_angle = self.view(np.ndarray)
-        # Do the wrapping, but only if any angles need to be wrapped
-        #
-        # This invalid catch block is needed both for the floor division
-        # and for the comparisons later on (latter not really needed
-        # any more for >= 1.19 (NUMPY_LT_1_19), but former is).
-        with np.errstate(invalid='ignore'):
-            wraps = (self_angle - wrap_angle_floor) // a360
-            valid = np.isfinite(wraps) & (wraps != 0)
-            if np.any(valid):
-                self_angle -= wraps * a360
-                # Rounding errors can cause problems.
-                self_angle[self_angle >= wrap_angle] -= a360
-                self_angle[self_angle < wrap_angle_floor] += a360
+        wrap_angle = wrap_angle.to_value(self.unit).astype(self.dtype)
+
+        view = self.view(np.ndarray)
+
+        # if the underlying array is read-only, we only check if it wraps
+        # and raise an error if any value wraps
+        if not view.flags.writeable:
+            if _needs_wrapping(view, wrap_angle, a360):
+                raise ValueError("Angle is not writeable but contains values outside wrapping range")
+            else:
+                return
+
+        if view.ndim == 0:
+            _wrap_at(view[np.newaxis], wrap_angle, a360)
+        elif view.ndim == 1:
+            _wrap_at(view, wrap_angle, a360)
+        else:
+            iter = np.nditer(
+                view,
+                op_flags=['readwrite'],
+                flags=["external_loop"],
+            )
+            for chunk in iter:
+                _wrap_at(chunk, wrap_angle, a360)
 
     def wrap_at(self, wrap_angle, inplace=False):
         """

@@ -1032,6 +1032,23 @@ def test_angle_wrap_at_nan():
     angle.flags.writeable = False  # to force an error if a write is attempted
     angle.wrap_at(180*u.deg, inplace=True)
 
+    with pytest.raises(ValueError):
+        angle = Angle([0, np.nan, 181] * u.deg)
+        angle.flags.writeable = False  # to force an error if a write is attempted
+        angle.wrap_at(180*u.deg, inplace=True)
+
+
+def test_angle_wrap_at_nd():
+    """
+    Test that wrapping works for nd angles
+    """
+    values = np.linspace(-730, 730, 320).reshape((16, 5, 2))
+
+    angle = Angle(values,  u.deg)
+    wrapped = angle.wrap_at(180 * u.deg)
+    assert np.all(wrapped.to_value(u.deg) >= -180)
+    assert np.all(wrapped.to_value(u.deg) < 180)
+
 
 def test_angle_multithreading():
     """
