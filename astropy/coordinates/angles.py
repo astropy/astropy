@@ -15,7 +15,7 @@ from astropy.utils import isiterable
 
 from . import angle_formats as form
 
-from ._optimizations import _wrap_at, _needs_wrapping
+from ._optimizations import _wrap_at, _needs_wrapping, _check_values_out_of_range
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
@@ -616,12 +616,25 @@ class Latitude(Angle):
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            invalid_angles = (np.any(angles.value < -limit) or
-                              np.any(angles.value > limit))
-        if invalid_angles:
+        # cython only supports native byteorder, so we swap here.
+        if angles.dtype.byteorder == "=":
+            data = angles.value
+        else:
+            data = angles.value.byteswap().newbyteorder()
+
+        if data.ndim == 0:
+            invalid = _check_values_out_of_range(data[np.newaxis], -limit, limit)
+        elif angles.ndim == 1:
+            invalid = _check_values_out_of_range(data, -limit, limit)
+        else:
+            iter = np.nditer(data, op_flags=['readwrite'], flags=["external_loop"])
+            invalid = False
+            for chunk in iter:
+                invalid = _check_values_out_of_range(chunk, -limit, limit)
+                if invalid:
+                    break
+
+        if invalid:
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {}'.format(angles.to(u.degree)))
 

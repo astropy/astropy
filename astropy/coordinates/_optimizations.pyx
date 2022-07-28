@@ -45,6 +45,9 @@ cpdef _wrap_at(np.ndarray[dtype_t] angle, dtype_t wrap_angle, double full_circle
             angle[i] = <dtype_t>(angle[i] - full_circle)
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
 cpdef bint _needs_wrapping(np.ndarray[dtype_t] angle, dtype_t wrap_angle, double full_circle):
     cdef np.npy_intp size
     cdef np.npy_intp i
@@ -57,6 +60,24 @@ cpdef bint _needs_wrapping(np.ndarray[dtype_t] angle, dtype_t wrap_angle, double
             continue
 
         if angle[i] >= wrap_angle or angle[i] < wrap_angle_floor:
+            return True
+
+    return False
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cpdef bint _check_values_out_of_range(np.ndarray[dtype_t] angle, dtype_t min_value, dtype_t max_value):
+    cdef np.npy_intp size
+    cdef np.npy_intp i
+
+    size = angle.shape[0]
+    for i in range(size):
+        if not isfinite(angle[i]):
+            continue
+
+        if angle[i] < min_value or angle[i] > max_value:
             return True
 
     return False
