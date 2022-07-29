@@ -25,6 +25,10 @@ all CI will be skipped because it is not required. This is because the
 the documentation build resides in RTD, which currently does not respect the
 ``[ci skip]`` directive.
 
+However, due to branch protection rules, the merge button will be disabled
+even though RTD build succeeds when ``[ci skip]`` is used. Please ping
+``@astropy/devops-maintainers`` to review it, as they could override
+the block.
 
 Building the Documentation from source
 ======================================
