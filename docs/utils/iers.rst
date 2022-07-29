@@ -7,23 +7,39 @@ IERS data access (`astropy.utils.iers`)
 Introduction
 ============
 
-The `~astropy.utils.iers` package provides access to the tables provided by
-the International Earth Rotation and Reference Systems (IERS) service, in
-particular files allowing interpolation of published UT1-UTC and polar motion
-values for given times.  The UT1-UTC values are used in `astropy.time` to
-provide UT1 values, and the polar motions are used in `astropy.coordinates` to
-determine Earth orientation for celestial-to-terrestrial coordinate
-transformations.
+The `~astropy.utils.iers` package provides access to the tables provided by the
+`International Earth Rotation and Reference Systems <https://www.iers.org/>`_
+(IERS) service, in particular the `Earth Orientation data
+<https://www.iers.org/IERS/EN/DataProducts/EarthOrientationData/eop.html>`_
+allowing interpolation of published UT1-UTC and polar motion values for given
+times.  The UT1-UTC values are used in :ref:`astropy-time` to provide UT1 values, and
+the polar motions are used in `astropy.coordinates` to determine Earth
+orientation for celestial-to-terrestrial coordinate transformations.
 
 .. note:: The package also provides machinery to track leap seconds.  Since it
           generally should not be necessary to deal with those by hand, this
           is not discussed below.  For details, see the documentation of
           `~astropy.utils.iers.LeapSeconds`.
 
+There are two IERS data products that we discuss here:
+
+- **Bulletin A** (:class:`~astropy.utils.iers.IERS_A`) is updated weekly and has
+  historical data starting from 1973 and predictive data for 1 year into the
+  future. It contains Earth orientation parameters x/y pole, UT1-UTC and their
+  errors at daily intervals. This data file needs to be download from an IERS
+  data service or mirror.
+
+- **Bulletin B** (:class:`~astropy.utils.iers.IERS_B`) is updated monthly and
+  has data from 1962 up to the time when it is generated.  This file contains
+  Earth's orientation in the IERS Reference System including Universal Time,
+  coordinates of the terrestrial pole, and celestial pole offsets. The last
+  available IERS-B file just prior to each ``astropy`` release is included in
+  the ``astropy`` package.
+
 Getting started
 ===============
 
-Starting with astropy 1.2, the latest IERS values (which include approximately
+By default the latest IERS-A values (which include approximately
 one year of predictive values) are automatically downloaded from the IERS
 service when required.  This happens when a time or coordinate transformation
 needs a value which is not already available via the download cache.  In most
@@ -54,7 +70,7 @@ Note that you can forcibly clear the download cache as follows::
   >>> from astropy.utils.data import clear_download_cache
   >>> clear_download_cache()  # doctest: +SKIP
 
-The default IERS data used automatically is updated by the service every 7 days
+The default IERS-A data used automatically is updated by the service every 7 days
 and includes transforms dating back to 1973-01-01.
 
 .. note:: The :class:`~astropy.utils.iers.IERS_Auto` class contains machinery
