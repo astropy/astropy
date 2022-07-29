@@ -444,6 +444,8 @@ class CoordinateAttribute(Attribute):
 
         if value is None:
             return None, False
+        elif isinstance(value, SkyCoord) and isinstance(value.frame, self._frame):
+            return value.frame, True
         elif isinstance(value, self._frame):
             return value, False
         else:
