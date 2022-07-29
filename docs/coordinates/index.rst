@@ -324,19 +324,14 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 ..
   EXAMPLE END
 
-.. testsetup::
-
-    >>> from astropy.coordinates import EarthLocation, SkyCoord
-    >>> apo = EarthLocation(-1463969.30185172, -5166673.34223433, 3434985.71204565, unit='m')
-    >>> keck = EarthLocation(-5464487.81759887, -2492806.59108569, 2151240.19451846, unit='m')
-    >>> target = SkyCoord(10.68470833, 41.26875, unit='deg')  # M31
-
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
-a quick way to get an `~astropy.coordinates.EarthLocation` - the
-`~astropy.coordinates.EarthLocation.of_site` method::
+a quick way to get an |EarthLocation| - the
+:func:`~astropy.coordinates.EarthLocation.of_site` classmethod:
+
+.. doctest-remote-data::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> apo = EarthLocation.of_site('Apache Point Observatory')  # doctest: +SKIP
+    >>> apo = EarthLocation.of_site('Apache Point Observatory')
     >>> apo  # doctest: +FLOAT_CMP
     <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
@@ -344,46 +339,57 @@ To see the list of site names available, use
 :func:`astropy.coordinates.EarthLocation.get_site_names`.
 
 For arbitrary Earth addresses (e.g., not observatory sites), use the
-`~astropy.coordinates.EarthLocation.of_address` classmethod. Any address passed
-to this function uses Google maps to retrieve the latitude and longitude and can
-also (optionally) query Google maps to get the height of the location. As with
-Google maps, this works with fully specified addresses, location names, city
-names, etc.:
+:func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
+the latitude and longitude. This works with fully specified addresses, location
+names, city names, etc:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')
-    <EarthLocation (-26726.98216371, -4997009.8604809, 3950271.16507911) m>
-    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO',
-    ...                          get_height=True)
-    <EarthLocation (-26727.6272786, -4997130.47437768, 3950367.15622108) m>
-    >>> EarthLocation.of_address('Danbury, CT')
+    >>> EarthLocation.of_address('1002 Holy Grail Court, St. Louis, MO')  # doctest: +FLOAT_CMP
+    <EarthLocation (-26769.86528679, -4997007.71191864, 3950273.57633915) m>
+    >>> EarthLocation.of_address('Danbury, CT')  # doctest: +FLOAT_CMP
     <EarthLocation ( 1364606.64511651, -4593292.9428273,  4195415.93695139) m>
 
+By default the `OpenStreetMap Nominatim service
+<https://wiki.openstreetmap.org/wiki/Nominatim>`_ is used, but by providing a
+`Google Geocoding API key
+<https://developers.google.com/maps/documentation/geocoding/get-api-key>`_ with
+the ``google_api_key`` argument it is possible to use Google Maps instead. It
+is also possible to query the height of the location in addition to its
+longitude and latitude, but only with the Google queries::
+
+    >>> EarthLocation.of_address("Cape Town", get_height=True)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+      ...
+    ValueError: Currently, `get_height` only works when using the Google
+    geocoding API...
+
 .. note::
-    `~astropy.coordinates.SkyCoord.from_name`,
-    `~astropy.coordinates.EarthLocation.of_site`, and
-    `~astropy.coordinates.EarthLocation.of_address` are for convenience, and
-    hence are by design relatively low precision. If you need more precise coordinates for an
+    :func:`~astropy.coordinates.SkyCoord.from_name`,
+    :func:`~astropy.coordinates.EarthLocation.of_site`, and
+    :func:`~astropy.coordinates.EarthLocation.of_address` are designed for
+    convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
     <http://www.astropy.org/astroquery/>`_ or `astroplan
     <https://astroplan.readthedocs.io/>`_ affiliated packages.
 
     Also note that these methods retrieve data from the internet to
-    determine the celestial or Earth coordinates. The online data may be
+    determine the celestial or geographic coordinates. The online data may be
     updated, so if you need to guarantee that your scripts are reproducible
     in the long term, see the :doc:`remote_methods` section.
 
 This functionality can be combined to do more complicated tasks like computing
 barycentric corrections to radial velocity observations (also a supported
-high-level |SkyCoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
+high-level |SkyCoord| method - see :ref:`astropy-coordinates-rv-corrs`):
+
+.. doctest-remote-data::
 
     >>> from astropy.time import Time
     >>> obstime = Time('2017-2-14')
-    >>> target = SkyCoord.from_name('M31')  # doctest: +SKIP
-    >>> keck = EarthLocation.of_site('Keck')  # doctest: +SKIP
-    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP  +REMOTE_DATA
+    >>> target = SkyCoord.from_name('M31')
+    >>> keck = EarthLocation.of_site('Keck')
+    >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP
     <Quantity -22.359784554780255 km / s>
 
 While ``astropy.coordinates`` does not natively support converting an Earth
