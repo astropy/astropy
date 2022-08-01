@@ -10,6 +10,9 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 import pytest
 
+if HAS_FSSPEC:
+    import fsspec
+
 
 @pytest.mark.skipif("not HAS_FSSPEC")
 def test_fsspec_local():
@@ -67,7 +70,6 @@ def test_fsspec_http():
         assert "partially read" in str(hdul)
 
     # Can the user also pass an fsspec file object directly to fits open?
-    import fsspec
     with fsspec.open(uri) as fileobj:
         with fits.open(fileobj) as hdul2:
             assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
@@ -94,7 +96,6 @@ def test_fsspec_s3():
         assert "partially read" in str(hdul)
 
     # Can the user also pass an fsspec file object directly to fits open?
-    import fsspec
     with fsspec.open(uri, anon=True) as fileobj:
         with fits.open(fileobj) as hdul2:
             assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)

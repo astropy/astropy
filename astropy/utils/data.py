@@ -170,7 +170,7 @@ def _is_inside(path, parent_path):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None,
-                         sources=None, http_headers=None,
+                         sources=None, http_headers=None, *,
                          use_fsspec=None, fsspec_kwargs=None,
                          close_files=True):
     """Yield a readable, seekable file-like object from a file or URL.
@@ -244,7 +244,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
 
     use_fsspec : bool, optional
-        Use the ``fsspec`` library to open the file? Defaults to `False` unless
+        Use `fsspec.open` to open the file? Defaults to `False` unless
         ``name_or_obj`` starts with the Amazon S3 storage prefix ``s3://``
         or the Google Cloud Storage prefix ``gs://``.  Can also be used for paths
         with other prefixes (e.g. ``http://``) but in this case you must
@@ -313,7 +313,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # Get a file object to the content
     if isinstance(name_or_obj, str):
         # Use fsspec to open certain cloud-hosted files (e.g., AWS S3, Google Cloud Storage)
-        if use_fsspec or _requires_fsspec(name_or_obj):
+        if use_fsspec:
             if not HAS_FSSPEC:
                 raise ModuleNotFoundError("please install `fsspec` to open this file")
             import fsspec  # local import because it is a niche dependency

@@ -37,7 +37,7 @@ FITS_SIGNATURE = b'SIMPLE  =                    T'
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
              cache=True, lazy_load_hdus=None, ignore_missing_simple=False,
-             **kwargs):
+             *, use_fsspec=None, fsspec_kwargs=None, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -146,6 +146,26 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ``"silentfix"`` with ``"+ignore"``, ``+warn``, or ``+exception"
         (e.g. ``"fix+warn"``).  See :ref:`astropy:verify` for more info.
 
+    use_fsspec : bool, optional
+        Use `fsspec.open` to open the file? Defaults to `False` unless
+        ``name`` starts with the Amazon S3 storage prefix ``s3://``
+        or the Google Cloud Storage prefix ``gs://``.  Can also be used for paths
+        with other prefixes (e.g. ``http://``) but in this case you must
+        explicitely pass ``use_fsspec=True``.
+        Use of this feature requires the optional ``fsspec`` package.
+        A ``ModuleNotFoundError`` will be raised if the dependency is missing.
+
+        .. versionadded:: 5.2
+
+    fsspec_kwargs : dict, optional
+        Keyword arguments passed on to `fsspec.open`. This can be used to
+        configure cloud storage credentials and caching behavior.
+        Defaults to ``{"anon": True}`` for paths with prefix ``s3://``
+        which is required for reading data from Amazon S3 open data buckets.
+        See ``fsspec``'s documentation for available parameters.
+
+        .. versionadded:: 5.2
+
     Returns
     -------
     hdulist : `HDUList`
@@ -174,7 +194,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         raise ValueError(f'Empty filename: {name!r}')
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
-                            lazy_load_hdus, ignore_missing_simple, **kwargs)
+                            lazy_load_hdus, ignore_missing_simple,
+                            use_fsspec=use_fsspec, fsspec_kwargs=fsspec_kwargs,
+                            **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -1058,7 +1080,7 @@ class HDUList(list, _Verify):
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None, memmap=None,
                   cache=True, lazy_load_hdus=True, ignore_missing_simple=False,
-                  **kwargs):
+                  *, use_fsspec=None, fsspec_kwargs=None, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -1069,7 +1091,8 @@ class HDUList(list, _Verify):
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
                 fileobj = _File(fileobj, mode=mode, memmap=memmap,
-                                cache=cache, **kwargs)
+                                cache=cache, use_fsspec=use_fsspec,
+                                fsspec_kwargs=fsspec_kwargs)
             # The Astropy mode is determined by the _File initializer if the
             # supplied mode was None
             mode = fileobj.mode
