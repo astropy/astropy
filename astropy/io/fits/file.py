@@ -105,7 +105,7 @@ class _File:
     """
 
     def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
-                 cache=True, **kwargs):
+                 cache=True, *, use_fsspec=None, fsspec_kwargs=None):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
@@ -146,13 +146,13 @@ class _File:
             mode = 'readonly'
 
         # Handle cloud-hosted files using the optional ``fsspec`` dependency
-        if (kwargs.get('use_fsspec') or _requires_fsspec(fileobj)) and mode != "ostream":
+        if (use_fsspec or _requires_fsspec(fileobj)) and mode != "ostream":
             # Note: we don't use `get_readable_fileobj` as a context manager
             # because io.fits takes care of closing files itself
             fileobj = get_readable_fileobj(fileobj,
                                            encoding="binary",
-                                           use_fsspec=kwargs.get('use_fsspec'),
-                                           fsspec_kwargs=kwargs.get('fsspec_kwargs'),
+                                           use_fsspec=use_fsspec,
+                                           fsspec_kwargs=fsspec_kwargs,
                                            close_files=False).__enter__()
 
         # Handle raw URLs

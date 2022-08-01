@@ -41,9 +41,9 @@ By default, Astropy will download the entire file to local disc before opening
 it.  This works fine for small files but tends to require a lot of time and
 memory for large files.
 
-You can improve the performance for large files by passing the parameters
-``use_fsspec=True`` and ``lazy_load_hdus=True`` to `open`.  This will make
-Astropy use ``fsspec`` to download only the necessary parts of the FITS file.
+You can improve the performance for large files by passing the parameter
+``use_fsspec=True`` to `open`.  This will make Astropy use ``fsspec``
+to download only the necessary parts of the FITS file.
 For example:
 
 .. doctest-requires:: fsspec
@@ -51,7 +51,7 @@ For example:
     >>> from astropy.io import fits
     ...
     >>> # `fits.open` will download the primary header
-    >>> with fits.open(url, use_fsspec=True, lazy_load_hdus=True) as hdul:  # doctest: +REMOTE_DATA
+    >>> with fits.open(url, use_fsspec=True) as hdul:  # doctest: +REMOTE_DATA
     ...
     ...     # Download a single header
     ...     header = hdul[1].header
@@ -66,10 +66,11 @@ The example above requires less time and memory than would be required to
 download the entire file. This is because ``fsspec`` is able to leverage
 two *lazy data loading* features available in Astropy:
 
-1. The ``lazy_load_hdus`` parameter takes care of loading HDU header and data
-   attributes on demand rather than reading all HDUs at once.  This parameter
-   is set to ``True`` by default. You do not need to pass it explicitely,
-   unless you changed its default value in the :ref:`astropy:astropy_config`.
+1. The ``lazy_load_hdus`` parameter offered by `open` takes care of loading HDU
+   header and data attributes on demand rather than reading all HDUs at once.
+   This parameter is set to ``True`` by default.  You do not need to pass it
+   explicitely, unless you changed its default value in the
+   :ref:`astropy:astropy_config`.
 2. The `ImageHDU.section` property enables a subset of a data array to be
    read into memory without downloading the entire image or cube. See the
    :ref:`astropy:data-sections` part of the documentation for more details.
@@ -98,12 +99,15 @@ location::
     >>> s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
 
 With ``use_fsspec`` enabled, you can obtain a small cutout from a file stored
-in Amazon S3 cloud storage in the same way as above.  For example:
+in Amazon S3 cloud storage in the same way as above.  When opening paths with
+prefix ``s3://`` (Amazon S3 Storage) or ``gs://`` (Google Cloud Storage),
+`open` will automatically default to ``use_fsspec=True`` for convenience.
+For example:
 
 .. doctest-requires:: fsspec
 
     >>> # Download a small 10-by-20 pixel cutout from a FITS file stored in Amazon S3
-    >>> with fits.open(s3_uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
+    >>> with fits.open(s3_uri) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 
@@ -117,26 +121,21 @@ your code is running on a server in the same Amazon cloud region as the data.
     missing. See :ref:`installing-astropy` for details on installing optional
     dependencies.
 
+
 Working with Amazon S3 access credentials
 -----------------------------------------
 
-Note that we used the ``fsspec_kwargs`` parameter in the example above to pass
-extra arguments to the `fsspec.open` function.  Specifically, we passed the
-``anon=True`` parameter to indicate that we want to retrieve data in an
-anonymous way without providing Amazon cloud access credentials.
-For convenience, Astropy will pass ``anon=True`` by default if a path starts
-with ``s3://`` and ``fsspec_kwargs`` is unspecified.
-
 In some cases you may want to access data stored in an Amazon S3 data bucket
 that is private or uses the "Requester Pays" feature. You will have to provide
-a secret access key in this case. You can use the ``fsspec_kwargs`` parameter
-to provide your key as follows:
+a secret access key in this case.  You can use the ``fsspec_kwargs`` parameter
+to pass extra arguments, such as access keys, to the `fsspec.open` function
+as follows:
 
 .. doctest-skip::
 
     >>> fsspec_kwargs = {"key": "YOUR-SECRET-KEY-ID",
     ...                  "secret": "YOUR-SECRET-KEY"}
-    >>> with fits.open(s3_uri, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:
+    >>> with fits.open(s3_uri, fsspec_kwargs=fsspec_kwargs) as hdul:
     ...     cutout = hdul[2].section[10:20, 30:50]
 
 .. warning::
@@ -145,6 +144,15 @@ to provide your key as follows:
     may accidentally end up revealing your keys when you share your code with
     others. A better practice is to store your access keys via a configuration
     file or environment variables. See the ``s3fs`` documentation for guidance.
+
+.. note::
+
+   For convenience, Astropy defaults to ``fsspec_kwargs={"anon": True}``
+   if a path starts with ``s3://`` and ``fsspec_kwargs`` is unspecified.
+   This setting enables data to be retrieved in an anonymous way without
+   providing Amazon cloud access credentials.  Note that anonymous access
+   will yield an error message if the bucket is private or uses the
+   "Requester Pays" feature.
 
 
 Using :class:`~astropy.nddata.Cutout2D` with cloud-hosted FITS files
