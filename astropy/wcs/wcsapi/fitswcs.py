@@ -418,10 +418,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
             else:
-
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
-                obstime = Time(self.wcs.mjdobs, format='mjd', scale='utc',
-                               location=earth_location)
+
+                # Get the time scale from TIMESYS or fall back to 'utc'
+                tscale = self.wcs.timesys or 'utc'
+
+                if np.isnan(self.wcs.mjdavg):
+                    obstime = Time(self.wcs.mjdobs, format='mjd', scale=tscale,
+                                   location=earth_location)
+                else:
+                    obstime = Time(self.wcs.mjdavg, format='mjd', scale=tscale,
+                                   location=earth_location)
                 observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
 
                 if self.wcs.specsys in VELOCITY_FRAMES:
