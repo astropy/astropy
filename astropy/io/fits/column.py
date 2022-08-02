@@ -159,8 +159,8 @@ TFORMAT_RE = re.compile(r'(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])'
 # in which case defaults are used
 TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
                               r'(?:(?P<formatf>[FED])'
-                              r'(?:(?P<widthf>[0-9]+)\.'
-                              r'(?P<precision>[0-9]+))?)')
+                              r'(?:(?P<widthf>[0-9]+)(?:\.'
+                              r'(?P<precision>[0-9]+))?)?)')
 
 TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
 """
