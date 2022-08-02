@@ -1,15 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.pyplot as plt
-import pytest
 from matplotlib.backend_bases import KeyEvent
 
 import numpy as np
 
 import astropy.units as u
 from astropy.coordinates import FK5, SkyCoord
-from astropy.io import fits
 from astropy.time import Time
-from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
 from astropy.coordinates import galactocentric_frame_defaults
@@ -41,12 +38,12 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Test pixel coordinates
         event1 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event1.key, guiEvent=event1)
+        fig.canvas.callbacks.process('key_press_event', event1)
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
         event3 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event3.key, guiEvent=event3)
+        fig.canvas.callbacks.process('key_press_event', event3)
         # Test that it still displays world coords when there are no overlay coords
         string_world2 = ax._display_world_coords(0.523412, 0.518311)
         assert string_world2 == '0\xb029\'45" -0\xb029\'20" (world)'
@@ -62,7 +59,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.savefig(tmpdir.join('test2.png').strpath)
 
         event4 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event4.key, guiEvent=event4)
+        fig.canvas.callbacks.process('key_press_event', event4)
         # Test that it displays the overlay world coordinates
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
 
@@ -79,7 +76,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.savefig(tmpdir.join('test3.png').strpath)
 
         event5 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event4.key, guiEvent=event4)
+        fig.canvas.callbacks.process('key_press_event', event5)
         # Test that it displays the overlay world coordinates
         string_world4 = ax._display_world_coords(0.523412, 0.518311)
 
@@ -96,7 +93,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.savefig(tmpdir.join('test4.png').strpath)
 
         event6 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event5.key, guiEvent=event6)
+        fig.canvas.callbacks.process('key_press_event', event6)
         # Test that it displays the overlay world coordinates
         string_world5 = ax._display_world_coords(0.523412, 0.518311)
 
@@ -121,7 +118,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Test pixel coordinates
         event1 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event1.key, guiEvent=event1)
+        fig.canvas.callbacks.process('key_press_event', event1)
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
@@ -148,7 +145,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Test pixel coordinates
         event1 = KeyEvent('test_pixel_coords', canvas, 'w')
-        fig.canvas.key_press_event(event1.key, guiEvent=event1)
+        fig.canvas.callbacks.process('key_press_event', event1)
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
