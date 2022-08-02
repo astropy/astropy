@@ -2811,6 +2811,17 @@ class TestTableFunctions(FitsTestCase):
         assert t1.dtype == t0.dtype
         assert comparerecords(t1, t0)
 
+    def test_ascii_floattypes(self):
+        """Test different float formats."""
+        col1 = fits.Column(name='a', format='D', array=np.array([11.1, 12.2]), ascii=True)
+        col2 = fits.Column(name='b', format='D16', array=np.array([15.5, 16.6]), ascii=True)
+        col3 = fits.Column(name='c', format='D16.7', array=np.array([1.1, 2.2]), ascii=True)
+        hdu = fits.TableHDU.from_columns([col1, col2, col3])
+        hdu.writeto(self.temp('foo.fits'))
+
+        with fits.open(self.temp('foo.fits'), memmap=False) as hdul:
+            assert comparerecords(hdul[1].data, hdu.data)
+
 
 @contextlib.contextmanager
 def _refcounting(type_):
