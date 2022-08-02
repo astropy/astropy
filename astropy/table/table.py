@@ -1069,12 +1069,13 @@ class Table:
         Coercion to a different dtype via np.array(table, dtype) is not
         supported and will raise a ValueError.
         """
-        if np.dtype(dtype).kind == 'O':
+        if dtype is not None:
+            if np.dtype(dtype) != object:
+                raise ValueError('Datatype coercion is not allowed')
+
             out = np.array(None, dtype=object)
             out[()] = self
             return out
-        elif dtype is not None:
-            raise ValueError('Datatype coercion is not allowed')
 
         # This limitation is because of the following unexpected result that
         # should have made a table copy while changing the column names.
