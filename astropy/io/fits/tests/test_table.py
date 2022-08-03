@@ -3037,7 +3037,7 @@ class TestVLATables(FitsTestCase):
 
     @pytest.mark.skipif('sys.maxsize < 2**32')
     @pytest.mark.skipif('sys.platform == "win32"')
-    #@pytest.mark.hugemem
+    @pytest.mark.hugemem
     def test_heapsize_P_limit(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/10812
@@ -3057,10 +3057,9 @@ class TestVLATables(FitsTestCase):
         t = fits.BinTableHDU.from_columns([col])
         t.name = 'MATRIX'
 
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError,
+                           match="Please consider using the 'Q' format for your file."):
             t.writeto(self.temp('matrix.fits'))
-
-        assert "Please consider using the 'Q' format for your file." in str(err.value)
 
 
 # These are tests that solely test the Column and ColDefs interfaces and
