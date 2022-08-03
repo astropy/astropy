@@ -2399,7 +2399,7 @@ def test_linspace():
     """
     t1 = Time(['2021-01-01 00:00:00', '2021-01-02 00:00:00'])
     t2 = Time(['2021-01-01 01:00:00', '2021-12-28 00:00:00'])
-    atol = 1 * u.ps
+    atol = 2 * np.finfo(float).eps * abs(t1 - t2).max()
 
     ts = np.linspace(t1[0], t2[0], 3)
     assert ts[0].isclose(Time('2021-01-01 00:00:00'), atol=atol)
@@ -2409,13 +2409,13 @@ def test_linspace():
     ts = np.linspace(t1, t2[0], 2, endpoint=False)
     assert ts.shape == (2, 2)
     assert all(ts[0].isclose(Time(['2021-01-01 00:00:00', '2021-01-02 00:00:00']), atol=atol))
-    assert all(ts[1].isclose(Time(['2021-01-01 00:30:00', '2021-01-01 12:30:00']), atol=atol*10))
+    assert all(ts[1].isclose(Time(['2021-01-01 00:30:00', '2021-01-01 12:30:00']), atol=atol))
 
     ts = np.linspace(t1, t2, 7)
     assert ts.shape == (7, 2)
     assert all(ts[0].isclose(Time(['2021-01-01 00:00:00', '2021-01-02 00:00:00']), atol=atol))
-    assert all(ts[1].isclose(Time(['2021-01-01 00:10:00', '2021-03-03 00:00:00']), atol=atol*300))
-    assert all(ts[5].isclose(Time(['2021-01-01 00:50:00', '2021-10-29 00:00:00']), atol=atol*3000))
+    assert all(ts[1].isclose(Time(['2021-01-01 00:10:00', '2021-03-03 00:00:00']), atol=atol))
+    assert all(ts[5].isclose(Time(['2021-01-01 00:50:00', '2021-10-29 00:00:00']), atol=atol))
     assert all(ts[6].isclose(Time(['2021-01-01 01:00:00', '2021-12-28 00:00:00']), atol=atol))
 
 
@@ -2424,7 +2424,7 @@ def test_linspace_steps():
     """
     t1 = Time(['2021-01-01 00:00:00', '2021-01-01 12:00:00'])
     t2 = Time('2021-01-02 00:00:00')
-    atol = 1 * u.ps
+    atol = 2 * np.finfo(float).eps * abs(t1 - t2).max()
 
     ts, st = np.linspace(t1, t2, 7, retstep=True)
     assert ts.shape == (7, 2)
@@ -2441,7 +2441,7 @@ def test_linspace_fmts():
     t1 = Time(['2020-01-01 00:00:00', '2020-01-02 00:00:00'])
     t2 = Time(2458850, format='jd')
     t3 = Time(1578009600, format='unix')
-    atol = 1 * u.ps
+    atol = 2 * np.finfo(float).eps * abs(t1 - Time([t2, t3])).max()
 
     ts = np.linspace(t1, t2, 3)
     assert ts.shape == (3, 2)
