@@ -1,0 +1,1 @@
+Fix parsing of ascii TFORM when precision is missing.
