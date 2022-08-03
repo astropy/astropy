@@ -44,12 +44,6 @@ def test_fsspec_local_write(tmpdir):
     with fits.open(fn_tmp) as hdul:
         assert hdul[1].data[2,3] == -999
 
-    # Does fsspec support `mode="update"` for local files?
-    with fits.open(str(fn_tmp), use_fsspec=True, mode="update") as hdul:
-        hdul[1].data[2,3] = 42
-    with fits.open(fn_tmp) as hdul:
-        assert hdul[1].data[2,3] == 42
-
 
 @pytest.mark.remote_data
 @pytest.mark.skipif("not HAS_FSSPEC")
