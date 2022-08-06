@@ -509,21 +509,23 @@ def test_leap_stretch_mjd(d, f):
          delta=7.327471962526035e-12)
 @example(scale='utc', jds=(0.0, 5.787592627370942e-13), delta=0.0)
 @example(scale='utc', jds=(1.0, 0.25000000023283064), delta=-1.0)
-@example(scale='utc', jds=(0.0, 0.0), delta=2.220446049250313e-16)
+@example(scale='utc', jds=(0.0, 0.0), delta=2*2.220446049250313e-16)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
     if scale == 'utc' and (jd1+jd2 < 1
                            or jd1+jd2+delta < 1):
         # Near-zero UTC JDs degrade accuracy; not clear why,
         # but also not so relevant, so ignoring.
-        thresh = 100*u.us
+        minimum_for_change = 1e-9
+        thresh = minimum_for_change * u.day
     else:
+        minimum_for_change = np.finfo(float).eps
         thresh = 2*dt_tiny
     t = Time(jd1, jd2, scale=scale, format="jd")
     try:
         with quiet_erfa():
             t2 = t + delta*u.day
-            if abs(delta) >= np.finfo(float).eps:
+            if abs(delta) >= minimum_for_change:
                 assert t2 != t
             t3 = t2 - delta*u.day
             assert_almost_equal(t3, t, atol=thresh, rtol=0)
