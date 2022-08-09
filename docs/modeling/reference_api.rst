@@ -8,6 +8,7 @@ Capabilities
 .. automodapi:: astropy.modeling.bounding_box
 .. automodapi:: astropy.modeling.mappings
 .. automodapi:: astropy.modeling.fitting
+    :inherited-members: True
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
 .. automodapi:: astropy.modeling.separable
