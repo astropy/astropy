@@ -18,12 +18,10 @@ if HAS_FSSPEC:
 def test_fsspec_local():
     """Can we use fsspec to read a local file?"""
     fn = get_pkg_data_filename('data/test0.fits')
-    hdulist_classic = fits.open(fn)
-    hdulist_fsspec = fits.open(fn, use_fsspec=True)
-    assert_array_equal(hdulist_classic[2].data, hdulist_fsspec[2].data)
-    assert_array_equal(hdulist_classic[2].section[3:5], hdulist_fsspec[2].section[3:5])
-    hdulist_classic.close()
-    hdulist_fsspec.close()
+    with fits.open(fn) as hdulist_classic:
+        with fits.open(fn, use_fsspec=True) as hdulist_fsspec:
+            assert_array_equal(hdulist_classic[2].data, hdulist_fsspec[2].data)
+            assert_array_equal(hdulist_classic[2].section[3:5], hdulist_fsspec[2].section[3:5])
 
 
 @pytest.mark.skipif("not HAS_FSSPEC")
@@ -43,58 +41,6 @@ def test_fsspec_local_write(tmpdir):
     # Is the new value present when we re-open the file?
     with fits.open(fn_tmp) as hdul:
         assert hdul[1].data[2,3] == -999
-
-
-@pytest.mark.remote_data
-@pytest.mark.skipif("not HAS_FSSPEC")
-def test_fsspec_http():
-    """Can we use fsspec to open a remote FITS file via http?"""
-    uri = "https://mast.stsci.edu/api/v0.1/Download/file/?uri=mast:HST/product/j8pu0y010_drc.fits"
-    # Expected array was obtained by downloading the file locally and executing:
-    # with fits.open(local_path) as hdul:
-    #     hdul[1].data[1000:1002, 2000:2003]
-    expected = np.array([[0.00600598, 0.00546154, 0.00134362],
-                         [0.00073434, 0.00825543, 0.0059365]])
-    with fits.open(uri, use_fsspec=True) as hdul:
-        # Do we retrieve the expected array?
-        assert_allclose(hdul[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
-        # The file has multiple extensions which are not yet downloaded;
-        # the repr and string representation should reflect this.
-        assert "partially read" in repr(hdul)
-        assert "partially read" in str(hdul)
-
-    # Can the user also pass an fsspec file object directly to fits open?
-    with fsspec.open(uri) as fileobj:
-        with fits.open(fileobj) as hdul2:
-            assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
-            assert "partially read" in repr(hdul)
-            assert "partially read" in str(hdul)
-
-
-@pytest.mark.remote_data
-@pytest.mark.skipif("not HAS_S3FS")
-def test_fsspec_s3():
-    """Can we use fsspec to open a FITS file in a public Amazon S3 bucket?"""
-    uri = f"s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
-    # Expected array was obtained by downloading the file locally and executing:
-    # with fits.open(local_path) as hdul:
-    #     hdul[1].data[1000:1002, 2000:2003]
-    expected = np.array([[0.00600598, 0.00546154, 0.00134362],
-                         [0.00073434, 0.00825543, 0.0059365]])
-    with fits.open(uri) as hdul:  # s3:// paths should default to use_fsspec=True
-        # Do we retrieve the expected array?
-        assert_allclose(hdul[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
-        # The file has multiple extensions which are not yet downloaded;
-        # the repr and string representation should reflect this.
-        assert "partially read" in repr(hdul)
-        assert "partially read" in str(hdul)
-
-    # Can the user also pass an fsspec file object directly to fits open?
-    with fsspec.open(uri, anon=True) as fileobj:
-        with fits.open(fileobj) as hdul2:
-            assert_allclose(hdul2[1].section[1000:1002, 2000:2003], expected, atol=1e-7)
-            assert "partially read" in repr(hdul)
-            assert "partially read" in str(hdul)
 
 
 @pytest.mark.skipif("not HAS_FSSPEC")
@@ -121,3 +67,60 @@ def test_fsspec_compressed():
         with pytest.raises(AttributeError) as excinfo:
             hdul[1].section[1,2]
         assert "'CompImageHDU' object has no attribute 'section'" in str(excinfo.value)
+
+
+@pytest.mark.remote_data
+class TestFsspecRemote:
+    """Test obtaining cutouts from FITS files via HTTP (from MAST) and S3 (from Amazon)."""
+
+    def setup_class(self):
+        # The test file (ibxl50020_jif.fits) is a Hubble jitter FITS file (*.jif)
+        # rather than a real image, because jitter files are less likely to
+        # change due to reprocessing.
+        self.http_url = "https://mast.stsci.edu/api/v0.1/Download/file/?uri=mast:HST/product/ibxl50020_jif.fits"
+        self.s3_uri = "s3://stpubdata/hst/public/ibxl/ibxl50020/ibxl50020_jif.fits"
+        # Random slice was selected for testing:
+        self.slice = (slice(31, 33), slice(27, 30))
+        # The expected cutout array below was obtained by downloading the URIs
+        # listed above to a local path and and executing:
+        # with fits.open(local_path) as hdul:
+        #     expected_cutout = hdul[1].data[31:33, 27:30]
+        self.expected_cutout = np.array([[ 24,  88, 228],
+                                         [ 35, 132, 305]], dtype=np.int32)
+
+    @pytest.mark.skipif("not HAS_FSSPEC")
+    def test_fsspec_http(self):
+        """Can we use fsspec to open a remote FITS file via http?"""
+        with fits.open(self.http_url, use_fsspec=True) as hdul:
+            # Do we retrieve the expected array?
+            assert_array_equal(hdul[1].section[self.slice], self.expected_cutout)
+            # The file has multiple extensions which are not yet downloaded;
+            # the repr and string representation should reflect this.
+            assert "partially read" in repr(hdul)
+            assert "partially read" in str(hdul)
+
+        # Can the user also pass an fsspec file object directly to fits open?
+        with fsspec.open(self.http_url) as fileobj:
+            with fits.open(fileobj) as hdul2:
+                assert_array_equal(hdul2[1].section[self.slice], self.expected_cutout)
+                assert "partially read" in repr(hdul)
+                assert "partially read" in str(hdul)
+
+
+    @pytest.mark.skipif("not HAS_S3FS")
+    def test_fsspec_s3(self):
+        """Can we use fsspec to open a FITS file in a public Amazon S3 bucket?"""
+        with fits.open(self.s3_uri) as hdul:  # s3:// paths should default to use_fsspec=True
+            # Do we retrieve the expected array?
+            assert_array_equal(hdul[1].section[self.slice], self.expected_cutout)
+            # The file has multiple extensions which are not yet downloaded;
+            # the repr and string representation should reflect this.
+            assert "partially read" in repr(hdul)
+            assert "partially read" in str(hdul)
+
+        # Can the user also pass an fsspec file object directly to fits open?
+        with fsspec.open(self.s3_uri, anon=True) as fileobj:
+            with fits.open(fileobj) as hdul2:
+                assert_array_equal(hdul2[1].section[self.slice], self.expected_cutout)
+                assert "partially read" in repr(hdul)
+                assert "partially read" in str(hdul)
