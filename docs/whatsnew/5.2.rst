@@ -15,7 +15,11 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-quantity-dtype`
 * :ref:`whatsnew-5.2-cosmology`
 * :ref:`whatsnew-5.2-coordinates`
+<<<<<<< HEAD
 * :ref:`whatsnew-5.2-io-ascii-fixed-width`
+=======
+* :ref:`whatsnew-5.2-fits`
+>>>>>>> 968660722 (Add "What's New" entry)
 
 
 .. _whatsnew-5.2-quantity-dtype:
@@ -108,6 +112,48 @@ additional header rows specifying any or all of the column ``dtype``, ``unit``,
     1 1.00 c     4
     2 2.00 d     5
     3 3.00 e     6
+
+
+.. _whatsnew-5.2-fits:
+
+Accessing cloud-hosted FITS files
+=================================
+
+A ``use_fsspec`` argument has been added to `astropy.io.fits.open` which
+enables users to seamlessly extract data from FITS files stored on a web server
+or in the cloud without downloading the entire file to local storage.
+This feature uses a new optional dependency, `fsspec`_, which supports a range
+of remote and distributed storage backends including Amazon and Google Cloud Storage.
+For example, you can now access a Hubble Space Telescope image located in
+Hubble's public Amazon S3 bucket as follows::
+
+
+    >>> from astropy.io import fits
+
+    >>> # Location of a large Hubble archive image in Amazon S3 (213 MB)
+    >>> uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
+
+    >>> # Download the primary header
+    >>> with fits.open(uri) as hdul:
+    ...
+    ...     # Download a single header
+    ...     header = hdul[1].header
+    ...
+    ...     # Download a single image
+    ...     mydata = hdul[1].data
+    ...
+    ...     # Download a small cutout
+    ...     cutout = hdul[1].section[10:20, 30:50]
+
+Note that the example above obtains a cutout image using the `~astropy.io.fits.ImageHDU.section`
+attribute rather than the traditional `~astropy.io.fits.ImageHDU.data` attribute.
+The use of ``.section`` ensures that only the necessary parts of the FITS
+image are transferred from the server, rather than downloading the entire data
+array. This trick can significantly speed up your code if you require small
+subsets of large FITS files located on slow (remote) storage systems.
+See :ref:`fits_io_cloud` for additional information on working with
+FITS files in this way.
+
 
 Full change log
 ===============
