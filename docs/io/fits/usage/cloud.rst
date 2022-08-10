@@ -203,7 +203,6 @@ As a final step, you can plot the cutout using Matplotlib as follows:
     >>> plt.style.use(astropy_mpl_style)  # doctest: +REMOTE_DATA
     >>> plt.figure()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     >>> plt.imshow(cutout.data, cmap='gray')  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
-    >>> plt.colorbar()  # doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 See :ref:`cutout_images` for more details on this feature.
 
