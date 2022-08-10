@@ -85,8 +85,8 @@ class TestFsspecRemote:
         # listed above to a local path and and executing:
         # with fits.open(local_path) as hdul:
         #     expected_cutout = hdul[1].data[31:33, 27:30]
-        self.expected_cutout = np.array([[ 24,  88, 228],
-                                         [ 35, 132, 305]], dtype=np.int32)
+        self.expected_cutout = np.array([[24,  88, 228],
+                                         [35, 132, 305]], dtype=np.int32)
 
     @pytest.mark.skipif("not HAS_FSSPEC")
     def test_fsspec_http(self):
@@ -105,7 +105,6 @@ class TestFsspecRemote:
                 assert_array_equal(hdul2[1].section[self.slice], self.expected_cutout)
                 assert "partially read" in repr(hdul)
                 assert "partially read" in str(hdul)
-
 
     @pytest.mark.skipif("not HAS_S3FS")
     def test_fsspec_s3(self):
