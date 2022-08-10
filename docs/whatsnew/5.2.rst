@@ -125,16 +125,13 @@ or in the cloud without downloading the entire file to local storage.
 This feature uses a new optional dependency, `fsspec`_, which supports a range
 of remote and distributed storage backends including Amazon and Google Cloud Storage.
 For example, you can now access a Hubble Space Telescope image located in
-Hubble's public Amazon S3 bucket as follows::
+Hubble's public Amazon S3 bucket as follows:
 
+.. doctest-requires:: fsspec
 
     >>> from astropy.io import fits
-
-    >>> # Location of a large Hubble archive image in Amazon S3 (213 MB)
     >>> uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
-
-    >>> # Download the primary header
-    >>> with fits.open(uri) as hdul:
+    >>> with fits.open(uri) as hdul:  # doctest: +REMOTE_DATA
     ...
     ...     # Download a single header
     ...     header = hdul[1].header
