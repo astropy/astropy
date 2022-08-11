@@ -13,6 +13,7 @@ import operator
 import threading
 from datetime import datetime, date, timedelta
 from time import strftime
+from typing import Optional, Iterator, Union
 from warnings import warn
 
 import numpy as np
@@ -97,6 +98,72 @@ SIDEREAL_TIME_MODELS = {
         'IAU2000B': {'function': erfa.gst00b, 'scales': ('ut1',)},
         'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',), 'include_tio': False}
     }}
+
+
+def _enum_dotdotdot(x: np.ndarray) -> Iterator:
+    len_x = len(x)
+    if len(x) > 6:
+        idxs = [0, 1, 2, None, len_x - 3, len_x - 2, len_x - 1]
+    else:
+        idxs = range(len(x))
+    for idx in idxs:
+        yield idx, (None if idx is None else x[idx])
+
+
+def _time_str_arr(
+    tm: Union["TimeBase", None],
+    ndim: Optional[int] = None,
+    size: Optional[int] = None,
+    row: Optional[int] = None
+) -> str:
+    # Special tm value from _enum_dotdotdot indicating this is a "..." element
+    # in the middle of a slice with more than 6 rows in a big Time array (size >
+    # 1000 by default)
+    if tm is None:
+        return "..."
+
+    # For a scalar no processing required, just return the string representation
+    if tm.ndim == 0:
+        return str(tm.value)
+
+    # Capture ndim and size of original array (as opposed to the sliced array
+    # that get passed in a recursive call)
+    if ndim is None:
+        ndim = tm.ndim
+    if size is None:
+        size = tm.size
+    if row is None:
+        row = 0
+
+    # Roughly replicate numpy str formatting
+    spaces_leading = ' ' * (ndim - tm.ndim)
+    spaces = spaces_leading if row > 0 else ''
+
+    # Possibly use a special enumerate that squeezes a dimension down to the
+    # three first and three last elements with a "..." in the middle.
+    max_size = np.get_printoptions()['threshold']
+    enumerate_ = _enum_dotdotdot if size > max_size else enumerate
+
+    if tm.ndim == 1:
+        # For 1D arrays print out space-separated values but include a newline
+        # break after 80 characters.
+        out = ''
+        line = spaces + '['
+        for ii, x in enumerate_(tm):
+            line += "..." if x is None else str(x.value)
+            if ii is None or ii < len(tm) - 1:
+                line += ' '
+                if len(line) > 80:
+                    out += line
+                    line = '\n' + spaces_leading + ' '
+        out += line + ']'
+    else:
+        # For N-D arrays recursively print comma-separated values of each row.
+        delim = '\n' * (tm.ndim - 1)
+        str_iter = (_time_str_arr(x, ndim, size, ii) for ii, x in enumerate_(tm))
+        out = spaces + '[' + delim.join(str_iter) + ']'
+
+    return out
 
 
 class _LeapSecondsCheck(enum.Enum):
@@ -554,10 +621,10 @@ class TimeBase(ShapedLikeNDArray):
     def __repr__(self):
         return ("<{} object: scale='{}' format='{}' value={}>"
                 .format(self.__class__.__name__, self.scale, self.format,
-                        getattr(self, self.format)))
+                        str(self)))
 
     def __str__(self):
-        return str(getattr(self, self.format))
+        return _time_str_arr(self)
 
     def __hash__(self):
 
