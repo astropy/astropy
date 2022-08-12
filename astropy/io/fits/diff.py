@@ -1051,7 +1051,8 @@ class ImageDataDiff(_BaseDiff):
             index = [x + 1 for x in reversed(index)]
             self._writeln(f' Data differs at {index}:')
             report_diff_values(values[0], values[1], fileobj=self._fileobj,
-                               indent_width=self._indent + 1)
+                               indent_width=self._indent + 1, rtol=self.rtol,
+                               atol=self.atol)
 
         if self.diff_total > self.numdiffs:
             self._writeln(' ...')
@@ -1130,7 +1131,8 @@ class RawDataDiff(ImageDataDiff):
         for index, values in self.diff_bytes:
             self._writeln(f' Data differs at byte {index}:')
             report_diff_values(values[0], values[1], fileobj=self._fileobj,
-                               indent_width=self._indent + 1)
+                               indent_width=self._indent + 1, rtol=self.rtol,
+                               atol=self.atol)
 
         self._writeln(' ...')
         self._writeln(' {} different bytes found ({:.2%} different).'
@@ -1417,7 +1419,8 @@ class TableDataDiff(_BaseDiff):
             name, attr = col_attr
             self._writeln(f' Column {name} has different {col_attrs[attr]}:')
             report_diff_values(vals[0], vals[1], fileobj=self._fileobj,
-                               indent_width=self._indent + 1)
+                               indent_width=self._indent + 1, rtol=self.rtol,
+                               atol=self.atol)
 
         if self.diff_rows:
             self._writeln(' Table rows differ:')
@@ -1433,7 +1436,8 @@ class TableDataDiff(_BaseDiff):
         for indx, values in self.diff_values:
             self._writeln(' Column {} data differs in row {}:'.format(*indx))
             report_diff_values(values[0], values[1], fileobj=self._fileobj,
-                               indent_width=self._indent + 1)
+                               indent_width=self._indent + 1, rtol=self.rtol,
+                               atol=self.atol)
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(' ...{} additional difference(s) found.'.format(
