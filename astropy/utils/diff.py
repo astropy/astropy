@@ -43,7 +43,7 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
         return a != b
 
 
-def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
+def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=0.0):
     """
     Write a diff report between two values to the specified file-like object.
 
@@ -60,6 +60,10 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
     indent_width : int
         Character column(s) to indent.
 
+    rtol, atol : float
+        Relative and absolute tolerances as accepted by
+        :func:`numpy.allclose`.
+
     Returns
     -------
     identical : bool
@@ -75,15 +79,19 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
                                indent_width=indent_width + 1)
             return False
 
-        diff_indices = np.transpose(np.where(a != b))
+        if (np.issubdtype(a.dtype, np.floating) and
+            np.issubdtype(b.dtype, np.floating)):
+            diff_indices = np.transpose(where_not_allclose(a, b, rtol=rtol, atol=atol))
+        else:
+            diff_indices = np.transpose(np.where(a != b))
+
         num_diffs = diff_indices.shape[0]
 
         for idx in diff_indices[:3]:
             lidx = idx.tolist()
-            fileobj.write(
-                fixed_width_indent(f'  at {lidx!r}:\n', indent_width))
+            fileobj.write(fixed_width_indent(f'  at {lidx!r}:\n', indent_width))
             report_diff_values(a[tuple(idx)], b[tuple(idx)], fileobj=fileobj,
-                               indent_width=indent_width + 1)
+                               indent_width=indent_width + 1, rtol=rtol, atol=atol)
 
         if num_diffs > 3:
             fileobj.write(fixed_width_indent(

@@ -1,0 +1,3 @@
+``report_diff_values()`` have now two new parameters ``rtol`` and ``atol`` to make the
+report consistent with ``numpy.allclose`` results.
+This fixes ``FITSDiff`` with multi-dimensional columns.
