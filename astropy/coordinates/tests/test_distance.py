@@ -15,6 +15,9 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
+MULTIPLE_INPUTS_ERROR_MSG = "^more than one of `.*` were given to Distance constructor$"
+
+
 def test_distances():
     """
     Tests functionality for Coordinate class distances and cartesian
@@ -126,7 +129,7 @@ def test_distances_scipy():
         Distance(parallax=1*u.mas, cosmology=WMAP5)
 
     # Regression test for #12531
-    with pytest.raises(ValueError, match='more than one'):
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         Distance(z=0.23, parallax=1*u.mas)
 
     # vectors!  regression test for #11949
@@ -194,10 +197,10 @@ def test_distmod():
     d = Distance(distmod=-1., unit=u.au)
     npt.assert_allclose(d.value, 1301442.9440836983)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(value=d, distmod=20)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(z=.23, distmod=20)
 
     # check the Mpc/kpc/pc behavior
@@ -215,10 +218,10 @@ def test_parallax():
     d = Distance(parallax=1*u.arcsecond)
     assert d.pc == 1.
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(15*u.pc, parallax=20*u.milliarcsecond)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(parallax=20*u.milliarcsecond, distmod=20)
 
     # array
@@ -227,17 +230,21 @@ def test_parallax():
     assert quantity_allclose(d.pc, [1000., 100., 10.])
     assert quantity_allclose(plx, d.parallax)
 
-    # check behavior for negative parallax
-    with pytest.raises(ValueError):
+    error_message = (
+        r"^some parallaxes are negative, which are not interpretable as distances\. "
+    )
+    with pytest.raises(ValueError, match=error_message):
         Distance(parallax=-1 * u.mas)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=error_message):
         Distance(parallax=[10, 1, -1] * u.mas)
 
-    with pytest.warns(AstropyWarning):
+    warning_message = "^negative parallaxes are converted to NaN distances even when"
+
+    with pytest.warns(AstropyWarning, match=warning_message):
         Distance(parallax=-1 * u.mas, allow_negative=True)
 
-    with pytest.warns(AstropyWarning):
+    with pytest.warns(AstropyWarning, match=warning_message):
         Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
 
     # Regression test for #12569; `unit` was ignored if `parallax` was given.
@@ -264,13 +271,17 @@ def test_distance_in_coordinates():
 def test_negative_distance():
     """ Test optional kwarg allow_negative """
 
-    with pytest.raises(ValueError):
+    error_message = (
+        r"^distance must be >= 0\. Use the argument `allow_negative=True` to allow "
+        r"negative values\.$")
+
+    with pytest.raises(ValueError, match=error_message):
         Distance([-2, 3.1], u.kpc)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=error_message):
         Distance([-2, -3.1], u.kpc)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=error_message):
         Distance(-2, u.kpc)
 
     d = Distance(-2, u.kpc, allow_negative=True)
