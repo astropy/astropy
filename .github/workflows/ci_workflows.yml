@@ -51,14 +51,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-
-          - name: Code style checks
-            os: ubuntu-latest
-            python: 3.x
-            toxenv: codestyle
-            toxposargs: --all-files -v
-
-          # NOTE: this 2nd coverage test is needed for tests and code that
+          # NOTE: this coverage test is needed for tests and code that
           #       run only with minimal dependencies.
           - name: Python 3.10 with minimal dependencies and full coverage
             os: ubuntu-latest
