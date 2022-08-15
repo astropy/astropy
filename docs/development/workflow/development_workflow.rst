@@ -129,7 +129,7 @@ Astropy Guidelines for `git`_
 
 .. note::
     It is strongly suggested that you automate the code-style checks using the
-    provided pre-commit hook, see :ref:`code-style` for details.
+    provided pre-commit hook, see :ref:`pre-commit` below for details.
 
 * Don't use your ``main`` branch for anything. Consider :ref:`delete-main`.
 * Make a new branch, called a *feature branch*, for each separable set of
@@ -152,6 +152,45 @@ document:
 * Name the remote that is the primary Astropy repository
   ``astropy``; in prior versions of this documentation it was referred to as
   ``upstream``.
+
+
+.. _pre-commit:
+
+Pre-commit
+**********
+
+All of the coding style checks described in :ref:`code-style` can be performed automatically
+when you make a git commit using our provided `pre-commit hook <https://pre-commit.com/>`_
+for git, for more information see
+`git hooks <https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks#_git_hooks>`_.
+We encourage you to setup and use these hooks to ensure that your code always meets
+our coding style standards. This can be done by installing ``pre-commit`` in the root
+of your astropy repository by running::
+
+    pip install pre-commit
+    pre-commit install
+
+For more detailed instructions on installing ``pre-commit``, see the
+`install guide <https://pre-commit.com/#install>`_. Once this installation is
+complete, all the coding style checks will be run each time you commit and the
+necessary changes will automatically be applied to your code if possible.
+
+.. note::
+  The changes made by ``pre-commit`` will not be automatically staged, so you
+  will need to review and re-stage any files that ``pre-commit`` has changed.
+
+In general, git will not allow you to commit until the ``pre-commit`` hook has
+run successfully. If you need to make a commit which fails the ``pre-commit`` checks,
+you can skip these checks by running::
+
+  git commit --no-verify
+
+If you do not want to use ``pre-commit`` as part of your git workflow, you can
+still run the checks manually (see, :ref:`code-style`) using::
+
+  tox -e codestyle
+
+Again, this will automatically apply the necessary changes to your code if possible.
 
 Workflow
 ********
