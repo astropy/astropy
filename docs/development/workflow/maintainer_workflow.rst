@@ -102,6 +102,33 @@ Push to trunk
 This pushes the ``my-new-feature`` branch in this repository to the ``main``
 branch in the ``upstream-rw`` repository.
 
+.. _pre-commit_bot:
+
+Fixing coding style issues
+--------------------------
+
+Astropy now uses the `pre-commit.ci bot <https://pre-commit.ci/>`_ to assist
+maintainers with enforcing the astropy coding style and fixing the most code style
+issues. The bot makes use of the pre-commit hook described in detail in :ref:`pre-commit`.
+
+By default the bot will run a code-style check on every push to a pull request with the
+results reported in the checks section of the pull request.  The bot will skip running
+its check if a commit message contains ``[skip ci]``, ``[ci skip]``, ``[skip pre-commit.ci]``,
+or ``[pre-commit.ci skip]``.
+
+One can control the bot by making comments on the pull request:
+
+* To trigger a re-run of the code-style check, comment on the PR with::
+
+    pre-commit.ci run
+
+* To have the pre-commit.ci bot push a commit to the PR fixing the code-style issues
+  (the ones that can be fixed by automated tools), comment on the PR with::
+
+    pre-commit.ci autofix
+
+.. note::
+  These comments must appear in the comment on a single line by themselves.
 
 .. _milestones-and-labels:
 
