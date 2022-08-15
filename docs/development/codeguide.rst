@@ -134,7 +134,19 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
-  guide. You can check locally whether your changes have followed these by
+  guide, and some packages enforce stronger styling checks such as using
+  `isort <https://pycqa.github.io/isort/>_` to sort the module imports. We
+  provide a `pre-commit <https://pre-commit.com/>`_ hook that checks and enforces
+  all of these styling checks on each commit. We strongly suggest that you setup
+  and use the pre-commit hook, by running::
+
+    pip install pre-commit
+    pre-commit install
+
+  in your clone of astropy, see pre-commit `install guide<https://pre-commit.com/#install>`_
+  for details.
+
+  Alternately, you can manually check whether your changes have followed these by
   running the following `tox <https://tox.readthedocs.io/>`__ command::
 
     tox -e codestyle
