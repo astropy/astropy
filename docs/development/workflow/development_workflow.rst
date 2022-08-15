@@ -127,6 +127,10 @@ walks you through recovering from `git`_ mistakes is the
 Astropy Guidelines for `git`_
 *****************************
 
+.. note::
+    It is strongly suggested that you automate the code-style checks using the
+    provided pre-commit hook, see :ref:`code-style` for details.
+
 * Don't use your ``main`` branch for anything. Consider :ref:`delete-main`.
 * Make a new branch, called a *feature branch*, for each separable set of
   changes: "one task, one branch" (`ipython git workflow`_).
