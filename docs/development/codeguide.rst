@@ -140,11 +140,11 @@ Coding Style/Conventions
   `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
   * We provide a `pre-commit <https://pre-commit.com/>`_ based git ``pre-commit``
-    hook, which enforces all of these styling checks on each commit and automatically
+    hook which enforces all of these styling checks on each commit and automatically
     fixes styling issues whenever possible. Note that ``pre-commit``
     `hooks <https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks#_git_hooks>`_
     in git are essentially scripts that get run automatically by git before the
-    commit message can be entered; meaning, if the ``pre-commit`` hook fails you
+    commit message can be entered. If the ``pre-commit`` hook fails you
     will be unable to commit your code without overriding (which should be avoided
     whenever possible) the hook, which can be done by running::
 
