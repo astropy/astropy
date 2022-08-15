@@ -108,7 +108,7 @@ Fixing coding style issues
 --------------------------
 
 Astropy now uses the `pre-commit.ci bot <https://pre-commit.ci/>`_ to assist
-maintainers with enforcing the astropy coding style and fixing the most code style
+with maintaining the astropy coding style and fixing code style
 issues. The bot makes use of the pre-commit hook described in detail in :ref:`pre-commit`.
 
 By default the bot will run a code-style check on every push to a pull request with the
