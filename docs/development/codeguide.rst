@@ -126,6 +126,8 @@ module. The logger can be imported using::
 
     from astropy import log
 
+.. _code-style:
+
 Coding Style/Conventions
 ========================
 
@@ -135,21 +137,34 @@ Coding Style/Conventions
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
   guide, and some packages enforce stronger styling checks such as using
-  `isort <https://pycqa.github.io/isort/>`_ to sort the module imports. We
-  provide a `pre-commit <https://pre-commit.com/>`_ hook that checks and enforces
-  all of these styling checks on each commit. We strongly suggest that you setup
-  and use the pre-commit hook, by running::
+  `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
-    pip install pre-commit
-    pre-commit install
+  * We provide a `pre-commit <https://pre-commit.com/>`_ based git ``pre-commit``
+    hook, which enforces all of these styling checks on each commit and automatically
+    fixes styling issues whenever possible. Note that ``pre-commit``
+    `hooks <https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks#_git_hooks>`_
+    in git are essentially scripts that get run automatically by git before the
+    commit message can be entered; meaning, if the ``pre-commit`` hook fails you
+    will be unable to commit your code without overriding (which should be avoided
+    whenever possible) the hook, which can be done by running::
 
-  in your clone of astropy, see pre-commit `install guide <https://pre-commit.com/#install>`_
-  for details.
+      git commit --no-verify
 
-  Alternately, you can manually check whether your changes have followed these by
-  running the following `tox <https://tox.readthedocs.io/>`__ command::
+    We strongly suggest that you setup and use the pre-commit hook, by running::
 
-    tox -e codestyle
+      pip install pre-commit
+      pre-commit install
+
+    in your clone of astropy, see pre-commit `install guide <https://pre-commit.com/#install>`_
+    for details. This will ensure that every commit you make will follow the astropy
+    code style guide.
+
+  * Alternately, you can manually check and fix your changes by running the
+    following `tox <https://tox.readthedocs.io/>`__ command::
+
+      tox -e codestyle
+
+    which sets up and runs the pre-commit hook in an isolated environment.
 
 * *Follow the existing coding style* within a subpackage and avoid making
   changes that are purely stylistic.  In particular, there is variation in the
