@@ -109,6 +109,44 @@ _LEAP_SECONDS_CHECK = _LeapSecondsCheck.NOT_STARTED
 _LEAP_SECONDS_LOCK = threading.RLock()
 
 
+def _compress_array_dims(arr):
+    """Compress array by allowing at most 2 * edgeitems + 1 in each dimension.
+
+    Parameters
+    ----------
+    arr : array-like
+        Array to compress.
+
+    Returns
+    -------
+    out : array-like
+        Compressed array.
+    """
+
+    idxs = []
+    edgeitems = np.get_printoptions()["edgeitems"]
+
+    # Build up a list of index arrays for each dimension, allowing no more than
+    # 2 * edgeitems + 1 elements in each dimension.
+    for dim in range(arr.ndim):
+        if arr.shape[dim] > 2 * edgeitems:
+            # The middle [edgeitems] value does not matter as it gets replaced
+            # by ... in the output.
+            idxs.append(
+                np.concatenate(
+                    [np.arange(edgeitems), [edgeitems], np.arange(-edgeitems, 0)]
+                )
+            )
+        else:
+            idxs.append(np.arange(arr.shape[dim]))
+
+    # Use the magic np.ix_ function to effectively treat each index array as a
+    # slicing operator.
+    idxs_ix = np.ix_(*idxs)
+    out = arr[idxs_ix]
+    return out
+
+
 class TimeInfoBase(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
@@ -552,13 +590,38 @@ class TimeBase(ShapedLikeNDArray):
 
         self._format = format
 
+    def to_string(self):
+        """Output a string representation of the Time or TimeDelta object.
+
+        Similar to ``str(self.value)`` (which uses numpy array formatting) but
+        array values are evaluated only for the items that actually are output.
+        For large arrays this can be a substantial performance improvement.
+
+        Returns
+        -------
+        out : str
+            String representation of the time values.
+
+        """
+        npo = np.get_printoptions()
+        if self.size < npo["threshold"]:
+            out = str(self.value)
+        else:
+            # Compress time object by allowing at most 2 * npo["edgeitems"] + 1
+            # in each dimension. Then force numpy to use "summary mode" of
+            # showing only the edge items by setting the size threshold to 0.
+            tm = _compress_array_dims(self)
+            with np.printoptions(threshold=0):
+                out = str(tm.value)
+        return out
+
     def __repr__(self):
         return ("<{} object: scale='{}' format='{}' value={}>"
                 .format(self.__class__.__name__, self.scale, self.format,
-                        getattr(self, self.format)))
+                        self.to_string()))
 
     def __str__(self):
-        return str(getattr(self, self.format))
+        return self.to_string()
 
     def __hash__(self):
 

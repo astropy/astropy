@@ -2476,3 +2476,33 @@ def test_linspace_fmts():
     assert all(ts[0].isclose(Time(['2020-01-01 00:00:00', '2020-01-02 00:00:00']), atol=atol))
     assert all(ts[1].isclose(Time(['2020-01-01 06:00:00', '2020-01-02 12:00:00']), atol=atol))
     assert all(ts[2].isclose(Time(['2020-01-01 12:00:00', '2020-01-03 00:00:00']), atol=atol))
+
+
+def test_to_string():
+    dims = [8, 2, 8]
+    dx = np.arange(np.prod(dims)).reshape(dims)
+    tm = Time('2020-01-01', out_subfmt='date') + dx * u.day
+    exp_lines = [
+        "[[['2020-01-01' '2020-01-02' ... '2020-01-07' '2020-01-08']",
+        "  ['2020-01-09' '2020-01-10' ... '2020-01-15' '2020-01-16']]",
+        "",
+        " [['2020-01-17' '2020-01-18' ... '2020-01-23' '2020-01-24']",
+        "  ['2020-01-25' '2020-01-26' ... '2020-01-31' '2020-02-01']]",
+        "",
+        " ...",
+        "",
+        " [['2020-04-06' '2020-04-07' ... '2020-04-12' '2020-04-13']",
+        "  ['2020-04-14' '2020-04-15' ... '2020-04-20' '2020-04-21']]",
+        "",
+        " [['2020-04-22' '2020-04-23' ... '2020-04-28' '2020-04-29']",
+        "  ['2020-04-30' '2020-05-01' ... '2020-05-06' '2020-05-07']]]",
+    ]
+    exp_str = "\n".join(exp_lines)
+
+    with np.printoptions(threshold=100, edgeitems=2, linewidth=75):
+        out_str = str(tm)
+        out_repr = repr(tm)
+    assert out_str == exp_str
+
+    exp_repr = f"<Time object: scale='utc' format='iso' value={exp_str}>"
+    assert out_repr == exp_repr
