@@ -510,6 +510,7 @@ def test_leap_stretch_mjd(d, f):
 @example(scale='utc', jds=(0.0, 5.787592627370942e-13), delta=0.0)
 @example(scale='utc', jds=(1.0, 0.25000000023283064), delta=-1.0)
 @example(scale='utc', jds=(0.0, 0.0), delta=2*2.220446049250313e-16)
+@example(scale='utc', jds=(2442778.5, 0.0), delta=-2.220446049250313e-16)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
     if scale == 'utc' and (jd1+jd2 < 1
