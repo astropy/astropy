@@ -48,38 +48,36 @@ The data is drizzled, i.e. distortion free, so the intention is **not** to inclu
 SIP distortion.
 
 >>> wcsobj = wcs.WCS(header)
-
-INFO::
-
+INFO:
+<BLANKLINE>
         Inconsistent SIP distortion information is present in the FITS header and the WCS object:
         SIP coefficients were detected, but CTYPE is missing a "-SIP" suffix.
         astropy.wcs is using the SIP distortion coefficients,
         therefore the coordinates calculated here might be incorrect.
-
+<BLANKLINE>
         If you do not want to apply the SIP distortion coefficients,
         please remove the SIP coefficients from the FITS header or the
         WCS object.  As an example, if the image is already distortion-corrected
         (e.g., drizzled) then distortion components should not apply and the SIP
         coefficients should be removed.
-
+<BLANKLINE>
         While the SIP distortion coefficients are being applied here, if that was indeed the intent,
         for consistency please append "-SIP" to the CTYPE in the FITS header or the WCS object.
 
 
 >>> hdr = wcsobj.to_header(relax=True)
-
-INFO::
-
+INFO:
+<BLANKLINE>
         Inconsistent SIP distortion information is present in the current WCS:
         SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
         therefore the current WCS is internally inconsistent.
-
+<BLANKLINE>
         Because relax has been set to True, the resulting output WCS will have
         "-SIP" appended to CTYPE in order to make the header internally consistent.
-
+<BLANKLINE>
         However, this may produce incorrect astrometry in the output WCS, if
         in fact the current WCS is already distortion-corrected.
-
+<BLANKLINE>
         Therefore, if current WCS is already distortion-corrected (eg, drizzled)
         then SIP distortion components should not apply. In that case, for a WCS
         that is already distortion-corrected, please remove the SIP coefficients
