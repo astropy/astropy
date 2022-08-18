@@ -25,6 +25,7 @@ _ns = globals()
 # an appropriate equivalency is only possible if it's treated as a unit.
 redshift = u.def_unit(['redshift'], prefixes=False, namespace=_ns,
                       doc="Cosmological redshift.", format={'latex': r''})
+u.def_physical_type(redshift, "redshift")
 
 # This is not formally a unit, but is used in that way in many contexts, and
 # an appropriate equivalency is only possible if it's treated as a unit (see
