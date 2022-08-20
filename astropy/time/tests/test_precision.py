@@ -513,15 +513,18 @@ def test_leap_stretch_mjd(d, f):
 @example(scale='utc', jds=(2442778.5, 0.0), delta=-2.220446049250313e-16)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
-    if scale == 'utc' and (jd1+jd2 < 1
-                           or jd1+jd2+delta < 1):
-        # Near-zero UTC JDs degrade accuracy; not clear why,
-        # but also not so relevant, so ignoring.
-        minimum_for_change = 1e-9
-        thresh = minimum_for_change * u.day
-    else:
-        minimum_for_change = np.finfo(float).eps
-        thresh = 2*dt_tiny
+    minimum_for_change = np.finfo(float).eps
+    thresh = 2*dt_tiny
+    if scale == 'utc':
+        if jd1+jd2 < 1 or jd1+jd2+delta < 1:
+            # Near-zero UTC JDs degrade accuracy; not clear why,
+            # but also not so relevant, so ignoring.
+            minimum_for_change = 1e-9
+            thresh = minimum_for_change * u.day
+        else:
+            # UTC goes via TAI, so one can loose an extra bit.
+            minimum_for_change *= 2
+
     t = Time(jd1, jd2, scale=scale, format="jd")
     try:
         with quiet_erfa():
