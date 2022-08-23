@@ -6,6 +6,8 @@ from astropy.visualization.mpl_normalize import simple_norm
 from astropy import log
 from astropy.io.fits import getdata
 
+__all__ = ['fits2bitmap', 'main']
+
 
 def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
                 power=1.0, asinh_a=0.1, min_cut=None, max_cut=None,
@@ -65,10 +67,10 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
     cmap : str
         The matplotlib color map name.  The default is 'Greys_r'.
     """
-
     import matplotlib
-    import matplotlib.cm as cm
     import matplotlib.image as mimg
+
+    from astropy.utils.introspection import minversion
 
     # __main__ gives ext as a string
     try:
@@ -95,8 +97,12 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
     out_format = os.path.splitext(out_fn)[1][1:]
 
     try:
-        cm.get_cmap(cmap)
-    except ValueError:
+        if minversion(matplotlib, '3.5'):
+            matplotlib.colormaps[cmap]
+        else:
+            from matplotlib import cm
+            cm.get_cmap(cmap)
+    except (ValueError, KeyError):
         log.critical(f'{cmap} is not a valid matplotlib colormap name.')
         return 1
 
