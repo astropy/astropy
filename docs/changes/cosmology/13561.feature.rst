@@ -1,0 +1,1 @@
+The cosmological redshift unit now has a physical type of ``"redshift"``.
