@@ -286,7 +286,6 @@ def akaike_info_criterion(log_likelihood, n_params, n_samples):
     .. [2] Mazerolle, M. J. Making sense out of Akaike's Information
        Criterion (AIC): its use and interpretation in model selection and
        inference from ecological data.
-       <https://corpus.ulaval.ca/jspui/handle/20.500.11794/17461>
     .. [3] Wikipedia. Akaike Information Criterion.
        <https://en.wikipedia.org/wiki/Akaike_information_criterion>
     .. [4] Origin Lab. Comparing Two Fitting Functions.
