@@ -72,6 +72,7 @@ def test_dimensionless_redshift():
     # show units not equal
     assert z.unit == cu.redshift
     assert z.unit != u.one
+    assert u.get_physical_type(z) == "redshift"
 
     # test equivalency enabled by default
     assert z == val
@@ -219,16 +220,19 @@ class Test_with_redshift:
     def test_temperature_off(self, cosmo):
         """Test ``with_redshift`` with the temperature off."""
         z = 15 * cu.redshift
+        err_msg = (
+            r"^'redshift' \(redshift\) and 'K' \(temperature\) are not convertible$"
+        )
 
         # 1) Default (without specifying the cosmology)
         with default_cosmology.set(cosmo):
             equivalency = cu.with_redshift(Tcmb=False)
-            with pytest.raises(u.UnitConversionError, match="'redshift' and 'K'"):
+            with pytest.raises(u.UnitConversionError, match=err_msg):
                 z.to(u.K, equivalency)
 
         # 2) Specifying the cosmology
         equivalency = cu.with_redshift(cosmo, Tcmb=False)
-        with pytest.raises(u.UnitConversionError, match="'redshift' and 'K'"):
+        with pytest.raises(u.UnitConversionError, match=err_msg):
             z.to(u.K, equivalency)
 
     def test_temperature(self, cosmo):
@@ -265,16 +269,20 @@ class Test_with_redshift:
         """Test ``with_redshift`` with Hubble off."""
         unit = u.km / u.s / u.Mpc
         z = 15 * cu.redshift
+        err_msg = (
+            r"^'redshift' \(redshift\) and 'km / \(Mpc s\)' \(frequency\) are not "
+            "convertible$"
+        )
 
         # 1) Default (without specifying the cosmology)
         with default_cosmology.set(cosmo):
             equivalency = cu.with_redshift(hubble=False)
-            with pytest.raises(u.UnitConversionError, match="'redshift' and 'km / "):
+            with pytest.raises(u.UnitConversionError, match=err_msg):
                 z.to(unit, equivalency)
 
         # 2) Specifying the cosmology
         equivalency = cu.with_redshift(cosmo, hubble=False)
-        with pytest.raises(u.UnitConversionError, match="'redshift' and 'km / "):
+        with pytest.raises(u.UnitConversionError, match=err_msg):
             z.to(unit, equivalency)
 
     def test_hubble(self, cosmo):
@@ -321,16 +329,17 @@ class Test_with_redshift:
     def test_distance_off(self, cosmo):
         """Test ``with_redshift`` with the distance off."""
         z = 15 * cu.redshift
+        err_msg = r"^'redshift' \(redshift\) and 'Mpc' \(length\) are not convertible$"
 
         # 1) Default (without specifying the cosmology)
         with default_cosmology.set(cosmo):
             equivalency = cu.with_redshift(distance=None)
-            with pytest.raises(u.UnitConversionError, match="'redshift' and 'Mpc'"):
+            with pytest.raises(u.UnitConversionError, match=err_msg):
                 z.to(u.Mpc, equivalency)
 
         # 2) Specifying the cosmology
         equivalency = cu.with_redshift(cosmo, distance=None)
-        with pytest.raises(u.UnitConversionError, match="'redshift' and 'Mpc'"):
+        with pytest.raises(u.UnitConversionError, match=err_msg):
             z.to(u.Mpc, equivalency)
 
     def test_distance_default(self):
