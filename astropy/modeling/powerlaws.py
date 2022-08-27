@@ -5,7 +5,7 @@ Power law model variants
 # pylint: disable=invalid-name
 import numpy as np
 
-from astropy.units import Quantity
+from astropy.units import Magnitude, Quantity, UnitsError, dimensionless_unscaled, mag
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
@@ -238,7 +238,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1, min=0, description="Peak value at break point")
+    amplitude = Parameter(default=1, min=0, description="Peak value at break point", mag=True)
     x_break = Parameter(default=1, description="Break point")
     alpha_1 = Parameter(default=-2, description="Power law index before break point")
     alpha_2 = Parameter(default=2, description="Power law index after break point")
@@ -305,7 +305,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
             f[i] = amplitude * xx[i] ** (-alpha_1) * r ** ((alpha_1 - alpha_2) * delta)
 
         if return_unit:
-            return Quantity(f, unit=return_unit, copy=False)
+            return Quantity(f, unit=return_unit, copy=False, subok=True)
         return f
 
     @staticmethod
@@ -583,28 +583,36 @@ class Schechter1D(Fittable1DModel):
 
     phi_star = Parameter(default=1., description=('Normalization factor '
                                                   'in units of number density'))
-    m_star = Parameter(default=-20., description='Characteristic magnitude')
+    m_star = Parameter(default=-20., description='Characteristic magnitude', mag=True)
     alpha = Parameter(default=-1., description='Faint-end slope')
 
     @staticmethod
-    def evaluate(mag, phi_star, m_star, alpha):
+    def _factor(magnitude, m_star):
+        factor_exp = (magnitude - m_star)
+
+        if isinstance(factor_exp, Quantity):
+            if factor_exp.unit == mag:
+                factor_exp = Magnitude(factor_exp.value, unit=mag)
+
+                return factor_exp.to(dimensionless_unscaled)
+            else:
+                raise UnitsError("The units of magnitude and m_star must be a magnitude")
+        else:
+            return 10 ** (-0.4 * factor_exp)
+
+    def evaluate(self, mag, phi_star, m_star, alpha):
         """Schechter luminosity function model function."""
-        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
-            raise ValueError('mag and m_star must not have units')
-        factor = 10 ** (0.4 * (m_star - mag))
 
-        return (0.4 * np.log(10) * phi_star * factor**(alpha + 1)
-                * np.exp(-factor))
+        factor = self._factor(mag, m_star)
 
-    @staticmethod
-    def fit_deriv(mag, phi_star, m_star, alpha):
+        return 0.4 * np.log(10) * phi_star * factor**(alpha + 1) * np.exp(-factor)
+
+    def fit_deriv(self, mag, phi_star, m_star, alpha):
         """
         Schechter luminosity function derivative with respect to
         parameters.
         """
-        if isinstance(mag, Quantity) or isinstance(m_star, Quantity):
-            raise ValueError('mag and m_star must not have units')
-        factor = 10 ** (0.4 * (m_star - mag))
+        factor = self._factor(mag, m_star)
 
         d_phi_star = 0.4 * np.log(10) * factor**(alpha + 1) * np.exp(-factor)
         func = phi_star * d_phi_star

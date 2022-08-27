@@ -520,7 +520,7 @@ class _BoundingDomain(abc.ABC):
         """
 
         if valid_outputs_unit is not None:
-            return Quantity(outputs, valid_outputs_unit, copy=False)
+            return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
 
         return outputs
 

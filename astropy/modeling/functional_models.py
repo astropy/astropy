@@ -1791,7 +1791,7 @@ class Const1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function")
+    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
     linear = True
 
     @staticmethod
@@ -1807,6 +1807,8 @@ class Const1D(Fittable1DModel):
             # parameter is given an array-like value
             x = amplitude * np.ones_like(x, subok=False)
 
+        if isinstance(amplitude, Quantity):
+            return Quantity(x, unit=amplitude.unit, copy=False, subok=True)
         return x
 
     @staticmethod
@@ -1844,7 +1846,7 @@ class Const2D(Fittable2DModel):
         .. math:: f(x, y) = A
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function")
+    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
     linear = True
 
     @staticmethod
@@ -1860,6 +1862,8 @@ class Const2D(Fittable2DModel):
             # parameter is given an array-like value
             x = amplitude * np.ones_like(x, subok=False)
 
+        if isinstance(amplitude, Quantity):
+            return Quantity(x, unit=amplitude.unit, copy=False, subok=True)
         return x
 
     @property
@@ -1941,7 +1945,7 @@ class Ellipse2D(Fittable2DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Value of the ellipse")
+    amplitude = Parameter(default=1, description="Value of the ellipse", mag=True)
     x_0 = Parameter(default=0, description="X position of the center of the disk.")
     y_0 = Parameter(default=0, description="Y position of the center of the disk.")
     a = Parameter(default=1, description="The length of the semimajor axis")
@@ -1964,7 +1968,7 @@ class Ellipse2D(Fittable2DModel):
         result = np.select([in_ellipse], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2037,7 +2041,7 @@ class Disk2D(Fittable2DModel):
                    \\right.
     """
 
-    amplitude = Parameter(default=1, description="Value of disk function")
+    amplitude = Parameter(default=1, description="Value of disk function", mag=True)
     x_0 = Parameter(default=0, description="X position of center of the disk")
     y_0 = Parameter(default=0, description="Y position of center of the disk")
     R_0 = Parameter(default=1, description="Radius of the disk")
@@ -2050,7 +2054,7 @@ class Disk2D(Fittable2DModel):
         result = np.select([rr <= R_0 ** 2], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2122,7 +2126,7 @@ class Ring2D(Fittable2DModel):
     Where :math:`r_{out} = r_{in} + r_{width}`.
     """
 
-    amplitude = Parameter(default=1, description="Value of the disk function")
+    amplitude = Parameter(default=1, description="Value of the disk function", mag=True)
     x_0 = Parameter(default=0, description="X position of center of disc")
     y_0 = Parameter(default=0, description="Y position of center of disc")
     r_in = Parameter(default=1, description="Inner radius of the ring")
@@ -2165,7 +2169,7 @@ class Ring2D(Fittable2DModel):
         result = np.select([r_range], [amplitude])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2254,7 +2258,7 @@ class Box1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Amplitude A")
+    amplitude = Parameter(default=1, description="Amplitude A", mag=True)
     x_0 = Parameter(default=0, description="Position of center of box function")
     width = Parameter(default=1, description="Width of the box")
 
@@ -2332,7 +2336,7 @@ class Box2D(Fittable2DModel):
 
     """
 
-    amplitude = Parameter(default=1, description="Amplitude")
+    amplitude = Parameter(default=1, description="Amplitude", mag=True)
     x_0 = Parameter(default=0, description="X position of the center of the box function")
     y_0 = Parameter(default=0, description="Y position of the center of the box function")
     x_width = Parameter(default=1, description="Width in x direction of the box")
@@ -2350,7 +2354,7 @@ class Box2D(Fittable2DModel):
         result = np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2450,7 +2454,7 @@ class Trapezoid1D(Fittable1DModel):
         result = np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2518,7 +2522,7 @@ class TrapezoidDisk2D(Fittable2DModel):
         result = np.select([range_1, range_2], [val_1, val_2])
 
         if isinstance(amplitude, Quantity):
-            return Quantity(result, unit=amplitude.unit, copy=False)
+            return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
         return result
 
     @property
@@ -2791,7 +2795,7 @@ class AiryDisk2D(Fittable2DModel):
 
         if isinstance(amplitude, Quantity):
             # make z quantity too, otherwise in-place multiplication fails.
-            z = Quantity(z, u.dimensionless_unscaled, copy=False)
+            z = Quantity(z, u.dimensionless_unscaled, copy=False, subok=True)
 
         z *= amplitude
         return z

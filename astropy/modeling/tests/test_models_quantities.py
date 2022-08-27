@@ -18,7 +18,7 @@ from astropy.modeling.parameters import InputParameterError
 from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D,
+    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D, Schechter1D,
     SmoothlyBrokenPowerLaw1D)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -294,6 +294,13 @@ POWERLAW_MODELS = [
         'evaluation': [(1 * u.cm, 5 * 0.1 ** (-1 - 2 * np.log(0.1)) * u.kg)],
         'bounding_box': False
     },
+    {
+        'class': Schechter1D,
+        'parameters': {'phi_star': 1.e-4 * (u.Mpc ** -3), 'm_star': -20. * u.ABmag,
+                       'alpha': -1.9},
+        'evaluation': [(-23 * u.ABmag, 1.002702276867279e-12 * (u.Mpc ** -3))],
+        'bounding_box': False
+    },
 ]
 
 POLY_MODELS = [
@@ -355,7 +362,8 @@ NON_FINITE_LevMar_MODELS = [
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
-    LogParabola1D
+    LogParabola1D,
+    Schechter1D
 ]
 
 # These models will fail the TRFLSQFitter fitting test due to non-finite
@@ -376,6 +384,7 @@ NON_FINITE_LM_MODELS = [
     ArcCosine1D,
     PowerLaw1D,
     LogParabola1D,
+    Schechter1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D
 ]
@@ -429,9 +438,9 @@ def test_models_evaluate_with_units_x_array(model):
     for args in model['evaluation']:
         if len(args) == 2:
             x, y = args
-            x_arr = u.Quantity([x, x])
+            x_arr = u.Quantity([x, x], subok=True)
             result = m(x_arr)
-            assert_quantity_allclose(result, u.Quantity([y, y]))
+            assert_quantity_allclose(result, u.Quantity([y, y], subok=True))
         else:
             x, y, z = args
             x_arr = u.Quantity([x, x])
@@ -460,9 +469,9 @@ def test_models_evaluate_with_units_param_array(model):
     for args in model['evaluation']:
         if len(args) == 2:
             x, y = args
-            x_arr = u.Quantity([x, x])
+            x_arr = u.Quantity([x, x], subok=True)
             result = m(x_arr)
-            assert_quantity_allclose(result, u.Quantity([y, y]))
+            assert_quantity_allclose(result, u.Quantity([y, y], subok=True))
         else:
             x, y, z = args
             x_arr = u.Quantity([x, x])
@@ -660,3 +669,107 @@ def test_input_unit_mismatch_error(model):
         with pytest.raises(u.UnitsError) as err:
             m.without_units_for_data(**kwargs)
         assert str(err.value) == message
+
+
+mag_models = [
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.ABmag, 3 * u.ABmag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.mag, 3 * u.ABmag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.mag},
+        'evaluation': [(0.6 * u.ABmag, 3 * u.mag)],
+    },
+    {
+        'class': Const1D,
+        'parameters': {'amplitude': 3 * u.mag},
+        'evaluation': [(0.6 * u.mag, 3 * u.mag)],
+    },
+    {
+        'class': Const2D,
+        'parameters': {'amplitude': 3 * u.ABmag},
+        'evaluation': [(0.6 * u.micron, 0.2 * u.m, 3 * u.ABmag)],
+    },
+    {
+        'class': Ellipse2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'a': 300 * u.cm, 'b': 200 * u.cm, 'theta': 45 * u.deg},
+        'evaluation': [(4 * u.m, 300 * u.cm, 3 * u.ABmag)],
+    },
+    {
+        'class': Disk2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'R_0': 300 * u.cm},
+        'evaluation': [(5.8 * u.m, 201 * u.cm, 3 * u.ABmag)],
+    },
+    {
+        'class': Ring2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                       'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm},
+        'evaluation': [(302.05 * u.cm, 2 * u.m + 10 * u.um, 3 * u.ABmag)],
+    },
+    {
+        'class': Box2D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 3 * u.m, 'y_0': 2 * u.s,
+                       'x_width': 4 * u.cm, 'y_width': 3 * u.s},
+        'evaluation': [(301 * u.cm, 3 * u.s, 3 * u.ABmag)],
+    },
+    {
+        'class': SmoothlyBrokenPowerLaw1D,
+        'parameters': {'amplitude': 5 * u.ABmag, 'x_break': 10 * u.cm,
+                       'alpha_1': 1, 'alpha_2': -1, 'delta': 1},
+        'evaluation': [(1 * u.cm, 15.125 * u.ABmag), (1 * u.m, 15.125 * u.ABmag)],
+    },
+    {
+        'class': Box1D,
+        'parameters': {'amplitude': 3 * u.ABmag, 'x_0': 4.4 * u.um, 'width': 1 * u.um},
+        'evaluation': [(4200 * u.nm, 3 * u.ABmag), (1 * u.m, 0 * u.ABmag)],
+        'bounding_box': [3.9, 4.9] * u.um
+    },
+    {
+        'class': Schechter1D,
+        'parameters': {'phi_star': 1.e-4 * (u.Mpc ** -3), 'm_star': -20. * u.ABmag,
+                       'alpha': -1.9},
+        'evaluation': [(-23 * u.ABmag, 1.002702276867279e-12 * (u.Mpc ** -3))],
+    },
+    {
+        'class': Schechter1D,
+        'parameters': {'phi_star': 1.e-4 * (u.Mpc ** -3), 'm_star': -20. * u.mag,
+                       'alpha': -1.9},
+        'evaluation': [(-23 * u.mag, 1.002702276867279e-12 * (u.Mpc ** -3))],
+    },
+]
+
+
+@pytest.mark.parametrize('model', mag_models)
+def test_models_evaluate_magunits(model):
+    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+        pytest.skip()
+
+    m = model['class'](**model['parameters'])
+    for args in model['evaluation']:
+        assert_quantity_allclose(m(*args[:-1]), args[-1])
+
+
+def test_Schechter1D_errors():
+    # Non magnitude units are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.km, alpha=-1.9)
+    with pytest.raises(u.UnitsError):
+        model(-23 * u.km)
+
+    # Differing magnitude systems are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
+    with pytest.raises(u.UnitsError):
+        model(-23 * u.STmag)
+
+    # Differing magnitude systems are bad
+    model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
+    with pytest.raises(u.UnitsError):
+        model(-23 * u.mag)
