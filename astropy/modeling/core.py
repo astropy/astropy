@@ -418,7 +418,7 @@ class _ModelMeta(abc.ABCMeta):
                     # default is not a Quantity, attach the unit to the
                     # default.
                     if unit is not None:
-                        default = Quantity(default, unit, copy=False)
+                        default = Quantity(default, unit, copy=False, subok=True)
                     kwargs.append((param_name, default))
             else:
                 args = ('self',) + tuple(pdict.keys())
@@ -2537,7 +2537,9 @@ class Model(metaclass=_ModelMeta):
             raise InputParameterError(
                 f"{self.__class__.__name__}.__init__() requires a Quantity for parameter "
                 f"{param_name!r}")
+
         param._unit = unit
+        param._set_unit(unit, force=True)
         param.internal_unit = None
         if param._setter is not None:
             if unit is not None:
@@ -2689,7 +2691,7 @@ class Model(metaclass=_ModelMeta):
                 else:
                     unit = param.unit
                 if unit is not None:
-                    value = Quantity(value, unit)
+                    value = Quantity(value, unit, subok=True)
 
             values.append(value)
 
