@@ -205,8 +205,8 @@ PyTypeObject PyWtbarrType = {
   0,                            /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
   doc_Wtbarr,                   /* tp_doc */
-  PyWtbarr_traverse,            /* tp_traverse */
-  PyWtbarr_clear,               /* tp_clear */
+  (traverseproc)PyWtbarr_traverse, /* tp_traverse */
+  (inquiry)PyWtbarr_clear,      /* tp_clear */
   0,                            /* tp_richcompare */
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
