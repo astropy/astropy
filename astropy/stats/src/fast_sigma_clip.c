@@ -11,7 +11,7 @@ static char _sigma_clip_fast_docstring[] = "Compute sigma clipping";
 
 /* Declare the C functions here. */
 static void _sigma_clip_fast(
-    char **args, npy_intp const *dimensions, npy_intp const* steps, void* data);
+    char **args, npy_intp const* dimensions, npy_intp const* steps, void* data);
 
 /* Define the methods that will be available on the module. */
 static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
@@ -72,7 +72,7 @@ MOD_INIT(_fast_sigma_clip) {
 
 
 static void _sigma_clip_fast(
-    char **args, npy_intp const *dimensions, npy_intp const* steps, void* data)
+    char **args, npy_intp const* dimensions, npy_intp const* steps, void* data)
 {
     npy_intp i_o, i;
     int count;
