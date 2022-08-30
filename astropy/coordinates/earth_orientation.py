@@ -105,7 +105,7 @@ def obliquity(jd, algorithm=2006):
     if algorithm == 2006:
         return np.rad2deg(erfa.obl06(jd, 0))
     elif algorithm == 2000:
-        return np.rad2deg(erfa.pn00(jd, 0, 0, 0)[0])
+        return np.rad2deg(erfa.obl80(jd, 0) + erfa.pr00(jd, 0)[1])
     elif algorithm == 1980:
         return np.rad2deg(erfa.obl80(jd, 0))
     else:
