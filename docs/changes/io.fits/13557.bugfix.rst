@@ -1,0 +1,2 @@
+A compressed image HDU created from the header of a PRIMARY HDU, now correctly updates
+'XTENSION' and 'SIMPLE' keywords.

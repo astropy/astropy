@@ -1519,6 +1519,7 @@ class CompImageHDU(BinTableHDU):
         if 'ZSIMPLE' in self._header:
             image_header.set('SIMPLE', self._header['ZSIMPLE'],
                              self._header.comments['ZSIMPLE'], before=0)
+            del image_header['XTENSION']
         elif 'ZTENSION' in self._header:
             if self._header['ZTENSION'] != 'IMAGE':
                 warnings.warn("ZTENSION keyword in compressed "
