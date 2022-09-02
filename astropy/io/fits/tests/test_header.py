@@ -2962,6 +2962,15 @@ class TestRecordValuedKeywordCards(FitsTestCase):
                                                  compressed=True)
         hf.close()
 
+    def test_fitsheader_compressed_from_primary_image_ext(self):
+        """Regression test for issue https://github.com/astropy/astropy/issues/7312"""
+        data = np.arange(2*2, dtype=np.int8).reshape((2, 2))
+        phdu = fits.PrimaryHDU(data=data)
+        chdu = fits.CompImageHDU(data=phdu.data, header=phdu.header)
+        chdu.writeto(self.temp('tmp2.fits'), overwrite=True)
+        with fits.open(self.temp('tmp2.fits')) as hdul:
+            assert 'XTENSION' not in hdul[1].header
+
     def test_fitsheader_table_feature(self):
         """Tests the `--table` feature of the `fitsheader` script."""
         from astropy.io import fits
