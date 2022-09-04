@@ -68,7 +68,7 @@ class TickLabels(Text):
         """
         required_args = ['axis', 'world', 'angle', 'text', 'axis_displacement', 'data']
         if pixel is not None:
-            warnings.warn('Setting the pixel coordinates of a label does nohing and is deprecated, '
+            warnings.warn('Setting the pixel coordinates of a label does nothing and is deprecated, '
                           'as these can only be accurately calculated when Matplotlib '
                           'is drawing a figure. To prevent this warning pass the following '
                           f'arguments as keyword arguments: {required_args}',
