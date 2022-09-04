@@ -74,10 +74,10 @@ class TickLabels(Text):
                           f'arguments as keyword arguments: {required_args}',
                           AstropyDeprecationWarning)
         if (axis is None or
-            world is None or
-            angle is None or
-            text is None or
-            axis_displacement is None or
+                world is None or
+                angle is None or
+                text is None or
+                axis_displacement is None or
                 data is None):
             raise ValueError(f'All of the following arguments must be provided: {required_args}')
 
