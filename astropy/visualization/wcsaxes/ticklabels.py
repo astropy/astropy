@@ -79,7 +79,7 @@ class TickLabels(Text):
                 text is None or
                 axis_displacement is None or
                 data is None):
-            raise ValueError(f'All of the following arguments must be provided: {required_args}')
+            raise TypeError(f'All of the following arguments must be provided: {required_args}')
 
         self.world[axis].append(world)
         self.data[axis].append(data)
