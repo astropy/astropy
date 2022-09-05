@@ -780,18 +780,7 @@ Writing image tests
 -------------------
 
 The `README.rst <https://github.com/matplotlib/pytest-mpl/blob/master/README.rst>`__
-for the plugin contains information on writing tests with this plugin. The only
-key addition compared to those instructions is that you should set
-``baseline_dir``::
-
-    from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
-
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR)
-
-This is because since the reference image files would contribute significantly
-to the repository size, we instead store them on the http://data.astropy.org
-site. The downside is that it is a little more complicated to create or
-re-generate reference files, but we describe the process here.
+for the plugin contains information on writing tests with this plugin.
 
 Generating reference images
 ---------------------------
@@ -803,6 +792,8 @@ tab on the CircleCI dashboard.
 
 Uploading the reference images
 ------------------------------
+
+**NEEDS UPDATING!**
 
 Next, we need to add these images to the http://data.astropy.org server. To do
 this, open a pull request to `this <https://github.com/astropy/astropy-data>`_
