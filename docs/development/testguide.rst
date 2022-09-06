@@ -803,7 +803,7 @@ Generating reference images
 
 You do not need to generate reference images for new tests or updated reference
 images for changed tests - when pull requests are merged, a CircleCI job will automatically
-update the reference images in the `https://github.com/astropy/astropy-figure-tests`_
+update the reference images in the `astropy-figure-tests <https://github.com/astropy/astropy-figure-tests>`_
 repository.
 
 .. _doctests:
