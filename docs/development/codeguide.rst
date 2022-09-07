@@ -126,6 +126,8 @@ module. The logger can be imported using::
 
     from astropy import log
 
+.. _code-style:
+
 Coding Style/Conventions
 ========================
 
@@ -134,10 +136,17 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
-  guide. You can check locally whether your changes have followed these by
-  running the following `tox <https://tox.readthedocs.io/>`__ command::
+  guide, and some sub-packages enforce stronger styling checks such as using
+  `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
-    tox -e codestyle
+  * We provide a ``pre-commit`` hook which automatically enforces and fixes
+    (whenever possible) the coding style, see :ref:`pre-commit` for details on
+    how to setup and use this.
+
+  * Alternately, you can manually check and fix your changes by running the
+    following `tox <https://tox.readthedocs.io/>`__ command::
+
+      tox -e codestyle
 
 * *Follow the existing coding style* within a subpackage and avoid making
   changes that are purely stylistic.  In particular, there is variation in the
