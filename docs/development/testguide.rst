@@ -97,6 +97,10 @@ You can also run checks or commands not directly related to tests - for instance
 
 will run checks using the flake8 tool.
 
+.. note::
+    It is suggested that you automate the code-style checks using the provided
+    pre-commit hook, as described in the :ref:`pre-commit` section.
+
 Is is possible to pass options to pytest when running tox - to do this, add a
 ``--`` after the regular tox command, and anything after this will be passed to
 pytest, e.g.::
