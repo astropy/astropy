@@ -59,7 +59,7 @@ jobs:
     #    uses a compiled language
 
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       if: matrix.language == 'cpp'
       with:
         python-version: 3.9
