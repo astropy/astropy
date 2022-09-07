@@ -487,7 +487,7 @@ Post-Release procedures
 #. If this is a major release, update the release calendar by going to
    https://github.com/astropy/astropy/wiki/Release-Calendar and updating the
    "Actual date" column of this version's release with the date you performed
-   the release (probably the date of the tag and pypi upload).
+   the release (probably the date of the tag and PyPI upload).
 
 .. _release-procedure-bug-fix:
 
