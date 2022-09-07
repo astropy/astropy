@@ -1070,7 +1070,12 @@ class Table:
         supported and will raise a ValueError.
         """
         if dtype is not None:
-            raise ValueError('Datatype coercion is not allowed')
+            if np.dtype(dtype) != object:
+                raise ValueError('Datatype coercion is not allowed')
+
+            out = np.array(None, dtype=object)
+            out[()] = self
+            return out
 
         # This limitation is because of the following unexpected result that
         # should have made a table copy while changing the column names.
