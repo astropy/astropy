@@ -1885,10 +1885,10 @@ def test_match_to_catalog_3d_and_sky():
 
     idx, angle, quantity = cfk5_J1950.match_to_catalog_3d(cfk5_default)
     npt.assert_array_equal(idx, [0, 1, 2, 3])
-    assert_allclose(angle, 0*u.deg, atol=2e-15*u.deg, rtol=0)
-    assert_allclose(quantity, 0*u.kpc, atol=1e-15*u.kpc, rtol=0)
+    assert_allclose(angle, 0*u.deg, atol=1e-14*u.deg, rtol=0)
+    assert_allclose(quantity, 0*u.kpc, atol=1e-14*u.kpc, rtol=0)
 
     idx, angle, distance = cfk5_J1950.match_to_catalog_sky(cfk5_default)
     npt.assert_array_equal(idx, [0, 1, 2, 3])
-    assert_allclose(angle, 0 * u.deg, atol=2e-15*u.deg, rtol=0)
-    assert_allclose(distance, 0*u.kpc, atol=2e-15*u.kpc, rtol=0)
+    assert_allclose(angle, 0 * u.deg, atol=1e-14*u.deg, rtol=0)
+    assert_allclose(distance, 0*u.kpc, atol=1e-14*u.kpc, rtol=0)
