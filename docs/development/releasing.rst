@@ -106,6 +106,10 @@ The procedure for the feature freeze is as follows:
       $ git push upstream main:main
       $ git push upstream v<next_version>.dev:v<next_version>.dev
 
+#. Update the "Actual date" column of
+   https://github.com/astropy/astropy/wiki/Release-Calendar with the current
+   date for this version's feature freeze.
+
 #. Inform the Astropy developer community that the branching has occurred.
 
 #. Once the feature freeze has happened, you should go through the PRs labeled
@@ -314,6 +318,10 @@ as a template. You can now email the user and developer community advertising
 the release candidate and including a link to the wiki page to report any
 successes and failures.
 
+Additionally, you should update the release calendar by going to
+https://github.com/astropy/astropy/wiki/Release-Calendar and updating the
+"Actual date" column of this version's release candidate with the current date.
+
 Releasing subsequent release candidates
 =======================================
 
@@ -413,7 +421,7 @@ Post-Release procedures
       $ git push upstream stable --force
 
 #. If this is an LTS release (whether or not it is being supported alongside
-   a more recent version), update the "LTS" branch to ponit to the new LTS
+   a more recent version), update the "LTS" branch to point to the new LTS
    release::
 
       $ git checkout LTS
@@ -475,6 +483,11 @@ Post-Release procedures
    lists. For a bugfix release, use the previous announcement as a template.
    You should also coordinate with the rest of the Astropy release team and the
    community engagement coordinators.
+
+#. If this is a major release, update the release calendar by going to
+   https://github.com/astropy/astropy/wiki/Release-Calendar and updating the
+   "Actual date" column of this version's release with the date you performed
+   the release (probably the date of the tag and PyPI upload).
 
 .. _release-procedure-bug-fix:
 
