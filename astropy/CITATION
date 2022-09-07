@@ -1,32 +1,102 @@
-If you use Astropy for work/research presented in a publication (whether
-directly, or as a dependency to another package), we recommend and encourage
-the following acknowledgment:
+If you use Astropy Project tools and resources for work/research presented in a
+publication (whether directly, or as a dependency to another package), we ask that you
+please cite the Astropy papers. We encourage you to cite all three papers, but if space
+is limited, please cite the most recent paper.
 
-  This research made use of Astropy, a community-developed core Python package
-  for Astronomy (Astropy Collaboration, 2018).
+If publishing in the AAS Journals, we recommend adding a \software{} tag to your LaTeX manuscript with
 
-where (Astropy Collaboration, 2018) is a citation to this paper:
+  \software{Astropy \citep{astropy:2013, astropy:2018, astropy:2022}}
 
-  https://ui.adsabs.harvard.edu/abs/2018AJ....156..123T
-
-An earlier paper is also available describing the status of the package at
-the time of v0.2. If you have used Astropy for a long time, you are
-encouraged to acknowledge both papers:
-
-  This research made use of Astropy, a community-developed core Python package
-  for Astronomy (Astropy Collaboration, 2013, 2018).
-
-where (Astropy Collaboration, 2013) is a citation to this paper:
+where the citation keys refer to the Astropy papers:
 
   https://ui.adsabs.harvard.edu/abs/2013A%26A...558A..33A
+  https://ui.adsabs.harvard.edu/abs/2018AJ....156..123A
+  https://ui.adsabs.harvard.edu/abs/2022ApJ...935..167A
 
-We encourage you to also include citations to the papers in the main text
-wherever appropriate.
+and BibTeX records are provided below.
 
+For other journals or publication mechanisms, we recommend adding an acknowledgment:
 
-Recommended BibTeX entries for the above citations are:
+  This work made use of Astropy: a community-developed core Python package and an
+  ecosystem of tools and resources for astronomy (Astropy Collaboration, 2013, 2018,
+  2022).
 
-@ARTICLE{2018AJ....156..123T,
+where (Astropy Collaboration, 2013, 2018, 2022) represents citations to the Astropy
+papers linked above.
+
+We encourage you to also include citations to the papers in the main text wherever
+appropriate.
+
+The recommended LaTeX acknowledgment is:
+
+  This work made use of Astropy: a community-developed core Python package and an
+  ecosystem of tools and resources for astronomy \citep{astropy:2013, astropy:2018,
+  astropy:2022}.
+
+BibTeX entries for the above citations are:
+
+@ARTICLE{astropy:2022,
+       author = {{Astropy Collaboration} and {Price-Whelan}, Adrian M. and {Lim}, Pey
+       Lian and {Earl}, Nicholas and {Starkman}, Nathaniel and {Bradley}, Larry and
+       {Shupe}, David L. and {Patil}, Aarya A. and {Corrales}, Lia and {Brasseur}, C.~E.
+       and {N{\"o}the}, Maximilian and {Donath}, Axel and {Tollerud}, Erik and {Morris},
+       Brett M. and {Ginsburg}, Adam and {Vaher}, Eero and {Weaver}, Benjamin A. and
+       {Tocknell}, James and {Jamieson}, William and {van Kerkwijk}, Marten H. and
+       {Robitaille}, Thomas P. and {Merry}, Bruce and {Bachetti}, Matteo and
+       {G{\"u}nther}, H. Moritz and {Aldcroft}, Thomas L. and {Alvarado-Montes}, Jaime
+       A. and {Archibald}, Anne M. and {B{\'o}di}, Attila and {Bapat}, Shreyas and
+       {Barentsen}, Geert and {Baz{\'a}n}, Juanjo and {Biswas}, Manish and {Boquien},
+       M{\'e}d{\'e}ric and {Burke}, D.~J. and {Cara}, Daria and {Cara}, Mihai and
+       {Conroy}, Kyle E. and {Conseil}, Simon and {Craig}, Matthew W. and {Cross},
+       Robert M. and {Cruz}, Kelle L. and {D'Eugenio}, Francesco and {Dencheva}, Nadia
+       and {Devillepoix}, Hadrien A.~R. and {Dietrich}, J{\"o}rg P. and {Eigenbrot},
+       Arthur Davis and {Erben}, Thomas and {Ferreira}, Leonardo and {Foreman-Mackey},
+       Daniel and {Fox}, Ryan and {Freij}, Nabil and {Garg}, Suyog and {Geda}, Robel and
+       {Glattly}, Lauren and {Gondhalekar}, Yash and {Gordon}, Karl D. and {Grant},
+       David and {Greenfield}, Perry and {Groener}, Austen M. and {Guest}, Steve and
+       {Gurovich}, Sebastian and {Handberg}, Rasmus and {Hart}, Akeem and
+       {Hatfield-Dodds}, Zac and {Homeier}, Derek and {Hosseinzadeh}, Griffin and
+       {Jenness}, Tim and {Jones}, Craig K. and {Joseph}, Prajwel and {Kalmbach}, J.
+       Bryce and {Karamehmetoglu}, Emir and {Ka{\l}uszy{\'n}ski}, Miko{\l}aj and
+       {Kelley}, Michael S.~P. and {Kern}, Nicholas and {Kerzendorf}, Wolfgang E. and
+       {Koch}, Eric W. and {Kulumani}, Shankar and {Lee}, Antony and {Ly}, Chun and
+       {Ma}, Zhiyuan and {MacBride}, Conor and {Maljaars}, Jakob M. and {Muna}, Demitri
+       and {Murphy}, N.~A. and {Norman}, Henrik and {O'Steen}, Richard and {Oman}, Kyle
+       A. and {Pacifici}, Camilla and {Pascual}, Sergio and {Pascual-Granado}, J. and
+       {Patil}, Rohit R. and {Perren}, Gabriel I. and {Pickering}, Timothy E. and
+       {Rastogi}, Tanuj and {Roulston}, Benjamin R. and {Ryan}, Daniel F. and {Rykoff},
+       Eli S. and {Sabater}, Jose and {Sakurikar}, Parikshit and {Salgado}, Jes{\'u}s
+       and {Sanghi}, Aniket and {Saunders}, Nicholas and {Savchenko}, Volodymyr and
+       {Schwardt}, Ludwig and {Seifert-Eckert}, Michael and {Shih}, Albert Y. and
+       {Jain}, Anany Shrey and {Shukla}, Gyanendra and {Sick}, Jonathan and {Simpson},
+       Chris and {Singanamalla}, Sudheesh and {Singer}, Leo P. and {Singhal}, Jaladh and
+       {Sinha}, Manodeep and {Sip{\H{o}}cz}, Brigitta M. and {Spitler}, Lee R. and
+       {Stansby}, David and {Streicher}, Ole and {{\v{S}}umak}, Jani and {Swinbank},
+       John D. and {Taranu}, Dan S. and {Tewary}, Nikita and {Tremblay}, Grant R. and
+       {Val-Borro}, Miguel de and {Van Kooten}, Samuel J. and {Vasovi{\'c}}, Zlatan and
+       {Verma}, Shresth and {de Miranda Cardoso}, Jos{\'e} Vin{\'\i}cius and {Williams},
+       Peter K.~G. and {Wilson}, Tom J. and {Winkel}, Benjamin and {Wood-Vasey}, W.~M.
+       and {Xue}, Rui and {Yoachim}, Peter and {Zhang}, Chen and {Zonca}, Andrea and
+       {Astropy Project Contributors}}, title = "{The Astropy Project: Sustaining and
+       Growing a Community-oriented Open-source Project and the Latest Major Release
+       (v5.0) of the Core Package}",
+      journal = {\apj},
+     keywords = {Astronomy software, Open source software, Astronomy data analysis, 1855, 1866, 1858, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2022,
+        month = aug,
+       volume = {935},
+       number = {2},
+          eid = {167},
+        pages = {167},
+          doi = {10.3847/1538-4357/ac7c74},
+archivePrefix = {arXiv},
+       eprint = {2206.14220},
+ primaryClass = {astro-ph.IM},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2022ApJ...935..167A},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{astropy:2018,
    author = {{The Astropy Collaboration} and {Price-Whelan}, A.~M. and {Sip{\H o}cz}, B.~M. and
 	{G{\"u}nther}, H.~M. and {Lim}, P.~L. and {Crawford}, S.~M. and
 	{Conseil}, S. and {Shupe}, D.~L. and {Craig}, M.~W. and {Dencheva}, N. and
@@ -84,7 +154,7 @@ archivePrefix = "arXiv",
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 
-@ARTICLE{2013A&A...558A..33A,
+@ARTICLE{astropy:2013,
    author = {{Astropy Collaboration} and {Robitaille}, T.~P. and {Tollerud}, E.~J. and
     {Greenfield}, P. and {Droettboom}, M. and {Bray}, E. and {Aldcroft}, T. and
     {Davis}, M. and {Ginsburg}, A. and {Price-Whelan}, A.~M. and
