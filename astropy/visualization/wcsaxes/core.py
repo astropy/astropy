@@ -409,20 +409,20 @@ class WCSAxes(Axes):
         visible_ticks = []
 
         for coords in self._all_coords:
-
+            # Draw grids
             coords.frame.update()
             for coord in coords:
                 coord._draw_grid(renderer)
 
         for coords in self._all_coords:
-
+            # Draw tick labels
             for coord in coords:
                 coord._draw_ticks(renderer, bboxes=self._bboxes,
                                   ticklabels_bbox=ticklabels_bbox[coord])
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
-
+            # Draw axis labels
             for coord in coords:
                 coord._draw_axislabels(renderer, bboxes=self._bboxes,
                                        ticklabels_bbox=ticklabels_bbox,
@@ -626,6 +626,8 @@ class WCSAxes(Axes):
         if not self.get_visible():
             return
 
+        # Do a draw to populate the self._bboxes list
+        self.draw_wcsaxes(renderer)
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
