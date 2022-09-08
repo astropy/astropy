@@ -26,7 +26,7 @@ from astropy.utils.misc import isiterable
 from .core import (
     Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
     get_current_unit_registry)
-from .format.latex import Latex
+from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
 from .quantity_helper.function_helpers import (
     DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
@@ -1428,24 +1428,21 @@ class Quantity(np.ndarray):
         return self.to_string(format='latex', subfmt='inline')
 
     def __format__(self, format_spec):
-        """
-        Format quantities using the new-style python formatting codes
-        as specifiers for the number.
-
-        If the format specifier correctly applies itself to the value,
-        then it is used to format only the value. If it cannot be
-        applied to the value, then it is applied to the whole string.
-
-        """
         try:
-            value = format(self.value, format_spec)
-            full_format_spec = "s"
+            return self.to_string(format=format_spec)
         except ValueError:
-            value = self.value
-            full_format_spec = format_spec
-
-        return format(f"{value}{self._unitstr:s}",
-                      full_format_spec)
+            # We might have a unit format not implemented in `to_string()`.
+            if format_spec in Base.registry:
+                if self.unit is dimensionless_unscaled:
+                    return f"{self.value}"
+                else:
+                    return f"{self.value} {format(self.unit, format_spec)}"
+            # Can the value be formatted on its own?
+            try:
+                return f"{format(self.value, format_spec)}{self._unitstr:s}"
+            except ValueError:
+                # Format the whole thing as a single string.
+                return format(f"{self.value}{self._unitstr:s}", format_spec)
 
     def decompose(self, bases=[]):
         """

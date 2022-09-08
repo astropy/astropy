@@ -12,10 +12,13 @@ strings using the `Python Format String Syntax
 (demonstrated below using `f-strings
 <https://www.python.org/dev/peps/pep-0498/>`_).
 
-For quantities, format specifiers, like ``.3f`` will be applied to
-the |Quantity| value, without affecting the unit. Specifiers like
-``^20s``, which would only apply to a string, will be applied to the
-whole string representation of the |Quantity|.
+For a |Quantity|, format specifiers that are names of `Built-In Formats`_ are
+applied to the |Quantity| unit, and if possible also to the value. Format
+specifiers for numerical values, like ``.3f``, will be applied to the
+|Quantity| value, without affecting the unit. Finally, specifiers like
+``^20s``, which would apply to a string, will be applied to the string
+representation of the |Quantity| as a whole. Format specifiers that apply to
+the unit part of a |Quantity| are also applicable to a |Unit| instance.
 
 Examples
 --------
@@ -30,6 +33,8 @@ To render |Quantity| or |Unit| objects as strings::
     <Quantity  10.5 km>
     >>> f"{q}"
     '10.5 km'
+    >>> f"{q:latex}"
+    '$10.5 \\; \\mathrm{km}$'
     >>> f"{q:+.3f}"
     '+10.500 km'
     >>> f"{q:^20}"
@@ -51,6 +56,8 @@ to use the `Quantity.to_string() <astropy.units.Quantity.to_string()>`
 method::
 
     >>> q = 1.2478e12 * u.pc/u.Myr
+    >>> f"{q:latex}"  # Might not have the number of digits we would like
+    '$1.2478 \\times 10^{12} \\; \\mathrm{\\frac{pc}{Myr}}$'
     >>> f"{q.value:.3e} {q.unit:latex}"  # The value is not in LaTeX
     '1.248e+12 $\\mathrm{\\frac{pc}{Myr}}$'
     >>> q.to_string(format="latex", precision=4)  # Right number of LaTeX digits
@@ -79,8 +86,8 @@ framework, including user-defined units. The format specifier (and
 take an optional parameter to select a different format::
 
     >>> q = 10 * u.km
-    >>> f"{q.value:0.003f} in {q.unit:latex}"
-    '10.000 in $\\mathrm{km}$'
+    >>> f"{q:latex}"
+    '$10 \\; \\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
     'erg / (cm2 s)'
