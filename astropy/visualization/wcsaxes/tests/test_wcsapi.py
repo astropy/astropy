@@ -15,7 +15,6 @@ from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs import WCS
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
@@ -462,8 +461,7 @@ def test_coord_meta_wcsapi():
 
 
 @pytest.mark.remote_data(source='astropy')
-@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                tolerance=0, style={})
+@pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_wcsapi_5d_with_names(plt_close):
     # Test for plotting image and also setting values of ticks
     fig = plt.figure(figsize=(6, 6))
