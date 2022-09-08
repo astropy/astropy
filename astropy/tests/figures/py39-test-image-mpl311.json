@@ -15,6 +15,7 @@
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_cube_slice_image": "9f695382ebefb042b1d1703ab6905e8b918d9754115572e515e304cbce161f68",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_cube_slice_image_lonlat": "b5d1e4efbb5f63157a29d180d2d11d8eaab065a0da615b2eda9a9db3ab46ec09",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_plot_coord": "ab06286f78a073d42bc507c73dfd169466caeca30aa9073cbaec35a924f1cdc1",
+  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_scatter_coord": "ab06286f78a073d42bc507c73dfd169466caeca30aa9073cbaec35a924f1cdc1",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_plot_line": "0961332a596c87b6530a74f54c6dfccbcfbc994f443cbda926bded233a24fb98",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_changed_axis_units": "d0ad181b8c9a2f19ec19ee014f4bfd0fcc792802f7f9ae1a9826c2868515db6f",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_minor_ticks": "13d0d00d253a8ef745e7363bf340f2ba75ef1a0228cb6972c12a7d0255a03c08",
