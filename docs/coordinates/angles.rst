@@ -98,6 +98,12 @@ There are many ways to represent the value of an |Angle|::
     signed_dms_tuple(sign=-1.0, d=57.0, m=17.0, s=44.806247096362313)
     >>> a.arcminute  # doctest: +FLOAT_CMP
     3437.7467707849396
+    >>> f"{a}"
+    '1.0 rad'
+    >>> f"{a:latex}"
+    '$1\\mathrm{rad}$'
+    >>> f"{a.to(u.deg):latex}"
+    '$57^\\circ17{}^\\prime44.8062471{}^{\\prime\\prime}$'
     >>> a.to_string()
     '1rad'
     >>> a.to_string(unit=u.degree)
