@@ -309,6 +309,31 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    def test_scatter_coord(self):
+        from matplotlib.collections import PathCollection
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
+        ax.set_xlim(-0.5, 720.5)
+        ax.set_ylim(-0.5, 720.5)
+
+        c = SkyCoord(266 * u.deg, -29 * u.deg)
+        sc = ax.scatter_coord(c, marker='o')
+
+        # Test that plot_coord returns the results from ax.plot
+        assert isinstance(sc, PathCollection)
+
+        # In previous versions, all angle axes defaulted to being displayed in
+        # degrees. We now automatically show RA axes in hour angle units, but
+        # for backward-compatibility with previous reference images we
+        # explicitly use degrees here.
+        ax.coords[0].set_format_unit(u.degree)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_plot_line(self):
         fig = plt.figure(figsize=(6, 6))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],

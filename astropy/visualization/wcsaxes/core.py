@@ -269,31 +269,11 @@ class WCSAxes(Axes):
 
         return cset
 
-    def plot_coord(self, *args, **kwargs):
+    def _transform_plot_args(self, *args, **kwargs):
         """
-        Plot `~astropy.coordinates.SkyCoord` or
-        `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
-
-        The first argument to
-        :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
-        coordinate, which will then be converted to the first two parameters to
-        `matplotlib.axes.Axes.plot`. All other arguments are the same as
-        `matplotlib.axes.Axes.plot`. If not specified a ``transform`` keyword
-        argument will be created based on the coordinate.
-
-        Parameters
-        ----------
-        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate object to plot on the axes. This is converted to the
-            first two arguments to `matplotlib.axes.Axes.plot`.
-
-        See Also
-        --------
-        matplotlib.axes.Axes.plot :
-            This method is called from this function with all arguments passed to it.
-
+        Apply transformations to arguments to ``plot_coord`` and
+        ``scatter_coord``
         """
-
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
 
             # Extract the frame from the first argument.
@@ -324,7 +304,63 @@ class WCSAxes(Axes):
 
             args = tuple(plot_data) + args[1:]
 
+        return args, kwargs
+
+    def plot_coord(self, *args, **kwargs):
+        """
+        Plot `~astropy.coordinates.SkyCoord` or
+        `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
+
+        The first argument to
+        :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
+        coordinate, which will then be converted to the first two parameters to
+        `matplotlib.axes.Axes.plot`. All other arguments are the same as
+        `matplotlib.axes.Axes.plot`. If not specified a ``transform`` keyword
+        argument will be created based on the coordinate.
+
+        Parameters
+        ----------
+        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate object to plot on the axes. This is converted to the
+            first two arguments to `matplotlib.axes.Axes.plot`.
+
+        See Also
+        --------
+        matplotlib.axes.Axes.plot :
+            This method is called from this function with all arguments passed to it.
+
+        """
+
+        args, kwargs = self._transform_plot_args(*args, **kwargs)
+
         return super().plot(*args, **kwargs)
+
+    def scatter_coord(self, *args, **kwargs):
+        """
+        Scatter `~astropy.coordinates.SkyCoord` or
+        `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
+
+        The first argument to
+        :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
+        coordinate, which will then be converted to the first two parameters to
+        `matplotlib.axes.Axes.scatter`. All other arguments are the same as
+        `matplotlib.axes.Axes.scatter`. If not specified a ``transform``
+        keyword argument will be created based on the coordinate.
+
+        Parameters
+        ----------
+        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate object to scatter on the axes. This is converted to
+            the first two arguments to `matplotlib.axes.Axes.scatter`.
+
+        See Also
+        --------
+        matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
+        """
+
+        args, kwargs = self._transform_plot_args(*args, **kwargs)
+
+        return super().scatter(*args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
