@@ -46,6 +46,16 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    def test_tight_layout(self):
+        # Check that tight_layout works on a WCSAxes.
+        fig = plt.figure(figsize=(8, 6))
+        axs = [fig.add_subplot(2, 1, i, projection=WCS(self.msx_header))
+               for i in [1, 2]]
+        fig.tight_layout()
+        return fig
+
+    @pytest.mark.remote_data
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
         fig = plt.figure(figsize=(6, 6))
