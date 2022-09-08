@@ -58,6 +58,7 @@ This checklist is meant to remind the package maintainer(s) who will review this
 
 - [ ] Do the proposed changes actually accomplish desired goals?
 - [ ] Do the proposed changes follow the [Astropy coding guidelines](https://docs.astropy.org/en/latest/development/codeguide.html)?
+- [ ] Do the proposed changes need the code-style [fixed](https://docs.astropy.org/en/latest/development/workflow/maintainer_workflow.html#pre-commit_bot)?
 - [ ] Are tests added/updated as required? If so, do they follow the [Astropy testing guidelines](https://docs.astropy.org/en/latest/development/testguide.html)?
 - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html#astropy-documentation-rules-and-guidelines)?
 - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see ["When to rebase and squash commits"](https://docs.astropy.org/en/latest/development/when_to_rebase.html).
