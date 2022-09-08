@@ -1,0 +1,3 @@
+The locations of ``WCSAxes`` ticks and tick-labels are now correctly calculated
+when the DPI of a figure changes between a WCSAxes being created and the figure
+being drawn, or when a rasterized artist is added to the WCSAxes.
