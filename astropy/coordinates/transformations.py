@@ -30,8 +30,6 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.exceptions import AstropyWarning
 
-from .matrix_utilities import matrix_product
-
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
            'BaseAffineTransform', 'AffineTransform',
            'StaticMatrixTransform', 'DynamicMatrixTransform',
@@ -1449,10 +1447,11 @@ class CompositeTransform(CoordinateTransform):
 
             if (isinstance(lasttrans, StaticMatrixTransform) and
                     isinstance(currtrans, StaticMatrixTransform)):
-                combinedmat = matrix_product(currtrans.matrix, lasttrans.matrix)
-                newtrans[-1] = StaticMatrixTransform(combinedmat,
-                                                     lasttrans.fromsys,
-                                                     currtrans.tosys)
+                newtrans[-1] = StaticMatrixTransform(
+                    currtrans.matrix @ lasttrans.matrix,
+                    lasttrans.fromsys,
+                    currtrans.tosys,
+                )
             else:
                 newtrans.append(currtrans)
         return newtrans

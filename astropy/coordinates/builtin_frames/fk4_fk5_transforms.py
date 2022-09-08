@@ -5,7 +5,7 @@ import numpy as np
 
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import DynamicMatrixTransform
-from astropy.coordinates.matrix_utilities import matrix_product, matrix_transpose
+from astropy.coordinates.matrix_utilities import matrix_transpose
 
 
 from .fk4 import FK4NoETerms
@@ -50,7 +50,7 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
     pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950)
     pmat2 = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
 
-    return matrix_product(pmat2, B, pmat1)
+    return pmat2 @ B @ pmat1
 
 
 # This transformation can't be static because the observation date is needed.
@@ -65,4 +65,4 @@ def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
     pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950, fk4noeframe.equinox)
 
-    return matrix_product(pmat2, B, pmat1)
+    return pmat2 @ B @ pmat1

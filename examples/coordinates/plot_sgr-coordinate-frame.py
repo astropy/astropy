@@ -53,7 +53,7 @@ plt.style.use(astropy_mpl_style)
 # Import the packages necessary for coordinates
 
 from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 import astropy.coordinates as coord
 import astropy.units as u
 
@@ -128,11 +128,12 @@ SGR_THETA = (90 - 13.46) * u.degree
 SGR_PSI = (180 + 14.111534) * u.degree
 
 # Generate the rotation matrix using the x-convention (see Goldstein)
-D = rotation_matrix(SGR_PHI, "z")
-C = rotation_matrix(SGR_THETA, "x")
-B = rotation_matrix(SGR_PSI, "z")
-A = np.diag([1.,1.,-1.])
-SGR_MATRIX = matrix_product(A, B, C, D)
+SGR_MATRIX = (
+    np.diag([1.,1.,-1.])
+    @ rotation_matrix(SGR_PSI, "z")
+    @ rotation_matrix(SGR_THETA, "x")
+    @ rotation_matrix(SGR_PHI, "z")
+)
 
 
 ##############################################################################

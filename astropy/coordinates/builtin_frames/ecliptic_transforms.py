@@ -10,9 +10,7 @@ from astropy.coordinates.transformations import (
     FunctionTransformWithFiniteDifference, DynamicMatrixTransform,
     AffineTransform,
 )
-from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                                  matrix_product,
-                                                  matrix_transpose)
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 
 from .icrs import ICRS
 from .gcrs import GCRS
@@ -49,7 +47,7 @@ def _true_ecliptic_rotation_matrix(equinox):
     rnpb = erfa.fw2m(gamb, phib, psib+dpsi, epsa+deps)
     # calculate the true obliquity of the ecliptic
     obl = erfa.obl06(jd1, jd2)+deps
-    return matrix_product(rotation_matrix(obl << u.radian, 'x'), rnpb)
+    return rotation_matrix(obl << u.radian, 'x') @ rnpb
 
 
 def _obliquity_only_rotation_matrix(obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian):

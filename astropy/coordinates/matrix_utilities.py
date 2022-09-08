@@ -7,9 +7,11 @@ from functools import reduce
 import numpy as np
 
 from astropy import units as u
+from astropy.utils import deprecated
 from .angles import Angle
 
 
+@deprecated("5.2", alternative="@")
 def matrix_product(*matrices):
     """Matrix multiply all arguments together.
 

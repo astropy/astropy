@@ -4,9 +4,7 @@ from astropy.coordinates.transformations import DynamicMatrixTransform, Function
 from astropy.coordinates.baseframe import (frame_transform_graph,
                                            BaseCoordinateFrame)
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
-from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                                  matrix_product,
-                                                  matrix_transpose)
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 
 _skyoffset_cache = {}
 
@@ -71,10 +69,11 @@ def make_skyoffset_cls(framecls):
         # Define rotation matrices along the position angle vector, and
         # relative to the origin.
         origin = skyoffset_frame.origin.spherical
-        mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
-        mat2 = rotation_matrix(-origin.lat, 'y')
-        mat3 = rotation_matrix(origin.lon, 'z')
-        return matrix_product(mat1, mat2, mat3)
+        return (
+            rotation_matrix(-skyoffset_frame.rotation, 'x')
+            @ rotation_matrix(-origin.lat, 'y')
+            @ rotation_matrix(origin.lon, 'z')
+        )
 
     @frame_transform_graph.transform(DynamicMatrixTransform, _SkyOffsetFramecls, framecls)
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
