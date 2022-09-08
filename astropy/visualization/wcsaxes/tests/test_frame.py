@@ -9,7 +9,6 @@ from astropy.wcs import WCS
 from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import BaseFrame
 
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
 from .test_images import BaseImageTests
 
 
@@ -37,8 +36,7 @@ class HexagonalFrame(BaseFrame):
 class TestFrame(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
@@ -78,8 +76,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -104,8 +101,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -128,8 +124,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure
