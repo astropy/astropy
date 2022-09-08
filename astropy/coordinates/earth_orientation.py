@@ -14,7 +14,7 @@ import erfa
 
 from astropy.time import Time
 from .builtin_frames.utils import get_jd12
-from .matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+from .matrix_utilities import matrix_transpose, rotation_matrix
 
 
 jd1950 = Time('B1950').jd
@@ -168,9 +168,11 @@ def _precession_matrix_besselian(epoch1, epoch2):
     ptheta = (theta3, theta2, theta1, 0)
     theta = np.polyval(ptheta, dt) / 3600
 
-    return matrix_product(rotation_matrix(-z, 'z'),
-                          rotation_matrix(theta, 'y'),
-                          rotation_matrix(-zeta, 'z'))
+    return (
+        rotation_matrix(-z, 'z')
+        @ rotation_matrix(theta, 'y')
+        @ rotation_matrix(-zeta, 'z')
+    )
 
 
 def nutation_components2000B(jd):

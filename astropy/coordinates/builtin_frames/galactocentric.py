@@ -10,7 +10,7 @@ from astropy import units as u
 from astropy.utils.state import ScienceState
 from astropy.utils.decorators import format_doc, classproperty, deprecated
 from astropy.coordinates.angles import Angle
-from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import (BaseCoordinateFrame,
                                            frame_transform_graph,
@@ -528,7 +528,7 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
     mat0 = rotation_matrix(gcf.get_roll0() - gcf.roll, 'x')
 
     # construct transformation matrix and use it
-    R = matrix_product(mat0, mat1, mat2)
+    R = mat0 @ mat1 @ mat2
 
     # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
@@ -537,7 +537,7 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
     H = rotation_matrix(-np.arcsin(z_d), 'y')
 
     # compute total matrices
-    A = matrix_product(H, R)
+    A = H @ R
 
     # Now we re-align the translation vector to account for the Sun's height
     # above the midplane
