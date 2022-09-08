@@ -127,6 +127,23 @@ def test_plot_coord_transform(ignore_matplotlibrc):
         ax.plot_coord(c, 'o', transform=ax.get_transform('galactic'))
 
 
+def test_scatter_coord_transform(ignore_matplotlibrc):
+
+    twoMASS_k_header = get_pkg_data_filename('data/2MASS_k_header')
+    twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                      projection=WCS(twoMASS_k_header),
+                      aspect='equal')
+    ax.set_xlim(-0.5, 720.5)
+    ax.set_ylim(-0.5, 720.5)
+
+    c = SkyCoord(359.76045223*u.deg, 0.26876217*u.deg)
+    with pytest.raises(TypeError):
+        ax.scatter_coord(c, marker='o',
+                         transform=ax.get_transform('galactic'))
+
+
 def test_set_label_properties(ignore_matplotlibrc):
 
     # Regression test to make sure that arguments passed to
