@@ -25,7 +25,7 @@ jobs:
               pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: tox -v -- -W ignore:np.asscalar -W ignore::DeprecationWarning -k "not test_no_numpy_warnings"
+          command: tox -v
       - store_artifacts:
           path: results
       - run:
@@ -61,7 +61,7 @@ jobs:
       - run: git clone git@github.com:astropy/astropy-figure-tests.git --depth 1 -b astropy-${CIRCLE_BRANCH} ~/astropy-figure-tests/
       - run:
           name: Generate reference images
-          command: tox -v -- --mpl-generate-path=/home/circleci/astropy-figure-tests/figures/$TOXENV -W ignore:np.asscalar -W ignore::DeprecationWarning -k "not test_no_numpy_warnings"
+          command: tox -v -- --mpl-generate-path=/home/circleci/astropy-figure-tests/figures/$TOXENV
       - run: |
           cd ~/astropy-figure-tests/
           git pull
