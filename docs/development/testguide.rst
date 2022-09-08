@@ -772,10 +772,13 @@ To run the Astropy tests with the image comparison, use e.g.::
 
     tox -e py39-test-image-mpl311
 
-However, note that the output can be very sensitive to the specific version of
-libraries such as freetype, as well as the operating system, so we do not
-recommend running the image tests locally in general and instead it is best to
-rely on these running in an controlled continuous integration environment.
+However, note that the output can be sensitive to the operating system and
+specific version of libraries such as freetype. In general, using tox will
+result in the version of freetype being pinned, but the hashes will only be
+correct when running the tests on Linux. Therefore, if using another operating
+system, we do not recommend running the image tests locally and instead it is
+best to rely on these running in an controlled continuous integration
+environment.
 
 Writing image tests
 -------------------
@@ -793,10 +796,13 @@ When existing tests start failing, it is usually either because of a change in
 astropy itself, or a change in Matplotlib. New tests will also fail if you have
 not yet updated the hash library.
 
-In all cases, you can view a webpage with all the existing figures where you can check whether
-any of the figures are now wrong, or if all is well. If any changes/additions look good, you
-can download from the summary page a JSON file with the hashes which you can use to replace
-the existing one in ``astropy/tests/figures``.
+In all cases, you can view a webpage with all the existing figures where you can
+check whether any of the figures are now wrong, or if all is well. The link to
+the page for each tox environment that has been run will be provided in the
+list of statuses for pull requests, and can also be found in the CircleCI
+logs. If any changes/additions look good, you can download from the summary page
+a JSON file with the hashes which you can use to replace the existing one in
+``astropy/tests/figures``.
 
 Generating reference images
 ---------------------------
