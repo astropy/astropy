@@ -52,6 +52,7 @@ class TestBasic(BaseImageTests):
         axs = [fig.add_subplot(2, 1, i, projection=WCS(self.msx_header))
                for i in [1, 2]]
         fig.tight_layout()
+        return fig
 
     @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
