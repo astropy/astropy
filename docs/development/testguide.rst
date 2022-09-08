@@ -768,66 +768,53 @@ Running image tests
 We make use of the `pytest-mpl <https://pypi.org/project/pytest-mpl>`_
 plugin to write tests where we can compare the output of plotting commands
 with reference files on a pixel-by-pixel basis (this is used for instance in
-:ref:`astropy.visualization.wcsaxes <wcsaxes>`).
+:ref:`astropy.visualization.wcsaxes <wcsaxes>`). We use the `hybrid mode
+<https://github.com/matplotlib/pytest-mpl#hybrid-mode-hashes-and-images>`_ with
+hashes and images.
 
-To run the Astropy tests with the image comparison, use::
+To run the Astropy tests with the image comparison, use e.g.::
 
-    pytest --mpl --remote-data=astropy
+    tox -e py39-test-image-mpl311
 
-However, note that the output can be very sensitive to the version of Matplotlib
-as well as all its dependencies (e.g., freetype), so we recommend running the
-image tests inside a `Docker <https://www.docker.com/>`__ container which has a
-frozen set of package versions (Docker containers can be thought of as mini
-virtual machines). See our ``.circleci/config.yml`` for reference.
+However, note that the output can be sensitive to the operating system and
+specific version of libraries such as freetype. In general, using tox will
+result in the version of freetype being pinned, but the hashes will only be
+correct when running the tests on Linux. Therefore, if using another operating
+system, we do not recommend running the image tests locally and instead it is
+best to rely on these running in an controlled continuous integration
+environment.
 
 Writing image tests
 -------------------
 
 The `README.rst <https://github.com/matplotlib/pytest-mpl/blob/master/README.rst>`__
-for the plugin contains information on writing tests with this plugin. The only
-key addition compared to those instructions is that you should set
-``baseline_dir``::
+for the plugin contains information on writing tests with this plugin. Once you
+have added a test, and push this to a pull request, you will likely start seeing
+a test failure because the figure hash is missing from the hash libraries
+(see the next section for how to proceed).
 
-    from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+Failing tests
+-------------
 
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR)
+When existing tests start failing, it is usually either because of a change in
+astropy itself, or a change in Matplotlib. New tests will also fail if you have
+not yet updated the hash library.
 
-This is because since the reference image files would contribute significantly
-to the repository size, we instead store them on the http://data.astropy.org
-site. The downside is that it is a little more complicated to create or
-re-generate reference files, but we describe the process here.
+In all cases, you can view a webpage with all the existing figures where you can
+check whether any of the figures are now wrong, or if all is well. The link to
+the page for each tox environment that has been run will be provided in the
+list of statuses for pull requests, and can also be found in the CircleCI
+logs. If any changes/additions look good, you can download from the summary page
+a JSON file with the hashes which you can use to replace the existing one in
+``astropy/tests/figures``.
 
 Generating reference images
 ---------------------------
 
-Any failed test on CircleCI would provide you with the old and the new reference
-images, along with the difference image. After you have determined that the
-new reference image is acceptable, you could download it from the "artifacts"
-tab on the CircleCI dashboard.
-
-Uploading the reference images
-------------------------------
-
-Next, we need to add these images to the http://data.astropy.org server. To do
-this, open a pull request to `this <https://github.com/astropy/astropy-data>`_
-repository. The reference images for Astropy tests should go inside the
-`testing/astropy <https://github.com/astropy/astropy-data/tree/gh-pages/testing/astropy>`_
-directory. In that directory are folders named as timestamps. If you are simply
-adding new tests, add the reference files to the most recent directory.
-
-If you are re-generating baseline images due to changes in Astropy, make a new
-timestamp directory by copying one the most recent one, then replace any
-baseline images that have changed. Note that due to changes between Matplotlib
-versions, we need to add the whole set of reference images for each major
-Matplotlib version. Therefore, in each timestamp folder, there are folders named
-e.g. ``1.4.x`` and ``1.5.x``.
-
-Once the reference images are merged in and available on
-http://data.astropy.org, update the timestamp in the ``IMAGE_REFERENCE_DIR``
-variable in the ``astropy.tests.image_tests`` sub-module. Because the timestamp
-is hard-coded, adding a new timestamp directory will not mess with testing for
-released versions of Astropy, so you can easily add and tweak a new timestamp
-directory while still working on a pull request to Astropy.
+You do not need to generate reference images for new tests or updated reference
+images for changed tests - when pull requests are merged, a CircleCI job will automatically
+update the reference images in the `astropy-figure-tests <https://github.com/astropy/astropy-figure-tests>`_
+repository.
 
 .. _doctests:
 
