@@ -3,6 +3,7 @@
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_rectangular": "d40c2b8cf866d5c67b94fd2dbed93933966340892f0bd08a181cfdcce83b9d7b",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_nonrectangular": "fff881a1a786ff5d91a0e4d04c2cdc3f22065c14b69d8cf4a1f7f52564b689a1",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_change_wcs": "4e7b2987ea47d21c4c1c0fe155acf3d2c634dff64120f039bbd677c4022ab980",
+  "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_tight_layout": "31e38883b6334728a745dccf31ab25e554038160f871fa04b069450dd28fc9f4",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_image_plot": "171e531cfb5df305db9c240ec0e73e97ab13922ae6117d34aeab7f976ac605ff",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_axes_off": "a6236830a0c4fdbfad9d65b3dd66ee07a40028a3e59eb9ff646be6f6ab935971",
   "astropy.visualization.wcsaxes.tests.test_images.TestBasic.test_axisbelow[True]": "6ed81e1156e2a1ddb5a74cbaf835b76e9f6919d4b619d7732c6ee3267994e2b6",
