@@ -44,7 +44,7 @@ class BaseImageTests:
 
 class TestBasic(BaseImageTests):
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
@@ -55,7 +55,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_axes_off(self):
         # Test for turning the axes off
@@ -65,7 +65,7 @@ class TestBasic(BaseImageTests):
         ax.set_axis_off()
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=1.5, style={})
     @pytest.mark.parametrize('axisbelow', [True, False, 'line'])
     def test_axisbelow(self, axisbelow):
@@ -93,7 +93,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_contour_overlay(self):
         # Test for overlaying contours on images
@@ -126,7 +126,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_contourf_overlay(self):
         # Test for overlaying contours on images
@@ -159,7 +159,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_overlay_features_image(self):
 
@@ -196,7 +196,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_curvilinear_grid_patches_image(self):
 
@@ -228,7 +228,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_cube_slice_image(self):
 
@@ -256,7 +256,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_cube_slice_image_lonlat(self):
 
@@ -282,7 +282,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_plot_coord(self):
         fig = plt.figure(figsize=(6, 6))
@@ -307,7 +307,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_plot_line(self):
         fig = plt.figure(figsize=(6, 6))
@@ -328,7 +328,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_changed_axis_units(self):
         # Test to see if changing the units of axis works
@@ -357,7 +357,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_minor_ticks(self):
         # Test for drawing minor ticks
@@ -385,7 +385,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_ticks_labels(self):
         fig = plt.figure(figsize=(6, 6))
@@ -413,7 +413,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_rcparams(self):
 
@@ -457,7 +457,7 @@ class TestBasic(BaseImageTests):
             ax.coords[1].set_ticklabel(exclude_overlapping=True)
             return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_tick_angles(self):
         # Test that tick marks point in the correct direction, even when the
@@ -483,7 +483,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_format_unit(u.degree)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_tick_angles_non_square_axes(self):
         # Test that tick marks point in the correct direction, even when the
@@ -510,7 +510,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_format_unit(u.degree)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_set_coord_type(self):
         # Test for setting coord_type
@@ -528,7 +528,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel(exclude_overlapping=True)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_ticks_regression(self):
         # Regression test for a bug that caused ticks aligned exactly with a
@@ -551,7 +551,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel_position('all')
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=0, style={})
     def test_axislabels_regression(self):
@@ -568,7 +568,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=0, style={})
     def test_noncelestial_angular(self, tmpdir):
@@ -606,7 +606,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=0, style={})
     def test_patches_distortion(self, tmpdir):
@@ -668,7 +668,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_quadrangle(self, tmpdir):
         # Test that Quadrangle can have curved edges while Rectangle does not
@@ -695,7 +695,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_elliptical_frame(self):
 
@@ -707,7 +707,7 @@ class TestBasic(BaseImageTests):
         fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, frame_class=EllipticalFrame)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_hms_labels(self):
         # This tests the apparance of the hms superscripts in tick labels
@@ -720,7 +720,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={'text.usetex': True})
     def test_latex_labels(self):
         fig = plt.figure(figsize=(3, 3))
@@ -732,7 +732,7 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks(spacing=0.2 * 15 * u.arcsec)
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_tick_params(self):
 
@@ -816,7 +816,7 @@ def wave_wcs_1d():
     return wcs
 
 
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_1d_plot_1d_wcs(wave_wcs_1d):
     fig = plt.figure()
@@ -829,7 +829,7 @@ def test_1d_plot_1d_wcs(wave_wcs_1d):
     return fig
 
 
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
     """
@@ -856,7 +856,7 @@ def spatial_wcs_2d():
     return wcs
 
 
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_1d_plot_2d_wcs_correlated(spatial_wcs_2d):
     fig = plt.figure()
@@ -893,7 +893,7 @@ def spatial_wcs_2d_small_angle():
     # Remember SLLWCS takes slices in array order
     (np.s_[0, :], 'custom:pos.helioprojective.lon'),
     (np.s_[:, 0], 'custom:pos.helioprojective.lat')])
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_1d_plot_1d_sliced_low_level_wcs(spatial_wcs_2d_small_angle, slices, bottom_axis):
     """
@@ -914,7 +914,7 @@ def test_1d_plot_1d_sliced_low_level_wcs(spatial_wcs_2d_small_angle, slices, bot
 @pytest.mark.parametrize("slices, bottom_axis", [
     (('x', 0), 'hpln'),
     ((0, 'x'), 'hplt')])
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slices, bottom_axis):
     """
@@ -938,7 +938,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slic
     return fig
 
 
-@pytest.mark.remote_data(source='astropy')
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=0, style={})
 def test_allsky_labels_wrap():
 
