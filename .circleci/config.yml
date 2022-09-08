@@ -55,7 +55,7 @@ jobs:
               pip install pip tox --upgrade
       - run: ssh-add -D
       - add_ssh_keys:
-          fingerprints: "	bf:aa:ef:e3:8d:95:11:0b:75:c7:92:52:ba:fb:e0:fc"
+          fingerprints: "bf:aa:ef:e3:8d:95:11:0b:75:c7:92:52:ba:fb:e0:fc"
       - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
       - run: git config --global user.email "astropy@circleci" && git config --global user.name "Astropy Circle CI"
       - run: git clone git@github.com:astropy/astropy-figure-tests.git --depth 1 -b astropy-${CIRCLE_BRANCH} ~/astropy-figure-tests/
