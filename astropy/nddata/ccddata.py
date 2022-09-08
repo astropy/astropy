@@ -129,6 +129,9 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
+    psf : `numpy.ndarray` or None, optional
+        Normalized PSF image at the center of this image.
+
     Raises
     ------
     ValueError

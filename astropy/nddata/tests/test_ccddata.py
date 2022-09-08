@@ -23,6 +23,7 @@ DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
     _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+    _random_psf = np.random.normal(size=[20, 20])
 
 
 @pytest.fixture
@@ -1081,3 +1082,26 @@ def test_read_write_tilde_paths(home_is_tmpdir):
     # Ensure the unexpanded path doesn't exist (e.g. no directory whose name is
     # a literal ~ was created)
     assert not os.path.exists(filename)
+
+
+def test_ccddata_with_psf():
+    psf = _random_psf.copy()
+    ccd = CCDData(_random_array.copy(), unit=u.adu, psf=psf)
+    assert (ccd.psf == psf).all()
+
+    # cannot pass in non-ndarray
+    with pytest.raises(TypeError) as exc:
+        CCDData(_random_array.copy(), unit=u.adu, psf="something")
+    assert "The psf must be a numpy array." in str(exc.value)
+
+
+def test_psf_setter():
+    psf = _random_psf.copy()
+    ccd = CCDData(_random_array.copy(), unit=u.adu)
+    ccd.psf = psf
+    assert (ccd.psf == psf).all()
+
+    # cannot set with non-ndarray
+    with pytest.raises(TypeError) as exc:
+        ccd.psf = "something"
+    assert "The psf must be a numpy array." in str(exc.value)
