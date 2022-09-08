@@ -785,8 +785,6 @@ class CoordinateHelper:
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
                     x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
                     y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
-                    x_pix_i = spine.pixel[imin, 0] + frac * (spine.pixel[imax, 0] - spine.pixel[imin, 0])
-                    y_pix_i = spine.pixel[imin, 1] + frac * (spine.pixel[imax, 1] - spine.pixel[imin, 1])
                     delta_angle = tick_angle[imax] - tick_angle[imin]
                     if delta_angle > 180.:
                         delta_angle -= 360.
@@ -819,7 +817,7 @@ class CoordinateHelper:
                     # it's faster to format many ticklabels at once outside
                     # of the loop
                     self.lblinfo.append(dict(axis=axis,
-                                             pixel=(x_pix_i, y_pix_i),
+                                             data=(x_data_i, y_data_i),
                                              world=world,
                                              angle=spine.normal_angle[imin],
                                              axis_displacement=imin + frac))
