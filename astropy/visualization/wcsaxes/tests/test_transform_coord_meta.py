@@ -56,7 +56,7 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_coords_overlay(self):
 
@@ -104,7 +104,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_coords_overlay_auto_coord_meta(self):
 
@@ -127,7 +127,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.remote_data
     @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_direct_init(self):
 
