@@ -12,8 +12,6 @@ from astropy.visualization.wcsaxes import WCSAxes
 from .test_images import BaseImageTests
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
-from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
-
 # Create fake transforms that roughly mimic a polar projection
 
 
@@ -59,8 +57,7 @@ class LonLatToDistance(CurvedTransform):
 class TestTransformCoordMeta(BaseImageTests):
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
@@ -108,8 +105,7 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_coords_overlay_auto_coord_meta(self):
 
         fig = plt.figure(figsize=(4, 4))
@@ -132,8 +128,7 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)

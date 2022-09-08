@@ -194,7 +194,7 @@ archs = ["auto", "aarch64"]
 
 [tool.gilesbot]
     [tool.gilesbot.circleci_artifacts]
-        enabled = false
+        enabled = true
 
     [tool.gilesbot.pull_requests]
         enabled = true
@@ -207,3 +207,13 @@ archs = ["auto", "aarch64"]
         changelog_missing_long = "There isn't a changelog file in this pull request. Please add a changelog file to the `changelog/` directory following the instructions in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)."
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
+
+    [tool.gilesbot.circleci_artifacts.py39-test-image-mpl311]
+        url = ".tmp/py39-test-image-mpl311/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py39-test-image-mpl311."
+        report_on_fail = true
+
+    [tool.gilesbot.circleci_artifacts.py39-test-image-mpldev]
+        url = ".tmp/py39-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py39-test-image-mpldev."
+        report_on_fail = true
