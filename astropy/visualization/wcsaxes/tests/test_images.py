@@ -308,8 +308,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def test_scatter_coord(self):
         from matplotlib.collections import PathCollection
         fig = plt.figure(figsize=(6, 6))
