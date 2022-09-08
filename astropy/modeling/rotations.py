@@ -21,11 +21,12 @@ References
 # pylint: disable=invalid-name, too-many-arguments, no-member
 
 import math
+from functools import reduce
 
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import matrix_product, rotation_matrix
+from astropy.coordinates.matrix_utilities import rotation_matrix
 
 from .core import Model
 from .parameters import Parameter
@@ -42,8 +43,7 @@ def _create_matrix(angles, axes_order):
             angle = angle.value
         angle = angle.item()
         matrices.append(rotation_matrix(angle, axis, unit=u.rad))
-    result = matrix_product(*matrices[::-1])
-    return result
+    return reduce(np.matmul, matrices[::-1])
 
 
 def spherical2cartesian(alpha, delta):

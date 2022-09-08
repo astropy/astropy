@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import (rotation_matrix, angle_axis,
-                                                  is_O3, is_rotation)
+from astropy.coordinates.matrix_utilities import (
+    angle_axis, is_O3, is_rotation, matrix_product, rotation_matrix
+)
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_rotation_matrix():
@@ -98,3 +101,8 @@ def test_is_rotation():
     # and (M, 3, 3)
     n3 = np.stack((m1, m3))
     assert tuple(is_rotation(n3)) == (True, False)  # (show the broadcasting)
+
+
+def test_matrix_product_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use @ instead\.$"):
+        matrix_product(np.eye(2))
