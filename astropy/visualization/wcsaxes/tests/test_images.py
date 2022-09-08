@@ -44,8 +44,7 @@ class BaseImageTests:
 
 class TestBasic(BaseImageTests):
     @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @pytest.mark.mpl_image_compare(tolerance=0, style={})
     def tight_layout(self):
         # Check that tight_layout works on a WCSAxes.
         fig = plt.figure(figsize=(8, 6))
