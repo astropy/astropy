@@ -9,6 +9,7 @@ from astropy import units as u
 from astropy.wcs import WCS
 
 from astropy.visualization.wcsaxes import WCSAxes
+from astropy.tests.figures import figure_test
 from .test_images import BaseImageTests
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
@@ -56,8 +57,7 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
@@ -104,8 +104,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_coords_overlay_auto_coord_meta(self):
 
         fig = plt.figure(figsize=(4, 4))
@@ -127,8 +126,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)
