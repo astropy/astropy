@@ -1232,14 +1232,15 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return [np.ravel(_) for _ in residues]
         else:
             if z is None:
+                fit_deriv = np.array(model.fit_deriv(x, *params))
                 try:
-                    return np.array([np.ravel(_) for _ in np.array(weights) *
-                                     np.array(model.fit_deriv(x, *params))])
+                    output = np.array([np.ravel(_) for _ in np.array(weights) * fit_deriv])
+                    if output.shape != fit_deriv.shape:
+                        output = np.array([np.ravel(_) for _ in np.atleast_2d(weights).T * fit_deriv])
+                    return output
                 except ValueError:
                     return np.array([np.ravel(_) for _ in np.array(weights) *
-                                     np.moveaxis(
-                                         np.array(model.fit_deriv(x, *params)),
-                                         -1, 0)]).transpose()
+                                    np.moveaxis(fit_deriv, -1, 0)]).transpose()
             else:
                 if not model.col_fit_deriv:
                     return [np.ravel(_) for _ in

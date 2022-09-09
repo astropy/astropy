@@ -1246,3 +1246,29 @@ class TestFittingUncertanties:
 
         # test indexing for stds class.
         assert fit_mod.stds[1] == fit_mod.stds['intercept']
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings(r'ignore:Model is linear in parameters*')
+def test_non_linear_fit_zero_degree_polynomial_with_weights():
+    """
+    Regression test for issue #13617
+        Issue:
+            Weighted non-linear weighted fits of O-degree polynomials cause an error
+            to be raised by scipy.
+        Fix:
+            There should be no error raised in this circumstance
+    """
+
+    model = models.Polynomial1D(0, c0=0)
+    fitter = LevMarLSQFitter()
+
+    x = np.arange(10, dtype=float)
+    y = np.ones((10,))
+    weights = np.ones((10,))
+
+    fit = fitter(model, x, y)
+    assert_almost_equal(fit.c0, 1.0)
+
+    fit = fitter(model, x, y, weights=weights)
+    assert_almost_equal(fit.c0, 1.0)
