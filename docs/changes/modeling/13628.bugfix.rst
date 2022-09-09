@@ -1,0 +1,1 @@
+Fix bug in using non-linear fitters to fit 0-degree polynomials using weights.
