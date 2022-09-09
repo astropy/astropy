@@ -793,6 +793,26 @@ have added a test, and push this to a pull request, you will likely start seeing
 a test failure because the figure hash is missing from the hash libraries
 (see the next section for how to proceed).
 
+Rather than use the ``@pytest.mark.mpl_image_compare`` decorator directly, you
+should make use of the ``@figure_test`` convenience decorator which
+sets the default tolerance and style to be consistent across the astropy core
+package, and also automatically enables access to remote data::
+
+    from astropy.tests.figures import figure_test
+
+    @figure_test
+    def test_figure():
+        fig = plt.figure()
+        ...
+        return fig
+
+You can optionally pass keyword arguments to ``@figure_test`` and these will be
+passed on to ``mpl_image_compare``::
+
+    @figure_test(savefig_kwargs={'bbox_inches': 'tight'})
+    def test_figure():
+        ...
+
 Failing tests
 -------------
 
