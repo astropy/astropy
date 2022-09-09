@@ -48,6 +48,10 @@ jobs:
         - cp38-manylinux_x86_64
         - cp39-manylinux_x86_64
         - cp310-manylinux_x86_64
+        # Note that following wheels are not currently tested:
+        - cp38-manylinux_aarch64
+        - cp39-manylinux_aarch64
+        - cp310-manylinux_aarch64
         - cp38-musllinux_x86_64
         - cp39-musllinux_x86_64
         - cp310-musllinux_x86_64
@@ -69,11 +73,6 @@ jobs:
         - cp39*win_amd64
         - cp310*win32
         - cp310*win_amd64
-
-        # TODO: The aarch64 builds take longer than an hour to complete so get killed
-        # - cp38-manylinux_aarch64
-        # - cp39-manylinux_aarch64
-        # - cp310-manylinux_aarch64
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
