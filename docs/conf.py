@@ -164,6 +164,7 @@ numpydoc_xref_ignore.update({
 numpydoc_xref_aliases.update({
     # python & adjacent
     "Any": "`~typing.Any`",
+    "Collection": ":class:`~collections.abc.Collection`",
     "file-like": ":term:`python:file-like object`",
     "file": ":term:`python:file object`",
     "path-like": ":term:`python:path-like object`",

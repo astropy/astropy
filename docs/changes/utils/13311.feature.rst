@@ -1,0 +1,3 @@
+A new decorator -- ``on_metaclass`` -- has been added to make a method
+behave as if it were defined on the metaclass, not the class. This can be
+combined with other decorators like ``classmethod`` and ``property``.

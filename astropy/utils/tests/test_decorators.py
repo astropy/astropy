@@ -6,7 +6,7 @@ import pickle
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated,
+from astropy.utils.decorators import (deprecated_attribute, deprecated, on_metaclass,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
@@ -769,3 +769,69 @@ def test_format_doc_onClass():
         pass
 
     assert inspect.getdoc(TestClass) == 'what we do is strange.'
+
+
+def make_on_metaclass_examples():
+    class ExampleMeta(type):
+        def method(cls):
+            return "default"
+
+    class ExampleNoMethod(metaclass=ExampleMeta):
+        expect = "default"
+
+    class ExampleOnMeta(metaclass=ExampleMeta):
+        expect = "ExampleOnMeta"
+
+        @on_metaclass
+        def method(cls):
+            return cls.__name__
+
+    class ExampleMetaclassMethod(metaclass=ExampleMeta):
+        expect = "ExampleMeta"
+
+        @on_metaclass
+        @classmethod
+        def method(cls):
+            return cls.__name__
+
+    class ExampleClassProperty(metaclass=ExampleMeta):
+        expect = "ExampleClassProperty"
+
+        @on_metaclass
+        @property
+        def method(cls):
+            return cls.__name__
+
+    class ExampleMetaClassProperty(metaclass=ExampleMeta):
+        expect = "ExampleMeta"
+
+        @on_metaclass
+        @classmethod
+        @property
+        def method(cls):
+            return cls.__name__
+
+    return [ExampleNoMethod, ExampleOnMeta, ExampleMetaclassMethod, ExampleClassProperty, ExampleMetaClassProperty]
+
+
+@pytest.mark.parametrize("kls", make_on_metaclass_examples())
+def test_on_metaclass(kls):
+    """Test `astropy.utils.decorators.on_metaclass`."""
+    # `method` works on the class
+    assert hasattr(kls, "method")
+    if callable(kls.method):  # method vs attribute
+        assert kls.method() == kls.expect
+    else:
+        assert kls.method == kls.expect
+
+    # the original `method` can still be reached
+    assert type(kls).method(kls) == "default"
+
+    # `method` does not work on the instance
+    ex = kls()
+    assert not hasattr(ex, "method")
+    assert "method" not in dir(ex)
+
+    match = f"{kls.__name__!r} object has no attribute 'method'"
+    with pytest.raises(AttributeError, match=match):
+        getattr(ex, "method")

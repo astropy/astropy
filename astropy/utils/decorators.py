@@ -2,13 +2,16 @@
 """Sundry function and class decorators."""
 
 
+import dataclasses
 import functools
 import inspect
+import sys
 import textwrap
 import threading
-import types
 import warnings
 from inspect import signature
+from types import MethodType
+from typing import Callable, Collection, List, Optional, Set, Union
 
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
@@ -16,7 +19,7 @@ from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
-           'lazyproperty', 'sharedmethod']
+           'lazyproperty', 'sharedmethod', 'on_metaclass']
 
 _NotFound = object()
 
@@ -71,7 +74,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
 
-    method_types = (classmethod, staticmethod, types.MethodType)
+    method_types = (classmethod, staticmethod, MethodType)
 
     def deprecate_doc(old_doc, message):
         """
@@ -862,7 +865,212 @@ class sharedmethod(classmethod):
 
     @staticmethod
     def _make_method(func, instance):
-        return types.MethodType(func, instance)
+        return MethodType(func, instance)
+
+
+@dataclasses.dataclass(frozen=True)
+class _dir_:
+    """``__dir__`` replacement that allows for filtering of entries.
+
+    Parameters
+    ----------
+    fget : callable[[object], Collection[str]] or None, optional
+        User-defined callable returning entries to remove to the enclosing
+        instance's ``__dir__``.
+    exclude : Collection[str], optional keyword-only
+        Entries to remove to the enclosing instance's ``__dir__``.
+
+    Examples
+    --------
+    The simplest usage of ``_dir_`` is to exclude select methods from an
+    instances ``__dir__``, for example if a `classmethod` only makes sense when
+    called from the class, and never from an instance.
+
+        >>> class Example:
+        ...    __dir__ = _dir_(exclude=['_private'])
+        ...    @classmethod
+        ...    def _private(cls):
+        ...        return
+        >>> ex = Example()
+        >>> "_private" in dir(ex)
+        False
+
+    The ``__dir__`` of the ``Example`` **class** is not overridden (that would
+    require messing with metaclasses), so ``_private`` is still visible on the
+    class:
+
+        >>> "_private" in dir(Example)
+        True
+
+    ``_dir_`` can also be used to decorate a user-defined ``__dir__`` override:
+
+        >>> class Example:
+        ...    @_dir_(exclude=['_private']).getter
+        ...    def __dir__(self):
+        ...        return super().__dir__() + ["special_method"]
+        ...    @classmethod
+        ...    def _private(cls):
+        ...        return
+        >>> ex = Example()
+        >>> "_private" in dir(ex)
+        False
+        >>> "special_method" in dir(ex)
+        True
+
+    Again, note that in Python ``__dir__`` for an instance does not override the
+    method for the class.
+
+        >>> "_private" in dir(Example)
+        True
+        >>> "special_method" in dir(Example)
+        False
+
+    Notes
+    -----
+    In Python 3.10+ ``exclude`` is actually keyword-only.
+
+    Python hides descriptors. To directly access an attribute on this
+    descriptor, e.g. ``exclude``, use
+    ``<instance>.__dir__.__func__.__self__.exclude``.
+    """
+
+    fget: Optional[Callable[[object], Collection[str]]] = dataclasses.field(default=None)
+    if sys.version_info >= (3, 10):
+        _: dataclasses.KW_ONLY
+    exclude: Set[str] = dataclasses.field(default_factory=set)
+
+    def __post_init__(self):
+        object.__setattr__(self, "__doc__", getattr(self.fget, "__doc__", self.__doc__))
+        object.__setattr__(self, "exclude", set(self.exclude))
+
+    def _overriden__dir__(_self, self: object) -> List[str]:
+        """`object.__dir__` with filtering of entries."""
+        members = set(object.__dir__(self) if _self.fget is None else _self.fget(self))
+        members -= _self.exclude
+        return sorted(members)
+
+    # -------------------------------------------
+    # Descriptor
+
+    def __get__(self, encl_inst: Optional[object], encl_cls: Optional[type]=None) -> MethodType:
+        """Get ``override__dir__`` as a method of the enclosing instance/class."""
+        instance = encl_inst if encl_inst is not None else encl_cls
+        return MethodType(self._overriden__dir__, instance)
+
+    def getter(self, fget: MethodType) -> "_dir_":
+        return dataclasses.replace(self, fget=fget)
+
+
+class on_metaclass(classmethod):
+    """Decorate a method to make it emulate being defined on the metaclass.
+
+    Examples
+    --------
+    >>> class ExampleMeta(type):
+    ...     def identify(cls):
+    ...         print('this implements the {} method'.format(cls))
+    ...
+    >>> class Example(metaclass=ExampleMeta):
+    ...     @on_metaclass
+    ...     def identify(cls):
+    ...         print('this overrides the metaclass method for {}'.format(cls))
+    ...
+    >>> Example.identify()
+    this overrides the metaclass method for <class 'astropy.utils.decorators.Example'>
+
+    To reach the method on the metaclass we can do
+
+    >>> type(Example).identify(Example)
+    this implements the <class 'astropy.utils.decorators.Example'> method
+
+    Just like normal metaclass methods, ``identify`` cannot be called from an
+    instance of ``Example``.
+
+    >>> try:
+    ...     Example().identify()
+    ... except AttributeError as e:
+    ...     print(e)
+    'Example' object has no attribute 'identify'
+
+    Likewise, ``identify`` is not in the :func:`dir` of instances of
+    ``Example``.
+
+    >>> print("identify" in dir(Example()))
+    False
+
+    `on_metaclass` can also be used to promote a `classmethod` to a
+    `classmethod` on the metaclass, making a metaclass-classmethod.
+
+    >>> class Example(metaclass=ExampleMeta):
+    ...     @on_metaclass
+    ...     @classmethod
+    ...     def identify(mcls):
+    ...         print('this overrides the metaclass method for {}'.format(mcls))
+    ...
+    >>> Example.identify()
+    this overrides the metaclass method for <class 'astropy.utils.decorators.ExampleMeta'>
+
+    `on_metaclass` also works with `property` to make a class-level property.
+
+    >>> class Example(metaclass=ExampleMeta):
+    ...     @on_metaclass
+    ...     @property
+    ...     def identify(cls):
+    ...         print('this overrides the metaclass method for {}'.format(cls))
+    ...
+    >>> Example.identify
+    this overrides the metaclass method for <class 'astropy.utils.decorators.Example'>
+
+    To make a metaclass-level property, stack a `on_metaclass` with a
+    `classmethod` and a `property`.
+
+    .. code-block::
+
+        class Example(metaclass=ExampleMeta):
+            @on_metaclass
+            @classmethod
+            @property
+            def identify(mcls):
+                print('this overrides the metaclass method for {}'.format(mcls))
+
+    Notes
+    -----
+    Note this must be the top-most decorator in a decorator stack and MUST be
+    used as a decorator s.t. it calls ``__set_name__``.
+
+    Methods decorated with ``on_metaclass`` are not actually part of the
+    metaclass but only emulate their behavior. Consequently it is necessary to
+    modify the enclosing class, replacing the ``__dir__`` method. Meta-class
+    methods are in the :func:`dir` of classes, but not their instances, so the
+    ``__dir__` method is replaced by a descriptor that can filter out select
+    entries. For code details see the ``__set_name__`` method of this class.
+    """
+
+    _attr_name: str
+
+    def __set_name__(self, encl_cls, attr_name: str) -> None:
+        # Make the ``__dir__`` filterable, if not already.
+        wrapped_dir = getattr(getattr(encl_cls.__dir__, "__func__", None), "__self__", None)
+        if not isinstance(wrapped_dir, _dir_):
+            encl_cls.__dir__ = _dir_()
+
+        # Add this method to the ``__dir__`` filter.
+        encl_cls.__dir__.__func__.__self__.exclude.add(attr_name)
+
+        self._attr_name = attr_name
+
+    def __get__(self, encl_inst: Optional[object], encl_cls: Optional[type]=None):
+        # @classmethod, but restricting to getting from `encl_cls`
+        if encl_inst is not None:
+            msg = (f"{encl_inst.__class__.__name__!r} object "
+                   f"has no attribute {self._attr_name!r}")
+            raise AttributeError(msg)
+
+        if hasattr(self.__func__, '__get__'):  # Allows decorator stacking
+            res = self.__func__.__get__(encl_cls, None)
+        else:
+            res = super().__get__(encl_inst, encl_cls)
+        return res
 
 
 def format_doc(docstring, *args, **kwargs):
