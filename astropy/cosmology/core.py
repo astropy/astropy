@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Mapping, TypeVar
 import numpy as np
 
 from astropy.io.registry import UnifiedReadWriteMethod
-from astropy.utils.decorators import classproperty, on_metaclass
+from astropy.utils.decorators import class_only_method, classproperty
 from astropy.utils.metadata import MetaData
 
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
@@ -412,7 +412,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
     # ===============================================================
 
-    @on_metaclass
+    @class_only_method
     def _get_nonflat_cls(cls, kls: type[_CosmoT] | None=None) -> type[Cosmology] | None:
         """Find the corresponding non-flat class.
 

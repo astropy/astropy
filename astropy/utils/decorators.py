@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
+from __future__ import annotations
 
 import dataclasses
 import functools
@@ -11,7 +12,7 @@ import threading
 import warnings
 from inspect import signature
 from types import MethodType
-from typing import Callable, Collection, List, Optional, Set, Union
+from typing import Callable, Collection, List, Optional, Set
 
 from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
                          AstropyPendingDeprecationWarning)
@@ -19,7 +20,7 @@ from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',
-           'lazyproperty', 'sharedmethod', 'on_metaclass']
+           'lazyproperty', 'sharedmethod', 'class_only_method']
 
 _NotFound = object()
 
@@ -934,16 +935,16 @@ class _dir_:
     ``vars(<class>)["__dir__"].exclude``.
     """
 
-    fget: Optional[Callable[[object], Collection[str]]] = dataclasses.field(default=None)
+    fget: Callable[[object], Collection[str]] | None = dataclasses.field(default=None)
     if sys.version_info >= (3, 10):
         _: dataclasses.KW_ONLY
-    exclude: Set[str] = dataclasses.field(default_factory=set)
+    exclude: set[str] = dataclasses.field(default_factory=set)
 
     def __post_init__(self):
         object.__setattr__(self, "__doc__", getattr(self.fget, "__doc__", self.__doc__))
         object.__setattr__(self, "exclude", set(self.exclude))
 
-    def _overriden__dir__(_self, self: object) -> List[str]:
+    def _overriden__dir__(_self, self: object) -> list[str]:
         """`object.__dir__` with filtering of entries."""
         members = set(object.__dir__(self) if _self.fget is None else _self.fget(self))
         members -= _self.exclude
@@ -952,38 +953,38 @@ class _dir_:
     # -------------------------------------------
     # Descriptor
 
-    def __get__(self, encl_inst: Optional[object], encl_cls: Optional[type]=None) -> MethodType:
+    def __get__(self, encl_inst: object, encl_cls: type | None = None) -> MethodType:
         """Get ``override__dir__`` as a method of the enclosing instance/class."""
         instance = encl_inst if encl_inst is not None else encl_cls
         return MethodType(self._overriden__dir__, instance)
 
-    def getter(self, fget: MethodType) -> "_dir_":
+    def getter(self, fget: MethodType) -> _dir_:
         return dataclasses.replace(self, fget=fget)
 
     __call__ = getter
 
 
-class on_metaclass(classmethod):
-    """Decorate a method to make it emulate being defined on the metaclass.
+class class_only_method(classmethod):
+    """Decorate a method to make it accessible only from the class.
 
     Examples
     --------
     >>> class ExampleMeta(type):
     ...     def identify(cls):
-    ...         print('this implements the {} method'.format(cls))
+    ...         return f'this implements the {cls.__name__} method'
     ...
     >>> class Example(metaclass=ExampleMeta):
-    ...     @on_metaclass
+    ...     @class_only_method
     ...     def identify(cls):
-    ...         print('this overrides the metaclass method for {}'.format(cls))
+    ...         return f'this overrides the metaclass method for {cls.__name__}'
     ...
     >>> Example.identify()
-    this overrides the metaclass method for <class 'astropy.utils.decorators.Example'>
+    'this overrides the metaclass method for Example'
 
     To reach the method on the metaclass we can do
 
     >>> type(Example).identify(Example)
-    this implements the <class 'astropy.utils.decorators.Example'> method
+    'this implements the Example method'
 
     Just like normal metaclass methods, ``identify`` cannot be called from an
     instance of ``Example``.
@@ -992,7 +993,7 @@ class on_metaclass(classmethod):
     ...     Example().identify()
     ... except AttributeError as e:
     ...     print(e)
-    'Example' object has no attribute 'identify'
+    'Example' object has attribute 'identify' only on the class...
 
     Likewise, ``identify`` is not in the :func:`dir` of instances of
     ``Example``.
@@ -1000,47 +1001,35 @@ class on_metaclass(classmethod):
     >>> print("identify" in dir(Example()))
     False
 
-    `on_metaclass` can also be used to promote a `classmethod` to a
+    `class_only_method` can also be used to promote a `classmethod` to a
     `classmethod` on the metaclass, making a metaclass-classmethod.
 
     >>> class Example(metaclass=ExampleMeta):
-    ...     @on_metaclass
+    ...     @class_only_method
     ...     @classmethod
     ...     def identify(mcls):
-    ...         print('this overrides the metaclass method for {}'.format(mcls))
+    ...         return f'this overrides the metaclass method for {mcls.__name__}'
     ...
     >>> Example.identify()
-    this overrides the metaclass method for <class 'astropy.utils.decorators.ExampleMeta'>
+    'this overrides the metaclass method for ExampleMeta'
 
-    `on_metaclass` also works with `property` to make a class-level property.
+    `class_only_method` also works with `property` to make a class-level property.
 
     >>> class Example(metaclass=ExampleMeta):
-    ...     @on_metaclass
+    ...     @class_only_method
     ...     @property
     ...     def identify(cls):
-    ...         print('this overrides the metaclass method for {}'.format(cls))
+    ...         return f'this overrides the metaclass method for {cls.__name__}'
     ...
     >>> Example.identify
-    this overrides the metaclass method for <class 'astropy.utils.decorators.Example'>
-
-    To make a metaclass-level property, stack a `on_metaclass` with a
-    `classmethod` and a `property`.
-
-    .. code-block::
-
-        class Example(metaclass=ExampleMeta):
-            @on_metaclass
-            @classmethod
-            @property
-            def identify(mcls):
-                print('this overrides the metaclass method for {}'.format(mcls))
+    'this overrides the metaclass method for Example'
 
     Notes
     -----
     Note this must be the top-most decorator in a decorator stack and MUST be
     used as a decorator s.t. it calls ``__set_name__``.
 
-    Methods decorated with ``on_metaclass`` are not actually part of the
+    Methods decorated with ``class_only_method`` are not actually part of the
     metaclass but only emulate their behavior. Consequently it is necessary to
     modify the enclosing class, replacing the ``__dir__`` method. Meta-class
     methods are in the :func:`dir` of classes, but not their instances, so the
@@ -1061,11 +1050,12 @@ class on_metaclass(classmethod):
         # Add this method to the ``__dir__`` filter.
         vars(encl_cls)["__dir__"].exclude.add(attr_name)
 
-    def __get__(self, encl_inst: Optional[object], encl_cls: Optional[type]=None):
+    def __get__(self, encl_inst: object, encl_cls: type | None = None):
         # @classmethod, but restricting to getting from `encl_cls`
         if encl_inst is not None:
             msg = (f"{encl_inst.__class__.__name__!r} object "
-                   f"has no attribute {self._attr_name!r}")
+                   f"has attribute {self._attr_name!r} only on the class "
+                   "and cannot be accessed from instances thereof")
             raise AttributeError(msg)
 
         if hasattr(type(self.__func__), '__get__'):  # Allows descriptor stacking

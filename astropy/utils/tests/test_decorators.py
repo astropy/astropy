@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from astropy.utils.decorators import (_dir_, deprecated_attribute, deprecated, on_metaclass,
+from astropy.utils.decorators import (_dir_, deprecated_attribute, deprecated, class_only_method,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
@@ -772,7 +772,7 @@ def test_format_doc_onClass():
     assert inspect.getdoc(TestClass) == 'what we do is strange.'
 
 
-def make_on_metaclass_examples():
+def make_class_only_method_examples():
     class ExampleMeta(type):
         def method(cls):
             return "default"
@@ -783,14 +783,14 @@ def make_on_metaclass_examples():
     class ExampleOnMeta(metaclass=ExampleMeta):
         expect = "ExampleOnMeta"
 
-        @on_metaclass
+        @class_only_method
         def method(cls):
             return cls.__name__
 
     class ExampleMetaclassMethod(metaclass=ExampleMeta):
         expect = "ExampleMeta"
 
-        @on_metaclass
+        @class_only_method
         @classmethod
         def method(cls):
             return cls.__name__
@@ -798,7 +798,7 @@ def make_on_metaclass_examples():
     class ExampleClassProperty(metaclass=ExampleMeta):
         expect = "ExampleClassProperty"
 
-        @on_metaclass
+        @class_only_method
         @property
         def method(cls):
             return cls.__name__
@@ -806,7 +806,7 @@ def make_on_metaclass_examples():
     class ExampleMetaClassProperty(metaclass=ExampleMeta):
         expect = "ExampleMeta"
 
-        @on_metaclass
+        @class_only_method
         @classmethod
         @property
         def method(cls):
@@ -836,8 +836,7 @@ class Test_dir_:
         assert "_private" in dir(Example)
 
         # But not the instance
-        ex = Example()
-        assert "_private" not in dir(ex)
+        assert "_private" not in dir(Example())
 
     def test_custom_dir(self):
         """Test custom dir method."""
@@ -855,9 +854,9 @@ class Test_dir_:
         assert "special_method" in dir(ex)
 
 
-@pytest.mark.parametrize("kls", make_on_metaclass_examples())
-def test_on_metaclass(kls):
-    """Test `astropy.utils.decorators.on_metaclass`."""
+@pytest.mark.parametrize("kls", make_class_only_method_examples())
+def test_class_only_method(kls):
+    """Test `astropy.utils.decorators.class_only_method`."""
     # `method` works on the class
     assert hasattr(kls, "method")
     if callable(kls.method):  # method vs attribute
@@ -873,6 +872,6 @@ def test_on_metaclass(kls):
     assert not hasattr(ex, "method")
     assert "method" not in dir(ex)
 
-    match = f"{kls.__name__!r} object has no attribute 'method'"
+    match = f"{kls.__name__!r} object has attribute 'method' only on the class"
     with pytest.raises(AttributeError, match=match):
         getattr(ex, "method")

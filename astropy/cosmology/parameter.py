@@ -3,7 +3,8 @@
 import copy
 
 import astropy.units as u
-from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument, on_metaclass
+from astropy.utils.decorators import (
+    class_only_method, deprecated_attribute, deprecated_renamed_argument)
 
 __all__ = ["Parameter"]
 
@@ -175,7 +176,7 @@ class Parameter:
         """
         return self.fvalidate(cosmology, self, value)
 
-    @on_metaclass
+    @class_only_method
     def register_validator(cls, key, fvalidate=None):
         """Decorator to register a new kind of validator function.
 
