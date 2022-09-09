@@ -13,6 +13,7 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 from astropy.coordinates import SkyCoord
+from astropy.tests.figures import figure_test
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
@@ -460,8 +461,7 @@ def test_coord_meta_wcsapi():
     assert coord_meta['default_axis_label'] == ['Frequency', 'time', 'RA', 'DEC', 'phys.polarization.stokes']
 
 
-@pytest.mark.remote_data
-@pytest.mark.mpl_image_compare(tolerance=0, style={})
+@figure_test
 def test_wcsapi_5d_with_names(plt_close):
     # Test for plotting image and also setting values of ticks
     fig = plt.figure(figsize=(6, 6))
