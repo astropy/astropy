@@ -11,7 +11,11 @@ import functools
 
 from astropy.utils.decorators import deprecated
 
-__all__ = ['override__dir__', 'possible_filename']
+__all__ = ["override__dir__", "possible_filename",
+           "PYTHON_LT_3_11"]
+
+
+PYTHON_LT_3_11 = sys.version_info < (3, 11)
 
 
 def possible_filename(filename):
