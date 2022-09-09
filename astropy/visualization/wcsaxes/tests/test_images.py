@@ -581,7 +581,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].ticklabels.set_visible(False)
         return fig
 
-    @figure_test
+    @figure_test(savefig_kwargs={'bbox_inches': 'tight'})
     def test_noncelestial_angular(self, tmpdir):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
