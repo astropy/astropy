@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from astropy.wcs import WCS
 
+from astropy.tests.figures import figure_test
 from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import BaseFrame
 
@@ -35,8 +36,7 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
@@ -75,8 +75,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -100,8 +99,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -123,8 +121,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data
-    @pytest.mark.mpl_image_compare(tolerance=0, style={})
+    @figure_test
     def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure
