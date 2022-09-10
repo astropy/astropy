@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.11 - an implementation of the FITS WCS standard.
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
+  $Id: wcs.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -125,6 +125,7 @@ const int wcs_taberr[] = {
 // Internal helper functions, not for general use.
 static int wcs_types(struct wcsprm *);
 static int time_type(const char *);
+static int time_code(const char *ctype, int nc);
 static int wcs_units(struct wcsprm *);
 
 //----------------------------------------------------------------------------
@@ -837,11 +838,6 @@ int wcssub(
             continue;
           }
 
-        } else if (strcmp(ctypei, "CUBEFACE") == 0) {
-          if (!cubeface) {
-            continue;
-          }
-
         } else if ((
           strncmp(ctypei, "FREQ", 4) == 0 ||
           strncmp(ctypei, "ENER", 4) == 0 ||
@@ -858,13 +854,18 @@ int wcssub(
             continue;
           }
 
+        } else if (time_type(ctypei)) {
+          if (!time) {
+            continue;
+          }
+
         } else if (strcmp(ctypei, "STOKES") == 0) {
           if (!stokes) {
             continue;
           }
 
-        } else if (strcmp(ctypei, "TIME") == 0 || time_type(ctypei)) {
-          if (!time) {
+        } else if (strcmp(ctypei, "CUBEFACE") == 0) {
+          if (!cubeface) {
             continue;
           }
 
@@ -2974,7 +2975,7 @@ int wcs_types(struct wcsprm *wcs)
         if (wcs->spec < 0) wcs->spec = i;
         wcs->types[i] += 3000;
 
-      } else if (strcmp(ctypei, "TIME") == 0 || time_type(ctypei)) {
+      } else if (time_type(ctypei)) {
         // Time axis.
         wcs->types[i] += 4000;
       }
@@ -3129,20 +3130,45 @@ int time_type(const char *ctype)
 
 {
   // Is it a recognised time system as listed in Table 2 of WCS Paper VII?
-  if (strcmp(ctype, "UTC") == 0) return 1;
-  if (strcmp(ctype, "TAI") == 0) return 1;
-  if (strcmp(ctype, "IAT") == 0) return 1;
-  if (strcmp(ctype, "TT")  == 0) return 1;
-  if (strcmp(ctype, "TDB") == 0) return 1;
-  if (strcmp(ctype, "TDT") == 0) return 1;
-  if (strcmp(ctype, "GPS") == 0) return 1;
-  if (strcmp(ctype, "TCB") == 0) return 1;
-  if (strcmp(ctype, "TCG") == 0) return 1;
-  if (strcmp(ctype, "GMT") == 0) return 1;
-  if (strcmp(ctype, "UT1") == 0) return 1;
-  if (strcmp(ctype, "UT")  == 0) return 1;
-  if (strcmp(ctype, "ET")  == 0) return 1;
-  if (strcmp(ctype, "LOCAL") == 0) return 1;
+  if (strncmp(ctype, "TIME", 4) == 0) return time_code(ctype, 4);
+  if (strncmp(ctype, "UTC",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "TAI",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "IAT",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "TT",   2) == 0) return time_code(ctype, 2);
+  if (strncmp(ctype, "TDB",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "TDT",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "GPS",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "TCB",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "TCG",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "GMT",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "UT1",  3) == 0) return time_code(ctype, 3);
+  if (strncmp(ctype, "UT",   2) == 0) return time_code(ctype, 2);
+  if (strncmp(ctype, "ET",   2) == 0) return time_code(ctype, 2);
+  if (strncmp(ctype, "LOCAL",5) == 0) return 1;
+
+  return 0;
+}
+
+// : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
+
+static int time_code(const char *ctype, int nc)
+
+{
+  // If no algorithm code then we're finished.
+  if (*(ctype+nc) == '\0') return 1;
+
+  // Check the correct number of hyphens for things like "TT---TAB".
+  while (nc < 4) {
+    if (*(ctype+nc) != '-') return 0;
+    nc++;
+  }
+
+  // Is it a code applicable to time-like axes?
+  const char *code = ctype + 4;
+  if (*code == '-') {
+    if (strncmp(code, "-LOG", 5) == 0) return 1;
+    if (strncmp(code, "-TAB", 5) == 0) return 1;
+  }
 
   return 0;
 }
@@ -3239,7 +3265,7 @@ int wcsp2s(
   if (wcs == 0x0) return WCSERR_NULL_POINTER;
   struct wcserr **err = &(wcs->err);
 
-  int status;
+  int status = 0;
   if (wcs->flag != WCSSET) {
     if ((status = wcsset(wcs))) return status;
   }
@@ -3251,11 +3277,6 @@ int wcsp2s(
   }
 
 
-  // Apply pixel-to-world linear transformation.
-  if ((status = linp2x(&(wcs->lin), ncoord, nelem, pixcrd, imgcrd))) {
-    return wcserr_set(WCS_ERRMSG(wcs_linerr[status]));
-  }
-
   // Initialize status vectors.
   int *istatp;
   if ((istatp = calloc(ncoord, sizeof(int))) == 0x0) {
@@ -3264,6 +3285,57 @@ int wcsp2s(
 
   stat[0] = 0;
   wcsutil_setAli(ncoord, 1, stat);
+
+
+  // Apply pixel-to-world linear transformation.
+  struct linprm *lin = &(wcs->lin);
+  if (!(lin->dispre || lin->disseq)) {
+    // No distortions present, do vector call.
+    int istat = linp2x(lin, ncoord, nelem, pixcrd, imgcrd);
+    if (istat) {
+      // If one fails then all fail.
+      status = wcserr_set(WCS_ERRMSG(wcs_linerr[istat]));
+      goto cleanup;
+    }
+
+  } else {
+    // Distortions present, get the status return for each coordinate.
+    int disaxes = 0;
+
+    register const double *pix = pixcrd;
+    register double *img = imgcrd;
+    register int *statp = stat;
+    for (int k = 0 ; k < ncoord; k++, pix += nelem, img += nelem, statp++) {
+      int istat = linp2x(lin, 1, nelem, pix, img);
+      if (istat) {
+        status = wcserr_set(WCS_ERRMSG(wcs_linerr[istat]));
+        if (status != WCSERR_BAD_PIX) {
+          goto cleanup;
+        }
+
+        if (disaxes == 0) {
+          // Which axes have distortions?
+          struct disprm *dispre = lin->dispre;
+          struct disprm *disseq = lin->disseq;
+          for (int i = 0; i < wcs->naxis; i++) {
+            if (dispre && dispre->disp2x[i]) {
+              disaxes |= (1 << i);
+            } else if (disseq && disseq->disp2x[i]) {
+              disaxes |= (1 << i);
+            }
+          }
+
+          if (disaxes == 0) {
+            // Shouldn't happen.
+            disaxes = (2 << wcs->naxis) - 1;
+          }
+        }
+
+        // WCSERR_BAD_PIX stat[] vector accounting.
+        *statp = disaxes;
+      }
+    }
+  }
 
 
   // Convert intermediate world coordinates to world coordinates.
@@ -3338,27 +3410,29 @@ int wcsp2s(
       }
 
       // Check for constant x and/or y.
-      int iso_x, iso_y;
+      int iso_x = 0;
+      int iso_y = 0;
       int nx = ncoord;
       int ny = 0;
-      if ((iso_x = wcsutil_allEq(ncoord, nelem, imgcrd+i))) {
-        nx = 1;
-        ny = ncoord;
-      }
-      if ((iso_y = wcsutil_allEq(ncoord, nelem, imgcrd+wcs->lat))) {
-        ny = 1;
+
+      if (ncoord > 1) {
+        if ((iso_x = wcsutil_allEq(ncoord, nelem, imgcrd+i))) {
+          nx = 1;
+          ny = ncoord;
+        }
+        if ((iso_y = wcsutil_allEq(ncoord, nelem, imgcrd+wcs->lat))) {
+          ny = 1;
+        }
       }
 
       // Transform projection plane coordinates to celestial coordinates.
-      int istat;
-      if ((istat = celx2s(wcscel, nx, ny, nelem, nelem, imgcrd+i,
-                          imgcrd+wcs->lat, phi, theta, world+i,
-                          world+wcs->lat, istatp))) {
-        if (istat) {
-          status = wcserr_set(WCS_ERRMSG(wcs_celerr[istat]));
-          if (status != WCSERR_BAD_PIX) {
-            goto cleanup;
-          }
+      int istat = celx2s(wcscel, nx, ny, nelem, nelem, imgcrd+i,
+                         imgcrd+wcs->lat, phi, theta, world+i,
+                         world+wcs->lat, istatp);
+      if (istat) {
+        status = wcserr_set(WCS_ERRMSG(wcs_celerr[istat]));
+        if (status != WCSERR_BAD_PIX) {
+          goto cleanup;
         }
       }
 
@@ -3371,17 +3445,21 @@ int wcsp2s(
         wcsutil_setAli(ncoord, 1, istatp);
       }
 
-      if (istat == 5) {
+      // WCSERR_BAD_PIX stat[] vector accounting.
+      if (istat) {
         int bits = (1 << i) | (1 << wcs->lat);
         wcsutil_setBit(ncoord, istatp, bits, stat);
       }
 
     } else if (type == 3 || type == 4) {
-      // Check for constant x.
+      // Spectral and logarithmic coordinates; check for constant x.
       int iso_x;
       int nx = ncoord;
-      if ((iso_x = wcsutil_allEq(ncoord, nelem, imgcrd+i))) {
-        nx = 1;
+
+      if (ncoord > 1) {
+        if ((iso_x = wcsutil_allEq(ncoord, nelem, imgcrd+i))) {
+          nx = 1;
+        }
       }
 
       int istat = 0;
@@ -3413,7 +3491,8 @@ int wcsp2s(
         wcsutil_setAli(ncoord, 1, istatp);
       }
 
-      if (istat == 3) {
+      // WCSERR_BAD_PIX stat[] vector accounting.
+      if (istat) {
         wcsutil_setBit(ncoord, istatp, 1 << i, stat);
       }
     }
@@ -3426,17 +3505,16 @@ int wcsp2s(
 
     if (istat) {
       status = wcserr_set(WCS_ERRMSG(wcs_taberr[istat]));
-
       if (status != WCSERR_BAD_PIX) {
         goto cleanup;
-
-      } else {
-        int bits = 0;
-        for (int m = 0; m < wcs->tab[itab].M; m++) {
-          bits |= 1 << wcs->tab[itab].map[m];
-        }
-        wcsutil_setBit(ncoord, istatp, bits, stat);
       }
+
+      // WCSERR_BAD_PIX stat[] vector accounting.
+      int bits = 0;
+      for (int m = 0; m < wcs->tab[itab].M; m++) {
+        bits |= 1 << wcs->tab[itab].map[m];
+      }
+      wcsutil_setBit(ncoord, istatp, bits, stat);
     }
   }
 
@@ -3472,7 +3550,7 @@ int wcss2p(
   if (wcs == 0x0) return WCSERR_NULL_POINTER;
   struct wcserr **err = &(wcs->err);
 
-  int status;
+  int status = 0;
   if (wcs->flag != WCSSET) {
     if ((status = wcsset(wcs))) return status;
   }
@@ -3489,7 +3567,6 @@ int wcss2p(
     return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
   }
 
-  status = 0;
   stat[0] = 0;
   wcsutil_setAli(ncoord, 1, stat);
 
@@ -3514,28 +3591,29 @@ int wcss2p(
 
     } else if (wcs->types[i] == 2200) {
       // Celestial coordinates; check for constant lng and/or lat.
-      int isolng, isolat;
+      int isolng = 0;
+      int isolat = 0;
       int nlng = ncoord;
       int nlat = 0;
 
-      if ((isolng = wcsutil_allEq(ncoord, nelem, world+i))) {
-        nlng = 1;
-        nlat = ncoord;
-      }
-      if ((isolat = wcsutil_allEq(ncoord, nelem, world+wcs->lat))) {
-        nlat = 1;
+      if (ncoord > 1) {
+        if ((isolng = wcsutil_allEq(ncoord, nelem, world+i))) {
+          nlng = 1;
+          nlat = ncoord;
+        }
+        if ((isolat = wcsutil_allEq(ncoord, nelem, world+wcs->lat))) {
+          nlat = 1;
+        }
       }
 
       // Transform celestial coordinates to projection plane coordinates.
-      int istat;
-      if ((istat = cels2x(wcscel, nlng, nlat, nelem, nelem, world+i,
-                          world+wcs->lat, phi, theta, imgcrd+i,
-                          imgcrd+wcs->lat, istatp))) {
-        if (istat) {
-          status = wcserr_set(WCS_ERRMSG(wcs_celerr[istat]));
-          if (status != WCSERR_BAD_WORLD) {
-            goto cleanup;
-          }
+      int istat = cels2x(wcscel, nlng, nlat, nelem, nelem, world+i,
+                         world+wcs->lat, phi, theta, imgcrd+i,
+                         imgcrd+wcs->lat, istatp);
+      if (istat) {
+        status = wcserr_set(WCS_ERRMSG(wcs_celerr[istat]));
+        if (status != WCSERR_BAD_WORLD) {
+          goto cleanup;
         }
       }
 
@@ -3548,7 +3626,8 @@ int wcss2p(
         wcsutil_setAli(ncoord, 1, istatp);
       }
 
-      if (istat == CELERR_BAD_WORLD) {
+      // WCSERR_BAD_WORLD stat[] vector accounting.
+      if (istat) {
         int bits = (1 << i) | (1 << wcs->lat);
         wcsutil_setBit(ncoord, istatp, bits, stat);
       }
@@ -3590,11 +3669,14 @@ int wcss2p(
       }
 
     } else if (type == 3 || type == 4) {
-      // Check for constancy.
-      int isospec;
+      // Spectral and logarithmic coordinates; check for constancy.
+      int isospec = 0;
       int nwrld = ncoord;
-      if ((isospec = wcsutil_allEq(ncoord, nelem, world+i))) {
-        nwrld = 1;
+
+      if (ncoord > 1) {
+        if ((isospec = wcsutil_allEq(ncoord, nelem, world+i))) {
+          nwrld = 1;
+        }
       }
 
       int istat = 0;
@@ -3626,7 +3708,8 @@ int wcss2p(
         wcsutil_setAli(ncoord, 1, istatp);
       }
 
-      if (istat == 4) {
+      // WCSERR_BAD_WORLD stat[] vector accounting.
+      if (istat) {
         wcsutil_setBit(ncoord, istatp, 1 << i, stat);
       }
     }
@@ -3640,16 +3723,15 @@ int wcss2p(
     if (istat) {
       status = wcserr_set(WCS_ERRMSG(wcs_taberr[istat]));
 
-      if (status == WCSERR_BAD_WORLD) {
-        int bits = 0;
-        for (int m = 0; m < wcs->tab[itab].M; m++) {
-          bits |= 1 << wcs->tab[itab].map[m];
-        }
-        wcsutil_setBit(ncoord, istatp, bits, stat);
-
-      } else {
+      if (status != WCSERR_BAD_WORLD) {
         goto cleanup;
       }
+
+      int bits = 0;
+      for (int m = 0; m < wcs->tab[itab].M; m++) {
+        bits |= 1 << wcs->tab[itab].map[m];
+      }
+      wcsutil_setBit(ncoord, istatp, bits, stat);
     }
   }
 
@@ -3662,10 +3744,52 @@ int wcss2p(
 
 
   // Apply world-to-pixel linear transformation.
-  int istat;
-  if ((istat = linx2p(&(wcs->lin), ncoord, nelem, imgcrd, pixcrd))) {
-    status = wcserr_set(WCS_ERRMSG(wcs_linerr[istat]));
-    goto cleanup;
+  struct linprm *lin = &(wcs->lin);
+  if (!(lin->dispre || lin->disseq)) {
+    // No distortions present, do vector call.
+    int istat = linx2p(lin, ncoord, nelem, imgcrd, pixcrd);
+    if (istat) {
+      status = wcserr_set(WCS_ERRMSG(wcs_linerr[istat]));
+      goto cleanup;
+    }
+
+  } else {
+    // Distortions present, get the status return for each coordinate.
+    int disaxes = 0;
+
+    register const double *img = imgcrd;
+    register double *pix = pixcrd;
+    register int *statp = stat;
+    for (int k = 0 ; k < ncoord; k++, pix += nelem, img += nelem, statp++) {
+      int istat = linx2p(lin, 1, nelem, img, pix);
+      if (istat) {
+        status = wcserr_set(WCS_ERRMSG(wcs_linerr[istat]));
+        if (status != WCSERR_BAD_WORLD) {
+          goto cleanup;
+        }
+
+        if (disaxes == 0) {
+          // Which axes have distortions?
+          struct disprm *dispre = lin->dispre;
+          struct disprm *disseq = lin->disseq;
+          for (int i = 0; i < wcs->naxis; i++) {
+            if (dispre && dispre->disp2x[i]) {
+              disaxes |= (1 << i);
+            } else if (disseq && disseq->disp2x[i]) {
+              disaxes |= (1 << i);
+            }
+          }
+
+          if (disaxes == 0) {
+            // Shouldn't happen.
+            disaxes = (2 << wcs->naxis) - 1;
+          }
+        }
+
+        // WCSERR_BAD_WORLD stat[] vector accounting.
+        *statp = disaxes;
+      }
+    }
   }
 
 cleanup:
