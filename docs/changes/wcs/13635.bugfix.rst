@@ -1,0 +1,6 @@
+Updated bundled WCSLIB version to 7.12. This update includes bug fixes to
+``wcssub()`` in how it handles temporal axes with -TAB and fixes handling
+of status returns from ``linp2x()`` and ``linx2p()`` relating to distortion
+functions, in particular affecting TPV distortions - see #13509. For a full
+list of changes - see http://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES or
+`astropy/cextern/wcslib/CHANGES <https://github.com/astropy/astropy/blob/24e8730c63902d035cb9110eae2a9ebec12d8905/cextern/wcslib/CHANGES>`_.
