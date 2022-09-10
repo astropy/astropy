@@ -6,7 +6,6 @@ import operator
 import numpy as np
 import erfa
 
-from astropy.utils.compat.misc import override__dir__
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.utils.data_info import MixinInfo
@@ -911,16 +910,15 @@ class SkyCoord(ShapedLikeNDArray):
             # Otherwise, do the standard Python attribute setting
             super().__delattr__(attr)
 
-    @override__dir__
     def __dir__(self):
         """
         Override the builtin `dir` behavior to include:
         - Transforms available by aliases
         - Attribute / methods of the underlying self.frame object
         """
+        dir_values = set(super().__dir__())
 
         # determine the aliases that this can be transformed to.
-        dir_values = set()
         for name in frame_transform_graph.get_names():
             frame_cls = frame_transform_graph.lookup_name(name)
             if self.frame.is_transformable_to(frame_cls):
@@ -932,7 +930,7 @@ class SkyCoord(ShapedLikeNDArray):
         # Add all possible frame attributes
         dir_values.update(frame_transform_graph.frame_attributes.keys())
 
-        return dir_values
+        return sorted(dir_values)
 
     def __repr__(self):
         clsnm = self.__class__.__name__

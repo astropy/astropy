@@ -15,7 +15,6 @@ import warnings
 import numpy as np
 
 # Project
-from astropy.utils.compat.misc import override__dir__
 from astropy.utils.decorators import lazyproperty, format_doc
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
@@ -1575,7 +1574,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         self.cache.clear()
 
-    @override__dir__
     def __dir__(self):
         """
         Override the builtin `dir` behavior to include representation
@@ -1583,10 +1581,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         TODO: dynamic representation transforms (i.e. include cylindrical et al.).
         """
-        dir_values = set(self.representation_component_names)
-        dir_values |= set(self.get_representation_component_names('s'))
-
-        return dir_values
+        return sorted(
+            set(super().__dir__())
+            | set(self.representation_component_names)
+            | set(self.get_representation_component_names('s'))
+        )
 
     def __getattr__(self, attr):
         """
