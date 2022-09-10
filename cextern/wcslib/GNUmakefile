@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 7.11
+# GNU makefile for building WCSLIB 7.12
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
+# $Id: GNUmakefile,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -205,6 +205,7 @@ dist :
 
 install_dist :
 	   scp -p $(WCSLIBPKG).tar.bz2 cal103@venice:/nfs/ftp/software/wcslib/
+	   cp -fp $(WCSLIBPKG).tar.bz2 ~/public_html/WCS/
 	   mv -f  $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
 	   ssh cal103@venice "cd /nfs/ftp/software/wcslib/ && \
 	     rm -f wcslib.tar.bz2 && \
