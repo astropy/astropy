@@ -8,11 +8,9 @@ be accessed from there.
 
 import sys
 import functools
-from contextlib import suppress
 
 
-__all__ = ['override__dir__', 'suppress',
-           'possible_filename', 'namedtuple_asdict']
+__all__ = ['override__dir__', 'possible_filename']
 
 
 def possible_filename(filename):
@@ -61,15 +59,3 @@ def override__dir__(f):
         return sorted(members)
 
     return override__dir__wrapper
-
-
-def namedtuple_asdict(namedtuple):
-    """
-    The same as ``namedtuple._adict()``.
-
-    Parameters
-    ----------
-    namedtuple : collections.namedtuple
-    The named tuple to get the dict of
-    """
-    return namedtuple._asdict()
