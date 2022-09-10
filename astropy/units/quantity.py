@@ -18,7 +18,6 @@ import numpy as np
 # LOCAL
 from astropy import config as _config
 from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_22
-from astropy.utils.compat.misc import override__dir__
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
@@ -1004,7 +1003,6 @@ class Quantity(np.ndarray):
     # Quantity, such as `astropy.coordinates.Angle`.
     _include_easy_conversion_members = False
 
-    @override__dir__
     def __dir__(self):
         """
         Quantities are able to directly convert to other units that
@@ -1012,13 +1010,13 @@ class Quantity(np.ndarray):
         order to make autocompletion still work correctly in IPython.
         """
         if not self._include_easy_conversion_members:
-            return []
-        extra_members = set()
+            return super().__dir__()
+
+        dir_values = set(super().__dir__())
         equivalencies = Unit._normalize_equivalencies(self.equivalencies)
-        for equivalent in self.unit._get_units_with_same_physical_type(
-                equivalencies):
-            extra_members.update(equivalent.names)
-        return extra_members
+        for equivalent in self.unit._get_units_with_same_physical_type(equivalencies):
+            dir_values.update(equivalent.names)
+        return sorted(dir_values)
 
     def __getattr__(self, attr):
         """
