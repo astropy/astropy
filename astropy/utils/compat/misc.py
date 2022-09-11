@@ -8,11 +8,10 @@ be accessed from there.
 
 import sys
 import functools
-from contextlib import suppress
 
+from astropy.utils.decorators import deprecated
 
-__all__ = ['override__dir__', 'suppress',
-           'possible_filename', 'namedtuple_asdict']
+__all__ = ['override__dir__', 'possible_filename']
 
 
 def possible_filename(filename):
@@ -35,13 +34,19 @@ def possible_filename(filename):
     return False
 
 
+@deprecated(
+    since="v5.2",
+    message="http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
+)
 def override__dir__(f):
     """
-    When overriding a __dir__ method on an object, you often want to
-    include the "standard" members on the object as well.  This
-    decorator takes care of that automatically, and all the wrapped
-    function needs to do is return a list of the "special" members
-    that wouldn't be found by the normal Python means.
+    When overriding a __dir__ method on an object, you often want to include the
+    "standard" members on the object as well.  This decorator takes care of that
+    automatically, and all the wrapped function needs to do is return a list of
+    the "special" members that wouldn't be found by the normal Python means.
+
+    .. deprecated:: v5.2
+        Use ``sorted(super().__dir__() + ...)`` instead.
 
     Example
     -------
@@ -51,6 +56,18 @@ def override__dir__(f):
         @override__dir__
         def __dir__(self):
             return ['special_method1', 'special_method2']
+
+    Notes
+    -----
+    This function was introduced because of http://bugs.python.org/issue12166,
+    which has since been resolved by
+    http://hg.python.org/cpython/rev/8f403199f999. Now, the best way to
+    customize ``__dir__`` is to use ``super``.
+    ::
+
+        def __dir__(self):
+            added = {'special_method1', 'special_method2'}
+            return sorted(set(super().__dir__()) | added)
     """
     # http://bugs.python.org/issue12166
 
@@ -61,15 +78,3 @@ def override__dir__(f):
         return sorted(members)
 
     return override__dir__wrapper
-
-
-def namedtuple_asdict(namedtuple):
-    """
-    The same as ``namedtuple._adict()``.
-
-    Parameters
-    ----------
-    namedtuple : collections.namedtuple
-    The named tuple to get the dict of
-    """
-    return namedtuple._asdict()
