@@ -257,8 +257,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     fsspec_kwargs : dict, optional
         Keyword arguments passed on to `fsspec.open`. This can be used to
         configure cloud storage credentials and caching behavior.
-        Defaults to ``{"anon": True}`` for paths with prefix ``s3://``
-        which is required for reading data from Amazon S3 open data buckets.
+        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
+        anonymous access to Amazon S3 open data buckets.
         See ``fsspec``'s documentation for available parameters.
 
         .. versionadded:: 5.2
@@ -296,15 +296,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     if use_fsspec:
         if not isinstance(name_or_obj, str):
             raise TypeError("`name_or_obj` must be a string when `use_fsspec=True`")
-        # For s3:// paths, it is useful to have fsspec default to `anon=True`
-        # because Hubble/JWST's data archive is available via a public S3 buckets.
-        # Accessing a public bucket without credentials raises a
-        # `NoCredentialsError` unless `anon=True` is passed explicitely.
         if fsspec_kwargs is None:
-            if name_or_obj.startswith("s3://"):
-                fsspec_kwargs = {'anon': True}
-            else:
-                fsspec_kwargs = {}
+            fsspec_kwargs = {}
 
     # name_or_obj could be an os.PathLike object
     if isinstance(name_or_obj, os.PathLike):

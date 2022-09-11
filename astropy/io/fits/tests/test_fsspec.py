@@ -109,7 +109,7 @@ class TestFsspecRemote:
     @pytest.mark.skipif("not HAS_S3FS")
     def test_fsspec_s3(self):
         """Can we use fsspec to open a FITS file in a public Amazon S3 bucket?"""
-        with fits.open(self.s3_uri) as hdul:  # s3:// paths should default to use_fsspec=True
+        with fits.open(self.s3_uri, fsspec_kwargs={"anon": True}) as hdul:  # s3:// paths should default to use_fsspec=True
             # Do we retrieve the expected array?
             assert_array_equal(hdul[1].section[self.slice], self.expected_cutout)
             # The file has multiple extensions which are not yet downloaded;

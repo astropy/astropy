@@ -148,8 +148,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     use_fsspec : bool, optional
         Use `fsspec.open` to open the file? Defaults to `False` unless
-        ``name`` starts with the Amazon S3 storage prefix ``s3://``
-        or the Google Cloud Storage prefix ``gs://``.  Can also be used for paths
+        ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
+        Google Cloud Storage prefix ``gs://``.  Can also be used for paths
         with other prefixes (e.g. ``http://``) but in this case you must
         explicitely pass ``use_fsspec=True``.
         Use of this feature requires the optional ``fsspec`` package.
@@ -160,8 +160,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     fsspec_kwargs : dict, optional
         Keyword arguments passed on to `fsspec.open`. This can be used to
         configure cloud storage credentials and caching behavior.
-        Defaults to ``{"anon": True}`` for paths with prefix ``s3://``
-        which is required for reading data from Amazon S3 open data buckets.
+        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
+        anonymous access to Amazon S3 open data buckets.
         See ``fsspec``'s documentation for available parameters.
 
         .. versionadded:: 5.2
