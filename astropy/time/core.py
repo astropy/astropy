@@ -21,7 +21,6 @@ import erfa
 from astropy import units as u, constants as const
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
-from astropy.utils.compat.misc import override__dir__
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .utils import day_frac
@@ -1401,11 +1400,8 @@ class TimeBase(ShapedLikeNDArray):
             # Should raise AttributeError
             return self.__getattribute__(attr)
 
-    @override__dir__
     def __dir__(self):
-        result = set(self.SCALES)
-        result.update(self.FORMATS)
-        return result
+        return sorted(set(super().__dir__()) | set(self.SCALES) | set(self.FORMATS))
 
     def _match_shape(self, val):
         """
