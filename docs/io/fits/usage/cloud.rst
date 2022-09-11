@@ -91,9 +91,8 @@ Subsetting FITS files hosted in Amazon S3 cloud storage
 =======================================================
 
 The FITS file used in the example above also happens to be available via
-Amazon cloud storage, where it is stored in a
-`public S3 bucket <https://registry.opendata.aws/hst/>`__ at the following
-location::
+Amazon cloud storage, where it is stored in a `public S3 bucket
+<https://registry.opendata.aws/hst/>`__ at the following location::
 
     >>> s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
 
@@ -106,29 +105,33 @@ For example:
 .. doctest-requires:: fsspec
 
     >>> # Download a small 10-by-20 pixel cutout from a FITS file stored in Amazon S3
-    >>> with fits.open(s3_uri) as hdul:  # doctest: +REMOTE_DATA
+    >>> with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
-
 
 Obtaining cutouts from Amazon S3 in this way may be particularly performant if
 your code is running on a server in the same Amazon cloud region as the data.
 
 .. note::
 
-    To open paths with prefix ``s3://``, fsspec requires an optional dependency called
-    `s3fs`_.  A ``ModuleNotFoundError`` will be raised if this dependency is
-    missing. See :ref:`installing-astropy` for details on installing optional
+    To open paths with prefix ``s3://``, fsspec requires an optional dependency
+    called `s3fs`_.  A ``ModuleNotFoundError`` will be raised if this dependency
+    is missing. See :ref:`installing-astropy` for details on installing optional
     dependencies.
 
 
 Working with Amazon S3 access credentials
 -----------------------------------------
 
+In the example above, we passed ``fsspec_kwargs={"anon": True}`` to enable the
+data to be retrieved in an anonymous way without providing Amazon cloud access
+credentials.  This is possible because the data is located in a public S3
+bucket which has been configured to allow anonymous access.
+
 In some cases you may want to access data stored in an Amazon S3 data bucket
 that is private or uses the "Requester Pays" feature. You will have to provide
-a secret access key in this case.  You can use the ``fsspec_kwargs`` parameter
-to pass extra arguments, such as access keys, to the `fsspec.open` function
-as follows:
+a secret access key in this case to avoid encountering a ``NoCredentialsError``.
+You can use the ``fsspec_kwargs`` parameter to pass extra arguments, such as
+access keys, to the `fsspec.open` function as follows:
 
 .. doctest-skip::
 
@@ -143,15 +146,6 @@ as follows:
     may accidentally end up revealing your keys when you share your code with
     others. A better practice is to store your access keys via a configuration
     file or environment variables. See the `s3fs`_ documentation for guidance.
-
-.. note::
-
-   For convenience, Astropy defaults to ``fsspec_kwargs={"anon": True}``
-   if a path starts with ``s3://`` and ``fsspec_kwargs`` is unspecified.
-   This setting enables data to be retrieved in an anonymous way without
-   providing Amazon cloud access credentials.  Note that anonymous access
-   will yield an error message if the bucket is private or uses the
-   "Requester Pays" feature.
 
 
 Using :class:`~astropy.nddata.Cutout2D` with cloud-hosted FITS files
@@ -186,7 +180,7 @@ in combination with ``use_fsspec=True`` and ``.section`` as follows:
     >>> from astropy.nddata import Cutout2D
     >>> from astropy.wcs import WCS
     ...
-    >>> with fits.open(s3_uri, use_fsspec=True) as hdul:  # doctest: +REMOTE_DATA
+    >>> with fits.open(s3_uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
     ...     wcs = WCS(hdul[1].header)
     ...     cutout = Cutout2D(hdul[1].section,  # use `.section` rather than `.data`!
     ...                       position=position,

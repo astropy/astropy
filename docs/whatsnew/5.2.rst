@@ -131,7 +131,7 @@ Hubble's public Amazon S3 bucket as follows:
 
     >>> from astropy.io import fits
     >>> uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
-    >>> with fits.open(uri) as hdul:  # doctest: +REMOTE_DATA
+    >>> with fits.open(uri, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
     ...
     ...     # Download a single header
     ...     header = hdul[1].header
