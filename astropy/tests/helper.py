@@ -6,6 +6,7 @@ from the installed astropy.  It makes use of the `pytest`_ testing framework.
 import os
 import sys
 import pickle
+import inspect
 import warnings
 import functools
 
@@ -409,7 +410,10 @@ def generic_recursive_equality_test(a, b, class_history):
     Check if the attributes of a and b are equal. Then,
     check if the attributes of the attributes are equal.
     """
-    dict_a = a.__getstate__() if hasattr(a, '__getstate__') else a.__dict__
+    if hasattr(a, '__getstate__'):
+        dict_a = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
+    else:
+        dict_a = a.__dict__
     dict_b = b.__dict__
     for key in dict_a:
         assert key in dict_b,\
