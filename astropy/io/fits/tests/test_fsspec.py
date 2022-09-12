@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Can `astropy.io.fits.open` access (remote) data using the fsspec package?
 """
+import numpy as np
+import pytest
+from numpy.testing import assert_allclose, assert_array_equal
+
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS  # noqa
-from astropy.utils.data import get_pkg_data_filename, conf
-
-import numpy as np
-from numpy.testing import assert_array_equal, assert_allclose
-import pytest
+from astropy.utils.data import conf, get_pkg_data_filename
 
 if HAS_FSSPEC:
     import fsspec
