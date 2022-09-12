@@ -1132,17 +1132,24 @@ class TestCompressedImage(FitsTestCase):
         Test that quantize_level is used.
 
         """
-        import scipy.misc
+        from astropy.utils import minversion
+
         np.random.seed(42)
-        data = scipy.misc.ascent() + np.random.randn(512, 512)*10
+
+        if minversion('scipy', '1.10'):
+            import scipy.datasets
+            scipy_data = scipy.datasets.ascent()
+        else:
+            import scipy.misc
+            scipy_data = scipy.misc.ascent()
+
+        data = scipy_data + np.random.randn(512, 512) * 10
 
         fits.ImageHDU(data).writeto(self.temp('im1.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
-                          quantize_level=-1, dither_seed=5)\
-            .writeto(self.temp('im2.fits'))
+                          quantize_level=-1, dither_seed=5).writeto(self.temp('im2.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
-                          quantize_level=-100, dither_seed=5)\
-            .writeto(self.temp('im3.fits'))
+                          quantize_level=-100, dither_seed=5).writeto(self.temp('im3.fits'))
 
         im1 = fits.getdata(self.temp('im1.fits'))
         im2 = fits.getdata(self.temp('im2.fits'))
