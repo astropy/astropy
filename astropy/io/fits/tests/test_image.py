@@ -1125,6 +1125,7 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
 
     @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5969
@@ -1132,17 +1133,26 @@ class TestCompressedImage(FitsTestCase):
         Test that quantize_level is used.
 
         """
-        import scipy.misc
+        import scipy
+        from astropy.utils import minversion
+
+        SCIPY_LT_1_10 = not minversion(scipy, '1.10dev0')
         np.random.seed(42)
-        data = scipy.misc.ascent() + np.random.randn(512, 512)*10
+
+        if SCIPY_LT_1_10:
+            import scipy.misc
+            scipy_data = scipy.misc.ascent()
+        else:
+            import scipy.datasets
+            scipy_data = scipy.datasets.ascent()
+
+        data = scipy_data + np.random.randn(512, 512)*10
 
         fits.ImageHDU(data).writeto(self.temp('im1.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
-                          quantize_level=-1, dither_seed=5)\
-            .writeto(self.temp('im2.fits'))
+                          quantize_level=-1, dither_seed=5).writeto(self.temp('im2.fits'))
         fits.CompImageHDU(data, compression_type='RICE_1', quantize_method=1,
-                          quantize_level=-100, dither_seed=5)\
-            .writeto(self.temp('im3.fits'))
+                          quantize_level=-100, dither_seed=5).writeto(self.temp('im3.fits'))
 
         im1 = fits.getdata(self.temp('im1.fits'))
         im2 = fits.getdata(self.temp('im2.fits'))
