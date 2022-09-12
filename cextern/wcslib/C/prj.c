@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.11 - an implementation of the FITS WCS standard.
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
+  $Id: prj.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -700,14 +700,14 @@ int azpx2s(
 
     q = prj->w[0] + yj*prj->w[4];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + yc2);
       if (r == 0.0) {
         *phip = 0.0;
         *thetap = 90.0;
-        *(statp++) = 0;
+        *statp  = 0;
 
       } else {
         *phip = atan2d(xj, -yc);
@@ -720,7 +720,7 @@ int azpx2s(
         if (fabs(t) > 1.0) {
           if (fabs(t) > 1.0+tol) {
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("azpx2s");
             continue;
           }
@@ -736,7 +736,7 @@ int azpx2s(
         if (b > 90.0) b -= 360.0;
 
         *thetap = (a > b) ? a : b;
-        *(statp++) = 0;
+        *statp  = 0;
       }
     }
   }
@@ -816,14 +816,14 @@ int azps2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       s = prj->w[1]*(*yp);
       t = (prj->pv[1] + sinthe) + costhe*s;
 
       if (t == 0.0) {
         *xp = 0.0;
         *yp = 0.0;
-        *(statp++) = 1;
+        *statp = 1;
         if (!status) status = PRJERR_BAD_WORLD_SET("azps2x");
 
       } else {
@@ -860,7 +860,7 @@ int azps2x(
 
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp)*prj->w[2] - prj->y0;
-        *(statp++) = istat;
+        *statp = istat;
       }
     }
   }
@@ -1014,7 +1014,7 @@ int szpx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     yr = (*yp + prj->y0)*prj->w[0];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xr = *phip;
       r2 = xr*xr + yr*yr;
 
@@ -1038,7 +1038,7 @@ int szpx2s(
         if (d < 0.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("szpx2s");
           continue;
         }
@@ -1065,7 +1065,7 @@ int szpx2s(
         if (sinthe > 1.0 || sinthe < -1.0) {
           *phip   = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("szpx2s");
           continue;
         }
@@ -1076,7 +1076,7 @@ int szpx2s(
       }
 
       *phip = atan2d(xr - x1*z, -(yr - y1*z));
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -1157,10 +1157,10 @@ int szps2x(
     t = prj->w[3] - s;
 
     if (t == 0.0) {
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
-        *(statp++) = 1;
+        *statp = 1;
       }
 
       if (!status) status = PRJERR_BAD_WORLD_SET("szps2x");
@@ -1170,7 +1170,7 @@ int szps2x(
       u = prj->w[4]*s/t + prj->x0;
       v = prj->w[5]*s/t + prj->y0;
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         // Bounds checking.
         istat = 0;
         if (prj->bounds&1) {
@@ -1203,7 +1203,7 @@ int szps2x(
 
         *xp =  r*(*xp) - u;
         *yp = -r*(*yp) - v;
-        *(statp++) = istat;
+        *statp = istat;
       }
     }
   }
@@ -1318,7 +1318,7 @@ int tanx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + yj2);
@@ -1329,7 +1329,7 @@ int tanx2s(
       }
 
       *thetap = atan2d(prj->r0, r);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -1408,10 +1408,10 @@ int tans2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     s = sind(*thetap);
     if (s == 0.0) {
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
-        *(statp++) = 1;
+        *statp = 1;
       }
       if (!status) status = PRJERR_BAD_WORLD_SET("tans2x");
 
@@ -1427,10 +1427,10 @@ int tans2x(
         }
       }
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
-        *(statp++) = istat;
+        *statp = istat;
       }
     }
   }
@@ -1551,7 +1551,7 @@ int stgx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj  = *phip;
 
       r = sqrt(xj*xj + yj2);
@@ -1562,7 +1562,7 @@ int stgx2s(
       }
 
       *thetap = 90.0 - 2.0*atand(r*prj->w[1]);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -1635,20 +1635,20 @@ int stgs2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     s = 1.0 + sind(*thetap);
     if (s == 0.0) {
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = 0.0;
         *yp = 0.0;
-        *(statp++) = 1;
+        *statp = 1;
       }
       if (!status) status = PRJERR_BAD_WORLD_SET("stgs2x");
 
     } else {
       r = prj->w[0]*cosd(*thetap)/s;
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
-        *(statp++) = 0;
+        *statp = 0;
       }
     }
   }
@@ -1781,7 +1781,7 @@ int sinx2s(
     y0 = (*yp + prj->y0)*prj->w[0];
     y02 = y0*y0;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       // Compute intermediaries.
       x0 = *phip;
       r2 = x0*x0 + y02;
@@ -1799,7 +1799,7 @@ int sinx2s(
         } else if (r2 <= 1.0) {
           *thetap = asind(sqrt(1.0 - r2));
         } else {
-          *(statp++) = 1;
+          *statp = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("sinx2s")
           continue;
         }
@@ -1823,7 +1823,7 @@ int sinx2s(
           if (d < 0.0) {
             *phip = 0.0;
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("sinx2s")
             continue;
           }
@@ -1850,7 +1850,7 @@ int sinx2s(
           if (sinthe > 1.0 || sinthe < -1.0) {
             *phip = 0.0;
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("sinx2s")
             continue;
           }
@@ -1868,7 +1868,7 @@ int sinx2s(
         }
       }
 
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -1969,10 +1969,10 @@ int sins2x(
         }
       }
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  r*(*xp) - prj->x0;
         *yp = -r*(*yp) - prj->y0;
-        *(statp++) = istat;
+        *statp = istat;
       }
 
     } else {
@@ -1981,7 +1981,7 @@ int sins2x(
       z1 = prj->pv[1]*z - prj->x0;
       z2 = prj->pv[2]*z - prj->y0;
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         istat = 0;
         if (prj->bounds&1) {
           t = -atand(prj->pv[1]*(*xp) - prj->pv[2]*(*yp));
@@ -1993,7 +1993,7 @@ int sins2x(
 
         *xp =  r*(*xp) + z1;
         *yp = -r*(*yp) + z2;
-        *(statp++) = istat;
+        *statp = istat;
       }
     }
   }
@@ -2116,7 +2116,7 @@ int arcx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + yj2);
@@ -2128,7 +2128,7 @@ int arcx2s(
         *thetap = 90.0 - r*prj->w[1];
       }
 
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -2205,10 +2205,10 @@ int arcs2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     r =  prj->w[0]*(90.0 - *thetap);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -2404,7 +2404,7 @@ int zpnx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + yj2)/prj->r0;
@@ -2431,7 +2431,7 @@ int zpnx2s(
         d = b*b - 4.0*a*c;
         if (d < 0.0) {
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("zpnx2s");
           continue;
         }
@@ -2445,7 +2445,7 @@ int zpnx2s(
         if (zd < 0.0) {
           if (zd < -tol) {
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("zpnx2s");
             continue;
           }
@@ -2453,7 +2453,7 @@ int zpnx2s(
         } else if (zd > PI) {
           if (zd > PI+tol) {
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("zpnx2s");
             continue;
           }
@@ -2469,7 +2469,7 @@ int zpnx2s(
         if (r < r1) {
           if (r < r1-tol) {
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("zpnx2s");
             continue;
           }
@@ -2477,7 +2477,7 @@ int zpnx2s(
         } else if (r > r2) {
           if (r > r2+tol) {
             *thetap = 0.0;
-            *(statp++) = 1;
+            *statp  = 1;
             if (!status) status = PRJERR_BAD_PIX_SET("zpnx2s");
             continue;
           }
@@ -2515,7 +2515,7 @@ int zpnx2s(
       }
 
       *thetap = 90.0 - zd*R2D;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -2609,10 +2609,10 @@ int zpns2x(
       }
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -2735,7 +2735,7 @@ int zeax2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj  = *phip;
 
       r = sqrt(xj*xj + yj2);
@@ -2751,7 +2751,7 @@ int zeax2s(
           *thetap = -90.0;
         } else {
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("zeax2s");
           continue;
         }
@@ -2759,7 +2759,7 @@ int zeax2s(
         *thetap = 90.0 - 2.0*asind(s);
       }
 
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -2836,10 +2836,10 @@ int zeas2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     r =  prj->w[0]*sind((90.0 - *thetap)/2.0);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -2986,7 +2986,7 @@ int airx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + yj2)/prj->w[0];
@@ -3016,7 +3016,7 @@ int airx2s(
         }
         if (k == 30) {
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("airx2s");
           continue;
         }
@@ -3046,7 +3046,7 @@ int airx2s(
         }
         if (k == 100) {
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("airx2s");
           continue;
         }
@@ -3055,7 +3055,7 @@ int airx2s(
       }
 
       *thetap = 90.0 - 2.0*xi;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -3151,10 +3151,10 @@ int airs2x(
       if (!status) status = PRJERR_BAD_WORLD_SET("airs2x");
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - prj->y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -3309,9 +3309,9 @@ int cypx2s(
     eta = prj->w[3]*(*yp + prj->y0);
     t = atan2d(eta,1.0) + asind(eta*prj->pv[1]/sqrt(eta*eta+1.0));
 
-    for (ix = 0; ix < mx; ix++, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -3396,9 +3396,9 @@ int cyps2x(
     }
 
     eta -= prj->y0;
-    for (iphi = 0; iphi < mphi; iphi++, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -3550,9 +3550,9 @@ int ceax2s(
       s = asind(s);
     }
 
-    for (ix = 0; ix < mx; ix++, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = s;
-      *(statp++) = istat;
+      *statp  = istat;
     }
   }
 
@@ -3625,9 +3625,9 @@ int ceas2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     eta = prj->w[2]*sind(*thetap) - prj->y0;
 
-    for (iphi = 0; iphi < mphi; iphi++, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -3747,9 +3747,9 @@ int carx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     t = prj->w[1]*(*yp + prj->y0);
 
-    for (ix = 0; ix < mx; ix++, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -3822,9 +3822,9 @@ int cars2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     eta = prj->w[0]*(*thetap) - prj->y0;
 
-    for (iphi = 0; iphi < mphi; iphi++, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -3944,9 +3944,9 @@ int merx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     t = 2.0*atand(exp((*yp + prj->y0)/prj->r0)) - 90.0;
 
-    for (ix = 0; ix < mx; ix++, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, thetap += spt, statp++) {
       *thetap = t;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -4029,9 +4029,9 @@ int mers2x(
       eta = prj->r0*log(tand((*thetap+90.0)/2.0)) - prj->y0;
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, yp += sxy, statp++) {
       *yp = eta;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -4163,10 +4163,10 @@ int sflx2s(
 
     t = prj->w[1]*yj;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       *phip  *= s;
       *thetap = t;
-      *(statp++) = istat;
+      *statp  = istat;
     }
   }
 
@@ -4241,10 +4241,10 @@ int sfls2x(
     xi  = cosd(*thetap);
     eta = prj->w[0]*(*thetap) - prj->y0;
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -4396,16 +4396,16 @@ int parx2s(
       t = 3.0*asind(r);
     }
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       if (istat < 0) {
         if (*thetap < 0.0) {
-          *(statp++) = 0;
+          *statp = 0;
         } else {
-          *(statp++) = 1;
+          *statp = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("parx2s");
         }
       } else {
-        *(statp++) = istat;
+        *statp = istat;
       }
 
       *phip  *= s;
@@ -4485,10 +4485,10 @@ int pars2x(
     xi = (1.0 - 4.0*s*s);
     eta = prj->w[2]*s - prj->y0;
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -4661,16 +4661,16 @@ int molx2s(
 
     t = asind(z);
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       if (istat < 0) {
         if (*thetap < 0.0) {
-          *(statp++) = 0;
+          *statp = 0;
         } else {
-          *(statp++) = 1;
+          *statp = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("molx2s");
         }
       } else {
-        *(statp++) = istat;
+        *statp = istat;
       }
 
       *phip  *= s;
@@ -4778,10 +4778,10 @@ int mols2x(
     }
 
     eta -= prj->y0;
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp = xi*(*xp) - prj->x0;
       *yp = eta;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -4909,7 +4909,7 @@ int aitx2s(
     yj  = *yp + prj->y0;
     yj2 = yj*yj*prj->w[1];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       s = *phip - yj2;
 
       istat = 0;
@@ -4944,7 +4944,7 @@ int aitx2s(
       }
 
       *thetap = t;
-      *(statp++) = istat;
+      *statp  = istat;
     }
   }
 
@@ -5022,11 +5022,11 @@ int aits2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       w = sqrt(prj->w[0]/(1.0 + costhe*(*yp)));
       *xp = 2.0*w*costhe*(*xp) - prj->x0;
       *yp = w*sinthe - prj->y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -5170,7 +5170,7 @@ int copx2s(
     dy  = prj->w[2] - (*yp + prj->y0);
     dy2 = dy*dy;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + dy2);
@@ -5184,7 +5184,7 @@ int copx2s(
 
       *phip = alpha*prj->w[1];
       *thetap = prj->pv[1] + atand(prj->w[5] - r*prj->w[4]);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -5296,10 +5296,10 @@ int cops2x(
       }
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -5451,7 +5451,7 @@ int coex2s(
     dy  = prj->w[2] - (*yp + prj->y0);
     dy2 = dy*dy;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + dy2);
@@ -5485,7 +5485,7 @@ int coex2s(
 
       *phip = alpha*prj->w[1];
       *thetap = t;
-      *(statp++) = istat;
+      *statp  = istat;
     }
   }
 
@@ -5567,10 +5567,10 @@ int coes2x(
       r = prj->w[3]*sqrt(prj->w[4] - prj->w[5]*sind(*thetap));
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -5709,7 +5709,7 @@ int codx2s(
     dy  = prj->w[2] - (*yp + prj->y0);
     dy2 = dy*dy;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + dy2);
@@ -5723,7 +5723,7 @@ int codx2s(
 
       *phip = alpha*prj->w[1];
       *thetap = prj->w[3] - r;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -5801,10 +5801,10 @@ int cods2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     r = prj->w[3] - *thetap;
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -5960,7 +5960,7 @@ int coox2s(
     dy  = prj->w[2] - (*yp + prj->y0);
     dy2 = dy*dy;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + dy2);
@@ -5987,7 +5987,7 @@ int coox2s(
 
       *phip = alpha*prj->w[1];
       *thetap = t;
-      *(statp++) = istat;
+      *statp  = istat;
     }
   }
 
@@ -6077,10 +6077,10 @@ int coos2x(
       r = prj->w[3]*pow(tand((90.0 - *thetap)/2.0),prj->w[0]);
     }
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       *xp =  r*(*xp) - prj->x0;
       *yp = -r*(*yp) - y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -6219,7 +6219,7 @@ int bonx2s(
     dy  = prj->w[2] - (*yp + prj->y0);
     dy2 = dy*dy;
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       r = sqrt(xj*xj + dy2);
@@ -6241,7 +6241,7 @@ int bonx2s(
 
       *phip = s;
       *thetap = t;
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -6322,12 +6322,12 @@ int bons2x(
     r = prj->w[2] - prj->w[1]*(*thetap);
     s = cosd(*thetap)/r;
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       alpha = s*(*xp);
       sincosd(alpha, &sinalpha, &cosalpha);
       *xp =  r*sinalpha - prj->x0;
       *yp = -r*cosalpha - y0;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -6456,7 +6456,7 @@ int pcox2s(
     yj = *yp + prj->y0;
     w  = fabs(yj*prj->w[1]);
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xj = *phip;
 
       if (w < tol) {
@@ -6525,7 +6525,7 @@ int pcox2s(
         *thetap = the;
       }
 
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -6595,30 +6595,30 @@ int pcos2x(
   statp = stat;
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     if (*thetap == 0.0) {
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp =  prj->w[0]*(*xp) - prj->x0;
         *yp = -prj->y0;
-        *(statp++) = 0;
+        *statp = 0;
       }
 
     } else if (fabs(*thetap) < 1.0e-4) {
       // To avoid cot(theta) blowing up near theta == 0.
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *xp = prj->w[0]*(*xp)*cosd(*thetap) - prj->x0;
         *yp = (prj->w[0] + prj->w[3]*(*xp)*(*xp))*(*thetap) - prj->y0;
-        *(statp++) = 0;
+        *statp = 0;
       }
 
     } else {
       therad = (*thetap)*D2R;
       sincosd(*thetap, &sinthe, &costhe);
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         sincosd((*xp)*sinthe, &sinpsi, &cospsi);
         cotthe = costhe/sinthe;
         *xp = prj->r0*cotthe*sinpsi - prj->x0;
         *yp = prj->r0*(cotthe*(1.0 - cospsi) + therad) - prj->y0;
-        *(statp++) = 0;
+        *statp = 0;
       }
     }
   }
@@ -6740,7 +6740,7 @@ int tscx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     yf = (*yp + prj->y0)*prj->w[1];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xf = *phip;
 
       // Bounds checking.
@@ -6748,7 +6748,7 @@ int tscx2s(
         if (fabs(yf) > 3.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("tscx2s");
           continue;
         }
@@ -6756,7 +6756,7 @@ int tscx2s(
         if (fabs(xf) > 7.0 || fabs(yf) > 1.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("tscx2s");
           continue;
         }
@@ -6810,7 +6810,7 @@ int tscx2s(
       }
 
       *thetap = asind(n);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -6889,7 +6889,7 @@ int tscs2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       l = costhe*(*xp);
       m = costhe*(*yp);
       n = sinthe;
@@ -6975,7 +6975,7 @@ int tscs2x(
 
       *xp = prj->w[0]*(xf + x0) - prj->x0;
       *yp = prj->w[0]*(yf + y0) - prj->y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -7125,7 +7125,7 @@ int cscx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     yf = (float)((*yp + prj->y0)*prj->w[1]);
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xf = (float)(*phip);
 
       // Bounds checking.
@@ -7133,7 +7133,7 @@ int cscx2s(
         if (fabs((double)yf) > 3.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("cscx2s");
           continue;
         }
@@ -7141,7 +7141,7 @@ int cscx2s(
         if (fabs((double)xf) > 7.0 || fabs((double)yf) > 1.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("cscx2s");
           continue;
         }
@@ -7239,7 +7239,7 @@ int cscx2s(
       }
 
       *thetap = asind(n);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -7334,7 +7334,7 @@ int cscs2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       l = costhe*(*xp);
       m = costhe*(*yp);
       n = sinthe;
@@ -7441,7 +7441,7 @@ int cscs2x(
 
       *xp = prj->w[0]*(xf + x0) - prj->x0;
       *yp = prj->w[0]*(yf + y0) - prj->y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -7563,7 +7563,7 @@ int qscx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     yf = (*yp + prj->y0)*prj->w[1];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xf = *phip;
 
       // Bounds checking.
@@ -7571,7 +7571,7 @@ int qscx2s(
         if (fabs(yf) > 3.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("qscx2s");
           continue;
         }
@@ -7579,7 +7579,7 @@ int qscx2s(
         if (fabs(xf) > 7.0 || fabs(yf) > 1.0) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("qscx2s");
           continue;
         }
@@ -7642,7 +7642,7 @@ int qscx2s(
         if (zeta < -1.0-tol) {
           *phip = 0.0;
           *thetap = 0.0;
-          *(statp++) = 1;
+          *statp  = 1;
           if (!status) status = PRJERR_BAD_PIX_SET("qscx2s");
           continue;
         }
@@ -7737,7 +7737,7 @@ int qscx2s(
       }
 
       *thetap = asind(n);
-      *(statp++) = 0;
+      *statp  = 0;
     }
   }
 
@@ -7818,11 +7818,11 @@ int qscs2x(
   for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
     sincosd(*thetap, &sinthe, &costhe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       if (fabs(*thetap) == 90.0) {
         *xp = -prj->x0;
         *yp = copysign(2.0*prj->w[0], *thetap) - prj->y0;
-        *(statp++) = 0;
+        *statp = 0;
         continue;
       }
 
@@ -7974,7 +7974,7 @@ int qscs2x(
 
       *xp = prj->w[0]*(xf + x0) - prj->x0;
       *yp = prj->w[0]*(yf + y0) - prj->y0;
-      *(statp++) = istat;
+      *statp = istat;
     }
   }
 
@@ -8143,9 +8143,9 @@ int hpxx2s(
     if (absy <= prj->w[5]) {
       // Equatorial regime.
       t = asind(yr/prj->w[3]);
-      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         *thetap = t;
-        *(statp++) = 0;
+        *statp  = 0;
       }
 
     } else if (absy <= ylim) {
@@ -8172,7 +8172,7 @@ int hpxx2s(
       }
       if (*yp < 0.0) t = -t;
 
-      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         if (offset) {
           // Offset the southern polar half-facets for even K.
           h = (int)floor(*phip / prj->w[6]) + prj->m;
@@ -8197,16 +8197,15 @@ int hpxx2s(
         if (r != 0.0) r -= *thetap;
         *phip  += r;
         *thetap = t;
-
-        *(statp++) = istat;
+        *statp  = istat;
       }
 
     } else {
       // Beyond latitude range.
-      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+      for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
         *phip   = 0.0;
         *thetap = 0.0;
-        *(statp++) = 1;
+        *statp  = 1;
       }
       if (!status) status = PRJERR_BAD_PIX_SET("hpxx2s");
     }
@@ -8294,9 +8293,9 @@ int hpxs2x(
     if (abssin <= prj->w[2]) {
       // Equatorial regime.
       eta = prj->w[8] * sinthe - prj->y0;
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         *yp = eta;
-        *(statp++) = 0;
+        *statp = 0;
       }
 
     } else {
@@ -8310,7 +8309,7 @@ int hpxs2x(
       if (*thetap < 0) eta = -eta;
       eta -= prj->y0;
 
-      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
         if (offset) {
           // Offset the southern polar half-facets for even K.
           h = (int)floor((*xp + prj->x0) / prj->w[9]) + prj->m;
@@ -8324,7 +8323,7 @@ int hpxs2x(
         // Recall that y[] holds (phi - phi_c).
         *xp += *yp * xi;
         *yp = eta;
-        *(statp++) = 0;
+        *statp = 0;
 
         // Put the phi = 180 meridian in the expected place.
         if (180.0 < *xp) *xp = 360.0 - *xp;
@@ -8463,7 +8462,7 @@ int xphx2s(
   for (iy = 0; iy < ny; iy++, yp += sxy) {
     yr = (*yp + prj->y0)*prj->w[1];
 
-    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt, statp++) {
       xr = *phip;
 
       if (xr <= 0.0 && 0.0 < yr) {
@@ -8503,7 +8502,7 @@ int xphx2s(
             }
           }
 
-          *(statp++) = istat;
+          *statp = istat;
 
         } else {
           // Polar regime.
@@ -8542,14 +8541,14 @@ int xphx2s(
             }
           }
 
-          *(statp++) = istat;
+          *statp = istat;
         }
 
       } else {
         // Beyond latitude range.
         *phip   = 0.0;
         *thetap = 0.0;
-        *(statp++) = 1;
+        *statp  = 1;
         if (!status) status = PRJERR_BAD_PIX_SET("xphx2s");
       }
     }
@@ -8642,7 +8641,7 @@ int xphs2x(
     sinthe = sind(*thetap);
     abssin = fabs(sinthe);
 
-    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy, statp++) {
       if (abssin <= prj->w[2]) {
         // Equatorial regime.
         xi  = *xp;
@@ -8682,7 +8681,7 @@ int xphs2x(
         *yp = prj->w[0]*( xi - eta) - prj->y0;
       }
 
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 

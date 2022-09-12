@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.11 - an implementation of the FITS WCS standard.
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
+  $Id: lin.h,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.11 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.12 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -308,6 +308,7 @@
 *                         1: Null linprm pointer passed.
 *                         2: Memory allocation failed.
 *                         3: PCi_ja matrix is singular.
+*                         4: Failed to initialise distortions.
 *
 *                       For returns > 1, a detailed error message is set in
 *                       linprm::err if enabled, see wcserr_enable().
@@ -339,9 +340,19 @@
 *                         1: Null linprm pointer passed.
 *                         2: Memory allocation failed.
 *                         3: PCi_ja matrix is singular.
+*                         4: Failed to initialise distortions.
+*                         5: Distort error.
 *
 *                       For returns > 1, a detailed error message is set in
 *                       linprm::err if enabled, see wcserr_enable().
+*
+* Notes:
+*   1. Historically, the API to linp2x() did not have a stat[] vector because
+*      a valid linear transformation should always succeed.  However, now that
+*      it invokes disp2x() if distortions are present, it does have the
+*      potential to fail.  Consequently, when distortions are present and a
+*      status return (stat[]) is required for each coordinate, then linp2x()
+*      should be invoked separately for each of them.
 *
 *
 * linx2p() - World-to-pixel linear transformation
@@ -369,9 +380,19 @@
 *                         1: Null linprm pointer passed.
 *                         2: Memory allocation failed.
 *                         3: PCi_ja matrix is singular.
+*                         4: Failed to initialise distortions.
+*                         6: De-distort error.
 *
 *                       For returns > 1, a detailed error message is set in
 *                       linprm::err if enabled, see wcserr_enable().
+*
+* Notes:
+*   1. Historically, the API to linx2p() did not have a stat[] vector because
+*      a valid linear transformation should always succeed.  However, now that
+*      it invokes disx2p() if distortions are present, it does have the
+*      potential to fail.  Consequently, when distortions are present and a
+*      status return (stat[]) is required for each coordinate, then linx2p()
+*      should be invoked separately for each of them.
 *
 *
 * linwarp() - Compute measures of distortion
