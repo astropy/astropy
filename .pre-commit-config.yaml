@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+    rev: v4.3.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -21,7 +21,7 @@ repos:
         name: isort (python)
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.34.0
+    rev: v2.37.3
     hooks:
       - id: pyupgrade
         args: ["--py38-plus"]
@@ -55,8 +55,8 @@ repos:
   # E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
   # F822: undefined name in __all__
   # F823: local variable name referenced before assignment
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
     hooks:
       - id: flake8
         args:
