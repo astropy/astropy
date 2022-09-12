@@ -16,7 +16,8 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 is_masked = np.ma.is_masked
 
-# This is r"can't set attribute '{0}'" for Python 3.10, but not 3.9.
+# The first form is expanded to r"can't set attribute '{0}'" in Python 3.10, and replaced
+# with the more informative second form as of 3.11 (python/cpython#31311).
 no_setter_err = (r"can't set attribute" if PYTHON_LT_3_11
                  else r"property '{0}' of '{1}' object has no setter")
 
