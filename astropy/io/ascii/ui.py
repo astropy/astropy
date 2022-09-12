@@ -569,7 +569,7 @@ def _guess(table, read_kwargs, format, fast_reader):
                    '** delimiter.                                                         **',
                    '************************************************************************']
             lines.extend(msg)
-            raise core.InconsistentTableError('\n'.join(lines))
+            raise core.InconsistentTableError('\n'.join(lines)) from None
 
 
 def _get_guess_kwargs_list(read_kwargs):
