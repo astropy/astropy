@@ -2685,7 +2685,7 @@ class Table:
         This gives the same as using remove_column.
         '''
         for name in self._set_of_names_in_colnames(names):
-            self.columns.pop(name)
+            del self.columns[name]
 
     def _convert_string_dtype(self, in_kind, out_kind, encode_decode_func):
         """
@@ -2786,7 +2786,7 @@ class Table:
         names = self._set_of_names_in_colnames(names)
         for colname in self.colnames:
             if colname not in names:
-                self.columns.pop(colname)
+                del self.columns[colname]
 
     def rename_column(self, name, new_name):
         '''
