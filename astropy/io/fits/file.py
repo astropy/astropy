@@ -18,7 +18,7 @@ import numpy as np
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
-from astropy.utils.data import _is_url, download_file, _requires_fsspec, get_readable_fileobj
+from astropy.utils.data import _is_url, _requires_fsspec, download_file, get_readable_fileobj
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG

@@ -15,11 +15,8 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-quantity-dtype`
 * :ref:`whatsnew-5.2-cosmology`
 * :ref:`whatsnew-5.2-coordinates`
-<<<<<<< HEAD
 * :ref:`whatsnew-5.2-io-ascii-fixed-width`
-=======
 * :ref:`whatsnew-5.2-fits`
->>>>>>> 968660722 (Add "What's New" entry)
 
 
 .. _whatsnew-5.2-quantity-dtype:

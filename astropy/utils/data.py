@@ -310,7 +310,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             if not HAS_FSSPEC:
                 raise ModuleNotFoundError("please install `fsspec` to open this file")
             import fsspec  # local import because it is a niche dependency
-            fileobj = fsspec.open(name_or_obj, **fsspec_kwargs).open()
+            openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
+            close_fds.append(openfileobj)
+            fileobj = openfileobj.open()
             close_fds.append(fileobj)
         else:
             is_url = _is_url(name_or_obj)
