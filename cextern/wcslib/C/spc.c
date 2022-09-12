@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.11 - an implementation of the FITS WCS standard.
+  WCSLIB 7.12 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2022, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 7.11 2022/04/26 06:13:52 mcalabre Exp $
+  $Id: spc.c,v 7.12 2022/09/09 04:57:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -574,9 +574,9 @@ int spcx2s(
   xp = x;
   specp = spec;
   statp = stat;
-  for (ix = 0; ix < nx; ix++, xp += sx, specp += sspec) {
+  for (ix = 0; ix < nx; ix++, xp += sx, specp += sspec, statp++) {
     *specp = spc->w[1] + (*xp)*spc->w[2];
-    *(statp++) = 0;
+    *statp = 0;
   }
 
   // If X is the grism parameter then convert it to wavelength.
@@ -675,9 +675,9 @@ int spcs2x(
     xp = x;
     specp = spec;
     statp = stat;
-    for (ispec = 0; ispec < nspec; ispec++, specp += sspec, xp += sx) {
+    for (ispec = 0; ispec < nspec; ispec++, specp += sspec, xp += sx, statp++) {
       *xp = *specp;
-      *(statp++) = 0;
+      *statp = 0;
     }
   }
 
@@ -718,8 +718,8 @@ int spcs2x(
   // Convert X-type spectral variable to intermediate world coordinate x.
   xp = x;
   statp = stat;
-  for (ispec = 0; ispec < nspec; ispec++, xp += sx) {
-    if (*(statp++)) continue;
+  for (ispec = 0; ispec < nspec; ispec++, xp += sx, statp++) {
+    if (*statp) continue;
 
     *xp -= spc->w[1];
     *xp /= spc->w[2];
