@@ -1,34 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.io.ascii.core import convert_numpy
 import re
-from io import BytesIO
-from collections import OrderedDict
 import locale
 import platform
-from io import StringIO
-
 import pathlib
+from collections import OrderedDict
+from io import BytesIO, StringIO
+
 import pytest
 import numpy as np
 
+from astropy.io.ascii.core import convert_numpy
 from astropy.io import ascii
 from astropy.table import Table, MaskedColumn
 from astropy import table
 from astropy.units import Unit
 from astropy.table.table_helpers import simple_table
 
-from .common import (assert_equal, assert_almost_equal,
-                     assert_true)
 from astropy.io.ascii import core
 from astropy.io.ascii.ui import _probably_html, get_read_trace
 from astropy.utils.data import get_pkg_data_path
-from astropy.utils.exceptions import AstropyWarning
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2  # noqa
 
 # setup/teardown function to have the tests run in the correct directory
+from .common import (assert_equal, assert_almost_equal,
+                     assert_true)
 from .common import setup_function, teardown_function  # noqa
 
 
@@ -60,9 +58,18 @@ def test_convert_overflow(fast_reader):
     return inf (kind 'f') for this.
     """
     expected_kind = 'U'
-    with pytest.warns(AstropyWarning, match="OverflowError converting to IntType in column a"):
+
+    with pytest.warns() as warn_lines:
         dat = ascii.read(['a', '1' * 10000], format='basic',
                          fast_reader=fast_reader, guess=False)
+
+    n_warns = len(warn_lines)
+    if fast_reader is False:
+        assert n_warns in (0, 2)  # Sometimes no warning
+    else:
+        assert (n_warns == 1 and
+                str(warn_lines[0].message).startswith("OverflowError converting to IntType in column a"))  # noqa: E501
+
     assert dat['a'].dtype.kind == expected_kind
 
 
