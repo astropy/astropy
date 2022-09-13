@@ -1140,6 +1140,7 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(42)
 
         if SCIPY_LT_1_10:
+            import scipy.misc  # No lazy loading for SCIPY_LT_1_9
             scipy_data = scipy.misc.ascent()
         else:
             scipy_data = scipy.datasets.ascent()
