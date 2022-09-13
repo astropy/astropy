@@ -65,7 +65,7 @@ def test_convert_overflow(fast_reader):
 
     n_warns = len(warn_lines)
     if fast_reader is False:
-        assert n_warns in (0, 2)  # Sometimes no warning
+        assert n_warns in (0, 1, 2)  # Sometimes no warning
     else:
         assert (n_warns == 1 and
                 str(warn_lines[0].message).startswith("OverflowError converting to IntType in column a"))  # noqa: E501
