@@ -1088,17 +1088,21 @@ class BaseOutputter:
                 try:
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
-                except (TypeError, ValueError) as err:
-                    col.converters.pop(0)
-                    last_err = err
-                except OverflowError as err:
+                except (OverflowError, TypeError, ValueError) as err:
                     # Overflow during conversion (most likely an int that
                     # doesn't fit in native C long). Put string at the top of
                     # the converters list for the next while iteration.
-                    warnings.warn(
-                        "OverflowError converting to {} in column {}, reverting to String."
-                        .format(converter_type.__name__, col.name), AstropyWarning)
-                    col.converters.insert(0, convert_numpy(numpy.str))
+                    # With python/cpython#95778 this has been supplemented with a
+                    # "ValueError: Exceeds the limit (4300) for integer string conversion"
+                    # so need to catch that as well.
+                    if isinstance(err, OverflowError) or (isinstance(err, ValueError) and
+                                                          str(err).startswith('Exceeds the limit')):
+                        warnings.warn(
+                            f'OverflowError converting to {converter_type.__name__} in column '
+                            f'{col.name}, reverting to String.', AstropyWarning)
+                        col.converters.insert(0, convert_numpy(numpy.str))
+                    else:
+                        col.converters.pop(0)
                     last_err = err
 
 
