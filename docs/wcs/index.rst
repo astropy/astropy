@@ -114,10 +114,6 @@ Examples creating a WCS programmatically
    Example of Cube WCS <example_cube_wcs.rst>
    Loading From a FITS File <loading_from_fits.rst>
 
-.. _wcslint:
-
-
-
 WCS Tools
 =========
 
