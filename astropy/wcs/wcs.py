@@ -49,7 +49,6 @@ from . import docstrings
 from . import _wcs
 
 from astropy import units as u
-from astropy.utils.compat import possible_filename
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
@@ -411,8 +410,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
             if isinstance(header, (str, bytes)):
                 try:
-                    is_path = (possible_filename(header) and
-                               os.path.exists(header))
+                    is_path = os.path.exists(header)
                 except (OSError, ValueError):
                     is_path = False
 
