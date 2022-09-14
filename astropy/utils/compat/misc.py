@@ -11,30 +11,9 @@ import functools
 
 from astropy.utils.decorators import deprecated
 
-__all__ = ["override__dir__", "possible_filename",
-           "PYTHON_LT_3_11"]
+__all__ = ["override__dir__", "PYTHON_LT_3_11"]
 
 PYTHON_LT_3_11 = sys.version_info < (3, 11)
-
-
-def possible_filename(filename):
-    """
-    Determine if the ``filename`` argument is an allowable type for a filename.
-
-    In Python 3.3 use of non-unicode filenames on system calls such as
-    `os.stat` and others that accept a filename argument was deprecated (and
-    may be removed outright in the future).
-
-    Therefore this returns `True` in all cases except for `bytes` strings in
-    Windows.
-    """
-
-    if isinstance(filename, str):
-        return True
-    elif isinstance(filename, bytes):
-        return not (sys.platform == 'win32')
-
-    return False
 
 
 @deprecated(
