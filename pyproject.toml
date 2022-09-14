@@ -2,7 +2,7 @@
 requires = ["setuptools",
             "setuptools_scm>=6.2",
             "wheel",
-            "cython==0.29.22",
+            "cython==0.29.30",
             "markupsafe==2.0.1",  # jinja2 dependency
             "jinja2==3.0.3",
             "oldest-supported-numpy",
