@@ -34,8 +34,12 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
+from __future__ import annotations
+
 import functools
 import operator
+from functools import reduce
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, Sequence
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -43,6 +47,9 @@ from numpy.lib import recfunctions as rfn
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
+
+if TYPE_CHECKING:
+    from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
@@ -109,7 +116,7 @@ UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
 # TODO! support whichever of these functions it makes sense to support
 TBD_FUNCTIONS = {
     rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
-    rfn.apply_along_fields, rfn.assign_fields_by_name, rfn.merge_arrays,
+    rfn.apply_along_fields, rfn.assign_fields_by_name,
     rfn.find_duplicates, rfn.recursive_fill_fields, rfn.require_fields,
     rfn.repack_fields, rfn.stack_arrays
 }
@@ -1057,6 +1064,8 @@ def eig(a, *args, **kwargs):
     return (a.value,)+args, kwargs, (a.unit, dimensionless_unscaled), None
 
 
+# ===================================================================
+
 @function_helper(module=np.lib.recfunctions)
 def structured_to_unstructured(arr, *args, **kwargs):
     """
@@ -1103,3 +1112,120 @@ def unstructured_to_structured(arr, dtype, *args, **kwargs):
     target_unit = StructuredUnit(_build_structured_unit(dtype, arr.unit))
 
     return (arr.to_value(arr.unit), dtype) + args, kwargs, target_unit, None
+
+
+def _izip_units_flat(iterable: Iterable[StructuredUnit | Unit] | StructuredUnit) -> Iterator:
+    """Returns an iterator of collapsing any nested unit structure.
+
+    Parameters
+    ----------
+    iterable : Iterable[StructuredUnit | Unit] or StructuredUnit
+        A structured unit or iterable thereof.
+
+    Yields
+    ------
+    (str, unit)
+    """
+    from astropy.units import StructuredUnit
+
+    # Make Structured unit.
+    units = iterable if isinstance(iterable, StructuredUnit) else StructuredUnit(iterable)
+
+    # Yield from structured unit.
+    for k, v in units.items():
+        if isinstance(v, StructuredUnit):
+            yield from _izip_units_flat(v)
+        else:
+            yield (k, v)
+
+
+def merge_units(*units: UnitBase | StructuredUnit | None) -> StructuredUnit:
+    """Merge a sequence of units into a structured unit.
+
+    .. todo::
+
+        Either make this function public or incorporate into ``StructuredUnit``.
+
+    Parameters
+    ----------
+    *units : `astropy.units.UnitBase` or `astropy.units.StructuredUnit`
+        The units to merge into one structured unit.
+
+    Returns
+    -------
+    `astropy.units.StructuredUnit`
+        Structured unit of constituent unit.
+    """
+    from astropy.units import StructuredUnit, UnitBase
+
+    # filter units, excluding None
+    actual_units = tuple(unit for unit in units if isinstance(unit, (UnitBase, StructuredUnit)))
+    flat = tuple(_izip_units_flat(StructuredUnit(actual_units)))
+    return StructuredUnit(tuple(uu for _, uu in flat), names=tuple(n for n, _ in flat))
+
+
+@function_helper(helps=rfn.merge_arrays)
+def merge_arrays(
+    seqarrays: Quantity | Sequence[Quantity],
+    fill_value: float = -1,
+    flatten: bool = False,
+    usemask: bool = False,
+    asrecarray: bool = False,
+) -> tuple[tuple[Any, ...], dict[str, Any], StructuredUnit, None]:
+    """Merge structured Quantities field by field.
+
+    Parameters
+    ----------
+    seqarrays : sequence of Quantity
+        Sequence of arrays.
+    fill_value : {float}, optional
+        Filling value used to pad missing data on the shorter arrays.
+    flatten : {False, True}, optional
+        Whether to collapse nested fields.
+    usemask : {False, True}, optional
+        Whether to return a masked array or not.
+
+        .. warning::
+            Not yet supported.
+    asrecarray : {False, True}, optional
+        Whether to return a recarray (MaskedRecords) or not.
+
+        .. warning::
+            Not yet supported.
+
+    Returns
+    -------
+    Quantity
+        Merged structured Quantity.
+
+    Raises
+    ------
+    ValueError
+        If ``asrecarray`` is `True`.
+        If ``usemask`` is `True`.
+    """
+    from astropy.units import Quantity, StructuredUnit
+
+    if asrecarray:
+        raise ValueError("asrecarray=True is not supported.")
+    if usemask:
+        raise ValueError("usemask=True is not supported.")
+
+    # Do we have a single ndarray as input ?
+    if isinstance(seqarrays, Quantity):
+        LEN1 = True
+        arrays = (seqarrays.value,)
+        units = (seqarrays.unit,)
+    else:
+        arrays = tuple(a.value for a in seqarrays)
+        units = tuple(q.unit for q in seqarrays)
+        LEN1 = True if len(arrays) == 1 else False
+
+    if flatten:
+        unit = merge_units(*units)
+    elif LEN1:
+        unit = StructuredUnit(units[0])
+    else:
+        unit = StructuredUnit(units)
+
+    return (arrays, ), dict(fill_value=fill_value, flatten=flatten, usemask=usemask, asrecarray=asrecarray), unit, None

@@ -2038,6 +2038,21 @@ class TestLinAlg(metaclass=CoverageMeta):
 
 class TestRecFunctions(metaclass=CoverageMeta):
 
+    @classmethod
+    def setup_class(self):
+
+        self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
+        self.pv_t_dtype = np.dtype([('pv', np.dtype([('pp', 'f8'), ('vv', 'f8')])), ('t', 'f8')])
+
+        self.pv = np.array([(1., 0.25), (2., 0.5), (3., 0.75)], self.pv_dtype)
+        self.pv_t = np.array([((4., 2.5), 0.), ((5., 5.0), 1.), ((6., 7.5), 2.)], self.pv_t_dtype)
+
+        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ('p', 'v'))
+        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ('pv', 't'))
+
+        self.q_pv = self.pv << self.pv_unit
+        self.q_pv_t = self.pv_t << self.pv_t_unit
+
     def test_structured_to_unstructured(self):
         # can't unstructure something with incompatible units
         with pytest.raises(u.UnitConversionError, match="'m'"):
@@ -2082,6 +2097,70 @@ class TestRecFunctions(metaclass=CoverageMeta):
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_structured.TestStructuredQuantityFunctions.test_unstructured_to_structured``
 
+    def test_merge_arrays(self):
+        """Test `numpy.lib.recfunctions.merge_arrays`."""
+        # merge 1 normal array
+        arr = rfn.merge_arrays(self.q_pv["p"])
+        assert np.array_equal(arr.value["f0"], [1, 2, 3])
+        assert arr.unit == (u.km,)
+
+        # merge 1 structured array
+        arr = rfn.merge_arrays(self.q_pv)
+        assert np.array_equal(arr.value["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert arr.unit == (u.km, u.km/u.s)
+
+        # merge 1-elt tuple
+        arr = rfn.merge_arrays((self.q_pv,))
+        assert np.array_equal(arr.value["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert arr.unit == (u.km, u.km/u.s)
+
+        # merge 2-elt tuples
+        arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
+        assert np.array_equal(arr.value["f0"]["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["f0"]["v"], [0.25, 0.5, 0.75])
+        assert np.array_equal(arr.value["f1"]["pv"]["pp"], [4, 5, 6])
+        assert np.array_equal(arr.value["f1"]["pv"]["vv"], [2.5, 5, 7.5])
+        assert np.array_equal(arr.value["f1"]["t"], [0, 1, 2])
+        assert arr.unit == ((u.km, u.km/u.s), ((u.km, u.km/u.s), u.s))
+
+    def test_merge_arrays_flatten(self):
+        """Test `numpy.lib.recfunctions.merge_arrays` with ``flatten=True``."""
+        # merge 1 normal array
+        arr = rfn.merge_arrays(self.q_pv["p"], flatten=True)
+        assert np.array_equal(arr.value["f0"], [1, 2, 3])
+        assert arr.unit == (u.km,)
+
+        # merges 1 array (no need to flatten)
+        arr = rfn.merge_arrays(self.q_pv, flatten=True)
+        assert np.array_equal(arr.value["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert arr.unit == (u.km, u.km/u.s)
+
+        # merge 1-elt tuple (no need to flatten)
+        arr = rfn.merge_arrays((self.q_pv,), flatten=True)
+        assert np.array_equal(arr.value["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert arr.unit == (u.km, u.km/u.s)
+
+        # merge 2-elt tuple
+        arr = rfn.merge_arrays((self.q_pv, self.q_pv_t), flatten=True)
+        assert np.array_equal(arr.value["p"], [1, 2, 3])
+        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert np.array_equal(arr.value["pp"], [4, 5, 6])
+        assert np.array_equal(arr.value["vv"], [2.5, 5, 7.5])
+        assert np.array_equal(arr.value["t"], [0, 1, 2])
+        assert arr.unit == (u.km, u.km/u.s, u.km, u.km/u.s, u.s)
+
+    def test_merge_arrays_asrecarray(self):
+        with pytest.raises(ValueError, match="asrecarray=True is not supported."):
+            arr = rfn.merge_arrays(self.q_pv, asrecarray=True)
+
+    def test_merge_arrays_usemask(self):
+        with pytest.raises(ValueError, match="usemask=True is not supported."):
+            arr = rfn.merge_arrays(self.q_pv, usemask=True)
+
 
 untested_functions = set()
 if NUMPY_LT_1_20:
@@ -2111,7 +2190,7 @@ rec_functions = {
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
     rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
     rfn.repack_fields, rfn.apply_along_fields, rfn.assign_fields_by_name,
-    rfn.merge_arrays, rfn.stack_arrays, rfn.find_duplicates,
+    rfn.stack_arrays, rfn.find_duplicates,
     rfn.recursive_fill_fields, rfn.require_fields,
 }
 untested_functions |= rec_functions

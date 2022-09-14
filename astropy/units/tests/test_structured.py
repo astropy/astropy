@@ -625,6 +625,18 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_quantity_non_ufuncs.TestRecFunctions.test_unstructured_to_structured``
 
+    def test_merge_arrays(self):
+        """Test `numpy.lib.recfunctions.merge_arrays`."""
+        # can't merge things with repeat dtypes
+        q1 = u.Quantity([(1,)], dtype=[("f1", float)])
+        q2 = u.Quantity([(1,)], dtype=[("f1", float)])
+
+        with pytest.raises(ValueError, match="field 'f1' occurs more than once"):
+            rfn.merge_arrays((q1, q2))
+
+        # For the other tests of ``merge_arrays``, see
+        # ``test_quantity_non_ufuncs.TestRecFunctions.test_merge_arrays``
+
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
     def setup_class(self):
