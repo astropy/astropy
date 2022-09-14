@@ -192,6 +192,11 @@ still run the checks manually (see, :ref:`code-style`) using::
 
 Again, this will automatically apply the necessary changes to your code if possible.
 
+.. note::
+  Once you have made a pull-request the ``pre-commit.ci`` bot is available to assist
+  you with fixing any issues with your code style, see :ref:`pre-commit_bot` for details
+  on how to use this bot.
+
 Workflow
 ********
 
