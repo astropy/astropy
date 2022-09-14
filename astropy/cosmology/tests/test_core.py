@@ -17,10 +17,11 @@ import pytest
 # LOCAL
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import Cosmology, CosmologyError, FlatCosmologyMixin
+from astropy.cosmology import Cosmology, FlatCosmologyMixin
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.parameter import Parameter
 from astropy.table import Column, QTable, Table
+from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 
@@ -197,7 +198,9 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
 
         # immutable
-        with pytest.raises(AttributeError, match="can't set"):
+        match = ("can't set" if PYTHON_LT_3_11
+                 else f"property 'name' of {cosmo.__class__.__name__!r} object has no setter")
+        with pytest.raises(AttributeError, match=match):
             cosmo.name = None
 
     def test_is_flat(self, cosmo_cls, cosmo):
