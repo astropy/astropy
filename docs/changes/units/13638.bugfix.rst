@@ -1,0 +1,4 @@
+Unit changes of the form ``quantity <<= new_unit`` will now ensure that the
+result is correct even if the quantity is integer by casting the quantity to
+float if the unit conversion requires it (e.g., meter to kilometer). This means
+that the result will not share memory with the original.

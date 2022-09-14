@@ -1091,20 +1091,18 @@ class Quantity(np.ndarray):
             return NotImplemented
 
         try:
-            factor = self.unit._to(other)
-        except Exception:
-            # Maybe via equivalencies?  Now we do make a temporary copy.
-            try:
-                value = self._to_value(other)
-            except UnitConversionError:
-                return NotImplemented
-
-            self.view(np.ndarray)[...] = value
-
+            factor = self.unit._to(other)  # except Equivalency
+            self_as_array = self.view(np.ndarray)
+            self_as_array *= factor  # except output dtype
+        # The real error is `numpy.core._exceptions._UFuncOutputCastingError`, which
+        # inherits from `TypeError`.
+        except (UnitConversionError, TypeError):
+            # Simple conversion failed. Integer dtype? Conversion via equivalency?
+            # Given other.__rlshift__(self) a chance.
+            return NotImplemented
         else:
-            self.view(np.ndarray)[...] *= factor
+            self._set_unit(other)
 
-        self._set_unit(other)
         return self
 
     def __rlshift__(self, other):
