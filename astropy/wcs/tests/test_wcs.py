@@ -471,6 +471,14 @@ def test_validate():
     assert sorted({x.strip() for x in lines}) == results_txt
 
 
+@pytest.mark.filterwarnings("ignore")
+def test_validate_wcs_tab():
+    results = wcs.validate(get_pkg_data_filename('data/tab-time-last-axis.fits'))
+    results_txt = sorted({x.strip() for x in repr(results).splitlines()})
+    assert results_txt == ['', 'HDU 0 (PRIMARY):', 'HDU 1 (WCS-TABLE):',
+                           'No issues.', "WCS key ' ':"]
+
+
 def test_validate_with_2_wcses():
     # From Issue #2053
     with pytest.warns(AstropyUserWarning):
