@@ -12,7 +12,7 @@ from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.visualization.wcsaxes import WCSAxes
+from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
@@ -713,9 +713,9 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
 
-        ax.add_beam(major=2 * u.arcmin, minor=1 * u.arcmin, angle=-30 * u.degree,
-                    corner='bottom right', frame=True, borderpad=0., pad=1.,
-                    color="black")
+        add_beam(ax, major=2 * u.arcmin, minor=1 * u.arcmin, angle=-30 * u.degree,
+                 corner='bottom right', frame=True, borderpad=0., pad=1.,
+                 color="black")
 
         return fig
 
@@ -735,7 +735,7 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
 
-        ax.add_beam(header=hdr)
+        add_beam(ax, header=hdr)
 
         return fig
 
@@ -750,8 +750,8 @@ class TestBasic(BaseImageTests):
         ax.set_xlim(-10, 10)
         ax.set_ylim(-10, 10)
 
-        ax.add_scalebar(2 * u.arcmin, label="2'", corner='top right', borderpad=1.,
-                        label_top=True)
+        add_scalebar(ax, 2 * u.arcmin, label="2'", corner='top right', borderpad=1.,
+                     label_top=True)
 
         return fig
 
