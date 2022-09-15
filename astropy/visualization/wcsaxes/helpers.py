@@ -37,17 +37,15 @@ def add_beam(
     """
     Display the beam shape and size
 
-    By default, this method will search for the ``BMAJ``, ``BMIN``, and ``BPA``
-    keywords in the FITS header to set the major and minor axes and the
-    position angle on the sky.
-
     Parameters
     ----------
     ax : :class:`~astropy.visualization.wcsaxes.WCSAxes`
         WCSAxes instance in which the beam shape and size is displayed. The WCS
         must be celestial.
     header : :class:`~astropy.io.fits.Header`, optional
-        Header containing the beam parameters.
+        Header containing the beam parameters. If specified, thr ``BMAJ``,
+        ``BMIN``, and ``BPA`` keywords will be searched in the FITS header
+        to set the major and minor axes and the position angle on the sky.
     major : float or :class:`~astropy.units.Quantity`, optional
         Major axis of the beam in degrees or an angular quantity (overrides
         ``BMAJ`` if present in header).
