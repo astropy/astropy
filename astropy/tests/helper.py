@@ -415,7 +415,10 @@ def generic_recursive_equality_test(a, b, class_history):
     else:
         # NOTE: The call may need to be adapted if other objects implementing a __getstate__
         # with required argument(s) are passed to this function.
-        dict_a = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
+        # For a class with `__slots__` the default state is not a `dict`;
+        # with neither `__dict__` nor `__slots__` it is `None`.
+        state = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
+        dict_a = state if isinstance(state, dict) else getattr(a, '__dict__', dict())
     dict_b = b.__dict__
     for key in dict_a:
         assert key in dict_b, f"Did not pickle {key}"

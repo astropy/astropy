@@ -95,7 +95,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
 
         got = model(*args)
         expected = getattr(cosmo, method_name)(*args)
-        assert np.all(got == expected)
+        np.testing.assert_allclose(got, expected)
 
         # vector result
         if "scalar" not in method_name:
@@ -108,7 +108,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
 
             got = model(*args)
             expected = getattr(cosmo, method_name)(*args)
-            assert np.all(got == expected)
+            np.testing.assert_allclose(got, expected)
 
     def test_tofromformat_model_instance(self, cosmo_cls, cosmo, method_name,
                                          to_format, from_format):
