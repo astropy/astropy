@@ -520,11 +520,13 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
 
     def test_inplace_conversion(self):
+        # In principle, in-place might be possible, in which case this should be
+        # changed -- ie ``q1 is q_link``.
         q_pv = Quantity(self.pv, self.pv_unit)
         q1 = q_pv.copy()
         q_link = q1
         q1 <<= StructuredUnit(('AU', 'AU/day'))
-        assert q1 is q_link
+        assert q1 is not q_link
         assert q1['p'].unit == u.AU
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
@@ -533,7 +535,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q2 = q_pv_t.copy()
         q_link = q2
         q2 <<= '(kpc,kpc/Myr),Myr'
-        assert q2 is q_link
+        assert q2 is not q_link
         assert q2['pv']['p'].unit == u.kpc
         assert q2['pv']['v'].unit == u.kpc / u.Myr
         assert q2['t'].unit == u.Myr

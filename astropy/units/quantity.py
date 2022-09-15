@@ -1096,7 +1096,7 @@ class Quantity(np.ndarray):
             self_as_array *= factor  # except output dtype
         # The real error is `numpy.core._exceptions._UFuncOutputCastingError`, which
         # inherits from `TypeError`.
-        except (UnitConversionError, TypeError):
+        except (UnitConversionError, TypeError, AttributeError):
             # Simple conversion failed. Integer dtype? Conversion via equivalency?
             # Given other.__rlshift__(self) a chance.
             return NotImplemented
