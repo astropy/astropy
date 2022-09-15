@@ -43,19 +43,16 @@ def add_beam(
         WCSAxes instance in which the beam shape and size is displayed. The WCS
         must be celestial.
     header : :class:`~astropy.io.fits.Header`, optional
-        Header containing the beam parameters. If specified, thr ``BMAJ``,
+        Header containing the beam parameters. If specified, the ``BMAJ``,
         ``BMIN``, and ``BPA`` keywords will be searched in the FITS header
         to set the major and minor axes and the position angle on the sky.
     major : float or :class:`~astropy.units.Quantity`, optional
-        Major axis of the beam in degrees or an angular quantity (overrides
-        ``BMAJ`` if present in header).
+        Major axis of the beam in degrees or an angular quantity.
     minor : float, or :class:`~astropy.units.Quantity`, optional
-        Minor axis of the beam in degrees or an angular quantity (overrides
-        ``BMIN`` if present in header).
+        Minor axis of the beam in degrees or an angular quantity.
     angle : float or :class:`~astropy.units.Quantity`, optional
         Position angle of the beam on the sky in degrees or an angular
-        quantity (overrides ``BPA`` if present in header) in the anticlockwise
-        direction.
+        quantity in the anticlockwise direction.
     corner : str, optional
         The beam location. Acceptable values are ``'left'``, ``'right'``,
         ``'top'``, 'bottom', ``'top left'``, ``'top right'``, ``'bottom left'``
@@ -69,6 +66,9 @@ def add_beam(
     kwargs
         Additional arguments are passed to :class:`matplotlib.patches.Ellipse`.
     """
+
+    if header and major:
+        raise ValueError("Either header or major/minor/angle must be specified, not both.")
 
     if header:
         major = header["BMAJ"]
