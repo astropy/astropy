@@ -334,10 +334,10 @@ def test_biweight_midvariance_masked():
     data1d_masked = np.ma.masked_invalid(data1d)
     data2d_masked = np.ma.masked_invalid(data2d)
 
-    assert_equal(biweight_midvariance(data1d, ignore_nan=True),
-                 biweight_midvariance(data1d_masked))
-    assert_equal(biweight_midvariance(data2d, ignore_nan=True),
-                 biweight_midvariance(data2d_masked))
+    assert_allclose(biweight_midvariance(data1d, ignore_nan=True),
+                    biweight_midvariance(data1d_masked))
+    assert_allclose(biweight_midvariance(data2d, ignore_nan=True),
+                    biweight_midvariance(data2d_masked))
 
     bw_scl = biweight_midvariance(data1d_masked)
     assert_allclose(bw_scl, 2.9238456)
@@ -347,11 +347,11 @@ def test_biweight_midvariance_masked():
     bw_loc_masked = biweight_midvariance(data2d_masked, axis=1)
     assert isinstance(bw_loc_masked, np.ma.MaskedArray)
     assert ~np.any(bw_loc_masked.mask)  # mask is all False
-    assert_equal(bw_loc, bw_loc_masked.data)
+    assert_allclose(bw_loc, bw_loc_masked.data)
 
     bw_loc = biweight_midvariance(data2d, ignore_nan=True, axis=0)
     bw_loc_masked = biweight_midvariance(data2d_masked, axis=0)
-    assert_equal(bw_loc_masked.data[:-1], bw_loc[:-1])
+    assert_allclose(bw_loc_masked.data[:-1], bw_loc[:-1])
     assert bw_loc_masked.mask[-1]  # last mask element is True
 
     data1d_masked.data[0] = np.nan  # unmasked NaN
@@ -359,8 +359,8 @@ def test_biweight_midvariance_masked():
     assert not isinstance(bw_scl, np.ma.MaskedArray)
     assert np.isscalar(bw_scl)
     assert np.isnan(bw_scl)
-    assert_equal(biweight_midvariance(data1d_masked, ignore_nan=True),
-                 biweight_midvariance(data1d[1:], ignore_nan=True))
+    assert_allclose(biweight_midvariance(data1d_masked, ignore_nan=True),
+                    biweight_midvariance(data1d[1:], ignore_nan=True))
 
     # ensure that input masked array is not modified
     assert np.isnan(data1d_masked[0])
