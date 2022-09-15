@@ -7,6 +7,7 @@ import pytest
 
 from astropy import units as u
 from astropy.utils import iers
+from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.time import Time
 from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_H5PY
@@ -14,6 +15,11 @@ from astropy.utils.compat.optional_deps import HAS_H5PY
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 is_masked = np.ma.is_masked
+
+# The first form is expanded to r"can't set attribute '{0}'" in Python 3.10, and replaced
+# with the more informative second form as of 3.11 (python/cpython#31311).
+no_setter_err = (r"can't set attribute" if PYTHON_LT_3_11
+                 else r"property '{0}' of '{1}' object has no setter")
 
 
 def test_simple():
@@ -47,9 +53,8 @@ def test_scalar_init():
 
 def test_mask_not_writeable():
     t = Time('2000:001')
-    with pytest.raises(AttributeError) as err:
+    with pytest.raises(AttributeError, match=no_setter_err.format('mask', t.__class__.__name__)):
         t.mask = True
-    assert "can't set attribute" in str(err.value)
 
     t = Time(['2000:001'])
     with pytest.raises(ValueError) as err:

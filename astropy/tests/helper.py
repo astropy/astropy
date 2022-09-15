@@ -6,6 +6,7 @@ from the installed astropy.  It makes use of the `pytest`_ testing framework.
 import os
 import sys
 import pickle
+import inspect
 import warnings
 import functools
 
@@ -15,7 +16,7 @@ from astropy.units import allclose as quantity_allclose  # noqa: F401
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyPendingDeprecationWarning)
-
+from astropy.utils.compat import PYTHON_LT_3_11
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611  # noqa
@@ -409,11 +410,15 @@ def generic_recursive_equality_test(a, b, class_history):
     Check if the attributes of a and b are equal. Then,
     check if the attributes of the attributes are equal.
     """
-    dict_a = a.__getstate__() if hasattr(a, '__getstate__') else a.__dict__
+    if PYTHON_LT_3_11:
+        dict_a = a.__getstate__() if hasattr(a, '__getstate__') else a.__dict__
+    else:
+        # NOTE: The call may need to be adapted if other objects implementing a __getstate__
+        # with required argument(s) are passed to this function.
+        dict_a = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
     dict_b = b.__dict__
     for key in dict_a:
-        assert key in dict_b,\
-          f"Did not pickle {key}"
+        assert key in dict_b, f"Did not pickle {key}"
 
         if dict_a[key].__class__.__eq__ is not object.__eq__:
             # Only compare if the class defines a proper equality test.
