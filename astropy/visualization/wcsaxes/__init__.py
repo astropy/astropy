@@ -16,6 +16,7 @@ from .coordinate_helpers import CoordinateHelper
 from .coordinates_map import CoordinatesMap
 from .core import *
 from .patches import *
+from .helpers import *
 
 
 class Conf(_config.ConfigNamespace):

@@ -358,7 +358,7 @@ Beam shape and scale bar
 
 Adding an ellipse that represents the shape of the beam on a celestial
 image can be done with the
-:meth:`~astropy.visualization.wcsaxes.WCSAxes.add_beam` method:
+:func:`~astropy.visualization.wcsaxes.WCSAxes.add_beam` function:
 
 .. plot::
    :context: reset
@@ -384,11 +384,12 @@ image can be done with the
    :align: center
 
     from astropy import units as u
+    from astropy.visualization import add_beam, add_scalebar
 
-    ax.add_beam(major=1.2 * u.arcmin, minor=1.2 * u.arcmin, angle=0, frame=True)
+    add_beam(ax, major=1.2 * u.arcmin, minor=1.2 * u.arcmin, angle=0, frame=True)
 
 To add a segment that shows a physical scale, you can use the
-:meth:`~astropy.visualization.wcsaxes.WCSAxes.add_scalebar` method:
+:func:`~astropy.visualization.wcsaxes.WCSAxes.add_scalebar` function:
 
 .. plot::
    :context:
@@ -403,4 +404,4 @@ To add a segment that shows a physical scale, you can use the
     )
 
     # Add a scale bar
-    ax.add_scalebar(scalebar_angle, label="10 pc", color="white")
+    add_scalebar(ax, scalebar_angle, label="10 pc", color="white")
