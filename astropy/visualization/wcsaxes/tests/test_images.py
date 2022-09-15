@@ -702,9 +702,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @figure_test
     def test_beam_shape_from_args(self, tmpdir):
         # Test for adding the beam shape with the beam parameters as arguments
         wcs = WCS(self.msx_header)
@@ -719,9 +717,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @figure_test
     def test_beam_shape_from_header(self, tmpdir):
         # Test for adding the beam shape with the beam parameters from a header
         hdr = self.msx_header
@@ -739,9 +735,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
+    @figure_test
     def test_scalebar(self, tmpdir):
         # Test for adding a scale bar
         wcs = WCS(self.msx_header)
