@@ -6,17 +6,12 @@ import random
 
 # THIRD PARTY
 import pytest
-
 import numpy as np
 
 # LOCAL
-import astropy.units as u
-from astropy import cosmology
-from astropy.cosmology import Cosmology, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology import realizations
 from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.parameters import available
-from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -116,7 +111,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
         got = model(*args)
         expected = getattr(cosmo, method_name)(*args)
-        assert np.all(got == expected)
+        np.testing.assert_allclose(got, expected)
 
         # vector result
         if "scalar" not in method_name:
@@ -129,7 +124,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
             got = model(*args)
             expected = getattr(cosmo, method_name)(*args)
-            assert np.all(got == expected)
+            np.testing.assert_allclose(got, expected)
 
     def test_tofromformat_model_instance(self, cosmo_cls, cosmo, method_name,
                                          to_format, from_format):
