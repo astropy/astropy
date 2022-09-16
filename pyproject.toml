@@ -59,7 +59,6 @@ archs = ["auto", "aarch64"]
         "astropy/visualization/*",
         "astropy/wcs/*",
         "astropy/__init__.py",
-        "astropy/logger.py",
         "setup.py"]
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
