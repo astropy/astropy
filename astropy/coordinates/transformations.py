@@ -18,12 +18,11 @@ transformations that are typically how the algorithms are defined.
 import heapq
 import inspect
 import subprocess
-from warnings import warn
-
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from contextlib import suppress, contextmanager
+from contextlib import contextmanager, suppress
 from inspect import signature
+from warnings import warn
 
 import numpy as np
 
@@ -993,8 +992,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         self._finite_difference_frameattr_name = value
 
     def __call__(self, fromcoord, toframe):
-        from .representation import (CartesianRepresentation,
-                                     CartesianDifferential)
+        from .representation import CartesianDifferential, CartesianRepresentation
 
         supcall = self.func
         if fromcoord.data.differentials:
@@ -1091,11 +1089,9 @@ class BaseAffineTransform(CoordinateTransform):
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):
-        from .representation import (UnitSphericalRepresentation,
-                                     CartesianDifferential,
-                                     SphericalDifferential,
-                                     SphericalCosLatDifferential,
-                                     RadialDifferential)
+        from .representation import (
+            CartesianDifferential, RadialDifferential, SphericalCosLatDifferential,
+            SphericalDifferential, UnitSphericalRepresentation)
 
         data = fromcoord.data
         has_velocity = 's' in data.differentials

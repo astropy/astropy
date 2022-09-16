@@ -4,21 +4,18 @@ Accuracy tests for Ecliptic coordinate systems.
 """
 
 import numpy as np
-
 import pytest
 
-from astropy.units import allclose as quantity_allclose
 from astropy import units as u
+from astropy.constants import R_earth, R_sun
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.builtin_frames import (FK5, ICRS, GCRS,
-                                                GeocentricMeanEcliptic, GeocentricTrueEcliptic,
-                                                BarycentricMeanEcliptic, BarycentricTrueEcliptic,
-                                                CustomBarycentricEcliptic,
-                                                HeliocentricMeanEcliptic, HeliocentricTrueEcliptic,
-                                                HeliocentricEclipticIAU76)
+from astropy.coordinates.builtin_frames import (
+    FK5, GCRS, ICRS, BarycentricMeanEcliptic, BarycentricTrueEcliptic, CustomBarycentricEcliptic,
+    GeocentricMeanEcliptic, GeocentricTrueEcliptic, HeliocentricEclipticIAU76,
+    HeliocentricMeanEcliptic, HeliocentricTrueEcliptic)
 from astropy.coordinates.solar_system import get_body_barycentric_posvel
-from astropy.constants import R_sun, R_earth
 from astropy.time import Time
+from astropy.units import allclose as quantity_allclose
 
 
 def test_against_pytpm_doc_example():

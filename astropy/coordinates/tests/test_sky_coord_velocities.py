@@ -7,19 +7,16 @@ Note: the skyoffset velocity tests are in a different file, in
 test_skyoffset_transformations.py
 """
 
+import numpy as np
 import pytest
 
-import numpy as np
-
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose
 from astropy.coordinates import (
-    SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-    SphericalCosLatDifferential, UnitSphericalRepresentation,
-    UnitSphericalDifferential, UnitSphericalCosLatDifferential,
-    RadialDifferential, CartesianRepresentation,
-    CartesianDifferential, Galactic, PrecessedGeocentric)
-
+    ICRS, CartesianDifferential, CartesianRepresentation, Galactic, PrecessedGeocentric,
+    RadialDifferential, SkyCoord, SphericalCosLatDifferential, SphericalDifferential,
+    SphericalRepresentation, UnitSphericalCosLatDifferential, UnitSphericalDifferential,
+    UnitSphericalRepresentation)
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 

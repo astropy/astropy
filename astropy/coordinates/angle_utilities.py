@@ -13,9 +13,7 @@ import numpy as np
 
 # Astropy
 import astropy.units as u
-from astropy.coordinates.representation import (
-    UnitSphericalRepresentation,
-    SphericalRepresentation)
+from astropy.coordinates.representation import SphericalRepresentation, UnitSphericalRepresentation
 
 
 def angular_separation(lon1, lat1, lon2, lat2):
@@ -226,9 +224,10 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
     return SphericalRepresentation(usph.lon, usph.lat, r)
 
 
+from astropy.coordinates import angle_formats
 # # below here can be deleted in v5.0
 from astropy.utils.decorators import deprecated
-from astropy.coordinates import angle_formats
+
 __old_angle_utilities_funcs = ['check_hms_ranges', 'degrees_to_dms',
                                'degrees_to_string', 'dms_to_degrees',
                                'format_exception', 'hms_to_degrees',

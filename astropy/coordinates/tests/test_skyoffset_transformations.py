@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy import units as u
+from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates.builtin_frames import FK5, ICRS, AltAz, Galactic, SkyOffsetFrame
 from astropy.coordinates.distances import Distance
-from astropy.coordinates.builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
-from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
 
 
 def test_altaz_attribute_transforms():

@@ -1,25 +1,25 @@
 import os
-
-import pytest
-import numpy as np
 from urllib.error import HTTPError, URLError
 
-from astropy.time import Time
+import numpy as np
+import pytest
+
 from astropy import units as u
 from astropy.constants import c
 from astropy.coordinates.builtin_frames import GCRS, TETE
 from astropy.coordinates.earth import EarthLocation
-from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
-from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                                              _get_apparent_body_position, solar_system_ephemeris,
-                                              get_body_barycentric, get_body_barycentric_posvel)
 from astropy.coordinates.funcs import get_sun
+from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
+from astropy.coordinates.sky_coordinate import SkyCoord
+from astropy.coordinates.solar_system import (
+    BODY_NAME_TO_KERNEL_SPEC, _get_apparent_body_position, get_body, get_body_barycentric,
+    get_body_barycentric_posvel, get_moon, solar_system_ephemeris)
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
+from astropy.utils.compat.optional_deps import HAS_SKYFIELD
 from astropy.utils.data import download_file, get_pkg_data_filename
-from astropy.utils.compat.optional_deps import (HAS_JPLEPHEM,  # noqa
-                                                HAS_SKYFIELD)
 
 if HAS_SKYFIELD:
     from skyfield.api import Loader, Topos

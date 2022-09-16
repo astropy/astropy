@@ -11,6 +11,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils.exceptions import AstropyWarning
+
 from .angles import Angle
 
 __all__ = ['Distance']
