@@ -11,10 +11,10 @@ if __name__ == "__main__":
 
     import numpy as np
 
-    from astropy.table import QTable
-    from astropy.coordinates import SkyCoord, Angle
-    from astropy.time import Time
     from astropy import units as u
+    from astropy.coordinates import Angle, SkyCoord
+    from astropy.table import QTable
+    from astropy.time import Time
 
     np.random.seed(12345)
 

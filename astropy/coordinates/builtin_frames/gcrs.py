@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy import units as u
-from astropy.utils.decorators import format_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                                            CartesianRepresentationAttribute)
-from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
+from astropy.coordinates.attributes import CartesianRepresentationAttribute, TimeAttribute
 from astropy.coordinates.baseframe import base_doc
+from astropy.utils.decorators import format_doc
+
 from .baseradec import BaseRADecFrame, doc_components
+from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
 __all__ = ['GCRS', 'PrecessedGeocentric']
 

@@ -522,4 +522,4 @@ class DifferentialAttribute(Attribute):
 
 # do this here to prevent a series of complicated circular imports
 from .earth import EarthLocation
-from .representation import CartesianRepresentation, BaseDifferential
+from .representation import BaseDifferential, CartesianRepresentation

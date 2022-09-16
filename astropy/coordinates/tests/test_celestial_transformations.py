@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy import units as u
-from astropy.coordinates import galactocentric_frame_defaults
-from astropy.coordinates.distances import Distance
+from astropy.coordinates import (
+    CartesianDifferential, CartesianRepresentation, EarthLocation, SkyCoord,
+    galactocentric_frame_defaults)
 from astropy.coordinates.builtin_frames import (
-    ICRS, FK5, FK4, FK4NoETerms, Galactic, CIRS,
-    Supergalactic, Galactocentric, HCRS, GCRS, LSR, GalacticLSR)
-from astropy.coordinates import SkyCoord
+    CIRS, FK4, FK5, GCRS, HCRS, ICRS, LSR, FK4NoETerms, Galactic, GalacticLSR, Galactocentric,
+    Supergalactic)
+from astropy.coordinates.distances import Distance
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.coordinates import EarthLocation, CartesianRepresentation, CartesianDifferential
 from astropy.time import Time
 from astropy.units import allclose
 

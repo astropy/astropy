@@ -5,10 +5,10 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import transformations as t
-from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz, HCRS
 from astropy.coordinates import representation as r
+from astropy.coordinates import transformations as t
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.builtin_frames import FK4, FK5, HCRS, ICRS, AltAz, FK4NoETerms, Galactic
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
@@ -139,8 +139,8 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
+    from astropy.coordinates import cartesian_to_spherical, spherical_to_cartesian
     from astropy.utils import NumpyRNGContext
-    from astropy.coordinates import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
     assert_allclose(x, 1)
@@ -440,8 +440,8 @@ def test_frame_override_component_with_attribute():
     It was previously possible to define a frame with an attribute with the
     same name as a component. We don't want to allow this!
     """
-    from astropy.coordinates.baseframe import BaseCoordinateFrame
     from astropy.coordinates.attributes import Attribute
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
 
     class BorkedFrame(BaseCoordinateFrame):
         ra = Attribute(default=150)

@@ -7,19 +7,16 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.state import ScienceState
-from astropy.utils.decorators import format_doc, classproperty, deprecated
-from astropy.coordinates.angles import Angle
-from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import (BaseCoordinateFrame,
-                                           frame_transform_graph,
-                                           base_doc)
-from astropy.coordinates.attributes import (CoordinateAttribute,
-                                            QuantityAttribute,
-                                            DifferentialAttribute)
-from astropy.coordinates.transformations import AffineTransform
+from astropy.coordinates.angles import Angle
+from astropy.coordinates.attributes import (
+    CoordinateAttribute, DifferentialAttribute, QuantityAttribute)
+from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc, frame_transform_graph
 from astropy.coordinates.errors import ConvertError
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
+from astropy.coordinates.transformations import AffineTransform
+from astropy.utils.decorators import classproperty, deprecated, format_doc
+from astropy.utils.state import ScienceState
 
 from .icrs import ICRS
 

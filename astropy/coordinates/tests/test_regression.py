@@ -5,31 +5,27 @@ Regression tests for coordinates-related bugs that don't have an obvious other
 place to live
 """
 
-import io
 import copy
-import pytest
-import numpy as np
+import io
 from contextlib import nullcontext
+
+import numpy as np
+import pytest
 from erfa import ErfaWarning
 
 from astropy import units as u
 from astropy.coordinates import (
-    AltAz, EarthLocation, SkyCoord, get_sun, ICRS,
-    GeocentricMeanEcliptic, Longitude, Latitude, GCRS, HCRS, CIRS,
-    get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
-    QuantityAttribute, UnitSphericalRepresentation,
-    SphericalRepresentation, CartesianRepresentation,
-    FunctionTransform, get_body,
-    CylindricalRepresentation, CylindricalDifferential,
-    CartesianDifferential)
+    CIRS, FK4, GCRS, HCRS, ICRS, ITRS, AltAz, BaseCoordinateFrame, CartesianDifferential,
+    CartesianRepresentation, CylindricalDifferential, CylindricalRepresentation, EarthLocation,
+    FK4NoETerms, FunctionTransform, GeocentricMeanEcliptic, Latitude, Longitude, QuantityAttribute,
+    SkyCoord, SphericalRepresentation, UnitSphericalRepresentation, get_body, get_moon, get_sun)
 from astropy.coordinates.sites import get_builtin_sites
-from astropy.time import Time
-from astropy.utils import iers
 from astropy.table import Table
-
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
+from astropy.utils import iers
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_regression_5085():
@@ -160,7 +156,7 @@ def test_regression_4082():
     """
     Issue: https://github.com/astropy/astropy/issues/4082
     """
-    from astropy.coordinates import search_around_sky, search_around_3d
+    from astropy.coordinates import search_around_3d, search_around_sky
     cat = SkyCoord([10.076, 10.00455], [18.54746, 18.54896], unit='deg')
     search_around_sky(cat[0:1], cat, seplimit=u.arcsec * 60, storekdtree=False)
     # in the issue, this raises a TypeError
@@ -202,11 +198,10 @@ def test_regression_futuretimes_4302():
 
     Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
     """
-    from astropy.utils.exceptions import AstropyWarning
-
     # this is an ugly hack to get the warning to show up even if it has already
     # appeared
     from astropy.coordinates.builtin_frames import utils
+    from astropy.utils.exceptions import AstropyWarning
     if hasattr(utils, '__warningregistry__'):
         utils.__warningregistry__.clear()
 
