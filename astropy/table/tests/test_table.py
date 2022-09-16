@@ -1,34 +1,32 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.utils.tests.test_metadata import MetaBaseTest
+import copy
 import gc
 import os
-import sys
-import copy
-from io import StringIO
-from collections import OrderedDict
 import pathlib
 import pickle
+import sys
+from collections import OrderedDict
+from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.io import fits
-from astropy.table import (Table, QTable, Column, MaskedColumn, TableReplaceWarning,
-                           TableAttribute)
-from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.coordinates import SkyCoord
-
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy import table
 from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.table import Column, MaskedColumn, QTable, Table, TableAttribute, TableReplaceWarning
+from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
-from .conftest import MaskedTable, MIXIN_COLS
-
-from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_20
+from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.tests.test_metadata import MetaBaseTest
+
+from .conftest import MIXIN_COLS, MaskedTable
 
 
 @pytest.fixture
@@ -2072,6 +2070,7 @@ class TestPandas:
 
     def test_units(self):
         import pandas as pd
+
         import astropy.units as u
 
         df = pd.DataFrame({'x': [1, 2, 3], 't': [1.3, 1.2, 1.8]})

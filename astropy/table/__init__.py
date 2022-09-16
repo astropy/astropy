@@ -2,7 +2,8 @@
 
 import astropy.config as _config
 from astropy.utils.compat import optional_deps
-from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
+
+from .column import Column, ColumnInfo, MaskedColumn, StringTruncateWarning
 
 __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
            'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable', 'Row',
@@ -46,30 +47,32 @@ class Conf(_config.ConfigNamespace):  # noqa
 
 conf = Conf()  # noqa
 
-from . import connect  # noqa: E402
-from .groups import TableGroups, ColumnGroups  # noqa: E402
-from .table import (Table, QTable, TableColumns, Row, TableFormatter,
-                    NdarrayMixin, TableReplaceWarning, TableAttribute,
-                    PprintIncludeExclude)  # noqa: E402
-from .operations import (join, setdiff, hstack, dstack, vstack, unique,  # noqa: E402
-                         TableMergeError, join_skycoord, join_distance)  # noqa: E402
-from .bst import BST  # noqa: E402
-from .sorted_array import SortedArray  # noqa: E402
-from .soco import SCEngine  # noqa: E402
-from .serialize import SerializedColumn, represent_mixins_as_columns  # noqa: E402
-
 # Finally import the formats for the read and write method but delay building
 # the documentation until all are loaded. (#5275)
 from astropy.io import registry  # noqa: E402
 
+from . import connect  # noqa: E402
+from .bst import BST  # noqa: E402
+from .groups import ColumnGroups, TableGroups  # noqa: E402
+from .operations import (  # noqa: E402
+    TableMergeError, dstack, hstack, join, join_distance, join_skycoord, setdiff, unique, vstack)
+from .serialize import SerializedColumn, represent_mixins_as_columns  # noqa: E402
+from .soco import SCEngine  # noqa: E402
+from .sorted_array import SortedArray  # noqa: E402
+from .table import PprintIncludeExclude  # noqa: E402
+from .table import (
+    NdarrayMixin, QTable, Row, Table, TableAttribute, TableColumns, TableFormatter,
+    TableReplaceWarning)
+
 with registry.delay_doc_updates(Table):
     # Import routines that connect readers/writers to astropy.table
-    from .jsviewer import JSViewer
     import astropy.io.ascii.connect
     import astropy.io.fits.connect
     import astropy.io.misc.connect
-    import astropy.io.votable.connect
     import astropy.io.misc.pandas.connect  # noqa: F401
+    import astropy.io.votable.connect
+
+    from .jsviewer import JSViewer
 
     if optional_deps.HAS_ASDF_ASTROPY:
         import asdf_astropy.io.connect

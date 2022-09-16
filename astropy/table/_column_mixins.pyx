@@ -23,7 +23,9 @@ Column is itself an array.
 """
 
 import sys
+
 import numpy as np
+
 
 cdef tuple INTEGER_TYPES = (int, np.integer)
 

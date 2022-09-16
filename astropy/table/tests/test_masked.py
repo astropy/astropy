@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Test behavior related to masked tables"""
 
-import pytest
 import numpy as np
 import numpy.ma as ma
+import pytest
 
-from astropy.table import Column, MaskedColumn, Table, QTable
+import astropy.units as u
+from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.column import BaseColumn
 from astropy.time import Time
 from astropy.utils.masked import Masked
-import astropy.units as u
 
 
 class SetupData:

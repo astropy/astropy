@@ -1,6 +1,6 @@
+import copy
 import json
 import textwrap
-import copy
 from collections import OrderedDict
 
 import numpy as np

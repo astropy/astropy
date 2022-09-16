@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-from setuptools import Extension
 
 import numpy
+from setuptools import Extension
 
 ROOT = os.path.relpath(os.path.dirname(__file__))
 

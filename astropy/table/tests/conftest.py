@@ -9,20 +9,17 @@ can not be defined in a module by a different name and still be shared
 between modules.
 """
 
-from copy import deepcopy
-from collections import OrderedDict
 import pickle
+from collections import OrderedDict
+from copy import deepcopy
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy import table
-from astropy.table import Table, QTable
-from astropy.table.table_helpers import ArrayWrapper
-from astropy import time
+from astropy import coordinates, table, time
 from astropy import units as u
-from astropy import coordinates
-from astropy.table import pprint
+from astropy.table import QTable, Table, pprint
+from astropy.table.table_helpers import ArrayWrapper
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])

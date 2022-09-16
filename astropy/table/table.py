@@ -1,41 +1,40 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .index import SlicedIndex, TableIndices, TableLoc, TableILoc, TableLocIndices
-
+import itertools
 import sys
+import types
+import warnings
+import weakref
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
-import warnings
 from copy import deepcopy
-import types
-import itertools
-import weakref
 
 import numpy as np
 from numpy import ma
 
 from astropy import log
+from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import isiterable, ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray, isiterable
 from astropy.utils.console import color_print
+from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import Masked
-from astropy.utils.metadata import MetaData, MetaAttribute
-from astropy.utils.data_info import BaseColumnInfo, MixinInfo, DataInfo
-from astropy.utils.decorators import format_doc
-from astropy.io.registry import UnifiedReadWriteMethod
+from astropy.utils.metadata import MetaAttribute, MetaData
 
-from . import groups
-from .pprint import TableFormatter
-from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy, _convert_sequence_data_to_array)
-from .row import Row
-from .info import TableInfo
-from .index import Index, _IndexModeContext, get_index
+from . import conf, groups
+from .column import (
+    BaseColumn, Column, FalseArray, MaskedColumn, _auto_names, _convert_sequence_data_to_array,
+    col_copy)
 from .connect import TableRead, TableWrite
-from .ndarray_mixin import NdarrayMixin
+from .index import (
+    Index, SlicedIndex, TableILoc, TableIndices, TableLoc, TableLocIndices, _IndexModeContext,
+    get_index)
+from .info import TableInfo
 from .mixins.registry import get_mixin_handler
-from . import conf
-
+from .ndarray_mixin import NdarrayMixin
+from .pprint import TableFormatter
+from .row import Row
 
 _implementation_notes = """
 This string has informal notes concerning Table implementation for developers.
@@ -1680,8 +1679,9 @@ class Table:
         jquery and jquery.dataTables), you will not get the jsviewer features.
         """
 
-        from .jsviewer import JSViewer
         from IPython.display import HTML
+
+        from .jsviewer import JSViewer
 
         if tableid is None:
             tableid = f'table{id(self)}-{np.random.randint(1, 1e6)}'
@@ -1749,11 +1749,12 @@ class Table:
         """
 
         import os
-        import webbrowser
         import tempfile
-        from .jsviewer import DEFAULT_CSS
+        import webbrowser
         from urllib.parse import urljoin
         from urllib.request import pathname2url
+
+        from .jsviewer import DEFAULT_CSS
 
         if css is None:
             css = DEFAULT_CSS
@@ -3674,8 +3675,9 @@ class Table:
             """Encode a Table ``tbl`` that may have mixin columns to a Table with only
             astropy Columns + appropriate meta-data to allow subsequent decoding.
             """
-            from . import serialize
             from astropy.time import TimeBase, TimeDelta
+
+            from . import serialize
 
             # Convert any Time or TimeDelta columns and pay attention to masking
             time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]

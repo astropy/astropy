@@ -2,20 +2,18 @@
 
 
 import warnings
-from io import StringIO
 from collections import OrderedDict
 from copy import deepcopy
+from io import StringIO
 
 import numpy as np
 import pytest
 
+from astropy import coordinates, table, time
 from astropy import units as u
-from astropy import time
-from astropy import coordinates
-from astropy import table
 from astropy.table.info import serialize_method_as
-from astropy.utils.data_info import data_info_factory, dtype_info_name
 from astropy.table.table_helpers import simple_table
+from astropy.utils.data_info import data_info_factory, dtype_info_name
 
 
 def test_table_info_attributes(table_types):

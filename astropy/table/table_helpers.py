@@ -6,12 +6,14 @@ tables for testing.
 """
 
 
-from itertools import cycle
 import string
+from itertools import cycle
+
 import numpy as np
 
-from .table import Table, Column
 from astropy.utils.data_info import ParentDtypeInfo
+
+from .table import Column, Table
 
 
 class TimingTables:
@@ -123,9 +125,10 @@ def complex_table():
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
     """
-    from astropy.utils.data import get_pkg_data_filename
-    from astropy.io.votable.table import parse
     import warnings
+
+    from astropy.io.votable.table import parse
+    from astropy.utils.data import get_pkg_data_filename
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
