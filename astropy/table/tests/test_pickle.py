@@ -1,11 +1,12 @@
-import numpy as np
 import pickle
 
-from astropy.table import Table, Column, MaskedColumn, QTable
-from astropy.table.table_helpers import simple_table
-from astropy.units import Quantity, deg
-from astropy.time import Time
+import numpy as np
+
 from astropy.coordinates import SkyCoord
+from astropy.table import Column, MaskedColumn, QTable, Table
+from astropy.table.table_helpers import simple_table
+from astropy.time import Time
+from astropy.units import Quantity, deg
 
 
 def test_pickle_column(protocol):

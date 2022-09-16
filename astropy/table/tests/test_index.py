@@ -2,19 +2,20 @@
 
 import warnings
 
-import pytest
 import numpy as np
+import pytest
+
+from astropy import units as u
+from astropy.table import Column, QTable, Row, Table, hstack
+from astropy.table.bst import BST
+from astropy.table.column import BaseColumn
+from astropy.table.index import SlicedIndex, get_index
+from astropy.table.soco import SCEngine
+from astropy.table.sorted_array import SortedArray
+from astropy.time import Time
+from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 from .test_table import SetupData
-from astropy.table.bst import BST
-from astropy.table.sorted_array import SortedArray
-from astropy.table.soco import SCEngine
-from astropy.table import QTable, Row, Table, Column, hstack
-from astropy import units as u
-from astropy.time import Time
-from astropy.table.column import BaseColumn
-from astropy.table.index import get_index, SlicedIndex
-from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 available_engines = [BST, SortedArray]
 

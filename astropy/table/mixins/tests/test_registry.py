@@ -1,14 +1,14 @@
 from copy import copy
 from unittest.mock import MagicMock
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
 
 from astropy.table import Table
+from astropy.table.mixins.registry import (
+    MixinRegistryError, _handlers, get_mixin_handler, register_mixin_handler)
 from astropy.table.table_helpers import ArrayWrapper
-from astropy.table.mixins.registry import (_handlers, register_mixin_handler,
-                                           MixinRegistryError, get_mixin_handler)
 
 ORIGINAL = {}
 

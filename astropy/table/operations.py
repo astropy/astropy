@@ -9,21 +9,21 @@ High-level table operations:
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from copy import deepcopy
 import collections
 import itertools
-from collections import OrderedDict, Counter
+from collections import Counter, OrderedDict
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 
 import numpy as np
 
+from astropy.units import Quantity
 from astropy.utils import metadata
 from astropy.utils.masked import Masked
-from .table import Table, QTable, Row, Column, MaskedColumn
-from astropy.units import Quantity
 
 from . import _np_utils
 from .np_utils import TableMergeError
+from .table import Column, MaskedColumn, QTable, Row, Table
 
 __all__ = ['join', 'setdiff', 'hstack', 'vstack', 'unique',
            'join_skycoord', 'join_distance']

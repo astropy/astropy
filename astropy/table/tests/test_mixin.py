@@ -5,24 +5,22 @@ import copy
 import pickle
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.table.serialize import represent_mixins_as_columns
-from astropy.utils.data_info import ParentDtypeInfo
-from astropy.table.table_helpers import ArrayWrapper
-from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
-from astropy.table import serialize
-from astropy import time
-from astropy import coordinates
+from astropy import coordinates, time
 from astropy import units as u
+from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates.tests.helper import skycoord_equal
+from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.table import (
+    Column, NdarrayMixin, QTable, Table, hstack, join, serialize, table_helpers, vstack)
 from astropy.table.column import BaseColumn
-from astropy.table import table_helpers
+from astropy.table.serialize import represent_mixins_as_columns
+from astropy.table.table_helpers import ArrayWrapper
+from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
-from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.coordinates.tests.helper import skycoord_equal
 
 from .conftest import MIXIN_COLS
 
