@@ -3495,7 +3495,7 @@ def validate(source):
                     "always", FITSFixedWarning, append=True)
 
                 try:
-                    WCS(hdu.header,
+                    WCS(hdu.header, hdulist,
                         key=wcs.wcs.alt or ' ',
                         relax=_wcs.WCSHDR_reject,
                         fix=True, _do_set=False)
