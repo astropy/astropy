@@ -1088,21 +1088,25 @@ class Quantity(np.ndarray):
         try:
             other = Unit(other, parse_strict='silent')
         except UnitTypeError:
-            return NotImplemented
+            return NotImplemented  # try other.__rlshift__(self)
 
         try:
-            factor = self.unit._to(other)  # except Equivalency
-            self_as_array = self.view(np.ndarray)
-            self_as_array *= factor  # except output dtype
-        # The real error is `numpy.core._exceptions._UFuncOutputCastingError`, which
-        # inherits from `TypeError`.
-        except (UnitConversionError, TypeError, AttributeError):
-            # Simple conversion failed. Integer dtype? Conversion via equivalency?
-            # Given other.__rlshift__(self) a chance.
+            factor = self.unit._to(other)
+        except UnitConversionError:  # incompatible, or requires an Equivalency
             return NotImplemented
-        else:
-            self._set_unit(other)
+        except AttributeError:  # StructuredUnit does not have `_to`
+            # In principle, in-place might be possible.
+            return NotImplemented
 
+        view = self.view(np.ndarray)
+        try:
+            view *= factor  # operates on view
+        except TypeError:
+            # The error is `numpy.core._exceptions._UFuncOutputCastingError`,
+            # which inherits from `TypeError`.
+            return NotImplemented
+
+        self._set_unit(other)
         return self
 
     def __rlshift__(self, other):
