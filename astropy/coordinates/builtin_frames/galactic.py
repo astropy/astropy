@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy import units as u
-from astropy.utils.decorators import format_doc
-from astropy.coordinates.angles import Angle
 from astropy.coordinates import representation as r
+from astropy.coordinates.angles import Angle
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.utils.decorators import format_doc
 
+from .fk4 import FK4NoETerms
 # these are needed for defining the NGP
 from .fk5 import FK5
-from .fk4 import FK4NoETerms
 
 __all__ = ['Galactic']
 

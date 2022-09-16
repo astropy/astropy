@@ -1,12 +1,10 @@
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_allclose
 
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose
-
 from astropy.coordinates.spectral_quantity import SpectralQuantity
+from astropy.tests.helper import assert_quantity_allclose
 
 SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, (1 / u.nm).unit, u.km / u.s)
 

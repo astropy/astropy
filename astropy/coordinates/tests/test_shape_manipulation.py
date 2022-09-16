@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
-from astropy.coordinates import Longitude, Latitude, EarthLocation, SkyCoord
-
+from astropy.coordinates import EarthLocation, Latitude, Longitude, SkyCoord
 # test on frame with most complicated frame attributes.
-from astropy.coordinates.builtin_frames import ICRS, AltAz, GCRS
+from astropy.coordinates.builtin_frames import GCRS, ICRS, AltAz
 from astropy.time import Time
+from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
 @pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED

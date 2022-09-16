@@ -5,18 +5,17 @@ Contains the transformation functions for getting to "observed" systems from ICR
 import erfa
 
 from astropy import units as u
-from astropy.coordinates.builtin_frames.utils import atciqz, aticq
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.builtin_frames.utils import atciqz, aticq
+from astropy.coordinates.representation import (
+    CartesianRepresentation, SphericalRepresentation, UnitSphericalRepresentation)
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
-from astropy.coordinates.representation import (SphericalRepresentation,
-                                                CartesianRepresentation,
-                                                UnitSphericalRepresentation)
 
-from .icrs import ICRS
+from ..erfa_astrom import erfa_astrom
 from .altaz import AltAz
 from .hadec import HADec
+from .icrs import ICRS
 from .utils import PIOVER2
-from ..erfa_astrom import erfa_astrom
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, AltAz)

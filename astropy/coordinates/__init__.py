@@ -6,21 +6,21 @@ of astronomical objects. It also contains a framework for conversions
 between coordinate systems.
 """
 
-from .errors import *
+from .angle_utilities import *
 from .angles import *
-from .baseframe import *
 from .attributes import *
+from .baseframe import *
+from .builtin_frames import *
+from .calculation import *
 from .distances import *
 from .earth import *
-from .transformations import *
-from .builtin_frames import *
-from .name_resolve import *
+from .errors import *
+from .funcs import *
 from .matching import *
+from .name_resolve import *
 from .representation import *
 from .sky_coordinate import *
-from .funcs import *
-from .calculation import *
 from .solar_system import *
-from .spectral_quantity import *
 from .spectral_coordinate import *
-from .angle_utilities import *
+from .spectral_quantity import *
+from .transformations import *

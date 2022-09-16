@@ -1,50 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 from copy import deepcopy
+
 import numpy as np
 import pytest
-import re
 
 from astropy import units as u
-from astropy.units import allclose
-from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.utils.exceptions import AstropyWarning
-from astropy.time import Time
-
-from astropy.coordinates import (
-    EarthLocation,
-    galactocentric_frame_defaults,
-    representation as r,
-    SkyCoord,
-)
+from astropy.coordinates import EarthLocation, SkyCoord, galactocentric_frame_defaults
+from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
-    Attribute,
-    CoordinateAttribute,
-    DifferentialAttribute,
-    EarthLocationAttribute,
-    QuantityAttribute,
-    TimeAttribute,
-)
-from astropy.coordinates.baseframe import (
-    BaseCoordinateFrame,
-    RepresentationMapping
-)
+    Attribute, CoordinateAttribute, DifferentialAttribute, EarthLocationAttribute,
+    QuantityAttribute, TimeAttribute)
+from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
-    AltAz,
-    HADec,
-    FK4,
-    FK5,
-    Galactic,
-    Galactocentric,
-    GCRS,
-    HCRS,
-    ICRS,
-    ITRS
-)
-from astropy.coordinates.representation import (
-    CartesianDifferential,
-    REPRESENTATION_CLASSES,
-)
+    FK4, FK5, GCRS, HCRS, ICRS, ITRS, AltAz, Galactic, Galactocentric, HADec)
+from astropy.coordinates.representation import REPRESENTATION_CLASSES, CartesianDifferential
+from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+from astropy.time import Time
+from astropy.units import allclose
+from astropy.utils.exceptions import AstropyWarning
 
 from .test_representation import unitphysics  # this fixture is used below # noqa
 

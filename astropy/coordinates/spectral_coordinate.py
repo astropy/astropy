@@ -1,15 +1,13 @@
 import warnings
 from textwrap import indent
 
-import astropy.units as u
 import numpy as np
+
+import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import (ICRS,
-                                 CartesianDifferential,
-                                 CartesianRepresentation, SkyCoord)
+from astropy.coordinates import ICRS, CartesianDifferential, CartesianRepresentation, SkyCoord
+from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
 from astropy.coordinates.spectral_quantity import SpectralQuantity
-from astropy.coordinates.baseframe import (BaseCoordinateFrame,
-                                           frame_transform_graph)
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['SpectralCoord']

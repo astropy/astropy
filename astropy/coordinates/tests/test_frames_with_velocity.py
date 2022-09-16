@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy import units as u
-from astropy.coordinates.builtin_frames import CIRS, ICRS, Galactic, Galactocentric
 from astropy.coordinates import builtin_frames as bf
 from astropy.coordinates import galactocentric_frame_defaults
-from astropy.units import allclose as quantity_allclose
-from astropy.coordinates.errors import ConvertError
 from astropy.coordinates import representation as r
+from astropy.coordinates.builtin_frames import CIRS, ICRS, Galactic, Galactocentric
+from astropy.coordinates.errors import ConvertError
+from astropy.units import allclose as quantity_allclose
 
 
 def test_api():

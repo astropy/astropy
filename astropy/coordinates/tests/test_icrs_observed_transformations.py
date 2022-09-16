@@ -5,13 +5,11 @@
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates import (
+    CIRS, ICRS, AltAz, EarthLocation, HADec, SkyCoord, frame_transform_graph)
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy.coordinates import (
-    EarthLocation, ICRS,  CIRS, AltAz, HADec, SkyCoord)
-
-from astropy.coordinates.angle_utilities import golden_spiral_grid
-from astropy.coordinates import frame_transform_graph
 
 
 def test_icrs_altaz_consistency():

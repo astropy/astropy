@@ -1,9 +1,10 @@
 import numpy as np
-from astropy.units import si
-from astropy.units import equivalencies as eq
+
 from astropy.units import Unit
-from astropy.units.quantity import SpecificTypeQuantity, Quantity
+from astropy.units import equivalencies as eq
+from astropy.units import si
 from astropy.units.decorators import quantity_input
+from astropy.units.quantity import Quantity, SpecificTypeQuantity
 
 __all__ = ['SpectralQuantity']
 

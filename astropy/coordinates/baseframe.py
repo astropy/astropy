@@ -8,22 +8,22 @@ classes.
 # Standard library
 import copy
 import inspect
-from collections import namedtuple, defaultdict
 import warnings
+from collections import defaultdict, namedtuple
 
 # Dependencies
 import numpy as np
 
-# Project
-from astropy.utils.decorators import lazyproperty, format_doc
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
-from .transformations import TransformGraph
+# Project
+from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+
 from . import representation as r
 from .angles import Angle
 from .attributes import Attribute
-
+from .transformations import TransformGraph
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
            'GenericFrame', 'RepresentationMapping']
