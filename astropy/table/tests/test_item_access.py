@@ -5,8 +5,8 @@
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
 
-import pytest
 import numpy as np
+import pytest
 
 
 @pytest.mark.usefixtures('table_data')

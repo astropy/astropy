@@ -1,17 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.utils.tests.test_metadata import MetaBaseTest
 import operator
 import warnings
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy import table
-from astropy import time
+from astropy import table, time
 from astropy import units as u
+from astropy.tests.helper import assert_follows_unicode_guidelines
+from astropy.utils.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn():

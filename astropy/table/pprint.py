@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import sys
-import re
 import fnmatch
+import os
+import re
+import sys
 
 import numpy as np
 
 from astropy import log
-from astropy.utils.console import Getch, color_print, terminal_size, conf
+from astropy.utils.console import Getch, color_print, conf, terminal_size
 from astropy.utils.data_info import dtype_info_name
 
 __all__ = []

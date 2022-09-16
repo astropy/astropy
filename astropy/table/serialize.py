@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from importlib import import_module
-from copy import deepcopy
 from collections import OrderedDict
+from copy import deepcopy
+from importlib import import_module
 
 import numpy as np
 
-from astropy.utils.data_info import MixinInfo
-from .column import Column, MaskedColumn
-from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.data_info import MixinInfo
 
+from .column import Column, MaskedColumn
+from .table import QTable, Table, has_info_class
 
 # TODO: some of this might be better done programmatically, through
 # code like

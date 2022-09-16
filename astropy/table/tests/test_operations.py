@@ -1,29 +1,27 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.table.table_helpers import ArrayWrapper
-from astropy.coordinates.earth import EarthLocation
-from astropy.units.quantity import Quantity
 from collections import OrderedDict
 from contextlib import nullcontext
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.table import Table, QTable, TableMergeError, Column, MaskedColumn, NdarrayMixin
-from astropy.table.operations import _get_out_class, join_skycoord, join_distance
-from astropy import units as u
-from astropy.utils import metadata
-from astropy.utils.metadata import MergeConflictError
 from astropy import table
-from astropy.time import Time, TimeDelta
-from astropy.coordinates import (SkyCoord, SphericalRepresentation,
-                                 UnitSphericalRepresentation,
-                                 CartesianRepresentation,
-                                 BaseRepresentationOrDifferential,
-                                 search_around_3d)
-from astropy.coordinates.tests.test_representation import representation_equal
+from astropy import units as u
+from astropy.coordinates import (
+    BaseRepresentationOrDifferential, CartesianRepresentation, SkyCoord, SphericalRepresentation,
+    UnitSphericalRepresentation, search_around_3d)
+from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.tests.helper import skycoord_equal
+from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.table import Column, MaskedColumn, NdarrayMixin, QTable, Table, TableMergeError
+from astropy.table.operations import _get_out_class, join_distance, join_skycoord
+from astropy.table.table_helpers import ArrayWrapper
+from astropy.time import Time, TimeDelta
+from astropy.units.quantity import Quantity
+from astropy.utils import metadata
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.metadata import MergeConflictError
 
 
 def sort_eq(list1, list2):
