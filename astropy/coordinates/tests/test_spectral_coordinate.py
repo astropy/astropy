@@ -1,25 +1,22 @@
 from contextlib import nullcontext
 
-import astropy.units as u
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-import pytest
+import astropy.units as u
 from astropy import time
 from astropy.constants import c
+from astropy.coordinates import (
+    FK5, GCRS, ICRS, CartesianDifferential, CartesianRepresentation, EarthLocation, Galactic,
+    SkyCoord, SpectralQuantity, get_body_barycentric_posvel)
+from astropy.coordinates.spectral_coordinate import SpectralCoord, _apply_relativistic_doppler_shift
 from astropy.table import Table
+from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.time import Time
 from astropy.utils import iers
-from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
-                                 CartesianDifferential,
-                                 get_body_barycentric_posvel,
-                                 FK5, CartesianRepresentation,
-                                 SpectralQuantity)
-from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
-from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.utils.data import get_pkg_data_filename
-
-from astropy.coordinates.spectral_coordinate import SpectralCoord, _apply_relativistic_doppler_shift
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES as FITSWCS_VELOCITY_FRAMES
 
 

@@ -6,21 +6,21 @@ coordinates.
 
 import abc
 import functools
-import operator
 import inspect
+import operator
 import warnings
 
 import numpy as np
-import astropy.units as u
 from erfa import ufunc as erfa_ufunc
 
-from .angles import Angle, Longitude, Latitude
-from .distances import Distance
-from .matrix_utilities import is_O3
+import astropy.units as u
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
+from .angles import Angle, Latitude, Longitude
+from .distances import Distance
+from .matrix_utilities import is_O3
 
 __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "CartesianRepresentation", "SphericalRepresentation",

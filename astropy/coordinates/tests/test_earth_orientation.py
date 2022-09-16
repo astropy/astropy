@@ -1,3 +1,5 @@
+# These are no-regression tests for PR #13572
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -6,8 +8,6 @@ import astropy.units as u
 from astropy.coordinates import earth_orientation
 from astropy.time import Time
 
-
-# These are no-regression tests for PR #13572
 
 @pytest.fixture
 def tt_to_test():

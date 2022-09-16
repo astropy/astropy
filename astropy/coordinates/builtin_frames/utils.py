@@ -10,12 +10,12 @@ import erfa
 import numpy as np
 
 from astropy import units as u
-from astropy.time import Time
 from astropy.coordinates.earth import EarthLocation
+from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-from ..representation import CartesianDifferential
 
+from ..representation import CartesianDifferential
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
 # convention for J2000 (it is unclear if there is any "right answer" for B1950)
@@ -348,10 +348,8 @@ def prepare_earth_position_vel(time):
     """
     # this goes here to avoid circular import errors
     from astropy.coordinates.solar_system import (
-        get_body_barycentric,
-        get_body_barycentric_posvel,
-        solar_system_ephemeris,
-    )
+        get_body_barycentric, get_body_barycentric_posvel, solar_system_ephemeris)
+
     # get barycentric position and velocity of earth
 
     ephemeris = solar_system_ephemeris.get()

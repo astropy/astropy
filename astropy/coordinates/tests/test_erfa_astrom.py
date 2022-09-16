@@ -2,13 +2,10 @@ import numpy as np
 import pytest
 
 import astropy.units as u
+from astropy.coordinates import CIRS, GCRS, AltAz, EarthLocation, SkyCoord
+from astropy.coordinates.erfa_astrom import ErfaAstrom, ErfaAstromInterpolator, erfa_astrom
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
-from astropy.coordinates import EarthLocation, AltAz, GCRS, SkyCoord, CIRS
-
-from astropy.coordinates.erfa_astrom import (
-    erfa_astrom, ErfaAstrom, ErfaAstromInterpolator
-)
 
 
 def test_science_state():
@@ -96,13 +93,11 @@ def test_interpolation_nd():
 
 
 def test_interpolation_broadcasting():
-    from astropy.coordinates.angle_utilities import golden_spiral_grid
-    from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-    from astropy.time import Time
     import astropy.units as u
-
-    from astropy.coordinates.erfa_astrom import (erfa_astrom,
-                                                 ErfaAstromInterpolator)
+    from astropy.coordinates import AltAz, EarthLocation, SkyCoord
+    from astropy.coordinates.angle_utilities import golden_spiral_grid
+    from astropy.coordinates.erfa_astrom import ErfaAstromInterpolator, erfa_astrom
+    from astropy.time import Time
 
     # 1000 gridded locations on the sky
     rep = golden_spiral_grid(100)

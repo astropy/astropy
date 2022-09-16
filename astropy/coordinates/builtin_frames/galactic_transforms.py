@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.transformations import DynamicMatrixTransform
 
-from .fk5 import FK5
 from .fk4 import FK4NoETerms
-from .utils import EQUINOX_B1950, EQUINOX_J2000
+from .fk5 import FK5
 from .galactic import Galactic
+from .utils import EQUINOX_B1950, EQUINOX_J2000
 
 
 # Galactic to/from FK4/FK5 ----------------------->

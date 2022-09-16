@@ -4,10 +4,12 @@
 Utililies used for constructing and inspecting rotation matrices.
 """
 from functools import reduce
+
 import numpy as np
 
 from astropy import units as u
 from astropy.utils import deprecated
+
 from .angles import Angle
 
 

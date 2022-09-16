@@ -4,14 +4,13 @@
 We use "known good" examples computed with other coordinate libraries.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy import units as u
-from astropy.time import Time
+from astropy.coordinates import Angle, EarthLocation, SkyCoord
 from astropy.coordinates.builtin_frames import AltAz
-from astropy.coordinates import EarthLocation
-from astropy.coordinates import Angle, SkyCoord
+from astropy.time import Time
 
 
 def test_against_hor2eq():

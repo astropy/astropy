@@ -6,12 +6,13 @@ import re
 import textwrap
 import warnings
 from datetime import datetime
-from urllib.request import urlopen, Request
+from urllib.request import Request, urlopen
 
 # Third-party
 from astropy import time as atime
-from astropy.utils.console import color_print, _color_text
-from . import get_sun
+from astropy.utils.console import _color_text, color_print
+
+from .funcs import get_sun
 
 __all__ = []
 

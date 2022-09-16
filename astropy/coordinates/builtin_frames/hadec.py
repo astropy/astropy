@@ -1,12 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from astropy import units as u
-from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
+from astropy.coordinates.attributes import EarthLocationAttribute, QuantityAttribute, TimeAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                                            QuantityAttribute,
-                                            EarthLocationAttribute)
+from astropy.utils.decorators import format_doc
 
 __all__ = ['HADec']
 

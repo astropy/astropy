@@ -1,12 +1,12 @@
 import pickle
-import pytest
+
 import numpy as np
+import pytest
 
 import astropy.units as u
-from astropy.coordinates import Longitude, representation
 from astropy import coordinates as coord
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
-
+from astropy.coordinates import Longitude, representation
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa
 # Can't test distances without scipy due to cosmology deps
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
