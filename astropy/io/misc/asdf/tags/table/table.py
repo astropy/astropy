@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
-from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
 class TableType:

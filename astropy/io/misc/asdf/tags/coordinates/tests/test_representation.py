@@ -3,14 +3,12 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-from numpy.random import random, randint
-
-import astropy.units as u
-
-from astropy.coordinates import Angle
-import astropy.coordinates.representation as r
-
 from asdf.tests.helpers import assert_roundtrip_tree
+from numpy.random import randint, random
+
+import astropy.coordinates.representation as r
+import astropy.units as u
+from astropy.coordinates import Angle
 
 
 @pytest.fixture(params=filter(lambda x: "Base" not in x, r.__all__))

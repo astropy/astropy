@@ -10,10 +10,10 @@ from asdf.util import filepath_to_url
 # could do this using __init__ files, except it causes pytest import errors in
 # the case that asdf is not installed.
 from .tags.coordinates.angle import *  # noqa
-from .tags.coordinates.frames import *  # noqa
 from .tags.coordinates.earthlocation import *  # noqa
-from .tags.coordinates.skycoord import *  # noqa
+from .tags.coordinates.frames import *  # noqa
 from .tags.coordinates.representation import *  # noqa
+from .tags.coordinates.skycoord import *  # noqa
 from .tags.coordinates.spectralcoord import *  # noqa
 from .tags.fits.fits import *  # noqa
 from .tags.table.table import *  # noqa
@@ -22,18 +22,17 @@ from .tags.time.timedelta import *  # noqa
 from .tags.transform.basic import *  # noqa
 from .tags.transform.compound import *  # noqa
 from .tags.transform.functional_models import *  # noqa
-from .tags.transform.physical_models import *  # noqa
 from .tags.transform.math import *  # noqa
+from .tags.transform.physical_models import *  # noqa
 from .tags.transform.polynomial import *  # noqa
 from .tags.transform.powerlaws import *  # noqa
 from .tags.transform.projections import *  # noqa
 from .tags.transform.spline import *  # noqa
 from .tags.transform.tabular import *  # noqa
+from .tags.unit.equivalency import *  # noqa
 from .tags.unit.quantity import *  # noqa
 from .tags.unit.unit import *  # noqa
-from .tags.unit.equivalency import *  # noqa
-from .types import _astropy_types, _astropy_asdf_types
-
+from .types import _astropy_asdf_types, _astropy_types
 
 __all__ = ['AstropyExtension', 'AstropyAsdfExtension']
 

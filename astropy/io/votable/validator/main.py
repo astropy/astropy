@@ -9,9 +9,8 @@ import os
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_filename
-from . import html
-from . import result
 
+from . import html, result
 
 __all__ = ['make_validation_report']
 
@@ -110,7 +109,7 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from astropy.utils.console import (color_print, ProgressBar, Spinner)
+    from astropy.utils.console import ProgressBar, Spinner, color_print
 
     if stilts is not None:
         if not os.path.exists(stilts):

@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
-from astropy.io import ascii
-from .common import (assert_equal, assert_almost_equal,  # noqa
-                     setup_function, teardown_function)  # noqa
+import pytest
+
 from astropy import units as u
+from astropy.io import ascii
+
+from .common import assert_almost_equal, assert_equal, setup_function, teardown_function  # noqa
 
 
 def read_table1(readme, data):

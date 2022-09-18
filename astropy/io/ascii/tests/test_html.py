@@ -10,17 +10,15 @@ to be installed.
 
 from io import StringIO
 
-from astropy.io.ascii import html
-from astropy.io.ascii import core
-from astropy.table import Table
-
-import pytest
 import numpy as np
+import pytest
+
+from astropy.io import ascii
+from astropy.io.ascii import core, html
+from astropy.table import Table
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_BS4  # noqa
 
 from .common import setup_function, teardown_function  # noqa
-from astropy.io import ascii
-
-from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_BS4  # noqa
 
 if HAS_BS4:
     from bs4 import BeautifulSoup, FeatureNotFound

@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from numpy.testing import assert_array_equal
 
-from astropy.modeling import physical_models
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
-from . import _parameter_to_value
+from astropy.modeling import physical_models
 
+from . import _parameter_to_value
 
 __all__ = ['BlackBody', 'Drude1DType', 'Plummer1DType']
 

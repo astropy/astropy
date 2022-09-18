@@ -2,9 +2,10 @@
 
 import pytest
 
-from . import FitsTestCase
-from astropy.io.fits.scripts import fitsheader
 from astropy import __version__ as version
+from astropy.io.fits.scripts import fitsheader
+
+from . import FitsTestCase
 
 
 class TestFITSheader_script(FitsTestCase):

@@ -1,18 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
-from . import FitsTestCase
-
-from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from astropy.coordinates import EarthLocation
 from astropy.io import fits
-from astropy.table import Table, QTable, Column
+from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, is_time_column_keyword, time_to_fits
+from astropy.table import Column, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
+
+from . import FitsTestCase
 
 
 class TestFitsTime(FitsTestCase):

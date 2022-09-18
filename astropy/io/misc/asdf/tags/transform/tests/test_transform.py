@@ -6,18 +6,15 @@ asdf = pytest.importorskip('asdf')
 
 import warnings
 
-from packaging.version import Version
-import numpy as np
-
-from asdf import util
-from asdf.tests import helpers
-from asdf import AsdfFile
 import asdf
+import numpy as np
+from asdf import AsdfFile, util
+from asdf.tests import helpers
+from packaging.version import Version
 
 import astropy.units as u
-from astropy.modeling.core import fix_inputs
 from astropy.modeling import models as astmodels
-
+from astropy.modeling.core import fix_inputs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 

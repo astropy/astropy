@@ -5,20 +5,20 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
-import numpy as np
-import pytest
 from io import StringIO
 
-from astropy.io import ascii
+import numpy as np
+import pytest
+
 from astropy import units as u
-from astropy.table import Table
-from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
+from astropy.io import ascii
+from astropy.table import Column, MaskedColumn, Table
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
-from .common import assert_almost_equal
 
+from .common import assert_almost_equal
 
 test_dat = ['names e d s i',
             'HD81809 1E-7 22.25608 +2 67',

@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import gzip
-import itertools
 import io
+import itertools
 import mmap
 import operator
 import os

@@ -4,19 +4,18 @@ import copy
 import operator
 import warnings
 import weakref
-
 from contextlib import suppress
 from functools import reduce
 
 import numpy as np
-
 from numpy import char as chararray
 
-from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
-                     _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
-                     _wrapx, _unwrapx, _makep, Delayed)
-from .util import decode_ascii, encode_ascii, _rstrip_inplace
 from astropy.utils import lazyproperty
+
+from .column import (
+    _VLF, ASCII2NUMPY, ASCII2STR, ASCIITNULL, FITS2NUMPY, ColDefs, Delayed, _AsciiColDefs, _FormatP,
+    _FormatX, _get_index, _makep, _unwrapx, _wrapx)
+from .util import _rstrip_inplace, decode_ascii, encode_ascii
 
 
 class FITS_record:

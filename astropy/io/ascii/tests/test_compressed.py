@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import pytest
 import numpy as np
+import pytest
 
 from astropy.io.ascii import read
-from astropy.utils.data import get_pkg_data_filename
-
 # NOTE: Python can be built without bz2 or lzma
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA  # noqa
+from astropy.utils.data import get_pkg_data_filename
 
 
 @pytest.mark.parametrize('filename', ['data/daophot.dat.gz', 'data/latex1.tex.gz',

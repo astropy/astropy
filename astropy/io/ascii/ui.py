@@ -9,38 +9,27 @@ ui.py:
 """
 
 
-import re
-import os
-import sys
+import collections
+import contextlib
 import copy
+import os
+import re
+import sys
 import time
 import warnings
-import contextlib
-import collections
 from io import StringIO
 
 import numpy as np
 
-from . import core
-from . import basic
-from . import cds
-from . import mrt
-from . import daophot
-from . import ecsv
-from . import sextractor
-from . import ipac
-from . import latex
-from . import html
-from . import rst
-from . import fastbasic
-from . import cparser
-from . import fixedwidth
-from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
-
-from astropy.table import Table, MaskedColumn
+from astropy.table import MaskedColumn, Table
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
+
+from . import (
+    basic, cds, core, cparser, daophot, ecsv, fastbasic, fixedwidth, html, ipac, latex, mrt, rst,
+    sextractor)
+from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 _read_trace = []
 

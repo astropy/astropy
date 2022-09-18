@@ -8,22 +8,20 @@ Ref: https://journals.aas.org/mrt-standards
          Suyog Garg (suyog7130@gmail.com)
 """
 
-import re
 import math
+import re
 import warnings
-import numpy as np
 from io import StringIO
-from math import floor, ceil
-
-from . import core
-from . import fixedwidth, cds
-
-from astropy import units as u
-
-from astropy.table import Table
-from astropy.table import Column, MaskedColumn
+from math import ceil, floor
 from string import Template
 from textwrap import wrap
+
+import numpy as np
+
+from astropy import units as u
+from astropy.table import Column, MaskedColumn, Table
+
+from . import cds, core, fixedwidth
 
 MAX_SIZE_README_LINE = 80
 MAX_COL_INTLIMIT = 100000

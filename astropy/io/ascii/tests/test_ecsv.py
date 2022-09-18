@@ -4,28 +4,27 @@
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
 """
-from astropy.table.column import MaskedColumn
-import os
 import copy
+import os
 import sys
-from io import StringIO
 from contextlib import nullcontext
+from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 import yaml
 
-from astropy.table import Table, Column, QTable
-from astropy.table.table_helpers import simple_table
-from astropy.units import allclose as quantity_allclose
-from astropy.units import QuantityInfo
-
-from astropy.utils.compat import NUMPY_LT_1_19_1
-from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
-from astropy.io import ascii
 from astropy import units as u
+from astropy.io import ascii
+from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
+from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
+from astropy.table import Column, QTable, Table
+from astropy.table.column import MaskedColumn
+from astropy.table.table_helpers import simple_table
+from astropy.units import QuantityInfo
+from astropy.units import allclose as quantity_allclose
+from astropy.utils.compat import NUMPY_LT_1_19_1
 
-from astropy.io.tests.mixin_columns import mixin_cols, compare_attrs, serialized_names
 from .common import TEST_DIR
 
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',

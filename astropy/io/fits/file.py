@@ -1,32 +1,32 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import gzip
 import errno
+import gzip
 import http.client
+import io
 import mmap
 import operator
-import io
 import os
+import re
 import sys
 import tempfile
 import warnings
 import zipfile
-import re
-
 from functools import reduce
 
 import numpy as np
 
-from .util import (isreadable, iswritable, isfile, fileobj_name,
-                   fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string)
-from astropy.utils.data import download_file, _is_url
+# NOTE: Python can be built without bz2.
+from astropy.utils.compat.optional_deps import HAS_BZ2
+from astropy.utils.data import _is_url, download_file
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
-# NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
+from .util import (
+    _array_from_file, _array_to_file, _write_string, fileobj_closed, fileobj_mode, fileobj_name,
+    isfile, isreadable, iswritable)
+
 if HAS_BZ2:
     import bz2
 
