@@ -4,12 +4,12 @@ import gzip
 import io
 
 from astropy.io.fits.file import _File
-from .base import NonstandardExtHDU
-from .hdulist import HDUList
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import fileobj_name
-
 from astropy.utils import lazyproperty
+
+from .base import NonstandardExtHDU
+from .hdulist import HDUList
 
 
 class FitsHDU(NonstandardExtHDU):

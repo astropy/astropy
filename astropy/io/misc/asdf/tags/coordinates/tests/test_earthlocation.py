@@ -6,8 +6,8 @@ asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units as u
-from astropy.coordinates.angles import Longitude, Latitude
-from astropy.coordinates.earth import EarthLocation, ELLIPSOIDS
+from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation
 
 
 @pytest.fixture

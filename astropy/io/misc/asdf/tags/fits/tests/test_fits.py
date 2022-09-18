@@ -7,11 +7,9 @@ asdf = pytest.importorskip('asdf')
 import os
 
 import numpy as np
-
-from astropy.io import fits
-
 from asdf.tests import helpers
 
+from astropy.io import fits
 from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 

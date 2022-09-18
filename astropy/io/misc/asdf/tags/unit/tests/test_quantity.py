@@ -6,9 +6,9 @@ asdf = pytest.importorskip('asdf')
 
 import io
 
-from astropy import units
-
 from asdf.tests import helpers
+
+from astropy import units
 
 
 def roundtrip_quantity(yaml, quantity):

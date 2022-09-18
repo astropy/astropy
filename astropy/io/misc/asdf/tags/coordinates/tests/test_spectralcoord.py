@@ -3,7 +3,7 @@
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import SpectralCoord, ICRS, Galactic
+from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.tests.helper import assert_quantity_allclose
 
 asdf = pytest.importorskip('asdf')

@@ -3,8 +3,8 @@
 import pytest
 
 from astropy import units as u
-from astropy.units import equivalencies as eq
 from astropy.cosmology import Planck15
+from astropy.units import equivalencies as eq
 
 asdf = pytest.importorskip('asdf', minversion='2.3.0.dev0')
 from asdf.tests import helpers

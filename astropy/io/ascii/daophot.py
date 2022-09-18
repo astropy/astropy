@@ -9,14 +9,14 @@ Classes to read DAOphot table format
 """
 
 
-import re
-import numpy as np
 import itertools as itt
-from collections import defaultdict, OrderedDict
+import re
+from collections import OrderedDict, defaultdict
 
-from . import core
-from . import fixedwidth
-from .misc import first_true_index, first_false_index, groupmore
+import numpy as np
+
+from . import core, fixedwidth
+from .misc import first_false_index, first_true_index, groupmore
 
 
 class DaophotHeader(core.BaseHeader):

@@ -1,22 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import copy
+import os
+import pathlib
 from contextlib import nullcontext
 from io import StringIO
 from itertools import chain
-import pathlib
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.io import ascii
 from astropy import table
-from astropy.table.table_helpers import simple_table
-from astropy.utils.exceptions import AstropyWarning
-from astropy.utils.compat.optional_deps import HAS_BS4
-from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy import units as u
+from astropy.io import ascii
+from astropy.table.table_helpers import simple_table
+from astropy.utils.compat.optional_deps import HAS_BS4
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .common import setup_function, teardown_function  # noqa
 

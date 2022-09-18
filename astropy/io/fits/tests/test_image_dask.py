@@ -1,8 +1,8 @@
 # Tests related to writing dask arrays to FITS files in an efficient way
 
+import numpy as np
 import pytest
 
-import numpy as np
 from astropy.io import fits
 from astropy.io.fits import ImageHDU, PrimaryHDU
 

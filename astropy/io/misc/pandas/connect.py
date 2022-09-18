@@ -4,9 +4,9 @@
 import functools
 import os.path
 
-from astropy.utils.misc import NOT_OVERWRITING_MSG
-from astropy.table import Table
 import astropy.io.registry as io_registry
+from astropy.table import Table
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ['PANDAS_FMTS']
 
@@ -44,11 +44,9 @@ def import_html_libs():
 
     global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
 
-    from astropy.utils.compat.optional_deps import (
-        HAS_BS4 as _HAS_BS4,
-        HAS_LXML as _HAS_LXML,
-        HAS_HTML5LIB as _HAS_HTML5LIB
-    )
+    from astropy.utils.compat.optional_deps import HAS_BS4 as _HAS_BS4
+    from astropy.utils.compat.optional_deps import HAS_HTML5LIB as _HAS_HTML5LIB
+    from astropy.utils.compat.optional_deps import HAS_LXML as _HAS_LXML
     _IMPORTS = True
 
 

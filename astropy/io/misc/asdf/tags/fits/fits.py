@@ -3,7 +3,7 @@ from numpy.testing import assert_array_equal
 
 from astropy import table
 from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
 class FitsType:

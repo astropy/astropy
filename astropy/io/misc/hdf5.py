@@ -194,8 +194,8 @@ def _encode_mixins(tbl):
     """Encode a Table ``tbl`` that may have mixin columns to a Table with only
     astropy Columns + appropriate meta-data to allow subsequent decoding.
     """
-    from astropy.table import serialize
     from astropy import units as u
+    from astropy.table import serialize
     from astropy.utils.data_info import serialize_context_as
 
     # Convert the table to one with no mixins, only Column objects.  This adds

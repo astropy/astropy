@@ -1,13 +1,12 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.io import fits
 from astropy.io.fits.compression import compress_hdu
 
 from . import FitsTestCase
-
 
 MAX_INT = np.iinfo(np.intc).max
 MAX_LONG = np.iinfo(int).max

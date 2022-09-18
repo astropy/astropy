@@ -2,9 +2,8 @@
 from asdf.tags.core import NDArrayType
 
 from astropy.coordinates.spectral_coordinate import SpectralCoord
-from astropy.io.misc.asdf.types import AstropyType
 from astropy.io.misc.asdf.tags.unit.unit import UnitType
-
+from astropy.io.misc.asdf.types import AstropyType
 
 __all__ = ['SpectralCoordType']
 

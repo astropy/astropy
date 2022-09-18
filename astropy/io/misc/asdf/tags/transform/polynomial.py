@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-from numpy.testing import assert_array_equal
-
 from asdf.versioning import AsdfVersion
+from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy import modeling
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
+
 from . import _parameter_to_value
 
 __all__ = ['ShiftType', 'ScaleType', 'Linear1DType']

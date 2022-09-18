@@ -4,14 +4,11 @@ import io
 
 # THIRD-PARTY
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
 # LOCAL
-from astropy.io.votable import converters
-from astropy.io.votable import exceptions
-from astropy.io.votable import tree
-
+from astropy.io.votable import converters, exceptions, tree
 from astropy.io.votable.table import parse_single_table
 from astropy.utils.data import get_pkg_data_filename
 

@@ -24,9 +24,9 @@ Example usage of ``fitsinfo``:
 """
 
 import argparse
-import astropy.io.fits as fits
-from astropy import log, __version__
 
+import astropy.io.fits as fits
+from astropy import __version__, log
 
 DESCRIPTION = """
 Print a summary of the HDUs in a FITS file(s).

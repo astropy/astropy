@@ -1,18 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
 import glob
+import os
 import warnings
 
 from asdf import tagged
 
-import astropy.units as u
 import astropy.coordinates
+import astropy.units as u
+from astropy.coordinates import ICRS, Angle, Latitude, Longitude
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.units import Quantity
-from astropy.coordinates import ICRS, Longitude, Latitude, Angle
-from astropy.io.misc.asdf.types import AstropyType
 from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
-
+from astropy.io.misc.asdf.types import AstropyType
+from astropy.units import Quantity
 
 __all__ = ['CoordType']
 

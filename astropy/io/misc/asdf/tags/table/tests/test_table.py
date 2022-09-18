@@ -5,18 +5,16 @@ import pytest
 asdf = pytest.importorskip('asdf')
 
 import numpy as np
+from asdf.tags.core.ndarray import NDArrayType
+from asdf.tests import helpers
 from packaging.version import Version
 
 import astropy.units as u
 from astropy import table
-from astropy.time import Time, TimeDelta
-from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.coordinates.tests.helper import skycoord_equal
-
-from asdf.tests import helpers
-from asdf.tags.core.ndarray import NDArrayType
-
 from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
+from astropy.time import Time, TimeDelta
 
 
 def test_table(tmpdir):

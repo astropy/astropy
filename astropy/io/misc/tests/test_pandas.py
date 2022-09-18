@@ -2,14 +2,14 @@
 
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.io import ascii
-from astropy.table import Table, QTable
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.io import ascii
 from astropy.io.misc.pandas import connect
+from astropy.table import QTable, Table
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Check dependencies
