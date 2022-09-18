@@ -36,6 +36,7 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 import functools
 import operator
+from functools import reduce
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -109,7 +110,7 @@ UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
 # TODO! support whichever of these functions it makes sense to support
 TBD_FUNCTIONS = {
     rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
-    rfn.apply_along_fields, rfn.assign_fields_by_name, rfn.merge_arrays,
+    rfn.apply_along_fields, rfn.assign_fields_by_name,
     rfn.find_duplicates, rfn.recursive_fill_fields, rfn.require_fields,
     rfn.repack_fields, rfn.stack_arrays
 }
@@ -314,8 +315,8 @@ def _as_quantities(*args):
     from astropy.units import Quantity
 
     try:
-        return tuple(Quantity(a, copy=False, subok=True)
-                     for a in args)
+        # Note: this should keep the dtype the same
+        return tuple(Quantity(a, copy=False, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -1057,6 +1058,8 @@ def eig(a, *args, **kwargs):
     return (a.value,)+args, kwargs, (a.unit, dimensionless_unscaled), None
 
 
+# ======================= np.lib.recfunctions =======================
+
 @function_helper(module=np.lib.recfunctions)
 def structured_to_unstructured(arr, *args, **kwargs):
     """
@@ -1103,3 +1106,70 @@ def unstructured_to_structured(arr, dtype, *args, **kwargs):
     target_unit = StructuredUnit(_build_structured_unit(dtype, arr.unit))
 
     return (arr.to_value(arr.unit), dtype) + args, kwargs, target_unit, None
+
+
+def _izip_units_flat(iterable):
+    """Returns an iterator of collapsing any nested unit structure.
+
+    Parameters
+    ----------
+    iterable : Iterable[StructuredUnit | Unit] or StructuredUnit
+        A structured unit or iterable thereof.
+
+    Yields
+    ------
+    unit
+    """
+    from astropy.units import StructuredUnit
+
+    # Make Structured unit (pass-through if it is already).
+    units = StructuredUnit(iterable)
+
+    # Yield from structured unit.
+    for v in units.values():
+        if isinstance(v, StructuredUnit):
+            yield from _izip_units_flat(v)
+        else:
+            yield v
+
+
+@function_helper(helps=rfn.merge_arrays)
+def merge_arrays(
+    seqarrays,
+    fill_value = -1,
+    flatten = False,
+    usemask = False,
+    asrecarray = False,
+):
+    """Merge structured Quantities field by field.
+
+    Like :func:`numpy.lib.recfunctions.merge_arrays`. Note that ``usemask`` and
+    ``asrecarray`` are not supported at this time and will raise a ValueError if
+    not `False`.
+    """
+    from astropy.units import Quantity, StructuredUnit
+
+    if asrecarray:
+        # TODO? implement if Quantity ever supports rec.array
+        raise ValueError("asrecarray=True is not supported.")
+    if usemask:
+        # TODO: use MaskedQuantity for this case
+        raise ValueError("usemask=True is not supported.")
+
+    # Do we have a single Quantity as input?
+    if isinstance(seqarrays, Quantity):
+        seqarrays = (seqarrays,)
+
+    # Note: this also converts ndarray -> Quantity[dimensionless]
+    seqarrays = _as_quantities(*seqarrays)
+    arrays = tuple(q.value for q in seqarrays)
+    units = tuple(q.unit for q in seqarrays)
+
+    if flatten:
+        unit = StructuredUnit(tuple(_izip_units_flat(units)))
+    elif len(arrays) == 1:
+        unit = StructuredUnit(units[0])
+    else:
+        unit = StructuredUnit(units)
+
+    return (arrays, ), dict(fill_value=fill_value, flatten=flatten, usemask=usemask, asrecarray=asrecarray), unit, None

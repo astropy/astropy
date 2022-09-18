@@ -2038,6 +2038,21 @@ class TestLinAlg(metaclass=CoverageMeta):
 
 class TestRecFunctions(metaclass=CoverageMeta):
 
+    @classmethod
+    def setup_class(self):
+
+        self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
+        self.pv_t_dtype = np.dtype([('pv', np.dtype([('pp', 'f8'), ('vv', 'f8')])), ('t', 'f8')])
+
+        self.pv = np.array([(1., 0.25), (2., 0.5), (3., 0.75)], self.pv_dtype)
+        self.pv_t = np.array([((4., 2.5), 0.), ((5., 5.0), 1.), ((6., 7.5), 2.)], self.pv_t_dtype)
+
+        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ('p', 'v'))
+        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ('pv', 't'))
+
+        self.q_pv = self.pv << self.pv_unit
+        self.q_pv_t = self.pv_t << self.pv_t_unit
+
     def test_structured_to_unstructured(self):
         # can't unstructure something with incompatible units
         with pytest.raises(u.UnitConversionError, match="'m'"):
@@ -2070,17 +2085,79 @@ class TestRecFunctions(metaclass=CoverageMeta):
         unstruct = [1, 2, 3] * u.m
         dtype=np.dtype([("f1", float), ("f2", float), ("f3", float)])
 
-        # it works
+        # It works.
         struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
         assert struct.unit == u.Unit("(m, m, m)")
         assert_array_equal(rfn.structured_to_unstructured(struct), unstruct)
 
-        # can't structure something that's already structured
+        # Can't structure something that's already structured.
         with pytest.raises(ValueError, match="arr must have at least one dimension"):
             rfn.unstructured_to_structured(struct, dtype=dtype)
 
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_structured.TestStructuredQuantityFunctions.test_unstructured_to_structured``
+
+    def test_merge_arrays_repeat_dtypes(self):
+        # Cannot merge things with repeat dtypes.
+        q1 = u.Quantity([(1,)], dtype=[("f1", float)])
+        q2 = u.Quantity([(1,)], dtype=[("f1", float)])
+
+        with pytest.raises(ValueError, match="field 'f1' occurs more than once"):
+            rfn.merge_arrays((q1, q2))
+
+    @pytest.mark.parametrize("flatten", [True, False])
+    def test_merge_arrays(self, flatten):
+        """Test `numpy.lib.recfunctions.merge_arrays`."""
+        # Merge single normal array.
+        arr = rfn.merge_arrays(self.q_pv["p"], flatten=flatten)
+        assert_array_equal(arr["f0"], self.q_pv["p"])
+        assert arr.unit == (u.km,)
+
+        # Merge single structured array.
+        arr = rfn.merge_arrays(self.q_pv, flatten=flatten)
+        assert_array_equal(arr, self.q_pv)
+        assert arr.unit == (u.km, u.km/u.s)
+
+        # Merge 1-element tuple.
+        arr = rfn.merge_arrays((self.q_pv,), flatten=flatten)
+        assert np.array_equal(arr, self.q_pv)
+        assert arr.unit == (u.km, u.km/u.s)
+
+    @pytest.mark.xfail
+    @pytest.mark.parametrize("flatten", [True, False])
+    def test_merge_arrays_nonquantities(self, flatten):
+        # Fails because cannot create quantity from structured array.
+        arr = rfn.merge_arrays((q_pv["p"], q_pv.value), flatten=flatten)
+
+    def test_merge_array_nested_structure(self):
+        # Merge 2-element tuples without flattening.
+        arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
+        assert_array_equal(arr["f0"], self.q_pv)
+        assert_array_equal(arr["f1"], self.q_pv_t)
+        assert arr.unit == ((u.km, u.km/u.s), ((u.km, u.km/u.s), u.s))
+
+    def test_merge_arrays_flatten_nested_structure(self):
+        # Merge 2-element tuple, flattening it.
+        arr = rfn.merge_arrays((self.q_pv, self.q_pv_t), flatten=True)
+        assert_array_equal(arr["p"], self.q_pv["p"])
+        assert_array_equal(arr["v"], self.q_pv["v"])
+        assert_array_equal(arr["pp"], self.q_pv_t["pv"]["pp"])
+        assert_array_equal(arr["vv"], self.q_pv_t["pv"]["vv"])
+        assert_array_equal(arr["t"], self.q_pv_t["t"])
+        assert arr.unit == (u.km, u.km/u.s, u.km, u.km/u.s, u.s)
+
+    def test_merge_arrays_asrecarray(self):
+        with pytest.raises(ValueError, match="asrecarray=True is not supported."):
+            arr = rfn.merge_arrays(self.q_pv, asrecarray=True)
+
+    def test_merge_arrays_usemask(self):
+        with pytest.raises(ValueError, match="usemask=True is not supported."):
+            arr = rfn.merge_arrays(self.q_pv, usemask=True)
+
+    @pytest.mark.parametrize("flatten", [True, False])
+    def test_merge_arrays_str(self, flatten):
+        with pytest.raises(TypeError, match="the Quantity implementation cannot handle"):
+            arr = rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
 
 
 untested_functions = set()
@@ -2111,7 +2188,7 @@ rec_functions = {
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
     rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
     rfn.repack_fields, rfn.apply_along_fields, rfn.assign_fields_by_name,
-    rfn.merge_arrays, rfn.stack_arrays, rfn.find_duplicates,
+    rfn.stack_arrays, rfn.find_duplicates,
     rfn.recursive_fill_fields, rfn.require_fields,
 }
 untested_functions |= rec_functions
