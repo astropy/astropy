@@ -440,7 +440,7 @@ lines were added::
     def __len__(self):
         return len(self.lonangle)
 
-``lonangle`` contains the ``Angle``s that represent longitude (sometimes this
+``lonangle`` contains the ``Angle``\.s that represent longitude (sometimes this
 is an RA, sometimes a longitude). By simply calling ``len()`` on one of the
 angles in the array you get, for free, whatever behavior has been defined in
 the ``Angle`` class for handling the case of a scalar.

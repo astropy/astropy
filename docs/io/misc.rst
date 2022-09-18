@@ -257,7 +257,7 @@ object in ``astropy.modeling.functional_models``. The basic model parameters
 are handled in the ``to_tree_transform`` and ``from_tree_transform`` of the
 base ``TransformType`` class, while model-specific parameters are handled here
 in ``MyModelType``. Since this model can take units and quantities with input
-parameters, the imported``_parameter_to_value`` allows this to flexibly work
+parameters, the imported ``_parameter_to_value`` allows this to flexibly work
 with both basic numeric values as well as quantities.
 
 
