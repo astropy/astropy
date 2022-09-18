@@ -2085,12 +2085,12 @@ class TestRecFunctions(metaclass=CoverageMeta):
         unstruct = [1, 2, 3] * u.m
         dtype=np.dtype([("f1", float), ("f2", float), ("f3", float)])
 
-        # it works
+        # It works.
         struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
         assert struct.unit == u.Unit("(m, m, m)")
         assert_array_equal(rfn.structured_to_unstructured(struct), unstruct)
 
-        # can't structure something that's already structured
+        # Can't structure something that's already structured.
         with pytest.raises(ValueError, match="arr must have at least one dimension"):
             rfn.unstructured_to_structured(struct, dtype=dtype)
 
@@ -2098,7 +2098,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         # ``test_structured.TestStructuredQuantityFunctions.test_unstructured_to_structured``
 
     def test_merge_arrays_repeat_dtypes(self):
-        # can't merge things with repeat dtypes
+        # Cannot merge things with repeat dtypes.
         q1 = u.Quantity([(1,)], dtype=[("f1", float)])
         q2 = u.Quantity([(1,)], dtype=[("f1", float)])
 
@@ -2108,45 +2108,42 @@ class TestRecFunctions(metaclass=CoverageMeta):
     @pytest.mark.parametrize("flatten", [True, False])
     def test_merge_arrays(self, flatten):
         """Test `numpy.lib.recfunctions.merge_arrays`."""
-        # merge 1 normal array
+        # Merge single normal array.
         arr = rfn.merge_arrays(self.q_pv["p"], flatten=flatten)
-        assert np.array_equal(arr.value["f0"], [1, 2, 3])
+        assert_array_equal(arr["f0"], self.q_pv["p"])
         assert arr.unit == (u.km,)
 
-        # merge 1 structured array
+        # Merge single structured array.
         arr = rfn.merge_arrays(self.q_pv, flatten=flatten)
-        assert np.array_equal(arr.value["p"], [1, 2, 3])
-        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert_array_equal(arr, self.q_pv)
         assert arr.unit == (u.km, u.km/u.s)
 
-        # merge 1-elt tuple
+        # Merge 1-element tuple.
         arr = rfn.merge_arrays((self.q_pv,), flatten=flatten)
-        assert np.array_equal(arr.value["p"], [1, 2, 3])
-        assert np.array_equal(arr.value["v"], [0.25, 0.5, 0.75])
+        assert np.array_equal(arr, self.q_pv)
         assert arr.unit == (u.km, u.km/u.s)
 
     @pytest.mark.xfail
     @pytest.mark.parametrize("flatten", [True, False])
     def test_merge_arrays_nonquantities(self, flatten):
-        """Test `numpy.lib.recfunctions.merge_arrays`."""
+        # Fails because cannot create quantity from structured array.
         arr = rfn.merge_arrays((q_pv["p"], q_pv.value), flatten=flatten)
 
     def test_merge_array_nested_structure(self):
-        # merge 2-elt tuples
+        # Merge 2-element tuples without flattening.
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
-        assert np.array_equal(arr["f0"], self.q_pv)
-        assert np.array_equal(arr["f1"], self.q_pv_t)
+        assert_array_equal(arr["f0"], self.q_pv)
+        assert_array_equal(arr["f1"], self.q_pv_t)
         assert arr.unit == ((u.km, u.km/u.s), ((u.km, u.km/u.s), u.s))
 
     def test_merge_arrays_flatten_nested_structure(self):
-        """Test `numpy.lib.recfunctions.merge_arrays` with ``flatten=True``."""
-        # merge 2-elt tuple
+        # Merge 2-element tuple, flattening it.
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t), flatten=True)
-        assert np.array_equal(arr["p"].value, [1, 2, 3])
-        assert np.array_equal(arr["v"].value, [0.25, 0.5, 0.75])
-        assert np.array_equal(arr["pp"].value, [4, 5, 6])
-        assert np.array_equal(arr["vv"].value, [2.5, 5, 7.5])
-        assert np.array_equal(arr["t"].value, [0, 1, 2])
+        assert_array_equal(arr["p"], self.q_pv["p"])
+        assert_array_equal(arr["v"], self.q_pv["v"])
+        assert_array_equal(arr["pp"], self.q_pv_t["pv"]["pp"])
+        assert_array_equal(arr["vv"], self.q_pv_t["pv"]["vv"])
+        assert_array_equal(arr["t"], self.q_pv_t["t"])
         assert arr.unit == (u.km, u.km/u.s, u.km, u.km/u.s, u.s)
 
     def test_merge_arrays_asrecarray(self):
