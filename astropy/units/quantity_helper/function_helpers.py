@@ -34,8 +34,6 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
-from __future__ import annotations
-
 import functools
 import operator
 from functools import reduce
@@ -1124,8 +1122,8 @@ def _izip_units_flat(iterable):
     """
     from astropy.units import StructuredUnit
 
-    # Make Structured unit.
-    units = iterable if isinstance(iterable, StructuredUnit) else StructuredUnit(iterable)
+    # Make Structured unit (pass-through if it is already).
+    units = StructuredUnit(iterable)
 
     # Yield from structured unit.
     for v in units.values():
@@ -1158,21 +1156,18 @@ def merge_arrays(
         # TODO: use MaskedQuantity for this case
         raise ValueError("usemask=True is not supported.")
 
-    # Do we have a single ndarray as input ?
+    # Do we have a single Quantity as input?
     if isinstance(seqarrays, Quantity):
-        LEN1 = True
-        arrays = (seqarrays.value,)
-        units = (seqarrays.unit,)
-    else:
-        # Note: this also converts ndarray -> Quantity[dimensionless]
-        seqarrays = _as_quantities(*seqarrays)
-        arrays = tuple(q.value for q in seqarrays)
-        units = tuple(q.unit for q in seqarrays)
-        LEN1 = True if len(arrays) == 1 else False
+        seqarrays = (seqarrays,)
+
+    # Note: this also converts ndarray -> Quantity[dimensionless]
+    seqarrays = _as_quantities(*seqarrays)
+    arrays = tuple(q.value for q in seqarrays)
+    units = tuple(q.unit for q in seqarrays)
 
     if flatten:
         unit = StructuredUnit(tuple(_izip_units_flat(units)))
-    elif LEN1:
+    elif len(arrays) == 1:
         unit = StructuredUnit(units[0])
     else:
         unit = StructuredUnit(units)
