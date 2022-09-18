@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from astropy import config as _config
 
+
 class Conf(_config.ConfigNamespace):  # noqa
     """
     Configuration parameters for `astropy.table`.
@@ -16,5 +17,7 @@ class Conf(_config.ConfigNamespace):  # noqa
 
 conf = Conf()  # noqa
 
+# isort: off
 from .formats import *  # noqa
 from .core import *  # noqa
+# isort: on

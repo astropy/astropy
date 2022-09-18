@@ -50,7 +50,6 @@ archs = ["auto", "aarch64"]
         "astropy/samp/*",
         "astropy/stats/*",
         "astropy/tests/*",
-        "astropy/time/*",
         "astropy/timeseries/*",
         "astropy/uncertainty/*",
         "astropy/utils/*",

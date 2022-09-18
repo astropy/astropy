@@ -6,32 +6,33 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-import os
 import copy
 import enum
 import operator
+import os
 import threading
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from time import strftime
 from warnings import warn
 
-import numpy as np
 import erfa
+import numpy as np
 
-from astropy import units as u, constants as const
+from astropy import constants as const
+from astropy import units as u
+from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from .utils import day_frac
-from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
-                      TimeJD, TimeUnique, TimeAstropyTime, TimeDatetime)
+
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
 from .formats import TimeFromEpoch  # noqa
+from .formats import (
+    TIME_DELTA_FORMATS, TIME_FORMATS, TimeAstropyTime, TimeDatetime, TimeJD, TimeUnique)
 from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS
-
-from astropy.extern import _strptime
+from .utils import day_frac
 
 __all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'TimeInfoBase', 'update_leap_seconds',
            'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
@@ -1779,8 +1780,9 @@ class Time(TimeBase):
                                  'corrections')
             location = self.location
 
-        from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
-                                         HCRS, ICRS, GCRS, solar_system_ephemeris)
+        from astropy.coordinates import (
+            GCRS, HCRS, ICRS, CartesianRepresentation, UnitSphericalRepresentation,
+            solar_system_ephemeris)
 
         # ensure sky location is ICRS compatible
         if not skycoord.is_transformable_to(ICRS()):
@@ -1970,7 +1972,7 @@ class Time(TimeBase):
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
         """  # noqa
-        from astropy.coordinates import Longitude, EarthLocation
+        from astropy.coordinates import EarthLocation, Longitude
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
         from astropy.coordinates.matrix_utilities import rotation_matrix
 

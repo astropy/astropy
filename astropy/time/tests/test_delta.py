@@ -2,19 +2,18 @@
 import functools
 import itertools
 import operator
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.time import (
-    Time, TimeDelta, OperandTypeError, ScaleValueError, TIME_SCALES,
-    STANDARD_TIME_SCALES, TIME_DELTA_SCALES, TimeDeltaMissingUnitWarning,
-)
-from astropy.utils import iers
 from astropy import units as u
 from astropy.table import Table
+from astropy.time import (
+    STANDARD_TIME_SCALES, TIME_DELTA_SCALES, TIME_SCALES, OperandTypeError, ScaleValueError, Time,
+    TimeDelta, TimeDeltaMissingUnitWarning)
+from astropy.utils import iers
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
