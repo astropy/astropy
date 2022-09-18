@@ -3,9 +3,8 @@
 from datetime import date
 from itertools import count
 
-import pytest
-
 import numpy as np
+import pytest
 from erfa import DJM0
 
 from astropy.time import Time, TimeFormat

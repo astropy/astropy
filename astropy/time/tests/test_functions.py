@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
