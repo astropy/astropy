@@ -3,12 +3,10 @@
 data/cache files used by Astropy should be placed.
 """
 
-from functools import wraps
-
 import os
 import shutil
 import sys
-
+from functools import wraps
 
 __all__ = ['get_config_dir', 'get_cache_dir', 'set_temp_config',
            'set_temp_cache']
