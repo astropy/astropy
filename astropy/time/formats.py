@@ -14,7 +14,8 @@ import astropy.units as u
 from astropy.utils.decorators import classproperty, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from . import _parse_times, conf, utils
+from . import _parse_times, utils
+from .config import conf
 from .utils import day_frac, quantity_day_frac, two_product, two_sum
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
