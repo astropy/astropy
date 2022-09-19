@@ -41,7 +41,6 @@ archs = ["auto", "aarch64"]
         "docs/*",
         "examples/*",
         "astropy/_dev/*",
-        "astropy/config/*",
         "astropy/constants/*",
         "astropy/convolution/*",
         "astropy/extern/*",
