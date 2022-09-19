@@ -38,6 +38,12 @@ jobs:
       matrix:
         include:
 
+          - name: Code style checks
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: codestyle
+            toxposargs: --all-files -v
+
           # We check numpy-dev also in a job that only runs from cron, so that
           # we can spot issues sooner. We do not use remote data here, since
           # that gives too many false positives due to URL timeouts. We also
