@@ -6,6 +6,6 @@ Astropy project. This includes all functionality related to the
 affiliated package index.
 """
 
-from .paths import *
-from .configuration import *
 from .affiliated import *
+from .configuration import *
+from .paths import *

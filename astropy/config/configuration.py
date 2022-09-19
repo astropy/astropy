@@ -9,16 +9,16 @@ configuration files for Astropy and affiliated packages.
     found at https://configobj.readthedocs.io .
 """
 
+import contextlib
+import importlib
 import io
+import os
 import pkgutil
 import warnings
-import importlib
-import contextlib
-import os
+from contextlib import contextmanager, nullcontext
 from os import path
 from textwrap import TextWrapper
 from warnings import warn
-from contextlib import contextmanager, nullcontext
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
