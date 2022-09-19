@@ -264,10 +264,11 @@ class TimeInfo(MixinInfo):
         jd1 = np.full(shape, jd2000, dtype='f8')
         jd2 = np.zeros(shape, dtype='f8')
         tm_attrs = {attr: getattr(col0, attr)
-                    for attr in ('scale', 'location',
-                                 'precision', 'in_subfmt', 'out_subfmt')}
+                    for attr in ('scale', 'location', 'precision')}
         out = self._parent_cls(jd1, jd2, format='jd', **tm_attrs)
         out.format = col0.format
+        out.out_subfmt = col0.out_subfmt
+        out.in_subfmt = col0.in_subfmt
 
         # Set remaining info attributes
         for attr, value in attrs.items():
