@@ -2,9 +2,8 @@
 
 import math
 
-import pytest
-
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
