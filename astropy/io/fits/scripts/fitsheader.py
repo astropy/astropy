@@ -109,8 +109,9 @@ class HeaderFormatter:
         If `filename` does not exist or cannot be read.
     """
 
-    def __init__(self, filename, verbose=True):
+    def __init__(self, filename, args=None, verbose=True):
         self.filename = filename
+        self.args = args
         self.verbose = verbose
         self._hdulist = fits.open(filename)
 
@@ -253,6 +254,9 @@ class TableHeaderFormatter(HeaderFormatter):
         for hdu in hdukeys:
             try:
                 for card in self._get_cards(hdu, keywords, compressed):
+                    if self.args is not None:
+                        if isinstance(card.value, str) and self.args.replace_spaces is not None:
+                            card.value = card.value.replace(' ', self.args.replace_spaces)
                     tablerows.append({'filename': self.filename,
                                       'hdu': hdu,
                                       'keyword': card.keyword,
@@ -304,7 +308,7 @@ def print_headers_as_table(args):
     for filename in args.filename:  # Support wildcards
         formatter = None
         try:
-            formatter = TableHeaderFormatter(filename)
+            formatter = TableHeaderFormatter(filename, args=args)
             tbl = formatter.parse(args.extensions,
                                   args.keyword,
                                   args.compressed)
@@ -344,7 +348,7 @@ def print_headers_as_comparison(args):
     for filename in args.filename:  # Support wildcards
         formatter = None
         try:
-            formatter = TableHeaderFormatter(filename, verbose=False)
+            formatter = TableHeaderFormatter(filename, args=args, verbose=False)
             tbl = formatter.parse(args.extensions,
                                   args.keyword,
                                   args.compressed)
@@ -436,6 +440,11 @@ def main(args=None):
                         help='sort output by the specified header keywords, '
                              'can be repeated to sort by multiple keywords; '
                              'Only supported with -f/--fitsort')
+    parser.add_argument('-r', '--replace_spaces', metavar='REPLACE_SPACES',
+                        type=str,
+                        help='replace spaces in keyword values with the value of this parameter '
+                             '(e.g., -r_ replaces spaces with underscores); '
+                             'Only supported with -f/--fitsort and -t/--table')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -454,6 +463,13 @@ def main(args=None):
         args.sort = [key.replace('.', ' ') for key in args.sort]
         if not args.fitsort:
             log.error('Sorting with -s/--sort is only supported in conjunction with -f/--fitsort')
+            # 2: Unix error convention for command line syntax
+            sys.exit(2)
+
+    if args.replace_spaces:
+        if not args.fitsort and not args.table:
+            log.error('Replacing spaces with -r/--replace_spaces is only supported in conjunction with '
+                      '-f/--fitsort or -t/--table')
             # 2: Unix error convention for command line syntax
             sys.exit(2)
 
