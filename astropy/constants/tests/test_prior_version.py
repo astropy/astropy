@@ -2,9 +2,8 @@
 
 import copy
 
-import pytest
-
 import numpy as np
+import pytest
 
 from astropy.constants import Constant
 from astropy.units import Quantity as Q
