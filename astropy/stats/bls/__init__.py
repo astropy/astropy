@@ -10,8 +10,8 @@
 import warnings
 
 from astropy.timeseries.periodograms.bls import BoxLeastSquares as TimeseriesBoxLeastSquares
-from astropy.timeseries.periodograms.bls import \
-    BoxLeastSquaresResults as TimeseriesBoxLeastSquaresResults
+from astropy.timeseries.periodograms.bls import (
+    BoxLeastSquaresResults as TimeseriesBoxLeastSquaresResults)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['BoxLeastSquares', 'BoxLeastSquaresResults']
