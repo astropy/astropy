@@ -44,10 +44,10 @@ References
    https://www.tandfonline.com/doi/abs/10.1080/01621459.1969.10501038
 """
 import warnings
+from inspect import signature
 
 import numpy as np
 
-from inspect import signature
 from astropy.utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix C of Scargle 2013

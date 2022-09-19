@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.stats import (histogram, calculate_bin_edges, scott_bin_width,
-                           freedman_bin_width, knuth_bin_width)
+from astropy.stats import (
+    calculate_bin_edges, freedman_bin_width, histogram, knuth_bin_width, scott_bin_width)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
