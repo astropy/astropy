@@ -61,6 +61,7 @@ archs = ["auto", "aarch64"]
     multi_line_output = 4
     group_by_package = true
     indented_import_headings = false
+    use_parentheses = true
 
 [tool.coverage]
 
