@@ -2013,6 +2013,17 @@ def test_insert_time():
     assert np.all(tm2 == Time([10, 20, 1, 2], format='unix'))
 
 
+def test_insert_time_out_subfmt():
+    # Check insert() with out_subfmt set
+    T = Time(['1999-01-01', '1999-01-02'], out_subfmt='date')
+    T = T.insert(0, T[0])
+    assert T.out_subfmt == 'date'
+    assert T[0] == T[1]
+    T = T.insert(1, '1999-01-03')
+    assert T.out_subfmt == 'date'
+    assert str(T[1]) == '1999-01-03'
+
+
 def test_insert_exceptions():
     tm = Time(1, format='unix')
     with pytest.raises(TypeError) as err:
