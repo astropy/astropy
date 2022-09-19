@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
-from numpy.testing import assert_equal, assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
 from astropy.stats import mad_std
-from astropy.stats.sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
+from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_sigma_clip():
