@@ -14,6 +14,7 @@ import math
 import numpy as np
 
 import astropy.units as u
+
 from . import _stats
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
@@ -1112,11 +1113,11 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     since it is based on the `mpmath <http://mpmath.org/>`_ library.
     '''
 
-    from scipy.optimize import brentq
-    from scipy.integrate import quad
-    from scipy.special import factorial
-
     from math import exp
+
+    from scipy.integrate import quad
+    from scipy.optimize import brentq
+    from scipy.special import factorial
 
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
@@ -1189,7 +1190,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     that is based on scipy and evaluates faster, but runs only to about
     N = 100.
     '''
-    from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
+    from mpmath import exp, factorial, findroot, fsum, mpf, power, quad
 
     # We convert these values to float. Because for some reason,
     # mpmath.mpf cannot convert from numpy.int64
@@ -1282,7 +1283,7 @@ def _kraft_burrows_nousek(N, B, CL):
     <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     '''
-    from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH
+    from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
 
     if HAS_SCIPY and N <= 100:
         try:
@@ -1335,11 +1336,11 @@ def kuiper_false_positive_probability(D, N):
 
     """
     try:
-        from scipy.special import factorial, comb
+        from scipy.special import comb, factorial
     except ImportError:
         # Retained for backwards compatibility with older versions of scipy
         # (factorial appears to have moved here in 0.14)
-        from scipy.misc import factorial, comb
+        from scipy.misc import comb, factorial
 
     if D < 0. or D > 2.:
         raise ValueError("Must have 0<=D<=2 by definition of the Kuiper test")

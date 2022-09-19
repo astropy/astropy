@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-
 import numpy as np
-from numpy.testing import assert_equal, assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_equal
 
-from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH  # noqa
-
-from astropy.stats import funcs
 from astropy import units as u
+from astropy.stats import funcs
+from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY  # noqa
 from astropy.utils.misc import NumpyRNGContext
 
 
