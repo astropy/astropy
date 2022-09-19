@@ -5,12 +5,12 @@ import warnings
 import numpy as np
 from numpy.core.multiarray import normalize_axis_index
 
-from astropy.units import Quantity
-from astropy.utils import isiterable
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.stats.funcs import mad_std
+from astropy.units import Quantity
+from astropy.utils import isiterable
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
+from astropy.utils.exceptions import AstropyUserWarning
 
 if HAS_BOTTLENECK:
     import bottleneck

@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
-from numpy.testing import assert_equal, assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa

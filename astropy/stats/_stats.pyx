@@ -1,8 +1,7 @@
 #cython: language_level=3
-from libc cimport math
 cimport cython
 cimport numpy as np
-
+from libc cimport math
 
 ctypedef fused dtype:
     np.uint8_t
