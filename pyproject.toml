@@ -40,7 +40,6 @@ archs = ["auto", "aarch64"]
     extend_skip_glob = [
         "docs/*",
         "examples/*",
-        "astropy/_dev/*",
         "astropy/convolution/*",
         "astropy/extern/*",
         "astropy/io/*",
@@ -53,9 +52,8 @@ archs = ["auto", "aarch64"]
         "astropy/uncertainty/*",
         "astropy/utils/*",
         "astropy/visualization/*",
-        "astropy/wcs/*",
-        "astropy/__init__.py",
-        "setup.py"]
+        "astropy/wcs/*"
+    ]
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy"]
