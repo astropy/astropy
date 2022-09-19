@@ -33,14 +33,10 @@ Consider a concise example starting from a :class:`~pandas.DataFrame`:
     >>> import pandas
     >>> import numpy as np
     >>> from astropy.utils.introspection import minversion
-    >>> PANDAS_LT_1_5 = not minversion(pandas, '1.4.999')
     >>> df = pandas.DataFrame()
     >>> df['a'] = [1, 2, 3]
     >>> times = np.array(['2015-07-04', '2015-07-05', '2015-07-06'], dtype=np.datetime64)
-    >>> if PANDAS_LT_1_5:
-    ...     df.set_index(pandas.DatetimeIndex(times), inplace=True)
-    ... else:
-    ...     df = df.set_index(pandas.DatetimeIndex(times), copy=False)
+    >>> df.set_index(pandas.DatetimeIndex(times), inplace=True)
     >>> df
         a
     2015-07-04  1

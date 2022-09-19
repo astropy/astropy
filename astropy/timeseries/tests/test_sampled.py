@@ -11,7 +11,6 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.introspection import minversion
 from astropy.tests.helper import assert_quantity_allclose
 
 from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
@@ -272,14 +271,9 @@ def test_fold_invalid_options():
 def test_pandas():
     pandas = pytest.importorskip("pandas")
 
-    PANDAS_LT_1_5 = not minversion(pandas, '1.4.999')  # When this was written 1.5 was not released.
-
     df1 = pandas.DataFrame()
     df1['a'] = [1, 2, 3]
-    if PANDAS_LT_1_5:
-        df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), inplace=True)
-    else:
-        df1 = df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), copy=False)
+    df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), inplace=True)
 
     ts = TimeSeries.from_pandas(df1)
     assert_equal(ts.time.isot, INPUT_TIME.isot)
