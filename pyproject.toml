@@ -56,7 +56,7 @@ archs = ["auto", "aarch64"]
     ]
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
-    known_first_party = ["astropy"]
+    known_first_party = ["astropy", "extension_helpers"]
     multi_line_output = 4
     group_by_package = true
     indented_import_headings = false
