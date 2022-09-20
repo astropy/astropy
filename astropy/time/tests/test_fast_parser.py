@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pytest
 
-from astropy.time import Time, conf, TimeYearDayTime
+from astropy.time import Time, TimeYearDayTime, conf
 
 iso_times = ['2000-02-29', '1981-12-31 12:13', '1981-12-31 12:13:14', '2020-12-31 12:13:14.56']
 isot_times = [re.sub(' ', 'T', tm) for tm in iso_times]

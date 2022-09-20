@@ -1,28 +1,27 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import copy
-import functools
 import datetime
+import functools
+import os
 from copy import deepcopy
 from decimal import Decimal, localcontext
 from io import StringIO
 
+import erfa
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
-import erfa
 from erfa import ErfaWarning
+from numpy.testing import assert_allclose
 
-from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils import isiterable, iers
-from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
-                          TimeString, TimezoneInfo, TIME_FORMATS)
-from astropy.coordinates import EarthLocation
 from astropy import units as u
+from astropy.coordinates import EarthLocation
 from astropy.table import Column, Table
-from astropy.utils.compat.optional_deps import HAS_PYTZ, HAS_H5PY  # noqa
-
+from astropy.time import (
+    STANDARD_TIME_SCALES, TIME_FORMATS, ScaleValueError, Time, TimeDelta, TimeString, TimezoneInfo)
+from astropy.utils import iers, isiterable
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ  # noqa
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,
