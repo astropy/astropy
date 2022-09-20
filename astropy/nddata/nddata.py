@@ -2,16 +2,18 @@
 # This module implements the base NDData class.
 
 
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
+
+from astropy import log
+from astropy.units import Quantity, Unit
+from astropy.utils.metadata import MetaData
+from astropy.wcs.wcsapi import (
+    BaseHighLevelWCS, BaseLowLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS)
 
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
-from astropy import log
-from astropy.units import Unit, Quantity
-from astropy.utils.metadata import MetaData
-from astropy.wcs.wcsapi import (BaseLowLevelWCS, BaseHighLevelWCS,
-                                SlicedLowLevelWCS, HighLevelWCSWrapper)
 
 __all__ = ['NDData']
 

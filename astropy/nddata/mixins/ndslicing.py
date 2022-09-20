@@ -3,8 +3,8 @@
 
 
 from astropy import log
-from astropy.wcs.wcsapi import (BaseLowLevelWCS, BaseHighLevelWCS,
-                                SlicedLowLevelWCS, HighLevelWCSWrapper)
+from astropy.wcs.wcsapi import (
+    BaseHighLevelWCS, BaseLowLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS)
 
 __all__ = ['NDSlicingMixin']
 

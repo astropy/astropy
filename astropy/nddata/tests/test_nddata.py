@@ -5,20 +5,19 @@ import pickle
 import textwrap
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
+from astropy import units as u
+from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
-from astropy import units as u
 from astropy.utils import NumpyRNGContext
 from astropy.wcs import WCS
-from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS, \
-                               BaseHighLevelWCS
+from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
 
 from .test_nduncertainty import FakeUncertainty
-from astropy.nddata import _testing as nd_testing
 
 
 class FakeNumpyArray:

@@ -8,25 +8,22 @@ just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 """
 
+from astropy import config as _config
+
+from .bitmask import *
+from .blocks import *
+from .ccddata import *
+from .compat import *
+from .decorators import *
+from .flag_collection import *
+from .mixins.ndarithmetic import *
+from .mixins.ndio import *
+from .mixins.ndslicing import *
 from .nddata import *
 from .nddata_base import *
 from .nddata_withmixins import *
 from .nduncertainty import *
-from .flag_collection import *
-
-from .decorators import *
-
-from .mixins.ndarithmetic import *
-from .mixins.ndslicing import *
-from .mixins.ndio import *
-
-from .blocks import *
-from .compat import *
 from .utils import *
-from .ccddata import *
-from .bitmask import *
-
-from astropy import config as _config
 
 
 class Conf(_config.ConfigNamespace):
