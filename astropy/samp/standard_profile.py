@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import socketserver
 import sys
 import traceback
 import warnings
-import socketserver
 import xmlrpc.client as xmlrpc
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 

@@ -4,11 +4,11 @@ Utility functions and classes
 """
 
 
-import queue
 import inspect
+import queue
 import traceback
-from io import StringIO
 import xmlrpc.client as xmlrpc
+from io import StringIO
 from urllib.request import urlopen
 
 from .constants import SAMP_STATUS_ERROR

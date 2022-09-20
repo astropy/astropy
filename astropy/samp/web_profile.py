@@ -6,8 +6,7 @@ from urllib.request import urlopen
 
 from astropy.utils.data import get_pkg_data_contents
 
-from .standard_profile import (SAMPSimpleXMLRPCRequestHandler,
-                               ThreadingXMLRPCServer)
+from .standard_profile import SAMPSimpleXMLRPCRequestHandler, ThreadingXMLRPCServer
 
 __all__ = []
 
