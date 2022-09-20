@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import importlib
+import locale
+import logging
 import sys
 import warnings
-import logging
-import locale
 
 import pytest
 
 from astropy import log
 from astropy.logger import LoggingError, conf
-from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 
 # Save original values of hooks. These are not the system values, but the
 # already overwritten values since the logger already gets imported before

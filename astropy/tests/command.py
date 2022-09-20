@@ -5,14 +5,15 @@ once astropy-helpers has reached end-of-life.
 
 """
 import os
-import stat
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
 
 from setuptools import Command
+
 from astropy.logger import log
 
 
@@ -240,6 +241,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             retcode = testproc.wait()
         except KeyboardInterrupt:
             import signal
+
             # If a keyboard interrupt is handled, pass it to the test
             # subprocess to prompt pytest to initiate its teardown
             testproc.send_signal(signal.SIGINT)

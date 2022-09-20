@@ -1,20 +1,20 @@
 """Implements the Astropy TestRunner which is a thin wrapper around pytest."""
 
+import copy
+import glob
 import inspect
 import os
-import glob
-import copy
 import shlex
 import sys
 import tempfile
 import warnings
 from collections import OrderedDict
-from importlib.util import find_spec
 from functools import wraps
+from importlib.util import find_spec
 
-from astropy.config.paths import set_temp_config, set_temp_cache
+from astropy.config.paths import set_temp_cache, set_temp_config
 from astropy.utils import find_current_module
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 __all__ = ['TestRunner', 'TestRunnerBase', 'keyword']
 
@@ -541,7 +541,7 @@ class TestRunner(TestRunnerBase):
         """
         if parallel != 0:
             try:
-                from xdist import plugin # noqa
+                from xdist import plugin  # noqa
             except ImportError:
                 raise SystemError(
                     "running tests in parallel requires the pytest-xdist package")

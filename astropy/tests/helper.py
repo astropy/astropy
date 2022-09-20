@@ -3,20 +3,19 @@
 This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest`_ testing framework.
 """
-import os
-import sys
-import pickle
-import inspect
-import warnings
 import functools
+import inspect
+import os
+import pickle
+import sys
+import warnings
 
 import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa: F401
-from astropy.utils.decorators import deprecated
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyPendingDeprecationWarning)
 from astropy.utils.compat import PYTHON_LT_3_11
+from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611  # noqa
@@ -467,6 +466,7 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     :func:`numpy.testing.assert_allclose`.
     """
     import numpy as np
+
     from astropy.units.quantity import _unquantify_allclose_arguments
     np.testing.assert_allclose(*_unquantify_allclose_arguments(
         actual, desired, rtol, atol), **kwargs)
