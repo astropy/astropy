@@ -44,7 +44,6 @@ archs = ["auto", "aarch64"]
         "astropy/extern/*",
         "astropy/nddata/*",
         "astropy/tests/*",
-        "astropy/time/*",
         "astropy/timeseries/*",
         "astropy/uncertainty/*",
         "astropy/utils/*",

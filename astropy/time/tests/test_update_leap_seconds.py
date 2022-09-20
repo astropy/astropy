@@ -2,14 +2,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-import pytest
 import erfa
-
-from astropy.utils import iers
-from astropy.utils.exceptions import AstropyWarning
+import pytest
 
 import astropy.time.core
-from astropy.time import update_leap_seconds, Time
+from astropy.time import Time, update_leap_seconds
+from astropy.utils import iers
+from astropy.utils.exceptions import AstropyWarning
 
 
 class TestUpdateLeapSeconds:

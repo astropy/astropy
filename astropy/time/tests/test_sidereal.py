@@ -2,9 +2,9 @@
 import functools
 import itertools
 
-import pytest
-import numpy as np
 import erfa
+import numpy as np
+import pytest
 
 from astropy import units as u
 from astropy.time import Time

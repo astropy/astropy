@@ -1,26 +1,24 @@
-import decimal
-import warnings
-import functools
 import contextlib
-from decimal import Decimal
+import decimal
+import functools
+import warnings
 from datetime import datetime, timedelta
+from decimal import Decimal
 
+import erfa
+import numpy as np
 import pytest
+from erfa import ErfaError, ErfaWarning
 from hypothesis import assume, example, given, target
 from hypothesis.extra.numpy import array_shapes, arrays
-from hypothesis.strategies import (composite, datetimes, floats, integers,
-                                   one_of, sampled_from, timedeltas, tuples)
-
-import numpy as np
-import erfa
-from erfa import ErfaError, ErfaWarning
+from hypothesis.strategies import (
+    composite, datetimes, floats, integers, one_of, sampled_from, timedeltas, tuples)
 
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import STANDARD_TIME_SCALES, Time, TimeDelta
 from astropy.time.utils import day_frac, two_sum
 from astropy.utils import iers
-
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=np.finfo(float).eps,

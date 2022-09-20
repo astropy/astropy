@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import fnmatch
-import time
-import re
 import datetime
+import fnmatch
+import re
+import time
 import warnings
-from decimal import Decimal
 from collections import OrderedDict, defaultdict
+from decimal import Decimal
 
-import numpy as np
 import erfa
+import numpy as np
 
-from astropy.utils.decorators import lazyproperty, classproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning
 import astropy.units as u
+from astropy.utils.decorators import classproperty, lazyproperty
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from . import _parse_times
-from . import utils
-from .utils import day_frac, quantity_day_frac, two_sum, two_product
-from . import conf
+from . import _parse_times, conf, utils
+from .utils import day_frac, quantity_day_frac, two_product, two_sum
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeUnixTai', 'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
@@ -1956,4 +1954,4 @@ def _broadcast_writeable(jd1, jd2):
 
 # Import symbols from core.py that are used in this module. This succeeds
 # because __init__.py imports format.py just before core.py.
-from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError  # noqa
+from .core import TIME_DELTA_SCALES, TIME_SCALES, ScaleValueError, Time  # noqa

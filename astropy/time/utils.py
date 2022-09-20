@@ -11,6 +11,7 @@ objects into two values, and vice versa.
 import decimal
 
 import numpy as np
+
 import astropy.units as u
 
 

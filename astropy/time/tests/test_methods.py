@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-import itertools
 import copy
+import itertools
+import warnings
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.time import Time
-from astropy.utils import iers
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
-
+from astropy.utils import iers
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED,

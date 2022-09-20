@@ -3,9 +3,9 @@
 # Copied from astropy/convolution/setup_package.py
 
 import os
-from setuptools import Extension
 
 import numpy
+from setuptools import Extension
 
 C_TIME_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 

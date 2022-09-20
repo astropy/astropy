@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.time import Time
 from astropy.utils.iers import conf as iers_conf
