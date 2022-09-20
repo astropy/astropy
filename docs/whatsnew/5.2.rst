@@ -99,6 +99,13 @@ easier and more intuitive.::
     >>> # convert to AltAz
     >>> aa = itrs_topo.transform_to(AltAz(obstime=t, location=home))
 
+Performance Improvements
+========================
+
+To help speed up coordinate transformations, several performance improvements
+were implemented, mainly concerning validity checks in ``Angle`` and
+how ``FrameAttributes``  are accessed.
+
 
 .. _whatsnew-5.2-io-ascii-fixed-width:
 
