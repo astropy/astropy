@@ -12,12 +12,12 @@ import sys
 import textwrap
 import warnings
 
-# LOCAL
-from . import exceptions
-from . import tree
-from astropy.utils.xml import iterparser
 from astropy.utils import data
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.xml import iterparser
+
+# LOCAL
+from . import exceptions, tree
 
 __all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
            'reset_vo_warnings']
@@ -242,7 +242,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         `None`, the return value will be a string.
     """
 
-    from astropy.utils.console import print_code_line, color_print
+    from astropy.utils.console import color_print, print_code_line
 
     return_as_str = False
     if output is None:

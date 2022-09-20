@@ -1,19 +1,17 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import sys
 import mmap
+import sys
 import warnings
 
 import numpy as np
 
-from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import (_is_pseudo_integer, _pseudo_zero, _is_int,
-                                  _is_dask_array)
+from astropy.io.fits.util import _is_dask_array, _is_int, _is_pseudo_integer, _pseudo_zero
 from astropy.io.fits.verify import VerifyWarning
-
 from astropy.utils import isiterable, lazyproperty
 
+from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 
 __all__ = ["Section", "PrimaryHDU", "ImageHDU"]
 
@@ -674,6 +672,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         if should_swap:
             from dask.utils import M
+
             # NOTE: the inplace flag to byteswap needs to be False otherwise the array is
             # byteswapped in place every time it is computed and this affects
             # the input dask array.

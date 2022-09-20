@@ -5,12 +5,12 @@ Observatory (VO) initiative, particularly the VOTable XML format.
 """
 
 
-from .table import (
-    parse, parse_single_table, validate, from_table, is_votable, writeto)
-from .exceptions import (
-    VOWarning, VOTableChangeWarning, VOTableSpecWarning, UnimplementedWarning,
-    IOWarning, VOTableSpecError)
 from astropy import config as _config
+
+from .exceptions import (
+    IOWarning, UnimplementedWarning, VOTableChangeWarning, VOTableSpecError, VOTableSpecWarning,
+    VOWarning)
+from .table import from_table, is_votable, parse, parse_single_table, validate, writeto
 
 __all__ = [
     'Conf', 'conf', 'parse', 'parse_single_table', 'validate',

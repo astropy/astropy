@@ -3,11 +3,11 @@ import warnings
 
 from asdf import tagged
 from asdf.tests.helpers import assert_tree_match
-from astropy.modeling.core import Model, CompoundModel
-from astropy.modeling.models import Identity, Mapping, Const1D
+
 from astropy.io.misc.asdf.deprecation import create_asdf_deprecation_warning
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
-
+from astropy.modeling.core import CompoundModel, Model
+from astropy.modeling.models import Const1D, Identity, Mapping
 
 __all__ = ['CompoundType', 'RemapAxesType']
 

@@ -4,19 +4,19 @@ Test the conversion to/from astropy.table
 """
 import io
 import os
-
 import pathlib
-import pytest
-import numpy as np
 
-from astropy.config import set_temp_config, reload_config
-from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
+import numpy as np
+import pytest
+
+from astropy.config import reload_config, set_temp_config
+from astropy.io.votable import conf, tree, validate
+from astropy.io.votable.exceptions import E25, W39, VOWarning
 from astropy.io.votable.table import parse, writeto
-from astropy.io.votable import tree, conf, validate
-from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 

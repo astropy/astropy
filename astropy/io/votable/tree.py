@@ -2,11 +2,11 @@
 # TODO: Test FITS parsing
 
 # STDLIB
-import io
-import re
-import gzip
 import base64
 import codecs
+import gzip
+import io
+import re
 import urllib.request
 import warnings
 
@@ -15,23 +15,20 @@ import numpy as np
 from numpy import ma
 
 # LOCAL
-from astropy.io import fits
 from astropy import __version__ as astropy_version
+from astropy.io import fits
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.xml.writer import XMLWriter
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.xml.writer import XMLWriter
 
 from . import converters
-from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
-                         warn_unknown_attrs, W06, W07, W08, W09, W10, W11, W12,
-                         W13, W15, W17, W18, W19, W20, W21, W22, W26, W27, W28,
-                         W29, W32, W33, W35, W36, W37, W38, W40, W41, W42, W43,
-                         W44, W45, W50, W52, W53, W54, E06, E08, E09, E10, E11,
-                         E12, E13, E15, E16, E17, E18, E19, E20, E21, E22, E23,
-                         E25)
 from . import ucd as ucd_mod
-from . import util
-from . import xmlutil
+from . import util, xmlutil
+from .exceptions import (
+    E06, E08, E09, E10, E11, E12, E13, E15, E16, E17, E18, E19, E20, E21, E22, E23, E25, W06, W07,
+    W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20, W21, W22, W26, W27, W28, W29, W32, W33,
+    W35, W36, W37, W38, W40, W41, W42, W43, W44, W45, W50, W52, W53, W54, vo_raise, vo_reraise,
+    vo_warn, warn_or_raise, warn_unknown_attrs)
 
 try:
     from . import tablewriter

@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import errno
 import gzip
 import io
 import mmap
-import errno
 import os
 import pathlib
 import shutil
@@ -11,25 +11,23 @@ import urllib.request
 import zipfile
 from unittest.mock import patch
 
-import pytest
 import numpy as np
-
-from . import FitsTestCase
-
-from astropy.io.fits.convenience import _getext
-from astropy.io.fits.diff import FITSDiff
-from astropy.io.fits.file import _File, GZIP_MAGIC
+import pytest
 
 from astropy.io import fits
+from astropy.io.fits.convenience import _getext
+from astropy.io.fits.diff import FITSDiff
+from astropy.io.fits.file import GZIP_MAGIC, _File
+from astropy.io.tests import safeio
+from astropy.utils import data
+# NOTE: Python can be built without bz2.
+from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
-from astropy.utils import data
 
-from astropy.io.tests import safeio
+from . import FitsTestCase
 
-# NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
 if HAS_BZ2:
     import bz2
 

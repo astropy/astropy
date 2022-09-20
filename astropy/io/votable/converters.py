@@ -8,8 +8,8 @@ to/from TABLEDATA_ and BINARY_ formats.
 # STDLIB
 import re
 import sys
-from struct import unpack as _struct_unpack
 from struct import pack as _struct_pack
+from struct import unpack as _struct_unpack
 
 # THIRD-PARTY
 import numpy as np
@@ -19,10 +19,9 @@ from numpy import ma
 from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
-from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
-    W30, W31, W39, W46, W47, W49, W51, W55, E01, E02, E03, E04,
-    E05, E06, E24)
-
+from .exceptions import (
+    E01, E02, E03, E04, E05, E06, E24, W01, W30, W31, W39, W46, W47, W49, W51, W55, vo_raise,
+    vo_warn, warn_or_raise)
 
 __all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
 

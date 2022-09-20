@@ -1,5 +1,5 @@
-import astropy.units as u
 import astropy.coordinates.representation
+import astropy.units as u
 from astropy.coordinates.representation import BaseRepresentationOrDifferential
 from astropy.io.misc.asdf.types import AstropyType
 

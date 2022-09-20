@@ -1,15 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-
 from asdf.versioning import AsdfVersion
 
-from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
-from astropy.modeling import mappings
-from astropy.modeling import functional_models
-from astropy.modeling.core import CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
-from . import _parameter_to_value
+from astropy.modeling import functional_models, mappings
+from astropy.modeling.bounding_box import CompoundBoundingBox, ModelBoundingBox
+from astropy.modeling.core import CompoundModel
 
+from . import _parameter_to_value
 
 __all__ = ['TransformType', 'IdentityType', 'ConstantType']
 

@@ -4,12 +4,10 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import astropy.units as u
-
 from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy.coordinates import Longitude, Latitude, Angle
-
+import astropy.units as u
+from astropy.coordinates import Angle, Latitude, Longitude
 from astropy.io.misc.asdf.extension import AstropyExtension
 
 

@@ -1,17 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
+
 import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import io
+from asdf.tests import helpers
 
 from astropy import units as u
 
-from asdf.tests import helpers
-
-
 # TODO: Implement defunit
+
 
 def test_unit():
     yaml = """

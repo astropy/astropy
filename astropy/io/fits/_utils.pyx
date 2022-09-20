@@ -1,6 +1,7 @@
 # cython: language_level=3
 from collections import OrderedDict
 
+
 cdef Py_ssize_t BLOCK_SIZE = 2880  # the FITS block size
 cdef Py_ssize_t CARD_LENGTH = 80
 cdef str VALUE_INDICATOR = '= '  # The standard FITS value indicator

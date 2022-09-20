@@ -4,15 +4,17 @@ This package contains functions for reading and writing QDP tables that are
 not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`astropy:table_io` for more details.
 """
-import re
 import copy
-from collections.abc import Iterable
-import numpy as np
+import re
 import warnings
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.table import Table
+from collections.abc import Iterable
 
-from . import core, basic
+import numpy as np
+
+from astropy.table import Table
+from astropy.utils.exceptions import AstropyUserWarning
+
+from . import basic, core
 
 
 def _line_type(line, delimiter=None):

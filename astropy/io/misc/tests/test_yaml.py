@@ -6,19 +6,18 @@ This module tests some of the methods related to YAML serialization.
 
 from io import StringIO
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.coordinates import (SkyCoord, EarthLocation, Angle, Longitude, Latitude,
-                                 SphericalRepresentation, UnitSphericalRepresentation,
-                                 CartesianRepresentation, SphericalCosLatDifferential,
-                                 SphericalDifferential, CartesianDifferential)
 from astropy import units as u
-from astropy.time import Time
-from astropy.table import QTable, SerializedColumn
+from astropy.coordinates import (
+    Angle, CartesianDifferential, CartesianRepresentation, EarthLocation, Latitude, Longitude,
+    SkyCoord, SphericalCosLatDifferential, SphericalDifferential, SphericalRepresentation,
+    UnitSphericalRepresentation)
 from astropy.coordinates.tests.test_representation import representation_equal
-
-from astropy.io.misc.yaml import load, load_all, dump  # noqa
+from astropy.io.misc.yaml import dump, load, load_all  # noqa
+from astropy.table import QTable, SerializedColumn
+from astropy.time import Time
 
 
 @pytest.mark.parametrize('c', [True, np.uint8(8), np.int16(4),

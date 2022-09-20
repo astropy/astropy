@@ -5,10 +5,9 @@ import logging
 import os
 import sys
 
+from astropy import __version__
 from astropy.io import fits
 from astropy.io.fits.util import fill
-from astropy import __version__
-
 
 log = logging.getLogger('fitsdiff')
 

@@ -2,11 +2,9 @@
 
 import re
 import warnings
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 
 import numpy as np
-
-from . import Header, Card
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation
@@ -16,6 +14,8 @@ from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
+
+from . import Card, Header
 
 # The following is based on the FITS WCS Paper IV, "Representations of time
 # coordinates in FITS".

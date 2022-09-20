@@ -6,8 +6,8 @@ and misc/tests/test_hdf5.py
 
 import numpy as np
 
-from astropy import coordinates, table, time, units as u
-
+from astropy import coordinates, table, time
+from astropy import units as u
 
 el = coordinates.EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sr = coordinates.SphericalRepresentation(

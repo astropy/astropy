@@ -6,8 +6,7 @@ asdf = pytest.importorskip('asdf')
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units
-from astropy.coordinates import ICRS, FK5, Longitude, Latitude, Angle
-
+from astropy.coordinates import FK5, ICRS, Angle, Latitude, Longitude
 from astropy.io.misc.asdf.extension import AstropyExtension
 
 

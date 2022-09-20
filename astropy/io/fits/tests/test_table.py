@@ -8,8 +8,8 @@ import re
 import sys
 import warnings
 
-import pytest
 import numpy as np
+import pytest
 from numpy import char as chararray
 
 try:
@@ -19,14 +19,14 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
+from astropy.io.fits.column import NUMPY2FITS, ColumnAttribute, Delayed
+from astropy.io.fits.util import decode_ascii
+from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
-from astropy.units import UnitsWarning, Unit, UnrecognizedUnit
+from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from astropy.io.fits.column import ColumnAttribute, Delayed, NUMPY2FITS
-from astropy.io.fits.util import decode_ascii
-from astropy.io.fits.verify import VerifyError
 from . import FitsTestCase
 
 
@@ -2693,8 +2693,8 @@ class TestTableFunctions(FitsTestCase):
         leaks are fixed.
         """
 
-        from .test_core import TestCore
         from .test_connect import TestMultipleHDU
+        from .test_core import TestCore
 
         t1 = TestCore()
         t1.setup()

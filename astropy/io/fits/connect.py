@@ -8,20 +8,21 @@ from copy import deepcopy
 
 import numpy as np
 
-from astropy.io import registry as io_registry
 from astropy import units as u
-from astropy.table import Table, serialize, meta, Column, MaskedColumn
+from astropy.io import registry as io_registry
+from astropy.table import Column, MaskedColumn, Table, meta, serialize
 from astropy.time import Time
 from astropy.utils.data_info import serialize_context_as
-from astropy.utils.exceptions import (AstropyUserWarning,
-                                      AstropyDeprecationWarning)
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
-from . import HDUList, TableHDU, BinTableHDU, GroupsHDU, append as fits_append
+
+from . import BinTableHDU, GroupsHDU, HDUList, TableHDU
+from . import append as fits_append
 from .column import KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
-from .hdu.hdulist import fitsopen as fits_open, FITS_SIGNATURE
+from .hdu.hdulist import FITS_SIGNATURE
+from .hdu.hdulist import fitsopen as fits_open
 from .util import first
-
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',

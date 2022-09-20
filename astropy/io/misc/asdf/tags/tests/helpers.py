@@ -5,9 +5,9 @@ import numpy as np
 def run_schema_example_test(organization, standard, name, version, check_func=None):
 
     import asdf
+    from asdf.schema import load_schema
     from asdf.tests import helpers
     from asdf.types import format_tag
-    from asdf.schema import load_schema
 
     tag = format_tag(organization, standard, version, name)
     uri = asdf.extension.default_extensions.extension_list.tag_mapping(tag)
