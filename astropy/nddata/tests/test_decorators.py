@@ -2,15 +2,14 @@
 
 import inspect
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
-from astropy.wcs import WCS
-
-from astropy.nddata.nddata import NDData
 from astropy.nddata.decorators import support_nddata
+from astropy.nddata.nddata import NDData
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.wcs import WCS
 
 
 class CCDData(NDData):

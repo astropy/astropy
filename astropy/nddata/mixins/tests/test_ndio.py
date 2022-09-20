@@ -1,5 +1,4 @@
-from astropy.nddata import NDData, NDIOMixin, NDDataRef
-
+from astropy.nddata import NDData, NDDataRef, NDIOMixin
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
 NDDataIO = NDDataRef

@@ -1,21 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from packaging.version import Version
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
+from packaging.version import Version
 
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.nddata import (
+    CCDData, Cutout2D, NoOverlapError, PartialOverlapError, add_array, extract_array,
+    overlap_slices, subpixel_indices)
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.nddata import (extract_array, add_array, subpixel_indices,
-                            overlap_slices, NoOverlapError,
-                            PartialOverlapError, Cutout2D)
 from astropy.wcs import WCS, Sip
 from astropy.wcs.utils import proj_plane_pixel_area
-from astropy.coordinates import SkyCoord
-from astropy import units as u
-
-from astropy.nddata import CCDData
-
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]

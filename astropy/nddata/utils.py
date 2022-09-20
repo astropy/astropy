@@ -10,8 +10,8 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.utils import lazyproperty
-from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy.wcs import Sip
+from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'NoOverlapError', 'PartialOverlapError',
@@ -672,8 +672,8 @@ class Cutout2D:
             input ``ax``.
         """
 
-        import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
 
         kwargs['fill'] = fill
 
