@@ -2,21 +2,17 @@
 
 import pickle
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_allclose
+import pytest
+from numpy.testing import assert_allclose, assert_array_equal
 
-from astropy.nddata.nduncertainty import (StdDevUncertainty,
-                             VarianceUncertainty,
-                             InverseVariance,
-                             NDUncertainty,
-                             IncompatibleUncertaintiesException,
-                             MissingDataAssociationException,
-                             UnknownUncertainty)
-from astropy.nddata.nddata import NDData
-from astropy.nddata.compat import NDDataArray
-from astropy.nddata.ccddata import CCDData
 from astropy import units as u
+from astropy.nddata.ccddata import CCDData
+from astropy.nddata.compat import NDDataArray
+from astropy.nddata.nddata import NDData
+from astropy.nddata.nduncertainty import (
+    IncompatibleUncertaintiesException, InverseVariance, MissingDataAssociationException,
+    NDUncertainty, StdDevUncertainty, UnknownUncertainty, VarianceUncertainty)
 
 # Regarding setter tests:
 # No need to test setters since the uncertainty is considered immutable after

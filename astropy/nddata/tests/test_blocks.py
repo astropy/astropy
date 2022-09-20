@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from astropy.nddata import reshape_as_blocks, block_reduce, block_replicate
+from astropy.nddata import block_reduce, block_replicate, reshape_as_blocks
 
 
 class TestReshapeAsBlocks:

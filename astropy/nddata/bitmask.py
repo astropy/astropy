@@ -3,11 +3,11 @@ A module that provides functions for manipulating bit masks and data quality
 (DQ) arrays.
 
 """
-import warnings
 import numbers
+import warnings
 from collections import OrderedDict
-import numpy as np
 
+import numpy as np
 
 __all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags',
            'BitFlagNameMap', 'extend_bit_flag_map', 'InvalidBitFlag']
