@@ -11,21 +11,21 @@ celestial-to-terrestrial coordinate transformations
 
 import re
 from datetime import datetime
-from warnings import warn
 from urllib.parse import urlparse
+from warnings import warn
 
-import numpy as np
 import erfa
+import numpy as np
 
-from astropy.time import Time, TimeDelta
 from astropy import config as _config
 from astropy import units as u
-from astropy.table import QTable, MaskedColumn
-from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
-                                is_url_in_cache, get_readable_fileobj)
-from astropy.utils.state import ScienceState
 from astropy import utils
+from astropy.table import MaskedColumn, QTable
+from astropy.time import Time, TimeDelta
+from astropy.utils.data import (
+    clear_download_cache, get_pkg_data_filename, get_readable_fileobj, is_url_in_cache)
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.state import ScienceState
 
 __all__ = ['Conf', 'conf', 'earth_orientation_table',
            'IERS', 'IERS_B', 'IERS_A', 'IERS_Auto',

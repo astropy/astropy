@@ -4,7 +4,6 @@
 # STDLIB
 from xml.sax import saxutils
 
-
 __all__ = ['unescape_all']
 
 # This is DIY

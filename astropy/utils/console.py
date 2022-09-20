@@ -5,30 +5,30 @@ Utilities for console input and output.
 
 import codecs
 import locale
-import re
 import math
 import multiprocessing
 import os
+import re
 import struct
 import sys
 import threading
 import time
+
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
 
 try:
     import fcntl
-    import termios
     import signal
+    import termios
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 from astropy import conf
 
-from .misc import isiterable
 from .decorators import classproperty
-
+from .misc import isiterable
 
 __all__ = [
     'isatty', 'color_print', 'human_time', 'human_file_size',
@@ -1138,17 +1138,16 @@ class Getch:
 
 class _GetchUnix:
     def __init__(self):
-        import tty  # pylint: disable=W0611
         import sys  # pylint: disable=W0611
-
         # import termios now or else you'll get the Unix
         # version on the Mac
         import termios  # pylint: disable=W0611
+        import tty  # pylint: disable=W0611
 
     def __call__(self):
         import sys
-        import tty
         import termios
+        import tty
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:

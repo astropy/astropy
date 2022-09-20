@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates import SkyCoord, representation as r
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import representation as r
 from astropy.time import Time
-
 from astropy.utils.masked import Masked
 
 

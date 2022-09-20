@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import sys
 from collections import defaultdict
-from setuptools import Extension
 from os.path import join
 
-import sys
+from setuptools import Extension
 
 from extension_helpers import pkg_config
 

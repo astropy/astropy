@@ -7,8 +7,8 @@ import io
 import numpy as np
 import pytest
 
-from astropy.utils.diff import diff_values, report_diff_values, where_not_allclose
 from astropy.table import Table
+from astropy.utils.diff import diff_values, report_diff_values, where_not_allclose
 
 
 @pytest.mark.parametrize('a', [np.nan, np.inf, 1.11, 1, 'a'])

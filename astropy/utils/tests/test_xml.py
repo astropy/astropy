@@ -4,8 +4,8 @@ import io
 
 import pytest
 
-from astropy.utils.xml import check, unescaper, writer
 from astropy.utils.compat.optional_deps import HAS_BLEACH  # noqa
+from astropy.utils.xml import check, unescaper, writer
 
 
 def test_writer():

@@ -7,7 +7,7 @@ from textwrap import dedent
 
 import pytest
 
-from astropy.utils.parsing import lex, yacc, _TAB_HEADER
+from astropy.utils.parsing import _TAB_HEADER, lex, yacc
 
 
 def _docstring_canary():

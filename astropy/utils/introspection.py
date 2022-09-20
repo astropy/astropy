@@ -2,12 +2,13 @@
 """Functions related to Python runtime introspection."""
 
 import collections
+import importlib
 import inspect
 import os
 import sys
 import types
-import importlib
 from importlib import metadata
+
 from packaging.version import Version
 
 from astropy.utils.decorators import deprecated_renamed_argument

@@ -14,24 +14,18 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 import inspect
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
+from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
 from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
-from astropy.units.tests.test_quantity_non_ufuncs import (
-    get_wrapped_functions)
-
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
-    MASKED_SAFE_FUNCTIONS,
-    APPLY_TO_BOTH_FUNCTIONS,
-    DISPATCHED_FUNCTIONS,
-    IGNORED_FUNCTIONS,
+    APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, MASKED_SAFE_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS)
 
-from .test_masked import assert_masked_equal, MaskedArraySetup
-
+from .test_masked import MaskedArraySetup, assert_masked_equal
 
 all_wrapped_functions = get_wrapped_functions(np)
 all_wrapped = set(all_wrapped_functions.values())
