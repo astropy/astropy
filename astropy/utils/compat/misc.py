@@ -6,8 +6,8 @@ everything in `__all__` will be imported into `astropy.utils.compat` and can
 be accessed from there.
 """
 
-import sys
 import functools
+import sys
 
 from astropy.utils.decorators import deprecated
 

@@ -17,18 +17,17 @@ table column attributes such as name, format, dtype, meta, and description.
 import os
 import re
 import sys
-import weakref
 import warnings
-from io import StringIO
-from copy import deepcopy
-from functools import partial
+import weakref
 from collections import OrderedDict
 from contextlib import contextmanager
+from copy import deepcopy
+from functools import partial
+from io import StringIO
 
 import numpy as np
 
 from . import metadata
-
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
            'DataInfo', 'MixinInfo', 'ParentDtypeInfo']

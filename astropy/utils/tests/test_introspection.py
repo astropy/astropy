@@ -8,8 +8,7 @@ import pytest
 import yaml
 
 from astropy.utils import introspection
-from astropy.utils.introspection import (find_current_module, find_mod_objs,
-                                         minversion)
+from astropy.utils.introspection import find_current_module, find_mod_objs, minversion
 
 
 def test_pkg_finder():

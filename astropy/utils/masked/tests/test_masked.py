@@ -6,14 +6,14 @@ Functions, including ufuncs, are tested in test_functions.py
 import operator
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units import Quantity
 from astropy.coordinates import Longitude
-from astropy.utils.masked import Masked, MaskedNDArray
+from astropy.units import Quantity
 from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_22
+from astropy.utils.masked import Masked, MaskedNDArray
 
 
 def assert_masked_equal(a, b):

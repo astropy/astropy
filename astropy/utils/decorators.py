@@ -10,9 +10,8 @@ import types
 import warnings
 from inspect import signature
 
-from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
-                         AstropyPendingDeprecationWarning)
-
+from .exceptions import (
+    AstropyDeprecationWarning, AstropyPendingDeprecationWarning, AstropyUserWarning)
 
 __all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
            'deprecated_renamed_argument', 'format_doc',

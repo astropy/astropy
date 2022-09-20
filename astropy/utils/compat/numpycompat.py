@@ -5,6 +5,7 @@ earlier versions of Numpy.
 """
 
 import numpy as np
+
 from astropy.utils import minversion
 
 __all__ = ['NUMPY_LT_1_19', 'NUMPY_LT_1_19_1', 'NUMPY_LT_1_20',

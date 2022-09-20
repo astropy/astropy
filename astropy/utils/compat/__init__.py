@@ -14,6 +14,5 @@ packages or code.
 """
 
 from .misc import *  # noqa
-
 # Importing this module will also install monkey-patches defined in it
 from .numpycompat import *  # noqa

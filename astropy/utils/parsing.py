@@ -5,10 +5,9 @@ Wrappers for PLY to provide thread safety.
 
 import contextlib
 import functools
-import re
 import os
+import re
 import threading
-
 
 __all__ = ['lex', 'ThreadSafeParser', 'yacc']
 

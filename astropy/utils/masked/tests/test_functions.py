@@ -5,16 +5,15 @@ The tests here are fairly detailed but do not aim for complete
 coverage.  Complete coverage of all numpy functions is done
 with less detailed tests in test_function_helpers.
 """
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils.masked.core import Masked
 
-from .test_masked import (MaskedArraySetup, QuantitySetup, LongitudeSetup,
-                          assert_masked_equal)
+from .test_masked import LongitudeSetup, MaskedArraySetup, QuantitySetup, assert_masked_equal
 
 
 class MaskedUfuncTests(MaskedArraySetup):
