@@ -157,6 +157,14 @@ class FixedWidthHeader(basic.BasicHeader):
 
         self._set_cols_from_names()
 
+        if start_line is not None and self.header_rows_extra:
+            for ii, col_attr in enumerate(self.header_rows_extra):
+                line = self.get_line(lines, start_line + ii + 1)
+                vals, starts, ends = self.get_fixedwidth_params(line)
+                for col, val in zip(self.cols, vals):
+                    if val:
+                        setattr(col, col_attr, val)
+
         # Set column start and end positions.
         for i, col in enumerate(self.cols):
             col.start = starts[i]
@@ -239,27 +247,43 @@ class FixedWidthData(basic.BasicData):
     """ Splitter class for splitting data lines into columns """
 
     def write(self, lines):
+        # First part is getting the widths of each column.
+        names = [col.info.name for col in self.cols]
+
+        # List (rows) of list (column values) for data lines
         vals_list = []
         col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
             vals_list.append(vals)
 
-        for i, col in enumerate(self.cols):
-            col.width = max(len(vals[i]) for vals in vals_list)
-            if self.header.start_line is not None:
-                col.width = max(col.width, len(col.info.name))
-
-        widths = [col.width for col in self.cols]
-
+        # List (rows) of list (columns values) for header lines.
+        hdrs_list = []
         if self.header.start_line is not None:
-            lines.append(self.splitter.join([col.info.name for col in self.cols],
-                                            widths))
+            hdrs_list.append(names)
+        for col_attr in self.header_rows_extra:
+            vals = [
+                "" if (val := getattr(col.info, col_attr)) is None else str(val)
+                for col in self.cols
+            ]
+            hdrs_list.append(vals)
+
+        # Widths for data columns
+        widths = [max(len(vals[i_col]) for vals in vals_list)
+                  for i_col in range(len(self.cols))]
+        # Incorporate widths for header columns (if there are any)
+        if hdrs_list:
+            for i_col in range(len(self.cols)):
+                widths[i_col] = max(
+                    widths[i_col],
+                    max(len(vals[i_col]) for vals in hdrs_list)
+                )
+
+        # Now collect formatted header and data lines into the output lines
+        for vals in hdrs_list:
+            lines.append(self.splitter.join(vals, widths))
 
         if self.header.position_line is not None:
-            char = self.header.position_char
-            if len(char) != 1:
-                raise ValueError(f'Position_char="{char}" must be a single character')
-            vals = [char * col.width for col in self.cols]
+            vals = [self.header.position_char * width for width in widths]
             lines.append(self.splitter.join(vals, widths))
 
         for vals in vals_list:
@@ -300,12 +324,24 @@ class FixedWidth(basic.Basic):
     header_class = FixedWidthHeader
     data_class = FixedWidthData
 
-    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
+    def __init__(
+        self,
+        col_starts=None,
+        col_ends=None,
+        delimiter_pad=' ',
+        bookend=True,
+        header_rows_extra=None
+    ):
+        if header_rows_extra is None:
+            header_rows_extra = []
         super().__init__()
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
         self.header.col_starts = col_starts
         self.header.col_ends = col_ends
+        self.header.header_rows_extra = header_rows_extra
+        self.data.header_rows_extra = header_rows_extra
+        self.data.start_line += len(header_rows_extra)
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
@@ -407,8 +443,22 @@ class FixedWidthTwoLine(FixedWidth):
     data_class = FixedWidthTwoLineData
     header_class = FixedWidthTwoLineHeader
 
-    def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
-        super().__init__(delimiter_pad=delimiter_pad, bookend=bookend)
+    def __init__(
+        self,
+        position_line=None,
+        position_char='-',
+        delimiter_pad=None,
+        bookend=False,
+        header_rows_extra=None
+    ):
+        if len(position_char) != 1:
+            raise ValueError(
+                f'Position_char="{position_char}" must be a ''single character'
+            )
+        super().__init__(delimiter_pad=delimiter_pad, bookend=bookend,
+                         header_rows_extra=header_rows_extra)
+        if position_line is None:
+            position_line = 1 + len(self.header.header_rows_extra)
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1
