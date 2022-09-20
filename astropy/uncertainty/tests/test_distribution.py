@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.uncertainty.core import Distribution
-from astropy.uncertainty import distributions as ds
-from astropy.utils import NumpyRNGContext
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.uncertainty import distributions as ds
+from astropy.uncertainty.core import Distribution
+from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 if HAS_SCIPY:

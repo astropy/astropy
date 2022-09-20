@@ -7,8 +7,8 @@ import builtins
 
 import numpy as np
 
-from astropy import units as u
 from astropy import stats
+from astropy import units as u
 
 __all__ = ['Distribution']
 
