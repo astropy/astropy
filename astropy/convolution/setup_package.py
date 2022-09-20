@@ -3,9 +3,8 @@
 import os
 import sys
 
-from setuptools import Extension
-
 import numpy
+from setuptools import Extension
 
 C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
 
