@@ -6,8 +6,9 @@ from collections import defaultdict
 from glob import glob
 
 import numpy
-from extension_helpers import get_compiler, pkg_config
 from setuptools import Extension
+
+from extension_helpers import get_compiler, pkg_config
 
 
 def _get_compression_extension():
