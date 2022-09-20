@@ -12,6 +12,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.tests.helper import check_pickling_recovery, pickle_protocol
 from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
+from astropy.units.quantity import _structured_unit_like_dtype
 from astropy.utils.compat import NUMPY_LT_1_21_1
 from astropy.utils.masked import Masked
 
@@ -432,6 +433,17 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert q_pv_t.unit is self.pv_t_unit
         assert np.all(q_pv_t.value == self.pv_t)
         assert np.may_share_memory(q_pv_t, self.pv_t)
+
+    def test_initialization_without_unit(self):
+        q_pv_t = u.Quantity(self.pv_t, unit=None)
+
+        assert np.all(q_pv_t.value == self.pv_t)
+
+        # Test that unit is a structured unit like the dtype
+        expected_unit = _structured_unit_like_dtype(u.Quantity._default_unit, self.pv_t.dtype)
+        assert q_pv_t.unit == expected_unit
+        # A more explicit test
+        assert q_pv_t.unit == u.StructuredUnit(((u.one, u.one), u.one))
 
     def test_getitem(self):
         q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
