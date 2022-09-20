@@ -2,13 +2,12 @@
 
 import pytest
 
-from astropy.samp.hub_proxy import SAMPHubProxy
-from astropy.samp.client import SAMPClient
-from astropy.samp.integrated_client import SAMPIntegratedClient
-from astropy.samp.hub import SAMPHubServer
-
 # By default, tests should not use the internet.
 from astropy.samp import conf
+from astropy.samp.client import SAMPClient
+from astropy.samp.hub import SAMPHubServer
+from astropy.samp.hub_proxy import SAMPHubProxy
+from astropy.samp.integrated_client import SAMPIntegratedClient
 
 
 def setup_module(module):
