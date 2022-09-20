@@ -1,8 +1,8 @@
 import os
-import time
 import pickle
 import random
 import string
+import time
 
 from astropy.samp import SAMP_STATUS_OK
 
