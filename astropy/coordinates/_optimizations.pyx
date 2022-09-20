@@ -23,7 +23,7 @@ cdef bint isfinite(dtype_t val):
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
-cpdef _wrap_at(np.ndarray[dtype_t] angle, dtype_t wrap_angle, double full_circle):
+cpdef _wrap_at(dtype_t[:] angle, dtype_t wrap_angle, double full_circle):
     cdef np.npy_intp size
     cdef np.npy_intp i
     cdef dtype_t wrap_angle_floor
@@ -31,7 +31,7 @@ cpdef _wrap_at(np.ndarray[dtype_t] angle, dtype_t wrap_angle, double full_circle
 
     wrap_angle_floor = <dtype_t>(wrap_angle - full_circle)
 
-    size = angle.shape[0]
+    size = len(angle)
     for i in range(size):
         wrap_by =  <dtype_t>(full_circle * ((angle[i] - wrap_angle_floor) // full_circle))
 
