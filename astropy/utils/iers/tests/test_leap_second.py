@@ -1,18 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import urllib.request
-import os
 import locale
+import os
 import platform
+import urllib.request
 
-import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
 import erfa
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 
-from astropy.time import Time, TimeDelta
-from astropy.utils.iers import iers
-from astropy.utils.data import get_pkg_data_filename
 from astropy.tests.tests.test_imports import test_imports
+from astropy.time import Time, TimeDelta
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.iers import iers
 
 # Import every top-level astropy module as a test that the ERFA leap second
 # table is not updated for normal imports.

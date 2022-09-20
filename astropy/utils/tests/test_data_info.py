@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.utils.data_info import dtype_info_name
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 from astropy.table import QTable
 from astropy.table.index import SlicedIndex
 from astropy.time import Time
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-
+from astropy.utils.data_info import dtype_info_name
 
 STRING_TYPE_NAMES = {(True, 'S'): 'bytes',
                      (True, 'U'): 'str'}

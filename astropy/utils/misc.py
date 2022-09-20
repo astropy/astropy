@@ -9,20 +9,18 @@ import contextlib
 import difflib
 import inspect
 import json
+import locale
 import os
+import re
 import signal
 import sys
+import threading
 import traceback
 import unicodedata
-import locale
-import threading
-import re
-
+from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-from collections import defaultdict, OrderedDict
 
 from astropy.utils.decorators import deprecated
-
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
@@ -206,6 +204,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     """
     import webbrowser
     from zlib import decompress
+
     from astropy.utils.data import get_readable_fileobj
 
     if (not isinstance(obj, str) and
@@ -388,8 +387,9 @@ class JsonCustomEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
-        from astropy import units as u
         import numpy as np
+
+        from astropy import units as u
         if isinstance(obj, u.Quantity):
             return dict(value=obj.value, unit=obj.unit.to_string())
         if isinstance(obj, (np.number, np.ndarray)):

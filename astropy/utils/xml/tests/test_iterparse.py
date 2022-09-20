@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # LOCAL
-from astropy.utils.xml.iterparser import _fast_iterparse
-
 # SYSTEM
 import io
 import zlib
+
+from astropy.utils.xml.iterparser import _fast_iterparse
 
 # The C-based XML parser for VOTables previously used fixed-sized
 # buffers (allocated at __init__() time).  This test will

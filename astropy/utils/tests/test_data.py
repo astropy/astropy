@@ -1,63 +1,41 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
-import os
-import sys
-import stat
-import errno
 import base64
-import random
-import shutil
+import contextlib
+import errno
 import hashlib
+import io
+import itertools
+import os
 import pathlib
 import platform
+import random
+import shutil
+import stat
+import sys
 import tempfile
-import warnings
-import itertools
-import contextlib
 import urllib.error
 import urllib.parse
 import urllib.request
-from itertools import islice
+import warnings
 from concurrent.futures import ThreadPoolExecutor
+from itertools import islice
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import py.path
 import pytest
 
+import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
-import astropy.utils.data
-from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.data import (
-    CacheMissingWarning,
-    CacheDamaged,
-    conf,
-    _deltemps,
-    compute_hash,
-    download_file,
-    cache_contents,
-    _tempfilestodel,
-    get_cached_urls,
-    is_url_in_cache,
-    cache_total_size,
-    get_file_contents,
-    check_download_cache,
-    clear_download_cache,
-    get_pkg_data_fileobj,
-    get_readable_fileobj,
-    import_file_to_cache,
-    export_download_cache,
-    get_pkg_data_contents,
-    get_pkg_data_filename,
-    import_download_cache,
-    get_free_space_in_dir,
-    check_free_space_in_dir,
-    _get_download_cache_loc,
-    download_files_in_parallel,
-    is_url,
-    get_pkg_data_path
-)
+    CacheDamaged, CacheMissingWarning, _deltemps, _get_download_cache_loc, _tempfilestodel,
+    cache_contents, cache_total_size, check_download_cache, check_free_space_in_dir,
+    clear_download_cache, compute_hash, conf, download_file, download_files_in_parallel,
+    export_download_cache, get_cached_urls, get_file_contents, get_free_space_in_dir,
+    get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_path,
+    get_readable_fileobj, import_download_cache, import_file_to_cache, is_url, is_url_in_cache)
+from astropy.utils.exceptions import AstropyWarning
 
 CI = os.environ.get('CI', False) == "true"
 TESTURL = "http://www.astropy.org"

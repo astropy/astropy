@@ -4,16 +4,16 @@ import os
 import warnings
 from pathlib import Path
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.data import get_pkg_data_filename
-from astropy.config import set_temp_cache
-from astropy.utils.iers import iers
 from astropy import units as u
+from astropy.config import set_temp_cache
 from astropy.table import QTable
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.iers import iers
 
 CI = os.environ.get('CI', False)
 
