@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import sys
+
 import numpy as np
 
-from .base import DTYPE2BITPIX, DELAYED
-from .image import PrimaryHDU
-from .table import _TableLikeHDU
-from astropy.io.fits.column import Column, ColDefs, FITS2NUMPY
+from astropy.io.fits.column import FITS2NUMPY, ColDefs, Column
 from astropy.io.fits.fitsrec import FITS_rec, FITS_record
 from astropy.io.fits.util import _is_int, _is_pseudo_integer, _pseudo_zero
-
 from astropy.utils import lazyproperty
+
+from .base import DELAYED, DTYPE2BITPIX
+from .image import PrimaryHDU
+from .table import _TableLikeHDU
 
 
 class Group(FITS_record):

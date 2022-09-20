@@ -4,8 +4,8 @@ from numpy.testing import assert_array_equal
 
 from astropy import modeling
 from astropy import units as u
-from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
+from astropy.modeling.bounding_box import ModelBoundingBox
 
 __all__ = ['TabularType']
 

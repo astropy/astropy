@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from astropy.units.equivalencies import Equivalency
-from astropy.units import equivalencies
 from astropy.io.misc.asdf.types import AstropyType
+from astropy.units import equivalencies
+from astropy.units.equivalencies import Equivalency
 
 
 class EquivalencyType(AstropyType):

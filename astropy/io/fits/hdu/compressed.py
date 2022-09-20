@@ -11,20 +11,19 @@ from contextlib import suppress
 
 import numpy as np
 
-from .base import DELAYED, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
-from .image import ImageHDU
-from .table import BinTableHDU
 from astropy.io.fits import conf
 from astropy.io.fits.card import Card
-from astropy.io.fits.column import Column, ColDefs, TDEF_RE
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
+from astropy.io.fits.column import TDEF_RE, ColDefs, Column
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import (_is_pseudo_integer, _pseudo_zero, _is_int,
-                                  _get_array_mmap)
-
+from astropy.io.fits.util import _get_array_mmap, _is_int, _is_pseudo_integer, _pseudo_zero
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
+
+from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
+from .image import ImageHDU
+from .table import BinTableHDU
 
 try:
     from astropy.io.fits import compression

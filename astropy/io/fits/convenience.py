@@ -60,17 +60,16 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.exceptions import AstropyUserWarning
+
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
-from .hdu.hdulist import fitsopen, HDUList
-from .hdu.image import PrimaryHDU, ImageHDU
+from .hdu.hdulist import HDUList, fitsopen
+from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import (fileobj_closed, fileobj_name, fileobj_mode, _is_int,
-                   _is_dask_array)
-from astropy.utils.exceptions import AstropyUserWarning
-
+from .util import _is_dask_array, _is_int, fileobj_closed, fileobj_mode, fileobj_name
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',
@@ -455,8 +454,8 @@ def table_to_hdu(table, character_as_bytes=False):
         The FITS binary table HDU.
     """
     # Avoid circular imports
-    from .connect import is_column_keyword, REMOVE_KEYWORDS
     from .column import python_to_tdisp
+    from .connect import REMOVE_KEYWORDS, is_column_keyword
 
     # Header to store Time related metadata
     hdr = None
@@ -468,6 +467,7 @@ def table_to_hdu(table, character_as_bytes=False):
         from astropy.table.column import BaseColumn
         from astropy.time import Time
         from astropy.units import Quantity
+
         from .fitstime import time_to_fits
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can

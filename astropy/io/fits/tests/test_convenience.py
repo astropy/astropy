@@ -1,23 +1,23 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import io
 import os
 import pathlib
 import warnings
-import io
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.io import fits
 from astropy import units as u
-from astropy.table import Table
+from astropy.io import fits
 from astropy.io.fits import printdiff
 from astropy.io.fits.column import ColumnAttribute
 from astropy.io.fits.connect import REMOVE_KEYWORDS
+from astropy.io.fits.tests.test_table import _assert_attr_col
+from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning
 
-from astropy.io.fits.tests.test_table import _assert_attr_col
 from . import FitsTestCase
 
 

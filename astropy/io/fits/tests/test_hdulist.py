@@ -1,20 +1,20 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import copy
 import glob
 import io
 import os
-import sys
-import copy
 import subprocess
+import sys
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.io.fits.hdu.base import _ValidHDU, _NonstandardHDU
-from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.io.fits.hdu.base import _NonstandardHDU, _ValidHDU
+from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.utils.data import get_pkg_data_filenames
+from astropy.utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
 

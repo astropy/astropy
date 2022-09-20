@@ -1,23 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
-
-from astropy.table import Table, QTable, NdarrayMixin, Column
-from astropy.table.table_helpers import simple_table
+import pytest
 
 from astropy import units as u
-
-from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
-                                 SphericalRepresentation, CartesianRepresentation,
-                                 SphericalCosLatDifferential)
-from astropy.io.misc.parquet import parquet_identify, get_pyarrow
+from astropy.coordinates import (
+    Angle, CartesianRepresentation, EarthLocation, Latitude, Longitude, SkyCoord,
+    SphericalCosLatDifferential, SphericalRepresentation)
+from astropy.io.misc.parquet import get_pyarrow, parquet_identify
+from astropy.table import Column, NdarrayMixin, QTable, Table
+from astropy.table.table_helpers import simple_table
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
+from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa 401
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
-from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa 401
 
 # Skip all tests in this file if we cannot import pyarrow
 pyarrow = pytest.importorskip("pyarrow")

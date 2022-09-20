@@ -3,8 +3,8 @@ import functools
 
 import numpy as np
 
-from astropy.time import TimeDelta
 from astropy.io.misc.asdf.types import AstropyType
+from astropy.time import TimeDelta
 
 __all__ = ['TimeDeltaType']
 

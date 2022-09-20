@@ -3,8 +3,8 @@ from numpy.testing import assert_array_equal
 
 from astropy import modeling
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
-from . import _parameter_to_value
 
+from . import _parameter_to_value
 
 __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType',
            'RotationSequenceType']

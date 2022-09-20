@@ -1,25 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
-import pytest
+
 import numpy as np
+import pytest
 
-from astropy.table import Table, QTable, Column
+from astropy.io.misc.hdf5 import meta_path
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
-
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
-from astropy.io.misc.hdf5 import meta_path
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
+from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
+
 if HAS_H5PY:
     import h5py
 
-from astropy.io.tests.mixin_columns import mixin_cols, compare_attrs, serialized_names
-
+from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
 
 # HDF5 does not support object dtype (since it stores binary representations).
 unsupported_cols = {name: col for name, col in mixin_cols.items()

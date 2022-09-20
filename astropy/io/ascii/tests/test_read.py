@@ -1,35 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.io.ascii.core import convert_numpy
-import re
-from io import BytesIO
-from collections import OrderedDict
 import locale
-import platform
-from io import StringIO
-
 import pathlib
-import pytest
+import platform
+import re
+from collections import OrderedDict
+from io import BytesIO, StringIO
+
 import numpy as np
+import pytest
 
-from astropy.io import ascii
-from astropy.table import Table, MaskedColumn
 from astropy import table
-from astropy.units import Unit
-from astropy.table.table_helpers import simple_table
-
-from .common import (assert_equal, assert_almost_equal,
-                     assert_true)
+from astropy.io import ascii
 from astropy.io.ascii import core
+from astropy.io.ascii.core import convert_numpy
 from astropy.io.ascii.ui import _probably_html, get_read_trace
+from astropy.table import MaskedColumn, Table
+from astropy.table.table_helpers import simple_table
+from astropy.units import Unit
+# NOTE: Python can be built without bz2.
+from astropy.utils.compat.optional_deps import HAS_BZ2  # noqa
 from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyWarning
 
-# NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2  # noqa
-
 # setup/teardown function to have the tests run in the correct directory
-from .common import setup_function, teardown_function  # noqa
+from .common import (  # noqa
+    assert_almost_equal, assert_equal, assert_true, setup_function, teardown_function)
 
 
 def asciiIO(x):

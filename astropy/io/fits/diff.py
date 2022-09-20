@@ -12,7 +12,6 @@ import operator
 import os
 import os.path
 import textwrap
-
 from collections import defaultdict
 from inspect import signature
 from itertools import islice
@@ -20,15 +19,15 @@ from itertools import islice
 import numpy as np
 
 from astropy import __version__
-
-from .card import Card, BLANK_CARD
-from .header import Header
-# HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
-from .hdu.table import _TableLikeHDU
-from astropy.utils.diff import (report_diff_values, fixed_width_indent,
-                                where_not_allclose, diff_values)
+from astropy.utils.diff import (
+    diff_values, fixed_width_indent, report_diff_values, where_not_allclose)
 from astropy.utils.misc import NOT_OVERWRITING_MSG
+
+from .card import BLANK_CARD, Card
+# HDUList is used in one of the doctests
+from .hdu.hdulist import HDUList, fitsopen  # pylint: disable=W0611
+from .hdu.table import _TableLikeHDU
+from .header import Header
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']

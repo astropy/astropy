@@ -11,25 +11,24 @@ core.py:
 
 import copy
 import csv
+import fnmatch
 import functools
+import inspect
 import itertools
 import operator
 import os
 import re
 import warnings
-import inspect
-import fnmatch
-
 from collections import OrderedDict
 from contextlib import suppress
 from io import StringIO
 
 import numpy
 
-from astropy.utils.exceptions import AstropyWarning
-
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
+from astropy.utils.exceptions import AstropyWarning
+
 from . import connect
 from .docs import READ_DOCSTRING, WRITE_DOCSTRING
 

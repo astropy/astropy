@@ -1,14 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import numpy as np
 import pytest
 
-from astropy.table import Table, Column
-
+from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
-from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.compat.optional_deps import HAS_BS4  # noqa
-
-import numpy as np
-
+from astropy.utils.data import get_pkg_data_filename
 
 files = ['data/cds.dat', 'data/ipac.dat', 'data/daophot.dat', 'data/latex1.tex',
          'data/simple_csv.csv']

@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from astropy.modeling.math_functions import __all__ as math_classes
-from astropy.modeling.math_functions import *
-from astropy.modeling import math_functions
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
-
+from astropy.modeling import math_functions
+from astropy.modeling.math_functions import *
+from astropy.modeling.math_functions import __all__ as math_classes
 
 __all__ = ['NpUfuncType']
 

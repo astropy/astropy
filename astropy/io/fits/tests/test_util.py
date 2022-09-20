@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import gzip
 import os
 import signal
-import gzip
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
 
 from astropy.io.fits import util
-from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
+from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
 from astropy.utils.compat.optional_deps import HAS_PIL
 
 if HAS_PIL:

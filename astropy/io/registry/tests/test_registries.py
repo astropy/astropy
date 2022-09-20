@@ -15,14 +15,13 @@ from collections import Counter
 from copy import copy, deepcopy
 from io import StringIO
 
-import pytest
-
 import numpy as np
+import pytest
 
 import astropy.units as u
 from astropy.io import registry as io_registry
-from astropy.io.registry import (IORegistryError, UnifiedInputRegistry,
-                                 UnifiedIORegistry, UnifiedOutputRegistry, compat)
+from astropy.io.registry import (
+    IORegistryError, UnifiedInputRegistry, UnifiedIORegistry, UnifiedOutputRegistry, compat)
 from astropy.io.registry.base import _UnifiedIORegistryBase
 from astropy.io.registry.compat import default_registry
 from astropy.table import Table

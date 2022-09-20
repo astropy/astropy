@@ -7,12 +7,11 @@ Various utilities and cookbook-like things.
 # STDLIB
 import codecs
 import contextlib
+import gzip
 import io
 import re
-import gzip
 
 from packaging.version import Version
-
 
 __all__ = [
     'convert_to_writable_filelike',
