@@ -1,13 +1,13 @@
-import time
 import threading
+import time
 import xmlrpc.client as xmlrpc
 
+from astropy.samp.client import SAMPClient
+from astropy.samp.errors import SAMPClientError, SAMPHubError
 from astropy.samp.hub import WebProfileDialog
 from astropy.samp.hub_proxy import SAMPHubProxy
-from astropy.samp.client import SAMPClient
 from astropy.samp.integrated_client import SAMPIntegratedClient
 from astropy.samp.utils import ServerProxyPool
-from astropy.samp.errors import SAMPClientError, SAMPHubError
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
