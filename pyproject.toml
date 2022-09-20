@@ -40,7 +40,6 @@ archs = ["auto", "aarch64"]
     extend_skip_glob = [
         "docs/*",
         "examples/*",
-        "astropy/convolution/*",
         "astropy/extern/*",
         "astropy/nddata/*",
         "astropy/tests/*",

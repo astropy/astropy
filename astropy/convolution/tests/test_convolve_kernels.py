@@ -2,15 +2,14 @@
 
 import itertools
 
-import pytest
-
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
-from astropy.convolution.kernels import (Box2DKernel, Gaussian2DKernel,
-                                         Moffat2DKernel, Tophat2DKernel)
+from astropy.convolution.kernels import (
+    Box2DKernel, Gaussian2DKernel, Moffat2DKernel, Tophat2DKernel)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 SHAPES_ODD = [[15, 15], [31, 31]]
