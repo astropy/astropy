@@ -11,7 +11,6 @@ import textwrap
 
 from .introspection import find_current_module
 
-
 __all__ = ['make_function_with_signature']
 
 

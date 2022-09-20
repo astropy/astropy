@@ -11,8 +11,7 @@ interpreted.
 """
 import numpy as np
 
-from astropy.units.quantity_helper.function_helpers import (
-    FunctionAssigner)
+from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
 
 # This module should not really be imported, but we define __all__
@@ -924,7 +923,7 @@ def _array2string(a, options, separator=' ', prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
-    from numpy.core.arrayprint import _leading_trailing, _formatArray
+    from numpy.core.arrayprint import _formatArray, _leading_trailing
 
     data = np.asarray(a)
 
@@ -954,7 +953,7 @@ def array2string(a, max_line_width=None, precision=None,
                  style=np._NoValue, formatter=None, threshold=None,
                  edgeitems=None, sign=None, floatmode=None, suffix=""):
     # Copied from numpy.core.arrayprint, but using _array2string above.
-    from numpy.core.arrayprint import _make_options_dict, _format_options
+    from numpy.core.arrayprint import _format_options, _make_options_dict
 
     overrides = _make_options_dict(precision, threshold, edgeitems,
                                    max_line_width, suppress_small, None, None,

@@ -1,14 +1,13 @@
 import abc
-
 from collections import OrderedDict
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.utils.metadata import MetaData, MergeConflictError, merge, enable_merge_strategies
-from astropy.utils.metadata import common_dtype
-from astropy.utils import metadata
 from astropy.io import fits
+from astropy.utils import metadata
+from astropy.utils.metadata import (
+    MergeConflictError, MetaData, common_dtype, enable_merge_strategies, merge)
 
 
 class OrderedDictSubclass(OrderedDict):

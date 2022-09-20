@@ -6,22 +6,21 @@ import atexit
 import contextlib
 import errno
 import fnmatch
+import ftplib
 import functools
 import hashlib
-import os
 import io
+import os
 import re
 import shutil
 # import ssl moved inside functions using ssl to avoid import failure
 # when running in pyodide/Emscripten
 import sys
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 import zipfile
-import ftplib
-
-from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory, mkdtemp
+from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir, mkdtemp
 from warnings import warn
 
 try:
@@ -35,7 +34,6 @@ import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
-
 
 # Order here determines order in the autosummary
 __all__ = [
@@ -993,6 +991,7 @@ def get_free_space_in_dir(path, unit=False):
     free_space = shutil.disk_usage(path).free
     if unit:
         from astropy import units as u
+
         # TODO: Automatically determine best prefix to use.
         if unit is True:
             unit = u.byte

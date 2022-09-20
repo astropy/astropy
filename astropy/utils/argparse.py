@@ -1,9 +1,8 @@
 """Utilities and extensions for use with `argparse`."""
 
 
-import os
-
 import argparse
+import os
 
 
 def directory(arg):

@@ -1,7 +1,7 @@
 import difflib
 import functools
-import sys
 import numbers
+import sys
 
 import numpy as np
 
