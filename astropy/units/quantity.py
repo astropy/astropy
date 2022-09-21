@@ -29,7 +29,7 @@ from .format.latex import Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
 from .quantity_helper.function_helpers import (
     DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
-from .structured import StructuredUnit
+from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -481,6 +481,7 @@ class Quantity(np.ndarray):
                     # structured dtype of the value.
                     dtype = unit._recursively_get_dtype(value)
 
+        using_default_unit = False
         if value_unit is None:
             # If the value has a `unit` attribute and if not None
             # (for Columns with uninitialized unit), treat it like a quantity.
@@ -488,6 +489,7 @@ class Quantity(np.ndarray):
             if value_unit is None:
                 # Default to dimensionless for no (initialized) unit attribute.
                 if unit is None:
+                    using_default_unit = True
                     unit = cls._default_unit
                 value_unit = unit  # signal below that no conversion is needed
             else:
@@ -506,6 +508,11 @@ class Quantity(np.ndarray):
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
                          subok=True, ndmin=ndmin)
+
+        # For no-user-input unit, make sure the constructed unit matches the
+        # structure of the data.
+        if using_default_unit and value.dtype.names is not None:
+            unit = value_unit = _structured_unit_like_dtype(value_unit, value.dtype)
 
         # check that array contains numbers or long int objects
         if (value.dtype.kind in 'OSU' and
