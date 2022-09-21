@@ -3,7 +3,6 @@
 from collections import defaultdict
 
 import numpy as np
-
 from matplotlib import rcParams
 from matplotlib.text import Text
 

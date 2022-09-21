@@ -1,16 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-import numpy as np
 import warnings
+
+import numpy as np
 from matplotlib.patches import Polygon
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.representation import UnitSphericalRepresentation, SphericalRepresentation
 from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.representation import SphericalRepresentation, UnitSphericalRepresentation
 from astropy.utils.exceptions import AstropyUserWarning
-
 
 __all__ = ['Quadrangle', 'SphericalCircle']
 

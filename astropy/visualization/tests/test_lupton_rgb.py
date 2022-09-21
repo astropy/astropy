@@ -5,17 +5,17 @@ Tests for RGB Images
 """
 
 
-import sys
 import os
+import sys
 import tempfile
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
 
-from astropy.convolution import convolve, Gaussian2DKernel
-from astropy.visualization import lupton_rgb
+from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB  # noqa
+from astropy.visualization import lupton_rgb
 
 # Set display=True to get matplotlib imshow windows to help with debugging.
 display = False

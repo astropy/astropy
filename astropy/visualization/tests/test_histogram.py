@@ -4,14 +4,15 @@
 from numpy.testing import assert_allclose
 
 from astropy.utils.compat.optional_deps import HAS_PLT, HAS_SCIPY
+
 if HAS_PLT:
     import matplotlib.pyplot as plt
 
-import pytest
 import numpy as np
+import pytest
 
-from astropy.visualization import hist
 from astropy.stats import histogram
+from astropy.visualization import hist
 
 
 @pytest.mark.skipif('not HAS_PLT')

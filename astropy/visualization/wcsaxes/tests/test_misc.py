@@ -1,26 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
 
-from packaging.version import Version
-import pytest
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 from matplotlib.contour import QuadContourSet
+from packaging.version import Version
 
 from astropy import units as u
-from astropy.wcs import WCS
-from astropy.io import fits
 from astropy.coordinates import SkyCoord
-
+from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from astropy.wcs.wcsapi import SlicedLowLevelWCS, HighLevelWCSWrapper
-
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
     EllipticalFrame, RectangularFrame, RectangularFrame1D)
-from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
+from astropy.visualization.wcsaxes.utils import get_coord_meta
+from astropy.wcs import WCS
+from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS
 
 ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")

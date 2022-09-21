@@ -4,9 +4,10 @@ import pytest
 
 pytest.importorskip('matplotlib')  # noqa
 
-import matplotlib.pyplot as plt
-import matplotlib.dates
 from contextlib import nullcontext
+
+import matplotlib.dates
+import matplotlib.pyplot as plt
 from erfa import ErfaWarning
 
 from astropy.time import Time
