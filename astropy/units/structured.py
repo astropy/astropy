@@ -3,6 +3,8 @@
 This module defines structured units and quantities.
 """
 
+from __future__ import annotations  # For python < 3.10
+
 # Standard library
 import operator
 
@@ -515,3 +517,34 @@ class Structure(np.void):
             other = other.item()
 
         return self.item() != other
+
+
+def _structured_unit_like_dtype(unit: UnitBase | StructuredUnit, dtype: np.dtype) -> StructuredUnit:
+    """Make a `StructuredUnit` of one unit, with the structure of a `numpy.dtype`.
+
+    Parameters
+    ----------
+    unit : UnitBase
+        The unit that will be filled into the structure.
+    dtype : `numpy.dtype`
+        The structure for the StructuredUnit.
+
+    Returns
+    -------
+    StructuredUnit
+    """
+    if isinstance(unit, StructuredUnit):
+        # If unit is structured, it should match the dtype. This function is
+        # only used in Quantity, which performs this check, so it's fine to
+        # return as is.
+        return unit
+
+    # Make a structured unit
+    units = []
+    for name in dtype.names:
+        subdtype = dtype.fields[name][0]
+        if subdtype.names is not None:
+            units.append(_structured_unit_like_dtype(unit, subdtype))
+        else:
+            units.append(unit)
+    return StructuredUnit(tuple(units), names=dtype.names)
