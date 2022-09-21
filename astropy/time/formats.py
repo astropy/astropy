@@ -1294,13 +1294,15 @@ class TimeString(TimeUnique):
         try:
             idot = timestr.rindex('.')
         except Exception:
-            fracsec = 0.0
+            timestr_has_fractional_digits = False
         else:
             timestr, fracsec = timestr[:idot], timestr[idot:]
             fracsec = float(fracsec)
+            timestr_has_fractional_digits = True
 
         for _, strptime_fmt_or_regex, _ in subfmts:
             if isinstance(strptime_fmt_or_regex, str):
+                subfmt_has_sec = '%S' in strptime_fmt_or_regex
                 try:
                     tm = time.strptime(timestr, strptime_fmt_or_regex)
                 except ValueError:
@@ -1316,9 +1318,18 @@ class TimeString(TimeUnique):
                 tm = tm.groupdict()
                 vals = [int(tm.get(component, default)) for component, default
                         in zip(components, defaults)]
+                subfmt_has_sec = 'sec' in tm
 
-            # Add fractional seconds
-            vals[-1] = vals[-1] + fracsec
+            # Add fractional seconds if they were in the original time string
+            # and the subformat has seconds. A time like "2022-08-01.123" will
+            # never pass this for a format like ISO and will raise a parsing
+            # exception.
+            if timestr_has_fractional_digits:
+                if subfmt_has_sec:
+                    vals[-1] = vals[-1] + fracsec
+                else:
+                    continue
+
             return vals
         else:
             raise ValueError(f'Time {timestr} does not match {self.name} format')
