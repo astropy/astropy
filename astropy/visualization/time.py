@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-
 from datetime import datetime
 
-from astropy.time import Time
+import numpy as np
+
 from astropy import units as u
+from astropy.time import Time
 
 __all__ = ['time_support']
 
@@ -46,6 +46,7 @@ def time_support(*, scale=None, format=None, simplify=True):
 
     import matplotlib.units as units
     from matplotlib.ticker import MaxNLocator, ScalarFormatter
+
     from astropy.visualization.wcsaxes.utils import select_step_hour, select_step_scalar
 
     class AstropyTimeLocator(MaxNLocator):

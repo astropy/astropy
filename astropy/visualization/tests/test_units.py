@@ -5,8 +5,10 @@ import io
 import pytest
 
 from astropy.utils.compat.optional_deps import HAS_PLT
+
 if HAS_PLT:
     import matplotlib.pyplot as plt
+
 import numpy as np
 
 from astropy import units as u

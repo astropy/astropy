@@ -9,14 +9,12 @@
 import abc
 
 import numpy as np
-
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
 
 from astropy import units as u
-from astropy.coordinates import (SkyCoord, frame_transform_graph,
-                                 UnitSphericalRepresentation,
-                                 BaseCoordinateFrame)
+from astropy.coordinates import (
+    BaseCoordinateFrame, SkyCoord, UnitSphericalRepresentation, frame_transform_graph)
 
 __all__ = ['CurvedTransform', 'CoordinateTransform',
            'World2PixelTransform', 'Pixel2WorldTransform']

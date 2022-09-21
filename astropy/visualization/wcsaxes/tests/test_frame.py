@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
-import numpy as np
 import matplotlib.pyplot as plt
-
-from astropy.wcs import WCS
+import numpy as np
+import pytest
 
 from astropy.tests.figures import figure_test
 from astropy.visualization.wcsaxes import WCSAxes
 from astropy.visualization.wcsaxes.frame import BaseFrame
+from astropy.wcs import WCS
 
 from .test_images import BaseImageTests
 

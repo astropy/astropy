@@ -42,7 +42,6 @@ archs = ["auto", "aarch64"]
         "examples/*",
         "astropy/extern/*",
         "astropy/timeseries/*",
-        "astropy/visualization/*",
         "astropy/wcs/*"
     ]
     line_length = 100

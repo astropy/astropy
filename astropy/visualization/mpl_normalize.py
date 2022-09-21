@@ -8,15 +8,14 @@ import inspect
 import numpy as np
 from numpy import ma
 
-from .interval import (PercentileInterval, AsymmetricPercentileInterval,
-                       ManualInterval, MinMaxInterval, BaseInterval)
-from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
-                      AsinhStretch, BaseStretch)
+from .interval import (
+    AsymmetricPercentileInterval, BaseInterval, ManualInterval, MinMaxInterval, PercentileInterval)
+from .stretch import AsinhStretch, BaseStretch, LinearStretch, LogStretch, PowerStretch, SqrtStretch
 
 try:
     import matplotlib  # pylint: disable=W0611
-    from matplotlib.colors import Normalize
     from matplotlib import pyplot as plt
+    from matplotlib.colors import Normalize
 except ImportError:
     class Normalize:
         def __init__(self, *args, **kwargs):
