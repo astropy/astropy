@@ -16,7 +16,7 @@ from erfa import ErfaWarning
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils import isiterable, iers
-from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
+from astropy.time import (conf, Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
                           TimeString, TimezoneInfo, TIME_FORMATS)
 from astropy.coordinates import EarthLocation
 from astropy import units as u
@@ -2346,6 +2346,17 @@ def test_format_subformat_compatibility():
     t = Time('2019-12-20', out_subfmt='date')
     assert t.mjd == 58837.0
     assert t.yday == '2019:354'
+
+
+@pytest.mark.parametrize('use_fast_parser', ["force", "False"])
+def test_format_fractional_string_parsing(use_fast_parser):
+    """Test that string like "2022-08-01.123" does not parse as ISO.
+    See #6476 and the fix."""
+    with pytest.raises(
+        ValueError, match=r"Input values did not match the format class iso"
+    ):
+        with conf.set_temp("use_fast_parser", use_fast_parser):
+            Time("2022-08-01.123", format='iso')
 
 
 @pytest.mark.parametrize('fmt_name,fmt_class', TIME_FORMATS.items())
