@@ -92,6 +92,7 @@ class FixedWidthHeader(basic.BasicHeader):
             List of table lines
 
         """
+        header_rows = getattr(self, "header_rows", ["name"])
 
         # See "else" clause below for explanation of start_line and position_line
         start_line = core._get_line_index(self.start_line, self.process_lines(lines))
@@ -149,21 +150,19 @@ class FixedWidthHeader(basic.BasicHeader):
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 if x is not None else None for x in col_ends]
 
-            # Get the header column names and column positions
-            line = self.get_line(lines, start_line)
-            vals, starts, ends = self.get_fixedwidth_params(line)
-
-            self.names = vals
+            # Get the column names from the header line
+            line = self.get_line(lines, start_line + header_rows.index("name"))
+            self.names, starts, ends = self.get_fixedwidth_params(line)
 
         self._set_cols_from_names()
 
-        if start_line is not None and self.header_rows_extra:
-            for ii, col_attr in enumerate(self.header_rows_extra):
-                line = self.get_line(lines, start_line + ii + 1)
-                vals, starts, ends = self.get_fixedwidth_params(line)
+        for ii, attr in enumerate(header_rows):
+            if attr != "name":
+                line = self.get_line(lines, start_line + ii)
+                vals = self.get_fixedwidth_params(line)[0]
                 for col, val in zip(self.cols, vals):
                     if val:
-                        setattr(col, col_attr, val)
+                        setattr(col, attr, val)
 
         # Set column start and end positions.
         for i, col in enumerate(self.cols):
@@ -245,11 +244,12 @@ class FixedWidthData(basic.BasicData):
     """
     splitter_class = FixedWidthSplitter
     """ Splitter class for splitting data lines into columns """
+    start_line = None
 
     def write(self, lines):
+        default_header_rows = [] if self.header.start_line is None else ['name']
+        header_rows = getattr(self, "header_rows", default_header_rows)
         # First part is getting the widths of each column.
-        names = [col.info.name for col in self.cols]
-
         # List (rows) of list (column values) for data lines
         vals_list = []
         col_str_iters = self.str_vals()
@@ -258,9 +258,7 @@ class FixedWidthData(basic.BasicData):
 
         # List (rows) of list (columns values) for header lines.
         hdrs_list = []
-        if self.header.start_line is not None:
-            hdrs_list.append(names)
-        for col_attr in self.header_rows_extra:
+        for col_attr in header_rows:
             vals = [
                 "" if (val := getattr(col.info, col_attr)) is None else str(val)
                 for col in self.cols
@@ -330,18 +328,19 @@ class FixedWidth(basic.Basic):
         col_ends=None,
         delimiter_pad=' ',
         bookend=True,
-        header_rows_extra=None
+        header_rows=None
     ):
-        if header_rows_extra is None:
-            header_rows_extra = []
+        if header_rows is None:
+            header_rows = ["name"]
         super().__init__()
         self.data.splitter.delimiter_pad = delimiter_pad
         self.data.splitter.bookend = bookend
         self.header.col_starts = col_starts
         self.header.col_ends = col_ends
-        self.header.header_rows_extra = header_rows_extra
-        self.data.header_rows_extra = header_rows_extra
-        self.data.start_line += len(header_rows_extra)
+        self.header.header_rows = header_rows
+        self.data.header_rows = header_rows
+        if self.data.start_line is None:
+            self.data.start_line = len(header_rows)
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
@@ -388,7 +387,7 @@ class FixedWidthNoHeader(FixedWidth):
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         super().__init__(col_starts, col_ends, delimiter_pad=delimiter_pad,
-                         bookend=bookend)
+                         bookend=bookend, header_rows=[])
 
 
 class FixedWidthTwoLineHeader(FixedWidthHeader):
@@ -449,16 +448,16 @@ class FixedWidthTwoLine(FixedWidth):
         position_char='-',
         delimiter_pad=None,
         bookend=False,
-        header_rows_extra=None
+        header_rows=None
     ):
         if len(position_char) != 1:
             raise ValueError(
                 f'Position_char="{position_char}" must be a ''single character'
             )
         super().__init__(delimiter_pad=delimiter_pad, bookend=bookend,
-                         header_rows_extra=header_rows_extra)
+                         header_rows=header_rows)
         if position_line is None:
-            position_line = 1 + len(self.header.header_rows_extra)
+            position_line = len(self.header.header_rows)
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1
