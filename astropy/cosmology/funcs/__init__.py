@@ -4,6 +4,6 @@
 
 from .comparison import cosmology_equal
 # _z_at_scalar_value is imported for backards compat
-from .optimize import _z_at_scalar_value, z_at_value  # F401, F403
+from .optimize import _z_at_scalar_value, z_at_value  # noqa: F401, F403
 
 __all__ = ["z_at_value", "cosmology_equal"]

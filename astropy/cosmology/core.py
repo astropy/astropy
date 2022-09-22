@@ -82,7 +82,7 @@ class Cosmology(metaclass=abc.ABCMeta):
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     # Parameters
-    __parameters__: tuple[str, ...]  = ()
+    __parameters__: tuple[str, ...] = ()
     __all_parameters__: tuple[str, ...] = ()
 
     # ---------------------------------------------------------------
@@ -413,7 +413,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     # ===============================================================
 
     @classmethod  # TODO! make metaclass-method
-    def _get_nonflat_cls(cls, kls: type[_CosmoT] | None=None) -> type[Cosmology] | None:
+    def _get_nonflat_cls(cls, kls: type[_CosmoT] | None = None) -> type[Cosmology] | None:
         """Find the corresponding non-flat class.
 
         The class' bases are searched recursively.
