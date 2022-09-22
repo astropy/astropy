@@ -46,10 +46,10 @@ def test_blackbody_input_units():
     SNU = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
     b_lam = BlackBody(3000*u.K, scale=1*SLAM)
-    assert(b_lam.input_units['x'] == u.AA)
+    assert b_lam.input_units['x'] == u.AA
 
     b_nu = BlackBody(3000*u.K, scale=1*SNU)
-    assert(b_nu.input_units['x'] == u.Hz)
+    assert b_nu.input_units['x'] == u.Hz
 
 
 def test_blackbody_return_units():
@@ -182,7 +182,7 @@ def test_blackbody_dimensionless():
     bb2.evaluate(0.5, T.value, scale.to_value(u.dimensionless_unscaled))
 
     # bolometric flux for both cases should be equivalent
-    assert(bb1.bolometric_flux == bb2.bolometric_flux)
+    assert bb1.bolometric_flux == bb2.bolometric_flux
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -203,7 +203,7 @@ def test_blackbody_dimensionless_fit():
     bb1_fit = fitter(bb1, wav, fnu, maxiter=1000)
     bb2_fit = fitter(bb2, wav, fnu, maxiter=1000)
 
-    assert(bb1_fit.temperature == bb2_fit.temperature)
+    assert bb1_fit.temperature == bb2_fit.temperature
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000E15 * u.M_sun, 3.976819741e+45 * u.kg))

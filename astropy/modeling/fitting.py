@@ -80,10 +80,10 @@ class Covariance():
                             .format(repr(np.round(row[:i+1], round_val))[7:-2]))
             else:
                 ret_str += '...'
-        return(ret_str.rstrip())
+        return ret_str.rstrip()
 
     def __repr__(self):
-        return(self.pprint(max_lines=10, round_val=3))
+        return self.pprint(max_lines=10, round_val=3)
 
     def __getitem__(self, params):
         # index covariance matrix by parameter names or indices
@@ -95,7 +95,7 @@ class Covariance():
             i1, i2 = params
         else:
             raise TypeError('Covariance can be indexed by two parameter names or integer indices.')
-        return(self.cov_matrix[i1][i2])
+        return self.cov_matrix[i1][i2]
 
 
 class StandardDeviations():
@@ -121,10 +121,10 @@ class StandardDeviations():
                             f"{np.round(std, round_val)}\n")
             else:
                 ret_str += '...'
-        return(ret_str.rstrip())
+        return ret_str.rstrip()
 
     def __repr__(self):
-        return(self.pprint(max_lines=10, round_val=3))
+        return self.pprint(max_lines=10, round_val=3)
 
     def __getitem__(self, param):
         if isinstance(param, str):
@@ -133,7 +133,7 @@ class StandardDeviations():
             i = param
         else:
             raise TypeError('Standard deviation can be indexed by parameter name or integer.')
-        return(self.stds[i])
+        return self.stds[i]
 
 
 class ModelsError(Exception):
@@ -393,7 +393,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         # check if invertible. if not, can't calc covariance.
         if not self._is_invertible(x_dot_x_prime):
-            return(model)
+            return model
         inv_x_dot_x_prime = np.linalg.inv(x_dot_x_prime)
 
         if z is None:  # 1D models
@@ -1076,7 +1076,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         if not np.all(np.isfinite(value)):
             raise NonFiniteValueError("Objective function has encountered a non-finite value, "
                                       "this will cause the fit to fail!\n"
-                                      "Please remove non-finite values from your input data before fitting to avoid this error.")
+                                      "Please remove non-finite values from your input data before "
+                                      "fitting to avoid this error.")
 
         return value
 
@@ -1143,7 +1144,8 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
                 try:
                     output = np.array([np.ravel(_) for _ in np.array(weights) * fit_deriv])
                     if output.shape != fit_deriv.shape:
-                        output = np.array([np.ravel(_) for _ in np.atleast_2d(weights).T * fit_deriv])
+                        output = np.array([np.ravel(_)
+                                           for _ in np.atleast_2d(weights).T * fit_deriv])
                     return output
                 except ValueError:
                     return np.array([np.ravel(_) for _ in np.array(weights) *
