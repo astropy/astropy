@@ -2121,7 +2121,7 @@ class Model(metaclass=_ModelMeta):
                 return_units = self.return_units
 
             outputs = tuple(Quantity(out, return_units.get(out_name, None), subok=True)
-                             for out, out_name in zip(outputs, self.outputs))
+                            for out, out_name in zip(outputs, self.outputs))
         return outputs
 
     @staticmethod
@@ -4017,7 +4017,7 @@ def binary_operation(binoperator, left, right):
     '''
     if isinstance(left, tuple) and isinstance(right, tuple):
         return tuple(binoperator(item[0], item[1])
-                      for item in zip(left, right))
+                     for item in zip(left, right))
     return binoperator(left, right)
 
 
