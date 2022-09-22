@@ -52,7 +52,7 @@ class ConstantMeta(type):
                         'units across all systems of units and cannot be '
                         'combined with other values without specifying a '
                         'system (eg. {}.{})'.format(self.abbrev, self.abbrev,
-                                                      systems[0]))
+                                                    systems[0]))
 
                 return meth(self, *args, **kwargs)
 
@@ -118,9 +118,9 @@ class Constant(Quantity, metaclass=ConstantMeta):
         inst = np.array(value).view(cls)
 
         if system in instances:
-                warnings.warn('Constant {!r} already has a definition in the '
-                              '{!r} system from {!r} reference'.format(
-                              name, system, reference), AstropyUserWarning)
+            warnings.warn(f'Constant {name!r} already has a definition in '
+                          f'the {system!r} system from {reference!r} reference',
+                          AstropyUserWarning)
         for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
                 setattr(c, system, inst)
@@ -143,8 +143,8 @@ class Constant(Quantity, metaclass=ConstantMeta):
     def __repr__(self):
         return ('<{} name={!r} value={} uncertainty={} unit={!r} '
                 'reference={!r}>'.format(self.__class__, self.name, self.value,
-                                          self.uncertainty, str(self.unit),
-                                          self.reference))
+                                         self.uncertainty, str(self.unit),
+                                         self.reference))
 
     def __str__(self):
         return ('  Name   = {}\n'
@@ -152,8 +152,8 @@ class Constant(Quantity, metaclass=ConstantMeta):
                 '  Uncertainty  = {}\n'
                 '  Unit  = {}\n'
                 '  Reference = {}'.format(self.name, self.value,
-                                           self.uncertainty, self.unit,
-                                           self.reference))
+                                          self.uncertainty, self.unit,
+                                          self.reference))
 
     def __quantity_subclass__(self, unit):
         return super().__quantity_subclass__(unit)[0], False
