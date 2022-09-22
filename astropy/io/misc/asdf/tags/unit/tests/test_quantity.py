@@ -4,11 +4,11 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import io
+import io  # noqa: E402
 
-from asdf.tests import helpers
+from asdf.tests import helpers  # noqa: E402
 
-from astropy import units
+from astropy import units  # noqa: E402
 
 
 def roundtrip_quantity(yaml, quantity):
@@ -64,7 +64,7 @@ quantity: !unit/quantity-1.1.0
 
 def test_value_ndarray(tmpdir):
     from numpy import array, float64
-    testval = [[1,2,3],[4,5,6]]
+    testval = [[1, 2, 3], [4, 5, 6]]
     testunit = units.km
     yaml = f"""
 quantity: !unit/quantity-1.1.0

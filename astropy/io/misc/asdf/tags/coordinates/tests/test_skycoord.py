@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import FK4, FK5, ICRS, Galactic, Longitude, SkyCoord
+from astropy.coordinates import FK4, ICRS, Galactic, Longitude, SkyCoord
 
 asdf = pytest.importorskip('asdf')
-from asdf.tests.helpers import assert_roundtrip_tree
+from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 
 # These tests are cribbed directly from the Examples section of
 # https://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html
@@ -69,7 +69,7 @@ def test_skycoord_override_defaults(tmpdir):
 def test_skycoord_cartesian(tmpdir):
 
     c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic',
-                   representation_type='cartesian')
+                 representation_type='cartesian')
     tree = dict(coord=c)
     assert_roundtrip_tree(tree, tmpdir)
 
@@ -113,6 +113,6 @@ def test_skycoord_extra_attribute(tmpdir):
 def test_skycoord_2d_obstime(tmpdir):
 
     sc = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
-                    obstime=['J1990.5', 'J1991.5']),
+                  obstime=['J1990.5', 'J1991.5']),
     tree = dict(coord=sc)
     assert_roundtrip_tree(tree, tmpdir)

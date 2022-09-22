@@ -11,7 +11,6 @@ class EquivalencyType(AstropyType):
 
     @classmethod
     def to_tree(cls, equiv, ctx):
-        node = {}
         if not isinstance(equiv, Equivalency):
             raise TypeError(f"'{equiv}' is not a valid Equivalency")
 

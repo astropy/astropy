@@ -4,14 +4,14 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import datetime
+import datetime  # noqa: E402
 
-import asdf.schema as asdf_schema
-import numpy as np
-from asdf import AsdfFile, tagged, yamlutil
-from asdf.tests import helpers
+import asdf.schema as asdf_schema  # noqa: E402
+import numpy as np  # noqa: E402
+from asdf import AsdfFile, tagged, yamlutil  # noqa: E402
+from asdf.tests import helpers  # noqa: E402
 
-from astropy import time
+from astropy import time  # noqa: E402
 
 
 def _flatten_combiners(schema):
@@ -55,9 +55,9 @@ def test_time_with_location(tmpdir):
     from astropy import units as u
     from astropy.coordinates.earth import EarthLocation
 
-    location = EarthLocation(x=[1,2]*u.m, y=[3,4]*u.m, z=[5,6]*u.m)
+    location = EarthLocation(x=[1, 2]*u.m, y=[3, 4]*u.m, z=[5, 6]*u.m)
 
-    t = time.Time([1,2], location=location, format='cxcsec')
+    t = time.Time([1, 2], location=location, format='cxcsec')
 
     tree = {'time': t}
 

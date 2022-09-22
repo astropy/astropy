@@ -26,16 +26,18 @@ class TabularType(TransformType):
             # The copy is necessary because the array is memory mapped.
             points = (node['points'][0][:],)
             model = modeling.models.Tabular1D(points=points, lookup_table=lookup_table,
-                                              method=node['method'], bounds_error=node['bounds_error'],
+                                              method=node['method'],
+                                              bounds_error=node['bounds_error'],
                                               fill_value=fill_value)
         elif dim == 2:
             points = tuple(p[:] for p in node['points'])
             model = modeling.models.Tabular2D(points=points, lookup_table=lookup_table,
-                                              method=node['method'], bounds_error=node['bounds_error'],
+                                              method=node['method'],
+                                              bounds_error=node['bounds_error'],
                                               fill_value=fill_value)
 
         else:
-            tabular_class = modeling.models.tabular_model(dim, name)
+            tabular_class = modeling.models.tabular_model(dim)
             points = tuple(p[:] for p in node['points'])
             model = tabular_class(points=points, lookup_table=lookup_table,
                                   method=node['method'], bounds_error=node['bounds_error'],
@@ -83,5 +85,5 @@ class TabularType(TransformType):
         elif np.isnan(a.fill_value):
             assert np.isnan(b.fill_value)
         else:
-            assert(a.fill_value == b.fill_value)
-        assert(a.bounds_error == b.bounds_error)
+            assert a.fill_value == b.fill_value
+        assert a.bounds_error == b.bounds_error
