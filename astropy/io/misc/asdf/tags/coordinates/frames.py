@@ -16,7 +16,9 @@ from astropy.units import Quantity
 __all__ = ['CoordType']
 
 SCHEMA_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'schemas', 'astropy.org', 'astropy'))
+    os.path.join(
+        os.path.dirname(__file__), '..', '..', 'data', 'schemas', 'astropy.org', 'astropy')
+    )
 
 
 def _get_frames():

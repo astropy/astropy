@@ -7,7 +7,7 @@ from astropy.cosmology import Planck15
 from astropy.units import equivalencies as eq
 
 asdf = pytest.importorskip('asdf', minversion='2.3.0.dev0')
-from asdf.tests import helpers
+from asdf.tests import helpers  # noqa: E402
 
 
 def get_equivalencies():

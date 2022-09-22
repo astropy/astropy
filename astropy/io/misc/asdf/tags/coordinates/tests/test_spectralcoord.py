@@ -7,7 +7,7 @@ from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.tests.helper import assert_quantity_allclose
 
 asdf = pytest.importorskip('asdf')
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa
+from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 
 
 def test_scalar_spectralcoord(tmpdir):
@@ -31,7 +31,8 @@ def test_vector_spectralcoord(tmpdir):
         assert isinstance(asdffile['spectralcoord'], SpectralCoord)
         assert_quantity_allclose(asdffile['spectralcoord'].quantity, [100, 200, 300] * u.GHz)
 
-    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check, tree_match_func=assert_quantity_allclose)
+    assert_roundtrip_tree(tree, tmpdir, asdf_check_func=check,
+                          tree_match_func=assert_quantity_allclose)
 
 
 @pytest.mark.filterwarnings("ignore:No velocity")

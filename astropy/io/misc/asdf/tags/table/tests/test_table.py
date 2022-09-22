@@ -4,17 +4,17 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import numpy as np
-from asdf.tags.core.ndarray import NDArrayType
-from asdf.tests import helpers
-from packaging.version import Version
+import numpy as np  # noqa: E402
+from asdf.tags.core.ndarray import NDArrayType  # noqa: E402
+from asdf.tests import helpers  # noqa: E402
+from packaging.version import Version  # noqa: E402
 
-import astropy.units as u
-from astropy import table
-from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.coordinates.tests.helper import skycoord_equal
-from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
-from astropy.time import Time, TimeDelta
+import astropy.units as u  # noqa: E402
+from astropy import table  # noqa: E402
+from astropy.coordinates import EarthLocation, SkyCoord  # noqa: E402
+from astropy.coordinates.tests.helper import skycoord_equal  # noqa: E402
+from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test  # noqa: E402
+from astropy.time import Time, TimeDelta  # noqa: E402
 
 
 def test_table(tmpdir):
@@ -124,7 +124,7 @@ table: !<tag:astropy.org:astropy/table/table-1.0.0>
     buff = helpers.yaml_to_asdf(yaml)
 
     with pytest.raises(ValueError) as err:
-        with asdf.open(buff) as ff:
+        with asdf.open(buff):
             pass
     assert 'Inconsistent data column lengths' in str(err.value)
 
