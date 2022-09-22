@@ -2,8 +2,6 @@
 
 import timeit
 
-import numpy as np  # pylint: disable=W0611
-
 # largest image size to use for "linear" and fft convolutions
 max_exponents_linear = {1: 15, 2: 7, 3: 5}
 max_exponents_fft = {1: 15, 2: 10, 3: 7}
@@ -29,8 +27,9 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
 
                 if ii <= max_exponents_linear[ndims]:
                     for convolve_type, extra in zip(("", "_fft"),
-                                              ("", "fft_pad=False")):
-                        statement = f"convolve{convolve_type}(array, kernel, boundary='fill', {extra})"
+                                                    ("", "fft_pad=False")):
+                        statement = (f"convolve{convolve_type}(array, kernel, "
+                                     f"boundary='fill', {extra})")
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print(f"{besttime:17f}", end=' ')
                 else:

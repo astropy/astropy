@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import ctypes
-
 import numpy as np
 
 from astropy.modeling.core import Model, custom_model
