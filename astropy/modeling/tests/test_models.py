@@ -782,7 +782,7 @@ def test_with_bounding_box():
     # test the order of bbox is not reversed for 1D models
     p = models.Polynomial1D(1, c0=12, c1=2.3)
     p.bounding_box = (0, 5)
-    assert(p(1) == p(1, with_bounding_box=True))
+    assert p(1) == p(1, with_bounding_box=True)
 
     t3 = models.Shift(10) & models.Scale(2) & models.Shift(-1)
     t3.bounding_box = ((4.3, 6.9), (6, 15), (-1, 10))
