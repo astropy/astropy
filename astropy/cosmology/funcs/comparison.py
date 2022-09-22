@@ -70,7 +70,7 @@ def _wrap_to_ufunc(nin: int, nout: int) -> Callable[[_CompFnT], np.ufunc]:
 
 
 @_wrap_to_ufunc(2, 1)
-def _parse_format(cosmo: Any, format: _FormatType, /,) -> Cosmology:
+def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     """Parse Cosmology-like input into Cosmologies, given a format hint.
 
     Parameters
@@ -207,7 +207,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @_comparison_decorator
-def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False) -> bool:
+def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False) -> bool:
     r"""Return element-wise equality check on the cosmologies.
 
     .. note::
@@ -322,7 +322,7 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False
 
 
 @_comparison_decorator
-def _cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool=False) -> bool:
+def _cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False) -> bool:
     r"""Return element-wise cosmology non-equality check.
 
     .. note::

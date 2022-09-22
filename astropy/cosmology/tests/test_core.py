@@ -306,7 +306,6 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
         # parameters in string rep
         ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
-        cps = {k: getattr(cosmo_cls, k) for k in cosmo.__parameters__}
         for k, v in ps.items():
             sv = f"{k}={v}"
             assert sv in r
