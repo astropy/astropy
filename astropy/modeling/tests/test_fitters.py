@@ -836,15 +836,15 @@ class TestWeightedFittingWithOutlierRemoval:
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
         fit, mask = fitter(model, self.x1d, self.z1d)
-        assert((~mask).sum() == self.z1d.size - 2)
-        assert(mask[0] and mask[1])
+        assert (~mask).sum() == self.z1d.size - 2
+        assert mask[0] and mask[1]
         assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))  # with removed outliers mean is 0.0
 
     def test_1d_with_weights_without_sigma_clip(self):
         model = models.Polynomial1D(0)
         fitter = LinearLSQFitter()
         fit = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
-        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+        assert fit.parameters[0] > 1.0      # outliers pulled it high
 
     def test_1d_with_weights_with_sigma_clip(self):
         """
@@ -855,9 +855,9 @@ class TestWeightedFittingWithOutlierRemoval:
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
         fit, filtered = fitter(model, self.x1d, self.z1d, weights=self.weights1d)
-        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert fit.parameters[0] > 10**(-2)  # weights pulled it > 0
         # outliers didn't pull it out of [-1:1] because they had been removed
-        assert(fit.parameters[0] < 1.0)
+        assert fit.parameters[0] < 1.0
 
     def test_1d_set_with_common_weights_with_sigma_clip(self):
         """added for #6819 (1D model set with weights in common)"""
@@ -891,8 +891,8 @@ class TestWeightedFittingWithOutlierRemoval:
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
         fit, mask = fitter(model, self.x, self.y, self.z)
-        assert((~mask).sum() == self.z.size - 2)
-        assert(mask[0, 0] and mask[0, 1])
+        assert (~mask).sum() == self.z.size - 2
+        assert mask[0, 0] and mask[0, 1]
         assert_allclose(fit.parameters[0], 0.0, atol=10**(-2))
 
     @pytest.mark.parametrize('fitter', non_linear_fitters)
@@ -903,13 +903,13 @@ class TestWeightedFittingWithOutlierRemoval:
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
             fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
-        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+        assert fit.parameters[0] > 1.0      # outliers pulled it high
 
     def test_2d_linear_with_weights_without_sigma_clip(self):
         model = models.Polynomial2D(0)
         fitter = LinearLSQFitter()  # LinearLSQFitter doesn't handle weights properly in 2D
         fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
-        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+        assert fit.parameters[0] > 1.0     # outliers pulled it high
 
     @pytest.mark.parametrize('base_fitter', non_linear_fitters)
     def test_2d_with_weights_with_sigma_clip(self, base_fitter):
@@ -923,9 +923,9 @@ class TestWeightedFittingWithOutlierRemoval:
         with pytest.warns(AstropyUserWarning,
                           match=r'Model is linear in parameters'):
             fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
-        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert fit.parameters[0] > 10**(-2)  # weights pulled it > 0
         # outliers didn't pull it out of [-1:1] because they had been removed
-        assert(fit.parameters[0] < 1.0)
+        assert fit.parameters[0] < 1.0
 
     def test_2d_linear_with_weights_with_sigma_clip(self):
         """same as test above with a linear fitter."""
@@ -933,9 +933,9 @@ class TestWeightedFittingWithOutlierRemoval:
         fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
         fit, _ = fitter(model, self.x, self.y, self.z, weights=self.weights)
-        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert fit.parameters[0] > 10**(-2)  # weights pulled it > 0
         # outliers didn't pull it out of [-1:1] because they had been removed
-        assert(fit.parameters[0] < 1.0)
+        assert fit.parameters[0] < 1.0
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
