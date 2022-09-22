@@ -99,7 +99,7 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
     if make_tree:
         tree = make_tree(table)
     else:
-        tree = {data_key or 'data' : table}
+        tree = {data_key or 'data': table}
 
     with asdf.AsdfFile(tree) as af:
         af.write_to(filename, **kwargs)
@@ -107,7 +107,7 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
 
 def asdf_identify(origin, filepath, fileobj, *args, **kwargs):
     try:
-        import asdf
+        import asdf  # noqa: F401, E402
     except ImportError:
         return False
 

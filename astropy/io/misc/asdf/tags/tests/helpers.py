@@ -16,10 +16,8 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     examples = []
     schema = load_schema(uri, resolver=r)
     for node in asdf.treeutil.iter_tree(schema):
-        if (isinstance(node, dict) and
-            'examples' in node and
-            isinstance(node['examples'], list)):
-            for desc, example in node['examples']:
+        if (isinstance(node, dict) and 'examples' in node and isinstance(node['examples'], list)):
+            for _, example in node['examples']:
                 examples.append(example)
 
     for example in examples:

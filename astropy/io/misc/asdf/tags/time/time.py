@@ -70,7 +70,7 @@ class TimeType(AstropyAsdfType):
             # Preserve backwards compatibility for writing the old schema
             # This allows WCS to test backwards compatibility with old frames
             # This code does get tested in CI, but we don't run a coverage test
-            if cls.version == '1.0.0': # pragma: no cover
+            if cls.version == '1.0.0':  # pragma: no cover
                 unit = node.location.unit
                 d['location'] = {
                     'x': x.value,

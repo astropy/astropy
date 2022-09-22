@@ -4,7 +4,7 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-from astropy.table import Table
+from astropy.table import Table  # noqa: E402
 
 
 def make_table():
