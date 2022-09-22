@@ -10,6 +10,7 @@ from .constant import Constant, EMConstant
 # PHYSICAL CONSTANTS
 # https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
 
+
 class CODATA2018(Constant):
     default_reference = 'CODATA 2018'
     _registry = {}
