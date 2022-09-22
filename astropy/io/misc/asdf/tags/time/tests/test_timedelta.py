@@ -3,10 +3,10 @@
 import pytest
 
 asdf = pytest.importorskip('asdf')
-from asdf.tests.helpers import assert_roundtrip_tree
+from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 
-from astropy import units as u
-from astropy.time import Time, TimeDelta
+from astropy import units as u  # noqa: E402
+from astropy.time import Time, TimeDelta  # noqa: E402
 
 
 @pytest.mark.parametrize('fmt', TimeDelta.FORMATS.keys())

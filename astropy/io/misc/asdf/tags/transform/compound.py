@@ -137,4 +137,4 @@ class RemapAxesType(TransformType):
     def assert_equal(cls, a, b):
         TransformType.assert_equal(a, b)
         assert a.mapping == b.mapping
-        assert(a.n_inputs == b.n_inputs)
+        assert a.n_inputs == b.n_inputs

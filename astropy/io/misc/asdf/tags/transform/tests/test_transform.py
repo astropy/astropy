@@ -4,18 +4,18 @@ import pytest
 
 asdf = pytest.importorskip('asdf')
 
-import warnings
+import warnings  # noqa: E402
 
-import asdf
-import numpy as np
-from asdf import AsdfFile, util
-from asdf.tests import helpers
-from packaging.version import Version
+import asdf  # noqa: E402
+import numpy as np  # noqa: E402
+from asdf import AsdfFile, util  # noqa: E402
+from asdf.tests import helpers  # noqa: E402
+from packaging.version import Version  # noqa: E402
 
-import astropy.units as u
-from astropy.modeling import models as astmodels
-from astropy.modeling.core import fix_inputs
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+import astropy.units as u  # noqa: E402
+from astropy.modeling import models as astmodels  # noqa: E402
+from astropy.modeling.core import fix_inputs  # noqa: E402
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: E402
 
 
 def custom_and_analytical_inverse():
@@ -95,14 +95,17 @@ test_models = [
     astmodels.ExponentialCutoffPowerLaw1D(10, 0.5, 2.0, 7.),
     astmodels.LogParabola1D(amplitude=10, x_0=0.5, alpha=2., beta=3.,),
     astmodels.PowerLaw1D(amplitude=10., x_0=0.5, alpha=2.0),
-    astmodels.SmoothlyBrokenPowerLaw1D(amplitude=10., x_break=5.0, alpha_1=2.0, alpha_2=3.0, delta=0.5),
+    astmodels.SmoothlyBrokenPowerLaw1D(amplitude=10., x_break=5.0, alpha_1=2.0, alpha_2=3.0,
+                                       delta=0.5),
     custom_and_analytical_inverse(),
     custom_inputs_outputs(),
 ]
 
 if HAS_SCIPY:
-    test_models.append(astmodels.Spline1D(np.array([-3., -3., -3., -3., -1., 0., 1., 3.,  3.,  3.,  3.]),
-                       np.array([0.10412331, 0.07013616, -0.18799552, 1.35953147, -0.15282581, 0.03923, -0.04297299, 0., 0., 0., 0.]),
+    test_models.append(astmodels.Spline1D(np.array([-3., -3., -3., -3., -1., 0.,
+                                                    1., 3.,  3.,  3.,  3.]),
+                       np.array([0.10412331, 0.07013616, -0.18799552, 1.35953147,
+                                 -0.15282581, 0.03923, -0.04297299, 0., 0., 0., 0.]),
                        3))
 
 math_models = []
@@ -251,7 +254,8 @@ def test_const1d(tmpdir, standard_version):
     ),
 ])
 def test_polynomial(tmpdir, standard_version, model):
-    helpers.assert_roundtrip_tree({"model": model}, tmpdir, init_options={"version": standard_version})
+    helpers.assert_roundtrip_tree({"model": model}, tmpdir,
+                                  init_options={"version": standard_version})
 
 
 def test_domain_orthopoly(tmpdir):
@@ -336,16 +340,16 @@ def test_fix_inputs(tmpdir):
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
 
-def test_fix_inputs_type():
+def test_fix_inputs_type(tmpdir):
     with pytest.raises(TypeError):
         tree = {
-        'compound': fix_inputs(3, {'x': 45})
+            'compound': fix_inputs(3, {'x': 45})
         }
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
     with pytest.raises(AttributeError):
         tree = {
-        'compound': astmodels.Pix2Sky_TAN() & {'x': 45}
+            'compound': astmodels.Pix2Sky_TAN() & {'x': 45}
         }
         helpers.assert_roundtrip_tree(tree, tmpdir)
 
@@ -413,7 +417,7 @@ def models_with_input_eq():
     m4 = astmodels.PowerLaw1D(amplitude=1*u.m, x_0=10*u.pix, alpha=7)
     m4.input_units_equivalencies = {'x': u.equivalencies.pixel_scale(0.5*u.arcsec/u.pix)}
 
-    return[m1, m2, m3, m4]
+    return [m1, m2, m3, m4]
 
 
 def compound_models_with_input_eq():
@@ -422,7 +426,7 @@ def compound_models_with_input_eq():
     m2 = astmodels.Gaussian1D(5*u.s, 2*u.K, 3*u.K)
     m2.input_units_equivalencies = {'x': u.temperature()}
 
-    return  [m1|m2, m1&m2, m1+m2]
+    return [m1 | m2, m1 & m2, m1 + m2]
 
 
 test_models.extend(models_with_input_eq())
