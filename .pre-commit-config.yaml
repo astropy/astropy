@@ -72,43 +72,43 @@ repos:
         args: ["--py38-plus"]
         exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
 
-  # We list the warnings/errors to check for here rather than in setup.cfg because
-  # we don't want these options to apply whenever anyone calls flake8 from the
-  # command-line or their code editor - in this case all warnings/errors should be
-  # checked for. The warnings/errors we check for here are:
-  # E101 - mix of tabs and spaces
-  # W191 - use of tabs
-  # E201 - whitespace after '('
-  # E202 - whitespace before ')'
-  # W291 - trailing whitespace
-  # W292 - no newline at end of file
-  # W293 - trailing whitespace
-  # W391 - blank line at end of file
-  # E111 - 4 spaces per indentation level
-  # E112 - 4 spaces per indentation level
-  # E113 - 4 spaces per indentation level
-  # E301 - expected 1 blank line, found 0
-  # E302 - expected 2 blank lines, found 0
-  # E303 - too many blank lines (3)
-  # E304 - blank lines found after function decorator
-  # E305 - expected 2 blank lines after class or function definition
-  # E306 - expected 1 blank line before a nested definition
-  # E502 - the backslash is redundant between brackets
-  # E722 - do not use bare except
-  # E901 - SyntaxError or IndentationError
-  # E902 - IOError
-  # E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
-  # F822: undefined name in __all__
-  # F823: local variable name referenced before assignment
+
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
+        # We list the warnings/errors to check for here rather than in setup.cfg because
+        # we don't want these options to apply whenever anyone calls flake8 from the
+        # command-line or their code editor - in this case all warnings/errors should be
+        # checked for. The warnings/errors we check for here are:
         args:
           [
             "--count",
             "--select",
-            "E101,W191,E201,E202,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823",
+            "E101,",  # mix of tabs and spaces
+            "W191,",  # use of tabs
+            "E201,",  # whitespace after '('
+            "E202,",  # whitespace before ')'
+            "W291,",  # trailing whitespace
+            "W292,",  # no newline at end of file
+            "W293,",  # trailing whitespace
+            "W391,",  # blank line at end of file
+            "E111,",  # 4 spaces per indentation level
+            "E112,",  # 4 spaces per indentation level
+            "E113,",  # 4 spaces per indentation level
+            "E301,",  # expected 1 blank line, found 0
+            "E302,",  # expected 2 blank lines, found 0
+            "E303,",  # too many blank lines (3)
+            "E304,",  # blank lines found after function decorator
+            "E305,",  # expected 2 blank lines after class or function definition
+            "E306,",  # expected 1 blank line before a nested definition
+            "E502,",  # the backslash is redundant between brackets
+            "E722,",  # do not use bare except
+            "E901,",  # SyntaxError or IndentationError
+            "E902,",  # IOError
+            "E999,",  # SyntaxError -- failed to compile a file into an Abstract Syntax Tree
+            "F822,",  # undefined name in __all__
+            "F823,",  # local variable name referenced before assignment
           ]
         exclude: ".*(data.*|extern.*|cextern)$"
 
