@@ -10,6 +10,7 @@ from .constant import Constant, EMConstant
 
 # PHYSICAL CONSTANTS
 
+
 class CODATA2014(Constant):
     default_reference = 'CODATA 2014'
     _registry = {}
