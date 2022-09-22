@@ -78,15 +78,19 @@ class TestKernels:
         ricker_kernel_1D = RickerWavelet1DKernel(width)
         ricker_kernel_2D = RickerWavelet2DKernel(width)
 
-        astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D, boundary='fill', normalize_kernel=False)
-        astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D, boundary='fill', normalize_kernel=False)
+        astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D,
+                              boundary='fill', normalize_kernel=False)
+        astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D,
+                              boundary='fill', normalize_kernel=False)
 
         with pytest.raises(Exception) as exc:
-            astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D, boundary='fill', normalize_kernel=True)
+            astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D,
+                                  boundary='fill', normalize_kernel=True)
         assert 'sum is close to zero' in exc.value.args[0]
 
         with pytest.raises(Exception) as exc:
-            astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D, boundary='fill', normalize_kernel=True)
+            astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D,
+                                  boundary='fill', normalize_kernel=True)
         assert 'sum is close to zero' in exc.value.args[0]
 
         # The Laplace of Gaussian filter is an inverted Ricker Wavelet filter.
@@ -98,7 +102,8 @@ class TestKernels:
         assert_almost_equal(astropy_1D, scipy_1D, decimal=5)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
+    @pytest.mark.parametrize(('kernel_type', 'width'),
+                             list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
     def test_delta_data(self, kernel_type, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -119,7 +124,8 @@ class TestKernels:
             c2 = convolve(delta_pulse_2D, kernel, boundary='fill', normalize_kernel=False)
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
+    @pytest.mark.parametrize(('kernel_type', 'width'),
+                             list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
     def test_random_data(self, kernel_type, width):
         """
         Test smoothing of an image made of random noise

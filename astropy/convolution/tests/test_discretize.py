@@ -11,7 +11,7 @@ from astropy.modeling.functional_models import (
     Box1D, Box2D, Gaussian1D, Gaussian2D, RickerWavelet1D, RickerWavelet2D)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
 
 modes = ['center', 'linear_interp', 'oversample']
 test_models_1D = [Gaussian1D, Box1D, RickerWavelet1D]
@@ -211,11 +211,11 @@ def test_float_y_range_exception():
 
 def test_discretize_oversample():
     gauss_2D = Gaussian2D(amplitude=1.0, x_mean=5.,
-                    y_mean=125., x_stddev=0.75, y_stddev=3)
+                          y_mean=125., x_stddev=0.75, y_stddev=3)
     values = discretize_model(gauss_2D,
-                 x_range=[0, 10],
-                 y_range=[100, 135],
-                 mode='oversample', factor=10)
+                              x_range=[0, 10],
+                              y_range=[100, 135],
+                              mode='oversample', factor=10)
     vmax = np.max(values)
     vmax_yx = np.unravel_index(values.argmax(), values.shape)
     values_osf1 = discretize_model(gauss_2D,
@@ -223,9 +223,9 @@ def test_discretize_oversample():
                                    y_range=[100, 135],
                                    mode='oversample', factor=1)
     values_center = discretize_model(gauss_2D,
-                                   x_range=[0, 10],
-                                   y_range=[100, 135],
-                                   mode = 'center')
+                                     x_range=[0, 10],
+                                     y_range=[100, 135],
+                                     mode='center')
     assert values.shape == (35, 10)
     assert_allclose(vmax, 0.927, atol=1e-3)
     assert vmax_yx == (25, 5)
