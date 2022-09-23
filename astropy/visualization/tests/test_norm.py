@@ -239,6 +239,13 @@ class TestImageScaling:
         ref = np.arcsinh(DATA2SCL / asinh_a) / np.arcsinh(1. / asinh_a)
         assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
 
+    def test_sinh(self):
+        """Test sinh scaling."""
+        sinh_a = 0.5
+        norm = simple_norm(DATA2, stretch='sinh', sinh_a=sinh_a)
+        ref = np.sinh(DATA2SCL / sinh_a) / np.sinh(1 / sinh_a)
+        assert_allclose(norm(DATA2), ref, atol=0, rtol=1.e-5)
+
     def test_min(self):
         """Test linear scaling."""
         norm = simple_norm(DATA2, stretch='linear', min_cut=1., clip=True)
