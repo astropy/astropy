@@ -587,7 +587,7 @@ class Latitude(Angle):
         if angles.unit is u.deg:
             limit = 90
         elif angles.unit is u.rad:
-            limit = 0.5 * np.pi
+            limit = self.dtype.type(0.5 * np.pi)
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
