@@ -561,3 +561,8 @@ The same idea can be used with the ``fixed_width_two_line`` format::
 
 ..
   EXAMPLE END
+
+Note that the ``two_line`` in the ``fixed_width_two_line`` format name refers to
+the default situation where the header consists two lines, a row of column names
+and a row of separator lines. This is a bit of a misnomer when using
+``header_rows``.
