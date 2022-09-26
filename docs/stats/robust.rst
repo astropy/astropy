@@ -1,5 +1,10 @@
 .. _stats-robust:
 
+.. testsetup::
+
+    >>> import numpy as np
+    >>> np.random.seed(0)
+
 *****************************
 Robust Statistical Estimators
 *****************************
@@ -45,7 +50,7 @@ deviation of 0.2, but with outliers:
      >>> rng = np.random.default_rng(0)
      >>> x = np.arange(200)
      >>> y = np.zeros(200)
-     >>> c = stats.bernoulli.rvs(0.35, size=x.shape, random_state=rng)
+     >>> c = stats.bernoulli.rvs(0.35, size=x.shape)
      >>> y += (rng.normal(0., 0.2, x.shape) +
      ...       c * rng.normal(3.0, 5.0, x.shape))
 
@@ -107,9 +112,9 @@ calculation:
 
      >>> from astropy.stats import sigma_clipped_stats
      >>> y.mean(), np.median(y), y.std()  # doctest: +FLOAT_CMP
-     (1.2474712040025113, 0.07065098296198567, 3.43928573764036)
+     (0.7068938765410144, 0.013567387681385379, 3.599605215851649)
      >>> sigma_clipped_stats(y, sigma=3, maxiters=10)  # doctest: +FLOAT_CMP
-     (0.12682917020097678, 0.01107299498271078, 0.843894461755914)
+     (-0.0228473012826993, -0.02356858871405204, 0.2079616996908159)
 
 :func:`~astropy.stats.sigma_clip` and
 :class:`~astropy.stats.SigmaClip` can be combined with other robust

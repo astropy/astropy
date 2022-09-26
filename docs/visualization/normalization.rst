@@ -305,7 +305,8 @@ composite stretch can stretch residual images with negative values:
         LinearStretch(slope=2, intercept=-1)
 
     # Image of random Gaussian noise
-    image = np.random.normal(size=(64, 64))
+    rng = np.random.default_rng()
+    image = rng.normal(size=(64, 64))
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     # ImageNormalize normalizes values to [0,1] before applying the stretch
