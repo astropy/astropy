@@ -412,7 +412,7 @@ class TestConvolve1D:
 
         # Now test against convolve()
         convolve_result = convolve(masked_array, kernel, boundary='fill',
-                              fill_value=0.)
+                                   fill_value=0.)
         assert_floatclose(convolve_result, result)
 
         # Test masked kernel
@@ -425,7 +425,7 @@ class TestConvolve1D:
 
         # Now test against convolve()
         convolve_result = convolve(array, masked_kernel, boundary='fill',
-                              fill_value=0.)
+                                   fill_value=0.)
         assert_floatclose(convolve_result, result)
 
     def test_normalize_function(self):
@@ -632,7 +632,9 @@ class TestConvolve2D:
             z = convolve_fft(x, y, boundary=boundary,
                              nan_treatment=nan_treatment,
                              # you cannot fill w/nan, you can only interpolate over it
-                             fill_value=np.nan if normalize_kernel and nan_treatment=='interpolate' else 0,
+                             fill_value=(
+                                np.nan if normalize_kernel and nan_treatment == 'interpolate' else 0
+                             ),
                              normalize_kernel=normalize_kernel,
                              preserve_nan=preserve_nan)
 
@@ -794,8 +796,8 @@ def test_input_unmodified(boundary, nan_treatment,
     y.flags.writeable = False
 
     with expected_boundary_warning(boundary=boundary):
-        z = convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
-                        normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+        convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
     assert np.all(np.array(array, dtype=dtype) == x)
     assert np.all(np.array(kernel, dtype=dtype) == y)
@@ -828,8 +830,8 @@ def test_input_unmodified_with_nan(boundary, nan_treatment,
     y_copy = y.copy()
 
     with expected_boundary_warning(boundary=boundary):
-        z = convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
-                        normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+        convolve_fft(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                     normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
 
     # ( NaN == NaN ) = False
     # Only compare non NaN values for canonical equivalence
