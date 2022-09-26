@@ -36,37 +36,41 @@ except Exception:
 # Boundary None
 _convolveNd_c = _convolve.convolveNd_c
 _convolveNd_c.restype = None
-_convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),  # return array
-                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # input array
-                          ctypes.c_uint,  # N dim
-                          # size array for input and result unless
-                          # embed_result_within_padded_region is False,
-                          # in which case the result array is assumed to be
-                          # input.shape - 2*(kernel.shape//2). Note: integer division.
-                          ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),
-                          ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # kernel array
-                          ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),  # size array for kernel
-                          ctypes.c_bool,  # nan_interpolate
-                          ctypes.c_bool,  # embed_result_within_padded_region
-                          ctypes.c_uint]  # n_threads
+_convolveNd_c.argtypes = [
+    ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),  # return array
+    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # input array
+    ctypes.c_uint,  # N dim
+    # size array for input and result unless
+    # embed_result_within_padded_region is False,
+    # in which case the result array is assumed to be
+    # input.shape - 2*(kernel.shape//2). Note: integer division.
+    ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),
+    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # kernel array
+    ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),  # size array for kernel
+    ctypes.c_bool,  # nan_interpolate
+    ctypes.c_bool,  # embed_result_within_padded_region
+    ctypes.c_uint  # n_threads
+]
 
 # np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
-_good_sizes = np.array([   0,    1,    2,    3,    4,    5,    6,    8,    9,   10,   12,  # noqa E201
-                          15,   16,   18,   20,   24,   25,   27,   30,   32,   36,   40,
-                          45,   48,   50,   54,   60,   64,   72,   75,   80,   81,   90,
-                          96,  100,  108,  120,  125,  128,  135,  144,  150,  160,  162,
-                         180,  192,  200,  216,  225,  240,  243,  250,  256,  270,  288,
-                         300,  320,  324,  360,  375,  384,  400,  405,  432,  450,  480,
-                         486,  500,  512,  540,  576,  600,  625,  640,  648,  675,  720,
-                         729,  750,  768,  800,  810,  864,  900,  960,  972, 1000, 1024,
-                        1080, 1125, 1152, 1200, 1215, 1250, 1280, 1296, 1350, 1440, 1458,
-                        1500, 1536, 1600, 1620, 1728, 1800, 1875, 1920, 1944, 2000, 2025,
-                        2048, 2160, 2187, 2250, 2304, 2400, 2430, 2500, 2560, 2592, 2700,
-                        2880, 2916, 3000, 3072, 3125, 3200, 3240, 3375, 3456, 3600, 3645,
-                        3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500, 4608, 4800,
-                        4860, 5000, 5120, 5184, 5400, 5625, 5760, 5832, 6000, 6075, 6144,
-                        6250, 6400, 6480, 6561, 6750, 6912, 7200, 7290, 7500, 7680, 7776,
-                        8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000])
+_good_sizes = np.array([
+    0,    1,    2,    3,    4,    5,    6,    8,    9,    10,   12,
+    15,   16,   18,   20,   24,   25,   27,   30,   32,   36,   40,
+    45,   48,   50,   54,   60,   64,   72,   75,   80,   81,   90,
+    96,   100,  108,  120,  125,  128,  135,  144,  150,  160,  162,
+    180,  192,  200,  216,  225,  240,  243,  250,  256,  270,  288,
+    300,  320,  324,  360,  375,  384,  400,  405,  432,  450,  480,
+    486,  500,  512,  540,  576,  600,  625,  640,  648,  675,  720,
+    729,  750,  768,  800,  810,  864,  900,  960,  972,  1000, 1024,
+    1080, 1125, 1152, 1200, 1215, 1250, 1280, 1296, 1350, 1440, 1458,
+    1500, 1536, 1600, 1620, 1728, 1800, 1875, 1920, 1944, 2000, 2025,
+    2048, 2160, 2187, 2250, 2304, 2400, 2430, 2500, 2560, 2592, 2700,
+    2880, 2916, 3000, 3072, 3125, 3200, 3240, 3375, 3456, 3600, 3645,
+    3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500, 4608, 4800,
+    4860, 5000, 5120, 5184, 5400, 5625, 5760, 5832, 6000, 6075, 6144,
+    6250, 6400, 6480, 6561, 6750, 6912, 7200, 7290, 7500, 7680, 7776,
+    8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000
+])
 _good_range = int(np.log10(_good_sizes[-1]))
 
 # Disabling doctests when scipy isn't present.
@@ -136,9 +140,9 @@ def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
                 output[mask != 0] = fill_value
         else:
             # The call below is synonymous with np.asanyarray(array, ftype=float, order='C')
-            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass. If it
-            # is and `subok=False` (default), then it will copy even if `copy=False`. This uses less memory
-            # when ndarray subclasses are passed in.
+            # The advantage of `subok=True` is that it won't copy when array is an ndarray subclass.
+            # If it is and `subok=False` (default), then it will copy even if `copy=False`. This
+            # uses less memory when ndarray subclasses are passed in.
             output = np.array(input, dtype=dtype, copy=False, order=order, subok=True)
     except (TypeError, ValueError) as e:
         raise TypeError('input should be a Numpy array or something '
@@ -305,12 +309,15 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # distance kernel.shape//2 from the edge are completely ignored (zeroed).
     # E.g. (1D list) only the indices len(kernel)//2 : len(array)-len(kernel)//2
     # are convolved. It is therefore not possible to use this method to convolve an
-    # array by a kernel that is larger (see note below) than the array - as ALL pixels would be ignored
-    # leaving an array of only zeros.
+    # array by a kernel that is larger (see note below) than the array - as ALL pixels
+    # would be ignored leaving an array of only zeros.
     # Note: For even kernels the correctness condition is array_shape > kernel_shape.
     # For odd kernels it is:
-    # array_shape >= kernel_shape OR array_shape > kernel_shape-1 OR array_shape > 2*(kernel_shape//2).
-    # Since the latter is equal to the former two for even lengths, the latter condition is complete.
+    #     array_shape >= kernel_shape OR
+    #     array_shape > kernel_shape-1 OR
+    #     array_shape > 2*(kernel_shape//2).
+    # Since the latter is equal to the former two for even lengths, the latter condition is
+    # complete.
     if boundary is None and not np.all(array_shape > 2*pad_width):
         raise KernelSizeError("for boundary=None all kernel axes must be smaller than array's - "
                               "use boundary in ['fill', 'extend', 'wrap'] instead.")
@@ -357,8 +364,10 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         embed_result_within_padded_region = False
         if boundary == 'fill':
             # This method is faster than using numpy.pad(..., mode='constant')
-            array_to_convolve = np.full(array_shape + 2*pad_width, fill_value=fill_value, dtype=float, order='C')
-            # Use bounds [pad_width[0]:array_shape[0]+pad_width[0]] instead of [pad_width[0]:-pad_width[0]]
+            array_to_convolve = np.full(array_shape + 2*pad_width,
+                                        fill_value=fill_value, dtype=float, order='C')
+            # Use bounds [pad_width[0]:array_shape[0]+pad_width[0]] instead of
+            #            [pad_width[0]:-pad_width[0]]
             # to account for when the kernel has size of 1 making pad_width = 0.
             if array_internal.ndim == 1:
                 array_to_convolve[pad_width[0]:array_shape[0]+pad_width[0]] = array_internal
@@ -801,7 +810,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     # appropriate slice size to get back to the input dimensions
     arrayslices = []
     kernslices = []
-    for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
+    for (newdimsize, arraydimsize, kerndimsize) in zip(newshape, arrayshape, kernshape):
         center = newdimsize - (newdimsize + 1) // 2
         arrayslices += [slice(center - arraydimsize // 2,
                               center + (arraydimsize + 1) // 2)]
