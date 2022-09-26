@@ -144,7 +144,8 @@ Uncertainty
 You can set the uncertainty directly, either by creating a
 `~astropy.nddata.StdDevUncertainty` object first:
 
-    >>> data = np.random.normal(size=(10, 10), loc=1.0, scale=0.1)
+    >>> rng = np.random.default_rng()
+    >>> data = rng.normal(size=(10, 10), loc=1.0, scale=0.1)
     >>> ccd = CCDData(data, unit="electron")
     >>> from astropy.nddata.nduncertainty import StdDevUncertainty
     >>> uncertainty = 0.1 * ccd.data  # can be any array whose shape matches the data

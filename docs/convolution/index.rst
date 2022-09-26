@@ -225,8 +225,9 @@ The kernel can then be used directly when calling
     plt.figure(3).clf()
 
     # Generate fake data
+    rng = np.random.default_rng(963)
     x = np.arange(1000).astype(float)
-    y = np.sin(x / 100.) + np.random.normal(0., 1., x.shape)
+    y = np.sin(x / 100.) + rng.normal(0., 1., x.shape)
     y[::3] = np.nan
 
     # Create kernel
@@ -373,7 +374,8 @@ eye.
    hdu = fits.open(filename)[0]
    img = hdu.data[50:90, 60:100] * 1e5
 
-   indices = np.random.randint(low=0, high=img.size, size=300)
+   rng = np.random.default_rng(1379)
+   indices = rng.integers(low=0, high=img.size, size=300)
 
    sampled_data = img.flat[indices]
 
