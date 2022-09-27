@@ -131,10 +131,10 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     from astropy.time import Time
     import astropy.units as u
 
-    np.random.seed(1337)
+    rng = np.random.default_rng(1337)
 
     # 100_000 times randomly distributed over 12 hours
-    t = Time('2020-01-01T20:00:00') + np.random.uniform(0, 1, 10_000) * u.hour
+    t = Time('2020-01-01T20:00:00') + rng.uniform(0, 1, 10_000) * u.hour
 
     location = location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
