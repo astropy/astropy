@@ -89,16 +89,15 @@ an overlapping wavelength region from 4 to 6.
    >>> amp2 = area / np.sqrt(2.0 * math.pi * sigma2 ** 2)
 
    >>> # segment 1
-   >>> np.random.seed(0)
+   >>> rng = np.random.default_rng(147)
    >>> x1 = np.linspace(1.0, 6.0, 200)
    >>> y1 = amp1 * np.exp(-0.5 * (x1 - mean) ** 2 / sigma1 ** 2)
-   >>> y1 += np.random.normal(0.0, noise, x1.shape)
+   >>> y1 += rng.normal(0.0, noise, x1.shape)
 
    >>> # segment 2
-   >>> np.random.seed(0)
    >>> x2 = np.linspace(4.0, 10.0, 200)
    >>> y2 = amp2 * np.exp(-0.5 * (x2 - mean) ** 2 / sigma2 ** 2)
-   >>> y2 += np.random.normal(0.0, noise, x2.shape)
+   >>> y2 += rng.normal(0.0, noise, x2.shape)
 
 Now define the models to be fit and fitter to use.  Then fit the two simulated
 datasets.
@@ -129,7 +128,7 @@ AreaGaussian1 parameters
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
    >>> print(gjf1.parameters)
-   [1.48697226 5.09826068 0.19761087]
+   [1.49823951 5.10494811 0.19918164]
 
 AreaGaussian2 parameters
 
@@ -138,7 +137,7 @@ AreaGaussian2 parameters
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
    >>> print(gjf2.parameters)
-   [1.48697226 5.09826068 0.4015368 ]
+   [1.49823951 5.10494811 0.39860539]
 
 
 The simulated data and best fit models can be plotted showing good agreement
@@ -200,16 +199,15 @@ between the two AreaGaussian1D models and the two spectral segments.
    amp2 = area / np.sqrt(2.0 * math.pi * sigma2 ** 2)
 
    # segment 1
-   np.random.seed(0)
+   rng = np.random.default_rng(147)
    x1 = np.linspace(1.0, 6.0, 200)
    y1 = amp1 * np.exp(-0.5 * (x1 - mean) ** 2 / sigma1 ** 2)
-   y1 += np.random.normal(0.0, noise, x1.shape)
+   y1 += rng.normal(0.0, noise, x1.shape)
 
    # segment 2
-   np.random.seed(0)
    x2 = np.linspace(4.0, 10.0, 200)
    y2 = amp2 * np.exp(-0.5 * (x2 - mean) ** 2 / sigma2 ** 2)
-   y2 += np.random.normal(0.0, noise, x2.shape)
+   y2 += rng.normal(0.0, noise, x2.shape)
 
    # define the two models to be fit
    gjf1 = AreaGaussian1D(area=1.0, mean=5.0, stddev=1.0)
