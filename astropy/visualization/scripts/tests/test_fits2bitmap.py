@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.io import fits
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
-
 if HAS_MATPLOTLIB:
     import matplotlib.image as mpimg
+
     from astropy.visualization.scripts.fits2bitmap import fits2bitmap, main
 
 

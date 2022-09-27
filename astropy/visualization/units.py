@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 __doctest_skip__ = ['quantity_support']
 
 
@@ -31,6 +30,8 @@ def quantity_support(format='latex_inline'):
         provided, defaults to ``latex_inline``.
 
     """
+    from matplotlib import ticker, units
+
     from astropy import units as u
     # import Angle just so we have a more or less complete list of Quantity
     # subclasses loaded - matplotlib needs them all separately!
@@ -38,9 +39,6 @@ def quantity_support(format='latex_inline'):
     # and once that becomes our minimum version, we can remove this,
     # adding just u.Quantity itself to the registry.
     from astropy.coordinates import Angle  # noqa
-
-    from matplotlib import units
-    from matplotlib import ticker
 
     # Get all subclass for Quantity, since matplotlib checks on class,
     # not subclass.

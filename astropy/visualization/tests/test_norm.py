@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from packaging.version import Version
-import pytest
 import numpy as np
+import pytest
 from numpy import ma
 from numpy.testing import assert_allclose, assert_equal
+from packaging.version import Version
 
-from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
-from astropy.visualization.interval import ManualInterval, PercentileInterval
-from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT  # noqa
+from astropy.visualization.interval import ManualInterval, PercentileInterval
+from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
+from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
 
 if HAS_MATPLOTLIB:
     import matplotlib

@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import matplotlib.transforms as mtransforms
 import numpy as np
-
 from matplotlib import rcParams
 from matplotlib.text import Text
-import matplotlib.transforms as mtransforms
 
 from .frame import RectangularFrame
 
