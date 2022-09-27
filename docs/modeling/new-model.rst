@@ -37,11 +37,11 @@ of two Gaussians:
                 amplitude2 * np.exp(-0.5 * ((x - mean2) / sigma2)**2))
 
     # Generate fake data
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     x = np.linspace(-5., 5., 200)
     m_ref = sum_of_gaussians(amplitude1=2., mean1=-0.5, sigma1=0.4,
                              amplitude2=0.5, mean2=2., sigma2=1.0)
-    y = m_ref(x) + np.random.normal(0., 0.1, x.shape)
+    y = m_ref(x) + rng.normal(0., 0.1, x.shape)
 
     # Fit model to data
     m_init = sum_of_gaussians()

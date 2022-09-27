@@ -121,9 +121,9 @@ To evaluate the periodogram for a simulated data set:
 >>> import numpy as np
 >>> import astropy.units as u
 >>> from astropy.timeseries import BoxLeastSquares
->>> np.random.seed(42)
->>> t = np.random.uniform(0, 20, 2000)
->>> y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+>>> rng = np.random.default_rng(42)
+>>> t = rng.uniform(0, 20, 2000)
+>>> y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*rng.standard_normal(len(t))
 >>> model = BoxLeastSquares(t * u.day, y, dy=0.01)
 >>> periodogram = model.autopower(0.2)
 
@@ -144,9 +144,9 @@ This result can be plotted using matplotlib:
     import matplotlib.pyplot as plt
     from astropy.timeseries import BoxLeastSquares
 
-    np.random.seed(42)
-    t = np.random.uniform(0, 20, 2000)
-    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    rng = np.random.default_rng(42)
+    t = rng.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*rng.standard_normal(len(t))
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2)
 
@@ -187,9 +187,9 @@ follows:
     import matplotlib.pyplot as plt
     from astropy.timeseries import BoxLeastSquares
 
-    np.random.seed(42)
-    t = np.random.uniform(0, 20, 2000)
-    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    rng = np.random.default_rng(42)
+    t = rng.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*rng.standard_normal(len(t))
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periodogram = model.autopower(0.2, objective="snr")
 
@@ -237,9 +237,9 @@ It is possible to provide a specific period grid as follows:
     import matplotlib.pyplot as plt
     from astropy.timeseries import BoxLeastSquares
 
-    np.random.seed(42)
-    t = np.random.uniform(0, 20, 2000)
-    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    rng = np.random.default_rng(42)
+    t = rng.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*rng.standard_normal(len(t))
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periods = np.linspace(2.5, 3.5, 1000) * u.day
     periodogram = model.power(periods, 0.2)
@@ -262,9 +262,9 @@ However, if the period grid is too coarse, the correct period might be missed.
     import matplotlib.pyplot as plt
     from astropy.timeseries import BoxLeastSquares
 
-    np.random.seed(42)
-    t = np.random.uniform(0, 20, 2000)
-    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*np.random.randn(len(t))
+    rng = np.random.default_rng(42)
+    t = rng.uniform(0, 20, 2000)
+    y = np.ones_like(t) - 0.1*((t%3)<0.2) + 0.01*rng.standard_normal(len(t))
     model = BoxLeastSquares(t * u.day, y, dy=0.01)
     periods = np.linspace(0.5, 10.5, 15) * u.day
     periodogram = model.power(periods, 0.2)
