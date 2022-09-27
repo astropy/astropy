@@ -2955,6 +2955,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         chdu.writeto(self.temp('tmp2.fits'), overwrite=True)
         with fits.open(self.temp('tmp2.fits')) as hdul:
             assert 'XTENSION' not in hdul[1].header
+            assert 'PCOUNT' not in hdul[1].header
+            assert 'GCOUNT' not in hdul[1].header
 
     def test_fitsheader_table_feature(self):
         """Tests the `--table` feature of the `fitsheader` script."""
