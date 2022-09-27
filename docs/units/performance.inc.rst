@@ -14,31 +14,37 @@ things down. Furthermore, if you are multiplying an array by a composite unit,
 the array will be copied for each individual multiplication. Thus, in the
 following case, the array is copied four successive times::
 
-    In [1]: array = np.random.random(10000000)
+    In [1]: import numpy as np
 
-    In [2]: %timeit array * u.m / u.s / u.kg / u.sr
+    In [2]: from astropy import units as u
+
+    In [3]: rng = np.random.default_rng()
+
+    In [4]: array = rng.random(10000000)
+
+    In [5]: %timeit array * u.m / u.s / u.kg / u.sr
     92.5 ms ± 2.52 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 There are several ways to speed this up. First, when you are using composite
 units, ensure that the entire unit gets evaluated first, then attached to the
 array. You can do this by using parentheses as for any other operation::
 
-    In [3]: %timeit array * (u.m / u.s / u.kg / u.sr)
+    In [6]: %timeit array * (u.m / u.s / u.kg / u.sr)
     21.5 ms ± 886 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In this case, this has sped things up by a factor of 4. If you use a composite
 unit several times in your code then you can define a variable for it::
 
-    In [4]: UNIT_MSKGSR = u.m / u.s / u.kg / u.sr
+    In [7]: UNIT_MSKGSR = u.m / u.s / u.kg / u.sr
 
-    In [5]: %timeit array * UNIT_MSKGSR
+    In [8]: %timeit array * UNIT_MSKGSR
     22.2 ms ± 551 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 In this case and the case with brackets, the array is still copied once when
 creating the |Quantity|. If you want to avoid any copies altogether, you can
 make use of the ``<<`` operator to attach the unit to the array::
 
-    In [6]: %timeit array << u.m / u.s / u.kg / u.sr
+    In [9]: %timeit array << u.m / u.s / u.kg / u.sr
     47.1 µs ± 5.77 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)
 
 Note that these are now **microseconds**, so this is 2000x faster than the
@@ -50,7 +56,7 @@ copied, changing the original array will also change the |Quantity| object.
 Note that for composite units, you will definitely see an
 impact if you can pre-compute the composite unit::
 
-    In [7]: %timeit array << UNIT_MSKGSR
+    In [10]: %timeit array << UNIT_MSKGSR
     6.51 µs ± 112 ns per loop (mean ± std. dev. of 7 runs, 100000 loops each)
 
 Which is over 10000x faster than the original example. See

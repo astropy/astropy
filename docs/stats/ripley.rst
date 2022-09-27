@@ -50,7 +50,8 @@ To use Ripley's K Function Estimators from ``astropy``'s stats sub-package:
     from matplotlib import pyplot as plt
     from astropy.stats import RipleysKEstimator
 
-    z = np.random.uniform(low=5, high=10, size=(100, 2))
+    rng = np.random.default_rng()
+    z = rng.uniform(low=5, high=10, size=(100, 2))
     Kest = RipleysKEstimator(area=25, x_max=10, y_max=10, x_min=5, y_min=5)
 
     r = np.linspace(0, 2.5, 100)
