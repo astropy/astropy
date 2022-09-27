@@ -6,10 +6,10 @@ various criteria.
 """
 
 import abc
+
 import numpy as np
 
 from .transform import BaseTransform
-
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
            'AsymmetricPercentileInterval', 'PercentileInterval',

@@ -2,7 +2,6 @@
 
 
 import numpy as np
-
 from matplotlib.lines import Path
 
 from astropy.coordinates.angle_utilities import angular_separation

@@ -1,28 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from functools import partial
 from collections import defaultdict
+from functools import partial
 
 import numpy as np
-
 from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 import astropy.units as u
-from astropy.coordinates import SkyCoord, BaseCoordinateFrame
+from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
-from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
-from .utils import get_coord_meta, transform_contour_set_inplace
 from .frame import RectangularFrame, RectangularFrame1D
+from .transforms import CoordinateTransform
+from .utils import get_coord_meta, transform_contour_set_inplace
 from .wcsapi import IDENTITY, transform_coord_meta_from_wcs
-
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 

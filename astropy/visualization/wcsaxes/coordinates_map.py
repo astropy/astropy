@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from textwrap import indent
 from collections import OrderedDict
+from textwrap import indent
 
 from .coordinate_helpers import CoordinateHelper
-from .frame import RectangularFrame, RectangularFrame1D
 from .coordinate_range import find_coordinate_range
+from .frame import RectangularFrame, RectangularFrame1D
 
 
 class CoordinatesMap:

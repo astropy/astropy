@@ -3,14 +3,14 @@
 import os
 from unittest.mock import patch
 
-import pytest
 import matplotlib.pyplot as plt
-from astropy.wcs import WCS
+import pytest
+
+from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-
 from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy import units as u
+from astropy.wcs import WCS
 
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename('data/msx_header'))
 

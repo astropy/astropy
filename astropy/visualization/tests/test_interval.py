@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.utils import NumpyRNGContext
-from astropy.visualization.interval import (ManualInterval,
-                                            MinMaxInterval,
-                                            PercentileInterval,
-                                            AsymmetricPercentileInterval,
-                                            ZScaleInterval)
+from astropy.visualization.interval import (
+    AsymmetricPercentileInterval, ManualInterval, MinMaxInterval, PercentileInterval,
+    ZScaleInterval)
 
 
 class TestInterval:

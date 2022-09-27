@@ -8,22 +8,21 @@ axes, ticks, tick labels, and grid lines.
 import warnings
 
 import numpy as np
-
-from matplotlib.ticker import Formatter
-from matplotlib.transforms import Affine2D, ScaledTranslation
+from matplotlib import rcParams
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
-from matplotlib import rcParams
+from matplotlib.ticker import Formatter
+from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .frame import RectangularFrame1D, EllipticalFrame
-from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
-from .ticks import Ticks
-from .ticklabels import TickLabels
 from .axislabels import AxisLabels
-from .grid_paths import get_lon_lat_path, get_gridline_path
+from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
+from .frame import EllipticalFrame, RectangularFrame1D
+from .grid_paths import get_gridline_path, get_lon_lat_path
+from .ticklabels import TickLabels
+from .ticks import Ticks
 
 __all__ = ['CoordinateHelper']
 

@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import matplotlib.lines
 import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 from matplotlib import rc_context
 from matplotlib.patches import Circle, Rectangle
-
-import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord

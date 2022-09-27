@@ -1,19 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
 
-from astropy.visualization.stretch import (LinearStretch, SqrtStretch,
-                                           PowerStretch, PowerDistStretch,
-                                           InvertedPowerDistStretch,
-                                           SquaredStretch, LogStretch,
-                                           InvertedLogStretch,
-                                           AsinhStretch, SinhStretch,
-                                           HistEqStretch,
-                                           InvertedHistEqStretch,
-                                           ContrastBiasStretch)
-
+from astropy.visualization.stretch import (
+    AsinhStretch, ContrastBiasStretch, HistEqStretch, InvertedHistEqStretch, InvertedLogStretch,
+    InvertedPowerDistStretch, LinearStretch, LogStretch, PowerDistStretch, PowerStretch,
+    SinhStretch, SqrtStretch, SquaredStretch)
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 
