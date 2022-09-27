@@ -839,14 +839,22 @@ def test_ephemerides():
         moon_helioecl_jpl = moon.transform_to(ecl_frame)
         moon_cirs_jpl = moon.transform_to(cirs_frame)
 
-    # most transformations should differ by an amount which is
-    # non-zero but of order milliarcsecs
+    # Most transformations should differ by an amount which is
+    # non-zero but of order milliarcsecs.
+    # An exception is ICRS in more recent JPL ephemerides, since in DE
+    # 440 the SSB moved by about 100 km relative to previous ones,
+    # includings those that the built-in ERFA one is fit to.  At Earth,
+    # this corresponds to differences of about 100km/1AU ~ 140 mas.
+    # Since the Earth and Moon orbit a point much closer to the Sun
+    # than to the SSB, the HCRS and Heliocentric mean ecliptic are
+    # much more consistent.
     sep_icrs = moon_icrs_builtin.separation(moon_icrs_jpl)
     sep_hcrs = moon_hcrs_builtin.separation(moon_hcrs_jpl)
     sep_helioecl = moon_helioecl_builtin.separation(moon_helioecl_jpl)
     sep_cirs = moon_cirs_builtin.separation(moon_cirs_jpl)
 
-    assert_allclose([sep_icrs, sep_hcrs, sep_helioecl], 0.0*u.deg, atol=10*u.mas)
+    assert_allclose(sep_icrs, 0.0*u.deg, atol=200*u.mas)
+    assert_allclose([sep_hcrs, sep_helioecl], 0.0*u.deg, atol=10*u.mas)
     assert all(sep > 10*u.microarcsecond for sep in (sep_icrs, sep_hcrs, sep_helioecl))
 
     # CIRS should be the same
@@ -1002,6 +1010,8 @@ def test_aa_hd_high_precision():
     # Note: at this level of precision for the comparison, we have to include
     # the location in the time, as it influences the transformation to TDB.
     t = Time('2017-04-06T00:00:00.0', location=loc)
+    # We also have to stick to exactly the same ephemeris: de432s is not the
+    # same as de430 within these tight limits.
     with solar_system_ephemeris.set('de430'):
         moon = get_body('moon', t, loc)
         moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))

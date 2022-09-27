@@ -1,0 +1,4 @@
+The default 'jpl' ephemeris is now DE440s instead of DE430. This means
+it is a newer ephemeris, but also one that by default covers a smaller
+span in time (1850-2150), in order not to download more than will be
+needed except in very unusual cases.
