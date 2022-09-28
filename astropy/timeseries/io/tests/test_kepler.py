@@ -4,10 +4,9 @@ from unittest import mock
 
 import pytest
 
-from astropy.io.fits import HDUList, Header, PrimaryHDU, BinTableHDU
-from astropy.utils.data import get_pkg_data_filename
-
+from astropy.io.fits import BinTableHDU, HDUList, Header, PrimaryHDU
 from astropy.timeseries.io.kepler import kepler_fits_reader
+from astropy.utils.data import get_pkg_data_filename
 
 
 def fake_header(extver, version, timesys, telescop):

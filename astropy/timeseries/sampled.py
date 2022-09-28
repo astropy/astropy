@@ -4,12 +4,12 @@ from copy import deepcopy
 
 import numpy as np
 
-from astropy.table import groups, QTable, Table
-from astropy.time import Time, TimeDelta
 from astropy import units as u
+from astropy.table import QTable, Table, groups
+from astropy.time import Time, TimeDelta
+from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 from astropy.units import Quantity, UnitsError
 from astropy.utils.decorators import deprecated_renamed_argument
-from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 
 __all__ = ['TimeSeries']
 

@@ -5,11 +5,12 @@ __all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 import numpy as np
 
 from astropy import units
-from astropy.time import Time, TimeDelta
-from astropy.timeseries.periodograms.lombscargle.core import has_units, strip_units
 from astropy import units as u
-from . import methods
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.base import BasePeriodogram
+from astropy.timeseries.periodograms.lombscargle.core import has_units, strip_units
+
+from . import methods
 
 
 def validate_unit_consistency(reference_object, input_object):
