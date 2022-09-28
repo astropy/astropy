@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.timeseries.periodograms.lombscargle.implementations.mle import design_matrix, periodic_fit
+from astropy.timeseries.periodograms.lombscargle.implementations.mle import (
+    design_matrix, periodic_fit)
 
 
 @pytest.fixture

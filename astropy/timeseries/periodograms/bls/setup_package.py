@@ -3,9 +3,8 @@
 import os
 from os.path import join
 
-from setuptools import Extension
-
 import numpy
+from setuptools import Extension
 
 BLS_ROOT = os.path.relpath(os.path.dirname(__file__))
 

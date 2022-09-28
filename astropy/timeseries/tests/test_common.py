@@ -1,16 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-
 from numpy.testing import assert_equal
 
 from astropy import units as u
-from astropy.table import Table, QTable, vstack, join
+from astropy.table import QTable, Table, join, vstack
 from astropy.time import Time
-
-from astropy.timeseries.sampled import TimeSeries
 from astropy.timeseries.binned import BinnedTimeSeries
-
+from astropy.timeseries.sampled import TimeSeries
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2015-01-21T12:30:32', '2016-03-22T12:30:40'])
 PLAIN_TABLE = Table([[1., 2., 11.], [3, 4, 1], ['x', 'y', 'z']], names=['a', 'b', 'c'])

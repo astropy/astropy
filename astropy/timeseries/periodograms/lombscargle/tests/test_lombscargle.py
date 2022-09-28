@@ -1,12 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose
 
-from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
-
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != 'auto']

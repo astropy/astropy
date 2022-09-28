@@ -2,12 +2,11 @@
 #cython: language_level=3
 
 import numpy as np
-cimport numpy as np
 
 cimport cython
-
+cimport numpy as np
 from libc.math cimport sqrt
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport free, malloc
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t

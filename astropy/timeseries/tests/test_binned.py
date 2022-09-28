@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pytest
-from numpy.testing import assert_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
-from astropy.time import Time, TimeDelta
-from astropy.utils.data import get_pkg_data_filename
-
-from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
-from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.tests.helper import assert_quantity_allclose
-
+from astropy.time import Time, TimeDelta
+from astropy.timeseries.binned import BinnedTimeSeries
+from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
+from astropy.utils.data import get_pkg_data_filename
 
 CSV_FILE = get_pkg_data_filename('data/binned.csv')
 

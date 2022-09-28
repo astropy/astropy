@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref
 from astropy.timeseries.periodograms.lombscargle.core import LombScargle
-
+from astropy.timeseries.periodograms.lombscargle.utils import (
+    compute_chi2_ref, convert_normalization)
 
 NORMALIZATIONS = ['standard', 'model', 'log', 'psd']
 

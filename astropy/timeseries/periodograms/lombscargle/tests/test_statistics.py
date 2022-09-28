@@ -4,10 +4,10 @@ from numpy.testing import assert_allclose
 
 import astropy.units as u
 from astropy.timeseries.periodograms.lombscargle import LombScargle
-from astropy.timeseries.periodograms.lombscargle._statistics import (fap_single, inv_fap_single,
-                                                                     METHODS)
-from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref  # noqa: E501
-
+from astropy.timeseries.periodograms.lombscargle._statistics import (
+    METHODS, fap_single, inv_fap_single)
+from astropy.timeseries.periodograms.lombscargle.utils import (
+    compute_chi2_ref, convert_normalization)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
