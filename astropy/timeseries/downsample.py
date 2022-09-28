@@ -3,12 +3,12 @@
 import warnings
 
 import numpy as np
+
 from astropy import units as u
 from astropy.time import Time, TimeDelta
-from astropy.utils.exceptions import AstropyUserWarning
-
-from astropy.timeseries.sampled import TimeSeries
 from astropy.timeseries.binned import BinnedTimeSeries
+from astropy.timeseries.sampled import TimeSeries
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['aggregate_downsample']
 

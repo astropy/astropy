@@ -33,6 +33,7 @@ def _weighted_var(val, dy):
 
 def _gamma(N):
     from scipy.special import gammaln
+
     # Note: this is closely approximated by (1 - 0.75 / N) for large N
     return np.sqrt(2 / N) * np.exp(gammaln(N / 2) - gammaln((N - 1) / 2))
 

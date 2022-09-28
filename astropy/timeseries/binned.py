@@ -4,12 +4,11 @@ from copy import deepcopy
 
 import numpy as np
 
-from astropy.table import groups, Table, QTable
-from astropy.time import Time, TimeDelta
 from astropy import units as u
-from astropy.units import Quantity
-
+from astropy.table import QTable, Table, groups
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
+from astropy.units import Quantity
 
 __all__ = ['BinnedTimeSeries']
 
