@@ -484,9 +484,8 @@ column attributes are ``name``, ``dtype``, ``format``, ``description`` and
     >>> ascii.write(
     ...    dat,
     ...    format="fixed_width",
-    ...    header_rows=["dtype", "name", "unit", "format", "description"],
+    ...    header_rows=["name", "unit", "format", "description"],
     ... )
-    | int64 | float64 |      <U1 | int64 |
     |     a |       b |        c |     d |
     |     m |         |          | m / s |
     |       |     .2f |          |       |
