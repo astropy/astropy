@@ -575,15 +575,15 @@ a factor of 10 with negligible loss of information.
     y, x = np.indices(imshape)
 
     # Generate random source model list
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     nsrc = 100
     model_params = [
-        dict(amplitude=np.random.uniform(.5, 1),
-             x_mean=np.random.uniform(0, imshape[1] - 1),
-             y_mean=np.random.uniform(0, imshape[0] - 1),
-             x_stddev=np.random.uniform(2, 6),
-             y_stddev=np.random.uniform(2, 6),
-             theta=np.random.uniform(0, 2 * np.pi))
+        dict(amplitude=rng.uniform(.5, 1),
+             x_mean=rng.uniform(0, imshape[1] - 1),
+             y_mean=rng.uniform(0, imshape[0] - 1),
+             x_stddev=rng.uniform(2, 6),
+             y_stddev=rng.uniform(2, 6),
+             theta=rng.uniform(0, 2 * np.pi))
         for _ in range(nsrc)]
 
     model_list = [models.Gaussian2D(**kwargs) for kwargs in model_params]

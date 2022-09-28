@@ -52,10 +52,10 @@ calculating values based on input x values, and using fitting data with a model.
        # generate x, y data non-uniformly spaced in x
        # add noise to y measurements
        npts = 30
-       np.random.seed(10)
-       x = np.random.uniform(0.0, 10.0, npts)
+       rng = np.random.default_rng(10)
+       x = rng.uniform(0.0, 10.0, npts)
        y = line_orig(x)
-       y += np.random.normal(0.0, 1.5, npts)
+       y += rng.normal(0.0, 1.5, npts)
 
        # initialize a linear fitter
        fit = fitting.LinearLSQFitter()

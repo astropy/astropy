@@ -27,11 +27,11 @@ a realistic example.
     # generate x, y data non-uniformly spaced in x
     # add noise to y measurements
     npts = 30
-    np.random.seed(10)
-    x = np.random.uniform(0.0, 10.0, npts)
+    rng = np.random.default_rng(10)
+    x = rng.uniform(0.0, 10.0, npts)
     y = line_orig(x)
-    yunc = np.absolute(np.random.normal(0.5, 2.5, npts))
-    y += np.random.normal(0.0, yunc, npts)
+    yunc = np.absolute(rng.normal(0.5, 2.5, npts))
+    y += rng.normal(0.0, yunc, npts)
 
     # initialize a linear fitter
     fit = fitting.LinearLSQFitter()
@@ -71,11 +71,11 @@ Gaussian errors, the weights to pass to the fitting are 1/unc.
     # generate x, y data non-uniformly spaced in x
     # add noise to y measurements
     npts = 30
-    np.random.seed(10)
-    x = np.random.uniform(0.0, 10.0, npts)
+    rng = np.random.default_rng(10)
+    x = rng.uniform(0.0, 10.0, npts)
     y = line_orig(x)
-    yunc = np.absolute(np.random.normal(0.5, 2.5, npts))
-    y += np.random.normal(0.0, yunc, npts)
+    yunc = np.absolute(rng.normal(0.5, 2.5, npts))
+    y += rng.normal(0.0, yunc, npts)
 
     # initialize a linear fitter
     fit = fitting.LinearLSQFitter()
@@ -118,11 +118,11 @@ have the same uncertainties for the sigma clipping decision.
     # generate x, y data non-uniformly spaced in x
     # add noise to y measurements
     npts = 30
-    np.random.seed(10)
-    x = np.random.uniform(0.0, 10.0, npts)
+    rng = np.random.default_rng(10)
+    x = rng.uniform(0.0, 10.0, npts)
     y = line_orig(x)
-    yunc = np.absolute(np.random.normal(0.5, 2.5, npts))
-    y += np.random.normal(0.0, yunc, npts)
+    yunc = np.absolute(rng.normal(0.5, 2.5, npts))
+    y += rng.normal(0.0, yunc, npts)
 
     # make true outliers
     y[3] = line_orig(x[3]) + 6 * yunc[3]

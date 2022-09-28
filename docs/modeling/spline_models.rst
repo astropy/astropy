@@ -36,8 +36,9 @@ we provide three methods for fitting splines to data:
                                           SplineSmoothingFitter,
                                           SplineExactKnotsFitter)
 
+    rng = np.random.default_rng()
     x = np.linspace(-3, 3, 50)
-    y = np.exp(-x**2) + 0.1 * np.random.randn(50)
+    y = np.exp(-x**2) + 0.1 * rng.standard_normal(50)
     xs = np.linspace(-3, 3, 1000)
     t = [-1, 0, 1]
     spl = Spline1D()
