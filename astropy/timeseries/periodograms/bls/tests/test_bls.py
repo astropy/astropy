@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
-from astropy.time import Time, TimeDelta
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.bls import BoxLeastSquares
 from astropy.timeseries.periodograms.lombscargle.core import has_units
 

@@ -2,17 +2,15 @@
 
 import sys
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_equal
 
 from astropy import units as u
 from astropy.time import Time
-from astropy.utils.exceptions import AstropyUserWarning
-
-from astropy.timeseries.sampled import TimeSeries
 from astropy.timeseries.downsample import aggregate_downsample, reduceat
-
+from astropy.timeseries.sampled import TimeSeries
+from astropy.utils.exceptions import AstropyUserWarning
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2016-03-22T12:30:32',
                    '2016-03-22T12:30:33', '2016-03-22T12:30:34',

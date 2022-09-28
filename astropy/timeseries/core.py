@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from types import FunctionType
 from contextlib import contextmanager
 from functools import wraps
+from types import FunctionType
 
 from astropy.table import QTable
 

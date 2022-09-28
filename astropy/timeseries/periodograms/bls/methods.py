@@ -2,8 +2,9 @@
 
 __all__ = ["bls_fast", "bls_slow"]
 
-import numpy as np
 from functools import partial
+
+import numpy as np
 
 from ._impl import bls_impl
 
