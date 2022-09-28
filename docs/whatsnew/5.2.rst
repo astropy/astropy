@@ -99,16 +99,15 @@ additional header rows specifying any or all of the column ``dtype``, ``unit``,
     >>> ascii.write(
     ...     dat,
     ...     format="fixed_width_two_line",
-    ...     header_rows=["name", "dtype", "unit", "format"]
+    ...     header_rows=["name", "unit", "format"]
     ... )
-        a       b   c     d
-    int64 float64 <U1 int64
-                m     m / s
-            .2f
-    ----- ------- --- -----
-        1    1.00   c     4
-        2    2.00   d     5
-        3    3.00   e     6
+    a    b c     d
+         m   m / s
+       .2f
+    - ---- - -----
+    1 1.00 c     4
+    2 2.00 d     5
+    3 3.00 e     6
 
 Full change log
 ===============
