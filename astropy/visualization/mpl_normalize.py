@@ -10,7 +10,8 @@ from numpy import ma
 
 from .interval import (
     AsymmetricPercentileInterval, BaseInterval, ManualInterval, MinMaxInterval, PercentileInterval)
-from .stretch import AsinhStretch, BaseStretch, LinearStretch, LogStretch, PowerStretch, SqrtStretch
+from .stretch import (
+    AsinhStretch, BaseStretch, LinearStretch, LogStretch, PowerStretch, SinhStretch, SqrtStretch)
 
 try:
     import matplotlib  # pylint: disable=W0611
@@ -188,7 +189,8 @@ class ImageNormalize(Normalize):
 
 def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
                 max_cut=None, min_percent=None, max_percent=None,
-                percent=None, clip=False, log_a=1000, invalid=-1.0):
+                percent=None, clip=False, log_a=1000, invalid=-1.0,
+                sinh_a=0.3):
     """
     Return a Normalization class that can be used for displaying images
     with Matplotlib.
@@ -204,7 +206,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     data : ndarray
         The image array.
 
-    stretch : {'linear', 'sqrt', 'power', log', 'asinh'}, optional
+    stretch : {'linear', 'sqrt', 'power', log', 'asinh', 'sinh'}, optional
         The stretch function to apply to the image.  The default is
         'linear'.
 
@@ -262,6 +264,10 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         If `None`, then NaN values are not replaced.  This keyword has
         no effect if ``clip=True``.
 
+    sinh_a : float, optional
+        The scaling parameter for ``stretch='sinh'``. The default is
+        0.3.
+
     Returns
     -------
     result : `ImageNormalize` instance
@@ -289,6 +295,8 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
         stretch = LogStretch(log_a)
     elif stretch == 'asinh':
         stretch = AsinhStretch(asinh_a)
+    elif stretch == 'sinh':
+        stretch = SinhStretch(sinh_a)
     else:
         raise ValueError(f'Unknown stretch: {stretch}.')
 
