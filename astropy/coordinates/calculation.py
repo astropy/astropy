@@ -28,29 +28,41 @@ class CelestialError(ValueError):
 def get_sign(dt):
     """
     """
-    if ((int(dt.month) == 12 and int(dt.day) >= 22)or(int(dt.month) == 1 and int(dt.day) <= 19)):
+    if ((int(dt.month) == 12 and int(dt.day) >= 22) or
+            (int(dt.month) == 1 and int(dt.day) <= 19)):
         zodiac_sign = "capricorn"
-    elif ((int(dt.month) == 1 and int(dt.day) >= 20)or(int(dt.month) == 2 and int(dt.day) <= 17)):
+    elif ((int(dt.month) == 1 and int(dt.day) >= 20) or
+            (int(dt.month) == 2 and int(dt.day) <= 17)):
         zodiac_sign = "aquarius"
-    elif ((int(dt.month) == 2 and int(dt.day) >= 18)or(int(dt.month) == 3 and int(dt.day) <= 19)):
+    elif ((int(dt.month) == 2 and int(dt.day) >= 18) or
+            (int(dt.month) == 3 and int(dt.day) <= 19)):
         zodiac_sign = "pisces"
-    elif ((int(dt.month) == 3 and int(dt.day) >= 20)or(int(dt.month) == 4 and int(dt.day) <= 19)):
+    elif ((int(dt.month) == 3 and int(dt.day) >= 20) or
+            (int(dt.month) == 4 and int(dt.day) <= 19)):
         zodiac_sign = "aries"
-    elif ((int(dt.month) == 4 and int(dt.day) >= 20)or(int(dt.month) == 5 and int(dt.day) <= 20)):
+    elif ((int(dt.month) == 4 and int(dt.day) >= 20) or
+            (int(dt.month) == 5 and int(dt.day) <= 20)):
         zodiac_sign = "taurus"
-    elif ((int(dt.month) == 5 and int(dt.day) >= 21)or(int(dt.month) == 6 and int(dt.day) <= 20)):
+    elif ((int(dt.month) == 5 and int(dt.day) >= 21) or
+            (int(dt.month) == 6 and int(dt.day) <= 20)):
         zodiac_sign = "gemini"
-    elif ((int(dt.month) == 6 and int(dt.day) >= 21)or(int(dt.month) == 7 and int(dt.day) <= 22)):
+    elif ((int(dt.month) == 6 and int(dt.day) >= 21) or
+            (int(dt.month) == 7 and int(dt.day) <= 22)):
         zodiac_sign = "cancer"
-    elif ((int(dt.month) == 7 and int(dt.day) >= 23)or(int(dt.month) == 8 and int(dt.day) <= 22)):
+    elif ((int(dt.month) == 7 and int(dt.day) >= 23) or
+            (int(dt.month) == 8 and int(dt.day) <= 22)):
         zodiac_sign = "leo"
-    elif ((int(dt.month) == 8 and int(dt.day) >= 23)or(int(dt.month) == 9 and int(dt.day) <= 22)):
+    elif ((int(dt.month) == 8 and int(dt.day) >= 23) or
+            (int(dt.month) == 9 and int(dt.day) <= 22)):
         zodiac_sign = "virgo"
-    elif ((int(dt.month) == 9 and int(dt.day) >= 23)or(int(dt.month) == 10 and int(dt.day) <= 22)):
+    elif ((int(dt.month) == 9 and int(dt.day) >= 23) or
+            (int(dt.month) == 10 and int(dt.day) <= 22)):
         zodiac_sign = "libra"
-    elif ((int(dt.month) == 10 and int(dt.day) >= 23)or(int(dt.month) == 11 and int(dt.day) <= 21)):
+    elif ((int(dt.month) == 10 and int(dt.day) >= 23) or
+            (int(dt.month) == 11 and int(dt.day) <= 21)):
         zodiac_sign = "scorpio"
-    elif ((int(dt.month) == 11 and int(dt.day) >= 22)or(int(dt.month) == 12 and int(dt.day) <= 21)):
+    elif ((int(dt.month) == 11 and int(dt.day) >= 22) or
+            (int(dt.month) == 12 and int(dt.day) <= 21)):
         zodiac_sign = "sagittarius"
 
     return zodiac_sign
@@ -152,7 +164,7 @@ def horoscope(birthday, corrected=True, chinese=False):
                                  'corrected=False.'.format(zodiac_sign.title()))
         else:
             zodiac_sign = get_sign(birthday.to_datetime())
-        url = f"http://www.astrology.com/us/horoscope/daily-overview.aspx?sign={zodiac_sign}"
+        url = f"https://astrology.com/horoscope/daily/{zodiac_sign}.html"
         summ_title_sfx = f"on {today.strftime('%Y-%m-%d')}"
 
         res = Request(url, headers=headers)
