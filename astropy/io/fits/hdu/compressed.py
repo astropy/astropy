@@ -1597,8 +1597,7 @@ class CompImageHDU(BinTableHDU):
 
         # Remove the PCOUNT GCOUNT cards if the uncompressed header is
         # from a primary HDU
-        if 'SIMPLE' in image_header and \
-                ('PCOUNT' in image_header or 'GCOUNT' in image_header):
+        if 'SIMPLE' in image_header:
             del image_header['PCOUNT']
             del image_header['GCOUNT']
 
