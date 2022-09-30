@@ -4,20 +4,18 @@ import gc
 import locale
 import re
 
-from packaging.version import Version
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from packaging.version import Version
 
-from astropy.io import fits
-from astropy.wcs import wcs
-from astropy.wcs import _wcs
-from astropy.wcs.wcs import FITSFixedWarning
-from astropy.utils.data import (
-    get_pkg_data_contents, get_pkg_data_fileobj, get_pkg_data_filename)
-from astropy.utils.misc import _set_locale
 from astropy import units as u
+from astropy.io import fits
 from astropy.units.core import UnitsWarning
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_fileobj
+from astropy.utils.misc import _set_locale
+from astropy.wcs import _wcs, wcs
+from astropy.wcs.wcs import FITSFixedWarning
 
 ######################################################################
 

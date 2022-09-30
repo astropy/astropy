@@ -5,7 +5,7 @@ import copy
 import numpy as np
 
 import astropy.units as u
-from astropy.coordinates import CartesianRepresentation, SphericalRepresentation, ITRS
+from astropy.coordinates import ITRS, CartesianRepresentation, SphericalRepresentation
 from astropy.utils import unbroadcast
 
 from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
@@ -52,8 +52,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import (FK4, FK5, ICRS, ITRS, FK4NoETerms,
-                                     Galactic, SphericalRepresentation)
+    from astropy.coordinates import (
+        FK4, FK5, ICRS, ITRS, FK4NoETerms, Galactic, SphericalRepresentation)
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
 
