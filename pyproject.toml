@@ -38,8 +38,6 @@ archs = ["auto", "aarch64"]
 
 [tool.isort]
     extend_skip_glob = [
-        "docs/*",
-        "examples/*",
         "astropy/extern/*",
         "astropy/wcs/*"
     ]

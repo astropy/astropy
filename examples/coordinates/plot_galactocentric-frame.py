@@ -32,9 +32,11 @@ sun" in the examples below.
 # Make `print` work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from astropy.visualization import astropy_mpl_style
+
 plt.style.use(astropy_mpl_style)
 
 

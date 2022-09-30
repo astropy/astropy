@@ -17,8 +17,11 @@ memory) from scratch using `astropy.io.fits`.
 #  Normally to create a single image FITS file one would do something like:
 
 import os
+
 import numpy as np
+
 from astropy.io import fits
+
 data = np.zeros((40000, 40000), dtype=np.float64)
 hdu = fits.PrimaryHDU(data=data)
 
