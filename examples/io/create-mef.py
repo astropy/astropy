@@ -16,13 +16,14 @@ file from scratch using `astropy.io.fits`.
 
 import os
 
+from astropy.io import fits
+
 ##############################################################################
 # HDUList objects are used to hold all the HDUs in a FITS file. This
-# ``HDUList`` class is a subclass of Python's builtin `list`. and can be
+# ``HDUList`` class is a subclass of Python's builtin `list` and can be
 # created from scratch. For example, to create a FITS file with
 # three extensions:
 
-from astropy.io import fits
 new_hdul = fits.HDUList()
 new_hdul.append(fits.ImageHDU())
 new_hdul.append(fits.ImageHDU())

@@ -17,15 +17,16 @@ This example uses `pillow <https://python-pillow.org>`_ to read the image,
 
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+
 from astropy.io import fits
+from astropy.visualization import astropy_mpl_style
 
 ##############################################################################
 # Set up matplotlib and use a nicer set of plot parameters
 
-import matplotlib.pyplot as plt
-from astropy.visualization import astropy_mpl_style
 plt.style.use(astropy_mpl_style)
 
 ##############################################################################
@@ -75,11 +76,14 @@ blue.header['LONGOBS'] = "110:56"
 blue.writeto('blue.fits')
 
 from pprint import pprint
+
 pprint(red.header)
 
 ##############################################################################
 # Delete the files created
+
 import os
+
 os.remove('red.fits')
 os.remove('green.fits')
 os.remove('blue.fits')
