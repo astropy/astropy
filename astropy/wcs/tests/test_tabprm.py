@@ -2,13 +2,12 @@
 
 from copy import deepcopy
 
-import pytest
-
 import numpy as np
+import pytest
 
 from astropy import wcs
 
-from . helper import SimModelTAB
+from .helper import SimModelTAB
 
 
 def test_wcsprm_tab_basic(tab_wcs_2di):

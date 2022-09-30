@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from copy import copy, deepcopy
-import pytest
 
 import numpy as np
+import pytest
+
 from astropy import wcs
 
-from . helper import SimModelTAB
-
+from .helper import SimModelTAB
 
 _WCS_UNDEFINED = 987654321.0e99
 

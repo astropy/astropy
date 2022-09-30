@@ -1,11 +1,11 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.units import Quantity
 from astropy.coordinates import SkyCoord
-
+from astropy.units import Quantity
+from astropy.wcs.wcsapi.high_level_api import (
+    HighLevelWCSMixin, high_level_objects_to_values, values_to_high_level_objects)
 from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
-from astropy.wcs.wcsapi.high_level_api import HighLevelWCSMixin, high_level_objects_to_values, values_to_high_level_objects
 
 
 class DoubleLowLevelWCS(BaseLowLevelWCS):

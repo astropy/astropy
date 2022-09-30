@@ -1,21 +1,21 @@
 import warnings
 
-import pytest
-
 import numpy as np
-from numpy.testing import assert_equal, assert_allclose
-from astropy.wcs.wcs import WCS, FITSFixedWarning
-from astropy.time import Time
-from astropy.wcs import WCS
+import pytest
+from numpy.testing import assert_allclose, assert_equal
+
+import astropy.units as u
+from astropy.coordinates import ICRS, Galactic, SkyCoord
+from astropy.coordinates.spectral_coordinate import SpectralCoord
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.coordinates import SkyCoord, Galactic, ICRS
+from astropy.time import Time
 from astropy.units import Quantity
-from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
+from astropy.wcs import WCS
+from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.utils import wcs_info_str
-import astropy.units as u
-
-from astropy.coordinates.spectral_coordinate import SpectralCoord
+from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
+    SlicedLowLevelWCS, combine_slices, sanitize_slices)
 
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create
