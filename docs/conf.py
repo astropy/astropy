@@ -24,13 +24,13 @@
 # be accessible, and the documentation will not build correctly.
 # See sphinx_astropy.conf for which values are set there.
 
+import configparser
+import doctest
 import os
 import sys
-import configparser
 from datetime import datetime
 from importlib import metadata
 
-import doctest
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 

@@ -7,6 +7,7 @@
 
 import os
 import tempfile
+
 import pytest
 
 # Make sure we use temporary directories for the config and cache
