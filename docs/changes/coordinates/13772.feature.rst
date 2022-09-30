@@ -1,0 +1,3 @@
+Added a ``functools.singledispatch`` method for getting a frame from input data.
+The built-in registrants are the frame name, a frame class or instance, and a
+SkyCoord.

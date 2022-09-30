@@ -12,7 +12,7 @@ from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
     Attribute, CoordinateAttribute, DifferentialAttribute, EarthLocationAttribute,
     QuantityAttribute, TimeAttribute)
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
+from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, get_frame
 from astropy.coordinates.builtin_frames import (
     FK4, FK5, GCRS, HCRS, ICRS, ITRS, AltAz, Galactic, Galactocentric, HADec)
 from astropy.coordinates.representation import REPRESENTATION_CLASSES, CartesianDifferential
@@ -1507,3 +1507,32 @@ def test_nameless_frame_subclass():
     # This subclassing is the test!
     class NewFrame(ICRS, Test):
         pass
+
+
+def test_get_frame_error():
+    """Test an unregistered type for ``get_frame``."""
+    with pytest.raises(NotImplementedError):
+        get_frame(object)
+
+
+def test_get_frame_from_str():
+    assert get_frame("icrs") == ICRS()
+
+
+def test_get_frame_from_frame_type():
+    assert get_frame(ICRS) == ICRS()
+
+    with pytest.raises(NotImplementedError):
+        get_frame(object)
+
+
+def test_get_frame_from_frame():
+    inp = ICRS()
+    frame = get_frame(inp)
+    assert frame == inp
+    assert frame is not inp  # b/c replicated
+
+    inp = ICRS(ra=10*u.deg, dec=10*u.deg)
+    frame = get_frame(inp)
+    assert not frame.has_data
+    assert frame == ICRS()

@@ -4,9 +4,11 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
+from __future__ import annotations
 
-# Standard library
+# STDLIB
 import copy
+import functools
 import inspect
 import warnings
 from collections import defaultdict, namedtuple
@@ -26,7 +28,7 @@ from .attributes import Attribute
 from .transformations import TransformGraph
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph',
-           'GenericFrame', 'RepresentationMapping']
+           'GenericFrame', 'RepresentationMapping', "get_frame"]
 
 
 # the graph used for all transformations between frames
@@ -1884,3 +1886,82 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError(f"can't set frame attribute '{name}'")
         else:
             super().__setattr__(name, value)
+
+
+# ===================================================================
+# Convenience Functions
+
+
+@functools.singledispatch
+def get_frame(frame: object) -> BaseCoordinateFrame:
+    """Determine the `~BaseCoordinateFrame` and return a blank instance.
+
+    ``get_frame`` uses`~functools.singledispatch` on the argument, so more input
+    types can be added.
+
+    Parameters
+    ----------
+    frame : `~BaseCoordinateFrame` or str or Any, positional-only
+        - If `~BaseCoordinateFrame` instance, replicates without data.
+        - If `~BaseCoordinateFrame` class, instantiates.
+        - If `str`, uses astropy parsers to determine frame class.
+        - If `~astropy.coordinates.SkyCoord` instance, replicates the contained
+          frame class.
+
+    Returns
+    -------
+    frame : `~BaseCoordinateFrame` instance
+        Replicated without data.
+
+    Raises
+    ------
+    TypeError
+        If ``frame`` is not one of the allowed types.
+
+    Examples
+    --------
+    Out of the box, ``get_frame`` accepts 3 input types: a `str`, `~BaseCoordinateFrame` class, and `~astropy.coordinates.SkyCoord`.
+
+        >>> get_frame('icrs')
+        <ICRS Frame>
+
+        >>> import astropy.units as u
+        >>> from astropy.coordinates import ICRS, SkyCoord
+        >>> get_frame(ICRS())
+        <ICRS Frame>
+
+        >>> get_frame(ICRS(ra=10 * u.deg, dec=10*u.deg))
+        <ICRS Frame>
+
+        >>> get_frame(SkyCoord(ICRS(ra=10 * u.deg, dec=10*u.deg)))
+        <ICRS Frame>
+
+    Futher input types can be registered. For details, see `functools.singledispatch`.
+    """
+    raise NotImplementedError(f"frame type {type(frame)} not dispatched")
+
+
+@get_frame.register(str)
+def _get_frame_from_str(name: str) -> BaseCoordinateFrame:  # noqa: F811
+    frame_cls = frame_transform_graph.lookup_name(name)
+
+    if frame_cls is None:
+        frame_names = frame_transform_graph.get_names()
+        raise ValueError(f"Coordinate frame name {name!r} is not a known coordinate frame ({sorted(frame_names)})")
+
+    return frame_cls()
+
+
+@get_frame.register(type)
+def _get_frame_from_frame_type(frame: type[BaseCoordinateFrame]) -> BaseCoordinateFrame:
+    if inspect.isclass(frame) and issubclass(frame, BaseCoordinateFrame):
+        return frame()
+    else:
+        raise NotImplementedError(f"frame type {frame} not dispatched")
+
+
+@get_frame.register(BaseCoordinateFrame)
+def _get_frame_from_frame(frame: BaseCoordinateFrame) -> BaseCoordinateFrame:
+    return frame.replicate_without_data(
+        representation_type=frame.representation_type, differential_type=frame.differential_type
+    )

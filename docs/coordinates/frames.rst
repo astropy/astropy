@@ -268,6 +268,46 @@ take a different lower-level approach which is described in the section
   The current cache implementation is similarly unable to handle in-place changes
   to the representation (``.data``) or frame attributes such as ``.obstime``.
 
+
+Getting the Frame
+-----------------
+
+In astropy and affiliate packages, frame instances are often passed as inputs to
+functions. For convenience it is useful for frame-like inputs, like the frame's
+name or a |SkyCoord| with the desired frame, to also be valid inputs. To support
+these use cases and to get the frame given input, use the
+:func:`~astropy.coordinates.get_frame` function. ``get_frame`` accepts the frame
+name, a frame instance (or class), or a SkyCoord and returns the frame
+(replicated, and without data).
+
+    >>> from astropy.coordinates import ICRS, SkyCoord, get_frame
+
+    >>> get_frame('icrs')
+    <ICRS Frame>
+
+    >>> get_frame(ICRS)
+    <ICRS Frame>
+
+    >>> get_frame(ICRS())
+    <ICRS Frame>
+
+    >>> get_frame(ICRS(ra=10 * u.deg, dec=10*u.deg))
+    <ICRS Frame>
+
+    >>> get_frame(SkyCoord(ICRS(ra=10 * u.deg, dec=10*u.deg)))
+    <ICRS Frame>
+
+As an example function accepting a frame::
+
+    >>> def transform_to(x, frame: "str | BaseCoordinateFrame | SkyCoord"):
+    ...     frame = get_frame(frame)
+    ...     ...
+
+:func:`~astropy.coordinates.get_frame` uses :func:`~functools.singledispatch`,
+so custom frame-like objects can be registered and will work anywhere
+``get_frame`` is used.
+
+
 Transforming between Frames
 ===========================
 

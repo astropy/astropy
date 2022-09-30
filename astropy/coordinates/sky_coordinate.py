@@ -15,7 +15,7 @@ from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle
-from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
+from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph, get_frame
 from .builtin_frames import ICRS, SkyOffsetFrame
 from .distances import Distance
 from .representation import (
@@ -2125,3 +2125,14 @@ class SkyCoord(ShapedLikeNDArray):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
+
+# ===================================================================
+# Convenience Functions
+
+@get_frame.register
+def _get_frame_from_skycoord(frame: SkyCoord) -> BaseCoordinateFrame:
+    return frame.frame.replicate_without_data(
+        representation_type=frame.frame.representation_type,
+        differential_type=frame.frame.differential_type,
+    )

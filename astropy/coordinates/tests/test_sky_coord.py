@@ -18,6 +18,7 @@ from astropy.coordinates import (
     FK4, FK5, GCRS, ICRS, AltAz, Angle, Attribute, BaseCoordinateFrame, CartesianRepresentation,
     EarthLocation, Galactic, Latitude, RepresentationMapping, SkyCoord, SphericalRepresentation,
     UnitSphericalRepresentation, frame_transform_graph)
+from astropy.coordinates.baseframe import get_frame
 from astropy.coordinates.representation import DUPLICATE_REPRESENTATIONS, REPRESENTATION_CLASSES
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.transformations import FunctionTransform
@@ -1890,3 +1891,10 @@ def test_match_to_catalog_3d_and_sky():
     npt.assert_array_equal(idx, [0, 1, 2, 3])
     assert_allclose(angle, 0 * u.deg, atol=1e-14*u.deg, rtol=0)
     assert_allclose(distance, 0*u.kpc, atol=1e-14*u.kpc, rtol=0)
+
+
+def test_get_frame_from_skycoord():
+    inp = SkyCoord(ICRS(ra=10*u.deg, dec=10*u.deg))
+    frame = get_frame(inp)
+    assert not frame.has_data
+    assert frame == ICRS()
