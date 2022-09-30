@@ -7,7 +7,6 @@ from numpy.testing import assert_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 
-
 STR_EXPECTED_EMPTY = """
 rsun_ref:
 dsun_obs:

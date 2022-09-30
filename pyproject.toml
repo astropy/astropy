@@ -39,7 +39,6 @@ archs = ["auto", "aarch64"]
 [tool.isort]
     extend_skip_glob = [
         "astropy/extern/*",
-        "astropy/wcs/*"
     ]
     line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
