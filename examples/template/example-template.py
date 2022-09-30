@@ -21,9 +21,11 @@ show the astropy.io.fits or like this `~astropy.io.fits`to show just 'fits'
 # Make print work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from astropy.visualization import astropy_mpl_style
+
 plt.style.use(astropy_mpl_style)
 # uncomment if including figures:
 # import matplotlib.pyplot as plt

@@ -15,11 +15,10 @@ using `astropy.io.fits`.
 """
 
 from astropy.io import fits
+from astropy.utils.data import get_pkg_data_filename
 
 ##############################################################################
 # Download a FITS file:
-
-from astropy.utils.data import get_pkg_data_filename
 
 fits_file = get_pkg_data_filename('tutorials/FITS-Header/input_file.fits')
 
