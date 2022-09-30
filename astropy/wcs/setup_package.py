@@ -2,18 +2,17 @@
 
 import io
 import os
-from os.path import join
 import os.path
 import shutil
 import sys
 from collections import defaultdict
+from os.path import join
 
+import numpy
 from setuptools import Extension
 from setuptools.dep_util import newer_group
 
-import numpy
-
-from extension_helpers import import_file, write_if_different, get_compiler, pkg_config
+from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "7.12"

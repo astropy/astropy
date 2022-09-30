@@ -5,8 +5,9 @@ Script support for validating the WCS keywords in a FITS file.
 
 
 def main(args=None):
-    from . import wcs
     import argparse
+
+    from . import wcs
 
     parser = argparse.ArgumentParser(
         description=("Check the WCS keywords in a FITS file for "

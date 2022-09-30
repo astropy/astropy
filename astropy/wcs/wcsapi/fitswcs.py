@@ -8,13 +8,14 @@ import warnings
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import SpectralCoord, Galactic, ICRS
-from astropy.coordinates.spectral_coordinate import update_differentials_to_match, attach_zero_velocities
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.constants import c
+from astropy.coordinates import ICRS, Galactic, SpectralCoord
+from astropy.coordinates.spectral_coordinate import (
+    attach_zero_velocities, update_differentials_to_match)
+from astropy.utils.exceptions import AstropyUserWarning
 
-from .low_level_api import BaseLowLevelWCS
 from .high_level_api import HighLevelWCSMixin
+from .low_level_api import BaseLowLevelWCS
 from .wrappers import SlicedLowLevelWCS
 
 __all__ = ['custom_ctype_to_ucd_mapping', 'SlicedFITSWCS', 'FITSWCSAPIMixin']
@@ -378,10 +379,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 self._components_and_classes_cache = None
 
         # Avoid circular imports by importing here
-        from astropy.wcs.utils import wcs_to_celestial_frame
-        from astropy.coordinates import SkyCoord, EarthLocation
-        from astropy.time.formats import FITS_DEPRECATED_SCALES
+        from astropy.coordinates import EarthLocation, SkyCoord
         from astropy.time import Time, TimeDelta
+        from astropy.time.formats import FITS_DEPRECATED_SCALES
+        from astropy.wcs.utils import wcs_to_celestial_frame
 
         components = [None] * self.naxis
         classes = {}

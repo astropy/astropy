@@ -3,27 +3,27 @@
 # a mix-in)
 
 import warnings
-
-from packaging.version import Version
-import numpy as np
-import pytest
-from numpy.testing import assert_equal, assert_allclose
 from itertools import product
 
+import numpy as np
+import pytest
+from numpy.testing import assert_allclose, assert_equal
+from packaging.version import Version
+
 from astropy import units as u
-from astropy.time import Time
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.units import Quantity
-from astropy.coordinates import ICRS, FK5, Galactic, SkyCoord, SpectralCoord, ITRS, EarthLocation
+from astropy.coordinates import FK5, ICRS, ITRS, EarthLocation, Galactic, SkyCoord, SpectralCoord
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
+from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time
+from astropy.units import Quantity
 from astropy.units.core import UnitsWarning
-from astropy.utils.data import get_pkg_data_filename
-from astropy.wcs.wcs import WCS, FITSFixedWarning, Sip, NoConvergence
-from astropy.wcs.wcsapi.fitswcs import custom_ctype_to_ucd_mapping, VELOCITY_FRAMES
-from astropy.wcs._wcs import __version__ as wcsver
 from astropy.utils import iers
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.wcs._wcs import __version__ as wcsver
+from astropy.wcs.wcs import WCS, FITSFixedWarning, NoConvergence, Sip
+from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 
 ###############################################################################
 # The following example is the simplest WCS with default values
