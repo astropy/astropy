@@ -43,19 +43,21 @@ See Also
 # Make `print` work the same in all versions of Python, set up numpy,
 # matplotlib, and use a nicer set of plot parameters:
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from astropy.visualization import astropy_mpl_style
+
 plt.style.use(astropy_mpl_style)
 
 
 ##############################################################################
 # Import the packages necessary for coordinates
 
-from astropy.coordinates import frame_transform_graph
-from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 import astropy.coordinates as coord
 import astropy.units as u
+from astropy.coordinates import frame_transform_graph
+from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 
 ##############################################################################
 # The first step is to create a new class, which we'll call
