@@ -20,14 +20,16 @@ the file, and `matplotlib.pyplot` to display the image.
 # Set up matplotlib and use a nicer set of plot parameters
 
 import matplotlib.pyplot as plt
+
 from astropy.visualization import astropy_mpl_style
+
 plt.style.use(astropy_mpl_style)
 
 ##############################################################################
 # Download the example FITS files used by this example:
 
-from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
+from astropy.utils.data import get_pkg_data_filename
 
 image_file = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
 

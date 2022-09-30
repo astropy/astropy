@@ -24,9 +24,9 @@ file, `astropy.io.fits` to investigate the header, and
 # example. Also import `~astropy.table.Table` from the `astropy.table` subpackage
 # and `astropy.io.fits`
 
-from astropy.utils.data import get_pkg_data_filename
-from astropy.table import Table
 from astropy.io import fits
+from astropy.table import Table
+from astropy.utils.data import get_pkg_data_filename
 
 ##############################################################################
 # Download a FITS file
