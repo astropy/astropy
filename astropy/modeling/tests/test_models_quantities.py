@@ -548,7 +548,7 @@ def test_compound_model_input_units_equivalencies_defaults(model):
         assert fixed_input_model.input_units_equivalencies is None
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
 @pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')

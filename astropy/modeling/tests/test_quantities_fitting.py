@@ -13,7 +13,7 @@ from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should
@@ -85,7 +85,7 @@ def models_with_custom_names():
     return [line, custom_names_model]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fitting_simple(fitter):
     fitter = fitter()
@@ -103,7 +103,7 @@ def test_fitting_simple(fitter):
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fitting_with_initial_values(fitter):
     fitter = fitter()
@@ -123,7 +123,7 @@ def test_fitting_with_initial_values(fitter):
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fitting_missing_data_units(fitter):
     """
@@ -157,7 +157,7 @@ def test_fitting_missing_data_units(fitter):
                                  "(dimensionless) are not convertible")
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fitting_missing_model_units(fitter):
     """
@@ -182,7 +182,7 @@ def test_fitting_missing_model_units(fitter):
     assert_quantity_allclose(g.stddev, 0.8 * u.m, rtol=0.05)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fitting_incompatible_units(fitter):
     """
@@ -198,7 +198,7 @@ def test_fitting_incompatible_units(fitter):
     assert exc.value.args[0] == ("'Hz' (frequency) and 'm' (length) are not convertible")
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 @pytest.mark.filterwarnings(r'ignore:divide by zero encountered.*')
 @pytest.mark.parametrize('model', compound_models_no_units)
@@ -224,7 +224,7 @@ def test_compound_without_units(model, fitter):
 
 
 # FIXME: See https://github.com/astropy/astropy/issues/10675
-# @pytest.mark.skipif('not HAS_SCIPY')
+# @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.skip(reason='Flaky and ill-conditioned')
 @pytest.mark.parametrize('fitter', fitters)
 def test_compound_fitting_with_units(fitter):
@@ -264,7 +264,7 @@ def test_compound_fitting_with_units(fitter):
     np.testing.assert_allclose(res.parameters, [3000, 2.1433621e+00, 2.647347e+00], rtol=0.4)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters*')
 @pytest.mark.parametrize('model', models_with_custom_names())
 @pytest.mark.parametrize('fitter', fitters)

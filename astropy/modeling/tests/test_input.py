@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel, FittableModel, Model
 from astropy.modeling.parameters import Parameter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 model1d_params = [
     (models.Polynomial1D, [2]),
@@ -170,7 +170,7 @@ class TestFitting:
         model = pfit(p1, self.x1, y1)
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_nonlinear_lsqt_1set_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter"""
@@ -181,7 +181,7 @@ class TestFitting:
         model = fitter(g1, self.x1, y1)
         assert_allclose(model.parameters, [10, 3, .2])
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_nonlinear_lsqt_Nset_1d(self, fitter):
         """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
@@ -193,7 +193,7 @@ class TestFitting:
             y1 = g1(self.x1, model_set_axis=False)
             _ = fitter(g1, self.x1, y1)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_nonlinear_lsqt_1set_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter"""
@@ -205,7 +205,7 @@ class TestFitting:
         model = fitter(g2, self.x, self.y, z)
         assert_allclose(model.parameters, [10, 3, 4, .3, .2, 0])
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_nonlinear_lsqt_Nset_2d(self, fitter):
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
@@ -977,7 +977,7 @@ def test_format_input_arrays_transposed():
                          [models.Gaussian2D(), models.Polynomial2D(1,),
                           models.Rotation2D(), models.Pix2Sky_TAN(),
                           models.Tabular2D(lookup_table=np.ones((4, 5)))])
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_call_keyword_args_1(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.
@@ -1004,7 +1004,7 @@ def test_call_keyword_args_1(model):
 @pytest.mark.parametrize('model',
                          [models.Gaussian1D(), models.Polynomial1D(1,),
                           models.Tabular1D(lookup_table=np.ones((5,)))])
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_call_keyword_args_2(model):
     """
     Test calling a model with positional, keywrd and a mixture of both arguments.

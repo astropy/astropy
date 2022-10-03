@@ -14,7 +14,7 @@ from astropy.modeling.models import (
     Chebyshev1D, Chebyshev2D, Const1D, Gaussian1D, Gaussian2D, Identity, Legendre1D, Legendre2D,
     Linear1D, Mapping, Polynomial1D, Polynomial2D, Rotation2D, Scale, Shift, Tabular1D, fix_inputs)
 from astropy.modeling.parameters import Parameter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -577,7 +577,7 @@ def test_name_index():
         g['bozo']
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_in_compound():
     """
     Issue #7411 - evaluate should not change the shape of the output.
@@ -631,7 +631,7 @@ def test_bounding_box():
     # val3 = g(.1, .1, with_bounding_box=True)
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_bounding_box_with_units():
     points = np.arange(5) * u.pix
     lt = np.arange(5) * u.AA
@@ -918,7 +918,7 @@ def test_compound_evaluate_fix_inputs_by_position():
     )
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_fit_multiplied_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -943,7 +943,7 @@ def test_fit_multiplied_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -991,7 +991,7 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_fit_divided_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -1016,7 +1016,7 @@ def test_fit_divided_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_fit_mixed_recursive_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
