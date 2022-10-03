@@ -63,12 +63,12 @@ def test_write_latex_noformat(tmpdir):
     t.write(path)
 
 
-@pytest.mark.skipif('not HAS_BS4')
+@pytest.mark.skipif(not HAS_BS4, reason='requires BeautifulSoup4')
 def test_read_html():
     Table.read(get_pkg_data_filename('data/html.html'), format='html')
 
 
-@pytest.mark.skipif('not HAS_BS4')
+@pytest.mark.skipif(not HAS_BS4, reason='requires BeautifulSoup4')
 def test_read_html_noformat():
     Table.read(get_pkg_data_filename('data/html.html'))
 

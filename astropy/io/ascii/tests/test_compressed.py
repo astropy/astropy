@@ -4,7 +4,7 @@ import pytest
 
 from astropy.io.ascii import read
 # NOTE: Python can be built without bz2 or lzma
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA  # noqa
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -17,7 +17,7 @@ def test_gzip(filename):
     assert np.all(t_comp.as_array() == t_uncomp.as_array())
 
 
-@pytest.mark.xfail('not HAS_BZ2')
+@pytest.mark.xfail(not HAS_BZ2, reason='requires bz2')
 @pytest.mark.parametrize('filename', ['data/short.rdb.bz2', 'data/ipac.dat.bz2'])
 def test_bzip2(filename):
     t_comp = read(get_pkg_data_filename(filename))
@@ -26,7 +26,7 @@ def test_bzip2(filename):
     assert np.all(t_comp.as_array() == t_uncomp.as_array())
 
 
-@pytest.mark.xfail('not HAS_LZMA')
+@pytest.mark.xfail(not HAS_LZMA, reason='requires lzma')
 @pytest.mark.parametrize('filename', ['data/short.rdb.xz', 'data/ipac.dat.xz'])
 def test_xz(filename):
     t_comp = read(get_pkg_data_filename(filename))
