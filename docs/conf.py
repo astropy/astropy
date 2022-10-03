@@ -58,7 +58,7 @@ if missing_requirements:
     print('Please install the "docs" requirements.')
     sys.exit(1)
 
-from sphinx_astropy.conf.v1 import *  # noqa
+from sphinx_astropy.conf.v1 import *  # noqa: E402, F403
 
 # -- Plot configuration -------------------------------------------------------
 plot_rcparams = {}

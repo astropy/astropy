@@ -38,7 +38,7 @@ def quantity_support(format='latex_inline'):
     # NOTE: in matplotlib >=3.2, subclasses will be recognized automatically,
     # and once that becomes our minimum version, we can remove this,
     # adding just u.Quantity itself to the registry.
-    from astropy.coordinates import Angle  # noqa
+    from astropy.coordinates import Angle  # noqa: F401
 
     # Get all subclass for Quantity, since matplotlib checks on class,
     # not subclass.

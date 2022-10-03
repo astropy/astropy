@@ -21,7 +21,7 @@ from astropy.time import Time
 from astropy.units import allclose
 from astropy.utils.exceptions import AstropyWarning
 
-from .test_representation import unitphysics  # this fixture is used below # noqa
+from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
 
 def setup_function(func):
@@ -1334,7 +1334,7 @@ def test_missing_component_error_names():
     assert "pm_ra_cosdec" in str(e.value)
 
 
-def test_non_spherical_representation_unit_creation(unitphysics):
+def test_non_spherical_representation_unit_creation(unitphysics):  # noqa: F811
 
     class PhysicsICRS(ICRS):
         default_representation = r.PhysicsSphericalRepresentation

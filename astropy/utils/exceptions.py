@@ -8,7 +8,7 @@ here, but rather in the particular subpackage.
 # TODO: deprecate these.  This cannot be trivially done with
 # astropy.utils.decorators.deprecate, since that module needs the exceptions
 # here, leading to circular import problems.
-from erfa import ErfaError, ErfaWarning  # noqa
+from erfa import ErfaError, ErfaWarning  # noqa: F401
 
 __all__ = [
     'AstropyWarning',
