@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
 testexc = namedtuple('testexc', ['f', 'q_in', 'exc', 'msg'])

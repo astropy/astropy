@@ -426,7 +426,8 @@ def test_fix2():
         'cdfix': 'No change',
         'cylfix': 'No change',
         'obsfix': 'No change',
-        'datfix': "Set MJD-OBS to 51543.000000 from DATE-OBS.\nChanged DATE-OBS from '31/12/99' to '1999-12-31'",  # noqa
+        'datfix': ("Set MJD-OBS to 51543.000000 from DATE-OBS.\n"
+                   "Changed DATE-OBS from '31/12/99' to '1999-12-31'"),
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}

@@ -233,7 +233,7 @@ class TimeFormat:
 
     @precision.setter
     def precision(self, val):
-        #Verify precision is 0-9 (inclusive)
+        # Verify precision is 0-9 (inclusive)
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')

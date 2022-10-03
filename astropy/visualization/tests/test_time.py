@@ -2,7 +2,7 @@
 
 import pytest
 
-pytest.importorskip('matplotlib')  # noqa
+pytest.importorskip('matplotlib')
 
 from contextlib import nullcontext
 

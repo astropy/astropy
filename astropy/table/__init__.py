@@ -15,7 +15,7 @@ __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
            'join_distance', 'PprintIncludeExclude']
 
 
-class Conf(_config.ConfigNamespace):  # noqa
+class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.table`.
     """
@@ -45,7 +45,7 @@ class Conf(_config.ConfigNamespace):  # noqa
         "subsequent major releases.")
 
 
-conf = Conf()  # noqa
+conf = Conf()
 
 # Finally import the formats for the read and write method but delay building
 # the documentation until all are loaded. (#5275)

@@ -16,7 +16,7 @@ from astropy.utils import unbroadcast
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.wcs import _wcs  # noqa
+from astropy.wcs import _wcs
 from astropy.wcs.utils import (
     _pixel_to_pixel_correlation_matrix, _pixel_to_world_correlation_matrix, _split_matrix,
     add_stokes_axis_to_wcs, celestial_frame_to_wcs, custom_frame_to_wcs_mappings,

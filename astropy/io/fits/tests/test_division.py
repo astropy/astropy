@@ -25,7 +25,7 @@ class TestDivisionFunctions(FitsTestCase):
 
     def test_valid_hdu_size(self):
         with fits.open(self.data('tb.fits')) as t1:
-            assert type(t1[1].size) is int  # noqa
+            assert type(t1[1].size) is int
 
     def test_hdu_get_size(self):
         with fits.open(self.data('tb.fits')) as _:

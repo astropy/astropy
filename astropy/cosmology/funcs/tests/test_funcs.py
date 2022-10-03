@@ -13,7 +13,7 @@ from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import (
     WMAP1, WMAP3, WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18)
 from astropy.units import allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 

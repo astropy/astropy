@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose
 
 from astropy.stats import (
     calculate_bin_edges, freedman_bin_width, histogram, knuth_bin_width, scott_bin_width)
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_scott_bin_width(N=10000, rseed=0):
