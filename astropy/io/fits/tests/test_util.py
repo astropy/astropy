@@ -82,7 +82,7 @@ class TestUtilMode(FitsTestCase):
         # should return None, because it's simply not opened yet.
         assert util.fileobj_mode('tmp1.fits') is None
 
-    @pytest.mark.skipif("not HAS_PIL")
+    @pytest.mark.skipif(not HAS_PIL, reason='requires pil')
     def test_mode_pil_image(self):
         img = np.random.randint(0, 255, (5, 5, 3)).astype(np.uint8)
         result = Image.fromarray(img)

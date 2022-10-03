@@ -12,7 +12,7 @@ from numpy.testing import assert_equal
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -1133,7 +1133,7 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header['NAXIS2'] == chdu.header['NAXIS2']
             assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
