@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
@@ -914,7 +914,7 @@ def test_astropy_convolution_against_numpy():
                               convolve_fft(y, x, normalize_kernel=False))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_astropy_convolution_against_scipy():
     from scipy.signal import fftconvolve
     x = np.array([1, 2, 3])
@@ -926,7 +926,7 @@ def test_astropy_convolution_against_scipy():
                               convolve_fft(y, x, normalize_kernel=False))
 
 
-@pytest.mark.skipif('not HAS_PANDAS')
+@pytest.mark.skipif(not HAS_PANDAS, reason="Requires pandas")
 def test_regression_6099():
     import pandas
 
