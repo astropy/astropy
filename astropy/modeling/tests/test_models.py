@@ -25,7 +25,7 @@ from astropy.modeling.powerlaws import (
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .example_models import models_1D, models_2D
 
@@ -37,7 +37,7 @@ fitters = [
 ]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_custom_model(fitter, amplitude=4, frequency=1):
     fitter = fitter()
@@ -248,7 +248,7 @@ class Fittable2DModelTester:
         # check for flux agreement
         assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_fitter2D(self, model_class, test_parameters, fitter):
         """Test if the parametric model works with the fitter."""
@@ -287,7 +287,7 @@ class Fittable2DModelTester:
         assert_allclose(fitted, expected,
                         atol=self.fit_error)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_deriv_2D(self, model_class, test_parameters, fitter):
         """
@@ -467,7 +467,7 @@ class Fittable1DModelTester:
         # check for flux agreement
         assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * rtol
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_fitter1D(self, model_class, test_parameters, fitter):
         """
@@ -508,7 +508,7 @@ class Fittable1DModelTester:
             atol = self.fit_error
         assert_allclose(fitted, expected, atol=atol)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
     @pytest.mark.parametrize('fitter', fitters)
     def test_deriv_1D(self, model_class, test_parameters, fitter):
@@ -648,7 +648,7 @@ def test_model_instance_repr():
     assert repr(m) == '<Gaussian1D(amplitude=1.5, mean=2.5, stddev=3.5)>'
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_interp_1d():
     """
     Test Tabular1D model.
@@ -688,7 +688,7 @@ def test_tabular_interp_1d():
                              [100, 10, 20, 30, 100] * u.nJy)
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_interp_2d():
     table = np.array([
         [-0.04614432, -0.02512547, -0.00619557, 0.0144165, 0.0297525],
@@ -743,7 +743,7 @@ def test_tabular_interp_2d():
     assert model.bounding_box == bbox
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_nd():
     a = np.arange(24).reshape((2, 3, 4))
     x, y, z = np.mgrid[:2, :3, :4]
@@ -794,7 +794,7 @@ def test_with_bounding_box():
     assert_allclose(trans3(1, 7, 5, with_bounding_box=True), [11, 14, 4])
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_with_bounding_box():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 6.7, 7, 32])
@@ -805,7 +805,7 @@ def test_tabular_with_bounding_box():
     assert t.inverse(result, with_bounding_box=True) == 1.
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_bounding_box_with_units():
     points = np.arange(5)*u.pix
     lt = np.arange(5)*u.AA
@@ -816,7 +816,7 @@ def test_tabular_bounding_box_with_units():
     assert t.inverse(result, with_bounding_box=True) == 1*u.pix
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular1d_inverse():
     """Test that the Tabular1D inverse is defined"""
     points = np.arange(5)
@@ -867,7 +867,7 @@ def test_tabular_grid_shape_mismatch_error():
     assert str(err.value) == "Expected grid points in 2 directions, got 5."
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_repr():
     points = np.arange(5)
     lt = np.arange(5)
@@ -888,7 +888,7 @@ def test_tabular_repr():
     )
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_str():
     points = np.arange(5)
     lt = np.arange(5)
@@ -926,7 +926,7 @@ def test_tabular_str():
     )
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_evaluate():
     points = np.arange(5)
     lt = np.arange(5)[::-1]
@@ -943,7 +943,7 @@ def test_tabular_evaluate():
         assert mkInterpn.call_count == 1
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_module_name():
     """
     The module name must be set manually because
@@ -1008,7 +1008,7 @@ def test_SmoothlyBrokenPowerLaw1D_validators():
     assert str(err.value) == "delta parameter must be >= 0.001"
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
 @pytest.mark.filterwarnings(r'ignore:The fit may be unsuccessful.*')
 def test_SmoothlyBrokenPowerLaw1D_fit_deriv():

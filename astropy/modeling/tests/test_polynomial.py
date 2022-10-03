@@ -19,7 +19,7 @@ from astropy.modeling.mappings import Identity
 from astropy.modeling.polynomial import (
     SIP, Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre1D, Legendre2D,
     OrthoPolynomialBase, Polynomial1D, Polynomial2D, PolynomialBase)
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -88,7 +88,7 @@ fitters = [fitting.LevMarLSQFitter, fitting.TRFLSQFitter, fitting.LMLSQFitter,
            fitting.DogBoxLSQFitter]
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestFitting:
     """Test linear fitter with polynomial models."""
 
@@ -567,7 +567,7 @@ def test_zero_degree_polynomial(cls):
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_2d_orthopolynomial_in_compound_model(fitter):
     """

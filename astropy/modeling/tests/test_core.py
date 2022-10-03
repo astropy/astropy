@@ -22,7 +22,7 @@ from astropy.modeling.core import (
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 class NonFittableModel(Model):
@@ -510,7 +510,7 @@ def test_compound_deepcopy():
     assert id(model[2]) != id(new_model[2])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_units_with_bounding_box():
     points = np.arange(10, 20)
     table = np.arange(10) * u.Angstrom
@@ -723,7 +723,7 @@ def test_prepare_outputs_single_entry_vector():
     np.testing.assert_allclose(output, [0.9500411305585278])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings('ignore: Using a non-tuple')
 def test_prepare_outputs_sparse_grid():
     """

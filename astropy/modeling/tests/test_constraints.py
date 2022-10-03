@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 fitters = [
@@ -37,7 +37,7 @@ class TestNonLinearConstraints:
         self.ny1 = self.y1 + 2 * self.n
         self.ny2 = self.y2 + 2 * self.n
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', fitters)
     def test_fixed_par(self, fitter):
         fitter = fitter()
@@ -47,7 +47,7 @@ class TestNonLinearConstraints:
         model = fitter(g1, self.x, self.ny1)
         assert model.amplitude.value == 10
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize("fitter", fitters)
     def test_tied_par(self, fitter):
         fitter = fitter()
@@ -61,7 +61,7 @@ class TestNonLinearConstraints:
         assert_allclose(model.mean.value, 50 * model.stddev,
                         rtol=10 ** (-5))
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     def test_joint_fitter(self):
         from scipy import optimize
 
@@ -93,7 +93,7 @@ class TestNonLinearConstraints:
         assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
         assert_allclose(g1.amplitude.value, g2.amplitude.value)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize("fitter", fitters)
     def test_no_constraints(self, fitter):
         from scipy import optimize
@@ -117,7 +117,7 @@ class TestNonLinearConstraints:
         assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestBounds:
 
     def setup_class(self):
@@ -380,7 +380,7 @@ def test_default_constraints():
     assert m.fixed == {'a': True, 'b': False}
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:divide by zero encountered.*')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fit_with_fixed_and_bound_constraints(fitter):
@@ -417,7 +417,7 @@ def test_fit_with_fixed_and_bound_constraints(fitter):
     assert fitted_1.mean <= 5
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fit_with_bound_constraints_estimate_jacobian(fitter):
     """
@@ -462,7 +462,7 @@ def test_fit_with_bound_constraints_estimate_jacobian(fitter):
 
 
 # https://github.com/astropy/astropy/issues/6014
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_gaussian2d_positive_stddev(fitter):
     # This is 2D Gaussian with noise to be fitted, as provided by @ysBach
@@ -520,7 +520,7 @@ def test_gaussian2d_positive_stddev(fitter):
     assert_allclose(g_fit.x_stddev.value, 1.9840185107597297, rtol=2e-6)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters.*')
 @pytest.mark.parametrize('fitter', fitters)
 def test_2d_model(fitter):

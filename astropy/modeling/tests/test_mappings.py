@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.models import Gaussian1D, Identity, Mapping, Rotation2D, Shift, UnitsMapping
 from astropy.utils import NumpyRNGContext
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 fitters = [LevMarLSQFitter, TRFLSQFitter, LMLSQFitter, DogBoxLSQFitter]
 
@@ -88,7 +88,7 @@ def test_identity():
 
 
 # https://github.com/astropy/astropy/pull/6018
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_fittable_compound(fitter):
     fitter = fitter()
