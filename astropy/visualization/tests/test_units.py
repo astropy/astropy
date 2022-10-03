@@ -20,7 +20,7 @@ def teardown_function(function):
     plt.close('all')
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_units():
     plt.figure()
 
@@ -39,7 +39,7 @@ def test_units():
         assert plt.gca().yaxis.get_units() == u.kg
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_units_errbarr():
     pytest.importorskip("matplotlib")
     plt.figure()
@@ -56,7 +56,7 @@ def test_units_errbarr():
         assert ax.yaxis.get_units() == u.m
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_incompatible_units():
     # NOTE: minversion check does not work properly for matplotlib dev.
     try:
@@ -75,7 +75,7 @@ def test_incompatible_units():
             plt.plot([105, 210, 315] * u.kg)
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_quantity_subclass():
     """Check that subclasses are recognized.
 
@@ -94,7 +94,7 @@ def test_quantity_subclass():
         assert plt.gca().yaxis.get_units() == u.kg
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_nested():
 
     with quantity_support():
@@ -116,7 +116,7 @@ def test_nested():
         assert ax.yaxis.get_units() == u.pc
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_empty_hist():
 
     with quantity_support():
@@ -128,7 +128,7 @@ def test_empty_hist():
         ax.hist([] * u.mmag, bins=100)
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_radian_formatter():
     with quantity_support():
         fig, ax = plt.subplots()

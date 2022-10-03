@@ -6,7 +6,7 @@ from numpy import ma
 from numpy.testing import assert_allclose, assert_equal
 from packaging.version import Version
 
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT  # noqa
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.mpl_normalize import ImageNormalize, imshow_norm, simple_norm
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
@@ -23,7 +23,7 @@ STRETCHES = (SqrtStretch(), PowerStretch(0.5), LogStretch())
 INVALID = (None, -np.inf, -1)
 
 
-@pytest.mark.skipif('HAS_MATPLOTLIB')
+@pytest.mark.skipif(HAS_MATPLOTLIB, reason='matplotlib is installed')
 def test_normalize_error_message():
     with pytest.raises(ImportError) as exc:
         ImageNormalize()
@@ -31,7 +31,7 @@ def test_normalize_error_message():
             "this class.")
 
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason='requires matplotlib')
 class TestNormalize:
     def test_invalid_interval(self):
         with pytest.raises(TypeError):
@@ -185,7 +185,7 @@ class TestNormalize:
         assert_equal(result2, result3)
 
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason='requires matplotlib')
 class TestImageScaling:
 
     def test_linear(self):
@@ -266,7 +266,7 @@ class TestImageScaling:
             simple_norm(DATA2, stretch='invalid')
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_imshow_norm():
     import matplotlib.pyplot as plt
     image = np.random.randn(10, 10)
