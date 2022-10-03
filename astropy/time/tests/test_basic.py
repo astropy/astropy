@@ -21,7 +21,7 @@ from astropy.time import (
     STANDARD_TIME_SCALES, TIME_FORMATS, ScaleValueError, Time, TimeDelta, TimeString, TimezoneInfo,
     conf)
 from astropy.utils import iers, isiterable
-from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ  # noqa
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
@@ -1558,7 +1558,7 @@ def test_to_datetime():
         Time('2015-06-30 23:59:60.000').to_datetime()
 
 
-@pytest.mark.skipif('not HAS_PYTZ')
+@pytest.mark.skipif(not HAS_PYTZ, reason='requires pytz')
 def test_to_datetime_pytz():
     import pytz
     tz = pytz.timezone('US/Hawaii')
