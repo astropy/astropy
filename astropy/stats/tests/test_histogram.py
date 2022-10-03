@@ -52,7 +52,7 @@ def test_freedman_bin_width(N=10000, rseed=0):
     assert_allclose(delta, 8.923325554510689e-07)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_knuth_bin_width(N=10000, rseed=0):
     rng = np.random.default_rng(rseed)
     X = rng.standard_normal(N)
@@ -67,7 +67,7 @@ def test_knuth_bin_width(N=10000, rseed=0):
         knuth_bin_width(rng.random((2, 10)))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_knuth_histogram(N=1000, rseed=0):
     rng = np.random.default_rng(rseed)
     x = rng.standard_normal(N)
@@ -118,7 +118,7 @@ def test_histogram_range_with_bins_list(N=1000, rseed=0):
     assert all(bins == input_bins)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_histogram_output_knuth():
     rng = np.random.default_rng(0)
     X = rng.standard_normal(100)
