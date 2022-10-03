@@ -434,11 +434,12 @@ environment variable.
 Tests that create files
 =======================
 
-Tests may often be run from directories where users do not have write
-permissions so tests which create files should always do so in
-temporary directories. This can be done with the
-:ref:`pytest 'tmpdir' fixture <pytest:tmpdir>` or with
-Python's built-in :ref:`tempfile module <python:tempfile-examples>`.
+Some tests involve writing files. These files should not be saved permanently.
+The :ref:`pytest 'tmp_path' fixture <pytest:tmp_path>` allows for the
+convenient creation of temporary directories, which ensures test files will be
+cleaned up. Temporary directories can also be helpful in the case where the
+tests are run in an environment where the runner would otherwise not have write
+access.
 
 
 Setting up/Tearing down tests
