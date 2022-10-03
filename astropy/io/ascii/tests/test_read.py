@@ -19,7 +19,7 @@ from astropy.table import MaskedColumn, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2  # noqa
+from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyWarning
 
@@ -1101,7 +1101,7 @@ def test_guess_fail():
     assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
-@pytest.mark.xfail('not HAS_BZ2')
+@pytest.mark.xfail(not HAS_BZ2, reason='requires bz2')
 def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
