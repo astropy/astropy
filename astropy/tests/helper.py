@@ -18,7 +18,7 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 # For backward-compatibility with affiliated packages
-from .runner import TestRunner  # pylint: disable=W0611  # noqa
+from .runner import TestRunner  # noqa: F401
 
 __all__ = ['assert_follows_unicode_guidelines',
            'assert_quantity_allclose', 'check_pickling_recovery',

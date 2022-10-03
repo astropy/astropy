@@ -1108,7 +1108,7 @@ class PrimaryHDU(_ImageBaseHDU):
         # Due to problems discussed in #5808, we cannot assume the 'GROUPS'
         # keyword to be True/False, have to check the value
         return (card.keyword == 'SIMPLE' and
-                ('GROUPS' not in header or header['GROUPS'] != True) and  # noqa
+                ('GROUPS' not in header or header['GROUPS'] != True) and  # noqa: E712
                 card.value)
 
     def update_header(self):

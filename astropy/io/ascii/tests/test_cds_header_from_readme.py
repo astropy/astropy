@@ -6,7 +6,8 @@ import pytest
 from astropy import units as u
 from astropy.io import ascii
 
-from .common import assert_almost_equal, assert_equal, setup_function, teardown_function  # noqa
+from .common import (  # noqa: F401
+    assert_almost_equal, assert_equal, setup_function, teardown_function)
 
 
 def read_table1(readme, data):

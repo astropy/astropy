@@ -38,7 +38,7 @@ def jackknife_resampling(data):
         Stanford University, December, 1980.
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
-    """  # noqa
+    """  # noqa: E501
 
     n = data.shape[0]
     if n <= 0:

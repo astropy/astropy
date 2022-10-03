@@ -15,10 +15,10 @@ TEST_DIR = os.path.dirname(__file__)
 
 has_isnan = True
 try:
-    from math import isnan  # noqa
+    from math import isnan  # noqa: F401
 except ImportError:
     try:
-        from numpy import isnan  # noqa
+        from numpy import isnan  # noqa: F401
     except ImportError:
         has_isnan = False
         print('Tests requiring isnan will fail')
