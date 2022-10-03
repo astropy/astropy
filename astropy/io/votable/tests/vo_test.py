@@ -246,7 +246,7 @@ class TestReferences:
 def test_select_columns_by_index():
     columns = [0, 5, 13]
     table = parse(
-        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
+        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()
     array = table.array
     mask = table.array.mask
     assert array['string_test'][0] == "String & test"
@@ -259,7 +259,7 @@ def test_select_columns_by_index():
 def test_select_columns_by_name():
     columns = ['string_test', 'unsignedByte', 'bitarray']
     table = parse(
-        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()  # noqa
+        get_pkg_data_filename('data/regression.xml'), columns=columns).get_first_table()
     array = table.array
     mask = table.array.mask
     assert array['string_test'][0] == "String & test"
@@ -586,12 +586,14 @@ class TestParse:
 
         if self.votable.version != '1.1':
             info = self.votable.get_info_by_id("ErrorInfo")
-            assert info.value == "One might expect to find some INFO here, too..."  # noqa
+            assert info.value == "One might expect to find some INFO here, too..."
 
     def test_repr(self):
         assert '3 tables' in repr(self.votable)
-        assert repr(list(self.votable.iter_fields_and_params())[0]) == \
-            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'  # noqa
+        assert repr(list(self.votable.iter_fields_and_params())[0]) == (
+            '<PARAM ID="awesome" arraysize="*" datatype="float" '
+            'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+        )
         # Smoke test
         repr(list(self.votable.iter_groups()))
 

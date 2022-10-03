@@ -20,7 +20,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, AstropyWarning
 from astropy.utils.misc import NumpyRNGContext
-from astropy.wcs import _wcs  # noqa
+from astropy.wcs import _wcs
 
 _WCSLIB_VER = Version(_wcs.__version__)
 

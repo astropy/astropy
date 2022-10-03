@@ -15,7 +15,7 @@ from astropy.coordinates import (
     SkyCoord, SphericalCosLatDifferential, SphericalDifferential, SphericalRepresentation,
     UnitSphericalRepresentation)
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.io.misc.yaml import dump, load, load_all  # noqa
+from astropy.io.misc.yaml import dump, load, load_all
 from astropy.table import QTable, SerializedColumn
 from astropy.time import Time
 

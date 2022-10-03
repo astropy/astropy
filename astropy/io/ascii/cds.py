@@ -188,7 +188,7 @@ class CdsData(core.BaseData):
                       if x.startswith(('------', '======='))]
         if not i_sections:
             raise core.InconsistentTableError(f'No {self._subfmt} section delimiter found')
-        return lines[i_sections[-1]+1:]  # noqa
+        return lines[i_sections[-1]+1:]
 
 
 class Cds(core.BaseReader):

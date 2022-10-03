@@ -431,7 +431,10 @@ class TestJoin():
         t2['c'].info.description = 't2_c'
 
         if operation_table_type is Table:
-            ctx = pytest.warns(metadata.MergeConflictWarning, match=r"In merged column 'a' the 'unit' attribute does not match \(cm != m\)")  # noqa
+            ctx = pytest.warns(
+                metadata.MergeConflictWarning,
+                match=r"In merged column 'a' the 'unit' attribute does not match \(cm != m\)"
+            )
         else:
             ctx = nullcontext()
 
