@@ -8,13 +8,13 @@ from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
 from astropy.modeling import fitting, models
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.misc import NumpyRNGContext
 
 
 class TestConvolve1DModels:
     @pytest.mark.parametrize('mode', [convolve_fft, convolve])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     def test_is_consistency_with_astropy_convolution(self, mode):
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
@@ -25,7 +25,7 @@ class TestConvolve1DModels:
         assert_allclose(ans, model_conv(x), atol=1e-5)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     def test_against_scipy(self, mode):
         from scipy.signal import fftconvolve
 
@@ -38,7 +38,7 @@ class TestConvolve1DModels:
         assert_allclose(ans, model_conv(x) * kernel(x).sum(), atol=1e-5)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     def test_against_scipy_with_additional_keywords(self, mode):
         from scipy.signal import fftconvolve
 
@@ -79,7 +79,7 @@ class TestConvolve1DModels:
         assert_allclose(ans, model_conv(x), atol=1e-3)
 
     @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     def test_fitting_convolve_models(self, mode):
         """
         test that a convolve model can be fitted
