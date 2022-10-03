@@ -15,17 +15,17 @@ from . import bayesian_blocks as _bb
 from . import biweight, circstats, funcs
 from . import histogram as _hist
 from . import info_theory, jackknife, sigma_clipping, spatial
-from .bayesian_blocks import *  # noqa: F401, F403
-from .biweight import *  # noqa: F401, F403
-from .bls import *  # noqa: F401, F403
-from .circstats import *  # noqa: F401, F403
-from .funcs import *  # noqa: F401, F403
-from .histogram import *  # noqa: F401, F403
-from .info_theory import *  # noqa: F401, F403
-from .jackknife import *  # noqa: F401, F403
-from .lombscargle import *  # noqa: F401, F403
-from .sigma_clipping import *  # noqa: F401, F403
-from .spatial import *  # noqa: F401, F403
+from .bayesian_blocks import *
+from .biweight import *
+from .bls import *
+from .circstats import *
+from .funcs import *
+from .histogram import *
+from .info_theory import *
+from .jackknife import *
+from .lombscargle import *
+from .sigma_clipping import *
+from .spatial import *
 
 # This is to avoid importing deprecated modules in subpackage star import
 __all__ = []

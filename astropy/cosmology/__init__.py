@@ -8,16 +8,16 @@ detailed usage examples and references.
 
 """
 
-from . import core, flrw, funcs, parameter, units, utils  # noqa F401
+from . import core, flrw, funcs, parameter, units, utils
 
-from . import io  # needed before 'realizations'  # noqa: F401  # isort: split
+from . import io  # needed before 'realizations'  # isort: split
 from . import realizations
-from .core import *  # noqa F401, F403
-from .flrw import *  # noqa F401, F403
-from .funcs import *  # noqa F401, F403
-from .parameter import *  # noqa F401, F403
-from .realizations import available, default_cosmology  # noqa F401, F403
-from .utils import *  # noqa F401, F403
+from .core import *
+from .flrw import *
+from .funcs import *
+from .parameter import *
+from .realizations import available, default_cosmology
+from .utils import *
 
 __all__ = (core.__all__ + flrw.__all__       # cosmology classes
            + realizations.__all__            # instances thereof

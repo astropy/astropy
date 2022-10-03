@@ -38,7 +38,7 @@ else:
     online_docs_root = f'https://docs.astropy.org/en/{__version__}/'
 
 
-from . import config as _config  # noqa: E402
+from . import config as _config
 
 
 class Conf(_config.ConfigNamespace):
@@ -75,7 +75,7 @@ conf = Conf()
 
 
 # Define a base ScienceState for configuring constants and units
-from .utils.state import ScienceState  # noqa: E402
+from .utils.state import ScienceState
 
 
 class base_constants_version(ScienceState):
@@ -131,16 +131,16 @@ class astronomical_constants(base_constants_version):
 
 
 # Create the test() function
-from .tests.runner import TestRunner  # noqa: E402
+from .tests.runner import TestRunner
 
-test = TestRunner.make_test_runner_in(__path__[0])  # noqa: F821
+test = TestRunner.make_test_runner_in(__path__[0])
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 def _initialize_astropy():
     try:
-        from .utils import _compiler  # noqa: F401
+        from .utils import _compiler
     except ImportError:
         if _is_astropy_source():
             raise ImportError('You appear to be trying to import astropy from '
@@ -169,13 +169,13 @@ def _get_bibtex():
 
 __citation__ = __bibtex__ = _get_bibtex()
 
-from .logger import _init_log, _teardown_log  # noqa: E402, F401
+from .logger import _init_log, _teardown_log
 
 log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page  # noqa: E402, F401
+from .utils.misc import find_api_page
 
 
 def online_help(query):
@@ -208,7 +208,7 @@ __dir_inc__ = ['__version__', '__githash__',
                'astronomical_constants']
 
 
-from types import ModuleType as __module_type__  # noqa: E402
+from types import ModuleType as __module_type__
 
 # Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package

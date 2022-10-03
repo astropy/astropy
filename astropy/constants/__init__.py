@@ -23,11 +23,10 @@ from astropy import units
 
 del units
 
-from . import cgs  # noqa
-from . import si  # noqa
-from . import utils as _utils  # noqa
-from .config import codata, iaudata  # noqa
-from .constant import Constant, EMConstant  # noqa
+from . import cgs, si
+from . import utils as _utils
+from .config import codata, iaudata
+from .constant import Constant, EMConstant
 
 # for updating the constants module docstring
 _lines = [
