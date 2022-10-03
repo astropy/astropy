@@ -2,6 +2,8 @@
 Installation
 ************
 
+.. _installing-astropy:
+
 Installing ``astropy``
 ======================
 
@@ -207,6 +209,12 @@ The further dependencies provide more specific features:
 
 - `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
   To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
+
+- `fsspec`_ |minimum_fsspec_version| or later: Enables access to :ref:`subsets
+  of remote FITS files <fits_io_cloud>` without having to download the entire file.
+
+- `s3fs`_ |minimum_s3fs_version| or later: Enables access to files hosted in
+  AWS S3 cloud storage.
 
 However, note that these packages require installation only if those particular
 features are needed. ``astropy`` will import even if these dependencies are not

@@ -134,6 +134,39 @@ because by that point you are likely to run out of physical memory anyways), but
     ``del hdul[0].data``. (This works so long as there are no other references
     held to the data array.)
 
+.. _fits-cloud-files:
+
+Working with remote and cloud-hosted files
+""""""""""""""""""""""""""""""""""""""""""
+
+The :func:`open` function supports a ``use_fsspec`` argument which allows file
+paths to be opened using `fsspec`_.
+The ``fsspec`` package supports a range of remote and distributed storage
+backends such as Amazon and Google Cloud Storage. For example, you can access a
+Hubble Space Telescope image located in the Hubble's public
+Amazon S3 bucket as follows:
+
+.. doctest-requires:: fsspec
+
+    >>> # Location of a large Hubble archive image in Amazon S3 (213 MB)
+    >>> uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
+    ...
+    >>> # Extract a 10-by-20 pixel cutout image
+    >>> with fits.open(uri, use_fsspec=True, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
+    ...    cutout = hdul[1].section[10:20, 30:50]
+
+Note that the example above obtains a cutout image using the `ImageHDU.section`
+attribute rather than the traditional `ImageHDU.data` attribute.
+The use of ``.section`` ensures that only the necessary parts of the FITS
+image are transferred from the server, rather than downloading the entire data
+array. This trick can significantly speed up your code if you require small
+subsets of large FITS files located on slow (remote) storage systems.
+See :ref:`fits_io_cloud` for additional information on working with remote FITS
+files in this way.
+
+.. seealso:: :ref:`fits_io_cloud`.
+
+
 Unsigned integers
 """""""""""""""""
 
@@ -959,6 +992,7 @@ Using `astropy.io.fits`
    usage/unfamiliar
    usage/scripts
    usage/misc
+   usage/cloud
 
 Command-Line Utilities
 ======================

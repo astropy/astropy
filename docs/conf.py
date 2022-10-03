@@ -99,6 +99,7 @@ intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedo
 intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: F405, E501
 intersphinx_mapping['h5py'] = ('https://docs.h5py.org/en/stable/', None)  # noqa: F405
 intersphinx_mapping['asdf-astropy'] = ('https://asdf-astropy.readthedocs.io/en/latest/', None)  # noqa: F405
+intersphinx_mapping['fsspec'] = ('https://filesystem-spec.readthedocs.io/en/latest/', None)  # noqa: F405
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
