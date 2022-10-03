@@ -13,7 +13,7 @@ from astropy.table.table_helpers import simple_table
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
-from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa 401
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
@@ -656,7 +656,7 @@ def test_parquet_read_generic(tmpdir):
         assert t2[str(dtype)].dtype == dtype
 
 
-@pytest.mark.skipif('not HAS_PANDAS')
+@pytest.mark.skipif(not HAS_PANDAS, reason='requires pandas')
 def test_parquet_read_pandas(tmpdir):
     """Test reading a pandas parquet file."""
     filename = tmpdir.join('test_pandas.parq')
