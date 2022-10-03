@@ -17,7 +17,7 @@ from astropy.coordinates import (
     SphericalRepresentation, UnitSphericalCosLatDifferential, UnitSphericalDifferential,
     UnitSphericalRepresentation)
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_creation_frameobjs():
@@ -186,7 +186,7 @@ def test_transforms_diff(sc):
         assert isinstance(trans.frame, PrecessedGeocentric)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 def test_matching(sc, scmany):
     # just check that it works and yields something
     idx, d2d, d3d = sc.match_to_catalog_sky(scmany)

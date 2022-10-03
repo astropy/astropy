@@ -7,7 +7,7 @@ from numpy import testing as npt
 from astropy import units as u
 from astropy.coordinates import matching
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 """
 These are the tests for coordinate matching.

@@ -1232,7 +1232,7 @@ def test_immutable():
     assert c1.foo == 42
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 def test_search_around():
     """
     Test the search_around_* methods
