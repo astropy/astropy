@@ -32,20 +32,20 @@ def test_paths():
     assert 'testpkg' in paths.get_cache_dir(rootname='testpkg')
 
 
-def test_set_temp_config(tmpdir, monkeypatch):
+def test_set_temp_config(tmp_path, monkeypatch):
     # Check that we start in an understood state.
     assert configuration._cfgobjs == OLD_CONFIG
     # Temporarily remove any temporary overrides of the configuration dir.
     monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
     orig_config_dir = paths.get_config_dir(rootname='astropy')
-    temp_config_dir = str(tmpdir.mkdir('config'))
-    temp_astropy_config = os.path.join(temp_config_dir, 'astropy')
+    (temp_config_dir := tmp_path / "config").mkdir()
+    temp_astropy_config = temp_config_dir / "astropy"
 
     # Test decorator mode
     @paths.set_temp_config(temp_config_dir)
     def test_func():
-        assert paths.get_config_dir(rootname='astropy') == temp_astropy_config
+        assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
 
         # Test temporary restoration of original default
         with paths.set_temp_config() as d:
@@ -55,24 +55,24 @@ def test_set_temp_config(tmpdir, monkeypatch):
 
     # Test context manager mode (with cleanup)
     with paths.set_temp_config(temp_config_dir, delete=True):
-        assert paths.get_config_dir(rootname='astropy') == temp_astropy_config
+        assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
 
-    assert not os.path.exists(temp_config_dir)
+    assert not temp_config_dir.exists()
     # Check that we have returned to our old configuration.
     assert configuration._cfgobjs == OLD_CONFIG
 
 
-def test_set_temp_cache(tmpdir, monkeypatch):
+def test_set_temp_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)
 
     orig_cache_dir = paths.get_cache_dir(rootname='astropy')
-    temp_cache_dir = str(tmpdir.mkdir('cache'))
-    temp_astropy_cache = os.path.join(temp_cache_dir, 'astropy')
+    (temp_cache_dir := tmp_path / "cache").mkdir()
+    temp_astropy_cache = temp_cache_dir / "astropy"
 
     # Test decorator mode
     @paths.set_temp_cache(temp_cache_dir)
     def test_func():
-        assert paths.get_cache_dir(rootname='astropy') == temp_astropy_cache
+        assert paths.get_cache_dir(rootname="astropy") == str(temp_astropy_cache)
 
         # Test temporary restoration of original default
         with paths.set_temp_cache() as d:
@@ -82,20 +82,17 @@ def test_set_temp_cache(tmpdir, monkeypatch):
 
     # Test context manager mode (with cleanup)
     with paths.set_temp_cache(temp_cache_dir, delete=True):
-        assert paths.get_cache_dir(rootname='astropy') == temp_astropy_cache
+        assert paths.get_cache_dir(rootname="astropy") == str(temp_astropy_cache)
 
-    assert not os.path.exists(temp_cache_dir)
+    assert not temp_cache_dir.exists()
 
 
-def test_set_temp_cache_resets_on_exception(tmpdir):
+def test_set_temp_cache_resets_on_exception(tmp_path):
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
-    a = tmpdir / 'a'
-    with open(a, 'wt') as f:
-        f.write("not a good cache\n")
-    with pytest.raises(OSError):
-        with paths.set_temp_cache(a):
-            pass
+    (a := tmp_path / "a").write_text("not a good cache\n")
+    with pytest.raises(OSError), paths.set_temp_cache(a):
+        pass
     assert t == paths.get_cache_dir()
 
 
@@ -304,7 +301,7 @@ def test_configitem_types():
     assert result == [('tstnm1', ci1), ('tstnm2', ci2), ('tstnm3', ci3), ('tstnm4', ci4)]
 
 
-def test_configitem_options(tmpdir):
+def test_configitem_options(tmp_path):
 
     from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
@@ -330,11 +327,11 @@ def test_configitem_options(tmpdir):
     apycfg = sec
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
-    f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'wb') as fd:
+    f = tmp_path / "astropy.cfg"
+    with open(f, "wb") as fd:
         apycfg.write(fd)
-    with open(f.strpath, encoding='utf-8') as fd:
-        lns = [x.strip() for x in f.readlines()]
+    with open(f, encoding="utf-8") as fd:
+        lns = [x.strip() for x in fd.readlines()]
 
     assert 'tstnmo = op2' in lns
 
@@ -436,7 +433,7 @@ class TestAliasRead:
         conf.reload()
 
 
-def test_configitem_unicode(tmpdir):
+def test_configitem_unicode():
 
     from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
