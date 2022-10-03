@@ -8,7 +8,7 @@ from astropy import coordinates as coord
 from astropy.coordinates import Longitude, representation
 from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa: F401
 # Can't test distances without scipy due to cosmology deps
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_basic():
