@@ -2317,7 +2317,7 @@ class Table:
         default_names = [f'col{ii + len(self.columns)}'
                          for ii in range(len(cols))]
 
-        for ii in reversed(np.argsort(indexes)):
+        for ii in reversed(np.argsort(indexes, kind="stable")):
             self.add_column(cols[ii], index=indexes[ii], name=names[ii],
                             default_name=default_names[ii],
                             rename_duplicate=rename_duplicate, copy=copy)
