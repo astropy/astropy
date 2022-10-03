@@ -895,6 +895,9 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test0.fits')) as hdul:
             assert (orig_data == hdul[1].data).all()
 
+    # The test below raised a `ResourceWarning: unclosed transport` exception
+    # due to a bug in Python <=3.10 (cf. cpython#90476)
+    @pytest.mark.filterwarnings("ignore:unclosed transport <asyncio.sslproto")
     def test_open_scaled_in_update_mode(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/119
