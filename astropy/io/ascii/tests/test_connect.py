@@ -4,7 +4,7 @@ import pytest
 
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
-from astropy.utils.compat.optional_deps import HAS_BS4  # noqa
+from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy.utils.data import get_pkg_data_filename
 
 files = ['data/cds.dat', 'data/ipac.dat', 'data/daophot.dat', 'data/latex1.tex',

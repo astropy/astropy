@@ -11,7 +11,7 @@ from astropy.table.table_helpers import simple_table
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.compat import NUMPY_LT_1_22
-from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
+from astropy.utils.compat.optional_deps import HAS_H5PY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH

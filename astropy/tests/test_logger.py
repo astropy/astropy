@@ -241,11 +241,11 @@ def test_exception_logging_origin():
 
     from astropy.utils.collections import HomogeneousList
 
-    l = HomogeneousList(int)  # noqa
+    lst = HomogeneousList(int)
     try:
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
-            l.append('foo')
+            lst.append('foo')
     except TypeError as exc:
         sys.excepthook(*sys.exc_info())
         assert exc.args[0].startswith(
