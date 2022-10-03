@@ -3,6 +3,7 @@
 import math
 import os
 import re
+import sys
 import time
 
 import numpy as np
@@ -454,6 +455,11 @@ class TestImageFunctions(FitsTestCase):
         assert np.array_equal(fs[0].section[..., ::2], dat[..., ::2])
         assert np.array_equal(fs[0].section[..., [1, 2, 4], 3],
                               dat[..., [1, 2, 4], 3])
+
+        # Can we use negative indices?
+        assert np.array_equal(fs[0].section[-1], dat[-1])
+        assert np.array_equal(fs[0].section[-9:-7], dat[-9:-7])
+        assert np.array_equal(fs[0].section[-4, -6:-3, -1], dat[-4, -6:-3, -1])
         fs.close()
 
     def test_section_data_single(self):
@@ -889,6 +895,9 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test0.fits')) as hdul:
             assert (orig_data == hdul[1].data).all()
 
+    # The test below raised a `ResourceWarning: unclosed transport` exception
+    # due to a bug in Python <=3.10 (cf. cpython#90476)
+    @pytest.mark.filterwarnings("ignore:unclosed transport <asyncio.sslproto")
     def test_open_scaled_in_update_mode(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/119

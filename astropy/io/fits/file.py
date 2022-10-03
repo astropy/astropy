@@ -18,7 +18,7 @@ import numpy as np
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
-from astropy.utils.data import _is_url, download_file
+from astropy.utils.data import _is_url, _requires_fsspec, download_file, get_readable_fileobj
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
@@ -105,7 +105,7 @@ class _File:
     """
 
     def __init__(self, fileobj=None, mode=None, memmap=None, overwrite=False,
-                 cache=True):
+                 cache=True, *, use_fsspec=None, fsspec_kwargs=None):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
@@ -144,6 +144,16 @@ class _File:
             mode = objmode
         if mode is None:
             mode = 'readonly'
+
+        # Handle cloud-hosted files using the optional ``fsspec`` dependency
+        if (use_fsspec or _requires_fsspec(fileobj)) and mode != "ostream":
+            # Note: we don't use `get_readable_fileobj` as a context manager
+            # because io.fits takes care of closing files itself
+            fileobj = get_readable_fileobj(fileobj,
+                                           encoding="binary",
+                                           use_fsspec=use_fsspec,
+                                           fsspec_kwargs=fsspec_kwargs,
+                                           close_files=False).__enter__()
 
         # Handle raw URLs
         if (isinstance(fileobj, (str, bytes)) and

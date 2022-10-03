@@ -50,7 +50,7 @@ class Conf(_config.ConfigNamespace):
         'If True, use lazy loading of HDUs when opening FITS files by '
         'default; that is fits.open() will only seek for and read HDUs on '
         'demand rather than reading all HDUs at once.  See the documentation '
-        'for fits.open() for more datails.')
+        'for fits.open() for more details.')
     enable_uint = _config.ConfigItem(
         True,
         'If True, default to recognizing the convention for representing '

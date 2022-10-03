@@ -148,3 +148,11 @@
 .. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
 .. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
 .. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
+
+.. fsspec
+.. _fsspec: https://filesystem-spec.readthedocs.io
+.. |minimum_fsspec_version| replace:: {fsspec}
+
+.. s3fs
+.. _s3fs: https://s3fs.readthedocs.io
+.. |minimum_s3fs_version| replace:: {s3fs}
