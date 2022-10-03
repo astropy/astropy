@@ -21,7 +21,7 @@ from astropy.table import Column, MaskedColumn, QTable, Table, TableAttribute, T
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_20
-from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.tests.test_metadata import MetaBaseTest
@@ -1825,7 +1825,7 @@ def test_table_init_from_degenerate_arrays(table_types):
     assert len(t.columns) == 3
 
 
-@pytest.mark.skipif('not HAS_PANDAS')
+@pytest.mark.skipif(not HAS_PANDAS, reason='requires pandas')
 class TestPandas:
 
     def test_simple(self):
