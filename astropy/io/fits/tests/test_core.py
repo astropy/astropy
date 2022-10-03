@@ -48,7 +48,7 @@ class TestCore(FitsTestCase):
 
     def test_byteswap(self):
         p = fits.PrimaryHDU()
-        l = fits.HDUList()  # noqa
+        lst = fits.HDUList()
 
         n = np.zeros(3, dtype='i2')
         n[0] = 1
@@ -59,10 +59,10 @@ class TestCore(FitsTestCase):
                         array=n)
         t = fits.BinTableHDU.from_columns([c])
 
-        l.append(p)
-        l.append(t)
+        lst.append(p)
+        lst.append(t)
 
-        l.writeto(self.temp('test.fits'), overwrite=True)
+        lst.writeto(self.temp('test.fits'), overwrite=True)
 
         with fits.open(self.temp('test.fits')) as p:
             assert p[1].data[1]['foo'] == 60000.0

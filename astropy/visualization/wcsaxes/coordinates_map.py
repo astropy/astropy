@@ -165,7 +165,7 @@ class CoordinatesMap:
 
         # Import Table here to avoid importing the astropy.table package
         # every time astropy.visualization.wcsaxes is imported.
-        from astropy.table import Table  # noqa
+        from astropy.table import Table
 
         rows = []
         for icoord, coord in enumerate(self._coords):

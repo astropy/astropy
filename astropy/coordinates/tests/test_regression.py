@@ -25,7 +25,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils import iers
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_regression_5085():

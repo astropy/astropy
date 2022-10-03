@@ -589,7 +589,7 @@ def test_raw_html_write_clean():
     """
     Test that columns can contain raw HTML which is not escaped.
     """
-    import bleach  # noqa
+    import bleach
 
     t = Table([['<script>x</script>'], ['<p>y</p>'], ['<em>y</em>']], names=['a', 'b', 'c'])
 

@@ -8,7 +8,7 @@ from packaging.version import Version
 from astropy import wcs
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from astropy.wcs import _wcs  # noqa
+from astropy.wcs import _wcs
 
 from .helper import SimModelTAB
 
