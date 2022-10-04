@@ -61,14 +61,13 @@ With Astropy installed, please run ``fitsheader --help`` to see the full usage
 documentation.
 """
 
-import sys
 import argparse
+import sys
 
 import numpy as np
 
+from astropy import __version__, log
 from astropy.io import fits
-from astropy import log, __version__
-
 
 DESCRIPTION = """
 Print the header(s) of a FITS file. Optional arguments allow the desired
@@ -109,9 +108,8 @@ class HeaderFormatter:
         If `filename` does not exist or cannot be read.
     """
 
-    def __init__(self, filename, args=None, verbose=True):
+    def __init__(self, filename, verbose=True):
         self.filename = filename
-        self.args = args
         self.verbose = verbose
         self._hdulist = fits.open(filename)
 
@@ -254,9 +252,6 @@ class TableHeaderFormatter(HeaderFormatter):
         for hdu in hdukeys:
             try:
                 for card in self._get_cards(hdu, keywords, compressed):
-                    if self.args is not None:
-                        if isinstance(card.value, str) and self.args.replace_spaces is not None:
-                            card.value = card.value.replace(' ', self.args.replace_spaces)
                     tablerows.append({'filename': self.filename,
                                       'hdu': hdu,
                                       'keyword': card.keyword,
@@ -270,7 +265,7 @@ class TableHeaderFormatter(HeaderFormatter):
         return None
 
 
-def print_headers_traditional(args):
+def print_headers_traditional(args, silent=False):
     """Prints FITS header(s) using the traditional 80-char format.
 
     Parameters
@@ -285,9 +280,10 @@ def print_headers_traditional(args):
         formatter = None
         try:
             formatter = HeaderFormatter(filename)
-            print(formatter.parse(args.extensions,
-                                  args.keyword,
-                                  args.compressed), end='')
+            if not silent:
+                print(formatter.parse(args.extensions,
+                                      args.keyword,
+                                      args.compressed), end='')
         except OSError as e:
             log.error(str(e))
         finally:
@@ -295,7 +291,7 @@ def print_headers_traditional(args):
                 formatter.close()
 
 
-def print_headers_as_table(args):
+def print_headers_as_table(args, silent=False):
     """Prints FITS header(s) in a machine-readable table format.
 
     Parameters
@@ -308,7 +304,7 @@ def print_headers_as_table(args):
     for filename in args.filename:  # Support wildcards
         formatter = None
         try:
-            formatter = TableHeaderFormatter(filename, args=args)
+            formatter = TableHeaderFormatter(filename)
             tbl = formatter.parse(args.extensions,
                                   args.keyword,
                                   args.compressed)
@@ -329,10 +325,13 @@ def print_headers_as_table(args):
         from astropy import table
         resulting_table = table.vstack(tables)
     # Print the string representation of the concatenated table
-    resulting_table.write(sys.stdout, format=args.table)
+    if not silent:
+        resulting_table.write(sys.stdout, format=args.table)
+
+    return resulting_table
 
 
-def print_headers_as_comparison(args):
+def print_headers_as_comparison(args, silent=False):
     """Prints FITS header(s) with keywords as columns.
 
     This follows the dfits+fitsort format.
@@ -348,7 +347,7 @@ def print_headers_as_comparison(args):
     for filename in args.filename:  # Support wildcards
         formatter = None
         try:
-            formatter = TableHeaderFormatter(filename, args=args, verbose=False)
+            formatter = TableHeaderFormatter(filename, verbose=False)
             tbl = formatter.parse(args.extensions,
                                   args.keyword,
                                   args.compressed)
@@ -400,13 +399,15 @@ def print_headers_as_comparison(args):
     # Sort if requested
     if args.sort:
         final_table.sort(args.sort)
+
     # Reorganise to keyword by columns
-    final_table.pprint(max_lines=-1, max_width=-1)
+    if not silent:
+        final_table.write(sys.stdout, format=args.fitsort)
+
+    return final_table
 
 
-def main(args=None):
-    """This is the main function called by the `fitsheader` script."""
-
+def local_parser():
     parser = argparse.ArgumentParser(
         description=DESCRIPTION,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -432,19 +433,18 @@ def main(args=None):
                                  'format; the default format is '
                                  '"ascii.fixed_width" (can be "ascii.csv", '
                                  '"ascii.html", "ascii.latex", "fits", etc)')
-    mode_group.add_argument('-f', '--fitsort', action='store_true',
+    mode_group.add_argument('-f', '--fitsort',
+                            nargs='?', default=False, metavar='FORMAT_FITSORT',
                             help='print the headers as a table with each unique '
-                                 'keyword in a given column (fitsort format) ')
+                                  'keyword in a given column (fitsort format); '
+                                 'the default format is '
+                                 '"ascii.fixed_width" (can be "ascii.csv", '
+                                 '"ascii.html", "ascii.latex", "fits", etc)')
     parser.add_argument('-s', '--sort', metavar='SORT_KEYWORD',
                         action='append', type=str,
                         help='sort output by the specified header keywords, '
                              'can be repeated to sort by multiple keywords; '
                              'Only supported with -f/--fitsort')
-    parser.add_argument('-r', '--replace_spaces', metavar='REPLACE_SPACES',
-                        type=str,
-                        help='replace spaces in keyword values with the value of this parameter '
-                             '(e.g., -r_ replaces spaces with underscores); '
-                             'Only supported with -f/--fitsort and -t/--table')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
@@ -452,24 +452,28 @@ def main(args=None):
     parser.add_argument('filename', nargs='+',
                         help='path to one or more files; '
                              'wildcards are supported')
-    args = parser.parse_args(args)
+    return(parser)
+
+
+def main(args=None, silent=False):
+    """This is the main function called by the `fitsheader` script."""
+
+    # If called from another script, args is already a fully-formed rgparse.Namespace object: no need to argparse again
+    if not isinstance(args, argparse.Namespace):
+        parser = local_parser()
+        args = parser.parse_args(args)
 
     # If `--table` was used but no format specified,
     # then use ascii.fixed_width by default
     if args.table is None:
         args.table = 'ascii.fixed_width'
+    if args.fitsort is None:
+        args.fitsort = 'ascii.fixed_width'
 
     if args.sort:
         args.sort = [key.replace('.', ' ') for key in args.sort]
         if not args.fitsort:
             log.error('Sorting with -s/--sort is only supported in conjunction with -f/--fitsort')
-            # 2: Unix error convention for command line syntax
-            sys.exit(2)
-
-    if args.replace_spaces:
-        if not args.fitsort and not args.table:
-            log.error('Replacing spaces with -r/--replace_spaces is only supported in conjunction with '
-                      '-f/--fitsort or -t/--table')
             # 2: Unix error convention for command line syntax
             sys.exit(2)
 
@@ -479,12 +483,13 @@ def main(args=None):
     # Now print the desired headers
     try:
         if args.table:
-            print_headers_as_table(args)
+            out_table = print_headers_as_table(args, silent=silent)
         elif args.fitsort:
-            print_headers_as_comparison(args)
+            out_table = print_headers_as_comparison(args, silent=silent)
         else:
-            print_headers_traditional(args)
+            out_table = print_headers_traditional(args, silent=silent)
     except OSError:
         # A 'Broken pipe' OSError may occur when stdout is closed prematurely,
         # eg. when calling `fitsheader file.fits | head`. We let this pass.
         pass
+    return out_table
