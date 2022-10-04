@@ -858,7 +858,7 @@ def test_tabular1d_inverse():
     assert_allclose(t(result), 100)
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_tabular_grid_shape_mismatch_error():
     points = np.arange(5)
     lt = np.mgrid[0:5, 0:5][0]
