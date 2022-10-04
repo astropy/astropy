@@ -454,7 +454,7 @@ def test_time_wcs(time_spectral_wcs_2d):
     plt.subplot(projection=time_spectral_wcs_2d)
 
 
-@pytest.mark.skipif('TEX_UNAVAILABLE')
+@pytest.mark.skipif(TEX_UNAVAILABLE, reason='TeX is unavailable')
 def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
     """Regression test for https://github.com/astropy/astropy/issues/8004."""
     plt.rc('text', usetex=True)

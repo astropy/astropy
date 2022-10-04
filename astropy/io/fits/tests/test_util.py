@@ -3,6 +3,7 @@
 import gzip
 import os
 import signal
+import sys
 
 import numpy as np
 import pytest
@@ -19,7 +20,7 @@ from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):
-    @pytest.mark.skipif("sys.platform.startswith('win')")
+    @pytest.mark.skipif(sys.platform.startswith('win'), reason="Cannot test on Windows")
     def test_ignore_sigint(self):
         @ignore_sigint
         def test():

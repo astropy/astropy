@@ -884,7 +884,7 @@ def test_no_iteration():
     assert exc.value.args[0] == "'NewWCS' object is not iterable"
 
 
-@pytest.mark.skipif('_wcs.__version__[0] < "5"',
+@pytest.mark.skipif(_wcs.__version__[0] < "5",
                     reason="TPV only works with wcslib 5.x or later")
 def test_sip_tpv_agreement():
     sip_header = get_pkg_data_contents(
@@ -914,7 +914,7 @@ def test_sip_tpv_agreement():
             w_tpv2.all_pix2world([w_tpv.wcs.crpix], 1))
 
 
-@pytest.mark.skipif('_wcs.__version__[0] < "5"',
+@pytest.mark.skipif(_wcs.__version__[0] < "5",
                     reason="TPV only works with wcslib 5.x or later")
 def test_tpv_copy():
     # See #3904

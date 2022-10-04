@@ -1147,7 +1147,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdu_popped is hdu1
 
     # Skip due to https://github.com/astropy/astropy/issues/8916
-    @pytest.mark.skipif('sys.platform.startswith("win32")')
+    @pytest.mark.skipif(sys.platform.startswith("win32"), reason="Cannot test on Windows")
     def test_write_hdulist_to_stream(self):
         """
         Unit test for https://github.com/astropy/astropy/issues/7435
