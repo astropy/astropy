@@ -181,8 +181,6 @@ def test_exception_logging_enable_twice():
     assert e.value.args[0] == 'Exception logging has already been enabled'
 
 
-# You can't really override the exception handler in IPython this way, so
-# this test doesn't really make sense in the IPython context.
 @pytest.mark.skipif(ip is not None, reason="Cannot override exception handler in IPython")
 def test_exception_logging_overridden():
     log.enable_exception_logging()
