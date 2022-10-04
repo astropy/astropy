@@ -13,7 +13,7 @@ from astropy.io import fits
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils import unbroadcast
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import _wcs
@@ -1114,7 +1114,7 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 """
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize(
     'header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist',
     [
@@ -1176,7 +1176,7 @@ def test_fit_wcs_from_points(header_str, crval, sip_degree, user_proj_point,
         assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_fit_wcs_from_points_CRPIX_bounds():
     # Test CRPIX bounds requirement
     wcs_str = """
@@ -1230,7 +1230,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     assert fit_wcs.pixel_shape == (1199, 1009)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_issue10991():
     # test issue #10991 (it just needs to run and set the user defined crval)
     xy = np.array([[1766.88276168,  662.96432257,  171.50212526,  120.70924648],

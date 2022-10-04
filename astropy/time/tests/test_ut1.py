@@ -117,7 +117,7 @@ class TestTimeUT1:
 
 
 class TestTimeUT1SpecificIERSTable:
-    @pytest.mark.skipif('not HAS_IERS_A')
+    @pytest.mark.skipif(not HAS_IERS_A, reason='requires IERS_A')
     def test_ut1_iers_A(self):
         do_ut1_prediction_tst(iers.IERS_A)
 

@@ -11,7 +11,7 @@ from astropy.modeling.functional_models import (
     Box1D, Box2D, Gaussian1D, Gaussian2D, RickerWavelet1D, RickerWavelet2D)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 modes = ['center', 'linear_interp', 'oversample']
 test_models_1D = [Gaussian1D, Box1D, RickerWavelet1D]
@@ -97,7 +97,7 @@ def test_gaussian_eval_2D(mode):
     assert_allclose(values, disc_values, atol=1e-2)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 @pytest.mark.slow
 def test_gaussian_eval_2D_integrate_mode():
     """
@@ -118,7 +118,7 @@ def test_gaussian_eval_2D_integrate_mode():
         assert_allclose(values, disc_values, atol=1e-2)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 def test_subpixel_gauss_1D():
     """
     Test subpixel accuracy of the integrate mode with gaussian 1D model.
@@ -128,7 +128,7 @@ def test_subpixel_gauss_1D():
     assert_allclose(values.sum(), np.sqrt(2 * np.pi) * 0.1, atol=0.00001)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 def test_subpixel_gauss_2D():
     """
     Test subpixel accuracy of the integrate mode with gaussian 2D model.

@@ -13,7 +13,7 @@ from astropy.convolution.kernels import (
     Ring2DKernel, Tophat2DKernel, Trapezoid1DKernel, TrapezoidDisk2DKernel)
 from astropy.convolution.utils import KernelSizeError
 from astropy.modeling.models import Box2D, Gaussian1D, Gaussian2D
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 WIDTHS_ODD = [3, 5, 7, 9]
@@ -45,7 +45,7 @@ class TestKernels:
     Test class for the built-in convolution kernels.
     """
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_scipy_filter_gaussian(self, width):
         """
@@ -67,7 +67,7 @@ class TestKernels:
         assert_almost_equal(astropy_1D, scipy_1D, decimal=12)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=12)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
     @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_scipy_filter_gaussian_laplace(self, width):
         """

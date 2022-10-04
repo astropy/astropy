@@ -15,7 +15,7 @@ from astropy.stats import histogram
 from astropy.visualization import hist
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_hist_basic(rseed=0):
     rng = np.random.default_rng(rseed)
     x = rng.standard_normal(100)
@@ -28,7 +28,7 @@ def test_hist_basic(rseed=0):
         assert_allclose(bins1, bins2)
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_hist_specify_ax(rseed=0):
     rng = np.random.default_rng(rseed)
     x = rng.standard_normal(100)
@@ -41,7 +41,7 @@ def test_hist_specify_ax(rseed=0):
     assert patches2[0].axes is ax[1]
 
 
-@pytest.mark.skipif('not HAS_PLT')
+@pytest.mark.skipif(not HAS_PLT, reason='requires matplotlib.pyplot')
 def test_hist_autobin(rseed=0):
     rng = np.random.default_rng(rseed)
     x = rng.standard_normal(100)

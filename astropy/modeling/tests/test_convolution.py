@@ -5,10 +5,10 @@ import pytest
 
 from astropy.convolution import convolve_models_fft
 from astropy.modeling.models import Const1D, Const2D
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_clear_cache():
     m1 = Const1D()
     m2 = Const1D()
@@ -27,7 +27,7 @@ def test_clear_cache():
     assert model._convolution is None
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_input_shape_1d():
     m1 = Const1D()
     m2 = Const1D()
@@ -42,7 +42,7 @@ def test_input_shape_1d():
     assert results.shape == x.shape
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_input_shape_2d():
     m1 = Const2D()
     m2 = Const2D()
@@ -64,7 +64,7 @@ def test_input_shape_2d():
     assert results.shape == grid[1].shape
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test__convolution_inputs():
     m1 = Const2D()
     m2 = Const2D()

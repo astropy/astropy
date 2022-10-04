@@ -7,7 +7,7 @@ from astropy import extern
 from astropy.coordinates import SkyCoord
 from astropy.table.table import Table
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
@@ -150,7 +150,7 @@ def test_write_jsviewer_mixin(tmpdir, mixin):
         assert f.read().strip() == ref.strip()
 
 
-@pytest.mark.skipif('not HAS_BLEACH')
+@pytest.mark.skipif(not HAS_BLEACH, reason='requires bleach')
 def test_write_jsviewer_options(tmpdir):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
@@ -200,7 +200,7 @@ def test_write_jsviewer_local(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
-@pytest.mark.skipif('not HAS_IPYTHON')
+@pytest.mark.skipif(not HAS_IPYTHON, reason='requires iPython')
 def test_show_in_notebook():
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]

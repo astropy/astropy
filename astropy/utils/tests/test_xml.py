@@ -4,7 +4,7 @@ import io
 
 import pytest
 
-from astropy.utils.compat.optional_deps import HAS_BLEACH  # noqa
+from astropy.utils.compat.optional_deps import HAS_BLEACH
 from astropy.utils.xml import check, unescaper, writer
 
 
@@ -75,7 +75,7 @@ def test_escape_xml():
     assert s == b'This &amp; That'
 
 
-@pytest.mark.skipif('HAS_BLEACH')
+@pytest.mark.skipif(HAS_BLEACH, reason='bleach is installed')
 def test_escape_xml_without_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
@@ -86,7 +86,7 @@ def test_escape_xml_without_bleach():
     assert 'bleach package is required when HTML escaping is disabled' in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_BLEACH')
+@pytest.mark.skipif(not HAS_BLEACH, reason='requires bleach')
 def test_escape_xml_with_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)

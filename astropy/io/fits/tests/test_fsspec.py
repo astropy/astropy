@@ -7,14 +7,14 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
 from astropy.nddata import Cutout2D
-from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS  # noqa
+from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS
 from astropy.utils.data import conf, get_pkg_data_filename
 
 if HAS_FSSPEC:
     import fsspec
 
 
-@pytest.mark.skipif("not HAS_FSSPEC")
+@pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
 def test_fsspec_local():
     """Can we use fsspec to read a local file?"""
     fn = get_pkg_data_filename('data/test0.fits')
@@ -24,7 +24,7 @@ def test_fsspec_local():
             assert_array_equal(hdulist_classic[2].section[3:5], hdulist_fsspec[2].section[3:5])
 
 
-@pytest.mark.skipif("not HAS_FSSPEC")
+@pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
 def test_fsspec_local_write(tmpdir):
     """Can we write to a local file that was opened using fsspec?"""
     fn = get_pkg_data_filename('data/test0.fits')
@@ -43,7 +43,7 @@ def test_fsspec_local_write(tmpdir):
         assert hdul[1].data[2,3] == -999
 
 
-@pytest.mark.skipif("not HAS_FSSPEC")
+@pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
 def test_fsspec_cutout2d():
     """Does Cutout2D work with data loaded lazily using fsspec and .section?"""
     fn = get_pkg_data_filename('data/test0.fits')
@@ -55,7 +55,7 @@ def test_fsspec_cutout2d():
         assert_allclose(cutout1.data, cutout2.data)
 
 
-@pytest.mark.skipif("not HAS_FSSPEC")
+@pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
 def test_fsspec_compressed():
     """Does fsspec support compressed data correctly?"""
     # comp.fits[1] is a compressed image with shape (440, 300)
@@ -87,7 +87,7 @@ class TestFsspecRemote:
         self.expected_cutout = np.array([[24,  88, 228],
                                          [35, 132, 305]], dtype=np.int32)
 
-    @pytest.mark.skipif("not HAS_FSSPEC")
+    @pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
     def test_fsspec_http(self):
         """Can we use fsspec to open a remote FITS file via http?"""
         with fits.open(self.http_url, use_fsspec=True) as hdul:
@@ -105,7 +105,7 @@ class TestFsspecRemote:
                 assert "partially read" in repr(hdul)
                 assert "partially read" in str(hdul)
 
-    @pytest.mark.skipif("not HAS_S3FS")
+    @pytest.mark.skipif(not HAS_S3FS, reason='requires s3fs')
     def test_fsspec_s3(self):
         """Can we use fsspec to open a FITS file in a public Amazon S3 bucket?"""
         with fits.open(self.s3_uri, fsspec_kwargs={"anon": True}) as hdul:  # s3:// paths should default to use_fsspec=True
