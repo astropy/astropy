@@ -18,7 +18,7 @@ from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from .common import setup_function, teardown_function  # noqa
+from .common import setup_function, teardown_function  # noqa: F401
 
 if HAS_BS4:
     from bs4 import BeautifulSoup, FeatureNotFound  # noqa

@@ -68,7 +68,7 @@ def test_table(tmpdir):
     for field, type in zip(t.fields, field_types):
         name, d = type
         assert field.ID == name
-        assert field.datatype == d['datatype'], f'{name} expected {d["datatype"]} but get {field.datatype}'  # noqa
+        assert field.datatype == d['datatype'], f'{name} expected {d["datatype"]} but get {field.datatype}'  # noqa: E501
         if 'arraysize' in d:
             assert field.arraysize == d['arraysize']
 
