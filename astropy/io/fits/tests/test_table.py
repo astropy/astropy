@@ -3047,7 +3047,7 @@ class TestVLATables(FitsTestCase):
             assert hdu.data['var'].tolist() == [[45, 56], [11, 12, 13]]
 
     @pytest.mark.skipif(sys.maxsize < 2**32, reason='requires 64-bit system')
-    @pytest.mark.skipif(sys.platform == "win32", reason='requires unix')
+    @pytest.mark.skipif(sys.platform == "win32", reason='Cannot test on Windows')
     @pytest.mark.hugemem
     def test_heapsize_P_limit(self):
         """
