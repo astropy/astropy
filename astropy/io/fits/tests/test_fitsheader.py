@@ -91,42 +91,58 @@ class TestFITSheader_script(FitsTestCase):
                          self.data('test0.fits'), self.data('test1.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 4
-        assert out[2].endswith('test0.fits 49491.65366175    0.23')
-        assert out[3].endswith('test1.fits 49492.65366175    0.22')
+        assert len(out) == 3
+        assert out[1].endswith('test0.fits | 49491.65366175 |    0.23 |')
+        assert out[2].endswith('test1.fits | 49492.65366175 |    0.22 |')
+        # assert len(out) == 4
+        # assert out[2].endswith('test0.fits 49491.65366175    0.23')
+        # assert out[3].endswith('test1.fits 49492.65366175    0.22')
 
         fitsheader.main(['-e', '0', '-f', '-k', 'EXPSTART', '-k', 'EXPTIME',
                          self.data('test0.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 3
-        assert out[2].endswith('test0.fits 49491.65366175    0.23')
+        assert len(out) == 2
+        assert out[1].endswith('test0.fits | 49491.65366175 |    0.23 |')
+        # assert len(out) == 3
+        # assert out[2].endswith('test0.fits 49491.65366175    0.23')
 
         fitsheader.main(['-f', '-k', 'NAXIS',
                          self.data('tdim.fits'), self.data('test1.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 4
-        assert out[0].endswith('0:NAXIS 1:NAXIS 2:NAXIS 3:NAXIS 4:NAXIS')
-        assert out[2].endswith('tdim.fits       0       2      --      --      --')
-        assert out[3].endswith('test1.fits       0       2       2       2       2')
+        assert len(out) == 3
+        assert out[0].endswith(' 0:NAXIS | 1:NAXIS | 2:NAXIS | 3:NAXIS | 4:NAXIS |')
+        assert out[1].endswith('tdim.fits |       0 |       2 |         |         |         |')
+        assert out[2].endswith('test1.fits |       0 |       2 |       2 |       2 |       2 |')
+        # assert len(out) == 4
+        # assert out[0].endswith('0:NAXIS 1:NAXIS 2:NAXIS 3:NAXIS 4:NAXIS')
+        # assert out[2].endswith('tdim.fits       0       2      --      --      --')
+        # assert out[3].endswith('test1.fits       0       2       2       2       2')
 
         # check that files without required keyword are present
         fitsheader.main(['-f', '-k', 'DATE-OBS',
                          self.data('table.fits'), self.data('test0.fits')])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 4
-        assert out[2].endswith('table.fits       --')
-        assert out[3].endswith('test0.fits 19/05/94')
+        assert len(out) == 3
+        assert out[1].endswith('table.fits |          |')
+        assert out[2].endswith('test0.fits | 19/05/94 |')
+        # assert len(out) == 4
+        # assert out[2].endswith('table.fits       --')
+        # assert out[3].endswith('test0.fits 19/05/94')
 
         # check that COMMENT and HISTORY are excluded
-        fitsheader.main(['-e', '0', '-f', self.data('tb.fits')])
+        # fitsheader.main(['-e', '0', '-f', self.data('tb.fits')])
+        fitsheader.main([self.data('tb.fits'), '-e', '0', '-f'])
         out, err = capsys.readouterr()
         out = out.splitlines()
-        assert len(out) == 3
-        assert out[2].endswith('tb.fits   True     16     0   True '
-                               'STScI-STSDAS/TABLES  tb.fits       1')
+        assert len(out) == 2
+        assert out[1].endswith('tb.fits |   True |     16 |     0 |   True | STScI-STSDAS/TABLES |'
+                               '  tb.fits |       1 |')
+        # assert len(out) == 3
+        # assert out[2].endswith('tb.fits   True     16     0   True '
+        #                        'STScI-STSDAS/TABLES  tb.fits       1')
 
     def test_fitsort_sorting_keyword_fitsort(self, capsys):
         """check that sorting by keyword works"""
@@ -140,13 +156,20 @@ class TestFITSheader_script(FitsTestCase):
         out_sorted, err_sorted = capsys.readouterr()
         out_sorted = out_sorted.splitlines()
 
-        assert len(out_unsorted) == 4
-        assert out_unsorted[2].endswith('group.fits     5')
-        assert out_unsorted[3].endswith('test0.fits     0')
+        assert len(out_unsorted) == 3
+        assert out_unsorted[1].endswith('group.fits |     5 |')
+        assert out_unsorted[2].endswith('test0.fits |     0 |')
+        # assert len(out_unsorted) == 4
+        # assert out_unsorted[2].endswith('group.fits     5')
+        # assert out_unsorted[3].endswith('test0.fits     0')
 
-        assert len(out_sorted) == 4
-        assert out_sorted[2].endswith('test0.fits     0')
-        assert out_sorted[3].endswith('group.fits     5')
+        assert len(out_sorted) == 3
+        assert out_sorted[1].endswith('test0.fits |     0 |')
+        assert out_sorted[2].endswith('group.fits |     5 |')
+        # assert len(out_sorted) == 4
+        # assert out_sorted[2].endswith('test0.fits     0')
+        # assert out_sorted[3].endswith('group.fits     5')
+        
 
     def test_fitsort_sorting_keyword_complains(self, capsys):
         with pytest.raises(SystemExit):
@@ -174,3 +197,4 @@ class TestFITSheader_script(FitsTestCase):
         out = out.splitlines()
         assert len(out) == 2
         assert out[1].strip().endswith("HIERARCH ESO DET ID = 'DV13' / Detector system Id")
+        
