@@ -610,6 +610,8 @@ class TimeBase(ShapedLikeNDArray):
             # Compress time object by allowing at most 2 * npo["edgeitems"] + 1
             # in each dimension. Then force numpy to use "summary mode" of
             # showing only the edge items by setting the size threshold to 0.
+            # TODO: use np.core.arrayprint._leading_trailing if we have support for 
+            # np.concatenate. See #8610.
             tm = _compress_array_dims(self)
             with np.printoptions(threshold=0):
                 out = str(tm.value)
