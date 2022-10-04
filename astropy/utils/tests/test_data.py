@@ -2108,7 +2108,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
 @pytest.mark.skipif("CI", reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
-    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa
+    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa: E501
     download_file(url)
 
 

@@ -541,7 +541,7 @@ class TestRunner(TestRunnerBase):
         """
         if parallel != 0:
             try:
-                from xdist import plugin  # noqa
+                from xdist import plugin  # noqa: F401
             except ImportError:
                 raise SystemError(
                     "running tests in parallel requires the pytest-xdist package")

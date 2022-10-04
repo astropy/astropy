@@ -6,7 +6,7 @@ import pytest
 import astropy.units as u
 from astropy import coordinates as coord
 from astropy.coordinates import Longitude, representation
-from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol  # noqa: F401
 # Can't test distances without scipy due to cosmology deps
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
@@ -64,7 +64,7 @@ _kwargs = [{'unit': 'radian'},
 
 @pytest.mark.parametrize(("name", "args", "kwargs", "xfail"),
                          tuple(zip(_names, _args, _kwargs, _xfail)))
-def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
+def test_simple_object(pickle_protocol, name, args, kwargs, xfail):  # noqa: F811
     # Tests easily instantiated objects
     if xfail:
         pytest.xfail()
@@ -88,7 +88,7 @@ class _CustomICRS(coord.ICRS):
                              origin=_CustomICRS(2*u.deg, 3*u.deg, 1*u.pc)),
     ]
 )
-def test_skyoffset_pickle(pickle_protocol, frame):
+def test_skyoffset_pickle(pickle_protocol, frame):  # noqa: F811
     """
     This is a regression test for issue #9249:
     https://github.com/astropy/astropy/issues/9249

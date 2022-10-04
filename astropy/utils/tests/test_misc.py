@@ -40,11 +40,11 @@ def test_api_lookup():
             raise
 
     assert strurl == objurl
-    assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'  # noqa
+    assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'  # noqa: E501
 
     # Try a non-dev version
     objurl = misc.find_api_page(misc, 'v3.2.1', False, timeout=3)
-    assert objurl == 'https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc'  # noqa
+    assert objurl == 'https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc'  # noqa: E501
 
 
 def test_skip_hidden():
