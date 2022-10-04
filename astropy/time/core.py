@@ -1999,7 +1999,7 @@ class Time(TimeBase):
         and is rigorously corrected for polar motion.
         (except when ``longitude='tio'``).
 
-        """  # noqa
+        """  # noqa: E501
         if isinstance(longitude, str) and longitude == 'tio':
             longitude = 0
             include_tio = False
@@ -2061,7 +2061,7 @@ class Time(TimeBase):
         the equator of the Celestial Intermediate Pole (CIP) and is rigorously
         corrected for polar motion (except when ``longitude='tio'`` or ``'greenwich'``).
 
-        """  # noqa (docstring is formatted below)
+        """  # noqa: E501 (docstring is formatted below)
 
         if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
             raise ValueError('The kind of sidereal time has to be {}'.format(
@@ -2113,7 +2113,7 @@ class Time(TimeBase):
         `~astropy.coordinates.Longitude`
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
-        """  # noqa
+        """  # noqa: E501
         from astropy.coordinates import EarthLocation, Longitude
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
         from astropy.coordinates.matrix_utilities import rotation_matrix

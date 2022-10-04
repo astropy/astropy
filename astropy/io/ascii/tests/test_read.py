@@ -940,7 +940,7 @@ def get_testfiles(name=None):
     ]
 
     try:
-        import bs4  # noqa
+        import bs4  # noqa: F401
         testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
                           'name': 'data/html.html',
                           'nrows': 3,

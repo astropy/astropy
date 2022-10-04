@@ -360,8 +360,8 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert (sc1[0] == sc2[0]) == True  # noqa  (numpy True not Python True)
-    assert (sc1[0] != sc2[0]) == False  # noqa
+    assert (sc1[0] == sc2[0]) is np.bool_(True)
+    assert (sc1[0] != sc2[0]) is np.bool_(False)
 
     # Broadcasting
     eq = sc1[0] == sc2
@@ -377,8 +377,8 @@ def test_equal():
     ne = sc1 != sc2
     assert np.all(eq == [True, False])
     assert np.all(ne == [False, True])
-    assert (sc1[0] == sc2[0]) == True  # noqa
-    assert (sc1[0] != sc2[0]) == False  # noqa
+    assert (sc1[0] == sc2[0]) is np.bool(True)
+    assert (sc1[0] != sc2[0]) is np.bool(False)
 
 
 def test_equal_different_type():
