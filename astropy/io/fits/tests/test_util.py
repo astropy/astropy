@@ -20,7 +20,7 @@ from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):
-    @pytest.mark.skipif(sys.platform.startswith('win'), reason='requires Unix')
+    @pytest.mark.skipif(sys.platform.startswith('win'), reason="Cannot test on Windows")
     def test_ignore_sigint(self):
         @ignore_sigint
         def test():
