@@ -7,6 +7,7 @@ import mmap
 import os
 import pathlib
 import shutil
+import sys
 import urllib.request
 import zipfile
 from unittest.mock import patch
@@ -1184,7 +1185,7 @@ class TestFileFunctions(FitsTestCase):
 
         self._test_write_string_bytes_io(io.BytesIO())
 
-    @pytest.mark.skipif('sys.platform.startswith("win32")')
+    @pytest.mark.skipif(sys.platform.startswith("win32"), reason="Requires Unix")
     def test_filename_with_colon(self):
         """
         Test reading and writing a file with a colon in the filename.

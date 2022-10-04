@@ -2667,7 +2667,7 @@ class TestTableFunctions(FitsTestCase):
             assert hdul[1].header['TDIM1'] == '(3,3,2)'
             assert np.all(hdul[1].data['a'][0] == expected)
 
-    @pytest.mark.skipif('not HAVE_OBJGRAPH')
+    @pytest.mark.skipif(not HAVE_OBJGRAPH, reason='requires objgraph')
     def test_reference_leak(self):
         """Regression test for https://github.com/astropy/astropy/pull/520"""
 
@@ -2681,7 +2681,7 @@ class TestTableFunctions(FitsTestCase):
         with _refcounting('FITS_rec'):
             readfile(self.data('memtest.fits'))
 
-    @pytest.mark.skipif('not HAVE_OBJGRAPH')
+    @pytest.mark.skipif(not HAVE_OBJGRAPH, reason='requires objgraph')
     @pytest.mark.slow
     def test_reference_leak2(self, tmpdir):
         """
@@ -3046,8 +3046,8 @@ class TestVLATables(FitsTestCase):
             assert hdu.data.tolist() == [[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]
             assert hdu.data['var'].tolist() == [[45, 56], [11, 12, 13]]
 
-    @pytest.mark.skipif('sys.maxsize < 2**32')
-    @pytest.mark.skipif('sys.platform == "win32"')
+    @pytest.mark.skipif(sys.maxsize < 2**32, reason='requires 64-bit system')
+    @pytest.mark.skipif(sys.platform == "win32", reason='requires unix')
     @pytest.mark.hugemem
     def test_heapsize_P_limit(self):
         """
