@@ -171,7 +171,7 @@ def test_unknown_unit3():
     assert unit == "FOO"
     assert unit != u.m
     # next two from gh-7603.
-    assert unit != None  # noqa
+    assert unit != None  # noqa: E711
     assert unit not in (None, u.m)
 
     with pytest.raises(ValueError):
@@ -773,8 +773,8 @@ def test_compare_with_none():
     # Ensure that equality comparisons with `None` work, and don't
     # raise exceptions.  We are deliberately not using `is None` here
     # because that doesn't trigger the bug.  See #3108.
-    assert not (u.m == None)  # noqa
-    assert u.m != None  # noqa
+    assert not (u.m == None)  # noqa: E711
+    assert u.m != None  # noqa: E711
 
 
 def test_validate_power_detect_fraction():

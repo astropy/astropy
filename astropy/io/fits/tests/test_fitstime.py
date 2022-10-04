@@ -195,7 +195,7 @@ class TestFitsTime(FitsTestCase):
             assert coord_info[colname]['coord_unit'] == 'd'
 
         assert coord_info['a']['time_ref_pos'] == 'TOPOCENTER'
-        assert coord_info['b']['time_ref_pos'] == None   # noqa
+        assert coord_info['b']['time_ref_pos'] is None
 
         assert len(hdr) == 0
 

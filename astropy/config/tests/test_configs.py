@@ -310,8 +310,6 @@ def test_configitem_options(tmp_path):
     class Conf(ConfigNamespace):
         tstnmo = cio
 
-    conf = Conf()  # noqa
-
     sec = get_config(cio.module)
 
     assert isinstance(cio(), str)
@@ -441,8 +439,6 @@ def test_configitem_unicode():
 
     class Conf(ConfigNamespace):
         tstunicode = cio
-
-    conf = Conf()  # noqa
 
     sec = get_config(cio.module)
 
