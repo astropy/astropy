@@ -12,7 +12,7 @@ if HAS_MATPLOTLIB:
     from astropy.visualization.scripts.fits2bitmap import fits2bitmap, main
 
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.skipif(not HAS_MATPLOTLIB, reason='requires matplotlib')
 class TestFits2Bitmap:
     def setup_class(self):
         self.filename = 'test.fits'

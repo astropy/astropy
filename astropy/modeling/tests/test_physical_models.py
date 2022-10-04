@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
 from astropy.modeling.physical_models import NFW, BlackBody
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ["*"]
@@ -72,7 +72,7 @@ def test_blackbody_return_units():
                              89668184.86321202 * u.MJy / u.sr)
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize("fitter", fitters)
 def test_blackbody_fit(fitter):
     fitter = fitter()
@@ -185,7 +185,7 @@ def test_blackbody_dimensionless():
     assert bb1.bolometric_flux == bb2.bolometric_flux
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_blackbody_dimensionless_fit():
     T = 3000 * u.K
     r = 1e14 * u.cm
@@ -342,7 +342,7 @@ def test_NFW_evaluate(mass):
                                                  7.250687967e+42 * (u.kg / u.Mpc**3)))
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_NFW_fit(fitter):
     """Test linear fitting of NFW model."""

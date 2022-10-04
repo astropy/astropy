@@ -5,7 +5,7 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
 from astropy.time import Time, TimeDelta
 from astropy.utils import iers
-from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 
 
 class TestHelioBaryCentric:
@@ -60,7 +60,7 @@ class TestHelioBaryCentric:
         assert bval_arr[1] - bval2 < 1. * u.us
 
     @pytest.mark.remote_data
-    @pytest.mark.skipif('not HAS_JPLEPHEM')
+    @pytest.mark.skipif(not HAS_JPLEPHEM, reason='requires jplephem')
     def test_ephemerides(self):
         bval1 = self.obstime.light_travel_time(self.star, 'barycentric')
         with solar_system_ephemeris.set('jpl'):

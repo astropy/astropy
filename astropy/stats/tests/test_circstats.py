@@ -5,7 +5,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.stats.circstats import (
     _length, circcorrcoef, circmean, circmoment, circvar, rayleightest, vonmisesmle, vtest)
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test__length():
@@ -25,7 +25,7 @@ def test_circmean():
     assert_equal(answer, np.around(circmean(data), 2))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_circmean_against_scipy():
     import scipy.stats
 
@@ -89,7 +89,7 @@ def test_rayleightest():
     assert_allclose(answer[1], result[1], atol=1e-4)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_vtest():
     # testing against R CircStats package
     data = np.array([190.18, 175.48, 155.95, 217.83, 156.36])*u.deg

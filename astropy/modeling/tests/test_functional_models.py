@@ -8,7 +8,7 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.modeling import InputParameterError, fitting, models
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 fitters = [
@@ -194,7 +194,7 @@ def test_RedshiftScaleFactor_inverse_bounding_box():
     assert_allclose(inverse_model(model(4, with_bounding_box=True), with_bounding_box=True), 4)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_RedshiftScaleFactor_model_levmar_fit():
     """Test fitting RedshiftScaleFactor model with LevMarLSQFitter."""
 
@@ -300,7 +300,7 @@ def test_Shift_inverse_bounding_box():
     assert inverse_model(model(4, with_bounding_box=True), with_bounding_box=True) == 4.0
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_Shift_model_levmar_fit(fitter):
     """Test fitting Shift model with LevMarLSQFitter (issue #6103)."""
@@ -440,7 +440,7 @@ def test_Ring2D_rout():
     assert str(err.value) == "Width must be r_out - r_in"
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_Voigt1D(fitter):
     fitter = fitter()
@@ -458,7 +458,7 @@ def test_Voigt1D(fitter):
     assert str(err.value) == "Not a valid method for Voigt1D Faddeeva function: test."
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('algorithm', ('humlicek2', 'wofz'))
 def test_Voigt1D_norm(algorithm):
     """Test integral of normalized Voigt profile."""
@@ -472,7 +472,7 @@ def test_Voigt1D_norm(algorithm):
     assert_allclose(quad(voi, -np.inf, np.inf)[0], 1.0, atol=atol)
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('doppler', (1.e-3, 1.e-2, 0.1, 0.5, 1.0, 2.5, 5.0, 10))
 def test_Voigt1D_hum2(doppler):
     """Verify accuracy of Voigt profile in Humlicek approximation to Faddeeva.cc (SciPy)."""
@@ -490,7 +490,7 @@ def test_Voigt1D_hum2(doppler):
     assert_allclose(dvda_h, dvda_w, rtol=1e-9, atol=1e-7 * (1 + 30 / doppler))
 
 
-@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', fitters)
 def test_KingProjectedAnalytic1D_fit(fitter):
     fitter = fitter()
@@ -542,7 +542,7 @@ def test_trig_inverse(trig):
     assert_allclose(mdl(mdl.inverse(x)), x, atol=1e-10)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_Sersic2D_theta():
     theta = Angle(90, 'deg')
     model1 = models.Sersic2D(1, 5, 4, 25, 25, 0.5, theta=theta)

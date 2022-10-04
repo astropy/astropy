@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_jackknife_resampling():
@@ -15,7 +15,7 @@ def test_jackknife_resampling():
 
 
 # test jackknife stats, except confidence interval
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_jackknife_stats():
     # Test from the third example of Ref.[3]
     data = np.array((115, 170, 142, 138, 280, 470, 480, 141, 390))
@@ -25,7 +25,7 @@ def test_jackknife_stats():
 
 
 # test jackknife stats, including confidence intervals
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_jackknife_stats_conf_interval():
     # Test from the first example of Ref.[3]
     data = np.array([48, 42, 36, 33, 20, 16, 29, 39, 42, 38, 42, 36, 20, 15,

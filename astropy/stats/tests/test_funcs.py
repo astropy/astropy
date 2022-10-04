@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
 from astropy.stats import funcs
-from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -122,7 +122,7 @@ def test_median_absolute_deviation_quantity():
     assert mad.value == funcs.median_absolute_deviation(a.value)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_binom_conf_interval():
 
     # Test Wilson and Jeffreys interval for corner cases:
@@ -195,7 +195,7 @@ def test_binom_conf_interval():
         assert result.shape == (2, 3)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_binned_binom_proportion():
 
     # Check that it works.
@@ -262,7 +262,7 @@ def test_bootstrap():
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_bootstrap_multiple_outputs():
 
     from scipy.stats import spearmanr
@@ -418,7 +418,7 @@ def test_poisson_conf_interval_rootn():
                     (12, 20))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('interval', ['root-n-0',
                                       'pearson',
                                       'sherpagehrels',
@@ -439,7 +439,7 @@ def test_poisson_conf_array_rootn0_zero():
         funcs.poisson_conf_interval(n, interval='root-n-0')))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_array_frequentist_confidence_zero():
     n = np.zeros((3, 4, 5))
     assert_allclose(
@@ -469,7 +469,7 @@ def test_poisson_conf_array_rootn0():
         funcs.poisson_conf_interval(n, interval='root-n-0')))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_array_fc():
     n = 7 * np.ones((3, 4, 5))
     assert_allclose(
@@ -481,7 +481,7 @@ def test_poisson_conf_array_fc():
         funcs.poisson_conf_interval(n, interval='frequentist-confidence')))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_frequentist_confidence_gehrels():
     """Test intervals against those published in Gehrels 1986"""
     nlh = np.array([(0, 0, 1.841),
@@ -502,7 +502,7 @@ def test_poisson_conf_frequentist_confidence_gehrels():
         nlh[:, 1:].T, rtol=0.001, atol=0.001)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
     """Test intervals against those published in Gehrels 1986
 
@@ -528,7 +528,7 @@ def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
         nlh[:, 2:], rtol=0.01)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_frequentist_confidence_gehrels_3sigma():
     """Test intervals against those published in Gehrels 1986"""
     nlh = np.array([(0, 3, 0, 6.608),
@@ -549,7 +549,7 @@ def test_poisson_conf_frequentist_confidence_gehrels_3sigma():
         nlh[:, 2:], rtol=0.01, verbose=True)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('n', [0, 1, 2, 3, 10, 20, 100])
 def test_poisson_conf_gehrels86(n):
     assert_allclose(
@@ -558,7 +558,7 @@ def test_poisson_conf_gehrels86(n):
         rtol=0.02)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_scipy_poisson_limit():
     '''Test that the lower-level routine gives the snae number.
 
@@ -587,7 +587,7 @@ def test_scipy_poisson_limit():
     assert_allclose(conf[:, 1], (0.81, 8.99), rtol=5e-3)
 
 
-@pytest.mark.skipif('not HAS_MPMATH')
+@pytest.mark.skipif(not HAS_MPMATH, reason='requires mpmath')
 def test_mpmath_poisson_limit():
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(1., .1, .99),
                     (0.00, 6.54), rtol=5e-3)
@@ -621,7 +621,7 @@ def test_mpmath_poisson_limit():
     _ = funcs._mpmath_kraft_burrows_nousek(1000., 900., .9)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_value_errors():
     with pytest.raises(ValueError, match='Only sigma=1 supported'):
         funcs.poisson_conf_interval([5, 6], 'root-n', sigma=2)
@@ -637,7 +637,7 @@ def test_poisson_conf_value_errors():
         funcs.poisson_conf_interval(1, 'foo')
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError, match='number between 0 and 1'):
         funcs.poisson_conf_interval(5, 'kraft-burrows-nousek',
@@ -663,21 +663,21 @@ def test_poisson_conf_kbn_value_errors():
                                     confidence_level=[.99, .9])
 
 
-@pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
+@pytest.mark.skipif(HAS_SCIPY or HAS_MPMATH, reason='requires neither scipy nor mpmath')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
         funcs.poisson_conf_interval(20, interval='kraft-burrows-nousek',
                                     background=10., confidence_level=.95)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('N', [10, 100, 1000, 10000])
 def test_uniform(N):
     with NumpyRNGContext(12345):
         assert funcs.kuiper(np.random.random(N))[1] > 0.01
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('N,M', [(100, 100),
                                  (20, 100),
                                  (100, 20),
@@ -690,7 +690,7 @@ def test_kuiper_two_uniform(N, M):
                                 np.random.random(M))[1] > 0.01
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('N,M', [(100, 100),
                                  (20, 100),
                                  (100, 20),
@@ -703,7 +703,7 @@ def test_kuiper_two_nonuniform(N, M):
                                 np.random.random(M)**2)[1] > 0.01
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_detect_kuiper_two_different():
     with NumpyRNGContext(12345):
         D, f = funcs.kuiper_two(np.random.random(500) * 0.5,
@@ -711,7 +711,7 @@ def test_detect_kuiper_two_different():
         assert f < 0.01
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('N,M', [(100, 100),
                                  (20, 100),
                                  (100, 20),
@@ -733,13 +733,13 @@ def test_fpp_kuiper_two(N, M):
         assert binom(R, fpp).cdf(fps - 1) > 0.005
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_kuiper_false_positive_probability():
     fpp = funcs.kuiper_false_positive_probability(0.5353333333333409, 1500.)
     assert fpp == 0
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_histogram():
     from scipy.stats import chi2
 
@@ -761,7 +761,7 @@ def test_histogram():
         assert chi2(len(h)).sf(c2) > 0.01
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize("ii,rr", [
     ((4, (0, 1), (1,)), (1, 1, 1, 1)),
     ((2, (0, 1), (1,)), (1, 1)),
@@ -774,7 +774,7 @@ def test_histogram_intervals_known(ii, rr):
         assert_allclose(funcs.histogram_intervals(*ii), rr)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('N,m,p', [pytest.param(100, 10000, 0.01,
                                                 marks=pytest.mark.skip('Test too slow')),
                                    pytest.param(300, 10000, 0.001,

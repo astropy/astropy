@@ -14,7 +14,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy.convolution import Gaussian2DKernel, convolve
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB  # noqa
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.visualization import lupton_rgb
 
 # Set display=True to get matplotlib imshow windows to help with debugging.
@@ -165,7 +165,7 @@ class TestLuptonRgb:
         if display:
             display_rgb(rgbImage, title=sys._getframe().f_code.co_name)
 
-    @pytest.mark.skipif('not HAS_MATPLOTLIB')
+    @pytest.mark.skipif(not HAS_MATPLOTLIB, reason='requires matplotlib')
     def test_make_rgb(self):
         """Test the function that does it all"""
         satValue = 1000.0

@@ -7,7 +7,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.stats import mad_std
 from astropy.stats.sigma_clipping import SigmaClip, sigma_clip, sigma_clipped_stats
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
 
@@ -59,7 +59,7 @@ def test_sigma_clip():
         assert filtered_data.count() == 25
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_axis_none():
     """
     For masked=False and axis=None, masked elements should be removed
@@ -71,7 +71,7 @@ def test_axis_none():
     assert_equal(result, data[1:])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_compare_to_scipy_sigmaclip():
     from scipy import stats
 
@@ -382,7 +382,7 @@ def test_sigma_clip_masked_data_values():
     assert np.shares_memory(result.data, data)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 def test_sigma_clip_grow():
     """
     Test sigma_clip with growth of masking to include the neighbours within a

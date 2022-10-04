@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import CartesianRepresentation, Distance, Latitude, Longitude
 from astropy.coordinates.builtin_frames import ICRS, Galactic
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyWarning
 
 MULTIPLE_INPUTS_ERROR_MSG = "^more than one of `.*` were given to Distance constructor$"
@@ -106,7 +106,7 @@ def test_distances():
     npt.assert_allclose(csum.distance.kpc, 11.9942200501)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
 def test_distances_scipy():
     """
     The distance-related tests that require scipy due to the cosmology

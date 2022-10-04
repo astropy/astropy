@@ -174,7 +174,7 @@ class TestIERS_AExcerpt():
         assert len(iers_tab[:2]) == 2
 
 
-@pytest.mark.skipif('not HAS_IERS_A')
+@pytest.mark.skipif(not HAS_IERS_A, reason='requires IERS_A')
 class TestIERS_A():
 
     def test_simple(self):

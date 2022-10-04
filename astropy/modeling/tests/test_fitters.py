@@ -62,7 +62,7 @@ class TestPolynomial2D:
         new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model(self.x, self.y), self.z)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', non_linear_fitters)
     def test_nonlinear_fitting(self, fitter):
         fitter = fitter()
@@ -73,7 +73,7 @@ class TestPolynomial2D:
             new_model = fitter(self.model, self.x, self.y, self.z)
         assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     def test_compare_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
         fit_models = []
@@ -117,7 +117,7 @@ class TestICheb2D:
         z1 = model(self.x, self.y)
         assert_almost_equal(self.z, z1)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', non_linear_fitters)
     def test_chebyshev2D_nonlinear_fitting(self, fitter):
         fitter = fitter()
@@ -132,7 +132,7 @@ class TestICheb2D:
         assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         atol=10**-9)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
     @pytest.mark.parametrize('fitter', non_linear_fitters)
     def test_chebyshev2D_nonlinear_fitting_with_weights(self, fitter):
         fitter = fitter()
@@ -149,7 +149,7 @@ class TestICheb2D:
                         atol=10**-9)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestJointFitter:
 
     """
@@ -365,7 +365,7 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model.c0_1, [3., -0.5], atol=1e-14)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestNonLinearFitters:
     """Tests non-linear least squares fitting and the SLSQP algorithm."""
 
@@ -679,7 +679,7 @@ class TestEntryPoint:
             populate_entry_points([mock_entry_badclass])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class Test1DFittingWithOutlierRemoval:
     def setup_class(self):
         self.x = np.linspace(-5., 5., 200)
@@ -711,7 +711,7 @@ class Test1DFittingWithOutlierRemoval:
         assert_allclose(fitted_model.parameters, self.model_params, rtol=1e-1)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class Test2DFittingWithOutlierRemoval:
     def setup_class(self):
         self.y, self.x = np.mgrid[-3:3:128j, -3:3:128j]
@@ -810,7 +810,7 @@ def test_2d_set_axis_2_fitting_with_outlier_removal():
     assert_allclose(poly_set.c0_1, [[[1., 0.2]]], atol=1e-14)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestWeightedFittingWithOutlierRemoval:
     """Issue #7020 """
 
@@ -938,7 +938,7 @@ class TestWeightedFittingWithOutlierRemoval:
         assert fit.parameters[0] < 1.0
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', non_linear_fitters)
 def test_fitters_with_weights(fitter):
     """Issue #5737 """
@@ -1000,7 +1000,7 @@ def test_linear_fitter_with_weights_flat():
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
 @pytest.mark.parametrize('fitter', non_linear_fitters + fitters)
 def test_fitters_interface(fitter):
@@ -1025,7 +1025,7 @@ def test_fitters_interface(fitter):
     _ = fitter(model, x, y, **kwargs)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter_class', [SLSQPLSQFitter, SimplexLSQFitter])
 def test_optimizers(fitter_class):
     fitter = fitter_class()
@@ -1130,7 +1130,7 @@ def test_fitting_with_outlier_removal_niter():
     assert fitter.fit_info['niter'] == 0
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestFittingUncertanties:
     """
     Test that parameter covariance is calculated correctly for the fitters
@@ -1270,7 +1270,7 @@ class TestFittingUncertanties:
         assert fit_mod.stds[1] == fit_mod.stds['intercept']
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', non_linear_fitters)
 def test_non_finite_error(fitter):
     """Regression test error introduced to solve issues #3575 and #12809"""
@@ -1286,7 +1286,7 @@ def test_non_finite_error(fitter):
         fit(m_init, x, y)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', non_linear_fitters)
 def test_non_finite_filter_1D(fitter):
     """Regression test filter introduced to remove non-finte values from data"""
@@ -1302,7 +1302,7 @@ def test_non_finite_filter_1D(fitter):
         fit(m_init, x, y, filter_non_finite=True)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.parametrize('fitter', non_linear_fitters)
 def test_non_finite_filter_2D(fitter):
     """Regression test filter introduced to remove non-finte values from data"""
@@ -1324,7 +1324,7 @@ def test_non_finite_filter_2D(fitter):
         fit(m_init, x, y, z, filter_non_finite=True)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 @pytest.mark.filterwarnings(r'ignore:Model is linear in parameters*')
 @pytest.mark.parametrize('fitter', non_linear_fitters)
 def test_non_linear_fit_zero_degree_polynomial_with_weights(fitter):

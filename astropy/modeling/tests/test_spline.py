@@ -12,8 +12,7 @@ from astropy.modeling.fitting import (
     SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.spline import Spline1D, _Spline, _SplineFitter
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: F401
-# pylint: disable=invalid-name
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 npts = 50
@@ -322,7 +321,7 @@ class TestSpline:
         assert spl._degree == 4
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
 class TestSpline1D:
     def setup_class(self):
         def func(x, noise=0):
