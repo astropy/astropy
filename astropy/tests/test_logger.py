@@ -183,7 +183,7 @@ def test_exception_logging_enable_twice():
 
 # You can't really override the exception handler in IPython this way, so
 # this test doesn't really make sense in the IPython context.
-@pytest.mark.skipif("ip is not None")
+@pytest.mark.skipif(ip is not None, reason="Cannot override exception handler in IPython")
 def test_exception_logging_overridden():
     log.enable_exception_logging()
     sys.excepthook = lambda etype, evalue, tb: None
