@@ -209,6 +209,16 @@ class TestTimeDelta:
         with pytest.raises(TypeError):
             self.dt * object()
 
+    def test_mean(self):
+
+        def is_consistent(time_delta: TimeDelta):
+            mean_expected = (np.sum(time_delta.jd1) + np.sum(time_delta.jd2)) / time_delta.size
+            mean_test = time_delta.mean().jd1 + time_delta.mean().jd2
+            return mean_test == mean_expected
+
+        assert is_consistent(self.dt)
+        assert is_consistent(self.dt_array)
+
     def test_keep_properties(self):
         # closes #1924 (partially)
         dt = TimeDelta(1000., format='sec')
