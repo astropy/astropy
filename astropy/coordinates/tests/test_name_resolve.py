@@ -139,12 +139,12 @@ def test_names():
 
 
 @pytest.mark.remote_data
-def test_name_resolve_cache(tmpdir):
+def test_name_resolve_cache(tmp_path):
     from astropy.utils.data import get_cached_urls
 
     target_name = "castor"
 
-    temp_cache_dir = str(tmpdir.mkdir('cache'))
+    (temp_cache_dir := tmp_path / 'cache').mkdir()
     with paths.set_temp_cache(temp_cache_dir, delete=True):
         assert len(get_cached_urls()) == 0
 
