@@ -21,7 +21,6 @@ jobs:
         sync-labels: ''
     - name: Greet new contributors
       uses: actions/first-interaction@v1
-      continue-on-error: true
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         issue-message: >
