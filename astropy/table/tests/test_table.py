@@ -30,7 +30,7 @@ from .conftest import MIXIN_COLS, MaskedTable
 
 
 @pytest.fixture
-def home_is_tmpdir(monkeypatch, tmpdir):
+def home_is_tmpdir(monkeypatch, tmp_path):
     """
     Pytest fixture to run a test case with tilde-prefixed paths.
 
@@ -38,9 +38,9 @@ def home_is_tmpdir(monkeypatch, tmpdir):
     modified so that '~' resolves to the temp directory.
     """
     # For Unix
-    monkeypatch.setenv('HOME', str(tmpdir))
+    monkeypatch.setenv('HOME', str(tmp_path))
     # For Windows
-    monkeypatch.setenv('USERPROFILE', str(tmpdir))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
 
 
 class SetupData:
