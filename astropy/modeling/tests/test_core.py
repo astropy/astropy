@@ -544,7 +544,7 @@ Fittable parameters: ('amplitude', 'mean', 'stddev')
 """.strip()
 
 
-def test_rename_path(tmpdir):
+def test_rename_path(tmp_path):
 
     # Regression test for a bug that caused the path to the class to be
     # incorrect in a renamed model's __repr__.
@@ -558,7 +558,7 @@ def test_rename_path(tmpdir):
     paths = [os.path.dirname(astropy.__path__[0])] + sys.path
     env['PYTHONPATH'] = os.pathsep.join(paths)
 
-    script = tmpdir.join('rename.py').strpath
+    script = tmp_path / 'rename.py'
     with open(script, 'w') as f:
         f.write(MODEL_RENAME_CODE)
 
