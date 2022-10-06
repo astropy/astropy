@@ -57,8 +57,8 @@ class TestUpdateLeapSeconds:
         with pytest.warns(AstropyWarning, match='FileNotFound'):
             update_leap_seconds(['nonsense'])
 
-    def test_auto_update_corrupt_file(self, tmpdir):
-        bad_file = str(tmpdir.join('no_expiration'))
+    def test_auto_update_corrupt_file(self, tmp_path):
+        bad_file = str(tmp_path / 'no_expiration')
         with open(iers.IERS_LEAP_SECOND_FILE) as fh:
 
             lines = fh.readlines()
@@ -70,12 +70,12 @@ class TestUpdateLeapSeconds:
                           match='ValueError.*did not find expiration'):
             update_leap_seconds([bad_file])
 
-    def test_auto_update_expired_file(self, tmpdir):
+    def test_auto_update_expired_file(self, tmp_path):
         # Set up expired ERFA leap seconds.
         expired = self.erfa_ls[self.erfa_ls['year'] < 2017]
         expired.update_erfa_leap_seconds(initialize_erfa='empty')
         # Create similarly expired file.
-        expired_file = str(tmpdir.join('expired.dat'))
+        expired_file = str(tmp_path / 'expired.dat')
         with open(expired_file, 'w') as fh:
             fh.write('\n'.join(['# File expires on 28 June 2010']
                                + [str(item) for item in expired]))
