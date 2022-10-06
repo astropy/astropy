@@ -583,8 +583,8 @@ class Latitude(Angle):
         # objects, for speed.
         if angles is None:
             angles = self
-        lower = u.degree.to(angles.unit, -90.0)
-        upper = u.degree.to(angles.unit, 90.0)
+        upper = self.dtype.type(u.degree.to(angles.unit, 90.0))
+        lower = -upper
         # This invalid catch block can be removed when the minimum numpy
         # version is >= 1.19 (NUMPY_LT_1_19)
         with np.errstate(invalid='ignore'):
