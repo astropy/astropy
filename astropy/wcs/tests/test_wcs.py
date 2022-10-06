@@ -656,7 +656,7 @@ def test_unit_normalization():
     assert w.wcs.cunit[2] == 'm/s'
 
 
-def test_footprint_to_file(tmpdir):
+def test_footprint_to_file(tmp_path):
     """
     From github issue #1912
     """
@@ -668,7 +668,7 @@ def test_footprint_to_file(tmpdir):
            'PV2_1': 1., 'PV2_3': 220., 'NAXIS1': 2048, 'NAXIS2': 1024}
     w = wcs.WCS(hdr)
 
-    testfile = str(tmpdir.join('test.txt'))
+    testfile = tmp_path / 'test.txt'
     w.footprint_to_file(testfile)
 
     with open(testfile) as f:
@@ -1475,7 +1475,7 @@ def test_no_pixel_area():
     assert_quantity_allclose(w.proj_plane_pixel_scales(), 1)
 
 
-def test_distortion_header(tmpdir):
+def test_distortion_header(tmp_path):
     """
     Test that plate distortion model is correctly described by `wcs.to_header()`
     and preserved when creating a Cutout2D from the image, writing it to FITS,
@@ -1510,7 +1510,7 @@ def test_distortion_header(tmpdir):
 
     assert w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(siz / 2))) < 1.e-3 * u.mas
 
-    cutfile = str(tmpdir.join('cutout.fits'))
+    cutfile = tmp_path / 'cutout.fits'
     fits.writeto(cutfile, cut.data, cut.wcs.to_header())
 
     with fits.open(cutfile) as hdulist:
