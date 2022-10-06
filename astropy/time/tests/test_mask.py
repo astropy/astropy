@@ -153,11 +153,11 @@ def test_all_masked_input():
         assert str(t.iso) == '[--]'
 
 
-def test_serialize_fits_masked(tmpdir):
+def test_serialize_fits_masked(tmp_path):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
 
-    fn = str(tmpdir.join('tempfile.fits'))
+    fn = tmp_path / 'tempfile.fits'
     t = Table([tm])
     t.write(fn)
 
@@ -172,11 +172,11 @@ def test_serialize_fits_masked(tmpdir):
 
 
 @pytest.mark.skipif(not HAS_H5PY, reason='Needs h5py')
-def test_serialize_hdf5_masked(tmpdir):
+def test_serialize_hdf5_masked(tmp_path):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
 
-    fn = str(tmpdir.join('tempfile.hdf5'))
+    fn = tmp_path / 'tempfile.hdf5'
     t = Table([tm])
     t.write(fn, path='root', serialize_meta=True)
     t2 = Table.read(fn)
@@ -189,13 +189,13 @@ def test_serialize_hdf5_masked(tmpdir):
 # Ignore warning in MIPS https://github.com/astropy/astropy/issues/9750
 @pytest.mark.filterwarnings('ignore:invalid value encountered')
 @pytest.mark.parametrize('serialize_method', ['jd1_jd2', 'formatted_value'])
-def test_serialize_ecsv_masked(serialize_method, tmpdir):
+def test_serialize_ecsv_masked(serialize_method, tmp_path):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
 
     tm.info.serialize_method['ecsv'] = serialize_method
 
-    fn = str(tmpdir.join('tempfile.ecsv'))
+    fn = tmp_path / 'tempfile.ecsv'
     t = Table([tm])
     t.write(fn)
     t2 = Table.read(fn)
