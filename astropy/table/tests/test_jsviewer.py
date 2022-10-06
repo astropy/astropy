@@ -84,13 +84,13 @@ def format_lines(col1, col2):
                      for v1, v2 in zip(col1, col2))
 
 
-def test_write_jsviewer_default(tmpdir):
+def test_write_jsviewer_default(tmp_path):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['a', 'b', 'c', 'd', 'e']
     t['a'].unit = 'm'
 
-    tmpfile = tmpdir.join('test.html').strpath
+    tmpfile = tmp_path / 'test.html'
 
     t.write(tmpfile, format='jsviewer')
     ref = REFERENCE % dict(
@@ -107,12 +107,12 @@ def test_write_jsviewer_default(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
-def test_write_jsviewer_overwrite(tmpdir):
+def test_write_jsviewer_overwrite(tmp_path):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['a', 'b', 'c', 'd', 'e']
     t['a'].unit = 'm'
-    tmpfile = tmpdir.join('test.html').strpath
+    tmpfile = tmp_path / 'test.html'
 
     # normal write
     t.write(tmpfile, format='jsviewer')
@@ -127,13 +127,13 @@ def test_write_jsviewer_overwrite(tmpdir):
     Time(['J2000', 'J2001']),
     Time([50000., 50001.0001], format='mjd'),
     SkyCoord(ra=[100., 110.], dec=[-10., 10.], unit='deg')])
-def test_write_jsviewer_mixin(tmpdir, mixin):
+def test_write_jsviewer_mixin(tmp_path, mixin):
     t = Table()
     t['a'] = [1, 2]
     t['b'] = mixin
     t['a'].unit = 'm'
 
-    tmpfile = tmpdir.join('test.html').strpath
+    tmpfile = tmp_path / 'test.html'
 
     t.write(tmpfile, format='jsviewer')
     ref = REFERENCE % dict(
@@ -151,13 +151,13 @@ def test_write_jsviewer_mixin(tmpdir, mixin):
 
 
 @pytest.mark.skipif(not HAS_BLEACH, reason='requires bleach')
-def test_write_jsviewer_options(tmpdir):
+def test_write_jsviewer_options(tmp_path):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['<b>a</b>', 'b', 'c', 'd', 'e']
     t['a'].unit = 'm'
 
-    tmpfile = tmpdir.join('test.html').strpath
+    tmpfile = tmp_path / 'test.html'
     t.write(tmpfile, format='jsviewer', table_id='test', max_lines=3,
             jskwargs={'display_length': 5}, table_class='display hover',
             htmldict=dict(raw_html_cols='b'))
@@ -176,13 +176,13 @@ def test_write_jsviewer_options(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
-def test_write_jsviewer_local(tmpdir):
+def test_write_jsviewer_local(tmp_path):
     t = Table()
     t['a'] = [1, 2, 3, 4, 5]
     t['b'] = ['a', 'b', 'c', 'd', 'e']
     t['a'].unit = 'm'
 
-    tmpfile = tmpdir.join('test.html').strpath
+    tmpfile = tmp_path / 'test.html'
 
     t.write(tmpfile, format='jsviewer', table_id='test',
             jskwargs={'use_local_files': True})
