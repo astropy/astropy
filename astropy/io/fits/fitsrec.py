@@ -1040,8 +1040,15 @@ class FITS_rec(np.recarray):
         base = self
         while hasattr(base, 'base') and base.base is not None:
             base = base.base
-            if hasattr(base, 'nbytes') and base.nbytes >= raw_data_bytes:
-                return base
+            # Variable-length-arrays: should take into account the case of
+            # empty arrays
+            if hasattr(base, '_heapoffset'):
+                if hasattr(base, 'nbytes') and base.nbytes > raw_data_bytes:
+                    return base
+            # non variable-length-arrays
+            else:
+                if hasattr(base, 'nbytes') and base.nbytes >= raw_data_bytes:
+                    return base
 
     def _get_scale_factors(self, column):
         """Get all the scaling flags and factors for one column."""

@@ -3075,6 +3075,22 @@ class TestVLATables(FitsTestCase):
                            match="Please consider using the 'Q' format for your file."):
             t.writeto(self.temp('matrix.fits'))
 
+    def test_empty_vla_raw_data(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/12881
+
+        Check if empty vla are correctly read.
+        """
+
+        columns = [
+            fits.Column(name='integer', format='B', array=(1, 2)),
+            fits.Column(name='empty', format='PJ', array=([], [])),
+        ]
+        fits.BinTableHDU.from_columns(columns).writeto(self.temp('bug.fits'))
+        with fits.open(self.temp('bug.fits')) as hdu:
+            np.array_equal(hdu[1].data['empty'],
+                           [np.array([], dtype=np.int32), np.array([], dtype=np.int32)])
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
