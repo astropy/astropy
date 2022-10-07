@@ -102,7 +102,7 @@ def test_io_ascii_write():
             t.write(out, format=fmt['Format'])
 
 
-def test_votable_quantity_write(tmpdir):
+def test_votable_quantity_write(tmp_path):
     """
     Test that table with Quantity mixin column can be round-tripped by
     io.votable.  Note that FITS and HDF5 mixin support are tested (much more
@@ -112,7 +112,7 @@ def test_votable_quantity_write(tmpdir):
     t = QTable()
     t['a'] = u.Quantity([1, 2, 4], unit='nm')
 
-    filename = str(tmpdir.join('table-tmp'))
+    filename = tmp_path / 'table-tmp'
     t.write(filename, format='votable', overwrite=True)
     qt = QTable.read(filename, format='votable')
     assert isinstance(qt['a'], u.Quantity)
@@ -121,7 +121,7 @@ def test_votable_quantity_write(tmpdir):
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize('table_types', (Table, QTable))
-def test_io_time_write_fits_standard(tmpdir, table_types):
+def test_io_time_write_fits_standard(tmp_path, table_types):
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
@@ -140,7 +140,7 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
                                     '2010-01-01T00:00:00'], scale=scale)
     t['c'] = [3., 4.]
 
-    filename = str(tmpdir.join('table-tmp'))
+    filename = tmp_path / 'table-tmp'
 
     # Show that FITS format succeeds
     with pytest.warns(
@@ -197,7 +197,7 @@ def test_io_time_write_fits_standard(tmpdir, table_types):
 
 
 @pytest.mark.parametrize('table_types', (Table, QTable))
-def test_io_time_write_fits_local(tmpdir, table_types):
+def test_io_time_write_fits_local(tmp_path, table_types):
     """
     Test that table with a Time mixin with scale local can also be written
     by io.fits. Like ``test_io_time_write_fits_standard`` above, but avoiding
@@ -213,7 +213,7 @@ def test_io_time_write_fits_local(tmpdir, table_types):
                               '2010-01-01T00:00:00'], scale='local')
     t['c'] = [3., 4.]
 
-    filename = str(tmpdir.join('table-tmp'))
+    filename = tmp_path / 'table-tmp'
 
     # Show that FITS format succeeds
 
