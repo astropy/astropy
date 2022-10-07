@@ -70,11 +70,11 @@ def test_ccddata_init_with_string_electron_unit():
     assert ccd.unit is u.electron
 
 
-def test_initialize_from_FITS(tmpdir):
+def test_initialize_from_FITS(tmp_path):
     ccd_data = create_ccd_data()
     hdu = fits.PrimaryHDU(ccd_data)
     hdulist = fits.HDUList([hdu])
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdulist.writeto(filename)
     cd = CCDData.read(filename, unit=u.electron)
     assert cd.shape == (DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE)
@@ -84,11 +84,11 @@ def test_initialize_from_FITS(tmpdir):
         assert cd.meta[k] == v
 
 
-def test_initialize_from_fits_with_unit_in_header(tmpdir):
+def test_initialize_from_fits_with_unit_in_header(tmp_path):
     fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['bunit'] = u.adu.to_string()
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     # ccd should pick up the unit adu from the fits header...did it?
@@ -99,41 +99,41 @@ def test_initialize_from_fits_with_unit_in_header(tmpdir):
     assert ccd2.unit is u.photon
 
 
-def test_initialize_from_fits_with_ADU_in_header(tmpdir):
+def test_initialize_from_fits_with_ADU_in_header(tmp_path):
     fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['bunit'] = 'ADU'
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     # ccd should pick up the unit adu from the fits header...did it?
     assert ccd.unit is u.adu
 
 
-def test_initialize_from_fits_with_invalid_unit_in_header(tmpdir):
+def test_initialize_from_fits_with_invalid_unit_in_header(tmp_path):
     hdu = fits.PrimaryHDU(np.ones((2, 2)))
     hdu.header['bunit'] = 'definetely-not-a-unit'
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdu.writeto(filename)
     with pytest.raises(ValueError):
         CCDData.read(filename)
 
 
-def test_initialize_from_fits_with_technically_invalid_but_not_really(tmpdir):
+def test_initialize_from_fits_with_technically_invalid_but_not_really(tmp_path):
     hdu = fits.PrimaryHDU(np.ones((2, 2)))
     hdu.header['bunit'] = 'ELECTRONS/S'
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdu.writeto(filename)
     ccd = CCDData.read(filename)
     assert ccd.unit == u.electron/u.s
 
 
-def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
+def test_initialize_from_fits_with_data_in_different_extension(tmp_path):
     fake_img = np.arange(4).reshape(2, 2)
     hdu1 = fits.PrimaryHDU()
     hdu2 = fits.ImageHDU(fake_img)
     hdus = fits.HDUList([hdu1, hdu2])
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdus.writeto(filename)
     ccd = CCDData.read(filename, unit='adu')
     # ccd should pick up the unit adu from the fits header...did it?
@@ -142,14 +142,14 @@ def test_initialize_from_fits_with_data_in_different_extension(tmpdir):
     assert hdu2.header + hdu1.header == ccd.header
 
 
-def test_initialize_from_fits_with_extension(tmpdir):
+def test_initialize_from_fits_with_extension(tmp_path):
     fake_img1 = np.zeros([2, 2])
     fake_img2 = np.arange(4).reshape(2, 2)
     hdu0 = fits.PrimaryHDU()
     hdu1 = fits.ImageHDU(fake_img1, name='first', ver=1)
     hdu2 = fits.ImageHDU(fake_img2, name='second', ver=1)
     hdus = fits.HDUList([hdu0, hdu1, hdu2])
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdus.writeto(filename)
     ccd = CCDData.read(filename, hdu=2, unit='adu')
     # ccd should pick up the unit adu from the fits header...did it?
@@ -170,11 +170,11 @@ def test_write_unit_to_hdu():
     assert hdulist[0].header['bunit'] == ccd_unit.to_string()
 
 
-def test_initialize_from_FITS_bad_keyword_raises_error(tmpdir):
+def test_initialize_from_FITS_bad_keyword_raises_error(tmp_path):
     # There are two fits.open keywords that are not permitted in ccdproc:
     #     do_not_scale_image_data and scale_back
     ccd_data = create_ccd_data()
-    filename = tmpdir.join('test.fits').strpath
+    filename = str(tmp_path / 'test.fits')
     ccd_data.write(filename)
 
     with pytest.raises(TypeError):
@@ -184,23 +184,23 @@ def test_initialize_from_FITS_bad_keyword_raises_error(tmpdir):
         CCDData.read(filename, unit=ccd_data.unit, scale_back=True)
 
 
-def test_ccddata_writer(tmpdir):
+def test_ccddata_writer(tmp_path):
     ccd_data = create_ccd_data()
-    filename = tmpdir.join('test.fits').strpath
+    filename = str(tmp_path / 'test.fits')
     ccd_data.write(filename)
 
     ccd_disk = CCDData.read(filename, unit=ccd_data.unit)
     np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
 
 
-def test_ccddata_writer_as_imagehdu(tmpdir):
+def test_ccddata_writer_as_imagehdu(tmp_path):
     ccd_data = create_ccd_data()
-    filename = tmpdir.join('test.fits').strpath
+    filename = str(tmp_path / 'test.fits')
     ccd_data.write(filename, as_image_hdu=False)
     with fits.open(filename) as hdus:
         assert len(hdus) == 1
 
-    filename = tmpdir.join('test2.fits').strpath
+    filename = str(tmp_path / 'test2.fits')
     ccd_data.write(filename, as_image_hdu=True)
     with fits.open(filename) as hdus:
         assert len(hdus) == 2
@@ -222,13 +222,13 @@ def test_ccddata_meta_is_not_fits_header():
     assert not isinstance(ccd_data.meta, fits.Header)
 
 
-def test_fromMEF(tmpdir):
+def test_fromMEF(tmp_path):
     ccd_data = create_ccd_data()
     hdu = fits.PrimaryHDU(ccd_data)
     hdu2 = fits.PrimaryHDU(2 * ccd_data.data)
     hdulist = fits.HDUList(hdu)
     hdulist.append(hdu2)
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdulist.writeto(filename)
     # by default, we reading from the first extension
     cd = CCDData.read(filename, unit=u.electron)
@@ -580,32 +580,32 @@ def test_arithmetic_divide_with_array():
     assert res.unit == ccd.unit
 
 
-def test_history_preserved_if_metadata_is_fits_header(tmpdir):
+def test_history_preserved_if_metadata_is_fits_header(tmp_path):
     fake_img = np.zeros([2, 2])
     hdu = fits.PrimaryHDU(fake_img)
     hdu.header['history'] = 'one'
     hdu.header['history'] = 'two'
     hdu.header['history'] = 'three'
     assert len(hdu.header['history']) == 3
-    tmp_file = tmpdir.join('temp.fits').strpath
+    tmp_file = str(tmp_path / 'temp.fits')
     hdu.writeto(tmp_file)
 
     ccd_read = CCDData.read(tmp_file, unit="adu")
     assert ccd_read.header['history'] == hdu.header['history']
 
 
-def test_infol_logged_if_unit_in_fits_header(tmpdir):
+def test_infol_logged_if_unit_in_fits_header(tmp_path):
     ccd_data = create_ccd_data()
-    tmpfile = tmpdir.join('temp.fits')
-    ccd_data.write(tmpfile.strpath)
+    tmpfile = str(tmp_path / 'temp.fits')
+    ccd_data.write(tmpfile)
     log.setLevel('INFO')
     explicit_unit_name = "photon"
     with log.log_to_list() as log_list:
-        _ = CCDData.read(tmpfile.strpath, unit=explicit_unit_name)
+        _ = CCDData.read(tmpfile, unit=explicit_unit_name)
         assert explicit_unit_name in log_list[0].message
 
 
-def test_wcs_attribute(tmpdir):
+def test_wcs_attribute(tmp_path):
     """
     Check that WCS attribute gets added to header, and that if a CCDData
     object is created from a FITS file with a header, and the WCS attribute
@@ -613,7 +613,7 @@ def test_wcs_attribute(tmpdir):
     WCS object overwrites the old WCS information in the header.
     """
     ccd_data = create_ccd_data()
-    tmpfile = tmpdir.join('temp.fits')
+    tmpfile = str(tmp_path / 'temp.fits')
     # This wcs example is taken from the astropy.wcs docs.
     wcs = WCS(naxis=2)
     wcs.wcs.crpix = np.array(ccd_data.shape) / 2
@@ -623,12 +623,12 @@ def test_wcs_attribute(tmpdir):
     wcs.wcs.set_pv([(2, 1, 45.0)])
     ccd_data.header = ccd_data.to_hdu()[0].header
     ccd_data.header.extend(wcs.to_header(), useblanks=False)
-    ccd_data.write(tmpfile.strpath)
+    ccd_data.write(tmpfile)
 
     # Get the header length after it has been extended by the WCS keywords
     original_header_length = len(ccd_data.header)
 
-    ccd_new = CCDData.read(tmpfile.strpath)
+    ccd_new = CCDData.read(tmpfile)
     # WCS attribute should be set for ccd_new
     assert ccd_new.wcs is not None
     # WCS attribute should be equal to wcs above.
@@ -774,7 +774,7 @@ def test_wcs_keyword_removal_for_wcs_test_files():
                 np.testing.assert_almost_equal(header_from_wcs[k], v)
 
 
-def test_read_wcs_not_creatable(tmpdir):
+def test_read_wcs_not_creatable(tmp_path):
     # The following Header can't be converted to a WCS object. See also #6499.
     hdr_txt_example_WCS = textwrap.dedent('''
     SIMPLE  =                    T / Fits standard
@@ -804,7 +804,7 @@ def test_read_wcs_not_creatable(tmpdir):
     ''')
     hdr = fits.Header.fromstring(hdr_txt_example_WCS, sep='\n')
     hdul = fits.HDUList([fits.PrimaryHDU(np.ones((4241, 1104)), header=hdr)])
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     hdul.writeto(filename)
     # The hdr cannot be converted to a WCS object because of an
     # InconsistentAxisTypesError but it should still open the file
@@ -887,11 +887,11 @@ def test_mask_arithmetic_ccd(operation):
     np.testing.assert_equal(result.mask, ccd_data.mask)
 
 
-def test_write_read_multiextensionfits_mask_default(tmpdir):
+def test_write_read_multiextensionfits_mask_default(tmp_path):
     # Test that if a mask is present the mask is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
     assert ccd_after.mask is not None
@@ -901,12 +901,11 @@ def test_write_read_multiextensionfits_mask_default(tmpdir):
 @pytest.mark.parametrize(
     'uncertainty_type',
     [StdDevUncertainty, VarianceUncertainty, InverseVariance])
-def test_write_read_multiextensionfits_uncertainty_default(
-        tmpdir, uncertainty_type):
+def test_write_read_multiextensionfits_uncertainty_default(tmp_path, uncertainty_type):
     # Test that if a uncertainty is present it is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     ccd_data.write(filename)
     ccd_after = CCDData.read(filename)
     assert ccd_after.uncertainty is not None
@@ -919,11 +918,11 @@ def test_write_read_multiextensionfits_uncertainty_default(
     'uncertainty_type',
     [StdDevUncertainty, VarianceUncertainty, InverseVariance])
 def test_write_read_multiextensionfits_uncertainty_different_uncertainty_key(
-        tmpdir, uncertainty_type):
+        tmp_path, uncertainty_type):
     # Test that if a uncertainty is present it is saved and loaded by default.
     ccd_data = create_ccd_data()
     ccd_data.uncertainty = uncertainty_type(ccd_data.data * 10)
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     ccd_data.write(filename, key_uncertainty_type='Blah')
     ccd_after = CCDData.read(filename, key_uncertainty_type='Blah')
     assert ccd_after.uncertainty is not None
@@ -932,24 +931,24 @@ def test_write_read_multiextensionfits_uncertainty_different_uncertainty_key(
                                   ccd_after.uncertainty.array)
 
 
-def test_write_read_multiextensionfits_not(tmpdir):
+def test_write_read_multiextensionfits_not(tmp_path):
     # Test that writing mask and uncertainty can be disabled
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
     ccd_data.uncertainty = StdDevUncertainty(ccd_data.data * 10)
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     ccd_data.write(filename, hdu_mask=None, hdu_uncertainty=None)
     ccd_after = CCDData.read(filename)
     assert ccd_after.uncertainty is None
     assert ccd_after.mask is None
 
 
-def test_write_read_multiextensionfits_custom_ext_names(tmpdir):
+def test_write_read_multiextensionfits_custom_ext_names(tmp_path):
     # Test writing mask, uncertainty in another extension than default
     ccd_data = create_ccd_data()
     ccd_data.mask = ccd_data.data > 10
     ccd_data.uncertainty = StdDevUncertainty(ccd_data.data * 10)
-    filename = tmpdir.join('afile.fits').strpath
+    filename = str(tmp_path / 'afile.fits')
     ccd_data.write(filename, hdu_mask='Fun', hdu_uncertainty='NoFun')
 
     # Try reading with defaults extension names
@@ -966,7 +965,7 @@ def test_write_read_multiextensionfits_custom_ext_names(tmpdir):
                                   ccd_after.uncertainty.array)
 
 
-def test_read_old_style_multiextensionfits(tmpdir):
+def test_read_old_style_multiextensionfits(tmp_path):
     # Regression test for https://github.com/astropy/ccdproc/issues/664
     #
     # Prior to astropy 3.1 there was no uncertainty type saved
@@ -986,7 +985,7 @@ def test_read_old_style_multiextensionfits(tmpdir):
     # right extension names and no uncertainty type.
     hdulist = ccd.to_hdu()
     del hdulist[2].header['UTYPE']
-    file_name = tmpdir.join('old_ccddata_mef.fits').strpath
+    file_name = str(tmp_path / 'old_ccddata_mef.fits')
     hdulist.writeto(file_name)
 
     ccd = CCDData.read(file_name)
@@ -1001,15 +1000,15 @@ def test_wcs():
     assert ccd_data.wcs is wcs
 
 
-def test_recognized_fits_formats_for_read_write(tmpdir):
+def test_recognized_fits_formats_for_read_write(tmp_path):
     # These are the extensions that are supposed to be supported.
     ccd_data = create_ccd_data()
     supported_extensions = ['fit', 'fits', 'fts']
 
     for ext in supported_extensions:
-        path = tmpdir.join(f"test.{ext}")
-        ccd_data.write(path.strpath)
-        from_disk = CCDData.read(path.strpath)
+        path = str(tmp_path / f"test.{ext}")
+        ccd_data.write(path)
+        from_disk = CCDData.read(path)
         assert (ccd_data.data == from_disk.data).all()
 
 
@@ -1030,14 +1029,14 @@ def test_stddevuncertainty_compat_descriptor_no_weakref():
 
 
 # https://github.com/astropy/astropy/issues/7595
-def test_read_returns_image(tmpdir):
+def test_read_returns_image(tmp_path):
     # Test if CCData.read returns a image when reading a fits file containing
     # a table and image, in that order.
     tbl = Table(np.ones(10).reshape(5, 2))
     img = np.ones((5, 5))
     hdul = fits.HDUList(hdus=[fits.PrimaryHDU(), fits.TableHDU(tbl.as_array()),
                               fits.ImageHDU(img)])
-    filename = tmpdir.join('table_image.fits').strpath
+    filename = str(tmp_path / 'table_image.fits')
     hdul.writeto(filename)
     ccd = CCDData.read(filename, unit='adu')
     # Expecting to get (5, 5), the size of the image
