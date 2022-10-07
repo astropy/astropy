@@ -3084,3 +3084,11 @@ def test_read_write_tilde_path(path_type, home_is_tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
     # Ensure the data wasn't written to the literal tilde-prefixed path
     assert not os.path.exists(test_file)
+
+
+def test_add_list_order():
+    t = Table()
+    names = list(map(str, range(20)))
+    array = np.empty((20, 1))
+    t.add_columns(array, names=names)
+    assert t.colnames == names
