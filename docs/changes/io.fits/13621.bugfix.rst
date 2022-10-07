@@ -1,0 +1,2 @@
+Empty variable-length arrays are now properly handled when pathological combinations of
+heapoffset and heapsize are encountered.
