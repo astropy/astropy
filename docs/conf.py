@@ -94,9 +94,9 @@ intersphinx_mapping['astropy-dev'] = ('https://docs.astropy.org/en/latest/', Non
 intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/stable/', None)  # noqa: F405
 intersphinx_mapping['pytest'] = ('https://docs.pytest.org/en/stable/', None)  # noqa: F405
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)  # noqa: F405
-intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)  # noqa: F405, E501
-intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)  # noqa: F405, E501
-intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: F405, E501
+intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)  # noqa: E501, F405
+intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)  # noqa: E501, F405
+intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: E501, F405
 intersphinx_mapping['h5py'] = ('https://docs.h5py.org/en/stable/', None)  # noqa: F405
 intersphinx_mapping['asdf-astropy'] = ('https://asdf-astropy.readthedocs.io/en/latest/', None)  # noqa: F405
 intersphinx_mapping['fsspec'] = ('https://filesystem-spec.readthedocs.io/en/latest/', None)  # noqa: F405
@@ -106,7 +106,7 @@ intersphinx_mapping['fsspec'] = ('https://filesystem-spec.readthedocs.io/en/late
 exclude_patterns.append('_templates')  # noqa: F405
 exclude_patterns.append('changes')  # noqa: F405
 exclude_patterns.append('_pkgtemplate.rst')  # noqa: F405
-exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them  # noqa: F405, E501
+exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them  # noqa: E501, F405
 
 # Add any paths that contain templates here, relative to this directory.
 if 'templates_path' not in locals():  # in case parent conf.py defines it
@@ -307,8 +307,8 @@ for line in open('nitpick-exceptions'):
 try:
     import warnings
 
-    import sphinx_gallery  # noqa: F401
-    extensions += ["sphinx_gallery.gen_gallery"]  # noqa: F405
+    import sphinx_gallery
+    extensions += ["sphinx_gallery.gen_gallery"]
 
     sphinx_gallery_conf = {
         'backreferences_dir': 'generated/modules',  # path to store the module using example template  # noqa: E501

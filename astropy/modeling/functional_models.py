@@ -1620,11 +1620,11 @@ class Voigt1D(Fittable1DModel):
 
     x_0 = Parameter(default=0,
                     description="Position of the peak")
-    amplitude_L = Parameter(default=1,     # noqa: N815
+    amplitude_L = Parameter(default=1,
                             description="The Lorentzian amplitude")
-    fwhm_L = Parameter(default=2/np.pi,    # noqa: N815
+    fwhm_L = Parameter(default=2/np.pi,
                        description="The Lorentzian full width at half maximum")
-    fwhm_G = Parameter(default=np.log(2),  # noqa: N815
+    fwhm_G = Parameter(default=np.log(2),
                        description="The Gaussian full width at half maximum")
 
     sqrt_pi = np.sqrt(np.pi)
@@ -1634,8 +1634,8 @@ class Voigt1D(Fittable1DModel):
     _last_w = np.zeros(1, dtype=float)
     _faddeeva = None
 
-    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default,            # noqa: N803
-                 fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',  # noqa: N803
+    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default,
+                 fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',
                  **kwargs):
         if str(method).lower() in ('wofz', 'scipy'):
             from scipy.special import wofz
@@ -1660,7 +1660,7 @@ class Voigt1D(Fittable1DModel):
         self._last_z = z
         return self._last_w
 
-    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
+    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
 
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
@@ -1668,7 +1668,7 @@ class Voigt1D(Fittable1DModel):
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
         return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
-    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
+    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
         """Derivative of the one dimensional Voigt function with respect to parameters."""
 
         s = self.sqrt_ln2 / fwhm_G
@@ -1711,7 +1711,7 @@ class Voigt1D(Fittable1DModel):
 
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
-        AA = np.array([+46236.3358828121,   -147726.58393079657j,   # noqa: N806
+        AA = np.array([+46236.3358828121,   -147726.58393079657j,
                        -206562.80451354137,  281369.1590631087j,
                        +183092.74968253175, -184787.96830696272j,
                        -66155.39578477248,   57778.05827983565j,
