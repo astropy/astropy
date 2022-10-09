@@ -32,7 +32,7 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
 
 # Note: while the filterwarnings is required, this import has to come after the
 # filterwarnings above, because this attempts to import matplotlib:
-from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB  # noqa: E402
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 if HAS_MATPLOTLIB:
     import matplotlib

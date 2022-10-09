@@ -69,7 +69,7 @@ with registry.delay_doc_updates(Table):
     import astropy.io.ascii.connect
     import astropy.io.fits.connect
     import astropy.io.misc.connect
-    import astropy.io.misc.pandas.connect  # noqa: F401
+    import astropy.io.misc.pandas.connect
     import astropy.io.votable.connect
 
     from .jsviewer import JSViewer

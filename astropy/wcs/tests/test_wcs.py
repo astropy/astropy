@@ -1324,7 +1324,7 @@ DATE-OBS= '2019-05-09T08:08:26.816Z' / ISO-8601 observation date matching MJD-OB
 NAXIS   =                    2 / NAXIS
 NAXIS1  =                 2136 / length of first array dimension
 NAXIS2  =                 2078 / length of second array dimension
-    """  # noqa
+    """
 
     header = fits.Header.fromstring(header.strip(), '\n')
     test_wcs = wcs.WCS(header)
