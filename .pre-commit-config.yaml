@@ -72,6 +72,11 @@ repos:
         args: ["--py38-plus"]
         exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
 
+  - repo: https://github.com/asottile/yesqa
+    rev: v1.4.0
+    hooks:
+      - id: yesqa
+
   # We list the warnings/errors to check for here rather than in setup.cfg because
   # we don't want these options to apply whenever anyone calls flake8 from the
   # command-line or their code editor - in this case all warnings/errors should be
