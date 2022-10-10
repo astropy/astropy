@@ -142,3 +142,9 @@ wcs:
 wcs.wcsapi:
   - astropy/wcs/wcsapi/**/*
   - docs/wcs/wcsapi.rst
+
+dev-automation:
+  - .pre-commit-config.yaml
+
+no-changelog-entry-needed:
+  - .pre-commit-config.yaml
