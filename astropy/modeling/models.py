@@ -6,17 +6,17 @@ Creates a common namespace for all pre-defined models.
 
 # pylint: disable=unused-wildcard-import, unused-import, wildcard-import
 
-from . import math_functions as math  # noqa: F401, F403
-from .core import custom_model, fix_inputs, hide_inverse  # pylint: disable=W0611 # noqa: F401, F403
-from .functional_models import *  # noqa: F401, F403
-from .mappings import *  # noqa: F401, F403
-from .physical_models import *  # noqa: F401, F403
-from .polynomial import *  # noqa: F401, F403
-from .powerlaws import *  # noqa: F401, F403
-from .projections import *  # noqa: F401, F403
-from .rotations import *  # noqa: F401, F403
-from .spline import *  # noqa: F401, F403
-from .tabular import *  # noqa: F401, F403
+from . import math_functions as math  # noqa: F401
+from .core import custom_model, fix_inputs, hide_inverse  # pylint: disable=W0611 # noqa: F401
+from .functional_models import *  # noqa: F403
+from .mappings import *  # noqa: F403
+from .physical_models import *  # noqa: F403
+from .polynomial import *  # noqa: F403
+from .powerlaws import *  # noqa: F403
+from .projections import *  # noqa: F403
+from .rotations import *  # noqa: F403
+from .spline import *  # noqa: F403
+from .tabular import *  # noqa: F403
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list

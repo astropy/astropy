@@ -15,7 +15,7 @@ TEST_DIR = os.path.dirname(__file__)
 
 has_isnan = True
 try:
-    from math import isnan  # noqa: F401
+    from math import isnan
 except ImportError:
     try:
         from numpy import isnan  # noqa: F401
