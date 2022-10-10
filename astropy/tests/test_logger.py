@@ -362,11 +362,11 @@ def test_log_to_list_origin2():
 
 
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
-def test_log_to_file(tmpdir, level):
+def test_log_to_file(tmp_path, level):
 
-    local_path = tmpdir.join('test.log')
+    local_path = tmp_path / 'test.log'
     log_file = local_path.open('wb')
-    log_path = str(local_path.realpath())
+    log_path = str(local_path.resolve())
     orig_level = log.level
 
     try:
@@ -419,11 +419,11 @@ def test_log_to_file(tmpdir, level):
             'astropy.tests.test_logger', 'DEBUG', 'Debug message')
 
 
-def test_log_to_file_level(tmpdir):
+def test_log_to_file_level(tmp_path):
 
-    local_path = tmpdir.join('test.log')
+    local_path = tmp_path / 'test.log'
     log_file = local_path.open('wb')
-    log_path = str(local_path.realpath())
+    log_path = str(local_path.resolve())
 
     with log.log_to_file(log_path, filter_level='ERROR'):
         log.error("Error message")
@@ -440,11 +440,11 @@ def test_log_to_file_level(tmpdir):
         'ERROR', 'Error message')
 
 
-def test_log_to_file_origin1(tmpdir):
+def test_log_to_file_origin1(tmp_path):
 
-    local_path = tmpdir.join('test.log')
+    local_path = tmp_path / 'test.log'
     log_file = local_path.open('wb')
-    log_path = str(local_path.realpath())
+    log_path = str(local_path.resolve())
 
     with log.log_to_file(log_path, filter_origin='astropy.tests'):
         log.error("Error message")
@@ -459,11 +459,11 @@ def test_log_to_file_origin1(tmpdir):
     assert len(log_entries) == 2
 
 
-def test_log_to_file_origin2(tmpdir):
+def test_log_to_file_origin2(tmp_path):
 
-    local_path = tmpdir.join('test.log')
+    local_path = tmp_path / 'test.log'
     log_file = local_path.open('wb')
-    log_path = str(local_path.realpath())
+    log_path = str(local_path.resolve())
 
     with log.log_to_file(log_path, filter_origin='astropy.wcs'):
         log.error("Error message")
@@ -479,10 +479,10 @@ def test_log_to_file_origin2(tmpdir):
 
 
 @pytest.mark.parametrize(('encoding'), ['', 'utf-8', 'cp1252'])
-def test_log_to_file_encoding(tmpdir, encoding):
+def test_log_to_file_encoding(tmp_path, encoding):
 
-    local_path = tmpdir.join('test.log')
-    log_path = str(local_path.realpath())
+    local_path = tmp_path / 'test.log'
+    log_path = str(local_path.resolve())
 
     orig_encoding = conf.log_file_encoding
 
