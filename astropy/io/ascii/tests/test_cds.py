@@ -384,7 +384,7 @@ Byte-by-byte Description of file: table.dat
 10-14  E5.1   ---    e                      [-3160000.0/0.01] Description of e
 16-23  F8.5   ---    d                      [22.25/27.25] Description of d
 --------------------------------------------------------------------------------
-'''  # noqa: W291
+'''
     t = ascii.read(test_dat)
     t.remove_columns(['s', 'i'])
     description = 'This is a tediously long description.' \

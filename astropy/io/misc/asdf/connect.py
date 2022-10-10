@@ -107,7 +107,7 @@ def write_table(table, filename, data_key=None, make_tree=None, **kwargs):
 
 def asdf_identify(origin, filepath, fileobj, *args, **kwargs):
     try:
-        import asdf  # noqa: F401, E402
+        import asdf  # noqa: F401
     except ImportError:
         return False
 
