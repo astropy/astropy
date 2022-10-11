@@ -339,7 +339,7 @@ class WCSAxes(Axes):
         `~astropy.coordinates.BaseCoordinateFrame` objects onto the axes.
 
         The first argument to
-        :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` should be a
+        :meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord` should be a
         coordinate, which will then be converted to the first two parameters to
         `matplotlib.axes.Axes.scatter`. All other arguments are the same as
         `matplotlib.axes.Axes.scatter`. If not specified a ``transform``

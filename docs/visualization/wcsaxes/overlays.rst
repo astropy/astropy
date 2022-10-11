@@ -2,6 +2,12 @@
 Overplotting markers and artists
 ********************************
 
+The class :class:`~astropy.visualization.wcsaxes.WCSAxes` provides two handy methods:
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord`,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`
+
+Used to plots and scatter respectively :class:`~astropy.coordinates.SkyCoord` or :class:`~astropy.coordinates.BaseCoordinateFrame` coordinates on the axes. The ``transform`` keyword argument will be created based on the coordinate, specifying it here will throw a :class:`~TypeError`.
+
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.
 
