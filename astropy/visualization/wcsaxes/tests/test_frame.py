@@ -75,7 +75,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @figure_test
-    def test_update_clip_path_rectangular(self, tmpdir):
+    def test_update_clip_path_rectangular(self, tmp_path):
 
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal')
@@ -86,7 +86,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(tmpdir.join('nothing').strpath)
+        fig.savefig(str(tmp_path / 'nothing'))
 
         ax.imshow(np.zeros((12, 4)))
 
@@ -99,7 +99,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @figure_test
-    def test_update_clip_path_nonrectangular(self, tmpdir):
+    def test_update_clip_path_nonrectangular(self, tmp_path):
 
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal',
@@ -111,7 +111,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(tmpdir.join('nothing').strpath)
+        fig.savefig(str(tmp_path / 'nothing'))
 
         ax.imshow(np.zeros((12, 4)))
 
@@ -121,7 +121,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @figure_test
-    def test_update_clip_path_change_wcs(self, tmpdir):
+    def test_update_clip_path_change_wcs(self, tmp_path):
 
         # When WCS is changed, a new frame is created, so we need to make sure
         # that the path is carried over to the new frame.
@@ -135,7 +135,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(tmpdir.join('nothing').strpath)
+        fig.savefig(str(tmp_path / 'nothing'))
 
         ax.reset_wcs()
 
