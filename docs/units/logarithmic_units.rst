@@ -242,6 +242,13 @@ distance without remembering the 5-5log rule (but you might find the
     >>> DM.to(u.pc, equivalencies=radius_and_inverse_area)  # doctest: +FLOAT_CMP
     <Quantity 1000. pc>
 
+The following shows arithmetic between two different magnitudes systems.
+Comparison between such measurements is consistent because they are
+both logarithmic in nature::
+
+    >>> (5 * u.STmag - 2.5 * u.ABmag)
+    <Magnitude 2.5 mag(ST / AB)>
+
 NumPy Functions
 ===============
 
