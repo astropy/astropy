@@ -85,7 +85,7 @@ def test_label_visibility_rules_always(ignore_matplotlibrc, ax):
     assert_label_draw(ax, True, True)
 
 
-def test_format_unit(tmpdir):
+def test_format_unit():
 
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
@@ -102,7 +102,7 @@ def test_format_unit(tmpdir):
     assert fu == "arcsec"
 
 
-def test_set_separator(tmpdir):
+def test_set_separator():
 
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))

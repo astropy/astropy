@@ -19,20 +19,20 @@ class TestFits2Bitmap:
         self.array = np.arange(16384).reshape((128, 128))
 
     @pytest.mark.openfiles_ignore
-    def test_function(self, tmpdir):
-        filename = tmpdir.join(self.filename).strpath
+    def test_function(self, tmp_path):
+        filename = str(tmp_path / self.filename)
         fits.writeto(filename, self.array)
         fits2bitmap(filename)
 
     @pytest.mark.openfiles_ignore
-    def test_script(self, tmpdir):
-        filename = tmpdir.join(self.filename).strpath
+    def test_script(self, tmp_path):
+        filename = str(tmp_path / self.filename)
         fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
     @pytest.mark.openfiles_ignore
-    def test_exten_num(self, tmpdir):
-        filename = tmpdir.join(self.filename).strpath
+    def test_exten_num(self, tmp_path):
+        filename = str(tmp_path / self.filename)
         hdu1 = fits.PrimaryHDU()
         hdu2 = fits.ImageHDU(self.array)
         hdulist = fits.HDUList([hdu1, hdu2])
@@ -40,8 +40,8 @@ class TestFits2Bitmap:
         main([filename, '-e', '1'])
 
     @pytest.mark.openfiles_ignore
-    def test_exten_name(self, tmpdir):
-        filename = tmpdir.join(self.filename).strpath
+    def test_exten_name(self, tmp_path):
+        filename = str(tmp_path / self.filename)
         hdu1 = fits.PrimaryHDU()
         extname = 'SCI'
         hdu2 = fits.ImageHDU(self.array)
@@ -51,20 +51,20 @@ class TestFits2Bitmap:
         main([filename, '-e', extname])
 
     @pytest.mark.parametrize('file_exten', ['.gz', '.bz2'])
-    def test_compressed_fits(self, tmpdir, file_exten):
-        filename = tmpdir.join('test.fits' + file_exten).strpath
+    def test_compressed_fits(self, tmp_path, file_exten):
+        filename = str(tmp_path / f'test.fits{file_exten}')
         fits.writeto(filename, self.array)
         main([filename, '-e', '0'])
 
     @pytest.mark.openfiles_ignore
-    def test_orientation(self, tmpdir):
+    def test_orientation(self, tmp_path):
         """
         Regression test to check the image vertical orientation/origin.
         """
 
-        filename = tmpdir.join(self.filename).strpath
+        filename = str(tmp_path / self.filename)
         out_filename = 'fits2bitmap_test.png'
-        out_filename = tmpdir.join(out_filename).strpath
+        out_filename = str(tmp_path / out_filename)
         data = np.zeros((32, 32))
         data[0:16, :] = 1.
         fits.writeto(filename, data)
