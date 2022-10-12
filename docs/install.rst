@@ -516,7 +516,18 @@ Alternatively, you can do::
     cd docs
     make html
 
-And the documentation will be generated in the same location. Note that
+.. note::
+   If you have a multi-core processor, and wish to leverage this for building
+   documentation, you can do so as follows::
+
+       cd docs
+       SPHINXOPTS="-j N" make html
+
+   where ``N`` is the number of processes over which to distribute the build, as
+   described in the `sphinx-build Documentation
+   <https://www.sphinx-doc.org/en/master/man/sphinx-build.html#cmdoption-sphinx-build-j>`_.
+
+The documentation will be generated in the same location. Note that
 this uses the installed version of astropy, so if you want to make sure
 the current repository version is used, you will need to install it with
 e.g.::
