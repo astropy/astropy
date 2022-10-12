@@ -33,7 +33,7 @@ astropy/time                @taldcroft
 # astropy/units
 # astropy/utils
 astropy/visualization       @astrofrog          @Cadair
-# astropy/wcs
+astropy/wcs                 @mcara
 astropy/wcs/wcsapi          @astrofrog          @Cadair
 
 # docs/constants
@@ -54,6 +54,6 @@ docs/time                   @taldcroft
 # docs/units
 # docs/utils
 docs/visualization          @astrofrog          @Cadair
-# docs/wcs
+docs/wcs                    @mcara
 
 .pre-commit-config.yaml     @WilliamJamieson    @nstarman
