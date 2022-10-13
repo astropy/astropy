@@ -23,10 +23,10 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
 def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
+            self.other = [42]
             self._foo = 42
             self._bar = 4242
             self._message = '42'
-            self._alternative = [42]
             self._pending = {42}
 
         foo = deprecated_attribute('foo', '0.2')
@@ -76,6 +76,9 @@ def test_deprecated_attribute():
         assert dummy.alternative == [42]
     with pytest.warns(AstropyDeprecationWarning, match=msg):
         dummy.alternative = [24]
+    # ``other`` is not deprecated.
+    assert dummy.other == [24]
+    dummy.other = [31]
 
     msg = r"^The pending attribute will be deprecated in a future version\.$"
     with pytest.warns(AstropyPendingDeprecationWarning, match=msg):
