@@ -212,7 +212,7 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     property that will warn when the given attribute name is accessed.
     To prevent the warning (i.e. for internal code), use the private
     name for the attribute by prepending an underscore
-    (i.e. ``self._name``).
+    (i.e. ``self._name``), or set an alternative explicitly.
 
     Parameters
     ----------
@@ -250,12 +250,20 @@ def deprecated_attribute(name, since, message=None, alternative=None,
 
         class MyClass:
             # Mark the old_name as deprecated
-            old_name = misc.deprecated_attribute('old_name', '0.1')
+            old_name = deprecated_attribute("old_name", "0.1")
 
             def method(self):
                 self._old_name = 42
+
+        class MyClass2:
+            old_name = deprecated_attribute(
+                "old_name", "1.2", alternative="new_name"
+            )
+
+            def method(self):
+                self.new_name = 24
     """
-    private_name = '_' + name
+    private_name = alternative or "_" + name
 
     specific_deprecated = deprecated(since, name=name, obj_type='attribute',
                                      message=message, alternative=alternative,
