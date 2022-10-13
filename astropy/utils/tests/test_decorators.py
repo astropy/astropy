@@ -23,18 +23,11 @@ class NewDeprecationWarning(AstropyDeprecationWarning):
 def test_deprecated_attribute():
     class DummyClass:
         def __init__(self):
+            self.other = [42]
             self._foo = 42
             self._bar = 4242
             self._message = '42'
-            self._alternative = [42]
             self._pending = {42}
-
-        def set_private(self):
-            self._foo = 100
-            self._bar = 1000
-            self._message = '100'
-            self._alternative = [100]
-            self._pending = {100}
 
         foo = deprecated_attribute('foo', '0.2')
 
@@ -50,26 +43,48 @@ def test_deprecated_attribute():
 
     dummy = DummyClass()
 
-    with pytest.warns(AstropyDeprecationWarning, match="The foo attribute is "
-                      "deprecated and may be removed in a future version.") as w:
-        dummy.foo
+    default_msg = (
+        r"^The {} attribute is deprecated and may be removed in a future version\.$"
+    )
+
+    # Test getters and setters.
+    msg = default_msg.format("foo")
+    with pytest.warns(AstropyDeprecationWarning, match=msg) as w:
+        assert dummy.foo == 42
     assert len(w) == 1
+    with pytest.warns(AstropyDeprecationWarning, match=msg):
+        dummy.foo = 24
+    # Handling ``_foo`` should not cause deprecation warnings.
+    assert dummy._foo == 24
+    dummy._foo = 13
+    assert dummy._foo == 13
 
-    with pytest.warns(NewDeprecationWarning, match="The bar attribute is "
-                      "deprecated and may be removed in a future version.") as w:
-        dummy.bar
+    msg = default_msg.format("bar")
+    with pytest.warns(NewDeprecationWarning, match=msg) as w:
+        assert dummy.bar == 4242
     assert len(w) == 1
+    with pytest.warns(NewDeprecationWarning, match=msg):
+        dummy.bar = 2424
 
-    with pytest.warns(AstropyDeprecationWarning, match="MSG"):
-        dummy.message
+    with pytest.warns(AstropyDeprecationWarning, match="^MSG$"):
+        assert dummy.message == "42"
+    with pytest.warns(AstropyDeprecationWarning, match="^MSG$"):
+        dummy.message = "24"
 
-    with pytest.warns(AstropyDeprecationWarning, match=r"Use other instead\."):
-        dummy.alternative
+    msg = default_msg.format("alternative")[:-1] + r"\n        Use other instead\.$"
+    with pytest.warns(AstropyDeprecationWarning, match=msg):
+        assert dummy.alternative == [42]
+    with pytest.warns(AstropyDeprecationWarning, match=msg):
+        dummy.alternative = [24]
+    # ``other`` is not deprecated.
+    assert dummy.other == [24]
+    dummy.other = [31]
 
-    with pytest.warns(AstropyPendingDeprecationWarning):
-        dummy.pending
-
-    dummy.set_private()
+    msg = r"^The pending attribute will be deprecated in a future version\.$"
+    with pytest.warns(AstropyPendingDeprecationWarning, match=msg):
+        assert dummy.pending == {42}
+    with pytest.warns(AstropyPendingDeprecationWarning, match=msg):
+        dummy.pending = {24}
 
 
 # This needs to be defined outside of the test function, because we
