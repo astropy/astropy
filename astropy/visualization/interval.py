@@ -9,6 +9,8 @@ import abc
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument
+
 from .transform import BaseTransform
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
@@ -203,9 +205,14 @@ class ZScaleInterval(BaseInterval):
 
     Parameters
     ----------
-    nsamples : int, optional
+    n_samples : int, optional
         The number of points in the array to sample for determining
         scaling factors.  Defaults to 1000.
+
+        .. versionchanged:: 5.2
+            ``n_samples`` replaces the deprecated ``nsamples`` argument,
+            which will be removed in the future.
+
     contrast : float, optional
         The scaling factor (between 0 and 1) for determining the minimum
         and maximum value.  Larger values increase the difference
@@ -226,21 +233,25 @@ class ZScaleInterval(BaseInterval):
         5.
     """
 
-    def __init__(self, nsamples=1000, contrast=0.25, max_reject=0.5,
+    @deprecated_renamed_argument("nsamples", "n_samples", "5.2")
+    def __init__(self, n_samples=1000, contrast=0.25, max_reject=0.5,
                  min_npixels=5, krej=2.5, max_iterations=5):
-        self.nsamples = nsamples
+        self.n_samples = n_samples
         self.contrast = contrast
         self.max_reject = max_reject
         self.min_npixels = min_npixels
         self.krej = krej
         self.max_iterations = max_iterations
 
+    # Mark `nsamples` as deprecated
+    nsamples = deprecated_attribute("nsamples", "5.2", alternative="n_samples")
+
     def get_limits(self, values):
         # Sample the image
         values = np.asarray(values)
         values = values[np.isfinite(values)]
-        stride = int(max(1.0, values.size / self.nsamples))
-        samples = values[::stride][:self.nsamples]
+        stride = int(max(1.0, values.size / self.n_samples))
+        samples = values[::stride][:self.n_samples]
         samples.sort()
 
         npix = len(samples)
