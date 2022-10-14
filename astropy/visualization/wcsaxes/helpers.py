@@ -6,9 +6,9 @@ Helpers functions for different kinds of WCSAxes instances
 
 import numpy as np
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSizeBar
+
 import astropy.units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
-
 
 CORNERS = {
     "top right": 1,
