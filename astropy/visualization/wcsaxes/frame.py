@@ -224,10 +224,13 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
         for axis in self:
 
             data = self[axis].data
-            p = np.linspace(0., 1., data.shape[0])
-            p_new = np.linspace(0., 1., n_samples)
             spines[axis] = self.spine_class(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
+            if data.size > 0:
+                p = np.linspace(0., 1., data.shape[0])
+                p_new = np.linspace(0., 1., n_samples)
+                spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
+            else:
+                spines[axis].data = data
 
         return spines
 

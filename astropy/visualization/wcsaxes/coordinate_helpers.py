@@ -656,6 +656,8 @@ class CoordinateHelper:
         invertedTransLimits = transData.inverted()
 
         for axis, spine in frame.items():
+            if spine.data.size == 0:
+                continue
 
             if not isinstance(self.frame, RectangularFrame1D):
                 # Determine tick rotation in display coordinates and compare to
@@ -916,6 +918,65 @@ class CoordinateHelper:
         for iw in range(n_coord):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
             self.grid_lines.append(self._get_gridline(xy_world[subset], pixel[subset], xy_world_round[subset]))
+
+    def add_tickable_gridline(self, name, constant):
+        """
+        Define a gridline that can be used for ticks and labels.
+
+        This gridline is not itself drawn, but instead can be specified in calls to
+        methods such as
+        :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`
+        for drawing ticks and labels.  Since the gridline has a constant value in this
+        coordinate, and thus would not have any ticks or labels for the same coordinate,
+        the call to
+        :meth:`~astropy.visualization.wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position`
+        would typically be made on the complementary coordinate.
+
+        Parameters
+        ----------
+        name : str
+            The name for the gridline, usually a single character, but can be longer
+        constant : `~astropy.units.Quantity`
+            The constant coordinate value of the gridline
+        """
+        if self.coord_index is None:
+            return
+
+        if name in self.frame:
+            raise ValueError(f"The frame already has a spine with the name '{name}'")
+
+        coord_range = self.parent_map.get_coord_range()
+        constant = constant.to_value(self.coord_unit)
+
+        from . import conf
+        n_samples = conf.grid_samples
+
+        # See comment in _update_grid_lines() about a WCS with more than 2 axes
+        xy_world = np.zeros((n_samples, 2))
+        xy_world[:, self.coord_index] = np.repeat(constant, n_samples)
+        xy_world[:, 1-self.coord_index] = np.linspace(coord_range[1-self.coord_index][0],
+                                                      coord_range[1-self.coord_index][1], n_samples)
+
+        # Transform line to pixel coordinates
+        pixel = self.transform.inverted().transform(xy_world)
+
+        # Create round-tripped values for checking
+        xy_world_round = self.transform.transform(pixel)
+
+        # Get the path of the gridline, which masks hidden parts
+        gridline = self._get_gridline(xy_world, pixel, xy_world_round)
+
+        def data_for_spine(spine):
+            # Return the non-masked points of the gridline within the rectangular plot bounds
+            vertices = gridline.vertices
+            xmin, xmax = spine.parent_axes.get_xlim()
+            ymin, ymax = spine.parent_axes.get_ylim()
+            return vertices[(gridline.codes != Path.MOVETO)
+                            & (vertices[:, 0] >= xmin) & (vertices[:, 0] <= xmax)
+                            & (vertices[:, 1] >= ymin) & (vertices[:, 1] <= ymax)]
+
+        self.frame[name] = self.frame.spine_class(self.frame.parent_axes, self.frame.transform,
+                                                  data_func=data_for_spine)
 
     def _get_gridline(self, xy_world, pixel, xy_world_round):
         if self.coord_type == 'scalar':
