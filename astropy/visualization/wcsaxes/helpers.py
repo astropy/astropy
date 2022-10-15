@@ -5,10 +5,11 @@ Helpers functions for different kinds of WCSAxes instances
 """
 
 import numpy as np
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSizeBar
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse as _AnchoredEllipse
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar as _AnchoredSizeBar
 
 import astropy.units as u
-from astropy.wcs.utils import proj_plane_pixel_scales
+from astropy.wcs.utils import proj_plane_pixel_scales as _proj_plane_pixel_scales
 
 CORNERS = {
     "top right": 1,
@@ -85,7 +86,7 @@ def add_beam(
         angle = angle.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
+        pix_scale = _proj_plane_pixel_scales(ax.wcs)
         sx = pix_scale[0]
         sy = pix_scale[1]
         degrees_per_pixel = np.sqrt(sx * sy)
@@ -97,7 +98,7 @@ def add_beam(
 
     corner = CORNERS[corner]
 
-    beam = AnchoredEllipse(
+    beam = _AnchoredEllipse(
         ax.transData,
         width=minor,
         height=major,
@@ -153,7 +154,7 @@ def add_scalebar(
         length = length.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
+        pix_scale = _proj_plane_pixel_scales(ax.wcs)
         sx = pix_scale[0]
         sy = pix_scale[1]
         degrees_per_pixel = np.sqrt(sx * sy)
@@ -164,7 +165,7 @@ def add_scalebar(
 
     corner = CORNERS[corner]
 
-    scalebar = AnchoredSizeBar(
+    scalebar = _AnchoredSizeBar(
         ax.transData,
         length,
         label,
