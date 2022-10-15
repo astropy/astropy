@@ -972,3 +972,18 @@ def test_embedded_newline_tab():
         r'   a b \n c \t \n d',
         r'   x            y\n']
     assert t.pformat_all() == exp
+
+
+def test_multidims_with_zero_dim():
+    """Test of fix for #13836 when a zero-dim column is present"""
+    t = Table()
+    t["a"] = ["a", "b"]
+    t["b"] = np.ones(shape=(2, 0, 1), dtype=np.float64)
+    exp = [
+        " a        b      ",
+        "str1 float64[0,1]",
+        "---- ------------",
+        "   a             ",
+        "   b             ",
+    ]
+    assert t.pformat_all(show_dtype=True) == exp
