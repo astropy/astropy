@@ -392,7 +392,8 @@ class TableFormatter:
         if multidims:
             multidim0 = tuple(0 for n in multidims)
             multidim1 = tuple(n - 1 for n in multidims)
-            trivial_multidims = np.prod(multidims) == 1
+            multidims_all_ones = np.prod(multidims) == 1
+            multidims_has_zero = 0 in multidims
 
         i_dashes = None
         i_centers = []  # Line indexes where content should be centered
@@ -475,8 +476,11 @@ class TableFormatter:
                 # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
                 # with shape (n,1,...,1) from being printed as if there was
                 # more than one element in a row
-                if trivial_multidims:
+                if multidims_all_ones:
                     return format_func(col_format, col[(idx,) + multidim0])
+                elif multidims_has_zero:
+                    # Any zero dimension means there is no data to print
+                    return ""
                 else:
                     left = format_func(col_format, col[(idx,) + multidim0])
                     right = format_func(col_format, col[(idx,) + multidim1])
