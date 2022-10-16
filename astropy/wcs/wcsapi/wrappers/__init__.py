@@ -1,2 +1,2 @@
 from .base import BaseWCSWrapper
-from .sliced_wcs import *  # noqa
+from .sliced_wcs import *

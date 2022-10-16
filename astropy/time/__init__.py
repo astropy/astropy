@@ -15,9 +15,10 @@ class Conf(_config.ConfigNamespace):
         "'force' (use C parser and raise exception if it fails). Note that the"
         "options are all strings.")
 
-conf = Conf()  # noqa
+
+conf = Conf()
 
 # isort: off
-from .formats import *  # noqa
-from .core import *  # noqa
+from .formats import *
+from .core import *
 # isort: on
