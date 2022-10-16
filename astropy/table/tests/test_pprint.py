@@ -910,3 +910,18 @@ class TestColumnsShowHide:
         with t.pprint_exclude_names.set('a??'):
             out = t.pformat_all()
         assert out == exp
+
+
+def test_multidims_with_zero_dim():
+    """Test of fix for #13836 when a zero-dim column is present"""
+    t = Table()
+    t["a"] = ["a", "b"]
+    t["b"] = np.ones(shape=(2, 0, 1), dtype=np.float64)
+    exp = [
+        " a        b      ",
+        "str1 float64[0,1]",
+        "---- ------------",
+        "   a             ",
+        "   b             ",
+    ]
+    assert t.pformat_all(show_dtype=True) == exp
