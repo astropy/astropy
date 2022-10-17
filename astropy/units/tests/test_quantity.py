@@ -901,6 +901,7 @@ class TestQuantityDisplay:
     def test_dimensionless_quantity_format(self):
         q1 = u.Quantity(3.14)
         assert format(q1, '.2f') == '3.14'
+        assert f"{q1:cds}" == "3.14"
 
     def test_scalar_quantity_str(self):
         assert str(self.scalarintq) == "1 m"
@@ -920,6 +921,8 @@ class TestQuantityDisplay:
         assert format(self.scalarintq, '02d') == "01 m"
         assert format(self.scalarfloatq, '.1f') == "1.3 m"
         assert format(self.scalarfloatq, '.0f') == "1 m"
+        assert f"{self.scalarintq:cds}" == "1 m"
+        assert f"{self.scalarfloatq:cds}" == "1.3 m"
 
     def test_uninitialized_unit_format(self):
         bad_quantity = np.arange(10.).view(u.Quantity)
