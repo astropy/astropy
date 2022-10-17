@@ -804,7 +804,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
 
     if doupdate or needs_template:
         if needs_template:
-            with open(template_path, 'wt', encoding='latin-1') as fw:
+            with open(template_path, 'w', encoding='latin-1') as fw:
                 fw.write(template_content)
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
@@ -819,7 +819,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
                     ConfigurationChangedWarning)
 
         if doupdate and not identical:
-            with open(cfgfn, 'wt', encoding='latin-1') as fw:
+            with open(cfgfn, 'w', encoding='latin-1') as fw:
                 fw.write(template_content)
             return True
 
@@ -869,7 +869,7 @@ def create_config_file(pkg, rootname='astropy', overwrite=False):
         doupdate = is_unedited_config_file(content, template_content)
 
     if doupdate or overwrite:
-        with open(cfgfn, 'wt', encoding='latin-1') as fw:
+        with open(cfgfn, 'w', encoding='latin-1') as fw:
             fw.write(template_content)
         log.info('The configuration file has been successfully written '
                  f'to {cfgfn}')
