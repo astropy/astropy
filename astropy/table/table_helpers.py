@@ -168,8 +168,8 @@ class ArrayWrapper:
     """
     info = ArrayWrapperInfo()
 
-    def __init__(self, data):
-        self.data = np.array(data)
+    def __init__(self, data, copy=True):
+        self.data = np.array(data, copy=copy)
         if 'info' in getattr(data, '__dict__', ()):
             self.info = data.info
 
@@ -177,7 +177,7 @@ class ArrayWrapper:
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
-            out = self.__class__(self.data[item])
+            out = self.__class__(self.data[item], copy=False)
             if 'info' in self.__dict__:
                 out.info = self.info
         return out
