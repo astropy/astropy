@@ -51,7 +51,7 @@ class TestCore(FitsTestCase):
         p = fits.PrimaryHDU()
         lst = fits.HDUList()
 
-        n = np.array([1, 60000, 0]).astype('i2')
+        n = np.array([1, 60000, 0], dtype='u2').astype('i2')
 
         c = fits.Column(name='foo', format='i2', bscale=1, bzero=32768,
                         array=n)
