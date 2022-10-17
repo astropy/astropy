@@ -1999,7 +1999,7 @@ def import_file_to_cache(url_key, filename,
         # Make sure we're on the same filesystem
         # This will raise an exception if the url_key doesn't turn into a valid filename
         shutil.copy(filename, temp_filename)
-        with open(os.path.join(temp_dir, "url"), "wt", encoding="utf-8") as f:
+        with open(os.path.join(temp_dir, "url"), "w", encoding="utf-8") as f:
             f.write(url_key)
         if replace:
             _rmtree(local_dirname, replace=temp_dir)

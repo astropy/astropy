@@ -52,7 +52,7 @@ def convert_to_writable_filelike(fd, compressed=False):
                 real_fd.flush()
                 return
         else:
-            with open(fd, 'wt', encoding='utf8') as real_fd:
+            with open(fd, 'w', encoding='utf8') as real_fd:
                 yield real_fd
                 return
     elif hasattr(fd, 'write'):
