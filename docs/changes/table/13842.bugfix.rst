@@ -1,0 +1,2 @@
+Ensure that mixin columns and their ``info`` are not shared between tables
+even when their underlying data is shared with ``copy=False``.
