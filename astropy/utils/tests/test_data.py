@@ -63,7 +63,7 @@ def can_rename_directory_in_use():
         d2 = os.path.join(d, "b")
         f1 = os.path.join(d1, "file")
         os.mkdir(d1)
-        with open(f1, "wt") as f:
+        with open(f1, "w") as f:
             f.write("some contents\n")
         try:
             with open(f1):
@@ -1421,7 +1421,7 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
     download_file(u, cache=True)
     dldir = _get_download_cache_loc()
     bf = os.path.abspath(os.path.join(dldir, "bogus"))
-    with open(bf, "wt") as f:
+    with open(bf, "w") as f:
         f.write("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
@@ -1433,7 +1433,7 @@ def test_check_download_cache_finds_bogus_subentries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     f = download_file(u, cache=True)
     bf = os.path.abspath(os.path.join(os.path.dirname(f), "bogus"))
-    with open(bf, "wt") as f:
+    with open(bf, "w") as f:
         f.write("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
@@ -1447,15 +1447,15 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
     dldir = _get_download_cache_loc()
 
     bf1 = os.path.abspath(os.path.join(dldir, "bogus1"))
-    with open(bf1, "wt") as f:
+    with open(bf1, "w") as f:
         f.write("bogus file that exists")
 
     bf2 = os.path.abspath(os.path.join(os.path.dirname(fn), "bogus2"))
-    with open(bf2, "wt") as f:
+    with open(bf2, "w") as f:
         f.write("other bogus file that exists")
 
     bf3 = os.path.abspath(os.path.join(dldir, "contents"))
-    with open(bf3, "wt") as f:
+    with open(bf3, "w") as f:
         f.write("awkwardly-named bogus file that exists")
 
     u2, c2 = next(valid_urls)
@@ -1787,7 +1787,7 @@ def test_import_file_cache_readonly(readonly_cache, tmpdir):
     filename = os.path.join(tmpdir, "test-file")
     content = "Some text or other"
     url = "http://example.com/"
-    with open(filename, "wt") as f:
+    with open(filename, "w") as f:
         f.write(content)
 
     with pytest.raises(OSError):
@@ -1849,7 +1849,7 @@ def test_import_file_cache_fake_readonly(fake_readonly_cache, tmpdir):
     filename = os.path.join(tmpdir, "test-file")
     content = "Some text or other"
     url = "http://example.com/"
-    with open(filename, "wt") as f:
+    with open(filename, "w") as f:
         f.write(content)
 
     with pytest.raises(OSError):
