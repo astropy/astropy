@@ -75,7 +75,7 @@ class LogUnit(FunctionUnitBase):
             # if other is not a unit (i.e., does not have _to).
             return NotImplemented
         except UnitsError:
-            raise UnitsError("Can only add/subtract logarithmic units of"
+            raise UnitsError("Can only add/subtract logarithmic units "
                              "of compatible type.")
 
         other_physical_unit = getattr(other, 'physical_unit',

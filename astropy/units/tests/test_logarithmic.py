@@ -685,8 +685,8 @@ class TestLogQuantityArithmetic:
 
     def test_more_multiplication_division(self):
         """Check that multiplication/division with other quantities is only
-        possible when the physical unit is dimensionless, and that this turns
-        the result into a normal quantity."""
+        possible when the physical unit is dimensionless, and that this keeps
+        the result as a LogQuantity if possible."""
         lq = u.Magnitude(np.arange(1., 11.)*u.Jy)
 
         with pytest.raises(u.UnitsError):
@@ -730,7 +730,13 @@ class TestLogQuantityArithmetic:
         assert r.unit == u.dimensionless_unscaled
         assert np.all(r.value == lq2.value/2.)
 
+        # And multiplying with a dimensionless array is also OK.
+        r2 = lq2 * np.arange(10.)
+        assert isinstance(r2, u.Magnitude)
+        assert np.all(r2 == lq2._function_view * np.arange(10.))
+
         # with dimensionless, normal units OK, but return normal quantities
+        # if the unit no longer is consistent with the logarithmic unit.
         tf = lq2 * u.m
         tr = u.m * lq2
         for t in (tf, tr):
