@@ -41,14 +41,14 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
     """
 
     @pytest.mark.parametrize("format", readwrite_formats)
-    def test_readwrite_complete_info(self, cosmo, tmpdir, format):
+    def test_readwrite_complete_info(self, cosmo, tmp_path, format):
         """
         Test writing from an instance and reading from the base class.
         This requires full information.
         The round-tripped metadata can be in a different order, so the
         OrderedDict must be converted to a dict before testing equality.
         """
-        fname = str(tmpdir / f"{cosmo.name}.{format}")
+        fname = str(tmp_path / f"{cosmo.name}.{format}")
         cosmo.write(fname, format=format)
 
         # Also test kwarg "overwrite"
@@ -66,12 +66,12 @@ class ReadWriteTestMixin(test_ecsv.ReadWriteECSVTestMixin, test_json.ReadWriteJS
         assert dict(got.meta) == dict(cosmo.meta)
 
     @pytest.mark.parametrize("format", readwrite_formats)
-    def test_readwrite_from_subclass_complete_info(self, cosmo_cls, cosmo, tmpdir, format):
+    def test_readwrite_from_subclass_complete_info(self, cosmo_cls, cosmo, tmp_path, format):
         """
         Test writing from an instance and reading from that class, when there's
         full information saved.
         """
-        fname = str(tmpdir / f"{cosmo.name}.{format}")
+        fname = str(tmp_path / f"{cosmo.name}.{format}")
         cosmo.write(fname, format=format)
 
         # read with the same class that wrote.
@@ -114,11 +114,11 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         assert "overwrite : bool" in writer.__doc__
 
     @pytest.mark.parametrize("format", readwrite_formats)
-    def test_readwrite_reader_class_mismatch(self, cosmo, tmpdir, format):
+    def test_readwrite_reader_class_mismatch(self, cosmo, tmp_path, format):
         """Test when the reader class doesn't match the file."""
 
-        fname = tmpdir / f"{cosmo.name}.{format}"
-        cosmo.write(str(fname), format=format)
+        fname = str(tmp_path / f"{cosmo.name}.{format}")
+        cosmo.write(fname, format=format)
 
         # class mismatch
         # when reading directly
