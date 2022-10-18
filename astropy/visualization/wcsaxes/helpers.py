@@ -66,6 +66,17 @@ def add_beam(
         Padding around the beam, in fraction of the font size. Default is 0.5.
     kwargs
         Additional arguments are passed to :class:`matplotlib.patches.Ellipse`.
+
+    Notes
+    -----
+    This function may be inaccurate when:
+
+    - The pixel scales at the reference pixel are different from the pixel scales
+      within the image extent (e.g., when the reference pixel is well outside of
+      the image extent and the projection is non-linear)
+    - The pixel scales in the two directions are very different from each other
+      (e.g., rectangular pixels)
+
     """
 
     if header and major:
@@ -147,6 +158,16 @@ def add_scalebar(
     kwargs
         Additional arguments are passed to
         :class:`mpl_toolkits.axes_grid1.anchored_artists.AnchoredSizeBar`.
+
+    Notes
+    -----
+    This function may be inaccurate when:
+
+    - The pixel scales at the reference pixel are different from the pixel scales
+      within the image extent (e.g., when the reference pixel is well outside of
+      the image extent and the projection is non-linear)
+    - The pixel scales in the two directions are very different from each other
+      (e.g., rectangular pixels)
 
     """
 
