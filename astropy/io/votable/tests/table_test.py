@@ -21,7 +21,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
-def test_table(tmpdir):
+def test_table(tmp_path):
     # Read the VOTABLE
     with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
@@ -74,10 +74,10 @@ def test_table(tmpdir):
 
     # W39: Bit values can not be masked
     with pytest.warns(W39):
-        writeto(votable2, os.path.join(str(tmpdir), "through_table.xml"))
+        writeto(votable2, str(tmp_path / "through_table.xml"))
 
 
-def test_read_through_table_interface(tmpdir):
+def test_read_through_table_interface(tmp_path):
     with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
         with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
@@ -88,7 +88,7 @@ def test_read_through_table_interface(tmpdir):
     # Issue 8354
     assert t['float'].format is None
 
-    fn = os.path.join(str(tmpdir), "table_interface.xml")
+    fn = tmp_path / "table_interface.xml"
 
     # W39: Bit values can not be masked
     with pytest.warns(W39):
@@ -188,9 +188,9 @@ def test_write_with_format():
     assert b'TABLEDATA' not in obuff
 
 
-def test_write_overwrite(tmpdir):
+def test_write_overwrite(tmp_path):
     t = simple_table(3, 3)
-    filename = os.path.join(tmpdir, 'overwrite_test.vot')
+    filename = tmp_path / 'overwrite_test.vot'
     t.write(filename, format='votable')
     with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t.write(filename, format='votable')
@@ -327,11 +327,11 @@ class TestVerifyOptions:
 
     # And make sure the old configuration item will keep working
 
-    def test_conf_pedantic_false(self, tmpdir):
+    def test_conf_pedantic_false(self, tmp_path):
 
-        with set_temp_config(tmpdir.strpath):
+        with set_temp_config(tmp_path):
 
-            with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
+            with open(tmp_path / 'astropy' / 'astropy.cfg', 'w') as f:
                 f.write('[io.votable]\npedantic = False')
 
             reload_config('astropy.io.votable')
@@ -340,11 +340,11 @@ class TestVerifyOptions:
                 parse(get_pkg_data_filename('data/gemini.xml'))
             assert len(w) == 25
 
-    def test_conf_pedantic_true(self, tmpdir):
+    def test_conf_pedantic_true(self, tmp_path):
 
-        with set_temp_config(tmpdir.strpath):
+        with set_temp_config(tmp_path):
 
-            with open(tmpdir.join('astropy').join('astropy.cfg').strpath, 'w') as f:
+            with open(tmp_path / 'astropy' / 'astropy.cfg', 'w') as f:
                 f.write('[io.votable]\npedantic = True')
 
             reload_config('astropy.io.votable')
