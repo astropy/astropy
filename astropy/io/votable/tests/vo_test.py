@@ -66,7 +66,7 @@ def test_parse_single_table3():
                            table_number=3)
 
 
-def _test_regression(tmpdir, _python_based=False, binary_mode=1):
+def _test_regression(tmp_path, _python_based=False, binary_mode=1):
     # Read the VOTABLE
     votable = parse(get_pkg_data_filename('data/regression.xml'),
                     _debug_python_based_parser=_python_based)
@@ -111,9 +111,9 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
         dtypes = new_dtypes
     assert table.array.dtype == dtypes
 
-    votable.to_xml(str(tmpdir.join("regression.tabledata.xml")),
+    votable.to_xml(str(tmp_path / "regression.tabledata.xml"),
                    _debug_python_based_parser=_python_based)
-    assert_validate_schema(str(tmpdir.join("regression.tabledata.xml")),
+    assert_validate_schema(str(tmp_path / "regression.tabledata.xml"),
                            votable.version)
 
     if binary_mode == 1:
@@ -125,25 +125,25 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
         votable.version = '1.3'
 
     # Also try passing a file handle
-    with open(str(tmpdir.join("regression.binary.xml")), "wb") as fd:
+    with open(str(tmp_path / "regression.binary.xml"), "wb") as fd:
         votable.to_xml(fd, _debug_python_based_parser=_python_based)
-    assert_validate_schema(str(tmpdir.join("regression.binary.xml")),
+    assert_validate_schema(str(tmp_path / "regression.binary.xml"),
                            votable.version)
     # Also try passing a file handle
-    with open(str(tmpdir.join("regression.binary.xml")), "rb") as fd:
+    with open(str(tmp_path / "regression.binary.xml"), "rb") as fd:
         votable2 = parse(fd, _debug_python_based_parser=_python_based)
     votable2.get_first_table().format = 'tabledata'
-    votable2.to_xml(str(tmpdir.join("regression.bin.tabledata.xml")),
+    votable2.to_xml(str(tmp_path / "regression.bin.tabledata.xml"),
                     _astropy_version="testing",
                     _debug_python_based_parser=_python_based)
-    assert_validate_schema(str(tmpdir.join("regression.bin.tabledata.xml")),
+    assert_validate_schema(str(tmp_path / "regression.bin.tabledata.xml"),
                            votable.version)
 
     with open(
         get_pkg_data_filename(
             f'data/regression.bin.tabledata.truth.{votable.version}.xml'), encoding='utf-8') as fd:
         truth = fd.readlines()
-    with open(str(tmpdir.join("regression.bin.tabledata.xml")), encoding='utf-8') as fd:
+    with open(str(tmp_path / "regression.bin.tabledata.xml"), encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
@@ -155,11 +155,10 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
     # Test implicit gzip saving
     votable2.to_xml(
-        str(tmpdir.join("regression.bin.tabledata.xml.gz")),
+        str(tmp_path / "regression.bin.tabledata.xml.gz"),
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
-    with gzip.GzipFile(
-            str(tmpdir.join("regression.bin.tabledata.xml.gz")), 'rb') as gzfd:
+    with gzip.GzipFile(str(tmp_path / "regression.bin.tabledata.xml.gz"), 'rb') as gzfd:
         output = gzfd.readlines()
     output = [x.decode('utf-8').rstrip() for x in output]
     truth = [x.rstrip() for x in truth]
@@ -168,24 +167,24 @@ def _test_regression(tmpdir, _python_based=False, binary_mode=1):
 
 
 @pytest.mark.xfail('legacy_float_repr')
-def test_regression(tmpdir):
+def test_regression(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39):
-        _test_regression(tmpdir, False)
+        _test_regression(tmp_path, False)
 
 
 @pytest.mark.xfail('legacy_float_repr')
-def test_regression_python_based_parser(tmpdir):
+def test_regression_python_based_parser(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39):
-        _test_regression(tmpdir, True)
+        _test_regression(tmp_path, True)
 
 
 @pytest.mark.xfail('legacy_float_repr')
-def test_regression_binary2(tmpdir):
+def test_regression_binary2(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39):
-        _test_regression(tmpdir, False, 2)
+        _test_regression(tmp_path, False, 2)
 
 
 class TestFixups:
@@ -627,10 +626,10 @@ class TestThroughTableData(TestParse):
     def test_bit_array2_mask(self):
         assert not np.any(self.mask['bitarray2'])
 
-    def test_schema(self, tmpdir):
+    def test_schema(self, tmp_path):
         # have to use an actual file because assert_validate_schema only works
         # on filenames, not file-like objects
-        fn = str(tmpdir.join("test_through_tabledata.xml"))
+        fn = tmp_path / "test_through_tabledata.xml"
         with open(fn, 'wb') as f:
             f.write(self.xmlout.getvalue())
         assert_validate_schema(fn, '1.1')
@@ -740,7 +739,7 @@ def test_too_many_columns():
         parse(get_pkg_data_filename('data/too_many_columns.xml.gz'))
 
 
-def test_build_from_scratch(tmpdir):
+def test_build_from_scratch(tmp_path):
     # Create a new VOTable file...
     votable = tree.VOTableFile()
 
@@ -769,9 +768,9 @@ def test_build_from_scratch(tmpdir):
 
     # Now write the whole thing to a file.
     # Note, we have to use the top-level votable file object
-    votable.to_xml(str(tmpdir.join("new_votable.xml")))
+    votable.to_xml(str(tmp_path / "new_votable.xml"))
 
-    votable = parse(str(tmpdir.join("new_votable.xml")))
+    votable = parse(str(tmp_path / "new_votable.xml"))
 
     table = votable.get_first_table()
     assert_array_equal(
@@ -836,17 +835,17 @@ def test_validate_path_object():
     test_validate(test_path_object=True)
 
 
-def test_gzip_filehandles(tmpdir):
+def test_gzip_filehandles(tmp_path):
     with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
         votable = parse(get_pkg_data_filename('data/regression.xml'))
 
     # W39: Bit values can not be masked
     with pytest.warns(W39):
-        with open(str(tmpdir.join("regression.compressed.xml")), 'wb') as fd:
+        with open(tmp_path / "regression.compressed.xml", 'wb') as fd:
             votable.to_xml(fd, compressed=True, _astropy_version="testing")
 
-    with open(str(tmpdir.join("regression.compressed.xml")), 'rb') as fd:
+    with open(tmp_path / "regression.compressed.xml", 'rb') as fd:
         votable = parse(fd)
 
 
