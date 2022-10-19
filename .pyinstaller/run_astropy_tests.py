@@ -2,11 +2,11 @@ import os
 import shutil
 import sys
 
-import erfa  # noqa
+import erfa  # noqa: F401
 import matplotlib
 import pytest
 
-import astropy  # noqa
+import astropy  # noqa: F401
 
 if len(sys.argv) == 3 and sys.argv[1] == '--astropy-root':
     ROOT = sys.argv[2]

@@ -737,7 +737,7 @@ def test_col_unicode_sandwich_bytes(Column):
     assert np.all(c == [uba, 'def'])
 
     ok = c == [uba8, b'def']
-    assert type(ok) is type(c.data)  # noqa
+    assert type(ok) is type(c.data)  # noqa: E721
     assert ok.dtype.char == '?'
     assert np.all(ok)
 
@@ -748,7 +748,7 @@ def test_col_unicode_sandwich_bytes(Column):
     cmps = (uba, uba8)
     for cmp in cmps:
         ok = c == cmp
-        assert type(ok) is type(c.data)  # noqa
+        assert type(ok) is type(c.data)  # noqa: E721
         assert np.all(ok == [True, False])
 
 
@@ -796,7 +796,7 @@ def test_masked_col_unicode_sandwich():
     assert c[:].dtype.char == 'S'
 
     ok = c == ['abc', 'def']
-    assert ok[0] == True  # noqa
+    assert ok[0]
     assert ok[1] is np.ma.masked
     assert np.all(c == [b'abc', b'def'])
     assert np.all(c == np.array(['abc', 'def']))
@@ -805,7 +805,7 @@ def test_masked_col_unicode_sandwich():
     for cmp in ('abc', b'abc'):
         ok = c == cmp
         assert type(ok) is np.ma.MaskedArray
-        assert ok[0] == True  # noqa
+        assert ok[0]
         assert ok[1] is np.ma.masked
 
 

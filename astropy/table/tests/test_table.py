@@ -905,8 +905,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)  # noqa
-        assert (self.t == None).size == 0  # noqa
+        assert isinstance(self.t == None, np.ndarray)  # noqa: E711
+        assert (self.t == None).size == 0  # noqa: E711
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -1020,8 +1020,8 @@ class TestRemove(SetupData):
         assert self.t.as_array().size == 0
         # Regression test for gh-8640
         assert not self.t
-        assert isinstance(self.t == None, np.ndarray)  # noqa
-        assert (self.t == None).size == 0  # noqa
+        assert isinstance(self.t == None, np.ndarray)  # noqa: E711
+        assert (self.t == None).size == 0  # noqa: E711
 
     def test_delitem2(self, table_types):
         self._setup(table_types)
@@ -1050,8 +1050,8 @@ class TestKeep(SetupData):
         assert t.as_array().size == 0
         # Regression test for gh-8640
         assert not t
-        assert isinstance(t == None, np.ndarray)  # noqa
-        assert (t == None).size == 0  # noqa
+        assert isinstance(t == None, np.ndarray)  # noqa: E711
+        assert (t == None).size == 0  # noqa: E711
 
     def test_2(self, table_types):
         self._setup(table_types)
@@ -2518,7 +2518,7 @@ def test_replace_update_column_via_setitem_warnings_refcount():
     Reference count changes.
     """
     t = table.Table([[1, 2, 3], [4, 5, 6]], names=['a', 'b'])
-    ta = t['a']  # noqa : Generate an extra reference to original column
+    ta = t['a']  # noqa: F841 : Generate an extra reference to original column
 
     with pytest.warns(TableReplaceWarning, match="replaced column 'a' and the "
                       "number of references") as w:

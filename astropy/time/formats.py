@@ -1965,4 +1965,4 @@ def _broadcast_writeable(jd1, jd2):
 
 # Import symbols from core.py that are used in this module. This succeeds
 # because __init__.py imports format.py just before core.py.
-from .core import TIME_DELTA_SCALES, TIME_SCALES, ScaleValueError, Time  # noqa
+from .core import TIME_DELTA_SCALES, TIME_SCALES, ScaleValueError, Time  # noqa: E402

@@ -2381,7 +2381,7 @@ def test_location_init(location):
     # Init from a scalar Time
     tm2 = Time(tm)
     assert np.all(tm.location == tm2.location)
-    assert type(tm.location) is type(tm2.location)  # noqa
+    assert type(tm.location) is type(tm2.location)  # noqa: E721
 
     # From a list of Times
     tm2 = Time([tm, tm])
@@ -2390,7 +2390,7 @@ def test_location_init(location):
     else:
         for loc in tm2.location:
             assert loc == tm.location
-    assert type(tm.location) is type(tm2.location)  # noqa
+    assert type(tm.location) is type(tm2.location)  # noqa: E721
 
     # Effectively the same as a list of Times, but just to be sure that
     # Table mixin inititialization is working as expected.
@@ -2400,7 +2400,7 @@ def test_location_init(location):
     else:
         for loc in tm2.location:
             assert loc == tm.location
-    assert type(tm.location) is type(tm2.location)  # noqa
+    assert type(tm.location) is type(tm2.location)  # noqa: E721
 
 
 def test_location_init_fail():
