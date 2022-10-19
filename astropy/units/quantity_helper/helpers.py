@@ -12,8 +12,7 @@ from fractions import Fraction
 import numpy as np
 
 from astropy.units.core import (
-    UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
-    get_current_unit_registry, unit_scale_converter)
+    UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled, unit_scale_converter)
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 

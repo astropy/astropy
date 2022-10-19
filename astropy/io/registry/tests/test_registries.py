@@ -9,10 +9,9 @@ Test :mod:`astropy.io.registry`.
 
 """
 
-import contextlib
 import os
 from collections import Counter
-from copy import copy, deepcopy
+from copy import deepcopy
 from io import StringIO
 
 import numpy as np

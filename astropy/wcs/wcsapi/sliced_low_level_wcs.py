@@ -2,7 +2,7 @@ import warnings
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices
+from .wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices  # noqa: F401
 
 warnings.warn(
     "SlicedLowLevelWCS has been moved to"

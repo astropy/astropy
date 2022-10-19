@@ -28,7 +28,10 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from .altaz import AltAz
 from .baseradec import BaseRADecFrame
 from .cirs import CIRS
-from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
+from .ecliptic import (
+    BarycentricMeanEcliptic, BarycentricTrueEcliptic, BaseEclipticFrame, CustomBarycentricEcliptic,
+    GeocentricMeanEcliptic, GeocentricTrueEcliptic, HeliocentricEclipticIAU76,
+    HeliocentricMeanEcliptic, HeliocentricTrueEcliptic)
 from .equatorial import TEME, TETE
 from .fk4 import FK4, FK4NoETerms
 from .fk5 import FK5

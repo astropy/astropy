@@ -150,7 +150,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
             try:
                 out[0] = rep[0]
             except Exception as err:
-                raise ValueError(f'input representations are inconsistent.') from err
+                raise ValueError('input representations are inconsistent.') from err
 
         # Set (merged) info attributes.
         for attr in ('name', 'meta', 'description'):
@@ -231,7 +231,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                  for component, attr in zip(components, attrs)]
         try:
             bc_attrs = np.broadcast_arrays(*attrs, subok=True)
-        except ValueError  as err:
+        except ValueError as err:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
             else:
@@ -974,7 +974,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # super() checks that the class is identical so can this even happen?
         # (same class, different differentials ?)
         if self._differentials.keys() != value._differentials.keys():
-            raise ValueError(f'cannot compare: objects must have same differentials')
+            raise ValueError('cannot compare: objects must have same differentials')
 
         for self_diff, value_diff in zip(self._differentials.values(),
                                          value._differentials.values()):

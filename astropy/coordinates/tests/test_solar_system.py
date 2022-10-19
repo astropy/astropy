@@ -6,7 +6,7 @@ import pytest
 
 from astropy import units as u
 from astropy.constants import c
-from astropy.coordinates.builtin_frames import GCRS, TETE
+from astropy.coordinates.builtin_frames import TETE
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.funcs import get_sun
 from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation

@@ -2,7 +2,6 @@
 """Test initialization and other aspects of Angle and subclasses"""
 
 import threading
-import warnings
 
 import numpy as np
 import pytest

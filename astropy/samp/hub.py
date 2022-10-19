@@ -813,7 +813,7 @@ class SAMPHubServer:
                         if mtype2.startswith(mtype[:-1]) and \
                            mtype2 != mtype:
                             if mtype2 in mtypes:
-                                del(mtypes[mtype2])
+                                del mtypes[mtype2]
 
             log.debug("declare_subscriptions: subscriptions accepted from "
                       "{} => {}".format(private_key, str(mtypes)))
@@ -1103,12 +1103,12 @@ class SAMPHubServer:
 
             while self._is_running:
                 if 0 < timeout <= time.time() - now:
-                    del(self._sync_msg_ids_heap[msg_id])
+                    del self._sync_msg_ids_heap[msg_id]
                     raise SAMPProxyError(1, "Timeout expired!")
 
                 if self._sync_msg_ids_heap[msg_id] is not None:
                     response = copy.deepcopy(self._sync_msg_ids_heap[msg_id])
-                    del(self._sync_msg_ids_heap[msg_id])
+                    del self._sync_msg_ids_heap[msg_id]
                     break
                 time.sleep(0.01)
 

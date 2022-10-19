@@ -1,5 +1,4 @@
 import gc
-import pathlib
 import warnings
 
 import numpy as np

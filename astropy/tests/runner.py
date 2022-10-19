@@ -484,7 +484,7 @@ class TestRunner(TestRunnerBase):
         """
         if pep8:
             try:
-                import pytest_pep8  # pylint: disable=W0611
+                import pytest_pep8  # noqa: F401
             except ImportError:
                 raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
                                   'https://pypi.org/project/pytest-pep8')
@@ -519,7 +519,7 @@ class TestRunner(TestRunnerBase):
                     "parallel testing.")
 
             try:
-                import psutil  # pylint: disable=W0611
+                import psutil  # noqa: F401
             except ImportError:
                 raise SystemError(
                     "open file detection requested, but psutil package "
@@ -599,6 +599,6 @@ class TestRunner(TestRunnerBase):
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
         # own.
-        from astropy.table import Table  # pylint: disable=W0611
+        from astropy.table import Table  # noqa: F401
 
         return super().run_tests(**kwargs)

@@ -28,7 +28,7 @@ def test_icrs_altaz_consistency():
 
     # check we are going direct!
     trans = frame_transform_graph.get_transform(ICRS, AltAz).transforms
-    assert(len(trans) == 1)
+    assert len(trans) == 1
 
     # check that ICRS-AltAz and ICRS->CIRS->AltAz are consistent
     aa1 = icoo.transform_to(aa_frame)
@@ -59,7 +59,7 @@ def test_icrs_hadec_consistency():
 
     # check we are going direct!
     trans = frame_transform_graph.get_transform(ICRS, HADec).transforms
-    assert(len(trans) == 1)
+    assert len(trans) == 1
 
     # check that ICRS-HADec and ICRS->CIRS->HADec are consistent
     aa1 = icoo.transform_to(hd_frame)
