@@ -4,7 +4,7 @@
 
 import re
 
-from astropy.io import registry as io_registry  # noqa
+from astropy.io import registry as io_registry  # noqa: F401
 from astropy.table import Table
 
 __all__ = []

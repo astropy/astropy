@@ -108,10 +108,10 @@ class TestJoin():
         # Basic join with default parameters (inner join on common keys)
         t12 = table.join(t1, t2)
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])  # noqa
-        assert type(t12['b']) is type(t1['b'])  # noqa
-        assert type(t12['c']) is type(t1['c'])  # noqa
-        assert type(t12['d']) is type(t2['d'])  # noqa
+        assert type(t12['a']) is type(t1['a'])  # noqa: E721
+        assert type(t12['b']) is type(t1['b'])  # noqa: E721
+        assert type(t12['c']) is type(t1['c'])  # noqa: E721
+        assert type(t12['d']) is type(t2['d'])  # noqa: E721
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a   b   c   d ',
                                        '--- --- --- ---',
@@ -180,11 +180,11 @@ class TestJoin():
         # Inner join on 'a' column
         t12 = table.join(t1, t2, keys='a')
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])  # noqa
-        assert type(t12['b_1']) is type(t1['b'])  # noqa
-        assert type(t12['c']) is type(t1['c'])  # noqa
-        assert type(t12['b_2']) is type(t2['b'])  # noqa
-        assert type(t12['d']) is type(t2['d'])  # noqa
+        assert type(t12['a']) is type(t1['a'])  # noqa: E721
+        assert type(t12['b_1']) is type(t1['b'])  # noqa: E721
+        assert type(t12['c']) is type(t1['c'])  # noqa: E721
+        assert type(t12['b_2']) is type(t2['b'])  # noqa: E721
+        assert type(t12['d']) is type(t2['d'])  # noqa: E721
         assert t12.masked is False
         assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
                                        '--- --- --- --- ---',
@@ -831,8 +831,8 @@ class TestSetdiff():
     def test_default_same_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 bar',
@@ -842,8 +842,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t1)
 
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---']
 
@@ -857,8 +857,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t3)
 
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 foo',
@@ -868,8 +868,8 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t3, self.t1, keys=['a', 'b'])
 
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b   d ',
                                  '--- --- ---',
                                  '  4 bar  R4',
@@ -922,8 +922,8 @@ class TestVStack():
         t2 = self.t1.copy()
         t2.meta.clear()
         out = table.vstack([self.t1, t2[1]])
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -993,8 +993,8 @@ class TestVStack():
         t12 = table.vstack([t1, t2], join_type='inner')
         assert t12.masked is False
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])  # noqa
-        assert type(t12['b']) is type(t1['b'])  # noqa
+        assert type(t12['a']) is type(t1['a'])  # noqa: E721
+        assert type(t12['b']) is type(t1['b'])  # noqa: E721
         assert t12.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
@@ -1004,8 +1004,8 @@ class TestVStack():
 
         t124 = table.vstack([t1, t2, t4], join_type='inner')
         assert type(t124) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])  # noqa
-        assert type(t12['b']) is type(t1['b'])  # noqa
+        assert type(t12['a']) is type(t1['a'])  # noqa: E721
+        assert type(t12['b']) is type(t1['b'])  # noqa: E721
         assert t124.pformat() == [' a   b ',
                                   '--- ---',
                                   '0.0 foo',
@@ -1375,15 +1375,15 @@ class TestDStack():
         # Test for non-masked table
         t12 = table.dstack([t1, t2], join_type='outer')
         assert type(t12) is operation_table_type
-        assert type(t12['a']) is type(t1['a'])  # noqa
-        assert type(t12['b']) is type(t1['b'])  # noqa
+        assert type(t12['a']) is type(t1['a'])  # noqa: E721
+        assert type(t12['b']) is type(t1['b'])  # noqa: E721
         self.compare_dstack([t1, t2], t12)
 
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type='outer')
         assert type(t124) is operation_table_type
-        assert type(t124['a']) is type(t4['a'])  # noqa
-        assert type(t124['b']) is type(t4['b'])  # noqa
+        assert type(t124['a']) is type(t4['a'])  # noqa: E721
+        assert type(t124['b']) is type(t4['b'])  # noqa: E721
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_basic_inner(self, operation_table_type):
@@ -1395,8 +1395,8 @@ class TestDStack():
         # Test for masked table
         t124 = table.dstack([t1, t2, t4], join_type='inner')
         assert type(t124) is operation_table_type
-        assert type(t124['a']) is type(t4['a'])  # noqa
-        assert type(t124['b']) is type(t4['b'])  # noqa
+        assert type(t124['a']) is type(t4['a'])  # noqa: E721
+        assert type(t124['b']) is type(t4['b'])  # noqa: E721
         self.compare_dstack([t1, t2, t4], t124)
 
     def test_dstack_multi_dimension_column(self, operation_table_type):
@@ -1406,8 +1406,8 @@ class TestDStack():
         t2 = self.t2
         t35 = table.dstack([t3, t5])
         assert type(t35) is operation_table_type
-        assert type(t35['a']) is type(t3['a'])  # noqa
-        assert type(t35['b']) is type(t3['b'])  # noqa
+        assert type(t35['a']) is type(t3['a'])  # noqa: E721
+        assert type(t35['b']) is type(t3['b'])  # noqa: E721
         self.compare_dstack([t3, t5], t35)
 
         with pytest.raises(TableMergeError):
@@ -1528,9 +1528,9 @@ class TestHStack():
     def test_stack_columns(self, operation_table_type):
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2['c']])
-        assert type(out['a']) is type(self.t1['a'])  # noqa
-        assert type(out['b']) is type(self.t1['b'])  # noqa
-        assert type(out['c']) is type(self.t2['c'])  # noqa
+        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
+        assert type(out['c']) is type(self.t2['c'])  # noqa: E721
         assert out.pformat() == [' a   b   c ',
                                  '--- --- ---',
                                  '0.0 foo   4',
@@ -1587,10 +1587,10 @@ class TestHStack():
         out = table.hstack([t1, t2], join_type='inner')
         assert out.masked is False
         assert type(out) is operation_table_type
-        assert type(out['a_1']) is type(t1['a'])  # noqa
-        assert type(out['b_1']) is type(t1['b'])  # noqa
-        assert type(out['a_2']) is type(t2['a'])  # noqa
-        assert type(out['b_2']) is type(t2['b'])  # noqa
+        assert type(out['a_1']) is type(t1['a'])  # noqa: E721
+        assert type(out['b_1']) is type(t1['b'])  # noqa: E721
+        assert type(out['a_2']) is type(t2['a'])  # noqa: E721
+        assert type(out['b_2']) is type(t2['b'])  # noqa: E721
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
                                  '--- --- --- --- ---',
                                  '0.0 foo 2.0 pez   4',
@@ -1695,7 +1695,7 @@ class TestHStack():
         cls_name = type(col1).__name__
 
         out = table.hstack([t1, t2], join_type='inner')
-        assert type(out['col0_1']) is type(out['col0_2'])  # noqa
+        assert type(out['col0_1']) is type(out['col0_2'])  # noqa: E721
         assert len(out) == len(col2)
 
         # Check that columns are as expected.

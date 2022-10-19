@@ -99,7 +99,7 @@ class TestSpectra:
             if _WCSLIB_VER >= Version('7.4'):
                 ctx = pytest.warns(
                     wcs.FITSFixedWarning,
-                    match=r"'datfix' made the change 'Set MJD-OBS to 53925\.853472 from DATE-OBS'\.")  # noqa
+                    match=r"'datfix' made the change 'Set MJD-OBS to 53925\.853472 from DATE-OBS'\.")  # noqa: E501
             else:
                 ctx = nullcontext()
             with ctx:

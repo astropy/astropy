@@ -200,7 +200,7 @@ def test_write_overwrite(tmpdir):
 def test_empty_table():
     votable = parse(get_pkg_data_filename('data/empty_table.xml'))
     table = votable.get_first_table()
-    astropy_table = table.to_table()  # noqa
+    table.to_table()
 
 
 def test_no_field_not_empty_table():

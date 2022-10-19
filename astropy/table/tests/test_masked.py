@@ -556,14 +556,14 @@ def test_masked_as_array_with_mixin():
     assert isinstance(ta, np.ma.MaskedArray)
     assert np.all(ta['a'].mask == [False, True])
     assert np.isclose(ta['a'][0].cxcsec, 1.0)
-    assert np.all(ta['b'].mask == False)  # noqa
-    assert np.all(ta['c'].mask == False)  # noqa
+    assert not np.any(ta['b'].mask)
+    assert not np.any(ta['c'].mask)
 
     # Check table ``mask`` property
     tm = t.mask
     assert np.all(tm['a'] == [False, True])
-    assert np.all(tm['b'] == False)  # noqa
-    assert np.all(tm['c'] == False)  # noqa
+    assert not np.any(tm['b'])
+    assert not np.any(tm['c'])
 
 
 def test_masked_column_with_unit_in_qtable():
@@ -576,7 +576,7 @@ def test_masked_column_with_unit_in_qtable():
 
     t['b'] = MaskedColumn([1, 2], unit=u.m)
     assert isinstance(t['b'], MaskedQuantity)
-    assert np.all(t['b'].mask == False)  # noqa
+    assert not np.any(t['b'].mask)
 
     t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t['c'], MaskedQuantity)
@@ -588,7 +588,7 @@ def test_masked_quantity_in_table():
     t = Table()
     t['b'] = MaskedQuantity([1, 2], unit=u.m)
     assert isinstance(t['b'], MaskedColumn)
-    assert np.all(t['b'].mask == False)  # noqa
+    assert not np.any(t['b'].mask)
 
     t['c'] = MaskedQuantity([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t['c'], MaskedColumn)

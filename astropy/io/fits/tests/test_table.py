@@ -1177,7 +1177,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[0] == True  # noqa
+        assert isinstance(v := (tbhdu.columns.columns[4].array[0] == np.True_), (bool, np.bool_)) and v
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
@@ -1188,7 +1188,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns.columns[2].array[3] == 'A Note'
         assert (tbhdu.columns.columns[3].array[3] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu.columns.columns[4].array[3] == True  # noqa
+        assert isinstance(v := (tbhdu.columns.columns[4].array[3] == np.True_), (bool, np.bool_)) and v
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -1239,7 +1239,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[0] == ''
         assert (tbhdu2.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[0] == True  # noqa
+        assert isinstance(v := (tbhdu2.columns.columns[4].array[0] == np.True_), (bool, np.bool_)) and v
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
@@ -1250,13 +1250,13 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[2].array[4] == ''
         assert (tbhdu2.columns.columns[3].array[4] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[4] == False  # noqa
+        assert isinstance(v := (tbhdu2.columns.columns[4].array[4] == np.False_), (bool, np.bool_)) and v
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == ''
         assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu2.columns.columns[4].array[8] == False  # noqa
+        assert isinstance(v := (tbhdu2.columns.columns[4].array[8] == np.False_), (bool, np.bool_)) and v
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -1779,7 +1779,7 @@ class TestTableFunctions(FitsTestCase):
                            array=np.array([[45, 56], [11, 12, 13]],
                                           dtype=np.object_))
         hdu = fits.BinTableHDU.from_columns([col1])
-        assert type(hdu.data['x']) == type(hdu.data.x)  # noqa
+        assert type(hdu.data['x']) == type(hdu.data.x)  # noqa: E721
         assert (hdu.data['x'][0] == hdu.data.x[0]).all()
         assert (hdu.data['x'][1] == hdu.data.x[1]).all()
 
