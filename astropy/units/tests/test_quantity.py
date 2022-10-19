@@ -699,6 +699,32 @@ def test_quantity_conversion():
         q1.to_value(u.zettastokes)
 
 
+def test_quantity_ilshift():  # in-place conversion
+    q = u.Quantity(10, unit=u.one)
+
+    # Incompatible units. This goes through ilshift and hits a
+    # UnitConversionError first in ilshift, then in the unit's rlshift.
+    with pytest.raises(u.UnitConversionError):
+        q <<= u.rad
+
+    # unless the equivalency is enabled
+    with u.add_enabled_equivalencies(u.dimensionless_angles()):
+        q <<= u.rad
+
+    assert np.isclose(q, 10 * u.rad)
+
+
+def test_regression_12964():
+    # This will fail if the fix to
+    # https://github.com/astropy/astropy/issues/12964 doesn't work.
+    x = u.Quantity(10, u.km, dtype=int)
+    x <<= u.pc
+
+    # We add a test that this worked.
+    assert x.unit is u.pc
+    assert x.dtype == np.float64
+
+
 def test_quantity_value_views():
     q1 = u.Quantity([1., 2.], unit=u.meter)
     # views if the unit is the same.
