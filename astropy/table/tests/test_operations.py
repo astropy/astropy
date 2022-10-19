@@ -832,7 +832,7 @@ class TestSetdiff():
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
         assert type(out['a']) is type(self.t1['a'])  # noqa: E721
-        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 bar',
@@ -843,7 +843,7 @@ class TestSetdiff():
         out = table.setdiff(self.t1, self.t1)
 
         assert type(out['a']) is type(self.t1['a'])  # noqa: E721
-        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---']
 
@@ -858,7 +858,7 @@ class TestSetdiff():
         out = table.setdiff(self.t1, self.t3)
 
         assert type(out['a']) is type(self.t1['a'])  # noqa: E721
-        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '  1 foo',
@@ -869,7 +869,7 @@ class TestSetdiff():
         out = table.setdiff(self.t3, self.t1, keys=['a', 'b'])
 
         assert type(out['a']) is type(self.t1['a'])  # noqa: E721
-        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b   d ',
                                  '--- --- ---',
                                  '  4 bar  R4',
@@ -923,7 +923,7 @@ class TestVStack():
         t2.meta.clear()
         out = table.vstack([self.t1, t2[1]])
         assert type(out['a']) is type(self.t1['a'])  # noqa: E721
-        assert type(out['a']) is type(self.t1['a'])  # noqa: E721
+        assert type(out['b']) is type(self.t1['b'])  # noqa: E721
         assert out.pformat() == [' a   b ',
                                  '--- ---',
                                  '0.0 foo',
