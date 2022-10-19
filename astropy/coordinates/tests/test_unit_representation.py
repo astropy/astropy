@@ -3,8 +3,6 @@ This file tests the behavior of subclasses of Representation and Frames
 """
 from copy import deepcopy
 
-import pytest
-
 import astropy.coordinates
 import astropy.units as u
 from astropy.coordinates import ICRS, Latitude, Longitude

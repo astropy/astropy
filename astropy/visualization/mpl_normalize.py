@@ -14,7 +14,7 @@ from .stretch import (
     AsinhStretch, BaseStretch, LinearStretch, LogStretch, PowerStretch, SinhStretch, SqrtStretch)
 
 try:
-    import matplotlib  # pylint: disable=W0611
+    import matplotlib  # noqa: F401
     from matplotlib import pyplot as plt
     from matplotlib.colors import Normalize
 except ImportError:

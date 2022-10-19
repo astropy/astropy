@@ -36,8 +36,8 @@ class Latex(base.Base):
     @classmethod
     def _format_unit_list(cls, units):
         out = []
-        for base, power in units:
-            base_latex = cls._get_unit_name(base)
+        for base_, power in units:
+            base_latex = cls._get_unit_name(base_)
             if power == 1:
                 out.append(base_latex)
             else:
@@ -46,7 +46,7 @@ class Latex(base.Base):
                 # superscripts. For example, the logic below ensures that
                 # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
                 if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
-                    base_latex = base.short_names[0]
+                    base_latex = base_.short_names[0]
                 out.append(f'{base_latex}^{{{utils.format_power(power)}}}')
         return r'\,'.join(out)
 

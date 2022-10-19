@@ -717,7 +717,7 @@ class TransformGraph:
         transforms = [self.get_transform(frame_a, frame_b)
                       for frame_a, frame_b in zip(frames[:-1], frames[1:])]
         if None in transforms:
-            raise ValueError(f"This transformation path is not possible")
+            raise ValueError("This transformation path is not possible")
         if len(full_path.transforms) == 1:
             raise ValueError(f"A direct transform for {fromsys.__name__}->{lastsys.__name__} already exists")
 

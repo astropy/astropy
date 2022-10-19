@@ -969,10 +969,11 @@ class UnitBase:
                         return True
                     except Exception:
                         pass
-                else:
-                    if(a._is_equivalent(unit) and b._is_equivalent(other) or
-                       b._is_equivalent(unit) and a._is_equivalent(other)):
-                        return True
+                elif (
+                    a._is_equivalent(unit) and b._is_equivalent(other)
+                    or b._is_equivalent(unit) and a._is_equivalent(other)
+                ):
+                    return True
 
         return False
 
@@ -1086,9 +1087,9 @@ class UnitBase:
             # `is_equivalent`, because it doesn't generate the entire
             # physical type list of both units.  In other words it "fails
             # fast".
-            if(self_decomposed.powers == other_decomposed.powers and
-               all(self_base is other_base for (self_base, other_base)
-                   in zip(self_decomposed.bases, other_decomposed.bases))):
+            if (self_decomposed.powers == other_decomposed.powers
+                and all(self_base is other_base for (self_base, other_base)
+                        in zip(self_decomposed.bases, other_decomposed.bases))):
                 return self_decomposed.scale / other_decomposed.scale
 
         raise UnitConversionError(

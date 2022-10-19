@@ -59,6 +59,8 @@ if missing_requirements:
     sys.exit(1)
 
 from sphinx_astropy.conf.v1 import *  # noqa: E402, F403
+from sphinx_astropy.conf.v1 import (
+    numpydoc_xref_aliases, numpydoc_xref_astropy_aliases, numpydoc_xref_ignore, rst_epilog)
 
 # -- Plot configuration -------------------------------------------------------
 plot_rcparams = {}

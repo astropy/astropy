@@ -461,11 +461,18 @@ def test_differential_comoving_volume():
                             3123.814]) * u.Gpc**3
     wright_closed = np.array([12.619, 44.708, 114.904, 173.709, 258.82,
                               358.992]) * u.Gpc**3
+
     # The wright calculator isn't very accurate, so we use a rather
     # modest precision.
-    def ftemp(x): return c_flat.differential_comoving_volume(x).value
-    def otemp(x): return c_open.differential_comoving_volume(x).value
-    def ctemp(x): return c_closed.differential_comoving_volume(x).value
+    def ftemp(x):
+        return c_flat.differential_comoving_volume(x).value
+
+    def otemp(x):
+        return c_open.differential_comoving_volume(x).value
+
+    def ctemp(x):
+        return c_closed.differential_comoving_volume(x).value
+
     # Multiply by solid_angle (4 * pi)
     assert allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0]
                               for redshift in redshifts]) * u.Mpc**3,

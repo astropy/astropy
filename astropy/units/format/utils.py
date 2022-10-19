@@ -6,7 +6,6 @@ Utilities shared by the different formats.
 
 
 import warnings
-from fractions import Fraction
 
 from astropy.utils.misc import did_you_mean
 

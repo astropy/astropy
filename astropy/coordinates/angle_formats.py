@@ -16,7 +16,6 @@ astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
 
-import os
 import threading
 from warnings import warn
 
@@ -76,8 +75,6 @@ class _AngleParser:
 
     @classmethod
     def _make_parser(cls):
-        from astropy.extern.ply import lex, yacc
-
         # List of token names.
         tokens = (
             'SIGN',
@@ -307,7 +304,7 @@ class _AngleParser:
                 raise ValueError(f"{str(e)} in angle {angle!r}") from e
             else:
                 raise ValueError(
-                    f"Syntax error parsing angle {angle!r}")  from e
+                    f"Syntax error parsing angle {angle!r}") from e
 
         if unit is None and found_unit is None:
             raise u.UnitsError("No unit specified")

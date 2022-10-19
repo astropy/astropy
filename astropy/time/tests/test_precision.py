@@ -705,7 +705,7 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
     dt2 = datetime(9950, 1, 1, 0, 0, 0, 890773)
     t1 = Time(dt1, scale=scale)
     t2 = Time(dt2, scale=scale)
-    assert(abs((t2-t1) - TimeDelta(dt2-dt1, scale=scale)) < 1*u.us)
+    assert abs((t2-t1) - TimeDelta(dt2-dt1, scale=scale)) < 1*u.us
 
 
 # datetimes have microsecond resolution

@@ -8,7 +8,6 @@ Ref: https://journals.aas.org/mrt-standards
          Suyog Garg (suyog7130@gmail.com)
 """
 
-import math
 import re
 import warnings
 from io import StringIO

@@ -1558,7 +1558,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             # Can this ever occur? (Same class but different differential keys).
             # This exception is not tested since it is not clear how to generate it.
             if self._data._differentials.keys() != value._data._differentials.keys():
-                raise ValueError(f'setitem value must have same differentials')
+                raise ValueError('setitem value must have same differentials')
 
             for key, self_diff in self._data._differentials.items():
                 if self_diff.__class__ is not value._data._differentials[key].__class__:

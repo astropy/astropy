@@ -21,7 +21,7 @@ from io import StringIO
 
 import numpy as np
 
-from astropy.table import MaskedColumn, Table
+from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG

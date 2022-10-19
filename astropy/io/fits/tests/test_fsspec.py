@@ -8,7 +8,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS
-from astropy.utils.data import conf, get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_filename
 
 if HAS_FSSPEC:
     import fsspec

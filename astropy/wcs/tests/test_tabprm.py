@@ -3,11 +3,6 @@
 from copy import deepcopy
 
 import numpy as np
-import pytest
-
-from astropy import wcs
-
-from .helper import SimModelTAB
 
 
 def test_wcsprm_tab_basic(tab_wcs_2di):
@@ -86,12 +81,12 @@ def test_tabprm_map(tab_wcs_2di_f):
     assert np.all(tab_wcs_2di_f.wcs.tab[0].map == [1, 4])
 
 
-def  test_tabprm_sense(tab_wcs_2di):
+def test_tabprm_sense(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     assert np.all(t.sense == [1, 1])
 
 
-def  test_tabprm_p0(tab_wcs_2di):
+def test_tabprm_p0(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     assert np.all(t.p0 == [0, 0])
 

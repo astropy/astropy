@@ -6,8 +6,6 @@ import pytest
 
 from astropy import wcs
 
-from .helper import SimModelTAB
-
 _WCS_UNDEFINED = 987654321.0e99
 
 

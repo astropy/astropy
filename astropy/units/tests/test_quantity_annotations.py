@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # STDLIB
-import sys
 import typing as T
 
 # THIRD PARTY
@@ -10,7 +9,7 @@ import pytest
 # LOCAL
 from astropy import units as u
 from astropy.units import Quantity
-from astropy.units._typing import HAS_ANNOTATED, Annotated
+from astropy.units._typing import HAS_ANNOTATED
 
 
 def test_ignore_generic_type_annotations():

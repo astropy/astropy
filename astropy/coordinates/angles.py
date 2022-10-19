@@ -5,7 +5,6 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
-import warnings
 from collections import namedtuple
 
 import numpy as np

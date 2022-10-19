@@ -535,7 +535,8 @@ def test_classproperty_docstring():
 
     class B:
         # Use doc passed to classproperty constructor
-        def _get_foo(cls): return 1
+        def _get_foo(cls):
+            return 1
 
         foo = classproperty(_get_foo, doc="The foo.")
 
