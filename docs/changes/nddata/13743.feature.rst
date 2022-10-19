@@ -1,0 +1,1 @@
+Add a PSF image representation to ``astropy.nddata.CCDData`` and ``astropy.nddata.CCDData``.
