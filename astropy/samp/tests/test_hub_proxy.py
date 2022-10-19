@@ -38,9 +38,9 @@ class TestHubProxy:
         self.proxy.unregister(result['samp.private-key'])
 
 
-def test_custom_lockfile(tmpdir):
+def test_custom_lockfile(tmp_path):
 
-    lockfile = tmpdir.join('.samptest').realpath().strpath
+    lockfile = str(tmp_path / '.samptest')
 
     hub = SAMPHubServer(web_profile=False, lockfile=lockfile, pool_size=1)
     hub.start()
