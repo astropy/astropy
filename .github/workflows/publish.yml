@@ -24,9 +24,9 @@ jobs:
 
   build_and_publish:
     # This does the actual wheel building and publishing as part of the cron job
-    # or if triggered manually via the workflow dispatch.
+    # or if triggered manually via the workflow dispatch, or for a tag.
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
+    if: (github.repository == 'astropy/astropy' && ( startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
     with:
 
       # We upload to PyPI for all tags starting with v but not ones ending in .dev
