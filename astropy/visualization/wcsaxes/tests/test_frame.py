@@ -86,7 +86,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(str(tmp_path / 'nothing'))
+        fig.savefig(tmp_path / 'nothing')
 
         ax.imshow(np.zeros((12, 4)))
 
@@ -111,7 +111,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(str(tmp_path / 'nothing'))
+        fig.savefig(tmp_path / 'nothing')
 
         ax.imshow(np.zeros((12, 4)))
 
@@ -135,7 +135,7 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0., 2.)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.savefig(str(tmp_path / 'nothing'))
+        fig.savefig(tmp_path / 'nothing')
 
         ax.reset_wcs()
 

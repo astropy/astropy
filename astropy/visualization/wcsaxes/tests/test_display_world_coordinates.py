@@ -28,7 +28,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test1.png'))
+        fig.savefig(tmp_path / 'test1.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -54,7 +54,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test2.png'))
+        fig.savefig(tmp_path / 'test2.png')
 
         event4 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event4)
@@ -71,7 +71,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test3.png'))
+        fig.savefig(tmp_path / 'test3.png')
 
         event5 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event5)
@@ -88,7 +88,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test4.png'))
+        fig.savefig(tmp_path / 'test4.png')
 
         event6 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event6)
@@ -108,7 +108,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test.png'))
+        fig.savefig(tmp_path / 'test.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -135,7 +135,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(str(tmp_path / 'test.png'))
+        fig.savefig(tmp_path / 'test.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)

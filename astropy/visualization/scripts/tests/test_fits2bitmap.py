@@ -20,7 +20,7 @@ class TestFits2Bitmap:
 
     @pytest.mark.openfiles_ignore
     def test_function(self, tmp_path):
-        filename = str(tmp_path / self.filename)
+        filename = tmp_path / self.filename
         fits.writeto(filename, self.array)
         fits2bitmap(filename)
 

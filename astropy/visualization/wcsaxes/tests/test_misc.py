@@ -51,7 +51,7 @@ def test_format_coord_regression(ignore_matplotlibrc, tmp_path):
     assert ax.format_coord(10, 10) == ""
     assert ax.coords[0].format_coord(10) == ""
     assert ax.coords[1].format_coord(10) == ""
-    fig.savefig(str(tmp_path / 'nothing'))
+    fig.savefig(tmp_path / 'nothing')
     assert ax.format_coord(10, 10) == "10.0 10.0 (world)"
     assert ax.coords[0].format_coord(10) == "10.0"
     assert ax.coords[1].format_coord(10) == "10.0"
@@ -93,7 +93,7 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
         warnings.filterwarnings('ignore', message=r'.*No contour levels were found within the data range.*')
         warnings.filterwarnings('ignore', message=r'.*np\.asscalar\(a\) is deprecated since NumPy v1\.16.*')
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN will be required.*')
-        fig.savefig(str(tmp_path / 'test.png'))
+        fig.savefig(tmp_path / 'test.png')
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
@@ -205,7 +205,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
         # https://github.com/astropy/astropy/issues/9690
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
-        plt.savefig(str(tmp_path / 'test.png'))
+        plt.savefig(tmp_path / 'test.png')
 
     # Angle case
 
@@ -216,7 +216,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.clf()
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
-        plt.savefig(str(tmp_path / 'test.png'))
+        plt.savefig(tmp_path / 'test.png')
 
 
 def test_plt_xlabel_ylabel(tmp_path):
@@ -227,7 +227,7 @@ def test_plt_xlabel_ylabel(tmp_path):
     plt.subplot(projection=WCS())
     plt.xlabel('Galactic Longitude')
     plt.ylabel('Galactic Latitude')
-    plt.savefig(str(tmp_path / 'test.png'))
+    plt.savefig(tmp_path / 'test.png')
 
 
 def test_grid_type_contours_transform(tmp_path):
@@ -254,7 +254,7 @@ def test_grid_type_contours_transform(tmp_path):
                  transform=transform, coord_meta=coord_meta)
     fig.add_axes(ax)
     ax.grid(grid_type='contours')
-    fig.savefig(str(tmp_path / 'test.png'))
+    fig.savefig(tmp_path / 'test.png')
 
 
 def test_plt_imshow_origin():
@@ -285,7 +285,7 @@ def test_grid_contour_large_spacing(tmp_path):
     # didn't produce grid lines (due e.g. to too large spacing) and was then
     # called again.
 
-    filename = str(tmp_path / 'test.png')
+    filename = tmp_path / 'test.png'
 
     ax = plt.subplot(projection=WCS())
     ax.set_xlim(-0.5, 1.5)
