@@ -1,2 +1,0 @@
-``WCS.pixel_to_world`` now creates an ``EarthLocation`` object using ``MJD-AVG``
-if present before falling back to the old behaviour of using ``MJD-OBS``.
