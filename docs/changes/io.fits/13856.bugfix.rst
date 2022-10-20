@@ -1,0 +1,1 @@
+``append`` cards to compressed headers no longer outputs duplicated keywords.
