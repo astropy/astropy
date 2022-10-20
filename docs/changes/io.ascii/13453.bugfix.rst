@@ -1,3 +1,0 @@
-When writing out a :class:`~astropy.table.Table` to HTML format, the
-``formats`` keyword argument to the :meth:`~astropy.table.Table.write` method
-will now be applied.

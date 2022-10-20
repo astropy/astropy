@@ -1,1 +1,0 @@
-Fix ``Time.insert()`` on times which have their ``out_subfmt`` set.
