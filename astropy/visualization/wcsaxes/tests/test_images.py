@@ -581,7 +581,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test(savefig_kwargs={'bbox_inches': 'tight'})
-    def test_noncelestial_angular(self, tmpdir):
+    def test_noncelestial_angular(self, tmp_path):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
         # longitude/latitude, but where the WCS wasn't recognized as celestial,
@@ -610,14 +610,14 @@ class TestBasic(BaseImageTests):
         ax.grid(color='white', ls='solid')
 
         # Force drawing (needed for format_coord)
-        fig.savefig(tmpdir.join('nothing').strpath)
+        fig.savefig(tmp_path / 'nothing')
 
         assert ax.format_coord(512, 512) == '513.0 513.0 (world)'
 
         return fig
 
     @figure_test
-    def test_patches_distortion(self, tmpdir):
+    def test_patches_distortion(self, tmp_path):
 
         # Check how patches get distorted (and make sure that scatter markers
         # and SphericalCircle don't)
@@ -677,7 +677,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test
-    def test_quadrangle(self, tmpdir):
+    def test_quadrangle(self, tmp_path):
         # Test that Quadrangle can have curved edges while Rectangle does not
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(3, 3))
