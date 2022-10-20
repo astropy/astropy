@@ -610,7 +610,7 @@ class TestBasic(BaseImageTests):
         ax.grid(color='white', ls='solid')
 
         # Force drawing (needed for format_coord)
-        fig.savefig(str(tmp_path / 'nothing'))
+        fig.savefig(tmp_path / 'nothing')
 
         assert ax.format_coord(512, 512) == '513.0 513.0 (world)'
 
