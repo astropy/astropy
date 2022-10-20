@@ -473,10 +473,10 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_read_noformat_arbitrary_file(self, tmpdir, registry, original):
+    def test_read_noformat_arbitrary_file(self, tmp_path, registry, original):
         """Tests that all identifier functions can accept arbitrary files"""
         registry._readers.update(original["readers"])
-        testfile = str(tmpdir.join("foo.example"))
+        testfile = tmp_path / "foo.example"
         with open(testfile, "w") as f:
             f.write("Hello world")
 
@@ -528,7 +528,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             f"No reader defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_read_identifier(self, tmpdir, registry, fmtcls1, fmtcls2):
+    def test_read_identifier(self, tmp_path, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
 
@@ -543,7 +543,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         # the reader. The registry.get_reader will fail but the error message
         # will tell us if the identifier worked.
 
-        filename = tmpdir.join("testfile.a").strpath
+        filename = tmp_path / "testfile.a"
         open(filename, "w").close()
         with pytest.raises(IORegistryError) as exc:
             cls.read(filename, registry=registry)
@@ -551,7 +551,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             f"No reader defined for format '{fmt1}' and class '{cls.__name__}'"
         )
 
-        filename = tmpdir.join("testfile.b").strpath
+        filename = tmp_path / "testfile.b"
         open(filename, "w").close()
         with pytest.raises(IORegistryError) as exc:
             cls.read(filename, registry=registry)
@@ -571,7 +571,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(OSError):
             data = fmtcls1[1].read("non-existing-file-with-unknown.ext")
 
-    def test_read_directory(self, tmpdir, registry, fmtcls1):
+    def test_read_directory(self, tmp_path, registry, fmtcls1):
         """
         Regression test for a bug that caused the I/O registry infrastructure to
         not work correctly for datasets that are represented by folders as
@@ -583,7 +583,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         )
         registry.register_reader("test_folder_format", cls, empty_reader)
 
-        filename = tmpdir.mkdir("folder_dataset").strpath
+        filename = tmp_path / "folder_dataset"
+        filename.mkdir()
 
         # With the format explicitly specified
         dataset = cls.read(filename, format="test_folder_format", registry=registry)
@@ -839,10 +840,10 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_write_noformat_arbitrary_file(self, tmpdir, registry, original):
+    def test_write_noformat_arbitrary_file(self, tmp_path, registry, original):
         """Tests that all identifier functions can accept arbitrary files"""
         registry._writers.update(original["writers"])
-        testfile = str(tmpdir.join("foo.example"))
+        testfile = tmp_path / "foo.example"
 
         with pytest.raises(IORegistryError) as exc:
             Table().write(testfile, registry=registry)
@@ -1116,7 +1117,7 @@ class TestSubclass:
         mt.write(buffer, format="ascii")
         assert buffer.getvalue() == os.linesep.join(["a b", "1 2", ""])
 
-    def test_read_table_subclass_with_columns_attributes(self, tmpdir):
+    def test_read_table_subclass_with_columns_attributes(self, tmp_path):
         """Regression test for https://github.com/astropy/astropy/issues/7181"""
 
         class MTable(Table):
@@ -1127,7 +1128,7 @@ class TestSubclass:
         mt["a"].format = ".4f"
         mt["a"].description = "hello"
 
-        testfile = str(tmpdir.join("junk.fits"))
+        testfile = tmp_path / "junk.fits"
         mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)
