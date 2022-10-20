@@ -702,6 +702,9 @@ def fits_ccddata_writer(
 
     Parameters
     ----------
+    ccd_data : CCDData
+        Object to write.
+
     filename : str
         Name of file.
 
