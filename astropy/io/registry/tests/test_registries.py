@@ -583,7 +583,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         )
         registry.register_reader("test_folder_format", cls, empty_reader)
 
-        (filename := tmp_path / "folder_dataset").mkdir()
+        filename = tmp_path / "folder_dataset"
+        filename.mkdir()
 
         # With the format explicitly specified
         dataset = cls.read(filename, format="test_folder_format", registry=registry)
