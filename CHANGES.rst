@@ -79,6 +79,9 @@ astropy.table
   that the ``pprint_include_names`` or ``pprint_exclude_names`` attributes get
   updated correctly. [#13639]
 
+- Ensure that mixin columns and their ``info`` are not shared between tables
+  even when their underlying data is shared with ``copy=False``. [#13842]
+
 astropy.time
 ^^^^^^^^^^^^
 
