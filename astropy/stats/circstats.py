@@ -396,7 +396,7 @@ def rayleightest(data, axis=None, weights=None):
        Uniformity." Lecture Notes, STA 6934/5805. University of Florida, 2007.
     .. [4] D. Wilkie. "Rayleigh Test for Randomness of Circular Data". Applied
        Statistics. 1983.
-       <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.211.4762>
+       <http://wexler.free.fr/library/files/wilkie%20(1983)%20rayleigh%20test%20for%20randomness%20of%20circular%20data.pdf>
     """
     n = np.size(data, axis=axis)
     Rbar = _length(data, 1, 0.0, axis, weights)
