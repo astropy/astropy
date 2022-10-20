@@ -198,13 +198,16 @@ class CompImageHeader(Header):
 
         card = Card(remapped_keyword, card.value, card.comment)
 
-        # Here we disable the use of blank cards, because the call above to
-        # Header.append may have already deleted a blank card in the table
-        # header, thanks to inheritance: Header.append calls 'del self[-1]'
-        # to delete a blank card, which calls CompImageHeader.__deltitem__,
-        # which deletes the blank card both in the image and the table headers!
-        self._table_header.append(card=card, useblanks=False,
-                                  bottom=bottom, end=end)
+        # Here we append a keyword only if it is blank or is not in the header already
+        if card.keyword not in self._table_header or not card.keyword:
+
+            # Here we disable the use of blank cards, because the call above to
+            # Header.append may have already deleted a blank card in the table
+            # header, thanks to inheritance: Header.append calls 'del self[-1]'
+            # to delete a blank card, which calls CompImageHeader.__deltitem__,
+            # which deletes the blank card both in the image and the table headers!
+            self._table_header.append(card=card, useblanks=False,
+                                      bottom=bottom, end=end)
 
     def insert(self, key, card, useblanks=True, after=False):
         if isinstance(key, int):

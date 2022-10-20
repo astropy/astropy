@@ -2971,6 +2971,13 @@ class TestRecordValuedKeywordCards(FitsTestCase):
             assert 'PCOUNT' not in hdul[1].header
             assert 'GCOUNT' not in hdul[1].header
 
+    def test_fitsheader_compressed_with_duplicate_key(self):
+        """Regression test for issue https://github.com/astropy/astropy/issues/11927"""
+        chdu = fits.CompImageHDU()
+        chdu._header['FOO'] = 'A'
+        chdu.header['FOO'] = 'A'
+        assert chdu._header.count('FOO') == 1
+
     def test_fitsheader_table_feature(self):
         """Tests the `--table` feature of the `fitsheader` script."""
         from astropy.io import fits
