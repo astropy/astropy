@@ -1270,8 +1270,10 @@ class Table:
 
         elif data_is_mixin:
             # Copy the mixin column attributes if they exist since the copy below
-            # may not get this attribute.
-            col = col_copy(data, copy_indices=self._init_indices) if copy else data
+            # may not get this attribute. If not copying, take a slice
+            # to ensure we get a new instance and we do not share metadata
+            # like info.
+            col = col_copy(data, copy_indices=self._init_indices) if copy else data[:]
             col.info.name = name
             return col
 
