@@ -1105,3 +1105,27 @@ def test_psf_setter():
     with pytest.raises(TypeError) as exc:
         ccd.psf = "something"
     assert "The psf must be a numpy array." in str(exc.value)
+
+
+def test_write_read_psf(tmpdir):
+    """Test that we can round-trip a ccddata with an attached psf image."""
+    ccd_data = create_ccd_data()
+    ccd_data.psf = _random_psf
+
+    filename = tmpdir.join('test_write_read_psf.fits').strpath
+    ccd_data.write(filename)
+    ccd_disk = CCDData.read(filename)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)
+
+    # Try a different name for the PSF HDU.
+    filename = tmpdir.join('test_write_read_psf_hdu.fits').strpath
+    ccd_data.write(filename, hdu_psf="PSFOTHER")
+    # psf will be None if we don't supply the new HDU name to the reader.
+    ccd_disk = CCDData.read(filename)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    assert ccd_disk.psf is None
+    # psf will round-trip if we do supply the new HDU name.
+    ccd_disk = CCDData.read(filename, hdu_psf="PSFOTHER")
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)

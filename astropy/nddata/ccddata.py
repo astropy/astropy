@@ -273,18 +273,19 @@ class CCDData(NDDataArray):
 
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
                hdu_flags=None, wcs_relax=True,
-               key_uncertainty_type='UTYPE', as_image_hdu=False):
+               key_uncertainty_type='UTYPE', as_image_hdu=False,
+               hdu_psf="PSFIMAGE"):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
         ----------
-        hdu_mask, hdu_uncertainty, hdu_flags : str or None, optional
+        hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf: str or None, optional
             If it is a string append this attribute to the HDUList as
             `~astropy.io.fits.ImageHDU` with the string as extension name.
             Flags are not supported at this time. If ``None`` this attribute
             is not appended.
-            Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty and
-            ``None`` for flags.
+            Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
+            "PSFIMAGE" for psf, and ``None`` for flags.
 
         wcs_relax : bool
             Value of the ``relax`` parameter to use in converting the WCS to a
@@ -400,6 +401,11 @@ class CCDData(NDDataArray):
         if hdu_flags and self.flags:
             raise NotImplementedError('adding the flags to a HDU is not '
                                       'supported at this time.')
+
+        if hdu_psf and self.psf is not None:
+            # The PSF is an image, so write it as a separate ImageHDU.
+            hdu_psf = fits.ImageHDU(self.psf, name=hdu_psf)
+            hdus.append(hdu_psf)
 
         hdulist = fits.HDUList(hdus)
 
@@ -538,7 +544,7 @@ def _generate_wcs_and_update_header(hdr):
 
 def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         hdu_mask='MASK', hdu_flags=None,
-                        key_uncertainty_type='UTYPE', **kwd):
+                        key_uncertainty_type='UTYPE', hdu_psf="PSFIMAGE", **kwd):
     """
     Generate a CCDData object from a FITS file.
 
@@ -581,6 +587,10 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 
         .. versionadded:: 3.1
 
+    hdu_psf : str or None, optional
+        FITS extension from which the psf image should be initialized. If the
+        extension does not exist the psf of the CCDData is ``None``.
+
     kwd :
         Any additional keyword parameters are passed through to the FITS reader
         in :mod:`astropy.io.fits`; see Notes for additional discussion.
@@ -622,6 +632,11 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         if hdu_flags is not None and hdu_flags in hdus:
             raise NotImplementedError('loading flags is currently not '
                                       'supported.')
+
+        if hdu_psf is not None and hdu_psf in hdus:
+            psf = hdus[hdu_psf].data
+        else:
+            psf = None
 
         # search for the first instance with data if
         # the primary header is empty.
@@ -672,7 +687,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
         ccd_data = CCDData(hdus[hdu].data, meta=hdr, unit=use_unit,
-                           mask=mask, uncertainty=uncertainty, wcs=wcs)
+                           mask=mask, uncertainty=uncertainty, wcs=wcs, psf=psf)
 
     return ccd_data
 
@@ -680,6 +695,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 def fits_ccddata_writer(
         ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
         hdu_flags=None, key_uncertainty_type='UTYPE', as_image_hdu=False,
+        hdu_psf="PSFIMAGE",
         **kwd):
     """
     Write CCDData object to FITS file.
@@ -689,13 +705,13 @@ def fits_ccddata_writer(
     filename : str
         Name of file.
 
-    hdu_mask, hdu_uncertainty, hdu_flags : str or None, optional
+    hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf : str or None, optional
         If it is a string append this attribute to the HDUList as
         `~astropy.io.fits.ImageHDU` with the string as extension name.
         Flags are not supported at this time. If ``None`` this attribute
         is not appended.
-        Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty and
-        ``None`` for flags.
+        Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
+        "PSFIMAGE" for psf, and ``None`` for flags.
 
     key_uncertainty_type : str, optional
         The header key name for the class name of the uncertainty (if any)
@@ -727,7 +743,7 @@ def fits_ccddata_writer(
     hdu = ccd_data.to_hdu(
         hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
         key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags,
-        as_image_hdu=as_image_hdu)
+        as_image_hdu=as_image_hdu, hdu_psf=hdu_psf)
     if as_image_hdu:
         hdu.insert(0, fits.PrimaryHDU())
     hdu.writeto(filename, **kwd)
