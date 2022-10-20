@@ -123,20 +123,23 @@ more details about bit planes and the functions ``astropy`` provides for
 converting them to binary masks, see :ref:`bitmask_details`. For more details
 on setting flags, see `~astropy.nddata.NDData`.
 
-WCS
-+++
+WCS and PSF
++++++++++++
 
-The ``wcs`` attribute of a `~astropy.nddata.CCDData` object can be set two ways.
+The ``wcs`` and ``psf`` attributes of a `~astropy.nddata.CCDData` object can be set two ways.
 
 + If the `~astropy.nddata.CCDData` object is created from a FITS file that has
   WCS keywords in the header, the ``wcs`` attribute is set to a
   `~astropy.wcs.WCS` object using the information in the FITS header.
+  Similarly, if the FITS file has an image HDU extension matching the appropriate name (defaulted to ``"PSFIMAGE"``), the ``psf`` attribute is loaded from that image HDU.
 
-+ The WCS can also be provided when the `~astropy.nddata.CCDData` object is
-  constructed with the ``wcs`` argument.
++ The WCS and PSF can also be provided when the `~astropy.nddata.CCDData` object is
+  constructed with the ``wcs`` and ``psf`` arguments, respectively.
 
 Either way, the ``wcs`` attribute is kept up to date if the
 `~astropy.nddata.CCDData` image is trimmed.
+
+The ``psf`` attribute should be a normalized PSF image at the center of the `~astropy.nddata.CCDData`, sized appropriately for the data; users are responsible for managing and interpreting it in context.
 
 Uncertainty
 -----------
