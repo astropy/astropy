@@ -17,7 +17,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
     def teardown_method(self, method):
         plt.close('all')
 
-    def test_overlay_coords(self, ignore_matplotlibrc, tmpdir):
+    def test_overlay_coords(self, ignore_matplotlibrc, tmp_path):
         wcs = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(4, 4))
@@ -28,7 +28,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test1.png').strpath)
+        fig.savefig(tmp_path / 'test1.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -54,7 +54,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test2.png').strpath)
+        fig.savefig(tmp_path / 'test2.png')
 
         event4 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event4)
@@ -71,7 +71,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test3.png').strpath)
+        fig.savefig(tmp_path / 'test3.png')
 
         event5 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event5)
@@ -88,7 +88,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test4.png').strpath)
+        fig.savefig(tmp_path / 'test4.png')
 
         event6 = KeyEvent('test_pixel_coords', canvas, 'w')
         fig.canvas.callbacks.process('key_press_event', event6)
@@ -97,7 +97,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         assert string_world5 == '267.652\xb0 -28\xb046\'23" (world, overlay 3)'
 
-    def test_cube_coords(self, ignore_matplotlibrc, tmpdir):
+    def test_cube_coords(self, ignore_matplotlibrc, tmp_path):
         wcs = WCS(self.cube_header)
 
         fig = plt.figure(figsize=(4, 4))
@@ -108,7 +108,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test.png').strpath)
+        fig.savefig(tmp_path / 'test.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -120,7 +120,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
-    def test_cube_coords_uncorr_slicing(self, ignore_matplotlibrc, tmpdir):
+    def test_cube_coords_uncorr_slicing(self, ignore_matplotlibrc, tmp_path):
 
         # Regression test for a bug that occurred with coordinate formatting if
         # some dimensions were uncorrelated and sliced out.
@@ -135,7 +135,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
-        fig.savefig(tmpdir.join('test.png').strpath)
+        fig.savefig(tmp_path / 'test.png')
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)

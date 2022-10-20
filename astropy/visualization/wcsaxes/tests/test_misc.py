@@ -42,7 +42,7 @@ def test_grid_regression(ignore_matplotlibrc):
     WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
 
 
-def test_format_coord_regression(ignore_matplotlibrc, tmpdir):
+def test_format_coord_regression(ignore_matplotlibrc, tmp_path):
     # Regression test for a bug that meant that if format_coord was called by
     # Matplotlib before the axes were drawn, an error occurred.
     fig = plt.figure(figsize=(3, 3))
@@ -51,7 +51,7 @@ def test_format_coord_regression(ignore_matplotlibrc, tmpdir):
     assert ax.format_coord(10, 10) == ""
     assert ax.coords[0].format_coord(10) == ""
     assert ax.coords[1].format_coord(10) == ""
-    fig.savefig(tmpdir.join('nothing').strpath)
+    fig.savefig(tmp_path / 'nothing')
     assert ax.format_coord(10, 10) == "10.0 10.0 (world)"
     assert ax.coords[0].format_coord(10) == "10.0"
     assert ax.coords[1].format_coord(10) == "10.0"
@@ -76,7 +76,7 @@ COORDSYS= 'icrs    '
 
 
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
-def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
+def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     ax.imshow(np.zeros((100, 200)))
@@ -93,7 +93,7 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
         warnings.filterwarnings('ignore', message=r'.*No contour levels were found within the data range.*')
         warnings.filterwarnings('ignore', message=r'.*np\.asscalar\(a\) is deprecated since NumPy v1\.16.*')
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN will be required.*')
-        fig.savefig(tmpdir.join('test.png').strpath)
+        fig.savefig(tmp_path / 'test.png')
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
@@ -187,7 +187,7 @@ CRPIX3  =                241.0
 """, sep='\n')
 
 
-def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
+def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
 
     # Regression test to make sure that no warnings are emitted by the tick
     # locator for the sliced axis when slicing a cube.
@@ -205,7 +205,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
         # https://github.com/astropy/astropy/issues/9690
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
-        plt.savefig(tmpdir.join('test.png').strpath)
+        plt.savefig(tmp_path / 'test.png')
 
     # Angle case
 
@@ -216,10 +216,10 @@ def test_slicing_warnings(ignore_matplotlibrc, tmpdir):
         warnings.filterwarnings('ignore', message=r'.*PY_SSIZE_T_CLEAN.*')
         plt.clf()
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 2))
-        plt.savefig(tmpdir.join('test.png').strpath)
+        plt.savefig(tmp_path / 'test.png')
 
 
-def test_plt_xlabel_ylabel(tmpdir):
+def test_plt_xlabel_ylabel(tmp_path):
 
     # Regression test for a bug that happened when using plt.xlabel
     # and plt.ylabel with Matplotlib 3.0
@@ -227,10 +227,10 @@ def test_plt_xlabel_ylabel(tmpdir):
     plt.subplot(projection=WCS())
     plt.xlabel('Galactic Longitude')
     plt.ylabel('Galactic Latitude')
-    plt.savefig(tmpdir.join('test.png').strpath)
+    plt.savefig(tmp_path / 'test.png')
 
 
-def test_grid_type_contours_transform(tmpdir):
+def test_grid_type_contours_transform(tmp_path):
 
     # Regression test for a bug that caused grid_type='contours' to not work
     # with custom transforms
@@ -254,7 +254,7 @@ def test_grid_type_contours_transform(tmpdir):
                  transform=transform, coord_meta=coord_meta)
     fig.add_axes(ax)
     ax.grid(grid_type='contours')
-    fig.savefig(tmpdir.join('test.png').strpath)
+    fig.savefig(tmp_path / 'test.png')
 
 
 def test_plt_imshow_origin():
@@ -279,13 +279,13 @@ def test_ax_imshow_origin():
     assert ax.get_ylim() == (-0.5, 1.5)
 
 
-def test_grid_contour_large_spacing(tmpdir):
+def test_grid_contour_large_spacing(tmp_path):
 
     # Regression test for a bug that caused a crash when grid was called and
     # didn't produce grid lines (due e.g. to too large spacing) and was then
     # called again.
 
-    filename = tmpdir.join('test.png').strpath
+    filename = tmp_path / 'test.png'
 
     ax = plt.subplot(projection=WCS())
     ax.set_xlim(-0.5, 1.5)
@@ -327,7 +327,7 @@ def test_contour_empty():
         ax.contour(np.zeros((4, 4)), transform=ax.get_transform('world'))
 
 
-def test_iterate_coords(ignore_matplotlibrc, tmpdir):
+def test_iterate_coords(ignore_matplotlibrc):
 
     # Regression test for a bug that caused ax.coords to return too few axes
 
@@ -455,7 +455,7 @@ def test_time_wcs(time_spectral_wcs_2d):
 
 
 @pytest.mark.skipif(TEX_UNAVAILABLE, reason='TeX is unavailable')
-def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
+def test_simplify_labels_usetex(ignore_matplotlibrc, tmp_path):
     """Regression test for https://github.com/astropy/astropy/issues/8004."""
     plt.rc('text', usetex=True)
 
@@ -484,7 +484,7 @@ def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
     ax.coords[1].set_ticks(spacing=30 * u.deg)
     ax.grid()
 
-    fig.savefig(tmpdir / 'plot.png')
+    fig.savefig(tmp_path / 'plot.png')
 
 
 @pytest.mark.parametrize('frame_class', [RectangularFrame, EllipticalFrame])
@@ -547,9 +547,9 @@ def test_wcs_type_transform_regression():
     ax.get_transform(sliced_wcs)
 
 
-def test_multiple_draws_grid_contours(tmpdir):
+def test_multiple_draws_grid_contours(tmp_path):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS())
     ax.grid(color='black', grid_type='contours')
-    fig.savefig(tmpdir / 'plot.png')
-    fig.savefig(tmpdir / 'plot.png')
+    fig.savefig(tmp_path / 'plot.png')
+    fig.savefig(tmp_path / 'plot.png')
