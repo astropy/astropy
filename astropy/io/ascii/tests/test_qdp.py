@@ -7,7 +7,7 @@ from astropy.table import Column, MaskedColumn, Table
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-def test_get_tables_from_qdp_file(tmpdir):
+def test_get_tables_from_qdp_file(tmp_path):
     example_qdp = """
     ! Swift/XRT hardness ratio of trigger: XXXX, name: BUBU X-2
     ! Columns are as labelled
@@ -29,7 +29,7 @@ def test_get_tables_from_qdp_file(tmpdir):
     55045.099887 1.14467592592593e-05    -1.14467592592593e-05   0.000000        -nan
     """
 
-    path = str(tmpdir.join('test.qdp'))
+    path = tmp_path / 'test.qdp'
 
     with open(path, "w") as fp:
         print(example_qdp, file=fp)
@@ -43,7 +43,7 @@ def test_get_tables_from_qdp_file(tmpdir):
     assert np.isclose(table2["MJD_nerr"][0], -2.37847222222222e-05)
 
 
-def test_roundtrip(tmpdir):
+def test_roundtrip(tmp_path):
     example_qdp = """
     ! Swift/XRT hardness ratio of trigger: XXXX, name: BUBU X-2
     ! Columns are as labelled
@@ -71,8 +71,8 @@ def test_roundtrip(tmpdir):
     NO 1.14467592592593e-05    -1.14467592592593e-05   0.000000        NO
     """
 
-    path = str(tmpdir.join('test.qdp'))
-    path2 = str(tmpdir.join('test2.qdp'))
+    path = str(tmp_path / 'test.qdp')
+    path2 = str(tmp_path / 'test2.qdp')
 
     with open(path, "w") as fp:
         print(example_qdp, file=fp)
@@ -106,7 +106,7 @@ def test_roundtrip(tmpdir):
         assert meta_name in new_table.meta
 
 
-def test_read_example(tmpdir):
+def test_read_example():
     example_qdp = """
         ! Initial comment line 1
         ! Initial comment line 2
@@ -136,7 +136,7 @@ def test_read_example(tmpdir):
         assert np.allclose(col1, col2, equal_nan=True)
 
 
-def test_roundtrip_example(tmpdir):
+def test_roundtrip_example(tmp_path):
     example_qdp = """
         ! Initial comment line 1
         ! Initial comment line 2
@@ -152,7 +152,7 @@ def test_roundtrip_example(tmpdir):
         54000.5   2.25  -2.5   NO  3.5  5.5 5
         55000.5   3.25  -3.5   4  4.5  6.5 nan
         """
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = tmp_path / 'test.qdp'
 
     t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
                    names=['a', 'b', 'c', 'd'])
@@ -163,7 +163,7 @@ def test_roundtrip_example(tmpdir):
         assert np.allclose(col1, col2, equal_nan=True)
 
 
-def test_roundtrip_example_comma(tmpdir):
+def test_roundtrip_example_comma(tmp_path):
     example_qdp = """
         ! Initial comment line 1
         ! Initial comment line 2
@@ -179,7 +179,7 @@ def test_roundtrip_example_comma(tmpdir):
         54000.5,2.25,-2.5,NO,3.5,5.5,5
         55000.5,3.25,-3.5,4,4.5,6.5,nan
         """
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = tmp_path / 'test.qdp'
 
     t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
                    names=['a', 'b', 'c', 'd'], sep=',')
@@ -191,8 +191,8 @@ def test_roundtrip_example_comma(tmpdir):
         assert np.allclose(col1, col2, equal_nan=True)
 
 
-def test_read_write_simple(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+def test_read_write_simple(tmp_path):
+    test_file = tmp_path / 'test.qdp'
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3, 4]))
     t1.add_column(MaskedColumn(data=[4., np.nan, 3., 1.], name='b',
@@ -211,8 +211,8 @@ def test_read_write_simple(tmpdir):
     assert np.allclose(t2['col2'][good], t1['b'][good])
 
 
-def test_read_write_simple_specify_name(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+def test_read_write_simple_specify_name(tmp_path):
+    test_file = tmp_path / 'test.qdp'
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     # Give a non-None err_specs
@@ -221,8 +221,8 @@ def test_read_write_simple_specify_name(tmpdir):
     assert np.all(t2['a'] == t1['a'])
 
 
-def test_get_lines_from_qdp(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+def test_get_lines_from_qdp(tmp_path):
+    test_file = str(tmp_path / 'test.qdp')
     text_string = "A\nB"
     text_output = _get_lines_from_file(text_string)
     with open(test_file, "w") as fobj:

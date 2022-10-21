@@ -56,7 +56,7 @@ def assert_table_equal(t1, t2, check_meta=False, rtol=1.e-15, atol=1.e-300):
 _filename_counter = 0
 
 
-def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=False, **kwargs):
+def _read(tmp_path, table, Reader=None, format=None, parallel=False, check_meta=False, **kwargs):
     # make sure we have a newline so table can't be misinterpreted as a filename
     global _filename_counter
 
@@ -79,7 +79,7 @@ def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=Fa
             'parallel': True}, **kwargs)
         assert_table_equal(t1, t6, check_meta=check_meta)
 
-    filename = str(tmpdir.join(f'table{_filename_counter}.txt'))
+    filename = tmp_path / f'table{_filename_counter}.txt'
     _filename_counter += 1
 
     with open(filename, 'wb') as f:
@@ -98,34 +98,34 @@ def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=Fa
 
 
 @pytest.fixture(scope='function')
-def read_basic(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastBasic, format='basic')
+def read_basic(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastBasic, format='basic')
 
 
 @pytest.fixture(scope='function')
-def read_csv(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastCsv, format='csv')
+def read_csv(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastCsv, format='csv')
 
 
 @pytest.fixture(scope='function')
-def read_tab(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastTab, format='tab')
+def read_tab(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastTab, format='tab')
 
 
 @pytest.fixture(scope='function')
-def read_commented_header(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastCommentedHeader,
+def read_commented_header(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastCommentedHeader,
                              format='commented_header')
 
 
 @pytest.fixture(scope='function')
-def read_rdb(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastRdb, format='rdb')
+def read_rdb(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastRdb, format='rdb')
 
 
 @pytest.fixture(scope='function')
-def read_no_header(tmpdir, request):
-    return functools.partial(_read, tmpdir, Reader=FastNoHeader,
+def read_no_header(tmp_path, request):
+    return functools.partial(_read, tmp_path, Reader=FastNoHeader,
                              format='no_header')
 
 
@@ -1037,7 +1037,7 @@ def test_fast_tab_with_names(parallel, read_tab):
 
 
 @pytest.mark.hugemem
-def test_read_big_table(tmpdir):
+def test_read_big_table(tmp_path):
     """Test reading of a huge file.
 
     This test generates a huge CSV file (~2.3Gb) before reading it (see
@@ -1048,7 +1048,7 @@ def test_read_big_table(tmpdir):
     """
     NB_ROWS = 250000
     NB_COLS = 500
-    filename = str(tmpdir.join("big_table.csv"))
+    filename = tmp_path / "big_table.csv"
 
     print(f"Creating a {NB_ROWS} rows table ({NB_COLS} columns).")
     data = np.random.random(NB_ROWS)
@@ -1069,14 +1069,14 @@ def test_read_big_table(tmpdir):
 
 
 @pytest.mark.hugemem
-def test_read_big_table2(tmpdir):
+def test_read_big_table2(tmp_path):
     """Test reading of a file with a huge column.
     """
     # (2**32 // 2) : max value for int
     # // 10 : we use a value for rows that have 10 chars (1e9)
     # + 5 : add a few lines so the length cannot be stored by an int
     NB_ROWS = 2**32 // 2 // 10 + 5
-    filename = str(tmpdir.join("big_table.csv"))
+    filename = tmp_path / "big_table.csv"
 
     print(f"Creating a {NB_ROWS} rows table.")
     data = np.full(NB_ROWS, int(1e9), dtype=np.int32)

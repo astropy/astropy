@@ -424,7 +424,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-def test_round_trip_masked_table_default(tmpdir):
+def test_round_trip_masked_table_default(tmp_path):
     """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
     that uses an empty string "" to mark NULL values.  Note:
 
@@ -437,7 +437,7 @@ def test_round_trip_masked_table_default(tmpdir):
         2     2.0   --
         3      --    e
     """
-    filename = str(tmpdir.join('test.ecsv'))
+    filename = tmp_path / 'test.ecsv'
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
     t.write(filename)
@@ -457,9 +457,9 @@ def test_round_trip_masked_table_default(tmpdir):
         assert not np.all(t2[name] == t[name])  # Expected diff
 
 
-def test_round_trip_masked_table_serialize_mask(tmpdir):
+def test_round_trip_masked_table_serialize_mask(tmp_path):
     """Same as prev but set the serialize_method to 'data_mask' so mask is written out"""
-    filename = str(tmpdir.join('test.ecsv'))
+    filename = tmp_path / 'test.ecsv'
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
     t['c'][0] = ''  # This would come back as masked for default "" NULL marker
@@ -484,12 +484,12 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
+def test_ecsv_round_trip_user_defined_unit(table_cls, tmp_path):
     """Ensure that we can read-back enabled user-defined units."""
 
     # Test adapted from #8897, where it was noted that this works
     # but was not tested.
-    filename = str(tmpdir.join('test.ecsv'))
+    filename = tmp_path / 'test.ecsv'
     unit = u.def_unit('bandpass_sol_lum')
     t = table_cls()
     t['l'] = np.arange(5) * unit
@@ -515,8 +515,8 @@ def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
         assert t3['l'].unit is unit
         assert np.all(t3['l'] == t['l'])
 
-        # Just to be sure, aloso try writing with unit enabled.
-        filename2 = str(tmpdir.join('test2.ecsv'))
+        # Just to be sure, also try writing with unit enabled.
+        filename2 = tmp_path / 'test2.ecsv'
         t3.write(filename2)
         t4 = table_cls.read(filename)
         assert t4['l'].unit is unit
