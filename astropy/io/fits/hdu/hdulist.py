@@ -13,10 +13,18 @@ import numpy as np
 from astropy.io.fits.file import FILE_MODES, _File
 from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import (
-    _free_space_check, _get_array_mmap, _is_int, _tmp_name, fileobj_closed, fileobj_mode,
-    ignore_sigint, isfile)
+    _free_space_check,
+    _get_array_mmap,
+    _is_int,
+    _tmp_name,
+    fileobj_closed,
+    fileobj_mode,
+    ignore_sigint,
+    isfile,
+)
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
 from astropy.utils import indent
+
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning

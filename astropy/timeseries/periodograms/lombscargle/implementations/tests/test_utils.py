@@ -3,7 +3,10 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
-    bitceil, extirpolate, trig_sum)
+    bitceil,
+    extirpolate,
+    trig_sum,
+)
 
 
 @pytest.mark.parametrize('N', 2 ** np.arange(1, 12))

@@ -3,12 +3,18 @@
 Module to test statistic functions
 """
 import numpy as np
+
 # pylint: disable=invalid-name
 import pytest
 from numpy.testing import assert_almost_equal
 
 from astropy.modeling.models import Identity, Mapping
-from astropy.modeling.statistic import leastsquare, leastsquare_1d, leastsquare_2d, leastsquare_3d
+from astropy.modeling.statistic import (
+    leastsquare,
+    leastsquare_1d,
+    leastsquare_2d,
+    leastsquare_3d,
+)
 
 
 class TestLeastSquare_XD:

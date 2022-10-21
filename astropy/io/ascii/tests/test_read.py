@@ -18,6 +18,7 @@ from astropy.io.ascii.ui import _probably_html, get_read_trace
 from astropy.table import MaskedColumn, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
+
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import get_pkg_data_path
@@ -25,7 +26,12 @@ from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
 from .common import (  # noqa: F401
-    assert_almost_equal, assert_equal, assert_true, setup_function, teardown_function)
+    assert_almost_equal,
+    assert_equal,
+    assert_true,
+    setup_function,
+    teardown_function,
+)
 
 
 def asciiIO(x):

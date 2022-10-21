@@ -14,7 +14,13 @@ from astropy.utils.exceptions import AstropyUserWarning
 from ._utils import parse_header
 from .card import KEYWORD_LENGTH, UNDEFINED, Card, _pad
 from .file import _File
-from .util import decode_ascii, encode_ascii, fileobj_closed, fileobj_is_binary, path_like
+from .util import (
+    decode_ascii,
+    encode_ascii,
+    fileobj_closed,
+    fileobj_is_binary,
+    path_like,
+)
 
 BLOCK_SIZE = 2880  # the FITS block size
 

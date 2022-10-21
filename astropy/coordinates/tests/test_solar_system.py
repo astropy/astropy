@@ -9,11 +9,20 @@ from astropy.constants import c
 from astropy.coordinates.builtin_frames import TETE
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.funcs import get_sun
-from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
+from astropy.coordinates.representation import (
+    CartesianRepresentation,
+    UnitSphericalRepresentation,
+)
 from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.coordinates.solar_system import (
-    BODY_NAME_TO_KERNEL_SPEC, _get_apparent_body_position, get_body, get_body_barycentric,
-    get_body_barycentric_posvel, get_moon, solar_system_ephemeris)
+    BODY_NAME_TO_KERNEL_SPEC,
+    _get_apparent_body_position,
+    get_body,
+    get_body_barycentric,
+    get_body_barycentric_posvel,
+    get_moon,
+    solar_system_ephemeris,
+)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose

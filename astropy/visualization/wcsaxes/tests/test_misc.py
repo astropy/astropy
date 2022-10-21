@@ -14,7 +14,10 @@ from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
-    EllipticalFrame, RectangularFrame, RectangularFrame1D)
+    EllipticalFrame,
+    RectangularFrame,
+    RectangularFrame1D,
+)
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.wcs import WCS

@@ -13,7 +13,9 @@ import astropy.units as u  # noqa: E402
 from astropy import table  # noqa: E402
 from astropy.coordinates import EarthLocation, SkyCoord  # noqa: E402
 from astropy.coordinates.tests.helper import skycoord_equal  # noqa: E402
-from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test  # noqa: E402
+from astropy.io.misc.asdf.tags.tests.helpers import (  # noqa: E402
+    run_schema_example_test,
+)
 from astropy.time import Time, TimeDelta  # noqa: E402
 
 

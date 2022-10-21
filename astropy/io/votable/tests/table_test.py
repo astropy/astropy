@@ -16,7 +16,11 @@ from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
-from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_path
+from astropy.utils.data import (
+    get_pkg_data_filename,
+    get_pkg_data_fileobj,
+    get_pkg_data_path,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 

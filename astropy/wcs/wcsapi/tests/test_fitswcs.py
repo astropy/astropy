@@ -11,7 +11,15 @@ from numpy.testing import assert_allclose, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
-from astropy.coordinates import FK5, ICRS, ITRS, EarthLocation, Galactic, SkyCoord, SpectralCoord
+from astropy.coordinates import (
+    FK5,
+    ICRS,
+    ITRS,
+    EarthLocation,
+    Galactic,
+    SkyCoord,
+    SpectralCoord,
+)
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.tests.helper import assert_quantity_allclose

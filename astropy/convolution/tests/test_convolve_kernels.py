@@ -9,7 +9,11 @@ from numpy.testing import assert_allclose, assert_almost_equal
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import (
-    Box2DKernel, Gaussian2DKernel, Moffat2DKernel, Tophat2DKernel)
+    Box2DKernel,
+    Gaussian2DKernel,
+    Moffat2DKernel,
+    Tophat2DKernel,
+)
 
 SHAPES_ODD = [[15, 15], [31, 31]]
 SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]  # FIXME: not used ?!

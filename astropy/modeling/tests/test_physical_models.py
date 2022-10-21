@@ -6,7 +6,12 @@ import pytest
 
 from astropy import cosmology
 from astropy import units as u
-from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
+from astropy.modeling.fitting import (
+    DogBoxLSQFitter,
+    LevMarLSQFitter,
+    LMLSQFitter,
+    TRFLSQFitter,
+)
 from astropy.modeling.physical_models import NFW, BlackBody
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY

@@ -12,7 +12,12 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
-from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
+from .connect import (
+    CosmologyFromFormat,
+    CosmologyRead,
+    CosmologyToFormat,
+    CosmologyWrite,
+)
 from .parameter import Parameter
 
 if TYPE_CHECKING:  # pragma: no cover

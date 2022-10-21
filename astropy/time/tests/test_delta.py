@@ -11,8 +11,15 @@ import pytest
 from astropy import units as u
 from astropy.table import Table
 from astropy.time import (
-    STANDARD_TIME_SCALES, TIME_DELTA_SCALES, TIME_SCALES, OperandTypeError, ScaleValueError, Time,
-    TimeDelta, TimeDeltaMissingUnitWarning)
+    STANDARD_TIME_SCALES,
+    TIME_DELTA_SCALES,
+    TIME_SCALES,
+    OperandTypeError,
+    ScaleValueError,
+    Time,
+    TimeDelta,
+    TimeDeltaMissingUnitWarning,
+)
 from astropy.utils import iers
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)

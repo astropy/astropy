@@ -6,7 +6,11 @@ from contextlib import nullcontext
 import numpy as np
 import numpy.ma as ma
 import pytest
-from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp
+from numpy.testing import (
+    assert_allclose,
+    assert_array_almost_equal,
+    assert_array_almost_equal_nulp,
+)
 
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft

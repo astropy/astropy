@@ -10,12 +10,30 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, galactocentric_frame_defaults
 from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
-    Attribute, CoordinateAttribute, DifferentialAttribute, EarthLocationAttribute,
-    QuantityAttribute, TimeAttribute)
+    Attribute,
+    CoordinateAttribute,
+    DifferentialAttribute,
+    EarthLocationAttribute,
+    QuantityAttribute,
+    TimeAttribute,
+)
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
-    FK4, FK5, GCRS, HCRS, ICRS, ITRS, AltAz, Galactic, Galactocentric, HADec)
-from astropy.coordinates.representation import REPRESENTATION_CLASSES, CartesianDifferential
+    FK4,
+    FK5,
+    GCRS,
+    HCRS,
+    ICRS,
+    ITRS,
+    AltAz,
+    Galactic,
+    Galactocentric,
+    HADec,
+)
+from astropy.coordinates.representation import (
+    REPRESENTATION_CLASSES,
+    CartesianDifferential,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose

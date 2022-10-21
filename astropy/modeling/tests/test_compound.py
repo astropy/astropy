@@ -11,8 +11,24 @@ import astropy.units as u
 from astropy.modeling.core import CompoundModel, Model, ModelDefinitionError
 from astropy.modeling.fitting import LevMarLSQFitter
 from astropy.modeling.models import (
-    Chebyshev1D, Chebyshev2D, Const1D, Gaussian1D, Gaussian2D, Identity, Legendre1D, Legendre2D,
-    Linear1D, Mapping, Polynomial1D, Polynomial2D, Rotation2D, Scale, Shift, Tabular1D, fix_inputs)
+    Chebyshev1D,
+    Chebyshev2D,
+    Const1D,
+    Gaussian1D,
+    Gaussian2D,
+    Identity,
+    Legendre1D,
+    Legendre2D,
+    Linear1D,
+    Mapping,
+    Polynomial1D,
+    Polynomial2D,
+    Rotation2D,
+    Scale,
+    Shift,
+    Tabular1D,
+    fix_inputs,
+)
 from astropy.modeling.parameters import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 

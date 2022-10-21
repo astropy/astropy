@@ -15,7 +15,12 @@ cimport numpy as np
 
 from numpy import ma
 
-from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyBuffer_Release, PyObject_GetBuffer
+from cpython.buffer cimport (
+    Py_buffer,
+    PyBUF_SIMPLE,
+    PyBuffer_Release,
+    PyObject_GetBuffer,
+)
 from libc cimport stdio
 
 from ...utils.data import get_readable_fileobj

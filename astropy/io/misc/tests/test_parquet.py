@@ -5,8 +5,15 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import (
-    Angle, CartesianRepresentation, EarthLocation, Latitude, Longitude, SkyCoord,
-    SphericalCosLatDifferential, SphericalRepresentation)
+    Angle,
+    CartesianRepresentation,
+    EarthLocation,
+    Latitude,
+    Longitude,
+    SkyCoord,
+    SphericalCosLatDifferential,
+    SphericalRepresentation,
+)
 from astropy.io.misc.parquet import get_pyarrow, parquet_identify
 from astropy.table import Column, NdarrayMixin, QTable, Table
 from astropy.table.table_helpers import simple_table

@@ -8,8 +8,11 @@ import astropy.units as u
 from astropy.coordinates import ICRS, Latitude, Longitude
 from astropy.coordinates.baseframe import RepresentationMapping, frame_transform_graph
 from astropy.coordinates.representation import (
-    REPRESENTATION_CLASSES, SphericalRepresentation, UnitSphericalRepresentation,
-    _invalidate_reprdiff_cls_hash)
+    REPRESENTATION_CLASSES,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+    _invalidate_reprdiff_cls_hash,
+)
 from astropy.coordinates.transformations import FunctionTransform
 
 # Classes setup, borrowed from SunPy.

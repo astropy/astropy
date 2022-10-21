@@ -14,7 +14,10 @@ from astropy.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
 from astropy.utils.data import get_readable_fileobj
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
-from .web_profile_test_helpers import AlwaysApproveWebProfileDialog, SAMPIntegratedWebClient
+from .web_profile_test_helpers import (
+    AlwaysApproveWebProfileDialog,
+    SAMPIntegratedWebClient,
+)
 
 
 def setup_module(module):

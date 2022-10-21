@@ -7,7 +7,12 @@ import pytest
 from astropy.io import fits
 from astropy.utils import metadata
 from astropy.utils.metadata import (
-    MergeConflictError, MetaData, common_dtype, enable_merge_strategies, merge)
+    MergeConflictError,
+    MetaData,
+    common_dtype,
+    enable_merge_strategies,
+    merge,
+)
 
 
 class OrderedDictSubclass(OrderedDict):

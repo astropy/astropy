@@ -6,8 +6,12 @@ from numpy.testing import assert_allclose, assert_array_almost_equal_nulp, asser
 
 import astropy.units as u
 from astropy.stats.biweight import (
-    biweight_location, biweight_midcorrelation, biweight_midcovariance, biweight_midvariance,
-    biweight_scale)
+    biweight_location,
+    biweight_midcorrelation,
+    biweight_midcovariance,
+    biweight_midvariance,
+    biweight_scale,
+)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.misc import NumpyRNGContext
 

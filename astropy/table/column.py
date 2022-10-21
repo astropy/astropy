@@ -15,6 +15,7 @@ from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
 from . import groups, pprint
+
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 

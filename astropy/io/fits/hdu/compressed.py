@@ -17,7 +17,12 @@ from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import _get_array_mmap, _is_int, _is_pseudo_integer, _pseudo_zero
+from astropy.io.fits.util import (
+    _get_array_mmap,
+    _is_int,
+    _is_pseudo_integer,
+    _pseudo_zero,
+)
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 

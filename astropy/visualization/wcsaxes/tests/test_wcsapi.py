@@ -17,7 +17,10 @@ from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (
-    WCSWorld2PixelTransform, apply_slices, transform_coord_meta_from_wcs)
+    WCSWorld2PixelTransform,
+    apply_slices,
+    transform_coord_meta_from_wcs,
+)
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
 

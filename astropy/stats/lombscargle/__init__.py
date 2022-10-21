@@ -9,7 +9,9 @@
 
 import warnings
 
-from astropy.timeseries.periodograms.lombscargle import LombScargle as TimeseriesLombScargle
+from astropy.timeseries.periodograms.lombscargle import (
+    LombScargle as TimeseriesLombScargle,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ['LombScargle']

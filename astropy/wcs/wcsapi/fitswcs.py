@@ -11,7 +11,9 @@ from astropy import units as u
 from astropy.constants import c
 from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.coordinates.spectral_coordinate import (
-    attach_zero_velocities, update_differentials_to_match)
+    attach_zero_velocities,
+    update_differentials_to_match,
+)
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .high_level_api import HighLevelWCSMixin

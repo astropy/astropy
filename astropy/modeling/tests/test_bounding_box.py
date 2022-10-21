@@ -7,10 +7,25 @@ import pytest
 import astropy.units as u
 from astropy.coordinates import SpectralCoord
 from astropy.modeling.bounding_box import (
-    CompoundBoundingBox, ModelBoundingBox, _BaseInterval, _BaseSelectorArgument, _BoundingDomain,
-    _ignored_interval, _Interval, _SelectorArgument, _SelectorArguments)
+    CompoundBoundingBox,
+    ModelBoundingBox,
+    _BaseInterval,
+    _BaseSelectorArgument,
+    _BoundingDomain,
+    _ignored_interval,
+    _Interval,
+    _SelectorArgument,
+    _SelectorArguments,
+)
 from astropy.modeling.core import Model, fix_inputs
-from astropy.modeling.models import Gaussian1D, Gaussian2D, Identity, Polynomial2D, Scale, Shift
+from astropy.modeling.models import (
+    Gaussian1D,
+    Gaussian2D,
+    Identity,
+    Polynomial2D,
+    Scale,
+    Shift,
+)
 
 
 class Test_Interval:
