@@ -389,7 +389,7 @@ a,b,c
 
 
 @pytest.fixture
-def home_is_tmpdir(monkeypatch, tmpdir):
+def home_is_tmpdir(monkeypatch, tmp_path):
     """
     Pytest fixture to run a test case with tilde-prefixed paths.
 
@@ -397,9 +397,9 @@ def home_is_tmpdir(monkeypatch, tmpdir):
     modified so that '~' resolves to the temp directory.
     """
     # For Unix
-    monkeypatch.setenv('HOME', str(tmpdir))
+    monkeypatch.setenv('HOME', str(tmp_path))
     # For Windows
-    monkeypatch.setenv('USERPROFILE', str(tmpdir))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
 
 
 def check_write_table(test_def, table, fast_writer, out=None):
@@ -474,17 +474,15 @@ def check_write_table_via_table(test_def, table, fast_writer, out=None):
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
-@pytest.mark.parametrize('path_format',
-        ['buffer', 'plain', 'tilde-str', 'tilde-pathlib'])
-def test_write_table(
-        fast_writer, tmpdir, home_is_tmpdir, path_format):
+@pytest.mark.parametrize('path_format', ['buffer', 'plain', 'tilde-str', 'tilde-pathlib'])
+def test_write_table(fast_writer, tmp_path, home_is_tmpdir, path_format):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('data/daophot.dat')
 
     if path_format == 'buffer':
         out_name = None
     elif path_format == 'plain':
-        out_name = os.path.join(tmpdir, 'table')
+        out_name = tmp_path / 'table'
     elif path_format == 'tilde-str':
         out_name = os.path.join('~', 'table')
     else:
@@ -747,10 +745,10 @@ def test_write_empty_table(fast_writer):
                                     'ascii.fixed_width', 'html'])
 @pytest.mark.parametrize("fast_writer", [True, False])
 @pytest.mark.parametrize('path_format', ['plain', 'tilde-str', 'tilde-pathlib'])
-def test_write_overwrite_ascii(format, fast_writer, tmpdir, home_is_tmpdir,
+def test_write_overwrite_ascii(format, fast_writer, tmp_path, home_is_tmpdir,
         path_format):
     """Test overwrite argument for various ASCII writers"""
-    true_filename = tmpdir.join("table-tmp.dat").strpath
+    true_filename = tmp_path / "table-tmp.dat"
     if path_format == 'plain':
         filename = true_filename
     elif path_format == 'tilde-str':
@@ -828,13 +826,13 @@ def test_roundtrip_masked(fmt_name_class):
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
-def test_write_newlines(fast_writer, tmpdir):
+def test_write_newlines(fast_writer, tmp_path):
 
     # Regression test for https://github.com/astropy/astropy/issues/5126
     # On windows, when writing to a filename (not e.g. StringIO), newlines were
     # \r\r\n instead of \r\n.
 
-    filename = tmpdir.join('test').strpath
+    filename = tmp_path / 'test'
 
     t = table.Table([['a', 'b', 'c']], names=['col'])
     ascii.write(t, filename, fast_writer=fast_writer)

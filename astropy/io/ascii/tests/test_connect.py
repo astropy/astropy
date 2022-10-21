@@ -20,11 +20,11 @@ def test_read_generic(filename):
     Table.read(get_pkg_data_filename(filename), format='ascii')
 
 
-def test_write_generic(tmpdir):
+def test_write_generic(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    t.write(str(tmpdir.join("test")), format='ascii')
+    t.write(tmp_path / "test", format='ascii')
 
 
 def test_read_ipac():
@@ -47,19 +47,19 @@ def test_read_latex_noformat():
     Table.read(get_pkg_data_filename('data/latex1.tex'))
 
 
-def test_write_latex(tmpdir):
+def test_write_latex(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.tex"))
+    path = tmp_path / "data.tex"
     t.write(path, format='latex')
 
 
-def test_write_latex_noformat(tmpdir):
+def test_write_latex_noformat(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.tex"))
+    path = tmp_path / "data.tex"
     t.write(path)
 
 
@@ -73,19 +73,19 @@ def test_read_html_noformat():
     Table.read(get_pkg_data_filename('data/html.html'))
 
 
-def test_write_html(tmpdir):
+def test_write_html(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.html"))
+    path = tmp_path / "data.html"
     t.write(path, format='html')
 
 
-def test_write_html_noformat(tmpdir):
+def test_write_html_noformat(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.html"))
+    path = tmp_path / "data.html"
     t.write(path)
 
 
@@ -97,19 +97,19 @@ def test_read_rdb_noformat():
     Table.read(get_pkg_data_filename('data/short.rdb'))
 
 
-def test_write_rdb(tmpdir):
+def test_write_rdb(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.rdb"))
+    path = tmp_path / "data.rdb"
     t.write(path, format='rdb')
 
 
-def test_write_rdb_noformat(tmpdir):
+def test_write_rdb_noformat(tmp_path):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.rdb"))
+    path = tmp_path / "data.rdb"
     t.write(path)
 
 
@@ -121,7 +121,7 @@ def test_read_csv():
     Table.read(get_pkg_data_filename('data/simple_csv.csv'))
 
 
-def test_write_csv(tmpdir):
+def test_write_csv(tmp_path):
     '''If properly registered, filename should be sufficient to specify format
 
     #3189
@@ -129,13 +129,13 @@ def test_write_csv(tmpdir):
     t = Table()
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
-    path = str(tmpdir.join("data.csv"))
+    path = tmp_path / "data.csv"
     t.write(path)
 
 
-def test_auto_identify_ecsv(tmpdir):
+def test_auto_identify_ecsv(tmp_path):
     tbl = simple_table()
-    tmpfile = str(tmpdir.join('/tmpFile.ecsv'))
+    tmpfile = tmp_path / 'tmpFile.ecsv'
     tbl.write(tmpfile)
     tbl2 = Table.read(tmpfile)
     assert np.all(tbl == tbl2)

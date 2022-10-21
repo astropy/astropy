@@ -1433,13 +1433,13 @@ def text_aastex_no_trailing_backslash():
 
 
 @pytest.mark.parametrize('encoding', ['utf8', 'latin1', 'cp1252'])
-def test_read_with_encoding(tmpdir, encoding):
+def test_read_with_encoding(tmp_path, encoding):
     data = {
         'commented_header': '# à b è \n 1 2 héllo',
         'csv': 'à,b,è\n1,2,héllo'
     }
 
-    testfile = str(tmpdir.join('test.txt'))
+    testfile = tmp_path / 'test.txt'
     for fmt, content in data.items():
         with open(testfile, 'w', encoding=encoding) as f:
             f.write(content)
@@ -1458,7 +1458,7 @@ def test_read_with_encoding(tmpdir, encoding):
                                        '  1   2 héllo']
 
 
-def test_unsupported_read_with_encoding(tmpdir):
+def test_unsupported_read_with_encoding():
     # Fast reader is not supported, make sure it raises an exception
     with pytest.raises(ascii.ParameterError):
         ascii.read('data/simple3.txt', guess=False, fast_reader='force',
