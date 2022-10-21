@@ -7,9 +7,15 @@ import pytest
 from astropy import constants
 from astropy import units as u
 from astropy.coordinates import (
-    CartesianDifferential, CartesianRepresentation, DynamicMatrixTransform,
-    FunctionTransformWithFiniteDifference, SphericalDifferential, SphericalRepresentation,
-    TimeAttribute, get_sun)
+    CartesianDifferential,
+    CartesianRepresentation,
+    DynamicMatrixTransform,
+    FunctionTransformWithFiniteDifference,
+    SphericalDifferential,
+    SphericalRepresentation,
+    TimeAttribute,
+    get_sun,
+)
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.builtin_frames import FK5, GCRS, ICRS, LSR, AltAz, Galactic
 from astropy.coordinates.sites import get_builtin_sites
@@ -71,7 +77,10 @@ def test_faux_lsr(dt, symmetric):
 
 def test_faux_fk5_galactic():
 
-    from astropy.coordinates.builtin_frames.galactic_transforms import _gal_to_fk5, fk5_to_gal
+    from astropy.coordinates.builtin_frames.galactic_transforms import (
+        _gal_to_fk5,
+        fk5_to_gal,
+    )
 
     class Galactic2(Galactic):
         pass

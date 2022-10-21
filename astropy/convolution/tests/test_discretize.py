@@ -8,7 +8,13 @@ from numpy.testing import assert_allclose
 
 from astropy.convolution.utils import discretize_model
 from astropy.modeling.functional_models import (
-    Box1D, Box2D, Gaussian1D, Gaussian2D, RickerWavelet1D, RickerWavelet2D)
+    Box1D,
+    Box2D,
+    Gaussian1D,
+    Gaussian2D,
+    RickerWavelet1D,
+    RickerWavelet2D,
+)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
 from astropy.utils.compat.optional_deps import HAS_SCIPY

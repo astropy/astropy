@@ -9,7 +9,12 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
-from astropy.cosmology.io.yaml import from_yaml, to_yaml, yaml_constructor, yaml_representer
+from astropy.cosmology.io.yaml import (
+    from_yaml,
+    to_yaml,
+    yaml_constructor,
+    yaml_representer,
+)
 from astropy.io.misc.yaml import AstropyDumper, dump, load
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase

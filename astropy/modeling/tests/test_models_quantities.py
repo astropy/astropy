@@ -7,19 +7,58 @@ import pytest
 from astropy import units as u
 from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.modeling.core import fix_inputs
-from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
+from astropy.modeling.fitting import (
+    DogBoxLSQFitter,
+    LevMarLSQFitter,
+    LMLSQFitter,
+    TRFLSQFitter,
+)
 from astropy.modeling.functional_models import (
-    AiryDisk2D, ArcCosine1D, ArcSine1D, ArcTangent1D, Box1D, Box2D, Const1D, Const2D, Cosine1D,
-    Disk2D, Ellipse2D, Exponential1D, Gaussian1D, Gaussian2D, KingProjectedAnalytic1D, Linear1D,
-    Logarithmic1D, Lorentz1D, Moffat1D, Moffat2D, Multiply, Planar2D, RickerWavelet1D,
-    RickerWavelet2D, Ring2D, Scale, Sersic1D, Sersic2D, Sine1D, Tangent1D, Trapezoid1D,
-    TrapezoidDisk2D, Voigt1D)
+    AiryDisk2D,
+    ArcCosine1D,
+    ArcSine1D,
+    ArcTangent1D,
+    Box1D,
+    Box2D,
+    Const1D,
+    Const2D,
+    Cosine1D,
+    Disk2D,
+    Ellipse2D,
+    Exponential1D,
+    Gaussian1D,
+    Gaussian2D,
+    KingProjectedAnalytic1D,
+    Linear1D,
+    Logarithmic1D,
+    Lorentz1D,
+    Moffat1D,
+    Moffat2D,
+    Multiply,
+    Planar2D,
+    RickerWavelet1D,
+    RickerWavelet2D,
+    Ring2D,
+    Scale,
+    Sersic1D,
+    Sersic2D,
+    Sine1D,
+    Tangent1D,
+    Trapezoid1D,
+    TrapezoidDisk2D,
+    Voigt1D,
+)
 from astropy.modeling.parameters import InputParameterError
 from astropy.modeling.physical_models import Drude1D, Plummer1D
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 from astropy.modeling.powerlaws import (
-    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D, PowerLaw1D, Schechter1D,
-    SmoothlyBrokenPowerLaw1D)
+    BrokenPowerLaw1D,
+    ExponentialCutoffPowerLaw1D,
+    LogParabola1D,
+    PowerLaw1D,
+    Schechter1D,
+    SmoothlyBrokenPowerLaw1D,
+)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 

@@ -16,7 +16,11 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter, _validate_to_float, _validate_with_unit
+from astropy.cosmology.parameter import (
+    Parameter,
+    _validate_to_float,
+    _validate_with_unit,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################

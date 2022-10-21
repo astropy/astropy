@@ -69,7 +69,14 @@ from .hdu.hdulist import HDUList, fitsopen
 from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import _is_dask_array, _is_int, fileobj_closed, fileobj_mode, fileobj_name, path_like
+from .util import (
+    _is_dask_array,
+    _is_int,
+    fileobj_closed,
+    fileobj_mode,
+    fileobj_name,
+    path_like,
+)
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tabledump', 'tableload',

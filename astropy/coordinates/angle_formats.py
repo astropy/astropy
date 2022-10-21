@@ -26,8 +26,13 @@ from astropy.utils import format_exception, parsing
 from astropy.utils.decorators import deprecated
 
 from .errors import (
-    IllegalHourError, IllegalHourWarning, IllegalMinuteError, IllegalMinuteWarning,
-    IllegalSecondError, IllegalSecondWarning)
+    IllegalHourError,
+    IllegalHourWarning,
+    IllegalMinuteError,
+    IllegalMinuteWarning,
+    IllegalSecondError,
+    IllegalSecondWarning,
+)
 
 
 class _AngleParser:

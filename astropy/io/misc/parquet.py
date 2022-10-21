@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 
 from astropy.utils import minversion
+
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
 from astropy.utils.exceptions import AstropyUserWarning

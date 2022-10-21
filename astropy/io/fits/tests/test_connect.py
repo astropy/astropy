@@ -8,7 +8,11 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.io import fits
 from astropy.io.fits import BinTableHDU, HDUList, ImageHDU, PrimaryHDU, table_to_hdu
-from astropy.io.fits.column import _fortran_to_python_format, _parse_tdisp_format, python_to_tdisp
+from astropy.io.fits.column import (
+    _fortran_to_python_format,
+    _parse_tdisp_format,
+    python_to_tdisp,
+)
 from astropy.io.tests.mixin_columns import compare_attrs, mixin_cols, serialized_names
 from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table

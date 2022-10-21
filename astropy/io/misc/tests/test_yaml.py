@@ -11,9 +11,18 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import (
-    Angle, CartesianDifferential, CartesianRepresentation, EarthLocation, Latitude, Longitude,
-    SkyCoord, SphericalCosLatDifferential, SphericalDifferential, SphericalRepresentation,
-    UnitSphericalRepresentation)
+    Angle,
+    CartesianDifferential,
+    CartesianRepresentation,
+    EarthLocation,
+    Latitude,
+    Longitude,
+    SkyCoord,
+    SphericalCosLatDifferential,
+    SphericalDifferential,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+)
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.yaml import dump, load, load_all
 from astropy.table import QTable, SerializedColumn

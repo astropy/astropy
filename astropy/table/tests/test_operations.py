@@ -9,8 +9,13 @@ import pytest
 from astropy import table
 from astropy import units as u
 from astropy.coordinates import (
-    BaseRepresentationOrDifferential, CartesianRepresentation, SkyCoord, SphericalRepresentation,
-    UnitSphericalRepresentation, search_around_3d)
+    BaseRepresentationOrDifferential,
+    CartesianRepresentation,
+    SkyCoord,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+    search_around_3d,
+)
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal

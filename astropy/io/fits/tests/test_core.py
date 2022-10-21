@@ -21,6 +21,7 @@ from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import GZIP_MAGIC, _File
 from astropy.io.tests import safeio
 from astropy.utils import data
+
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.data import conf

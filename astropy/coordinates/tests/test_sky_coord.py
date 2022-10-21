@@ -15,10 +15,28 @@ from erfa import ErfaWarning
 
 from astropy import units as u
 from astropy.coordinates import (
-    FK4, FK5, GCRS, ICRS, AltAz, Angle, Attribute, BaseCoordinateFrame, CartesianRepresentation,
-    EarthLocation, Galactic, Latitude, RepresentationMapping, SkyCoord, SphericalRepresentation,
-    UnitSphericalRepresentation, frame_transform_graph)
-from astropy.coordinates.representation import DUPLICATE_REPRESENTATIONS, REPRESENTATION_CLASSES
+    FK4,
+    FK5,
+    GCRS,
+    ICRS,
+    AltAz,
+    Angle,
+    Attribute,
+    BaseCoordinateFrame,
+    CartesianRepresentation,
+    EarthLocation,
+    Galactic,
+    Latitude,
+    RepresentationMapping,
+    SkyCoord,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+    frame_transform_graph,
+)
+from astropy.coordinates.representation import (
+    DUPLICATE_REPRESENTATIONS,
+    REPRESENTATION_CLASSES,
+)
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.io import fits

@@ -5,9 +5,20 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy.visualization.stretch import (
-    AsinhStretch, ContrastBiasStretch, HistEqStretch, InvertedHistEqStretch, InvertedLogStretch,
-    InvertedPowerDistStretch, LinearStretch, LogStretch, PowerDistStretch, PowerStretch,
-    SinhStretch, SqrtStretch, SquaredStretch)
+    AsinhStretch,
+    ContrastBiasStretch,
+    HistEqStretch,
+    InvertedHistEqStretch,
+    InvertedLogStretch,
+    InvertedPowerDistStretch,
+    LinearStretch,
+    LogStretch,
+    PowerDistStretch,
+    PowerStretch,
+    SinhStretch,
+    SqrtStretch,
+    SquaredStretch,
+)
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 

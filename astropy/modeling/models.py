@@ -7,7 +7,11 @@ Creates a common namespace for all pre-defined models.
 # pylint: disable=unused-wildcard-import, unused-import, wildcard-import
 
 from . import math_functions as math  # noqa: F401
-from .core import custom_model, fix_inputs, hide_inverse  # pylint: disable=W0611 # noqa: F401
+from .core import (  # pylint: disable=W0611 # noqa: F401
+    custom_model,
+    fix_inputs,
+    hide_inverse,
+)
 from .functional_models import *  # noqa: F403
 from .mappings import *  # noqa: F403
 from .physical_models import *  # noqa: F403

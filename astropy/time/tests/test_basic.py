@@ -18,8 +18,15 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation
 from astropy.table import Column, Table
 from astropy.time import (
-    STANDARD_TIME_SCALES, TIME_FORMATS, ScaleValueError, Time, TimeDelta, TimeString, TimezoneInfo,
-    conf)
+    STANDARD_TIME_SCALES,
+    TIME_FORMATS,
+    ScaleValueError,
+    Time,
+    TimeDelta,
+    TimeString,
+    TimezoneInfo,
+    conf,
+)
 from astropy.utils import iers, isiterable
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning

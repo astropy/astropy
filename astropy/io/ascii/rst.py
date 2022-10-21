@@ -5,7 +5,12 @@
 
 
 from .core import DefaultSplitter
-from .fixedwidth import FixedWidth, FixedWidthData, FixedWidthHeader, FixedWidthTwoLineDataSplitter
+from .fixedwidth import (
+    FixedWidth,
+    FixedWidthData,
+    FixedWidthHeader,
+    FixedWidthTwoLineDataSplitter,
+)
 
 
 class SimpleRSTHeader(FixedWidthHeader):

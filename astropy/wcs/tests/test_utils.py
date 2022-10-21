@@ -17,12 +17,31 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import _wcs
 from astropy.wcs.utils import (
-    _pixel_to_pixel_correlation_matrix, _pixel_to_world_correlation_matrix, _split_matrix,
-    add_stokes_axis_to_wcs, celestial_frame_to_wcs, custom_frame_to_wcs_mappings,
-    custom_wcs_to_frame_mappings, fit_wcs_from_points, is_proj_plane_distorted,
-    local_partial_pixel_derivatives, non_celestial_pixel_scales, obsgeo_to_frame, pixel_to_pixel,
-    pixel_to_skycoord, proj_plane_pixel_scales, skycoord_to_pixel, wcs_to_celestial_frame)
-from astropy.wcs.wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, FITSFixedWarning, Sip
+    _pixel_to_pixel_correlation_matrix,
+    _pixel_to_world_correlation_matrix,
+    _split_matrix,
+    add_stokes_axis_to_wcs,
+    celestial_frame_to_wcs,
+    custom_frame_to_wcs_mappings,
+    custom_wcs_to_frame_mappings,
+    fit_wcs_from_points,
+    is_proj_plane_distorted,
+    local_partial_pixel_derivatives,
+    non_celestial_pixel_scales,
+    obsgeo_to_frame,
+    pixel_to_pixel,
+    pixel_to_skycoord,
+    proj_plane_pixel_scales,
+    skycoord_to_pixel,
+    wcs_to_celestial_frame,
+)
+from astropy.wcs.wcs import (
+    WCS,
+    WCSSUB_LATITUDE,
+    WCSSUB_LONGITUDE,
+    FITSFixedWarning,
+    Sip,
+)
 from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
 
 
@@ -364,7 +383,15 @@ def test_wcs_to_celestial_frame_extend():
 def test_celestial_frame_to_wcs():
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import FK4, FK5, ICRS, ITRS, BaseCoordinateFrame, FK4NoETerms, Galactic
+    from astropy.coordinates import (
+        FK4,
+        FK5,
+        ICRS,
+        ITRS,
+        BaseCoordinateFrame,
+        FK4NoETerms,
+        Galactic,
+    )
 
     class FakeFrame(BaseCoordinateFrame):
         pass

@@ -33,6 +33,7 @@ def quantity_support(format='latex_inline'):
     from matplotlib import ticker, units
 
     from astropy import units as u
+
     # import Angle just so we have a more or less complete list of Quantity
     # subclasses loaded - matplotlib needs them all separately!
     # NOTE: in matplotlib >=3.2, subclasses will be recognized automatically,

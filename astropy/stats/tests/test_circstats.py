@@ -4,7 +4,15 @@ from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
 from astropy.stats.circstats import (
-    _length, circcorrcoef, circmean, circmoment, circvar, rayleightest, vonmisesmle, vtest)
+    _length,
+    circcorrcoef,
+    circmean,
+    circmoment,
+    circvar,
+    rayleightest,
+    vonmisesmle,
+    vtest,
+)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 

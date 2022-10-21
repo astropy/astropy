@@ -20,8 +20,26 @@ from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (
-    E01, E02, E03, E04, E05, E06, E24, W01, W30, W31, W39, W46, W47, W49, W51, W55, vo_raise,
-    vo_warn, warn_or_raise)
+    E01,
+    E02,
+    E03,
+    E04,
+    E05,
+    E06,
+    E24,
+    W01,
+    W30,
+    W31,
+    W39,
+    W46,
+    W47,
+    W49,
+    W51,
+    W55,
+    vo_raise,
+    vo_warn,
+    warn_or_raise,
+)
 
 __all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
 

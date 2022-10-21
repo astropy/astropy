@@ -1090,8 +1090,12 @@ class BaseAffineTransform(CoordinateTransform):
 
     def _apply_transform(self, fromcoord, matrix, offset):
         from .representation import (
-            CartesianDifferential, RadialDifferential, SphericalCosLatDifferential,
-            SphericalDifferential, UnitSphericalRepresentation)
+            CartesianDifferential,
+            RadialDifferential,
+            SphericalCosLatDifferential,
+            SphericalDifferential,
+            UnitSphericalRepresentation,
+        )
 
         data = fromcoord.data
         has_velocity = 's' in data.differentials

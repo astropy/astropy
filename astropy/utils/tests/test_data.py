@@ -29,12 +29,34 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.utils.data import (
-    CacheDamaged, CacheMissingWarning, _deltemps, _get_download_cache_loc, _tempfilestodel,
-    cache_contents, cache_total_size, check_download_cache, check_free_space_in_dir,
-    clear_download_cache, compute_hash, conf, download_file, download_files_in_parallel,
-    export_download_cache, get_cached_urls, get_file_contents, get_free_space_in_dir,
-    get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_path,
-    get_readable_fileobj, import_download_cache, import_file_to_cache, is_url, is_url_in_cache)
+    CacheDamaged,
+    CacheMissingWarning,
+    _deltemps,
+    _get_download_cache_loc,
+    _tempfilestodel,
+    cache_contents,
+    cache_total_size,
+    check_download_cache,
+    check_free_space_in_dir,
+    clear_download_cache,
+    compute_hash,
+    conf,
+    download_file,
+    download_files_in_parallel,
+    export_download_cache,
+    get_cached_urls,
+    get_file_contents,
+    get_free_space_in_dir,
+    get_pkg_data_contents,
+    get_pkg_data_filename,
+    get_pkg_data_fileobj,
+    get_pkg_data_path,
+    get_readable_fileobj,
+    import_download_cache,
+    import_file_to_cache,
+    is_url,
+    is_url_in_cache,
+)
 from astropy.utils.exceptions import AstropyWarning
 
 CI = os.environ.get('CI', False) == "true"

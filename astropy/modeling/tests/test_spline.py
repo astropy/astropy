@@ -9,7 +9,11 @@ from numpy.testing import assert_allclose
 
 from astropy.modeling.core import FittableModel, ModelDefinitionError
 from astropy.modeling.fitting import (
-    SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
+    SplineExactKnotsFitter,
+    SplineInterpolateFitter,
+    SplineSmoothingFitter,
+    SplineSplrepFitter,
+)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.spline import Spline1D, _Spline, _SplineFitter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
