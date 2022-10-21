@@ -139,7 +139,7 @@ The ``wcs`` and ``psf`` attributes of a `~astropy.nddata.CCDData` object can be 
 Either way, the ``wcs`` attribute is kept up to date if the
 `~astropy.nddata.CCDData` image is trimmed.
 
-The ``psf`` attribute should be a normalized PSF image at the center of the `~astropy.nddata.CCDData`, sized appropriately for the data; users are responsible for managing and interpreting it in context.
+The ``psf`` attribute should be a normalized image representing the PSF at the center of the `~astropy.nddata.CCDData`, sized appropriately for the data; users are responsible for managing and interpreting it in context.
 
 Uncertainty
 -----------
