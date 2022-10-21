@@ -42,41 +42,53 @@ jobs:
       test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
       targets: |
         # Linux wheels
+
         - cp38-manylinux_i686
         - cp39-manylinux_i686
-        # - cp310*linux_i686  # We can't build this as PyYAML doesn't have i686 wheels for 3.10 yet so the build takes too long
+        # - cp310*manylinux_i686  # We can't build this as PyYAML doesn't have i686 wheels for 3.10 yet so the build takes too long
+        # - cp311*manylinux_i686
+
         - cp38-manylinux_x86_64
         - cp39-manylinux_x86_64
         - cp310-manylinux_x86_64
         - cp311-manylinux_x86_64
+
         # Note that following wheels are not currently tested:
+
         - cp38-manylinux_aarch64
         - cp39-manylinux_aarch64
         - cp310-manylinux_aarch64
+        - cp311-manylinux_aarch64
+
         - cp38-musllinux_x86_64
         - cp39-musllinux_x86_64
         - cp310-musllinux_x86_64
+        - cp311-musllinux_x86_64
 
         # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
         # do not build universal2 wheels. Note that the arm64 wheels are not actually tested so we
         # rely on local manual testing of these to make sure they are ok.
+
         - cp38*macosx_x86_64
         - cp39*macosx_x86_64
         - cp310*macosx_x86_64
         - cp311*macosx_x86_64
+
         - cp38*macosx_arm64
         - cp39*macosx_arm64
         - cp310*macosx_arm64
         - cp311*macosx_arm64
 
         # Windows wheels
+
         - cp38*win32
-        - cp38*win_amd64
         - cp39*win32
-        - cp39*win_amd64
         - cp310*win32
-        - cp310*win_amd64
         - cp311*win32
+
+        - cp38*win_amd64
+        - cp39*win_amd64
+        - cp310*win_amd64
         - cp311*win_amd64
 
     secrets:
