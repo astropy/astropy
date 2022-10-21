@@ -78,7 +78,8 @@ class NDData(NDDataBase):
         .. versionadded:: 1.2
 
     psf : `numpy.ndarray` or None, optional
-        Normalized PSF image at the center of this image.
+        Normalized image representing the PSF at the center of this
+        image.
 
     Raises
     ------
