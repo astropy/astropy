@@ -64,8 +64,8 @@ class TestMaskedArrayTable(MaskedArrayTableSetup):
         assert t3['ma'].info.serialize_method['fits'] == 'nonsense'
 
     @pytest.mark.parametrize('file_format', FILE_FORMATS)
-    def test_table_write(self, file_format, tmpdir):
-        name = str(tmpdir.join(f"a.{file_format}"))
+    def test_table_write(self, file_format, tmp_path):
+        name = tmp_path / f'a.{file_format}'
         kwargs = {}
         if file_format == 'h5':
             kwargs['path'] = 'trial'
@@ -83,8 +83,8 @@ class TestMaskedArrayTable(MaskedArrayTableSetup):
             assert t2['ma'].info.format == self.t['ma'].info.format
 
     @pytest.mark.parametrize('serialize_method', ['data_mask', 'null_value'])
-    def test_table_write_serialization(self, serialize_method, tmpdir):
-        name = str(tmpdir.join("test.ecsv"))
+    def test_table_write_serialization(self, serialize_method, tmp_path):
+        name = tmp_path / 'test.ecsv'
         self.t.write(name, serialize_method=serialize_method)
         with open(name) as fh:
             lines = fh.readlines()
@@ -104,8 +104,8 @@ class TestMaskedArrayTable(MaskedArrayTableSetup):
             assert np.all(t2['ma'] == self.ma)
             assert np.all(t2['ma'].mask == self.mask_a)
 
-    def test_non_existing_serialize_method(self, tmpdir):
-        name = str(tmpdir.join('bad.ecsv'))
+    def test_non_existing_serialize_method(self, tmp_path):
+        name = tmp_path / 'bad.ecsv'
         with pytest.raises(ValueError, match='serialize method must be'):
             self.t.write(name, serialize_method='bad_serialize_method')
 
