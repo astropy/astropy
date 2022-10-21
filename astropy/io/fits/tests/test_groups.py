@@ -7,8 +7,9 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_temp
 from .test_table import comparerecords
 
 
@@ -135,7 +136,7 @@ class TestGroupsFunctions(FitsTestCase):
             assert s[1] == g[2]
             assert s[2] == g[4]
 
-    def test_create_groupdata(self):
+    def test_create_groupdata(self, home_is_temp):
         """
         Basic test for creating GroupData from scratch.
         """
@@ -156,9 +157,15 @@ class TestGroupsFunctions(FitsTestCase):
         assert ghdu.parnames == ['abc', 'xyz']
         assert ghdu.header['GCOUNT'] == 10
 
-        ghdu.writeto(self.temp('test.fits'))
+        filename = self.temp('test.fits')
+        ghdu.writeto(filename)
 
-        with fits.open(self.temp('test.fits')) as h:
+        # Exercise the `overwrite` flag
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            ghdu.writeto(filename, overwrite=False)
+        ghdu.writeto(filename, overwrite=True)
+
+        with fits.open(filename) as h:
             hdr = h[0].header
             assert hdr['GCOUNT'] == 10
             assert hdr['PCOUNT'] == 2

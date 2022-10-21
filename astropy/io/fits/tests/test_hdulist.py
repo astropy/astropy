@@ -15,8 +15,9 @@ from astropy.io.fits.hdu.base import _NonstandardHDU, _ValidHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.utils.data import get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase
+from . import FitsTestCase, home_is_data, home_is_temp
 
 
 class TestHDUListFunctions(FitsTestCase):
@@ -334,12 +335,12 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
-    def test_filename(self):
+    def test_filename(self, home_is_data):
         """Tests the HDUList filename method."""
 
         with fits.open(self.data('tb.fits')) as hdul:
             name = hdul.filename()
-        assert name == self.data('tb.fits')
+        assert name == os.path.expanduser(self.data('tb.fits'))
 
     def test_file_like(self):
         """
@@ -537,7 +538,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert 'EXTEND' in hdu.header
         assert hdu.header['EXTEND'] is True
 
-    def test_replace_memmaped_array(self):
+    def test_replace_memmaped_array(self, home_is_temp):
         # Copy the original before we modify it
         with fits.open(self.data('test0.fits')) as hdul:
             hdul.writeto(self.temp('temp.fits'))
@@ -636,7 +637,7 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits')) as hdul:
             assert (hdul[0].data == data).all()
 
-    def test_update_resized_header(self):
+    def test_update_resized_header(self, home_is_temp):
         """
         Test saving updates to a file where the header is one block smaller
         than before, and in the case where the heade ris one block larger than
@@ -673,7 +674,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].data[0] == 27
             assert (hdul[0].data[1:] == data[1:]).all()
 
-    def test_update_resized_header2(self):
+    def test_update_resized_header2(self, home_is_temp):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/150
 
@@ -681,7 +682,6 @@ class TestHDUListFunctions(FitsTestCase):
         case of multiple consecutive flush() calls on the same HDUList object,
         where each flush() requires a resize.
         """
-
         data1 = np.arange(100)
         data2 = np.arange(100) + 100
         phdu = fits.PrimaryHDU(data=data1)
@@ -764,7 +764,7 @@ class TestHDUListFunctions(FitsTestCase):
         pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])
 
     @pytest.mark.filterwarnings('ignore:Saving a backup')
-    def test_save_backup(self):
+    def test_save_backup(self, home_is_temp):
         """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/121
 
         Save backup of file before flushing changes.
@@ -781,7 +781,7 @@ class TestHDUListFunctions(FitsTestCase):
             # pytest.mark.filterwarnings level.
             hdul[0].data[0] = 0
 
-        assert os.path.exists(self.temp('scale.fits.bak'))
+        assert os.path.exists(os.path.expanduser(self.temp('scale.fits.bak')))
         with fits.open(self.data('scale.fits'),
                        do_not_scale_image_data=True) as hdul1:
             with fits.open(self.temp('scale.fits.bak'),
@@ -795,8 +795,10 @@ class TestHDUListFunctions(FitsTestCase):
             hdul[0].header['TEST2'] = 'TEST'
             hdul[0].data[0] = 1
 
-        assert os.path.exists(self.temp('scale.fits.bak'))
-        assert os.path.exists(self.temp('scale.fits.bak.1'))
+        assert os.path.exists(
+                os.path.expanduser(self.temp('scale.fits.bak')))
+        assert os.path.exists(
+                os.path.expanduser(self.temp('scale.fits.bak.1')))
 
     def test_replace_mmap_data(self):
         """Regression test for
@@ -891,9 +893,13 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdulist[0] in hdulist
             assert fits.ImageHDU() not in hdulist
 
-    def test_overwrite(self):
+    def test_overwrite(self, home_is_temp):
         hdulist = fits.HDUList([fits.PrimaryHDU()])
         hdulist.writeto(self.temp('test_overwrite.fits'))
+
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=False)
+
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
 
     def test_invalid_hdu_key_in_contains(self):

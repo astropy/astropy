@@ -25,7 +25,7 @@ from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .util import (
     _array_from_file, _array_to_file, _write_string, fileobj_closed, fileobj_mode, fileobj_name,
-    isfile, isreadable, iswritable)
+    isfile, isreadable, iswritable, path_like)
 
 if HAS_BZ2:
     import bz2
@@ -166,6 +166,8 @@ class _File:
                     f"Mode {mode} not supported for HTTPResponse")
             fileobj = io.BytesIO(fileobj.read())
         else:
+            if isinstance(fileobj, path_like):
+                fileobj = os.path.expanduser(fileobj)
             self.name = fileobj_name(fileobj)
 
         self.mode = mode
