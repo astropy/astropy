@@ -366,7 +366,7 @@ class ColumnInfo(BaseColumnInfo):
         else:
             units = [None] * len(names)
         for name, part_unit in zip(names, units):
-            part = self._parent[name]
+            part = Column(self._parent[name])
             part.unit = part_unit
             part.description = None
             part.meta = {}
