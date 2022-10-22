@@ -305,10 +305,10 @@ No differences found.
 
 
 @pytest.mark.skip(reason="fails intentionally to show open files (see PR #10159)")
-def test_fitsdiff_openfile(tmpdir):
+def test_fitsdiff_openfile(tmp_path):
     """Make sure that failing FITSDiff doesn't leave open files."""
-    path1 = str(tmpdir.join("file1.fits"))
-    path2 = str(tmpdir.join("file2.fits"))
+    path1 = tmp_path / "file1.fits"
+    path2 = tmp_path / "file2.fits"
 
     hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5))])
     hdulist.writeto(path1)
