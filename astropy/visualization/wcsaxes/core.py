@@ -53,9 +53,17 @@ class WCSAxes(Axes):
     ----------
     fig : `~matplotlib.figure.Figure`
         The figure to add the axes to
-    rect : list
-        The position of the axes in the figure in relative units. Should be
-        given as ``[left, bottom, width, height]``.
+    *args
+        ``*args`` can be a single ``(left, bottom, width, height)``
+        rectangle or a single `matplotlib.transforms.Bbox`.  This specifies
+        the rectangle (in figure coordinates) where the Axes is positioned.
+        ``*args`` can also consist of three numbers or a single three-digit
+        number; in the latter case, the digits are considered as
+        independent numbers.  The numbers are interpreted as ``(nrows,
+        ncols, index)``: ``(nrows, ncols)`` specifies the size of an array
+        of subplots, and ``index`` is the 1-based index of the subplot
+        being created.  Finally, ``*args`` can also directly be a
+        `matplotlib.gridspec.SubplotSpec` instance.
     wcs : :class:`~astropy.wcs.WCS`, optional
         The WCS for the data. If this is specified, ``transform`` cannot be
         specified.
@@ -94,13 +102,13 @@ class WCSAxes(Axes):
         :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
     """
 
-    def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
+    def __init__(self, fig, *args, wcs=None, transform=None, coord_meta=None,
                  transData=None, slices=None, frame_class=None,
                  **kwargs):
         """
         """
 
-        super().__init__(fig, rect, **kwargs)
+        super().__init__(fig, *args, **kwargs)
         self._bboxes = []
 
         if frame_class is not None:
