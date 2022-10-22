@@ -51,22 +51,22 @@ class TestSingleTable:
                                       [2.3, 4.5, 6.7, 8.9])),
                              dtype=[('a', int), ('b', 'U1'), ('c', float)])
 
-    def test_simple(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fts'))
+    def test_simple(self, tmp_path):
+        filename = tmp_path / 'test_simple.fts'
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    def test_simple_pathlib(self, tmpdir):
-        filename = pathlib.Path(str(tmpdir.join('test_simple.fit')))
+    def test_simple_pathlib(self, tmp_path):
+        filename = tmp_path / 'test_simple.fit'
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    def test_simple_meta(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fits'))
+    def test_simple_meta(self, tmp_path):
+        filename = tmp_path / 'test_simple.fits'
         t1 = Table(self.data)
         t1.meta['A'] = 1
         t1.meta['B'] = 2.3
@@ -83,8 +83,8 @@ class TestSingleTable:
             else:
                 assert t1.meta[key] == t2.meta[key]
 
-    def test_simple_meta_conflicting(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fits'))
+    def test_simple_meta_conflicting(self, tmp_path):
+        filename = tmp_path / 'test_simple.fits'
         t1 = Table(self.data)
         t1.meta['ttype1'] = 'spam'
         with pytest.warns(AstropyUserWarning, match='Meta-data keyword ttype1 '
@@ -93,19 +93,19 @@ class TestSingleTable:
             t1.write(filename, overwrite=True)
         assert len(w) == 1
 
-    def test_simple_noextension(self, tmpdir):
+    def test_simple_noextension(self, tmp_path):
         """
         Test that file type is recognized without extension
         """
-        filename = str(tmpdir.join('test_simple'))
+        filename = tmp_path / 'test_simple'
         t1 = Table(self.data)
         t1.write(filename, overwrite=True, format='fits')
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
-    def test_with_units(self, table_type, tmpdir):
-        filename = str(tmpdir.join('test_with_units.fits'))
+    def test_with_units(self, table_type, tmp_path):
+        filename = tmp_path / 'test_with_units.fits'
         t1 = table_type(self.data)
         t1['a'].unit = u.m
         t1['c'].unit = u.km / u.s
@@ -115,10 +115,10 @@ class TestSingleTable:
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s
 
-    def test_with_custom_units_qtable(self, tmpdir):
+    def test_with_custom_units_qtable(self, tmp_path):
         # Test only for QTable - for Table's Column, new units are dropped
         # (as is checked in test_write_drop_nonstandard_units).
-        filename = str(tmpdir.join('test_with_units.fits'))
+        filename = tmp_path / 'test_with_units.fits'
         unit = u.def_unit('bandpass_sol_lum')
         t = QTable()
         t['l'] = np.ones(5) * unit
@@ -162,8 +162,8 @@ class TestSingleTable:
         assert t['c'].unit == u.erg/(u.cm*u.s*u.AA)
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
-    def test_with_format(self, table_type, tmpdir):
-        filename = str(tmpdir.join('test_with_format.fits'))
+    def test_with_format(self, table_type, tmp_path):
+        filename = tmp_path / 'test_with_format.fits'
         t1 = table_type(self.data)
         t1['a'].format = '{:5d}'
         t1['b'].format = '{:>20}'
@@ -175,8 +175,8 @@ class TestSingleTable:
         assert t2['b'].format == '{:>20}'
         assert t2['c'].format == '{:6.2f}'
 
-    def test_masked(self, tmpdir):
-        filename = str(tmpdir.join('test_masked.fits'))
+    def test_masked(self, tmp_path):
+        filename = tmp_path / 'test_masked.fits'
         t1 = Table(self.data, masked=True)
         t1.mask['a'] = [1, 0, 1, 0]
         t1.mask['b'] = [1, 0, 0, 1]
@@ -189,14 +189,14 @@ class TestSingleTable:
         assert np.all(t1['c'].mask == t2['c'].mask)
 
     @pytest.mark.parametrize('masked', [True, False])
-    def test_masked_nan(self, masked, tmpdir):
+    def test_masked_nan(self, masked, tmp_path):
         """Check that masked values by default are replaced by NaN.
 
         This should work for any shape and be independent of whether the
         Table is formally masked or not.
 
         """
-        filename = str(tmpdir.join('test_masked_nan.fits'))
+        filename = tmp_path / 'test_masked_nan.fits'
         a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
         b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1], dtype='f4')
         c = np.ma.stack([a, b], axis=-1)
@@ -211,8 +211,8 @@ class TestSingleTable:
         assert np.all(t1['b'].mask == t2['b'].mask)
         assert np.all(t1['c'].mask == t2['c'].mask)
 
-    def test_masked_serialize_data_mask(self, tmpdir):
-        filename = str(tmpdir.join('test_masked_nan.fits'))
+    def test_masked_serialize_data_mask(self, tmp_path):
+        filename = tmp_path / 'test_masked_nan.fits'
         a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
         b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1])
         c = np.ma.stack([a, b], axis=-1)
@@ -227,8 +227,8 @@ class TestSingleTable:
         assert np.all(t1['b'].mask == t2['b'].mask)
         assert np.all(t1['c'].mask == t2['c'].mask)
 
-    def test_read_from_fileobj(self, tmpdir):
-        filename = str(tmpdir.join('test_read_from_fileobj.fits'))
+    def test_read_from_fileobj(self, tmp_path):
+        filename = tmp_path / 'test_read_from_fileobj.fits'
         hdu = BinTableHDU(self.data)
         hdu.writeto(filename, overwrite=True)
         with open(filename, 'rb') as f:
@@ -245,10 +245,10 @@ class TestSingleTable:
         assert equal_data(t, self.data)
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
-    def test_write_drop_nonstandard_units(self, table_type, tmpdir):
+    def test_write_drop_nonstandard_units(self, table_type, tmp_path):
         # While we are generous on input (see above), we are strict on
         # output, dropping units not recognized by the fits standard.
-        filename = str(tmpdir.join('test_nonstandard_units.fits'))
+        filename = tmp_path / 'test_nonstandard_units.fits'
         spam = u.def_unit('spam')
         t = table_type()
         t['a'] = [1., 2., 3.] * spam
@@ -264,8 +264,8 @@ class TestSingleTable:
             hdu = ff[1]
             assert 'TUNIT1' not in hdu.header
 
-    def test_memmap(self, tmpdir):
-        filename = str(tmpdir.join('test_simple.fts'))
+    def test_memmap(self, tmp_path):
+        filename = tmp_path / 'test_simple.fts'
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename, memmap=False)
@@ -277,8 +277,8 @@ class TestSingleTable:
         gc.collect()
 
     @pytest.mark.parametrize('memmap', (False, True))
-    def test_character_as_bytes(self, tmpdir, memmap):
-        filename = str(tmpdir.join('test_simple.fts'))
+    def test_character_as_bytes(self, tmp_path, memmap):
+        filename = tmp_path / 'test_simple.fts'
         t1 = Table(self.data)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename, character_as_bytes=False, memmap=memmap)
@@ -291,8 +291,8 @@ class TestSingleTable:
         del t1, t2, t3
         gc.collect()
 
-    def test_oned_single_element(self, tmpdir):
-        filename = str(tmpdir.join('test_oned_single_element.fits'))
+    def test_oned_single_element(self, tmp_path):
+        filename = tmp_path / 'test_oned_single_element.fits'
         table = Table({'x': [[1], [2]]})
         table.write(filename, overwrite=True)
 
@@ -300,7 +300,7 @@ class TestSingleTable:
         assert read['x'].shape == (2, 1)
         assert len(read['x'][0]) == 1
 
-    def test_write_append(self, tmpdir):
+    def test_write_append(self, tmp_path):
 
         t = Table(self.data)
         hdu = table_to_hdu(t)
@@ -312,7 +312,7 @@ class TestSingleTable:
                     assert hdu_table.header == hdu.header
                     assert np.all(hdu_table.data == hdu.data)
 
-        filename = str(tmpdir.join('test_write_append.fits'))
+        filename = tmp_path / 'test_write_append.fits'
         t.write(filename, append=True)
         t.write(filename, append=True)
         check_equal(filename, 3)
@@ -334,16 +334,16 @@ class TestSingleTable:
         check_equal(filename, 3, start_from=2)
         assert equal_data(t2, Table.read(filename, hdu=1))
 
-    def test_write_overwrite(self, tmpdir):
+    def test_write_overwrite(self, tmp_path):
         t = Table(self.data)
-        filename = str(tmpdir.join('test_write_overwrite.fits'))
+        filename = tmp_path / 'test_write_overwrite.fits'
         t.write(filename)
         with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
             t.write(filename)
         t.write(filename, overwrite=True)
 
-    def test_mask_nans_on_read(self, tmpdir):
-        filename = str(tmpdir.join('test_inexact_format_parse_on_read.fits'))
+    def test_mask_nans_on_read(self, tmp_path):
+        filename = tmp_path / 'test_inexact_format_parse_on_read.fits'
         c1 = fits.Column(name='a', array=np.array([1, 2, np.nan]), format='E')
         table_hdu = fits.TableHDU.from_columns([c1])
         table_hdu.writeto(filename)
@@ -359,8 +359,8 @@ class TestSingleTable:
         tab = Table.read(filename, memmap=True)
         assert tab.mask is None
 
-    def test_mask_null_on_read(self, tmpdir):
-        filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
+    def test_mask_null_on_read(self, tmp_path):
+        filename = tmp_path / 'test_null_format_parse_on_read.fits'
         col = fits.Column(name='a', array=np.array([1, 2, 99, 60000], dtype='u2'),
                           format='I', null=99, bzero=32768)
         bin_table_hdu = fits.BinTableHDU.from_columns([col])
@@ -370,8 +370,8 @@ class TestSingleTable:
         assert any(tab.mask)
         assert tab.mask[2]
 
-    def test_mask_str_on_read(self, tmpdir):
-        filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
+    def test_mask_str_on_read(self, tmp_path):
+        filename = tmp_path / 'test_null_format_parse_on_read.fits'
         col = fits.Column(name='a', array=np.array([b'foo', b'bar', b''], dtype='|S3'),
                           format='A3')
         bin_table_hdu = fits.BinTableHDU.from_columns([col])
@@ -416,8 +416,8 @@ class TestMultipleHDU:
     def setup_method(self, method):
         warnings.filterwarnings('always')
 
-    def test_read(self, tmpdir):
-        filename = str(tmpdir.join('test_read.fits'))
+    def test_read(self, tmp_path):
+        filename = tmp_path / 'test_read.fits'
         self.hdus.writeto(filename)
         with pytest.warns(AstropyUserWarning,
                           match=r"hdu= was not specified but multiple tables "
@@ -426,7 +426,7 @@ class TestMultipleHDU:
             t = Table.read(filename)
         assert equal_data(t, self.data1)
 
-        filename = str(tmpdir.join('test_read_2.fits'))
+        filename = tmp_path / 'test_read_2.fits'
         self.hdusb.writeto(filename)
         with pytest.warns(AstropyUserWarning,
                           match=r"hdu= was not specified but multiple tables "
@@ -435,43 +435,43 @@ class TestMultipleHDU:
             t3 = Table.read(filename)
         assert equal_data(t3, self.data2)
 
-    def test_read_with_hdu_0(self, tmpdir):
-        filename = str(tmpdir.join('test_read_with_hdu_0.fits'))
+    def test_read_with_hdu_0(self, tmp_path):
+        filename = tmp_path / 'test_read_with_hdu_0.fits'
         self.hdus.writeto(filename)
         with pytest.raises(ValueError) as exc:
             Table.read(filename, hdu=0)
         assert exc.value.args[0] == 'No table found in hdu=0'
 
     @pytest.mark.parametrize('hdu', [1, 'first'])
-    def test_read_with_hdu_1(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_read_with_hdu_1.fits'))
+    def test_read_with_hdu_1(self, tmp_path, hdu):
+        filename = tmp_path / 'test_read_with_hdu_1.fits'
         self.hdus.writeto(filename)
         t = Table.read(filename, hdu=hdu)
         assert equal_data(t, self.data1)
 
     @pytest.mark.parametrize('hdu', [2, 'second'])
-    def test_read_with_hdu_2(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_read_with_hdu_2.fits'))
+    def test_read_with_hdu_2(self, tmp_path, hdu):
+        filename = tmp_path / 'test_read_with_hdu_2.fits'
         self.hdus.writeto(filename)
         t = Table.read(filename, hdu=hdu)
         assert equal_data(t, self.data2)
 
     @pytest.mark.parametrize('hdu', [3, 'third'])
-    def test_read_with_hdu_3(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_read_with_hdu_3.fits'))
+    def test_read_with_hdu_3(self, tmp_path, hdu):
+        filename = tmp_path / 'test_read_with_hdu_3.fits'
         self.hdus.writeto(filename)
         with pytest.raises(ValueError, match='No table found in hdu=3'):
             Table.read(filename, hdu=hdu)
 
-    def test_read_with_hdu_4(self, tmpdir):
-        filename = str(tmpdir.join('test_read_with_hdu_4.fits'))
+    def test_read_with_hdu_4(self, tmp_path):
+        filename = tmp_path / 'test_read_with_hdu_4.fits'
         self.hdus.writeto(filename)
         t = Table.read(filename, hdu=4)
         assert equal_data(t, self.data3)
 
     @pytest.mark.parametrize('hdu', [2, 3, '1', 'second', ''])
-    def test_read_with_hdu_missing(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_warn_with_hdu_1.fits'))
+    def test_read_with_hdu_missing(self, tmp_path, hdu):
+        filename = tmp_path / 'test_warn_with_hdu_1.fits'
         self.hdus1.writeto(filename)
         with pytest.warns(AstropyDeprecationWarning,
                           match=rf"Specified hdu={hdu} not found, "
@@ -480,8 +480,8 @@ class TestMultipleHDU:
         assert equal_data(t1, self.data1)
 
     @pytest.mark.parametrize('hdu', [0, 2, 'third'])
-    def test_read_with_hdu_warning(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_warn_with_hdu_2.fits'))
+    def test_read_with_hdu_warning(self, tmp_path, hdu):
+        filename = tmp_path / 'test_warn_with_hdu_2.fits'
         self.hdus2.writeto(filename)
         with pytest.warns(AstropyDeprecationWarning,
                           match=rf"No table found in specified hdu={hdu}, "
@@ -490,8 +490,8 @@ class TestMultipleHDU:
         assert equal_data(t2, self.data1)
 
     @pytest.mark.parametrize('hdu', [0, 1, 'third'])
-    def test_read_in_last_hdu(self, tmpdir, hdu):
-        filename = str(tmpdir.join('test_warn_with_hdu_3.fits'))
+    def test_read_in_last_hdu(self, tmp_path, hdu):
+        filename = tmp_path / 'test_warn_with_hdu_3.fits'
         self.hdus3.writeto(filename)
         with pytest.warns(AstropyDeprecationWarning,
                           match=rf"No table found in specified hdu={hdu}, "
@@ -635,7 +635,7 @@ def test_logical_python_to_tdisp():
     assert python_to_tdisp('{:>7}', logical_dtype=True) == 'L7'
 
 
-def test_bool_column(tmpdir):
+def test_bool_column(tmp_path):
     """
     Regression test for https://github.com/astropy/astropy/issues/1953
 
@@ -646,14 +646,14 @@ def test_bool_column(tmpdir):
     arr[::2] == np.False_
 
     t = Table([arr])
-    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+    t.write(tmp_path / 'test.fits', overwrite=True)
 
-    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+    with fits.open(tmp_path / 'test.fits') as hdul:
         assert hdul[1].data['col0'].dtype == np.dtype('bool')
         assert np.all(hdul[1].data['col0'] == arr)
 
 
-def test_unicode_column(tmpdir):
+def test_unicode_column(tmp_path):
     """
     Test that a column of unicode strings is still written as one
     byte-per-character in the FITS table (so long as the column can be ASCII
@@ -664,20 +664,20 @@ def test_unicode_column(tmpdir):
     """
 
     t = Table([np.array(['a', 'b', 'cd'])])
-    t.write(str(tmpdir.join('test.fits')), overwrite=True)
+    t.write(tmp_path / 'test.fits', overwrite=True)
 
-    with fits.open(str(tmpdir.join('test.fits'))) as hdul:
+    with fits.open(tmp_path / 'test.fits') as hdul:
         assert np.all(hdul[1].data['col0'] == ['a', 'b', 'cd'])
         assert hdul[1].header['TFORM1'] == '2A'
 
     t2 = Table([np.array(['\N{SNOWMAN}'])])
 
     with pytest.raises(UnicodeEncodeError):
-        t2.write(str(tmpdir.join('test.fits')), overwrite=True)
+        t2.write(tmp_path / 'test.fits', overwrite=True)
 
 
-def test_unit_warnings_read_write(tmpdir):
-    filename = str(tmpdir.join('test_unit.fits'))
+def test_unit_warnings_read_write(tmp_path):
+    filename = tmp_path / 'test_unit.fits'
     t1 = Table([[1, 2], [3, 4]], names=['a', 'b'])
     t1['a'].unit = 'm/s'
     t1['b'].unit = 'not-a-unit'
@@ -690,7 +690,7 @@ def test_unit_warnings_read_write(tmpdir):
         Table.read(filename, hdu=1)
 
 
-def test_convert_comment_convention(tmpdir):
+def test_convert_comment_convention():
     """
     Regression test for https://github.com/astropy/astropy/issues/6079
     """
@@ -752,11 +752,11 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             assert np.all(a1 == a2)
 
 
-def test_fits_mixins_qtable_to_table(tmpdir):
+def test_fits_mixins_qtable_to_table(tmp_path):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
     """
-    filename = str(tmpdir.join('test_simple.fits'))
+    filename = tmp_path / 'test_simple.fits'
 
     names = sorted(mixin_cols)
 
@@ -790,9 +790,9 @@ def test_fits_mixins_qtable_to_table(tmpdir):
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_fits_mixins_as_one(table_cls, tmpdir):
+def test_fits_mixins_as_one(table_cls, tmp_path):
     """Test write/read all cols at once and validate intermediate column names"""
-    filename = str(tmpdir.join('test_simple.fits'))
+    filename = tmp_path / 'test_simple.fits'
     names = sorted(mixin_cols)
     # FITS stores times directly, so we just get the column back.
     all_serialized_names = []
@@ -821,9 +821,9 @@ def test_fits_mixins_as_one(table_cls, tmpdir):
 
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
+def test_fits_mixins_per_column(table_cls, name_col, tmp_path):
     """Test write/read one col at a time and do detailed validation"""
-    filename = str(tmpdir.join('test_simple.fits'))
+    filename = tmp_path / 'test_simple.fits'
     name, col = name_col
 
     c = [1.0, 2.0]
@@ -854,19 +854,19 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
 
 @pytest.mark.parametrize('name_col', unsupported_cols.items())
 @pytest.mark.xfail(reason='column type unsupported')
-def test_fits_unsupported_mixin(self, name_col, tmpdir):
+def test_fits_unsupported_mixin(self, name_col, tmp_path):
     # Check that we actually fail in writing unsupported columns defined
     # on top.
-    filename = str(tmpdir.join('test_simple.fits'))
+    filename = tmp_path / 'test_simple.fits'
     name, col = name_col
     Table([col], names=[name]).write(filename, format='fits')
 
 
-def test_info_attributes_with_no_mixins(tmpdir):
+def test_info_attributes_with_no_mixins(tmp_path):
     """Even if there are no mixin columns, if there is metadata that would be lost it still
     gets serialized
     """
-    filename = str(tmpdir.join('test.fits'))
+    filename = tmp_path / 'test.fits'
     t = Table([[1.0, 2.0]])
     t['col0'].description = 'hello' * 40
     t['col0'].format = '{:8.4f}'
@@ -880,12 +880,12 @@ def test_info_attributes_with_no_mixins(tmpdir):
 
 
 @pytest.mark.parametrize('method', ['set_cols', 'names', 'class'])
-def test_round_trip_masked_table_serialize_mask(tmpdir, method):
+def test_round_trip_masked_table_serialize_mask(tmp_path, method):
     """
     Same as previous test but set the serialize_method to 'data_mask' so mask is
     written out and the behavior is all correct.
     """
-    filename = str(tmpdir.join('test.fits'))
+    filename = tmp_path / 'test.fits'
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
 
@@ -916,8 +916,8 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
         assert np.all(t2[name] == t[name])
 
 
-def test_meta_not_modified(tmpdir):
-    filename = str(tmpdir.join('test.fits'))
+def test_meta_not_modified(tmp_path):
+    filename = tmp_path / 'test.fits'
     t = Table(data=[Column([1, 2], 'a', description='spam')])
     t.meta['comments'] = ['a', 'b']
     assert len(t.meta) == 1
