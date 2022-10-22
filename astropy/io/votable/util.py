@@ -9,6 +9,7 @@ import codecs
 import contextlib
 import gzip
 import io
+import os
 import re
 
 from packaging.version import Version
@@ -44,6 +45,7 @@ def convert_to_writable_filelike(fd, compressed=False):
     fd : writable file-like
     """
     if isinstance(fd, str):
+        fd = os.path.expanduser(fd)
         if fd.endswith('.gz') or compressed:
             with gzip.GzipFile(fd, 'wb') as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
