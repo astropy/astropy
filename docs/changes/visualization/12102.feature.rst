@@ -1,0 +1,1 @@
+Add helper functions for WCSAxes instances to draw the instrument beam and a physical scale.

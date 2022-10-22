@@ -15,6 +15,7 @@ from astropy import config as _config
 from .coordinate_helpers import CoordinateHelper
 from .coordinates_map import CoordinatesMap
 from .core import *
+from .helpers import *
 from .patches import *
 
 

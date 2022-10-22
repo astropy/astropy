@@ -12,7 +12,7 @@ from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.visualization.wcsaxes import WCSAxes
+from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
@@ -699,6 +699,53 @@ class TestBasic(BaseImageTests):
 
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
+
+        return fig
+
+    @figure_test
+    def test_beam_shape_from_args(self, tmpdir):
+        # Test for adding the beam shape with the beam parameters as arguments
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        add_beam(ax, major=2 * u.arcmin, minor=1 * u.arcmin, angle=-30 * u.degree,
+                 corner='bottom right', frame=True, borderpad=0., pad=1.,
+                 color="black")
+
+        return fig
+
+    @figure_test
+    def test_beam_shape_from_header(self, tmpdir):
+        # Test for adding the beam shape with the beam parameters from a header
+        hdr = self.msx_header
+        hdr['BMAJ'] = (2 * u.arcmin).to(u.degree).value
+        hdr['BMIN'] = (1 * u.arcmin).to(u.degree).value
+        hdr['BPA'] = 30.
+
+        wcs = WCS(hdr)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        add_beam(ax, header=hdr)
+
+        return fig
+
+    @figure_test
+    def test_scalebar(self, tmpdir):
+        # Test for adding a scale bar
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        add_scalebar(ax, 2 * u.arcmin, label="2'", corner='top right', borderpad=1.,
+                     label_top=True)
 
         return fig
 
