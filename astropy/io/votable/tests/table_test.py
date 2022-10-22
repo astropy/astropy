@@ -10,15 +10,44 @@ import numpy as np
 import pytest
 
 from astropy.config import reload_config, set_temp_config
-from astropy.io.votable import conf, tree, validate
+from astropy.io.votable import conf, from_table, is_votable, tree, validate
 from astropy.io.votable.exceptions import E25, W39, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
-from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj
+from astropy.utils.data import get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_path
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
+
+
+@pytest.fixture
+def home_is_data(monkeypatch):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the data directory.
+    """
+    path = get_pkg_data_path('data')
+    # For Unix
+    monkeypatch.setenv('HOME', path)
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', path)
+
+
+@pytest.fixture
+def home_is_tmpdir(monkeypatch, tmp_path):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables are temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmp_path))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
 
 
 def test_table(tmp_path):
@@ -75,6 +104,15 @@ def test_table(tmp_path):
     # W39: Bit values can not be masked
     with pytest.warns(W39):
         writeto(votable2, str(tmp_path / "through_table.xml"))
+
+
+def test_read_from_tilde_path(home_is_data):
+    # Just test that these run without error for tilde-paths
+    path = os.path.join('~', 'regression.xml')
+    with np.errstate(over="ignore"):
+        # https://github.com/astropy/astropy/issues/13341
+        votable = parse(path)
+        Table.read(path, format='votable', table_id='main_table')
 
 
 def test_read_through_table_interface(tmp_path):
@@ -197,6 +235,48 @@ def test_write_overwrite(tmp_path):
     t.write(filename, format='votable', overwrite=True)
 
 
+def test_write_tilde_path(home_is_tmpdir):
+    fname = os.path.join('~', 'output')
+
+    t = Table()
+    t['a'] = [1, 2, 3]
+    t.write(fname, format='votable', tabledata_format="binary")
+
+    # Ensure the tilde-prefixed path wasn't treated literally
+    assert not os.path.exists(fname)
+
+    with open(os.path.expanduser(fname)) as f:
+        obuff = f.read()
+    assert 'VOTABLE version="1.4"' in obuff
+    assert 'BINARY' in obuff
+    assert 'TABLEDATA' not in obuff
+
+
+@pytest.mark.parametrize('path_format', ['plain', 'tilde'])
+def test_writeto(path_format, tmp_path, home_is_tmpdir):
+    if path_format == 'plain':
+        # pathlib.Path objects are not accepted by votable.writeto, so convert
+        # to a string
+        fname = str(tmp_path / 'writeto_test.vot')
+    else:
+        fname = os.path.join('~', 'writeto_test.vot')
+
+    t = Table()
+    t['a'] = [1, 2, 3]
+    vt = from_table(t)
+    writeto(vt, fname)
+
+    if path_format == 'tilde':
+        # Ensure the tilde-prefixed path wasn't treated literally
+        assert not os.path.exists(fname)
+
+    with open(os.path.expanduser(fname)) as f:
+        obuff = f.read()
+    assert 'VOTABLE version="1.4"' in obuff
+    assert 'BINARY' not in obuff
+    assert 'TABLEDATA' in obuff
+
+
 def test_empty_table():
     votable = parse(get_pkg_data_filename('data/empty_table.xml'))
     table = votable.get_first_table()
@@ -273,6 +353,14 @@ def test_validate_output_valid():
     assert isinstance(validate_out, bool)
     # Check that validation output is correct (votable is valid)
     assert validate_out is True
+
+
+def test_validate_tilde_path(home_is_data):
+    validate(os.path.join('~', 'valid_votable.xml'))
+
+
+def test_is_votable_tilde_path(home_is_data):
+    assert is_votable(os.path.join('~', 'valid_votable.xml'))
 
 
 class TestVerifyOptions:
