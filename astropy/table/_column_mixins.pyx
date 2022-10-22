@@ -26,6 +26,7 @@ import sys
 import numpy as np
 
 cdef tuple INTEGER_TYPES = (int, np.integer)
+cdef tuple STRING_TYPES = (str, np.str_)
 
 
 # Annoying boilerplate that we shouldn't have to write; Cython should
@@ -54,10 +55,14 @@ cdef inline object base_getitem(object self, object item, item_getter getitem):
     if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
         return self.data[item]
 
+    dtype_kind = (<ndarray>self).dtype.kind
+    if dtype_kind == 'V' and isinstance(item, STRING_TYPES):
+        return self.data[item]
+
     value = getitem(self, item)
 
     try:
-        if value.dtype.char == 'S' and not value.shape:
+        if dtype_kind == 'S' and not value.shape:
             value = value.decode('utf-8', errors='replace')
     except AttributeError:
         pass
