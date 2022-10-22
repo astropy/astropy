@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-coordinates`
 * :ref:`whatsnew-5.2-io-ascii-fixed-width`
 * :ref:`whatsnew-5.2-fits`
+* :ref:`whatsnew-5.2-visualization-wcsaxes-helpers`
 
 
 .. _whatsnew-5.2-quantity-dtype:
@@ -148,6 +149,37 @@ subsets of large FITS files located on slow (remote) storage systems.
 See :ref:`fits_io_cloud` for additional information on working with
 FITS files in this way.
 
+.. _whatsnew-5.2-visualization-wcsaxes-helpers:
+
+Drawing the instrument beam and a physical scale bar on celestial images
+========================================================================
+
+Two functions have been added to `~astropy.visualization.wcsaxes`: `~astropy.visualization.wcsaxes.add_beam()` and
+`~astropy.visualization.wcsaxes.add_scalebar()`. These functions allow to draw the shape of the instrument beam (e.g.for radio
+observations) and a physical scale bar on celestial images:
+
+.. doctest-requires:: fsspec matplotlib
+
+    >>> from astropy.io import fits
+    >>> from astropy.wcs import WCS
+    >>> from astropy import units as u
+    >>> from astropy.visualization.wcsaxes import add_beam, add_scalebar
+    >>> import matplotlib.pyplot as plt
+    >>> uri = "https://cdsarc.cds.unistra.fr/ftp/J/A+A/610/A24/fits/as209_sc_flagged_cont.image.pbcor_uniform.fits"
+    >>> with fits.open(uri, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA +IGNORE_WARNINGS +IGNORE_OUTPUT
+    ...
+    ...    header = hdul[0].header
+    ...    wcs = WCS(header, naxis=(1,2))
+    ...    data = hdul[0].data.squeeze()
+    ...
+    ...    ax = plt.subplot(projection=wcs, xlim=(442, 582), ylim=(442, 582))
+    ...    ax.imshow(data)
+    ...
+    ...    # Draw the beam shape (from the header)
+    ...    add_beam(ax, header=header, frame=True)
+    ...
+    ...    # Draw a scale bar corresponding to 100 au at a distance of 126 pc
+    ...    add_scalebar(ax, 100./126. * u.arcsec, label="100 au", color="white")
 
 Full change log
 ===============
