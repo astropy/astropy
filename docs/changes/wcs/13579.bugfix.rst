@@ -1,3 +1,0 @@
-Fix a bug where ``SlicedLowLevelWCS.world_to_pixel_values`` would break when
-the result of the transform is dependent on the coordinate of a sliced out
-pixel.

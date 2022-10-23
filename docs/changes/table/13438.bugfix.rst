@@ -1,1 +1,0 @@
-Update jQuery to 3.6.0, to pick up security fixes.

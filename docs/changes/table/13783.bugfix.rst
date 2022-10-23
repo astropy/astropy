@@ -1,2 +1,0 @@
-When using ``add_columns`` with same indexes in ``indexes`` option or without
-specifying the option, the order of the new columns will now be kept.

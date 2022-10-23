@@ -1,2 +1,0 @@
-Fix error when suppressing download progress bar while using non-default
-``sys.stdout`` stream.

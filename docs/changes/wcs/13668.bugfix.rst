@@ -1,2 +1,0 @@
-Fixed WCS validation not working properly if HDUList is needed
-for multi-extension FITS file.

@@ -1,3 +1,0 @@
-Fix a Python 3.11 compatibility issue. Ensure that when removing a table column
-that the ``pprint_include_names`` or ``pprint_exclude_names`` attributes get
-updated correctly.

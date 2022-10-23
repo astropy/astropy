@@ -1,2 +1,0 @@
-Ensure ``str`` and ``repr`` work properly for ``Masked`` versions of
-structured subarrays.

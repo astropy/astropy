@@ -1,2 +1,0 @@
-Prevent ``Time()`` from being initialized with an invalid precision
-leading to incorrect results when representing the time as a string.
