@@ -1894,15 +1894,15 @@ class TestCompressedImage(FitsTestCase):
                 assert_equal(hdul1[1].data[:200, :100], hdul2[1].data)
 
 
-def test_comphdu_bscale(tmpdir):
+def test_comphdu_bscale(tmp_path):
     """
     Regression test for a bug that caused extensions that used BZERO and BSCALE
     that got turned into CompImageHDU to end up with BZERO/BSCALE before the
     TFIELDS.
     """
 
-    filename1 = tmpdir.join('3hdus.fits').strpath
-    filename2 = tmpdir.join('3hdus_comp.fits').strpath
+    filename1 = tmp_path / '3hdus.fits'
+    filename2 = tmp_path / '3hdus_comp.fits'
 
     x = np.random.random((100, 100))*100
 
@@ -1950,12 +1950,12 @@ def test_bzero_implicit_casting_compressed():
         hdu.data
 
 
-def test_bzero_mishandled_info(tmpdir):
+def test_bzero_mishandled_info(tmp_path):
     # Regression test for #5507:
     # Calling HDUList.info() on a dataset which applies a zeropoint
     # from BZERO but which astropy.io.fits does not think it needs
     # to resize to a new dtype results in an AttributeError.
-    filename = tmpdir.join('floatimg_with_bzero.fits').strpath
+    filename = tmp_path / 'floatimg_with_bzero.fits'
     hdu = fits.ImageHDU(np.zeros((10, 10)))
     hdu.header['BZERO'] = 10
     hdu.writeto(filename, overwrite=True)
@@ -1963,7 +1963,7 @@ def test_bzero_mishandled_info(tmpdir):
         hdul.info()
 
 
-def test_image_write_readonly(tmpdir):
+def test_image_write_readonly(tmp_path):
 
     # Regression test to make sure that we can write out read-only arrays (#5512)
 
@@ -1972,7 +1972,7 @@ def test_image_write_readonly(tmpdir):
     ghdu = fits.ImageHDU(data=x)
     ghdu.add_datasum()
 
-    filename = tmpdir.join('test.fits').strpath
+    filename = tmp_path / 'test.fits'
 
     ghdu.writeto(filename)
 
@@ -1986,7 +1986,7 @@ def test_image_write_readonly(tmpdir):
     # add_datasum does not work for CompImageHDU
     # ghdu.add_datasum()
 
-    filename = tmpdir.join('test2.fits').strpath
+    filename = tmp_path / 'test2.fits'
 
     ghdu.writeto(filename)
 

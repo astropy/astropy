@@ -851,10 +851,10 @@ class TestDiff(FitsTestCase):
         assert '2 different bytes found (2.00% different).' in report
 
 
-def test_fitsdiff_hdu_name(tmpdir):
+def test_fitsdiff_hdu_name(tmp_path):
     """Make sure diff report reports HDU name and ver if same in files"""
-    path1 = str(tmpdir.join("test1.fits"))
-    path2 = str(tmpdir.join("test2.fits"))
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
 
     hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5), name="SCI")])
     hdulist.writeto(path1)
@@ -865,10 +865,10 @@ def test_fitsdiff_hdu_name(tmpdir):
     assert "Extension HDU 1 (SCI, 1):" in diff.report()
 
 
-def test_fitsdiff_no_hdu_name(tmpdir):
+def test_fitsdiff_no_hdu_name(tmp_path):
     """Make sure diff report doesn't report HDU name if not in files"""
-    path1 = str(tmpdir.join("test1.fits"))
-    path2 = str(tmpdir.join("test2.fits"))
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
 
     hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5))])
     hdulist.writeto(path1)
@@ -879,10 +879,10 @@ def test_fitsdiff_no_hdu_name(tmpdir):
     assert "Extension HDU 1:" in diff.report()
 
 
-def test_fitsdiff_with_names(tmpdir):
+def test_fitsdiff_with_names(tmp_path):
     """Make sure diff report doesn't report HDU name if not same in files"""
-    path1 = str(tmpdir.join("test1.fits"))
-    path2 = str(tmpdir.join("test2.fits"))
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
 
     hdulist = HDUList([PrimaryHDU(), ImageHDU(data=np.zeros(5), name="SCI", ver=1)])
     hdulist.writeto(path1)
@@ -893,10 +893,10 @@ def test_fitsdiff_with_names(tmpdir):
     assert "Extension HDU 1:" in diff.report()
 
 
-def test_rawdatadiff_diff_with_rtol(tmpdir):
+def test_rawdatadiff_diff_with_rtol(tmp_path):
     """Regression test for https://github.com/astropy/astropy/issues/13330"""
-    path1 = str(tmpdir.join("test1.fits"))
-    path2 = str(tmpdir.join("test2.fits"))
+    path1 = tmp_path / "test1.fits"
+    path2 = tmp_path / "test2.fits"
     a = np.zeros((10, 2), dtype='float32')
     a[:, 0] = np.arange(10, dtype='float32') + 10
     a[:, 1] = np.arange(10, dtype='float32') + 20
