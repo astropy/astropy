@@ -1,2 +1,0 @@
-Fixed a bug that prevented ``SkyOffsetFrame`` instances to be pickled by adding
-a custom ``__reduce__`` method to the class (see issue #9249).
