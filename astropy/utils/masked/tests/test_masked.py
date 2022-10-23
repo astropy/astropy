@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_22
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.masked import Masked, MaskedNDArray
 
 
@@ -849,7 +849,6 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert result is out
         assert_masked_equal(out, expected)
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.filterwarnings("ignore:Mean of empty slice")
     @pytest.mark.parametrize('axis', (0, 1, None))
@@ -892,7 +891,6 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected = ma.astype('f8').var()
         assert_masked_equal(ma_var, expected)
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.filterwarnings("ignore:Degrees of freedom <= 0 for slice")
     @pytest.mark.parametrize('axis', (0, 1, None))
@@ -921,7 +919,6 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert result is out
         assert_masked_equal(result, expected)
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     @pytest.mark.filterwarnings("ignore:.*encountered in.*divide")
     @pytest.mark.filterwarnings("ignore:Degrees of freedom <= 0 for slice")
     @pytest.mark.parametrize('axis', (0, 1, None))
@@ -1131,7 +1128,6 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert result is out
         assert_masked_equal(result, expected)
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     @pytest.mark.parametrize('method', ('all', 'any'))
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_all_and_any_where(self, method, axis):
