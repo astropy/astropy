@@ -1,2 +1,0 @@
-Fix a bug when printing or getting the representation of a multidimensional
-table column that has a zero dimension.

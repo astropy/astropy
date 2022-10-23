@@ -1,2 +1,0 @@
-``heapsize`` is now checked for VLA tables. An error is thrown whether P format is used
-but the heap size is bigger than what can be indexed with a 32 bit signed int.
