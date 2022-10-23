@@ -43,7 +43,7 @@ from numpy.lib import recfunctions as rfn
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from astropy.utils import isiterable
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23
 
 # In 1.17, overrides are enabled by default, but it is still possible to
 # turn them off using an environment variable.  We use getattr since it
@@ -129,10 +129,6 @@ IGNORED_FUNCTIONS = {
     # functions taking record arrays (which are deprecated)
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
 }
-if NUMPY_LT_1_20:
-    # financial
-    IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
-                          np.npv, np.pmt, np.ppmt, np.pv, np.rate}
 if NUMPY_LT_1_23:
     IGNORED_FUNCTIONS |= {
         # Deprecated, removed in numpy 1.23

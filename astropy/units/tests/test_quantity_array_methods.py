@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_21_1, NUMPY_LT_1_22
+from astropy.utils.compat import NUMPY_LT_1_21_1, NUMPY_LT_1_22
 
 
 class TestQuantityArrayCopy:
@@ -168,7 +168,6 @@ class TestQuantityStatsFuncs:
         assert qi2 is qi
         assert qi == 3.6 * u.m
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_mean_where(self):
         q1 = np.array([1., 2., 4., 5., 6., 7.]) * u.m
         assert_array_equal(np.mean(q1, where=q1 < 7 * u.m), 3.6 * u.m)
@@ -184,7 +183,6 @@ class TestQuantityStatsFuncs:
         np.std(q1, out=qi)
         assert qi == 0.5 * u.m
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_std_where(self):
         q1 = np.array([1., 2., 3.]) * u.m
         assert_array_equal(np.std(q1, where=q1 < 3 * u.m), 0.5 * u.m)
@@ -200,7 +198,6 @@ class TestQuantityStatsFuncs:
         np.var(q1, out=qi)
         assert qi == 0.25 * u.m ** 2
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_var_where(self):
         q1 = np.array([1., 2., 3.]) * u.m
         assert_array_equal(np.var(q1, where=q1 < 3 * u.m), 0.25 * u.m ** 2)

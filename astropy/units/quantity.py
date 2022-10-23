@@ -17,7 +17,7 @@ import numpy as np
 
 # LOCAL
 from astropy import config as _config
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_22
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
@@ -1838,34 +1838,19 @@ class Quantity(np.ndarray):
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
                                    out=out)
-    if NUMPY_LT_1_20:
-        def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
-            return self._wrap_function(np.var, axis, dtype,
-                                       out=out, ddof=ddof, keepdims=keepdims,
-                                       unit=self.unit**2)
-    else:
-        def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
-            return self._wrap_function(np.var, axis, dtype,
-                                       out=out, ddof=ddof, keepdims=keepdims, where=where,
-                                       unit=self.unit**2)
 
-    if NUMPY_LT_1_20:
-        def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
-            return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
-                                       keepdims=keepdims)
-    else:
-        def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
-            return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
-                                       keepdims=keepdims, where=where)
+    def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
+        return self._wrap_function(np.var, axis, dtype,
+                                   out=out, ddof=ddof, keepdims=keepdims, where=where,
+                                   unit=self.unit**2)
 
-    if NUMPY_LT_1_20:
-        def mean(self, axis=None, dtype=None, out=None, keepdims=False):
-            return self._wrap_function(np.mean, axis, dtype, out=out,
-                                       keepdims=keepdims)
-    else:
-        def mean(self, axis=None, dtype=None, out=None, keepdims=False, *, where=True):
-            return self._wrap_function(np.mean, axis, dtype, out=out,
-                                       keepdims=keepdims, where=where)
+    def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False, *, where=True):
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
+                                   keepdims=keepdims, where=where)
+
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False, *, where=True):
+        return self._wrap_function(np.mean, axis, dtype, out=out,
+                                   keepdims=keepdims, where=where)
 
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
