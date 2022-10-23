@@ -2683,7 +2683,7 @@ class TestTableFunctions(FitsTestCase):
 
     @pytest.mark.skipif(not HAVE_OBJGRAPH, reason='requires objgraph')
     @pytest.mark.slow
-    def test_reference_leak2(self, tmpdir):
+    def test_reference_leak2(self, tmp_path):
         """
         Regression test for https://github.com/astropy/astropy/pull/4539
 
@@ -2722,7 +2722,7 @@ class TestTableFunctions(FitsTestCase):
         t3.setup_class()
         try:
             with _refcounting('FITS_rec'):
-                t3.test_read(tmpdir)
+                t3.test_read(tmp_path)
         finally:
             t3.teardown_class()
         del t3
@@ -3476,7 +3476,7 @@ def test_regression_scalar_indexing():
     assert all(a == b for a, b in zip(x1a, x1b))
 
 
-def test_new_column_attributes_preserved(tmpdir):
+def test_new_column_attributes_preserved(tmp_path):
 
     # Regression test for https://github.com/astropy/astropy/issues/7145
     # This makes sure that for now we don't clear away keywords that have
@@ -3551,7 +3551,7 @@ def test_new_column_attributes_preserved(tmpdir):
     # cause the special column attribtues to be picked up (it's just that when a
     # header is manually specified, these values are ignored)
 
-    filename = tmpdir.join('test.fits').strpath
+    filename = tmp_path / 'test.fits'
 
     hdu.writeto(filename)
 
@@ -3588,15 +3588,15 @@ def test_new_column_attributes_preserved(tmpdir):
     assert hdu2.header['DEC'] == 3.0
 
 
-def test_empty_table(tmpdir):
-    ofile = str(tmpdir.join('emptytable.fits'))
+def test_empty_table(tmp_path):
+    ofile = tmp_path / 'emptytable.fits'
     hdu = fits.BinTableHDU(header=None, data=None, name='TEST')
     hdu.writeto(ofile)
 
     with fits.open(ofile) as hdul:
         assert hdul['TEST'].data.size == 0
 
-    ofile = str(tmpdir.join('emptytable.fits.gz'))
+    ofile = tmp_path / 'emptytable.fits.gz'
     hdu = fits.BinTableHDU(header=None, data=None, name='TEST')
     hdu.writeto(ofile, overwrite=True)
 
@@ -3604,8 +3604,8 @@ def test_empty_table(tmpdir):
         assert hdul['TEST'].data.size == 0
 
 
-def test_a3dtable(tmpdir):
-    testfile = str(tmpdir.join('test.fits'))
+def test_a3dtable(tmp_path):
+    testfile = tmp_path / 'test.fits'
     hdu = fits.BinTableHDU.from_columns([
         fits.Column(name='FOO', format='J', array=np.arange(10))
     ])

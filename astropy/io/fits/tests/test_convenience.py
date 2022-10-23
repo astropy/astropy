@@ -332,11 +332,11 @@ class TestConvenience(FitsTestCase):
             np.testing.assert_array_equal(hdu1[2].data, data * 3)
 
     @pytest.mark.parametrize('mode', ['wb', 'wb+', 'ab', 'ab+'])
-    def test_append_filehandle(self, tmpdir, mode):
+    def test_append_filehandle(self, tmp_path, mode):
         """
         Test fits.append with a file handle argument.
         """
-        append_file = tmpdir.join('append.fits')
+        append_file = tmp_path / 'append.fits'
         with append_file.open(mode) as handle:
             fits.append(filename=handle, data=np.ones((4, 4)))
 

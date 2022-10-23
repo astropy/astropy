@@ -25,10 +25,10 @@ def test_fsspec_local():
 
 
 @pytest.mark.skipif(not HAS_FSSPEC, reason='requires fsspec')
-def test_fsspec_local_write(tmpdir):
+def test_fsspec_local_write(tmp_path):
     """Can we write to a local file that was opened using fsspec?"""
     fn = get_pkg_data_filename('data/test0.fits')
-    fn_tmp = tmpdir / "tmp.fits"
+    fn_tmp = tmp_path / "tmp.fits"
     with fits.open(fn, use_fsspec=True) as hdul:
         # writing to a section is never allowed
         with pytest.raises(TypeError):
