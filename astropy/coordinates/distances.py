@@ -169,12 +169,7 @@ class Distance(u.SpecificTypeQuantity):
             cls, value, unit, dtype=dtype, copy=copy, order=order,
             subok=subok, ndmin=ndmin)
 
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            any_negative = np.any(distance.value < 0)
-
-        if not allow_negative and any_negative:
+        if not allow_negative and np.any(distance.value < 0):
             raise ValueError("distance must be >= 0. Use the argument "
                              "`allow_negative=True` to allow negative values.")
 

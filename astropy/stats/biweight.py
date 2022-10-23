@@ -6,7 +6,7 @@ Tukey's biweight function.
 
 import numpy as np
 
-from .funcs import _expand_dims, median_absolute_deviation
+from .funcs import median_absolute_deviation
 
 __all__ = ['biweight_location', 'biweight_scale', 'biweight_midvariance',
            'biweight_midcovariance', 'biweight_midcorrelation']
@@ -115,7 +115,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     if M is None:
         M = median_func(data, axis=axis)
     if axis is not None:
-        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
+        M = np.expand_dims(M, axis=axis)
 
     # set up the differences
     d = data - M
@@ -129,7 +129,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
         return M
 
     if axis is not None:
-        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
+        mad = np.expand_dims(mad, axis=axis)
 
     with np.errstate(divide='ignore', invalid='ignore'):
         u = d / (c * mad)
@@ -386,7 +386,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     if M is None:
         M = median_func(data, axis=axis)
     if axis is not None:
-        M = _expand_dims(M, axis=axis)  # NUMPY_LT_1_18
+        M = np.expand_dims(M, axis=axis)
 
     # set up the differences
     d = data - M
@@ -400,7 +400,7 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
         if mad == 0. or np.isnan(mad):
             return mad ** 2  # variance units
     else:
-        mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
+        mad = np.expand_dims(mad, axis=axis)
 
     with np.errstate(divide='ignore', invalid='ignore'):
         u = d / (c * mad)

@@ -2129,13 +2129,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # Note that _phi already holds our own copy if copy=True.
         self._phi.wrap_at(360 * u.deg, inplace=True)
 
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
-                raise ValueError('Inclination angle(s) must be within '
-                                 '0 deg <= angle <= 180 deg, '
-                                 'got {}'.format(theta.to(u.degree)))
+        if np.any(self._theta < 0.*u.deg) or np.any(self._theta > 180.*u.deg):
+            raise ValueError('Inclination angle(s) must be within '
+                             '0 deg <= angle <= 180 deg, '
+                             'got {}'.format(theta.to(u.degree)))
 
         if self._r.unit.physical_type == 'length':
             self._r = self._r.view(Distance)

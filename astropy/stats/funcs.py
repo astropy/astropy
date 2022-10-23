@@ -42,52 +42,6 @@ to convert it to 1-sigma standard deviation.
 """
 
 
-# NUMPY_LT_1_18
-def _expand_dims(data, axis):
-    """
-    Expand the shape of an array.
-
-    Insert a new axis that will appear at the `axis` position in the
-    expanded array shape.
-
-    This function allows for tuple axis arguments.
-    ``numpy.expand_dims`` currently does not allow that, but it will in
-    numpy v1.18 (https://github.com/numpy/numpy/pull/14051).
-    ``_expand_dims`` can be replaced with ``numpy.expand_dims`` when the
-    minimum support numpy version is v1.18.
-
-    Parameters
-    ----------
-    data : array-like
-        Input array.
-    axis : int or tuple of int
-        Position in the expanded axes where the new axis (or axes) is
-        placed.  A tuple of axes is now supported.  Out of range axes as
-        described above are now forbidden and raise an `AxisError`.
-
-    Returns
-    -------
-    result : ndarray
-        View of ``data`` with the number of dimensions increased.
-    """
-
-    if isinstance(data, np.matrix):
-        data = np.asarray(data)
-    else:
-        data = np.asanyarray(data)
-
-    if not isinstance(axis, (tuple, list)):
-        axis = (axis,)
-
-    out_ndim = len(axis) + data.ndim
-    axis = np.core.numeric.normalize_axis_tuple(axis, out_ndim)
-
-    shape_it = iter(data.shape)
-    shape = [1 if ax in axis else next(shape_it) for ax in range(out_ndim)]
-
-    return data.reshape(shape)
-
-
 def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
@@ -847,7 +801,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     # broadcast the median array before subtraction
     if axis is not None:
-        data_median = _expand_dims(data_median, axis=axis)  # NUMPY_LT_1_18
+        data_median = np.expand_dims(data_median, axis=axis)
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
     # this conditional can be removed after this PR is merged:

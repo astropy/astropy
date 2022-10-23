@@ -392,17 +392,15 @@ class Angle(u.SpecificTypeQuantity):
         self_angle = self.view(np.ndarray)
         # Do the wrapping, but only if any angles need to be wrapped
         #
-        # This invalid catch block is needed both for the floor division
-        # and for the comparisons later on (latter not really needed
-        # any more for >= 1.19 (NUMPY_LT_1_19), but former is).
+        # Catch any invalid warnings from the floor division.
         with np.errstate(invalid='ignore'):
             wraps = (self_angle - wrap_angle_floor) // a360
-            valid = np.isfinite(wraps) & (wraps != 0)
-            if np.any(valid):
-                self_angle -= wraps * a360
-                # Rounding errors can cause problems.
-                self_angle[self_angle >= wrap_angle] -= a360
-                self_angle[self_angle < wrap_angle_floor] += a360
+        valid = np.isfinite(wraps) & (wraps != 0)
+        if np.any(valid):
+            self_angle -= wraps * a360
+            # Rounding errors can cause problems.
+            self_angle[self_angle >= wrap_angle] -= a360
+            self_angle[self_angle < wrap_angle_floor] += a360
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
@@ -591,11 +589,8 @@ class Latitude(Angle):
         else:
             limit = u.degree.to(angles.unit, 90.0)
 
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            invalid_angles = (np.any(angles.value < -limit) or
-                              np.any(angles.value > limit))
+        invalid_angles = (np.any(angles.value < -limit)
+                          or np.any(angles.value > limit))
         if invalid_angles:
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {}'.format(angles.to(u.degree)))

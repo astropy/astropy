@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -532,35 +532,14 @@ def insert(arr, obj, values, axis=None):
             (arr_mask, obj, val_mask, axis), {}, None)
 
 
-if NUMPY_LT_1_19:
-    @dispatched_function
-    def count_nonzero(a, axis=None):
-        """Counts the number of non-zero values in the array ``a``.
+@dispatched_function
+def count_nonzero(a, axis=None, *, keepdims=False):
+    """Counts the number of non-zero values in the array ``a``.
 
-        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
-        """
-        filled = a.filled(np.zeros((), a.dtype))
-        return np.count_nonzero(filled, axis)
-else:
-    @dispatched_function
-    def count_nonzero(a, axis=None, *, keepdims=False):
-        """Counts the number of non-zero values in the array ``a``.
-
-        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
-        """
-        filled = a.filled(np.zeros((), a.dtype))
-        return np.count_nonzero(filled, axis, keepdims=keepdims)
-
-
-if NUMPY_LT_1_19:
-    def _zeros_like(a, dtype=None, order='K', subok=True, shape=None):
-        if shape != ():
-            return np.zeros_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
-        else:
-            return np.zeros_like(a, dtype=dtype, order=order, subok=subok,
-                                 shape=(1,))[0]
-else:
-    _zeros_like = np.zeros_like
+    Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
+    """
+    filled = a.filled(np.zeros((), a.dtype))
+    return np.count_nonzero(filled, axis, keepdims=keepdims)
 
 
 def _masked_median_1d(a, overwrite_input):
@@ -570,7 +549,7 @@ def _masked_median_1d(a, overwrite_input):
         return a.from_unmasked(
             np.median(unmasked, overwrite_input=overwrite_input))
     else:
-        return a.from_unmasked(_zeros_like(a.unmasked, shape=(1,))[0], mask=True)
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=(1,))[0], mask=True)
 
 
 def _masked_median(a, axis=None, out=None, overwrite_input=False):
@@ -608,7 +587,7 @@ def _masked_quantile_1d(a, q, **kwargs):
         result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
         return a.from_unmasked(result)
     else:
-        return a.from_unmasked(_zeros_like(a.unmasked, shape=q.shape), True)
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
 
 
 def _masked_quantile(a, q, axis=None, out=None, **kwargs):
