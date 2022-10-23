@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.coordinates import FK4, FK5, ICRS, Angle, CartesianRepresentation, Galactic, SkyCoord
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_24
+from astropy.utils.compat import NUMPY_LT_1_24
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -42,13 +42,9 @@ def test_angle_arrays():
     with ExitStack() as stack:
         if NUMPY_LT_1_24:
             stack.enter_context(pytest.raises(TypeError))
-            # Arrays where the elements are Angle objects are not supported -- it's
-            # really tricky to do correctly, if at all, due to the possibility of
-            # nesting.
-            if not NUMPY_LT_1_19:
-                stack.enter_context(
-                    pytest.warns(DeprecationWarning,
-                                 match='automatic object dtype is deprecated'))
+            stack.enter_context(
+                pytest.warns(DeprecationWarning,
+                             match='automatic object dtype is deprecated'))
         else:
             stack.enter_context(pytest.raises(ValueError))
 
