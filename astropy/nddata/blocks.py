@@ -78,7 +78,6 @@ def reshape_as_blocks(data, block_size):
             [[10, 11],
              [14, 15]]]])
     """
-
     data, block_size = _process_block_inputs(data, block_size)
 
     if np.any(np.mod(data.shape, block_size) != 0):
@@ -124,7 +123,8 @@ def block_reduce(data, block_size, func=np.sum):
     Returns
     -------
     output : array-like
-        The resampled data.
+        The resampled data. Note the depending on the input ``func``,
+        the dtype of the output array may not match the input array.
 
     Examples
     --------
@@ -139,7 +139,6 @@ def block_reduce(data, block_size, func=np.sum):
     array([[  2.5,   4.5],
            [ 10.5,  12.5]])
     """
-
     data, block_size = _process_block_inputs(data, block_size)
     nblocks = np.array(data.shape) // block_size
     size_init = nblocks * block_size  # evenly-divisible size
@@ -179,7 +178,8 @@ def block_replicate(data, block_size, conserve_sum=True):
     Returns
     -------
     output : array-like
-        The block-replicated data.
+        The block-replicated data. Note that when ``conserve_sum`` is
+        `True`, the dtype of the output array will be float.
 
     Examples
     --------
@@ -198,12 +198,12 @@ def block_replicate(data, block_size, conserve_sum=True):
            [2., 2., 3., 3.],
            [2., 2., 3., 3.]])
     """
-
     data, block_size = _process_block_inputs(data, block_size)
     for i in range(data.ndim):
         data = np.repeat(data, block_size[i], axis=i)
 
     if conserve_sum:
-        data = data / float(np.prod(block_size))
+        # in-place division can fail due to dtype casting rule
+        data = data / np.prod(block_size)
 
     return data
