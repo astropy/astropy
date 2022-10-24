@@ -39,6 +39,7 @@ from .hadec import HADec
 from .hcrs import HCRS
 from .icrs import ICRS
 from .itrs import ITRS
+from .offset import OffsetFrame
 from .skyoffset import SkyOffsetFrame
 from .supergalactic import Supergalactic
 
@@ -65,8 +66,8 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'TEME', 'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
+           'HeliocentricTrueEcliptic', 'SkyOffsetFrame', 'OffsetFrame',
+           'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
            'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
            'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
 

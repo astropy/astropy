@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # Dependencies
+import warnings
+
 import numpy as np
 
 # Project
@@ -521,5 +523,5 @@ class DifferentialAttribute(Attribute):
 
 
 # do this here to prevent a series of complicated circular imports
-from .earth import EarthLocation
-from .representation import BaseDifferential, CartesianRepresentation
+from astropy.coordinates.earth import EarthLocation
+from astropy.coordinates.representation import BaseDifferential, CartesianRepresentation
