@@ -1,2 +1,0 @@
-``PCOUNT`` and ``GCOUNT`` keywords are now removed from an uncompressed Primary header,
-for compliancy with ``fitsverify`` behavior.

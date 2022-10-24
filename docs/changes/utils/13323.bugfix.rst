@@ -1,1 +1,0 @@
-Ensure that ``np.concatenate`` on masked data can take a ``dtype`` argument (added in numpy 1.20).

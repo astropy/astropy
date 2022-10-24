@@ -1,2 +1,0 @@
-Ensure that the units of any ``initial`` argument to reductions such as
-``np.add.reduce`` (which underlies ``np.sum``) are properly taken into account.

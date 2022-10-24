@@ -1,4 +1,0 @@
-Fixed the check for invalid ``Latitude`` values for float32 values.
-``Latitude`` now accepts the float32 value of pi/2, which was rejected
-before because a comparison was made using the slightly smaller float64 representation.
-See issue #13708.

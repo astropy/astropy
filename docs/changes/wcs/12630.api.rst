@@ -1,7 +1,0 @@
-The ``pixel`` argument to ``astropy.visualization.wcsaxes.ticklabels.TickLabels.add``
-no longer does anything, is deprecated, and will be removed in a future
-astropy version. It has been replaced by a new required ``data`` argument, which
-should be used to specify the data coordinates of the tick label being added.
-
-This changes has been made because it is (in general) not possible to correctly
-calculate pixel coordinates before Matplotlib is drawing a figure.
