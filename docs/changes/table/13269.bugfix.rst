@@ -1,3 +1,0 @@
-Fix a problem where accessing one field of a structured column returned a Column
-with the same info as the original column. This resulted in unintuitive behavior
-in general and an exception if the format for the column was set.

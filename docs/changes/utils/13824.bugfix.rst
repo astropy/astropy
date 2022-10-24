@@ -1,3 +1,0 @@
-If an attribute is created using ``deprecated_attribute()`` with the
-``alternative`` argument then getting or setting the value of the deprecated
-attribute now accesses its replacement.
