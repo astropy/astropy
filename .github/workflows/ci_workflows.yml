@@ -132,7 +132,7 @@ jobs:
         include:
           - name: (Allowed Failure) Python 3.11 with remote data and dev version of key dependencies
             os: ubuntu-latest
-            python: '3.11.0-rc.2'
+            python: '3.11'
             toxenv: py311-test-devdeps
             toxposargs: --remote-data=any
 
