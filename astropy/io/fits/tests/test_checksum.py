@@ -16,8 +16,8 @@ from .test_table import comparerecords
 class TestChecksumFunctions(FitsTestCase):
 
     # All checksums have been verified against CFITSIO
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self._oldfilters = warnings.filters[:]
         warnings.filterwarnings(
             'error',
@@ -31,8 +31,8 @@ class TestChecksumFunctions(FitsTestCase):
         self._old_get_timestamp = _ValidHDU._get_timestamp
         _ValidHDU._get_timestamp = lambda self: '2013-12-20T13:36:10'
 
-    def teardown(self):
-        super().teardown()
+    def teardown_method(self):
+        super().teardown_method()
         warnings.filters = self._oldfilters
         _ValidHDU._get_timestamp = self._old_get_timestamp
 

@@ -26,7 +26,7 @@ class TestHelioBaryCentric:
     def teardown_class(cls):
         iers.conf.auto_download = cls.orig_auto_download
 
-    def setup(self):
+    def setup_method(self):
         wht = EarthLocation(342.12 * u.deg, 28.758333333333333 * u.deg, 2327 * u.m)
         self.obstime = Time("2013-02-02T23:00", location=wht)
         self.obstime2 = Time("2013-08-02T23:00", location=wht)

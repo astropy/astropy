@@ -95,7 +95,7 @@ def test_gd2gc():
 
 
 class TestInput():
-    def setup(self):
+    def setup_method(self):
         self.lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg,
                              wrap_angle=180*u.deg)
         self.lat = Latitude([+0., 30., 60., +90., -90., -60., -30., 0.], u.deg)
