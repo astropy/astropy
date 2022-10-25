@@ -2696,12 +2696,12 @@ class TestTableFunctions(FitsTestCase):
         from .test_connect import TestMultipleHDU
 
         t1 = TestCore()
-        t1.setup()
+        t1.setup_method()
         try:
             with _refcounting('FITS_rec'):
                 t1.test_add_del_columns2()
         finally:
-            t1.teardown()
+            t1.teardown_method()
         del t1
 
         t2 = self.__class__()
@@ -2709,12 +2709,12 @@ class TestTableFunctions(FitsTestCase):
                           'test_numpy_ndarray_to_bintablehdu',
                           'test_new_table_from_recarray',
                           'test_new_fitsrec']:
-            t2.setup()
+            t2.setup_method()
             try:
                 with _refcounting('FITS_rec'):
                     getattr(t2, test_name)()
             finally:
-                t2.teardown()
+                t2.teardown_method()
         del t2
 
         t3 = TestMultipleHDU()

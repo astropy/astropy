@@ -58,7 +58,7 @@ class BasicTestSetup(metaclass=CoverageMeta):
 
     Also provides a default Quantity with shape (3, 3) and units of m.
     """
-    def setup(self):
+    def setup_method(self):
         self.q = np.arange(9.).reshape(3, 3) / 4. * u.m
 
 
@@ -261,7 +261,7 @@ class TestIndicesFrom(NoUnitTestSetup):
 
 
 class TestRealImag(InvariantUnitTestSetup):
-    def setup(self):
+    def setup_method(self):
         self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
 
     def test_real(self):
@@ -444,7 +444,7 @@ class TestRepeat(InvariantUnitTestSetup):
 
 
 class TestConcatenate(metaclass=CoverageMeta):
-    def setup(self):
+    def setup_method(self):
         self.q1 = np.arange(6.).reshape(2, 3) * u.m
         self.q2 = self.q1.to(u.cm)
 
@@ -569,7 +569,7 @@ class TestConcatenate(metaclass=CoverageMeta):
 
 
 class TestSplit(metaclass=CoverageMeta):
-    def setup(self):
+    def setup_method(self):
         self.q = np.arange(54.).reshape(3, 3, 6) * u.m
 
     def check(self, func, *args, **kwargs):
@@ -758,7 +758,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
 
 
 class TestUfuncLikeTests(metaclass=CoverageMeta):
-    def setup(self):
+    def setup_method(self):
         self.q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
 
     def check(self, func):
@@ -921,8 +921,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
 
 
 class TestNanFunctions(InvariantUnitTestSetup):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self.q[1, 1] = np.nan
 
     def test_nanmax(self):
@@ -1251,7 +1251,7 @@ class TestBincountDigitize(metaclass=CoverageMeta):
 
 class TestHistogramFunctions(metaclass=CoverageMeta):
 
-    def setup(self):
+    def setup_method(self):
         self.x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         self.y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
         self.weights = np.arange(len(self.x)) / u.s
@@ -1517,7 +1517,7 @@ class TestSortFunctions(InvariantUnitTestSetup):
 class TestStringFunctions(metaclass=CoverageMeta):
     # For these, making behaviour work means deviating only slightly from
     # the docstring, and by default they fail miserably.  So, might as well.
-    def setup(self):
+    def setup_method(self):
         self.q = np.arange(3.) * u.Jy
 
     @needs_array_function
@@ -1562,7 +1562,7 @@ class TestStringFunctions(metaclass=CoverageMeta):
 class TestBitAndIndexFunctions(metaclass=CoverageMeta):
     # Index/bit functions generally fail for floats, so the usual
     # float quantity are safe, but the integer ones are not.
-    def setup(self):
+    def setup_method(self):
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
 
@@ -1644,7 +1644,7 @@ class TestMemoryFunctions(NoUnitTestSetup):
 
 
 class TestSetOpsFcuntions(metaclass=CoverageMeta):
-    def setup(self):
+    def setup_method(self):
         self.q = np.array([[0., 1., -1.],
                            [3., 5., 3.],
                            [0., 1., -1]]) * u.m
@@ -1759,7 +1759,7 @@ def test_fft_frequencies(function):
 @needs_array_function
 class TestFFT(InvariantUnitTestSetup):
     # These are all trivial, just preserve the unit.
-    def setup(self):
+    def setup_method(self):
         # Use real input; gets turned into complex as needed.
         self.q = np.arange(128.).reshape(8, -1) * u.s
 
@@ -1813,7 +1813,7 @@ class TestFFT(InvariantUnitTestSetup):
 
 
 class TestLinAlg(metaclass=CoverageMeta):
-    def setup(self):
+    def setup_method(self):
         # Use a matrix safe for inversion, etc.
         self.q = np.array([[1., -1., 2.],
                            [0., 3., -1.],

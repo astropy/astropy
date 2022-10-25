@@ -581,7 +581,7 @@ class TestRecArray:
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
 
-    def setup(self):
+    def setup_method(self):
         self.ra = (np.array(np.arange(12.).reshape(4, 3))
               .view(dtype=('f8,f8,f8')).squeeze())
 
