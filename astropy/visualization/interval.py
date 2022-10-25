@@ -103,6 +103,12 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
+
+        # Avoid overhead of preparing array if both limits have been specified
+        # manually, for performance.
+        if self.vmin is not None and self.vmax is not None:
+            return self.vmin, self.vmax
+
         # Make sure values is a Numpy array
         values = np.asarray(values).ravel()
 
@@ -111,6 +117,7 @@ class ManualInterval(BaseInterval):
 
         vmin = np.min(values) if self.vmin is None else self.vmin
         vmax = np.max(values) if self.vmax is None else self.vmax
+
         return vmin, vmax
 
 
