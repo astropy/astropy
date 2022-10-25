@@ -4,6 +4,8 @@ from functools import wraps
 
 import pytest
 
+from astropy.utils.compat.optional_deps import HAS_PYTEST_MPL
+
 
 def figure_test(*args, **kwargs):
     """
@@ -30,6 +32,7 @@ def figure_test(*args, **kwargs):
                                        style=style,
                                        savefig_kwargs=savefig_kwargs,
                                        **kwargs)
+        @pytest.mark.skipif(not HAS_PYTEST_MPL, reason='pytest-mpl is required for the figure tests')
         @wraps(test_function)
         def test_wrapper(*args, **kwargs):
             return test_function(*args, **kwargs)

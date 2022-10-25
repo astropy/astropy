@@ -1481,7 +1481,7 @@ def test_repr_array_of_quantity():
 
 
 class TestSpecificTypeQuantity:
-    def setup(self):
+    def setup_method(self):
         class Length(u.SpecificTypeQuantity):
             _equivalent_unit = u.m
 

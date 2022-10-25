@@ -10,7 +10,7 @@ from astropy.io import fits
 
 
 class FitsTestCase:
-    def setup(self):
+    def setup_method(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
 
@@ -22,7 +22,7 @@ class FitsTestCase:
         fits.conf.strip_header_whitespace = True
         fits.conf.use_memmap = True
 
-    def teardown(self):
+    def teardown_method(self):
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
             tries = 3
             while tries:

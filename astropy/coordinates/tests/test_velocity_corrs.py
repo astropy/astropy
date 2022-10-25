@@ -160,7 +160,6 @@ def test_helio_iraf():
                        location=test_input_loc)
     vhs_astropy = targets.radial_velocity_correction('heliocentric')
     assert_quantity_allclose(vhs_astropy, vhs_iraf, atol=150*u.m/u.s)
-    return vhs_astropy, vhs_iraf  # for interactively examination
 
 
 def generate_IRAF_input(writefn=None):
@@ -237,7 +236,6 @@ def test_barycorr():
                                                       kind='barycentric')
 
     assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10*u.mm/u.s)
-    return bvcs_astropy, barycorr_bvcs  # for interactively examination
 
 
 def _get_barycorr_bvcs(coos, loc, injupyter=False):
@@ -349,7 +347,6 @@ def test_barycorr_withvels():
     bvcs_astropy = coos.radial_velocity_correction(obstime=test_input_time,
                                                    location=test_input_loc)
     assert_quantity_allclose(bvcs_astropy, barycorr_bvcs, atol=10*u.mm/u.s)
-    return bvcs_astropy, barycorr_bvcs  # for interactively examination
 
 
 def _get_test_input_radecvels():

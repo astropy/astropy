@@ -2538,8 +2538,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
     but will be stripped in the cards.
     """
 
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self._test_header = fits.Header()
         self._test_header.set('DP1', 'NAXIS: 2')
         self._test_header.set('DP1', 'AXIS.1: 1')

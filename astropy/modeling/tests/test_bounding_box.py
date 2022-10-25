@@ -201,7 +201,7 @@ class Test_Interval:
 
 
 class Test_BoundingDomain:
-    def setup(self):
+    def setup_method(self):
         class BoundingDomain(_BoundingDomain):
             def fix_inputs(self, model, fix_inputs):
                 super().fix_inputs(model, fixed_inputs=fix_inputs)
