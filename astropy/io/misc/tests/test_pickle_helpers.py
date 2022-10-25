@@ -5,13 +5,13 @@ import pytest
 from astropy.io.misc import fnpickle, fnunpickle
 
 
-def test_fnpickling_simple(tmpdir):
+def test_fnpickling_simple(tmp_path):
     """
     Tests the `fnpickle` and `fnupickle` functions' basic operation by
     pickling and unpickling a string, using both a filename and a
     file.
     """
-    fn = str(tmpdir.join('test1.pickle'))
+    fn = str(tmp_path / 'test1.pickle')
 
     obj1 = 'astring'
     fnpickle(obj1, fn)
@@ -37,12 +37,12 @@ class ToBePickled:
             return False
 
 
-def test_fnpickling_class(tmpdir):
+def test_fnpickling_class(tmp_path):
     """
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle custom classes.
     """
-    fn = str(tmpdir.join('test2.pickle'))
+    fn = str(tmp_path / 'test2.pickle')
 
     obj1 = 'astring'
     obj2 = ToBePickled(obj1)
@@ -51,7 +51,7 @@ def test_fnpickling_class(tmpdir):
     assert res == obj2
 
 
-def test_fnpickling_protocol(tmpdir):
+def test_fnpickling_protocol(tmp_path):
     """
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle pickle files from all protcols.
@@ -62,19 +62,19 @@ def test_fnpickling_protocol(tmpdir):
     obj2 = ToBePickled(obj1)
 
     for p in range(pickle.HIGHEST_PROTOCOL + 1):
-        fn = str(tmpdir.join(f'testp{p}.pickle'))
+        fn = str(tmp_path / f'testp{p}.pickle')
         fnpickle(obj2, fn, protocol=p)
         res = fnunpickle(fn)
         assert res == obj2
 
 
-def test_fnpickling_many(tmpdir):
+def test_fnpickling_many(tmp_path):
     """
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle multiple objects from a single file.
     """
 
-    fn = str(tmpdir.join('test3.pickle'))
+    fn = str(tmp_path / 'test3.pickle')
 
     # now try multiples
     obj3 = 328.3432
