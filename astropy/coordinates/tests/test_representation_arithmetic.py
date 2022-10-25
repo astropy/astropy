@@ -45,7 +45,7 @@ def representation_equal(first, second):
 
 class TestArithmetic():
 
-    def setup(self):
+    def setup_method(self):
         # Choose some specific coordinates, for which ``sum`` and ``dot``
         # works out nicely.
         self.lon = Longitude(np.arange(0, 12.1, 2), u.hourangle)
@@ -823,7 +823,7 @@ class TestUnitSphericalDifferential():
 
 
 class TestRadialDifferential():
-    def setup(self):
+    def setup_method(self):
         s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
                                     lat=[0., -30., 85.] * u.deg,
                                     distance=[1, 2, 3] * u.kpc)
@@ -864,7 +864,7 @@ class TestRadialDifferential():
 class TestPhysicsSphericalDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
 
-    def setup(self):
+    def setup_method(self):
         s = PhysicsSphericalRepresentation(phi=[0., 90., 315.] * u.deg,
                                            theta=[90., 120., 5.] * u.deg,
                                            r=[1, 2, 3] * u.kpc)
@@ -921,7 +921,7 @@ class TestPhysicsSphericalDifferential():
 class TestCylindricalDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
 
-    def setup(self):
+    def setup_method(self):
         s = CylindricalRepresentation(rho=[1, 2, 3] * u.kpc,
                                       phi=[0., 90., 315.] * u.deg,
                                       z=[3, 2, 1] * u.kpc)
@@ -973,7 +973,7 @@ class TestCylindricalDifferential():
 class TestCartesianDifferential():
     """Test copied from SphericalDifferential, so less extensive."""
 
-    def setup(self):
+    def setup_method(self):
         s = CartesianRepresentation(x=[1, 2, 3] * u.kpc,
                                     y=[2, 3, 1] * u.kpc,
                                     z=[3, 1, 2] * u.kpc)
@@ -1018,7 +1018,7 @@ class TestCartesianDifferential():
 
 
 class TestDifferentialConversion():
-    def setup(self):
+    def setup_method(self):
         self.s = SphericalRepresentation(lon=[0., 6., 21.] * u.hourangle,
                                          lat=[0., -30., 85.] * u.deg,
                                          distance=[1, 2, 3] * u.kpc)

@@ -188,7 +188,7 @@ class TestHCRS():
     coord.ICRS(coord.get_body_barycentric(tarr, 'sun')).
     """
 
-    def setup(self):
+    def setup_method(self):
         self.t1 = Time("2013-02-02T23:00")
         self.t2 = Time("2013-08-02T23:00")
         self.tarr = Time(["2013-02-02T23:00", "2013-08-02T23:00"])
@@ -237,7 +237,7 @@ class TestHelioBaryCentric():
     Uses the WHT observing site (information grabbed from data/sites.json).
     """
 
-    def setup(self):
+    def setup_method(self):
         wht = EarthLocation(342.12*u.deg, 28.758333333333333*u.deg, 2327*u.m)
         self.obstime = Time("2013-02-02T23:00")
         self.wht_itrs = wht.get_itrs(obstime=self.obstime)

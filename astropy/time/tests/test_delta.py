@@ -36,7 +36,7 @@ def teardown_module(module):
 class TestTimeDelta:
     """Test TimeDelta class"""
 
-    def setup(self):
+    def setup_method(self):
         self.t = Time('2010-01-01', scale='utc')
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
         self.t3 = Time('2010-01-03 01:02:03', scale='utc', precision=9,
@@ -303,7 +303,7 @@ class TestTimeDeltaScales:
     """Test scale conversion for Time Delta.
     Go through @taldcroft's list of expected behavior from #1932"""
 
-    def setup(self):
+    def setup_method(self):
         # pick a date that includes a leap second for better testing
         self.iso_times = ['2012-06-30 12:00:00', '2012-06-30 23:59:59',
                           '2012-07-01 00:00:00', '2012-07-01 12:00:00']

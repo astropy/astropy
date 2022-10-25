@@ -37,7 +37,7 @@ def ctx_for_v71_dateref_warnings():
 
 
 class TestMaps:
-    def setup(self):
+    def setup_method(self):
         # get the list of the hdr files that we want to test
         self._file_list = list(get_pkg_data_filenames(
             "data/maps", pattern="*.hdr"))
@@ -71,7 +71,7 @@ class TestMaps:
 
 
 class TestSpectra:
-    def setup(self):
+    def setup_method(self):
         self._file_list = list(get_pkg_data_filenames("data/spectra",
                                                       pattern="*.hdr"))
 
@@ -1376,7 +1376,7 @@ def test_cunit():
 
 
 class TestWcsWithTime:
-    def setup(self):
+    def setup_method(self):
         if _WCSLIB_VER >= Version('7.1'):
             fname = get_pkg_data_filename('data/header_with_time_wcslib71.fits')
         else:

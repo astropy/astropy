@@ -55,7 +55,7 @@ def home_is_temp(request, monkeypatch):
 
 
 class FitsTestCase:
-    def setup(self):
+    def setup_method(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
 
@@ -72,7 +72,7 @@ class FitsTestCase:
         fits.conf.strip_header_whitespace = True
         fits.conf.use_memmap = True
 
-    def teardown(self):
+    def teardown_method(self):
         if self.home_is_temp:
             # Verify that no files were written to a literal tilde path
             for temp_file, temp_file_no_tilde in self.temp_files_used:
