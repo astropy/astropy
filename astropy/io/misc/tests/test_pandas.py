@@ -51,10 +51,10 @@ def test_read_write_format(fmt):
 
 
 @pytest.mark.parametrize('fmt', WRITE_FMTS)
-def test_write_overwrite(tmpdir, fmt):
+def test_write_overwrite(tmp_path, fmt):
     """Test overwriting."""
-    tmpfile = tmpdir.join('test.' +  fmt).strpath
-    pandas_fmt = 'pandas.' + fmt
+    tmpfile = tmp_path / f'test.{fmt}'
+    pandas_fmt = f'pandas.{fmt}'
 
     # Explicitly provide dtype to avoid casting 'a' to int32.
     # See https://github.com/astropy/astropy/issues/8682
