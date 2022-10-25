@@ -220,14 +220,14 @@ class TestRemoteURLs:
 
 class TestDefaultAutoOpen:
     """Test auto_open with different _auto_open_files."""
-    def setup(self):
+    def setup_method(self):
         # Identical to what is used in LeapSeconds.auto_open().
         self.good_enough = (iers.LeapSeconds._today()
                             + TimeDelta(180 - iers._none_to_float(iers.conf.auto_max_age),
                                         format='jd'))
         self._auto_open_files = iers.LeapSeconds._auto_open_files.copy()
 
-    def teardown(self):
+    def teardown_method(self):
         iers.LeapSeconds._auto_open_files = self._auto_open_files
 
     def remove_auto_open_files(self, *files):
@@ -346,12 +346,12 @@ class ERFALeapSecondsSafe:
 
     It ensures the original state is restored.
     """
-    def setup(self):
+    def setup_method(self):
         # Keep current leap-second table and expiration.
         self.erfa_ls = self._erfa_ls = erfa.leap_seconds.get()
         self.erfa_expires = self._expires = erfa.leap_seconds._expires
 
-    def teardown(self):
+    def teardown_method(self):
         # Restore leap-second table and expiration.
         erfa.leap_seconds.set(self.erfa_ls)
         erfa.leap_seconds._expires = self._expires
@@ -396,8 +396,8 @@ class TestFromERFA(ERFALeapSecondsSafe):
 
 
 class TestUpdateLeapSeconds(ERFALeapSecondsSafe):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         # Read default leap second table.
         self.ls = iers.LeapSeconds.from_iers_leap_seconds()
         # For tests, reset ERFA table to built-in default.

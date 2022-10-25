@@ -12,13 +12,13 @@ from astropy.utils.exceptions import AstropyWarning
 
 
 class TestUpdateLeapSeconds:
-    def setup(self):
+    def setup_method(self):
         self.built_in = iers.LeapSeconds.from_iers_leap_seconds()
         self.erfa_ls = iers.LeapSeconds.from_erfa()
         now = datetime.now()
         self.good_enough = now + timedelta(150)
 
-    def teardown(self):
+    def teardown_method(self):
         self.erfa_ls.update_erfa_leap_seconds(initialize_erfa=True)
 
     def test_auto_update_leap_seconds(self):

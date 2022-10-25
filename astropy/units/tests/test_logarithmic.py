@@ -593,7 +593,7 @@ def test_quantity_decomposition():
 
 
 class TestLogQuantityViews:
-    def setup(self):
+    def setup_method(self):
         self.lq = u.Magnitude(np.arange(1., 10.) * u.Jy)
         self.lq2 = u.Magnitude(np.arange(1., 5.))
 
@@ -913,7 +913,7 @@ class TestLogQuantityComparisons:
 
 
 class TestLogQuantityMethods:
-    def setup(self):
+    def setup_method(self):
         self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
         self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()
         self.mags = (self.mJy, self.m1)

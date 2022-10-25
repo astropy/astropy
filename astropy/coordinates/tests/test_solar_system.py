@@ -107,7 +107,7 @@ class TestPositionsGeocentric:
     2016-03-28, with refraction turned on.
     """
 
-    def setup(self):
+    def setup_method(self):
         self.t = Time('1980-03-25 00:00')
         self.apparent_frame = TETE(obstime=self.t)
         # Results returned by JPL Horizons web interface
@@ -187,7 +187,7 @@ class TestPositionKittPeak:
     2016-03-28, with refraction turned on.
     """
 
-    def setup(self):
+    def setup_method(self):
         kitt_peak = EarthLocation.from_geodetic(lon=-111.6*u.deg,
                                                 lat=31.963333333333342*u.deg,
                                                 height=2120*u.m)

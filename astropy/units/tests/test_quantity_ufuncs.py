@@ -954,7 +954,7 @@ class TestClip:
     In numpy, this is hidden behind a function that does not backwards
     compatibility checks.  We explicitly test the ufunc here.
     """
-    def setup(self):
+    def setup_method(self):
         self.clip = np.core.umath.clip
 
     def test_clip_simple(self):

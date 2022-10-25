@@ -95,7 +95,7 @@ def test_get_inputs_and_params():
 
 
 class Test_SpecialOperatorsDict:
-    def setup(self):
+    def setup_method(self):
         self.key = 'test'
         self.val = 'value'
 
