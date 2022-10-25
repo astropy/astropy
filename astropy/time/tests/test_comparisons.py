@@ -12,7 +12,7 @@ from astropy.time import Time, TimeDelta
 class TestTimeComparisons:
     """Test Comparisons of Time and TimeDelta classes"""
 
-    def setup(self):
+    def setup_method(self):
         self.t1 = Time(np.arange(49995, 50005), format='mjd', scale='utc')
         self.t2 = Time(np.arange(49000, 51000, 200), format='mjd', scale='utc')
 
