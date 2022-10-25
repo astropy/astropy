@@ -1,0 +1,2 @@
+Significantly improve performance of ``ManualInterval`` when both limits
+are specified manually.
