@@ -238,7 +238,7 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from .column import Column, MaskedColumn
+        from .column import MaskedColumn
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
