@@ -8,7 +8,7 @@ from collections import namedtuple
 import numpy as np
 import pytest
 from erfa import ufunc as erfa_ufunc
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units import quantity_helper as qh
@@ -944,6 +944,13 @@ class TestInplaceUfuncs:
         assert out.dtype == q.dtype
         assert np.all((out == np.sign(q.value)) |
                       (np.isnan(out) & np.isnan(q.value)))
+
+    def test_ndarray_inplace_op_with_quantity(self):
+        """Regression test for gh-13911."""
+        a = np.arange(3.)
+        q = u.Quantity([12.5, 25.], u.percent)
+        a[:2] += q  # This used to fail
+        assert_array_equal(a, np.array([0.125, 1.25, 2.]))
 
 
 @pytest.mark.skipif(not hasattr(np.core.umath, 'clip'),
