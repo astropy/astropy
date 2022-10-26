@@ -33,16 +33,14 @@ test_nonfinite_positions = [(np.nan, np.nan), (np.inf, np.inf), (1, np.nan),
 
 def test_slices_different_dim():
     '''Overlap from arrays with different number of dim is undefined.'''
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=".*the same number of dimensions.*"):
         overlap_slices((4, 5, 6), (1, 2), (0, 0))
-    assert "the same number of dimensions" in str(e.value)
 
 
 def test_slices_pos_different_dim():
     '''Position must have same dim as arrays.'''
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=".*the same number of dimensions.*"):
         overlap_slices((4, 5), (1, 2), (0, 0, 3))
-    assert "the same number of dimensions" in str(e.value)
 
 
 @pytest.mark.parametrize('pos', test_pos_bad)
@@ -61,9 +59,8 @@ def test_slices_partial_overlap():
     assert temp == ((slice(0, 2, None),), (slice(1, 3, None),))
 
     for pos in [0, 4]:
-        with pytest.raises(PartialOverlapError) as e:
+        with pytest.raises(PartialOverlapError, match=".*Arrays overlap only partially.*"):
             temp = overlap_slices((5,), (3,), (pos,), mode='strict')
-        assert 'Arrays overlap only partially.' in str(e.value)
 
 
 def test_slices_edges():
@@ -99,9 +96,8 @@ def test_slices_edges():
 
 def test_slices_overlap_wrong_mode():
     '''Call overlap_slices with non-existing mode.'''
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match="^Mode can be only.*"):
         overlap_slices((5,), (3,), (0,), mode='full')
-    assert "Mode can be only" in str(e.value)
 
 
 @pytest.mark.parametrize('position', test_nonfinite_positions)
