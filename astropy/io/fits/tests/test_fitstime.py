@@ -12,7 +12,7 @@ from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class TestFitsTime(FitsTestCase):

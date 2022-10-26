@@ -17,7 +17,7 @@ from astropy.io.fits.tests.test_table import _assert_attr_col
 from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import FitsTestCase, home_is_temp
+from .conftest import FitsTestCase
 
 
 class TestConvenience(FitsTestCase):

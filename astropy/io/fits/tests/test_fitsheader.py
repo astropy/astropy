@@ -5,7 +5,7 @@ import pytest
 from astropy import __version__ as version
 from astropy.io.fits.scripts import fitsheader
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class TestFITSheader_script(FitsTestCase):

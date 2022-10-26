@@ -9,7 +9,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.hdu.base import _ValidHDU
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 from .test_table import comparerecords
 
 
