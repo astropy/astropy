@@ -339,7 +339,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             # text mode, which won't work. .read_binary() does, and
             # surely other ducks would return binary contents when
             # called like this.
-            # py.path.LocalPath is what comes from the tmpdir fixture
+            # py.path.LocalPath is what comes from the legacy tmpdir fixture
             # in pytest.
             fileobj = io.BytesIO(fileobj.read_binary())
         except AttributeError:
