@@ -139,6 +139,7 @@ as a whole, see :doc:`development/vision`.
    :maxdepth: 1
 
    development/workflow/development_workflow
+   development/workflow/virtual_pythons
    development/workflow/get_devel_version
    development/when_to_rebase
    development/codeguide

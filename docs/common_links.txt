@@ -141,6 +141,8 @@
 
 .. conda
 .. _conda: https://conda.io/docs/
+.. _miniconda: https://docs.conda.io/en/latest/miniconda.html
+.. _miniconda-install: https://conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation
 
 .. py.test
 .. _pytest: https://pytest.org/en/latest/index.html

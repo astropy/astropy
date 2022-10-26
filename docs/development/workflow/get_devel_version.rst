@@ -223,8 +223,8 @@ ahead to the more sophisticated method look at :ref:`virtual_envs`).
 
 .. note::
     If you want to work on C or Cython code in `Astropy`_, this quick method
-    of activating your copy of astropy will *not* work _ -- you need to go
-    straight to using a virtual python environment.
+    of activating your copy of astropy will *not* work -- you need to go
+    straight to using :ref:`virtual_envs`.
 
 If you have decided to use the recommended "activation" method with
 ``pip``, please note the following: Before trying to install,
@@ -238,11 +238,14 @@ version you are using, try the command ``which pip`` on the terminal.
 
 In the directory where your copy of astropy is type::
 
-    pip install -e .
+    pip install -e .[test]
 
-Several pages of output will follow the first time you do this; this wouldn't
-be a bad time to get a fresh cup of coffee. At the end of it you should see
-something like  ``Finished processing dependencies for astropy==3.2.dev6272``.
+This command installs astropy itself, along with a few packages which will be
+useful for testing the changes you will make down the road. Several pages of
+output will follow the first time you do this; this wouldn't be a bad time to
+get a fresh cup of coffee. At the end of it you should see something like
+``Finished processing dependencies for astropy==3.2.dev6272``.
+
 
 To make sure it has been activated **change to a different directory outside of
 the astropy distribution** and try this in python::
@@ -260,7 +263,7 @@ should have ``'dev'`` in the name.
     back to the stable version unless you are developing astropy. If you want
     to develop astropy, there is a better way of separating the development
     version from the version you do science with. That method, using a
-    `virtualenv`_, is discussed at :ref:`virtual_envs`.
+    `virtualenv`_ or a `conda`_ environment, is discussed at :ref:`virtual_envs`.
 
     For now **remember to change back to your usual version** when you are
     done with this.
@@ -284,7 +287,7 @@ your computer, then, at the shell prompt, type::
 
     pytest
 
-This is another good time to get some coffee or tea. The number of test is
+This is another good time to get some coffee or tea. The number of tests is
 large. When the test are done running you will see a message something like
 this::
 
