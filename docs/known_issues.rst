@@ -67,7 +67,7 @@ Either set single array entries or use lists of Quantities::
 Both will throw an exception if units do not cancel, e.g.::
 
     >>> a = np.ones(4)
-    >>> a[2] = 1*u.cm # doctest: +SKIP
+    >>> a[2] = 1*u.cm
     Traceback (most recent call last):
     ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
@@ -91,7 +91,7 @@ As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `
 
 The `~numpy.arange` function does not work either::
 
-    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)
     Traceback (most recent call last):
     ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
