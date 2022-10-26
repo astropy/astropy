@@ -178,8 +178,8 @@ class TestStandardProfile:
 
         params = random_params(self.tmpdir)
         self.client1.call(self.client2.get_public_id(), 'test-tag',
-                            {'samp.mtype': 'table.load.votable',
-                             'samp.params': params})
+                          {'samp.mtype': 'table.load.votable',
+                           'samp.params': params})
 
         assert_output('table.load.votable', self.client2.get_private_key(),
                       self.client1_id, params, timeout=60)
