@@ -3,7 +3,6 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 
 from astropy import units as u
 from astropy.tests.figures import figure_test

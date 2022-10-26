@@ -1,11 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-import pytest
-
-from astropy import wcs
-
-
 def test_wtbarr_i(tab_wcs_2di):
     assert tab_wcs_2di.wcs.wtb[0].i == 1
 
@@ -14,7 +8,7 @@ def test_wtbarr_m(tab_wcs_2di):
     assert tab_wcs_2di.wcs.wtb[0].m == 1
 
 
-def test_wtbarr_m(tab_wcs_2di):
+def test_wtbarr_kind(tab_wcs_2di):
     assert tab_wcs_2di.wcs.wtb[0].kind == 'c'
 
 

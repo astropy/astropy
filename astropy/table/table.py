@@ -32,7 +32,7 @@ from .index import (
     get_index)
 from .info import TableInfo
 from .mixins.registry import get_mixin_handler
-from .ndarray_mixin import NdarrayMixin
+from .ndarray_mixin import NdarrayMixin  # noqa: F401
 from .pprint import TableFormatter
 from .row import Row
 

@@ -6,8 +6,6 @@ import pytest
 
 from astropy import wcs
 
-from .helper import SimModelTAB
-
 
 def test_prjprm_init():
     # test PyPrjprm_cnew

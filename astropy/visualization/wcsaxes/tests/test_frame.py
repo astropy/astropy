@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 
 from astropy.tests.figures import figure_test
 from astropy.visualization.wcsaxes import WCSAxes

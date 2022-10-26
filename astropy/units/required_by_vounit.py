@@ -15,8 +15,8 @@ _ns = globals()
 
 def _initialize_module():
     # Local imports to avoid polluting top-level namespace
-    from . import astrophys, cgs
-    from .core import _add_prefixes, def_unit
+    from . import astrophys
+    from .core import _add_prefixes
 
     _add_prefixes(astrophys.solMass, namespace=_ns, prefixes=True)
     _add_prefixes(astrophys.solRad, namespace=_ns, prefixes=True)

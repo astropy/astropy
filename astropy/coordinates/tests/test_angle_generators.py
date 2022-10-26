@@ -1,6 +1,5 @@
 """Unit tests for the astropy.coordinates.angle_utilities module"""
 
-import numpy as np
 import pytest
 
 import astropy.units as u

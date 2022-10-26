@@ -19,7 +19,7 @@ class SpecificException(ValueError):
 def custom_format_name():
     for i in count():
         if not i:
-            custom = f"custom_format_name"
+            custom = "custom_format_name"
         else:
             custom = f"custom_format_name_{i}"
         if custom not in Time.FORMATS:

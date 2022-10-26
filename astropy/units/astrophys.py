@@ -9,7 +9,7 @@ available in the `astropy.units` namespace.
 from astropy.constants import si as _si
 
 from . import si
-from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_prefixes
+from .core import UnitBase, def_unit, set_enabled_units
 
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])

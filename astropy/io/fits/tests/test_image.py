@@ -3,7 +3,6 @@
 import math
 import os
 import re
-import sys
 import time
 
 import numpy as np
@@ -16,7 +15,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 from .test_table import comparerecords
 
 

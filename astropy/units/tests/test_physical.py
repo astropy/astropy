@@ -457,7 +457,7 @@ class TestDefPhysType:
             assert set((self.weird_unit).physical_type) == {
                 weird_name,
                 strange_name,
-            }, f"did not correctly append a new physical type name."
+            }, "did not correctly append a new physical type name."
         except Exception:
             raise
         finally:  # cleanup added names

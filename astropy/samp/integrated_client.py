@@ -172,7 +172,7 @@ class SAMPIntegratedClient:
 
         if "extra_kws" in params:
             extra = params["extra_kws"]
-            del(params["extra_kws"])
+            del params["extra_kws"]
             msg = {"samp.mtype": mtype, "samp.params": params}
             msg.update(extra)
         else:

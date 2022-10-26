@@ -19,7 +19,6 @@ FITS files
 import copy
 import keyword
 import math
-import os
 import warnings
 from fractions import Fraction
 

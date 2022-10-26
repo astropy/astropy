@@ -1,4 +1,3 @@
-import ssl
 import tempfile
 
 import pytest
@@ -8,7 +7,6 @@ from astropy.samp import conf
 from astropy.samp.errors import SAMPProxyError
 from astropy.samp.hub import SAMPHubServer
 from astropy.samp.integrated_client import SAMPIntegratedClient
-from astropy.utils.data import get_pkg_data_filename
 
 from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
 

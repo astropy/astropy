@@ -13,7 +13,7 @@ from astropy.io.fits.hdu import PrimaryHDU, hdulist
 from astropy.io.fits.scripts import fitsdiff
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase, home_is_temp
+from .conftest import FitsTestCase
 
 
 class TestFITSDiff_script(FitsTestCase):

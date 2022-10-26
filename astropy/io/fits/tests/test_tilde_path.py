@@ -8,7 +8,7 @@ import pytest
 from astropy.io import fits
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase, home_is_data, home_is_temp
+from .conftest import FitsTestCase
 
 
 class TestTildePaths(FitsTestCase):

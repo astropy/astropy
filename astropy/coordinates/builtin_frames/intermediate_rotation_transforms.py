@@ -17,7 +17,7 @@ from .equatorial import TEME, TETE
 from .gcrs import GCRS, PrecessedGeocentric
 from .icrs import ICRS
 from .itrs import ITRS
-from .utils import EARTH_CENTER, get_jd12, get_polar_motion
+from .utils import get_jd12, get_polar_motion
 
 # # first define helper functions
 

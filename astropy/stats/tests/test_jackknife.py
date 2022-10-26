@@ -39,7 +39,8 @@ def test_jackknife_stats_conf_interval():
     answer = (113.7862, -4.376391, 22.26572)
 
     # calculate the mle of the variance (biased estimator!)
-    def mle_var(x): return np.sum((x - np.mean(x))*(x - np.mean(x)))/len(x)
+    def mle_var(x):
+        return np.sum((x - np.mean(x))*(x - np.mean(x)))/len(x)
 
     assert_allclose(answer, jackknife_stats(data, mle_var, 0.95)[0:3],
                     atol=1e-4)

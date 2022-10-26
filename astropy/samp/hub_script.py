@@ -117,8 +117,8 @@ def hub_script(timeout=0):
         with context:
 
             args = copy.deepcopy(options.__dict__)
-            del(args["loglevel"])
-            del(args["logout"])
+            del args["loglevel"]
+            del args["logout"]
 
             hub = SAMPHubServer(**args)
             hub.start(False)

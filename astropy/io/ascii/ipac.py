@@ -234,7 +234,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if m.end() != len(name):
                 raise IpacFormatE('{} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
-            if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
+            if self.DBMS and not (name[0].isalpha() or (name[0] == '_')):
                 raise IpacFormatE(f'Column name cannot start with numbers: {name}')
             if self.DBMS:
                 if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:

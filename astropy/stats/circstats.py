@@ -335,7 +335,7 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
        Circular Statistics (2001)'". 2015.
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     """
-    if(np.size(alpha, axis) != np.size(beta, axis)):
+    if np.size(alpha, axis) != np.size(beta, axis):
         raise ValueError("alpha and beta must be arrays of the same size")
 
     mu_a = circmean(alpha, axis, weights_alpha)
@@ -405,7 +405,7 @@ def rayleightest(data, axis=None, weights=None):
 
     # see [3] and [4] for the formulae below
     tmp = 1.0
-    if(n < 50):
+    if n < 50:
         tmp = 1.0 + (2.0*z - z*z)/(4.0*n) - (24.0*z - 132.0*z**2.0 +
                                              76.0*z**3.0 - 9.0*z**4.0)/(288.0 *
                                                                         n * n)

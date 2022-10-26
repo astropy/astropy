@@ -16,6 +16,8 @@ code under a BSD license.
 # this also makes it easier to understand where most time is spent
 # (e.g., using python -X importtime).
 
+from .core import set_enabled_units
+
 # isort: off
 from .core import *
 from .quantity import *

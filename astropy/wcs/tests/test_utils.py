@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import warnings
 from contextlib import nullcontext
 
 import numpy as np
@@ -656,17 +655,17 @@ def test_is_proj_plane_distorted():
     wcs = WCS(naxis=2)
     wcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
     wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-    assert(is_proj_plane_distorted(wcs))
+    assert is_proj_plane_distorted(wcs)
 
     # almost orthogonal CD:
     wcs.wcs.cd = [[0.1 + 2.0e-7, 1.7e-7], [1.2e-7, 0.1 - 1.3e-7]]
-    assert(not is_proj_plane_distorted(wcs))
+    assert not is_proj_plane_distorted(wcs)
 
     # real case:
     header = get_pkg_data_filename('data/sip.fits')
     with pytest.warns(FITSFixedWarning):
         wcs = WCS(header)
-    assert(is_proj_plane_distorted(wcs))
+    assert is_proj_plane_distorted(wcs)
 
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])

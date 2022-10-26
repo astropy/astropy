@@ -13,7 +13,6 @@
 """Handles the CDS string format for units."""
 
 import operator
-import os
 import re
 
 from astropy.units.utils import is_effectively_unity

@@ -513,7 +513,7 @@ def test_imgpix_matrix2():
 
 def test_isunity():
     w = _wcs.Wcsprm()
-    assert(w.is_unity())
+    assert w.is_unity()
 
 
 def test_lat():
