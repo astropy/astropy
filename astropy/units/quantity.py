@@ -675,10 +675,14 @@ class Quantity(np.ndarray):
             # View the result array as a Quantity with the proper unit.
             return result if unit is None else self._new_view(result, unit)
 
-        # For given output, just set the unit. We know the unit is not None and
-        # the output is of the correct Quantity subclass, as it was passed
-        # through check_output.
-        out._set_unit(unit)
+        elif isinstance(out, Quantity):
+            # For given Quantity output, just set the unit. We know the unit
+            # is not None and the output is of the correct Quantity subclass,
+            # as it was passed through check_output.
+            # (We cannot do this unconditionally, though, since it is possible
+            # for out to be ndarray and the unit to be dimensionless.)
+            out._set_unit(unit)
+
         return out
 
     def __quantity_subclass__(self, unit):
