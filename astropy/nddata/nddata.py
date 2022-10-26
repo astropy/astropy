@@ -78,8 +78,8 @@ class NDData(NDDataBase):
         .. versionadded:: 1.2
 
     psf : `numpy.ndarray` or None, optional
-        Normalized image representing the PSF at the center of this
-        image.
+        Image representation of the PSF. In order for convolution to be flux-
+        preserving, this should generally be normalized to sum to unity.
 
     Raises
     ------

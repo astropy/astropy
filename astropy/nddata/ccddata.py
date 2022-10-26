@@ -130,8 +130,9 @@ class CCDData(NDDataArray):
             ``ValueError``
 
     psf : `numpy.ndarray` or None, optional
-        Normalized image representing the PSF at the center of this
-        image.
+        Image representation of the PSF at the center of this image. In order
+        for convolution to be flux-preserving, this should generally be
+        normalized to sum to unity.
 
     Raises
     ------
