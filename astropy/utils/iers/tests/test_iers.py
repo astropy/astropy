@@ -381,9 +381,9 @@ def test_iers_b_dl():
 
 
 @pytest.mark.remote_data
-def test_iers_out_of_range_handling(tmpdir):
+def test_iers_out_of_range_handling(tmp_path):
     # Make sure we don't have IERS-A data available anywhere
-    with set_temp_cache(tmpdir):
+    with set_temp_cache(tmp_path):
         iers.IERS_A.close()
         iers.IERS_Auto.close()
         iers.IERS.close()
@@ -406,9 +406,9 @@ def test_iers_out_of_range_handling(tmpdir):
 
 
 @pytest.mark.remote_data
-def test_iers_download_error_handling(tmpdir):
+def test_iers_download_error_handling(tmp_path):
     # Make sure we don't have IERS-A data available anywhere
-    with set_temp_cache(tmpdir):
+    with set_temp_cache(tmp_path):
         iers.IERS_A.close()
         iers.IERS_Auto.close()
         iers.IERS.close()

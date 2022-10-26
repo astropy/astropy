@@ -123,18 +123,18 @@ class TestReading:
         assert not expired
 
 
-def make_fake_file(expiration, tmpdir):
+def make_fake_file(expiration, tmp_path):
     """copy the built-in IERS file but set a different expiration date."""
     ls = iers.LeapSeconds.from_iers_leap_seconds()
-    fake_file = str(tmpdir.join('fake_leap_seconds.dat'))
+    fake_file = str(tmp_path / 'fake_leap_seconds.dat')
     with open(fake_file, 'w') as fh:
         fh.write('\n'.join([f'#  File expires on {expiration}']
                            + str(ls).split('\n')[2:-1]))
         return fake_file
 
 
-def test_fake_file(tmpdir):
-    fake_file = make_fake_file('28 June 2345', tmpdir)
+def test_fake_file(tmp_path):
+    fake_file = make_fake_file('28 June 2345', tmp_path)
     fake = iers.LeapSeconds.from_iers_leap_seconds(fake_file)
     assert fake.expires == Time('2345-06-28', scale='tai')
 
@@ -153,8 +153,8 @@ class TestAutoOpenExplicitLists:
         assert ls.meta['data_url'] in ['erfa', iers.IERS_LEAP_SECOND_FILE]
 
     @pytest.mark.filterwarnings(iers.IERSStaleWarning)
-    def test_fake_future_file(self, tmpdir):
-        fake_file = make_fake_file('28 June 2345', tmpdir)
+    def test_fake_future_file(self, tmp_path):
+        fake_file = make_fake_file('28 June 2345', tmp_path)
         # Try as system file for auto_open, setting auto_max_age such
         # that any ERFA or system files are guaranteed to be expired,
         # while the fake file is guaranteed to be OK.
@@ -170,9 +170,9 @@ class TestAutoOpenExplicitLists:
             assert ls2.expires == Time('2345-06-28', scale='tai')
             assert ls2.meta['data_url'] == str(fake_url)
 
-    def test_fake_expired_file(self, tmpdir):
-        fake_file1 = make_fake_file('28 June 2010', tmpdir)
-        fake_file2 = make_fake_file('27 June 2012', tmpdir)
+    def test_fake_expired_file(self, tmp_path):
+        fake_file1 = make_fake_file('28 June 2010', tmp_path)
+        fake_file2 = make_fake_file('27 June 2012', tmp_path)
         # Between these and the built-in one, the built-in file is best.
         ls = iers.LeapSeconds.auto_open([fake_file1, fake_file2,
                                          iers.IERS_LEAP_SECOND_FILE])
@@ -265,8 +265,8 @@ class TestDefaultAutoOpen:
             "cd astropy/utils/iers/data/; . update_builtin_iers.sh\n"
             "and commit as a PR (for details, see release procedure).")
 
-    def test_fake_future_file(self, tmpdir):
-        fake_file = make_fake_file('28 June 2345', tmpdir)
+    def test_fake_future_file(self, tmp_path):
+        fake_file = make_fake_file('28 June 2345', tmp_path)
         # Try as system file for auto_open, setting auto_max_age such
         # that any ERFA or system files are guaranteed to be expired.
         with iers.conf.set_temp('auto_max_age', -100000), \
@@ -282,10 +282,10 @@ class TestDefaultAutoOpen:
         assert ls2.expires == Time('2345-06-28', scale='tai')
         assert ls2.meta['data_url'] == str(fake_url)
 
-    def test_fake_expired_file(self, tmpdir):
+    def test_fake_expired_file(self, tmp_path):
         self.remove_auto_open_files('erfa', 'iers_leap_second_auto_url',
                                     'ietf_leap_second_auto_url')
-        fake_file = make_fake_file('28 June 2010', tmpdir)
+        fake_file = make_fake_file('28 June 2010', tmp_path)
         with iers.conf.set_temp('system_leap_second_file', fake_file):
             # If we try this directly, the built-in file will be found.
             ls = iers.LeapSeconds.open()
@@ -301,7 +301,7 @@ class TestDefaultAutoOpen:
 
     @pytest.mark.skipif(not os.path.isfile(SYSTEM_FILE),
                         reason=f'system does not have {SYSTEM_FILE}')
-    def test_system_file_used_if_not_expired(self, tmpdir):
+    def test_system_file_used_if_not_expired(self, tmp_path):
         # We skip the test if the system file is on a CI and is expired -
         # we should not depend on CI keeping it up to date, but if it is,
         # we should check that it is used if possible.
@@ -316,7 +316,7 @@ class TestDefaultAutoOpen:
                                            SYSTEM_FILE)
 
             # Also check with a "built-in" file that is expired
-            fake_file = make_fake_file('28 June 2017', tmpdir)
+            fake_file = make_fake_file('28 June 2017', tmp_path)
             iers.LeapSeconds._auto_open_files[0] = fake_file
             ls2 = iers.LeapSeconds.open()
             assert ls2.expires > Time.now()
