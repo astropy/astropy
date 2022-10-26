@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-import pytest
 
-from astropy import wcs
 from astropy.io import fits
 
 
@@ -78,7 +76,7 @@ class SimModelTAB:
         )
 
         # create binary table HDU:
-        bt = fits.BinTableHDU(arr);
+        bt = fits.BinTableHDU(arr)
         bt.header['EXTNAME'] = 'WCS-TABLE'
 
         # create primary header:

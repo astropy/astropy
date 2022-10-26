@@ -6,7 +6,6 @@
 
 import datetime
 import os
-import socket
 import stat
 import warnings
 import xmlrpc.client as xmlrpc

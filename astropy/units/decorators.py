@@ -11,10 +11,8 @@ import numpy as np
 
 from . import _typing as T
 from .core import Unit, UnitBase, UnitsError, add_enabled_equivalencies, dimensionless_unscaled
-from .function.core import FunctionUnitBase
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
-from .structured import StructuredUnit
 
 NoneType = type(None)
 

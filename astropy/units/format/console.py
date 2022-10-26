@@ -36,12 +36,12 @@ class Console(base.Base):
     @classmethod
     def _format_unit_list(cls, units):
         out = []
-        for base, power in units:
+        for base_, power in units:
             if power == 1:
-                out.append(cls._get_unit_name(base))
+                out.append(cls._get_unit_name(base_))
             else:
                 out.append('{}{}'.format(
-                    cls._get_unit_name(base),
+                    cls._get_unit_name(base_),
                     cls._format_superscript(
                             utils.format_power(power))))
         return ' '.join(out)

@@ -1,7 +1,5 @@
 from copy import copy
-from unittest.mock import MagicMock
 
-import numpy as np
 import pytest
 from numpy.testing import assert_equal
 

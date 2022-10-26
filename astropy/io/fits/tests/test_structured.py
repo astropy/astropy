@@ -6,7 +6,7 @@ import numpy as np
 
 from astropy.io import fits
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 def compare_arrays(arr1in, arr2in, verbose=False):

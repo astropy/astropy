@@ -11,7 +11,7 @@ from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class DummyNonstandardExtHDU(NonstandardExtHDU):

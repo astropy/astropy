@@ -70,10 +70,10 @@ def test_ripley_uniform_property(points):
     # Ripley's K function without edge-correction converges to the area when
     # the number of points and the argument radii are large enough, i.e.,
     # K(x) --> area as x --> inf
-        area = 50
-        Kest = RipleysKEstimator(area=area)
-        r = np.linspace(0, 20, 5)
-        assert_allclose(area, Kest(data=points, radii=r, mode='none')[4])
+    area = 50
+    Kest = RipleysKEstimator(area=area)
+    r = np.linspace(0, 20, 5)
+    assert_allclose(area, Kest(data=points, radii=r, mode='none')[4])
 
 
 with NumpyRNGContext(123):
@@ -83,14 +83,13 @@ with NumpyRNGContext(123):
 
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
 def test_ripley_large_density(points, low, high):
-        Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,
-                                 y_max=high)
-        r = np.linspace(0, 0.25, 25)
-        Kpos = Kest.poisson(r)
-        modes = ['ohser', 'translation', 'ripley']
-        for m in modes:
-            Kest_r = Kest(data=points, radii=r, mode=m)
-            assert_allclose(Kpos, Kest_r, atol=1e-1)
+    Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low, y_max=high)
+    r = np.linspace(0, 0.25, 25)
+    Kpos = Kest.poisson(r)
+    modes = ['ohser', 'translation', 'ripley']
+    for m in modes:
+        Kest_r = Kest(data=points, radii=r, mode=m)
+        assert_allclose(Kpos, Kest_r, atol=1e-1)
 
 
 with NumpyRNGContext(123):
@@ -100,14 +99,13 @@ with NumpyRNGContext(123):
 
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
 def test_ripley_modes(points, low, high):
-        Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low,
-                                 y_min=low)
-        r = np.linspace(0, 1.2, 25)
-        Kpos_mean = np.mean(Kest.poisson(r))
-        modes = ['ohser', 'translation', 'ripley']
-        for m in modes:
-            Kest_mean = np.mean(Kest(data=points, radii=r, mode=m))
-            assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)
+    Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low, y_min=low)
+    r = np.linspace(0, 1.2, 25)
+    Kpos_mean = np.mean(Kest.poisson(r))
+    modes = ['ohser', 'translation', 'ripley']
+    for m in modes:
+        Kest_mean = np.mean(Kest(data=points, radii=r, mode=m))
+        assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)
 
 
 with NumpyRNGContext(123):
@@ -117,12 +115,11 @@ with NumpyRNGContext(123):
 
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
 def test_ripley_large_density_var_width(points, low, high):
-        Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,
-                                 y_max=high)
-        r = np.linspace(0, 0.25, 25)
-        Kpos = Kest.poisson(r)
-        Kest_r = Kest(data=points, radii=r, mode='var-width')
-        assert_allclose(Kpos, Kest_r, atol=1e-1)
+    Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,  y_max=high)
+    r = np.linspace(0, 0.25, 25)
+    Kpos = Kest.poisson(r)
+    Kest_r = Kest(data=points, radii=r, mode='var-width')
+    assert_allclose(Kpos, Kest_r, atol=1e-1)
 
 
 with NumpyRNGContext(123):
@@ -132,9 +129,8 @@ with NumpyRNGContext(123):
 
 @pytest.mark.parametrize("points, low, high", [(a, 5, 10), (b, -10, -5)])
 def test_ripley_var_width(points, low, high):
-        Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low,
-                                 y_min=low)
-        r = np.linspace(0, 1.2, 25)
-        Kest_ohser = np.mean(Kest(data=points, radii=r, mode='ohser'))
-        Kest_var_width = np.mean(Kest(data=points, radii=r, mode='var-width'))
-        assert_allclose(Kest_ohser, Kest_var_width, atol=1e-1, rtol=1e-1)
+    Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low, y_min=low)
+    r = np.linspace(0, 1.2, 25)
+    Kest_ohser = np.mean(Kest(data=points, radii=r, mode='ohser'))
+    Kest_var_width = np.mean(Kest(data=points, radii=r, mode='var-width'))
+    assert_allclose(Kest_ohser, Kest_var_width, atol=1e-1, rtol=1e-1)

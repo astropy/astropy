@@ -9,7 +9,7 @@ from astropy.io import fits
 from astropy.io.fits.scripts import fitscheck
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class TestFitscheck(FitsTestCase):

@@ -621,7 +621,7 @@ def test_all_world2pix(fname=None, ext=0,
           "Run time: {}\n"
           .format(meanerr, maxerr, runtime_end - runtime_begin))
 
-    assert(maxerr < 2.0 * tolerance)
+    assert maxerr < 2.0 * tolerance
 
 
 def test_scamp_sip_distortion_parameters():

@@ -6,7 +6,6 @@ import numpy as np
 from astropy.utils import isiterable
 from astropy.utils.decorators import lazyproperty
 
-from ..low_level_api import BaseLowLevelWCS
 from .base import BaseWCSWrapper
 
 __all__ = ['sanitize_slices', 'SlicedLowLevelWCS']

@@ -2,12 +2,11 @@
 
 import importlib
 import secrets
-import sys
 from textwrap import dedent
 
 import pytest
 
-from astropy.utils.parsing import _TAB_HEADER, lex, yacc
+from astropy.utils.parsing import _TAB_HEADER
 
 
 def _docstring_canary():

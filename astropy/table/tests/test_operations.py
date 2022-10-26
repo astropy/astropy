@@ -14,9 +14,8 @@ from astropy.coordinates import (
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
-from astropy.table import Column, MaskedColumn, NdarrayMixin, QTable, Table, TableMergeError
+from astropy.table import Column, MaskedColumn, QTable, Table, TableMergeError
 from astropy.table.operations import _get_out_class, join_distance, join_skycoord
-from astropy.table.table_helpers import ArrayWrapper
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata

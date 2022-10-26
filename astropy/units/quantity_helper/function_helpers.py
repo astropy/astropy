@@ -36,7 +36,6 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 import functools
 import operator
-from functools import reduce
 
 import numpy as np
 from numpy.lib import recfunctions as rfn

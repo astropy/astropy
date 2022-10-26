@@ -29,7 +29,7 @@ def available_methods():
 
     # Scipy required for scipy algorithm (obviously)
     try:
-        import scipy
+        import scipy  # noqa: F401
     except ImportError:
         pass
     else:

@@ -27,7 +27,7 @@ from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_1_22, NUMPY_LT_1_22_1
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from . import FitsTestCase, home_is_data
+from .conftest import FitsTestCase
 
 
 def comparefloats(a, b):

@@ -322,7 +322,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                 "--coverage can not be used with --parallel")
 
         try:
-            import coverage  # pylint: disable=W0611
+            import coverage  # noqa: F401
         except ImportError:
             raise ImportError(
                 "--coverage requires that the coverage package is "

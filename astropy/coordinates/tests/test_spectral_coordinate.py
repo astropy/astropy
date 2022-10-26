@@ -13,7 +13,6 @@ from astropy.coordinates import (
 from astropy.coordinates.spectral_coordinate import SpectralCoord, _apply_relativistic_doppler_shift
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
-from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning

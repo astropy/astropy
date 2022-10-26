@@ -6,14 +6,11 @@ from numpy.testing import assert_allclose, assert_equal
 
 import astropy.units as u
 from astropy.coordinates import ICRS, Galactic, SkyCoord
-from astropy.coordinates.spectral_coordinate import SpectralCoord
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
-from astropy.wcs import WCS
 from astropy.wcs.wcs import WCS, FITSFixedWarning
-from astropy.wcs.wcsapi.utils import wcs_info_str
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
     SlicedLowLevelWCS, combine_slices, sanitize_slices)
 

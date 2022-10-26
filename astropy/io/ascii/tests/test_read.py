@@ -604,8 +604,8 @@ def test_set_guess_kwarg():
     """Read a file using guess with one of the typical guess_kwargs explicitly set."""
     data = ascii.read('data/space_delim_no_header.dat',
                       delimiter=',', guess=True)
-    assert(data.dtype.names == ('1 3.4 hello',))
-    assert(len(data) == 1)
+    assert data.dtype.names == ('1 3.4 hello',)
+    assert len(data) == 1
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])

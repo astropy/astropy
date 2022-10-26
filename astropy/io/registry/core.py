@@ -4,8 +4,6 @@ import os
 import sys
 from collections import OrderedDict
 
-import numpy as np
-
 from .base import IORegistryError, _UnifiedIORegistryBase
 
 __all__ = ['UnifiedIORegistry', 'UnifiedInputRegistry', 'UnifiedOutputRegistry']

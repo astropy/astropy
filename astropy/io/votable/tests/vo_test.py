@@ -1041,10 +1041,8 @@ def test_timesys_roundtrip():
 
 def test_timesys_errors():
     output = io.StringIO()
-    validate(get_pkg_data_filename('data/timesys_errors.xml'), output,
-             xmllint=False)
+    validate(get_pkg_data_filename('data/timesys_errors.xml'), output, xmllint=False)
     outstr = output.getvalue()
-    assert("E23: Invalid timeorigin attribute 'bad-origin'" in outstr)
-    assert("E22: ID attribute is required for all TIMESYS elements" in outstr)
-    assert("W48: Unknown attribute 'refposition_mispelled' on TIMESYS"
-           in outstr)
+    assert "E23: Invalid timeorigin attribute 'bad-origin'" in outstr
+    assert "E22: ID attribute is required for all TIMESYS elements" in outstr
+    assert "W48: Unknown attribute 'refposition_mispelled' on TIMESYS" in outstr

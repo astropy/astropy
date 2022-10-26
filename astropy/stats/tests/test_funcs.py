@@ -275,7 +275,8 @@ def test_bootstrap_multiple_outputs():
 
         answer = np.array((0.19425, 0.02094))
 
-        def bootfunc(x): return spearmanr(x)[0]
+        def bootfunc(x):
+            return spearmanr(x)[0]
 
         bootresult = funcs.bootstrap(bootarr, 2,
                                      bootfunc=bootfunc)
@@ -291,7 +292,8 @@ def test_bootstrap_multiple_outputs():
         answer = np.array((0.5907,
                            0.9541))
 
-        def bootfunc(x): return spearmanr(x)[1]
+        def bootfunc(x):
+            return spearmanr(x)[1]
 
         bootresult = funcs.bootstrap(bootarr, 2,
                                      bootfunc=bootfunc)
@@ -304,7 +306,8 @@ def test_bootstrap_multiple_outputs():
                            (0.0209, 0.9541),
                            (0.4286, 0.2165)))
 
-        def bootfunc(x): return spearmanr(x)
+        def bootfunc(x):
+            return spearmanr(x)
 
         bootresult = funcs.bootstrap(bootarr, 3,
                                      bootfunc=bootfunc)

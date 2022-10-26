@@ -12,13 +12,12 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.io import fits
 from astropy.io.fits import printdiff
-from astropy.io.fits.column import ColumnAttribute
 from astropy.io.fits.connect import REMOVE_KEYWORDS
 from astropy.io.fits.tests.test_table import _assert_attr_col
 from astropy.table import Table
 from astropy.utils.exceptions import AstropyUserWarning
 
-from . import FitsTestCase, home_is_temp
+from .conftest import FitsTestCase
 
 
 class TestConvenience(FitsTestCase):
