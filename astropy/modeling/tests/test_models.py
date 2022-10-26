@@ -473,12 +473,14 @@ class Fittable1DModelTester:
         """
         Test if the parametric model works with the fitter.
         """
+        SCIPY_LT_1_6 = not minversion('scipy', '1.6')
+
         if (
             model_class == models.BrokenPowerLaw1D and
             fitter == fitting.TRFLSQFitter and
-            not minversion('scipy', '1.5', False)
+            SCIPY_LT_1_6
         ):
-            pytest.xfail(reason='TRF fitter fails for BrokenPowerLaw1D in scipy <= 1.5')
+            pytest.xfail(reason='TRF fitter fails for BrokenPowerLaw1D in scipy < 1.6')
 
         fitter = fitter()
 
