@@ -45,7 +45,7 @@ You can improve the performance for large files by passing the parameter
 to download only the necessary parts of the FITS file.
 For example:
 
-.. doctest-requires:: fsspec
+.. doctest-skip::
 
     >>> from astropy.io import fits
     ...
@@ -102,7 +102,7 @@ prefix ``s3://`` (Amazon S3 Storage) or ``gs://`` (Google Cloud Storage),
 `open` will automatically default to ``use_fsspec=True`` for convenience.
 For example:
 
-.. doctest-requires:: fsspec
+.. doctest-skip::
 
     >>> # Download a small 10-by-20 pixel cutout from a FITS file stored in Amazon S3
     >>> with fits.open(s3_uri, fsspec_kwargs={"anon": True}) as hdul:  # doctest: +REMOTE_DATA
@@ -175,7 +175,7 @@ We also know that the radius of the galaxy is approximately 5 arcseconds::
 Given this sky position and radius, we can use `~astropy.nddata.Cutout2D`
 in combination with ``use_fsspec=True`` and ``.section`` as follows:
 
-.. doctest-requires:: fsspec
+.. doctest-skip::
 
     >>> from astropy.nddata import Cutout2D
     >>> from astropy.wcs import WCS
@@ -189,7 +189,7 @@ in combination with ``use_fsspec=True`` and ``.section`` as follows:
 
 As a final step, you can plot the cutout using Matplotlib as follows:
 
-.. doctest-requires:: fsspec
+.. doctest-skip::
 
     >>> import matplotlib.pyplot as plt
     >>> from astropy.visualization import astropy_mpl_style
@@ -255,7 +255,7 @@ these parameters via the ``fsspec_kwargs`` argument of `astropy.io.fits.open`.
 For example, we can configure fsspec to make buffered reads with a minimum
 ``block_size`` of 1 MB as follows:
 
-.. doctest-requires:: fsspec
+.. doctest-skip::
 
     >>> fsspec_kwargs = {"block_size": 1_000_000, "cache_type": "bytes"}
     >>> with fits.open(url, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:  # doctest: +REMOTE_DATA
