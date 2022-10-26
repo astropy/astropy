@@ -28,15 +28,25 @@ Astropy and other Python packages.
     ``bin/`` at the head of your ``$PATH`` environment variable.
 
     This works similarly on Windows but the details depend on how you
-    installed Python and whether or not you're using Anaconda.
+    installed Python and whether or not you're using Miniconda.
 
 There are a few options for using virtual environments; the choice of method
 is dictated by the Python distribution you use:
 
-* If you use the Anaconda/Conda Python distribution you must use the
+* If you wish to use the `miniconda`_ Python distribution, you must use the
   `conda`_ command to make and manage your virtual environments.
 
-* If you do not use Anaconda you can use `virtualenv`_ and the conda-like
+.. note::
+
+    `miniconda`_ is a minimal flavor of the popular Anaconda Python
+    distribution, containing only ``conda``, Python, other useful packages
+    (such as ``pip``, ``requests``, etc.) and their dependencies in the
+    ``base`` environment.
+    Further packages and environments can then be bootstrapped from the
+    existing ``base`` environment, allowing developers to install *just the
+    packages* needed, and nothing more.
+
+* If you do not wish to use Miniconda you can use `virtualenv`_ and the conda-like
   helper commands provided by `virtualenvwrapper`_; you *can not* use this
   with `conda`_. As the name suggests, `virtualenvwrapper`_ is a wrapper
   around `virtualenv`_.
@@ -67,6 +77,10 @@ translated into multiple languages is the `Hitchhiker's Guide to Python
 Set up for virtual environments
 ===============================
 
+* `conda`_: No setup is necessary beyond installing the Miniconda Python
+  distribution . You can find the `installation instructions
+  here`_.
+
 * `virtualenvwrapper`_:
 
   + First, install `virtualenvwrapper`_, which will also install `virtualenv`_,
@@ -79,9 +93,6 @@ Set up for virtual environments
       export WORKON_HOME=$HOME/.virtualenvs
       export PROJECT_HOME=$HOME/
       source /usr/local/bin/virtualenvwrapper.sh
-
-* `conda`_: No setup is necessary beyond installing the Anaconda Python
-  distribution.
 
 * `pipenv`_: Install the ``pipenv`` command using your default pip (the
   pip in the default Python environment)::
@@ -97,16 +108,16 @@ You do not need to list the virtual environments you have created before using
 them...but sooner or later you will forget what environments you have defined
 and this is the easy way to find out.
 
+* `conda`_: ``conda info -e``
+    + you will always have at least one environment, called ``base``.
+    + your active environment is indicated by a ``*``
+
 * `virtualenvwrapper`_: ``workon``
     + If this displays nothing you have no virtual environments
     + If this displays ``workon: command not found`` then you haven't done
       the :ref:`setup_for_env`; do that.
     + For more detailed information about installed environments use
       ``lsvirtualenv``.
-
-* `conda`_: ``conda info -e``
-    + you will always have at least one environment, called ``root``
-    + your active environment is indicated by a ``*``
 
 * `pipenv`_ does not have a concept of listing virtualenvs; it instead
   automatically generates the virtualenv associated with a project directory
@@ -136,6 +147,43 @@ environment.
 
 **The name you choose cannot have spaces in it.**
 
+* `conda`_:
+    + Make an environment called ``ENV`` with all of the packages in your ``base``
+      Miniconda environment::
+
+        conda create -n ENV
+
+    + More details, and examples that start with none of the packages from
+      your default Python environment, are in the
+      `documentation for the conda command`_ and the
+      `guide on how to manage environments`_.
+
+    .. note::
+      As a general good practice, it is best to keep ``base`` untouched,
+      and install any packages you may need into isolated environments.
+      This way, even if you create new environments starting from ``base``,
+      you control exactly which packages are installed, saving you from
+      subtle dependency issues down the road.
+
+    + Next activate the environment ``ENV`` with::
+
+        conda activate ENV
+
+    + Your command-line prompt will contain ``ENV`` in parentheses by default.
+
+    + If Astropy is installed in your ``ENV`` environment, you may need to uninstall it
+      in order for the development version to install properly. You can do this
+      with the following command::
+
+        conda uninstall astropy
+
+    + Depending on your development use case, you may want to install
+      additional packages into this environment in order to carry out tests,
+      build documentation, extend specific additional features etc. See
+      :ref:`testing-dependencies`, :ref:`builddocs`, and :ref:`Requirements for
+      Astropy <astropy-main-req>` respectively to get started according to your
+      use case.
+
 * `virtualenvwrapper`_:
     + Make an environment called ``ENV`` with all of the packages in your
       default Python environment::
@@ -149,29 +197,6 @@ environment.
       can install packages within the virtual environment.
     + More details and examples are in the
       `virtualenvwrapper command documentation`_.
-
-* `conda`_:
-    + Make an environment called ``ENV`` with all of the packages in your main
-      Anaconda environment::
-
-        conda create -n ENV anaconda
-
-    + More details, and examples that start with none of the packages from
-      your default Python environment, are in the
-      `documentation for the conda command`_ and the
-      `guide on how to manage environments`_.
-
-    + Next activate the environment ``ENV`` with::
-
-        conda activate ENV
-
-    + Your command-line prompt will contain ``ENV`` in parentheses by default.
-
-    + If Astropy is installed in your ``ENV`` environment, you may need to uninstall it
-      in order for the development version to install properly. You can do this
-      with the following command::
-
-        conda uninstall astropy
 
 * `pipenv`_:
     + Make sure you are in the Astropy source directory.  See
@@ -217,13 +242,13 @@ manually, though it would be inconvenient):
 The commands below allow you to switch between virtual environments in
 addition to activating new ones.
 
-* `virtualenvwrapper`_: Activate the environment ``ENV`` with::
-
-      workon ENV
-
 * `conda`_: Activate the environment ``ENV`` with::
 
       conda activate ENV
+
+* `virtualenvwrapper`_: Activate the environment ``ENV`` with::
+
+      workon ENV
 
 * `pipenv`_: Activate the environment by changing into the project
   directory (i.e. the copy of the Astropy repository on your computer) and
@@ -240,12 +265,12 @@ Deactivate a virtual environment
 At some point you may want to go back to your default Python environment. Do
 that with:
 
+* `conda`_: ``conda deactivate``
+
 * `virtualenvwrapper`_: ``deactivate``
     + Note that in ``virtualenvwrapper 4.1.1`` the output of
       ``mkvirtualenv`` says you should use ``source deactivate``; that does
       not seem to actually work.
-
-* `conda`_: ``conda deactivate``
 
 * `pipenv`_: ``exit``
 
@@ -269,14 +294,15 @@ directory in which the ``ENV`` is located; both also provide commands to
 make that a bit easier.  `pipenv`_ includes a command for deleting the
 virtual environment associated with the current directory:
 
-* `virtualenvwrapper`_: ``rmvirtualenv ENV``
-
 * `conda`_: ``conda remove --all -n ENV``
+
+* `virtualenvwrapper`_: ``rmvirtualenv ENV``
 
 * `pipenv`_: ``pipenv --rm``: As with other ``pipenv`` commands this is
   run from within the project directory.
 
 .. _documentation for virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
 .. _virtualenvwrapper command documentation: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
+.. _installation instructions here: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 .. _documentation for the conda command: https://docs.conda.io/projects/conda/en/latest/commands.html
 .. _guide on how to manage environments: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html

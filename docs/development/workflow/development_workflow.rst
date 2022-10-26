@@ -168,6 +168,13 @@ our coding style standards. This can be done by installing ``pre-commit`` in the
 of your astropy repository by running::
 
     pip install pre-commit
+
+Or if you prefer `conda`_::
+
+    conda install pre-commit
+
+Followed by::
+
     pre-commit install
 
 For more detailed instructions on installing ``pre-commit``, see the
@@ -306,14 +313,17 @@ Install your branch
 Ideally you should set up a Python virtual environment just for this fix;
 instructions for doing to are at :ref:`virtual_envs`. Doing so ensures you
 will not corrupt your main ``astropy`` install and makes it very easy to recover
-from mistakes.
+from mistakes, and thus, is recommended before you proceed.
 
-Once you have activated that environment, you need to install the version of
-``astropy`` you are working on. Do that with:
+Assuming you have set up and activated this virtual environment, you need to
+install the version of ``astropy`` you are working on into it. Do that with:
 
 .. code-block:: bash
 
-    pip install -e .
+    pip install -e .[test]
+
+This will install ``astropy`` itself, along with a few packages which will be
+useful for testing the changes you will make down the road.
 
 For more details on building ``astropy`` from source, see
 :ref:`dev-build-astropy-subpkg`.
