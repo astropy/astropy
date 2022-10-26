@@ -6,7 +6,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.compression import compress_hdu
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 MAX_INT = np.iinfo(np.intc).max
 MAX_LONG = np.iinfo(int).max

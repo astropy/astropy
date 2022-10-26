@@ -16,7 +16,7 @@ from astropy.utils.data import get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase, home_is_data, home_is_temp
+from .conftest import FitsTestCase
 
 
 class TestHDUListFunctions(FitsTestCase):

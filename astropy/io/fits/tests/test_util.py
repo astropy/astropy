@@ -16,7 +16,7 @@ from astropy.utils.compat.optional_deps import HAS_PIL
 if HAS_PIL:
     from PIL import Image
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class TestUtils(FitsTestCase):

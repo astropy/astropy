@@ -4,7 +4,7 @@ import numpy as np
 
 from astropy.io import fits
 
-from . import FitsTestCase
+from .conftest import FitsTestCase
 
 
 class TestDivisionFunctions(FitsTestCase):

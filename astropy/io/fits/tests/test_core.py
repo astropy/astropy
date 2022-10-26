@@ -27,7 +27,7 @@ from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
-from . import FitsTestCase, home_is_temp
+from .conftest import FitsTestCase
 
 if HAS_BZ2:
     import bz2
