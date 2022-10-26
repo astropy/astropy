@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import os
+import re
 import subprocess
 import sys
 import unittest.mock as mk
@@ -100,7 +101,8 @@ def test_inputless_model():
 
 
 def test_ParametericModel():
-    with pytest.raises(TypeError):
+    MESSAGE = re.escape("Gaussian1D.__init__() got an unrecognized parameter 'wrong'")
+    with pytest.raises(TypeError, match=MESSAGE):
         models.Gaussian1D(1, 2, 3, wrong=4)
 
 
@@ -295,7 +297,8 @@ def test_custom_inverse():
     # A trivial inverse for a trivial polynomial
     inv = models.Polynomial1D(1, c0=(2./3.), c1=(1./3.))
 
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"No analytical or user-supplied inverse transform has been implemented for this model."
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         p.inverse
 
     p.inverse = inv
@@ -307,7 +310,7 @@ def test_custom_inverse():
 
     p.inverse = None
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         p.inverse
 
 
@@ -461,13 +464,15 @@ def test_render_model_3d():
 
 def test_render_model_out_dtype():
     """Test different out.dtype for model.render."""
+    MESSAGE = r"Cannot cast ufunc 'add' output from .* to .* with casting rule 'same_kind"
     for model in [models.Gaussian2D(), models.Gaussian2D() + models.Planar2D()]:
         for dtype in [np.float64, np.float32, np.complex64]:
             im = np.zeros((40, 40), dtype=dtype)
             imout = model.render(out=im)
             assert imout is im
             assert imout.sum() != 0
-        with pytest.raises(TypeError):
+
+        with pytest.raises(TypeError, match=MESSAGE):
             im = np.zeros((40, 40), dtype=np.int32)
             imout = model.render(out=im)
 
@@ -614,10 +619,11 @@ def test_rename_inputs_outputs():
     assert g2.inputs == ("x", "y")
     assert g2.outputs == ("z",)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Expected .* number of .*, got .*."
+    with pytest.raises(ValueError, match=MESSAGE):
         g2.inputs = ("w", )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         g2.outputs = ("w", "e")
 
 
@@ -761,7 +767,9 @@ def test_prepare_outputs_sparse_grid():
 def test_coerce_units():
     model = models.Polynomial1D(1, c0=1, c1=2)
 
-    with pytest.raises(u.UnitsError):
+    MESSAGE = re.escape("Can only apply 'add' function to dimensionless quantities when other "
+                        "argument is not a quantity (unless the latter is all zero/infinity/nan)")
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         model(u.Quantity(10, u.m))
 
     with_input_units = model.coerce_units({"x": u.m})
@@ -809,14 +817,15 @@ def test_coerce_units():
 def test_bounding_box_general_inverse():
     model = NonFittableModel(42.5)
 
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"No bounding box is defined for this model."
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         model.bounding_box
     model.bounding_box = ()
     assert model.bounding_box.bounding_box() == ()
 
     model.inverse = NonFittableModel(3.14)
     inverse_model = model.inverse
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         inverse_model.bounding_box
 
 
@@ -869,21 +878,19 @@ def test__validate_input_shape():
     assert model._validate_input_shape(_input, 0, model.inputs, 1, False) == (2, 3)
 
     # Fail number of axes
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional."
+    with pytest.raises(ValueError, match=MESSAGE):
         model._validate_input_shape(_input, 0, model.inputs, 2, True)
-    assert str(err.value) == "For model_set_axis=2, all inputs must be at least 3-dimensional."
 
     # Fail number of models (has argname)
-    with pytest.raises(ValueError) as err:
+    MESSAGE = (r"Input argument '.*' does not have the correct dimensions in "
+               r"model_set_axis=1 for a model set with n_models=2.")
+    with pytest.raises(ValueError, match=MESSAGE):
         model._validate_input_shape(_input, 0, model.inputs, 1, True)
-    assert str(err.value) == ("Input argument 'x' does not have the correct dimensions in "
-                              "model_set_axis=1 for a model set with n_models=2.")
 
     # Fail number of models  (no argname)
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model._validate_input_shape(_input, 0, [], 1, True)
-    assert str(err.value) == ("Input argument '0' does not have the correct dimensions "
-                              "in model_set_axis=1 for a model set with n_models=2.")
 
 
 def test__validate_input_shapes():
@@ -908,13 +915,13 @@ def test__validate_input_shapes():
             ]
 
     # Fail check_broadcast
+    MESSAGE = r"All inputs must have identical shapes or must be scalars."
     with mk.patch.object(Model, '_validate_input_shape',
                          autospec=True, side_effect=all_shapes) as mkValidate:
         with mk.patch.object(core, 'check_broadcast',
                              autospec=True, return_value=None) as mkCheck:
-            with pytest.raises(ValueError) as err:
+            with pytest.raises(ValueError, match=MESSAGE):
                 model._validate_input_shapes(inputs, argnames, model_set_axis)
-            assert str(err.value) == "All inputs must have identical shapes or must be scalars."
             assert mkCheck.call_args_list == [mk.call(*all_shapes)]
             assert mkValidate.call_args_list == [
                 mk.call(model, _input, idx, argnames, model_set_axis, True)
@@ -950,7 +957,8 @@ def test_get_bounding_box():
     assert model.get_bounding_box(False) is None
 
     # No bounding_box
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"No bounding box is defined for this model."
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         model.bounding_box
     assert model.get_bounding_box(True) is None
 
@@ -994,7 +1002,9 @@ def test_compound_bounding_box():
     assert model(-0.5, with_bounding_box=True) == truth(-0.5)
     assert model(0.5) == truth(0.5)
     assert model(0.5, with_bounding_box=True) == truth(0.5)
-    with pytest.raises(RuntimeError):
+
+    MESSAGE = r"No bounding box is defined for selector: .*."
+    with pytest.raises(RuntimeError, match=MESSAGE):
         model(0, with_bounding_box=True)
 
     model1 = models.Gaussian1D()
@@ -1018,7 +1028,7 @@ def test_compound_bounding_box():
     assert model(-0.5, with_bounding_box=True) == truth(-0.5)
     assert model(0.5) == truth(0.5)
     assert model(0.5, with_bounding_box=True) == truth(0.5)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=MESSAGE):
         model(0, with_bounding_box=True)
 
 
@@ -1049,7 +1059,8 @@ def test_bind_compound_bounding_box_using_with_bounding_box_select():
     truth = models.Gaussian1D()
 
     bbox = (0, 1)
-    with pytest.raises(AttributeError):
+    MESSAGE = r"'tuple' object has no attribute 'items"
+    with pytest.raises(AttributeError, match=MESSAGE):
         bind_compound_bounding_box(model, bbox, 'x')
 
     bbox = {0: (-1, 0), 1: (0, 1)}
@@ -1074,7 +1085,8 @@ def test_bind_compound_bounding_box_using_with_bounding_box_select():
     assert model(1, with_bounding_box=True) == truth(1)
 
     # Attempt to fall-back on implicit selector, but no bounding_box
-    with pytest.raises(RuntimeError):
+    MESSAGE = r"No bounding box is defined for selector: .*."
+    with pytest.raises(RuntimeError, match=MESSAGE):
         model(0.5, with_bounding_box=True)
 
     # Override implicit selector

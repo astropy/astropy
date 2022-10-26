@@ -481,9 +481,9 @@ def test_models_evaluate_with_units_param_array(model):
 
     if model['class'] == Drude1D:
         params['x_0'][-1] = 0 * u.AA
-        with pytest.raises(InputParameterError) as err:
+        MESSAGE = '0 is not an allowed value for x_0'
+        with pytest.raises(InputParameterError, match=MESSAGE):
             model['class'](**params)
-        assert str(err.value) == '0 is not an allowed value for x_0'
 
 
 @pytest.mark.parametrize('model', MODELS)
@@ -503,7 +503,8 @@ def test_models_bounding_box(model):
         # Check that NotImplementedError is raised, so that if bounding_box is
         # implemented we remember to set bounding_box=True in the list of models
         # above
-        with pytest.raises(NotImplementedError):
+        MESSAGE = r"No bounding box is defined for this model."
+        with pytest.raises(NotImplementedError, match=MESSAGE):
             m.bounding_box
     else:
         # A bounding box may have inhomogeneous units so we need to check the
@@ -655,7 +656,7 @@ def test_input_unit_mismatch_error(model):
     if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
         pytest.skip()
 
-    message = "Units of 'x' and 'y' inputs should match"
+    MESSAGE = "Units of 'x' and 'y' inputs should match"
 
     m = model['class'](**model['parameters'])
 
@@ -666,9 +667,8 @@ def test_input_unit_mismatch_error(model):
             kwargs = dict(zip(('x', 'y', 'z'), args))
             if kwargs['x'].unit.is_equivalent(kwargs['y'].unit):
                 kwargs['x'] = kwargs['x'].to(kwargs['y'].unit)
-        with pytest.raises(u.UnitsError) as err:
+        with pytest.raises(u.UnitsError, match=MESSAGE):
             m.without_units_for_data(**kwargs)
-        assert str(err.value) == message
 
 
 mag_models = [
@@ -761,15 +761,17 @@ def test_models_evaluate_magunits(model):
 def test_Schechter1D_errors():
     # Non magnitude units are bad
     model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.km, alpha=-1.9)
-    with pytest.raises(u.UnitsError):
+    MESSAGE = r"The units of magnitude and m_star must be a magnitude"
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.km)
 
     # Differing magnitude systems are bad
     model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
-    with pytest.raises(u.UnitsError):
+    MESSAGE = r".*: Units of input 'x', .*, could not be converted to required input units of .*"
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.STmag)
 
     # Differing magnitude systems are bad
     model = Schechter1D(phi_star=1.e-4 * (u.Mpc ** -3), m_star=-20. * u.ABmag, alpha=-1.9)
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         model(-23 * u.mag)

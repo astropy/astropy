@@ -210,15 +210,15 @@ class TestJointFitter:
 class TestLinearLSQFitter:
     def test_compound_model_raises_error(self):
         """Test that if an user tries to use a compound model, raises an error"""
-        with pytest.raises(ValueError) as excinfo:
+        MESSAGE = r"Model must be simple, not compound"
+        with pytest.raises(ValueError, match=MESSAGE):
             init_model1 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
             init_model2 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
             init_model_comp = init_model1 + init_model2
             x = np.arange(10)
             y = init_model_comp(x, model_set_axis=False)
             fitter = LinearLSQFitter()
-            _ = fitter(init_model_comp, x, y)
-        assert "Model must be simple, not compound" in str(excinfo.value)
+            fitter(init_model_comp, x, y)
 
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
@@ -1088,9 +1088,9 @@ def test_optimizers(fitter_class):
 @mk.patch.multiple(Optimization, __abstractmethods__=set())
 def test_Optimization_abstract_call():
     optimization = Optimization(mk.MagicMock())
-    with pytest.raises(NotImplementedError) as err:
+    MESSAGE = r"Subclasses should implement this method"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         optimization()
-    assert str(err.value) == "Subclasses should implement this method"
 
 
 def test_fitting_with_outlier_removal_niter():

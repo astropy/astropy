@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 import unittest.mock as mk
 
 import numpy as np
@@ -42,7 +43,7 @@ class Test_Interval:
         assert id(interval.upper) == id(copy.upper)
 
     def test__validate_shape(self):
-        message = "An interval must be some sort of sequence of length 2"
+        MESSAGE = r"An interval must be some sort of sequence of length 2"
         lower = mk.MagicMock()
         upper = mk.MagicMock()
         interval = _Interval(lower, upper)
@@ -73,43 +74,33 @@ class Test_Interval:
                                   np.array([2.5, 3.5, 4.5])))
 
         # Fails shape (no units)
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape((1, 2, 3))
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape([1, 2, 3])
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape([[1, 2, 3], [4, 5, 6]])
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape(1)
-        assert str(err.value) == message
 
         # Fails shape (units)
-        message = "An interval must be some sort of sequence of length 2"
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"An interval must be some sort of sequence of length 2"
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape((1*u.m, 2*u.m, 3*u.m))
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape([1*u.m, 2*u.m, 3*u.m])
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape([[1*u.m, 2*u.m, 3*u.m], [4*u.m, 5*u.m, 6*u.m]])
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape(1*u.m)
-        assert str(err.value) == message
 
         # Fails shape (arrays):
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape((np.array([-2.5, -3.5]),
                                       np.array([2.5, 3.5]),
                                       np.array([3, 4])))
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             interval._validate_shape((np.array([-2.5, -3.5]), [2.5, 3.5]))
-        assert str(err.value) == message
 
     def test__validate_bounds(self):
         # Passes
@@ -156,7 +147,7 @@ class Test_Interval:
         assert (interval.upper == np.array([2.5, 3.5, 4.5])).all()
 
         # Fail shape
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"An interval must be some sort of sequence of length 2"):
             _Interval.validate((1, 2, 3))
 
         # Fail bounds
@@ -227,8 +218,11 @@ class Test_BoundingDomain:
         assert bounding_box._order == 'C'
 
         # Error
-        with pytest.raises(ValueError):
-            self.BoundingDomain(model, order=mk.MagicMock())
+        order = mk.MagicMock()
+        MESSAGE = re.escape("order must be either 'C' (C/python order) or "
+                            f"'F' (Fortran/mathematical order), got: {order}.")
+        with pytest.raises(ValueError, match=MESSAGE):
+            self.BoundingDomain(model, order=order)
 
     def test_model(self):
         model = mk.MagicMock()
@@ -276,10 +270,10 @@ class Test_BoundingDomain:
 
         # Error
         order = mk.MagicMock()
-        with pytest.raises(ValueError) as err:
+        MESSAGE = re.escape("order must be either 'C' (C/python order) or "
+                            f"'F' (Fortran/mathematical order), got: {order}.")
+        with pytest.raises(ValueError, match=MESSAGE):
             bounding_box._get_order(order)
-        assert str(err.value) == ("order must be either 'C' (C/python order) or "
-                                  f"'F' (Fortran/mathematical order), got: {order}.")
 
     def test__get_index(self):
         bounding_box = self.BoundingDomain(Gaussian2D())
@@ -289,9 +283,9 @@ class Test_BoundingDomain:
         assert bounding_box._get_index('y') == 1
 
         # Pass invalid input name
-        with pytest.raises(ValueError) as err:
+        MESSAGE = re.escape("'z' is not one of the inputs: ('x', 'y').")
+        with pytest.raises(ValueError, match=MESSAGE):
             bounding_box._get_index('z')
-        assert str(err.value) == "'z' is not one of the inputs: ('x', 'y')."
 
         # Pass valid index
         assert bounding_box._get_index(0) == 0
@@ -302,25 +296,20 @@ class Test_BoundingDomain:
         assert bounding_box._get_index(np.int64(1)) == 1
 
         # Pass invalid index
-        MESSAGE = "Integer key: 2 must be non-negative and < 2."
-        with pytest.raises(IndexError) as err:
+        MESSAGE = r"Integer key: 2 must be non-negative and < 2."
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._get_index(2)
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._get_index(np.int32(2))
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._get_index(np.int64(2))
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
+        with pytest.raises(IndexError, match=r"Integer key: -1 must be non-negative and < 2."):
             bounding_box._get_index(-1)
-        assert str(err.value) == "Integer key: -1 must be non-negative and < 2."
 
         # Pass invalid key
         value = mk.MagicMock()
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=f"Key value: {value} must be string or integer."):
             bounding_box._get_index(value)
-        assert str(err.value) == f"Key value: {value} must be string or integer."
 
     def test__get_name(self):
         model = mk.MagicMock()
@@ -363,15 +352,17 @@ class Test_BoundingDomain:
         assert bounding_box._validate_ignored([np.int32(0), np.int64(1)]) == [0, 1]
 
         # Fail
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Key value: .* must be string or integer."):
             bounding_box._validate_ignored([mk.MagicMock()])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'.*' is not one of the inputs: .*"):
             bounding_box._validate_ignored(['z'])
-        with pytest.raises(IndexError):
+
+        MESSAGE = r"Integer key: 3 must be non-negative and < 2"
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._validate_ignored([3])
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._validate_ignored([np.int32(3)])
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box._validate_ignored([np.int64(3)])
 
     def test___call__(self):
@@ -380,26 +371,23 @@ class Test_BoundingDomain:
         args = tuple(mk.MagicMock() for _ in range(3))
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
 
-        with pytest.raises(RuntimeError) as err:
+        MESSAGE = r"This bounding box is fixed by the model and does not have adjustable parameters."
+        with pytest.raises(RuntimeError, match=MESSAGE):
             bounding_box(*args, **kwargs)
-        assert str(err.value) == ("This bounding box is fixed by the model and does not have "
-                                  "adjustable parameters.")
 
     def test_fix_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
         model = mk.MagicMock()
         fixed_inputs = mk.MagicMock()
 
-        with pytest.raises(NotImplementedError) as err:
+        with pytest.raises(NotImplementedError, match=r"This should be implemented by a child class."):
             bounding_box.fix_inputs(model, fixed_inputs)
-        assert str(err.value) == "This should be implemented by a child class."
 
     def test__prepare_inputs(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
-        with pytest.raises(NotImplementedError) as err:
+        with pytest.raises(NotImplementedError, match=r"This has not been implemented for BoundingDomain"):
             bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
-        assert str(err.value) == "This has not been implemented for BoundingDomain."
 
     def test__base_ouput(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -835,7 +823,7 @@ class TestModelBoundingBox:
         assert bounding_box['y'] == (-4, 4)
 
         # Fail with input key
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'.*' is not one of the inputs: .*"):
             bounding_box['z']
 
         # Get using index
@@ -847,11 +835,12 @@ class TestModelBoundingBox:
         assert bounding_box[np.int64(1)] == (-4, 4)
 
         # Fail with index
-        with pytest.raises(IndexError):
+        MESSAGE = r"Integer key: 2 must be non-negative and < 2"
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box[2]
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box[np.int32(2)]
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=MESSAGE):
             bounding_box[np.int64(2)]
 
         # get ignored interval
@@ -1059,9 +1048,8 @@ class TestModelBoundingBox:
         assert 'x' in bounding_box
 
         # Delete an ignored item
-        with pytest.raises(RuntimeError) as err:
+        with pytest.raises(RuntimeError, match=r"Cannot delete ignored input: 0!"):
             del bounding_box[0]
-        assert str(err.value) == "Cannot delete ignored input: 0!"
 
         # Using key
         assert 1 in bounding_box.intervals
@@ -1075,9 +1063,8 @@ class TestModelBoundingBox:
         assert 'y' in bounding_box
 
         # Delete an ignored item
-        with pytest.raises(RuntimeError) as err:
+        with pytest.raises(RuntimeError, match=r"Cannot delete ignored input: y!"):
             del bounding_box['y']
-        assert str(err.value) == "Cannot delete ignored input: y!"
 
     def test__validate_dict(self):
         model = Gaussian2D()
@@ -1166,7 +1153,10 @@ class TestModelBoundingBox:
         order = mk.MagicMock()
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
-        with pytest.raises(ValueError):
+
+        MESSAGE = re.escape("order must be either 'C' (C/python order) or "
+                            f"'F' (Fortran/mathematical order), got: {order}.")
+        with pytest.raises(ValueError, match=MESSAGE):
             bounding_box._validate_sequence(((-4, 4), (-1, 1)), order=order)
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
@@ -1236,27 +1226,25 @@ class TestModelBoundingBox:
         assert bounding_box[0] == (-1, 1)
 
         # Invalid iterable
+        MESSAGE = "Found {} intervals, but must have exactly {}."
         bounding_box._intervals = {}
         bounding_box._ignored = []
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE.format(3, 2)):
             bounding_box._validate_iterable(((-4, 4), (-1, 1), (-3, 3)))
-        assert str(err.value) == "Found 3 intervals, but must have exactly 2."
         assert len(bounding_box.intervals) == 0
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         bounding_box._ignored = [1]
         intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE.format(2, 1)):
             bounding_box._validate_iterable(intervals)
-        assert str(err.value) == "Found 2 intervals, but must have exactly 1."
         assert len(bounding_box.intervals) == 0
         bounding_box._ignored = []
         intervals = {0: _Interval(-1, 1)}
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE.format(1, 2)):
             bounding_box._validate_iterable(intervals)
-        assert str(err.value) == "Found 1 intervals, but must have exactly 2."
         assert 'x' not in bounding_box
         assert 'y' not in bounding_box
         assert len(bounding_box.intervals) == 0
@@ -1459,7 +1447,9 @@ class TestModelBoundingBox:
 
         # test error order
         order = mk.MagicMock()
-        with pytest.raises(ValueError):
+        MESSAGE = re.escape("order must be either 'C' (C/python order) or "
+                            f"'F' (Fortran/mathematical order), got: {order}.")
+        with pytest.raises(ValueError, match=MESSAGE):
             bounding_box.domain(0.25, order)
 
     def test__outside(self):
@@ -1666,11 +1656,11 @@ class Test_SelectorArgument:
         assert _SelectorArgument.validate(model, 'y', ignore) == (1, ignore)
 
         # Fail
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'.*' is not one of the inputs: .*"):
             _SelectorArgument.validate(model, 'z')
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Key value: .* must be string or integer."):
             _SelectorArgument.validate(model, mk.MagicMock())
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=r"Integer key: .* must be non-negative and < .*"):
             _SelectorArgument.validate(model, 2)
 
     def test_get_selector(self):
@@ -1718,9 +1708,9 @@ class Test_SelectorArgument:
 
         # Fail
         values = {0: 5}
-        with pytest.raises(RuntimeError) as err:
+        MESSAGE = re.escape("Argument(name='y', ignore=True) was not found in {0: 5}")
+        with pytest.raises(RuntimeError, match=MESSAGE) as err:
             _SelectorArgument(1, True).get_fixed_value(model, values)
-        assert str(err.value) == "Argument(name='y', ignore=True) was not found in {0: 5}"
 
     def test_is_argument(self):
         model = Gaussian2D()
@@ -1735,11 +1725,11 @@ class Test_SelectorArgument:
         assert argument.is_argument(model, 'y') is False
 
         # Fail
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'.*' is not one of the inputs: .*"):
             argument.is_argument(model, 'z')
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Key value: .* must be string or integer."):
             argument.is_argument(model, mk.MagicMock())
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=r"Integer key: .* must be non-negative and < .*"):
             argument.is_argument(model, 2)
 
     def test_named_tuple(self):
@@ -1821,22 +1811,20 @@ class Test_SelectorArguments:
         assert new_arguments.kept_ignore == [13, 17, 14]
 
         # Invalid, bad argument
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'.*' is not one of the inputs: .*"):
             _SelectorArguments.validate(Gaussian2D(), ((0, True), ('z', False)))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Key value: .* must be string or integer."):
             _SelectorArguments.validate(Gaussian2D(), ((mk.MagicMock(), True), (1, False)))
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match=r"Integer key: .* must be non-negative and < .*"):
             _SelectorArguments.validate(Gaussian2D(), ((0, True), (2, False)))
 
         # Invalid, repeated argument
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match="Input: 'x' has been repeated."):
             _SelectorArguments.validate(Gaussian2D(), ((0, True), (0, False)))
-        assert str(err.value) == "Input: 'x' has been repeated."
 
         # Invalid, no arguments
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match="There must be at least one selector argument."):
             _SelectorArguments.validate(Gaussian2D(), ())
-        assert str(err.value) == "There must be at least one selector argument."
 
     def test_get_selector(self):
         inputs = [idx + 19 for idx in range(4)]
@@ -1923,9 +1911,8 @@ class Test_SelectorArguments:
 
         # Error
         arguments = _SelectorArguments.validate(model, ((0, True),))
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match="y does not correspond to any selector argument."):
             arguments.selector_index(model, 'y')
-        assert str(err.value) == "y does not correspond to any selector argument."
 
     def test_add_ignore(self):
         model = Gaussian2D()
@@ -1947,9 +1934,8 @@ class Test_SelectorArguments:
         assert arguments._kept_ignore == []
 
         # Error
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match="0: is a selector argument and cannot be ignored."):
             arguments.add_ignore(model, 0)
-        assert str(err.value) == "0: is a selector argument and cannot be ignored."
 
     def test_reduce(self):
         model = Gaussian2D()
@@ -2172,14 +2158,13 @@ class TestCompoundBoundingBox:
         assert bounding_box._bounding_boxes[(15,)].order == 'F'
         # Invalid key
         assert (7, 13) not in bounding_box._bounding_boxes
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=".* is not a selector!"):
             bounding_box[(7, 13)] = (-7, 7)
-        assert str(err.value) == "(7, 13) is not a selector!"
         assert (7, 13) not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
         # Invalid bounding box
         assert 13 not in bounding_box._bounding_boxes
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="An interval must be some sort of sequence of length 2"):
             bounding_box[(13,)] = ((-13, 13), (-3, 3))
         assert 13 not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
@@ -2196,14 +2181,13 @@ class TestCompoundBoundingBox:
         assert bounding_box._bounding_boxes[(15,)].order == 'F'
         # Invalid key
         assert (14, 11) not in bounding_box._bounding_boxes
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=".* is not a selector!"):
             bounding_box[(14, 11)] = ((-7, 7), (-12, 12))
-        assert str(err.value) == "(14, 11) is not a selector!"
         assert (14, 11) not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
         # Invalid bounding box
         assert 13 not in bounding_box._bounding_boxes
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="An interval must be some sort of sequence of length 2"):
             bounding_box[(13,)] = (-13, 13)
         assert 13 not in bounding_box._bounding_boxes
         assert len(bounding_box.bounding_boxes) == 1
@@ -2261,10 +2245,10 @@ class TestCompoundBoundingBox:
         create_selector = mk.MagicMock()
 
         # Fail selector_args
-        with pytest.raises(ValueError) as err:
+        MESSAGE = re.escape("Selector arguments must be provided "
+                            "(can be passed as part of bounding_box argument)")
+        with pytest.raises(ValueError, match=MESSAGE):
             CompoundBoundingBox.validate(model, bounding_boxes)
-        assert str(err.value) == ("Selector arguments must be provided "
-                                  "(can be passed as part of bounding_box argument)")
 
         # Normal validate
         bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args,
@@ -2321,7 +2305,7 @@ class TestCompoundBoundingBox:
 
         # Create is unsuccessful
         create_selector.return_value = (-42, 42)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="An interval must be some sort of sequence of length 2"):
             bounding_box._create_bounding_box((27,))
 
     def test___getitem__(self):
@@ -2341,9 +2325,8 @@ class TestCompoundBoundingBox:
         assert bounding_box[(2,)] == (-2, 2)
 
         # no selector
-        with pytest.raises(RuntimeError) as err:
+        with pytest.raises(RuntimeError, match="No bounding box is defined for selector: .*"):
             bounding_box[(3,)]
-        assert str(err.value) == "No bounding box is defined for selector: (3,)."
 
         # Create a selector
         bounding_box._create_selector = mk.MagicMock()
@@ -2476,10 +2459,10 @@ class TestCompoundBoundingBox:
         assert bbox.order == 'F'
 
         # Errors
-        with pytest.raises(ValueError) as err:
+        MESSAGE =  ("Attempting to fix input slit_id, but "
+                    "there are no bounding boxes for argument value 2")
+        with pytest.raises(ValueError, match=MESSAGE):
             bounding_box._matching_bounding_boxes('slit_id', 2)
-        assert str(err.value) == ("Attempting to fix input slit_id, but "
-                                  "there are no bounding boxes for argument value 2.")
 
     def test__fix_input_selector_arg(self):
         # Single selector index

@@ -86,5 +86,6 @@ class TestLeastSquare_ND:
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_shape_mismatch(self):
-        with pytest.raises(ValueError):
+        MESSAGE = r"Shape mismatch between model .* and measured .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             leastsquare(0, self.model1D, None, self.x)

@@ -1,5 +1,7 @@
 # Various tests of models not related to evaluation, fitting, or parameters
 # pylint: disable=invalid-name, no-member
+import re
+
 import pytest
 
 from astropy import units as u
@@ -44,7 +46,11 @@ def test_quantity_call():
 
     g(10 * u.m)
 
-    with pytest.raises(u.UnitsError):
+    with pytest.raises(
+                u.UnitsError,
+                match=re.escape("Gaussian1D: Units of input 'x', (dimensionless), "
+                                "could not be converted to required input units of m (length)")
+            ):
         g(10)
 
 

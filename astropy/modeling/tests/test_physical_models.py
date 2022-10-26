@@ -484,19 +484,19 @@ def test_NFW_exceptions_and_warnings_and_misc():
                     7.50e+02, 1.00e+03, 1.50e+03, 2.50e+03, 6.50e+03, 1.15e+04]) * u.kpc
 
     # Massfactor exception tests
-    with pytest.raises(ValueError) as exc:
+    MESSAGE = r"Massfactor 'not' not one of 'critical', 'mean', or 'virial'"
+    with pytest.raises(ValueError, match=MESSAGE):
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor=("not", "virial"))
-    assert exc.value.args[0] == "Massfactor 'not' not one of 'critical', 'mean', or 'virial'"
-    with pytest.raises(ValueError) as exc:
+    MESSAGE = (r"Massfactor not virial string not of the form "
+               r"'#m', '#c', or 'virial'")
+    with pytest.raises(ValueError, match=MESSAGE):
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor="not virial")
-    assert exc.value.args[0] == ("Massfactor not virial string not of the form "
-                                 "'#m', '#c', or 'virial'")
-    with pytest.raises(TypeError) as exc:
+    MESSAGE = r"Massfactor 200 not a tuple or string"
+    with pytest.raises(TypeError, match=MESSAGE):
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor=200)
-    assert exc.value.args[0] == "Massfactor 200 not a tuple or string"
 
     # Verify unitless mass
     # Density test

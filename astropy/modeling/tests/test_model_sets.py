@@ -56,7 +56,8 @@ def test_model1d_axis_1(model_class):
 
     p1 = model_class(1, c0=c0, c1=c1, n_models=n_models, model_set_axis=model_axis)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional."
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
     y = p1(x, model_set_axis=False)
@@ -87,10 +88,11 @@ def test_model1d_axis_2(model_class):
     t2 = model_class(1, c0=2, c1=20)
     t3 = model_class(1, c0=3, c1=30)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional."
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(xx)
 
     y = p1(x, model_set_axis=False)
@@ -112,7 +114,9 @@ def test_model1d_axis_0(model_class):
     t1 = model_class(1, c0=2, c1=1)
     t2 = model_class(1, c0=3, c1=2)
 
-    with pytest.raises(ValueError):
+    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
+               r"model_set_axis=0 for a model set with n_models=2.")
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
     y = p1(xx)
@@ -161,10 +165,12 @@ def test_negative_axis():
     t1 = Polynomial1D(1, c0=1, c1=3)
     t2 = Polynomial1D(1, c0=2, c1=4)
 
-    with pytest.raises(ValueError):
+    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
+               r"model_set_axis=-1 for a model set with n_models=2.")
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         p1(xx)
 
     xxt = xx.T
@@ -217,7 +223,9 @@ def test_eval():
     assert_allclose(model(xx), p(xx))
     assert_allclose(model(x, model_set_axis=False), p(x, model_set_axis=False))
 
-    with pytest.raises(ValueError):
+    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
+               r"model_set_axis=.* for a model set with n_models=2.")
+    with pytest.raises(ValueError, match=MESSAGE):
         model(x)
 
     model = Linear1D(slope=[[1, 2]], intercept=[[3, 4]], n_models=2, model_set_axis=1)
@@ -225,7 +233,7 @@ def test_eval():
 
     assert_allclose(model(xx.T), p(xx.T))
     assert_allclose(model(x, model_set_axis=False), p(x, model_set_axis=False))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         model(xx)
 
     model = Planar2D(slope_x=[1, 2], slope_y=[1, 2], intercept=[3, 4], n_models=2)
@@ -233,7 +241,8 @@ def test_eval():
 
     assert y.shape == (2, 4)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Missing input arguments - expected 2, got 1"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(x)
 
 
@@ -290,7 +299,9 @@ def test_model_set_axis_outputs():
     y1 = model_set(xx, model_set_axis=0)
     assert_allclose(y0[:, 0], y1[0])
     assert_allclose(y0[:, 1], y1[1])
-    with pytest.raises(ValueError):
+
+    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional."
+    with pytest.raises(ValueError, match=MESSAGE):
         model_set(x)
 
 
@@ -311,7 +322,8 @@ def test_fitting_shapes():
 
 
 def test_compound_model_sets():
-    with pytest.raises(ValueError):
+    MESSAGE = r"model_set_axis must be False or 0 and consistent for operands"
+    with pytest.raises(ValueError, match=MESSAGE):
         (Polynomial1D(1, n_models=2, model_set_axis=1) |
          Polynomial1D(1, n_models=2, model_set_axis=0))
 
@@ -322,9 +334,11 @@ def test_linear_fit_model_set_errors():
     y = init_model(x, model_set_axis=False)
 
     fitter = LinearLSQFitter()
-    with pytest.raises(ValueError):
+
+    MESSAGE = r"x and y should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
         fitter(init_model, x[:5], y)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fitter(init_model, x, y[:, :5])
 
 
@@ -350,7 +364,7 @@ def test_linear_fit_model_set_common_weight():
     # Check that using null weights raises an error
     # ValueError: On entry to DLASCL parameter number 4 had an illegal value
     with pytest.raises(ValueError,
-                       match='Found NaNs in the coefficient matrix'):
+                       match=r'Found NaNs in the coefficient matrix'):
         with pytest.warns(RuntimeWarning,
                           match=r'invalid value encountered in.*divide'):
             fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
@@ -380,7 +394,7 @@ def test_linear_fit_model_set_weights():
     # Check that using null weights raises an error
     weights[0] = 0
     with pytest.raises(ValueError,
-                       match='Found NaNs in the coefficient matrix'):
+                       match=r'Found NaNs in the coefficient matrix'):
         with pytest.warns(RuntimeWarning,
                           match=r'invalid value encountered in.*divide'):
             fitted_model = fitter(init_model, x, y, weights=weights)
@@ -407,9 +421,11 @@ def test_linear_fit_2d_model_set_errors():
     z = init_model(x, y, model_set_axis=False)
 
     fitter = LinearLSQFitter()
-    with pytest.raises(ValueError):
+
+    MESSAGE = r"x, y and z should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
         fitter(init_model, x[:5], y, z)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fitter(init_model, x, y, z[:, :5])
 
 
