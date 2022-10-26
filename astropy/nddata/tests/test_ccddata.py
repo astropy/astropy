@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import textwrap
 
 import numpy as np
@@ -22,6 +23,20 @@ DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
     _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+
+
+@pytest.fixture
+def home_is_tmpdir(tmp_path, monkeypatch, request):
+    """
+    Pytest fixture to run a test case with tilde-prefixed paths.
+
+    In the tilde-path case, environment variables will be temporarily
+    modified so that '~' resolves to the temp directory.
+    """
+    # For Unix
+    monkeypatch.setenv('HOME', str(tmp_path))
+    # For Windows
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))
 
 
 def create_ccd_data():
@@ -1053,3 +1068,17 @@ def test_sliced_ccdata_to_hdu():
     assert isinstance(hdul, fits.HDUList)
     assert hdul[0].header['CRPIX1'] == 8
     assert hdul[0].header['CRPIX2'] == 8
+
+
+def test_read_write_tilde_paths(home_is_tmpdir):
+    # Test for reading and writing to tilde-prefixed paths without errors
+    ccd_data = create_ccd_data()
+    filename = os.path.join('~', 'test.fits')
+    ccd_data.write(filename)
+
+    ccd_disk = CCDData.read(filename, unit=ccd_data.unit)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+
+    # Ensure the unexpanded path doesn't exist (e.g. no directory whose name is
+    # a literal ~ was created)
+    assert not os.path.exists(filename)

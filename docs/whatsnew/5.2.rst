@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-io-ascii-fixed-width`
 * :ref:`whatsnew-5.2-fits`
 * :ref:`whatsnew-5.2-visualization-wcsaxes-helpers`
+* :ref:`whatsnew-5.2-tilde-paths`
 
 
 .. _whatsnew-5.2-quantity-dtype:
@@ -180,6 +181,27 @@ observations) and a physical scale bar on celestial images:
     ...
     ...    # Draw a scale bar corresponding to 100 au at a distance of 126 pc
     ...    add_scalebar(ax, 100./126. * u.arcsec, label="100 au", color="white")
+
+.. _whatsnew-5.2-tilde-paths:
+
+Support for tilde-prefixed paths
+================================
+
+This release finishes adding support for tilde-prefixed paths, which began in
+5.1. These are paths of the form ``~/data/file.fits`` or
+``~<username>/data/file.fits``. The single tilde refers to the current user's
+home directory, while a tilde followed by a valid username refers to that
+user's home directory (e.g. ``/home/<username>`` on Linux or
+``/Users/<username>`` on macOS). This syntax is common in command-line oriented
+applications, especially on Unix-based systems. It serves as a convenient
+shortcut, and it also allows code to be shared and run by multiple people
+without having to update file paths if each person keeps data in the same
+directory structure relative to their home directory.
+
+This support has been added throughout the ``astropy.io`` module. This feature
+is also supported within the I/O functionality of `astropy.table` and the
+FITS-file functionality in `astropy.nddata`.
+
 
 Full change log
 ===============
