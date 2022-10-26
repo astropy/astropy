@@ -2790,6 +2790,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert self._test_header[3] == 1
         assert self._test_header['DP1.AXIS.3'] == 1
 
+    @pytest.mark.filterwarnings('ignore:unclosed transport:ResourceWarning')
     def test_rvkc_delete(self):
         """
         Deleting a RVKC should work as with a normal card by using the full
