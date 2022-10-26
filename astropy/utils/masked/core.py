@@ -776,7 +776,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
             else:  # pragma: no cover
                 # Can only get here if neither input nor output was masked, but
-                # perhaps axis or where was masked (in numpy < 1.21 this is
+                # perhaps axis or where was masked (in NUMPY_LT_1_21 this is
                 # possible).  We don't support this.
                 return NotImplemented
 

@@ -238,8 +238,6 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from astropy.utils.compat import NUMPY_LT_1_20
-
         from .column import Column, MaskedColumn
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
@@ -250,15 +248,6 @@ class ColumnGroups(BaseGroups):
         mean_case = func is np.mean
         try:
             if not masked and (reduceat or sum_case or mean_case):
-                # For numpy < 1.20 there is a bug where reduceat will fail to
-                # raise an exception for mixin columns that do not support the
-                # operation. For details see:
-                # https://github.com/astropy/astropy/pull/12825#issuecomment-1082412447
-                # Instead we try the function directly with a 2-element version
-                # of the column
-                if NUMPY_LT_1_20 and not isinstance(par_col, Column) and len(par_col) > 0:
-                    func(par_col[[0, 0]])
-
                 if mean_case:
                     vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
                 else:

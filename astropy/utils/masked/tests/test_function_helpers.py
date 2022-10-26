@@ -19,7 +19,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, MASKED_SAFE_FUNCTIONS,
@@ -466,9 +466,7 @@ class TestConcatenate(MaskedArraySetup):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
         self.check(np.concatenate, ma_list=[self.a, self.ma])
-        if not NUMPY_LT_1_20:
-            # Check that we can accept a dtype argument (introduced in numpy 1.20)
-            self.check(np.concatenate, dtype='f4')
+        self.check(np.concatenate, dtype='f4')
 
         out = Masked(np.empty((4, 3)))
         result = np.concatenate([self.ma, self.ma], out=out)
@@ -797,9 +795,8 @@ class TestUfuncLikeTests:
     def test_array_equal(self):
         assert not np.array_equal(self.ma, self.ma)
         assert not np.array_equal(self.ma, self.a)
-        if not NUMPY_LT_1_19:
-            assert np.array_equal(self.ma, self.ma, equal_nan=True)
-            assert np.array_equal(self.ma, self.a, equal_nan=True)
+        assert np.array_equal(self.ma, self.ma, equal_nan=True)
+        assert np.array_equal(self.ma, self.a, equal_nan=True)
         assert not np.array_equal(self.ma, self.mb)
         ma2 = self.ma.copy()
         ma2.mask |= np.isnan(self.a)
@@ -969,7 +966,7 @@ class TestSpaceFunctions:
         # TODO: make implementation that also ensures start point mask is
         # determined just by start point? (as for geomspace in numpy 1.20)?
         expected_mask[-1] = self.mask_b
-        if not NUMPY_LT_1_20 and function is np.geomspace:
+        if function is np.geomspace:
             expected_mask[0] = self.mask_a
 
         assert_array_equal(out.unmasked, expected)
@@ -1341,10 +1338,6 @@ class TestNaNFunctions:
 
 
 untested_functions = set()
-if NUMPY_LT_1_20:
-    financial_functions = {f for f in all_wrapped_functions.values()
-                           if f in np.lib.financial.__dict__.values()}
-    untested_functions |= financial_functions
 
 if NUMPY_LT_1_23:
     deprecated_functions = {

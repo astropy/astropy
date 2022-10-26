@@ -23,7 +23,6 @@ from astropy.table.column import MaskedColumn
 from astropy.table.table_helpers import simple_table
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat import NUMPY_LT_1_19_1
 
 from .common import TEST_DIR
 
@@ -654,8 +653,6 @@ fail
     assert type(t['a'].dtype) == np.dtype("O")
 
 
-@pytest.mark.skipif(NUMPY_LT_1_19_1,
-                    reason="numpy cannot parse 'complex' as string until 1.19+")
 def test_read_complex():
     """Test an ECSV v1.0 file with a complex column"""
     txt = """\
