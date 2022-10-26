@@ -242,10 +242,9 @@ In the directory where your copy of astropy is type::
 
 This command installs astropy itself, along with a few packages which will be
 useful for testing the changes you will make down the road. Several pages of
-output will follow the first time you do this; this wouldn't be a bad time to
+output will follow the first time you do this; this would not be a bad time to
 get a fresh cup of coffee. At the end of it you should see something like
 ``Finished processing dependencies for astropy==3.2.dev6272``.
-
 
 To make sure it has been activated **change to a different directory outside of
 the astropy distribution** and try this in python::
