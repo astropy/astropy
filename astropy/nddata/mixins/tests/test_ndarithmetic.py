@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
@@ -1213,3 +1215,21 @@ def test_arithmetics_unknown_uncertainties():
 
     ndd4 = ndd1.add(ndd2, propagate_uncertainties=None)
     assert ndd4.uncertainty is None
+
+
+def test_psf_warning():
+    """Test that math on objects with a psf warn."""
+    ndd1 = NDDataArithmetic(np.ones((3, 3)), psf=np.zeros(3))
+    ndd2 = NDDataArithmetic(np.ones((3, 3)), psf=None)
+
+    # no warning if both are None
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        ndd2.add(ndd2)
+
+    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+        ndd1.add(ndd2)
+    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+        ndd2.add(ndd1)
+    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+        ndd1.add(ndd1)

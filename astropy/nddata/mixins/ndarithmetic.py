@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the Arithmetic mixin to the NDData class.
 
+import warnings
 
 from copy import deepcopy
 
@@ -256,6 +257,10 @@ class NDArithmeticMixin:
             kwargs['uncertainty'] = self._arithmetic_uncertainty(
                 operation, operand, result, uncertainty_correlation,
                 **kwds2['uncertainty'])
+
+        # If both are None, there is nothing to do.
+        if self.psf is not None or operand.psf is not None:
+            warnings.warn(f"Not setting psf attribute during {operation.__name__}.", RuntimeWarning)
 
         if handle_mask is None:
             kwargs['mask'] = None
