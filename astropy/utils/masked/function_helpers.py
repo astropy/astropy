@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -113,10 +113,6 @@ IGNORED_FUNCTIONS = {
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
     np.polymul, np.polysub, np.polyval, np.roots, np.vander}
-if NUMPY_LT_1_20:
-    # financial
-    IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
-                          np.npv, np.pmt, np.ppmt, np.pv, np.rate}
 
 # TODO: some of the following could in principle be supported.
 IGNORED_FUNCTIONS |= {
@@ -438,27 +434,20 @@ def sort_complex(a):
         return b
 
 
-if NUMPY_LT_1_20:
-    @apply_to_both
-    def concatenate(arrays, axis=0, out=None):
-        data, masks = _get_data_and_masks(*arrays)
-        return (data,), (masks,), dict(axis=axis), out
-
-else:
-    @dispatched_function
-    def concatenate(arrays, axis=0, out=None, dtype=None, casting='same_kind'):
-        data, masks = _get_data_and_masks(*arrays)
-        if out is None:
-            return (np.concatenate(data, axis=axis, dtype=dtype, casting=casting),
-                    np.concatenate(masks, axis=axis),
-                    None)
-        else:
-            from astropy.utils.masked import Masked
-            if not isinstance(out, Masked):
-                raise NotImplementedError
-            np.concatenate(masks, out=out.mask, axis=axis)
-            np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
-            return out
+@dispatched_function
+def concatenate(arrays, axis=0, out=None, dtype=None, casting='same_kind'):
+    data, masks = _get_data_and_masks(*arrays)
+    if out is None:
+        return (np.concatenate(data, axis=axis, dtype=dtype, casting=casting),
+                np.concatenate(masks, axis=axis),
+                None)
+    else:
+        from astropy.utils.masked import Masked
+        if not isinstance(out, Masked):
+            raise NotImplementedError
+        np.concatenate(masks, out=out.mask, axis=axis)
+        np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
+        return out
 
 
 @apply_to_both
@@ -532,35 +521,14 @@ def insert(arr, obj, values, axis=None):
             (arr_mask, obj, val_mask, axis), {}, None)
 
 
-if NUMPY_LT_1_19:
-    @dispatched_function
-    def count_nonzero(a, axis=None):
-        """Counts the number of non-zero values in the array ``a``.
+@dispatched_function
+def count_nonzero(a, axis=None, *, keepdims=False):
+    """Counts the number of non-zero values in the array ``a``.
 
-        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
-        """
-        filled = a.filled(np.zeros((), a.dtype))
-        return np.count_nonzero(filled, axis)
-else:
-    @dispatched_function
-    def count_nonzero(a, axis=None, *, keepdims=False):
-        """Counts the number of non-zero values in the array ``a``.
-
-        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
-        """
-        filled = a.filled(np.zeros((), a.dtype))
-        return np.count_nonzero(filled, axis, keepdims=keepdims)
-
-
-if NUMPY_LT_1_19:
-    def _zeros_like(a, dtype=None, order='K', subok=True, shape=None):
-        if shape != ():
-            return np.zeros_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
-        else:
-            return np.zeros_like(a, dtype=dtype, order=order, subok=subok,
-                                 shape=(1,))[0]
-else:
-    _zeros_like = np.zeros_like
+    Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
+    """
+    filled = a.filled(np.zeros((), a.dtype))
+    return np.count_nonzero(filled, axis, keepdims=keepdims)
 
 
 def _masked_median_1d(a, overwrite_input):
@@ -570,7 +538,7 @@ def _masked_median_1d(a, overwrite_input):
         return a.from_unmasked(
             np.median(unmasked, overwrite_input=overwrite_input))
     else:
-        return a.from_unmasked(_zeros_like(a.unmasked, shape=(1,))[0], mask=True)
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=(1,))[0], mask=True)
 
 
 def _masked_median(a, axis=None, out=None, overwrite_input=False):
@@ -608,7 +576,7 @@ def _masked_quantile_1d(a, q, **kwargs):
         result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
         return a.from_unmasked(result)
     else:
-        return a.from_unmasked(_zeros_like(a.unmasked, shape=q.shape), True)
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
 
 
 def _masked_quantile(a, q, axis=None, out=None, **kwargs):

@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, IGNORED_FUNCTIONS,
     SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED,
@@ -460,10 +460,8 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
-        if not NUMPY_LT_1_20:
-            # dtype argument only introduced in numpy 1.20
-            # regression test for gh-13322.
-            self.check(np.concatenate, dtype='f4')
+        # regression test for gh-13322.
+        self.check(np.concatenate, dtype='f4')
 
         self.check(np.concatenate, q_list=[np.zeros(self.q1.shape), self.q1, self.q2],
                    q_ref=self.q1)
@@ -2161,11 +2159,6 @@ class TestRecFunctions(metaclass=CoverageMeta):
 
 
 untested_functions = set()
-if NUMPY_LT_1_20:
-    financial_functions = {f for f in all_wrapped_functions.values()
-                           if f in np.lib.financial.__dict__.values()}
-    untested_functions |= financial_functions
-
 if NUMPY_LT_1_23:
     deprecated_functions = {
         # Deprecated, removed in numpy 1.23

@@ -20,7 +20,6 @@ from astropy.io import fits
 from astropy.table import Column, MaskedColumn, QTable, Table, TableAttribute, TableReplaceWarning
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_20
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1412,7 +1411,6 @@ class TestConvertNumpyArray():
         assert isinstance(np_d, np.ndarray)
         assert np_d[()] is d
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="numpy array introspection changed")
     def test_convert_list_numpy_object_array(self, table_types):
         d = table_types.Table([[1, 2], [3, 4]], names=('a', 'b'))
         ds = [d, d, d]
