@@ -51,6 +51,23 @@ cosmologies with their non-flat equivalents.
     True
 
 
+A cosmology can be parsed from or converted to a HTML table using
+the new HTML methods in Cosmology's ``to/from_format`` I/O.
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.write("planck18.html")
+
+The columns can be latex/mathjax formatted using the flag ``latex_names=True``;
+then if the following is added to the file's header, the column names will
+render nicely.::
+
+    <script
+    src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+
+
 .. _whatsnew-5.2-coordinates:
 
 Topocentric ITRS Frame
