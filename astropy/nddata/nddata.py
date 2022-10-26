@@ -315,8 +315,6 @@ class NDData(NDDataBase):
 
     @psf.setter
     def psf(self, value):
-        if value is not None and not isinstance(value, np.ndarray):
-            raise TypeError("The psf must be a numpy array.")
         self._psf = value
 
     @property
