@@ -78,8 +78,7 @@ Set up for virtual environments
 ===============================
 
 * `conda`_: No setup is necessary beyond installing the Miniconda Python
-  distribution . You can find the `installation instructions
-  here`_.
+  distribution . You can find the `conda installation instructions here`_.
 
 * `virtualenvwrapper`_:
 
@@ -303,6 +302,6 @@ virtual environment associated with the current directory:
 
 .. _documentation for virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
 .. _virtualenvwrapper command documentation: https://virtualenvwrapper.readthedocs.io/en/latest/command_ref.html
-.. _installation instructions here: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
+.. _conda installation instructions here: https://conda.io/projects/conda/en/latest/user-guide/install/index.html
 .. _documentation for the conda command: https://docs.conda.io/projects/conda/en/latest/commands.html
 .. _guide on how to manage environments: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
