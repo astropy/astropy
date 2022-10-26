@@ -33,6 +33,10 @@ class MinimalSubclass(NDDataBase):
     def uncertainty(self):
         return super().uncertainty
 
+    @property
+    def psf(self):
+        return super().psf
+
 
 def test_nddata_base_subclass():
     a = MinimalSubclass()
