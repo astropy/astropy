@@ -15,7 +15,7 @@ additional meta attributes:
 + ``mask`` indicates invalid points in the data
 + ``wcs`` represents the relationship between the data grid and world
   coordinates
-+ ``psf`` holds a normalized image representation of the point spread function (PSF) at the center of the array.
++ ``psf`` holds an image representation of the point spread function (PSF)
 
 Each of these attributes can be set during initialization or directly on the
 instance. Only the ``data`` cannot be directly set after creating the instance.

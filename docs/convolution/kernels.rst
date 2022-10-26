@@ -356,6 +356,7 @@ Especially in the range where the kernel width is in order of only a few pixels,
 it can be advantageous to use the mode ``oversample`` or ``integrate`` to
 conserve the integral on a subpixel scale.
 
+.. _kernel_normalization:
 
 Normalization
 =============
