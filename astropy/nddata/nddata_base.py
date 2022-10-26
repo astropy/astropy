@@ -56,6 +56,15 @@ class NDDataBase(metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def psf(self):
+        """Image representation of the PSF for the dataset.
+
+        Should be `ndarray`-like.
+        """
+        return None
+
+    @property
+    @abstractmethod
     def meta(self):
         """Additional meta information about the dataset.
 
