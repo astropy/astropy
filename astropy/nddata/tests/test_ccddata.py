@@ -1090,9 +1090,8 @@ def test_ccddata_with_psf():
     assert (ccd.psf == psf).all()
 
     # cannot pass in non-ndarray
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match="The psf must be a numpy array."):
         CCDData(_random_array.copy(), unit=u.adu, psf="something")
-    assert "The psf must be a numpy array." in str(exc.value)
 
 
 def test_psf_setter():
@@ -1102,9 +1101,8 @@ def test_psf_setter():
     assert (ccd.psf == psf).all()
 
     # cannot set with non-ndarray
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match="The psf must be a numpy array."):
         ccd.psf = "something"
-    assert "The psf must be a numpy array." in str(exc.value)
 
 
 def test_write_read_psf(tmpdir):
