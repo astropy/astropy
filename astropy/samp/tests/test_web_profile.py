@@ -4,11 +4,10 @@ web client. We can only put a single test here because only one hub can run
 with the web profile active, and the user might want to run the tests in
 parallel.
 """
-
-import os
-import tempfile
 import threading
 from urllib.request import Request, urlopen
+
+import pytest
 
 from astropy.samp import SAMPHubServer, SAMPIntegratedClient, conf
 from astropy.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
@@ -24,14 +23,15 @@ def setup_module(module):
 
 class TestWebProfile(BaseTestStandardProfile):
 
-    def setup_method(self, method):
+    @pytest.fixture(autouse=True)
+    def setup_method(self, tmp_path):
 
         self.dialog = AlwaysApproveWebProfileDialog()
         t = threading.Thread(target=self.dialog.poll)
         t.start()
 
-        self.tmpdir = tempfile.mkdtemp()
-        lockfile = os.path.join(self.tmpdir, '.samp')
+        self.tmpdir = str(tmp_path)
+        lockfile = str(tmp_path / '.samp')
 
         self.hub = SAMPHubServer(web_profile_dialog=self.dialog,
                                  lockfile=lockfile,
@@ -48,7 +48,7 @@ class TestWebProfile(BaseTestStandardProfile):
         self.client2_id = self.client2.get_public_id()
         self.client2_key = self.client2.get_private_key()
 
-    def teardown_method(self, method):
+    def teardown_method(self):
 
         if self.client1.is_connected:
             self.client1.disconnect()
