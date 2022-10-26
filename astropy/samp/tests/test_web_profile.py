@@ -68,7 +68,7 @@ class TestWebProfile(BaseTestStandardProfile):
         with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/crossdomain.xml') as f:
             assert f.read() == CROSS_DOMAIN
 
-        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/clientaccesspolicy.xml') as f:
+        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/clientaccesspolicy.xml') as f:  # noqa: E501
             assert f.read() == CLIENT_ACCESS_POLICY
 
         # Check headers
