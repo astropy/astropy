@@ -48,8 +48,8 @@ class TestBasic(BaseImageTests):
     def test_tight_layout(self):
         # Check that tight_layout works on a WCSAxes.
         fig = plt.figure(figsize=(8, 6))
-        axs = [fig.add_subplot(2, 1, i, projection=WCS(self.msx_header))
-               for i in [1, 2]]
+        for i in (1, 2):
+            fig.add_subplot(2, 1, i, projection=WCS(self.msx_header))
         fig.tight_layout()
         return fig
 
@@ -659,9 +659,10 @@ class TestBasic(BaseImageTests):
 
         with pytest.warns(AstropyUserWarning,
                           match="Received `center` of representation type "
-                                "<class 'astropy.coordinates.representation.CartesianRepresentation'> "
+                                "<class 'astropy.coordinates.representation.CartesianRepresentation'> "  # noqa: E501
                                 "will be converted to SphericalRepresentation"):
-            r3 = SphericalCircle(SkyCoord(x=-0.05486461, y=-0.87204803, z=-0.48633538, representation_type='cartesian'),
+            r3 = SphericalCircle(SkyCoord(x=-0.05486461, y=-0.87204803, z=-0.48633538,
+                                          representation_type='cartesian'),
                                  0.15 * u.degree, edgecolor='purple',
                                  facecolor='none', transform=ax.get_transform('fk5'))
 
@@ -693,8 +694,8 @@ class TestBasic(BaseImageTests):
 
         # Add a rectangle patch (100 degrees by 20 degrees)
         r = Rectangle((255, -70), 100, 20,
-                       label='Rectangle', edgecolor='red', facecolor='none', linestyle='--',
-                       transform=ax.get_transform('icrs'))
+                      label='Rectangle', edgecolor='red', facecolor='none', linestyle='--',
+                      transform=ax.get_transform('icrs'))
         ax.add_patch(r)
 
         ax.coords[0].set_ticklabel_visible(False)
@@ -703,7 +704,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test
-    def test_beam_shape_from_args(self, tmpdir):
+    def test_beam_shape_from_args(self, tmp_path):
         # Test for adding the beam shape with the beam parameters as arguments
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(4, 3))
@@ -718,7 +719,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test
-    def test_beam_shape_from_header(self, tmpdir):
+    def test_beam_shape_from_header(self, tmp_path):
         # Test for adding the beam shape with the beam parameters from a header
         hdr = self.msx_header
         hdr['BMAJ'] = (2 * u.arcmin).to(u.degree).value
@@ -736,7 +737,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test
-    def test_scalebar(self, tmpdir):
+    def test_scalebar(self, tmp_path):
         # Test for adding a scale bar
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(4, 3))
