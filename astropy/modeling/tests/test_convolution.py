@@ -88,6 +88,5 @@ def test__convolution_inputs():
     assert model._convolution_inputs(*grid1)[1] == grid1[0].shape
 
     # Error
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=r"Values have differing shapes"):
         model._convolution_inputs(grid0[0], grid1[1])
-    assert str(err.value) == "Values have differing shapes"

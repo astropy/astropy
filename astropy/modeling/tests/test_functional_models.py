@@ -92,9 +92,9 @@ def test_Gaussian2DCovariance():
     cov_matrix = [[49., 3.14, -16.],
                   [3.14, -16., 9.],
                   [-16, 27, 3.14]]
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Covariance matrix must be 2x2"
+    with pytest.raises(ValueError, match=MESSAGE):
         models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
-    assert str(err.value) == "Covariance matrix must be 2x2"
 
 
 def test_Gaussian2DRotation():
@@ -128,11 +128,12 @@ def test_Gaussian2D_invalid_inputs():
     models.Gaussian2D(x_stddev=x_stddev, y_stddev=y_stddev, theta=None)
     models.Gaussian2D(cov_matrix=cov_matrix)
 
-    with pytest.raises(InputParameterError):
+    MESSAGE = r"Cannot specify both cov_matrix and x/y_stddev/theta"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Gaussian2D(x_stddev=0, cov_matrix=cov_matrix)
-    with pytest.raises(InputParameterError):
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Gaussian2D(y_stddev=0, cov_matrix=cov_matrix)
-    with pytest.raises(InputParameterError):
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Gaussian2D(theta=0, cov_matrix=cov_matrix)
 
 
@@ -383,9 +384,9 @@ def test_Ring2D_rout():
     assert m.r_in.value == 1
     assert m.width.value == 6
     # Error when r_out is too small for default r_in
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = r"r_in=.* and width=.* must both be >=0"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=0.5)
-    assert str(err.value) == "r_in=1 and width=-0.5 must both be >=0"
 
     # Test with width specified only
     m = models.Ring2D(amplitude=1, x_0=1, y_0=1, width=11)
@@ -403,9 +404,8 @@ def test_Ring2D_rout():
     assert m.r_in.value == 2
     assert m.width.value == 3
     # Error when r_out is smaller than r_in
-    with pytest.raises(InputParameterError) as err:
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, r_in=4)
-    assert str(err.value) == "r_in=4 and width=-3 must both be >=0"
 
     # Test with r_in and width specified only
     m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, width=4)
@@ -423,9 +423,8 @@ def test_Ring2D_rout():
     assert m.r_in.value == 5
     assert m.width.value == 7
     # Error when width is larger than r_out
-    with pytest.raises(InputParameterError) as err:
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, width=4)
-    assert str(err.value) == "r_in=-3 and width=4 must both be >=0"
 
     # Test with r_in, r_out, and width all specified
     m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=8)
@@ -435,9 +434,9 @@ def test_Ring2D_rout():
     assert m.r_in.value == 3
     assert m.width.value == 8
     # error when specifying all
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = "Width must be r_out - r_in"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=7)
-    assert str(err.value) == "Width must be r_out - r_in"
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
@@ -453,9 +452,9 @@ def test_Voigt1D(fitter):
     assert_allclose(voi_fit.param_sets, voi.param_sets)
 
     # Invalid method
-    with pytest.raises(ValueError) as err:
+    MESSAGE = "Not a valid method for Voigt1D Faddeeva function: test."
+    with pytest.raises(ValueError, match=MESSAGE):
         models.Voigt1D(method='test')
-    assert str(err.value) == "Not a valid method for Voigt1D Faddeeva function: test."
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
@@ -512,11 +511,10 @@ def test_ExponentialAndLogarithmic1D_fit(model):
 
 @pytest.mark.parametrize('model', [models.Exponential1D(), models.Logarithmic1D()])
 def test_ExponentialAndLogarithmic_set_tau(model):
-    message = "0 is not an allowed value for tau"
+    MESSAGE = "0 is not an allowed value for tau"
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.tau = 0
-    assert str(err.value) == message
 
 
 def test_Linear1D_inverse():
