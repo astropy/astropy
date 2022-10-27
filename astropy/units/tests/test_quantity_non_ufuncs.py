@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, IGNORED_FUNCTIONS,
     SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
 
 needs_array_function = pytest.mark.xfail(
     not ARRAY_FUNCTION_ENABLED,
@@ -1500,12 +1500,17 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort(self):
         self.check(np.sort)
 
+    def test_sort_axis(self):
+        self.check(np.sort, axis=0)
+
+    @pytest.mark.skipif(not NUMPY_LT_1_24,
+                        reason='np.msort is deprecated')
+    def test_msort(self):
+        self.check(np.msort)
+
     @needs_array_function
     def test_sort_complex(self):
         self.check(np.sort_complex)
-
-    def test_msort(self):
-        self.check(np.msort)
 
     def test_partition(self):
         self.check(np.partition, 2)
