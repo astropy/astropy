@@ -479,7 +479,7 @@ def test_sip_no_coeff():
     sip = SIP([10, 12], 2, 2)
     assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
     assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
-    MESSAGE = r"SIP inverse coefficients are not available."
+    MESSAGE = r"SIP inverse coefficients are not available"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         sip.inverse
 

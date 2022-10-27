@@ -253,7 +253,7 @@ def test_RotationSequence3D_errors():
         rotations.RotationSequence3D(mk.MagicMock(), axes_order="abc")
 
     # Bad number of angles
-    MESSAGE = r"The number of angles 4 should match the number of axes 3."
+    MESSAGE = r"The number of angles 4 should match the number of axes 3"
     with pytest.raises(ValueError, match=MESSAGE):
         rotations.RotationSequence3D([1, 2, 3, 4], axes_order="zyx")
 
@@ -297,7 +297,7 @@ def test_EulerAngleRotation_errors():
                                      axes_order="abc")
 
     # Bad units
-    MESSAGE = r"All parameters should be of the same type - float or Quantity."
+    MESSAGE = r"All parameters should be of the same type - float or Quantity"
     with pytest.raises(TypeError, match=MESSAGE):
         rotations.EulerAngleRotation(1 * u.m, 2, 3,
                                      axes_order="xyz")
@@ -320,7 +320,7 @@ def test_EulerAngleRotation_inverse():
 
 def test__SkyRotation_errors():
     # Bad units
-    MESSAGE = r"All parameters should be of the same type - float or Quantity."
+    MESSAGE = r"All parameters should be of the same type - float or Quantity"
     with pytest.raises(TypeError, match=MESSAGE):
         rotations._SkyRotation(1 * u.m, 2, 3)
     with pytest.raises(TypeError, match=MESSAGE):

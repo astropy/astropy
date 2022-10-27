@@ -3,8 +3,6 @@
 """
 Tests that relate to evaluating models with quantity parameters
 """
-import re
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -20,7 +18,7 @@ from astropy.units import UnitsError
 # returns quantities.
 
 
-MESSAGE = "{}: Units of input 'x', {}({}), could not be converted to required input units of {}({})"
+MESSAGE = "{}: Units of input 'x', {}.*, could not be converted to required input units of {}.*"
 
 
 def test_evaluate_with_quantities():
@@ -43,7 +41,7 @@ def test_evaluate_with_quantities():
     # error is raised
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Gaussian1D', '', 'dimensionless', 'm ', 'length'))
+                match=MESSAGE.format('Gaussian1D', '', 'm ')
             ):
         gq(1)
 
@@ -56,15 +54,14 @@ def test_evaluate_with_quantities():
     # But not with incompatible units
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Gaussian1D', 's ', 'time', 'm ', 'length'))
+                match=MESSAGE.format('Gaussian1D', 's', 'm')
             ):
         gq(3 * u.s)
 
     # We also can't evaluate the model without quantities with a quantity
     with pytest.raises(
                 UnitsError,
-                match=r"Can only apply 'subtract' function to dimensionless quantities "
-                      r"when other argument is not a quantity .*"
+                match=r"Can only apply 'subtract' function to dimensionless quantities .*"
             ):
         g(3 * u.m)
     # TODO: determine what error message should be here
@@ -82,7 +79,7 @@ def test_evaluate_with_quantities_and_equivalencies():
     # We aren't setting the equivalencies, so this won't work
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Gaussian1D', 'PHz ', 'frequency', 'nm ', 'length'))
+                match=MESSAGE.format('Gaussian1D', 'PHz', 'nm')
             ):
         g(30 * u.PHz)
 
@@ -123,13 +120,13 @@ class TestInputUnits():
 
         with pytest.raises(
                     UnitsError,
-                    match=re.escape(MESSAGE.format('MyTestModel', 's ', 'time', 'deg ', 'angle'))
+                    match=MESSAGE.format('MyTestModel', 's', 'deg')
                 ):
             self.model(4 * u.s, 3)
 
         with pytest.raises(
                     UnitsError,
-                    match=re.escape(MESSAGE.format('MyTestModel', '', 'dimensionless', 'deg ', 'angle'))
+                    match=MESSAGE.format('MyTestModel', '', 'deg')
                 ):
             self.model(3, 3)
 
@@ -143,7 +140,7 @@ class TestInputUnits():
 
         with pytest.raises(
                     UnitsError,
-                    match=re.escape(MESSAGE.format('MyTestModel', 's ', 'time', 'deg ', 'angle'))
+                    match=MESSAGE.format('MyTestModel', 's', 'deg')
                 ):
             self.model(4 * u.s, 3)
 
@@ -166,7 +163,7 @@ class TestInputUnits():
 
         with pytest.raises(
                     UnitsError,
-                    match=re.escape(MESSAGE.format('MyTestModel', 'PHz ', 'frequency', 'micron ', 'length'))
+                    match=MESSAGE.format('MyTestModel', 'PHz', 'micron')
                 ):
             self.model(3 * u.PHz, 3)
 
@@ -253,7 +250,7 @@ def test_compound_input_units_fail():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Shift', 'pix ', 'unknown', 'deg ', 'angle'))
+                match=MESSAGE.format('Shift', 'pix', 'deg')
             ):
         cs(10 * u.pix)
 
@@ -269,7 +266,7 @@ def test_compound_incompatible_units_fail():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Shift', 'pix ', 'unknown', 'deg ', 'angle'))
+                match=MESSAGE.format('Shift', 'pix', 'deg')
             ):
         cs(10 * u.pix)
 
@@ -335,7 +332,7 @@ def test_compound_input_units_equivalencies():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('Shift', 'pix ', 'unknown', 'deg ', 'angle'))
+                match=MESSAGE.format('Shift', 'pix', 'deg')
             ):
         out = cs(20 * u.pix, 10 * u.pix)
 
@@ -393,7 +390,7 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('ScaleDegrees', 'm ', 'length', 'deg ', 'angle'))
+                match=MESSAGE.format('ScaleDegrees', 'm', 'deg')
             ):
         out = cs(10 * u.m)
 
@@ -404,7 +401,7 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('ScaleDegrees', '', 'dimensionless', 'deg ', 'angle'))
+                match=MESSAGE.format('ScaleDegrees', '', 'deg')
             ):
         out = cs(10)
 
@@ -421,7 +418,7 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('ScaleDegrees', 'm ', 'length', 'deg ', 'angle'))
+                match=MESSAGE.format('ScaleDegrees', 'm', 'deg')
             ):
         out = cs(10 * u.m)
 
@@ -431,7 +428,7 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('ScaleDegrees', '', 'dimensionless', 'deg ', 'angle'))
+                match=MESSAGE.format('ScaleDegrees', '', 'deg')
             ):
         out = cs(10)
 
@@ -451,7 +448,7 @@ def test_compound_input_units_allow_dimensionless():
 
     with pytest.raises(
                 UnitsError,
-                match=re.escape(MESSAGE.format('ScaleDegrees', '', 'dimensionless', 'deg ', 'angle'))
+                match=MESSAGE.format('ScaleDegrees', '', 'deg')
             ):
         out = cs(10, 10)
 

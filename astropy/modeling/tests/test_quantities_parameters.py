@@ -3,8 +3,6 @@
 """
 Tests that relate to using quantities/units on parameters of models.
 """
-import re
-
 import numpy as np
 import pytest
 
@@ -82,9 +80,7 @@ def test_parameter_lose_units():
 
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
 
-    MESSAGE = (r"The 'amplitude' parameter should be given as "
-               r"a Quantity because it was originally "
-               r"initialized as a Quantity")
+    MESSAGE = r"The .* parameter should be given as a .* because it was originally initialized as a .*"
     with pytest.raises(UnitsError, match=MESSAGE):
         g.amplitude = 2
 
@@ -111,14 +107,12 @@ def test_parameter_change_unit():
     g = Gaussian1D(1, 1 * u.m, 0.1 * u.m)
 
     # Setting a unit on a unitless parameter should not work
-    MESSAGE = (r"Cannot attach units to parameters that were "
-               r"not initially specified with units")
+    MESSAGE = r"Cannot attach units to parameters that were not initially specified with units"
     with pytest.raises(ValueError, match=MESSAGE):
         g.amplitude.unit = u.Jy
 
     # But changing to another unit should not, even if it is an equivalent unit
-    MESSAGE = (r"Cannot change the unit attribute directly, "
-               r"instead change the parameter to a new quantity")
+    MESSAGE = r"Cannot change the unit attribute directly, instead change the parameter to a new quantity"
     with pytest.raises(ValueError, match=MESSAGE):
         g.mean.unit = u.cm
 
@@ -141,12 +135,7 @@ def test_parameter_set_value():
     assert g.amplitude.unit is u.Jy
 
     # If we try setting it to a Quantity, we raise an error
-    MESSAGE = (
-        r"The .value property on parameters should be set"
-        r" to unitless values, not Quantity objects. To set"
-        r"a parameter to a quantity simply set the "
-        r"parameter directly without using .value"
-    )
+    MESSAGE = r"The .value property on parameters should be set to unitless values, not Quantity objects.*"
     with pytest.raises(TypeError, match=MESSAGE):
         g.amplitude.value = 3 * u.Jy
 
@@ -234,7 +223,7 @@ def test_parameter_defaults(unit, default):
     assert m.a.default == 1.0
 
     # Instantiating with different units works, and just replaces the original unit
-    MESSAGE = re.escape("TestModel.__init__() requires a Quantity for parameter 'a'")
+    MESSAGE = r".* requires a Quantity for parameter .*"
     with pytest.raises(InputParameterError, match=MESSAGE):
         TestModel(1.0)
 
@@ -264,10 +253,7 @@ def test_parameter_quantity_arithmetic():
     assert abs(-g.mean) == g.mean
 
     # However, addition of a quantity + scalar should not work
-    MESSAGE = re.escape("Can only apply 'add' function to "
-                        "dimensionless quantities when other argument "
-                        "is not a quantity (unless the latter is all "
-                        "zero/infinity/nan)")
+    MESSAGE = r"Can only apply 'add' function to dimensionless quantities when other argument .*"
     with pytest.raises(UnitsError, match=MESSAGE):
         g.mean + 1
     with pytest.raises(UnitsError, match=MESSAGE):
@@ -291,10 +277,7 @@ def test_parameter_quantity_comparison():
     assert g.mean < 2 * u.m
     assert 2 * u.m > g.mean
 
-    MESSAGE = re.escape("Can only apply 'less' function to "
-                        "dimensionless quantities when other argument "
-                        "is not a quantity (unless the latter is all "
-                        "zero/infinity/nan)")
+    MESSAGE = r"Can only apply 'less' function to dimensionless quantities when other argument .*"
     with pytest.raises(UnitsError, match=MESSAGE):
         g.mean < 2
 

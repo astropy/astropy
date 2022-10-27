@@ -358,7 +358,7 @@ def test_AffineTransformation2D_inverse():
 
     model4 = projections.AffineTransformation2D(
         matrix=[[1.2, 3.4], [5.6, 7.8]] * u.m, translation=[9.1, 10.11] * u.km)
-    MESSAGE = r"matrix and translation must have the same units."
+    MESSAGE = r"matrix and translation must have the same units"
     with pytest.raises(ValueError, match=MESSAGE):
         model4.inverse(*model4(x * u.m, y * u.m))
 
@@ -412,7 +412,7 @@ def test_affine_with_quantities():
 
     # test affine with matrix only
     qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg)
-    MESSAGE = r"To use AffineTransformation with quantities, both matrix and unit need to be quantities."
+    MESSAGE = r"To use AffineTransformation with quantities, both matrix and unit need to be quantities"
     with pytest.raises(ValueError, match=MESSAGE):
         qx1, qy1 = qaff(xpix, ypix, equivalencies={
             'x': u.pixel_scale(2.5 * u.deg / u.pix),

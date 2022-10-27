@@ -6,7 +6,6 @@ Tests models.parameters
 
 import functools
 import itertools
-import re
 import unittest.mock as mk
 
 import numpy as np
@@ -85,7 +84,7 @@ def test__tofloat():
     assert isinstance(value, np.ndarray)
     assert (value == np.array([1, 2, 3])).all()
     assert np.all([isinstance(val, float) for val in value])
-    MESSAGE = r"Parameter of <class 'str'> could not be converted to float"
+    MESSAGE = r"Parameter of .* could not be converted to float"
     with pytest.raises(InputParameterError, match=MESSAGE):
         _tofloat('test')
 
@@ -127,7 +126,7 @@ def test__tofloat():
     # other
     class Value:
         pass
-    MESSAGE = r"Don't know how to convert parameter of <class 'type'> to float"
+    MESSAGE = r"Don't know how to convert parameter of .* to float"
     with pytest.raises(InputParameterError, match=MESSAGE):
         _tofloat(Value)
 
@@ -394,8 +393,7 @@ class TestParameters:
         assert param.bounds == (1, 2)
 
         # Errors __init__
-        MESSAGE = (r"bounds may not be specified simultaneously with min or max"
-                   r" when instantiating Parameter test")
+        MESSAGE = r"bounds may not be specified simultaneously with min or max .*"
         with pytest.raises(ValueError, match=MESSAGE):
             Parameter(bounds=(1, 2), min=1, name='test')
         with pytest.raises(ValueError, match=MESSAGE):
@@ -448,8 +446,7 @@ class TestParameters:
         assert param.unit is None
 
         # No force Error (no existing unit)
-        MESSAGE = (r"Cannot attach units to parameters that were "
-                   r"not initially specified with units")
+        MESSAGE = r"Cannot attach units to parameters that were .*"
         with pytest.raises(ValueError, match=MESSAGE):
             param._set_unit(u.m)
 
@@ -468,8 +465,7 @@ class TestParameters:
         assert param._unit == u.ABmag
 
         # No force Error (existing unit)
-        MESSAGE = (r"Cannot change the unit attribute directly, instead change the "
-                   r"parameter to a new quantity")
+        MESSAGE = r"Cannot change the unit attribute directly, instead change the .*"
         with pytest.raises(ValueError, match=MESSAGE):
             param._set_unit(u.K)
 
@@ -487,7 +483,7 @@ class TestParameters:
         param = Parameter(name='test', default=[1, 2, 3, 4])
         assert param.shape == (4,)
         # Reshape error
-        MESSAGE = re.escape("cannot reshape array of size 4 into shape (5,)")
+        MESSAGE = r"cannot reshape array of size 4 into shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
         # Reshape success
@@ -578,9 +574,7 @@ class TestParameters:
         param.validator(valid)
         assert param._validator == valid
 
-        MESSAGE = (r"This decorator method expects a callable.\n"
-                   r"The use of this method as a direct validator is\n"
-                   r"deprecated; use the new validate method instead\n")
+        MESSAGE = r"This decorator method expects a callable.*"
         with pytest.raises(ValueError, match=MESSAGE):
             param.validator(mk.NonCallableMagicMock())
 
@@ -693,8 +687,7 @@ class TestParameters:
         param = Parameter(name='test', default=[1, 2, 3, 4])
 
         # Bad ufunc
-        MESSAGE = (r"A numpy.ufunc used for Parameter getter/setter "
-                   r"may only take one input argument")
+        MESSAGE = r"A numpy.ufunc used for Parameter getter/setter .*"
         with pytest.raises(TypeError, match=MESSAGE):
             param._create_value_wrapper(np.add, mk.MagicMock())
         # Good ufunc
@@ -724,8 +717,7 @@ class TestParameters:
         # wrapper with more than 2 arguments
         def wrapper3(a, b, c):
             pass
-        MESSAGE = (r"Parameter getter/setter must be a function "
-                   r"of either one or two arguments")
+        MESSAGE = r"Parameter getter/setter must be a function .*"
         with pytest.raises(TypeError, match=MESSAGE):
             param._create_value_wrapper(wrapper3, mk.MagicMock())
 
@@ -868,9 +860,7 @@ class TestParameterInitialization:
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_different_length_parameters(self):
-        MESSAGE = (r"Parameter 'coeff' of shape .* cannot be broadcast with parameter "
-                   r"'e' of shape .*.  All parameter arrays must have shapes that are "
-                   r"mutually compatible according to the broadcasting rules.")
+        MESSAGE = r"Parameter .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Not broadcastable
             TParModel([1, 2], [3, 4, 5])
@@ -910,9 +900,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
         # Not broadcastable
-        MESSAGE = (r"Parameter 'coeff' of shape .* cannot be broadcast with parameter "
-                   r"'e' of shape .*.  All parameter arrays must have shapes that are "
-                   r"mutually compatible according to the broadcasting rules.")
+        MESSAGE = r"Parameter .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff, e.T)
 
@@ -985,9 +973,7 @@ class TestParameterInitialization:
         assert t2.e.shape == (2, 3)
 
     def test_two_model_mixed_dimension_array_parameters(self):
-        MESSAGE = (r"Parameter 'coeff' of shape .* cannot be broadcast with parameter 'e' of shape .*.  "
-                   r"All parameter arrays must have shapes that are mutually compatible according to "
-                   r"the broadcasting rules.")
+        MESSAGE = r"Parameter .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             # Can't broadcast different array shapes
             TParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
@@ -1042,30 +1028,26 @@ class TestParameterInitialization:
         assert t.e.shape == (3, 2)  # note change in api
 
     def test_wrong_number_of_params(self):
-        MESSAGE = (r"Inconsistent dimensions for parameter 'e' for 2 model sets.  "
-                   r"The length of axis 0 must be the same for all input parameter values")
+        MESSAGE = r"Inconsistent dimensions for parameter .* for 2 model sets.*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
-        MESSAGE = (r"All parameter values must be arrays of dimension at "
-                   r"least 1 for model_set_axis=0 .*")
+        MESSAGE = r"All parameter values must be arrays of dimension at .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
 
     def test_array_parameter1(self):
-        MESSAGE = (r"All parameter values must be arrays of dimension at "
-                   r"least 1 for model_set_axis=0 .*")
+        MESSAGE = r"All parameter values must be arrays of dimension at .*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
-        MESSAGE = (r"Inconsistent dimensions for parameter 'e' for 2 model sets.  "
-                   r"The length of axis 0 must be the same for all input parameter values")
+        MESSAGE = r"Inconsistent dimensions for parameter .* for 2 model sets.*"
         with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
                       model_set_axis=0)
@@ -1106,8 +1088,7 @@ def test_non_broadcasting_parameters():
             return
 
     # a broadcasts with both b and c, but b does not broadcast with c
-    MESSAGE = (r"Parameter '.*' of shape .* cannot be broadcast with parameter '.*' of shape .*.  "
-               r"All parameter arrays must have shapes that are mutually compatible according to the broadcasting rules.")
+    MESSAGE = r"Parameter '.*' of shape .* cannot be broadcast with parameter '.*' of shape .*"
     for args in itertools.permutations((a, b, c)):
         with pytest.raises(InputParameterError, match=MESSAGE):
             TestModel(*args)

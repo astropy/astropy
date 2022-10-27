@@ -56,7 +56,7 @@ def test_model1d_axis_1(model_class):
 
     p1 = model_class(1, c0=c0, c1=c1, n_models=n_models, model_set_axis=model_axis)
 
-    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional."
+    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional"
     with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
@@ -88,7 +88,7 @@ def test_model1d_axis_2(model_class):
     t2 = model_class(1, c0=2, c1=20)
     t3 = model_class(1, c0=3, c1=30)
 
-    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional."
+    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional"
     with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
@@ -114,8 +114,7 @@ def test_model1d_axis_0(model_class):
     t1 = model_class(1, c0=2, c1=1)
     t2 = model_class(1, c0=3, c1=2)
 
-    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
-               r"model_set_axis=0 for a model set with n_models=2.")
+    MESSAGE = r"Input argument 'x' does not have the correct dimensions in .*"
     with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
@@ -165,8 +164,7 @@ def test_negative_axis():
     t1 = Polynomial1D(1, c0=1, c1=3)
     t2 = Polynomial1D(1, c0=2, c1=4)
 
-    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
-               r"model_set_axis=-1 for a model set with n_models=2.")
+    MESSAGE = r"Input argument 'x' does not have the correct dimensions in .*"
     with pytest.raises(ValueError, match=MESSAGE):
         p1(x)
 
@@ -223,8 +221,7 @@ def test_eval():
     assert_allclose(model(xx), p(xx))
     assert_allclose(model(x, model_set_axis=False), p(x, model_set_axis=False))
 
-    MESSAGE = (r"Input argument 'x' does not have the correct dimensions in "
-               r"model_set_axis=.* for a model set with n_models=2.")
+    MESSAGE = r"Input argument 'x' does not have the correct dimensions in .*"
     with pytest.raises(ValueError, match=MESSAGE):
         model(x)
 
@@ -300,7 +297,7 @@ def test_model_set_axis_outputs():
     assert_allclose(y0[:, 0], y1[0])
     assert_allclose(y0[:, 1], y1[1])
 
-    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional."
+    MESSAGE = r"For model_set_axis=1, all inputs must be at least 2-dimensional"
     with pytest.raises(ValueError, match=MESSAGE):
         model_set(x)
 

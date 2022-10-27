@@ -506,14 +506,14 @@ class TestSpline1D:
             Spline1D(knots=knots)
 
         # Not enough knots
-        MESSAGE = r"Must have at least 8 knots."
+        MESSAGE = r"Must have at least 8 knots"
         for idx in range(8):
             with pytest.raises(ValueError, match=MESSAGE):
                 Spline1D(knots=np.arange(idx))
 
         # Bad scipy spline
         t = np.arange(20)[::-1]
-        MESSAGE = r"Knots must be in a non-decreasing order."
+        MESSAGE = r"Knots must be in a non-decreasing order"
         with pytest.raises(ValueError, match=MESSAGE):
             Spline1D(knots=t)
 
@@ -689,7 +689,7 @@ class TestSpline1D:
         assert spl._t is None
         assert (spl.t == [0, 0, 0, 0, 1, 1, 1, 1]).all()
         # test set
-        MESSAGE = r"The model parameters must be initialized before setting knots."
+        MESSAGE = r"The model parameters must be initialized before setting knots"
         with pytest.raises(ValueError, match=MESSAGE):
             spl.t = mk.MagicMock()
 
@@ -706,7 +706,7 @@ class TestSpline1D:
         assert (spl.t == (np.arange(18) + 15)).all()
         assert (spl.t != t).all()
         # set error
-        MESSAGE = r"There must be exactly as many knots as previously defined."
+        MESSAGE = r"There must be exactly as many knots as previously defined"
         for idx in range(30):
             if idx == 18:
                 continue
@@ -720,7 +720,7 @@ class TestSpline1D:
         assert spl._c is None
         assert (spl.c == [0, 0, 0, 0, 0, 0, 0, 0]).all()
         # test set
-        MESSAGE = r"The model parameters must be initialized before setting coeffs."
+        MESSAGE = r"The model parameters must be initialized before setting coeffs"
         with pytest.raises(ValueError, match=MESSAGE):
             spl.c = mk.MagicMock()
 
@@ -735,7 +735,7 @@ class TestSpline1D:
         assert (spl.c == (np.arange(18) + 15)).all()
         assert (spl.c != np.zeros(18)).all()
         # set error
-        MESSAGE = r"There must be exactly as many coeffs as previously defined."
+        MESSAGE = r"There must be exactly as many coeffs as previously defined"
         for idx in range(30):
             if idx == 18:
                 continue
@@ -980,7 +980,7 @@ class TestSpline1D:
             assert mkBspline.call_args_list == [mk.call()]
 
             # error
-            MESSAGE = r"Must have at least 8 knots."
+            MESSAGE = r"Must have at least 8 knots"
             for num in range(8):
                 knots = np.random.random(num)
                 spl = Spline1D()
@@ -1470,8 +1470,7 @@ class TestSpline1D:
 
         # Too many anti derivatives
         for nu in range(3, 9):
-            MESSAGE = ("Supported splines can have max degree 5, "
-                       f"antiderivative degree will be {nu + 3}")
+            MESSAGE = f"Supported splines can have max degree 5, antiderivative degree will be {nu + 3}"
             with pytest.raises(ValueError, match=MESSAGE):
                 spl.antiderivative(nu=nu)
 
@@ -1484,14 +1483,14 @@ class TestSpline1D:
 
         fitter = SplineFitter()
 
-        MESSAGE = r"1D model can only have 2 data points."
+        MESSAGE = r"1D model can only have 2 data points"
         with pytest.raises(ValueError, match=MESSAGE):
             fitter(spl, mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
 
-        MESSAGE = r"Only spline models are compatible with this fitter."
+        MESSAGE = r"Only spline models are compatible with this fitter"
         with pytest.raises(ModelDefinitionError, match=MESSAGE):
             fitter(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
 
-        MESSAGE = r"This has not been implemented for _SplineFitter."
+        MESSAGE = r"This has not been implemented for _SplineFitter"
         with pytest.raises(NotImplementedError, match=MESSAGE):
             fitter(spl, mk.MagicMock(), mk.MagicMock())

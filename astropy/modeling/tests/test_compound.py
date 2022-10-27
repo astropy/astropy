@@ -2,7 +2,6 @@
 # pylint: disable=invalid-name, pointless-statement
 
 import pickle
-import re
 
 import numpy as np
 import pytest
@@ -40,7 +39,7 @@ def test_model_set_raises_value_error(expr, result):
     """Check that creating model sets with components whose _n_models are
        different raise a value error
     """
-    MESSAGE = r"Both operands must have equal values for n_models"
+    MESSAGE = r"Both operands must have equal values for .*"
     with pytest.raises(ValueError, match=MESSAGE):
         expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
 
@@ -212,8 +211,7 @@ def test_compound_unsupported_inverse(model):
     Ensure inverses aren't supported in cases where it shouldn't be.
     """
 
-    MESSAGE = (r"No analytical or user-supplied inverse transform "
-               r"has been implemented for this model.")
+    MESSAGE = r"No analytical or user-supplied inverse transform .*"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         model.inverse
 
@@ -275,9 +273,7 @@ def test_invalid_operands():
     not match up correctly.
     """
 
-    MESSAGE = re.escape("Unsupported operands for |: None (n_inputs=2, n_outputs=2) and None "
-                        "(n_inputs=1, n_outputs=1); n_outputs for the left-hand model must "
-                        "match n_inputs for the right-hand model.")
+    MESSAGE = r"Unsupported operands for |:.*"
     with pytest.raises(ModelDefinitionError, match=MESSAGE):
         Rotation2D(90) | Gaussian1D(1, 0, 0.1)
 
@@ -320,7 +316,7 @@ def test_fix_inputs():
 def test_fix_inputs_invalid():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
 
-    MESSAGE = r"Substitution key .* not among possible input choices."
+    MESSAGE = r"Substitution key .* not among possible input choices"
     with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {'x0': 0, 0: 0})
 
@@ -336,11 +332,11 @@ def test_fix_inputs_invalid():
     with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {'w': 2})
 
-    MESSAGE = r'Expected a dictionary for second argument of "fix_inputs".'
+    MESSAGE = r'Expected a dictionary for second argument of "fix_inputs"'
     with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, (0, 1))
 
-    MESSAGE = re.escape("('Illegal operator: ', '#')")
+    MESSAGE = r".*Illegal operator: ', '#'.*"
     with pytest.raises(ModelDefinitionError, match=MESSAGE):
         CompoundModel('#', g1, g1)
 
@@ -591,7 +587,7 @@ def test_name_index():
     g1.name = 'bozo'
     assert g['bozo'].mean == 1
     g2.name = 'bozo'
-    MESSAGE = re.escape("Multiple components found using 'bozo' as name\nat indices [0, 1]")
+    MESSAGE = r"Multiple components found using 'bozo' as name.*"
     with pytest.raises(IndexError, match=MESSAGE):
         g['bozo']
 

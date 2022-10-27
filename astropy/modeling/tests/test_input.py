@@ -188,7 +188,7 @@ class TestFitting:
         """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
 
-        MESSAGE = r"Non-linear fitters can only fit one data set at a time."
+        MESSAGE = r"Non-linear fitters can only fit one data set at a time"
         with pytest.raises(ValueError, match=MESSAGE):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2],
                                    n_models=2)
@@ -213,7 +213,7 @@ class TestFitting:
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
 
-        MESSAGE = r"Input argument 'x' does not have the correct dimensions in model_set_axis=0 for a model set with n_models=2."
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
         with pytest.raises(ValueError, match=MESSAGE):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0], n_models=2)
@@ -428,7 +428,7 @@ class TestSingleInputSingleOutputSingleModel:
                              [[[311, 322], [333, 344]],
                               [[411, 422], [433, 444]]]])
 
-        MESSAGE = r"self input argument 'x' of shape .* cannot be broadcast with parameter 'p1' of shape .*"
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             t([[100, 200, 300], [400, 500, 600]])
@@ -499,7 +499,7 @@ class TestSingleInputSingleOutputTwoModel:
 
         t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
-        MESSAGE = r"Input argument 'x' does not have the correct dimensions in model_set_axis=0 for a model set with n_models=2."
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
         with pytest.raises(ValueError, match=MESSAGE):
             t(np.arange(5) * 100)
 
@@ -582,7 +582,7 @@ class TestSingleInputSingleOutputTwoModel:
         t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                        [[10, 20, 30], [40, 50, 60]], n_models=2)
 
-        MESSAGE = r"Input argument 'x' does not have the correct dimensions in model_set_axis=0 for a model set with n_models=2."
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
         with pytest.raises(ValueError, match=MESSAGE):
             y1 = t([100, 200, 300])
 
@@ -590,7 +590,7 @@ class TestSingleInputSingleOutputTwoModel:
         assert np.shape(y1) == (2, 3)
         assert np.all(y1 == [[111, 122, 133], [244, 255, 266]])
 
-        MESSAGE = r"Model input argument 'x' of shape .* cannot be broadcast with parameter 'p1' of shape .*."
+        MESSAGE = r"Model input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast with the shape of the parameters, (3,)
             y2 = t([100, 200], model_set_axis=False)
@@ -609,7 +609,7 @@ class TestSingleInputSingleOutputTwoModel:
         assert np.all(y1 == [[[111, 222], [133, 244]],
                              [[355, 466], [377, 488]]])
 
-        MESSAGE = r"Model input argument 'x' of shape .* cannot be broadcast with parameter 'p1' of shape .*."
+        MESSAGE = r"Model input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             y2 = t([[100, 200, 300], [400, 500, 600]])
 
@@ -623,7 +623,7 @@ class TestSingleInputSingleOutputTwoModel:
                         [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                        [[1, 2, 3], [4, 5, 6]], n_models=2)
 
-        MESSAGE = r"Input argument 'x' does not have the correct dimensions in model_set_axis=0 for a model set with n_models=2."
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
         with pytest.raises(ValueError, match=MESSAGE):
             y = t([10, 20, 30])
 
@@ -748,7 +748,7 @@ class TestSingleInputDoubleOutputSingleModel:
         assert np.all(y2 == [[111, 122], [211, 222]])
         assert np.all(z2 == [[1111, 2122], [1211, 2222]])
 
-        MESSAGE = r"self input argument 'x0' of shape .* cannot be broadcast with parameter 'p1' of shape .*"
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             y3, z3 = t([100, 200, 300])
@@ -778,7 +778,7 @@ class TestSingleInputDoubleOutputSingleModel:
                              [[[1311, 2322], [3333, 4344]],
                               [[1411, 2422], [3433, 4444]]]])
 
-        MESSAGE = r"self input argument 'x0' of shape .* cannot be broadcast with parameter 'p1' of shape .*"
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             y3, z3 = t([[100, 200, 300], [400, 500, 600]])
