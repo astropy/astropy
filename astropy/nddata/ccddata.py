@@ -286,7 +286,7 @@ class CCDData(NDDataArray):
     def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
                hdu_flags=None, wcs_relax=True,
                key_uncertainty_type='UTYPE', as_image_hdu=False,
-               hdu_psf="PSFIMAGE"):
+               hdu_psf='PSFIMAGE'):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
@@ -297,7 +297,7 @@ class CCDData(NDDataArray):
             Flags are not supported at this time. If ``None`` this attribute
             is not appended.
             Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
-            "PSFIMAGE" for psf, and ``None`` for flags.
+            ``'PSFIMAGE'`` for psf, and ``None`` for flags.
 
         wcs_relax : bool
             Value of the ``relax`` parameter to use in converting the WCS to a
@@ -556,7 +556,7 @@ def _generate_wcs_and_update_header(hdr):
 
 def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         hdu_mask='MASK', hdu_flags=None,
-                        key_uncertainty_type='UTYPE', hdu_psf="PSFIMAGE", **kwd):
+                        key_uncertainty_type='UTYPE', hdu_psf='PSFIMAGE', **kwd):
     """
     Generate a CCDData object from a FITS file.
 
@@ -707,7 +707,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 def fits_ccddata_writer(
         ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
         hdu_flags=None, key_uncertainty_type='UTYPE', as_image_hdu=False,
-        hdu_psf="PSFIMAGE",
+        hdu_psf='PSFIMAGE',
         **kwd):
     """
     Write CCDData object to FITS file.
@@ -726,7 +726,7 @@ def fits_ccddata_writer(
         Flags are not supported at this time. If ``None`` this attribute
         is not appended.
         Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
-        "PSFIMAGE" for psf, and ``None`` for flags.
+        ``'PSFIMAGE'`` for psf, and ``None`` for flags.
 
     key_uncertainty_type : str, optional
         The header key name for the class name of the uncertainty (if any)
