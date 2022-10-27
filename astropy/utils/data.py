@@ -331,15 +331,14 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # Check if the file object supports random access, and if not,
     # then wrap it in a BytesIO buffer.  It would be nicer to use a
     # BufferedReader to avoid reading loading the whole file first,
-    # but that is not compatible with streams or urllib2.urlopen
-    # objects on Python 2.x.
+    # but that might not be compatible with all possible I/O classes.
     if not hasattr(fileobj, 'seek'):
         try:
             # py.path.LocalPath objects have .read() method but it uses
             # text mode, which won't work. .read_binary() does, and
             # surely other ducks would return binary contents when
             # called like this.
-            # py.path.LocalPath is what comes from the tmpdir fixture
+            # py.path.LocalPath is what comes from the legacy tmpdir fixture
             # in pytest.
             fileobj = io.BytesIO(fileobj.read_binary())
         except AttributeError:
