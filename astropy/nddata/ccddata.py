@@ -291,7 +291,7 @@ class CCDData(NDDataArray):
 
         Parameters
         ----------
-        hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf: str or None, optional
+        hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf : str or None, optional
             If it is a string append this attribute to the HDUList as
             `~astropy.io.fits.ImageHDU` with the string as extension name.
             Flags are not supported at this time. If ``None`` this attribute
@@ -601,7 +601,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
 
     hdu_psf : str or None, optional
         FITS extension from which the psf image should be initialized. If the
-        extension does not exist the psf of the CCDData is ``None``.
+        extension does not exist the psf of the CCDData is `None`.
 
     kwd :
         Any additional keyword parameters are passed through to the FITS reader
