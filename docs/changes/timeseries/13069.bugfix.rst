@@ -1,0 +1,2 @@
+Fixed a performance regression in ``timeseries.aggregate_downsample``
+introduced in Astropy 5.0 / #11266.
