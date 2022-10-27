@@ -1,5 +1,3 @@
-import tempfile
-
 import pytest
 
 # By default, tests should not use the internet.
@@ -29,9 +27,10 @@ class TestStandardProfile:
     def client_connect_kwargs(self):
         return {}
 
-    def setup_method(self, method):
+    @pytest.fixture(autouse=True)
+    def setup_method(self, tmp_path):
 
-        self.tmpdir = tempfile.mkdtemp()
+        self.tmpdir = str(tmp_path)
 
         self.hub = SAMPHubServer(web_profile=False, mode='multiple', pool_size=1,
                                  **self.hub_init_kwargs)
@@ -43,7 +42,7 @@ class TestStandardProfile:
         self.client2 = SAMPIntegratedClient(**self.client_init_kwargs)
         self.client2.connect(hub=self.hub, pool_size=1, **self.client_connect_kwargs)
 
-    def teardown_method(self, method):
+    def teardown_method(self):
 
         if self.client1.is_connected:
             self.client1.disconnect()
@@ -178,8 +177,8 @@ class TestStandardProfile:
 
         params = random_params(self.tmpdir)
         self.client1.call(self.client2.get_public_id(), 'test-tag',
-                            {'samp.mtype': 'table.load.votable',
-                             'samp.params': params})
+                          {'samp.mtype': 'table.load.votable',
+                           'samp.params': params})
 
         assert_output('table.load.votable', self.client2.get_private_key(),
                       self.client1_id, params, timeout=60)
