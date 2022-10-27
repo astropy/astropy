@@ -2,7 +2,6 @@
 # This module implements the Arithmetic mixin to the NDData class.
 
 import warnings
-
 from copy import deepcopy
 
 import numpy as np
