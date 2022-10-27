@@ -18,10 +18,10 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
+from astropy.utils.compat import (
+    NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23, NUMPY_LT_1_24)
 from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions)
-
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     MASKED_SAFE_FUNCTIONS,
@@ -1081,6 +1081,8 @@ class TestSortFunctions(MaskedArraySetup):
         expected = ma[indx]
         assert_masked_equal(o, expected)
 
+    @pytest.mark.skipif(not NUMPY_LT_1_24,
+                        reason='np.msort is deprecated')
     def test_msort(self):
         o = np.msort(self.ma)
         expected = np.sort(self.ma, axis=0)
