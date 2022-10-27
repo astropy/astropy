@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
-import re
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
@@ -42,7 +40,7 @@ def test_drop_axes_1():
 def test_drop_axes_2():
     mapping = Mapping((1, ))
     assert mapping(1, 2) == (2.)
-    MESSAGE = re.escape("Mappings such as (1,) that drop one or more of their inputs are not invertible at this time.")
+    MESSAGE = r"Mappings such as .* that drop one or more of their inputs are not invertible at this time"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         mapping.inverse
 

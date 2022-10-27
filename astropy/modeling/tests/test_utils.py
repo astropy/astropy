@@ -17,7 +17,7 @@ def test_poly_map_domain():
     assert (poly_map_domain(oldx, (-4, 4), (-3, 3)) == [0.75, 1.5, 2.25, 3]).all()
 
     # errors
-    MESSAGE = 'Expected "domain" and "window" to be a tuple of size 2.'
+    MESSAGE = r'Expected "domain" and "window" to be a tuple of size 2'
     with pytest.raises(ValueError, match=MESSAGE):
         poly_map_domain(oldx, (-4,), (-3, 3))
     with pytest.raises(ValueError, match=MESSAGE):
@@ -38,7 +38,7 @@ def test__validate_domain_window():
     assert _validate_domain_window(np.array([-2, 2])) == (-2, 2)
 
     # Test error
-    MESSAGE = 'domain and window should be tuples of size 2.'
+    MESSAGE = r'domain and window should be tuples of size 2'
     with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window((-2, 2, -2))
     with pytest.raises(ValueError, match=MESSAGE):

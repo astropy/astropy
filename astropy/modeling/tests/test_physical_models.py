@@ -488,8 +488,7 @@ def test_NFW_exceptions_and_warnings_and_misc():
     with pytest.raises(ValueError, match=MESSAGE):
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor=("not", "virial"))
-    MESSAGE = (r"Massfactor not virial string not of the form "
-               r"'#m', '#c', or 'virial'")
+    MESSAGE = r"Massfactor not virial string not of the form '#m', '#c', or 'virial'"
     with pytest.raises(ValueError, match=MESSAGE):
         NFW(mass=mass, concentration=concentration, redshift=redshift, cosmo=cosmo,
             massfactor="not virial")

@@ -4,7 +4,6 @@
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
-import re
 import unittest.mock as mk
 
 import numpy as np
@@ -197,11 +196,7 @@ class Fittable2DModelTester:
         assert model.bounding_box == ((-5, 5), (-5, 5))
 
         model.bounding_box = None
-        MESSAGE = re.escape("No bounding box is defined for this model "
-                            "(note: the bounding box was explicitly disabled "
-                            "for this model; use `del model.bounding_box` to "
-                            "restore the default bounding box, if one is "
-                            "defined for this model)")
+        MESSAGE = r"No bounding box is defined for this model .*"
         with pytest.raises(NotImplementedError, match=MESSAGE):
             model.bounding_box
 
@@ -422,11 +417,7 @@ class Fittable1DModelTester:
         model.bounding_box = (-5, 5)
         model.bounding_box = None
 
-        MESSAGE = re.escape("No bounding box is defined for this model "
-                            "(note: the bounding box was explicitly disabled "
-                            "for this model; use `del model.bounding_box` to "
-                            "restore the default bounding box, if one is "
-                            "defined for this model)")
+        MESSAGE = r"No bounding box is defined for this model .*"
         with pytest.raises(NotImplementedError, match=MESSAGE):
             model.bounding_box
 
@@ -734,22 +725,22 @@ def test_tabular_interp_2d():
     r = t(y, x)
     assert_allclose(a, r)
 
-    MESSAGE = r"Only n_models=1 is supported."
+    MESSAGE = r"Only n_models=1 is supported"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         model = LookupTable(n_models=2)
-    MESSAGE = r"Must provide a lookup table."
+    MESSAGE = r"Must provide a lookup table"
     with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
-    MESSAGE = r"lookup_table should be an array with 2 dimensions."
+    MESSAGE = r"lookup_table should be an array with 2 dimensions"
     with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(lookup_table=[1, 2, 3])
-    MESSAGE = r"lookup_table should be an array with 2 dimensions."
+    MESSAGE = r"lookup_table should be an array with 2 dimensions"
     with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(([1, 2], [3, 4]), [5, 6])
-    MESSAGE = r"points must all have the same unit."
+    MESSAGE = r"points must all have the same unit"
     with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(([1, 2] * u.m, [3, 4]), [[5, 6], [7, 8]])
-    MESSAGE = r"fill value is in Jy but expected to be unitless."
+    MESSAGE = r"fill value is in Jy but expected to be unitless"
     with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(points, table, bounds_error=False,
                             fill_value=1*u.Jy)
@@ -777,7 +768,7 @@ def test_tabular_nd():
     result = t(x, y, z)
     assert_allclose(a, result)
 
-    MESSAGE = r"Lookup table must have at least one dimension."
+    MESSAGE = r"Lookup table must have at least one dimension"
     with pytest.raises(ValueError, match=MESSAGE):
         models.tabular_model(0)
 

@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
 import os
-import re
 import subprocess
 import sys
 import unittest.mock as mk
@@ -101,7 +100,7 @@ def test_inputless_model():
 
 
 def test_ParametericModel():
-    MESSAGE = re.escape("Gaussian1D.__init__() got an unrecognized parameter 'wrong'")
+    MESSAGE = r"Gaussian1D.__init__.* got an unrecognized parameter 'wrong'"
     with pytest.raises(TypeError, match=MESSAGE):
         models.Gaussian1D(1, 2, 3, wrong=4)
 
@@ -297,7 +296,7 @@ def test_custom_inverse():
     # A trivial inverse for a trivial polynomial
     inv = models.Polynomial1D(1, c0=(2./3.), c1=(1./3.))
 
-    MESSAGE = r"No analytical or user-supplied inverse transform has been implemented for this model."
+    MESSAGE = r"No analytical or user-supplied inverse transform has been implemented for this model"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         p.inverse
 
@@ -619,7 +618,7 @@ def test_rename_inputs_outputs():
     assert g2.inputs == ("x", "y")
     assert g2.outputs == ("z",)
 
-    MESSAGE = r"Expected .* number of .*, got .*."
+    MESSAGE = r"Expected .* number of .*, got .*"
     with pytest.raises(ValueError, match=MESSAGE):
         g2.inputs = ("w", )
 
@@ -767,8 +766,7 @@ def test_prepare_outputs_sparse_grid():
 def test_coerce_units():
     model = models.Polynomial1D(1, c0=1, c1=2)
 
-    MESSAGE = re.escape("Can only apply 'add' function to dimensionless quantities when other "
-                        "argument is not a quantity (unless the latter is all zero/infinity/nan)")
+    MESSAGE = r"Can only apply 'add' function to dimensionless quantities when other .*"
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model(u.Quantity(10, u.m))
 
@@ -817,7 +815,7 @@ def test_coerce_units():
 def test_bounding_box_general_inverse():
     model = NonFittableModel(42.5)
 
-    MESSAGE = r"No bounding box is defined for this model."
+    MESSAGE = r"No bounding box is defined for this model"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         model.bounding_box
     model.bounding_box = ()
@@ -878,13 +876,12 @@ def test__validate_input_shape():
     assert model._validate_input_shape(_input, 0, model.inputs, 1, False) == (2, 3)
 
     # Fail number of axes
-    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional."
+    MESSAGE = r"For model_set_axis=2, all inputs must be at least 3-dimensional"
     with pytest.raises(ValueError, match=MESSAGE):
         model._validate_input_shape(_input, 0, model.inputs, 2, True)
 
     # Fail number of models (has argname)
-    MESSAGE = (r"Input argument '.*' does not have the correct dimensions in "
-               r"model_set_axis=1 for a model set with n_models=2.")
+    MESSAGE = r"Input argument '.*' does not have the correct dimensions in .*"
     with pytest.raises(ValueError, match=MESSAGE):
         model._validate_input_shape(_input, 0, model.inputs, 1, True)
 
@@ -915,7 +912,7 @@ def test__validate_input_shapes():
             ]
 
     # Fail check_broadcast
-    MESSAGE = r"All inputs must have identical shapes or must be scalars."
+    MESSAGE = r"All inputs must have identical shapes or must be scalars"
     with mk.patch.object(Model, '_validate_input_shape',
                          autospec=True, side_effect=all_shapes) as mkValidate:
         with mk.patch.object(core, 'check_broadcast',
@@ -957,7 +954,7 @@ def test_get_bounding_box():
     assert model.get_bounding_box(False) is None
 
     # No bounding_box
-    MESSAGE = r"No bounding box is defined for this model."
+    MESSAGE = r"No bounding box is defined for this model"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         model.bounding_box
     assert model.get_bounding_box(True) is None
@@ -1003,7 +1000,7 @@ def test_compound_bounding_box():
     assert model(0.5) == truth(0.5)
     assert model(0.5, with_bounding_box=True) == truth(0.5)
 
-    MESSAGE = r"No bounding box is defined for selector: .*."
+    MESSAGE = r"No bounding box is defined for selector: .*"
     with pytest.raises(RuntimeError, match=MESSAGE):
         model(0, with_bounding_box=True)
 
@@ -1085,7 +1082,7 @@ def test_bind_compound_bounding_box_using_with_bounding_box_select():
     assert model(1, with_bounding_box=True) == truth(1)
 
     # Attempt to fall-back on implicit selector, but no bounding_box
-    MESSAGE = r"No bounding box is defined for selector: .*."
+    MESSAGE = r"No bounding box is defined for selector: .*"
     with pytest.raises(RuntimeError, match=MESSAGE):
         model(0.5, with_bounding_box=True)
 

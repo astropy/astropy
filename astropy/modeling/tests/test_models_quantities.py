@@ -481,7 +481,7 @@ def test_models_evaluate_with_units_param_array(model):
 
     if model['class'] == Drude1D:
         params['x_0'][-1] = 0 * u.AA
-        MESSAGE = '0 is not an allowed value for x_0'
+        MESSAGE = r'0 is not an allowed value for x_0'
         with pytest.raises(InputParameterError, match=MESSAGE):
             model['class'](**params)
 
@@ -503,7 +503,7 @@ def test_models_bounding_box(model):
         # Check that NotImplementedError is raised, so that if bounding_box is
         # implemented we remember to set bounding_box=True in the list of models
         # above
-        MESSAGE = r"No bounding box is defined for this model."
+        MESSAGE = r"No bounding box is defined for this model"
         with pytest.raises(NotImplementedError, match=MESSAGE):
             m.bounding_box
     else:

@@ -434,7 +434,7 @@ def test_Ring2D_rout():
     assert m.r_in.value == 3
     assert m.width.value == 8
     # error when specifying all
-    MESSAGE = "Width must be r_out - r_in"
+    MESSAGE = r"Width must be r_out - r_in"
     with pytest.raises(InputParameterError, match=MESSAGE):
         models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=7)
 
@@ -452,7 +452,7 @@ def test_Voigt1D(fitter):
     assert_allclose(voi_fit.param_sets, voi.param_sets)
 
     # Invalid method
-    MESSAGE = "Not a valid method for Voigt1D Faddeeva function: test."
+    MESSAGE = r"Not a valid method for Voigt1D Faddeeva function: test"
     with pytest.raises(ValueError, match=MESSAGE):
         models.Voigt1D(method='test')
 
@@ -511,7 +511,7 @@ def test_ExponentialAndLogarithmic1D_fit(model):
 
 @pytest.mark.parametrize('model', [models.Exponential1D(), models.Logarithmic1D()])
 def test_ExponentialAndLogarithmic_set_tau(model):
-    MESSAGE = "0 is not an allowed value for tau"
+    MESSAGE = r"0 is not an allowed value for tau"
 
     with pytest.raises(ValueError, match=MESSAGE):
         model.tau = 0
