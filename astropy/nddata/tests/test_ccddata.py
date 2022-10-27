@@ -23,7 +23,7 @@ DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
     _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
-    _random_psf = np.random.normal(size=[20, 20])
+    _random_psf = np.random.normal(size=(20, 20))
 
 
 @pytest.fixture
@@ -1106,7 +1106,7 @@ def test_psf_setter():
 
 
 def test_write_read_psf(tmpdir):
-    """Test that we can round-trip a ccddata with an attached psf image."""
+    """Test that we can round-trip a CCDData with an attached PSF image."""
     ccd_data = create_ccd_data()
     ccd_data.psf = _random_psf
 
