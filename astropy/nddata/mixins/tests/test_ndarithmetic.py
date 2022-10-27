@@ -13,6 +13,7 @@ from astropy.nddata.nduncertainty import (
     IncompatibleUncertaintiesException, InverseVariance, StdDevUncertainty, UnknownUncertainty,
     VarianceUncertainty)
 from astropy.units import Quantity, UnitsError
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import WCS
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
@@ -1223,13 +1224,11 @@ def test_psf_warning():
     ndd2 = NDDataArithmetic(np.ones((3, 3)), psf=None)
 
     # no warning if both are None
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        ndd2.add(ndd2)
+    ndd2.add(ndd2)
 
-    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+    with pytest.warns(AstropyUserWarning, match="Not setting psf attribute during add"):
         ndd1.add(ndd2)
-    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+    with pytest.warns(AstropyUserWarning, match="Not setting psf attribute during add"):
         ndd2.add(ndd1)
-    with pytest.warns(RuntimeWarning, match="Not setting psf attribute during add"):
+    with pytest.warns(AstropyUserWarning, match="Not setting psf attribute during add"):
         ndd1.add(ndd1)

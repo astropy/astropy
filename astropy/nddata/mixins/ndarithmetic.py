@@ -9,6 +9,7 @@ import numpy as np
 from astropy.nddata.nduncertainty import NDUncertainty
 from astropy.units import dimensionless_unscaled
 from astropy.utils import format_doc, sharedmethod
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ['NDArithmeticMixin']
 
@@ -259,7 +260,8 @@ class NDArithmeticMixin:
 
         # If both are None, there is nothing to do.
         if self.psf is not None or operand.psf is not None:
-            warnings.warn(f"Not setting psf attribute during {operation.__name__}.", RuntimeWarning)
+            warnings.warn(f"Not setting psf attribute during {operation.__name__}.",
+                          AstropyUserWarning)
 
         if handle_mask is None:
             kwargs['mask'] = None
