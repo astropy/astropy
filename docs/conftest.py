@@ -27,15 +27,18 @@ os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
 @pytest.fixture(autouse=True)
 def _docdir(request):
-    """Run doctests in isolated tmpdir so outputs do not end up in repo"""
+    """Run doctests in isolated tmp_path so outputs do not end up in repo"""
     # Trigger ONLY for doctestplus
     doctest_plugin = request.config.pluginmanager.getplugin("doctestplus")
     if isinstance(request.node.parent, doctest_plugin._doctest_textfile_item_cls):
-        # Don't apply this fixture to io.rst.  It reads files and doesn't write
+        # Don't apply this fixture to io.rst.  It reads files and doesn't write.
+        # Implementation from https://github.com/pytest-dev/pytest/discussions/10437
         if "io.rst" not in request.node.name:
-            tmpdir = request.getfixturevalue('tmpdir')
-            with tmpdir.as_cwd():
-                yield
+            old_cwd = os.getcwd()
+            tmp_path = request.getfixturevalue('tmp_path')
+            os.chdir(tmp_path)
+            yield
+            os.chdir(old_cwd)
         else:
             yield
     else:
