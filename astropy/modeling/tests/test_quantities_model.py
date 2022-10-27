@@ -44,7 +44,8 @@ def test_quantity_call():
 
     g(10 * u.m)
 
-    with pytest.raises(u.UnitsError):
+    MESSAGE = r".* Units of input 'x', .* could not be converted to required input units of m .*"
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         g(10)
 
 

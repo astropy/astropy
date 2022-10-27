@@ -196,11 +196,13 @@ class Fittable2DModelTester:
         assert model.bounding_box == ((-5, 5), (-5, 5))
 
         model.bounding_box = None
-        with pytest.raises(NotImplementedError):
+        MESSAGE = r"No bounding box is defined for this model .*"
+        with pytest.raises(NotImplementedError, match=MESSAGE):
             model.bounding_box
 
         # test the exception of dimensions don't match
-        with pytest.raises(ValueError):
+        MESSAGE = r"An interval must be some sort of sequence of length 2"
+        with pytest.raises(ValueError, match=MESSAGE):
             model.bounding_box = (-5, 5)
 
         del model.bounding_box
@@ -415,13 +417,15 @@ class Fittable1DModelTester:
         model.bounding_box = (-5, 5)
         model.bounding_box = None
 
-        with pytest.raises(NotImplementedError):
+        MESSAGE = r"No bounding box is defined for this model .*"
+        with pytest.raises(NotImplementedError, match=MESSAGE):
             model.bounding_box
 
         del model.bounding_box
 
         # test exception if dimensions don't match
-        with pytest.raises(ValueError):
+        MESSAGE = r"An interval must be some sort of sequence of length 2"
+        with pytest.raises(ValueError, match=MESSAGE):
             model.bounding_box = 5
 
         try:
@@ -670,7 +674,8 @@ def test_tabular_interp_1d():
     assert_allclose(model(xnew), ans1)
     # Test bounds error.
     xextrap = [0., .7, 1.4, 2.1, 3.9, 4.1]
-    with pytest.raises(ValueError):
+    MESSAGE = r"One of the requested xi is out of bounds in dimension 0"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(xextrap)
     # test extrapolation and fill value
     model = LookupTable(lookup_table=values, bounds_error=False,
@@ -720,17 +725,23 @@ def test_tabular_interp_2d():
     r = t(y, x)
     assert_allclose(a, r)
 
-    with pytest.raises(ValueError):
-        model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
-    with pytest.raises(ValueError):
-        model = LookupTable(lookup_table=[1, 2, 3])
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"Only n_models=1 is supported"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         model = LookupTable(n_models=2)
-    with pytest.raises(ValueError):
+    MESSAGE = r"Must provide a lookup table"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model = LookupTable(points=([1.2, 2.3], [1.2, 6.7], [3, 4]))
+    MESSAGE = r"lookup_table should be an array with 2 dimensions"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model = LookupTable(lookup_table=[1, 2, 3])
+    MESSAGE = r"lookup_table should be an array with 2 dimensions"
+    with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(([1, 2], [3, 4]), [5, 6])
-    with pytest.raises(ValueError):
+    MESSAGE = r"points must all have the same unit"
+    with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(([1, 2] * u.m, [3, 4]), [[5, 6], [7, 8]])
-    with pytest.raises(ValueError):
+    MESSAGE = r"fill value is in Jy but expected to be unitless"
+    with pytest.raises(ValueError, match=MESSAGE):
         model = LookupTable(points, table, bounds_error=False,
                             fill_value=1*u.Jy)
 
@@ -757,7 +768,8 @@ def test_tabular_nd():
     result = t(x, y, z)
     assert_allclose(a, result)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Lookup table must have at least one dimension"
+    with pytest.raises(ValueError, match=MESSAGE):
         models.tabular_model(0)
 
 
@@ -841,7 +853,7 @@ def test_tabular1d_inverse():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 3.4, 32, 25])
     t = models.Tabular1D(points, values)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match=r""):
         t.inverse((3.4, 7.))
 
     # Check that Tabular2D.inverse raises an error
@@ -849,14 +861,15 @@ def test_tabular1d_inverse():
     points = np.arange(0, 5)
     points = (points, points)
     t3 = models.Tabular2D(points=points, lookup_table=table)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match=r""):
         t3.inverse((3, 3))
 
     # Check that it uses the same kwargs as the original model
     points = np.arange(5)
     values = np.array([1.5, 3.4, 6.7, 7, 32])
     t = models.Tabular1D(points, values)
-    with pytest.raises(ValueError):
+    MESSAGE = r"One of the requested xi is out of bounds in dimension 0"
+    with pytest.raises(ValueError, match=MESSAGE):
         t.inverse(100)
     t = models.Tabular1D(points, values, bounds_error=False, fill_value=None)
     result = t.inverse(100)
@@ -867,9 +880,9 @@ def test_tabular1d_inverse():
 def test_tabular_grid_shape_mismatch_error():
     points = np.arange(5)
     lt = np.mgrid[0:5, 0:5][0]
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Expected grid points in 2 directions, got 5."
+    with pytest.raises(ValueError, match=MESSAGE):
         models.Tabular2D(points, lt)
-    assert str(err.value) == "Expected grid points in 2 directions, got 5."
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
@@ -1004,13 +1017,13 @@ def test_parameter_description():
 
 
 def test_SmoothlyBrokenPowerLaw1D_validators():
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = r"amplitude parameter must be > 0"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         SmoothlyBrokenPowerLaw1D(amplitude=-1)
-    assert str(err.value) == "amplitude parameter must be > 0"
 
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = r"delta parameter must be >= 0.001"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         SmoothlyBrokenPowerLaw1D(delta=0)
-    assert str(err.value) == "delta parameter must be >= 0.001"
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')

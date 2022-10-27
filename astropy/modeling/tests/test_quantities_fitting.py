@@ -2,7 +2,6 @@
 """
 Tests that relate to fitting models with quantity parameters
 """
-# pylint: disable=invalid-name, no-member
 import numpy as np
 import pytest
 
@@ -145,16 +144,14 @@ def test_fitting_missing_data_units(fitter):
     # We define flux unit so that conversion fails at wavelength unit.
     # This is because the order of parameter unit conversion seems to
     # follow the order defined in _parameter_units_for_data_units method.
-    with pytest.raises(UnitsError) as exc:
+    MESSAGE = r"'cm' .* and '' .* are not convertible"
+    with pytest.raises(UnitsError, match=MESSAGE):
         fitter(g_init, [1, 2, 3],
                [4, 5, 6] * (u.erg / (u.s * u.cm * u.cm * u.Hz)))
-    assert exc.value.args[0] == ("'cm' (length) and '' (dimensionless) are "
-                                 "not convertible")
 
-    with pytest.raises(UnitsError) as exc:
+    MESSAGE = r"'mJy' .* and '' .* are not convertible"
+    with pytest.raises(UnitsError, match=MESSAGE):
         fitter(g_init, [1, 2, 3] * u.m, [4, 5, 6])
-    assert exc.value.args[0] == ("'mJy' (spectral flux density) and '' "
-                                 "(dimensionless) are not convertible")
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
@@ -193,9 +190,9 @@ def test_fitting_incompatible_units(fitter):
     g_init = models.Gaussian1D(amplitude=1. * u.Jy,
                                mean=3 * u.m,
                                stddev=2 * u.cm)
-    with pytest.raises(UnitsError) as exc:
+    MESSAGE = r"'Hz' .* and 'm' .* are not convertible"
+    with pytest.raises(UnitsError, match=MESSAGE):
         fitter(g_init, [1, 2, 3] * u.Hz, [4, 5, 6] * u.Jy)
-    assert exc.value.args[0] == ("'Hz' (frequency) and 'm' (length) are not convertible")
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')

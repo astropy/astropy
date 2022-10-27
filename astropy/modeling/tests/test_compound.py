@@ -39,7 +39,8 @@ def test_model_set_raises_value_error(expr, result):
     """Check that creating model sets with components whose _n_models are
        different raise a value error
     """
-    with pytest.raises(ValueError):
+    MESSAGE = r"Both operands must have equal values for .*"
+    with pytest.raises(ValueError, match=MESSAGE):
         expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
 
 
@@ -210,7 +211,8 @@ def test_compound_unsupported_inverse(model):
     Ensure inverses aren't supported in cases where it shouldn't be.
     """
 
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"No analytical or user-supplied inverse transform .*"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         model.inverse
 
 
@@ -271,10 +273,12 @@ def test_invalid_operands():
     not match up correctly.
     """
 
-    with pytest.raises(ModelDefinitionError):
+    MESSAGE = r"Unsupported operands for |:.*"
+    with pytest.raises(ModelDefinitionError, match=MESSAGE):
         Rotation2D(90) | Gaussian1D(1, 0, 0.1)
 
-    with pytest.raises(ModelDefinitionError):
+    MESSAGE = r"Both operands must match numbers of inputs and outputs"
+    with pytest.raises(ModelDefinitionError, match=MESSAGE):
         Rotation2D(90) + Gaussian1D(1, 0, 0.1)
 
 
@@ -311,36 +315,41 @@ def test_fix_inputs():
 
 def test_fix_inputs_invalid():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
-    with pytest.raises(ValueError):
+
+    MESSAGE = r"Substitution key .* not among possible input choices"
+    with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {'x0': 0, 0: 0})
 
-    with pytest.raises(ValueError):
-        fix_inputs(g1, (0, 1))
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {3: 2})
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {np.int32(3): 2})
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {np.int64(3): 2})
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         fix_inputs(g1, {'w': 2})
 
-    with pytest.raises(ModelDefinitionError):
+    MESSAGE = r'Expected a dictionary for second argument of "fix_inputs"'
+    with pytest.raises(ValueError, match=MESSAGE):
+        fix_inputs(g1, (0, 1))
+
+    MESSAGE = r".*Illegal operator: ', '#'.*"
+    with pytest.raises(ModelDefinitionError, match=MESSAGE):
         CompoundModel('#', g1, g1)
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Too many input arguments - expected 1, got 2"
+    with pytest.raises(ValueError, match=MESSAGE):
         gg1 = fix_inputs(g1, {0: 1})
         gg1(2, y=2)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         gg1 = fix_inputs(g1, {np.int32(0): 1})
         gg1(2, y=2)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         gg1 = fix_inputs(g1, {np.int64(0): 1})
         gg1(2, y=2)
 
@@ -406,10 +415,12 @@ def test_indexing_on_instance():
     assert isinstance(m[-1], Polynomial1D)
     assert isinstance(m[-2], Gaussian1D)
 
-    with pytest.raises(IndexError):
+    MESSAGE = r"list index out of range"
+    with pytest.raises(IndexError, match=MESSAGE):
         m[42]
 
-    with pytest.raises(IndexError):
+    MESSAGE = r"No component with name 'foobar' found"
+    with pytest.raises(IndexError, match=MESSAGE):
         m['foobar']
 
     # Confirm index-by-name works with fix_inputs
@@ -511,10 +522,11 @@ def test_compound_custom_inverse():
 
     # Make sure an inverse is not allowed if the models were combined with the
     # wrong operator, or if one of the models doesn't have an inverse defined
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"No analytical or user-supplied inverse transform has been implemented for this model"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         (shift + model1).inverse
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         (model1 & poly).inverse
 
 
@@ -568,12 +580,15 @@ def test_name_index():
     g1 = Gaussian1D(1, 1, 1)
     g2 = Gaussian1D(1, 2, 1)
     g = g1 + g2
-    with pytest.raises(IndexError):
+
+    MESSAGE = r"No component with name 'bozo' found"
+    with pytest.raises(IndexError, match=MESSAGE):
         g['bozo']
     g1.name = 'bozo'
     assert g['bozo'].mean == 1
     g2.name = 'bozo'
-    with pytest.raises(IndexError):
+    MESSAGE = r"Multiple components found using 'bozo' as name.*"
+    with pytest.raises(IndexError, match=MESSAGE):
         g['bozo']
 
 
@@ -694,7 +709,8 @@ def test_replace_submodel():
     assert_allclose(m5(0), (-1, -6))
 
     # Check we get a value error when model name doesn't exist
-    with pytest.raises(ValueError):
+    MESSAGE = r"No submodels found named not_there"
+    with pytest.raises(ValueError, match=MESSAGE):
         m2 = m.replace_submodel('not_there', Scale(2))
 
     # And now a model set
@@ -702,7 +718,8 @@ def test_replace_submodel():
     S = Shift([1, 2], n_models=2)
     m = P | S
     assert_array_equal(m([0, 1]), (1, 2))
-    with pytest.raises(ValueError):
+    MESSAGE = r"New and old models must have equal values for n_models"
+    with pytest.raises(ValueError, match=MESSAGE):
         m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=1))
     m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=[1, 2],
                                                  n_models=2))

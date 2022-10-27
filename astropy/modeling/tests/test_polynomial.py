@@ -405,15 +405,13 @@ def test_sip_hst():
     # Test get num of coeffs
     assert sip.sip1d_a.get_num_coeff(1) == 6
     # Test error
-    message = "Degree of polynomial must be 2< deg < 9"
+    MESSAGE = "Degree of polynomial must be 2< deg < 9"
     sip.sip1d_a.order = 1
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         sip.sip1d_a.get_num_coeff(1)
-    assert str(err.value) == message
     sip.sip1d_a.order = 10
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         sip.sip1d_a.get_num_coeff(1)
-    assert str(err.value) == message
 
 
 def test_sip_irac():
@@ -481,7 +479,8 @@ def test_sip_no_coeff():
     sip = SIP([10, 12], 2, 2)
     assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
     assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"SIP inverse coefficients are not available"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         sip.inverse
 
     # Test model set
@@ -500,7 +499,7 @@ def test_zero_degree_polynomial(cls):
     Regression test for https://github.com/astropy/astropy/pull/3589
     """
 
-    message = "Degree of polynomial must be positive or null"
+    MESSAGE = "Degree of polynomial must be positive or null"
 
     if cls.n_inputs == 1:  # Test 1D polynomials
         p1 = cls(degree=0, c0=1)
@@ -520,9 +519,8 @@ def test_zero_degree_polynomial(cls):
         assert_allclose(p1_fit.c0, 1, atol=0.10)
 
         # Error from negative degree
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             cls(degree=-1)
-        assert str(err.value) == message
     elif cls.n_inputs == 2:  # Test 2D polynomials
         if issubclass(cls, OrthoPolynomialBase):
             p2 = cls(x_degree=0, y_degree=0, c0_0=1)
@@ -532,24 +530,22 @@ def test_zero_degree_polynomial(cls):
             b = np.array([1, 2])
             with mk.patch.object(PolynomialBase, 'prepare_inputs', autospec=True,
                                  return_value=((a, b), mk.MagicMock())):
-                with pytest.raises(ValueError) as err:
+
+                with pytest.raises(ValueError,
+                                   match=r"Expected input arrays to have the same shape"):
                     p2.prepare_inputs(mk.MagicMock(), mk.MagicMock())
-                assert str(err.value) == "Expected input arrays to have the same shape"
 
             # Error from negative degree
-            with pytest.raises(ValueError) as err:
+            with pytest.raises(ValueError, match=MESSAGE):
                 cls(x_degree=-1, y_degree=0)
-            assert str(err.value) == message
-            with pytest.raises(ValueError) as err:
+            with pytest.raises(ValueError, match=MESSAGE):
                 cls(x_degree=0, y_degree=-1)
-            assert str(err.value) == message
         else:
             p2 = cls(degree=0, c0_0=1)
 
             # Error from negative degree
-            with pytest.raises(ValueError) as err:
+            with pytest.raises(ValueError, match=MESSAGE):
                 cls(degree=-1)
-            assert str(err.value) == message
 
         assert p2(0, 0) == 1
         assert np.all(p2(np.zeros(5), np.zeros(5)) == np.ones(5))
@@ -607,9 +603,9 @@ def test_Hermite1D_clenshaw():
 
 def test__fcache():
     model = OrthoPolynomialBase(x_degree=2, y_degree=2)
-    with pytest.raises(NotImplementedError) as err:
+    MESSAGE = r"Subclasses should implement this"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         model._fcache(np.asanyarray(1), np.asanyarray(1))
-    assert str(err.value) == "Subclasses should implement this"
 
     model = Hermite2D(x_degree=2, y_degree=2)
     assert model._fcache(np.asanyarray(1), np.asanyarray(1)) == {
@@ -644,21 +640,19 @@ def test__fcache():
 
 def test_fit_deriv_shape_error():
     model = Hermite2D(x_degree=2, y_degree=2)
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"x and y must have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
         model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
-    assert str(err.value) == "x and y must have the same shape"
 
     model = Chebyshev2D(x_degree=2, y_degree=2)
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
-    assert str(err.value) == "x and y must have the same shape"
 
     model = Legendre2D(x_degree=2, y_degree=2)
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
-    assert str(err.value) == "x and y must have the same shape"
 
     model = Polynomial2D(degree=2)
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Expected x and y to be of equal size"
+    with pytest.raises(ValueError, match=MESSAGE):
         model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
-    assert str(err.value) == "Expected x and y to be of equal size"

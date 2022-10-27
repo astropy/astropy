@@ -144,7 +144,8 @@ class TestFitting:
         with a model with multiple parameter sets.
         """
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Number of data sets .* is expected to equal the number of parameter sets"
+        with pytest.raises(ValueError, match=MESSAGE):
             p1 = models.Polynomial1D(5)
             y1 = p1(self.x1)
             p1 = models.Polynomial1D(5, n_models=2)
@@ -187,7 +188,8 @@ class TestFitting:
         """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Non-linear fitters can only fit one data set at a time"
+        with pytest.raises(ValueError, match=MESSAGE):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2],
                                    n_models=2)
             y1 = g1(self.x1, model_set_axis=False)
@@ -211,7 +213,8 @@ class TestFitting:
         """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
         fitter = fitter()
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0], n_models=2)
             z = g2(self.x.flatten(), self.y.flatten())
@@ -401,7 +404,8 @@ class TestSingleInputSingleOutputSingleModel:
         assert np.shape(y2) == (2, 2)
         assert np.all(y2 == [[111, 122], [211, 222]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"self input argument 'x' of shape .* cannot be broadcast with parameter 'p1' of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             t([100, 200, 300])
 
@@ -424,7 +428,8 @@ class TestSingleInputSingleOutputSingleModel:
                              [[[311, 322], [333, 344]],
                               [[411, 422], [433, 444]]]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             t([[100, 200, 300], [400, 500, 600]])
 
@@ -494,7 +499,8 @@ class TestSingleInputSingleOutputTwoModel:
 
         t = TModel_1_1([1, 2], [10, 20], n_models=2)
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             t(np.arange(5) * 100)
 
         y1 = t([100, 200])
@@ -576,14 +582,16 @@ class TestSingleInputSingleOutputTwoModel:
         t = TModel_1_1([[1, 2, 3], [4, 5, 6]],
                        [[10, 20, 30], [40, 50, 60]], n_models=2)
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             y1 = t([100, 200, 300])
 
         y1 = t([100, 200])
         assert np.shape(y1) == (2, 3)
         assert np.all(y1 == [[111, 122, 133], [244, 255, 266]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Model input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast with the shape of the parameters, (3,)
             y2 = t([100, 200], model_set_axis=False)
 
@@ -601,7 +609,8 @@ class TestSingleInputSingleOutputTwoModel:
         assert np.all(y1 == [[[111, 222], [133, 244]],
                              [[355, 466], [377, 488]]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Model input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             y2 = t([[100, 200, 300], [400, 500, 600]])
 
         y2 = t([[[100, 200], [300, 400]], [[500, 600], [700, 800]]])
@@ -614,7 +623,8 @@ class TestSingleInputSingleOutputTwoModel:
                         [[0.07, 0.08, 0.09], [0.10, 0.11, 0.12]]],
                        [[1, 2, 3], [4, 5, 6]], n_models=2)
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"Input argument .* does not have the correct dimensions in .* for a model set with .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             y = t([10, 20, 30])
 
         y = t([10, 20, 30], model_set_axis=False)
@@ -738,7 +748,8 @@ class TestSingleInputDoubleOutputSingleModel:
         assert np.all(y2 == [[111, 122], [211, 222]])
         assert np.all(z2 == [[1111, 2122], [1211, 2222]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             y3, z3 = t([100, 200, 300])
 
@@ -767,7 +778,8 @@ class TestSingleInputDoubleOutputSingleModel:
                              [[[1311, 2322], [3333, 4344]],
                               [[1411, 2422], [3433, 4444]]]])
 
-        with pytest.raises(ValueError):
+        MESSAGE = r"self input argument .* of shape .* cannot be broadcast with parameter .* of shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             # Doesn't broadcast
             y3, z3 = t([[100, 200, 300], [400, 500, 600]])
 
@@ -991,14 +1003,16 @@ def test_call_keyword_args_1(model):
     assert_allclose(positional, model(1, t=2))
     assert_allclose(positional, model(1, 2))
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Too many input arguments - expected 2, got .*"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, 3)
 
-    with pytest.raises(ValueError):
-        model(1)
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, t=12, r=3)
+
+    MESSAGE = r"Missing input arguments - expected 2, got 1"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model(1)
 
 
 @pytest.mark.parametrize('model',
@@ -1015,14 +1029,16 @@ def test_call_keyword_args_2(model):
     model.inputs = ('r',)
     assert_allclose(positional, model(r=1))
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Too many input arguments - expected .*, got .*"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, 3)
 
-    with pytest.raises(ValueError):
-        model()
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, t=12, r=3)
+
+    MESSAGE = r"Missing input arguments - expected 1, got 0"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model()
 
 
 @pytest.mark.parametrize('model',
@@ -1043,14 +1059,16 @@ def test_call_keyword_args_3(model):
 
     assert_allclose(positional, model(1, t=2))
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Too many input arguments - expected .*, got .*"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, 3)
 
-    with pytest.raises(ValueError):
-        model()
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, t=12, r=3)
+
+    MESSAGE = r"Missing input arguments - expected 2, got 0"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model()
 
 
 @pytest.mark.parametrize('model',
@@ -1073,11 +1091,13 @@ def test_call_keyword_mappings(model):
     assert_allclose(positional, model(1, t=2))
     assert_allclose(positional, model(1, 2))
 
-    with pytest.raises(ValueError):
+    MESSAGE = r"Too many input arguments - expected .*, got .*"
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, 3)
 
-    with pytest.raises(ValueError):
-        model(1)
-
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=MESSAGE):
         model(1, 2, t=12, r=3)
+
+    MESSAGE = r"Missing input arguments - expected 2, got 1"
+    with pytest.raises(ValueError, match=MESSAGE):
+        model(1)
