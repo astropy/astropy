@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name
+import re
 from inspect import Parameter
 
 import numpy as np
@@ -16,19 +17,15 @@ def test_poly_map_domain():
     assert (poly_map_domain(oldx, (-4, 4), (-3, 3)) == [0.75, 1.5, 2.25, 3]).all()
 
     # errors
-    MESSAGE = 'Expected "domain" and "window" to be a tuple of size 2.'
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r'Expected "domain" and "window" to be a tuple of size 2'
+    with pytest.raises(ValueError, match=MESSAGE):
         poly_map_domain(oldx, (-4,), (-3, 3))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         poly_map_domain(oldx, (-4, 4, -4), (-3, 3))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         poly_map_domain(oldx, (-4, 4), (-3,))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         poly_map_domain(oldx, (-4, 4), (-3, 3, -3))
-    assert str(err.value) == MESSAGE
 
 
 def test__validate_domain_window():
@@ -41,22 +38,17 @@ def test__validate_domain_window():
     assert _validate_domain_window(np.array([-2, 2])) == (-2, 2)
 
     # Test error
-    MESSAGE = 'domain and window should be tuples of size 2.'
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r'domain and window should be tuples of size 2'
+    with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window((-2, 2, -2))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window((-2,))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window([-2])
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window(np.array([-2]))
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window(-2)
-    assert str(err.value) == MESSAGE
 
 
 def test_get_inputs_and_params():
@@ -78,7 +70,7 @@ def test_get_inputs_and_params():
         assert param.default == default[index]
 
     # Error
-    MESSAGE = "Signature must not have *args or **kwargs"
+    MESSAGE = re.escape("Signature must not have *args or **kwargs")
 
     def func2(input0, input1, *args, param0=5, param1=7):
         pass
@@ -86,12 +78,10 @@ def test_get_inputs_and_params():
     def func3(input0, input1, param0=5, param1=7, **kwargs):
         pass
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         get_inputs_and_params(func2)
-    assert str(err.value) == MESSAGE
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         get_inputs_and_params(func3)
-    assert str(err.value) == MESSAGE
 
 
 class Test_SpecialOperatorsDict:

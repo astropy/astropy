@@ -206,23 +206,19 @@ class TestZenithalPerspective:
         assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
     def test_validate(self):
-        message = "Zenithal perspective projection is not defined for mu = -1"
+        MESSAGE = r"Zenithal perspective projection is not defined for mu = -1"
 
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Pix2Sky_ZenithalPerspective(-1)
-        assert str(err.value) == message
 
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Sky2Pix_ZenithalPerspective(-1)
-        assert str(err.value) == message
 
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Pix2Sky_SlantZenithalPerspective(-1)
-        assert str(err.value) == message
 
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Sky2Pix_SlantZenithalPerspective(-1)
-        assert str(err.value) == message
 
 
 class TestCylindricalPerspective:
@@ -256,38 +252,33 @@ class TestCylindricalPerspective:
         assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
     def test_validate(self):
-        message0 = "CYP projection is not defined for mu = -lambda"
-        message1 = "CYP projection is not defined for lambda = -mu"
+        MESSAGE = r"CYP projection is not defined for .*"
+        MESSAGE0 = r"CYP projection is not defined for mu = -lambda"
+        MESSAGE1 = r"CYP projection is not defined for lambda = -mu"
 
         # Pix2Sky_CylindricalPerspective
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Pix2Sky_CylindricalPerspective(1, -1)
-        assert str(err.value) == message0 or str(err.value) == message1
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Pix2Sky_CylindricalPerspective(-1, 1)
-        assert str(err.value) == message0 or str(err.value) == message1
+
         model = projections.Pix2Sky_CylindricalPerspective()
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE0):
             model.mu = -1
-        assert str(err.value) == message0
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE1):
             model.lam = -1
-        assert str(err.value) == message1
 
         # Sky2Pix_CylindricalPerspective
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Sky2Pix_CylindricalPerspective(1, -1)
-        assert str(err.value) == message0 or str(err.value) == message1
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE):
             projections.Sky2Pix_CylindricalPerspective(-1, 1)
-        assert str(err.value) == message0 or str(err.value) == message1
+
         model = projections.Sky2Pix_CylindricalPerspective()
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE0):
             model.mu = -1
-        assert str(err.value) == message0
-        with pytest.raises(InputParameterError) as err:
+        with pytest.raises(InputParameterError, match=MESSAGE1):
             model.lam = -1
-        assert str(err.value) == message1
 
 
 def test_AffineTransformation2D():
@@ -305,45 +296,38 @@ def test_AffineTransformation2D():
     assert np.all(new_rect == [[1, 1], [3, 1], [1, 7], [3, 7]])
 
     # Matrix validation error
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = r"Expected transformation matrix to be a 2x2 array"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         model.matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    assert str(err.value) == "Expected transformation matrix to be a 2x2 array"
 
     # Translation validation error
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = (r"Expected translation vector to be a "
+               r"2 element row or column vector array")
+    with pytest.raises(InputParameterError, match=MESSAGE):
         model.translation = [1, 2, 3]
-    assert str(err.value) == ("Expected translation vector to be a "
-                              "2 element row or column vector array")
-    with pytest.raises(InputParameterError) as err:
+    with pytest.raises(InputParameterError, match=MESSAGE):
         model.translation = [[1], [2]]
-    assert str(err.value) == ("Expected translation vector to be a "
-                              "2 element row or column vector array")
-    with pytest.raises(InputParameterError) as err:
+    with pytest.raises(InputParameterError, match=MESSAGE):
         model.translation = [[1, 2, 3]]
-    assert str(err.value) == ("Expected translation vector to be a "
-                              "2 element row or column vector array")
 
     # Incompatible shape error
     a = np.array([[1], [2], [3], [4]])
     b = a.ravel()
     with mk.patch.object(np, 'vstack', autospec=True,
                          side_effect=[a, b]) as mk_vstack:
-        message = "Incompatible input shapes"
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"Incompatible input shapes"
+        with pytest.raises(ValueError, match=MESSAGE):
             model(x, y)
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             model(x, y)
-        assert str(err.value) == message
-
         assert mk_vstack.call_count == 2
 
     # Input shape evaluation error
     x = np.array([1, 2])
     y = np.array([1, 2, 3])
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Expected input arrays to have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(x, y, model.matrix, model.translation)
-    assert str(err.value) == "Expected input arrays to have the same shape"
 
 
 def test_AffineTransformation2D_inverse():
@@ -351,7 +335,8 @@ def test_AffineTransformation2D_inverse():
     model1 = projections.AffineTransformation2D(
         matrix=[[1, 1], [1, 1]])
 
-    with pytest.raises(InputParameterError):
+    MESSAGE = r"Transformation matrix is singular; .* model does not have an inverse"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         model1.inverse
 
     model2 = projections.AffineTransformation2D(
@@ -373,9 +358,9 @@ def test_AffineTransformation2D_inverse():
 
     model4 = projections.AffineTransformation2D(
         matrix=[[1.2, 3.4], [5.6, 7.8]] * u.m, translation=[9.1, 10.11] * u.km)
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"matrix and translation must have the same units"
+    with pytest.raises(ValueError, match=MESSAGE):
         model4.inverse(*model4(x * u.m, y * u.m))
-    assert str(err.value) == "matrix and translation must have the same units."
 
 
 def test_c_projection_striding():
@@ -427,7 +412,8 @@ def test_affine_with_quantities():
 
     # test affine with matrix only
     qaff = projections.AffineTransformation2D(matrix=[[1, 2], [2, 1]] * u.deg)
-    with pytest.raises(ValueError):
+    MESSAGE = r"To use AffineTransformation with quantities, both matrix and unit need to be quantities"
+    with pytest.raises(ValueError, match=MESSAGE):
         qx1, qy1 = qaff(xpix, ypix, equivalencies={
             'x': u.pixel_scale(2.5 * u.deg / u.pix),
             'y': u.pixel_scale(2.5 * u.deg / u.pix)})

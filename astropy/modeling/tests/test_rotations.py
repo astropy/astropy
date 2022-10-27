@@ -104,22 +104,19 @@ def test_Rotation2D_errors():
     # Bad evaluation input shapes
     x = np.array([1, 2])
     y = np.array([1, 2, 3])
-    message = "Expected input arrays to have the same shape"
+    MESSAGE = r"Expected input arrays to have the same shape"
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(x, y, model.angle)
-    assert str(err.value) == message
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(y, x, model.angle)
-    assert str(err.value) == message
 
     # Bad evaluation units
     x = np.array([1, 2])
     y = np.array([1, 2])
-    message = "x and y must have compatible units"
-    with pytest.raises(u.UnitsError) as err:
+    MESSAGE = r"x and y must have compatible units"
+    with pytest.raises(u.UnitsError, match=MESSAGE):
         model.evaluate(x * u.m, y, model.angle)
-    assert str(err.value) == message
 
 
 def test_euler_angle_rotations():
@@ -256,31 +253,28 @@ def test_RotationSequence3D_errors():
         rotations.RotationSequence3D(mk.MagicMock(), axes_order="abc")
 
     # Bad number of angles
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"The number of angles 4 should match the number of axes 3"
+    with pytest.raises(ValueError, match=MESSAGE):
         rotations.RotationSequence3D([1, 2, 3, 4], axes_order="zyx")
-    assert str(err.value) == "The number of angles 4 should match the number of axes 3."
 
     # Bad evaluation input shapes
     model = rotations.RotationSequence3D([1, 2, 3], axes_order="zyx")
-    message = "Expected input arrays to have the same shape"
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Expected input arrays to have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(np.array([1, 2, 3]),
                        np.array([1, 2]),
                        np.array([1, 2]),
                        [1, 2, 3])
-    assert str(err.value) == message
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(np.array([1, 2]),
                        np.array([1, 2, 3]),
                        np.array([1, 2]),
                        [1, 2, 3])
-    assert str(err.value) == message
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(np.array([1, 2]),
                        np.array([1, 2]),
                        np.array([1, 2, 3]),
                        [1, 2, 3])
-    assert str(err.value) == message
 
 
 def test_RotationSequence3D_inverse():
@@ -292,10 +286,10 @@ def test_RotationSequence3D_inverse():
 
 def test_EulerAngleRotation_errors():
     # Bad length of axes_order
-    with pytest.raises(TypeError) as err:
+    MESSAGE = r"Expected axes_order to be a character sequence of length 3, got xyzx"
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations.EulerAngleRotation(mk.MagicMock(), mk.MagicMock(), mk.MagicMock(),
                                      axes_order="xyzx")
-    assert str(err.value) == "Expected axes_order to be a character sequence of length 3, got xyzx"
 
     # Bad axes_order labels
     with pytest.raises(ValueError, match=r"Unrecognized axis label .* should be one of .*"):
@@ -303,19 +297,16 @@ def test_EulerAngleRotation_errors():
                                      axes_order="abc")
 
     # Bad units
-    message = "All parameters should be of the same type - float or Quantity."
-    with pytest.raises(TypeError) as err:
+    MESSAGE = r"All parameters should be of the same type - float or Quantity"
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations.EulerAngleRotation(1 * u.m, 2, 3,
                                      axes_order="xyz")
-    assert str(err.value) == message
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations.EulerAngleRotation(1, 2 * u.m, 3,
                                      axes_order="xyz")
-    assert str(err.value) == message
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations.EulerAngleRotation(1, 2, 3 * u.m,
                                      axes_order="xyz")
-    assert str(err.value) == message
 
 
 def test_EulerAngleRotation_inverse():
@@ -329,16 +320,13 @@ def test_EulerAngleRotation_inverse():
 
 def test__SkyRotation_errors():
     # Bad units
-    message = "All parameters should be of the same type - float or Quantity."
-    with pytest.raises(TypeError) as err:
+    MESSAGE = r"All parameters should be of the same type - float or Quantity"
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations._SkyRotation(1 * u.m, 2, 3)
-    assert str(err.value) == message
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations._SkyRotation(1, 2 * u.m, 3)
-    assert str(err.value) == message
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match=MESSAGE):
         rotations._SkyRotation(1, 2, 3 * u.m)
-    assert str(err.value) == message
 
 
 def test__SkyRotation__evaluate():

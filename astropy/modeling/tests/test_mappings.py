@@ -40,7 +40,8 @@ def test_drop_axes_1():
 def test_drop_axes_2():
     mapping = Mapping((1, ))
     assert mapping(1, 2) == (2.)
-    with pytest.raises(NotImplementedError):
+    MESSAGE = r"Mappings such as .* that drop one or more of their inputs are not invertible at this time"
+    with pytest.raises(NotImplementedError, match=MESSAGE):
         mapping.inverse
 
 
@@ -64,9 +65,9 @@ def test_bad_inputs(name):
         if idx == 2:
             continue
 
-        with pytest.raises(TypeError) as err:
+        MESSAGE = f"{name} expects 2 inputs; got {idx}"
+        with pytest.raises(TypeError, match=MESSAGE):
             mapping.evaluate(*x[:idx])
-        assert str(err.value) == f"{name} expects 2 inputs; got {idx}"
 
 
 def test_identity():
@@ -145,9 +146,9 @@ class TestUnitsMapping:
         assert model._input_units == {'x': u.K}
 
         # Error
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"If one return unit is None, then all must be None"
+        with pytest.raises(ValueError, match=MESSAGE):
             UnitsMapping(((u.m, None), (u.m, u.K)))
-        assert str(err.value) == "If one return unit is None, then all must be None"
 
     def test_evaluate(self):
         model = UnitsMapping(((u.m, None),))
