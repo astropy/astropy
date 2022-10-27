@@ -297,7 +297,7 @@ class CCDData(NDDataArray):
             Flags are not supported at this time. If ``None`` this attribute
             is not appended.
             Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
-            ``'PSFIMAGE'`` for psf, and ``None`` for flags.
+            ``'PSFIMAGE'`` for psf, and `None` for flags.
 
         wcs_relax : bool
             Value of the ``relax`` parameter to use in converting the WCS to a
@@ -726,7 +726,7 @@ def fits_ccddata_writer(
         Flags are not supported at this time. If ``None`` this attribute
         is not appended.
         Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
-        ``'PSFIMAGE'`` for psf, and ``None`` for flags.
+        ``'PSFIMAGE'`` for psf, and `None` for flags.
 
     key_uncertainty_type : str, optional
         The header key name for the class name of the uncertainty (if any)
