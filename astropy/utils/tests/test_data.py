@@ -146,7 +146,7 @@ def readonly_dir(d):
 @pytest.fixture
 def readonly_cache(tmp_path, valid_urls):
     with TemporaryDirectory(dir=tmp_path) as d:
-        # other fixtures use the same tmpdir so we need a subdirectory
+        # other fixtures use the same tmp_path so we need a subdirectory
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
@@ -179,7 +179,7 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
                       "_SafeTemporaryDirectory monkeypatched out")
 
     with TemporaryDirectory(dir=tmp_path) as d:
-        # other fixtures use the same tmpdir so we need a subdirectory
+        # other fixtures use the same tmp_path so we need a subdirectory
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
@@ -627,7 +627,7 @@ def test_download_certificate_verification_failed():
 
     with pytest.warns(AstropyWarning, match=msg) as warning_lines:
         fnout = download_file(TESTURL_SSL, cache=False,
-                ssl_context=ssl_context, allow_insecure=True)
+                              ssl_context=ssl_context, allow_insecure=True)
 
     assert len(warning_lines) == 1
     assert os.path.isfile(fnout)
@@ -667,7 +667,7 @@ def test_download_parallel_from_internet_works(temp_cache):
 @pytest.mark.parametrize("method", [None, "spawn"])
 def test_download_parallel_fills_cache(tmp_path, valid_urls, method):
     urls = []
-    # tmpdir is shared between many tests, and that can cause weird
+    # tmp_path is shared between many tests, and that can cause weird
     # interactions if we set the temporary cache too directly
     with paths.set_temp_cache(tmp_path):
         for um, c in islice(valid_urls, FEW):
