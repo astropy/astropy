@@ -33,9 +33,9 @@ Getting Started
 The |Cosmology| class includes two methods, |Cosmology.read| and
 |Cosmology.write|, that make it possible to read from and write to files.
 
-Currently the only registered ``read`` / ``write`` format is "ascii.ecsv",
-like for Table. Also, custom ``read`` / ``write`` formats may be registered
-into the Astropy Cosmology I/O framework.
+The registered ``read`` / ``write`` formats include "ascii.ecsv" and
+"ascii.html", like for Table. Also, custom ``read`` / ``write`` formats may be
+registered into the Astropy Cosmology I/O framework.
 
 Writing a cosmology instance requires only the file location and optionally,
 if the file format cannot be inferred, a keyword argument "format". Additional
@@ -66,6 +66,7 @@ To see a list of the available read/write file formats:
       Format   Read Write Auto-identify
     ---------- ---- ----- -------------
     ascii.ecsv  Yes   Yes           Yes
+    ascii.html  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 
