@@ -67,7 +67,7 @@ Either set single array entries or use lists of Quantities::
 Both will throw an exception if units do not cancel, e.g.::
 
     >>> a = np.ones(4)
-    >>> a[2] = 1*u.cm # doctest: +SKIP
+    >>> a[2] = 1*u.cm
     Traceback (most recent call last):
     ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
@@ -77,16 +77,10 @@ See: https://github.com/astropy/astropy/issues/7582
 
 Numpy array creation functions cannot be used to initialize Quantity
 --------------------------------------------------------------------
-Trying the following example will throw an UnitConversionError
-on NumPy before version 1.20 and ignore the unit in later versions:
+Trying the following example will ignore the unit:
 
-.. doctest-requires:: numpy<1.20
-
-    >>> my_quantity = u.Quantity(1, u.m)
-    >>> np.full(10, my_quantity)  # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    UnitConversionError: 'm' (length) and '' (dimensionless) are not convertible
+    >>> np.full(10, 1 * u.m)
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
 A workaround for this at the moment would be to do::
 
@@ -97,7 +91,7 @@ As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `
 
 The `~numpy.arange` function does not work either::
 
-    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)
     Traceback (most recent call last):
     ...
     TypeError: only dimensionless scalar quantities can be converted to Python scalars
