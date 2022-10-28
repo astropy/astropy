@@ -42,11 +42,16 @@ is first created::
     >>> FK5()  # uses default equinox
     <FK5 Frame (equinox=J2000.000)>
 
-The specific names of attributes available for a particular frame (and
-their default values) are available as the class method
-``get_frame_attr_names``::
+The specific names of attributes available for a particular frame are available
+as the keys of the ``frame_attributes`` dictionary::
 
-    >>> FK5.get_frame_attr_names()
+    >>> FK5.frame_attributes.keys()
+    dict_keys(['equinox'])
+
+The defaults of the frame attributes are available as:
+:meth:`~astropy.coordinates.BaseCoordinateFrame.get_frame_attr_defaults`::
+
+    >>> FK5.get_frame_attr_defaults()
     {'equinox': <Time object: scale='tt' format='jyear_str' value=J2000.000>}
 
 You can access any of the attributes on a frame by using standard Python

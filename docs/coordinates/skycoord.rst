@@ -542,15 +542,14 @@ a spherical-type coordinate (and not, for example, a Cartesian coordinate).
 Furthermore, the frame's ``representation_component_names`` attribute defines
 the coordinate keyword arguments that |SkyCoord| will accept.
 
-Another important attribute is ``frame_attr_names``, which defines the
+Another important attribute is ``frame_attributes``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
-  >>> sc_fk4.get_frame_attr_names()
-  {'equinox': <Time object: scale='tt' format='byear_str' value=B1950.000>, 'obstime': None}
+  >>> sc_fk4.frame_attributes   # doctest: +ELLIPSIS
+  {'equinox': <...TimeAttribute ...>, 'obstime': <...TimeAttribute ...>}
 
-The key values correspond to the defaults if no explicit value is provided by
-the user. This example shows that the `~astropy.coordinates.FK4` frame has two
+This example shows that the `~astropy.coordinates.FK4` frame has two
 attributes, ``equinox`` and ``obstime``, that are required to fully define the
 frame.
 

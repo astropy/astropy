@@ -19,7 +19,7 @@ from astropy.coordinates.representation import REPRESENTATION_CLASSES, Cartesian
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -88,7 +88,8 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.obstime.value == 'B1980.000'
     assert mfk4.newattr == 'newattr'
 
-    assert set(mfk4.get_frame_attr_names()) == {'equinox', 'obstime', 'newattr'}
+    with pytest.warns(AstropyDeprecationWarning):
+        assert set(mfk4.get_frame_attr_names()) == {'equinox', 'obstime', 'newattr'}
 
     mfk4 = MyFK4(equinox='J1980.0', obstime='J1990.0', newattr='world')
     assert mfk4.equinox.value == 'J1980.000'
@@ -210,17 +211,17 @@ def test_create_orderered_data():
 def test_create_nodata_frames():
 
     i = ICRS()
-    assert len(i.get_frame_attr_names()) == 0
+    assert len(i.frame_attributes) == 0
 
     f5 = FK5()
-    assert f5.equinox == FK5.get_frame_attr_names()['equinox']
+    assert f5.equinox == FK5.get_frame_attr_defaults()['equinox']
 
     f4 = FK4()
-    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
+    assert f4.equinox == FK4.get_frame_attr_defaults()['equinox']
 
     # obstime is special because it's a property that uses equinox if obstime is not set
-    assert f4.obstime in (FK4.get_frame_attr_names()['obstime'],
-                          FK4.get_frame_attr_names()['equinox'])
+    assert f4.obstime in (FK4.get_frame_attr_defaults()['obstime'],
+                          FK4.get_frame_attr_defaults()['equinox'])
 
 
 def test_no_data_nonscalar_frames():
@@ -406,7 +407,7 @@ def test_realizing():
     assert f2.has_data
 
     assert f2.equinox == f.equinox
-    assert f2.equinox != FK5.get_frame_attr_names()['equinox']
+    assert f2.equinox != FK5.get_frame_attr_defaults()['equinox']
 
     # Check that a nicer error message is returned:
     with pytest.raises(TypeError) as excinfo:
@@ -698,7 +699,7 @@ def test_is_frame_attr_default():
 
     """
     c1 = FK5(ra=1*u.deg, dec=1*u.deg)
-    c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.get_frame_attr_names()['equinox'])
+    c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.get_frame_attr_defaults()['equinox'])
     c3 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=Time('J2001.5'))
 
     assert c1.equinox == c2.equinox
@@ -1394,7 +1395,7 @@ def test_galactocentric_defaults():
                           galcen_40.galcen_distance)
     assert not u.allclose(galcen_pre40.z_sun, galcen_40.z_sun)
 
-    for k in galcen_40.get_frame_attr_names():
+    for k in galcen_40.frame_attributes:
         if isinstance(getattr(galcen_40, k), BaseCoordinateFrame):
             continue  # skip coordinate comparison...
 
@@ -1431,7 +1432,7 @@ def test_galactocentric_references():
     with galactocentric_frame_defaults.set('pre-v4.0'):
         galcen_pre40 = Galactocentric()
 
-        for k in galcen_pre40.get_frame_attr_names():
+        for k in galcen_pre40.frame_attributes:
             if k == 'roll':  # no reference for this parameter
                 continue
 
@@ -1440,7 +1441,7 @@ def test_galactocentric_references():
     with galactocentric_frame_defaults.set('v4.0'):
         galcen_40 = Galactocentric()
 
-        for k in galcen_40.get_frame_attr_names():
+        for k in galcen_40.frame_attributes:
             if k == 'roll':  # no reference for this parameter
                 continue
 
@@ -1449,7 +1450,7 @@ def test_galactocentric_references():
     with galactocentric_frame_defaults.set('v4.0'):
         galcen_custom = Galactocentric(z_sun=15*u.pc)
 
-        for k in galcen_custom.get_frame_attr_names():
+        for k in galcen_custom.frame_attributes:
             if k == 'roll':  # no reference for this parameter
                 continue
 

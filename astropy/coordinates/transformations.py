@@ -798,12 +798,12 @@ class CoordinateTransform(metaclass=ABCMeta):
                 raise TypeError('fromsys and tosys must be classes')
 
         self.overlapping_frame_attr_names = overlap = []
-        if (hasattr(fromsys, 'get_frame_attr_names') and
-                hasattr(tosys, 'get_frame_attr_names')):
+        if (hasattr(fromsys, 'frame_attributes') and
+                hasattr(tosys, 'frame_attributes')):
             # the if statement is there so that non-frame things might be usable
             # if it makes sense
-            for from_nm in fromsys.frame_attributes.keys():
-                if from_nm in tosys.frame_attributes.keys():
+            for from_nm in fromsys.frame_attributes:
+                if from_nm in tosys.frame_attributes:
                     overlap.append(from_nm)
 
     def register(self, graph):
@@ -848,8 +848,8 @@ class CoordinateTransform(metaclass=ABCMeta):
         toframe : object
             An object that has the attributes necessary to fully specify the
             frame.  That is, it must have attributes with names that match the
-            keys of the dictionary that ``tosys.get_frame_attr_names()``
-            returns. Typically this is of class ``tosys``, but it *might* be
+            keys of the dictionary ``tosys.frame_attributes``.
+            Typically this is of class ``tosys``, but it *might* be
             some other class as long as it has the appropriate attributes.
 
         Returns
@@ -1461,7 +1461,7 @@ class CompositeTransform(CoordinateTransform):
             # TODO: caching this information when creating the transform may
             # speed things up a lot
             frattrs = {}
-            for inter_frame_attr_nm in t.tosys.get_frame_attr_names():
+            for inter_frame_attr_nm in t.tosys.frame_attributes:
                 if hasattr(toframe, inter_frame_attr_nm):
                     attr = getattr(toframe, inter_frame_attr_nm)
                     frattrs[inter_frame_attr_nm] = attr
