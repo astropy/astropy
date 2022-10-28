@@ -377,8 +377,16 @@ class SkyCoord(ShapedLikeNDArray):
         equivalent, extra frame attributes are equivalent, and that the
         representation data are exactly equal.
         """
+
+        if isinstance(value, BaseCoordinateFrame):
+            if value._data is None:
+                raise ValueError("Can only compare SkyCoord to Frame with data")
+
+            return self.frame == value
+
         if not isinstance(value, SkyCoord):
             return NotImplemented
+
         # Make sure that any extra frame attribute names are equivalent.
         for attr in self._extra_frameattr_names | value._extra_frameattr_names:
             if not self.frame._frameattr_equiv(getattr(self, attr),
