@@ -7,6 +7,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy import units as u
+from astropy.table import NdarrayMixin
 from astropy.time import Time
 from astropy.timeseries.downsample import aggregate_downsample, reduceat
 from astropy.timeseries.sampled import TimeSeries
@@ -130,8 +131,11 @@ def test_nbins():
         assert len(down_nbins) == n_times
 
 
-def test_downsample():
-    ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=["a"])
+@pytest.mark.parametrize("data_type", [np.array, NdarrayMixin,
+                                       lambda x: x * u.ct,
+                                       lambda x: u.Quantity(x, unit='ct')])
+def test_downsample(data_type):
+    ts = TimeSeries(time=INPUT_TIME, data=[data_type([1.0, 2, 3, 4, 5])], names=["a"])
     ts_units = TimeSeries(
         time=INPUT_TIME, data=[[1, 2, 3, 4, 5] * u.count], names=["a"]
     )
@@ -162,7 +166,7 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_1["a"].data.data, np.array([1, 2, 3, 4, 5]))
+    assert_equal(down_1["a"], data_type([1, 2, 3, 4, 5]))
 
     down_2 = aggregate_downsample(
         ts, time_bin_size=2 * time_bin_incr, time_bin_start=time_bin_start
@@ -178,7 +182,7 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_2["a"].data.data, np.array([1, 3, 5]))
+    assert_equal(down_2["a"], data_type([1.5, 3.5, 5]))
 
     down_3 = aggregate_downsample(
         ts, time_bin_size=3 * time_bin_incr, time_bin_start=time_bin_start
@@ -188,7 +192,7 @@ def test_downsample():
         down_3.time_bin_start.isot,
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:34.000"]),
     )
-    assert_equal(down_3["a"].data.data, np.array([2, 4]))
+    assert_equal(down_3["a"], data_type([2, 4.5]))
 
     down_4 = aggregate_downsample(
         ts, time_bin_size=4 * time_bin_incr, time_bin_start=time_bin_start
@@ -198,18 +202,16 @@ def test_downsample():
         down_4.time_bin_start.isot,
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:35.000"]),
     )
-    assert_equal(down_4["a"].data.data, np.array([2, 5]))
+    assert_equal(down_4["a"], data_type([2.5, 5]))
 
-    down_units = aggregate_downsample(
-        ts_units, time_bin_size=4 * time_bin_incr, time_bin_start=time_bin_start
-    )
-    u.isclose(down_units.time_bin_size, [4, 4] * time_bin_incr)
-    assert_equal(
-        down_units.time_bin_start.isot,
-        Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:35.000"]),
-    )
-    assert down_units["a"].unit.name == "ct"
-    assert_equal(down_units["a"].data, np.array([2.5, 5.0]))
+    # Specific data type properties
+    if isinstance(down_4["a"], u.Quantity):
+        assert_equal(down_4["a"].value, np.array([2.5, 5]))
+        assert down_4["a"].unit.name == 'ct'
+    elif isinstance(down_4["a"], NdarrayMixin):
+        assert_equal(np.array(down_4["a"]), np.array([2.5, 5]))
+    else:
+        assert_equal(down_4["a"].data.data, np.array([2.5, 5]))
 
     # Contiguous bins with uneven bin sizes: `time_bin_size` is an array
     down_uneven_bins = aggregate_downsample(
@@ -226,7 +228,7 @@ def test_downsample():
             ]
         ),
     )
-    assert_equal(down_uneven_bins["a"].data.data, np.array([1, 3, 4]))
+    assert_equal(down_uneven_bins["a"], data_type([1.5, 3, 4]))
 
     # Uncontiguous bins with even bin sizes: `time_bin_start` and `time_bin_end` are both arrays
     down_time_array = aggregate_downsample(
@@ -239,7 +241,7 @@ def test_downsample():
         down_time_array.time_bin_start.isot,
         Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:34.000"]),
     )
-    assert_equal(down_time_array["a"].data.data, np.array([1, 4]))
+    assert_equal(down_time_array["a"], data_type([1.5, 4.5]))
 
     # Overlapping bins
     with pytest.warns(
@@ -254,7 +256,7 @@ def test_downsample():
             time_bin_start=Time(["2016-03-22T12:30:31.000", "2016-03-22T12:30:33.000"]),
             time_bin_end=Time(["2016-03-22T12:30:34", "2016-03-22T12:30:36.000"]),
         )
-        assert_equal(down_overlap_bins["a"].data, np.array([2, 5]))
+        assert_equal(down_overlap_bins["a"], data_type([2.5, 5]))
 
 
 @pytest.mark.parametrize(
@@ -277,13 +279,11 @@ def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
     assert len(down) == len(time_bin_start)
     assert all(down["time_bin_size"] >= 0)  # bin lengths shall never be negative
     if ts.time.min() < time_bin_start[0] or time_bin_end is not None:
-        assert down[
-            "a"
-        ].mask.all()  # all bins placed *beyond* the time span of the data
+        # all bins placed *beyond* the time span of the data
+        assert down["a"].mask.all()
     elif ts.time.min() < time_bin_start[1]:
-        assert (
-            down["a"][0] == ts["a"][0]
-        )  # single-valued time series falls in *first* bin
+        # single-valued time series falls in *first* bin
+        assert down["a"][0] == ts["a"][0]
 
 
 @pytest.mark.parametrize(
