@@ -157,7 +157,7 @@ class Angle(u.SpecificTypeQuantity):
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
-        return u.hourangle if unit is u.hour else unit
+        return u.hourangle if unit == u.hour else unit
 
     def _set_unit(self, unit):
         super()._set_unit(self._convert_unit_to_angle_unit(unit))
@@ -297,7 +297,7 @@ class Angle(u.SpecificTypeQuantity):
 
         # Create an iterator so we can format each element of what
         # might be an array.
-        if unit is u.degree:
+        if unit == u.degree:
             if decimal:
                 values = self.degree
                 if precision is not None:
@@ -312,7 +312,7 @@ class Angle(u.SpecificTypeQuantity):
                     x, precision=precision, sep=sep, pad=pad,
                     fields=fields)
 
-        elif unit is u.hourangle:
+        elif unit == u.hourangle:
             if decimal:
                 values = self.hour
                 if precision is not None:
@@ -581,6 +581,8 @@ class Latitude(Angle):
         if angles is None:
             angles = self
 
+        # For speed, compare using "is", which is not strictly guaranteed to hold,
+        # but if it doesn't we'll just convert correctly in the 'else' clause.
         if angles.unit is u.deg:
             limit = 90
         elif angles.unit is u.rad:
