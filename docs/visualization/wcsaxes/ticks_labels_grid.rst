@@ -355,3 +355,26 @@ one command:
 
 .. note:: If you use the pyplot interface, you can also plot the grid using
           ``plt.grid()``.
+
+
+Interior ticks and tick labels
+******************************
+
+The default locations of ticks and tick labels for the rectangular frame are the
+edges of the frame.  To place ticks or tick labels in the interior of the plot,
+one needs to add a "tickable" gridline.  Here we create one called ``v`` at the
+constant longitude of -5 arcmin, and then specify that it should have latitude
+ticks.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.add_tickable_gridline('v', -5*u.arcmin)
+
+    lat.set_ticks_position('lv')
+    lat.set_ticks(color='red')
+    lat.set_ticklabel_position('lv')
+    lat.set_ticklabel(color='red')
+    lat.set_axislabel('Galactic Latitude', color='red')
