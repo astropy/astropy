@@ -1102,7 +1102,7 @@ def test_psf_setter():
 
     # cannot set with non-ndarray
     with pytest.raises(TypeError, match="The psf must be a numpy array."):
-        ccd.psf = _random_array * u.pix
+        ccd.psf = 5
 
 
 def test_write_read_psf(tmp_path):
