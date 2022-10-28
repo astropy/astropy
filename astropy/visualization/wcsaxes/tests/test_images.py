@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from matplotlib import rc_context
+from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle
 
 from astropy import units as u
@@ -1016,5 +1017,47 @@ def test_allsky_labels_wrap():
             ax.coords[1].set_ticks_visible(False)
 
     fig.subplots_adjust(hspace=2, left=0.05, right=0.95, bottom=0.1, top=0.95)
+
+    return fig
+
+
+@figure_test
+def test_tickable_gridlines():
+    wcs = WCS({'naxis': 2,
+               'naxis1': 360,
+               'naxis2': 180,
+               'crpix1': 180.5,
+               'crpix2': 90.5,
+               'cdelt1': -1,
+               'cdelt2': 1,
+               'ctype1': 'RA---CAR',
+               'ctype2': 'DEC--CAR'})
+
+    fig = Figure()
+    ax = fig.add_subplot(projection=wcs)
+    ax.set_xlim(-0.5, 360-0.5)
+    ax.set_ylim(-0.5, 150-0.5)
+
+    lon, lat = ax.coords
+    lon.grid()
+    lat.grid()
+
+    overlay = ax.get_coords_overlay('galactic')
+    overlay[0].set_ticks(spacing=30*u.deg)
+    overlay[1].set_ticks(spacing=30*u.deg)
+
+    # Test both single-character and multi-character names
+    overlay[1].add_tickable_gridline('g', -30*u.deg)
+    overlay[0].add_tickable_gridline('const-glon', 30*u.deg)
+
+    overlay[0].grid(color='magenta')
+    overlay[0].set_ticklabel_position('gt')
+    overlay[0].set_ticklabel(color='magenta')
+    overlay[0].set_axislabel('Galactic longitude', color='magenta')
+
+    overlay[1].grid(color='blue')
+    overlay[1].set_ticklabel_position(('const-glon', 'r'))
+    overlay[1].set_ticklabel(color='blue')
+    overlay[1].set_axislabel('Galactic latitude', color='blue')
 
     return fig

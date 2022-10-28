@@ -18,12 +18,24 @@ class Spine:
 
     This does not need to be a straight line, but represents a 'side' when
     determining which part of the frame to put labels and ticks on.
+
+    Parameters
+    ----------
+    parent_axes : `~astropy.visualization.wcsaxes.WCSAxes`
+        The parent axes
+    transform : `~matplotlib.transforms.Transform`
+        The transform from data to world
+    data_func : callable
+        If not ``None``, it should be a function that returns the appropriate spine
+        data when called with this object as the sole argument.  If ``None``, the
+        spine data must be manually updated in ``update_spines()``.
     """
 
-    def __init__(self, parent_axes, transform):
+    def __init__(self, parent_axes, transform, *, data_func=None):
 
         self.parent_axes = parent_axes
         self.transform = transform
+        self.data_func = data_func
 
         self._data = None
         self._pixel = None
@@ -31,6 +43,8 @@ class Spine:
 
     @property
     def data(self):
+        if self._data is None and self.data_func:
+            self.data = self.data_func(self)
         return self._data
 
     @data.setter
@@ -179,7 +193,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
         self.update_spines()
         x, y = [], []
-        for axis in self:
+        for axis in self.spine_names:
             x.append(self[axis].data[:, 0])
             y.append(self[axis].data[:, 1])
         vertices = np.vstack([np.hstack(x), np.hstack(y)]).transpose()
@@ -196,7 +210,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
                          facecolor=rcParams['axes.facecolor'], edgecolor='white')
 
     def draw(self, renderer):
-        for axis in self:
+        for axis in self.spine_names:
             x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
             line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
             line.draw(renderer)
@@ -210,10 +224,13 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
         for axis in self:
 
             data = self[axis].data
-            p = np.linspace(0., 1., data.shape[0])
-            p_new = np.linspace(0., 1., n_samples)
             spines[axis] = self.spine_class(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
+            if data.size > 0:
+                p = np.linspace(0., 1., data.shape[0])
+                p_new = np.linspace(0., 1., n_samples)
+                spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
+            else:
+                spines[axis].data = data
 
         return spines
 
@@ -245,9 +262,10 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     def get_linewidth(self):
         return self._linewidth
 
-    @abc.abstractmethod
     def update_spines(self):
-        raise NotImplementedError("")
+        for spine in self.values():
+            if spine.data_func:
+                spine.data = spine.data_func(spine)
 
 
 class RectangularFrame1D(BaseFrame):
@@ -265,6 +283,8 @@ class RectangularFrame1D(BaseFrame):
 
         self['b'].data = np.array(([xmin, ymin], [xmax, ymin]))
         self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
+
+        super().update_spines()
 
     def _update_patch_path(self):
 
@@ -312,6 +332,8 @@ class RectangularFrame(BaseFrame):
         self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
         self['l'].data = np.array(([xmin, ymax], [xmin, ymin]))
 
+        super().update_spines()
+
 
 class EllipticalFrame(BaseFrame):
     """
@@ -338,6 +360,8 @@ class EllipticalFrame(BaseFrame):
                                    np.repeat(ymid, 1000)]).transpose()
         self['v'].data = np.array([np.repeat(xmid, 1000),
                                    np.linspace(ymin, ymax, 1000)]).transpose()
+
+        super().update_spines()
 
     def _update_patch_path(self):
         """Override path patch to include only the outer ellipse,

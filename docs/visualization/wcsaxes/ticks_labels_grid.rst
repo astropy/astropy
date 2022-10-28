@@ -222,8 +222,8 @@ We can apply this to the previous example:
    :align: center
 
     from astropy import units as u
-    lon.set_ticks(spacing=10 * u.arcmin, color='white')
-    lat.set_ticks(spacing=10 * u.arcmin, color='white')
+    lon.set_ticks(spacing=10 * u.arcmin, color='yellow')
+    lat.set_ticks(spacing=10 * u.arcmin, color='orange')
     lon.set_ticklabel(exclude_overlapping=True)
     lat.set_ticklabel(exclude_overlapping=True)
 
@@ -332,19 +332,7 @@ Coordinate grid
 
 Since the properties of a coordinate grid are linked to the properties of the
 ticks and labels, grid lines 'belong' to the coordinate objects described
-above. For example, you can show a grid with yellow lines for RA and orange lines
-for declination with:
-
-.. plot::
-   :context:
-   :include-source:
-   :align: center
-
-    lon.grid(color='yellow', alpha=0.5, linestyle='solid')
-    lat.grid(color='orange', alpha=0.5, linestyle='solid')
-
-For convenience, you can also simply draw a grid for all the coordinates in
-one command:
+above.  You can draw the grid for all coordinates at once:
 
 .. plot::
    :context:
@@ -355,3 +343,35 @@ one command:
 
 .. note:: If you use the pyplot interface, you can also plot the grid using
           ``plt.grid()``.
+
+Alternatively, you can draw the grid with different colors for the different
+coordinates.  For example, you can show a grid with yellow lines for RA and
+orange lines for declination with:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.grid(color='yellow', alpha=0.5, linestyle='solid')
+    lat.grid(color='orange', alpha=0.5, linestyle='solid')
+
+
+Interior ticks and tick labels
+******************************
+
+The default locations of ticks and tick labels for the rectangular frame are the
+edges of the frame.  To place ticks or tick labels in the interior of the plot,
+one needs to add a "tickable" gridline.  Here we create one called ``i`` at the
+constant longitude of -10 arcmin, and then specify that it should have latitude
+ticks.
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.add_tickable_gridline('i', -10*u.arcmin)
+
+    lat.set_ticks_position('li')
+    lat.set_ticklabel_position('li')
