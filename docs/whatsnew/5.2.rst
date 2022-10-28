@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-fits`
 * :ref:`whatsnew-5.2-visualization-wcsaxes-helpers`
 * :ref:`whatsnew-5.2-tilde-paths`
+* :ref:`whatsnew-5.2-ccddata-psf`
 
 
 .. _whatsnew-5.2-quantity-dtype:
@@ -226,6 +227,14 @@ This support has been added throughout the ``astropy.io`` module. This feature
 is also supported within the I/O functionality of `astropy.table` and the
 FITS-file functionality in `astropy.nddata`.
 
+
+.. _whatsnew-5.2-ccddata-psf:
+
+CCDData PSF Image representation
+================================
+
+The ``NDData``/``CCDData`` objects now have a specific attribute for an image representation of the point spread function (PSF) at the image center.
+This was added to support the Rubin Observatory/LSST alert packets, which will be distributed as ``CCDData`` objects.
 
 Full change log
 ===============

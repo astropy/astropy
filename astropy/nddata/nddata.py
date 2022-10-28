@@ -77,6 +77,10 @@ class NDData(NDDataBase):
 
         .. versionadded:: 1.2
 
+    psf : `numpy.ndarray` or None, optional
+        Image representation of the PSF. In order for convolution to be flux-
+        preserving, this should generally be normalized to sum to unity.
+
     Raises
     ------
     TypeError
@@ -119,7 +123,7 @@ class NDData(NDDataBase):
     meta = MetaData(doc=_meta_doc, copy=False)
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None, copy=False):
+                 meta=None, unit=None, copy=False, psf=None):
 
         # Rather pointless since the NDDataBase does not implement any setting
         # but before the NDDataBase did call the uncertainty
@@ -165,6 +169,12 @@ class NDData(NDDataBase):
                          "wcs with specified wcs.")
             elif data.wcs is not None:
                 wcs = data.wcs
+
+            if psf is not None and data.psf is not None:
+                log.info("Overwriting NDData's current "
+                         "psf with specified psf.")
+            elif data.psf is not None:
+                psf = data.psf
 
             if meta is not None and data.meta is not None:
                 log.info("overwriting NDData's current "
@@ -218,6 +228,7 @@ class NDData(NDDataBase):
             data = deepcopy(data)
             mask = deepcopy(mask)
             wcs = deepcopy(wcs)
+            psf = deepcopy(psf)
             meta = deepcopy(meta)
             uncertainty = deepcopy(uncertainty)
             # Actually - copying the unit is unnecessary but better safe
@@ -235,6 +246,7 @@ class NDData(NDDataBase):
         self._unit = unit
         # Call the setter for uncertainty to further check the uncertainty
         self.uncertainty = uncertainty
+        self.psf = psf
 
     def __str__(self):
         data = str(self.data)
@@ -296,6 +308,14 @@ class NDData(NDDataBase):
         else:
             raise TypeError("The wcs argument must implement either the high or"
                             " low level WCS API.")
+
+    @property
+    def psf(self):
+        return self._psf
+
+    @psf.setter
+    def psf(self, value):
+        self._psf = value
 
     @property
     def uncertainty(self):

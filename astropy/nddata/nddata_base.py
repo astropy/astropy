@@ -54,6 +54,15 @@ class NDDataBase(metaclass=ABCMeta):
         """
         return None
 
+    # psf is concrete to avoid introducing a breaking change in release 5.2.
+    @property
+    def psf(self):
+        """Image representation of the PSF for the dataset.
+
+        Should be `ndarray`-like.
+        """
+        return None
+
     @property
     @abstractmethod
     def meta(self):
