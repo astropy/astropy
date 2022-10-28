@@ -58,11 +58,12 @@ class MinimalUncertainty:
 class BadNDDataSubclass(NDData):
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None):
+                 meta=None, unit=None, psf=None):
         self._data = data
         self._uncertainty = uncertainty
         self._mask = mask
         self._wcs = wcs
+        self._psf = psf
         self._unit = unit
         self._meta = meta
 
@@ -205,6 +206,7 @@ def test_nddata_init_data_nddata():
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
+    assert nd2.psf == nd1.psf
 
     # Check that it is copied by reference
     nd1 = NDData(np.ones((5, 5)))
@@ -218,7 +220,7 @@ def test_nddata_init_data_nddata():
 
     # Now let's see what happens if we have all explicitly set
     nd1 = NDData(np.array([1]), mask=False, uncertainty=StdDevUncertainty(10), unit=u.s,
-                 meta={'dest': 'mordor'}, wcs=WCS(naxis=1))
+                 meta={'dest': 'mordor'}, wcs=WCS(naxis=1), psf=np.array([10]))
     nd2 = NDData(nd1)
     assert nd2.data is nd1.data
     assert nd2.wcs is nd1.wcs
@@ -226,22 +228,24 @@ def test_nddata_init_data_nddata():
     assert nd2.mask == nd1.mask
     assert nd2.unit == nd1.unit
     assert nd2.meta == nd1.meta
+    assert nd2.psf == nd1.psf
 
     # now what happens if we overwrite them all too
     nd3 = NDData(nd1, mask=True, uncertainty=StdDevUncertainty(200), unit=u.km,
-                 meta={'observer': 'ME'}, wcs=WCS(naxis=1))
+                 meta={'observer': 'ME'}, wcs=WCS(naxis=1), psf=np.array([20]))
     assert nd3.data is nd1.data
     assert nd3.wcs is not nd1.wcs
     assert nd3.uncertainty.array != nd1.uncertainty.array
     assert nd3.mask != nd1.mask
     assert nd3.unit != nd1.unit
     assert nd3.meta != nd1.meta
+    assert nd3.psf != nd1.psf
 
 
 def test_nddata_init_data_nddata_subclass():
     uncert = StdDevUncertainty(3)
     # There might be some incompatible subclasses of NDData around.
-    bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100)
+    bnd = BadNDDataSubclass(False, True, 3, 2, 'gollum', 100, 12)
     # Before changing the NDData init this would not have raised an error but
     # would have lead to a compromised nddata instance
     with pytest.raises(TypeError):

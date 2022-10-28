@@ -23,6 +23,7 @@ DEFAULT_DATA_SIZE = 100
 
 with NumpyRNGContext(123):
     _random_array = np.random.normal(size=[DEFAULT_DATA_SIZE, DEFAULT_DATA_SIZE])
+    _random_psf = np.random.normal(size=(20, 20))
 
 
 @pytest.fixture
@@ -1081,3 +1082,48 @@ def test_read_write_tilde_paths(home_is_tmpdir):
     # Ensure the unexpanded path doesn't exist (e.g. no directory whose name is
     # a literal ~ was created)
     assert not os.path.exists(filename)
+
+
+def test_ccddata_with_psf():
+    psf = _random_psf.copy()
+    ccd = CCDData(_random_array.copy(), unit=u.adu, psf=psf)
+    assert (ccd.psf == psf).all()
+
+    # cannot pass in non-ndarray
+    with pytest.raises(TypeError, match="The psf must be a numpy array."):
+        CCDData(_random_array.copy(), unit=u.adu, psf="something")
+
+
+def test_psf_setter():
+    psf = _random_psf.copy()
+    ccd = CCDData(_random_array.copy(), unit=u.adu)
+    ccd.psf = psf
+    assert (ccd.psf == psf).all()
+
+    # cannot set with non-ndarray
+    with pytest.raises(TypeError, match="The psf must be a numpy array."):
+        ccd.psf = 5
+
+
+def test_write_read_psf(tmp_path):
+    """Test that we can round-trip a CCDData with an attached PSF image."""
+    ccd_data = create_ccd_data()
+    ccd_data.psf = _random_psf
+
+    filename = tmp_path / 'test_write_read_psf.fits'
+    ccd_data.write(filename)
+    ccd_disk = CCDData.read(filename)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)
+
+    # Try a different name for the PSF HDU.
+    filename = tmp_path / 'test_write_read_psf_hdu.fits'
+    ccd_data.write(filename, hdu_psf="PSFOTHER")
+    # psf will be None if we don't supply the new HDU name to the reader.
+    ccd_disk = CCDData.read(filename)
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    assert ccd_disk.psf is None
+    # psf will round-trip if we do supply the new HDU name.
+    ccd_disk = CCDData.read(filename, hdu_psf="PSFOTHER")
+    np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
+    np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)
