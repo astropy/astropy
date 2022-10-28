@@ -305,14 +305,12 @@ def test_time_precision_limit(diff_from_base):
     """
     precision_limit = 500 * u.ns
 
-    from astropy.timeseries.downsample import _to_relative_longdouble
-
     t_base = Time("1980-01-01T12:30:31.000", format="isot", scale="tdb")
     t2 = t_base + diff_from_base
     t3 = t2 + precision_limit
 
-    r_t2 = _to_relative_longdouble(t2, t_base)
-    r_t3 = _to_relative_longdouble(t3, t_base)
+    r_t2 = (t2 - t_base).to_value(format="sec", subfmt="long")
+    r_t3 = (t3 - t_base).to_value(format="sec", subfmt="long")
 
     # ensure in the converted relative time,
     # t2 and t3 can still be correctly compared

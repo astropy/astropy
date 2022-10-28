@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 
 from astropy import units as u
+from astropy.table import NdarrayMixin
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
@@ -18,31 +19,23 @@ def reduceat(array, indices, function):
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
     It will check if the input function has a reduceat and call that if it does.
     """
+    if type(array) == np.ndarray:
+        as_array = np.array
+    else:
+        as_array = type(array)
     if len(indices) == 0:
-        return np.array([])
+        return as_array([])
     elif hasattr(function, "reduceat"):
-        return np.array(function.reduceat(array, indices))
+        return as_array(function.reduceat(array, indices))
     else:
         result = []
         for i in range(len(indices) - 1):
             if indices[i + 1] <= indices[i] + 1:
                 result.append(function(array[indices[i]]))
             else:
-                result.append(function(array[indices[i] : indices[i + 1]]))
-        result.append(function(array[indices[-1] :]))
-        return np.array(result)
-
-
-def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
-    # Convert the time objects into plain ndarray
-    # so that they be used to make various operations faster, including
-    # - `np.searchsorted()`
-    # - time comparison.
-    #
-    # Relative time in seconds with np.longdouble type is used to:
-    # - a consistent format for search, irrespective of the format/scale of the inputs,
-    # - retain the best precision possible
-    return (time - rel_base).to_value(format="sec", subfmt="long")
+                result.append(function(array[indices[i]:indices[i+1]]))
+        result.append(function(array[indices[-1]:]))
+        return as_array(result)
 
 
 def aggregate_downsample(
@@ -192,12 +185,15 @@ def aggregate_downsample(
     #   (`Time` object comparison is rather slow)
     # - tiny sacrifice on precision (< 0.01ns on 64 bit platform)
     rel_base = ts_sorted.time[0]
-    rel_bin_start = _to_relative_longdouble(bin_start, rel_base)
-    rel_bin_end = _to_relative_longdouble(bin_end, rel_base)
-    rel_ts_sorted_time = _to_relative_longdouble(ts_sorted.time, rel_base)
-    keep = (rel_ts_sorted_time >= rel_bin_start[0]) & (
-        rel_ts_sorted_time <= rel_bin_end[-1]
-    )
+
+    # Convert the time objects into plain ndarray to enable using fast numpy ufuncs.
+    # Relative time in seconds with np.longdouble type is used to:
+    # - a consistent format for search, irrespective of the format/scale of the inputs,
+    # - retain the best precision possible.
+    rel_bin_start = (bin_start - rel_base).to_value(format="sec", subfmt="long")
+    rel_bin_end = (bin_end - rel_base).to_value(format="sec", subfmt="long")
+    rel_ts_sorted_t = (ts_sorted.time - rel_base).to_value(format="sec", subfmt="long")
+    keep = ((rel_ts_sorted_t >= rel_bin_start[0]) & (rel_ts_sorted_t <= rel_bin_end[-1]))
 
     # Find out indices to be removed because of noncontiguous bins
     #
@@ -205,17 +201,16 @@ def aggregate_downsample(
     # bin_start[ind + 1] > bin_end[ind]
     # - see: https://github.com/astropy/astropy/issues/13058#issuecomment-1090846697
     #   on thoughts on how to reduce the number of times to loop
-    noncontiguous_bins_indices = np.where(rel_bin_start[1:] > rel_bin_end[:-1])[0]
-    for ind in noncontiguous_bins_indices:
+    for ind in np.where(rel_bin_start[1:] > rel_bin_end[:-1])[0]:
         delete_indices = np.where(
             np.logical_and(
-                rel_ts_sorted_time > rel_bin_end[ind],
-                rel_ts_sorted_time < rel_bin_start[ind + 1],
+                rel_ts_sorted_t > rel_bin_end[ind],
+                rel_ts_sorted_t < rel_bin_start[ind + 1],
             )
         )
         keep[delete_indices] = False
 
-    rel_subset_time = rel_ts_sorted_time[keep]
+    rel_subset_time = rel_ts_sorted_t[keep]
 
     # Figure out which bin each row falls in by sorting with respect
     # to the bin end times
@@ -224,7 +219,7 @@ def aggregate_downsample(
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(rel_bin_start[1:] >= rel_bin_end[:-1]):
         indices_start = np.searchsorted(
-            rel_subset_time, rel_bin_start[rel_bin_start <= rel_ts_sorted_time[-1]]
+            rel_subset_time, rel_bin_start[rel_bin_start <= rel_ts_sorted_t[-1]]
         )
         indices[indices_start] = np.arange(len(indices_start))
 
@@ -251,14 +246,18 @@ def aggregate_downsample(
             data[unique_indices] = u.Quantity(
                 reduceat(values.value, groups, aggregate_func), values.unit, copy=False
             )
+        elif isinstance(values, NdarrayMixin):
+            data = NdarrayMixin(np.repeat(np.nan,  n_bins))
+            data[unique_indices] = reduceat(values, groups, aggregate_func)
         elif isinstance(values, np.ndarray):
             data = np.ma.zeros(n_bins, dtype=values.dtype)
             data.mask = 1
             data[unique_indices] = reduceat(values.value, groups, aggregate_func)
             data.mask[unique_indices] = 0
-        # FIXME: figure out how to avoid the following, if possible
+        # FIXME: figure out how to avoid the following, if possible (and if still happening)
         else:
-            warnings.warn("Skipping column {0} since it has a mix-in type", AstropyUserWarning)
+            warnings.warn(f"Skipping column '{colname}' since it has an unsupported mix-in type",
+                          AstropyUserWarning)
             continue
 
         binned[colname] = data
