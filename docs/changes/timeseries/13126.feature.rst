@@ -1,0 +1,2 @@
+Fixed another performance regression in ``timeseries.aggregate_downsample``
+when binning plain ``np.ndarray`` columns.

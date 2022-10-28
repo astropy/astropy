@@ -1,0 +1,2 @@
+Fixed a bug in ``timeseries.aggregate_downsample`` incorrectly converting
+mixin columns to ``np.array``.
