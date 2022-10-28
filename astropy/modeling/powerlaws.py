@@ -522,7 +522,7 @@ class Schechter1D(Fittable1DModel):
 
     m_star : float
         The characteristic magnitude where the power-law form of the
-        function cuts off. Must not have units.
+        function cuts off.
 
     alpha : float
         The power law index, also known as the faint-end slope. Must not
