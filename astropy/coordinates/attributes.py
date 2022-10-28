@@ -440,7 +440,7 @@ class CoordinateAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from astropy.coordinates import SkyCoord
+        from .sky_coordinate import SkyCoord
 
         if value is None:
             return None, False

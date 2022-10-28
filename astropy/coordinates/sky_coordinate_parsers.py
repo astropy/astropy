@@ -10,7 +10,6 @@ from astropy import units as u
 from astropy.units import IrreducibleUnit, Unit
 
 from .baseframe import BaseCoordinateFrame, _get_diff_cls, _get_repr_cls, frame_transform_graph
-from .builtin_frames import ICRS
 from .representation import BaseRepresentation, SphericalRepresentation, UnitSphericalRepresentation
 
 """
@@ -105,7 +104,7 @@ def _get_frame_without_data(args, kwargs):
 
         if isinstance(frame, BaseCoordinateFrame):
             # Extract any frame attributes
-            for attr in frame.get_frame_attr_names():
+            for attr in frame.frame_attributes:
                 # If the frame was specified as an instance, we have to make
                 # sure that no frame attributes were specified as kwargs - this
                 # would require a potential three-way merge:
@@ -155,7 +154,7 @@ def _get_frame_without_data(args, kwargs):
                 # None still gets through if the user *requests* it
                 kwargs.setdefault('differential_type', frame_diff)
 
-            for attr in coord_frame_obj.get_frame_attr_names():
+            for attr in coord_frame_obj.frame_attributes:
                 if (attr in kwargs and
                         not coord_frame_obj.is_frame_attr_default(attr) and
                         np.any(kwargs[attr] != getattr(coord_frame_obj, attr))):
@@ -183,6 +182,7 @@ def _get_frame_without_data(args, kwargs):
                                          frame_cls.__name__))
 
     if frame_cls is None:
+        from .builtin_frames import ICRS
         frame_cls = ICRS
 
     # By now, frame_cls should be set - if it's not, something went wrong
@@ -431,7 +431,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord) or
-                         attr not in coords.get_frame_attr_names())
+                         attr not in coords.frame_attributes)
             if use_value and value is not None:
                 skycoord_kwargs[attr] = value
 
