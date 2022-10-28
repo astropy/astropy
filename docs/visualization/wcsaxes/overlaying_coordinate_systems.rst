@@ -71,8 +71,8 @@ or too few gridlines intersecting an edge.  As with the base grid, it is
 possible to add interior ticks or tick labels for the overlay grid.  Here we add
 a "tickable" gridline at constant RA (``const-ra``) and one at constant
 declination (``const-dec``).  Note that when you use a multi-character string as
-the name for one of these gridlines, you need to specify that name as a tuple to
-other methods.
+the name for one of these gridlines, you need to specify that name as a part of
+a tuple to other methods.
 
 .. plot::
    :context:
@@ -80,20 +80,20 @@ other methods.
 
     from astropy.coordinates import Angle
 
-    ax.coords[0].set_ticks_position('b')
-    ax.coords[1].set_ticks_position('l')
+    overlay['ra'].grid(color='red')
+    overlay['dec'].grid(color='magenta')
 
-    overlay['ra'].add_tickable_gridline('const-ra', Angle('266d15m'))
-    overlay['dec'].add_tickable_gridline('const-dec', Angle('-29d15m'))
+    overlay['ra'].add_tickable_gridline('const-ra', Angle('266d20m'))
+    overlay['dec'].add_tickable_gridline('const-dec', Angle('-29d00m'))
 
-    overlay['ra'].set_ticks_position(('const-dec',))
+    overlay['ra'].set_ticks_position(('const-dec', 't'))
     overlay['ra'].set_ticks(color='red')
     overlay['ra'].set_ticklabel_position(('const-dec',))
     overlay['ra'].set_ticklabel(color='red', size=6)
     overlay['ra'].set_axislabel_position('r')
     overlay['ra'].set_axislabel('Right Ascension', color='red')
 
-    overlay['dec'].set_ticks_position(('const-ra',))
+    overlay['dec'].set_ticks_position(('const-ra', 'r'))
     overlay['dec'].set_ticks(color='magenta')
     overlay['dec'].set_ticklabel_position(('const-ra',))
     overlay['dec'].set_ticklabel(color='magenta', size=6)
