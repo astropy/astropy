@@ -112,13 +112,19 @@ Sorting time series in place can be done using the
 Resampling
 ==========
 
-We provide a :func:`~astropy.timeseries.aggregate_downsample` function
+We provide an :func:`~astropy.timeseries.aggregate_downsample` function
 that can be used to bin values from a time series into equal-size or uneven bins,
-and contiguous and non-contiguous bins, using a custom function (mean, median, etc.).
+and contiguous and non-contiguous bins, using a custom averaging function
+(mean, median, etc.) to evaluate the data values for each bin.
 This operation returns a |BinnedTimeSeries|. Note that this is a basic function in
 the sense that it does not, for example, know how to treat columns with uncertainties
 differently from other values, and it will blindly apply the custom function
 specified to all columns.
+Sorting and binning of the time points is done on relative offsets from the first
+point to allow efficient vectorization of these operations. In principle this
+involves some loss of precision compared to the |Time| objects, but the
+algorithm ensures an accuracy of ``< 1 µs`` on a baseline of over a century,
+and proportionately better for shorter time series.
 
 Example
 -------
