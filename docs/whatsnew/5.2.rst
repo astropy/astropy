@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-io-ascii-fixed-width`
 * :ref:`whatsnew-5.2-fits`
 * :ref:`whatsnew-5.2-visualization-wcsaxes-helpers`
+* :ref:`whatsnew-5.2-add-tickable-gridline`
 * :ref:`whatsnew-5.2-tilde-paths`
 * :ref:`whatsnew-5.2-ccddata-psf`
 
@@ -206,6 +207,69 @@ observations) and a physical scale bar on celestial images:
     ...
     ...    # Draw a scale bar corresponding to 100 au at a distance of 126 pc
     ...    add_scalebar(ax, 100./126. * u.arcsec, label="100 au", color="white")
+
+.. _whatsnew-5.2-add-tickable-gridline:
+
+Interior ticks and tick labels
+==============================
+The default locations of ticks and tick labels for a WCSAxes rectangular plot are the edges of the frame.
+It is now possible to place ticks or tick labels in the interior of the plot by using
+:meth:`~astropy.visualization.wcsaxes.CoordinateHelper.add_tickable_gridline` to define a new "tickable" gridline.
+Here is an example plot that uses this new functionality:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    import matplotlib.pyplot as plt
+
+    import astropy.units as u
+    from astropy.wcs import WCS
+
+    wcs = WCS({'naxis': 2,
+               'naxis1': 360,
+               'naxis2': 180,
+               'crpix1': 180.5,
+               'crpix2': 90.5,
+               'cdelt1': -1,
+               'cdelt2': 1,
+               'ctype1': 'RA---CAR',
+               'ctype2': 'DEC--CAR'})
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection=wcs)
+    ax.set_xlim(-0.5, 360-0.5)
+    ax.set_ylim(-0.5, 180-0.5)
+
+    ra, dec = ax.coords
+    ra.grid()
+    dec.grid()
+    ra.set_ticklabel(exclude_overlapping=True)
+    ra.set_axislabel('ICRS Right Ascension')
+    dec.set_axislabel('ICRS Declination')
+
+.. plot::
+   :context:
+   :include-source:
+
+    glon, glat = ax.get_coords_overlay('galactic')
+    glon.set_ticks(spacing=30*u.deg)
+    glat.set_ticks(spacing=30*u.deg)
+
+    glat.add_tickable_gridline('const-glat', 0*u.deg)
+    glon.add_tickable_gridline('const-glon', 0*u.deg)
+
+    glon.grid(color='magenta')
+    glon.set_ticks_visible(False)
+    glon.set_ticklabel_position(('const-glat',))
+    glon.set_ticklabel(color='magenta')
+    glon.set_axislabel('Galactic Longitude', color='magenta')
+
+    glat.grid(color='blue')
+    glat.set_ticks_visible(False)
+    glat.set_ticklabel_position(('const-glon', 'r'))
+    glat.set_ticklabel(color='blue')
+    glat.set_axislabel('Galactic Latitude', color='blue')
 
 .. _whatsnew-5.2-tilde-paths:
 
