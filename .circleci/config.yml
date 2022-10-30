@@ -26,6 +26,12 @@ jobs:
       - run:
           name: Run tests
           command: tox -v
+      - run:
+          name: Upload coverage results to codecov
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov -t ${CODECOV_TOKEN} -f coverage.xml
       - store_artifacts:
           path: results
       - run:
@@ -80,16 +86,16 @@ workflows:
           matrix:
             parameters:
               jobname:
-                - "py39-test-image-mpl311"
-                - "py39-test-image-mpldev"
+                - "py39-test-image-mpl311-cov"
+                - "py39-test-image-mpldev-cov"
 
       - deploy-reference-images:
           name: baseline-<< matrix.jobname >>
           matrix:
             parameters:
               jobname:
-                - "py39-test-image-mpl311"
-                - "py39-test-image-mpldev"
+                - "py39-test-image-mpl311-cov"
+                - "py39-test-image-mpldev-cov"
           requires:
             - << matrix.jobname >>
           filters:
