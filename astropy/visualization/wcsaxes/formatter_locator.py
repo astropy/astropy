@@ -394,14 +394,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             is_latex = format == 'latex' or (format == 'auto' and rcParams['text.usetex'])
 
             if decimal:
-                # At the moment, the Angle class doesn't have a consistent way
-                # to always convert angles to strings in decimal form with
-                # symbols for units (instead of e.g 3arcsec). So as a workaround
-                # we take advantage of the fact that Angle.to_string converts
-                # the unit to a string manually when decimal=False and the unit
-                # is not strictly u.degree or u.hourangle
                 if self.show_decimal_unit:
-                    decimal = False
                     sep = 'fromunit'
                     if is_latex:
                         fmt = 'latex'
@@ -409,10 +402,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         if unit is u.hourangle:
                             fmt = 'unicode'
                         else:
-                            fmt = None
+                            fmt = 'generic'
                     unit = CUSTOM_UNITS.get(unit, unit)
                 else:
-                    sep = None
+                    sep = 'fromunit'
                     fmt = None
             elif self.sep is not None:
                 sep = self.sep
