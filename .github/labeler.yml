@@ -146,5 +146,5 @@ wcs.wcsapi:
 dev-automation:
   - .pre-commit-config.yaml
 
-no-changelog-entry-needed:
+skip-changelog-checks:
   - .pre-commit-config.yaml
