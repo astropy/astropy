@@ -2,7 +2,7 @@
 Tests the Angle string formatting capabilities.  SkyCoord formatting is in
 test_sky_coord
 """
-
+import pytest
 
 from astropy import units as u
 from astropy.coordinates.angles import Angle
@@ -56,6 +56,9 @@ def test_to_string_decimal():
     assert angle3.to_string(decimal=True, precision=1) == '4.0'
     assert angle3.to_string(decimal=True, precision=0) == '4'
 
+    with pytest.raises(ValueError, match='sexagesimal notation'):
+        angle3.to_string(decimal=True, sep='abc')
+
 
 def test_to_string_formats():
     a = Angle(1.113355, unit=u.deg)
@@ -74,6 +77,28 @@ def test_to_string_formats():
     assert a.to_string(format='latex') == r'$1.11336\mathrm{rad}$'
     assert a.to_string(format='latex_inline') == r'$1.11336\mathrm{rad}$'
     assert a.to_string(format='unicode') == '1.11336rad'
+
+
+def test_to_string_decimal_formats():
+    angle1 = Angle(2., unit=u.degree)
+
+    assert angle1.to_string(decimal=True, format='generic') == '2deg'
+    assert angle1.to_string(decimal=True, format='latex') == '$2\\mathrm{{}^{\\circ}}$'
+    assert angle1.to_string(decimal=True, format='unicode') == '2°'
+
+    angle2 = Angle(3., unit=u.hourangle)
+    assert angle2.to_string(decimal=True, format='generic') == '3hourangle'
+    assert angle2.to_string(decimal=True, format='latex') == '$3\\mathrm{{}^{h}}$'
+    assert angle2.to_string(decimal=True, format='unicode') == '3ʰ'
+
+    angle3 = Angle(4., unit=u.radian)
+
+    assert angle3.to_string(decimal=True, format='generic') == '4rad'
+    assert angle3.to_string(decimal=True, format='latex') == '$4\\mathrm{rad}$'
+    assert angle3.to_string(decimal=True, format='unicode') == '4rad'
+
+    with pytest.raises(ValueError, match='Unknown format'):
+        angle3.to_string(decimal=True, format='myformat')
 
 
 def test_to_string_fields():
