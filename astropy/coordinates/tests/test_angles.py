@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Test initialization and other aspects of Angle and subclasses"""
 
+import pickle
 import threading
 import warnings
 
@@ -80,6 +81,7 @@ def test_create_angles():
     a22 = Angle("3.6h", unit=u.hour)
     a23 = Angle("- 3h", unit=u.hour)
     a24 = Angle("+ 3h", unit=u.hour)
+    a25 = Angle(3., unit=u.hour**1)
 
     # ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7 == a8 == a18 == a19 == a20
@@ -94,6 +96,7 @@ def test_create_angles():
     assert a11 == a12 == a13 == a14
     assert a21 == a22
     assert a23 == -a24
+    assert a24 == a25
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
@@ -356,6 +359,9 @@ def test_angle_formatting():
     assert angle.to_string(unit=u.hour) == '-0h04m56.2962936s'
     assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.444404s'
     assert angle.to_string(unit=u.radian, decimal=True) == '-0.0215473'
+
+    # We should recognize units that are equal but not identical
+    assert angle.to_string(unit=u.hour**1) == '-0h04m56.2962936s'
 
 
 def test_to_string_vector():
@@ -1148,3 +1154,16 @@ def test_latitude_out_of_limits(value, dtype):
     """
     with pytest.raises(ValueError, match=r"Latitude angle\(s\) must be within.*"):
         Latitude(value, u.rad, dtype=dtype)
+
+
+def test_angle_pickle_to_string():
+    """
+    Ensure that after pickling we can still do to_string on hourangle.
+
+    Regression test for gh-13923.
+    """
+    angle = Angle(0.25 * u.hourangle)
+    expected = angle.to_string()
+    via_pickle = pickle.loads(pickle.dumps(angle))
+    via_pickle_string = via_pickle.to_string()  # This used to fail.
+    assert via_pickle_string == expected
