@@ -258,6 +258,7 @@ Reference/API
 
 .. automodapi:: astropy.units.function.logarithmic
    :include-all-objects:
+   :noindex:
 
 .. automodapi:: astropy.units.deprecated
 
