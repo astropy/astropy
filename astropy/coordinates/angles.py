@@ -5,6 +5,7 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
+import functools
 from collections import namedtuple
 
 import numpy as np
@@ -157,7 +158,7 @@ class Angle(u.SpecificTypeQuantity):
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
-        return u.hourangle if unit is u.hour else unit
+        return u.hourangle if unit == u.hour else unit
 
     def _set_unit(self, unit):
         super()._set_unit(self._convert_unit_to_angle_unit(unit))
@@ -211,8 +212,10 @@ class Angle(u.SpecificTypeQuantity):
             used.
 
         decimal : bool, optional
-            If `True`, a decimal representation will be used, otherwise
-            the returned string will be in sexagesimal form.
+            If `False`, the returned string will be in sexagesimal form
+            if possible (for units of degrees or hourangle).  If `True`,
+            a decimal representation will be used. In that case, no unit
+            will be appended if ``format`` is not explicitly given.
 
         sep : str, optional
             The separator between numbers in a sexagesimal
@@ -274,7 +277,7 @@ class Angle(u.SpecificTypeQuantity):
             unit = self._convert_unit_to_angle_unit(u.Unit(unit))
 
         separators = {
-            None: {
+            'generic': {
                 u.degree: 'dms',
                 u.hourangle: 'hms'},
             'latex': {
@@ -287,75 +290,31 @@ class Angle(u.SpecificTypeQuantity):
         # 'latex_inline' provides no functionality beyond what 'latex' offers,
         # but it should be implemented to avoid ValueErrors in user code.
         separators['latex_inline'] = separators['latex']
-
-        if sep == 'fromunit':
-            if format not in separators:
-                raise ValueError(f"Unknown format '{format}'")
-            seps = separators[format]
-            if unit in seps:
-                sep = seps[unit]
+        # Default separators are as for generic.
+        separators[None] = separators['generic']
 
         # Create an iterator so we can format each element of what
         # might be an array.
-        if unit is u.degree:
-            if decimal:
-                values = self.degree
-                if precision is not None:
-                    func = ("{0:0." + str(precision) + "f}").format
-                else:
-                    func = '{:g}'.format
-            else:
-                if sep == 'fromunit':
-                    sep = 'dms'
-                values = self.degree
-                func = lambda x: form.degrees_to_string(
-                    x, precision=precision, sep=sep, pad=pad,
-                    fields=fields)
-
-        elif unit is u.hourangle:
-            if decimal:
-                values = self.hour
-                if precision is not None:
-                    func = ("{0:0." + str(precision) + "f}").format
-                else:
-                    func = '{:g}'.format
-            else:
-                if sep == 'fromunit':
-                    sep = 'hms'
-                values = self.hour
-                func = lambda x: form.hours_to_string(
-                    x, precision=precision, sep=sep, pad=pad,
-                    fields=fields)
-
-        elif unit.is_equivalent(u.radian):
-            if decimal:
-                values = self.to_value(unit)
-                if precision is not None:
-                    func = ("{0:1." + str(precision) + "f}").format
-                else:
-                    func = "{:g}".format
-            elif sep == 'fromunit':
-                values = self.to_value(unit)
+        if not decimal and (unit_is_deg := unit == u.degree
+                            or unit == u.hourangle):
+            # Sexagesimal.
+            if sep == 'fromunit':
+                if format not in separators:
+                    raise ValueError(f"Unknown format '{format}'")
+                sep = separators[format][unit]
+            func = functools.partial(
+                form.degrees_to_string if unit_is_deg else form.hours_to_string,
+                precision=precision, sep=sep, pad=pad, fields=fields)
+        else:
+            if sep != 'fromunit':
+                raise ValueError(f"'{unit}' can not be represented in sexagesimal notation")
+            func = ("{:g}" if precision is None else f"{{0:0.{precision}f}}").format
+            if not (decimal and format is None):  # Don't add unit by default for decimal.
                 unit_string = unit.to_string(format=format)
                 if format == 'latex' or format == 'latex_inline':
                     unit_string = unit_string[1:-1]
-
-                if precision is not None:
-                    def plain_unit_format(val):
-                        return ("{0:0." + str(precision) + "f}{1}").format(
-                            val, unit_string)
-                    func = plain_unit_format
-                else:
-                    def plain_unit_format(val):
-                        return f"{val:g}{unit_string}"
-                    func = plain_unit_format
-            else:
-                raise ValueError(
-                    f"'{unit.name}' can not be represented in sexagesimal notation")
-
-        else:
-            raise u.UnitsError(
-                "The unit value provided is not an angular unit.")
+                format_func = func
+                func = lambda x: format_func(x) + unit_string
 
         def do_format(val):
             # Check if value is not nan to avoid ValueErrors when turning it into
@@ -370,6 +329,7 @@ class Angle(u.SpecificTypeQuantity):
             s = f"{val}"
             return s
 
+        values = self.to_value(unit)
         format_ufunc = np.vectorize(do_format, otypes=['U'])
         result = format_ufunc(values)
 
@@ -581,6 +541,8 @@ class Latitude(Angle):
         if angles is None:
             angles = self
 
+        # For speed, compare using "is", which is not strictly guaranteed to hold,
+        # but if it doesn't we'll just convert correctly in the 'else' clause.
         if angles.unit is u.deg:
             limit = 90
         elif angles.unit is u.rad:
