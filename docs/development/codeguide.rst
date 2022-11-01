@@ -139,13 +139,13 @@ Coding Style/Conventions
     `black <https://black.readthedocs.io/en/stable/>`_ code formatter.
 
   * We recognize that sometimes ``black`` will autoformat things in undesirable
-    ways e.g. matricies.  In the cases that ``black`` produces undesirable code
+    ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
     formatting, one can wrap code the code in ``# fmt: off`` and ``# fmt: on``
     to disable ``black`` formatting. This should be done sparingly, and only
     when ``black`` produces undesirable formatting.
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
-  guide. In addition these checks also enforce
+  guide. In addition, these checks also enforce
   `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
   * We provide a ``pre-commit`` hook which automatically enforces and fixes
