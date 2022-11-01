@@ -135,8 +135,17 @@ Coding Style/Conventions
   <https://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
 
+  * ``astropy`` itself enforces this style guide using the
+    `black <https://black.readthedocs.io/en/stable/>`_ code formatter.
+
+  * We recognize that sometimes ``black`` will autoformat things in undesirable
+    ways e.g. matricies.  In the cases that ``black`` produces undesirable code
+    formatting, one can wrap code the code in ``# fmt: off`` and ``# fmt: on``
+    to disable ``black`` formatting. This should be done sparingly, and only
+    when ``black`` produces undesirable formatting.
+
 * Our testing infrastructure currently enforces a subset of the PEP8 style
-  guide, and some sub-packages enforce stronger styling checks such as using
+  guide. In addition these checks also enforce
   `isort <https://pycqa.github.io/isort/>`_ to sort the module imports.
 
   * We provide a ``pre-commit`` hook which automatically enforces and fixes
@@ -147,15 +156,6 @@ Coding Style/Conventions
     following `tox <https://tox.readthedocs.io/>`__ command::
 
       tox -e codestyle
-
-* *Follow the existing coding style* within a subpackage and avoid making
-  changes that are purely stylistic.  In particular, there is variation in the
-  maximum line length for different subpackages (typically either 80 or 100
-  characters).  Please try to maintain the style when adding or modifying code.
-
-* The use of automatic code formatters (e.g.,
-  `Black <https://black.readthedocs.io/en/stable/>`_) is strongly discouraged in
-  contributions to Astropy.
 
 * Following PEP8's recommendation, absolute imports are to be used in general.
   The exception to this is relative imports of the form
