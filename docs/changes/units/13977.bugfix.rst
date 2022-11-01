@@ -1,0 +1,1 @@
+Modified ``astropy.units.Quantity.__array_ufunc__()`` to return ``NotImplemented`` instead of raising a ``ValueError`` if the inputs are incompatible.
