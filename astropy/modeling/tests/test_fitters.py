@@ -17,9 +17,20 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
-    DogBoxLSQFitter, Fitter, FittingWithOutlierRemoval, JointFitter, LevMarLSQFitter,
-    LinearLSQFitter, LMLSQFitter, NonFiniteValueError, SimplexLSQFitter, SLSQPLSQFitter,
-    TRFLSQFitter, _NLLSQFitter, populate_entry_points)
+    DogBoxLSQFitter,
+    Fitter,
+    FittingWithOutlierRemoval,
+    JointFitter,
+    LevMarLSQFitter,
+    LinearLSQFitter,
+    LMLSQFitter,
+    NonFiniteValueError,
+    SimplexLSQFitter,
+    SLSQPLSQFitter,
+    TRFLSQFitter,
+    _NLLSQFitter,
+    populate_entry_points,
+)
 from astropy.modeling.optimizers import Optimization
 from astropy.stats import sigma_clip
 from astropy.utils import NumpyRNGContext

@@ -23,12 +23,22 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
 
 from .core import (
-    Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
-    get_current_unit_registry)
+    Unit,
+    UnitBase,
+    UnitConversionError,
+    UnitsError,
+    UnitTypeError,
+    dimensionless_unscaled,
+    get_current_unit_registry,
+)
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
 from .quantity_helper.function_helpers import (
-    DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
+    DISPATCHED_FUNCTIONS,
+    FUNCTION_HELPERS,
+    SUBCLASS_SAFE_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS,
+)
 from .structured import StructuredUnit, _structured_unit_like_dtype
 from .utils import is_effectively_unity
 

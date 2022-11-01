@@ -9,8 +9,16 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import readwrite_registry
 from astropy.cosmology.io.tests import (
-    test_cosmology, test_ecsv, test_html, test_json, test_mapping, test_model, test_row, test_table,
-    test_yaml)
+    test_cosmology,
+    test_ecsv,
+    test_html,
+    test_json,
+    test_mapping,
+    test_model,
+    test_row,
+    test_table,
+    test_yaml,
+)
 from astropy.table import QTable, Row
 from astropy.utils.compat.optional_deps import HAS_BS4
 

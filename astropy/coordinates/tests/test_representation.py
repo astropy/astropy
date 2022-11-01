@@ -11,12 +11,25 @@ from astropy.coordinates.angles import Angle, Latitude, Longitude
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (
-    DIFFERENTIAL_CLASSES, DUPLICATE_REPRESENTATIONS, REPRESENTATION_CLASSES, BaseRepresentation,
-    CartesianDifferential, CartesianRepresentation, CylindricalDifferential,
-    CylindricalRepresentation, PhysicsSphericalDifferential, PhysicsSphericalRepresentation,
-    RadialDifferential, RadialRepresentation, SphericalCosLatDifferential, SphericalDifferential,
-    SphericalRepresentation, UnitSphericalCosLatDifferential, UnitSphericalDifferential,
-    UnitSphericalRepresentation)
+    DIFFERENTIAL_CLASSES,
+    DUPLICATE_REPRESENTATIONS,
+    REPRESENTATION_CLASSES,
+    BaseRepresentation,
+    CartesianDifferential,
+    CartesianRepresentation,
+    CylindricalDifferential,
+    CylindricalRepresentation,
+    PhysicsSphericalDifferential,
+    PhysicsSphericalRepresentation,
+    RadialDifferential,
+    RadialRepresentation,
+    SphericalCosLatDifferential,
+    SphericalDifferential,
+    SphericalRepresentation,
+    UnitSphericalCosLatDifferential,
+    UnitSphericalDifferential,
+    UnitSphericalRepresentation,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -1652,7 +1665,10 @@ def test_minimal_subclass():
 
 
 def test_duplicate_warning():
-    from astropy.coordinates.representation import DUPLICATE_REPRESENTATIONS, REPRESENTATION_CLASSES
+    from astropy.coordinates.representation import (
+        DUPLICATE_REPRESENTATIONS,
+        REPRESENTATION_CLASSES,
+    )
 
     with pytest.warns(DuplicateRepresentationWarning):
         class UnitSphericalRepresentation(BaseRepresentation):

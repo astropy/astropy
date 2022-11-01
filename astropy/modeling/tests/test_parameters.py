@@ -14,7 +14,12 @@ import pytest
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.core import FittableModel, Model
-from astropy.modeling.parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
+from astropy.modeling.parameters import (
+    InputParameterError,
+    Parameter,
+    _tofloat,
+    param_repr_oneline,
+)
 from astropy.utils.data import get_pkg_data_filename
 
 from . import irafutil

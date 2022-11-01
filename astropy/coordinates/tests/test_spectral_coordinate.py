@@ -8,9 +8,21 @@ import astropy.units as u
 from astropy import time
 from astropy.constants import c
 from astropy.coordinates import (
-    FK5, GCRS, ICRS, CartesianDifferential, CartesianRepresentation, EarthLocation, Galactic,
-    SkyCoord, SpectralQuantity, get_body_barycentric_posvel)
-from astropy.coordinates.spectral_coordinate import SpectralCoord, _apply_relativistic_doppler_shift
+    FK5,
+    GCRS,
+    ICRS,
+    CartesianDifferential,
+    CartesianRepresentation,
+    EarthLocation,
+    Galactic,
+    SkyCoord,
+    SpectralQuantity,
+    get_body_barycentric_posvel,
+)
+from astropy.coordinates.spectral_coordinate import (
+    SpectralCoord,
+    _apply_relativistic_doppler_shift,
+)
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.utils import iers

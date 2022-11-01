@@ -12,10 +12,18 @@ from astropy.io import fits
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.ccddata import CCDData
 from astropy.nddata.nduncertainty import (
-    InverseVariance, MissingDataAssociationException, StdDevUncertainty, VarianceUncertainty)
+    InverseVariance,
+    MissingDataAssociationException,
+    StdDevUncertainty,
+    VarianceUncertainty,
+)
 from astropy.table import Table
 from astropy.utils import NumpyRNGContext
-from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_filenames
+from astropy.utils.data import (
+    get_pkg_data_contents,
+    get_pkg_data_filename,
+    get_pkg_data_filenames,
+)
 from astropy.utils.exceptions import AstropyWarning
 from astropy.wcs import WCS, FITSFixedWarning
 
@@ -741,7 +749,11 @@ def test_wcs_keyword_removal_for_wcs_test_files():
     Includes regression test for #8597
     """
     from astropy.nddata.ccddata import (
-        _KEEP_THESE_KEYWORDS_IN_HEADER, _CDs, _generate_wcs_and_update_header, _PCs)
+        _KEEP_THESE_KEYWORDS_IN_HEADER,
+        _CDs,
+        _generate_wcs_and_update_header,
+        _PCs,
+    )
 
     keepers = set(_KEEP_THESE_KEYWORDS_IN_HEADER)
     wcs_headers = get_pkg_data_filenames('../../wcs/tests/data',

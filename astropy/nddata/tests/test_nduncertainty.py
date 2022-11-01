@@ -11,8 +11,14 @@ from astropy.nddata.ccddata import CCDData
 from astropy.nddata.compat import NDDataArray
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import (
-    IncompatibleUncertaintiesException, InverseVariance, MissingDataAssociationException,
-    NDUncertainty, StdDevUncertainty, UnknownUncertainty, VarianceUncertainty)
+    IncompatibleUncertaintiesException,
+    InverseVariance,
+    MissingDataAssociationException,
+    NDUncertainty,
+    StdDevUncertainty,
+    UnknownUncertainty,
+    VarianceUncertainty,
+)
 
 # Regarding setter tests:
 # No need to test setters since the uncertainty is considered immutable after

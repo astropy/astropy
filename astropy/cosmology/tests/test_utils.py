@@ -5,7 +5,12 @@ from math import inf
 import numpy as np
 import pytest
 
-from astropy.cosmology.utils import aszarr, inf_like, vectorize_if_needed, vectorize_redshift_method
+from astropy.cosmology.utils import (
+    aszarr,
+    inf_like,
+    vectorize_if_needed,
+    vectorize_redshift_method,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import _zarr, invalid_zs, valid_zs

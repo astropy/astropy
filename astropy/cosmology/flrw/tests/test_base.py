@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 import astropy.constants as const
+
 # LOCAL
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
@@ -23,7 +24,11 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
 from astropy.cosmology.tests.test_core import (
-    FlatCosmologyMixinTest, ParameterTestMixin, invalid_zs, valid_zs)
+    FlatCosmologyMixinTest,
+    ParameterTestMixin,
+    invalid_zs,
+    valid_zs,
+)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 ##############################################################################

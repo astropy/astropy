@@ -5,7 +5,11 @@ import pytest
 
 from astropy.coordinates import EarthLocation
 from astropy.io import fits
-from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, is_time_column_keyword, time_to_fits
+from astropy.io.fits.fitstime import (
+    GLOBAL_TIME_INFO,
+    is_time_column_keyword,
+    time_to_fits,
+)
 from astropy.table import Column, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES

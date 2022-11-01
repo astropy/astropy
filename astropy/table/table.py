@@ -24,12 +24,25 @@ from astropy.utils.metadata import MetaAttribute, MetaData
 
 from . import conf, groups
 from .column import (
-    BaseColumn, Column, FalseArray, MaskedColumn, _auto_names, _convert_sequence_data_to_array,
-    col_copy)
+    BaseColumn,
+    Column,
+    FalseArray,
+    MaskedColumn,
+    _auto_names,
+    _convert_sequence_data_to_array,
+    col_copy,
+)
 from .connect import TableRead, TableWrite
 from .index import (
-    Index, SlicedIndex, TableILoc, TableIndices, TableLoc, TableLocIndices, _IndexModeContext,
-    get_index)
+    Index,
+    SlicedIndex,
+    TableILoc,
+    TableIndices,
+    TableLoc,
+    TableLocIndices,
+    _IndexModeContext,
+    get_index,
+)
 from .info import TableInfo
 from .mixins.registry import get_mixin_handler
 from .ndarray_mixin import NdarrayMixin  # noqa: F401

@@ -3,6 +3,7 @@
 This module tests model set evaluation and fitting for some common use cases.
 """
 import numpy as np
+
 # pylint: disable=invalid-name
 import pytest
 from numpy.testing import assert_allclose
@@ -10,8 +11,17 @@ from numpy.testing import assert_allclose
 from astropy.modeling.core import Model
 from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.models import (
-    Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre1D, Legendre2D, Linear1D, Planar2D,
-    Polynomial1D, Polynomial2D)
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre1D,
+    Legendre2D,
+    Linear1D,
+    Planar2D,
+    Polynomial1D,
+    Polynomial2D,
+)
 from astropy.modeling.parameters import Parameter
 from astropy.utils import NumpyRNGContext
 

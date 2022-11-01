@@ -23,7 +23,11 @@ from astropy import utils
 from astropy.table import MaskedColumn, QTable
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import (
-    clear_download_cache, get_pkg_data_filename, get_readable_fileobj, is_url_in_cache)
+    clear_download_cache,
+    get_pkg_data_filename,
+    get_readable_fileobj,
+    is_url_in_cache,
+)
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.state import ScienceState
 

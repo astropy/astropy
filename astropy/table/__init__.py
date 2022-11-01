@@ -55,13 +55,30 @@ from . import connect
 from .bst import BST
 from .groups import ColumnGroups, TableGroups
 from .operations import (
-    TableMergeError, dstack, hstack, join, join_distance, join_skycoord, setdiff, unique, vstack)
+    TableMergeError,
+    dstack,
+    hstack,
+    join,
+    join_distance,
+    join_skycoord,
+    setdiff,
+    unique,
+    vstack,
+)
 from .serialize import SerializedColumn, represent_mixins_as_columns
 from .soco import SCEngine
 from .sorted_array import SortedArray
 from .table import (
-    NdarrayMixin, PprintIncludeExclude, QTable, Row, Table, TableAttribute, TableColumns,
-    TableFormatter, TableReplaceWarning)
+    NdarrayMixin,
+    PprintIncludeExclude,
+    QTable,
+    Row,
+    Table,
+    TableAttribute,
+    TableColumns,
+    TableFormatter,
+    TableReplaceWarning,
+)
 
 with registry.delay_doc_updates(Table):
     # Import routines that connect readers/writers to astropy.table

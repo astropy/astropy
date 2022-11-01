@@ -13,7 +13,12 @@ from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils.masked.core import Masked
 
-from .test_masked import LongitudeSetup, MaskedArraySetup, QuantitySetup, assert_masked_equal
+from .test_masked import (
+    LongitudeSetup,
+    MaskedArraySetup,
+    QuantitySetup,
+    assert_masked_equal,
+)
 
 
 class MaskedUfuncTests(MaskedArraySetup):

@@ -3,7 +3,11 @@ import pytest
 
 import astropy.units as u
 from astropy.coordinates import CIRS, GCRS, AltAz, EarthLocation, SkyCoord
-from astropy.coordinates.erfa_astrom import ErfaAstrom, ErfaAstromInterpolator, erfa_astrom
+from astropy.coordinates.erfa_astrom import (
+    ErfaAstrom,
+    ErfaAstromInterpolator,
+    erfa_astrom,
+)
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 

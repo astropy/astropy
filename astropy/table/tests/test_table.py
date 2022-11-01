@@ -17,7 +17,14 @@ from astropy import table
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.table import Column, MaskedColumn, QTable, Table, TableAttribute, TableReplaceWarning
+from astropy.table import (
+    Column,
+    MaskedColumn,
+    QTable,
+    Table,
+    TableAttribute,
+    TableReplaceWarning,
+)
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
 from astropy.utils.compat.optional_deps import HAS_PANDAS

@@ -14,7 +14,10 @@ hour angle.
 from astropy.coordinates.attributes import EarthLocationAttribute, TimeAttribute
 from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.builtin_frames.baseradec import BaseRADecFrame, doc_components
-from astropy.coordinates.representation import CartesianDifferential, CartesianRepresentation
+from astropy.coordinates.representation import (
+    CartesianDifferential,
+    CartesianRepresentation,
+)
 from astropy.utils.decorators import format_doc
 
 from .utils import DEFAULT_OBSTIME, EARTH_CENTER

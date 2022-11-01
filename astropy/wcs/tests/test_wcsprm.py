@@ -12,7 +12,11 @@ from packaging.version import Version
 from astropy import units as u
 from astropy.io import fits
 from astropy.units.core import UnitsWarning
-from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename, get_pkg_data_fileobj
+from astropy.utils.data import (
+    get_pkg_data_contents,
+    get_pkg_data_filename,
+    get_pkg_data_fileobj,
+)
 from astropy.utils.misc import _set_locale
 from astropy.wcs import _wcs, wcs
 from astropy.wcs.wcs import FITSFixedWarning

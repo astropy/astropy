@@ -24,7 +24,11 @@ from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods
 
 from .function_helpers import (
-    APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS, MASKED_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
+    APPLY_TO_BOTH_FUNCTIONS,
+    DISPATCHED_FUNCTIONS,
+    MASKED_SAFE_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS,
+)
 
 __all__ = ['Masked', 'MaskedNDArray']
 

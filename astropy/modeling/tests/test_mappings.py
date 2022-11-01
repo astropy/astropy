@@ -5,8 +5,20 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.modeling.fitting import DogBoxLSQFitter, LevMarLSQFitter, LMLSQFitter, TRFLSQFitter
-from astropy.modeling.models import Gaussian1D, Identity, Mapping, Rotation2D, Shift, UnitsMapping
+from astropy.modeling.fitting import (
+    DogBoxLSQFitter,
+    LevMarLSQFitter,
+    LMLSQFitter,
+    TRFLSQFitter,
+)
+from astropy.modeling.models import (
+    Gaussian1D,
+    Identity,
+    Mapping,
+    Rotation2D,
+    Shift,
+    UnitsMapping,
+)
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 

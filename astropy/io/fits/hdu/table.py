@@ -18,9 +18,22 @@ from numpy import char as chararray
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
 # keep table/column-related utilities in astropy.io.fits.column
 from astropy.io.fits.column import (
-    ATTRIBUTE_TO_KEYWORD, FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE, TDEF_RE, ColDefs, Column,
-    _AsciiColDefs, _cmp_recformats, _convert_format, _FormatP, _FormatQ, _makep, _parse_tformat,
-    _scalar_to_format)
+    ATTRIBUTE_TO_KEYWORD,
+    FITS2NUMPY,
+    KEYWORD_NAMES,
+    KEYWORD_TO_ATTRIBUTE,
+    TDEF_RE,
+    ColDefs,
+    Column,
+    _AsciiColDefs,
+    _cmp_recformats,
+    _convert_format,
+    _FormatP,
+    _FormatQ,
+    _makep,
+    _parse_tformat,
+    _scalar_to_format,
+)
 from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like

@@ -47,9 +47,14 @@ from astropy import log
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.decorators import deprecated_renamed_argument
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning, AstropyWarning
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyUserWarning,
+    AstropyWarning,
+)
 
 from . import _wcs, docstrings
+
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
 

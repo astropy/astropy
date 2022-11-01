@@ -10,7 +10,11 @@ from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 
 from . import UFUNC_HELPERS
 from .helpers import (
-    get_converter, helper_cbrt, helper_dimensionless_to_dimensionless, helper_two_arg_dimensionless)
+    get_converter,
+    helper_cbrt,
+    helper_dimensionless_to_dimensionless,
+    helper_two_arg_dimensionless,
+)
 
 # ufuncs that require dimensionless input and give dimensionless output.
 dimensionless_to_dimensionless_sps_ufuncs = (

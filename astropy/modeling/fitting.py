@@ -37,7 +37,11 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
 from .spline import (  # noqa: F401
-    SplineExactKnotsFitter, SplineInterpolateFitter, SplineSmoothingFitter, SplineSplrepFitter)
+    SplineExactKnotsFitter,
+    SplineInterpolateFitter,
+    SplineSmoothingFitter,
+    SplineSplrepFitter,
+)
 from .statistic import leastsquare
 from .utils import _combine_equivalency_dict, poly_map_domain
 

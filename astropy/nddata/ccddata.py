@@ -12,7 +12,12 @@ from astropy.utils.decorators import sharedmethod
 from astropy.wcs import WCS
 
 from .compat import NDDataArray
-from .nduncertainty import InverseVariance, NDUncertainty, StdDevUncertainty, VarianceUncertainty
+from .nduncertainty import (
+    InverseVariance,
+    NDUncertainty,
+    StdDevUncertainty,
+    VarianceUncertainty,
+)
 
 __all__ = ['CCDData', 'fits_ccddata_reader', 'fits_ccddata_writer']
 

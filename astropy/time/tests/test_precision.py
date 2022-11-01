@@ -12,7 +12,15 @@ from erfa import ErfaError, ErfaWarning
 from hypothesis import assume, example, given, target
 from hypothesis.extra.numpy import array_shapes, arrays
 from hypothesis.strategies import (
-    composite, datetimes, floats, integers, one_of, sampled_from, timedeltas, tuples)
+    composite,
+    datetimes,
+    floats,
+    integers,
+    one_of,
+    sampled_from,
+    timedeltas,
+    tuples,
+)
 
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose

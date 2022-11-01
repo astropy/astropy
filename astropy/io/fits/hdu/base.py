@@ -14,8 +14,16 @@ from astropy.io.fits import conf
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import Header, _BasicHeader, _DelayedHeader, _pad_length
 from astropy.io.fits.util import (
-    _extract_number, _free_space_check, _get_array_mmap, _is_int, _is_pseudo_integer, _pseudo_zero,
-    decode_ascii, first, itersubclasses)
+    _extract_number,
+    _free_space_check,
+    _get_array_mmap,
+    _is_int,
+    _is_pseudo_integer,
+    _pseudo_zero,
+    decode_ascii,
+    first,
+    itersubclasses,
+)
 from astropy.io.fits.verify import _ErrList, _Verify
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning

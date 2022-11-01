@@ -20,10 +20,15 @@ import numpy as np
 
 from astropy import __version__
 from astropy.utils.diff import (
-    diff_values, fixed_width_indent, report_diff_values, where_not_allclose)
+    diff_values,
+    fixed_width_indent,
+    report_diff_values,
+    where_not_allclose,
+)
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .card import BLANK_CARD, Card
+
 # HDUList is used in one of the doctests
 from .hdu.hdulist import HDUList, fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU

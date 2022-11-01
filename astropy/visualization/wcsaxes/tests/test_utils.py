@@ -4,9 +4,14 @@
 from numpy.testing import assert_almost_equal
 
 from astropy import units as u
-from astropy.tests.helper import assert_quantity_allclose as assert_almost_equal_quantity
+from astropy.tests.helper import (
+    assert_quantity_allclose as assert_almost_equal_quantity,
+)
 from astropy.visualization.wcsaxes.utils import (
-    select_step_degree, select_step_hour, select_step_scalar)
+    select_step_degree,
+    select_step_hour,
+    select_step_scalar,
+)
 
 
 def test_select_step_degree():

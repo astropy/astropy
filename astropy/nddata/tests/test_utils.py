@@ -8,8 +8,15 @@ from packaging.version import Version
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.nddata import (
-    CCDData, Cutout2D, NoOverlapError, PartialOverlapError, add_array, extract_array,
-    overlap_slices, subpixel_indices)
+    CCDData,
+    Cutout2D,
+    NoOverlapError,
+    PartialOverlapError,
+    add_array,
+    extract_array,
+    overlap_slices,
+    subpixel_indices,
+)
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import WCS, Sip
 from astropy.wcs.utils import proj_plane_pixel_area
