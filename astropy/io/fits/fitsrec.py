@@ -13,8 +13,21 @@ from numpy import char as chararray
 from astropy.utils import lazyproperty
 
 from .column import (
-    _VLF, ASCII2NUMPY, ASCII2STR, ASCIITNULL, FITS2NUMPY, ColDefs, Delayed, _AsciiColDefs, _FormatP,
-    _FormatX, _get_index, _makep, _unwrapx, _wrapx)
+    _VLF,
+    ASCII2NUMPY,
+    ASCII2STR,
+    ASCIITNULL,
+    FITS2NUMPY,
+    ColDefs,
+    Delayed,
+    _AsciiColDefs,
+    _FormatP,
+    _FormatX,
+    _get_index,
+    _makep,
+    _unwrapx,
+    _wrapx,
+)
 from .util import _rstrip_inplace, decode_ascii, encode_ascii
 
 

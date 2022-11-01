@@ -6,7 +6,15 @@ import pytest
 from numpy import testing as npt
 
 from astropy import units as u
-from astropy.coordinates import FK4, FK5, ICRS, Angle, CartesianRepresentation, Galactic, SkyCoord
+from astropy.coordinates import (
+    FK4,
+    FK5,
+    ICRS,
+    Angle,
+    CartesianRepresentation,
+    Galactic,
+    SkyCoord,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.utils.compat import NUMPY_LT_1_24

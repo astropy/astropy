@@ -53,7 +53,15 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import (
-        FK4, FK5, ICRS, ITRS, FK4NoETerms, Galactic, SphericalRepresentation)
+        FK4,
+        FK5,
+        ICRS,
+        ITRS,
+        FK4NoETerms,
+        Galactic,
+        SphericalRepresentation,
+    )
+
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
 
@@ -110,7 +118,15 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import FK4, FK5, ICRS, ITRS, BaseRADecFrame, FK4NoETerms, Galactic
+    from astropy.coordinates import (
+        FK4,
+        FK5,
+        ICRS,
+        ITRS,
+        BaseRADecFrame,
+        FK4NoETerms,
+        Galactic,
+    )
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)

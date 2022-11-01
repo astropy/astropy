@@ -5,11 +5,26 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import (
-    CartesianDifferential, CartesianRepresentation, EarthLocation, SkyCoord,
-    galactocentric_frame_defaults)
+    CartesianDifferential,
+    CartesianRepresentation,
+    EarthLocation,
+    SkyCoord,
+    galactocentric_frame_defaults,
+)
 from astropy.coordinates.builtin_frames import (
-    CIRS, FK4, FK5, GCRS, HCRS, ICRS, LSR, FK4NoETerms, Galactic, GalacticLSR, Galactocentric,
-    Supergalactic)
+    CIRS,
+    FK4,
+    FK5,
+    GCRS,
+    HCRS,
+    ICRS,
+    LSR,
+    FK4NoETerms,
+    Galactic,
+    GalacticLSR,
+    Galactocentric,
+    Supergalactic,
+)
 from astropy.coordinates.distances import Distance
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time

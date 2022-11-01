@@ -9,9 +9,21 @@ import numpy as np
 from numpy import ma
 
 from .interval import (
-    AsymmetricPercentileInterval, BaseInterval, ManualInterval, MinMaxInterval, PercentileInterval)
+    AsymmetricPercentileInterval,
+    BaseInterval,
+    ManualInterval,
+    MinMaxInterval,
+    PercentileInterval,
+)
 from .stretch import (
-    AsinhStretch, BaseStretch, LinearStretch, LogStretch, PowerStretch, SinhStretch, SqrtStretch)
+    AsinhStretch,
+    BaseStretch,
+    LinearStretch,
+    LogStretch,
+    PowerStretch,
+    SinhStretch,
+    SqrtStretch,
+)
 
 try:
     import matplotlib  # noqa: F401

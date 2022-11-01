@@ -2,6 +2,7 @@
 """Separate tests specifically for equivalencies."""
 
 import numpy as np
+
 # THIRD-PARTY
 import pytest
 from numpy.testing import assert_allclose

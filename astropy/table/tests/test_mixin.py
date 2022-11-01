@@ -14,7 +14,16 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.table import (
-    Column, NdarrayMixin, QTable, Table, hstack, join, serialize, table_helpers, vstack)
+    Column,
+    NdarrayMixin,
+    QTable,
+    Table,
+    hstack,
+    join,
+    serialize,
+    table_helpers,
+    vstack,
+)
 from astropy.table.column import BaseColumn
 from astropy.table.serialize import represent_mixins_as_columns
 from astropy.table.table_helpers import ArrayWrapper

@@ -26,8 +26,11 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 def test_representations_api():
     from astropy.coordinates import Angle, Distance, Latitude, Longitude
     from astropy.coordinates.representation import (
-        CartesianRepresentation, PhysicsSphericalRepresentation, SphericalRepresentation,
-        UnitSphericalRepresentation)
+        CartesianRepresentation,
+        PhysicsSphericalRepresentation,
+        SphericalRepresentation,
+        UnitSphericalRepresentation,
+    )
 
     # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
@@ -139,7 +142,9 @@ def test_representations_api():
 def test_frame_api():
     from astropy.coordinates.builtin_frames import FK5, ICRS
     from astropy.coordinates.representation import (
-        SphericalRepresentation, UnitSphericalRepresentation)
+        SphericalRepresentation,
+        UnitSphericalRepresentation,
+    )
 
     # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate

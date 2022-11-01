@@ -2,7 +2,11 @@
 
 from astropy import units as u
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
 from astropy.utils.decorators import format_doc
 
 from .galactic import Galactic

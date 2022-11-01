@@ -12,7 +12,10 @@ from astropy.time import Time
 from astropy.units import Quantity
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
-    SlicedLowLevelWCS, combine_slices, sanitize_slices)
+    SlicedLowLevelWCS,
+    combine_slices,
+    sanitize_slices,
+)
 
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create

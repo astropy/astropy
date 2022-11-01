@@ -8,8 +8,12 @@ from astropy import units as u
 from astropy.nddata import NDDataRef
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nduncertainty import (
-    IncompatibleUncertaintiesException, InverseVariance, StdDevUncertainty, UnknownUncertainty,
-    VarianceUncertainty)
+    IncompatibleUncertaintiesException,
+    InverseVariance,
+    StdDevUncertainty,
+    UnknownUncertainty,
+    VarianceUncertainty,
+)
 from astropy.units import Quantity, UnitsError
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import WCS

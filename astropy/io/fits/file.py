@@ -18,14 +18,28 @@ import numpy as np
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
-from astropy.utils.data import _is_url, _requires_fsspec, download_file, get_readable_fileobj
+from astropy.utils.data import (
+    _is_url,
+    _requires_fsspec,
+    download_file,
+    get_readable_fileobj,
+)
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from .util import (
-    _array_from_file, _array_to_file, _write_string, fileobj_closed, fileobj_mode, fileobj_name,
-    isfile, isreadable, iswritable, path_like)
+    _array_from_file,
+    _array_to_file,
+    _write_string,
+    fileobj_closed,
+    fileobj_mode,
+    fileobj_name,
+    isfile,
+    isreadable,
+    iswritable,
+    path_like,
+)
 
 if HAS_BZ2:
     import bz2

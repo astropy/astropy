@@ -15,7 +15,10 @@ import pytest
 from astropy.units import allclose as quantity_allclose  # noqa: F401
 from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.decorators import deprecated
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+)
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # noqa: F401

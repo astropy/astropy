@@ -12,12 +12,14 @@ import sys
 from unittest import mock
 
 import numpy as np
+
 # THIRD-PARTY
 import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import W39, VOTableSpecError, VOWarning
+
 # LOCAL
 from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable.xmlutil import validate_schema

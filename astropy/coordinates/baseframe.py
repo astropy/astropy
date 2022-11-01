@@ -16,6 +16,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray, check_broadcast
+
 # Project
 from astropy.utils.decorators import deprecated, format_doc, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning

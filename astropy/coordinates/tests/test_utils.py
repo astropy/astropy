@@ -1,7 +1,9 @@
 import pytest
 
 from astropy.coordinates.builtin_frames.utils import (
-    get_offset_sun_from_barycenter, get_polar_motion)
+    get_offset_sun_from_barycenter,
+    get_polar_motion,
+)
 from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time

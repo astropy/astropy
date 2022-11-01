@@ -5,7 +5,13 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.coordinates.builtin_frames import FK5, ICRS, AltAz, Galactic, SkyOffsetFrame
+from astropy.coordinates.builtin_frames import (
+    FK5,
+    ICRS,
+    AltAz,
+    Galactic,
+    SkyOffsetFrame,
+)
 from astropy.coordinates.distances import Distance
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time

@@ -22,8 +22,12 @@ from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
 from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
-    APPLY_TO_BOTH_FUNCTIONS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS, MASKED_SAFE_FUNCTIONS,
-    UNSUPPORTED_FUNCTIONS)
+    APPLY_TO_BOTH_FUNCTIONS,
+    DISPATCHED_FUNCTIONS,
+    IGNORED_FUNCTIONS,
+    MASKED_SAFE_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS,
+)
 
 from .test_masked import MaskedArraySetup, assert_masked_equal
 

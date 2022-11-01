@@ -14,7 +14,12 @@ from pytest_remotedata.disable_internet import no_internet
 from astropy import units as u
 from astropy.config import paths
 from astropy.coordinates.name_resolve import (
-    NameResolveError, _parse_response, get_icrs_coordinates, sesame_database, sesame_url)
+    NameResolveError,
+    _parse_response,
+    get_icrs_coordinates,
+    sesame_database,
+    sesame_url,
+)
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 _cached_ngc3642 = dict()

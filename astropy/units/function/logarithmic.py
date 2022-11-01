@@ -4,8 +4,14 @@ import numbers
 import numpy as np
 
 from astropy.units import (
-    CompositeUnit, Unit, UnitConversionError, UnitsError, UnitTypeError, dimensionless_unscaled,
-    photometric)
+    CompositeUnit,
+    Unit,
+    UnitConversionError,
+    UnitsError,
+    UnitTypeError,
+    dimensionless_unscaled,
+    photometric,
+)
 
 from .core import FunctionQuantity, FunctionUnitBase
 from .units import dB, dex, mag

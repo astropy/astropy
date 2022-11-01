@@ -4,7 +4,10 @@ import pytest
 
 import astropy.units as u
 from astropy.coordinates.angle_utilities import (
-    golden_spiral_grid, uniform_spherical_random_surface, uniform_spherical_random_volume)
+    golden_spiral_grid,
+    uniform_spherical_random_surface,
+    uniform_spherical_random_volume,
+)
 from astropy.utils import NumpyRNGContext
 
 

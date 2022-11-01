@@ -5,7 +5,11 @@ from numpy.testing import assert_equal
 
 from astropy.table import Table
 from astropy.table.mixins.registry import (
-    MixinRegistryError, _handlers, get_mixin_handler, register_mixin_handler)
+    MixinRegistryError,
+    _handlers,
+    get_mixin_handler,
+    register_mixin_handler,
+)
 from astropy.table.table_helpers import ArrayWrapper
 
 ORIGINAL = {}

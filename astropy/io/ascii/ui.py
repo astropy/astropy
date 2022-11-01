@@ -27,8 +27,21 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 from . import (
-    basic, cds, core, cparser, daophot, ecsv, fastbasic, fixedwidth, html, ipac, latex, mrt, rst,
-    sextractor)
+    basic,
+    cds,
+    core,
+    cparser,
+    daophot,
+    ecsv,
+    fastbasic,
+    fixedwidth,
+    html,
+    ipac,
+    latex,
+    mrt,
+    rst,
+    sextractor,
+)
 from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 _read_trace = []

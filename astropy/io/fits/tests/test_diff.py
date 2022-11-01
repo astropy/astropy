@@ -4,7 +4,13 @@ import pytest
 
 from astropy.io import fits
 from astropy.io.fits.column import Column
-from astropy.io.fits.diff import FITSDiff, HDUDiff, HeaderDiff, ImageDataDiff, TableDataDiff
+from astropy.io.fits.diff import (
+    FITSDiff,
+    HDUDiff,
+    HeaderDiff,
+    ImageDataDiff,
+    TableDataDiff,
+)
 from astropy.io.fits.hdu import HDUList, ImageHDU, PrimaryHDU
 from astropy.io.fits.hdu.base import NonstandardExtHDU
 from astropy.io.fits.hdu.table import BinTableHDU

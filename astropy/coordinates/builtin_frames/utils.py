@@ -348,7 +348,10 @@ def prepare_earth_position_vel(time):
     """
     # this goes here to avoid circular import errors
     from astropy.coordinates.solar_system import (
-        get_body_barycentric, get_body_barycentric_posvel, solar_system_ephemeris)
+        get_body_barycentric,
+        get_body_barycentric_posvel,
+        solar_system_ephemeris,
+    )
 
     # get barycentric position and velocity of earth
 
