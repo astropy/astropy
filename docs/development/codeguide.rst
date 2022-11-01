@@ -140,8 +140,15 @@ Coding Style/Conventions
 
   * We recognize that sometimes ``black`` will autoformat things in undesirable
     ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
-    formatting, one can wrap code the code in ``# fmt: off`` and ``# fmt: on``
-    to disable ``black`` formatting. This should be done sparingly, and only
+    formatting:
+
+      * one can wrap code the code in ``# fmt: off`` and ``# fmt: on`` to disable
+        ``black`` formatting over multiple lines.
+
+      * or one can add a single ``# fmt: skip`` comment to the end of a line to
+        disable ``black`` formatting for that line.
+
+    This should be done sparingly, and only
     when ``black`` produces undesirable formatting.
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
