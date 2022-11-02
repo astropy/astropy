@@ -1392,6 +1392,13 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
+    def update_header(self):
+        """
+        Update the header keywords to agree with the data.
+        """
+        self._update_header_data(self.header)
+        del self.header  # delete cached header
+
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
@@ -1442,6 +1449,14 @@ class CompImageHDU(BinTableHDU):
             raise TypeError('CompImageHDU data has incorrect type:{}; '
                             'dtype.fields = {}'.format(
                     type(data), data.dtype.fields))
+        if hasattr(self, '_data_first_run') and not self._data_first_run:
+            # Update header
+            self.__dict__['data'] = data
+            self.update_header()
+            # returning the data signals to lazyproperty that we've already handled
+            # setting self.__dict__['data']
+            return data
+        self._data_first_run = False
 
     @lazyproperty
     def compressed_data(self):
