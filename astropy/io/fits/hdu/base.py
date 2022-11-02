@@ -184,8 +184,12 @@ class _BaseHDU:
             # Don't do anything if the class has already explicitly
             # set the deleter for its data property
             def data(self):
-                # The deleter
-                if self._file is not None and self._data_loaded:
+                # The deleter. sys.getrefcount is CPython specific and not on PyPy.
+                if (
+                    self._file is not None
+                    and self._data_loaded
+                    and hasattr(sys, "getrefcount")
+                ):
                     data_refcount = sys.getrefcount(self.data)
                     # Manually delete *now* so that FITS_rec.__del__
                     # cleanup can happen if applicable
