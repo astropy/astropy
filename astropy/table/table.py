@@ -2556,7 +2556,12 @@ class Table:
         refcount = None
         old_col = None
 
-        if "refcount" in warns and name in self.colnames:
+        # sys.getrefcount is CPython specific and not on PyPy.
+        if (
+            "refcount" in warns
+            and name in self.colnames
+            and hasattr(sys, "getrefcount")
+        ):
             refcount = sys.getrefcount(self[name])
 
         if name in self.colnames:
@@ -2586,7 +2591,8 @@ class Table:
             except AttributeError:
                 pass
 
-        if "refcount" in warns:
+        # sys.getrefcount is CPython specific and not on PyPy.
+        if "refcount" in warns and hasattr(sys, "getrefcount"):
             # Did reference count change?
             new_refcount = sys.getrefcount(self[name])
             if refcount != new_refcount:
