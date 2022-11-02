@@ -119,7 +119,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
                     warnings.warn(
                         "path= was not specified but multiple tables"
                         " are present, reading in first available"
-                        " table (path={})".format(path),
+                        f" table (path={path})",
                         AstropyUserWarning,
                     )
                 return read_table_hdf5(input, path=path)
@@ -282,7 +282,7 @@ def write_table_hdf5(
         elif name == "__astropy_table__":
             warnings.warn(
                 "table path was not set via the path= argument; "
-                "using default path {}".format(path)
+                f"using default path {path}"
             )
 
         if group:
@@ -385,11 +385,9 @@ def write_table_hdf5(
                 dset.attrs[key] = val
             except TypeError:
                 warnings.warn(
-                    "Attribute `{}` of type {} cannot be written to "
+                    f"Attribute `{key}` of type {type(val)} cannot be written to "
                     "HDF5 files - skipping. (Consider specifying "
-                    "serialize_meta=True to write all meta data)".format(
-                        key, type(val)
-                    ),
+                    "serialize_meta=True to write all meta data)",
                     AstropyUserWarning,
                 )
 
