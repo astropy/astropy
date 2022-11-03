@@ -1028,11 +1028,10 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if (
+            if not (
                 self._is_subscribed(
                     self._public_id_to_private_key(recipient_id), message["samp.mtype"]
                 )
-                is False
             ):
                 raise SAMPProxyError(
                     2,
@@ -1109,11 +1108,10 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if (
+            if not (
                 self._is_subscribed(
                     self._public_id_to_private_key(recipient_id), message["samp.mtype"]
                 )
-                is False
             ):
                 raise SAMPProxyError(
                     2,
