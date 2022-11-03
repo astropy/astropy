@@ -954,7 +954,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     a_params = params[6 : 6 + len(coeff_names)]
     b_params = params[6 + len(coeff_names) :]
 
-    # assign to wcs, used for transfomations in this function
+    # assign to wcs, used for transformations in this function
     w_obj.wcs.cd = cdx
     w_obj.wcs.crpix = crpix
 

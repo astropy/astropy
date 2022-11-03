@@ -231,8 +231,8 @@ Available Kernels
    Trapezoid1DKernel
    TrapezoidDisk2DKernel
 
-Kernel Arithmetics
-==================
+Kernel Arithmetic
+=================
 
 Addition and Subtraction
 ------------------------

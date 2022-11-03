@@ -195,7 +195,7 @@ Examples
   EXAMPLE START
   Customizing Existing Properties During Arithmetic in NDData
 
-To customize how the ``meta`` will be affected during arithmetics::
+To customize how the ``meta`` will be affected during arithmetic::
 
     >>> from astropy.nddata import NDDataRef
 
@@ -319,7 +319,7 @@ This also requires overriding the ``_arithmetic`` method. Suppose we have a
     ...         # take all args and kwargs to allow arithmetic on the other properties
     ...         # to work like before.
     ...
-    ...         # do the arithmetics on the flags (pop the relevant kwargs, if any!!!)
+    ...         # do the arithmetic on the flags (pop the relevant kwargs, if any!!!)
     ...         if self.flags is not None and operand.flags is not None:
     ...             result_flags = np.logical_or(self.flags, operand.flags)
     ...             # np.logical_or is just a suggestion you can do what you want

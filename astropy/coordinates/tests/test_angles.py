@@ -1131,7 +1131,7 @@ def test_latitude_limits(value, expected_value, dtype, expected_dtype, sign):
     Test that the validation of the Latitude value range in radians works
     in both float32 and float64.
 
-    As discussed in issue #13708, before, the float32 represenation of pi/2
+    As discussed in issue #13708, before, the float32 representation of pi/2
     was rejected as invalid because the comparison always used the float64
     representation.
     """

@@ -68,7 +68,7 @@ Building upon this pure container, `~astropy.nddata.NDDataRef` implements:
 
 + A ``read`` and ``write`` method to access ``astropy``'s unified file I/O
   interface.
-+ Simple arithmetics like addition, subtraction, division, and multiplication.
++ Simple arithmetic like addition, subtraction, division, and multiplication.
 + Slicing.
 
 Instances are created in the same way::

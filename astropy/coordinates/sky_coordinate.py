@@ -1828,7 +1828,7 @@ class SkyCoord(ShapedLikeNDArray):
         wcs : `~astropy.wcs.WCS`
             The coordinate to check if it is within the wcs coordinate.
         image : array
-            Optional.  The image associated with the wcs object that the cooordinate
+            Optional.  The image associated with the wcs object that the coordinate
             is being checked against. If not given the naxis keywords will be used
             to determine if the coordinate falls within the wcs footprint.
         **kwargs

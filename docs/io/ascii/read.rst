@@ -615,7 +615,7 @@ The type provided to
 ``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
 ``numpy.float``, ``numpy.float64``, or ``numpy.str``.
 
-It is also possible to directly pass an arbitary conversion function as the
+It is also possible to directly pass an arbitrary conversion function as the
 ``converter_func`` element of the two-element tuple.
 
 .. _fortran_style_exponents:
@@ -874,7 +874,7 @@ Obtain the Data Table in a Different Format
 -------------------------------------------
 Sometimes it is easy to obtain the data in a more structured format that
 more clearly defines columns and metadata, e.g. a FITS or VO/XML table, or
-an ASCII table that uses a different colum separator (e.g. comma instead of
+an ASCII table that uses a different column separator (e.g. comma instead of
 white space) or fixed-width columns.
 In that case, the fastest solution can be to simply download or export the
 data again in a different format.

@@ -1232,7 +1232,7 @@ def test_two_argument_useage(meth):
     ndd2 = NDDataArithmetic(np.ones((3, 3)))
 
     # Call add on the class (not the instance) and compare it with already
-    # tested useage:
+    # tested usage:
     ndd3 = getattr(NDDataArithmetic, meth)(ndd1, ndd2)
     ndd4 = getattr(ndd1, meth)(ndd2)
     np.testing.assert_array_equal(ndd3.data, ndd4.data)

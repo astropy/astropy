@@ -65,7 +65,7 @@ def add_dictval_to_list(adict, key, alist):
 
 def find_latex_line(lines, latex):
     """
-    Find the first line which matches a patters
+    Find the first line which matches a pattern
 
     Parameters
     ----------
