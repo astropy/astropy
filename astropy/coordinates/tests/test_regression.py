@@ -630,7 +630,7 @@ def test_regression_8276():
     class MyFrame(BaseCoordinateFrame):
         a = QuantityAttribute(unit=u.m)
 
-    # we save the transform graph so that it doesn't acidentally mess with other tests
+    # we save the transform graph so that it doesn't accidentally mess with other tests
     old_transform_graph = baseframe.frame_transform_graph
     try:
         baseframe.frame_transform_graph = copy.copy(baseframe.frame_transform_graph)

@@ -65,7 +65,7 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     -------
     `astropy.modeling.Parameter`
     """
-    # Get from meta information relavant to Model
+    # Get from meta information relevant to Model
     attrs = (
         "getter",
         "setter",

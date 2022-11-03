@@ -145,7 +145,7 @@ def add_scalebar(
         WCSAxes instance in which the scale bar is displayed. The WCS must be
         celestial.
     length : float or :class:`~astropy.units.Quantity`
-        The lenght of the scalebar in degrees or an angular quantity
+        The length of the scalebar in degrees or an angular quantity
     label : str, optional
         Label to place below the scale bar
     corner : str, optional

@@ -223,7 +223,7 @@ the containment criteria are noted in the documentation. For example, see
 
     Accessing the `Model.bounding_box <astropy.modeling.Model.bounding_box>`
     property when it has not been set, or does not have a default will
-    result in a ``NotImplementedError``. If this behavior is undesireable,
+    result in a ``NotImplementedError``. If this behavior is undesirable,
     then one can instead use the `Model.get_bounding_box <astropy.modeling.Model.get_bounding_box>`
     method instead. This method will return the bounding box if one exists
     (by setting or default) otherwise it will return ``None`` instead

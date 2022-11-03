@@ -18,7 +18,7 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
 
     This class implements a `NDData`-like container that supports reading and
     writing as implemented in the ``astropy.io.registry`` and also slicing
-    (indexing) and simple arithmetics (add, subtract, divide and multiply).
+    (indexing) and simple arithmetic (add, subtract, divide and multiply).
 
     Notes
     -----
@@ -35,7 +35,7 @@ class NDDataRef(NDArithmeticMixin, NDIOMixin, NDSlicingMixin, NDData):
     Examples
     --------
     The mixins allow operation that are not possible with `NDData` or
-    `NDDataBase`, i.e. simple arithmetics::
+    `NDDataBase`, i.e. simple arithmetic::
 
         >>> from astropy.nddata import NDDataRef, StdDevUncertainty
         >>> import numpy as np

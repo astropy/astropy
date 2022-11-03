@@ -2626,7 +2626,7 @@ def test_location_init(location):
     assert type(tm.location) is type(tm2.location)
 
     # Effectively the same as a list of Times, but just to be sure that
-    # Table mixin inititialization is working as expected.
+    # Table mixin initialization is working as expected.
     tm2 = Table([[tm, tm]])["col0"]
     if location is None:
         assert tm2.location is None

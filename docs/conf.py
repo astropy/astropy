@@ -427,7 +427,7 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
         reftype = node.get("reftype")
         refdoc = node.get("refdoc", app.env.docname)
         # convert astropy intersphinx targets to local links.
-        # there are a few types of intersphinx link patters, as described in
+        # there are a few types of intersphinx link patterns, as described in
         # https://docs.readthedocs.io/en/stable/guides/intersphinx.html
         reftarget = reftarget.replace(replace, "")
         if reftype == "doc":  # also need to replace the doc link

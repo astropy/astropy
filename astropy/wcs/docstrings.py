@@ -642,7 +642,7 @@ phi : numpy.ndarray
     in native spherical coordinates (in degrees).
 theta : numpy.ndarray
     Array corresponding to the longitude :math:`\theta` of the projected point
-    in native spherical coordinatess (in degrees). Values corresponding to
+    in native spherical coordinates (in degrees). Values corresponding to
     invalid :math:`(\phi, \theta)` coordinates are set to ``numpy.nan``.
 
 Returns

@@ -136,7 +136,7 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         i = L.index('"Tcmb0":')  # delete Tcmb0
         L = (
             L[:i] + L[L.index(", ", L.index(", ", i) + 1) + 2 :]
-        )  # second occurence  : #203
+        )  # second occurrence  : #203
 
         tempfname = tmp_path / f"{cosmo.name}_temp.json"
         with open(tempfname, "w") as file:
