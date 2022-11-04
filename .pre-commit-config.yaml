@@ -64,6 +64,14 @@ repos:
     hooks:
       - id: yesqa
 
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
+    hooks:
+      - id: codespell
+        args: ["--write-changes"]
+        additional_dependencies:
+          - tomli
+
   - repo: https://github.com/pycqa/isort
     rev: v5.11.3
     hooks:
