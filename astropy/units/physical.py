@@ -210,6 +210,8 @@ class PhysicalType:
     `~astropy.units.core.UnitBase.physical_type` attribute of units.
     This class is not intended to be instantiated directly in user code.
 
+    For a list of physical types, see `astropy.units.physical`.
+
     Parameters
     ----------
     unit : `~astropy.units.Unit`
@@ -450,6 +452,10 @@ def def_physical_type(unit, name):
     ValueError
         If a physical type name is already in use for another unit, or
         if attempting to name a unit as ``"unknown"``.
+
+    Notes
+    -----
+    For a list of physical types, see `astropy.units.physical`.
     """
     physical_type_id = unit._get_physical_type_id()
     physical_type_names = _standardize_physical_type_names(name)
@@ -505,6 +511,10 @@ def get_physical_type(obj):
     -------
     `~astropy.units.PhysicalType`
         A representation of the physical type(s) of the unit.
+
+    Notes
+    -----
+    For a list of physical types, see `astropy.units.physical`.
 
     Examples
     --------
