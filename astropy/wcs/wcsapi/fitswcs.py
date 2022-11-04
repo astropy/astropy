@@ -29,7 +29,7 @@ VELOCITY_FRAMES = {
     'BARYCENT': 'icrs',
     'HELIOCENT': 'hcrs',
     'LSRK': 'lsrk',
-    'LSRD': 'lsrd'
+    'LSRD': 'lsrd',
 }
 
 # The spectra velocity frames below are needed for FITS spectral WCS
@@ -50,10 +50,16 @@ VELOCITY_FRAMES = {
 # the one adopted by the WCS standard for spectral
 # transformations.
 
-VELOCITY_FRAMES['GALACTOC'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
-                                       U=0 * u.km / u.s, V=-220 * u.km / u.s, W=0 * u.km / u.s,
-                                       representation_type='cartesian',
-                                       differential_type='cartesian')
+VELOCITY_FRAMES['GALACTOC'] = Galactic(
+    u=0 * u.km,
+    v=0 * u.km,
+    w=0 * u.km,
+    U=0 * u.km / u.s,
+    V=-220 * u.km / u.s,
+    W=0 * u.km / u.s,
+    representation_type='cartesian',
+    differential_type='cartesian',
+)
 
 # This frame is defined as a velocity of 300 km/s in the
 # direction of l=90, b=0. This is defined in:
@@ -67,10 +73,16 @@ VELOCITY_FRAMES['GALACTOC'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
 # (308 km/s towards l=105, b=-7) but we use the above values
 # since these are the ones defined in Greisen et al (2006).
 
-VELOCITY_FRAMES['LOCALGRP'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
-                                       U=0 * u.km / u.s, V=-300 * u.km / u.s, W=0 * u.km / u.s,
-                                       representation_type='cartesian',
-                                       differential_type='cartesian')
+VELOCITY_FRAMES['LOCALGRP'] = Galactic(
+    u=0 * u.km,
+    v=0 * u.km,
+    w=0 * u.km,
+    U=0 * u.km / u.s,
+    V=-300 * u.km / u.s,
+    W=0 * u.km / u.s,
+    representation_type='cartesian',
+    differential_type='cartesian',
+)
 
 # This frame is defined as a velocity of 368 km/s in the
 # direction of l=263.85, b=48.25. This is defined in:
@@ -82,14 +94,17 @@ VELOCITY_FRAMES['LOCALGRP'] = Galactic(u=0 * u.km, v=0 * u.km, w=0 * u.km,
 # Note that in that paper, the dipole is expressed as a
 # temperature (T=3.346 +/- 0.017mK)
 
-VELOCITY_FRAMES['CMBDIPOL'] = Galactic(l=263.85 * u.deg, b=48.25 * u.deg, distance=0 * u.km,
-                                       radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km/u.s))
+VELOCITY_FRAMES['CMBDIPOL'] = Galactic(
+    l=263.85 * u.deg,
+    b=48.25 * u.deg,
+    distance=0 * u.km,
+    radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km / u.s),
+)
 
 
 # Mapping from CTYPE axis name to UCD1
 
 CTYPE_TO_UCD1 = {
-
     # Celestial coordinates
     'RA': 'pos.eq.ra',
     'DEC': 'pos.eq.dec',
@@ -109,7 +124,6 @@ CTYPE_TO_UCD1 = {
     'SOLX': 'custom:pos.heliocentric.x',
     'SOLY': 'custom:pos.heliocentric.y',
     'SOLZ': 'custom:pos.heliocentric.z',
-
     # Spectral coordinates (WCS paper 3)
     'FREQ': 'em.freq',  # Frequency
     'ENER': 'em.energy',  # Energy
@@ -122,7 +136,6 @@ CTYPE_TO_UCD1 = {
     'VELO': 'spect.dopplerVeloc',  # Apparent radial velocity
     'BETA': 'custom:spect.doplerVeloc.beta',  # Beta factor (v/c)
     'STOKES': 'phys.polarization.stokes',  # STOKES parameters
-
     # Time coordinates (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
     'TIME': 'time',
     'TAI': 'time',
@@ -138,13 +151,10 @@ CTYPE_TO_UCD1 = {
     'TCB': 'time',
     'TDB': 'time',
     'LOCAL': 'time',
-
     # Distance coordinates
     'DIST': 'pos.distance',
     'DSUN': 'custom:pos.distance.sunToObserver'
-
     # UT() and TT() are handled separately in world_axis_physical_types
-
 }
 
 # Keep a list of additional custom mappings that have been registered. This
@@ -237,9 +247,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             self._naxis = [0, 0]
         else:
             if len(value) != self.naxis:
-                raise ValueError("The number of data axes, "
-                                 "{}, does not equal the "
-                                 "shape {}.".format(self.naxis, len(value)))
+                raise ValueError(
+                    "The number of data axes, {}, does not equal the shape {}.".format(
+                        self.naxis, len(value)
+                    )
+                )
             self._naxis = list(value)
 
     @property
@@ -252,9 +264,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             self._pixel_bounds = value
         else:
             if len(value) != self.naxis:
-                raise ValueError("The number of data axes, "
-                                 "{}, does not equal the number of "
-                                 "pixel bounds {}.".format(self.naxis, len(value)))
+                raise ValueError(
+                    "The number of data axes, "
+                    "{}, does not equal the number of "
+                    "pixel bounds {}.".format(self.naxis, len(value))
+                )
             self._pixel_bounds = list(value)
 
     @property
@@ -296,7 +310,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def axis_correlation_matrix(self):
-
         # If there are any distortions present, we assume that there may be
         # correlations between all axes. Maybe if some distortions only apply
         # to the image plane we can improve this?
@@ -328,14 +341,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     def world_to_pixel_values(self, *world_arrays):
         # avoid circular import
         from astropy.wcs.wcs import NoConvergence
+
         try:
             pixel = self.all_world2pix(*world_arrays, 0)
         except NoConvergence as e:
             warnings.warn(str(e))
             # use best_solution contained in the exception and format the same
             # way as all_world2pix does (using _array_converter)
-            pixel = self._array_converter(lambda *args: e.best_solution,
-                                         'input', *world_arrays, 0)
+            pixel = self._array_converter(
+                lambda *args: e.best_solution, 'input', *world_arrays, 0
+            )
 
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 
@@ -352,7 +367,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return False
 
     def _get_components_and_classes(self):
-
         # The aim of this function is to return whatever is needed for
         # world_axis_object_components and world_axis_object_classes. It's easier
         # to figure it out in one go and then return the values and let the
@@ -362,15 +376,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # it. We start off by defining a hash based on the attributes of the
         # WCS that matter here (we can't just use the WCS object as a hash since
         # it is mutable)
-        wcs_hash = (self.naxis,
-                    list(self.wcs.ctype),
-                    list(self.wcs.cunit),
-                    self.wcs.radesys,
-                    self.wcs.specsys,
-                    self.wcs.equinox,
-                    self.wcs.dateobs,
-                    self.wcs.lng,
-                    self.wcs.lat)
+        wcs_hash = (
+            self.naxis,
+            list(self.wcs.ctype),
+            list(self.wcs.cunit),
+            self.wcs.radesys,
+            self.wcs.specsys,
+            self.wcs.equinox,
+            self.wcs.dateobs,
+            self.wcs.lng,
+            self.wcs.lat,
+        )
 
         # If the cache is present, we need to check that the 'hash' matches.
         if getattr(self, '_components_and_classes_cache', None) is not None:
@@ -393,7 +409,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # components
 
         if self.has_celestial:
-
             try:
                 celestial_frame = wcs_to_celestial_frame(self)
             except ValueError:
@@ -401,7 +416,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 # celestial but we don't necessarily have frames for them.
                 celestial_frame = None
             else:
-
                 kwargs = {}
                 kwargs['frame'] = celestial_frame
                 kwargs['unit'] = u.deg
@@ -414,7 +428,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # Next, we check for spectral components
 
         if self.has_spectral:
-
             # Find index of spectral coordinate
             ispec = self.wcs.spec
             ctype = self.wcs.ctype[ispec][:4]
@@ -437,11 +450,19 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 tscale = self.wcs.timesys or 'utc'
 
                 if np.isnan(self.wcs.mjdavg):
-                    obstime = Time(self.wcs.mjdobs, format='mjd', scale=tscale,
-                                   location=earth_location)
+                    obstime = Time(
+                        self.wcs.mjdobs,
+                        format='mjd',
+                        scale=tscale,
+                        location=earth_location,
+                    )
                 else:
-                    obstime = Time(self.wcs.mjdavg, format='mjd', scale=tscale,
-                                   location=earth_location)
+                    obstime = Time(
+                        self.wcs.mjdavg,
+                        format='mjd',
+                        scale=tscale,
+                        location=earth_location,
+                    )
                 observer_location = SkyCoord(earth_location.get_itrs(obstime=obstime))
 
                 if self.wcs.specsys in VELOCITY_FRAMES:
@@ -450,13 +471,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     if isinstance(frame, str):
                         observer = attach_zero_velocities(observer)
                     else:
-                        observer = update_differentials_to_match(observer_location,
-                                                                 VELOCITY_FRAMES[self.wcs.specsys],
-                                                                 preserve_observer_frame=True)
+                        observer = update_differentials_to_match(
+                            observer_location,
+                            VELOCITY_FRAMES[self.wcs.specsys],
+                            preserve_observer_frame=True,
+                        )
                 elif self.wcs.specsys == 'TOPOCENT':
                     observer = attach_zero_velocities(observer_location)
                 else:
-                    raise NotImplementedError(f'SPECSYS={self.wcs.specsys} not yet supported')
+                    raise NotImplementedError(
+                        f'SPECSYS={self.wcs.specsys} not yet supported'
+                    )
 
             # Determine target
 
@@ -467,20 +492,20 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # any).
 
             if self.has_celestial and celestial_frame is not None:
-
                 # NOTE: celestial_frame was defined higher up
 
                 # NOTE: we set the distance explicitly to avoid warnings in SpectralCoord
 
-                target = SkyCoord(self.wcs.crval[self.wcs.lng] * self.wcs.cunit[self.wcs.lng],
-                                  self.wcs.crval[self.wcs.lat] * self.wcs.cunit[self.wcs.lat],
-                                  frame=celestial_frame,
-                                  distance=1000 * u.kpc)
+                target = SkyCoord(
+                    self.wcs.crval[self.wcs.lng] * self.wcs.cunit[self.wcs.lng],
+                    self.wcs.crval[self.wcs.lat] * self.wcs.cunit[self.wcs.lat],
+                    frame=celestial_frame,
+                    distance=1000 * u.kpc,
+                )
 
                 target = attach_zero_velocities(target)
 
             else:
-
                 target = None
 
             # SpectralCoord does not work properly if either observer or target
@@ -492,16 +517,22 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 try:
                     observer.transform_to(ICRS())
                 except Exception:
-                    warnings.warn('observer cannot be converted to ICRS, so will '
-                                  'not be set on SpectralCoord', AstropyUserWarning)
+                    warnings.warn(
+                        'observer cannot be converted to ICRS, so will '
+                        'not be set on SpectralCoord',
+                        AstropyUserWarning,
+                    )
                     observer = None
 
             if target is not None:
                 try:
                     target.transform_to(ICRS())
                 except Exception:
-                    warnings.warn('target cannot be converted to ICRS, so will '
-                                  'not be set on SpectralCoord', AstropyUserWarning)
+                    warnings.warn(
+                        'target cannot be converted to ICRS, so will '
+                        'not be set on SpectralCoord',
+                        AstropyUserWarning,
+                    )
                     target = None
 
             # NOTE: below we include Quantity in classes['spectral'] instead
@@ -513,27 +544,42 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def spectralcoord_from_redshift(redshift):
                     if isinstance(redshift, SpectralCoord):
                         return redshift
-                    return SpectralCoord((redshift + 1) * self.wcs.restwav,
-                                         unit=u.m, observer=observer, target=target)
+                    return SpectralCoord(
+                        (redshift + 1) * self.wcs.restwav,
+                        unit=u.m,
+                        observer=observer,
+                        target=target,
+                    )
 
                 def redshift_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
-                    if (observer is None
-                            or spectralcoord.observer is None
-                            or spectralcoord.target is None):
+                    if (
+                        observer is None
+                        or spectralcoord.observer is None
+                        or spectralcoord.target is None
+                    ):
                         if observer is None:
                             msg = 'No observer defined on WCS'
                         elif spectralcoord.observer is None:
                             msg = 'No observer defined on SpectralCoord'
                         else:
                             msg = 'No target defined on SpectralCoord'
-                        warnings.warn(f'{msg}, SpectralCoord '
-                                      'will be converted without any velocity '
-                                      'frame change', AstropyUserWarning)
-                        return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
+                        warnings.warn(
+                            f'{msg}, SpectralCoord '
+                            'will be converted without any velocity '
+                            'frame change',
+                            AstropyUserWarning,
+                        )
+                        return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.0
                     else:
-                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(u.m) / self.wcs.restwav - 1.
+                        return (
+                            spectralcoord.with_observer_stationary_relative_to(
+                                observer
+                            ).to_value(u.m)
+                            / self.wcs.restwav
+                            - 1.0
+                        )
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
@@ -543,37 +589,49 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def spectralcoord_from_beta(beta):
                     if isinstance(beta, SpectralCoord):
                         return beta
-                    return SpectralCoord(beta * C_SI,
-                                         unit=u.m / u.s,
-                                         doppler_convention='relativistic',
-                                         doppler_rest=self.wcs.restwav * u.m,
-                                         observer=observer, target=target)
+                    return SpectralCoord(
+                        beta * C_SI,
+                        unit=u.m / u.s,
+                        doppler_convention='relativistic',
+                        doppler_rest=self.wcs.restwav * u.m,
+                        observer=observer,
+                        target=target,
+                    )
 
                 def beta_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
-                    if (observer is None
-                            or spectralcoord.observer is None
-                            or spectralcoord.target is None):
+                    if (
+                        observer is None
+                        or spectralcoord.observer is None
+                        or spectralcoord.target is None
+                    ):
                         if observer is None:
                             msg = 'No observer defined on WCS'
                         elif spectralcoord.observer is None:
                             msg = 'No observer defined on SpectralCoord'
                         else:
                             msg = 'No target defined on SpectralCoord'
-                        warnings.warn(f'{msg}, SpectralCoord '
-                                      'will be converted without any velocity '
-                                      'frame change', AstropyUserWarning)
+                        warnings.warn(
+                            f'{msg}, SpectralCoord '
+                            'will be converted without any velocity '
+                            'frame change',
+                            AstropyUserWarning,
+                        )
                         return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
                     else:
-                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
+                        return (
+                            spectralcoord.with_observer_stationary_relative_to(
+                                observer
+                            ).to_value(u.m / u.s, doppler_equiv)
+                            / C_SI
+                        )
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
 
             else:
-
                 kwargs['unit'] = self.wcs.cunit[ispec]
 
                 if self.wcs.restfrq > 0:
@@ -590,26 +648,35 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def spectralcoord_from_value(value):
                     if isinstance(value, SpectralCoord):
                         return value
-                    return SpectralCoord(value, observer=observer, target=target, **kwargs)
+                    return SpectralCoord(
+                        value, observer=observer, target=target, **kwargs
+                    )
 
                 def value_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
-                    if (observer is None
-                            or spectralcoord.observer is None
-                            or spectralcoord.target is None):
+                    if (
+                        observer is None
+                        or spectralcoord.observer is None
+                        or spectralcoord.target is None
+                    ):
                         if observer is None:
                             msg = 'No observer defined on WCS'
                         elif spectralcoord.observer is None:
                             msg = 'No observer defined on SpectralCoord'
                         else:
                             msg = 'No target defined on SpectralCoord'
-                        warnings.warn(f'{msg}, SpectralCoord '
-                                      'will be converted without any velocity '
-                                      'frame change', AstropyUserWarning)
+                        warnings.warn(
+                            f'{msg}, SpectralCoord '
+                            'will be converted without any velocity '
+                            'frame change',
+                            AstropyUserWarning,
+                        )
                         return spectralcoord.to_value(**kwargs)
                     else:
-                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(**kwargs)
+                        return spectralcoord.with_observer_stationary_relative_to(
+                            observer
+                        ).to_value(**kwargs)
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_value)
                 components[self.wcs.spec] = ('spectral', 0, value_from_spectralcoord)
@@ -618,13 +685,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
 
         if 'time' in self.world_axis_physical_types:
-
             multiple_time = self.world_axis_physical_types.count('time') > 1
 
             for i in range(self.naxis):
-
                 if self.world_axis_physical_types[i] == 'time':
-
                     if multiple_time:
                         name = f'time.{i}'
                     else:
@@ -645,10 +709,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # Drop sub-scales
                     if '(' in scale:
                         pos = scale.index('(')
-                        scale, subscale = scale[:pos], scale[pos+1:-1]
-                        warnings.warn(f'Dropping unsupported sub-scale '
-                                      f'{subscale.upper()} from scale {scale.upper()}',
-                                      UserWarning)
+                        scale, subscale = scale[:pos], scale[pos + 1 : -1]
+                        warnings.warn(
+                            'Dropping unsupported sub-scale '
+                            f'{subscale.upper()} from scale {scale.upper()}',
+                            UserWarning,
+                        )
 
                     # TODO: consider having GPS as a scale in Time
                     # For now GPS is not a scale, we approximate this by TAI - 19s
@@ -668,9 +734,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     if trefpos.startswith('topocent'):
                         # Note that some headers use TOPOCENT instead of TOPOCENTER
                         if np.any(np.isnan(self.wcs.obsgeo[:3])):
-                            warnings.warn('Missing or incomplete observer location '
-                                          'information, setting location in Time to None',
-                                          UserWarning)
+                            warnings.warn(
+                                'Missing or incomplete observer location '
+                                'information, setting location in Time to None',
+                                UserWarning,
+                            )
                             location = None
                         else:
                             location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
@@ -680,14 +748,20 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         location = None
                     else:
                         # TODO: implement support for more locations when Time supports it
-                        warnings.warn(f"Observation location '{trefpos}' is not "
-                                       "supported, setting location in Time to None", UserWarning)
+                        warnings.warn(
+                            f"Observation location '{trefpos}' is not "
+                            "supported, setting location in Time to None",
+                            UserWarning,
+                        )
                         location = None
 
-                    reference_time = Time(np.nan_to_num(self.wcs.mjdref[0]),
-                                          np.nan_to_num(self.wcs.mjdref[1]),
-                                          format='mjd', scale=scale,
-                                          location=location)
+                    reference_time = Time(
+                        np.nan_to_num(self.wcs.mjdref[0]),
+                        np.nan_to_num(self.wcs.mjdref[1]),
+                        format='mjd',
+                        scale=scale,
+                        location=location,
+                    )
 
                     if reference_time_delta is not None:
                         reference_time = reference_time + reference_time_delta

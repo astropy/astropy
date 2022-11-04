@@ -31,8 +31,9 @@ def test_celprm_copy():
     cel2 = copy(cel)
     cel3 = copy(cel2)
     cel.ref = [6, 8, 18, 3]
-    assert (np.allclose(cel.ref, cel2.ref, atol=1e-12, rtol=0) and
-            np.allclose(cel.ref, cel3.ref, atol=1e-12, rtol=0))
+    assert np.allclose(cel.ref, cel2.ref, atol=1e-12, rtol=0) and np.allclose(
+        cel.ref, cel3.ref, atol=1e-12, rtol=0
+    )
     del cel, cel2, cel3
 
     # deep copy

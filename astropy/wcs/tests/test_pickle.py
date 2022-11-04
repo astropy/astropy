@@ -27,7 +27,8 @@ def test_basic():
 
 def test_dist():
     with get_pkg_data_fileobj(
-            os.path.join("data", "dist.fits"), encoding='binary') as test_file:
+        os.path.join("data", "dist.fits"), encoding='binary'
+    ) as test_file:
         hdulist = fits.open(test_file)
         # The use of ``AXISCORR`` for D2IM correction has been deprecated
         with pytest.warns(AstropyDeprecationWarning):
@@ -38,7 +39,7 @@ def test_dist():
         wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
 
@@ -47,7 +48,8 @@ def test_dist():
 
 def test_sip():
     with get_pkg_data_fileobj(
-            os.path.join("data", "sip.fits"), encoding='binary') as test_file:
+        os.path.join("data", "sip.fits"), encoding='binary'
+    ) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         with pytest.warns(FITSFixedWarning):
             wcs1 = wcs.WCS(hdulist[0].header)
@@ -56,7 +58,7 @@ def test_sip():
         wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
 
@@ -65,7 +67,8 @@ def test_sip():
 
 def test_sip2():
     with get_pkg_data_fileobj(
-            os.path.join("data", "sip2.fits"), encoding='binary') as test_file:
+        os.path.join("data", "sip2.fits"), encoding='binary'
+    ) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         with pytest.warns(FITSFixedWarning):
             wcs1 = wcs.WCS(hdulist[0].header)
@@ -74,7 +77,7 @@ def test_sip2():
         wcs2 = pickle.loads(s)
 
         with NumpyRNGContext(123456789):
-            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
 
@@ -85,14 +88,15 @@ def test_sip2():
 @pytest.mark.filterwarnings(r'ignore:PV2_2')
 def test_wcs():
     header = get_pkg_data_contents(
-        os.path.join("data", "outside_sky.hdr"), encoding='binary')
+        os.path.join("data", "outside_sky.hdr"), encoding='binary'
+    )
 
     wcs1 = wcs.WCS(header)
     s = pickle.dumps(wcs1)
     wcs2 = pickle.loads(s)
 
     with NumpyRNGContext(123456789):
-        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+        x = np.random.rand(2**16, wcs1.wcs.naxis)
         world1 = wcs1.all_pix2world(x, 1)
         world2 = wcs2.all_pix2world(x, 1)
 
@@ -152,7 +156,7 @@ def test_pixlist_wcs_colsel():
     assert np.allclose(w.wcs.crval, [229.38051931869, -58.81108068885])
     assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
     assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
-    assert np.allclose(w.wcs.lonpole, 180.)
+    assert np.allclose(w.wcs.lonpole, 180.0)
 
 
 def test_alt_wcskey():

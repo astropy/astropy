@@ -13,7 +13,9 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
 
     def __init__(self, low_level_wcs):
         if not isinstance(low_level_wcs, BaseLowLevelWCS):
-            raise TypeError('Input to a HighLevelWCSWrapper must be a low level WCS object')
+            raise TypeError(
+                'Input to a HighLevelWCSWrapper must be a low level WCS object'
+            )
 
         self._low_level_wcs = low_level_wcs
 

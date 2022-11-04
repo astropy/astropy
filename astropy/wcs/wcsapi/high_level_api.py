@@ -144,15 +144,17 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     classes = OrderedDict()
     for key in default_order(components):
         if low_level_wcs.serialized_classes:
-            classes[key] = deserialize_class(serialized_classes[key],
-                                             construct=False)
+            classes[key] = deserialize_class(serialized_classes[key], construct=False)
         else:
             classes[key] = serialized_classes[key]
 
     # Check that the number of classes matches the number of inputs
     if len(world_objects) != len(classes):
-        raise ValueError("Number of world inputs ({}) does not match "
-                         "expected ({})".format(len(world_objects), len(classes)))
+        raise ValueError(
+            "Number of world inputs ({}) does not match expected ({})".format(
+                len(world_objects), len(classes)
+            )
+        )
 
     # Determine whether the classes are uniquely matched, that is we check
     # whether there is only one of each class.
@@ -176,19 +178,20 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     objects = {}
 
     if unique_match:
-
         for key, (klass, args, kwargs, *rest) in classes.items():
-
             if len(rest) == 0:
                 klass_gen = klass
             elif len(rest) == 1:
                 klass_gen = rest[0]
             else:
-                raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
+                raise ValueError(
+                    "Tuples in world_axis_object_classes should have length 3 or 4"
+                )
 
             # FIXME: For now SkyCoord won't auto-convert upon initialization
             # https://github.com/astropy/astropy/issues/7689
             from astropy.coordinates import SkyCoord
+
             if isinstance(world_by_key[key], SkyCoord):
                 if 'frame' in kwargs:
                     objects[key] = world_by_key[key].transform_to(kwargs['frame'])
@@ -198,9 +201,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
                 objects[key] = klass_gen(world_by_key[key], *args, **kwargs)
 
     else:
-
         for ikey, key in enumerate(classes):
-
             klass, args, kwargs, *rest = classes[key]
 
             if len(rest) == 0:
@@ -208,16 +209,22 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             elif len(rest) == 1:
                 klass_gen = rest[0]
             else:
-                raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
+                raise ValueError(
+                    "Tuples in world_axis_object_classes should have length 3 or 4"
+                )
 
             w = world_objects[ikey]
             if not isinstance(w, klass):
-                raise ValueError("Expected the following order of world "
-                                 "arguments: {}".format(', '.join([k.__name__ for (k, _, _) in classes.values()])))
+                raise ValueError(
+                    "Expected the following order of world arguments: {}".format(
+                        ', '.join([k.__name__ for (k, _, _) in classes.values()])
+                    )
+                )
 
             # FIXME: For now SkyCoord won't auto-convert upon initialization
             # https://github.com/astropy/astropy/issues/7689
             from astropy.coordinates import SkyCoord
+
             if isinstance(w, SkyCoord):
                 if 'frame' in kwargs:
                     objects[key] = w.transform_to(kwargs['frame'])
@@ -287,7 +294,9 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
         elif len(rest) == 1:
             klass_gen = rest[0]
         else:
-            raise ValueError("Tuples in world_axis_object_classes should have length 3 or 4")
+            raise ValueError(
+                "Tuples in world_axis_object_classes should have length 3 or 4"
+            )
         result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
 
     return result
@@ -305,8 +314,9 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self
 
     def world_to_pixel(self, *world_objects):
-
-        world_values = high_level_objects_to_values(*world_objects, low_level_wcs=self.low_level_wcs)
+        world_values = high_level_objects_to_values(
+            *world_objects, low_level_wcs=self.low_level_wcs
+        )
 
         # Finally we convert to pixel coordinates
         pixel_values = self.low_level_wcs.world_to_pixel_values(*world_values)
@@ -314,14 +324,15 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return pixel_values
 
     def pixel_to_world(self, *pixel_arrays):
-
         # Compute the world coordinate values
         world_values = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
         if self.world_n_dim == 1:
             world_values = (world_values,)
 
-        pixel_values = values_to_high_level_objects(*world_values, low_level_wcs=self.low_level_wcs)
+        pixel_values = values_to_high_level_objects(
+            *world_values, low_level_wcs=self.low_level_wcs
+        )
 
         if len(pixel_values) == 1:
             return pixel_values[0]
