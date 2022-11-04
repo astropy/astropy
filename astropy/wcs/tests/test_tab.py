@@ -47,7 +47,7 @@ def test_2d_spatial_tab_vs_model():
 
 @pytest.mark.skipif(
     _WCSLIB_VER < Version('7.6'),
-    reason="Only in WCSLIB 7.6 a 1D -TAB axis roundtrips unless first axis"
+    reason="Only in WCSLIB 7.6 a 1D -TAB axis roundtrips unless first axis",
 )
 def test_mixed_celest_and_1d_tab_roundtrip():
     # Tests WCS roundtripping for the case when there is one -TAB axis and
@@ -62,7 +62,7 @@ def test_mixed_celest_and_1d_tab_roundtrip():
 
 @pytest.mark.skipif(
     _WCSLIB_VER < Version('7.8'),
-    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work."
+    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work.",
 )
 def test_wcstab_swapaxes():
     # Crash on deepcopy of swapped -TAB axes reported in #13036.
@@ -78,11 +78,11 @@ def test_wcstab_swapaxes():
 
 @pytest.mark.skipif(
     _WCSLIB_VER < Version('7.8'),
-    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work."
+    reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work.",
 )
 @pytest.mark.xfail(
     Version('7.8') <= _WCSLIB_VER < Version('7.10'),
-    reason="Requires WCSLIB >= 7.10 for swapped -TAB axes to produce same results."
+    reason="Requires WCSLIB >= 7.10 for swapped -TAB axes to produce same results.",
 )
 def test_wcstab_swapaxes_same_val_roundtrip():
     filename = get_pkg_data_filename('data/tab-time-last-axis.fits')

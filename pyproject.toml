@@ -79,7 +79,6 @@ force-exclude = '''
     | astropy/units
     | astropy/utils
     | astropy/visualization
-    | astropy/wcs
   )/
   # Individual files to always exclude
   | astropy/io/__init__.py

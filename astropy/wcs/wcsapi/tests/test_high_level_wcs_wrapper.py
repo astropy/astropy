@@ -8,7 +8,6 @@ from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
 
 
 class CustomLowLevelWCS(BaseLowLevelWCS):
-
     @property
     def pixel_n_dim(self):
         return 2
@@ -33,8 +32,10 @@ class CustomLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_object_components(self):
-        return [('test', 0, 'spherical.lon.degree'),
-                ('test', 1, 'spherical.lat.degree')]
+        return [
+            ('test', 0, 'spherical.lon.degree'),
+            ('test', 1, 'spherical.lat.degree'),
+        ]
 
     @property
     def world_axis_object_classes(self):
@@ -42,7 +43,6 @@ class CustomLowLevelWCS(BaseLowLevelWCS):
 
 
 def test_wrapper():
-
     wcs = CustomLowLevelWCS()
 
     wrapper = HighLevelWCSWrapper(wcs)
@@ -68,7 +68,6 @@ def test_wrapper():
 
 
 def test_wrapper_invalid():
-
     class InvalidCustomLowLevelWCS(CustomLowLevelWCS):
         @property
         def world_axis_object_classes(self):

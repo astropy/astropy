@@ -127,7 +127,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
             pixel_arrays = (pixel_arrays,)
         else:
             pixel_arrays = pixel_arrays[::-1]
-        array_indices = tuple(np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays)
+        array_indices = tuple(
+            np.asarray(np.floor(pixel + 0.5), dtype=np.int_) for pixel in pixel_arrays
+        )
         return array_indices[0] if self.pixel_n_dim == 1 else array_indices
 
     @property
@@ -338,6 +340,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         axes.
         """
         from astropy.visualization.wcsaxes import WCSAxes
+
         return WCSAxes, {'wcs': self}
 
 
@@ -351,11 +354,14 @@ def validate_physical_types(physical_types):
     Validate a list of physical types against the UCD1+ standard
     """
     for physical_type in physical_types:
-        if (physical_type is not None and
-            physical_type not in VALID_UCDS and
-                not physical_type.startswith('custom:')):
+        if (
+            physical_type is not None
+            and physical_type not in VALID_UCDS
+            and not physical_type.startswith('custom:')
+        ):
             raise ValueError(
-                f"'{physical_type}' is not a valid IOVA UCD1+ physical type. "
-                "It must be a string specified in the list (http://www.ivoa.net/documents/latest/UCDlist.html) "
-                "or if no matching type exists it can be any string prepended with 'custom:'."
+                f"'{physical_type}' is not a valid IOVA UCD1+ physical type. It must be"
+                " a string specified in the list"
+                " (http://www.ivoa.net/documents/latest/UCDlist.html) or if no"
+                " matching type exists it can be any string prepended with 'custom:'."
             )

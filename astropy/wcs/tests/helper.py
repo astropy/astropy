@@ -5,9 +5,16 @@ from astropy.io import fits
 
 
 class SimModelTAB:
-    def __init__(self, nx=150, ny=200, crpix=[1, 1], crval = [1, 1],
-                 cdelt = [1, 1], pc = {'PC1_1': 1, 'PC2_2': 1}):
-        """  set essential parameters of the model (coord transformations)  """
+    def __init__(
+        self,
+        nx=150,
+        ny=200,
+        crpix=[1, 1],
+        crval=[1, 1],
+        cdelt=[1, 1],
+        pc={'PC1_1': 1, 'PC2_2': 1},
+    ):
+        """set essential parameters of the model (coord transformations)"""
         assert nx > 2 and ny > 1  # a limitation of this particular simulation
         self.nx = nx
         self.ny = ny
@@ -49,7 +56,7 @@ class SimModelTAB:
 
     @property
     def hdulist(self):
-        """ Simulates 2D data with a _spatial_ WCS that uses the ``-TAB``
+        """Simulates 2D data with a _spatial_ WCS that uses the ``-TAB``
         algorithm with indexing.
         """
         # coordinate array (some "arbitrary" numbers with a "jump" along x axis):
@@ -71,8 +78,8 @@ class SimModelTAB:
             dtype=[
                 ('wavelength', np.float64, c.shape),
                 ('xi', np.double, (xi.size,)),
-                ('yi', np.double, (yi.size,))
-            ]
+                ('yi', np.double, (yi.size,)),
+            ],
         )
 
         # create binary table HDU:

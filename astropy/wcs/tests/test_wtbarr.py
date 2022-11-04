@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 def test_wtbarr_i(tab_wcs_2di):
     assert tab_wcs_2di.wcs.wtb[0].i == 1
 

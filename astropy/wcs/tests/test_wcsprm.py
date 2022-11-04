@@ -153,10 +153,10 @@ def test_colnum():
     assert w.colnum == 42
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xffffffffffffffffffff
+        w.colnum = 0xFFFFFFFFFFFFFFFFFFFF
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xffffffff
+        w.colnum = 0xFFFFFFFF
 
     with pytest.raises(TypeError):
         del w.colnum
@@ -408,7 +408,8 @@ def test_fix():
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change',
-        'obsfix': 'No change'}
+        'obsfix': 'No change',
+    }
 
     version = wcs._wcs.__version__
     if Version(version) <= Version('5'):
@@ -430,21 +431,28 @@ def test_fix2():
         'cdfix': 'No change',
         'cylfix': 'No change',
         'obsfix': 'No change',
-        'datfix': ("Set MJD-OBS to 51543.000000 from DATE-OBS.\n"
-                   "Changed DATE-OBS from '31/12/99' to '1999-12-31'"),
+        'datfix': (
+            "Set MJD-OBS to 51543.000000 from DATE-OBS.\n"
+            "Changed DATE-OBS from '31/12/99' to '1999-12-31'"
+        ),
         'spcfix': 'No change',
         'unitfix': 'No change',
-        'celfix': 'No change'}
+        'celfix': 'No change',
+    }
     version = wcs._wcs.__version__
     if Version(version) <= Version("5"):
         del fix_ref['obsfix']
         fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
 
     if Version(version) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        )
 
     elif Version(version) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        )
 
     assert w.fix() == fix_ref
     assert w.dateobs == '1999-12-31'
@@ -461,7 +469,7 @@ def test_fix3():
         'datfix': "Invalid DATE-OBS format '31/12/F9'",
         'spcfix': 'No change',
         'unitfix': 'No change',
-        'celfix': 'No change'
+        'celfix': 'No change',
     }
 
     version = wcs._wcs.__version__
@@ -470,9 +478,13 @@ def test_fix3():
         fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
 
     if Version(version) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        )
     elif Version(version) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        )
 
     assert w.fix() == fix_ref
     assert w.dateobs == '31/12/F9'
@@ -719,21 +731,20 @@ def test_set_ps_realloc():
 
 def test_set_pv():
     w = _wcs.Wcsprm()
-    data = [(0, 0, 42.), (1, 1, 54.)]
+    data = [(0, 0, 42.0), (1, 1, 54.0)]
     w.set_pv(data)
     assert w.get_pv() == data
 
 
 def test_set_pv_realloc():
     w = _wcs.Wcsprm()
-    w.set_pv([(0, 0, 42.)] * 16)
+    w.set_pv([(0, 0, 42.0)] * 16)
 
 
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = get_pkg_data_contents(
-        'data/spectra/orion-velo-1.hdr', encoding='binary')
+    header = get_pkg_data_contents('data/spectra/orion-velo-1.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
     assert w.spcfix() == -1
 
@@ -860,8 +871,10 @@ def test_detailed_err():
 
 def test_header_parse():
     from astropy.io import fits
+
     with get_pkg_data_fileobj(
-            'data/header_newlines.fits', encoding='binary') as test_file:
+        'data/header_newlines.fits', encoding='binary'
+    ) as test_file:
         hdulist = fits.open(test_file)
         with pytest.warns(FITSFixedWarning):
             w = wcs.WCS(hdulist[0].header)
@@ -871,15 +884,15 @@ def test_header_parse():
 def test_locale():
     try:
         with _set_locale('fr_FR'):
-            header = get_pkg_data_contents('data/locale.hdr',
-                                           encoding='binary')
+            header = get_pkg_data_contents('data/locale.hdr', encoding='binary')
             with pytest.warns(FITSFixedWarning):
                 w = _wcs.Wcsprm(header)
                 assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
-            "on this system")
+            "on this system"
+        )
 
 
 def test_unicode():
@@ -890,8 +903,7 @@ def test_unicode():
 
 def test_sub_segfault():
     # Issue #1960
-    header = fits.Header.fromtextfile(
-        get_pkg_data_filename('data/sub-segfault.hdr'))
+    header = fits.Header.fromtextfile(get_pkg_data_filename('data/sub-segfault.hdr'))
     w = wcs.WCS(header)
     w.sub([wcs.WCSSUB_CELESTIAL])
     gc.collect()
@@ -951,7 +963,6 @@ def test_radesys_defaults():
 
 
 def test_radesys_defaults_full():
-
     # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic
     # coordinates", for those systems the RADESYS keyword can be used to
     # indicate the equatorial/ecliptic frame to use. From the standard:
@@ -974,18 +985,18 @@ def test_radesys_defaults_full():
 
     # For non-ecliptic or equatorial systems it is still empty
     w = _wcs.Wcsprm(naxis=2)
-    for ctype in [('GLON-CAR', 'GLAT-CAR'),
-                  ('SLON-SIN', 'SLAT-SIN')]:
+    for ctype in [('GLON-CAR', 'GLAT-CAR'), ('SLON-SIN', 'SLAT-SIN')]:
         w.ctype = ctype
         w.set()
         assert w.radesys == ''
         assert np.isnan(w.equinox)
 
-    for ctype in [('RA---TAN', 'DEC--TAN'),
-                  ('ELON-TAN', 'ELAT-TAN'),
-                  ('DEC--TAN', 'RA---TAN'),
-                  ('ELAT-TAN', 'ELON-TAN')]:
-
+    for ctype in [
+        ('RA---TAN', 'DEC--TAN'),
+        ('ELON-TAN', 'ELAT-TAN'),
+        ('DEC--TAN', 'RA---TAN'),
+        ('ELAT-TAN', 'ELON-TAN'),
+    ]:
         # Check defaults for RADESYS
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
@@ -1026,7 +1037,7 @@ def test_radesys_defaults_full():
         w.ctype = ctype
         w.radesys = 'FK5'
         w.set()
-        assert w.equinox == 2000.
+        assert w.equinox == 2000.0
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
@@ -1043,17 +1054,19 @@ def test_radesys_defaults_full():
 
 def test_iteration():
     world = np.array(
-        [[-0.58995335, -0.5],
-         [0.00664326, -0.5],
-         [-0.58995335, -0.25],
-         [0.00664326, -0.25],
-         [-0.58995335, 0.],
-         [0.00664326, 0.],
-         [-0.58995335, 0.25],
-         [0.00664326, 0.25],
-         [-0.58995335, 0.5],
-         [0.00664326, 0.5]],
-        float
+        [
+            [-0.58995335, -0.5],
+            [0.00664326, -0.5],
+            [-0.58995335, -0.25],
+            [0.00664326, -0.25],
+            [-0.58995335, 0.0],
+            [0.00664326, 0.0],
+            [-0.58995335, 0.25],
+            [0.00664326, 0.25],
+            [-0.58995335, 0.5],
+            [0.00664326, 0.5],
+        ],
+        float,
     )
 
     w = wcs.WCS()
@@ -1063,23 +1076,26 @@ def test_iteration():
     x = w.wcs_world2pix(world, 1)
 
     expected = np.array(
-        [[1.64400000e+02, -1.51498185e-01],
-         [7.49105110e+01, -1.51498185e-01],
-         [1.64400000e+02, 3.73485009e+01],
-         [7.49105110e+01, 3.73485009e+01],
-         [1.64400000e+02, 7.48485000e+01],
-         [7.49105110e+01, 7.48485000e+01],
-         [1.64400000e+02, 1.12348499e+02],
-         [7.49105110e+01, 1.12348499e+02],
-         [1.64400000e+02, 1.49848498e+02],
-         [7.49105110e+01, 1.49848498e+02]],
-        float)
+        [
+            [1.64400000e02, -1.51498185e-01],
+            [7.49105110e01, -1.51498185e-01],
+            [1.64400000e02, 3.73485009e01],
+            [7.49105110e01, 3.73485009e01],
+            [1.64400000e02, 7.48485000e01],
+            [7.49105110e01, 7.48485000e01],
+            [1.64400000e02, 1.12348499e02],
+            [7.49105110e01, 1.12348499e02],
+            [1.64400000e02, 1.49848498e02],
+            [7.49105110e01, 1.49848498e02],
+        ],
+        float,
+    )
 
     assert_array_almost_equal(x, expected)
 
     w2 = w.wcs_pix2world(x, 1)
 
-    world[:, 0] %= 360.
+    world[:, 0] %= 360.0
 
     assert_array_almost_equal(w2, world)
 
@@ -1097,8 +1113,7 @@ def test_invalid_args():
     with pytest.raises(ValueError):
         _wcs.Wcsprm(naxis=64)
 
-    header = get_pkg_data_contents(
-        'data/spectra/orion-velo-1.hdr', encoding='binary')
+    header = get_pkg_data_contents('data/spectra/orion-velo-1.hdr', encoding='binary')
     with pytest.raises(ValueError):
         _wcs.Wcsprm(header, relax='FOO')
 
@@ -1125,18 +1140,31 @@ def test_datebeg():
         'datfix': "Invalid DATE-BEG format '31/12/99'",
         'spcfix': 'No change',
         'unitfix': 'No change',
-        'celfix': 'No change'}
+        'celfix': 'No change',
+    }
 
     if Version(wcs._wcs.__version__) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+        )
     elif Version(wcs._wcs.__version__) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        fix_ref['datfix'] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+        )
 
     assert w.fix() == fix_ref
 
 
-char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
-             'dateref', 'dateavg', 'dateend']
+char_keys = [
+    'timesys',
+    'trefpos',
+    'trefdir',
+    'plephem',
+    'timeunit',
+    'dateref',
+    'dateavg',
+    'dateend',
+]
 
 
 @pytest.mark.parametrize('key', char_keys)
@@ -1149,10 +1177,23 @@ def test_char_keys(key):
         setattr(w, key, 42)
 
 
-num_keys = ['mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
-            'bepoch', 'tstart', 'tstop', 'xposure', 'timsyer',
-            'timrder', 'timedel', 'timepixr', 'timeoffs',
-            'telapse', 'xposure']
+num_keys = [
+    'mjdobs',
+    'mjdbeg',
+    'mjdend',
+    'jepoch',
+    'bepoch',
+    'tstart',
+    'tstop',
+    'xposure',
+    'timsyer',
+    'timrder',
+    'timedel',
+    'timepixr',
+    'timeoffs',
+    'telapse',
+    'xposure',
+]
 
 
 @pytest.mark.parametrize('key', num_keys)
@@ -1176,8 +1217,8 @@ def test_array_keys(key):
     else:
         assert np.all(np.isnan(attr))
     assert attr.dtype == float
-    setattr(w, key, [1., 2.])
-    assert_array_equal(getattr(w, key), [1., 2.])
+    setattr(w, key, [1.0, 2.0])
+    assert_array_equal(getattr(w, key), [1.0, 2.0])
     with pytest.raises(ValueError):
         setattr(w, key, ["foo", "bar"])
     with pytest.raises(ValueError):

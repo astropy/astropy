@@ -29,8 +29,9 @@ def test_prjprm_copy():
     prj2 = copy(prj)
     prj3 = copy(prj2)
     prj.pv = [0, 6, 8, 18, 3]
-    assert (np.allclose(prj.pv, prj2.pv, atol=1e-12, rtol=0) and
-            np.allclose(prj.pv, prj3.pv, atol=1e-12, rtol=0))
+    assert np.allclose(prj.pv, prj2.pv, atol=1e-12, rtol=0) and np.allclose(
+        prj.pv, prj3.pv, atol=1e-12, rtol=0
+    )
     del prj, prj2, prj3
 
     # deep copy

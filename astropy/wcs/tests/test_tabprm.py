@@ -64,8 +64,10 @@ def test_tabprm_nc(tab_wcs_2di):
 def test_tabprm_extrema(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     extrema = np.array(
-        [[[-0.0026, -0.5], [1.001, -0.5]],
-         [[-0.0026, 0.5], [1.001, 0.5]]]
+        [
+            [[-0.0026, -0.5], [1.001, -0.5]],
+            [[-0.0026, 0.5], [1.001, 0.5]],
+        ]
     )
     assert np.allclose(t.extrema, extrema)
 
@@ -96,7 +98,7 @@ def test_tabprm_print(tab_wcs_2di_f, capfd):
     captured = capfd.readouterr()
     s = str(tab_wcs_2di_f.wcs.tab[0])
     out = str(captured.out)
-    lout= out.split('\n')
+    lout = out.split('\n')
     assert out == s
     assert lout[0] == '       flag: 137'
     assert lout[1] == '          M: 2'

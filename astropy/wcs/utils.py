@@ -12,14 +12,23 @@ from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
-__all__ = ['obsgeo_to_frame', 'add_stokes_axis_to_wcs',
-           'celestial_frame_to_wcs', 'wcs_to_celestial_frame',
-           'proj_plane_pixel_scales', 'proj_plane_pixel_area',
-           'is_proj_plane_distorted', 'non_celestial_pixel_scales',
-           'skycoord_to_pixel', 'pixel_to_skycoord',
-           'custom_wcs_to_frame_mappings', 'custom_frame_to_wcs_mappings',
-           'pixel_to_pixel', 'local_partial_pixel_derivatives',
-           'fit_wcs_from_points']
+__all__ = [
+    'obsgeo_to_frame',
+    'add_stokes_axis_to_wcs',
+    'celestial_frame_to_wcs',
+    'wcs_to_celestial_frame',
+    'proj_plane_pixel_scales',
+    'proj_plane_pixel_area',
+    'is_proj_plane_distorted',
+    'non_celestial_pixel_scales',
+    'skycoord_to_pixel',
+    'pixel_to_skycoord',
+    'custom_wcs_to_frame_mappings',
+    'custom_frame_to_wcs_mappings',
+    'pixel_to_pixel',
+    'local_partial_pixel_derivatives',
+    'fit_wcs_from_points',
+]
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -50,7 +59,6 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 
 
 def _wcs_to_celestial_frame_builtin(wcs):
-
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import (
         FK4,
@@ -82,7 +90,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
     if radesys == '' and xcoord == 'RA--' and ycoord == 'DEC-':
         if equinox is None:
             radesys = "ICRS"
-        elif equinox < 1984.:
+        elif equinox < 1984.0:
             radesys = "FK4"
         else:
             radesys = "FK5"
@@ -107,8 +115,10 @@ def _wcs_to_celestial_frame_builtin(wcs):
         elif xcoord == 'TLON' and ycoord == 'TLAT':
             # The default representation for ITRS is cartesian, but for WCS
             # purposes, we need the spherical representation.
-            frame = ITRS(representation_type=SphericalRepresentation,
-                         obstime=wcs.wcs.dateobs or None)
+            frame = ITRS(
+                representation_type=SphericalRepresentation,
+                obstime=wcs.wcs.dateobs or None,
+            )
         else:
             frame = None
 
@@ -116,7 +126,6 @@ def _wcs_to_celestial_frame_builtin(wcs):
 
 
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
-
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import (
         FK4,
@@ -132,7 +141,6 @@ def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
     wcs = WCS(naxis=2)
 
     if isinstance(frame, BaseRADecFrame):
-
         xcoord = 'RA--'
         ycoord = 'DEC-'
         if isinstance(frame, ICRS):
@@ -232,8 +240,9 @@ def wcs_to_celestial_frame(wcs):
             frame = func(wcs)
             if frame is not None:
                 return frame
-    raise ValueError("Could not determine celestial frame corresponding to "
-                     "the specified WCS object")
+    raise ValueError(
+        "Could not determine celestial frame corresponding to the specified WCS object"
+    )
 
 
 def celestial_frame_to_wcs(frame, projection='TAN'):
@@ -303,8 +312,9 @@ def celestial_frame_to_wcs(frame, projection='TAN'):
             wcs = func(frame, projection=projection)
             if wcs is not None:
                 return wcs
-    raise ValueError("Could not determine WCS corresponding to the specified "
-                     "coordinate frame.")
+    raise ValueError(
+        "Could not determine WCS corresponding to the specified coordinate frame."
+    )
 
 
 def proj_plane_pixel_scales(wcs):
@@ -458,8 +468,9 @@ def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
 
     """
     cwcs = wcs.celestial
-    return (not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or
-            _has_distortion(cwcs))
+    return not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or _has_distortion(
+        cwcs
+    )
 
 
 def _is_cd_orthogonal(cd, maxerr):
@@ -468,7 +479,7 @@ def _is_cd_orthogonal(cd, maxerr):
         raise ValueError("CD (or PC) matrix must be a 2D square matrix.")
 
     pixarea = np.abs(np.linalg.det(cd))
-    if (pixarea == 0.0):
+    if pixarea == 0.0:
         raise ValueError("CD (or PC) matrix is singular.")
 
     # NOTE: Technically, below we should use np.dot(cd, np.conjugate(cd.T))
@@ -476,7 +487,7 @@ def _is_cd_orthogonal(cd, maxerr):
     I = np.dot(cd, cd.T) / pixarea
     cd_unitary_err = np.amax(np.abs(I - np.eye(shape[0])))
 
-    return (cd_unitary_err < maxerr)
+    return cd_unitary_err < maxerr
 
 
 def non_celestial_pixel_scales(inwcs):
@@ -500,8 +511,8 @@ def non_celestial_pixel_scales(inwcs):
 
     pccd = inwcs.pixel_scale_matrix
 
-    if np.allclose(np.extract(1-np.eye(*pccd.shape), pccd), 0):
-        return np.abs(np.diagonal(pccd))*u.deg
+    if np.allclose(np.extract(1 - np.eye(*pccd.shape), pccd), 0):
+        return np.abs(np.diagonal(pccd)) * u.deg
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
@@ -510,12 +521,15 @@ def _has_distortion(wcs):
     """
     `True` if contains any SIP or image distortion components.
     """
-    return any(getattr(wcs, dist_attr) is not None
-               for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
+    return any(
+        getattr(wcs, dist_attr) is not None
+        for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip']
+    )
 
 
 # TODO: in future, we should think about how the following two functions can be
 # integrated better into the WCS class.
+
 
 def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     """
@@ -734,14 +748,14 @@ def _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out):
             mapping.append(classes2.index(class1))
 
     if unique_match:
-
         # Classes are unique, so we need to re-order matrix2 along the world
         # axis using the mapping we found above.
         matrix2 = matrix2[mapping]
 
     elif classes1 != classes2:
-
-        raise ValueError("World coordinate order doesn't match and automatic matching is ambiguous")
+        raise ValueError(
+            "World coordinate order doesn't match and automatic matching is ambiguous"
+        )
 
     matrix = np.matmul(matrix2.T, matrix1)
 
@@ -824,8 +838,7 @@ def pixel_to_pixel(wcs_in, wcs_out, *inputs):
 
     outputs = [None] * wcs_out.pixel_n_dim
 
-    for (pixel_in_indices, pixel_out_indices) in split_info:
-
+    for pixel_in_indices, pixel_out_indices in split_info:
         pixel_inputs = []
         for ipix in range(wcs_in.pixel_n_dim):
             if ipix in pixel_in_indices:
@@ -902,7 +915,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
         Pixel coordinates
     w_obj: `~astropy.wcs.WCS`
         WCS object
-        """
+    """
     cd = params[0:4]
     crpix = params[4:6]
 
@@ -921,8 +934,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
 
 
 def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
-
-    """ Objective function for fitting SIP.
+    """Objective function for fitting SIP.
 
     Parameters
     ----------
@@ -941,8 +953,8 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     # unpack params
     crpix = params[0:2]
     cdx = params[2:6].reshape((2, 2))
-    a_params = params[6:6+len(coeff_names)]
-    b_params = params[6+len(coeff_names):]
+    a_params = params[6 : 6 + len(coeff_names)]
+    b_params = params[6 + len(coeff_names) :]
 
     # assign to wcs, used for transfomations in this function
     w_obj.wcs.cd = cdx
@@ -953,23 +965,25 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
         a_coeff['A_' + coeff_names[i]] = a_params[i]
         b_coeff['B_' + coeff_names[i]] = b_params[i]
 
-    sip = SIP(crpix=crpix, a_order=order, b_order=order,
-              a_coeff=a_coeff, b_coeff=b_coeff)
+    sip = SIP(
+        crpix=crpix, a_order=order, b_order=order, a_coeff=a_coeff, b_coeff=b_coeff
+    )
     fuv, guv = sip(u, v)
 
-    xo, yo = np.dot(cdx, np.array([u+fuv-crpix[0], v+guv-crpix[1]]))
+    xo, yo = np.dot(cdx, np.array([u + fuv - crpix[0], v + guv - crpix[1]]))
 
     # use all pix2world in case `projection` contains distortion table
     x, y = w_obj.all_world2pix(lon, lat, 0)
-    x, y = np.dot(w_obj.wcs.cd, (x-w_obj.wcs.crpix[0], y-w_obj.wcs.crpix[1]))
+    x, y = np.dot(w_obj.wcs.cd, (x - w_obj.wcs.crpix[0], y - w_obj.wcs.crpix[1]))
 
-    resids = np.concatenate((x-xo, y-yo))
+    resids = np.concatenate((x - xo, y - yo))
 
     return resids
 
 
-def fit_wcs_from_points(xy, world_coords, proj_point='center',
-                        projection='TAN', sip_degree=None):
+def fit_wcs_from_points(
+    xy, world_coords, proj_point='center', projection='TAN', sip_degree=None
+):
     """
     Given two matching sets of coordinates on detector and sky,
     compute the WCS.
@@ -1040,35 +1054,63 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     try:
         lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
     except AttributeError:
-        unit_sph =  world_coords.unit_spherical
+        unit_sph = world_coords.unit_spherical
         lon, lat = unit_sph.lon.deg, unit_sph.lat.deg
 
     # verify input
     if (type(proj_point) != type(world_coords)) and (proj_point != 'center'):
-        raise ValueError("proj_point must be set to 'center', or an" +
-                         "`~astropy.coordinates.SkyCoord` object with " +
-                         "a pair of points.")
+        raise ValueError(
+            "proj_point must be set to 'center', or an"
+            + "`~astropy.coordinates.SkyCoord` object with "
+            + "a pair of points."
+        )
 
-    use_center_as_proj_point = (str(proj_point) == 'center')
+    use_center_as_proj_point = str(proj_point) == 'center'
 
     if not use_center_as_proj_point:
         assert proj_point.size == 1
 
     proj_codes = [
-        'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',
-        'CEA', 'CAR', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE',
-        'COD', 'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
+        'AZP',
+        'SZP',
+        'TAN',
+        'STG',
+        'SIN',
+        'ARC',
+        'ZEA',
+        'AIR',
+        'CYP',
+        'CEA',
+        'CAR',
+        'MER',
+        'SFL',
+        'PAR',
+        'MOL',
+        'AIT',
+        'COP',
+        'COE',
+        'COD',
+        'COO',
+        'BON',
+        'PCO',
+        'TSC',
+        'CSC',
+        'QSC',
+        'HPX',
+        'XPH',
     ]
     if type(projection) == str:
         if projection not in proj_codes:
-            raise ValueError("Must specify valid projection code from list of "
-                             + "supported types: ", ', '.join(proj_codes))
+            raise ValueError(
+                "Must specify valid projection code from list of "
+                + "supported types: ",
+                ', '.join(proj_codes),
+            )
         # empty wcs to fill in with fit values
-        wcs = celestial_frame_to_wcs(frame=world_coords.frame,
-                                     projection=projection)
-    else: #if projection is not string, should be wcs object. use as template.
+        wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
+    else:  # if projection is not string, should be wcs object. use as template.
         wcs = copy.deepcopy(projection)
-        wcs.cdelt = (1., 1.) # make sure cdelt is 1
+        wcs.cdelt = (1.0, 1.0)  # make sure cdelt is 1
         wcs.sip = None
 
     # Change PC to CD, since cdelt will be set to 1
@@ -1083,24 +1125,28 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     xpmin, xpmax, ypmin, ypmax = xp.min(), xp.max(), yp.min(), yp.max()
 
     # set pixel_shape to span of input points
-    wcs.pixel_shape = (1 if xpmax <= 0.0 else int(np.ceil(xpmax)),
-                       1 if ypmax <= 0.0 else int(np.ceil(ypmax)))
+    wcs.pixel_shape = (
+        1 if xpmax <= 0.0 else int(np.ceil(xpmax)),
+        1 if ypmax <= 0.0 else int(np.ceil(ypmax)),
+    )
 
     # determine CRVAL from input
     close = lambda l, p: p[np.argmin(np.abs(l))]
     if use_center_as_proj_point:  # use center of input points
-        sc1 = SkyCoord(lon.min()*u.deg, lat.max()*u.deg)
-        sc2 = SkyCoord(lon.max()*u.deg, lat.min()*u.deg)
+        sc1 = SkyCoord(lon.min() * u.deg, lat.max() * u.deg)
+        sc2 = SkyCoord(lon.max() * u.deg, lat.min() * u.deg)
         pa = sc1.position_angle(sc2)
         sep = sc1.separation(sc2)
-        midpoint_sc = sc1.directional_offset_by(pa, sep/2)
-        wcs.wcs.crval = ((midpoint_sc.data.lon.deg, midpoint_sc.data.lat.deg))
-        wcs.wcs.crpix = ((xpmax + xpmin) / 2., (ypmax + ypmin) / 2.)
+        midpoint_sc = sc1.directional_offset_by(pa, sep / 2)
+        wcs.wcs.crval = (midpoint_sc.data.lon.deg, midpoint_sc.data.lat.deg)
+        wcs.wcs.crpix = ((xpmax + xpmin) / 2.0, (ypmax + ypmin) / 2.0)
     else:  # convert units, initial guess for crpix
         proj_point.transform_to(world_coords)
         wcs.wcs.crval = (proj_point.data.lon.deg, proj_point.data.lat.deg)
-        wcs.wcs.crpix = (close(lon - wcs.wcs.crval[0], xp + 1),
-                         close(lon - wcs.wcs.crval[1], yp + 1))
+        wcs.wcs.crpix = (
+            close(lon - wcs.wcs.crval[0], xp + 1),
+            close(lon - wcs.wcs.crval[1], yp + 1),
+        )
 
     # fit linear terms, assign to wcs
     # use (1, 0, 0, 1) as initial guess, in case input wcs was passed in
@@ -1113,10 +1159,13 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
     p0 = np.concatenate([wcs.wcs.cd.flatten(), wcs.wcs.crpix.flatten()])
     fit = least_squares(
-        _linear_wcs_fit, p0,
+        _linear_wcs_fit,
+        p0,
         args=(lon, lat, xp, yp, wcs),
-        bounds=[[-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
-                [np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1]]
+        bounds=[
+            [-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
+            [np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1],
+        ],
     )
     wcs.wcs.crpix = np.array(fit.x[4:6])
     wcs.wcs.cd = np.array(fit.x[0:4].reshape((2, 2)))
@@ -1127,34 +1176,52 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         if '-SIP' not in wcs.wcs.ctype[0]:
             wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
 
-        coef_names = [f'{i}_{j}' for i in range(degree+1)
-                      for j in range(degree+1) if (i+j) < (degree+1) and
-                      (i+j) > 1]
-        p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.cd.flatten(),
-                             np.zeros(2*len(coef_names))))
+        coef_names = [
+            f'{i}_{j}'
+            for i in range(degree + 1)
+            for j in range(degree + 1)
+            if (i + j) < (degree + 1) and (i + j) > 1
+        ]
+        p0 = np.concatenate(
+            (
+                np.array(wcs.wcs.crpix),
+                wcs.wcs.cd.flatten(),
+                np.zeros(2 * len(coef_names)),
+            )
+        )
 
         fit = least_squares(
-            _sip_fit, p0,
+            _sip_fit,
+            p0,
             args=(lon, lat, xp, yp, wcs, degree, coef_names),
-            bounds=[[xpmin + 1, ypmin + 1] + [-np.inf]*(4 + 2*len(coef_names)),
-                    [xpmax + 1, ypmax + 1] + [np.inf]*(4 + 2*len(coef_names))]
+            bounds=[
+                [xpmin + 1, ypmin + 1] + [-np.inf] * (4 + 2 * len(coef_names)),
+                [xpmax + 1, ypmax + 1] + [np.inf] * (4 + 2 * len(coef_names)),
+            ],
         )
-        coef_fit = (list(fit.x[6:6+len(coef_names)]),
-                    list(fit.x[6+len(coef_names):]))
+        coef_fit = (
+            list(fit.x[6 : 6 + len(coef_names)]),
+            list(fit.x[6 + len(coef_names) :]),
+        )
 
         # put fit values in wcs
         wcs.wcs.cd = fit.x[2:6].reshape((2, 2))
         wcs.wcs.crpix = fit.x[0:2]
 
-        a_vals = np.zeros((degree+1, degree+1))
-        b_vals = np.zeros((degree+1, degree+1))
+        a_vals = np.zeros((degree + 1, degree + 1))
+        b_vals = np.zeros((degree + 1, degree + 1))
 
         for coef_name in coef_names:
             a_vals[int(coef_name[0])][int(coef_name[2])] = coef_fit[0].pop(0)
             b_vals[int(coef_name[0])][int(coef_name[2])] = coef_fit[1].pop(0)
 
-        wcs.sip = Sip(a_vals, b_vals, np.zeros((degree+1, degree+1)),
-                      np.zeros((degree+1, degree+1)), wcs.wcs.crpix)
+        wcs.sip = Sip(
+            a_vals,
+            b_vals,
+            np.zeros((degree + 1, degree + 1)),
+            np.zeros((degree + 1, degree + 1)),
+            wcs.wcs.crpix,
+        )
 
     return wcs
 
@@ -1196,13 +1263,16 @@ def obsgeo_to_frame(obsgeo, obstime):
     non-finite values included.
 
     """
-    if (obsgeo is None
+    if (
+        obsgeo is None
         or len(obsgeo) != 6
         or np.all(np.array(obsgeo) == 0)
         or np.all(~np.isfinite(obsgeo))
     ):
-        raise ValueError(f"Can not parse the 'obsgeo' location ({obsgeo}). "
-                         "obsgeo should be a length 6 non-zero, finite numpy array")
+        raise ValueError(
+            f"Can not parse the 'obsgeo' location ({obsgeo}). "
+            "obsgeo should be a length 6 non-zero, finite numpy array"
+        )
 
     # If the cartesian coords are zero or have NaNs in them use the spherical ones
     if np.all(obsgeo[:3] == 0) or np.any(~np.isfinite(obsgeo[:3])):
