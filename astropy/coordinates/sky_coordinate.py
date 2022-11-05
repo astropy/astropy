@@ -895,9 +895,7 @@ class SkyCoord(ShapedLikeNDArray):
                 return self.transform_to(attr)
 
         # Fail
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{attr}'"
-        )
+        raise AttributeError(f"Error accessing attribute '{attr}'")
 
     def __setattr__(self, attr, val):
         # This is to make anything available through __getattr__ immutable
