@@ -142,7 +142,7 @@ def test_useful_error_missing():
     except Exception as e:
         msg_pm_dec = e.args[0]
 
-    assert "has no attribute" in msg_l
+    assert "Error accessing attribute" in msg_l
     assert "has no associated differentials" in msg_pm_dec
 
 
