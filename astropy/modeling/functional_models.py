@@ -11,15 +11,43 @@ from .core import Fittable1DModel, Fittable2DModel
 from .parameters import InputParameterError, Parameter
 from .utils import ellipse_extent
 
-__all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
-           'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',
-           'Linear1D', 'Lorentz1D', 'RickerWavelet1D', 'RickerWavelet2D',
-           'RedshiftScaleFactor', 'Multiply', 'Planar2D', 'Scale',
-           'Sersic1D', 'Sersic2D', 'Shift',
-           'Sine1D', 'Cosine1D', 'Tangent1D',
-           'ArcSine1D', 'ArcCosine1D', 'ArcTangent1D',
-           'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D', 'Voigt1D',
-           'KingProjectedAnalytic1D', 'Exponential1D', 'Logarithmic1D']
+__all__ = [
+    "AiryDisk2D",
+    "Moffat1D",
+    "Moffat2D",
+    "Box1D",
+    "Box2D",
+    "Const1D",
+    "Const2D",
+    "Ellipse2D",
+    "Disk2D",
+    "Gaussian1D",
+    "Gaussian2D",
+    "Linear1D",
+    "Lorentz1D",
+    "RickerWavelet1D",
+    "RickerWavelet2D",
+    "RedshiftScaleFactor",
+    "Multiply",
+    "Planar2D",
+    "Scale",
+    "Sersic1D",
+    "Sersic2D",
+    "Shift",
+    "Sine1D",
+    "Cosine1D",
+    "Tangent1D",
+    "ArcSine1D",
+    "ArcCosine1D",
+    "ArcTangent1D",
+    "Trapezoid1D",
+    "TrapezoidDisk2D",
+    "Ring2D",
+    "Voigt1D",
+    "KingProjectedAnalytic1D",
+    "Exponential1D",
+    "Logarithmic1D",
+]
 
 TWOPI = 2 * np.pi
 FLOAT_EPSILON = float(np.finfo(np.float32).tiny)
@@ -115,13 +143,18 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
-    amplitude = Parameter(default=1, description="Amplitude (peak value) of the Gaussian")
+    amplitude = Parameter(
+        default=1, description="Amplitude (peak value) of the Gaussian"
+    )
     mean = Parameter(default=0, description="Position of peak (Gaussian)")
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
     # stddev must be non-zero and positive.
-    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
-                       description="Standard deviation of the Gaussian")
+    stddev = Parameter(
+        default=1,
+        bounds=(FLOAT_EPSILON, None),
+        description="Standard deviation of the Gaussian",
+    )
 
     def bounding_box(self, factor=5.5):
         """
@@ -177,7 +210,7 @@ class Gaussian1D(Fittable1DModel):
         """
         Gaussian1D model function.
         """
-        return amplitude * np.exp(- 0.5 * (x - mean) ** 2 / stddev ** 2)
+        return amplitude * np.exp(-0.5 * (x - mean) ** 2 / stddev**2)
 
     @staticmethod
     def fit_deriv(x, amplitude, mean, stddev):
@@ -185,9 +218,9 @@ class Gaussian1D(Fittable1DModel):
         Gaussian1D model function derivatives.
         """
 
-        d_amplitude = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-        d_mean = amplitude * d_amplitude * (x - mean) / stddev ** 2
-        d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev ** 3
+        d_amplitude = np.exp(-0.5 / stddev**2 * (x - mean) ** 2)
+        d_mean = amplitude * d_amplitude * (x - mean) / stddev**2
+        d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev**3
         return [d_amplitude, d_mean, d_stddev]
 
     @property
@@ -197,9 +230,11 @@ class Gaussian1D(Fittable1DModel):
         return {self.inputs[0]: self.mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'mean': inputs_unit[self.inputs[0]],
-                'stddev': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "mean": inputs_unit[self.inputs[0]],
+            "stddev": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Gaussian2D(Fittable2DModel):
@@ -289,17 +324,38 @@ class Gaussian2D(Fittable2DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
-    x_mean = Parameter(default=0, description="Peak position (along x axis) of Gaussian")
-    y_mean = Parameter(default=0, description="Peak position (along y axis) of Gaussian")
-    x_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along x axis)")
-    y_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along y axis)")
-    theta = Parameter(default=0.0, description=("Rotation angle either as a "
-                                                "float (in radians) or a "
-                                                "|Quantity| angle (optional)"))
+    x_mean = Parameter(
+        default=0, description="Peak position (along x axis) of Gaussian"
+    )
+    y_mean = Parameter(
+        default=0, description="Peak position (along y axis) of Gaussian"
+    )
+    x_stddev = Parameter(
+        default=1, description="Standard deviation of the Gaussian (along x axis)"
+    )
+    y_stddev = Parameter(
+        default=1, description="Standard deviation of the Gaussian (along y axis)"
+    )
+    theta = Parameter(
+        default=0.0,
+        description=(
+            "Rotation angle either as a "
+            "float (in radians) or a "
+            "|Quantity| angle (optional)"
+        ),
+    )
 
-    def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
-                 y_mean=y_mean.default, x_stddev=None, y_stddev=None,
-                 theta=None, cov_matrix=None, **kwargs):
+    def __init__(
+        self,
+        amplitude=amplitude.default,
+        x_mean=x_mean.default,
+        y_mean=y_mean.default,
+        x_stddev=None,
+        y_stddev=None,
+        theta=None,
+        cov_matrix=None,
+        **kwargs,
+    ):
         if cov_matrix is None:
             if x_stddev is None:
                 x_stddev = self.__class__.x_stddev.default
@@ -309,8 +365,9 @@ class Gaussian2D(Fittable2DModel):
                 theta = self.__class__.theta.default
         else:
             if x_stddev is not None or y_stddev is not None or theta is not None:
-                raise InputParameterError("Cannot specify both cov_matrix and "
-                                          "x/y_stddev/theta")
+                raise InputParameterError(
+                    "Cannot specify both cov_matrix and x/y_stddev/theta"
+                )
             # Compute principle coordinate system transformation
             cov_matrix = np.array(cov_matrix)
 
@@ -326,13 +383,19 @@ class Gaussian2D(Fittable2DModel):
         # stddev must be non-zero and positive.
         # TODO: Investigate why setting this in Parameter above causes
         #       convolution tests to hang.
-        kwargs.setdefault('bounds', {})
-        kwargs['bounds'].setdefault('x_stddev', (FLOAT_EPSILON, None))
-        kwargs['bounds'].setdefault('y_stddev', (FLOAT_EPSILON, None))
+        kwargs.setdefault("bounds", {})
+        kwargs["bounds"].setdefault("x_stddev", (FLOAT_EPSILON, None))
+        kwargs["bounds"].setdefault("y_stddev", (FLOAT_EPSILON, None))
 
         super().__init__(
-            amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
-            x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
+            amplitude=amplitude,
+            x_mean=x_mean,
+            y_mean=y_mean,
+            x_stddev=x_stddev,
+            y_stddev=y_stddev,
+            theta=theta,
+            **kwargs,
+        )
 
     @property
     def x_fwhm(self):
@@ -392,8 +455,10 @@ class Gaussian2D(Fittable2DModel):
         b = factor * self.y_stddev
         dx, dy = ellipse_extent(a, b, self.theta)
 
-        return ((self.y_mean - dy, self.y_mean + dy),
-                (self.x_mean - dx, self.x_mean + dx))
+        return (
+            (self.y_mean - dy, self.y_mean + dy),
+            (self.x_mean - dx, self.x_mean + dx),
+        )
 
     @staticmethod
     def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -401,16 +466,17 @@ class Gaussian2D(Fittable2DModel):
 
         cost2 = np.cos(theta) ** 2
         sint2 = np.sin(theta) ** 2
-        sin2t = np.sin(2. * theta)
-        xstd2 = x_stddev ** 2
-        ystd2 = y_stddev ** 2
+        sin2t = np.sin(2.0 * theta)
+        xstd2 = x_stddev**2
+        ystd2 = y_stddev**2
         xdiff = x - x_mean
         ydiff = y - y_mean
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
         b = 0.5 * ((sin2t / xstd2) - (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
-        return amplitude * np.exp(-((a * xdiff ** 2) + (b * xdiff * ydiff) +
-                                    (c * ydiff ** 2)))
+        return amplitude * np.exp(
+            -((a * xdiff**2) + (b * xdiff * ydiff) + (c * ydiff**2))
+        )
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -420,22 +486,21 @@ class Gaussian2D(Fittable2DModel):
         sint = np.sin(theta)
         cost2 = np.cos(theta) ** 2
         sint2 = np.sin(theta) ** 2
-        cos2t = np.cos(2. * theta)
-        sin2t = np.sin(2. * theta)
-        xstd2 = x_stddev ** 2
-        ystd2 = y_stddev ** 2
-        xstd3 = x_stddev ** 3
-        ystd3 = y_stddev ** 3
+        cos2t = np.cos(2.0 * theta)
+        sin2t = np.sin(2.0 * theta)
+        xstd2 = x_stddev**2
+        ystd2 = y_stddev**2
+        xstd3 = x_stddev**3
+        ystd3 = y_stddev**3
         xdiff = x - x_mean
         ydiff = y - y_mean
-        xdiff2 = xdiff ** 2
-        ydiff2 = ydiff ** 2
+        xdiff2 = xdiff**2
+        ydiff2 = ydiff**2
         a = 0.5 * ((cost2 / xstd2) + (sint2 / ystd2))
         b = 0.5 * ((sin2t / xstd2) - (sin2t / ystd2))
         c = 0.5 * ((sint2 / xstd2) + (cost2 / ystd2))
-        g = amplitude * np.exp(-((a * xdiff2) + (b * xdiff * ydiff) +
-                                 (c * ydiff2)))
-        da_dtheta = (sint * cost * ((1. / ystd2) - (1. / xstd2)))
+        g = amplitude * np.exp(-((a * xdiff2) + (b * xdiff * ydiff) + (c * ydiff2)))
+        da_dtheta = sint * cost * ((1.0 / ystd2) - (1.0 / xstd2))
         da_dx_stddev = -cost2 / xstd3
         da_dy_stddev = -sint2 / ystd3
         db_dtheta = (cos2t / xstd2) - (cos2t / ystd2)
@@ -445,26 +510,32 @@ class Gaussian2D(Fittable2DModel):
         dc_dx_stddev = -sint2 / xstd3
         dc_dy_stddev = -cost2 / ystd3
         dg_dA = g / amplitude
-        dg_dx_mean = g * ((2. * a * xdiff) + (b * ydiff))
-        dg_dy_mean = g * ((b * xdiff) + (2. * c * ydiff))
-        dg_dx_stddev = g * (-(da_dx_stddev * xdiff2 +
-                              db_dx_stddev * xdiff * ydiff +
-                              dc_dx_stddev * ydiff2))
-        dg_dy_stddev = g * (-(da_dy_stddev * xdiff2 +
-                              db_dy_stddev * xdiff * ydiff +
-                              dc_dy_stddev * ydiff2))
-        dg_dtheta = g * (-(da_dtheta * xdiff2 +
-                           db_dtheta * xdiff * ydiff +
-                           dc_dtheta * ydiff2))
-        return [dg_dA, dg_dx_mean, dg_dy_mean, dg_dx_stddev, dg_dy_stddev,
-                dg_dtheta]
+        dg_dx_mean = g * ((2.0 * a * xdiff) + (b * ydiff))
+        dg_dy_mean = g * ((b * xdiff) + (2.0 * c * ydiff))
+        dg_dx_stddev = g * (
+            -(
+                da_dx_stddev * xdiff2
+                + db_dx_stddev * xdiff * ydiff
+                + dc_dx_stddev * ydiff2
+            )
+        )
+        dg_dy_stddev = g * (
+            -(
+                da_dy_stddev * xdiff2
+                + db_dy_stddev * xdiff * ydiff
+                + dc_dy_stddev * ydiff2
+            )
+        )
+        dg_dtheta = g * (
+            -(da_dtheta * xdiff2 + db_dtheta * xdiff * ydiff + dc_dtheta * ydiff2)
+        )
+        return [dg_dA, dg_dx_mean, dg_dy_mean, dg_dx_stddev, dg_dy_stddev, dg_dtheta]
 
     @property
     def input_units(self):
         if self.x_mean.unit is None and self.y_mean.unit is None:
             return None
-        return {self.inputs[0]: self.x_mean.unit,
-                self.inputs[1]: self.y_mean.unit}
+        return {self.inputs[0]: self.x_mean.unit, self.inputs[1]: self.y_mean.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -472,12 +543,14 @@ class Gaussian2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_mean': inputs_unit[self.inputs[0]],
-                'y_mean': inputs_unit[self.inputs[0]],
-                'x_stddev': inputs_unit[self.inputs[0]],
-                'y_stddev': inputs_unit[self.inputs[0]],
-                'theta': u.rad,
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_mean": inputs_unit[self.inputs[0]],
+            "y_mean": inputs_unit[self.inputs[0]],
+            "x_stddev": inputs_unit[self.inputs[0]],
+            "y_stddev": inputs_unit[self.inputs[0]],
+            "theta": u.rad,
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Shift(Fittable1DModel):
@@ -513,7 +586,9 @@ class Shift(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.offset) for x in self.bounding_box)
+            inv.bounding_box = tuple(
+                self.evaluate(x, self.offset) for x in self.bounding_box
+            )
 
         return inv
 
@@ -535,7 +610,7 @@ class Shift(Fittable1DModel):
         return [d_offset]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'offset': outputs_unit[self.outputs[0]]}
+        return {"offset": outputs_unit[self.outputs[0]]}
 
 
 class Scale(Fittable1DModel):
@@ -581,8 +656,9 @@ class Scale(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.factor)
-                                     for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(
+                self.evaluate(x, self.factor) for x in self.bounding_box.bounding_box()
+            )
 
         return inv
 
@@ -602,7 +678,7 @@ class Scale(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'factor': outputs_unit[self.outputs[0]]}
+        return {"factor": outputs_unit[self.outputs[0]]}
 
 
 class Multiply(Fittable1DModel):
@@ -632,8 +708,9 @@ class Multiply(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.factor)
-                                     for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(
+                self.evaluate(x, self.factor) for x in self.bounding_box.bounding_box()
+            )
 
         return inv
 
@@ -650,7 +727,7 @@ class Multiply(Fittable1DModel):
         return [d_factor]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'factor': outputs_unit[self.outputs[0]]}
+        return {"factor": outputs_unit[self.outputs[0]]}
 
 
 class RedshiftScaleFactor(Fittable1DModel):
@@ -669,7 +746,7 @@ class RedshiftScaleFactor(Fittable1DModel):
         .. math:: f(x) = x (1 + z)
     """
 
-    z = Parameter(description='Redshift', default=0)
+    z = Parameter(description="Redshift", default=0)
 
     _has_inverse_bounding_box = True
 
@@ -698,8 +775,9 @@ class RedshiftScaleFactor(Fittable1DModel):
         except NotImplementedError:
             pass
         else:
-            inv.bounding_box = tuple(self.evaluate(x, self.z)
-                                     for x in self.bounding_box.bounding_box())
+            inv.bounding_box = tuple(
+                self.evaluate(x, self.z) for x in self.bounding_box.bounding_box()
+            )
 
         return inv
 
@@ -779,10 +857,12 @@ class Sersic1D(Fittable1DModel):
 
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
+
             cls._gammaincinv = gammaincinv
 
-        return (amplitude * np.exp(
-            -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
+        return amplitude * np.exp(
+            -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)
+        )
 
     @property
     def input_units(self):
@@ -791,8 +871,10 @@ class Sersic1D(Fittable1DModel):
         return {self.inputs[0]: self.r_eff.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'r_eff': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "r_eff": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class _Trigonometric1D(Fittable1DModel):
@@ -817,11 +899,13 @@ class _Trigonometric1D(Fittable1DModel):
     def input_units(self):
         if self.frequency.unit is None:
             return None
-        return {self.inputs[0]: 1. / self.frequency.unit}
+        return {self.inputs[0]: 1.0 / self.frequency.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'frequency': inputs_unit[self.inputs[0]] ** -1,
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "frequency": inputs_unit[self.inputs[0]] ** -1,
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Sine1D(_Trigonometric1D):
@@ -888,17 +972,19 @@ class Sine1D(_Trigonometric1D):
         """One dimensional Sine model derivative"""
 
         d_amplitude = np.sin(TWOPI * frequency * x + TWOPI * phase)
-        d_frequency = (TWOPI * x * amplitude *
-                       np.cos(TWOPI * frequency * x + TWOPI * phase))
-        d_phase = (TWOPI * amplitude *
-                   np.cos(TWOPI * frequency * x + TWOPI * phase))
+        d_frequency = (
+            TWOPI * x * amplitude * np.cos(TWOPI * frequency * x + TWOPI * phase)
+        )
+        d_phase = TWOPI * amplitude * np.cos(TWOPI * frequency * x + TWOPI * phase)
         return [d_amplitude, d_frequency, d_phase]
 
     @property
     def inverse(self):
         """One dimensional inverse of Sine"""
 
-        return ArcSine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return ArcSine1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
 
 class Cosine1D(_Trigonometric1D):
@@ -965,17 +1051,19 @@ class Cosine1D(_Trigonometric1D):
         """One dimensional Cosine model derivative"""
 
         d_amplitude = np.cos(TWOPI * frequency * x + TWOPI * phase)
-        d_frequency = - (TWOPI * x * amplitude *
-                         np.sin(TWOPI * frequency * x + TWOPI * phase))
-        d_phase = - (TWOPI * amplitude *
-                     np.sin(TWOPI * frequency * x + TWOPI * phase))
+        d_frequency = -(
+            TWOPI * x * amplitude * np.sin(TWOPI * frequency * x + TWOPI * phase)
+        )
+        d_phase = -(TWOPI * amplitude * np.sin(TWOPI * frequency * x + TWOPI * phase))
         return [d_amplitude, d_frequency, d_phase]
 
     @property
     def inverse(self):
         """One dimensional inverse of Cosine"""
 
-        return ArcCosine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return ArcCosine1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
 
 class Tangent1D(_Trigonometric1D):
@@ -1050,7 +1138,7 @@ class Tangent1D(_Trigonometric1D):
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Tangent model derivative"""
 
-        sec = 1 / (np.cos(TWOPI * frequency * x + TWOPI * phase))**2
+        sec = 1 / (np.cos(TWOPI * frequency * x + TWOPI * phase)) ** 2
 
         d_amplitude = np.tan(TWOPI * frequency * x + TWOPI * phase)
         d_frequency = TWOPI * x * amplitude * sec
@@ -1061,7 +1149,9 @@ class Tangent1D(_Trigonometric1D):
     def inverse(self):
         """One dimensional inverse of Tangent"""
 
-        return ArcTangent1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return ArcTangent1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
     def bounding_box(self):
         """
@@ -1069,7 +1159,10 @@ class Tangent1D(_Trigonometric1D):
         ``(x_low, x_high)``
         """
 
-        bbox = [(-1/4 - self.phase) / self.frequency, (1/4 - self.phase) / self.frequency]
+        bbox = [
+            (-1 / 4 - self.phase) / self.frequency,
+            (1 / 4 - self.phase) / self.frequency,
+        ]
 
         if self.frequency.unit is not None:
             bbox = bbox / self.frequency.unit
@@ -1089,8 +1182,10 @@ class _InverseTrigonometric1D(_Trigonometric1D):
         return {self.inputs[0]: self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'frequency': outputs_unit[self.outputs[0]] ** -1,
-                'amplitude': inputs_unit[self.inputs[0]]}
+        return {
+            "frequency": outputs_unit[self.outputs[0]] ** -1,
+            "amplitude": inputs_unit[self.inputs[0]],
+        }
 
 
 class ArcSine1D(_InverseTrigonometric1D):
@@ -1166,9 +1261,11 @@ class ArcSine1D(_InverseTrigonometric1D):
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcSine model derivative"""
 
-        d_amplitude = - x / (TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude)**2))
+        d_amplitude = -x / (
+            TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
+        )
         d_frequency = (phase - (np.arcsin(x / amplitude) / TWOPI)) / frequency**2
-        d_phase = - 1 / frequency * np.ones(x.shape)
+        d_phase = -1 / frequency * np.ones(x.shape)
         return [d_amplitude, d_frequency, d_phase]
 
     def bounding_box(self):
@@ -1183,7 +1280,9 @@ class ArcSine1D(_InverseTrigonometric1D):
     def inverse(self):
         """One dimensional inverse of ArcSine"""
 
-        return Sine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return Sine1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
 
 class ArcCosine1D(_InverseTrigonometric1D):
@@ -1259,9 +1358,11 @@ class ArcCosine1D(_InverseTrigonometric1D):
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcCosine model derivative"""
 
-        d_amplitude = x / (TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude)**2))
+        d_amplitude = x / (
+            TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
+        )
         d_frequency = (phase - (np.arccos(x / amplitude) / TWOPI)) / frequency**2
-        d_phase = - 1 / frequency * np.ones(x.shape)
+        d_phase = -1 / frequency * np.ones(x.shape)
         return [d_amplitude, d_frequency, d_phase]
 
     def bounding_box(self):
@@ -1276,7 +1377,9 @@ class ArcCosine1D(_InverseTrigonometric1D):
     def inverse(self):
         """One dimensional inverse of ArcCosine"""
 
-        return Cosine1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return Cosine1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
 
 class ArcTangent1D(_InverseTrigonometric1D):
@@ -1346,16 +1449,20 @@ class ArcTangent1D(_InverseTrigonometric1D):
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcTangent model derivative"""
 
-        d_amplitude = - x / (TWOPI * frequency * amplitude**2 * (1 + (x / amplitude)**2))
+        d_amplitude = -x / (
+            TWOPI * frequency * amplitude**2 * (1 + (x / amplitude) ** 2)
+        )
         d_frequency = (phase - (np.arctan(x / amplitude) / TWOPI)) / frequency**2
-        d_phase = - 1 / frequency * np.ones(x.shape)
+        d_phase = -1 / frequency * np.ones(x.shape)
         return [d_amplitude, d_frequency, d_phase]
 
     @property
     def inverse(self):
         """One dimensional inverse of ArcTangent"""
 
-        return Tangent1D(amplitude=self.amplitude, frequency=self.frequency, phase=self.phase)
+        return Tangent1D(
+            amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
+        )
 
 
 class Linear1D(Fittable1DModel):
@@ -1380,6 +1487,7 @@ class Linear1D(Fittable1DModel):
 
         .. math:: f(x) = a x + b
     """
+
     slope = Parameter(default=1, description="Slope of the straight line")
     intercept = Parameter(default=0, description="Intercept of the straight line")
     linear = True
@@ -1400,7 +1508,7 @@ class Linear1D(Fittable1DModel):
 
     @property
     def inverse(self):
-        new_slope = self.slope ** -1
+        new_slope = self.slope**-1
         new_intercept = -self.intercept / self.slope
         return self.__class__(slope=new_slope, intercept=new_intercept)
 
@@ -1411,8 +1519,10 @@ class Linear1D(Fittable1DModel):
         return {self.inputs[0]: self.intercept.unit / self.slope.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'intercept': outputs_unit[self.outputs[0]],
-                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]]}
+        return {
+            "intercept": outputs_unit[self.outputs[0]],
+            "slope": outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
+        }
 
 
 class Planar2D(Fittable2DModel):
@@ -1458,9 +1568,11 @@ class Planar2D(Fittable2DModel):
         return [d_slope_x, d_slope_y, d_intercept]
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'intercept': outputs_unit['z'],
-                'slope_x': outputs_unit['z'] / inputs_unit['x'],
-                'slope_y': outputs_unit['z'] / inputs_unit['y']}
+        return {
+            "intercept": outputs_unit["z"],
+            "slope_x": outputs_unit["z"] / inputs_unit["x"],
+            "slope_y": outputs_unit["z"] / inputs_unit["y"],
+        }
 
 
 class Lorentz1D(Fittable1DModel):
@@ -1524,16 +1636,16 @@ class Lorentz1D(Fittable1DModel):
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
 
-        return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 +
-                                                  (fwhm / 2.) ** 2))
+        return amplitude * ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.0) ** 2)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters"""
 
-        d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
-        d_x_0 = (amplitude * d_amplitude * (2 * x - 2 * x_0) /
-                 (fwhm ** 2 + (x - x_0) ** 2))
+        d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
+        d_x_0 = (
+            amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
+        )
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
 
@@ -1562,9 +1674,11 @@ class Lorentz1D(Fittable1DModel):
         return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'fwhm': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "fwhm": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Voigt1D(Fittable1DModel):
@@ -1618,14 +1732,14 @@ class Voigt1D(Fittable1DModel):
         plt.show()
     """
 
-    x_0 = Parameter(default=0,
-                    description="Position of the peak")
-    amplitude_L = Parameter(default=1,
-                            description="The Lorentzian amplitude")
-    fwhm_L = Parameter(default=2/np.pi,
-                       description="The Lorentzian full width at half maximum")
-    fwhm_G = Parameter(default=np.log(2),
-                       description="The Gaussian full width at half maximum")
+    x_0 = Parameter(default=0, description="Position of the peak")
+    amplitude_L = Parameter(default=1, description="The Lorentzian amplitude")
+    fwhm_L = Parameter(
+        default=2 / np.pi, description="The Lorentzian full width at half maximum"
+    )
+    fwhm_G = Parameter(
+        default=np.log(2), description="The Gaussian full width at half maximum"
+    )
 
     sqrt_pi = np.sqrt(np.pi)
     sqrt_ln2 = np.sqrt(np.log(2))
@@ -1634,26 +1748,38 @@ class Voigt1D(Fittable1DModel):
     _last_w = np.zeros(1, dtype=float)
     _faddeeva = None
 
-    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default,
-                 fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',
-                 **kwargs):
-        if str(method).lower() in ('wofz', 'scipy'):
+    def __init__(
+        self,
+        x_0=x_0.default,
+        amplitude_L=amplitude_L.default,
+        fwhm_L=fwhm_L.default,
+        fwhm_G=fwhm_G.default,
+        method="humlicek2",
+        **kwargs,
+    ):
+        if str(method).lower() in ("wofz", "scipy"):
             from scipy.special import wofz
+
             self._faddeeva = wofz
-        elif str(method).lower() == 'humlicek2':
+        elif str(method).lower() == "humlicek2":
             self._faddeeva = self._hum2zpf16c
         else:
-            raise ValueError(f'Not a valid method for Voigt1D Faddeeva function: {method}.')
+            raise ValueError(
+                f"Not a valid method for Voigt1D Faddeeva function: {method}."
+            )
         self.method = self._faddeeva.__name__
 
-        super().__init__(x_0=x_0, amplitude_L=amplitude_L, fwhm_L=fwhm_L, fwhm_G=fwhm_G, **kwargs)
+        super().__init__(
+            x_0=x_0, amplitude_L=amplitude_L, fwhm_L=fwhm_L, fwhm_G=fwhm_G, **kwargs
+        )
 
     def _wrap_wofz(self, z):
         """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
         cache results for consecutive calls from `evaluate`, `fit_deriv`."""
 
-        if (z.shape == self._last_z.shape and
-                np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
+        if z.shape == self._last_z.shape and np.allclose(
+            z, self._last_z, rtol=1.0e-14, atol=1.0e-15
+        ):
             return self._last_w
 
         self._last_w = self._faddeeva(z)
@@ -1669,7 +1795,9 @@ class Voigt1D(Fittable1DModel):
         return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
     def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
-        """Derivative of the one dimensional Voigt function with respect to parameters."""
+        """
+        Derivative of the one dimensional Voigt function with respect to parameters.
+        """
 
         s = self.sqrt_ln2 / fwhm_G
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
@@ -1679,10 +1807,12 @@ class Voigt1D(Fittable1DModel):
         # Schreier (2018) Eq. 6 == (dvdx + 1j * dvdy) / (sqrt(pi) * fwhm_L * amplitude_L)
         dwdz = -2 * z * w + 2j * s * fwhm_L * amplitude_L
 
-        return [-dwdz.real * 2 * s,
-                w.real / amplitude_L,
-                w.real / fwhm_L - dwdz.imag * s,
-                (-w.real - s * (2 * (x - x_0) * dwdz.real - fwhm_L * dwdz.imag)) / fwhm_G]
+        return [
+            -dwdz.real * 2 * s,
+            w.real / amplitude_L,
+            w.real / fwhm_L - dwdz.imag * s,
+            (-w.real - s * (2 * (x - x_0) * dwdz.real - fwhm_L * dwdz.imag)) / fwhm_G,
+        ]
 
     @property
     def input_units(self):
@@ -1691,10 +1821,12 @@ class Voigt1D(Fittable1DModel):
         return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'fwhm_L': inputs_unit[self.inputs[0]],
-                'fwhm_G': inputs_unit[self.inputs[0]],
-                'amplitude_L': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "fwhm_L": inputs_unit[self.inputs[0]],
+            "fwhm_G": inputs_unit[self.inputs[0]],
+            "amplitude_L": outputs_unit[self.outputs[0]],
+        }
 
     @staticmethod
     def _hum2zpf16c(z, s=10.0):
@@ -1711,6 +1843,7 @@ class Voigt1D(Fittable1DModel):
 
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
+        # fmt: off
         AA = np.array([+46236.3358828121,   -147726.58393079657j,
                        -206562.80451354137,  281369.1590631087j,
                        +183092.74968253175, -184787.96830696272j,
@@ -1729,22 +1862,84 @@ class Voigt1D(Fittable1DModel):
                        +1365.0,           0.0,
                        -60.0,             0.0,
                        +1.0])
+        # fmt: on
 
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
 
         zz = z * z
-        w = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))
+        w = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz * (zz - 3.0))
 
         if np.any(z.imag < s):
             mask = abs(z.real) + z.imag < s  # returns true for interior points
             # returns small complex array covering only the interior region
             Z = z[np.where(mask)] + 1.35j
             ZZ = Z * Z
-            numer = (((((((((((((((AA[15]*Z + AA[14])*Z + AA[13])*Z + AA[12])*Z + AA[11])*Z +
-                               AA[10])*Z + AA[9])*Z + AA[8])*Z + AA[7])*Z + AA[6])*Z +
-                          AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
-            denom = (((((((ZZ + bb[14])*ZZ + bb[12])*ZZ + bb[10])*ZZ+bb[8])*ZZ + bb[6])*ZZ +
-                      bb[4])*ZZ + bb[2])*ZZ + bb[0]
+            numer = (
+                (
+                    (
+                        (
+                            (
+                                (
+                                    (
+                                        (
+                                            (
+                                                (
+                                                    (
+                                                        (
+                                                            (
+                                                                (AA[15] * Z + AA[14])
+                                                                * Z
+                                                                + AA[13]
+                                                            )
+                                                            * Z
+                                                            + AA[12]
+                                                        )
+                                                        * Z
+                                                        + AA[11]
+                                                    )
+                                                    * Z
+                                                    + AA[10]
+                                                )
+                                                * Z
+                                                + AA[9]
+                                            )
+                                            * Z
+                                            + AA[8]
+                                        )
+                                        * Z
+                                        + AA[7]
+                                    )
+                                    * Z
+                                    + AA[6]
+                                )
+                                * Z
+                                + AA[5]
+                            )
+                            * Z
+                            + AA[4]
+                        )
+                        * Z
+                        + AA[3]
+                    )
+                    * Z
+                    + AA[2]
+                )
+                * Z
+                + AA[1]
+            ) * Z + AA[0]
+            denom = (
+                (
+                    (
+                        ((((ZZ + bb[14]) * ZZ + bb[12]) * ZZ + bb[10]) * ZZ + bb[8])
+                        * ZZ
+                        + bb[6]
+                    )
+                    * ZZ
+                    + bb[4]
+                )
+                * ZZ
+                + bb[2]
+            ) * ZZ + bb[0]
             np.place(w, mask, numer / denom)
 
         return w
@@ -1791,7 +1986,9 @@ class Const1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
+    amplitude = Parameter(
+        default=1, description="Value of the constant function", mag=True
+    )
     linear = True
 
     @staticmethod
@@ -1823,7 +2020,7 @@ class Const1D(Fittable1DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'amplitude': outputs_unit[self.outputs[0]]}
+        return {"amplitude": outputs_unit[self.outputs[0]]}
 
 
 class Const2D(Fittable2DModel):
@@ -1846,7 +2043,9 @@ class Const2D(Fittable2DModel):
         .. math:: f(x, y) = A
     """
 
-    amplitude = Parameter(default=1, description="Value of the constant function", mag=True)
+    amplitude = Parameter(
+        default=1, description="Value of the constant function", mag=True
+    )
     linear = True
 
     @staticmethod
@@ -1871,7 +2070,7 @@ class Const2D(Fittable2DModel):
         return None
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'amplitude': outputs_unit[self.outputs[0]]}
+        return {"amplitude": outputs_unit[self.outputs[0]]}
 
 
 class Ellipse2D(Fittable2DModel):
@@ -1950,9 +2149,12 @@ class Ellipse2D(Fittable2DModel):
     y_0 = Parameter(default=0, description="Y position of the center of the disk.")
     a = Parameter(default=1, description="The length of the semimajor axis")
     b = Parameter(default=1, description="The length of the semiminor axis")
-    theta = Parameter(default=0.0, description=("Rotation angle either as a "
-                                                "float (in radians) or a "
-                                                "|Quantity| angle"))
+    theta = Parameter(
+        default=0.0,
+        description=(
+            "Rotation angle either as a float (in radians) or a |Quantity| angle"
+        ),
+    )
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1964,7 +2166,7 @@ class Ellipse2D(Fittable2DModel):
         sint = np.sin(theta)
         numerator1 = (xx * cost) + (yy * sint)
         numerator2 = -(xx * sint) + (yy * cost)
-        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
+        in_ellipse = ((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.0
         result = np.select([in_ellipse], [amplitude])
 
         if isinstance(amplitude, Quantity):
@@ -1984,15 +2186,13 @@ class Ellipse2D(Fittable2DModel):
         theta = self.theta
         dx, dy = ellipse_extent(a, b, theta)
 
-        return ((self.y_0 - dy, self.y_0 + dy),
-                (self.x_0 - dx, self.x_0 + dx))
+        return ((self.y_0 - dy, self.y_0 + dy), (self.x_0 - dx, self.x_0 + dx))
 
     @property
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2000,12 +2200,14 @@ class Ellipse2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'a': inputs_unit[self.inputs[0]],
-                'b': inputs_unit[self.inputs[0]],
-                'theta': u.rad,
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "a": inputs_unit[self.inputs[0]],
+            "b": inputs_unit[self.inputs[0]],
+            "theta": u.rad,
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Disk2D(Fittable2DModel):
@@ -2051,7 +2253,7 @@ class Disk2D(Fittable2DModel):
         """Two dimensional Disk model function"""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        result = np.select([rr <= R_0 ** 2], [amplitude])
+        result = np.select([rr <= R_0**2], [amplitude])
 
         if isinstance(amplitude, Quantity):
             return Quantity(result, unit=amplitude.unit, copy=False, subok=True)
@@ -2065,15 +2267,16 @@ class Disk2D(Fittable2DModel):
         ``((y_low, y_high), (x_low, x_high))``
         """
 
-        return ((self.y_0 - self.R_0, self.y_0 + self.R_0),
-                (self.x_0 - self.R_0, self.x_0 + self.R_0))
+        return (
+            (self.y_0 - self.R_0, self.y_0 + self.R_0),
+            (self.x_0 - self.R_0, self.x_0 + self.R_0),
+        )
 
     @property
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2081,10 +2284,12 @@ class Disk2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'R_0': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "R_0": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Ring2D(Fittable2DModel):
@@ -2132,9 +2337,16 @@ class Ring2D(Fittable2DModel):
     r_in = Parameter(default=1, description="Inner radius of the ring")
     width = Parameter(default=1, description="Width of the ring")
 
-    def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
-                 y_0=y_0.default, r_in=None, width=None,
-                 r_out=None, **kwargs):
+    def __init__(
+        self,
+        amplitude=amplitude.default,
+        x_0=x_0.default,
+        y_0=y_0.default,
+        r_in=None,
+        width=None,
+        r_out=None,
+        **kwargs,
+    ):
         if (r_in is None) and (r_out is None) and (width is None):
             r_in = self.r_in.default
             width = self.width.default
@@ -2157,15 +2369,15 @@ class Ring2D(Fittable2DModel):
             raise InputParameterError(f"{r_in=} and {width=} must both be >=0")
 
         super().__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, r_in=r_in, width=width,
-            **kwargs)
+            amplitude=amplitude, x_0=x_0, y_0=y_0, r_in=r_in, width=width, **kwargs
+        )
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
+        r_range = np.logical_and(rr >= r_in**2, rr <= (r_in + width) ** 2)
         result = np.select([r_range], [amplitude])
 
         if isinstance(amplitude, Quantity):
@@ -2182,15 +2394,13 @@ class Ring2D(Fittable2DModel):
 
         dr = self.r_in + self.width
 
-        return ((self.y_0 - dr, self.y_0 + dr),
-                (self.x_0 - dr, self.x_0 + dr))
+        return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
 
     @property
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2198,11 +2408,13 @@ class Ring2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'r_in': inputs_unit[self.inputs[0]],
-                'width': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "r_in": inputs_unit[self.inputs[0]],
+            "width": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Box1D(Fittable1DModel):
@@ -2266,7 +2478,7 @@ class Box1D(Fittable1DModel):
     def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function"""
 
-        inside = np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)
+        inside = np.logical_and(x >= x_0 - width / 2.0, x <= x_0 + width / 2.0)
         return np.select([inside], [amplitude], 0)
 
     @property
@@ -2294,9 +2506,11 @@ class Box1D(Fittable1DModel):
         return {self.outputs[0]: self.amplitude.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'width': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "width": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Box2D(Fittable2DModel):
@@ -2337,8 +2551,12 @@ class Box2D(Fittable2DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude", mag=True)
-    x_0 = Parameter(default=0, description="X position of the center of the box function")
-    y_0 = Parameter(default=0, description="Y position of the center of the box function")
+    x_0 = Parameter(
+        default=0, description="X position of the center of the box function"
+    )
+    y_0 = Parameter(
+        default=0, description="Y position of the center of the box function"
+    )
     x_width = Parameter(default=1, description="Width in x direction of the box")
     y_width = Parameter(default=1, description="Width in y direction of the box")
 
@@ -2346,10 +2564,8 @@ class Box2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
 
-        x_range = np.logical_and(x >= x_0 - x_width / 2.,
-                                 x <= x_0 + x_width / 2.)
-        y_range = np.logical_and(y >= y_0 - y_width / 2.,
-                                 y <= y_0 + y_width / 2.)
+        x_range = np.logical_and(x >= x_0 - x_width / 2.0, x <= x_0 + x_width / 2.0)
+        y_range = np.logical_and(y >= y_0 - y_width / 2.0, y <= y_0 + y_width / 2.0)
 
         result = np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
@@ -2368,22 +2584,22 @@ class Box2D(Fittable2DModel):
         dx = self.x_width / 2
         dy = self.y_width / 2
 
-        return ((self.y_0 - dy, self.y_0 + dy),
-                (self.x_0 - dx, self.x_0 + dx))
+        return ((self.y_0 - dy, self.y_0 + dy), (self.x_0 - dx, self.x_0 + dx))
 
     @property
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[1]],
-                'x_width': inputs_unit[self.inputs[0]],
-                'y_width': inputs_unit[self.inputs[1]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[1]],
+            "x_width": inputs_unit[self.inputs[0]],
+            "y_width": inputs_unit[self.inputs[1]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Trapezoid1D(Fittable1DModel):
@@ -2439,8 +2655,8 @@ class Trapezoid1D(Fittable1DModel):
 
         # Compute the four points where the trapezoid changes slope
         # x1 <= x2 <= x3 <= x4
-        x2 = x_0 - width / 2.
-        x3 = x_0 + width / 2.
+        x2 = x_0 - width / 2.0
+        x3 = x_0 + width / 2.0
         x1 = x2 - amplitude / slope
         x4 = x3 + amplitude / slope
 
@@ -2476,10 +2692,12 @@ class Trapezoid1D(Fittable1DModel):
         return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'width': inputs_unit[self.inputs[0]],
-                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "width": inputs_unit[self.inputs[0]],
+            "slope": outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class TrapezoidDisk2D(Fittable2DModel):
@@ -2508,7 +2726,9 @@ class TrapezoidDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0, description="X position of the center of the trapezoid")
     y_0 = Parameter(default=0, description="Y position of the center of the trapezoid")
     R_0 = Parameter(default=1, description="Radius of constant part of trapezoid")
-    slope = Parameter(default=1, description="Slope of tails of trapezoid in x direction")
+    slope = Parameter(
+        default=1, description="Slope of tails of trapezoid in x direction"
+    )
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
@@ -2535,27 +2755,27 @@ class TrapezoidDisk2D(Fittable2DModel):
 
         dr = self.R_0 + self.amplitude / self.slope
 
-        return ((self.y_0 - dr, self.y_0 + dr),
-                (self.x_0 - dr, self.x_0 + dr))
+        return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
 
     @property
     def input_units(self):
         if self.x_0.unit is None and self.y_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
         # units otherwise this can lead to issues since rotation is not well
         # defined.
-        if inputs_unit['x'] != inputs_unit['y']:
+        if inputs_unit["x"] != inputs_unit["y"]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'R_0': inputs_unit[self.inputs[0]],
-                'slope': outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "R_0": inputs_unit[self.inputs[0]],
+            "slope": outputs_unit[self.outputs[0]] / inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class RickerWavelet1D(Fittable1DModel):
@@ -2621,7 +2841,7 @@ class RickerWavelet1D(Fittable1DModel):
     def evaluate(x, amplitude, x_0, sigma):
         """One dimensional Ricker Wavelet model function"""
 
-        xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
+        xx_ww = (x - x_0) ** 2 / (2 * sigma**2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
     def bounding_box(self, factor=10.0):
@@ -2646,9 +2866,11 @@ class RickerWavelet1D(Fittable1DModel):
         return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'sigma': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "sigma": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class RickerWavelet2D(Fittable2DModel):
@@ -2697,15 +2919,14 @@ class RickerWavelet2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
         """Two dimensional Ricker Wavelet model function"""
 
-        rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
-        return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
+        rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma**2)
+        return amplitude * (1 - rr_ww) * np.exp(-rr_ww)
 
     @property
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2713,10 +2934,12 @@ class RickerWavelet2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'sigma': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "sigma": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class AiryDisk2D(Fittable2DModel):
@@ -2764,11 +2987,15 @@ class AiryDisk2D(Fittable2DModel):
     .. [1] https://en.wikipedia.org/wiki/Airy_disk
     """
 
-    amplitude = Parameter(default=1, description="Amplitude (peak value) of the Airy function")
+    amplitude = Parameter(
+        default=1, description="Amplitude (peak value) of the Airy function"
+    )
     x_0 = Parameter(default=0, description="X position of the peak")
     y_0 = Parameter(default=0, description="Y position of the peak")
-    radius = Parameter(default=1,
-                       description="The radius of the Airy disk (radius of first zero crossing)")
+    radius = Parameter(
+        default=1,
+        description="The radius of the Airy disk (radius of first zero crossing)",
+    )
     _rz = None
     _j1 = None
 
@@ -2778,6 +3005,7 @@ class AiryDisk2D(Fittable2DModel):
 
         if cls._rz is None:
             from scipy.special import j1, jn_zeros
+
             cls._rz = jn_zeros(1, 1)[0] / np.pi
             cls._j1 = j1
 
@@ -2804,8 +3032,7 @@ class AiryDisk2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2813,10 +3040,12 @@ class AiryDisk2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'radius': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "radius": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Moffat1D(Fittable1DModel):
@@ -2894,11 +3123,10 @@ class Moffat1D(Fittable1DModel):
     def fit_deriv(x, amplitude, x_0, gamma, alpha):
         """One dimensional Moffat model derivative with respect to parameters"""
 
-        fac = (1 + (x - x_0) ** 2 / gamma ** 2)
+        fac = 1 + (x - x_0) ** 2 / gamma**2
         d_A = fac ** (-alpha)
-        d_x_0 = (2 * amplitude * alpha * (x - x_0) * d_A / (fac * gamma ** 2))
-        d_gamma = (2 * amplitude * alpha * (x - x_0) ** 2 * d_A /
-                   (fac * gamma ** 3))
+        d_x_0 = 2 * amplitude * alpha * (x - x_0) * d_A / (fac * gamma**2)
+        d_gamma = 2 * amplitude * alpha * (x - x_0) ** 2 * d_A / (fac * gamma**3)
         d_alpha = -amplitude * d_A * np.log(fac)
         return [d_A, d_x_0, d_gamma, d_alpha]
 
@@ -2909,9 +3137,11 @@ class Moffat1D(Fittable1DModel):
         return {self.inputs[0]: self.x_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'gamma': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "gamma": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Moffat2D(Fittable2DModel):
@@ -2946,8 +3176,12 @@ class Moffat2D(Fittable2DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude (peak value) of the model")
-    x_0 = Parameter(default=0, description="X position of the maximum of the Moffat model")
-    y_0 = Parameter(default=0, description="Y position of the maximum of the Moffat model")
+    x_0 = Parameter(
+        default=0, description="X position of the maximum of the Moffat model"
+    )
+    y_0 = Parameter(
+        default=0, description="Y position of the maximum of the Moffat model"
+    )
     gamma = Parameter(default=1, description="Core width of the Moffat model")
     alpha = Parameter(default=1, description="Power index of the Moffat model")
 
@@ -2965,22 +3199,19 @@ class Moffat2D(Fittable2DModel):
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
         """Two dimensional Moffat model function"""
 
-        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
         """Two dimensional Moffat model derivative with respect to parameters"""
 
-        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         d_A = (1 + rr_gg) ** (-alpha)
-        d_x_0 = (2 * amplitude * alpha * d_A * (x - x_0) /
-                 (gamma ** 2 * (1 + rr_gg)))
-        d_y_0 = (2 * amplitude * alpha * d_A * (y - y_0) /
-                 (gamma ** 2 * (1 + rr_gg)))
+        d_x_0 = 2 * amplitude * alpha * d_A * (x - x_0) / (gamma**2 * (1 + rr_gg))
+        d_y_0 = 2 * amplitude * alpha * d_A * (y - y_0) / (gamma**2 * (1 + rr_gg))
         d_alpha = -amplitude * d_A * np.log(1 + rr_gg)
-        d_gamma = (2 * amplitude * alpha * d_A * rr_gg /
-                   (gamma * (1 + rr_gg)))
+        d_gamma = 2 * amplitude * alpha * d_A * rr_gg / (gamma * (1 + rr_gg))
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
     @property
@@ -2988,8 +3219,7 @@ class Moffat2D(Fittable2DModel):
         if self.x_0.unit is None:
             return None
         else:
-            return {self.inputs[0]: self.x_0.unit,
-                    self.inputs[1]: self.y_0.unit}
+            return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -2997,10 +3227,12 @@ class Moffat2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'gamma': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "gamma": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Sersic2D(Fittable2DModel):
@@ -3086,9 +3318,12 @@ class Sersic2D(Fittable2DModel):
     x_0 = Parameter(default=0, description="X position of the center")
     y_0 = Parameter(default=0, description="Y position of the center")
     ellip = Parameter(default=0, description="Ellipticity")
-    theta = Parameter(default=0.0, description=("Rotation angle either as a "
-                                                "float (in radians) or a "
-                                                "|Quantity| angle"))
+    theta = Parameter(
+        default=0.0,
+        description=(
+            "Rotation angle either as a float (in radians) or a |Quantity| angle"
+        ),
+    )
     _gammaincinv = None
 
     @classmethod
@@ -3097,9 +3332,10 @@ class Sersic2D(Fittable2DModel):
 
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
+
             cls._gammaincinv = gammaincinv
 
-        bn = cls._gammaincinv(2. * n, 0.5)
+        bn = cls._gammaincinv(2.0 * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
         cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
@@ -3112,8 +3348,7 @@ class Sersic2D(Fittable2DModel):
     def input_units(self):
         if self.x_0.unit is None:
             return None
-        return {self.inputs[0]: self.x_0.unit,
-                self.inputs[1]: self.y_0.unit}
+        return {self.inputs[0]: self.x_0.unit, self.inputs[1]: self.y_0.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         # Note that here we need to make sure that x and y are in the same
@@ -3121,11 +3356,13 @@ class Sersic2D(Fittable2DModel):
         # defined.
         if inputs_unit[self.inputs[0]] != inputs_unit[self.inputs[1]]:
             raise UnitsError("Units of 'x' and 'y' inputs should match")
-        return {'x_0': inputs_unit[self.inputs[0]],
-                'y_0': inputs_unit[self.inputs[0]],
-                'r_eff': inputs_unit[self.inputs[0]],
-                'theta': u.rad,
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "x_0": inputs_unit[self.inputs[0]],
+            "y_0": inputs_unit[self.inputs[0]],
+            "r_eff": inputs_unit[self.inputs[0]],
+            "theta": u.rad,
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class KingProjectedAnalytic1D(Fittable1DModel):
@@ -3188,17 +3425,22 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     .. [1] https://ui.adsabs.harvard.edu/abs/1962AJ.....67..471K
     """
 
-    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
-                          description="Amplitude or scaling factor")
-    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None),
-                       description="Core Radius")
-    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None),
-                       description="Tidal Radius")
+    amplitude = Parameter(
+        default=1,
+        bounds=(FLOAT_EPSILON, None),
+        description="Amplitude or scaling factor",
+    )
+    r_core = Parameter(
+        default=1, bounds=(FLOAT_EPSILON, None), description="Core Radius"
+    )
+    r_tide = Parameter(
+        default=2, bounds=(FLOAT_EPSILON, None), description="Tidal Radius"
+    )
 
     @property
     def concentration(self):
         """Concentration parameter of the king model"""
-        return np.log10(np.abs(self.r_tide/self.r_core))
+        return np.log10(np.abs(self.r_tide / self.r_core))
 
     @staticmethod
     def evaluate(x, amplitude, r_core, r_tide):
@@ -3206,12 +3448,19 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         Analytic King model function.
         """
 
-        result = amplitude * r_core ** 2 * (1/np.sqrt(x ** 2 + r_core ** 2) -
-                                            1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
+        result = (
+            amplitude
+            * r_core**2
+            * (
+                1 / np.sqrt(x**2 + r_core**2)
+                - 1 / np.sqrt(r_tide**2 + r_core**2)
+            )
+            ** 2
+        )
 
         # Set invalid r values to 0
         bounds = (x >= r_tide) | (x < 0)
-        result[bounds] = result[bounds] * 0.
+        result[bounds] = result[bounds] * 0.0
 
         return result
 
@@ -3220,24 +3469,53 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         """
         Analytic King model function derivatives.
         """
-        d_amplitude = r_core ** 2 * (1/np.sqrt(x ** 2 + r_core ** 2) -
-                                     1/np.sqrt(r_tide ** 2 + r_core ** 2)) ** 2
+        d_amplitude = (
+            r_core**2
+            * (
+                1 / np.sqrt(x**2 + r_core**2)
+                - 1 / np.sqrt(r_tide**2 + r_core**2)
+            )
+            ** 2
+        )
 
-        d_r_core = 2 * amplitude * r_core ** 2 * (r_core/(r_core ** 2 + r_tide ** 2) ** (3/2) -
-                                                  r_core/(r_core ** 2 + x ** 2) ** (3/2)) * \
-            (1./np.sqrt(r_core ** 2 + x ** 2) - 1./np.sqrt(r_core ** 2 + r_tide ** 2)) + \
-            2 * amplitude * r_core * (1./np.sqrt(r_core ** 2 + x ** 2) -
-                                      1./np.sqrt(r_core ** 2 + r_tide ** 2)) ** 2
+        d_r_core = (
+            2
+            * amplitude
+            * r_core**2
+            * (
+                r_core / (r_core**2 + r_tide**2) ** (3 / 2)
+                - r_core / (r_core**2 + x**2) ** (3 / 2)
+            )
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
+            + 2
+            * amplitude
+            * r_core
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
+            ** 2
+        )
 
-        d_r_tide = (2 * amplitude * r_core ** 2 * r_tide *
-                    (1./np.sqrt(r_core ** 2 + x ** 2) -
-                     1./np.sqrt(r_core ** 2 + r_tide ** 2)))/(r_core ** 2 + r_tide ** 2) ** (3/2)
+        d_r_tide = (
+            2
+            * amplitude
+            * r_core**2
+            * r_tide
+            * (
+                1.0 / np.sqrt(r_core**2 + x**2)
+                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
+            )
+        ) / (r_core**2 + r_tide**2) ** (3 / 2)
 
         # Set invalid r values to 0
         bounds = (x >= r_tide) | (x < 0)
-        d_amplitude[bounds] = d_amplitude[bounds]*0
-        d_r_core[bounds] = d_r_core[bounds]*0
-        d_r_tide[bounds] = d_r_tide[bounds]*0
+        d_amplitude[bounds] = d_amplitude[bounds] * 0
+        d_r_core[bounds] = d_r_core[bounds] * 0
+        d_r_tide[bounds] = d_r_tide[bounds] * 0
 
         return [d_amplitude, d_r_core, d_r_tide]
 
@@ -3260,9 +3538,11 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         return {self.inputs[0]: self.r_core.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'r_core': inputs_unit[self.inputs[0]],
-                'r_tide': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "r_core": inputs_unit[self.inputs[0]],
+            "r_tide": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Logarithmic1D(Fittable1DModel):
@@ -3310,8 +3590,10 @@ class Logarithmic1D(Fittable1DModel):
         return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'tau': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "tau": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
 
 
 class Exponential1D(Fittable1DModel):
@@ -3327,6 +3609,7 @@ class Exponential1D(Fittable1DModel):
     --------
     Logarithmic1D, Gaussian1D
     """
+
     amplitude = Parameter(default=1)
     tau = Parameter(default=1)
 
@@ -3336,7 +3619,7 @@ class Exponential1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, tau):
-        ''' Derivative with respect to parameters'''
+        """Derivative with respect to parameters"""
         d_amplitude = np.exp(x / tau)
         d_tau = -amplitude * (x / tau**2) * np.exp(x / tau)
         return [d_amplitude, d_tau]
@@ -3349,7 +3632,7 @@ class Exponential1D(Fittable1DModel):
 
     @tau.validator
     def tau(self, val):
-        ''' tau cannot be 0'''
+        """tau cannot be 0"""
         if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
 
@@ -3360,5 +3643,7 @@ class Exponential1D(Fittable1DModel):
         return {self.inputs[0]: self.tau.unit}
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'tau': inputs_unit[self.inputs[0]],
-                'amplitude': outputs_unit[self.outputs[0]]}
+        return {
+            "tau": inputs_unit[self.inputs[0]],
+            "amplitude": outputs_unit[self.outputs[0]],
+        }
