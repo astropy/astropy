@@ -15,14 +15,14 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
-HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
-META_KEY = '__table_column_meta__'
+HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
+META_KEY = "__table_column_meta__"
 
-__all__ = ['read_table_hdf5', 'write_table_hdf5']
+__all__ = ["read_table_hdf5", "write_table_hdf5"]
 
 
 def meta_path(path):
-    return path + '.' + META_KEY
+    return path + "." + META_KEY
 
 
 def _find_all_structured_arrays(handle):
@@ -30,17 +30,18 @@ def _find_all_structured_arrays(handle):
     Find all structured arrays in an HDF5 file
     """
     import h5py
+
     structured_arrays = []
 
     def append_structured_arrays(name, obj):
-        if isinstance(obj, h5py.Dataset) and obj.dtype.kind == 'V':
+        if isinstance(obj, h5py.Dataset) and obj.dtype.kind == "V":
             structured_arrays.append(name)
+
     handle.visititems(append_structured_arrays)
     return structured_arrays
 
 
 def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
-
     if fileobj is not None:
         loc = fileobj.tell()
         try:
@@ -49,7 +50,7 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
             fileobj.seek(loc)
         return signature == HDF5_SIGNATURE
     elif filepath is not None:
-        return filepath.endswith(('.hdf5', '.h5'))
+        return filepath.endswith((".hdf5", ".h5"))
 
     try:
         import h5py
@@ -93,7 +94,6 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     # right.
     input_save = input
     if isinstance(input, (h5py.File, h5py.Group)):
-
         # If a path was specified, follow the path
 
         if path is not None:
@@ -108,27 +108,27 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         # dataset, we just proceed with the reading.
 
         if isinstance(input, h5py.Group):
-
             # Find all structured arrays in group
             arrays = _find_all_structured_arrays(input)
 
             if len(arrays) == 0:
                 raise ValueError(f"no table found in HDF5 group {path}")
             elif len(arrays) > 0:
-                path = arrays[0] if path is None else path + '/' + arrays[0]
+                path = arrays[0] if path is None else path + "/" + arrays[0]
                 if len(arrays) > 1:
-                    warnings.warn("path= was not specified but multiple tables"
-                                  " are present, reading in first available"
-                                  " table (path={})".format(path),
-                                  AstropyUserWarning)
+                    warnings.warn(
+                        "path= was not specified but multiple tables"
+                        " are present, reading in first available"
+                        " table (path={})".format(path),
+                        AstropyUserWarning,
+                    )
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.Dataset):
-
         # If a file object was passed, then we need to extract the filename
         # because h5py cannot properly read in file objects.
 
-        if hasattr(input, 'read'):
+        if hasattr(input, "read"):
             try:
                 input = input.name
             except AttributeError:
@@ -137,7 +137,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         # Open the file for reading, and recursively call read_table_hdf5 with
         # the file object and the path.
 
-        f = h5py.File(input, 'r')
+        f = h5py.File(input, "r")
 
         try:
             return read_table_hdf5(f, path=path, character_as_bytes=character_as_bytes)
@@ -162,17 +162,19 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     if old_version_meta or new_version_meta:
         if new_version_meta:
             header = meta.get_header_from_yaml(
-                h.decode('utf-8') for h in input_save[meta_path(path)])
+                h.decode("utf-8") for h in input_save[meta_path(path)]
+            )
         else:
             # Must be old_version_meta is True. if (A or B) and not A then B is True
             header = meta.get_header_from_yaml(
-                h.decode('utf-8') for h in input.attrs[META_KEY])
-        if 'meta' in list(header.keys()):
-            table.meta = header['meta']
+                h.decode("utf-8") for h in input.attrs[META_KEY]
+            )
+        if "meta" in list(header.keys()):
+            table.meta = header["meta"]
 
-        header_cols = {x['name']: x for x in header['datatype']}
+        header_cols = {x["name"]: x for x in header["datatype"]}
         for col in table.columns.values():
-            for attr in ('description', 'format', 'unit', 'meta'):
+            for attr in ("description", "format", "unit", "meta"):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
 
@@ -199,15 +201,22 @@ def _encode_mixins(tbl):
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.
-    with serialize_context_as('hdf5'):
+    with serialize_context_as("hdf5"):
         encode_tbl = serialize.represent_mixins_as_columns(tbl)
 
     return encode_tbl
 
 
-def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False, serialize_meta=False,
-                     **create_dataset_kwargs):
+def write_table_hdf5(
+    table,
+    output,
+    path=None,
+    compression=False,
+    append=False,
+    overwrite=False,
+    serialize_meta=False,
+    **create_dataset_kwargs,
+):
     """
     Write a Table object to an HDF5 file
 
@@ -246,6 +255,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     """
 
     from astropy.table import meta
+
     try:
         import h5py
     except ImportError:
@@ -253,23 +263,27 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     if path is None:
         # table is just an arbitrary, hardcoded string here.
-        path = '__astropy_table__'
-    elif path.endswith('/'):
+        path = "__astropy_table__"
+    elif path.endswith("/"):
         raise ValueError("table path should end with table name, not /")
 
-    if '/' in path:
-        group, name = path.rsplit('/', 1)
+    if "/" in path:
+        group, name = path.rsplit("/", 1)
     else:
         group, name = None, path
 
     if isinstance(output, (h5py.File, h5py.Group)):
-        if len(list(output.keys())) > 0 and name == '__astropy_table__':
-            raise ValueError("table path should always be set via the "
-                             "path= argument when writing to existing "
-                             "files")
-        elif name == '__astropy_table__':
-            warnings.warn("table path was not set via the path= argument; "
-                          "using default path {}".format(path))
+        if len(list(output.keys())) > 0 and name == "__astropy_table__":
+            raise ValueError(
+                "table path should always be set via the "
+                "path= argument when writing to existing "
+                "files"
+            )
+        elif name == "__astropy_table__":
+            warnings.warn(
+                "table path was not set via the path= argument; "
+                "using default path {}".format(path)
+            )
 
         if group:
             try:
@@ -280,7 +294,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
             output_group = output
 
     elif isinstance(output, str):
-
         if os.path.exists(output) and not append:
             if overwrite and not append:
                 os.remove(output)
@@ -288,29 +301,32 @@ def write_table_hdf5(table, output, path=None, compression=False,
                 raise OSError(NOT_OVERWRITING_MSG.format(output))
 
         # Open the file for appending or writing
-        f = h5py.File(output, 'a' if append else 'w')
+        f = h5py.File(output, "a" if append else "w")
 
         # Recursively call the write function
         try:
-            return write_table_hdf5(table, f, path=path,
-                                    compression=compression, append=append,
-                                    overwrite=overwrite,
-                                    serialize_meta=serialize_meta)
+            return write_table_hdf5(
+                table,
+                f,
+                path=path,
+                compression=compression,
+                append=append,
+                overwrite=overwrite,
+                serialize_meta=serialize_meta,
+            )
         finally:
             f.close()
 
     else:
-
-        raise TypeError('output should be a string or an h5py File or '
-                        'Group object')
+        raise TypeError("output should be a string or an h5py File or Group object")
 
     # Check whether table already exists
     if name in output_group:
         if append and overwrite:
             # Delete only the dataset itself
             del output_group[name]
-            if serialize_meta and name + '.__table_column_meta__' in output_group:
-                del output_group[name + '.__table_column_meta__']
+            if serialize_meta and name + ".__table_column_meta__" in output_group:
+                del output_group[name + ".__table_column_meta__"]
         else:
             raise OSError(f"Table {path} already exists")
 
@@ -320,7 +336,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     # Table with numpy unicode strings can't be written in HDF5 so
     # to write such a table a copy of table is made containing columns as
     # bytestrings.  Now this copy of the table can be written in HDF5.
-    if any(col.info.dtype.kind == 'U' for col in table.itercols()):
+    if any(col.info.dtype.kind == "U" for col in table.itercols()):
         table = table.copy(copy_data=False)
         table.convert_unicode_to_bytestring()
 
@@ -329,29 +345,34 @@ def write_table_hdf5(table, output, path=None, compression=False,
     # HDF5 can store natively (name, dtype) with no meta.
     if serialize_meta is False:
         for col in table.itercols():
-            for attr in ('unit', 'format', 'description', 'meta'):
+            for attr in ("unit", "format", "description", "meta"):
                 if getattr(col.info, attr, None) not in (None, {}):
-                    warnings.warn("table contains column(s) with defined 'unit', 'format',"
-                                  " 'description', or 'meta' info attributes. These will"
-                                  " be dropped since serialize_meta=False.",
-                                  AstropyUserWarning)
+                    warnings.warn(
+                        "table contains column(s) with defined 'unit', 'format',"
+                        " 'description', or 'meta' info attributes. These will"
+                        " be dropped since serialize_meta=False.",
+                        AstropyUserWarning,
+                    )
 
     # Write the table to the file
     if compression:
         if compression is True:
-            compression = 'gzip'
-        dset = output_group.create_dataset(name, data=table.as_array(),
-                                           compression=compression,
-                                           **create_dataset_kwargs)
+            compression = "gzip"
+        dset = output_group.create_dataset(
+            name,
+            data=table.as_array(),
+            compression=compression,
+            **create_dataset_kwargs,
+        )
     else:
-        dset = output_group.create_dataset(name, data=table.as_array(),
-                                           **create_dataset_kwargs)
+        dset = output_group.create_dataset(
+            name, data=table.as_array(), **create_dataset_kwargs
+        )
 
     if serialize_meta:
         header_yaml = meta.get_yaml_from_table(table)
-        header_encoded = np.array([h.encode('utf-8') for h in header_yaml])
-        output_group.create_dataset(meta_path(name),
-                                    data=header_encoded)
+        header_encoded = np.array([h.encode("utf-8") for h in header_yaml])
+        output_group.create_dataset(meta_path(name), data=header_encoded)
 
     else:
         # Write the Table meta dict key:value pairs to the file as HDF5
@@ -363,10 +384,14 @@ def write_table_hdf5(table, output, path=None, compression=False,
             try:
                 dset.attrs[key] = val
             except TypeError:
-                warnings.warn("Attribute `{}` of type {} cannot be written to "
-                              "HDF5 files - skipping. (Consider specifying "
-                              "serialize_meta=True to write all meta data)".format(key, type(val)),
-                              AstropyUserWarning)
+                warnings.warn(
+                    "Attribute `{}` of type {} cannot be written to "
+                    "HDF5 files - skipping. (Consider specifying "
+                    "serialize_meta=True to write all meta data)".format(
+                        key, type(val)
+                    ),
+                    AstropyUserWarning,
+                )
 
 
 def register_hdf5():
@@ -376,6 +401,6 @@ def register_hdf5():
     from astropy.io import registry as io_registry
     from astropy.table import Table
 
-    io_registry.register_reader('hdf5', Table, read_table_hdf5)
-    io_registry.register_writer('hdf5', Table, write_table_hdf5)
-    io_registry.register_identifier('hdf5', Table, is_hdf5)
+    io_registry.register_reader("hdf5", Table, read_table_hdf5)
+    io_registry.register_writer("hdf5", Table, write_table_hdf5)
+    io_registry.register_identifier("hdf5", Table, is_hdf5)

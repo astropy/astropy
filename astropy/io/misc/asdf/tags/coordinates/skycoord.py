@@ -5,7 +5,7 @@ from astropy.io.misc.asdf.types import AstropyType
 
 
 class SkyCoordType(AstropyType):
-    name = 'coordinates/skycoord'
+    name = "coordinates/skycoord"
     types = [SkyCoord]
     version = "1.0.0"
 

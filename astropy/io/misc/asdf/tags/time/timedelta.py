@@ -6,19 +6,21 @@ import numpy as np
 from astropy.io.misc.asdf.types import AstropyType
 from astropy.time import TimeDelta
 
-__all__ = ['TimeDeltaType']
+__all__ = ["TimeDeltaType"]
 
-allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
-allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52)  # 20 ps atol
-allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
-                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
+allclose_jd = functools.partial(np.allclose, rtol=2.0**-52, atol=0)
+allclose_jd2 = functools.partial(
+    np.allclose, rtol=2.0**-52, atol=2.0**-52
+)  # 20 ps atol
+allclose_sec = functools.partial(
+    np.allclose, rtol=2.0**-52, atol=2.0**-52 * 24 * 3600
+)  # 20 ps atol
 
 
 class TimeDeltaType(AstropyType):
-    name = 'time/timedelta'
+    name = "time/timedelta"
     types = [TimeDelta]
-    version = '1.0.0'
+    version = "1.0.0"
 
     @classmethod
     def to_tree(cls, obj, ctx):
