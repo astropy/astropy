@@ -6,13 +6,12 @@ import time
 
 from astropy.samp import SAMP_STATUS_OK
 
-TEST_REPLY = {"samp.status": SAMP_STATUS_OK,
-              "samp.result": {"txt": "test"}}
+TEST_REPLY = {"samp.status": SAMP_STATUS_OK, "samp.result": {"txt": "test"}}
 
 
 def write_output(mtype, private_key, sender_id, params):
-    filename = params['verification_file']
-    f = open(filename, 'wb')
+    filename = params["verification_file"]
+    f = open(filename, "wb")
     pickle.dump(mtype, f)
     pickle.dump(private_key, f)
     pickle.dump(sender_id, f)
@@ -21,11 +20,11 @@ def write_output(mtype, private_key, sender_id, params):
 
 
 def assert_output(mtype, private_key, sender_id, params, timeout=None):
-    filename = params['verification_file']
+    filename = params["verification_file"]
     start = time.time()
     while True:
         try:
-            with open(filename, 'rb') as f:
+            with open(filename, "rb") as f:
                 rec_mtype = pickle.load(f)
                 rec_private_key = pickle.load(f)
                 rec_sender_id = pickle.load(f)
@@ -42,7 +41,6 @@ def assert_output(mtype, private_key, sender_id, params, timeout=None):
 
 
 class Receiver:
-
     def __init__(self, client):
         self.client = client
 
@@ -61,10 +59,12 @@ class Receiver:
 
 
 def random_id(length=16):
-    return ''.join(random.sample(string.ascii_letters + string.digits, length))
+    return "".join(random.sample(string.ascii_letters + string.digits, length))
 
 
 def random_params(directory):
-    return {'verification_file': os.path.join(directory, random_id()),
-            'parameter1': 'abcde',
-            'parameter2': 1331}
+    return {
+        "verification_file": os.path.join(directory, random_id()),
+        "parameter1": "abcde",
+        "parameter2": 1331,
+    }

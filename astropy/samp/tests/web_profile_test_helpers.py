@@ -11,7 +11,6 @@ from astropy.samp.utils import ServerProxyPool
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
-
     def __init__(self):
         self.polling = True
         WebProfileDialog.__init__(self)
@@ -51,9 +50,12 @@ class SAMPWebHubProxy(SAMPHubProxy):
         self._connected = False
 
         try:
-            self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                         f'http://127.0.0.1:{web_port}',
-                                         allow_none=1)
+            self.proxy = ServerProxyPool(
+                pool_size,
+                xmlrpc.ServerProxy,
+                f"http://127.0.0.1:{web_port}",
+                allow_none=1,
+            )
             self.ping()
             self._connected = True
         except xmlrpc.ProtocolError as p:
@@ -68,8 +70,9 @@ class SAMPWebHubProxy(SAMPHubProxy):
         return self.proxy.samp.webhub
 
     def set_xmlrpc_callback(self, private_key, xmlrpc_addr):
-        raise NotImplementedError("set_xmlrpc_callback is not defined for the "
-                                  "web profile")
+        raise NotImplementedError(
+            "set_xmlrpc_callback is not defined for the web profile"
+        )
 
     def register(self, identity_info):
         """
@@ -120,9 +123,7 @@ class SAMPWebClient(SAMPClient):
         receive any.
     """
 
-    def __init__(self, hub, name=None, description=None, metadata=None,
-                 callable=True):
-
+    def __init__(self, hub, name=None, description=None, metadata=None, callable=True):
         # GENERAL
         self._is_running = False
         self._is_registered = False
@@ -146,8 +147,10 @@ class SAMPWebClient(SAMPClient):
         self._private_key = None
         self._hub_id = None
         self._notification_bindings = {}
-        self._call_bindings = {"samp.app.ping": [self._ping, {}],
-                               "client.env.get": [self._client_env_get, {}]}
+        self._call_bindings = {
+            "samp.app.ping": [self._ping, {}],
+            "client.env.get": [self._client_env_get, {}],
+        }
         self._response_bindings = {}
 
         self.hub = hub
@@ -170,15 +173,14 @@ class SAMPWebClient(SAMPClient):
 
                 results = self.hub.pull_callbacks(self.get_private_key(), 0)
                 for result in results:
-                    if result['samp.methodName'] == 'receiveNotification':
-                        self.receive_notification(self._private_key,
-                                                  *result['samp.params'])
-                    elif result['samp.methodName'] == 'receiveCall':
-                        self.receive_call(self._private_key,
-                                          *result['samp.params'])
-                    elif result['samp.methodName'] == 'receiveResponse':
-                        self.receive_response(self._private_key,
-                                              *result['samp.params'])
+                    if result["samp.methodName"] == "receiveNotification":
+                        self.receive_notification(
+                            self._private_key, *result["samp.params"]
+                        )
+                    elif result["samp.methodName"] == "receiveCall":
+                        self.receive_call(self._private_key, *result["samp.params"])
+                    elif result["samp.methodName"] == "receiveResponse":
+                        self.receive_response(self._private_key, *result["samp.params"])
 
         self.hub.disconnect()
 
@@ -187,19 +189,20 @@ class SAMPWebClient(SAMPClient):
         Register the client to the SAMP Hub.
         """
         if self.hub.is_connected:
-
             if self._private_key is not None:
                 raise SAMPClientError("Client already registered")
 
             result = self.hub.register("Astropy SAMP Web Client")
 
             if result["samp.self-id"] == "":
-                raise SAMPClientError("Registation failed - samp.self-id "
-                                      "was not set by the hub.")
+                raise SAMPClientError(
+                    "Registation failed - samp.self-id was not set by the hub."
+                )
 
             if result["samp.private-key"] == "":
-                raise SAMPClientError("Registation failed - samp.private-key "
-                                      "was not set by the hub.")
+                raise SAMPClientError(
+                    "Registation failed - samp.private-key was not set by the hub."
+                )
 
             self._public_id = result["samp.self-id"]
             self._private_key = result["samp.private-key"]
@@ -217,8 +220,9 @@ class SAMPWebClient(SAMPClient):
             self._registered_event.set()
 
         else:
-            raise SAMPClientError("Unable to register to the SAMP Hub. Hub "
-                                  "proxy not connected.")
+            raise SAMPClientError(
+                "Unable to register to the SAMP Hub. Hub proxy not connected."
+            )
 
     def unregister(self):
         # We have to hold the registration lock if the client is callable
@@ -258,13 +262,10 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
         receive any.
     """
 
-    def __init__(self, name=None, description=None, metadata=None,
-                 callable=True):
-
+    def __init__(self, name=None, description=None, metadata=None, callable=True):
         self.hub = SAMPWebHubProxy()
 
-        self.client = SAMPWebClient(self.hub, name, description, metadata,
-                                    callable)
+        self.client = SAMPWebClient(self.hub, name, description, metadata, callable)
 
     def connect(self, pool_size=20, web_port=21012):
         """
