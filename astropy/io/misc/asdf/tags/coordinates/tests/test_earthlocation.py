@@ -2,7 +2,7 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 
 from astropy import units as u  # noqa: E402
@@ -12,26 +12,25 @@ from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation  # noqa: E402
 
 @pytest.fixture
 def position():
-
-    lon = Longitude([0., 45., 90., 135., 180., -180, -90, -45], u.deg,
-                    wrap_angle=180*u.deg)
-    lat = Latitude([+0., 30., 60., +90., -90., -60., -30., 0.], u.deg)
-    h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11., -.1], u.m)
+    lon = Longitude(
+        [0.0, 45.0, 90.0, 135.0, 180.0, -180, -90, -45], u.deg, wrap_angle=180 * u.deg
+    )
+    lat = Latitude([+0.0, 30.0, 60.0, +90.0, -90.0, -60.0, -30.0, 0.0], u.deg)
+    h = u.Quantity([0.1, 0.5, 1.0, -0.5, -1.0, +4.2, -11.0, -0.1], u.m)
 
     return lon, lat, h
 
 
 def test_earthlocation_quantity(tmpdir):
-
-    location = EarthLocation(lat=34.4900*u.deg, lon=-104.221800*u.deg,
-                             height=40*u.km)
+    location = EarthLocation(
+        lat=34.4900 * u.deg, lon=-104.221800 * u.deg, height=40 * u.km
+    )
 
     tree = dict(location=location)
     assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_earthlocation(position, tmpdir):
-
     x, y, z = EarthLocation.from_geodetic(*position).to_geocentric()
     geocentric = EarthLocation(x, y, z)
 
@@ -39,9 +38,8 @@ def test_earthlocation(position, tmpdir):
     assert_roundtrip_tree(tree, tmpdir)
 
 
-@pytest.mark.parametrize('ellipsoid', ELLIPSOIDS)
+@pytest.mark.parametrize("ellipsoid", ELLIPSOIDS)
 def test_earthlocation_geodetic(position, ellipsoid, tmpdir):
-
     location = EarthLocation.from_geodetic(*position, ellipsoid=ellipsoid)
 
     tree = dict(location=location)
@@ -49,10 +47,10 @@ def test_earthlocation_geodetic(position, ellipsoid, tmpdir):
 
 
 def test_earthlocation_site(tmpdir):
-    orig_sites = getattr(EarthLocation, '_site_registry', None)
+    orig_sites = getattr(EarthLocation, "_site_registry", None)
     try:
         EarthLocation._get_site_registry(force_builtin=True)
-        rog = EarthLocation.of_site('greenwich')
+        rog = EarthLocation.of_site("greenwich")
         tree = dict(location=rog)
         assert_roundtrip_tree(tree, tmpdir)
     finally:

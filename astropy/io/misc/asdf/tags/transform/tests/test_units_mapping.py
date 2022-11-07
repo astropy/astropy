@@ -52,16 +52,22 @@ def test_accept_any_units(tmpdir):
 
 
 def test_with_equivalencies(tmpdir):
-    m = UnitsMapping(((u.m, u.dimensionless_unscaled),),
-                     input_units_equivalencies={"x": u.equivalencies.spectral()})
+    m = UnitsMapping(
+        ((u.m, u.dimensionless_unscaled),),
+        input_units_equivalencies={"x": u.equivalencies.spectral()},
+    )
     assert_model_roundtrip(m, tmpdir)
 
 
 def test_with_allow_dimensionless(tmpdir):
-    m = UnitsMapping(((u.m, u.dimensionless_unscaled), (u.s, u.Hz)),
-                     input_units_allow_dimensionless=True)
+    m = UnitsMapping(
+        ((u.m, u.dimensionless_unscaled), (u.s, u.Hz)),
+        input_units_allow_dimensionless=True,
+    )
     assert_model_roundtrip(m, tmpdir)
 
-    m = UnitsMapping(((u.m, u.dimensionless_unscaled), (u.s, u.Hz)),
-                     input_units_allow_dimensionless={"x0": True, "x1": False})
+    m = UnitsMapping(
+        ((u.m, u.dimensionless_unscaled), (u.s, u.Hz)),
+        input_units_allow_dimensionless={"x0": True, "x1": False},
+    )
     assert_model_roundtrip(m, tmpdir)
