@@ -35,7 +35,6 @@ def read_lockfile(lockfilename):
 
 
 def write_lockfile(lockfilename, lockfiledict):
-
     lockfile = open(lockfilename, "w")
     lockfile.close()
     os.chmod(lockfilename, stat.S_IREAD + stat.S_IWRITE)
@@ -49,9 +48,7 @@ def write_lockfile(lockfilename, lockfiledict):
     lockfile.close()
 
 
-def create_lock_file(lockfilename=None, mode=None, hub_id=None,
-                     hub_params=None):
-
+def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None):
     # Remove lock-files of dead hubs
     remove_garbage_lock_files()
 
@@ -61,28 +58,26 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
             lockfile_parsed = urlparse(lockfilename)
 
-            if lockfile_parsed[0] != 'file':
-                warnings.warn("Unable to start a Hub with lockfile {}. "
-                              "Start-up process aborted.".format(lockfilename),
-                              SAMPWarning)
+            if lockfile_parsed[0] != "file":
+                warnings.warn(
+                    "Unable to start a Hub with lockfile {}. "
+                    "Start-up process aborted.".format(lockfilename),
+                    SAMPWarning,
+                )
                 return False
             else:
                 lockfilename = lockfile_parsed[2]
     else:
-
         # If it is a fresh Hub instance
         if lockfilename is None:
-
             log.debug("Running mode: " + mode)
 
-            if mode == 'single':
+            if mode == "single":
                 lockfilename = os.path.join(_find_home(), ".samp")
             else:
-
                 lockfiledir = os.path.join(_find_home(), ".samp-1")
 
                 # If missing create .samp-1 directory
@@ -91,11 +86,9 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
                 except OSError:
                     pass  # directory already exists
                 finally:
-                    os.chmod(lockfiledir,
-                             stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
+                    os.chmod(lockfiledir, stat.S_IREAD + stat.S_IWRITE + stat.S_IEXEC)
 
-                lockfilename = os.path.join(lockfiledir,
-                                            f"samp-hub-{hub_id}")
+                lockfilename = os.path.join(lockfiledir, f"samp-hub-{hub_id}")
 
         else:
             log.debug("Running mode: multiple")
@@ -103,8 +96,10 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None,
     hub_is_running, lockfiledict = check_running_hub(lockfilename)
 
     if hub_is_running:
-        warnings.warn("Another SAMP Hub is already running. Start-up process "
-                      "aborted.", SAMPWarning)
+        warnings.warn(
+            "Another SAMP Hub is already running. Start-up process aborted.",
+            SAMPWarning,
+        )
         return False
 
     log.debug("Lock-file: " + lockfilename)
@@ -128,7 +123,7 @@ def get_main_running_hub():
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
         else:
             raise SAMPHubError("SAMP Hub profile not supported.")
     else:
@@ -164,7 +159,7 @@ def get_running_hubs():
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
     else:
         lockfilename = os.path.join(_find_home(), ".samp")
 
@@ -181,7 +176,7 @@ def get_running_hubs():
 
     if os.path.isdir(lockfiledir):
         for filename in os.listdir(lockfiledir):
-            if filename.startswith('samp-hub'):
+            if filename.startswith("samp-hub"):
                 lockfilename = os.path.join(lockfiledir, filename)
                 hub_is_running, lockfiledict = check_running_hub(lockfilename)
                 if hub_is_running:
@@ -218,8 +213,9 @@ def check_running_hub(lockfilename):
 
     if "samp.hub.xmlrpc.url" in lockfiledict:
         try:
-            proxy = xmlrpc.ServerProxy(lockfiledict["samp.hub.xmlrpc.url"]
-                                       .replace("\\", ""), allow_none=1)
+            proxy = xmlrpc.ServerProxy(
+                lockfiledict["samp.hub.xmlrpc.url"].replace("\\", ""), allow_none=1
+            )
             proxy.samp.hub.ping()
             is_running = True
         except xmlrpc.ProtocolError:
@@ -233,7 +229,6 @@ def check_running_hub(lockfilename):
 
 
 def remove_garbage_lock_files():
-
     lockfilename = ""
 
     # HUB SINGLE INSTANCE MODE
@@ -254,7 +249,7 @@ def remove_garbage_lock_files():
 
     if os.path.isdir(lockfiledir):
         for filename in os.listdir(lockfiledir):
-            if filename.startswith('samp-hub'):
+            if filename.startswith("samp-hub"):
                 lockfilename = os.path.join(lockfiledir, filename)
                 hub_is_running, lockfiledict = check_running_hub(lockfilename)
                 if not hub_is_running:
