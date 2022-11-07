@@ -193,6 +193,8 @@ class UnknownSiteException(KeyError):
     def __init__(self, site, attribute, close_names=None):
         message = (
             f"Site '{site}' not in database. Use {attribute} to see available sites."
+            f" If '{site}' exists in the online astropy-data repository, use the"
+            " 'refresh_cache=True' option to download the latest version."
         )
         if close_names:
             message += " Did you mean one of: '{}'?'".format("', '".join(close_names))

@@ -325,7 +325,7 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an |EarthLocation| - the
-:func:`~astropy.coordinates.EarthLocation.of_site` classmethod:
+:meth:`~astropy.coordinates.EarthLocation.of_site` classmethod:
 
 .. doctest-remote-data::
 
@@ -335,13 +335,26 @@ a quick way to get an |EarthLocation| - the
     <EarthLocation (-1463969.30185172, -5166673.34223433, 3434985.71204565) m>
 
 To see the list of site names available, use
-:func:`~astropy.coordinates.EarthLocation.get_site_names`::
+:meth:`~astropy.coordinates.EarthLocation.get_site_names`::
 
     >>> EarthLocation.get_site_names()  # doctest: +REMOTE_DATA
     ['ALMA', 'AO', 'ARCA', ...]
 
+Both :meth:`~astropy.coordinates.EarthLocation.of_site` and
+:meth:`~astropy.coordinates.EarthLocation.get_site_names`,
+`astropy.coordinates` attempt to access the site registry from the
+`astropy-data repository <https://github.com/astropy/astropy-data>`_ and will
+save the registry in the user's local cache (see :ref:`utils-data`).  If
+there is no local cache and Internet connection is not available, a built-in
+list (consisting of only the Greenwich Royal Observatory as an example case) is
+loaded. The cached version of the site registry is not updated automatically,
+but the latest version may be downloaded using the ``refresh_cache=True``
+option of these methods. If you would like a site to be added to the registry,
+issue a pull request to the `astropy-data repository
+<https://github.com/astropy/astropy-data>`_.
+
 For arbitrary Earth addresses (e.g., not observatory sites), use the
-:func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
+:meth:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
 the latitude and longitude. This works with fully specified addresses, location
 names, city names, etc:
 
@@ -367,9 +380,9 @@ longitude and latitude, but only with the Google queries::
     geocoding API...
 
 .. note::
-    :func:`~astropy.coordinates.SkyCoord.from_name`,
-    :func:`~astropy.coordinates.EarthLocation.of_site`, and
-    :func:`~astropy.coordinates.EarthLocation.of_address` are designed for
+    :meth:`~astropy.coordinates.SkyCoord.from_name`,
+    :meth:`~astropy.coordinates.EarthLocation.of_site`, and
+    :meth:`~astropy.coordinates.EarthLocation.of_address` are designed for
     convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery

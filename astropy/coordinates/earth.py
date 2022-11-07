@@ -319,7 +319,7 @@ class EarthLocation(u.Quantity):
         return self
 
     @classmethod
-    def of_site(cls, site_name):
+    def of_site(cls, site_name, *, refresh_cache=False):
         """
         Return an object of this class for a known observatory/site by name.
 
@@ -331,21 +331,26 @@ class EarthLocation(u.Quantity):
         dictionary of sites obtained using this method (see the examples below).
 
         .. note::
-            When this function is called, it will attempt to download site
-            information from the astropy data server. If you would like a site
-            to be added, issue a pull request to the
+            This function is meant to access the site registry from the astropy
+            data server, which is saved in the user's local cache.  If you would
+            like a site to be added there, issue a pull request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
-            If a site cannot be found in the registry (i.e., an internet
-            connection is not available), it will fall back on a built-in list,
-            In the future, this bundled list might include a version-controlled
-            list of canonical observatories extracted from the online version,
-            but it currently only contains the Greenwich Royal Observatory as an
-            example case.
+            If the cache already exists the function will use it even if the
+            version in the astropy-data repository has been updated unless the
+            ``refresh_cache=True`` option is used.  If there is no cache and the
+            online version cannot be reached, this function falls back on a
+            built-in list, which currently only contains the Greenwich Royal
+            Observatory as an example case.
 
         Parameters
         ----------
         site_name : str
             Name of the observatory (case-insensitive).
+        refresh_cache : bool, optional
+            If `True`, force replacement of the cached registry with a
+            newly downloaded version.  (Default: `False`)
+
+            .. versionadded:: 5.3
 
         Returns
         -------
@@ -372,7 +377,7 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        registry = cls._get_site_registry()
+        registry = cls._get_site_registry(force_download=refresh_cache)
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
@@ -488,19 +493,30 @@ class EarthLocation(u.Quantity):
         return cls.from_geodetic(lon=lon * u.deg, lat=lat * u.deg, height=height)
 
     @classmethod
-    def get_site_names(cls):
+    def get_site_names(cls, *, refresh_cache=False):
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
 
         .. note::
-            When this function is called, it will first attempt to
-            download site information from the astropy data server.  If it
-            cannot (i.e., an internet connection is not available), it will fall
-            back on the list included with astropy (which is a limited and dated
-            set of sites).  If you think a site should be added, issue a pull
-            request to the
+            This function is meant to access the site registry from the astropy
+            data server, which is saved in the user's local cache.  If you would
+            like a site to be added there, issue a pull request to the
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
+            If the cache already exists the function will use it even if the
+            version in the astropy-data repository has been updated unless the
+            ``refresh_cache=True`` option is used.  If there is no cache and the
+            online version cannot be reached, this function falls back on a
+            built-in list, which currently only contains the Greenwich Royal
+            Observatory as an example case.
+
+        Parameters
+        ----------
+        refresh_cache : bool, optional
+            If `True`, force replacement of the cached registry with a
+            newly downloaded version.  (Default: `False`)
+
+            .. versionadded:: 5.3
 
         Returns
         -------
@@ -512,7 +528,7 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
             this returns.
         """
-        return cls._get_site_registry().names
+        return cls._get_site_registry(force_download=refresh_cache).names
 
     @classmethod
     def _get_site_registry(cls, force_download=False, force_builtin=False):
@@ -555,12 +571,11 @@ class EarthLocation(u.Quantity):
                     if force_download:
                         raise
                     msg = (
-                        "Could not access the online site list. Falling "
-                        "back on the built-in version, which is rather "
-                        "limited. If you want to retry the download, do "
-                        "{0}._get_site_registry(force_download=True)"
+                        "Could not access the main site list. Falling back on the "
+                        "built-in version, which is rather limited. If you want to "
+                        "retry the download, use the option 'refresh_cache=True'."
                     )
-                    warn(AstropyUserWarning(msg.format(cls.__name__)))
+                    warn(msg, AstropyUserWarning)
                     reg = get_builtin_sites()
                 cls._site_registry = reg
 
