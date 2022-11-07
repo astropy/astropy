@@ -86,6 +86,38 @@ def test_EarthLocation_basic():
         EarthLocation.of_site("nonexistent")
 
 
+@pytest.mark.parametrize(
+    "class_method,args",
+    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
+)
+def test_Earthlocation_refresh_cache_is_mandatory_kwarg(class_method, args):
+    with pytest.raises(
+        TypeError,
+        match=(
+            rf".*{class_method.__name__}\(\) takes [12] positional "
+            "arguments? but [23] were given$"
+        ),
+    ):
+        class_method(*args, False)
+
+
+@pytest.mark.parametrize(
+    "class_method,args",
+    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
+)
+@pytest.mark.parametrize("refresh_cache", [False, True])
+def test_Earthlocation_refresh_cache(class_method, args, refresh_cache, monkeypatch):
+    def get_site_registry_monkeypatched(force_download, force_builtin=False):
+        assert force_download is refresh_cache
+        return get_builtin_sites()
+
+    monkeypatch.setattr(
+        EarthLocation, "_get_site_registry", get_site_registry_monkeypatched
+    )
+
+    class_method(*args, refresh_cache=refresh_cache)
+
+
 def test_EarthLocation_state_offline():
     EarthLocation._site_registry = None
     EarthLocation._get_site_registry(force_builtin=True)
