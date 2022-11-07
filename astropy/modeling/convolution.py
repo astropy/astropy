@@ -72,6 +72,7 @@ class Convolution(CompoundModel):
             data = super().__call__(*mesh, **kwargs)
 
             from scipy.interpolate import RegularGridInterpolator
+
             convolution = RegularGridInterpolator(domain, data)
 
             if self._cache_convolution:
@@ -92,7 +93,7 @@ class Convolution(CompoundModel):
         else:
             output_shape = args[not_scalar[0]].shape
             if not all(args[index].shape == output_shape for index in not_scalar):
-                raise ValueError('Values have differing shapes')
+                raise ValueError("Values have differing shapes")
 
             inputs = []
             for arg in args:
