@@ -338,7 +338,7 @@ To see the list of site names available, use
 :func:`~astropy.coordinates.EarthLocation.get_site_names`::
 
     >>> EarthLocation.get_site_names()  # doctest: +REMOTE_DATA
-    ['ALMA', 'ATST', 'Anglo-Australian Observatory', ...]
+    ['ALMA', 'AO', 'ARCA', 'ASKAP', 'ATST', 'Anderson Mesa', ...]
 
 For arbitrary Earth addresses (e.g., not observatory sites), use the
 :func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
