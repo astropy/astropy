@@ -55,7 +55,6 @@ force-exclude = '''
     | examples
     | astropy/_dev
     | astropy/_erfa
-    | astropy/constants
     | astropy/convolution
     | astropy/coordinates
     | astropy/extern
