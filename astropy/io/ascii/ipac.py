@@ -22,60 +22,66 @@ from . import basic, core, fixedwidth
 
 class IpacFormatErrorDBMS(Exception):
     def __str__(self):
-        return '{}\nSee {}'.format(
+        return "{}\nSee {}".format(
             super().__str__(),
-            'https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
+            "https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html",
+        )
 
 
 class IpacFormatError(Exception):
     def __str__(self):
-        return '{}\nSee {}'.format(
+        return "{}\nSee {}".format(
             super().__str__(),
-            'https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
+            "https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html",
+        )
 
 
 class IpacHeaderSplitter(core.BaseSplitter):
-    '''Splitter for Ipac Headers.
+    """Splitter for Ipac Headers.
 
     This splitter is similar its parent when reading, but supports a
     fixed width format (as required for Ipac table headers) for writing.
-    '''
+    """
+
     process_line = None
     process_val = None
-    delimiter = '|'
-    delimiter_pad = ''
+    delimiter = "|"
+    delimiter_pad = ""
     skipinitialspace = False
-    comment = r'\s*\\'
-    write_comment = r'\\'
+    comment = r"\s*\\"
+    write_comment = r"\\"
     col_starts = None
     col_ends = None
 
     def join(self, vals, widths):
-        pad = self.delimiter_pad or ''
-        delimiter = self.delimiter or ''
+        pad = self.delimiter_pad or ""
+        delimiter = self.delimiter or ""
         padded_delim = pad + delimiter + pad
         bookend_left = delimiter + pad
         bookend_right = pad + delimiter
 
-        vals = [' ' * (width - len(val)) + val for val, width in zip(vals, widths)]
+        vals = [" " * (width - len(val)) + val for val, width in zip(vals, widths)]
         return bookend_left + padded_delim.join(vals) + bookend_right
 
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
+
     splitter_class = IpacHeaderSplitter
 
     # Defined ordered list of possible types.  Ordering is needed to
     # distinguish between "d" (double) and "da" (date) as defined by
     # the IPAC standard for abbreviations.  This gets used in get_col_type().
-    col_type_list = (('integer', core.IntType),
-                     ('long', core.IntType),
-                     ('double', core.FloatType),
-                     ('float', core.FloatType),
-                     ('real', core.FloatType),
-                     ('char', core.StrType),
-                     ('date', core.StrType))
-    definition = 'ignore'
+    col_type_list = (
+        ("integer", core.IntType),
+        ("long", core.IntType),
+        ("double", core.FloatType),
+        ("float", core.FloatType),
+        ("real", core.FloatType),
+        ("char", core.StrType),
+        ("date", core.StrType),
+    )
+    definition = "ignore"
     start_line = None
 
     def process_lines(self, lines):
@@ -92,6 +98,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         Extract table-level comments and keywords for IPAC table.  See:
         https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
         """
+
         def process_keyword_value(val):
             """
             Take a string value and convert to float, int or str, and strip quotes
@@ -112,49 +119,56 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                             break
             return val
 
-        table_meta = meta['table']
-        table_meta['comments'] = []
-        table_meta['keywords'] = OrderedDict()
-        keywords = table_meta['keywords']
+        table_meta = meta["table"]
+        table_meta["comments"] = []
+        table_meta["keywords"] = OrderedDict()
+        keywords = table_meta["keywords"]
 
-        re_keyword = re.compile(r'\\'
-                                r'(?P<name> \w+)'
-                                r'\s* = (?P<value> .+) $',
-                                re.VERBOSE)
+        # fmt: off
+        re_keyword = re.compile(
+            r'\\'
+            r'(?P<name> \w+)'
+            r'\s* = (?P<value> .+) $',
+            re.VERBOSE
+        )
+        # fmt: on
         for line in lines:
             # Keywords and comments start with "\".  Once the first non-slash
             # line is seen then bail out.
-            if not line.startswith('\\'):
+            if not line.startswith("\\"):
                 break
 
             m = re_keyword.match(line)
             if m:
-                name = m.group('name')
-                val = process_keyword_value(m.group('value'))
+                name = m.group("name")
+                val = process_keyword_value(m.group("value"))
 
                 # IPAC allows for continuation keywords, e.g.
                 # \SQL     = 'WHERE '
                 # \SQL     = 'SELECT (25 column names follow in next row.)'
                 if name in keywords and isinstance(val, str):
-                    prev_val = keywords[name]['value']
+                    prev_val = keywords[name]["value"]
                     if isinstance(prev_val, str):
                         val = prev_val + val
 
-                keywords[name] = {'value': val}
+                keywords[name] = {"value": val}
             else:
                 # Comment is required to start with "\ "
-                if line.startswith('\\ '):
+                if line.startswith("\\ "):
                     val = line[2:].strip()
                     if val:
-                        table_meta['comments'].append(val)
+                        table_meta["comments"].append(val)
 
     def get_col_type(self, col):
-        for (col_type_key, col_type) in self.col_type_list:
+        for col_type_key, col_type in self.col_type_list:
             if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
         else:
-            raise ValueError('Unknown data type ""{}"" for column "{}"'.format(
-                col.raw_type, col.name))
+            raise ValueError(
+                'Unknown data type ""{}"" for column "{}"'.format(
+                    col.raw_type, col.name
+                )
+            )
 
     def get_cols(self, lines):
         """
@@ -169,23 +183,25 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             List of table lines
 
         """
-        header_lines = self.process_lines(lines)  # generator returning valid header lines
+        # generator returning valid header lines
+        header_lines = self.process_lines(lines)
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
-            raise ValueError('At least one header line beginning and ending with '
-                             'delimiter required')
+            raise ValueError(
+                "At least one header line beginning and ending with delimiter required"
+            )
         elif len(header_vals) > 4:
-            raise ValueError('More than four header lines were found')
+            raise ValueError("More than four header lines were found")
 
         # Generate column definitions
         cols = []
         start = 1
         for i, name in enumerate(header_vals[0]):
-            col = core.Column(name=name.strip(' -'))
+            col = core.Column(name=name.strip(" -"))
             col.start = start
             col.end = start + len(name)
             if len(header_vals) > 1:
-                col.raw_type = header_vals[1][i].strip(' -')
+                col.raw_type = header_vals[1][i].strip(" -")
                 col.type = self.get_col_type(col)
             if len(header_vals) > 2:
                 col.unit = header_vals[2][i].strip() or None  # Can't strip dashes here
@@ -198,22 +214,21 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # Strip spaces but not dashes (not allowed in NULL row per
                 # https://github.com/astropy/astropy/issues/361)
                 null = header_vals[3][i].strip()
-                fillval = '' if issubclass(col.type, core.StrType) else '0'
+                fillval = "" if issubclass(col.type, core.StrType) else "0"
                 self.data.fill_values.append((null, fillval, col.name))
             start = col.end + 1
             cols.append(col)
 
             # Correct column start/end based on definition
-            if self.ipac_definition == 'right':
+            if self.ipac_definition == "right":
                 col.start -= 1
-            elif self.ipac_definition == 'left':
+            elif self.ipac_definition == "left":
                 col.end += 1
 
         self.names = [x.name for x in cols]
         self.cols = cols
 
     def str_vals(self):
-
         if self.DBMS:
             IpacFormatE = IpacFormatErrorDBMS
         else:
@@ -226,27 +241,35 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 countnamelist[name.lower()] += 1
             doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
-                raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
-                                  'This causes duplicate column names: {}'.format(doublenames))
+                raise IpacFormatE(
+                    "IPAC DBMS tables are not case sensitive. "
+                    "This causes duplicate column names: {}".format(doublenames)
+                )
 
         for name in namelist:
-            m = re.match(r'\w+', name)
+            m = re.match(r"\w+", name)
             if m.end() != len(name):
-                raise IpacFormatE('{} - Only alphanumeric characters and _ '
-                                  'are allowed in column names.'.format(name))
-            if self.DBMS and not (name[0].isalpha() or (name[0] == '_')):
-                raise IpacFormatE(f'Column name cannot start with numbers: {name}')
+                raise IpacFormatE(
+                    "{} - Only alphanumeric characters and _ "
+                    "are allowed in column names.".format(name)
+                )
+            if self.DBMS and not (name[0].isalpha() or (name[0] == "_")):
+                raise IpacFormatE(f"Column name cannot start with numbers: {name}")
             if self.DBMS:
-                if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:
-                    raise IpacFormatE('{} - x, y, z, X, Y, Z are reserved names and '
-                                      'cannot be used as column names.'.format(name))
+                if name in ["x", "y", "z", "X", "Y", "Z"]:
+                    raise IpacFormatE(
+                        "{} - x, y, z, X, Y, Z are reserved names and "
+                        "cannot be used as column names.".format(name)
+                    )
                 if len(name) > 16:
                     raise IpacFormatE(
-                        f'{name} - Maximum length for column name is 16 characters')
+                        f"{name} - Maximum length for column name is 16 characters"
+                    )
             else:
                 if len(name) > 40:
                     raise IpacFormatE(
-                        f'{name} - Maximum length for column name is 40 characters.')
+                        f"{name} - Maximum length for column name is 40 characters."
+                    )
 
         dtypelist = []
         unitlist = []
@@ -256,21 +279,21 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             col_unit = col.info.unit
             col_format = col.info.format
 
-            if col_dtype.kind in ['i', 'u']:
+            if col_dtype.kind in ["i", "u"]:
                 if col_dtype.itemsize <= 2:
-                    dtypelist.append('int')
+                    dtypelist.append("int")
                 else:
-                    dtypelist.append('long')
-            elif col_dtype.kind == 'f':
+                    dtypelist.append("long")
+            elif col_dtype.kind == "f":
                 if col_dtype.itemsize <= 4:
-                    dtypelist.append('float')
+                    dtypelist.append("float")
                 else:
-                    dtypelist.append('double')
+                    dtypelist.append("double")
             else:
-                dtypelist.append('char')
+                dtypelist.append("char")
 
             if col_unit is None:
-                unitlist.append('')
+                unitlist.append("")
             else:
                 unitlist.append(str(col.info.unit))
             # This may be incompatible with mixin columns
@@ -289,12 +312,12 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         return [namelist, dtypelist, unitlist, nullist]
 
     def write(self, lines, widths):
-        '''Write header.
+        """Write header.
 
         The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
         This function is called from there, once the width information is
-        available.'''
+        available."""
 
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
@@ -302,20 +325,21 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
 
 class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
-    delimiter = ' '
-    delimiter_pad = ''
+    delimiter = " "
+    delimiter_pad = ""
     bookend = True
 
 
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
-    comment = r'[|\\]'
+
+    comment = r"[|\\]"
     start_line = 0
     splitter_class = IpacDataSplitter
-    fill_values = [(core.masked, 'null')]
+    fill_values = [(core.masked, "null")]
 
     def write(self, lines, widths, vals_list):
-        """ IPAC writer, modified from FixedWidth writer """
+        """IPAC writer, modified from FixedWidth writer"""
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
         return lines
@@ -427,18 +451,18 @@ class Ipac(basic.Basic):
         `IPAC <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
-    _format_name = 'ipac'
-    _io_registry_format_aliases = ['ipac']
+    _format_name = "ipac"
+    _io_registry_format_aliases = ["ipac"]
     _io_registry_can_write = True
-    _description = 'IPAC format table'
+    _description = "IPAC format table"
 
     data_class = IpacData
     header_class = IpacHeader
 
-    def __init__(self, definition='ignore', DBMS=False):
+    def __init__(self, definition="ignore", DBMS=False):
         super().__init__()
         # Usually the header is not defined in __init__, but here it need a keyword
-        if definition in ['ignore', 'left', 'right']:
+        if definition in ["ignore", "left", "right"]:
             self.header.ipac_definition = definition
         else:
             raise ValueError("definition should be one of ignore/left/right")
@@ -463,13 +487,15 @@ class Ipac(basic.Basic):
         # is the position with the lowest priority.
         # We have to do it this late, because the fill_value
         # defined in the class can be overwritten by ui.write
-        self.data.fill_values.append((core.masked, 'null'))
+        self.data.fill_values.append((core.masked, "null"))
 
         # Check column names before altering
         self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, self.guessing)
 
-        core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+        core._apply_include_exclude_names(
+            table, self.names, self.include_names, self.exclude_names
+        )
 
         # Check that table has only 1-d columns.
         self._check_multidim_table(table)
@@ -483,32 +509,41 @@ class Ipac(basic.Basic):
         # Write header and data to lines list
         lines = []
         # Write meta information
-        if 'comments' in table.meta:
-            for comment in table.meta['comments']:
+        if "comments" in table.meta:
+            for comment in table.meta["comments"]:
                 if len(str(comment)) > 78:
-                    warn('Comment string > 78 characters was automatically wrapped.',
-                         AstropyUserWarning)
-                for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
+                    warn(
+                        "Comment string > 78 characters was automatically wrapped.",
+                        AstropyUserWarning,
+                    )
+                for line in wrap(
+                    str(comment), 80, initial_indent="\\ ", subsequent_indent="\\ "
+                ):
                     lines.append(line)
-        if 'keywords' in table.meta:
-            keydict = table.meta['keywords']
+        if "keywords" in table.meta:
+            keydict = table.meta["keywords"]
             for keyword in keydict:
                 try:
-                    val = keydict[keyword]['value']
-                    lines.append(f'\\{keyword.strip()}={val!r}')
+                    val = keydict[keyword]["value"]
+                    lines.append(f"\\{keyword.strip()}={val!r}")
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
-                    warn("Table metadata keyword {0} has been skipped.  "
-                         "IPAC metadata must be in the form {{'keywords':"
-                         "{{'keyword': {{'value': value}} }}".format(keyword),
-                         AstropyUserWarning)
-        ignored_keys = [key for key in table.meta if key not in ('keywords', 'comments')]
+                    warn(
+                        "Table metadata keyword {0} has been skipped.  "
+                        "IPAC metadata must be in the form {{'keywords':"
+                        "{{'keyword': {{'value': value}} }}".format(keyword),
+                        AstropyUserWarning,
+                    )
+        ignored_keys = [
+            key for key in table.meta if key not in ("keywords", "comments")
+        ]
         if any(ignored_keys):
-            warn("Table metadata keyword(s) {0} were not written.  "
-                 "IPAC metadata must be in the form {{'keywords':"
-                 "{{'keyword': {{'value': value}} }}".format(ignored_keys),
-                 AstropyUserWarning
-                 )
+            warn(
+                "Table metadata keyword(s) {0} were not written.  "
+                "IPAC metadata must be in the form {{'keywords':"
+                "{{'keyword': {{'value': value}} }}".format(ignored_keys),
+                AstropyUserWarning,
+            )
 
         # Usually, this is done in data.write, but since the header is written
         # first, we need that here.

@@ -96,28 +96,28 @@ READ_DOCSTRING = """
 # -  'list-list' is a special case for an iterable that is not a string.
 READ_KWARG_TYPES = {
     # 'table'
-    'guess': bool,
+    "guess": bool,
     # 'format'
     # 'Reader'
     # 'Inputter'
     # 'Outputter'
-    'delimiter': str,
-    'comment': str,
-    'quotechar': str,
-    'header_start': int,
-    'data_start': (int, str),  # CDS allows 'guess'
-    'data_end': int,
-    'converters': dict,
+    "delimiter": str,
+    "comment": str,
+    "quotechar": str,
+    "header_start": int,
+    "data_start": (int, str),  # CDS allows 'guess'
+    "data_end": int,
+    "converters": dict,
     # 'data_Splitter'
     # 'header_Splitter'
-    'names': 'list-like',
-    'include_names': 'list-like',
-    'exclude_names': 'list-like',
-    'fill_values': 'list-like',
-    'fill_include_names': 'list-like',
-    'fill_exclude_names': 'list-like',
-    'fast_reader': (bool, str, dict),
-    'encoding': str,
+    "names": "list-like",
+    "include_names": "list-like",
+    "exclude_names": "list-like",
+    "fill_values": "list-like",
+    "fill_include_names": "list-like",
+    "fill_exclude_names": "list-like",
+    "fast_reader": (bool, str, dict),
+    "encoding": str,
 }
 
 
@@ -174,16 +174,16 @@ WRITE_DOCSTRING = """
 WRITE_KWARG_TYPES = {
     # 'table'
     # 'output'
-    'format': str,
-    'delimiter': str,
-    'comment': (str, bool),
-    'quotechar': str,
-    'header_start': int,
-    'formats': dict,
-    'strip_whitespace': (bool),
-    'names': 'list-like',
-    'include_names': 'list-like',
-    'exclude_names': 'list-like',
-    'fast_writer': (bool, str),
-    'overwrite': (bool),
+    "format": str,
+    "delimiter": str,
+    "comment": (str, bool),
+    "quotechar": str,
+    "header_start": int,
+    "formats": dict,
+    "strip_whitespace": (bool),
+    "names": "list-like",
+    "include_names": "list-like",
+    "exclude_names": "list-like",
+    "fast_writer": (bool, str),
+    "overwrite": (bool),
 }
