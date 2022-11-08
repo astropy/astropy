@@ -26,7 +26,7 @@ MAX_SIZE_README_LINE = 80
 MAX_COL_INTLIMIT = 100000
 
 
-__doctest_skip__ = ['*']
+__doctest_skip__ = ["*"]
 
 
 BYTE_BY_BYTE_TEMPLATE = [
@@ -35,7 +35,8 @@ BYTE_BY_BYTE_TEMPLATE = [
     " Bytes Format Units  Label     Explanations",
     "--------------------------------------------------------------------------------",
     "$bytebybyte",
-    "--------------------------------------------------------------------------------"]
+    "--------------------------------------------------------------------------------",
+]
 
 MRT_TEMPLATE = [
     "Title:",
@@ -44,7 +45,8 @@ MRT_TEMPLATE = [
     "================================================================================",
     "$bytebybyte",
     "Notes:",
-    "--------------------------------------------------------------------------------"]
+    "--------------------------------------------------------------------------------",
+]
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -52,13 +54,14 @@ class MrtSplitter(fixedwidth.FixedWidthSplitter):
     Contains the join function to left align the MRT columns
     when writing to a file.
     """
+
     def join(self, vals, widths):
-        vals = [val + ' ' * (width - len(val)) for val, width in zip(vals, widths)]
+        vals = [val + " " * (width - len(val)) for val, width in zip(vals, widths)]
         return self.delimiter.join(vals)
 
 
 class MrtHeader(cds.CdsHeader):
-    _subfmt = 'MRT'
+    _subfmt = "MRT"
 
     def _split_float_format(self, value):
         """
@@ -82,21 +85,25 @@ class MrtHeader(cds.CdsHeader):
             sign, whether or not given value signed.
             exp, is value in Scientific notation?
         """
-        regfloat = re.compile(r"""(?P<sign> [+-]*)
-                                  (?P<ent> [^eE.]+)
-                                  (?P<deciPt> [.]*)
-                                  (?P<decimals> [0-9]*)
-                                  (?P<exp> [eE]*-*)[0-9]*""",
-                              re.VERBOSE)
+        regfloat = re.compile(
+            r"""(?P<sign> [+-]*)
+                (?P<ent> [^eE.]+)
+                (?P<deciPt> [.]*)
+                (?P<decimals> [0-9]*)
+                (?P<exp> [eE]*-*)[0-9]*""",
+            re.VERBOSE,
+        )
         mo = regfloat.match(value)
 
         if mo is None:
-            raise Exception(f'{value} is not a float number')
-        return (len(value),
-                len(mo.group('ent')),
-                len(mo.group('decimals')),
-                mo.group('sign') != "",
-                mo.group('exp') != "")
+            raise Exception(f"{value} is not a float number")
+        return (
+            len(value),
+            len(mo.group("ent")),
+            len(mo.group("decimals")),
+            mo.group("sign") != "",
+            mo.group("exp") != "",
+        )
 
     def _set_column_val_limits(self, col):
         """
@@ -132,12 +139,12 @@ class MrtHeader(cds.CdsHeader):
         # maxprec: maximum precision of the column values, sum of maxent and maxdec.
         maxsize, maxprec, maxent, maxdec = 1, 0, 1, 0
         sign = False
-        fformat = 'F'
+        fformat = "F"
 
         # Find maximum sized value in the col
         for val in col.str_vals:
             # Skip null values
-            if val is None or val == '':
+            if val is None or val == "":
                 continue
 
             # Find format of the Float string
@@ -146,16 +153,16 @@ class MrtHeader(cds.CdsHeader):
             if fmt[4] is True:
                 # if the previous column value was in normal Float format
                 # set maxsize, maxprec and maxdec to default.
-                if fformat == 'F':
+                if fformat == "F":
                     maxsize, maxprec, maxdec = 1, 0, 0
                 # Designate the column to be in Scientific notation.
-                fformat = 'E'
+                fformat = "E"
             else:
                 # Move to next column value if
                 # current value is not in Scientific notation
                 # but the column is designated as such because
                 # one of the previous values was.
-                if fformat == 'E':
+                if fformat == "E":
                     continue
 
             if maxsize < fmt[0]:
@@ -170,8 +177,9 @@ class MrtHeader(cds.CdsHeader):
             if maxprec < fmt[1] + fmt[2]:
                 maxprec = fmt[1] + fmt[2]
 
-        if fformat == 'E':
-            if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+        if fformat == "E":
+            # If ``formats`` not passed.
+            if getattr(col, "formatted_width", None) is None:
                 col.formatted_width = maxsize
                 if sign:
                     col.formatted_width += 1
@@ -180,15 +188,17 @@ class MrtHeader(cds.CdsHeader):
             col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxprec)
             col.format = str(col.formatted_width) + "." + str(maxdec) + "e"
         else:
-            lead = ''
-            if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+            lead = ""
+            if (
+                getattr(col, "formatted_width", None) is None
+            ):  # If ``formats`` not passed.
                 col.formatted_width = maxent + maxdec + 1
                 if sign:
                     col.formatted_width += 1
-            elif col.format.startswith('0'):
+            elif col.format.startswith("0"):
                 # Keep leading zero, if already set in format - primarily for `seconds` columns
                 # in coordinates; may need extra case if this is to be also supported with `sign`.
-                lead = '0'
+                lead = "0"
             col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxdec)
             col.format = lead + col.fortran_format[1:] + "f"
 
@@ -257,8 +267,9 @@ class MrtHeader(cds.CdsHeader):
         # Set default width of Label and Description Byte-By-Byte columns.
         max_label_width, max_descrip_size = 7, 16
 
-        bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
-                    dtype=[str] * 5)
+        bbb = Table(
+            names=["Bytes", "Format", "Units", "Label", "Explanations"], dtype=[str] * 5
+        )
 
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
@@ -272,7 +283,8 @@ class MrtHeader(cds.CdsHeader):
             if np.issubdtype(col.dtype, np.integer):
                 # Integer formatter
                 self._set_column_val_limits(col)
-                if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+                # If ``formats`` not passed.
+                if getattr(col, "formatted_width", None) is None:
                     col.formatted_width = max(len(str(col.max)), len(str(col.min)))
                 col.fortran_format = "I" + str(col.formatted_width)
                 if col.format is None:
@@ -291,8 +303,9 @@ class MrtHeader(cds.CdsHeader):
                     mcol.fill_value = ""
                     coltmp = Column(mcol.filled(), dtype=str)
                     dtype = coltmp.dtype.str
-                if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
-                    col.formatted_width = int(re.search(r'(\d+)$', dtype).group(1))
+                # If ``formats`` not passed.
+                if getattr(col, "formatted_width", None) is None:
+                    col.formatted_width = int(re.search(r"(\d+)$", dtype).group(1))
                 col.fortran_format = "A" + str(col.formatted_width)
                 col.format = str(col.formatted_width) + "s"
 
@@ -332,19 +345,29 @@ class MrtHeader(cds.CdsHeader):
 
             # Add col limit values to col description
             lim_vals = ""
-            if (col.min and col.max and
-                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT', 'PLN', 'PLT'])):
+            if (
+                col.min
+                and col.max
+                and not any(
+                    x in col.name for x in ["RA", "DE", "LON", "LAT", "PLN", "PLT"]
+                )
+            ):
                 # No col limit values for coordinate columns.
-                if col.fortran_format[0] == 'I':
-                    if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
+                if col.fortran_format[0] == "I":
+                    if (
+                        abs(col.min) < MAX_COL_INTLIMIT
+                        and abs(col.max) < MAX_COL_INTLIMIT
+                    ):
                         if col.min == col.max:
                             lim_vals = f"[{col.min}]"
                         else:
                             lim_vals = f"[{col.min}/{col.max}]"
-                elif col.fortran_format[0] in ('E', 'F'):
-                    lim_vals = f"[{floor(col.min * 100) / 100.}/{ceil(col.max * 100) / 100.}]"
+                elif col.fortran_format[0] in ("E", "F"):
+                    lim_vals = (
+                        f"[{floor(col.min * 100) / 100.}/{ceil(col.max * 100) / 100.}]"
+                    )
 
-            if lim_vals != '' or nullflag != '':
+            if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"
 
             # Find the maximum label and description column widths.
@@ -354,30 +377,48 @@ class MrtHeader(cds.CdsHeader):
                 max_descrip_size = len(description)
 
             # Add a row for the Sign of Declination in the bbb table
-            if col.name == 'DEd':
-                bbb.add_row([singlebfmt.format(startb),
-                             "A1", "---", "DE-",
-                             "Sign of Declination"])
-                col.fortran_format = 'I2'
+            if col.name == "DEd":
+                bbb.add_row(
+                    [
+                        singlebfmt.format(startb),
+                        "A1",
+                        "---",
+                        "DE-",
+                        "Sign of Declination",
+                    ]
+                )
+                col.fortran_format = "I2"
                 startb += 1
 
             # Add Byte-By-Byte row to bbb table
-            bbb.add_row([singlebfmt.format(startb) if startb == endb
-                         else fmtb.format(startb, endb),
-                         "" if col.fortran_format is None else col.fortran_format,
-                         col_unit,
-                         "" if col.name is None else col.name,
-                         description])
+            bbb.add_row(
+                [
+                    singlebfmt.format(startb)
+                    if startb == endb
+                    else fmtb.format(startb, endb),
+                    "" if col.fortran_format is None else col.fortran_format,
+                    col_unit,
+                    "" if col.name is None else col.name,
+                    description,
+                ]
+            )
             startb = endb + 2
 
         # Properly format bbb columns
         bbblines = StringIO()
-        bbb.write(bbblines, format='ascii.fixed_width_no_header',
-                  delimiter=' ', bookend=False, delimiter_pad=None,
-                  formats={'Format': '<6s',
-                           'Units': '<6s',
-                           'Label': '<' + str(max_label_width) + 's',
-                           'Explanations': '' + str(max_descrip_size) + 's'})
+        bbb.write(
+            bbblines,
+            format="ascii.fixed_width_no_header",
+            delimiter=" ",
+            bookend=False,
+            delimiter_pad=None,
+            formats={
+                "Format": "<6s",
+                "Units": "<6s",
+                "Label": "<" + str(max_label_width) + "s",
+                "Explanations": "" + str(max_descrip_size) + "s",
+            },
+        )
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
@@ -392,9 +433,13 @@ class MrtHeader(cds.CdsHeader):
         buff = ""
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
-                buff += ("\n").join(wrap(newline,
-                                         subsequent_indent=" " * nsplit,
-                                         width=MAX_SIZE_README_LINE))
+                buff += ("\n").join(
+                    wrap(
+                        newline,
+                        subsequent_indent=" " * nsplit,
+                        width=MAX_SIZE_README_LINE,
+                    )
+                )
                 buff += "\n"
             else:
                 buff += newline + "\n"
@@ -414,11 +459,13 @@ class MrtHeader(cds.CdsHeader):
         from astropy.coordinates import SkyCoord
 
         # Recognised ``SkyCoord.name`` forms with their default column names (helio* require SunPy).
-        coord_systems = {'galactic': ('GLAT', 'GLON', 'b', 'l'),
-                         'ecliptic': ('ELAT', 'ELON', 'lat', 'lon'),      # 'geocentric*ecliptic'
-                         'heliographic': ('HLAT', 'HLON', 'lat', 'lon'),  # '_carrington|stonyhurst'
-                         'helioprojective': ('HPLT', 'HPLN', 'Ty', 'Tx')}
-        eqtnames = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+        coord_systems = {
+            "galactic": ("GLAT", "GLON", "b", "l"),
+            "ecliptic": ("ELAT", "ELON", "lat", "lon"),  # 'geocentric*ecliptic'
+            "heliographic": ("HLAT", "HLON", "lat", "lon"),  # '_carrington|stonyhurst'
+            "helioprojective": ("HPLT", "HPLN", "Ty", "Tx"),
+        }
+        eqtnames = ["RAh", "RAm", "RAs", "DEd", "DEm", "DEs"]
 
         # list to store indices of columns that are modified.
         to_pop = []
@@ -448,60 +495,90 @@ class MrtHeader(cds.CdsHeader):
             if isinstance(col, SkyCoord):
                 # If coordinates are given in RA/DEC, divide each them into hour/deg,
                 # minute/arcminute, second/arcsecond columns.
-                if ('ra' in col.representation_component_names.keys() and
-                        len(set(eqtnames) - set(self.colnames)) == 6):
+                if (
+                    "ra" in col.representation_component_names.keys()
+                    and len(set(eqtnames) - set(self.colnames)) == 6
+                ):
                     ra_c, dec_c = col.ra.hms, col.dec.dms
-                    coords = [ra_c.h.round().astype('i1'), ra_c.m.round().astype('i1'), ra_c.s,
-                              dec_c.d.round().astype('i1'), dec_c.m.round().astype('i1'), dec_c.s]
-                    coord_units = [u.h, u.min, u.second,
-                                   u.deg, u.arcmin, u.arcsec]
-                    coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
-                                     'Right Ascension (second)', 'Declination (degree)',
-                                     'Declination (arcmin)', 'Declination (arcsec)']
+                    coords = [
+                        ra_c.h.round().astype("i1"),
+                        ra_c.m.round().astype("i1"),
+                        ra_c.s,
+                        dec_c.d.round().astype("i1"),
+                        dec_c.m.round().astype("i1"),
+                        dec_c.s,
+                    ]
+                    coord_units = [u.h, u.min, u.second, u.deg, u.arcmin, u.arcsec]
+                    coord_descrip = [
+                        "Right Ascension (hour)",
+                        "Right Ascension (minute)",
+                        "Right Ascension (second)",
+                        "Declination (degree)",
+                        "Declination (arcmin)",
+                        "Declination (arcsec)",
+                    ]
                     for coord, name, coord_unit, descrip in zip(
-                            coords, eqtnames, coord_units, coord_descrip):
+                        coords, eqtnames, coord_units, coord_descrip
+                    ):
                         # Have Sign of Declination only in the DEd column.
-                        if name in ['DEm', 'DEs']:
-                            coord_col = Column(list(np.abs(coord)), name=name,
-                                               unit=coord_unit, description=descrip)
+                        if name in ["DEm", "DEs"]:
+                            coord_col = Column(
+                                list(np.abs(coord)),
+                                name=name,
+                                unit=coord_unit,
+                                description=descrip,
+                            )
                         else:
-                            coord_col = Column(list(coord), name=name, unit=coord_unit,
-                                               description=descrip)
+                            coord_col = Column(
+                                list(coord),
+                                name=name,
+                                unit=coord_unit,
+                                description=descrip,
+                            )
                         # Set default number of digits after decimal point for the
                         # second values, and deg-min to (signed) 2-digit zero-padded integer.
-                        if name == 'RAs':
-                            coord_col.format = '013.10f'
-                        elif name == 'DEs':
-                            coord_col.format = '012.9f'
-                        elif name == 'RAh':
-                            coord_col.format = '2d'
-                        elif name == 'DEd':
-                            coord_col.format = '+03d'
-                        elif name.startswith(('RA', 'DE')):
-                            coord_col.format = '02d'
+                        if name == "RAs":
+                            coord_col.format = "013.10f"
+                        elif name == "DEs":
+                            coord_col.format = "012.9f"
+                        elif name == "RAh":
+                            coord_col.format = "2d"
+                        elif name == "DEd":
+                            coord_col.format = "+03d"
+                        elif name.startswith(("RA", "DE")):
+                            coord_col.format = "02d"
                         self.cols.append(coord_col)
-                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
+                    to_pop.append(i)  # Delete original ``SkyCoord`` column.
 
                 # For all other coordinate types, simply divide into two columns
                 # for latitude and longitude resp. with the unit used been as it is.
 
                 else:
-                    frminfo = ''
+                    frminfo = ""
                     for frame, latlon in coord_systems.items():
-                        if frame in col.name and len(set(latlon[:2]) - set(self.colnames)) == 2:
+                        if (
+                            frame in col.name
+                            and len(set(latlon[:2]) - set(self.colnames)) == 2
+                        ):
                             if frame != col.name:
-                                frminfo = f' ({col.name})'
-                            lon_col = Column(getattr(col, latlon[3]), name=latlon[1],
-                                             description=f'{frame.capitalize()} Longitude{frminfo}',
-                                             unit=col.representation_component_units[latlon[3]],
-                                             format='.12f')
-                            lat_col = Column(getattr(col, latlon[2]), name=latlon[0],
-                                             description=f'{frame.capitalize()} Latitude{frminfo}',
-                                             unit=col.representation_component_units[latlon[2]],
-                                             format='+.12f')
+                                frminfo = f" ({col.name})"
+                            lon_col = Column(
+                                getattr(col, latlon[3]),
+                                name=latlon[1],
+                                description=f"{frame.capitalize()} Longitude{frminfo}",
+                                unit=col.representation_component_units[latlon[3]],
+                                format=".12f",
+                            )
+                            lat_col = Column(
+                                getattr(col, latlon[2]),
+                                name=latlon[0],
+                                description=f"{frame.capitalize()} Latitude{frminfo}",
+                                unit=col.representation_component_units[latlon[2]],
+                                format="+.12f",
+                            )
                             self.cols.append(lon_col)
                             self.cols.append(lat_col)
-                            to_pop.append(i)   # Delete original ``SkyCoord`` column.
+                            to_pop.append(i)  # Delete original ``SkyCoord`` column.
 
                 # Convert all other ``SkyCoord`` columns that are not in the above three
                 # representations to string valued columns. Those could either be types not
@@ -512,12 +589,15 @@ class MrtHeader(cds.CdsHeader):
                 # Explicit renaming of the extra coordinate component columns by appending some
                 # suffix to their name, so as to distinguish them, is not yet implemented.
                 if i not in to_pop:
-                    warnings.warn(f"Coordinate system of type '{col.name}' already stored in table "
-                                  f"as CDS/MRT-syle columns or of unrecognized type. So column {i} "
-                                  f"is being skipped with designation of a string valued column "
-                                  f"`{self.colnames[i]}`.", UserWarning)
+                    warnings.warn(
+                        f"Coordinate system of type '{col.name}' already stored in"
+                        " table as CDS/MRT-syle columns or of unrecognized type. So"
+                        f" column {i} is being skipped with designation of a string"
+                        f" valued column `{self.colnames[i]}`.",
+                        UserWarning,
+                    )
                     self.cols.append(Column(col.to_string(), name=self.colnames[i]))
-                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
+                    to_pop.append(i)  # Delete original ``SkyCoord`` column.
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
@@ -533,37 +613,40 @@ class MrtHeader(cds.CdsHeader):
             self.cols.pop(i)
 
         # Check for any left over extra coordinate columns.
-        if any(x in self.colnames for x in ['RAh', 'DEd', 'ELON', 'GLAT']):
+        if any(x in self.colnames for x in ["RAh", "DEd", "ELON", "GLAT"]):
             # At this point any extra ``SkyCoord`` columns should have been converted to string
             # valued columns, together with issuance of a warning, by the coordinate parser above.
             # This test is just left here as a safeguard.
             for i, col in enumerate(self.cols):
                 if isinstance(col, SkyCoord):
                     self.cols[i] = Column(col.to_string(), name=self.colnames[i])
-                    message = ('Table already has coordinate system in CDS/MRT-syle columns. '
-                               f'So column {i} should have been replaced already with '
-                               f'a string valued column `{self.colnames[i]}`.')
+                    message = (
+                        "Table already has coordinate system in CDS/MRT-syle columns. "
+                        f"So column {i} should have been replaced already with "
+                        f"a string valued column `{self.colnames[i]}`."
+                    )
                     raise core.InconsistentTableError(message)
 
         # Get Byte-By-Byte description and fill the template
-        bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
-        byte_by_byte = bbb_template.substitute({'file': 'table.dat',
-                                                'bytebybyte': self.write_byte_by_byte()})
+        bbb_template = Template("\n".join(BYTE_BY_BYTE_TEMPLATE))
+        byte_by_byte = bbb_template.substitute(
+            {"file": "table.dat", "bytebybyte": self.write_byte_by_byte()}
+        )
 
         # Fill up the full ReadMe
-        rm_template = Template('\n'.join(MRT_TEMPLATE))
-        readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte})
+        rm_template = Template("\n".join(MRT_TEMPLATE))
+        readme_filled = rm_template.substitute({"bytebybyte": byte_by_byte})
         lines.append(readme_filled)
 
 
 class MrtData(cds.CdsData):
-    """MRT table data reader
-    """
-    _subfmt = 'MRT'
+    """MRT table data reader"""
+
+    _subfmt = "MRT"
     splitter_class = MrtSplitter
 
     def write(self, lines):
-        self.splitter.delimiter = ' '
+        self.splitter.delimiter = " "
         fixedwidth.FixedWidthData.write(self, lines)
 
 
@@ -592,10 +675,11 @@ class Mrt(core.BaseReader):
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
     """
-    _format_name = 'mrt'
-    _io_registry_format_aliases = ['mrt']
+
+    _format_name = "mrt"
+    _io_registry_format_aliases = ["mrt"]
     _io_registry_can_write = True
-    _description = 'MRT format table'
+    _description = "MRT format table"
 
     data_class = MrtData
     header_class = MrtHeader

@@ -11,27 +11,25 @@ from .common import assert_equal
 
 
 def test_types_from_dat():
-    converters = {'a': [ascii.convert_numpy(float)],
-                  'e': [ascii.convert_numpy(str)]}
+    converters = {"a": [ascii.convert_numpy(float)], "e": [ascii.convert_numpy(str)]}
 
-    dat = ascii.read(['a b c d e', '1 1 cat 2.1 4.2'],
-                     Reader=ascii.Basic,
-                     converters=converters)
+    dat = ascii.read(
+        ["a b c d e", "1 1 cat 2.1 4.2"], Reader=ascii.Basic, converters=converters
+    )
 
-    assert dat['a'].dtype.kind == 'f'
-    assert dat['b'].dtype.kind == 'i'
-    assert dat['c'].dtype.kind in ('S', 'U')
-    assert dat['d'].dtype.kind == 'f'
-    assert dat['e'].dtype.kind in ('S', 'U')
+    assert dat["a"].dtype.kind == "f"
+    assert dat["b"].dtype.kind == "i"
+    assert dat["c"].dtype.kind in ("S", "U")
+    assert dat["d"].dtype.kind == "f"
+    assert dat["e"].dtype.kind in ("S", "U")
 
 
 def test_rdb_write_types():
-    dat = ascii.read(['a b c d', '1 1.0 cat 2.1'],
-                     Reader=ascii.Basic)
+    dat = ascii.read(["a b c d", "1 1.0 cat 2.1"], Reader=ascii.Basic)
     out = StringIO()
     ascii.write(dat, out, Writer=ascii.Rdb)
     outs = out.getvalue().splitlines()
-    assert_equal(outs[1], 'N\tN\tS\tN')
+    assert_equal(outs[1], "N\tN\tS\tN")
 
 
 def test_ipac_read_types():
@@ -44,12 +42,14 @@ def test_ipac_read_types():
 """
     reader = ascii.get_reader(Reader=ascii.Ipac)
     reader.read(table)
-    types = [ascii.FloatType,
-             ascii.FloatType,
-             ascii.IntType,
-             ascii.FloatType,
-             ascii.StrType]
-    for (col, expected_type) in zip(reader.cols, types):
+    types = [
+        ascii.FloatType,
+        ascii.FloatType,
+        ascii.IntType,
+        ascii.FloatType,
+        ascii.StrType,
+    ]
+    for col, expected_type in zip(reader.cols, types):
         assert_equal(col.type, expected_type)
 
 
@@ -68,6 +68,7 @@ def test_col_dtype_in_custom_class():
         """
         Basic table Data Reader with data type alternating float32, int8
         """
+
         header_class = TestDtypeHeader
 
     txt = """

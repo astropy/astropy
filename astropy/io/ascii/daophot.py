@@ -24,14 +24,13 @@ class DaophotHeader(core.BaseHeader):
     Read the header from a file produced by the IRAF DAOphot routine.
     """
 
-    comment = r'\s*#K'
+    comment = r"\s*#K"
 
     # Regex for extracting the format strings
-    re_format = re.compile(r'%-?(\d+)\.?\d?[sdfg]')
-    re_header_keyword = re.compile(r'[#]K'
-                                   r'\s+ (?P<name> \w+)'
-                                   r'\s* = (?P<stuff> .+) $',
-                                   re.VERBOSE)
+    re_format = re.compile(r"%-?(\d+)\.?\d?[sdfg]")
+    re_header_keyword = re.compile(
+        r"[#]K" r"\s+ (?P<name> \w+)" r"\s* = (?P<stuff> .+) $", re.VERBOSE
+    )
     aperture_values = ()
 
     def __init__(self):
@@ -46,11 +45,11 @@ class DaophotHeader(core.BaseHeader):
         #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##
         #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
         """
-        line_ids = ('#N', '#U', '#F')
+        line_ids = ("#N", "#U", "#F")
         coldef_dict = defaultdict(list)
 
         # Function to strip identifier lines
-        stripper = lambda s: s[2:].strip(' \\')
+        stripper = lambda s: s[2:].strip(" \\")
         for defblock in zip(*map(grouped_lines_dict.get, line_ids)):
             for key, line in zip(line_ids, map(stripper, defblock)):
                 coldef_dict[key].append(line.split())
@@ -60,22 +59,25 @@ class DaophotHeader(core.BaseHeader):
         if self.data.is_multiline:
             # Database contains multi-aperture data.
             # Autogen column names, units, formats from last row of column headers
-            last_names, last_units, last_formats = list(zip(*map(coldef_dict.get, line_ids)))[-1]
+            last_names, last_units, last_formats = list(
+                zip(*map(coldef_dict.get, line_ids))
+            )[-1]
             N_multiline = len(self.data.first_block)
-            for i in np.arange(1, N_multiline + 1).astype('U2'):
+            for i in np.arange(1, N_multiline + 1).astype("U2"):
                 # extra column names eg. RAPERT2, SUM2 etc...
-                extended_names = list(map(''.join, zip(last_names, itt.repeat(i))))
-                if i == '1':      # Enumerate the names starting at 1
-                    coldef_dict['#N'][-1] = extended_names
+                extended_names = list(map("".join, zip(last_names, itt.repeat(i))))
+                if i == "1":  # Enumerate the names starting at 1
+                    coldef_dict["#N"][-1] = extended_names
                 else:
-                    coldef_dict['#N'].append(extended_names)
-                    coldef_dict['#U'].append(last_units)
-                    coldef_dict['#F'].append(last_formats)
+                    coldef_dict["#N"].append(extended_names)
+                    coldef_dict["#U"].append(last_units)
+                    coldef_dict["#F"].append(last_formats)
 
         # Get column widths from column format specifiers
         get_col_width = lambda s: int(self.re_format.search(s).groups()[0])
-        col_widths = [[get_col_width(f) for f in formats]
-                      for formats in coldef_dict['#F']]
+        col_widths = [
+            [get_col_width(f) for f in formats] for formats in coldef_dict["#F"]
+        ]
         # original data format might be shorter than 80 characters and filled with spaces
         row_widths = np.fromiter(map(sum, col_widths), int)
         row_short = Daophot.table_width - row_widths
@@ -95,7 +97,7 @@ class DaophotHeader(core.BaseHeader):
         Extract table-level keywords for DAOphot table.  These are indicated by
         a leading '#K ' prefix.
         """
-        table_meta = meta['table']
+        table_meta = meta["table"]
 
         # self.lines = self.get_header_lines(lines)
         Nlines = len(self.lines)
@@ -116,19 +118,20 @@ class DaophotHeader(core.BaseHeader):
             grouped_lines_dict = dict(zip(gid, grouped_lines))
 
             # Update the table_meta keywords if necessary
-            if '#K' in grouped_lines_dict:
-                keywords = OrderedDict(map(self.extract_keyword_line, grouped_lines_dict['#K']))
-                table_meta['keywords'] = keywords
+            if "#K" in grouped_lines_dict:
+                keywords = OrderedDict(
+                    map(self.extract_keyword_line, grouped_lines_dict["#K"])
+                )
+                table_meta["keywords"] = keywords
 
             coldef_dict = self.parse_col_defs(grouped_lines_dict)
 
-            line_ids = ('#N', '#U', '#F')
+            line_ids = ("#N", "#U", "#F")
             for name, unit, fmt in zip(*map(coldef_dict.get, line_ids)):
-                meta['cols'][name] = {'unit': unit,
-                                      'format': fmt}
+                meta["cols"][name] = {"unit": unit, "format": fmt}
 
             self.meta = meta
-            self.names = coldef_dict['#N']
+            self.names = coldef_dict["#N"]
 
     def extract_keyword_line(self, line):
         """
@@ -136,11 +139,13 @@ class DaophotHeader(core.BaseHeader):
         """
         m = self.re_header_keyword.match(line)
         if m:
-            vals = m.group('stuff').strip().rsplit(None, 2)
-            keyword_dict = {'units': vals[-2],
-                            'format': vals[-1],
-                            'value': (vals[0] if len(vals) > 2 else "")}
-            return m.group('name'), keyword_dict
+            vals = m.group("stuff").strip().rsplit(None, 2)
+            keyword_dict = {
+                "units": vals[-2],
+                "format": vals[-1],
+                "value": (vals[0] if len(vals) > 2 else ""),
+            }
+            return m.group("name"), keyword_dict
 
     def get_cols(self, lines):
         """
@@ -160,18 +165,18 @@ class DaophotHeader(core.BaseHeader):
         """
 
         if not self.names:
-            raise core.InconsistentTableError('No column names found in DAOphot header')
+            raise core.InconsistentTableError("No column names found in DAOphot header")
 
         # Create the list of io.ascii column objects
         self._set_cols_from_names()
 
         # Set unit and format as needed.
-        coldefs = self.meta['cols']
+        coldefs = self.meta["cols"]
         for col in self.cols:
-            unit, fmt = map(coldefs[col.name].get, ('unit', 'format'))
-            if unit != '##':
+            unit, fmt = map(coldefs[col.name].get, ("unit", "format"))
+            if unit != "##":
                 col.unit = unit
-            if fmt != '##':
+            if fmt != "##":
                 col.format = fmt
 
         # Set column start and end positions.
@@ -181,29 +186,28 @@ class DaophotHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.start, col.end = starts[i], ends[i]
             col.span = col.end - col.start
-            if hasattr(col, 'format'):
-                if any(x in col.format for x in 'fg'):
+            if hasattr(col, "format"):
+                if any(x in col.format for x in "fg"):
                     col.type = core.FloatType
-                elif 'd' in col.format:
+                elif "d" in col.format:
                     col.type = core.IntType
-                elif 's' in col.format:
+                elif "s" in col.format:
                     col.type = core.StrType
 
         # INDEF is the missing value marker
-        self.data.fill_values.append(('INDEF', '0'))
+        self.data.fill_values.append(("INDEF", "0"))
 
 
 class DaophotData(core.BaseData):
     splitter_class = fixedwidth.FixedWidthSplitter
     start_line = 0
-    comment = r'\s*#'
+    comment = r"\s*#"
 
     def __init__(self):
         core.BaseData.__init__(self)
         self.is_multiline = False
 
     def get_data_lines(self, lines):
-
         # Special case for multiline daophot databases. Extract the aperture
         # values from the first multiline data block
         if self.is_multiline:
@@ -217,11 +221,10 @@ class DaophotData(core.BaseData):
 
 
 class DaophotInputter(core.ContinuationLinesInputter):
-
-    continuation_char = '\\'
-    multiline_char = '*'
-    replace_char = ' '
-    re_multiline = re.compile(r'(#?)[^\\*#]*(\*?)(\\*) ?$')
+    continuation_char = "\\"
+    multiline_char = "*"
+    replace_char = " "
+    re_multiline = re.compile(r"(#?)[^\\*#]*(\*?)(\\*) ?$")
 
     def search_multiline(self, lines, depth=150):
         """
@@ -236,8 +239,9 @@ class DaophotInputter(core.ContinuationLinesInputter):
         # this case we have to figure out how many apertures there are based on
         # the file structure.
 
-        comment, special, cont = zip(*(self.re_multiline.search(line).groups()
-                                       for line in lines[:depth]))
+        comment, special, cont = zip(
+            *(self.re_multiline.search(line).groups() for line in lines[:depth])
+        )
 
         # Find first non-comment line
         data_start = first_false_index(comment)
@@ -257,7 +261,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
             return None, None, header_lines
 
         # last line ending on special '*', but not on line continue '/'
-        last_special = first_false_index(special[data_start + first_special:depth])
+        last_special = first_false_index(special[data_start + first_special : depth])
         # index relative to first_special
 
         # if first_special is None: #no end of special lines within search
@@ -267,12 +271,11 @@ class DaophotInputter(core.ContinuationLinesInputter):
         # indexing now relative to line[0]
         markers = np.cumsum([data_start, first_special, last_special])
         # multiline portion of first data block
-        multiline_block = lines[markers[1]:markers[-1]]
+        multiline_block = lines[markers[1] : markers[-1]]
 
         return markers, multiline_block, header_lines
 
     def process_lines(self, lines):
-
         markers, block, header = self.search_multiline(lines)
         self.data.is_multiline = markers is not None
         self.data.markers = markers
@@ -281,7 +284,7 @@ class DaophotInputter(core.ContinuationLinesInputter):
         self.data.header.lines = header
 
         if markers is not None:
-            lines = lines[markers[0]:]
+            lines = lines[markers[0] :]
 
         continuation_char = self.continuation_char
         multiline_char = self.multiline_char
@@ -301,11 +304,12 @@ class DaophotInputter(core.ContinuationLinesInputter):
                     parts.append(line)
                 if not cont:
                     parts.append(line)
-                    outlines.append(''.join(parts))
+                    outlines.append("".join(parts))
                     parts = []
             else:
-                raise core.InconsistentTableError('multiline re could not match line '
-                                                  '{}: {}'.format(i, line))
+                raise core.InconsistentTableError(
+                    f"multiline re could not match line {i}: {line}"
+                )
 
         return outlines
 
@@ -372,10 +376,11 @@ class Daophot(core.BaseReader):
     and so on.
 
     """
-    _format_name = 'daophot'
-    _io_registry_format_aliases = ['daophot']
+
+    _format_name = "daophot"
+    _io_registry_format_aliases = ["daophot"]
     _io_registry_can_write = False
-    _description = 'IRAF DAOphot format table'
+    _description = "IRAF DAOphot format table"
 
     header_class = DaophotHeader
     data_class = DaophotData
