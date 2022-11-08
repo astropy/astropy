@@ -47,12 +47,10 @@ class ConstantMeta(type):
                 if not self.system and name_lower in self._has_incompatible_units:
                     systems = sorted(x for x in instances if x)
                     raise TypeError(
-                        "Constant {!r} does not have physically compatible "
+                        f"Constant {self.abbrev!r} does not have physically compatible "
                         "units across all systems of units and cannot be "
                         "combined with other values without specifying a "
-                        "system (eg. {}.{})".format(
-                            self.abbrev, self.abbrev, systems[0]
-                        )
+                        f"system (eg. {self.abbrev}.{systems[0]})"
                     )
 
                 return meth(self, *args, **kwargs)
@@ -161,24 +159,22 @@ class Constant(Quantity, metaclass=ConstantMeta):
         return inst
 
     def __repr__(self):
-        return "<{} name={!r} value={} uncertainty={} unit={!r} reference={!r}>".format(
-            self.__class__,
-            self.name,
-            self.value,
-            self.uncertainty,
-            str(self.unit),
-            self.reference,
+        return (
+            f"<{self.__class__} "
+            f"name={self.name!r} "
+            f"value={self.value} "
+            f"uncertainty={self.uncertainty} "
+            f"unit={str(self.unit)!r} "
+            f"reference={self.reference!r}>"
         )
 
     def __str__(self):
         return (
-            "  Name   = {}\n"
-            "  Value  = {}\n"
-            "  Uncertainty  = {}\n"
-            "  Unit  = {}\n"
-            "  Reference = {}".format(
-                self.name, self.value, self.uncertainty, self.unit, self.reference
-            )
+            f"  Name   = {self.name}\n"
+            f"  Value  = {self.value}\n"
+            f"  Uncertainty  = {self.uncertainty}\n"
+            f"  Unit  = {self.unit}\n"
+            f"  Reference = {self.reference}"
         )
 
     def __quantity_subclass__(self, unit):
