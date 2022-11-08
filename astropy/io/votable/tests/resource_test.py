@@ -6,7 +6,7 @@ from astropy.utils.data import get_pkg_data_filename
 
 def test_resource_groups():
     # Read the VOTABLE
-    votable = parse(get_pkg_data_filename('data/resource_groups.xml'))
+    votable = parse(get_pkg_data_filename("data/resource_groups.xml"))
 
     resource = votable.resources[0]
     groups = resource.groups
