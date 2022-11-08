@@ -15,7 +15,7 @@ def test_version_match():
 
 def test_previously_imported():
     with pytest.raises(RuntimeError):
-        physical_constants.set('codata2018')
+        physical_constants.set("codata2018")
 
     with pytest.raises(RuntimeError):
-        astronomical_constants.set('iau2015')
+        astronomical_constants.set("iau2015")

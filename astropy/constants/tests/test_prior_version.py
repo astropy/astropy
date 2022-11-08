@@ -10,7 +10,6 @@ from astropy.units import Quantity as Q
 
 
 def test_c():
-
     from astropy.constants.codata2010 import c
 
     # c is an exactly defined constant, so it shouldn't be changing
@@ -26,7 +25,6 @@ def test_c():
 
 
 def test_h():
-
     from astropy.constants import h as h_current
     from astropy.constants.codata2010 import h
 
@@ -46,11 +44,10 @@ def test_h():
 
 
 def test_e():
-
     from astropy.constants.astropyconst13 import e as e_13
 
     # A test quantity
-    E = Q(100.00000348276221, 'V/m')
+    E = Q(100.00000348276221, "V/m")
 
     # e.cgs is too ambiguous and should not work at all
     with pytest.raises(TypeError):
@@ -60,8 +57,8 @@ def test_e():
     assert isinstance(e_13.gauss, Q)
     assert isinstance(e_13.esu, Q)
 
-    assert e_13.gauss * E == Q(e_13.gauss.value * E.value, 'Fr V/m')
-    assert e_13.esu * E == Q(e_13.esu.value * E.value, 'Fr V/m')
+    assert e_13.gauss * E == Q(e_13.gauss.value * E.value, "Fr V/m")
+    assert e_13.esu * E == Q(e_13.esu.value * E.value, "Fr V/m")
 
 
 def test_g0():
@@ -80,7 +77,7 @@ def test_g0():
     assert g0.unit
 
     # Check that its unit have the correct physical type
-    assert g0.unit.physical_type == 'acceleration'
+    assert g0.unit.physical_type == "acceleration"
 
 
 def test_b_wien():
@@ -90,6 +87,7 @@ def test_b_wien():
     """
     from astropy import units as u
     from astropy.constants.astropyconst13 import b_wien
+
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
@@ -101,8 +99,11 @@ def test_pc():
     """
     from astropy import units as u
     from astropy.constants import iau2012
+
     plx = np.radians(1 / 3600)
-    assert np.allclose(u.pc.to('m') / iau2012.pc.si.value, np.tan(plx) / plx, rtol=1.e-14, atol=0)
+    assert np.allclose(
+        u.pc.to("m") / iau2012.pc.si.value, np.tan(plx) / plx, rtol=1.0e-14, atol=0
+    )
 
 
 def test_masses():
@@ -112,23 +113,28 @@ def test_masses():
     from astropy.constants import astropyconst13, astropyconst20, astropyconst40
 
     ref_text = "Allen's Astrophysical Quantities 4th Ed."
-    assert (astropyconst13.M_sun.reference == ref_text and
-            astropyconst13.M_jup.reference == ref_text and
-            astropyconst13.M_earth.reference == ref_text)
+    assert (
+        astropyconst13.M_sun.reference == ref_text
+        and astropyconst13.M_jup.reference == ref_text
+        and astropyconst13.M_earth.reference == ref_text
+    )
 
     ref_text = "IAU 2015 Resolution B 3 + CODATA 2014"
-    assert (astropyconst20.M_sun.reference == ref_text and
-            astropyconst20.M_jup.reference == ref_text and
-            astropyconst20.M_earth.reference == ref_text)
+    assert (
+        astropyconst20.M_sun.reference == ref_text
+        and astropyconst20.M_jup.reference == ref_text
+        and astropyconst20.M_earth.reference == ref_text
+    )
 
     ref_text = "IAU 2015 Resolution B 3 + CODATA 2018"
-    assert (astropyconst40.M_sun.reference == ref_text and
-            astropyconst40.M_jup.reference == ref_text and
-            astropyconst40.M_earth.reference == ref_text)
+    assert (
+        astropyconst40.M_sun.reference == ref_text
+        and astropyconst40.M_jup.reference == ref_text
+        and astropyconst40.M_earth.reference == ref_text
+    )
 
 
 def test_unit():
-
     from astropy import units as u
     from astropy.constants import astropyconst13 as const
 
@@ -142,6 +148,7 @@ def test_unit():
 
 def test_copy():
     from astropy import constants as const
+
     cc = copy.deepcopy(const.c)
     assert cc == const.c
 
@@ -152,6 +159,7 @@ def test_copy():
 def test_view():
     """Check that Constant and Quantity views can be taken (#3537, #3538)."""
     from astropy.constants import c
+
     c2 = c.view(Constant)
     assert c2 == c
     assert c2.value == c.value
@@ -165,13 +173,13 @@ def test_view():
     assert q1 == c
     assert q1.value == c.value
     assert type(q1) is Q
-    assert not hasattr(q1, 'reference')
+    assert not hasattr(q1, "reference")
 
     q2 = Q(c)
     assert q2 == c
     assert q2.value == c.value
     assert type(q2) is Q
-    assert not hasattr(q2, 'reference')
+    assert not hasattr(q2, "reference")
 
     c3 = Q(c, subok=True)
     assert c3 == c
