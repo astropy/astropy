@@ -101,11 +101,10 @@ def read_table_votable(
         if len(tables) > 1:
             if table_id is None:
                 raise ValueError(
-                    "Multiple tables found: table id should be set via "
-                    "the table_id= argument. The available tables are {}, "
-                    "or integers less than {}.".format(
-                        ", ".join(table_id_mapping.keys()), len(tables)
-                    )
+                    "Multiple tables found: table id should be set via the table_id="
+                    " argument. The available tables are"
+                    f" {', '.join(table_id_mapping)}, or integers less than"
+                    f" {len(tables)}."
                 )
             elif isinstance(table_id, str):
                 if table_id in table_id_mapping:
@@ -117,9 +116,8 @@ def read_table_votable(
                     table = tables[table_id]
                 else:
                     raise IndexError(
-                        "Table index {} is out of range. {} tables found".format(
-                            table_id, len(tables)
-                        )
+                        f"Table index {table_id} is out of range. {len(tables)} tables"
+                        " found"
                     )
         elif len(tables) == 1:
             table = tables[0]
@@ -164,9 +162,7 @@ def write_table_votable(
     if unsupported_cols:
         unsupported_names = [col.info.name for col in unsupported_cols]
         raise ValueError(
-            "cannot write table with mixin column(s) {} to VOTable".format(
-                unsupported_names
-            )
+            f"cannot write table with mixin column(s) {unsupported_names} to VOTable"
         )
 
     # Check if output file already exists
