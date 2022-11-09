@@ -312,9 +312,8 @@ def enable_merge_strategies(*merge_strategies):
 
 def _warn_str_func(key, left, right):
     out = (
-        "Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}".format(
-            key, type(left), type(right), right
-        )
+        f"Cannot merge meta key {key!r} types {type(left)!r}"
+        f" and {type(right)!r}, choosing {key}={right!r}"
     )
     return out
 

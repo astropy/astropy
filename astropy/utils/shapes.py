@@ -224,9 +224,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         except IndexError:
             if self.isscalar:
                 raise TypeError(
-                    "scalar {!r} object is not subscriptable.".format(
-                        self.__class__.__name__
-                    )
+                    f"scalar {self.__class.__name__!r} object is not subscriptable."
                 )
             else:
                 raise

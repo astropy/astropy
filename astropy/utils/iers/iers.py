@@ -885,10 +885,9 @@ class IERS_Auto(IERS_A):
             else:
                 warn(
                     IERSStaleWarning(
-                        "IERS_Auto predictive values are older than {} days but"
-                        " downloading the latest table did not find newer values".format(
-                            conf.auto_max_age
-                        )
+                        "IERS_Auto predictive values are older than"
+                        f" {conf.auto_max_age} days but downloading the latest table"
+                        " did not find newer values"
                     )
                 )
 
@@ -1135,8 +1134,8 @@ class LeapSeconds(QTable):
 
         if self is None:
             raise ValueError(
-                "none of the files could be read. The following errors were raised:\n"
-                + str(err_list)
+                "none of the files could be read. The "
+                f"following errors were raised:\n {err_list}"
             )
 
         if self.expires < self._today() and conf.auto_max_age is not None:

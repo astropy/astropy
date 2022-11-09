@@ -96,12 +96,7 @@ def deprecated(
         if not old_doc:
             old_doc = ""
         old_doc = textwrap.dedent(old_doc).strip("\n")
-        new_doc = (
-            "\n.. deprecated:: {since}\n    {message}\n\n".format(
-                **{"since": since, "message": message.strip()}
-            )
-            + old_doc
-        )
+        new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
         if not old_doc:
             # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.

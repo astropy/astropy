@@ -927,13 +927,12 @@ def test_get_invalid(package):
 )
 def test_local_data_obj(filename):
     if (not HAS_BZ2 and "bz2" in filename) or (not HAS_LZMA and "xz" in filename):
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ValueError, match=r" format files are not supported"):
             with get_pkg_data_fileobj(
                 os.path.join("data", filename), encoding="binary"
             ) as f:
                 f.readline()
                 # assert f.read().rstrip() == b'CONTENT'
-        assert " format files are not supported" in str(e.value)
     else:
         with get_pkg_data_fileobj(
             os.path.join("data", filename), encoding="binary"
