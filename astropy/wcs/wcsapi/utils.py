@@ -4,7 +4,7 @@ import importlib
 
 import numpy as np
 
-__all__ = ['deserialize_class', 'wcs_info_str']
+__all__ = ["deserialize_class", "wcs_info_str"]
 
 
 def deserialize_class(tpl, construct=True):
@@ -15,7 +15,7 @@ def deserialize_class(tpl, construct=True):
     if not isinstance(tpl, tuple) or len(tpl) != 3:
         raise ValueError("Expected a tuple of three values")
 
-    module, klass = tpl[0].rsplit('.', 1)
+    module, klass = tpl[0].rsplit(".", 1)
     module = importlib.import_module(module)
     klass = getattr(module, klass)
 
@@ -37,11 +37,11 @@ def deserialize_class(tpl, construct=True):
 def wcs_info_str(wcs):
     # Overall header
 
-    s = f'{wcs.__class__.__name__} Transformation\n\n'
-    s += 'This transformation has {} pixel and {} world dimensions\n\n'.format(
+    s = f"{wcs.__class__.__name__} Transformation\n\n"
+    s += "This transformation has {} pixel and {} world dimensions\n\n".format(
         wcs.pixel_n_dim, wcs.world_n_dim
     )
-    s += f'Array shape (Numpy order): {wcs.array_shape}\n\n'
+    s += f"Array shape (Numpy order): {wcs.array_shape}\n\n"
 
     # Pixel dimensions table
 
@@ -69,7 +69,7 @@ def wcs_info_str(wcs):
                 '{:s}'.format(str(None if wcs.pixel_bounds is None else wcs.pixel_bounds[ipix]) + '\n'))
         # fmt: on
 
-    s += '\n'
+    s += "\n"
 
     # World dimensions table
 
@@ -90,9 +90,9 @@ def wcs_info_str(wcs):
     # fmt: on
 
     for iwrl in range(wcs.world_n_dim):
-        name = wcs.world_axis_names[iwrl] or 'None'
-        typ = wcs.world_axis_physical_types[iwrl] or 'None'
-        unit = wcs.world_axis_units[iwrl] or 'unknown'
+        name = wcs.world_axis_names[iwrl] or "None"
+        typ = wcs.world_axis_physical_types[iwrl] or "None"
+        unit = wcs.world_axis_units[iwrl] or "unknown"
 
         # fmt: off
         s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) + '  ' +
@@ -101,13 +101,13 @@ def wcs_info_str(wcs):
                 '{:s}'.format(unit + '\n'))
         # fmt: on
 
-    s += '\n'
+    s += "\n"
 
     # Axis correlation matrix
 
     pixel_dim_width = max(3, len(str(wcs.world_n_dim)))
 
-    s += 'Correlation between pixel and world axes:\n\n'
+    s += "Correlation between pixel and world axes:\n\n"
 
     # fmt: off
     s += (' ' * world_dim_width + '  ' +
@@ -121,9 +121,9 @@ def wcs_info_str(wcs):
     # fmt: on
 
     matrix = wcs.axis_correlation_matrix
-    matrix_str = np.empty(matrix.shape, dtype='U3')
-    matrix_str[matrix] = 'yes'
-    matrix_str[~matrix] = 'no'
+    matrix_str = np.empty(matrix.shape, dtype="U3")
+    matrix_str[matrix] = "yes"
+    matrix_str[~matrix] = "no"
 
     for iwrl in range(wcs.world_n_dim):
         # fmt: off
@@ -134,4 +134,4 @@ def wcs_info_str(wcs):
         # fmt: on
 
     # Make sure we get rid of the extra whitespace at the end of some lines
-    return '\n'.join([l.rstrip() for l in s.splitlines()])
+    return "\n".join([l.rstrip() for l in s.splitlines()])

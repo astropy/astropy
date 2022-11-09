@@ -46,13 +46,13 @@ def test_2d_spatial_tab_vs_model():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version('7.6'),
+    _WCSLIB_VER < Version("7.6"),
     reason="Only in WCSLIB 7.6 a 1D -TAB axis roundtrips unless first axis",
 )
 def test_mixed_celest_and_1d_tab_roundtrip():
     # Tests WCS roundtripping for the case when there is one -TAB axis and
     # this axis is not the first axis. This tests a bug fixed in WCSLIB 7.6.
-    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+    filename = get_pkg_data_filename("data/tab-time-last-axis.fits")
     with fits.open(filename) as hdul:
         w = wcs.WCS(hdul[0].header, hdul)
 
@@ -61,38 +61,38 @@ def test_mixed_celest_and_1d_tab_roundtrip():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version('7.8'),
+    _WCSLIB_VER < Version("7.8"),
     reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work.",
 )
 def test_wcstab_swapaxes():
     # Crash on deepcopy of swapped -TAB axes reported in #13036.
     # Fixed in #13063.
-    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+    filename = get_pkg_data_filename("data/tab-time-last-axis.fits")
     with fits.open(filename) as hdul:
         w = wcs.WCS(hdul[0].header, hdul)
-        w.wcs.ctype[-1] = 'FREQ-TAB'
+        w.wcs.ctype[-1] = "FREQ-TAB"
         w.wcs.set()
     wswp = w.swapaxes(2, 0)
     deepcopy(wswp)
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version('7.8'),
+    _WCSLIB_VER < Version("7.8"),
     reason="Requires WCSLIB >= 7.8 for swapping -TAB axes to work.",
 )
 @pytest.mark.xfail(
-    Version('7.8') <= _WCSLIB_VER < Version('7.10'),
+    Version("7.8") <= _WCSLIB_VER < Version("7.10"),
     reason="Requires WCSLIB >= 7.10 for swapped -TAB axes to produce same results.",
 )
 def test_wcstab_swapaxes_same_val_roundtrip():
-    filename = get_pkg_data_filename('data/tab-time-last-axis.fits')
+    filename = get_pkg_data_filename("data/tab-time-last-axis.fits")
 
     axes_order = [3, 2, 1]
     axes_order0 = list(i - 1 for i in axes_order)
 
     with fits.open(filename) as hdul:
         w = wcs.WCS(hdul[0].header, hdul)
-        w.wcs.ctype[-1] = 'FREQ-TAB'
+        w.wcs.ctype[-1] = "FREQ-TAB"
         w.wcs.set()
         ws = w.sub(axes_order)
 

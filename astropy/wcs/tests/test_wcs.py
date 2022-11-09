@@ -39,7 +39,7 @@ _WCSLIB_VER = Version(_wcs.__version__)
 
 # NOTE: User can choose to use system wcslib instead of bundled.
 def ctx_for_v71_dateref_warnings():
-    if _WCSLIB_VER >= Version('7.1') and _WCSLIB_VER < Version('7.3'):
+    if _WCSLIB_VER >= Version("7.1") and _WCSLIB_VER < Version("7.3"):
         ctx = pytest.warns(
             wcs.FITSFixedWarning,
             match=(
@@ -65,10 +65,9 @@ class TestMaps:
         # how many do we expect to see?
         n_data_files = 28
 
-        assert (
-            len(self._file_list) == n_data_files
-        ), "test_spectra has wrong number data files: found {}, expected  {}".format(
-            len(self._file_list), n_data_files
+        assert len(self._file_list) == n_data_files, (
+            f"test_spectra has wrong number data files: found {len(self._file_list)},"
+            f" expected  {n_data_files}"
         )
 
     def test_maps(self):
@@ -78,7 +77,7 @@ class TestMaps:
             filename = os.path.basename(filename)
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("data", "maps", filename), encoding='binary'
+                os.path.join("data", "maps", filename), encoding="binary"
             )
             # finally run the test.
             wcsobj = wcs.WCS(header)
@@ -100,10 +99,9 @@ class TestSpectra:
         # how many do we expect to see?
         n_data_files = 6
 
-        assert (
-            len(self._file_list) == n_data_files
-        ), "test_spectra has wrong number data files: found {}, expected  {}".format(
-            len(self._file_list), n_data_files
+        assert len(self._file_list) == n_data_files, (
+            f"test_spectra has wrong number data files: found {len(self._file_list)},"
+            f" expected  {n_data_files}"
         )
 
     def test_spectra(self):
@@ -113,10 +111,10 @@ class TestSpectra:
             filename = os.path.basename(filename)
             # Now find the associated file in the installed wcs test directory.
             header = get_pkg_data_contents(
-                os.path.join("data", "spectra", filename), encoding='binary'
+                os.path.join("data", "spectra", filename), encoding="binary"
             )
             # finally run the test.
-            if _WCSLIB_VER >= Version('7.4'):
+            if _WCSLIB_VER >= Version("7.4"):
                 ctx = pytest.warns(
                     wcs.FITSFixedWarning,
                     match=(
@@ -136,31 +134,31 @@ def test_fixes():
     """
     From github issue #36
     """
-    header = get_pkg_data_contents('data/nonstandard_units.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/nonstandard_units.hdr", encoding="binary")
 
     with pytest.raises(wcs.InvalidTransformError), pytest.warns(
         wcs.FITSFixedWarning
     ) as w:
-        wcs.WCS(header, translate_units='dhs')
+        wcs.WCS(header, translate_units="dhs")
 
-    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
+    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
         assert len(w) == 2
 
     first_wmsg = str(w[0].message)
-    assert 'unitfix' in first_wmsg and 'Hz' in first_wmsg and 'M/S' in first_wmsg
-    assert 'plane angle' in str(w[1].message) and 'm/s' in str(w[1].message)
+    assert "unitfix" in first_wmsg and "Hz" in first_wmsg and "M/S" in first_wmsg
+    assert "plane angle" in str(w[1].message) and "m/s" in str(w[1].message)
 
 
 # Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
-@pytest.mark.filterwarnings(r'ignore:PV2_2')
+@pytest.mark.filterwarnings(r"ignore:PV2_2")
 def test_outside_sky():
     """
     From github issue #107
     """
-    header = get_pkg_data_contents('data/outside_sky.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/outside_sky.hdr", encoding="binary")
     w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2world([[100.0, 500.0]], 0)))  # outside sky
@@ -175,7 +173,7 @@ def test_pix2world():
     # TODO: write this to test the expected output behavior of pix2world,
     # currently this just makes sure it doesn't error out in unexpected ways
     # (and compares `wcs.pc` and `result` values?)
-    filename = get_pkg_data_filename('data/sip2.fits')
+    filename = get_pkg_data_filename("data/sip2.fits")
     with pytest.warns(wcs.FITSFixedWarning) as caught_warnings:
         # this raises a warning unimportant for this testing the pix2world
         #   FITSFixedWarning(u'The WCS transformation has more axes (2) than
@@ -183,7 +181,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
+    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -212,7 +210,7 @@ def test_pix2world():
 
 
 def test_load_fits_path():
-    fits_name = get_pkg_data_filename('data/sip.fits')
+    fits_name = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(wcs.FITSFixedWarning):
         wcs.WCS(fits_name)
 
@@ -233,21 +231,21 @@ def test_dict_init():
 
     # Valid WCS
     hdr = {
-        'CTYPE1': 'GLON-CAR',
-        'CTYPE2': 'GLAT-CAR',
-        'CUNIT1': 'deg',
-        'CUNIT2': 'deg',
-        'CRPIX1': 1,
-        'CRPIX2': 1,
-        'CRVAL1': 40.0,
-        'CRVAL2': 0.0,
-        'CDELT1': -0.1,
-        'CDELT2': 0.1,
+        "CTYPE1": "GLON-CAR",
+        "CTYPE2": "GLAT-CAR",
+        "CUNIT1": "deg",
+        "CUNIT2": "deg",
+        "CRPIX1": 1,
+        "CRPIX2": 1,
+        "CRVAL1": 40.0,
+        "CRVAL2": 0.0,
+        "CDELT1": -0.1,
+        "CDELT2": 0.1,
     }
-    if _WCSLIB_VER >= Version('7.1'):
-        hdr['DATEREF'] = '1858-11-17'
+    if _WCSLIB_VER >= Version("7.1"):
+        hdr["DATEREF"] = "1858-11-17"
 
-    if _WCSLIB_VER >= Version('7.4'):
+    if _WCSLIB_VER >= Version("7.4"):
         ctx = pytest.warns(
             wcs.wcs.FITSFixedWarning,
             match=r"'datfix' made the change 'Set MJDREF to 0\.000000 from DATEREF'\.",
@@ -323,13 +321,12 @@ def test_shape_mismatch():
     x = np.random.random((2, 3, 4))
     y = np.random.random((3, 2, 4))
 
-    with pytest.raises(ValueError) as exc:
+    MESSAGE = r"Coordinate arrays are not broadcastable to each other"
+    with pytest.raises(ValueError, match=MESSAGE):
         xw, yw = w.wcs_pix2world(x, y, 1)
-    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE):
         xp, yp = w.wcs_world2pix(x, y, 1)
-    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
     # There are some ambiguities that need to be worked around when
     # naxis == 1
@@ -345,29 +342,23 @@ def test_shape_mismatch():
 
 
 def test_invalid_shape():
-    # Issue #1395
+    """Issue #1395"""
+    MESSAGE = r"When providing two arguments, the array must be of shape [(]N, 2[)]"
+
     w = wcs.WCS(naxis=2)
 
     xy = np.random.random((2, 3))
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE):
         w.wcs_pix2world(xy, 1)
-    assert (
-        exc.value.args[0]
-        == 'When providing two arguments, the array must be of shape (N, 2)'
-    )
 
     xy = np.random.random((2, 1))
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE):
         w.wcs_pix2world(xy, 1)
-    assert (
-        exc.value.args[0]
-        == 'When providing two arguments, the array must be of shape (N, 2)'
-    )
 
 
 def test_warning_about_defunct_keywords():
-    header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
-    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
+    header = get_pkg_data_contents("data/defunct_keywords.hdr", encoding="binary")
+    if Version("7.4") <= _WCSLIB_VER < Version("7.6"):
         n_warn = 5
     else:
         n_warn = 4
@@ -380,11 +371,11 @@ def test_warning_about_defunct_keywords():
         assert len(w) == n_warn
         # 7.4 adds a fifth warning "'datfix' made the change 'Success'."
         for item in w[:4]:
-            assert 'PCi_ja' in str(item.message)
+            assert "PCi_ja" in str(item.message)
 
 
 def test_warning_about_defunct_keywords_exception():
-    header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/defunct_keywords.hdr", encoding="binary")
     with pytest.warns(wcs.FITSFixedWarning):
         wcs.WCS(header)
 
@@ -403,14 +394,14 @@ def test_to_header_string():
     )
     # fmt: on
 
-    if _WCSLIB_VER >= Version('7.3'):
+    if _WCSLIB_VER >= Version("7.3"):
         # fmt: off
         hdrstr += (
             "MJDREF  =                  0.0 / [d] MJD of fiducial time                       ",
         )
         # fmt: on
 
-    elif _WCSLIB_VER >= Version('7.1'):
+    elif _WCSLIB_VER >= Version("7.1"):
         # fmt: off
         hdrstr += (
             "DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         ",
@@ -421,23 +412,23 @@ def test_to_header_string():
 
     hdrstr += ("END",)
 
-    header_string = ''.join(hdrstr)
+    header_string = "".join(hdrstr)
 
     w = wcs.WCS()
     h0 = fits.Header.fromstring(w.to_header_string().strip())
-    if 'COMMENT' in h0:
-        del h0['COMMENT']
-    if '' in h0:
-        del h0['']
+    if "COMMENT" in h0:
+        del h0["COMMENT"]
+    if "" in h0:
+        del h0[""]
     h1 = fits.Header.fromstring(header_string.strip())
     assert dict(h0) == dict(h1)
 
 
 def test_to_fits():
-    nrec = 11 if _WCSLIB_VER >= Version('7.1') else 8
-    if _WCSLIB_VER < Version('7.1'):
+    nrec = 11 if _WCSLIB_VER >= Version("7.1") else 8
+    if _WCSLIB_VER < Version("7.1"):
         nrec = 8
-    elif _WCSLIB_VER < Version('7.3'):
+    elif _WCSLIB_VER < Version("7.3"):
         nrec = 11
     else:
         nrec = 9
@@ -451,10 +442,10 @@ def test_to_fits():
 
 
 def test_to_header_warning():
-    fits_name = get_pkg_data_filename('data/sip.fits')
+    fits_name = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(wcs.FITSFixedWarning):
         x = wcs.WCS(fits_name)
-    with pytest.warns(AstropyWarning, match='A_ORDER') as w:
+    with pytest.warns(AstropyWarning, match="A_ORDER") as w:
         x.to_header()
     assert len(w) == 1
 
@@ -463,13 +454,13 @@ def test_no_comments_in_header():
     w = wcs.WCS()
     header = w.to_header()
     assert w.wcs.alt not in header
-    assert 'COMMENT' + w.wcs.alt.strip() not in header
-    assert 'COMMENT' not in header
-    wkey = 'P'
+    assert "COMMENT" + w.wcs.alt.strip() not in header
+    assert "COMMENT" not in header
+    wkey = "P"
     header = w.to_header(key=wkey)
     assert wkey not in header
-    assert 'COMMENT' not in header
-    assert 'COMMENT' + w.wcs.alt.strip() not in header
+    assert "COMMENT" not in header
+    assert "COMMENT" + w.wcs.alt.strip() not in header
 
 
 def test_find_all_wcs_crash():
@@ -491,18 +482,18 @@ def test_find_all_wcs_crash():
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
     results_txt = sorted({x.strip() for x in repr(results).splitlines()})
-    if _WCSLIB_VER >= Version('7.6'):
-        filename = 'data/validate.7.6.txt'
-    elif _WCSLIB_VER >= Version('7.4'):
-        filename = 'data/validate.7.4.txt'
-    elif _WCSLIB_VER >= Version('6.0'):
-        filename = 'data/validate.6.txt'
-    elif _WCSLIB_VER >= Version('5.13'):
-        filename = 'data/validate.5.13.txt'
-    elif _WCSLIB_VER >= Version('5.0'):
-        filename = 'data/validate.5.0.txt'
+    if _WCSLIB_VER >= Version("7.6"):
+        filename = "data/validate.7.6.txt"
+    elif _WCSLIB_VER >= Version("7.4"):
+        filename = "data/validate.7.4.txt"
+    elif _WCSLIB_VER >= Version("6.0"):
+        filename = "data/validate.6.txt"
+    elif _WCSLIB_VER >= Version("5.13"):
+        filename = "data/validate.5.13.txt"
+    elif _WCSLIB_VER >= Version("5.0"):
+        filename = "data/validate.5.0.txt"
     else:
-        filename = 'data/validate.txt'
+        filename = "data/validate.txt"
     with open(get_pkg_data_filename(filename)) as fd:
         lines = fd.readlines()
     assert sorted({x.strip() for x in lines}) == results_txt
@@ -510,13 +501,13 @@ def test_validate():
 
 @pytest.mark.filterwarnings("ignore")
 def test_validate_wcs_tab():
-    results = wcs.validate(get_pkg_data_filename('data/tab-time-last-axis.fits'))
+    results = wcs.validate(get_pkg_data_filename("data/tab-time-last-axis.fits"))
     results_txt = sorted({x.strip() for x in repr(results).splitlines()})
     assert results_txt == [
-        '',
-        'HDU 0 (PRIMARY):',
-        'HDU 1 (WCS-TABLE):',
-        'No issues.',
+        "",
+        "HDU 0 (PRIMARY):",
+        "HDU 1 (WCS-TABLE):",
+        "No issues.",
         "WCS key ' ':",
     ]
 
@@ -536,7 +527,7 @@ def test_crpix_maps_to_crval():
     twcs.wcs.crpix = [507, 507]
     twcs.wcs.pc = np.array([[7.7e-6, 3.3e-5], [3.7e-5, -6.8e-6]])
     twcs._naxis = [1014, 1014]
-    twcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+    twcs.wcs.ctype = ["RA---TAN-SIP", "DEC--TAN-SIP"]
     a = np.array(
         [
             [0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
@@ -590,8 +581,8 @@ def test_all_world2pix(
 
     # Open test FITS file:
     if fname is None:
-        fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
-        ext = ('SCI', 1)
+        fname = get_pkg_data_filename("data/j94f05bgq_flt.fits")
+        ext = ("SCI", 1)
     if not os.path.isfile(fname):
         raise OSError(f"Input file '{fname:s}' to 'test_all_world2pix' not found.")
     h = fits.open(fname)
@@ -648,14 +639,12 @@ def test_all_world2pix(
             print(f"Indices of diverging solutions:\n{e.divergent}")
             print(f"Diverging solutions:\n{e.best_solution[e.divergent]}\n")
             print(
-                "Mean radius of the diverging solutions: {}".format(
-                    np.mean(np.linalg.norm(e.best_solution[e.divergent], axis=1))
-                )
+                "Mean radius of the diverging solutions:"
+                f" {np.mean(np.linalg.norm(e.best_solution[e.divergent], axis=1))}"
             )
             print(
-                "Mean accuracy of the diverging solutions: {}\n".format(
-                    np.mean(np.linalg.norm(e.accuracy[e.divergent], axis=1))
-                )
+                "Mean accuracy of the diverging solutions:"
+                f" {np.mean(np.linalg.norm(e.accuracy[e.divergent], axis=1))}\n"
             )
         else:
             print("There are no diverging solutions.")
@@ -670,15 +659,13 @@ def test_all_world2pix(
             print("There are no slowly converging solutions.\n")
 
         print(
-            "There are {} converged solutions.".format(
-                e.best_solution.shape[0] - ndiv - nslow
-            )
+            f"There are {e.best_solution.shape[0] - ndiv - nslow} converged solutions."
         )
         print(f"Best solutions (all points):\n{e.best_solution}")
         print(f"Accuracy:\n{e.accuracy}\n")
         print(
             "\nFinished running 'test_all_world2pix' with errors.\n"
-            "ERROR: {}\nRun time: {}\n".format(e.args[0], runtime_end - runtime_begin)
+            f"ERROR: {e.args[0]}\nRun time: {runtime_end - runtime_begin}\n"
         )
         raise e
 
@@ -690,8 +677,8 @@ def test_all_world2pix(
     maxerr = np.amax(errors)
     print(
         "\nFinished running 'test_all_world2pix'.\n"
-        "Mean error = {:e}  (Max error = {:e})\n"
-        "Run time: {}\n".format(meanerr, maxerr, runtime_end - runtime_begin)
+        f"Mean error = {meanerr:e}  (Max error = {maxerr:e})\n"
+        f"Run time: {runtime_end - runtime_begin}\n"
     )
 
     assert maxerr < 2.0 * tolerance
@@ -702,7 +689,7 @@ def test_scamp_sip_distortion_parameters():
     Test parsing of WCS parameters with redundant SIP and SCAMP distortion
     parameters.
     """
-    header = get_pkg_data_contents('data/validate.fits', encoding='binary')
+    header = get_pkg_data_contents("data/validate.fits", encoding="binary")
     with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(header)
     # Just check that this doesn't raise an exception.
@@ -713,7 +700,7 @@ def test_fixes2():
     """
     From github issue #1854
     """
-    header = get_pkg_data_contents('data/nonstandard_units.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/nonstandard_units.hdr", encoding="binary")
     with pytest.raises(wcs.InvalidTransformError):
         wcs.WCS(header, fix=False)
 
@@ -722,9 +709,9 @@ def test_unit_normalization():
     """
     From github issue #1918
     """
-    header = get_pkg_data_contents('data/unit.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/unit.hdr", encoding="binary")
     w = wcs.WCS(header)
-    assert w.wcs.cunit[2] == 'm/s'
+    assert w.wcs.cunit[2] == "m/s"
 
 
 def test_footprint_to_file(tmp_path):
@@ -733,45 +720,45 @@ def test_footprint_to_file(tmp_path):
     """
     # Arbitrary keywords from real data
     hdr = {
-        'CTYPE1': 'RA---ZPN',
-        'CRUNIT1': 'deg',
-        'CRPIX1': -3.3495999e02,
-        'CRVAL1': 3.185790700000e02,
-        'CTYPE2': 'DEC--ZPN',
-        'CRUNIT2': 'deg',
-        'CRPIX2': 3.0453999e03,
-        'CRVAL2': 4.388538000000e01,
-        'PV2_1': 1.0,
-        'PV2_3': 220.0,
-        'NAXIS1': 2048,
-        'NAXIS2': 1024,
+        "CTYPE1": "RA---ZPN",
+        "CRUNIT1": "deg",
+        "CRPIX1": -3.3495999e02,
+        "CRVAL1": 3.185790700000e02,
+        "CTYPE2": "DEC--ZPN",
+        "CRUNIT2": "deg",
+        "CRPIX2": 3.0453999e03,
+        "CRVAL2": 4.388538000000e01,
+        "PV2_1": 1.0,
+        "PV2_3": 220.0,
+        "NAXIS1": 2048,
+        "NAXIS2": 1024,
     }
     w = wcs.WCS(hdr)
 
-    testfile = tmp_path / 'test.txt'
+    testfile = tmp_path / "test.txt"
     w.footprint_to_file(testfile)
 
     with open(testfile) as f:
         lines = f.readlines()
 
     assert len(lines) == 4
-    assert lines[2] == 'ICRS\n'
-    assert 'color=green' in lines[3]
+    assert lines[2] == "ICRS\n"
+    assert "color=green" in lines[3]
 
-    w.footprint_to_file(testfile, coordsys='FK5', color='red')
+    w.footprint_to_file(testfile, coordsys="FK5", color="red")
 
     with open(testfile) as f:
         lines = f.readlines()
 
     assert len(lines) == 4
-    assert lines[2] == 'FK5\n'
-    assert 'color=red' in lines[3]
+    assert lines[2] == "FK5\n"
+    assert "color=red" in lines[3]
 
     with pytest.raises(ValueError):
-        w.footprint_to_file(testfile, coordsys='FOO')
+        w.footprint_to_file(testfile, coordsys="FOO")
 
-    del hdr['NAXIS1']
-    del hdr['NAXIS2']
+    del hdr["NAXIS1"]
+    del hdr["NAXIS2"]
     w = wcs.WCS(hdr)
     with pytest.warns(AstropyUserWarning):
         w.footprint_to_file(testfile)
@@ -780,15 +767,15 @@ def test_footprint_to_file(tmp_path):
 # Ignore FITSFixedWarning about keyrecords following the END keyrecord were
 # ignored, which comes from src/astropy_wcs.c . Only a blind catch like this
 # seems to work when pytest warnings are turned into exceptions.
-@pytest.mark.filterwarnings('ignore')
+@pytest.mark.filterwarnings("ignore")
 def test_validate_faulty_wcs():
     """
     From github issue #2053
     """
     h = fits.Header()
     # Illegal WCS:
-    h['RADESYSA'] = 'ICRS'
-    h['PV2_1'] = 1.0
+    h["RADESYSA"] = "ICRS"
+    h["PV2_1"] = 1.0
     hdu = fits.PrimaryHDU([[0]], header=h)
     hdulist = fits.HDUList([hdu])
     # Check that this doesn't raise a NameError exception
@@ -796,7 +783,7 @@ def test_validate_faulty_wcs():
 
 
 def test_error_message():
-    header = get_pkg_data_contents('data/invalid_header.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/invalid_header.hdr", encoding="binary")
 
     with pytest.raises(wcs.InvalidTransformError):
         # Both lines are in here, because 0.4 calls .set within WCS.__init__,
@@ -808,7 +795,7 @@ def test_error_message():
 
 def test_out_of_bounds():
     # See #2107
-    header = get_pkg_data_contents('data/zpn-hole.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/zpn-hole.hdr", encoding="binary")
     w = wcs.WCS(header)
 
     ra, dec = w.wcs_pix2world(110, 110, 0)
@@ -823,7 +810,7 @@ def test_out_of_bounds():
 
 
 def test_calc_footprint_1():
-    fits = get_pkg_data_filename('data/sip.fits')
+    fits = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(fits)
 
@@ -842,7 +829,7 @@ def test_calc_footprint_1():
 
 def test_calc_footprint_2():
     """Test calc_footprint without distortion."""
-    fits = get_pkg_data_filename('data/sip.fits')
+    fits = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(fits)
 
@@ -874,7 +861,7 @@ def test_calc_footprint_3():
 
 def test_sip():
     # See #2107
-    header = get_pkg_data_contents('data/irac_sip.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/irac_sip.hdr", encoding="binary")
     w = wcs.WCS(header)
 
     x0, y0 = w.sip_pix2foc(200, 200, 0)
@@ -890,10 +877,10 @@ def test_sip():
 
 def test_sub_3d_with_sip():
     # See #10527
-    header = get_pkg_data_contents('data/irac_sip.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/irac_sip.hdr", encoding="binary")
     header = fits.Header.fromstring(header)
-    header['NAXIS'] = 3
-    header.set('NAXIS3', 64, after=header.index('NAXIS2'))
+    header["NAXIS"] = 3
+    header.set("NAXIS3", 64, after=header.index("NAXIS2"))
     w = wcs.WCS(header, naxis=2)
     assert w.naxis == 2
 
@@ -902,17 +889,17 @@ def test_printwcs(capsys):
     """
     Just make sure that it runs
     """
-    h = get_pkg_data_contents('data/spectra/orion-freq-1.hdr', encoding='binary')
+    h = get_pkg_data_contents("data/spectra/orion-freq-1.hdr", encoding="binary")
     with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(h)
         w.printwcs()
         captured = capsys.readouterr()
-        assert 'WCS Keywords' in captured.out
-    h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+        assert "WCS Keywords" in captured.out
+    h = get_pkg_data_contents("data/3d_cd.hdr", encoding="binary")
     w = wcs.WCS(h)
     w.printwcs()
     captured = capsys.readouterr()
-    assert 'WCS Keywords' in captured.out
+    assert "WCS Keywords" in captured.out
 
 
 def test_invalid_spherical():
@@ -948,22 +935,21 @@ IMAGEH  =                 2832 / Image height, in pixels.
 
 
 def test_no_iteration():
-    # Regression test for #3066
+    """Regression test for #3066"""
+    MESSAGE = "'{}' object is not iterable"
 
     w = wcs.WCS(naxis=2)
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("WCS")):
         iter(w)
-    assert exc.value.args[0] == "'WCS' object is not iterable"
 
     class NewWCS(wcs.WCS):
         pass
 
     w = NewWCS(naxis=2)
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("NewWCS")):
         iter(w)
-    assert exc.value.args[0] == "'NewWCS' object is not iterable"
 
 
 @pytest.mark.skipif(
@@ -971,10 +957,10 @@ def test_no_iteration():
 )
 def test_sip_tpv_agreement():
     sip_header = get_pkg_data_contents(
-        os.path.join("data", "siponly.hdr"), encoding='binary'
+        os.path.join("data", "siponly.hdr"), encoding="binary"
     )
     tpv_header = get_pkg_data_contents(
-        os.path.join("data", "tpvonly.hdr"), encoding='binary'
+        os.path.join("data", "tpvonly.hdr"), encoding="binary"
     )
 
     with pytest.warns(wcs.FITSFixedWarning):
@@ -1010,7 +996,7 @@ def test_tpv_copy():
     # See #3904
 
     tpv_header = get_pkg_data_contents(
-        os.path.join("data", "tpvonly.hdr"), encoding='binary'
+        os.path.join("data", "tpvonly.hdr"), encoding="binary"
     )
 
     with pytest.warns(wcs.FITSFixedWarning):
@@ -1071,20 +1057,20 @@ def test_cpdis_comments():
     hdr = w.to_fits()[0].header
     f.close()
 
-    wcscards = list(hdr['CPDIS*'].cards) + list(hdr['DP*'].cards)
+    wcscards = list(hdr["CPDIS*"].cards) + list(hdr["DP*"].cards)
     wcsdict = {k: (v, c) for k, v, c in wcscards}
 
     refcards = [
-        ('CPDIS1', 'LOOKUP', 'Prior distortion function type'),
-        ('DP1.EXTVER', 1.0, 'Version number of WCSDVARR extension'),
-        ('DP1.NAXES', 2.0, 'Number of independent variables in CPDIS function'),
-        ('DP1.AXIS.1', 1.0, 'Axis number of the 1st variable in a CPDIS function'),
-        ('DP1.AXIS.2', 2.0, 'Axis number of the 2nd variable in a CPDIS function'),
-        ('CPDIS2', 'LOOKUP', 'Prior distortion function type'),
-        ('DP2.EXTVER', 2.0, 'Version number of WCSDVARR extension'),
-        ('DP2.NAXES', 2.0, 'Number of independent variables in CPDIS function'),
-        ('DP2.AXIS.1', 1.0, 'Axis number of the 1st variable in a CPDIS function'),
-        ('DP2.AXIS.2', 2.0, 'Axis number of the 2nd variable in a CPDIS function'),
+        ("CPDIS1", "LOOKUP", "Prior distortion function type"),
+        ("DP1.EXTVER", 1.0, "Version number of WCSDVARR extension"),
+        ("DP1.NAXES", 2.0, "Number of independent variables in CPDIS function"),
+        ("DP1.AXIS.1", 1.0, "Axis number of the 1st variable in a CPDIS function"),
+        ("DP1.AXIS.2", 2.0, "Axis number of the 2nd variable in a CPDIS function"),
+        ("CPDIS2", "LOOKUP", "Prior distortion function type"),
+        ("DP2.EXTVER", 2.0, "Version number of WCSDVARR extension"),
+        ("DP2.NAXES", 2.0, "Number of independent variables in CPDIS function"),
+        ("DP2.AXIS.1", 1.0, "Axis number of the 1st variable in a CPDIS function"),
+        ("DP2.AXIS.2", 2.0, "Axis number of the 2nd variable in a CPDIS function"),
     ]
 
     assert len(wcsdict) == len(refcards)
@@ -1100,20 +1086,20 @@ def test_d2im_comments():
     with pytest.warns(wcs.FITSFixedWarning):
         w = wcs.WCS(f[0].header, f)
     f.close()
-    wcscards = list(w.to_fits()[0].header['D2IM*'].cards)
+    wcscards = list(w.to_fits()[0].header["D2IM*"].cards)
     wcsdict = {k: (v, c) for k, v, c in wcscards}
 
     refcards = [
-        ('D2IMDIS1', 'LOOKUP', 'Detector to image correction type'),
-        ('D2IM1.EXTVER', 1.0, 'Version number of WCSDVARR extension'),
-        ('D2IM1.NAXES', 2.0, 'Number of independent variables in D2IM function'),
-        ('D2IM1.AXIS.1', 1.0, 'Axis number of the 1st variable in a D2IM function'),
-        ('D2IM1.AXIS.2', 2.0, 'Axis number of the 2nd variable in a D2IM function'),
-        ('D2IMDIS2', 'LOOKUP', 'Detector to image correction type'),
-        ('D2IM2.EXTVER', 2.0, 'Version number of WCSDVARR extension'),
-        ('D2IM2.NAXES', 2.0, 'Number of independent variables in D2IM function'),
-        ('D2IM2.AXIS.1', 1.0, 'Axis number of the 1st variable in a D2IM function'),
-        ('D2IM2.AXIS.2', 2.0, 'Axis number of the 2nd variable in a D2IM function'),
+        ("D2IMDIS1", "LOOKUP", "Detector to image correction type"),
+        ("D2IM1.EXTVER", 1.0, "Version number of WCSDVARR extension"),
+        ("D2IM1.NAXES", 2.0, "Number of independent variables in D2IM function"),
+        ("D2IM1.AXIS.1", 1.0, "Axis number of the 1st variable in a D2IM function"),
+        ("D2IM1.AXIS.2", 2.0, "Axis number of the 2nd variable in a D2IM function"),
+        ("D2IMDIS2", "LOOKUP", "Detector to image correction type"),
+        ("D2IM2.EXTVER", 2.0, "Version number of WCSDVARR extension"),
+        ("D2IM2.NAXES", 2.0, "Number of independent variables in D2IM function"),
+        ("D2IM2.AXIS.1", 1.0, "Axis number of the 1st variable in a D2IM function"),
+        ("D2IM2.AXIS.2", 2.0, "Axis number of the 2nd variable in a D2IM function"),
         # ('D2IMERR1', 0.049, 'Maximum error of D2IM correction for axis 1'),
         # ('D2IMERR2', 0.035, 'Maximum error of D2IM correction for axis 2'),
         # ('D2IMEXT', 'iref$y7b1516hi_d2i.fits', ''),
@@ -1140,13 +1126,13 @@ def test_no_truncate_crval():
     w = wcs.WCS(naxis=3)
     w.wcs.crval = [50, 50, 2.12345678e11]
     w.wcs.cdelt = [1e-3, 1e-3, 1e8]
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
     w.wcs.set()
 
     header = w.to_header()
     for ii in range(3):
-        assert header[f'CRVAL{ii + 1}'] == w.wcs.crval[ii]
-        assert header[f'CDELT{ii + 1}'] == w.wcs.cdelt[ii]
+        assert header[f"CRVAL{ii + 1}"] == w.wcs.crval[ii]
+        assert header[f"CDELT{ii + 1}"] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_try2():
@@ -1156,16 +1142,16 @@ def test_no_truncate_crval_try2():
     w = wcs.WCS(naxis=3)
     w.wcs.crval = [50, 50, 2.12345678e11]
     w.wcs.cdelt = [1e-5, 1e-5, 1e5]
-    w.wcs.ctype = ['RA---SIN', 'DEC--SIN', 'FREQ']
-    w.wcs.cunit = ['deg', 'deg', 'Hz']
+    w.wcs.ctype = ["RA---SIN", "DEC--SIN", "FREQ"]
+    w.wcs.cunit = ["deg", "deg", "Hz"]
     w.wcs.crpix = [1, 1, 1]
     w.wcs.restfrq = 2.34e11
     w.wcs.set()
 
     header = w.to_header()
     for ii in range(3):
-        assert header[f'CRVAL{ii + 1}'] == w.wcs.crval[ii]
-        assert header[f'CDELT{ii + 1}'] == w.wcs.cdelt[ii]
+        assert header[f"CRVAL{ii + 1}"] == w.wcs.crval[ii]
+        assert header[f"CDELT{ii + 1}"] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_p17():
@@ -1175,15 +1161,15 @@ def test_no_truncate_crval_p17():
     w = wcs.WCS(naxis=2)
     w.wcs.crval = [50.1234567890123456, 50.1234567890123456]
     w.wcs.cdelt = [1e-3, 1e-3]
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     w.wcs.set()
 
     header = w.to_header()
-    assert header['CRVAL1'] != w.wcs.crval[0]
-    assert header['CRVAL2'] != w.wcs.crval[1]
+    assert header["CRVAL1"] != w.wcs.crval[0]
+    assert header["CRVAL2"] != w.wcs.crval[1]
     header = w.to_header(relax=wcs.WCSHDO_P17)
-    assert header['CRVAL1'] == w.wcs.crval[0]
-    assert header['CRVAL2'] == w.wcs.crval[1]
+    assert header["CRVAL1"] == w.wcs.crval[0]
+    assert header["CRVAL2"] == w.wcs.crval[1]
 
 
 def test_no_truncate_using_compare():
@@ -1195,7 +1181,7 @@ def test_no_truncate_using_compare():
     w = wcs.WCS(naxis=3)
     w.wcs.crval = [2.409303333333e02, 50, 2.12345678e11]
     w.wcs.cdelt = [1e-3, 1e-3, 1e8]
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
     w.wcs.set()
     w2 = wcs.WCS(w.to_header())
     w.wcs.compare(w2.wcs)
@@ -1206,7 +1192,7 @@ def test_passing_ImageHDU():
     Passing ImageHDU or PrimaryHDU and comparing it with
     wcs initialized from header. For #4493.
     """
-    path = get_pkg_data_filename('data/validate.fits')
+    path = get_pkg_data_filename("data/validate.fits")
     with fits.open(path) as hdulist:
         with pytest.warns(wcs.FITSFixedWarning):
             wcs_hdu = wcs.WCS(hdulist[0])
@@ -1230,33 +1216,33 @@ def test_inconsistent_sip():
     # CTYPE should not include "-SIP" if relax is None
     with ctx:
         wnew = wcs.WCS(newhdr)
-    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
+    assert all(not ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
     newhdr = w.to_header(relax=False)
-    assert 'A_0_2' not in newhdr
+    assert "A_0_2" not in newhdr
     # CTYPE should not include "-SIP" if relax is False
     with ctx:
         wnew = wcs.WCS(newhdr)
-    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
+    assert all(not ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
     with pytest.warns(AstropyWarning):
         newhdr = w.to_header(key="C")
-    assert 'A_0_2' not in newhdr
+    assert "A_0_2" not in newhdr
     # Test writing header with a different key
     with ctx:
-        wnew = wcs.WCS(newhdr, key='C')
-    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
+        wnew = wcs.WCS(newhdr, key="C")
+    assert all(not ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
     with pytest.warns(AstropyWarning):
         newhdr = w.to_header(key=" ")
     # Test writing a primary WCS to header
     with ctx:
         wnew = wcs.WCS(newhdr)
-    assert all(not ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
+    assert all(not ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
     # Test that "-SIP" is kept into CTYPE if relax=True and
     # "-SIP" was in the original header
     newhdr = w.to_header(relax=True)
     with ctx:
         wnew = wcs.WCS(newhdr)
-    assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
-    assert 'A_0_2' in newhdr
+    assert all(ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
+    assert "A_0_2" in newhdr
     # Test that SIP coefficients are also written out.
     assert wnew.sip is not None
     # ######### broken header ###########
@@ -1265,11 +1251,11 @@ def test_inconsistent_sip():
     # are present.
     with ctx:
         w = wcs.WCS(hdr)
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     newhdr = w.to_header(relax=True)
     with ctx:
         wnew = wcs.WCS(newhdr)
-    assert all(ctyp.endswith('-SIP') for ctyp in wnew.wcs.ctype)
+    assert all(ctyp.endswith("-SIP") for ctyp in wnew.wcs.ctype)
 
 
 def test_bounds_check():
@@ -1311,25 +1297,25 @@ def test_sip_with_altkey():
     that key is looked at and not the primary CTYPE.
     fix for #5443.
     """
-    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+    with fits.open(get_pkg_data_filename("data/sip.fits")) as f:
         with pytest.warns(wcs.FITSFixedWarning):
             w = wcs.WCS(f[0].header)
     # create a header with two WCSs.
-    h1 = w.to_header(relax=True, key='A')
+    h1 = w.to_header(relax=True, key="A")
     h2 = w.to_header(relax=False)
-    h1['CTYPE1A'] = "RA---SIN-SIP"
-    h1['CTYPE2A'] = "DEC--SIN-SIP"
+    h1["CTYPE1A"] = "RA---SIN-SIP"
+    h1["CTYPE2A"] = "DEC--SIN-SIP"
     h1.update(h2)
     with ctx_for_v71_dateref_warnings():
-        w = wcs.WCS(h1, key='A')
-    assert (w.wcs.ctype == np.array(['RA---SIN-SIP', 'DEC--SIN-SIP'])).all()
+        w = wcs.WCS(h1, key="A")
+    assert (w.wcs.ctype == np.array(["RA---SIN-SIP", "DEC--SIN-SIP"])).all()
 
 
 def test_to_fits_1():
     """
     Test to_fits() with LookupTable distortion.
     """
-    fits_name = get_pkg_data_filename('data/dist.fits')
+    fits_name = get_pkg_data_filename("data/dist.fits")
     with pytest.warns(AstropyDeprecationWarning):
         w = wcs.WCS(fits_name)
     wfits = w.to_fits()
@@ -1342,7 +1328,7 @@ def test_keyedsip():
     """
     Test sip reading with extra key.
     """
-    hdr_name = get_pkg_data_filename('data/sip-broken.hdr')
+    hdr_name = get_pkg_data_filename("data/sip-broken.hdr")
     header = fits.Header.fromfile(hdr_name)
     del header["CRPIX1"]
     del header["CRPIX2"]
@@ -1354,7 +1340,7 @@ def test_keyedsip():
 
 
 def test_zero_size_input():
-    with fits.open(get_pkg_data_filename('data/sip.fits')) as f:
+    with fits.open(get_pkg_data_filename("data/sip.fits")) as f:
         with pytest.warns(wcs.FITSFixedWarning):
             w = wcs.WCS(f[0].header)
 
@@ -1387,7 +1373,7 @@ def test_scalar_inputs():
 
 
 # Ignore RuntimeWarning raised on s390.
-@pytest.mark.filterwarnings('ignore:.*invalid value encountered in.*')
+@pytest.mark.filterwarnings("ignore:.*invalid value encountered in.*")
 def test_footprint_contains():
     """
     Test WCS.footprint_contains(skycoord)
@@ -1419,16 +1405,16 @@ NAXIS1  =                 2136 / length of first array dimension
 NAXIS2  =                 2078 / length of second array dimension
     """
 
-    header = fits.Header.fromstring(header.strip(), '\n')
+    header = fits.Header.fromstring(header.strip(), "\n")
     test_wcs = wcs.WCS(header)
 
-    hasCoord = test_wcs.footprint_contains(SkyCoord(254, 2, unit='deg'))
+    hasCoord = test_wcs.footprint_contains(SkyCoord(254, 2, unit="deg"))
     assert hasCoord
 
-    hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit='deg'))
+    hasCoord = test_wcs.footprint_contains(SkyCoord(240, 2, unit="deg"))
     assert not hasCoord
 
-    hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit='deg'))
+    hasCoord = test_wcs.footprint_contains(SkyCoord(24, 2, unit="deg"))
     assert not hasCoord
 
 
@@ -1439,10 +1425,10 @@ def test_cunit():
     w3 = wcs.WCS(naxis=2)
     w4 = wcs.WCS(naxis=2)
     # Initializing the values of cunit
-    w1.wcs.cunit = ['deg', 'm/s']
-    w2.wcs.cunit = ['km/h', 'km/h']
-    w3.wcs.cunit = ['deg', 'm/s']
-    w4.wcs.cunit = ['deg', 'deg']
+    w1.wcs.cunit = ["deg", "m/s"]
+    w2.wcs.cunit = ["km/h", "km/h"]
+    w3.wcs.cunit = ["deg", "m/s"]
+    w4.wcs.cunit = ["deg", "deg"]
 
     # Equality checking a cunit with itself
     assert w1.wcs.cunit == w1.wcs.cunit
@@ -1461,8 +1447,8 @@ def test_cunit():
     assert not w1.wcs.cunit == [1, 2, 3]
     assert w1.wcs.cunit != [1, 2, 3]
     # Inequality checking with some characters
-    assert not w1.wcs.cunit == ['a', 'b', 'c']
-    assert w1.wcs.cunit != ['a', 'b', 'c']
+    assert not w1.wcs.cunit == ["a", "b", "c"]
+    assert w1.wcs.cunit != ["a", "b", "c"]
     # Comparison is not implemented TypeError will raise
     with pytest.raises(TypeError):
         w1.wcs.cunit < w2.wcs.cunit
@@ -1470,13 +1456,13 @@ def test_cunit():
 
 class TestWcsWithTime:
     def setup_method(self):
-        if _WCSLIB_VER >= Version('7.1'):
-            fname = get_pkg_data_filename('data/header_with_time_wcslib71.fits')
+        if _WCSLIB_VER >= Version("7.1"):
+            fname = get_pkg_data_filename("data/header_with_time_wcslib71.fits")
         else:
-            fname = get_pkg_data_filename('data/header_with_time.fits')
+            fname = get_pkg_data_filename("data/header_with_time.fits")
         self.header = fits.Header.fromfile(fname)
         with pytest.warns(wcs.FITSFixedWarning):
-            self.w = wcs.WCS(self.header, key='A')
+            self.w = wcs.WCS(self.header, key="A")
 
     def test_keywods2wcsprm(self):
         """Make sure Wcsprm is populated correctly from the header."""
@@ -1487,7 +1473,7 @@ class TestWcsWithTime:
         cdelt = [self.header[val] for val in self.header["CDELT*"]]
         cunit = [self.header[val] for val in self.header["CUNIT*"]]
         assert list(self.w.wcs.ctype) == ctype
-        time_axis_code = 4000 if _WCSLIB_VER >= Version('7.9') else 0
+        time_axis_code = 4000 if _WCSLIB_VER >= Version("7.9") else 0
         assert list(self.w.wcs.axis_types) == [2200, 2201, 3300, time_axis_code]
         assert_allclose(self.w.wcs.crval, crval)
         assert_allclose(self.w.wcs.crpix, crpix)
@@ -1500,51 +1486,51 @@ class TestWcsWithTime:
         for i in range(1, 5):
             for j in range(1, 5):
                 if i == j:
-                    pc[i - 1, j - 1] = self.header.get(f'PC{i}_{j}A', 1)
+                    pc[i - 1, j - 1] = self.header.get(f"PC{i}_{j}A", 1)
                 else:
-                    pc[i - 1, j - 1] = self.header.get(f'PC{i}_{j}A', 0)
+                    pc[i - 1, j - 1] = self.header.get(f"PC{i}_{j}A", 0)
         assert_allclose(self.w.wcs.pc, pc)
 
         char_keys = [
-            'timesys',
-            'trefpos',
-            'trefdir',
-            'plephem',
-            'timeunit',
-            'dateref',
-            'dateobs',
-            'datebeg',
-            'dateavg',
-            'dateend',
+            "timesys",
+            "trefpos",
+            "trefdir",
+            "plephem",
+            "timeunit",
+            "dateref",
+            "dateobs",
+            "datebeg",
+            "dateavg",
+            "dateend",
         ]
         for key in char_keys:
             assert getattr(self.w.wcs, key) == self.header.get(key, "")
 
         num_keys = [
-            'mjdref',
-            'mjdobs',
-            'mjdbeg',
-            'mjdend',
-            'jepoch',
-            'bepoch',
-            'tstart',
-            'tstop',
-            'xposure',
-            'timsyer',
-            'timrder',
-            'timedel',
-            'timepixr',
-            'timeoffs',
-            'telapse',
-            'czphs',
-            'cperi',
+            "mjdref",
+            "mjdobs",
+            "mjdbeg",
+            "mjdend",
+            "jepoch",
+            "bepoch",
+            "tstart",
+            "tstop",
+            "xposure",
+            "timsyer",
+            "timrder",
+            "timedel",
+            "timepixr",
+            "timeoffs",
+            "telapse",
+            "czphs",
+            "cperi",
         ]
 
         for key in num_keys:
-            if key.upper() == 'MJDREF':
+            if key.upper() == "MJDREF":
                 hdrv = [
-                    self.header.get('MJDREFIA', np.nan),
-                    self.header.get('MJDREFFA', np.nan),
+                    self.header.get("MJDREFIA", np.nan),
+                    self.header.get("MJDREFFA", np.nan),
                 ]
             else:
                 hdrv = self.header.get(key, np.nan)
@@ -1564,7 +1550,7 @@ def test_invalid_coordinate_masking():
     # was valid.
 
     w = wcs.WCS(naxis=3)
-    w.wcs.ctype = 'VELO_LSR', 'GLON-CAR', 'GLAT-CAR'
+    w.wcs.ctype = "VELO_LSR", "GLON-CAR", "GLAT-CAR"
     w.wcs.crval = -20, 0, 0
     w.wcs.crpix = 1, 1441, 241
     w.wcs.cdelt = 1.3, -0.125, 0.125
@@ -1586,7 +1572,7 @@ def test_no_pixel_area():
     w = wcs.WCS(naxis=3)
 
     # Pixel area cannot be computed
-    with pytest.raises(ValueError, match='Pixel area is defined only for 2D pixels'):
+    with pytest.raises(ValueError, match="Pixel area is defined only for 2D pixels"):
         w.proj_plane_pixel_area()
 
     # Pixel scales still possible
@@ -1635,7 +1621,7 @@ def test_distortion_header(tmp_path):
         < 1.0e-3 * u.mas
     )
 
-    cutfile = tmp_path / 'cutout.fits'
+    cutfile = tmp_path / "cutout.fits"
     fits.writeto(cutfile, cut.data, cut.wcs.to_header())
 
     with fits.open(cutfile) as hdulist:
@@ -1651,12 +1637,12 @@ def test_pixlist_wcs_colsel():
     """
     Test selection of a specific pixel list WCS using ``colsel``. See #11412.
     """
-    hdr_file = get_pkg_data_filename('data/chandra-pixlist-wcs.hdr')
+    hdr_file = get_pkg_data_filename("data/chandra-pixlist-wcs.hdr")
     hdr = fits.Header.fromtextfile(hdr_file)
     with pytest.warns(wcs.FITSFixedWarning):
-        w = wcs.WCS(hdr, keysel=['image', 'pixel'], colsel=[11, 12])
+        w = wcs.WCS(hdr, keysel=["image", "pixel"], colsel=[11, 12])
     assert w.naxis == 2
-    assert list(w.wcs.ctype) == ['RA---TAN', 'DEC--TAN']
+    assert list(w.wcs.ctype) == ["RA---TAN", "DEC--TAN"]
     assert np.allclose(w.wcs.crval, [229.38051931869, -58.81108068885])
     assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
     assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
@@ -1664,14 +1650,14 @@ def test_pixlist_wcs_colsel():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version('7.8'),
+    _WCSLIB_VER < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_time_axis_selection():
     w = wcs.WCS(naxis=3)
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'TIME']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "TIME"]
     w.wcs.set()
-    assert list(w.sub([wcs.WCSSUB_TIME]).wcs.ctype) == ['TIME']
+    assert list(w.sub([wcs.WCSSUB_TIME]).wcs.ctype) == ["TIME"]
     assert (
         w.wcs_pix2world([[1, 2, 3]], 0)[0, 2]
         == w.sub([wcs.WCSSUB_TIME]).wcs_pix2world([[3]], 0)[0, 0]
@@ -1679,12 +1665,12 @@ def test_time_axis_selection():
 
 
 @pytest.mark.skipif(
-    _WCSLIB_VER < Version('7.8'),
+    _WCSLIB_VER < Version("7.8"),
     reason="TIME axis extraction only works with wcslib 7.8 or later",
 )
 def test_temporal():
     w = wcs.WCS(naxis=3)
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'TIME']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN", "TIME"]
     w.wcs.set()
     assert w.has_temporal
     assert w.sub([wcs.WCSSUB_TIME]).is_temporal

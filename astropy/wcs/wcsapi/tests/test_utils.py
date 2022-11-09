@@ -7,21 +7,21 @@ from astropy.wcs.wcsapi.utils import deserialize_class, wcs_info_str
 
 
 def test_construct():
-    result = deserialize_class(('astropy.units.Quantity', (10,), {'unit': 'deg'}))
+    result = deserialize_class(("astropy.units.Quantity", (10,), {"unit": "deg"}))
     assert_quantity_allclose(result, 10 * u.deg)
 
 
 def test_noconstruct():
     result = deserialize_class(
-        ('astropy.units.Quantity', (), {'unit': 'deg'}), construct=False
+        ("astropy.units.Quantity", (), {"unit": "deg"}), construct=False
     )
-    assert result == (u.Quantity, (), {'unit': 'deg'})
+    assert result == (u.Quantity, (), {"unit": "deg"})
 
 
 def test_invalid():
     with raises(ValueError) as exc:
-        deserialize_class(('astropy.units.Quantity', (), {'unit': 'deg'}, ()))
-    assert exc.value.args[0] == 'Expected a tuple of three values'
+        deserialize_class(("astropy.units.Quantity", (), {"unit": "deg"}, ()))
+    assert exc.value.args[0] == "Expected a tuple of three values"
 
 
 DEFAULT_1D_STR = """

@@ -8,7 +8,7 @@ from astropy.utils.decorators import lazyproperty
 
 from .base import BaseWCSWrapper
 
-__all__ = ['sanitize_slices', 'SlicedLowLevelWCS']
+__all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
 
 
 def sanitize_slices(slices, ndim):
@@ -68,10 +68,10 @@ def combine_slices(slice1, slice2):
     """
 
     if isinstance(slice1, slice) and slice1.step is not None:
-        raise ValueError('Only slices with steps of 1 are supported')
+        raise ValueError("Only slices with steps of 1 are supported")
 
     if isinstance(slice2, slice) and slice2.step is not None:
-        raise ValueError('Only slices with steps of 1 are supported')
+        raise ValueError("Only slices with steps of 1 are supported")
 
     if isinstance(slice2, numbers.Integral):
         if slice1.start is None:

@@ -39,21 +39,21 @@ class SimpleDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec']
+        return ["pos.eq.ra", "pos.eq.dec"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg']
+        return ["deg", "deg"]
 
     @property
     def world_axis_object_components(self):
-        return [('test1', 0, 'value'), ('test2', 0, 'value')]
+        return [("test1", 0, "value"), ("test2", 0, "value")]
 
     @property
     def world_axis_object_classes(self):
         return {
-            'test1': (Quantity, (), {'unit': 'deg'}),
-            'test2': (Quantity, (), {'unit': 'deg'}),
+            "test1": (Quantity, (), {"unit": "deg"}),
+            "test2": (Quantity, (), {"unit": "deg"}),
         }
 
 
@@ -89,28 +89,28 @@ class SkyCoordDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec', 'pos.galactic.lon', 'pos.galactic.lat']
+        return ["pos.eq.ra", "pos.eq.dec", "pos.galactic.lon", "pos.galactic.lat"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg', 'deg', 'deg']
+        return ["deg", "deg", "deg", "deg"]
 
     @property
     def world_axis_object_components(self):
         # Deliberately use 'ra'/'dec' here to make sure that string argument
         # names work properly.
         return [
-            ('test1', 'ra', 'spherical.lon.degree'),
-            ('test1', 'dec', 'spherical.lat.degree'),
-            ('test2', 0, 'spherical.lon.degree'),
-            ('test2', 1, 'spherical.lat.degree'),
+            ("test1", "ra", "spherical.lon.degree"),
+            ("test1", "dec", "spherical.lat.degree"),
+            ("test2", 0, "spherical.lon.degree"),
+            ("test2", 1, "spherical.lat.degree"),
         ]
 
     @property
     def world_axis_object_classes(self):
         return {
-            'test1': (SkyCoord, (), {'unit': 'deg'}),
-            'test2': (SkyCoord, (), {'unit': 'deg', 'frame': 'galactic'}),
+            "test1": (SkyCoord, (), {"unit": "deg"}),
+            "test2": (SkyCoord, (), {"unit": "deg", "frame": "galactic"}),
         }
 
 
@@ -151,23 +151,23 @@ class SerializedWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec']
+        return ["pos.eq.ra", "pos.eq.dec"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg']
+        return ["deg", "deg"]
 
     @property
     def world_axis_object_components(self):
-        return [('test', 0, 'value')]
+        return [("test", 0, "value")]
 
     @property
     def world_axis_object_classes(self):
         return {
-            'test': (
-                'astropy.units.Quantity',
+            "test": (
+                "astropy.units.Quantity",
                 (),
-                {'unit': ('astropy.units.Unit', ('deg',), {})},
+                {"unit": ("astropy.units.Unit", ("deg",), {})},
             )
         }
 

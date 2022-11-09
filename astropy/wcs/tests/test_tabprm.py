@@ -98,10 +98,10 @@ def test_tabprm_print(tab_wcs_2di_f, capfd):
     captured = capfd.readouterr()
     s = str(tab_wcs_2di_f.wcs.tab[0])
     out = str(captured.out)
-    lout = out.split('\n')
+    lout = out.split("\n")
     assert out == s
-    assert lout[0] == '       flag: 137'
-    assert lout[1] == '          M: 2'
+    assert lout[0] == "       flag: 137"
+    assert lout[1] == "          M: 2"
 
 
 def test_wcstab_copy(tab_wcs_2di_f):

@@ -5,11 +5,11 @@ import numpy as np
 
 from .utils import deserialize_class
 
-__all__ = ['BaseHighLevelWCS', 'HighLevelWCSMixin']
+__all__ = ["BaseHighLevelWCS", "HighLevelWCSMixin"]
 
 
 def rec_getattr(obj, att):
-    for a in att.split('.'):
+    for a in att.split("."):
         obj = getattr(obj, a)
     return obj
 
@@ -151,9 +151,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     # Check that the number of classes matches the number of inputs
     if len(world_objects) != len(classes):
         raise ValueError(
-            "Number of world inputs ({}) does not match expected ({})".format(
-                len(world_objects), len(classes)
-            )
+            f"Number of world inputs ({len(world_objects)}) does not match expected"
+            f" ({len(classes)})"
         )
 
     # Determine whether the classes are uniquely matched, that is we check
@@ -193,8 +192,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             from astropy.coordinates import SkyCoord
 
             if isinstance(world_by_key[key], SkyCoord):
-                if 'frame' in kwargs:
-                    objects[key] = world_by_key[key].transform_to(kwargs['frame'])
+                if "frame" in kwargs:
+                    objects[key] = world_by_key[key].transform_to(kwargs["frame"])
                 else:
                     objects[key] = world_by_key[key]
             else:
@@ -216,9 +215,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             w = world_objects[ikey]
             if not isinstance(w, klass):
                 raise ValueError(
-                    "Expected the following order of world arguments: {}".format(
-                        ', '.join([k.__name__ for (k, _, _) in classes.values()])
-                    )
+                    "Expected the following order of world arguments:"
+                    f" {', '.join([k.__name__ for (k, _, _) in classes.values()])}"
                 )
 
             # FIXME: For now SkyCoord won't auto-convert upon initialization
@@ -226,8 +224,8 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
             from astropy.coordinates import SkyCoord
 
             if isinstance(w, SkyCoord):
-                if 'frame' in kwargs:
-                    objects[key] = w.transform_to(kwargs['frame'])
+                if "frame" in kwargs:
+                    objects[key] = w.transform_to(kwargs["frame"])
                 else:
                     objects[key] = w
             else:

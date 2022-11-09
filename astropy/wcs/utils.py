@@ -10,24 +10,24 @@ from astropy.utils import unbroadcast
 
 from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
-__doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
+__doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
 __all__ = [
-    'obsgeo_to_frame',
-    'add_stokes_axis_to_wcs',
-    'celestial_frame_to_wcs',
-    'wcs_to_celestial_frame',
-    'proj_plane_pixel_scales',
-    'proj_plane_pixel_area',
-    'is_proj_plane_distorted',
-    'non_celestial_pixel_scales',
-    'skycoord_to_pixel',
-    'pixel_to_skycoord',
-    'custom_wcs_to_frame_mappings',
-    'custom_frame_to_wcs_mappings',
-    'pixel_to_pixel',
-    'local_partial_pixel_derivatives',
-    'fit_wcs_from_points',
+    "obsgeo_to_frame",
+    "add_stokes_axis_to_wcs",
+    "celestial_frame_to_wcs",
+    "wcs_to_celestial_frame",
+    "proj_plane_pixel_scales",
+    "proj_plane_pixel_area",
+    "is_proj_plane_distorted",
+    "non_celestial_pixel_scales",
+    "skycoord_to_pixel",
+    "pixel_to_skycoord",
+    "custom_wcs_to_frame_mappings",
+    "custom_frame_to_wcs_mappings",
+    "pixel_to_pixel",
+    "local_partial_pixel_derivatives",
+    "fit_wcs_from_points",
 ]
 
 
@@ -53,8 +53,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     inds = [i + 1 for i in range(wcs.wcs.naxis)]
     inds.insert(add_before_ind, 0)
     newwcs = wcs.sub(inds)
-    newwcs.wcs.ctype[add_before_ind] = 'STOKES'
-    newwcs.wcs.cname[add_before_ind] = 'STOKES'
+    newwcs.wcs.ctype[add_before_ind] = "STOKES"
+    newwcs.wcs.cname[add_before_ind] = "STOKES"
     return newwcs
 
 
@@ -87,7 +87,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
     ycoord = wcs.wcs.ctype[wcs.wcs.lat][:4]
 
     # Apply logic from FITS standard to determine the default radesys
-    if radesys == '' and xcoord == 'RA--' and ycoord == 'DEC-':
+    if radesys == "" and xcoord == "RA--" and ycoord == "DEC-":
         if equinox is None:
             radesys = "ICRS"
         elif equinox < 1984.0:
@@ -95,24 +95,24 @@ def _wcs_to_celestial_frame_builtin(wcs):
         else:
             radesys = "FK5"
 
-    if radesys == 'FK4':
+    if radesys == "FK4":
         if equinox is not None:
-            equinox = Time(equinox, format='byear')
+            equinox = Time(equinox, format="byear")
         frame = FK4(equinox=equinox)
-    elif radesys == 'FK4-NO-E':
+    elif radesys == "FK4-NO-E":
         if equinox is not None:
-            equinox = Time(equinox, format='byear')
+            equinox = Time(equinox, format="byear")
         frame = FK4NoETerms(equinox=equinox)
-    elif radesys == 'FK5':
+    elif radesys == "FK5":
         if equinox is not None:
-            equinox = Time(equinox, format='jyear')
+            equinox = Time(equinox, format="jyear")
         frame = FK5(equinox=equinox)
-    elif radesys == 'ICRS':
+    elif radesys == "ICRS":
         frame = ICRS()
     else:
-        if xcoord == 'GLON' and ycoord == 'GLAT':
+        if xcoord == "GLON" and ycoord == "GLAT":
             frame = Galactic()
-        elif xcoord == 'TLON' and ycoord == 'TLAT':
+        elif xcoord == "TLON" and ycoord == "TLAT":
             # The default representation for ITRS is cartesian, but for WCS
             # purposes, we need the spherical representation.
             frame = ITRS(
@@ -125,7 +125,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
     return frame
 
 
-def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
+def _celestial_frame_to_wcs_builtin(frame, projection="TAN"):
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import (
         FK4,
@@ -141,33 +141,33 @@ def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
     wcs = WCS(naxis=2)
 
     if isinstance(frame, BaseRADecFrame):
-        xcoord = 'RA--'
-        ycoord = 'DEC-'
+        xcoord = "RA--"
+        ycoord = "DEC-"
         if isinstance(frame, ICRS):
-            wcs.wcs.radesys = 'ICRS'
+            wcs.wcs.radesys = "ICRS"
         elif isinstance(frame, FK4NoETerms):
-            wcs.wcs.radesys = 'FK4-NO-E'
+            wcs.wcs.radesys = "FK4-NO-E"
             wcs.wcs.equinox = frame.equinox.byear
         elif isinstance(frame, FK4):
-            wcs.wcs.radesys = 'FK4'
+            wcs.wcs.radesys = "FK4"
             wcs.wcs.equinox = frame.equinox.byear
         elif isinstance(frame, FK5):
-            wcs.wcs.radesys = 'FK5'
+            wcs.wcs.radesys = "FK5"
             wcs.wcs.equinox = frame.equinox.jyear
         else:
             return None
     elif isinstance(frame, Galactic):
-        xcoord = 'GLON'
-        ycoord = 'GLAT'
+        xcoord = "GLON"
+        ycoord = "GLAT"
     elif isinstance(frame, ITRS):
-        xcoord = 'TLON'
-        ycoord = 'TLAT'
-        wcs.wcs.radesys = 'ITRS'
+        xcoord = "TLON"
+        ycoord = "TLAT"
+        wcs.wcs.radesys = "ITRS"
         wcs.wcs.dateobs = frame.obstime.utc.isot
     else:
         return None
 
-    wcs.wcs.ctype = [xcoord + '-' + projection, ycoord + '-' + projection]
+    wcs.wcs.ctype = [xcoord + "-" + projection, ycoord + "-" + projection]
 
     return wcs
 
@@ -178,7 +178,7 @@ FRAME_WCS_MAPPINGS = [[_celestial_frame_to_wcs_builtin]]
 
 class custom_wcs_to_frame_mappings:
     def __init__(self, mappings=[]):
-        if hasattr(mappings, '__call__'):
+        if hasattr(mappings, "__call__"):
             mappings = [mappings]
         WCS_FRAME_MAPPINGS.append(mappings)
 
@@ -195,7 +195,7 @@ custom_frame_mappings = custom_wcs_to_frame_mappings
 
 class custom_frame_to_wcs_mappings:
     def __init__(self, mappings=[]):
-        if hasattr(mappings, '__call__'):
+        if hasattr(mappings, "__call__"):
             mappings = [mappings]
         FRAME_WCS_MAPPINGS.append(mappings)
 
@@ -245,7 +245,7 @@ def wcs_to_celestial_frame(wcs):
     )
 
 
-def celestial_frame_to_wcs(frame, projection='TAN'):
+def celestial_frame_to_wcs(frame, projection="TAN"):
     """
     For a given coordinate frame, return the corresponding WCS object.
 
@@ -468,9 +468,7 @@ def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
 
     """
     cwcs = wcs.celestial
-    return not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or _has_distortion(
-        cwcs
-    )
+    return not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or _has_distortion(cwcs)  # fmt: skip
 
 
 def _is_cd_orthogonal(cd, maxerr):
@@ -523,7 +521,7 @@ def _has_distortion(wcs):
     """
     return any(
         getattr(wcs, dist_attr) is not None
-        for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip']
+        for dist_attr in ["cpdis1", "cpdis2", "det2im1", "det2im2", "sip"]
     )
 
 
@@ -531,7 +529,7 @@ def _has_distortion(wcs):
 # integrated better into the WCS class.
 
 
-def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
+def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
@@ -589,9 +587,9 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
         lat = coords.spherical.lat.to(yw_unit)
 
     # Convert to pixel coordinates
-    if mode == 'all':
+    if mode == "all":
         xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
-    elif mode == 'wcs':
+    elif mode == "wcs":
         xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
@@ -599,7 +597,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
+def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
@@ -656,9 +654,9 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     lat_unit = u.Unit(wcs.wcs.cunit[1])
 
     # Convert pixel coordinates to celestial coordinates
-    if mode == 'all':
+    if mode == "all":
         lon, lat = wcs.all_pix2world(xp, yp, origin)
-    elif mode == 'wcs':
+    elif mode == "wcs":
         lon, lat = wcs.wcs_pix2world(xp, yp, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
@@ -962,8 +960,8 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
     a_coeff, b_coeff = {}, {}
     for i in range(len(coeff_names)):
-        a_coeff['A_' + coeff_names[i]] = a_params[i]
-        b_coeff['B_' + coeff_names[i]] = b_params[i]
+        a_coeff["A_" + coeff_names[i]] = a_params[i]
+        b_coeff["B_" + coeff_names[i]] = b_params[i]
 
     sip = SIP(
         crpix=crpix, a_order=order, b_order=order, a_coeff=a_coeff, b_coeff=b_coeff
@@ -982,7 +980,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
 
 def fit_wcs_from_points(
-    xy, world_coords, proj_point='center', projection='TAN', sip_degree=None
+    xy, world_coords, proj_point="center", projection="TAN", sip_degree=None
 ):
     """
     Given two matching sets of coordinates on detector and sky,
@@ -1058,53 +1056,53 @@ def fit_wcs_from_points(
         lon, lat = unit_sph.lon.deg, unit_sph.lat.deg
 
     # verify input
-    if (type(proj_point) != type(world_coords)) and (proj_point != 'center'):
+    if (type(proj_point) != type(world_coords)) and (proj_point != "center"):
         raise ValueError(
             "proj_point must be set to 'center', or an"
             + "`~astropy.coordinates.SkyCoord` object with "
             + "a pair of points."
         )
 
-    use_center_as_proj_point = str(proj_point) == 'center'
+    use_center_as_proj_point = str(proj_point) == "center"
 
     if not use_center_as_proj_point:
         assert proj_point.size == 1
 
     proj_codes = [
-        'AZP',
-        'SZP',
-        'TAN',
-        'STG',
-        'SIN',
-        'ARC',
-        'ZEA',
-        'AIR',
-        'CYP',
-        'CEA',
-        'CAR',
-        'MER',
-        'SFL',
-        'PAR',
-        'MOL',
-        'AIT',
-        'COP',
-        'COE',
-        'COD',
-        'COO',
-        'BON',
-        'PCO',
-        'TSC',
-        'CSC',
-        'QSC',
-        'HPX',
-        'XPH',
+        "AZP",
+        "SZP",
+        "TAN",
+        "STG",
+        "SIN",
+        "ARC",
+        "ZEA",
+        "AIR",
+        "CYP",
+        "CEA",
+        "CAR",
+        "MER",
+        "SFL",
+        "PAR",
+        "MOL",
+        "AIT",
+        "COP",
+        "COE",
+        "COD",
+        "COO",
+        "BON",
+        "PCO",
+        "TSC",
+        "CSC",
+        "QSC",
+        "HPX",
+        "XPH",
     ]
     if type(projection) == str:
         if projection not in proj_codes:
             raise ValueError(
                 "Must specify valid projection code from list of "
                 + "supported types: ",
-                ', '.join(proj_codes),
+                ", ".join(proj_codes),
             )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
@@ -1116,7 +1114,7 @@ def fit_wcs_from_points(
     # Change PC to CD, since cdelt will be set to 1
     if wcs.wcs.has_pc():
         wcs.wcs.cd = wcs.wcs.pc
-        wcs.wcs.__delattr__('pc')
+        wcs.wcs.__delattr__("pc")
 
     if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
         raise ValueError("sip_degree must be None, or integer.")
@@ -1173,11 +1171,11 @@ def fit_wcs_from_points(
     # fit SIP, if specified. Only fit forward coefficients
     if sip_degree:
         degree = sip_degree
-        if '-SIP' not in wcs.wcs.ctype[0]:
-            wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
+        if "-SIP" not in wcs.wcs.ctype[0]:
+            wcs.wcs.ctype = [x + "-SIP" for x in wcs.wcs.ctype]
 
         coef_names = [
-            f'{i}_{j}'
+            f"{i}_{j}"
             for i in range(degree + 1)
             for j in range(degree + 1)
             if (i + j) < (degree + 1) and (i + j) > 1
