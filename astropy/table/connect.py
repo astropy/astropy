@@ -4,8 +4,8 @@ from astropy.io import registry
 
 from .info import serialize_method_as
 
-__all__ = ['TableRead', 'TableWrite']
-__doctest_skip__ = ['TableRead', 'TableWrite']
+__all__ = ["TableRead", "TableWrite"]
+__doctest_skip__ = ["TableRead", "TableWrite"]
 
 
 class TableRead(registry.UnifiedReadWrite):
@@ -51,13 +51,13 @@ class TableRead(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'read', registry=None)
+        super().__init__(instance, cls, "read", registry=None)
         # uses default global registry
 
     def __call__(self, *args, **kwargs):
         cls = self._cls
-        units = kwargs.pop('units', None)
-        descriptions = kwargs.pop('descriptions', None)
+        units = kwargs.pop("units", None)
+        descriptions = kwargs.pop("descriptions", None)
 
         out = self.registry.read(cls, *args, **kwargs)
 
@@ -70,11 +70,12 @@ class TableRead(registry.UnifiedReadWrite):
             try:
                 out = cls(out, copy=False)
             except Exception:
-                raise TypeError('could not convert reader output to {} '
-                                'class.'.format(cls.__name__))
+                raise TypeError(
+                    f"could not convert reader output to {cls.__name__} class."
+                )
 
-        out._set_column_attribute('unit', units)
-        out._set_column_attribute('description', descriptions)
+        out._set_column_attribute("unit", units)
+        out._set_column_attribute("description", descriptions)
 
         return out
 
@@ -120,7 +121,7 @@ class TableWrite(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'write', registry=None)
+        super().__init__(instance, cls, "write", registry=None)
         # uses default global registry
 
     def __call__(self, *args, serialize_method=None, **kwargs):

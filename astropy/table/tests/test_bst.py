@@ -15,7 +15,7 @@ def get_tree(TreeType):
 @pytest.fixture
 def tree():
     return get_tree(BST)
-    r'''
+    r"""
          5
        /   \
       2     9
@@ -25,7 +25,7 @@ def tree():
          4  8
            /
           7
-    '''
+    """
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def test_bst_find(tree):
         assert node == [i]
     assert bst.find(0) == []
     assert bst.find(11) == []
-    assert bst.find('1') == []
+    assert bst.find("1") == []
 
 
 def test_bst_traverse(bst):
@@ -67,11 +67,11 @@ def test_bst_traverse(bst):
     inord = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     postord = [1, 4, 3, 2, 7, 8, 6, 10, 9, 5]
     traversals = {}
-    for order in ('preorder', 'inorder', 'postorder'):
+    for order in ("preorder", "inorder", "postorder"):
         traversals[order] = [x.key for x in bst.traverse(order)]
-    assert traversals['preorder'] == preord
-    assert traversals['inorder'] == inord
-    assert traversals['postorder'] == postord
+    assert traversals["preorder"] == preord
+    assert traversals["inorder"] == inord
+    assert traversals["postorder"] == postord
 
 
 def test_bst_remove(bst):
@@ -80,8 +80,9 @@ def test_bst_remove(bst):
     for i, val in enumerate(order):
         assert bst.remove(val) is True
         assert bst.is_valid()
-        assert {x.key for x in bst.traverse('inorder')} == \
-            vals.difference(order[:i + 1])
+        assert {x.key for x in bst.traverse("inorder")} == vals.difference(
+            order[: i + 1]
+        )
         assert bst.size == 10 - i - 1
         assert bst.remove(-val) is False
 

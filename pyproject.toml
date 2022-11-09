@@ -61,7 +61,6 @@ force-exclude = '''
     | astropy/extern
     | astropy/io/fits
     | astropy/modeling
-    | astropy/table
     | astropy/units
   )/
   # Individual files to always exclude

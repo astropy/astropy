@@ -13,9 +13,11 @@ def get_extensions():
     include_dirs = [numpy.get_include()]
 
     exts = [
-        Extension(name='astropy.table.' + os.path.splitext(source)[0],
-                  sources=[os.path.join(ROOT, source)],
-                  include_dirs=include_dirs)
+        Extension(
+            name="astropy.table." + os.path.splitext(source)[0],
+            sources=[os.path.join(ROOT, source)],
+            include_dirs=include_dirs,
+        )
         for source in sources
     ]
 
