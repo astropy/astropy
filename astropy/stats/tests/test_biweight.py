@@ -500,9 +500,8 @@ def test_midcovariance_shape():
     """
 
     d = np.ones(27).reshape(3, 3, 3)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"The input array must be 2D or 1D\."):
         biweight_midcovariance(d)
-    assert "The input array must be 2D or 1D." in str(e.value)
 
 
 def test_midcovariance_M_shape():
@@ -513,9 +512,8 @@ def test_midcovariance_M_shape():
 
     d = [0, 1, 2]
     M = [[0, 1], [2, 3]]
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"M must be a scalar or 1D array\."):
         biweight_midcovariance(d, M=M)
-    assert "M must be a scalar or 1D array." in str(e.value)
 
 
 def test_biweight_midcovariance_symmetric():
@@ -550,17 +548,14 @@ def test_biweight_midcorrelation_inputs():
     a2 = np.ones(5)
     a3 = np.ones(7)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"x must be a 1D array\."):
         biweight_midcorrelation(a1, a2)
-        assert "x must be a 1D array." in str(e.value)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"y must be a 1D array\."):
         biweight_midcorrelation(a2, a1)
-        assert "y must be a 1D array." in str(e.value)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"x and y must have the same shape\."):
         biweight_midcorrelation(a2, a3)
-        assert "x and y must have the same shape." in str(e.value)
 
 
 def test_biweight_32bit_runtime_warnings():

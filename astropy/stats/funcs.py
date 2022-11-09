@@ -731,9 +731,7 @@ def poisson_conf_interval(
 
         if confidence_level is None:
             raise ValueError(
-                "Set confidence_level for method {}. (sigma is ignored.)".format(
-                    interval
-                )
+                f"Set confidence_level for method {interval}. (sigma is ignored.)"
             )
         confidence_level = np.asanyarray(confidence_level)
         if np.any(confidence_level <= 0) or np.any(confidence_level >= 1):

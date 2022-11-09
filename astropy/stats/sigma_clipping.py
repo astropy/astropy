@@ -254,16 +254,9 @@ class SigmaClip:
 
     def __repr__(self):
         return (
-            "SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, "
-            "maxiters={}, cenfunc={}, stdfunc={}, grow={})".format(
-                self.sigma,
-                self.sigma_lower,
-                self.sigma_upper,
-                self.maxiters,
-                repr(self.cenfunc),
-                repr(self.stdfunc),
-                self.grow,
-            )
+            f"SigmaClip(sigma={self.sigma}, sigma_lower={self.sigma_lower},"
+            f" sigma_upper={self.sigma_upper}, maxiters={self.maxiters},"
+            f" cenfunc={self.cenfunc!r}, stdfunc={self.stdfunc!r}, grow={self.grow})"
         )
 
     def __str__(self):
