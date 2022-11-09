@@ -180,16 +180,12 @@ class FastBasic(metaclass=core.MetaBaseReader):
                     or name[-1] in bads
                 ):
                     raise ValueError(
-                        "Column name {!r} does not meet strict name requirements".format(
-                            name
-                        )
+                        f"Column name {name!r} does not meet strict name requirements"
                     )
         # When guessing require at least two columns
         if self.guessing and len(names) <= 1:
             raise ValueError(
-                "Table format guessing requires at least two columns, got {}".format(
-                    names
-                )
+                f"Table format guessing requires at least two columns, got {names}"
             )
 
     def write(self, table, output):

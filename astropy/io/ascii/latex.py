@@ -94,7 +94,7 @@ class LatexInputter(core.BaseInputter):
 
 
 class LatexSplitter(core.BaseSplitter):
-    """Split LaTeX table date. Default delimiter is `&`."""
+    """Split LaTeX table data. Default delimiter is `&`."""
 
     delimiter = "&"
 

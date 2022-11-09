@@ -165,9 +165,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 return col_type
         else:
             raise ValueError(
-                'Unknown data type ""{}"" for column "{}"'.format(
-                    col.raw_type, col.name
-                )
+                f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
             )
 
     def get_cols(self, lines):
@@ -243,23 +241,23 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if doublenames != []:
                 raise IpacFormatE(
                     "IPAC DBMS tables are not case sensitive. "
-                    "This causes duplicate column names: {}".format(doublenames)
+                    f"This causes duplicate column names: {doublenames}"
                 )
 
         for name in namelist:
             m = re.match(r"\w+", name)
             if m.end() != len(name):
                 raise IpacFormatE(
-                    "{} - Only alphanumeric characters and _ "
-                    "are allowed in column names.".format(name)
+                    f"{name} - Only alphanumeric characters and _ "
+                    "are allowed in column names."
                 )
             if self.DBMS and not (name[0].isalpha() or (name[0] == "_")):
                 raise IpacFormatE(f"Column name cannot start with numbers: {name}")
             if self.DBMS:
                 if name in ["x", "y", "z", "X", "Y", "Z"]:
                     raise IpacFormatE(
-                        "{} - x, y, z, X, Y, Z are reserved names and "
-                        "cannot be used as column names.".format(name)
+                        f"{name} - x, y, z, X, Y, Z are reserved names and "
+                        "cannot be used as column names."
                     )
                 if len(name) > 16:
                     raise IpacFormatE(
@@ -529,9 +527,9 @@ class Ipac(basic.Basic):
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
                     warn(
-                        "Table metadata keyword {0} has been skipped.  "
+                        f"Table metadata keyword {keyword} has been skipped.  "
                         "IPAC metadata must be in the form {{'keywords':"
-                        "{{'keyword': {{'value': value}} }}".format(keyword),
+                        "{{'keyword': {{'value': value}} }}",
                         AstropyUserWarning,
                     )
         ignored_keys = [
@@ -539,9 +537,9 @@ class Ipac(basic.Basic):
         ]
         if any(ignored_keys):
             warn(
-                "Table metadata keyword(s) {0} were not written.  "
+                f"Table metadata keyword(s) {ignored_keys} were not written.  "
                 "IPAC metadata must be in the form {{'keywords':"
-                "{{'keyword': {{'value': value}} }}".format(ignored_keys),
+                "{{'keyword': {{'value': value}} }}",
                 AstropyUserWarning,
             )
 

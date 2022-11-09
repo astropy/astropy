@@ -123,9 +123,7 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
     types = [_line_type(line, delimiter=delimiter) for line in lines]
     current_ncol = None
     for type_ in types:
-        if type_.startswith(
-            "data",
-        ):
+        if type_.startswith("data,"):
             ncol = int(type_[5:])
             if current_ncol is None:
                 current_ncol = ncol
