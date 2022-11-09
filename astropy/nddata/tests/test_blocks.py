@@ -32,7 +32,7 @@ class TestReshapeAsBlocks:
         reshaped = reshape_as_blocks(data, (2, 2, 2))
         assert reshaped.shape == (2, 2, 2, 2, 2, 2)
 
-        data = np.arange(2*3*4).reshape(2, 3, 4)
+        data = np.arange(2 * 3 * 4).reshape(2, 3, 4)
         reshaped = reshape_as_blocks(data, (2, 1, 2))
         assert reshaped.shape == (1, 3, 2, 2, 1, 2)
 
@@ -44,25 +44,29 @@ class TestReshapeAsBlocks:
 
     def test_invalid_block_dim(self):
         data = np.arange(64).reshape(4, 4, 4)
-        match = ('block_size must be a scalar or have the same '
-                 'length as the number of data dimensions')
+        match = (
+            "block_size must be a scalar or have the same "
+            "length as the number of data dimensions"
+        )
         with pytest.raises(ValueError, match=match):
             reshape_as_blocks(data, (2, 2))
 
     def test_invalid_block_size(self):
         data = np.arange(16).reshape(4, 4)
-        match = ('Each dimension of block_size must divide evenly '
-                 'into the corresponding dimension of data')
+        match = (
+            "Each dimension of block_size must divide evenly "
+            "into the corresponding dimension of data"
+        )
         with pytest.raises(ValueError, match=match):
             reshape_as_blocks(data, (2, 3))
 
     def test_invalid_block_value(self):
         data = np.arange(16).reshape(4, 4)
-        match = 'block_size elements must be integers'
+        match = "block_size elements must be integers"
         with pytest.raises(ValueError, match=match):
             reshape_as_blocks(data, (2.1, 2))
 
-        match = 'block_size elements must be strictly positive'
+        match = "block_size elements must be strictly positive"
         with pytest.raises(ValueError, match=match):
             reshape_as_blocks(data, (-1, 0))
 
@@ -78,7 +82,7 @@ class TestBlockReduce:
     def test_1d_mean(self):
         """Test 1D array with func=np.mean."""
         data = np.arange(4)
-        block_size = 2.
+        block_size = 2.0
         expected = block_reduce(data, block_size, func=np.sum) / block_size
         result_mean = block_reduce(data, block_size, func=np.mean)
         assert np.all(result_mean == expected)
@@ -93,9 +97,8 @@ class TestBlockReduce:
     def test_2d_mean(self):
         """Test 2D array with func=np.mean."""
         data = np.arange(4).reshape(2, 2)
-        block_size = 2.
-        expected = (block_reduce(data, block_size, func=np.sum) /
-                    block_size**2)
+        block_size = 2.0
+        expected = block_reduce(data, block_size, func=np.sum) / block_size**2
         result = block_reduce(data, block_size, func=np.mean)
         assert np.all(result == expected)
 
@@ -136,7 +139,7 @@ class TestBlockReplicate:
     def test_1d_conserve_sum(self):
         """Test 1D array with conserve_sum=False."""
         data = np.arange(2)
-        block_size = 2.
+        block_size = 2.0
         expected = block_replicate(data, block_size) * block_size
         result = block_replicate(data, block_size, conserve_sum=False)
         assert np.all(result == expected)
@@ -151,7 +154,7 @@ class TestBlockReplicate:
     def test_2d_conserve_sum(self):
         """Test 2D array with conserve_sum=False."""
         data = np.arange(6).reshape(2, 3)
-        block_size = 2.
+        block_size = 2.0
         expected = block_replicate(data, block_size) * block_size**2
         result = block_replicate(data, block_size, conserve_sum=False)
         assert np.all(result == expected)

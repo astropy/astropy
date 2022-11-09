@@ -19,7 +19,7 @@ from astropy.wcs.wcsapi import (
 from .nddata_base import NDDataBase
 from .nduncertainty import NDUncertainty, UnknownUncertainty
 
-__all__ = ['NDData']
+__all__ = ["NDData"]
 
 _meta_doc = """`dict`-like : Additional meta information about the dataset."""
 
@@ -126,9 +126,17 @@ class NDData(NDDataBase):
     # Tables. It will check if the meta is dict-like or raise an exception.
     meta = MetaData(doc=_meta_doc, copy=False)
 
-    def __init__(self, data, uncertainty=None, mask=None, wcs=None,
-                 meta=None, unit=None, copy=False, psf=None):
-
+    def __init__(
+        self,
+        data,
+        uncertainty=None,
+        mask=None,
+        wcs=None,
+        meta=None,
+        unit=None,
+        copy=False,
+        psf=None,
+    ):
         # Rather pointless since the NDDataBase does not implement any setting
         # but before the NDDataBase did call the uncertainty
         # setter. But if anyone wants to alter this behavior again the call
@@ -149,51 +157,48 @@ class NDData(NDDataBase):
             # unit just overwrite the unit parameter with the NDData.unit
             # and proceed as if that one was given as parameter. Same for the
             # other parameters.
-            if (unit is not None and data.unit is not None and
-                    unit != data.unit):
-                log.info("overwriting NDData's current "
-                         "unit with specified unit.")
+            if unit is not None and data.unit is not None and unit != data.unit:
+                log.info("overwriting NDData's current unit with specified unit.")
             elif data.unit is not None:
                 unit = data.unit
 
             if uncertainty is not None and data.uncertainty is not None:
-                log.info("overwriting NDData's current "
-                         "uncertainty with specified uncertainty.")
+                log.info(
+                    "overwriting NDData's current "
+                    "uncertainty with specified uncertainty."
+                )
             elif data.uncertainty is not None:
                 uncertainty = data.uncertainty
 
             if mask is not None and data.mask is not None:
-                log.info("overwriting NDData's current "
-                         "mask with specified mask.")
+                log.info("overwriting NDData's current mask with specified mask.")
             elif data.mask is not None:
                 mask = data.mask
 
             if wcs is not None and data.wcs is not None:
-                log.info("overwriting NDData's current "
-                         "wcs with specified wcs.")
+                log.info("overwriting NDData's current wcs with specified wcs.")
             elif data.wcs is not None:
                 wcs = data.wcs
 
             if psf is not None and data.psf is not None:
-                log.info("Overwriting NDData's current "
-                         "psf with specified psf.")
+                log.info("Overwriting NDData's current psf with specified psf.")
             elif data.psf is not None:
                 psf = data.psf
 
             if meta is not None and data.meta is not None:
-                log.info("overwriting NDData's current "
-                         "meta with specified meta.")
+                log.info("overwriting NDData's current meta with specified meta.")
             elif data.meta is not None:
                 meta = data.meta
 
             data = data.data
 
         else:
-            if hasattr(data, 'mask') and hasattr(data, 'data'):
+            if hasattr(data, "mask") and hasattr(data, "data"):
                 # Separating data and mask
                 if mask is not None:
-                    log.info("overwriting Masked Objects's current "
-                             "mask with specified mask.")
+                    log.info(
+                        "overwriting Masked Objects's current mask with specified mask."
+                    )
                 else:
                     mask = data.mask
 
@@ -204,15 +209,17 @@ class NDData(NDDataBase):
 
             if isinstance(data, Quantity):
                 if unit is not None and unit != data.unit:
-                    log.info("overwriting Quantity's current "
-                             "unit with specified unit.")
+                    log.info("overwriting Quantity's current unit with specified unit.")
                 else:
                     unit = data.unit
                 data = data.value
 
         # Quick check on the parameters if they match the requirements.
-        if (not hasattr(data, 'shape') or not hasattr(data, '__getitem__') or
-                not hasattr(data, '__array__')):
+        if (
+            not hasattr(data, "shape")
+            or not hasattr(data, "__getitem__")
+            or not hasattr(data, "__array__")
+        ):
             # Data doesn't look like a numpy array, try converting it to
             # one.
             data = np.array(data, subok=True, copy=False)
@@ -220,7 +227,7 @@ class NDData(NDDataBase):
         # Another quick check to see if what we got looks like an array
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).
-        if data.dtype == 'O':
+        if data.dtype == "O":
             raise TypeError("could not convert data to numpy array.")
 
         if unit is not None:
@@ -254,16 +261,16 @@ class NDData(NDDataBase):
 
     def __str__(self):
         data = str(self.data)
-        unit = f" {self.unit}" if self.unit is not None else ''
+        unit = f" {self.unit}" if self.unit is not None else ""
 
         return data + unit
 
     def __repr__(self):
-        prefix = self.__class__.__name__ + '('
-        data = np.array2string(self.data, separator=', ', prefix=prefix)
-        unit = f", unit='{self.unit}'" if self.unit is not None else ''
+        prefix = self.__class__.__name__ + "("
+        data = np.array2string(self.data, separator=", ", prefix=prefix)
+        unit = f", unit='{self.unit}'" if self.unit is not None else ""
 
-        return ''.join((prefix, data, unit, ')'))
+        return "".join((prefix, data, unit, ")"))
 
     @property
     def data(self):
@@ -303,15 +310,18 @@ class NDData(NDDataBase):
     @wcs.setter
     def wcs(self, wcs):
         if self._wcs is not None and wcs is not None:
-            raise ValueError("You can only set the wcs attribute with a WCS if no WCS is present.")
+            raise ValueError(
+                "You can only set the wcs attribute with a WCS if no WCS is present."
+            )
 
         if wcs is None or isinstance(wcs, BaseHighLevelWCS):
             self._wcs = wcs
         elif isinstance(wcs, BaseLowLevelWCS):
             self._wcs = HighLevelWCSWrapper(wcs)
         else:
-            raise TypeError("The wcs argument must implement either the high or"
-                            " low level WCS API.")
+            raise TypeError(
+                "The wcs argument must implement either the high or low level WCS API."
+            )
 
     @property
     def psf(self):
@@ -340,8 +350,8 @@ class NDData(NDDataBase):
             # it has an attribute 'uncertainty_type'.
             # If it does not match this requirement convert it to an unknown
             # uncertainty.
-            if not hasattr(value, 'uncertainty_type'):
-                log.info('uncertainty should have attribute uncertainty_type.')
+            if not hasattr(value, "uncertainty_type"):
+                log.info("uncertainty should have attribute uncertainty_type.")
                 value = UnknownUncertainty(value, copy=False)
 
             # If it is a subclass of NDUncertainty we must set the

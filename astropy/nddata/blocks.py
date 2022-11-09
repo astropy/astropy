@@ -7,7 +7,7 @@ import numpy as np
 
 from .decorators import support_nddata
 
-__all__ = ['reshape_as_blocks', 'block_reduce', 'block_replicate']
+__all__ = ["reshape_as_blocks", "block_reduce", "block_replicate"]
 
 
 def _process_block_inputs(data, block_size):
@@ -15,18 +15,20 @@ def _process_block_inputs(data, block_size):
     block_size = np.atleast_1d(block_size)
 
     if np.any(block_size <= 0):
-        raise ValueError('block_size elements must be strictly positive')
+        raise ValueError("block_size elements must be strictly positive")
 
     if data.ndim > 1 and len(block_size) == 1:
         block_size = np.repeat(block_size, data.ndim)
 
     if len(block_size) != data.ndim:
-        raise ValueError('block_size must be a scalar or have the same '
-                         'length as the number of data dimensions')
+        raise ValueError(
+            "block_size must be a scalar or have the same "
+            "length as the number of data dimensions"
+        )
 
     block_size_int = block_size.astype(int)
     if np.any(block_size_int != block_size):  # e.g., 2.0 is OK, 2.1 is not
-        raise ValueError('block_size elements must be integers')
+        raise ValueError("block_size elements must be integers")
 
     return data, block_size_int
 
@@ -81,8 +83,10 @@ def reshape_as_blocks(data, block_size):
     data, block_size = _process_block_inputs(data, block_size)
 
     if np.any(np.mod(data.shape, block_size) != 0):
-        raise ValueError('Each dimension of block_size must divide evenly '
-                         'into the corresponding dimension of data')
+        raise ValueError(
+            "Each dimension of block_size must divide evenly "
+            "into the corresponding dimension of data"
+        )
 
     nblocks = np.array(data.shape) // block_size
     new_shape = tuple(k for ij in zip(nblocks, block_size) for k in ij)
@@ -147,7 +151,7 @@ def block_reduce(data, block_size, func=np.sum):
     for axis in range(data.ndim):
         if data.shape[axis] != size_init[axis]:
             data = data.swapaxes(0, axis)
-            data = data[:size_init[axis]]
+            data = data[: size_init[axis]]
             data = data.swapaxes(0, axis)
 
     reshaped = reshape_as_blocks(data, block_size)
