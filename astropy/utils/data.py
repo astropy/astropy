@@ -1526,7 +1526,7 @@ def download_file(
                 and hasattr(e.reason, "errno")
                 and e.reason.errno == 8
             ):
-                e.reason.strerror = e.reason.strerror + ". requested URL: " + remote_url
+                e.reason.strerror = f"{e.reason.strerror}. requested URL: {remote_url}"
                 e.reason.args = (e.reason.errno, e.reason.strerror)
             errors[source_url] = e
     else:  # No success

@@ -14,8 +14,8 @@ def directory(arg):
 
     if not isinstance(arg, str) and os.path.isdir(arg):
         raise argparse.ArgumentTypeError(
-            "{} is not a directory or does not exist (the directory must "
-            "be created first)".format(arg)
+            f"{arg} is not a directory or does not exist (the directory must "
+            "be created first)"
         )
 
     return os.path.abspath(arg)

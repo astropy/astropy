@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import re
 import warnings
 from pathlib import Path
 
@@ -236,7 +237,10 @@ class TestIERS_Auto:
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("iers_auto_url_mirror", self.iers_a_url_1):
                 with iers.conf.set_temp("auto_max_age", self.ame):
-                    with pytest.raises(ValueError) as err:
+                    with pytest.raises(
+                        ValueError,
+                        match=re.escape(iers.INTERPOLATE_ERROR.format(self.ame)),
+                    ):
                         iers_table = iers.IERS_Auto.open()
                         with warnings.catch_warnings():
                             # Ignoring this if it comes up -- IERS_Auto predictive
@@ -244,7 +248,6 @@ class TestIERS_Auto:
                             # latest table did not find newer values
                             warnings.simplefilter("ignore", iers.IERSStaleWarning)
                             iers_table.ut1_utc(self.t.jd1, self.t.jd2)
-        assert str(err.value) == iers.INTERPOLATE_ERROR.format(self.ame)
 
     def test_auto_max_age_none(self):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
@@ -262,13 +265,15 @@ class TestIERS_Auto:
         """Check that the minimum auto_max_age is enforced."""
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("auto_max_age", 5.0):
-                with pytest.raises(ValueError) as err:
+                with pytest.raises(
+                    ValueError,
+                    match=(
+                        r"IERS auto_max_age configuration value must be larger than 10"
+                        r" days"
+                    ),
+                ):
                     iers_table = iers.IERS_Auto.open()
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
-        assert (
-            str(err.value)
-            == "IERS auto_max_age configuration value must be larger than 10 days"
-        )
 
     def test_no_auto_download(self):
         with iers.conf.set_temp("auto_download", False):
@@ -364,8 +369,8 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
             B[name][i_B],
             rtol=1e-15,
             err_msg=(
-                "Bug #9206 IERS B parameter {} not copied over "
-                "correctly to IERS Auto".format(name)
+                f"Bug #9206 IERS B parameter {name} not copied over "
+                "correctly to IERS Auto"
             ),
         )
 

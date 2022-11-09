@@ -272,9 +272,9 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         ivers, proj, vers, compr = headerlines
         if "The remainder of this file is compressed using zlib" not in compr:
             raise ValueError(
-                "The file downloaded from {} does not seem to be"
+                f"The file downloaded from {baseurl}objects.inv does not seem to be"
                 "the usual Sphinx objects.inv format.  Maybe it "
-                "has changed?".format(baseurl + "objects.inv")
+                "has changed?"
             )
 
         compressed = oiread[(idx + 1) :]
@@ -608,9 +608,9 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
                 return self.__order < other.__order
             except AttributeError:
                 raise RuntimeError(
-                    "Could not determine ordering for {} and {}; at least "
+                    f"Could not determine ordering for {self} and {other}; at least "
                     "one of them is not calling super().__init__ in its "
-                    "__init__.".format(self, other)
+                    "__init__."
                 )
         else:
             return NotImplemented

@@ -498,9 +498,7 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
                 if hasattr(self, "info_summary_" + option):
                     option = getattr(self, "info_summary_" + option)
                 else:
-                    raise ValueError(
-                        f"option={option} is not an allowed information type"
-                    )
+                    raise ValueError(f"{option=} is not an allowed information type")
 
             with warnings.catch_warnings():
                 for ignore_kwargs in IGNORE_WARNINGS:
@@ -731,10 +729,8 @@ class BaseColumnInfo(DataInfo):
 
         def warn_str_func(key, left, right):
             out = (
-                "In merged column '{}' the '{}' attribute does not match "
-                "({} != {}).  Using {} for merged output".format(
-                    name, key, left, right, right
-                )
+                f"In merged column '{name}' the '{key}' attribute does not match "
+                f"({left} != {right}).  Using {right} for merged output"
             )
             return out
 

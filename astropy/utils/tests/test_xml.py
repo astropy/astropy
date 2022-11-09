@@ -86,10 +86,11 @@ def test_escape_xml_without_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(
+        ValueError, match=r"bleach package is required when HTML escaping is disabled"
+    ):
         with w.xml_cleaning_method("bleach_clean"):
             pass
-    assert "bleach package is required when HTML escaping is disabled" in str(err.value)
 
 
 @pytest.mark.skipif(not HAS_BLEACH, reason="requires bleach")
