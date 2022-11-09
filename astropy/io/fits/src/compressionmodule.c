@@ -956,6 +956,13 @@ fail:
 }
 
 
+/* define a PyCapsule_Destructor, using the correct deallocator for buff */
+void free_wrap(void *capsule){
+    void * obj = PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule));
+    free(obj);
+};
+
+
 PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
 {
     PyObject* hdu;
@@ -1068,8 +1075,17 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
            but it seems like if it fails then the outbuf NEEDS to be freed... */
         goto fail;
     }
-    PyArray_ENABLEFLAGS(tmp, NPY_ARRAY_OWNDATA);
-    /* From this point on outbuf MUST NOT BE FREED! */
+
+    // Take responsibility for outbuf by wrapping it in a capsule and
+    // setting tmp.base to the capsule
+    // See explanations on memory policy in the numpy docs for more details:
+    // https://github.com/numpy/numpy/blob/main/doc/source/reference/c-api/data_memory.rst
+    PyObject *capsule = PyCapsule_New(outbuf, "wrapped_data",
+                                      (PyCapsule_Destructor)&free_wrap);
+    if (PyArray_SetBaseObject(tmp, capsule) == -1) {
+        Py_DECREF(tmp);
+        goto cleanup;
+    }
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
