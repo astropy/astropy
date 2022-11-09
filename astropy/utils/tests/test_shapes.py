@@ -17,7 +17,6 @@ def test_check_broadcast():
 
 
 def test_unbroadcast():
-
     x = np.array([1, 2, 3])
     y = np.broadcast_to(x, (2, 4, 3))
     z = unbroadcast(y)

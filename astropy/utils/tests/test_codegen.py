@@ -21,7 +21,7 @@ def test_make_function_with_signature_lineno():
     # Make a wrapper around this function with the signature:
     # crashy_function(a, b)
     # Note: the signature is not really relevant to this test
-    wrapped = make_function_with_signature(crashy_function, ('a', 'b'))
+    wrapped = make_function_with_signature(crashy_function, ("a", "b"))
     line = """
     wrapped = make_function_with_signature(crashy_function, ('a', 'b'))
     """.strip()
@@ -35,6 +35,6 @@ def test_make_function_with_signature_lineno():
         # crashy_function; the next line up should be the line that the
         # make_function_with_signature call was one
         tb_lines = traceback.format_tb(tb)
-        assert '1 / 0' in tb_lines[-1]
+        assert "1 / 0" in tb_lines[-1]
     else:
-        pytest.fail('This should have caused an exception')
+        pytest.fail("This should have caused an exception")

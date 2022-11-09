@@ -30,111 +30,126 @@ def test_signal_number_to_name_no_failure():
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
-        strurl = misc.find_api_page('astropy.utils.misc', 'dev', False,
-                                    timeout=5)
-        objurl = misc.find_api_page(misc, 'dev', False, timeout=5)
+        strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
+        objurl = misc.find_api_page(misc, "dev", False, timeout=5)
     except urllib.error.URLError:
-        if os.environ.get('CI', False):
-            pytest.xfail('Timed out in CI')
+        if os.environ.get("CI", False):
+            pytest.xfail("Timed out in CI")
         else:
             raise
 
     assert strurl == objurl
-    assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'  # noqa: E501
+    assert (
+        strurl
+        == "http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc"
+    )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, 'v3.2.1', False, timeout=3)
-    assert objurl == 'https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc'  # noqa: E501
+    objurl = misc.find_api_page(misc, "v3.2.1", False, timeout=3)
+    assert (
+        objurl
+        == "https://docs.astropy.org/en/v3.2.1/utils/index.html#module-astropy.utils.misc"
+    )
 
 
 def test_skip_hidden():
-    path = data.get_pkg_data_path('data')
+    path = data.get_pkg_data_path("data")
     for root, dirs, files in os.walk(path):
-        assert '.hidden_file.txt' in files
-        assert 'local.dat' in files
+        assert ".hidden_file.txt" in files
+        assert "local.dat" in files
         # break after the first level since the data dir contains some other
         # subdirectories that don't have these files
         break
 
     for root, dirs, files in misc.walk_skip_hidden(path):
-        assert '.hidden_file.txt' not in files
-        assert 'local.dat' in files
+        assert ".hidden_file.txt" not in files
+        assert "local.dat" in files
         break
 
 
 def test_JsonCustomEncoder():
     from astropy import units as u
-    assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
-    assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
-    assert json.dumps({1, 2, 1}, cls=misc.JsonCustomEncoder) == '[1, 2]'
-    assert json.dumps(b'hello world \xc3\x85',
-                      cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
-    assert json.dumps({1: 2},
-                      cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+    assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == "[0, 1, 2]"
+    assert json.dumps(1 + 2j, cls=misc.JsonCustomEncoder) == "[1.0, 2.0]"
+    assert json.dumps({1, 2, 1}, cls=misc.JsonCustomEncoder) == "[1, 2]"
+    assert (
+        json.dumps(b"hello world \xc3\x85", cls=misc.JsonCustomEncoder)
+        == '"hello world \\u00c5"'
+    )
+    assert json.dumps({1: 2}, cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
     assert json.dumps({1: u.m}, cls=misc.JsonCustomEncoder) == '{"1": "m"}'
     # Quantities
-    tmp = json.dumps({'a': 5*u.cm}, cls=misc.JsonCustomEncoder)
+    tmp = json.dumps({"a": 5 * u.cm}, cls=misc.JsonCustomEncoder)
     newd = json.loads(tmp)
     tmpd = {"a": {"unit": "cm", "value": 5.0}}
     assert newd == tmpd
-    tmp2 = json.dumps({'a': np.arange(2)*u.cm}, cls=misc.JsonCustomEncoder)
+    tmp2 = json.dumps({"a": np.arange(2) * u.cm}, cls=misc.JsonCustomEncoder)
     newd = json.loads(tmp2)
-    tmpd = {"a": {"unit": "cm", "value": [0., 1.]}}
+    tmpd = {"a": {"unit": "cm", "value": [0.0, 1.0]}}
     assert newd == tmpd
-    tmp3 = json.dumps({'a': np.arange(2)*u.erg/u.s}, cls=misc.JsonCustomEncoder)
+    tmp3 = json.dumps({"a": np.arange(2) * u.erg / u.s}, cls=misc.JsonCustomEncoder)
     newd = json.loads(tmp3)
-    tmpd = {"a": {"unit": "erg / s", "value": [0., 1.]}}
+    tmpd = {"a": {"unit": "erg / s", "value": [0.0, 1.0]}}
     assert newd == tmpd
 
 
 def test_JsonCustomEncoder_FITS_rec_from_files():
-    with fits.open(fits.util.get_testdata_filepath('variable_length_table.fits')) as hdul:
-        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
-            "[[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]"
+    with fits.open(
+        fits.util.get_testdata_filepath("variable_length_table.fits")
+    ) as hdul:
+        assert (
+            json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder)
+            == "[[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]"
+        )
 
-    with fits.open(fits.util.get_testdata_filepath('btable.fits')) as hdul:
-        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
-            '[[1, "Sirius", -1.4500000476837158, "A1V"], ' \
-             '[2, "Canopus", -0.7300000190734863, "F0Ib"], ' \
-             '[3, "Rigil Kent", -0.10000000149011612, "G2V"]]'
+    with fits.open(fits.util.get_testdata_filepath("btable.fits")) as hdul:
+        assert (
+            json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder)
+            == '[[1, "Sirius", -1.4500000476837158, "A1V"], '
+            '[2, "Canopus", -0.7300000190734863, "F0Ib"], '
+            '[3, "Rigil Kent", -0.10000000149011612, "G2V"]]'
+        )
 
-    with fits.open(fits.util.get_testdata_filepath('table.fits')) as hdul:
-        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
-            '[["NGC1001", 11.100000381469727], ' \
-             '["NGC1002", 12.300000190734863], ' \
-             '["NGC1003", 15.199999809265137]]'
+    with fits.open(fits.util.get_testdata_filepath("table.fits")) as hdul:
+        assert (
+            json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder)
+            == '[["NGC1001", 11.100000381469727], '
+            '["NGC1002", 12.300000190734863], '
+            '["NGC1003", 15.199999809265137]]'
+        )
 
 
 def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
     try:
-        locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-        locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
+        locale.setlocale(locale.LC_ALL, "en_US.utf8")
+        locale.setlocale(locale.LC_ALL, "fr_FR.utf8")
     except locale.Error as e:
-        pytest.skip(f'Locale error: {e}')
+        pytest.skip(f"Locale error: {e}")
     finally:
         locale.setlocale(locale.LC_ALL, current)
 
     date = datetime(2000, 10, 1, 0, 0, 0)
-    day_mon = date.strftime('%a, %b')
+    day_mon = date.strftime("%a, %b")
 
-    with misc._set_locale('en_US.utf8'):
-        assert date.strftime('%a, %b') == 'Sun, Oct'
+    with misc._set_locale("en_US.utf8"):
+        assert date.strftime("%a, %b") == "Sun, Oct"
 
-    with misc._set_locale('fr_FR.utf8'):
-        assert date.strftime('%a, %b') == 'dim., oct.'
+    with misc._set_locale("fr_FR.utf8"):
+        assert date.strftime("%a, %b") == "dim., oct."
 
     # Back to original
-    assert date.strftime('%a, %b') == day_mon
+    assert date.strftime("%a, %b") == day_mon
 
     with misc._set_locale(current):
-        assert date.strftime('%a, %b') == day_mon
+        assert date.strftime("%a, %b") == day_mon
 
 
 def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.dtype(np.float64)) == 8
     assert misc.dtype_bytes_or_chars(np.dtype(object)) is None
     assert misc.dtype_bytes_or_chars(np.dtype(np.int32)) == 4
-    assert misc.dtype_bytes_or_chars(np.array(b'12345').dtype) == 5
-    assert misc.dtype_bytes_or_chars(np.array('12345').dtype) == 5
+    assert misc.dtype_bytes_or_chars(np.array(b"12345").dtype) == 5
+    assert misc.dtype_bytes_or_chars(np.array("12345").dtype) == 5

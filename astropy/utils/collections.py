@@ -10,6 +10,7 @@ class HomogeneousList(list):
     types.  If an item that is not of the specified type is added to
     the list, a `TypeError` is raised.
     """
+
     def __init__(self, types, values=[]):
         """
         Parameters
@@ -27,7 +28,8 @@ class HomogeneousList(list):
     def _assert(self, x):
         if not isinstance(x, self._types):
             raise TypeError(
-                f"homogeneous list must contain only objects of type '{self._types}'")
+                f"homogeneous list must contain only objects of type '{self._types}'"
+            )
 
     def __iadd__(self, other):
         self.extend(other)
