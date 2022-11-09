@@ -616,10 +616,17 @@ class Latitude(Angle):
             angles_view = angles_view[np.newaxis]
 
         if np.any(np.abs(angles_view) > limit):
-            raise ValueError(
-                "Latitude angle(s) must be within -90 deg <= angle <= 90 deg, "
-                f"got {angles.to(u.degree)}"
-            )
+            if np.size(angles) < 5:
+                info = f"got {angles.to(u.degree)}"
+            else:
+                invalid_angles = np.logical_or(angles.value < -limit, angles.value > limit)
+                idx = np.where(invalid_angles)[0]
+                if len(idx) < 5:
+                    info = f"found {angles[idx].to(u.degree)}"
+                else:
+                    info = f"found {angles[idx[0]].to(u.degree)} [{idx[0]}], ..."
+            raise ValueError("Latitude angle(s) must be within -90 deg <= angle <= "
+                             f"90 deg, {info}")
 
     def __setitem__(self, item, value):
         # Forbid assigning a Long to a Lat.
