@@ -51,6 +51,7 @@ def test_optional_deps_functions():
     with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.integrate'"):
         quad()
 
+
 ##############################################################################
 
 
@@ -306,7 +307,7 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         elif self._nmasslessnu == 0:  # only massive
             assert cosmo.m_nu == cosmo._massivenu_mass
         else:  # a mix -- the most complicated case
-            assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
+            assert u.allclose(cosmo.m_nu[: self._nmasslessnu], 0 * u.eV)
             assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
 
     def test_init_m_nu(self, cosmo_cls, ba):
@@ -353,7 +354,9 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         assert cosmo.m_nu.unit == u.eV
         assert u.allclose(cosmo.m_nu, 0 * u.eV)
         # TODO! move this test when create ``test_nu_relative_density``
-        assert u.allclose(cosmo.nu_relative_density(1.0), 0.22710731766 * 4.05, rtol=1e-6)
+        assert u.allclose(
+            cosmo.nu_relative_density(1.0), 0.22710731766 * 4.05, rtol=1e-6
+        )
 
         # All massive neutrinos case, len from Neff
         tba.arguments["m_nu"] = 0.1 * u.eV
@@ -457,10 +460,16 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         assert cosmo_cls._init_signature.parameters["Ob0"].default is None
 
 
-class TestFLRW(CosmologyTest,
-               ParameterH0TestMixin, ParameterOm0TestMixin, ParameterOde0TestMixin,
-               ParameterTcmb0TestMixin, ParameterNeffTestMixin, Parameterm_nuTestMixin,
-               ParameterOb0TestMixin):
+class TestFLRW(
+    CosmologyTest,
+    ParameterH0TestMixin,
+    ParameterOm0TestMixin,
+    ParameterOde0TestMixin,
+    ParameterTcmb0TestMixin,
+    ParameterNeffTestMixin,
+    Parameterm_nuTestMixin,
+    ParameterOb0TestMixin,
+):
     """Test :class:`astropy.cosmology.FLRW`."""
 
     abstract_w = True
@@ -474,9 +483,15 @@ class TestFLRW(CosmologyTest,
         _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
 
         self.cls = SubFLRW
-        self._cls_args = dict(H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.73 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, Ob0=0.03 * u.one,
-                               name=self.__class__.__name__, meta={"a": "b"})
+        self._cls_args = dict(
+            H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.73 * u.one
+        )
+        self.cls_kwargs = dict(
+            Tcmb0=3.0 * u.K,
+            Ob0=0.03 * u.one,
+            name=self.__class__.__name__,
+            meta={"a": "b"},
+        )
 
     def teardown_class(self):
         super().teardown_class(self)
@@ -539,7 +554,9 @@ class TestFLRW(CosmologyTest,
 
         # on the instance
         assert cosmo.Ok0 is cosmo._Ok0
-        assert np.allclose(cosmo.Ok0, 1.0 - (cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0))
+        assert np.allclose(
+            cosmo.Ok0, 1.0 - (cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0)
+        )
 
     def test_is_flat(self, cosmo_cls, cosmo):
         """Test property ``is_flat``."""
@@ -612,7 +629,7 @@ class TestFLRW(CosmologyTest,
 
         # on the instance
         assert cosmo.critical_density0 is cosmo._critical_density0
-        assert cosmo.critical_density0.unit == u.g / u.cm ** 3
+        assert cosmo.critical_density0.unit == u.g / u.cm**3
 
         cd0value = _critdens_const * (cosmo.H0.value * _H0units_to_invs) ** 2
         assert cosmo.critical_density0.value == cd0value
@@ -626,7 +643,7 @@ class TestFLRW(CosmologyTest,
         # on the instance
         assert cosmo.Ogamma0 is cosmo._Ogamma0
         # Ogamma cor \propto T^4/rhocrit
-        expect = _a_B_c2 * cosmo.Tcmb0.value ** 4 / cosmo.critical_density0.value
+        expect = _a_B_c2 * cosmo.Tcmb0.value**4 / cosmo.critical_density0.value
         assert np.allclose(cosmo.Ogamma0, expect)
         # check absolute equality to 0 if Tcmb0 is 0
         if cosmo.Tcmb0 == 0:
@@ -654,11 +671,16 @@ class TestFLRW(CosmologyTest,
             # check the expected formula
             assert cosmo.Onu0 == 0.22710731766 * cosmo._Neff * cosmo.Ogamma0
             # and check compatibility with nu_relative_density
-            assert np.allclose(cosmo.nu_relative_density(0), 0.22710731766 * cosmo._Neff)
+            assert np.allclose(
+                cosmo.nu_relative_density(0), 0.22710731766 * cosmo._Neff
+            )
 
     def test_Otot0(self, cosmo):
         """Test :attr:`astropy.cosmology.FLRW.Otot0`."""
-        assert cosmo.Otot0 == cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ode0 + cosmo.Ok0
+        assert (
+            cosmo.Otot0
+            == cosmo.Om0 + cosmo.Ogamma0 + cosmo.Onu0 + cosmo.Ode0 + cosmo.Ok0
+        )
 
     # ---------------------------------------------------------------
     # Methods
@@ -708,12 +730,14 @@ class TestFLRW(CosmologyTest,
         assert c.__class__ == cosmo.__class__
         assert c.name == cosmo.name + " (modified)"
         assert c.H0.value == 100
-        for n in (set(cosmo.__parameters__) - {"H0"}):
+        for n in set(cosmo.__parameters__) - {"H0"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert u.allclose(
+                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
+                )
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
 
@@ -724,12 +748,14 @@ class TestFLRW(CosmologyTest,
         assert c.H0.value == 100
         assert c.Tcmb0.value == 2.8
         assert c.meta == {**cosmo.meta, **dict(zz="tops")}
-        for n in (set(cosmo.__parameters__) - {"H0", "Tcmb0"}):
+        for n in set(cosmo.__parameters__) - {"H0", "Tcmb0"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert u.allclose(
+                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
+                )
         assert not u.allclose(c.Ogamma0, cosmo.Ogamma0)
         assert not u.allclose(c.Onu0, cosmo.Onu0)
         assert not u.allclose(c.Tcmb0.value, cosmo.Tcmb0.value)
@@ -765,11 +791,13 @@ class FLRWSubclassTest(TestFLRW):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = get_redshift_methods(FLRW, include_private=True, include_z2=False)
+    _FLRW_redshift_methods = get_redshift_methods(
+        FLRW, include_private=True, include_z2=False
+    )
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
+    @pytest.mark.parametrize("method", _FLRW_redshift_methods)
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         with pytest.raises(exc):
@@ -795,7 +823,8 @@ class FLRWSubclassTest(TestFLRW):
         # super().test_Otot(cosmo)  # NOT b/c abstract `w(z)`
         assert np.allclose(
             cosmo.Otot(z),
-            cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z))
+            cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z),
+        )
 
     # ---------------------------------------------------------------
 
@@ -814,6 +843,7 @@ class FLRWSubclassTest(TestFLRW):
 
 
 # -----------------------------------------------------------------------------
+
 
 class ParameterFlatOde0TestMixin(ParameterOde0TestMixin):
     """Tests for `astropy.cosmology.Parameter` Ode0 on a flat Cosmology.
@@ -890,7 +920,9 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
         cosmo = cosmo_cls(*self.cls_args, **self.cls_kwargs)
         assert cosmo._Ok0 == 0.0
-        assert cosmo._Ode0 == 1.0 - (cosmo._Om0 + cosmo._Ogamma0 + cosmo._Onu0 + cosmo._Ok0)
+        assert cosmo._Ode0 == 1.0 - (
+            cosmo._Om0 + cosmo._Ogamma0 + cosmo._Onu0 + cosmo._Ok0
+        )
 
     def test_Ok0(self, cosmo_cls, cosmo):
         """Test property ``Ok0``."""
@@ -916,7 +948,9 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', FLRWSubclassTest._FLRW_redshift_methods - {"Otot"})
+    @pytest.mark.parametrize(
+        "method", FLRWSubclassTest._FLRW_redshift_methods - {"Otot"}
+    )
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
@@ -960,9 +994,11 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         assert not cosmo.is_equivalent(nonflat)
 
         # flat, but not FlatFLRWMixin
-        flat = nonflat_cosmo_cls(*self.cls_args,
-                                 Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
-                                 **self.cls_kwargs)
+        flat = nonflat_cosmo_cls(
+            *self.cls_args,
+            Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
+            **self.cls_kwargs
+        )
         flat._Ok0 = 0.0
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)

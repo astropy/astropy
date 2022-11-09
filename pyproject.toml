@@ -59,7 +59,6 @@ force-exclude = '''
     | astropy/constants
     | astropy/convolution
     | astropy/coordinates
-    | astropy/cosmology
     | astropy/extern
     | astropy/io/ascii
     | astropy/io/fits

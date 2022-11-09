@@ -42,7 +42,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
             ERROR_SEIVE = (NotImplementedError, ValueError)
             #              # ABC                can't introspect for good input
             if not HAS_SCIPY:
-                ERROR_SEIVE = ERROR_SEIVE + (ModuleNotFoundError, )
+                ERROR_SEIVE = ERROR_SEIVE + (ModuleNotFoundError,)
 
             args = np.arange(len(params)) + 1
             try:
@@ -99,7 +99,6 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
 
         # vector result
         if "scalar" not in method_name:
-
             args = (np.ones((model.n_inputs, 3)).T + np.arange(model.n_inputs)).T
 
             got = model.evaluate(*args)
@@ -110,8 +109,9 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
             expected = getattr(cosmo, method_name)(*args)
             np.testing.assert_allclose(got, expected)
 
-    def test_tofromformat_model_instance(self, cosmo_cls, cosmo, method_name,
-                                         to_format, from_format):
+    def test_tofromformat_model_instance(
+        self, cosmo_cls, cosmo, method_name, to_format, from_format
+    ):
         """Test cosmology -> astropy.model -> cosmology."""
         if method_name is None:  # no test if no method
             return

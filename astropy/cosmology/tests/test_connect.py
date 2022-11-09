@@ -32,25 +32,30 @@ cosmo_instances = cosmology.realizations.available
 readwrite_formats = {
     ("ascii.ecsv", True, True),
     ("ascii.html", False, HAS_BS4),
-    ("json", True, True)
+    ("json", True, True),
 }
 
 
 # Collect all the registered to/from formats. Unfortunately this is NOT
 # automatic since the output format class is not stored on the registry.
 #                 (format, data type)
-tofrom_formats = [("mapping", dict), ("yaml", str),
-                  ("astropy.cosmology", Cosmology),
-                  ("astropy.row", Row), ("astropy.table", QTable)]
+tofrom_formats = [
+    ("mapping", dict),
+    ("yaml", str),
+    ("astropy.cosmology", Cosmology),
+    ("astropy.row", Row),
+    ("astropy.table", QTable),
+]
 
 
 ###############################################################################
 
 
 class ReadWriteTestMixin(
-        test_ecsv.ReadWriteECSVTestMixin,
-        test_html.ReadWriteHTMLTestMixin,
-        test_json.ReadWriteJSONTestMixin):
+    test_ecsv.ReadWriteECSVTestMixin,
+    test_html.ReadWriteHTMLTestMixin,
+    test_json.ReadWriteJSONTestMixin,
+):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -90,7 +95,8 @@ class ReadWriteTestMixin(
 
     @pytest.mark.parametrize("format, metaio, has_deps", readwrite_formats)
     def test_readwrite_from_subclass_complete_info(
-            self, cosmo_cls, cosmo, tmp_path, format, metaio, has_deps):
+        self, cosmo_cls, cosmo, tmp_path, format, metaio, has_deps
+    ):
         """
         Test writing from an instance and reading from that class, when there's
         full information saved.
@@ -144,7 +150,9 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         assert "overwrite : bool" in writer.__doc__
 
     @pytest.mark.parametrize("format, _, has_deps", readwrite_formats)
-    def test_readwrite_reader_class_mismatch(self, cosmo, tmp_path, format, _, has_deps):
+    def test_readwrite_reader_class_mismatch(
+        self, cosmo, tmp_path, format, _, has_deps
+    ):
         """Test when the reader class doesn't match the file."""
         if not has_deps:
             pytest.skip("missing a dependency")
@@ -169,10 +177,14 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 # To/From_Format Tests
 
 
-class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
-                            test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
-                            test_row.ToFromRowTestMixin, test_table.ToFromTableTestMixin,
-                            test_yaml.ToFromYAMLTestMixin):
+class ToFromFormatTestMixin(
+    test_cosmology.ToFromCosmologyTestMixin,
+    test_mapping.ToFromMappingTestMixin,
+    test_model.ToFromModelTestMixin,
+    test_row.ToFromRowTestMixin,
+    test_table.ToFromTableTestMixin,
+    test_yaml.ToFromYAMLTestMixin,
+):
     """
     Tests for a Cosmology[To/From]Format on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -183,8 +195,9 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
     """
 
     @pytest.mark.parametrize("format, totype", tofrom_formats)
-    def test_tofromformat_complete_info(self, cosmo, format, totype,
-                                        xfail_if_not_registered_with_yaml):
+    def test_tofromformat_complete_info(
+        self, cosmo, format, totype, xfail_if_not_registered_with_yaml
+    ):
         """Read tests happen later."""
         # test to_format
         obj = cosmo.to_format(format)
@@ -202,8 +215,9 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
         assert got.meta == cosmo.meta
 
     @pytest.mark.parametrize("format, totype", tofrom_formats)
-    def test_fromformat_subclass_complete_info(self, cosmo_cls, cosmo, format, totype,
-                                               xfail_if_not_registered_with_yaml):
+    def test_fromformat_subclass_complete_info(
+        self, cosmo_cls, cosmo, format, totype, xfail_if_not_registered_with_yaml
+    ):
         """
         Test transforming an instance and parsing from that class, when there's
         full information available.
@@ -229,7 +243,9 @@ class ToFromFormatTestMixin(test_cosmology.ToFromCosmologyTestMixin,
         assert got.meta == cosmo.meta
 
         # and also
-        got = Cosmology.from_format(obj, format=format, cosmology=cosmo_cls.__qualname__)
+        got = Cosmology.from_format(
+            obj, format=format, cosmology=cosmo_cls.__qualname__
+        )
         assert got == cosmo
         assert got.meta == cosmo.meta
 

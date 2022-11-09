@@ -12,7 +12,9 @@ from astropy.utils.state import ScienceState
 
 from .core import Cosmology
 
-_COSMOLOGY_DATA_DIR = pathlib.Path(get_pkg_data_path("cosmology", "data", package="astropy"))
+_COSMOLOGY_DATA_DIR = pathlib.Path(
+    get_pkg_data_path("cosmology", "data", package="astropy")
+)
 available = tuple(sorted(p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")))
 
 
@@ -33,9 +35,13 @@ def __getattr__(name):
     if name not in available:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}.")
 
-    cosmo = Cosmology.read(str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv")
-    cosmo.__doc__ = (f"{name} instance of {cosmo.__class__.__qualname__} "
-                     f"cosmology\n(from {cosmo.meta['reference']})")
+    cosmo = Cosmology.read(
+        str(_COSMOLOGY_DATA_DIR / name) + ".ecsv", format="ascii.ecsv"
+    )
+    cosmo.__doc__ = (
+        f"{name} instance of {cosmo.__class__.__qualname__} "
+        f"cosmology\n(from {cosmo.meta['reference']})"
+    )
 
     # Cache in this module so `__getattr__` is only called once per `name`.
     setattr(sys.modules[__name__], name, cosmo)
@@ -117,8 +123,10 @@ class default_cosmology(ScienceState):
             else:
                 value = cls._get_from_registry(value)
         elif not isinstance(value, Cosmology):
-            raise TypeError("default_cosmology must be a string or Cosmology instance, "
-                            f"not {value}.")
+            raise TypeError(
+                "default_cosmology must be a string or Cosmology instance, "
+                f"not {value}."
+            )
 
         return value
 
@@ -146,8 +154,9 @@ class default_cosmology(ScienceState):
         try:
             value = getattr(sys.modules[__name__], name)
         except AttributeError:
-            raise ValueError(f"Unknown cosmology {name!r}. "
-                             f"Valid cosmologies:\n{available}")
+            raise ValueError(
+                f"Unknown cosmology {name!r}. Valid cosmologies:\n{available}"
+            )
 
         if not isinstance(value, Cosmology):
             raise TypeError(f"cannot find a Cosmology realization called {name}.")

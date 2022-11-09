@@ -49,15 +49,15 @@ class TestLambdaCDM(FLRWSubclassTest):
     # ===============================================================
     # Method & Attribute Tests
 
-    _FLRW_redshift_methods = (
-        get_redshift_methods(LambdaCDM, include_private=True, include_z2=False)
-        - {"_dS_age"})
+    _FLRW_redshift_methods = get_redshift_methods(
+        LambdaCDM, include_private=True, include_z2=False
+    ) - {"_dS_age"}
     # `_dS_age` is removed because it doesn't strictly rely on the value of `z`,
     # so any input that doesn't trip up ``np.shape`` is "valid"
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', _FLRW_redshift_methods)
+    @pytest.mark.parametrize("method", _FLRW_redshift_methods)
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
@@ -74,9 +74,11 @@ class TestLambdaCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("LambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
+        expected = (
+            'LambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=0.03)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -93,7 +95,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize('method', TestLambdaCDM._FLRW_redshift_methods - {"Otot"})
+    @pytest.mark.parametrize("method", TestLambdaCDM._FLRW_redshift_methods - {"Otot"})
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
@@ -105,7 +107,9 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
-                    " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
+        expected = (
+            'FlatLambdaCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
+            " Om0=0.27, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=0.03)"
+        )
         assert repr(cosmo) == expected

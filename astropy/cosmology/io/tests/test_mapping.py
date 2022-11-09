@@ -29,7 +29,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
     def test_to_mapping_default(self, cosmo, to_format):
         """Test default usage of Cosmology -> mapping."""
-        m = to_format('mapping')
+        m = to_format("mapping")
         keys = tuple(m.keys())
 
         assert isinstance(m, dict)
@@ -50,27 +50,27 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
     def test_to_mapping_wrong_cls(self, to_format):
         """Test incorrect argument ``cls`` in ``to_mapping()``."""
         with pytest.raises(TypeError, match="'cls' must be"):
-            to_format('mapping', cls=list)
+            to_format("mapping", cls=list)
 
     @pytest.mark.parametrize("map_cls", [dict, OrderedDict])
     def test_to_mapping_cls(self, to_format, map_cls):
         """Test argument ``cls`` in ``to_mapping()``."""
-        m = to_format('mapping', cls=map_cls)
+        m = to_format("mapping", cls=map_cls)
         assert isinstance(m, map_cls)  # test type
 
     def test_to_mapping_cosmology_as_str(self, cosmo_cls, to_format):
         """Test argument ``cosmology_as_str`` in ``to_mapping()``."""
-        default = to_format('mapping')
+        default = to_format("mapping")
 
         # Cosmology is the class
-        m = to_format('mapping', cosmology_as_str=False)
+        m = to_format("mapping", cosmology_as_str=False)
         assert inspect.isclass(m["cosmology"])
         assert cosmo_cls is m["cosmology"]
 
         assert m == default  # False is the default option
 
         # Cosmology is a string
-        m = to_format('mapping', cosmology_as_str=True)
+        m = to_format("mapping", cosmology_as_str=True)
         assert isinstance(m["cosmology"], str)
         assert m["cosmology"] == cosmo_cls.__qualname__  # Correct class
         assert tuple(m.keys())[0] == "cosmology"  # Stayed at same index
@@ -80,7 +80,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
         The test for the default option (`False`) is in ``test_tofrom_mapping_instance``.
         """
-        m = to_format('mapping', cosmology_as_str=True)
+        m = to_format("mapping", cosmology_as_str=True)
 
         got = from_format(m, format="mapping")
         assert got == cosmo
@@ -88,17 +88,17 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
     def test_to_mapping_move_from_meta(self, to_format):
         """Test argument ``move_from_meta`` in ``to_mapping()``."""
-        default = to_format('mapping')
+        default = to_format("mapping")
 
         # Metadata is 'separate' from main mapping
-        m = to_format('mapping', move_from_meta=False)
+        m = to_format("mapping", move_from_meta=False)
         assert "meta" in m.keys()
         assert not any([k in m for k in m["meta"]])  # Not added to main
 
         assert m == default  # False is the default option
 
         # Metadata is mixed into main mapping.
-        m = to_format('mapping', move_from_meta=True)
+        m = to_format("mapping", move_from_meta=True)
         assert "meta" not in m.keys()
         assert all([k in m for k in default["meta"]])  # All added to main
         #  The parameters take precedence over the metadata
@@ -107,7 +107,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
     def test_tofrom_mapping_move_tofrom_meta(self, cosmo, to_format, from_format):
         """Test roundtrip of ``move_from/to_meta`` in ``to/from_mapping()``."""
         # Metadata is mixed into main mapping.
-        m = to_format('mapping', move_from_meta=True)
+        m = to_format("mapping", move_from_meta=True)
         # (Just adding something to ensure there's 'metadata')
         m["mismatching"] = "will error"
 
@@ -138,7 +138,7 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
 
     def test_from_mapping_default(self, cosmo, to_format, from_format):
         """Test (cosmology -> Mapping) -> cosmology."""
-        m = to_format('mapping')
+        m = to_format("mapping")
 
         # Read from exactly as given.
         got = from_format(m, format="mapping")
@@ -165,7 +165,9 @@ class ToFromMappingTestMixin(ToFromTestMixinBase):
         # the default value
         got = cosmo.__class__.from_format(m, format="mapping")
         got2 = Cosmology.from_format(m, format="mapping", cosmology=cosmo.__class__)
-        got3 = Cosmology.from_format(m, format="mapping", cosmology=cosmo.__class__.__qualname__)
+        got3 = Cosmology.from_format(
+            m, format="mapping", cosmology=cosmo.__class__.__qualname__
+        )
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 

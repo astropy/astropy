@@ -11,7 +11,7 @@ from .base import FLRW
 
 __all__ = ["w0wzCDM"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class w0wzCDM(FLRW):
@@ -84,13 +84,37 @@ class w0wzCDM(FLRW):
     """
 
     w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
-    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.",
-                   fvalidate="float")
+    wz = Parameter(
+        doc="Derivative of the dark energy equation of state w.r.t. z.",
+        fvalidate="float",
+    )
 
-    def __init__(self, H0, Om0, Ode0, w0=-1.0, wz=0.0, Tcmb0=0.0*u.K, Neff=3.04,
-                 m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        w0=-1.0,
+        wz=0.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
         self.w0 = w0
         self.wz = wz
 
@@ -98,20 +122,36 @@ class w0wzCDM(FLRW):
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._w0, self._wz)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._w0,
+                self._wz,
+            )
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._w0, self._wz)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
+                self._wz,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._w0,
-                                           self._wz)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._w0,
+                self._wz,
+            )
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -162,4 +202,4 @@ class w0wzCDM(FLRW):
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        return zp1 ** (3. * (1. + self._w0 - self._wz)) * exp(-3. * self._wz * z)
+        return zp1 ** (3.0 * (1.0 + self._w0 - self._wz)) * exp(-3.0 * self._wz * z)

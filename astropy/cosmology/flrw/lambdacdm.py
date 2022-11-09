@@ -17,6 +17,7 @@ from .base import FLRW, FlatFLRWMixin
 if HAS_SCIPY:
     from scipy.special import ellipkinc, hyp2f1
 else:
+
     def ellipkinc(*args, **kwargs):
         raise ModuleNotFoundError("No module named 'scipy.special'")
 
@@ -26,7 +27,7 @@ else:
 
 __all__ = ["LambdaCDM", "FlatLambdaCDM"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class LambdaCDM(FLRW):
@@ -86,10 +87,30 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
-                 Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -102,14 +123,23 @@ class LambdaCDM(FLRW):
                 self._comoving_distance_z1z2 = self._elliptic_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0 + self._Onu0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+            )
 
     def _optimize_flat_norad(self):
         """Set optimizations for flat LCDM cosmologies with no radiation."""
@@ -213,14 +243,17 @@ class LambdaCDM(FLRW):
         if self._Om0 == 0 or self._Ode0 == 0 or self._Ok0 == 0:
             return self._integral_comoving_distance_z1z2(z1, z2)
 
-        b = -(27. / 2) * self._Om0**2 * self._Ode0 / self._Ok0**3
+        b = -(27.0 / 2) * self._Om0**2 * self._Ode0 / self._Ok0**3
         kappa = b / abs(b)
         if (b < 0) or (2 < b):
-            def phi_z(Om0, Ok0, kappa, y1, A, z):
-                return np.arccos(((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A) /
-                                 ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A))
 
-            v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1. / 3)
+            def phi_z(Om0, Ok0, kappa, y1, A, z):
+                return np.arccos(
+                    ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A)
+                    / ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A)
+                )
+
+            v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1.0 / 3)
             y1 = (-1 + kappa * (v_k + 1 / v_k)) / 3
             A = sqrt(y1 * (3 * y1 + 2))
             g = 1 / sqrt(A)
@@ -231,15 +264,15 @@ class LambdaCDM(FLRW):
         # Get lower-right 0<b<2 solution in Om0, Ode0 plane.
         # Fot the upper-left 0<b<2 solution the Big Bang didn't happen.
         elif (0 < b) and (b < 2) and self._Om0 > self._Ode0:
+
             def phi_z(Om0, Ok0, y1, y2, z):
-                return np.arcsin(np.sqrt((y1 - y2) /
-                                         ((z + 1.0) * Om0 / abs(Ok0) + y1)))
+                return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
 
             yb = cos(acos(1 - b) / 3)
             yc = sqrt(3) * sin(acos(1 - b) / 3)
-            y1 = (1. / 3) * (-1 + yb + yc)
-            y2 = (1. / 3) * (-1 - 2 * yb)
-            y3 = (1. / 3) * (-1 + yb - yc)
+            y1 = (1.0 / 3) * (-1 + yb + yc)
+            y2 = (1.0 / 3) * (-1 - 2 * yb)
+            y3 = (1.0 / 3) * (-1 + yb - yc)
             g = 2 / sqrt(y1 - y2)
             k2 = (y1 - y3) / (y1 - y2)
             phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
@@ -306,7 +339,7 @@ class LambdaCDM(FLRW):
             raise ValueError("z1 and z2 have different shapes") from e
 
         prefactor = 2 * self._hubble_distance
-        return prefactor * ((z1 + 1.0)**(-1./2) - (z2 + 1.0)**(-1./2))
+        return prefactor * ((z1 + 1.0) ** (-1.0 / 2) - (z2 + 1.0) ** (-1.0 / 2))
 
     def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
         r"""
@@ -340,11 +373,13 @@ class LambdaCDM(FLRW):
         except ValueError as e:
             raise ValueError("z1 and z2 have different shapes") from e
 
-        s = ((1 - self._Om0) / self._Om0) ** (1./3)
+        s = ((1 - self._Om0) / self._Om0) ** (1.0 / 3)
         # Use np.sqrt here to handle negative s (Om0>1).
         prefactor = self._hubble_distance / np.sqrt(s * self._Om0)
-        return prefactor * (self._T_hypergeometric(s / (z1 + 1.0)) -
-                            self._T_hypergeometric(s / (z2 + 1.0)))
+        return prefactor * (
+            self._T_hypergeometric(s / (z1 + 1.0))
+            - self._T_hypergeometric(s / (z2 + 1.0))
+        )
 
     def _T_hypergeometric(self, x):
         r"""Compute value using Gauss Hypergeometric function 2F1.
@@ -366,7 +401,7 @@ class LambdaCDM(FLRW):
            expressions and numerical evaluation of the luminosity distance
            in a flat cosmology. MNRAS, 468(1), 927-930.
         """
-        return 2 * np.sqrt(x) * hyp2f1(1./6, 1./2, 7./6, -x**3)
+        return 2 * np.sqrt(x) * hyp2f1(1.0 / 6, 1.0 / 2, 7.0 / 6, -(x**3))
 
     def _dS_age(self, z):
         """Age of the universe in Gyr at redshift ``z``.
@@ -383,7 +418,7 @@ class LambdaCDM(FLRW):
         t : `~astropy.units.Quantity` ['time']
             The age of the universe in Gyr at each input redshift.
         """
-        t = (inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float))
+        t = inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float)
         return self._hubble_time * t
 
     def _EdS_age(self, z):
@@ -407,7 +442,7 @@ class LambdaCDM(FLRW):
         .. [1] Thomas, R., & Kantowski, R. (2000). Age-redshift relation for
                standard cosmology. PRD, 62(10), 103507.
         """
-        return (2./3) * self._hubble_time * (aszarr(z) + 1.0) ** (-1.5)
+        return (2.0 / 3) * self._hubble_time * (aszarr(z) + 1.0) ** (-1.5)
 
     def _flat_age(self, z):
         r"""Age of the universe in Gyr at redshift ``z``.
@@ -432,8 +467,10 @@ class LambdaCDM(FLRW):
         """
         # Use np.sqrt, np.arcsinh instead of math.sqrt, math.asinh
         # to handle properly the complex numbers for 1 - Om0 < 0
-        prefactor = (2./3) * self._hubble_time / np.emath.sqrt(1 - self._Om0)
-        arg = np.arcsinh(np.emath.sqrt((1 / self._Om0 - 1 + 0j) / (aszarr(z) + 1.0)**3))
+        prefactor = (2.0 / 3) * self._hubble_time / np.emath.sqrt(1 - self._Om0)
+        arg = np.arcsinh(
+            np.emath.sqrt((1 / self._Om0 - 1 + 0j) / (aszarr(z) + 1.0) ** 3)
+        )
         return (prefactor * arg).real
 
     def _EdS_lookback_time(self, z):
@@ -524,11 +561,16 @@ class LambdaCDM(FLRW):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)
+        return np.sqrt(
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0
+        )
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -545,11 +587,16 @@ class LambdaCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)**(-0.5)
+        return (zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0) ** (
+            -0.5
+        )
 
 
 class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
@@ -611,10 +658,29 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     LambdaCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
-    def __init__(self, H0, Om0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
-                 Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=0.0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -627,14 +693,21 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             self._optimize_flat_norad()
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0 + self._Onu0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0 + self._Onu0,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+            )
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
@@ -653,11 +726,14 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return np.sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)
+        return np.sqrt(zp1**3 * (Or * zp1 + self._Om0) + self._Ode0)
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -674,7 +750,10 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-        return (zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)**(-0.5)
+        return (zp1**3 * (Or * zp1 + self._Om0) + self._Ode0) ** (-0.5)

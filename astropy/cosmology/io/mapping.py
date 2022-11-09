@@ -114,7 +114,9 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
     return cosmology(*ba.args, **ba.kwargs)
 
 
-def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_meta=False):
+def to_mapping(
+    cosmology, *args, cls=dict, cosmology_as_str=False, move_from_meta=False
+):
     """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
@@ -189,7 +191,9 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
 
     m = cls()
     # start with the cosmology class & name
-    m["cosmology"] = cosmology.__class__.__qualname__ if cosmology_as_str else cosmology.__class__
+    m["cosmology"] = (
+        cosmology.__class__.__qualname__ if cosmology_as_str else cosmology.__class__
+    )
     m["name"] = cosmology.name  # here only for dict ordering
 
     meta = copy.deepcopy(cosmology.meta)  # metadata (mutable)
@@ -202,8 +206,13 @@ def to_mapping(cosmology, *args, cls=dict, cosmology_as_str=False, move_from_met
         m.update(meta)
 
     # Add all the immutable inputs
-    m.update({k: v for k, v in cosmology._init_arguments.items()
-              if k not in ("meta", "name")})
+    m.update(
+        {
+            k: v
+            for k, v in cosmology._init_arguments.items()
+            if k not in ("meta", "name")
+        }
+    )
     # Lastly, add the metadata, if haven't already (above)
     if not move_from_meta:
         m["meta"] = meta  # TODO? should meta be type(cls)
