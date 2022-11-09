@@ -101,9 +101,8 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             self._readers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(
-                "Reader for format '{}' and class '{}' is already defined".format(
-                    data_format, data_class.__name__
-                )
+                f"Reader for format '{data_format}' and class '{data_class.__name__}'"
+                " is already defined"
             )
 
         if data_class not in self._delayed_docs_classes:
@@ -125,9 +124,8 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             self._readers.pop((data_format, data_class))
         else:
             raise IORegistryError(
-                "No reader defined for format '{}' and class '{}'".format(
-                    data_format, data_class.__name__
-                )
+                f"No reader defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'"
             )
 
         if data_class not in self._delayed_docs_classes:
@@ -156,10 +154,9 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         else:
             format_table_str = self._get_format_table_str(data_class, "Read")
             raise IORegistryError(
-                "No reader defined for format '{}' and class '{}'.\n\nThe "
-                "available formats are:\n\n{}".format(
-                    data_format, data_class.__name__, format_table_str
-                )
+                f"No reader defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
             )
 
     def read(self, cls, *args, format=None, cache=False, **kwargs):
@@ -229,9 +226,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                     data = cls(data)
                 except Exception:
                     raise TypeError(
-                        "could not convert reader output to {} class.".format(
-                            cls.__name__
-                        )
+                        f"could not convert reader output to {cls.__name__} class."
                     )
         finally:
             if ctx is not None:
@@ -253,10 +248,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         super().__init__()
         self._writers = OrderedDict()
         self._registries["write"] = dict(attr="_writers", column="Write")
-        self._registries_order = (
-            "write",
-            "identify",
-        )
+        self._registries_order = ("write", "identify")
 
     # =========================================================================
     # Write Methods
@@ -289,9 +281,8 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             self._writers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(
-                "Writer for format '{}' and class '{}' is already defined".format(
-                    data_format, data_class.__name__
-                )
+                f"Writer for format '{data_format}' and class '{data_class.__name__}'"
+                " is already defined"
             )
 
         if data_class not in self._delayed_docs_classes:
@@ -313,9 +304,8 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             self._writers.pop((data_format, data_class))
         else:
             raise IORegistryError(
-                "No writer defined for format '{}' and class '{}'".format(
-                    data_format, data_class.__name__
-                )
+                f"No writer defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'"
             )
 
         if data_class not in self._delayed_docs_classes:
@@ -344,10 +334,9 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         else:
             format_table_str = self._get_format_table_str(data_class, "Write")
             raise IORegistryError(
-                "No writer defined for format '{}' and class '{}'.\n\nThe "
-                "available formats are:\n\n{}".format(
-                    data_format, data_class.__name__, format_table_str
-                )
+                f"No writer defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
             )
 
     def write(self, data, *args, format=None, **kwargs):

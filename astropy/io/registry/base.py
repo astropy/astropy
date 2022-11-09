@@ -256,9 +256,8 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             self._identifiers[(data_format, data_class)] = identifier
         else:
             raise IORegistryError(
-                "Identifier for format '{}' and class '{}' is already defined".format(
-                    data_format, data_class.__name__
-                )
+                f"Identifier for format {data_format!r} and class"
+                f" {data_class.__name__!r} is already defined"
             )
 
     def unregister_identifier(self, data_format, data_class):
@@ -276,9 +275,8 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             self._identifiers.pop((data_format, data_class))
         else:
             raise IORegistryError(
-                "No identifier defined for format '{}' and class '{}'".format(
-                    data_format, data_class.__name__
-                )
+                f"No identifier defined for format {data_format!r} and class"
+                f" {data_class.__name__!r}"
             )
 
     def identify_format(self, origin, data_class_required, path, fileobj, args, kwargs):
@@ -361,8 +359,7 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
                 "Format could not be identified based on the"
                 " file name or contents, please provide a"
                 " 'format' argument.\n"
-                "The available formats are:\n"
-                "{}".format(format_table_str)
+                f"The available formats are:\n{format_table_str}"
             )
         elif len(valid_formats) > 1:
             return self._get_highest_priority_format(mode, cls, valid_formats)
@@ -399,9 +396,8 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
 
         if len(best_formats) > 1:
             raise IORegistryError(
-                "Format is ambiguous - options are: {}".format(
-                    ", ".join(sorted(valid_formats, key=itemgetter(0)))
-                )
+                "Format is ambiguous - options are:"
+                f" {', '.join(sorted(valid_formats, key=itemgetter(0)))}"
             )
         return best_formats[0]
 
