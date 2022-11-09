@@ -524,9 +524,8 @@ class TimeBase(ShapedLikeNDArray):
         if scale is not None:
             if not (isinstance(scale, str) and scale.lower() in self.SCALES):
                 raise ScaleValueError(
-                    "Scale {!r} is not in the allowed scales {}".format(
-                        scale, sorted(self.SCALES)
-                    )
+                    f"Scale {scale!r} is not in the allowed scales "
+                    f"{sorted(self.SCALES)}"
                 )
 
         # If either of the input val, val2 are masked arrays then
@@ -587,9 +586,8 @@ class TimeBase(ShapedLikeNDArray):
                 )
             else:
                 raise ValueError(
-                    "Format {!r} is not one of the allowed formats {}".format(
-                        format, sorted(self.FORMATS)
-                    )
+                    f"Format {format!r} is not one of the allowed formats "
+                    f"{sorted(self.FORMATS)}"
                 )
         else:
             formats = [(format, self.FORMATS[format])]
@@ -615,9 +613,8 @@ class TimeBase(ShapedLikeNDArray):
                     problems[name] = err
         else:
             raise ValueError(
-                "Input values did not match any of the formats "
-                "where the format keyword is optional: "
-                f"{problems}"
+                "Input values did not match any of the formats where the format "
+                f"keyword is optional: {problems}"
             ) from problems[formats[0][0]]
 
     @property
@@ -736,9 +733,7 @@ class TimeBase(ShapedLikeNDArray):
             return
         if scale not in self.SCALES:
             raise ValueError(
-                "Scale {!r} is not in the allowed scales {}".format(
-                    scale, sorted(self.SCALES)
-                )
+                f"Scale {scale!r} is not in the allowed scales {sorted(self.SCALES)}"
             )
 
         if scale == "utc" or self.scale == "utc":
@@ -1073,9 +1068,7 @@ class TimeBase(ShapedLikeNDArray):
 
         if abs(idx0) > len(self):
             raise IndexError(
-                "index {} is out of bounds for axis 0 with size {}".format(
-                    idx0, len(self)
-                )
+                f"index {idx0} is out of bounds for axis 0 with size {len(self)}"
             )
 
         # Turn negative index into positive
@@ -1109,10 +1102,8 @@ class TimeBase(ShapedLikeNDArray):
         if not self.writeable:
             if self.shape:
                 raise ValueError(
-                    "{} object is read-only. Make a "
-                    'copy() or set "writeable" attribute to True.'.format(
-                        self.__class__.__name__
-                    )
+                    f"{self.__class__.__name__} object is read-only. Make a "
+                    'copy() or set "writeable" attribute to True.'
                 )
             else:
                 raise ValueError(
@@ -1659,9 +1650,8 @@ class TimeBase(ShapedLikeNDArray):
                 )
             else:
                 raise ScaleValueError(
-                    "Cannot convert {} with scale '{}' to scale '{}'".format(
-                        self.__class__.__name__, self.scale, attr
-                    )
+                    f"Cannot convert {self.__class__.__name__} with scale "
+                    f"'{self.scale}' to scale '{attr}'"
                 )
 
         else:
@@ -1683,9 +1673,8 @@ class TimeBase(ShapedLikeNDArray):
                 val = np.broadcast_to(val, self.shape, subok=True)
             except Exception:
                 raise ValueError(
-                    "Attribute shape must match or be "
-                    "broadcastable to that of Time object. "
-                    "Typically, give either a single value or "
+                    "Attribute shape must match or be broadcastable to that of "
+                    "Time object. Typically, give either a single value or "
                     "one for each time."
                 )
 
@@ -1711,9 +1700,8 @@ class TimeBase(ShapedLikeNDArray):
             # Other will also not be able to do it, so raise a TypeError
             # immediately, allowing us to explain why it doesn't work.
             raise TypeError(
-                "Cannot compare {} instances with scales '{}' and '{}'".format(
-                    self.__class__.__name__, self.scale, other.scale
-                )
+                f"Cannot compare {self.__class__.__name__} instances with "
+                f"scales '{self.scale}' and '{other.scale}'"
             )
 
         if self.scale is not None and other.scale is not None:
@@ -1875,10 +1863,9 @@ class Time(TimeBase):
                 self.location = np.broadcast_to(self.location, self.shape, subok=True)
             except Exception as err:
                 raise ValueError(
-                    "The location with shape {} cannot be "
-                    "broadcast against time with shape {}. "
-                    "Typically, either give a single location or "
-                    "one for each time.".format(self.location.shape, self.shape)
+                    f"The location with shape {self.location.shape} cannot be "
+                    f"broadcast against time with shape {self.shape}. "
+                    "Typically, either give a single location or one for each time."
                 ) from err
 
     def _make_value_equivalent(self, item, value):
@@ -1904,9 +1891,8 @@ class Time(TimeBase):
                 match = np.all(self_location == value.location)
             if not match:
                 raise ValueError(
-                    "cannot set to Time with different location: "
-                    "expected location={} and "
-                    "got location={}".format(self_location, value.location)
+                    "cannot set to Time with different location: expected "
+                    f"location={self_location} and got location={value.location}"
                 )
         else:
             try:
@@ -1921,9 +1907,7 @@ class Time(TimeBase):
                     )
                 except Exception as err:
                     raise ValueError(
-                        "cannot convert value to a compatible Time object: {}".format(
-                            err
-                        )
+                        f"cannot convert value to a compatible Time object: {err}"
                     )
         return value
 
@@ -1980,11 +1964,10 @@ class Time(TimeBase):
         time_array = np.asarray(time_string)
 
         if time_array.dtype.kind not in ("U", "S"):
-            err = (
-                "Expected type is string, a bytes-like object or a sequence"
-                " of these. Got dtype '{}'".format(time_array.dtype.kind)
+            raise TypeError(
+                "Expected type is string, a bytes-like object or a sequence "
+                f"of these. Got dtype '{time_array.dtype.kind}'"
             )
-            raise TypeError(err)
 
         to_string = (
             str
@@ -2100,9 +2083,8 @@ class Time(TimeBase):
         if location is None:
             if self.location is None:
                 raise ValueError(
-                    "An EarthLocation needs to be set or passed "
-                    "in to calculate bary- or heliocentric "
-                    "corrections"
+                    "An EarthLocation needs to be set or passed in to calculate bary- "
+                    "or heliocentric corrections"
                 )
             location = self.location
 
@@ -2260,23 +2242,20 @@ class Time(TimeBase):
 
         """  # noqa: E501 (docstring is formatted below)
 
-        if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
+        if kind.lower() not in SIDEREAL_TIME_MODELS:
             raise ValueError(
-                "The kind of sidereal time has to be {}".format(
-                    " or ".join(sorted(SIDEREAL_TIME_MODELS.keys()))
-                )
+                "The kind of sidereal time has to be "
+                + " or ".join(sorted(SIDEREAL_TIME_MODELS))
             )
 
         available_models = SIDEREAL_TIME_MODELS[kind.lower()]
 
         if model is None:
-            model = sorted(available_models.keys())[-1]
+            model = sorted(available_models)[-1]
         elif model.upper() not in available_models:
             raise ValueError(
-                "Model {} not implemented for {} sidereal time; "
-                "available models are {}".format(
-                    model, kind, sorted(available_models.keys())
-                )
+                f"Model {model} not implemented for {kind} sidereal time; "
+                f"available models are {sorted(available_models)}"
             )
 
         model_kwargs = available_models[model.upper()]
@@ -2291,9 +2270,9 @@ class Time(TimeBase):
     if isinstance(sidereal_time.__doc__, str):
         sidereal_time.__doc__ = sidereal_time.__doc__.format(
             "apparent",
-            sorted(SIDEREAL_TIME_MODELS["apparent"].keys()),
+            sorted(SIDEREAL_TIME_MODELS["apparent"]),
             "mean",
-            sorted(SIDEREAL_TIME_MODELS["mean"].keys()),
+            sorted(SIDEREAL_TIME_MODELS["mean"]),
         )
 
     def _sid_time_or_earth_rot_ang(self, longitude, function, scales, include_tio=True):
@@ -2480,9 +2459,8 @@ class Time(TimeBase):
             if jd1 is None or jd2 is None:
                 if self.scale not in ("tt", "tdb"):
                     raise ValueError(
-                        "Accessing the delta_tdb_tt attribute "
-                        "is only possible for TT or TDB time "
-                        "scales"
+                        "Accessing the delta_tdb_tt attribute is only "
+                        "possible for TT or TDB time scales"
                     )
                 else:
                     jd1 = self._time.jd1
@@ -2554,7 +2532,7 @@ class Time(TimeBase):
                     if self.scale not in TIME_TYPES[other.scale]:
                         raise TypeError(
                             "Cannot subtract Time and TimeDelta instances "
-                            "with scales '{}' and '{}'".format(self.scale, other.scale)
+                            f"with scales '{self.scale}' and '{other.scale}'"
                         )
                     out._set_scale(other.scale)
             # remove attributes that are invalidated by changing time
@@ -2566,9 +2544,8 @@ class Time(TimeBase):
             # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
             if other.scale not in self.SCALES:
                 raise TypeError(
-                    "Cannot subtract Time instances with scales '{}' and '{}'".format(
-                        self.scale, other.scale
-                    )
+                    "Cannot subtract Time instances "
+                    f"with scales '{self.scale}' and '{other.scale}'"
                 )
             self_time = (
                 self._time if self.scale in TIME_DELTA_SCALES else self.tai._time
@@ -2619,7 +2596,7 @@ class Time(TimeBase):
                 if self.scale not in TIME_TYPES[other.scale]:
                     raise TypeError(
                         "Cannot add Time and TimeDelta instances "
-                        "with scales '{}' and '{}'".format(self.scale, other.scale)
+                        f"with scales '{self.scale}' and '{other.scale}'"
                     )
                 out._set_scale(other.scale)
         # remove attributes that are invalidated by changing time
@@ -2848,9 +2825,7 @@ class TimeDelta(TimeBase):
             return
         if scale not in self.SCALES:
             raise ValueError(
-                "Scale {!r} is not in the allowed scales {}".format(
-                    scale, sorted(self.SCALES)
-                )
+                "Scale {scale!r} is not in the allowed scales {sorted(self.SCALES)}"
             )
 
         # For TimeDelta, there can only be a change in scale factor,
@@ -3128,9 +3103,7 @@ class TimeDelta(TimeBase):
             except ValueError as exc:
                 raise ValueError(
                     "first argument is not one of the known "
-                    "formats ({}) and failed to parse as a unit.".format(
-                        list(self.FORMATS)
-                    )
+                    f"formats ({list(self.FORMATS)}) and failed to parse as a unit."
                 ) from exc
             args = (unit,) + args[1:]
 
@@ -3145,9 +3118,7 @@ class TimeDelta(TimeBase):
                 value = self.__class__(value, scale=self.scale, format=self.format)
             except Exception as err:
                 raise ValueError(
-                    "cannot convert value to a compatible TimeDelta object: {}".format(
-                        err
-                    )
+                    f"cannot convert value to a compatible TimeDelta object: {err}"
                 )
         return value
 
