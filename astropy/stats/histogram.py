@@ -269,9 +269,9 @@ def freedman_bin_width(data, return_bins=False):
             if "Maximum allowed size exceeded" in str(e):
                 raise ValueError(
                     "The inter-quartile range of the data is too small: "
-                    "failed to construct histogram with {} bins. "
+                    f"failed to construct histogram with {Nbins + 1} bins. "
                     "Please use another bin method, such as "
-                    'bins="scott"'.format(Nbins + 1)
+                    'bins="scott"'
                 )
             else:  # Something else  # pragma: no cover
                 raise
