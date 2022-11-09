@@ -52,12 +52,10 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 # TODO: implement other fitness functions from appendix C of Scargle 2013
 
-__all__ = ['FitnessFunc', 'Events', 'RegularEvents', 'PointMeasures',
-           'bayesian_blocks']
+__all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_blocks"]
 
 
-def bayesian_blocks(t, x=None, sigma=None,
-                    fitness='events', **kwargs):
+def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
     r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks
 
     This is a flexible implementation of the Bayesian Blocks algorithm
@@ -157,9 +155,11 @@ def bayesian_blocks(t, x=None, sigma=None,
     --------
     astropy.stats.histogram : compute a histogram using bayesian blocks
     """
-    FITNESS_DICT = {'events': Events,
-                    'regular_events': RegularEvents,
-                    'measures': PointMeasures}
+    FITNESS_DICT = {
+        "events": Events,
+        "regular_events": RegularEvents,
+        "measures": PointMeasures,
+    }
     fitness = FITNESS_DICT.get(fitness, fitness)
 
     if type(fitness) is type and issubclass(fitness, FitnessFunc):
@@ -208,6 +208,7 @@ class FitnessFunc:
     .. [1] Scargle, J et al. (2013)
        https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
     """
+
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         self.p0 = p0
         self.gamma = gamma
@@ -237,8 +238,7 @@ class FitnessFunc:
         t = np.array(t)
         if t.ndim != 1:
             raise ValueError("t must be a one-dimensional array")
-        unq_t, unq_ind, unq_inv = np.unique(t, return_index=True,
-                                            return_inverse=True)
+        unq_t, unq_ind, unq_inv = np.unique(t, return_index=True, return_inverse=True)
 
         # if x is not specified, x will be counts at each time
         if x is None:
@@ -264,8 +264,9 @@ class FitnessFunc:
             x += np.zeros_like(t)
 
             if len(unq_t) != len(t):
-                raise ValueError("Repeated values in t not supported when "
-                                 "x is specified")
+                raise ValueError(
+                    "Repeated values in t not supported when x is specified"
+                )
             t = unq_t
             x = x[unq_ind]
 
@@ -275,7 +276,7 @@ class FitnessFunc:
         else:
             sigma = np.asarray(sigma, dtype=float)
             if sigma.shape not in [(), (1,), (t.size,)]:
-                raise ValueError('sigma does not match the shape of x')
+                raise ValueError("sigma does not match the shape of x")
 
         return t, x, sigma
 
@@ -291,7 +292,7 @@ class FitnessFunc:
         paper (the "log" was missing). The following corrected form is taken
         from https://arxiv.org/abs/1304.2818
         """
-        return 4 - np.log(73.53 * self.p0 * (N ** -0.478))
+        return 4 - np.log(73.53 * self.p0 * (N**-0.478))
 
     # the fitness_args property will return the list of arguments accepted by
     # the method fitness().  This allows more efficient computation below.
@@ -310,8 +311,10 @@ class FitnessFunc:
         elif self.p0 is not None:
             return self.p0_prior(N)
         else:
-            raise ValueError("``ncp_prior`` cannot be computed as neither "
-                             "``gamma`` nor ``p0`` is defined.")
+            raise ValueError(
+                "``ncp_prior`` cannot be computed as neither "
+                "``gamma`` nor ``p0`` is defined."
+            )
 
     def fit(self, t, x=None, sigma=None):
         """Fit the Bayesian Blocks model given the specified fitness function.
@@ -333,17 +336,15 @@ class FitnessFunc:
         t, x, sigma = self.validate_input(t, x, sigma)
 
         # compute values needed for computation, below
-        if 'a_k' in self._fitness_args:
-            ak_raw = np.ones_like(x) / sigma ** 2
-        if 'b_k' in self._fitness_args:
-            bk_raw = x / sigma ** 2
-        if 'c_k' in self._fitness_args:
-            ck_raw = x * x / sigma ** 2
+        if "a_k" in self._fitness_args:
+            ak_raw = np.ones_like(x) / sigma**2
+        if "b_k" in self._fitness_args:
+            bk_raw = x / sigma**2
+        if "c_k" in self._fitness_args:
+            ck_raw = x * x / sigma**2
 
         # create length-(N + 1) array of cell edges
-        edges = np.concatenate([t[:1],
-                                0.5 * (t[1:] + t[:-1]),
-                                t[-1:]])
+        edges = np.concatenate([t[:1], 0.5 * (t[1:] + t[:-1]), t[-1:]])
         block_length = t[-1] - edges
 
         # arrays to store the best configuration
@@ -365,24 +366,24 @@ class FitnessFunc:
             kwds = {}
 
             # T_k: width/duration of each block
-            if 'T_k' in self._fitness_args:
-                kwds['T_k'] = block_length[:R + 1] - block_length[R + 1]
+            if "T_k" in self._fitness_args:
+                kwds["T_k"] = block_length[: (R + 1)] - block_length[R + 1]
 
             # N_k: number of elements in each block
-            if 'N_k' in self._fitness_args:
-                kwds['N_k'] = np.cumsum(x[:R + 1][::-1])[::-1]
+            if "N_k" in self._fitness_args:
+                kwds["N_k"] = np.cumsum(x[: (R + 1)][::-1])[::-1]
 
             # a_k: eq. 31
-            if 'a_k' in self._fitness_args:
-                kwds['a_k'] = 0.5 * np.cumsum(ak_raw[:R + 1][::-1])[::-1]
+            if "a_k" in self._fitness_args:
+                kwds["a_k"] = 0.5 * np.cumsum(ak_raw[: (R + 1)][::-1])[::-1]
 
             # b_k: eq. 32
-            if 'b_k' in self._fitness_args:
-                kwds['b_k'] = - np.cumsum(bk_raw[:R + 1][::-1])[::-1]
+            if "b_k" in self._fitness_args:
+                kwds["b_k"] = -np.cumsum(bk_raw[: (R + 1)][::-1])[::-1]
 
             # c_k: eq. 33
-            if 'c_k' in self._fitness_args:
-                kwds['c_k'] = 0.5 * np.cumsum(ck_raw[:R + 1][::-1])[::-1]
+            if "c_k" in self._fitness_args:
+                kwds["c_k"] = 0.5 * np.cumsum(ck_raw[: (R + 1)][::-1])[::-1]
 
             # evaluate fitness function
             fit_vec = self.fitness(**kwds)
@@ -470,6 +471,7 @@ class RegularEvents(FitnessFunc):
         gamma})`.  If ``ncp_prior`` is specified, ``gamma`` and ``p0`` are
         ignored.
     """
+
     def __init__(self, dt, p0=0.05, gamma=None, ncp_prior=None):
         self.dt = dt
         super().__init__(p0, gamma, ncp_prior)
@@ -485,10 +487,12 @@ class RegularEvents(FitnessFunc):
         M_k = T_k / self.dt
         N_over_M = N_k / M_k
 
-        eps = 1E-8
+        eps = 1e-8
         if np.any(N_over_M > 1 + eps):
-            warnings.warn('regular events: N/M > 1.  '
-                          'Is the time step correct?', AstropyUserWarning)
+            warnings.warn(
+                "regular events: N/M > 1.  Is the time step correct?",
+                AstropyUserWarning,
+            )
 
         one_m_NM = 1 - N_over_M
         N_over_M[N_over_M <= 0] = 1
@@ -512,6 +516,7 @@ class PointMeasures(FitnessFunc):
         gamma})`.  If ``ncp_prior`` is specified, ``gamma`` and ``p0`` are
         ignored.
     """
+
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         super().__init__(p0, gamma, ncp_prior)
 
