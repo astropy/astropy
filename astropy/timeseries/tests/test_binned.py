@@ -22,62 +22,55 @@ def test_empty_initialization_invalid():
     # Make sure things crash when the first column added is not a time column
 
     ts = BinnedTimeSeries()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"BinnedTimeSeries object is invalid - expected 'time_bin_start' as the"
+            r" first column but found 'flux'"
+        ),
+    ):
         ts["flux"] = [1, 2, 3]
-    assert (
-        exc.value.args[0] == "BinnedTimeSeries object is invalid - expected "
-        "'time_bin_start' as the first column but found 'flux'"
-    )
 
 
 def test_initialization_time_bin_invalid():
     # Make sure things crash when time_bin_* is passed incorrectly.
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=r"'time_bin_start' has not been specified"):
         BinnedTimeSeries(data=[[1, 4, 3]])
-    assert exc.value.args[0] == "'time_bin_start' has not been specified"
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"Either 'time_bin_size' or 'time_bin_end' should be specified"
+    ):
         BinnedTimeSeries(time_bin_start="2016-03-22T12:30:31", data=[[1, 4, 3]])
-    assert (
-        exc.value.args[0]
-        == "Either 'time_bin_size' or 'time_bin_end' should be specified"
-    )
 
 
 def test_initialization_time_bin_both():
     # Make sure things crash when time_bin_* is passed twice.
+    MESSAGE = r"'{}' has been given both in the table and as a keyword argument"
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("time_bin_start")):
         BinnedTimeSeries(
             data={"time_bin_start": ["2016-03-22T12:30:31"]},
             time_bin_start="2016-03-22T12:30:31",
         )
-    assert (
-        exc.value.args[0]
-        == "'time_bin_start' has been given both in the table and as a keyword argument"
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("time_bin_size")):
         BinnedTimeSeries(
             data={"time_bin_size": ["2016-03-22T12:30:31"]}, time_bin_size=[1] * u.s
         )
-    assert (
-        exc.value.args[0]
-        == "'time_bin_size' has been given both in the table and as a keyword argument"
-    )
 
 
 def test_initialization_time_bin_size():
     # Make sure things crash when time_bin_size has no units
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"'time_bin_size' should be a Quantity or a TimeDelta"
+    ):
         BinnedTimeSeries(
             data={"time": ["2016-03-22T12:30:31"]},
             time_bin_start="2016-03-22T12:30:31",
             time_bin_size=1,
         )
-    assert exc.value.args[0] == "'time_bin_size' should be a Quantity or a TimeDelta"
 
     # TimeDelta for time_bin_size
     ts = BinnedTimeSeries(
@@ -91,38 +84,43 @@ def test_initialization_time_bin_size():
 def test_initialization_time_bin_start_scalar():
     # Make sure things crash when time_bin_start is a scalar with no time_bin_size
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"'time_bin_start' is scalar, so 'time_bin_size' is required"
+    ):
         BinnedTimeSeries(
             data={"time": ["2016-03-22T12:30:31"]},
             time_bin_start=Time(1, format="mjd"),
             time_bin_end=Time(1, format="mjd"),
         )
-    assert (
-        exc.value.args[0]
-        == "'time_bin_start' is scalar, so 'time_bin_size' is required"
-    )
 
 
 def test_initialization_n_bins_invalid_arguments():
     # Make sure an exception is raised when n_bins is passed as an argument while
     # any of the parameters 'time_bin_start' or 'time_bin_end' is not scalar.
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"'n_bins' cannot be specified if 'time_bin_start' or 'time_bin_size' are"
+            r" not scalar'"
+        ),
+    ):
         BinnedTimeSeries(
             time_bin_start=Time([1, 2, 3], format="cxcsec"),
             time_bin_size=1 * u.s,
             n_bins=10,
         )
-    assert (
-        exc.value.args[0] == "'n_bins' cannot be specified if 'time_bin_start' or "
-        "'time_bin_size' are not scalar'"
-    )
 
 
 def test_initialization_n_bins():
     # Make sure things crash with incorrect n_bins
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"'n_bins' has been given and it is not the same length as the input data\."
+        ),
+    ):
         BinnedTimeSeries(
             data={"time": ["2016-03-22T12:30:31"]},
             time_bin_start=Time(1, format="mjd"),
@@ -130,38 +128,31 @@ def test_initialization_n_bins():
             time_bin_end=Time(1, format="mjd"),
             n_bins=10,
         )
-    assert (
-        exc.value.args[0]
-        == "'n_bins' has been given and it is not the same length as the input data."
-    )
 
 
 def test_initialization_non_scalar_time():
     # Make sure things crash with incorrect size of time_bin_start
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=r"Length of 'time_bin_start' \(2\) should match table length \(1\)",
+    ):
         BinnedTimeSeries(
             data={"time": ["2016-03-22T12:30:31"]},
             time_bin_start=["2016-03-22T12:30:31", "2016-03-22T12:30:32"],
             time_bin_size=1 * u.s,
             time_bin_end=Time(1, format="mjd"),
         )
-    assert (
-        exc.value.args[0]
-        == "Length of 'time_bin_start' (2) should match table length (1)"
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"Either 'time_bin_size' or 'time_bin_end' should be specified"
+    ):
         BinnedTimeSeries(
             data={"time": ["2016-03-22T12:30:31"]},
             time_bin_start=["2016-03-22T12:30:31"],
             time_bin_size=None,
             time_bin_end=None,
         )
-    assert (
-        exc.value.args[0]
-        == "Either 'time_bin_size' or 'time_bin_end' should be specified"
-    )
 
 
 def test_even_contiguous():
@@ -331,28 +322,34 @@ def test_uneven_non_contiguous_full():
 
 
 def test_read_empty():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"``time_bin_start_column`` should be provided since the default Table"
+            r" readers are being used\."
+        ),
+    ):
         BinnedTimeSeries.read(CSV_FILE, format="csv")
-    assert (
-        exc.value.args[0]
-        == "``time_bin_start_column`` should be provided since the default Table"
-        " readers are being used."
-    )
 
 
 def test_read_no_size_end():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Either `time_bin_end_column` or `time_bin_size_column` should be"
+            r" provided\."
+        ),
+    ):
         BinnedTimeSeries.read(
             CSV_FILE, time_bin_start_column="time_start", format="csv"
         )
-    assert (
-        exc.value.args[0]
-        == "Either `time_bin_end_column` or `time_bin_size_column` should be provided."
-    )
 
 
 def test_read_both_extra_bins():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=r"Cannot specify both `time_bin_end_column` and `time_bin_size_column`\.",
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="time_start",
@@ -360,29 +357,28 @@ def test_read_both_extra_bins():
             time_bin_size_column="bin_size",
             format="csv",
         )
-    assert (
-        exc.value.args[0]
-        == "Cannot specify both `time_bin_end_column` and `time_bin_size_column`."
-    )
 
 
 def test_read_size_no_unit():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"The bin size unit should be specified as an astropy Unit using"
+            r" ``time_bin_size_unit``\."
+        ),
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="time_start",
             time_bin_size_column="bin_size",
             format="csv",
         )
-    assert (
-        exc.value.args[0]
-        == "The bin size unit should be specified as an astropy Unit using"
-        " ``time_bin_size_unit``."
-    )
 
 
 def test_read_start_time_missing():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"Bin start time column 'abc' not found in the input data\."
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="abc",
@@ -390,27 +386,24 @@ def test_read_start_time_missing():
             time_bin_size_unit=u.second,
             format="csv",
         )
-    assert (
-        exc.value.args[0] == "Bin start time column 'abc' not found in the input data."
-    )
 
 
 def test_read_end_time_missing():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"Bin end time column 'missing' not found in the input data\."
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="time_start",
             time_bin_end_column="missing",
             format="csv",
         )
-    assert (
-        exc.value.args[0]
-        == "Bin end time column 'missing' not found in the input data."
-    )
 
 
 def test_read_size_missing():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"Bin size column 'missing' not found in the input data\."
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="time_start",
@@ -418,22 +411,22 @@ def test_read_size_missing():
             time_bin_size_unit=u.second,
             format="csv",
         )
-    assert exc.value.args[0] == "Bin size column 'missing' not found in the input data."
 
 
 def test_read_time_unit_missing():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"The bin size unit should be specified as an astropy Unit using"
+            r" ``time_bin_size_unit``\."
+        ),
+    ):
         BinnedTimeSeries.read(
             CSV_FILE,
             time_bin_start_column="time_start",
             time_bin_size_column="bin_size",
             format="csv",
         )
-    assert (
-        exc.value.args[0]
-        == "The bin size unit should be specified as an astropy Unit using"
-        " ``time_bin_size_unit``."
-    )
 
 
 def test_read():

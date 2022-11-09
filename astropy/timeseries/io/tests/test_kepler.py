@@ -37,48 +37,50 @@ def fake_hdulist(extver=1, version=2, timesys="TDB", telescop="KEPLER"):
 
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(telescop="MadeUp"))
 def test_raise_telescop_wrong(mock_file):
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(
+        NotImplementedError,
+        match=(
+            r"MadeUp is not implemented, only KEPLER or TESS are supported through this"
+            r" reader"
+        ),
+    ):
         kepler_fits_reader(None)
-    assert (
-        exc.value.args[0] == "MadeUp is not implemented, only KEPLER or TESS are "
-        "supported through this reader"
-    )
 
 
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(extver=2))
 def test_raise_extversion_kepler(mock_file):
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(
+        NotImplementedError, match=r"Support for KEPLER v2 files not yet implemented"
+    ):
         kepler_fits_reader(None)
-    assert exc.value.args[0] == "Support for KEPLER v2 files not yet implemented"
 
 
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(extver=2, telescop="TESS"))
 def test_raise_extversion_tess(mock_file):
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(
+        NotImplementedError, match=r"Support for TESS v2 files not yet implemented"
+    ):
         kepler_fits_reader(None)
-    assert exc.value.args[0] == "Support for TESS v2 files not yet implemented"
 
 
 @mock.patch("astropy.io.fits.open", side_effect=fake_hdulist(timesys="TCB"))
 def test_raise_timesys_kepler(mock_file):
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(
+        NotImplementedError,
+        match=r"Support for TCB time scale not yet implemented in KEPLER reader",
+    ):
         kepler_fits_reader(None)
-    assert (
-        exc.value.args[0]
-        == "Support for TCB time scale not yet implemented in KEPLER reader"
-    )
 
 
 @mock.patch(
     "astropy.io.fits.open", side_effect=fake_hdulist(timesys="TCB", telescop="TESS")
 )
 def test_raise_timesys_tess(mock_file):
-    with pytest.raises(NotImplementedError) as exc:
+    with pytest.raises(
+        NotImplementedError,
+        match=r"Support for TCB time scale not yet implemented in TESS reader",
+    ):
         kepler_fits_reader(None)
-    assert (
-        exc.value.args[0]
-        == "Support for TCB time scale not yet implemented in TESS reader"
-    )
 
 
 @pytest.mark.remote_data(source="astropy")

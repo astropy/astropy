@@ -181,9 +181,8 @@ def test_nterms_methods(
     )
 
     if nterms == 0 and not fit_mean:
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=r"[nterms, blas]"):
             ls.power(frequency, method=method)
-        assert "nterms" in str(err.value) and "bias" in str(err.value)
     else:
         P_expected = ls.power(frequency)
 
@@ -228,14 +227,12 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
     kwds = dict(method=method)
 
     if method == "fast" and nterms != 1:
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=r"nterms"):
             ls.power(frequency, **kwds)
-        assert "nterms" in str(err.value)
 
     elif nterms == 0 and not fit_mean:
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=r"[nterms, blas]"):
             ls.power(frequency, **kwds)
-        assert "nterms" in str(err.value) and "bias" in str(err.value)
 
     else:
         P_fast = ls.power(frequency, **kwds)
@@ -264,14 +261,14 @@ def test_errors_on_unit_mismatch(method, data):
     frequency = np.linspace(0.5, 1.5, 10)
 
     # this should fail because frequency and 1/t units do not match
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Units of {} not equivalent"
+
+    with pytest.raises(ValueError, match=MESSAGE.format("frequency")):
         LombScargle(t, y, fit_mean=False).power(frequency, method=method)
-    assert str(err.value).startswith("Units of frequency not equivalent")
 
     # this should fail because dy and y units do not match
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE.format("dy")):
         LombScargle(t, y, dy, fit_mean=False).power(frequency / t.unit)
-    assert str(err.value).startswith("Units of dy not equivalent")
 
 
 # we don't test all normalizations here because they are tested above
@@ -365,19 +362,18 @@ def test_model_units_mismatch(data):
     frequency = 1.0 / t.unit
 
     # this should fail because frequency and 1/t units do not match
-    with pytest.raises(ValueError) as err:
+    MESSAGE = r"Units of {} not equivalent"
+
+    with pytest.raises(ValueError, match=MESSAGE.format("frequency")):
         LombScargle(t, y).model(t_fit, frequency=1.0)
-    assert str(err.value).startswith("Units of frequency not equivalent")
 
     # this should fail because t and t_fit units do not match
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE.format("t")):
         LombScargle(t, y).model([1, 2], frequency)
-    assert str(err.value).startswith("Units of t not equivalent")
 
     # this should fail because dy and y units do not match
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match=MESSAGE.format("dy")):
         LombScargle(t, y, dy).model(t_fit, frequency)
-    assert str(err.value).startswith("Units of dy not equivalent")
 
 
 def test_autopower(data):
@@ -495,22 +491,16 @@ def test_absolute_times(data, timedelta):
     assert_quantity_allclose(model1, model2)
 
     # Check model validation
+    MESSAGE = (
+        r"t was provided as {} time but the LombScargle class was initialized with {}"
+        r" times."
+    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("a relative", "absolute")):
         ls1.model(trel, 2 / u.day)
-    assert (
-        exc.value.args[0] == "t was provided as a relative time but the "
-        "LombScargle class was initialized with "
-        "absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("an absolute", "relative")):
         ls2.model(t, 2 / u.day)
-    assert (
-        exc.value.args[0] == "t was provided as an absolute time but the "
-        "LombScargle class was initialized with "
-        "relative times."
-    )
 
     # Check design matrix
 
@@ -520,18 +510,8 @@ def test_absolute_times(data, timedelta):
 
     # Check design matrix validation
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("a relative", "absolute")):
         ls1.design_matrix(2 / u.day, t=trel)
-    assert (
-        exc.value.args[0] == "t was provided as a relative time but the "
-        "LombScargle class was initialized with "
-        "absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("an absolute", "relative")):
         ls2.design_matrix(2 / u.day, t=t)
-    assert (
-        exc.value.args[0] == "t was provided as an absolute time but the "
-        "LombScargle class was initialized with "
-        "relative times."
-    )

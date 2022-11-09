@@ -54,9 +54,8 @@ class CommonTimeSeriesTests:
         # columns in the time series, but we need to make sure that the
         # checking works again afterwards
         ts = vstack([self.series, self.series])
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=r"TimeSeries object is invalid"):
             ts.remove_columns(ts.colnames)
-        assert "TimeSeries object is invalid" in exc.value.args[0]
 
     def test_join(self):
         ts_other = self.series.copy()

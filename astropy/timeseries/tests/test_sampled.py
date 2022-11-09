@@ -28,12 +28,14 @@ def test_empty_initialization():
 def test_empty_initialization_invalid():
     # Make sure things crash when the first column added is not a time column
     ts = TimeSeries()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"TimeSeries object is invalid - expected 'time' as the first column but"
+            r" found 'flux'"
+        ),
+    ):
         ts["flux"] = [1, 2, 3]
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'flux'"
-    )
 
 
 def test_initialize_only_time():
@@ -51,9 +53,10 @@ def test_initialization_with_data():
 
 
 def test_initialize_only_data():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"Either 'time' or 'time_start' should be specified"
+    ):
         TimeSeries(data=[[10, 2, 3], [4, 5, 6]], names=["a", "b"])
-    assert exc.value.args[0] == "Either 'time' or 'time_start' should be specified"
 
 
 def test_initialization_with_table():
@@ -79,35 +82,36 @@ def test_initialization_with_time_delta():
 
 
 def test_initialization_missing_time_delta():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"'time' is scalar, so 'time_delta' is required"
+    ):
         TimeSeries(
             time_start=datetime(2018, 7, 1, 10, 10, 10),
             data=[[10, 2, 3], [4, 5, 6]],
             names=["a", "b"],
         )
-    assert exc.value.args[0] == "'time' is scalar, so 'time_delta' is required"
 
 
 def test_initialization_invalid_time_and_time_start():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=r"Cannot specify both 'time' and 'time_start'"):
         TimeSeries(
             time=INPUT_TIME,
             time_start=datetime(2018, 7, 1, 10, 10, 10),
             data=[[10, 2, 3], [4, 5, 6]],
             names=["a", "b"],
         )
-    assert exc.value.args[0] == "Cannot specify both 'time' and 'time_start'"
 
 
 def test_initialization_invalid_time_delta():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"'time_delta' should be a Quantity or a TimeDelta"
+    ):
         TimeSeries(
             time_start=datetime(2018, 7, 1, 10, 10, 10),
             time_delta=[1, 4, 3],
             data=[[10, 2, 3], [4, 5, 6]],
             names=["a", "b"],
         )
-    assert exc.value.args[0] == "'time_delta' should be a Quantity or a TimeDelta"
 
 
 def test_initialization_with_time_in_data():
@@ -123,47 +127,43 @@ def test_initialization_with_time_in_data():
     assert set(ts2.colnames) == {"time", "a"}
     assert all(ts2.time == INPUT_TIME)
 
-    with pytest.raises(TypeError) as exc:
+    MESSAGE = r"'time' has been given both in the table and as a keyword argument"
+
+    with pytest.raises(TypeError, match=MESSAGE):
         # Don't allow ambiguous cases of passing multiple 'time' columns
         TimeSeries(data=data, time=INPUT_TIME)
-    assert (
-        exc.value.args[0]
-        == "'time' has been given both in the table and as a keyword argument"
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE):
         # 'time' is a protected name, don't allow ambiguous cases
         TimeSeries(time=INPUT_TIME, data=[[10, 2, 3], INPUT_TIME], names=["a", "time"])
-    assert (
-        exc.value.args[0]
-        == "'time' has been given both in the table and as a keyword argument"
-    )
 
 
 def test_initialization_n_samples():
     # Make sure things crash with incorrect n_samples
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"'n_samples' has been given both and it is not the same length as the"
+            r" input data."
+        ),
+    ):
         TimeSeries(time=INPUT_TIME, data=PLAIN_TABLE, n_samples=1000)
-    assert (
-        exc.value.args[0] == "'n_samples' has been given both and it is not the "
-        "same length as the input data."
-    )
 
 
 def test_initialization_length_mismatch():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"Length of 'time' \(3\) should match data length \(2\)"
+    ):
         TimeSeries(time=INPUT_TIME, data=[[10, 2], [4, 5]], names=["a", "b"])
-    assert exc.value.args[0] == "Length of 'time' (3) should match data length (2)"
 
 
 def test_initialization_invalid_both_time_and_time_delta():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError,
+        match=r"'time_delta' should not be specified since 'time' is an array",
+    ):
         TimeSeries(time=INPUT_TIME, time_delta=TimeDelta(3, format="sec"))
-    assert (
-        exc.value.args[0]
-        == "'time_delta' should not be specified since 'time' is an array"
-    )
 
 
 def test_fold():
@@ -339,32 +339,32 @@ def test_pandas():
     assert df2.columns == pandas.Index(["a"])
     assert (df1["a"] == df2["a"]).all()
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=r"Input should be a pandas DataFrame"):
         TimeSeries.from_pandas(None)
-    assert exc.value.args[0] == "Input should be a pandas DataFrame"
 
     df4 = pandas.DataFrame()
     df4["a"] = [1, 2, 3]
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=r"DataFrame does not have a DatetimeIndex"):
         TimeSeries.from_pandas(df4)
-    assert exc.value.args[0] == "DataFrame does not have a DatetimeIndex"
 
 
 def test_read_time_missing():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"``time_column`` should be provided since the default Table readers are"
+            r" being used\."
+        ),
+    ):
         TimeSeries.read(CSV_FILE, format="csv")
-    assert (
-        exc.value.args[0]
-        == "``time_column`` should be provided since the default Table readers are"
-        " being used."
-    )
 
 
 def test_read_time_wrong():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"Time column 'abc' not found in the input data\."
+    ):
         TimeSeries.read(CSV_FILE, time_column="abc", format="csv")
-    assert exc.value.args[0] == "Time column 'abc' not found in the input data."
 
 
 def test_read():
@@ -417,59 +417,40 @@ def test_required_columns():
     # Make sure copy works fine
     ts.copy()
 
-    with pytest.raises(ValueError) as exc:
-        ts.copy().add_column(Column([3, 4, 5], name="c"), index=0)
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'c'"
+    MESSAGE = (
+        r"TimeSeries object is invalid - expected 'time' as the first column but found"
+        r" '{}'"
     )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE.format("c")):
+        ts.copy().add_column(Column([3, 4, 5], name="c"), index=0)
+
+    with pytest.raises(ValueError, match=MESSAGE.format("d")):
         ts.copy().add_columns(
             [Column([3, 4, 5], name="d"), Column([3, 4, 5], name="e")], indexes=[0, 1]
         )
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'd'"
-    )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE.format("a")):
         ts.copy().keep_columns(["a", "b"])
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'a'"
-    )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE.format("a")):
         ts.copy().remove_column("time")
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'a'"
-    )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE.format("b")):
         ts.copy().remove_columns(["time", "a"])
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'b'"
-    )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE.format("banana")):
         ts.copy().rename_column("time", "banana")
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "'time' as the first column but found 'banana'"
-    )
 
     # https://github.com/astropy/astropy/issues/13009
+    MESSAGE = (
+        r"TimeSeries object is invalid - expected \['time', 'a'\] as the first columns"
+        r" but found \['time', 'b'\]"
+    )
     ts_2cols_required = ts.copy()
     ts_2cols_required._required_columns = ["time", "a"]
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=MESSAGE):
         ts_2cols_required.remove_column("a")
-    assert (
-        exc.value.args[0] == "TimeSeries object is invalid - expected "
-        "['time', 'a'] as the first columns but found ['time', 'b']"
-    )
 
 
 @pytest.mark.parametrize("cls", [BoxLeastSquares, LombScargle])

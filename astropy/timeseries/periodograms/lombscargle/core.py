@@ -387,7 +387,7 @@ class LombScargle(BasePeriodogram):
             normalization=normalization,
             method=method,
             method_kwds=method_kwds,
-            assume_regular_frequency=assume_regular_frequency
+            assume_regular_frequency=assume_regular_frequency,
         )
         return power * self._power_unit(normalization)
 
@@ -404,18 +404,18 @@ class LombScargle(BasePeriodogram):
         if self._tstart is None:
             if isinstance(times, Time):
                 raise TypeError(
-                    "{} was provided as an absolute time but "
+                    f"{name} was provided as an absolute time but "
                     "the LombScargle class was initialized "
-                    "with relative times.".format(name)
+                    "with relative times."
                 )
         else:
             if isinstance(times, Time):
                 times = (times - self._tstart).to(u.day)
             else:
                 raise TypeError(
-                    "{} was provided as a relative time but "
+                    f"{name} was provided as a relative time but "
                     "the LombScargle class was initialized "
-                    "with absolute times.".format(name)
+                    "with absolute times."
                 )
 
         return times
@@ -453,7 +453,7 @@ class LombScargle(BasePeriodogram):
             t_fit=strip_units(t),
             center_data=self.center_data,
             fit_mean=self.fit_mean,
-            nterms=self.nterms
+            nterms=self.nterms,
         )
         return y_fit * get_unit(self.y)
 

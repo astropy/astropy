@@ -75,21 +75,17 @@ class BaseTimeSeries(QTable):
 
             if not self._required_columns_relax and len(self.colnames) == 0:
                 raise ValueError(
-                    "{} object is invalid - expected '{}' "
-                    "as the first column{} but time series has no columns".format(
-                        self.__class__.__name__, required_columns[0], plural
-                    )
+                    f"{self.__class__.__name__} object is invalid - expected"
+                    f" '{required_columns[0]}' as the first column{plural} but time"
+                    " series has no columns"
                 )
 
             elif self.colnames[: len(required_columns)] != required_columns:
                 raise ValueError(
-                    "{} object is invalid - expected {} "
-                    "as the first column{} but found {}".format(
-                        self.__class__.__name__,
-                        as_scalar_or_list_str(required_columns),
-                        plural,
-                        as_scalar_or_list_str(self.colnames[: len(required_columns)]),
-                    )
+                    f"{self.__class__.__name__} object is invalid - expected"
+                    f" {as_scalar_or_list_str(required_columns)} as the first"
+                    f" column{plural} but found"
+                    f" {as_scalar_or_list_str(self.colnames[: len(required_columns)])}"
                 )
 
             if (
