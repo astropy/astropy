@@ -83,8 +83,8 @@ class UnifiedReadWrite:
         else:
             if format:
                 # Format-specific
-                header = "{}.{}(format='{}') documentation\n".format(
-                    cls.__name__, method_name, format
+                header = (
+                    f"{cls.__name__}.{method_name}(format='{format}') documentation\n"
                 )
                 doc = read_write_func.__doc__
             else:
