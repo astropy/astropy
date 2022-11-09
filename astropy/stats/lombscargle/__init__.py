@@ -14,7 +14,7 @@ from astropy.timeseries.periodograms.lombscargle import (
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-__all__ = ['LombScargle']
+__all__ = ["LombScargle"]
 
 
 class LombScargle(TimeseriesLombScargle):
@@ -26,8 +26,11 @@ class LombScargle(TimeseriesLombScargle):
     """
 
     def __init__(self, *args, **kwargs):
-        warnings.warn('Importing LombScargle from astropy.stats has been '
-                      'deprecated and will no longer be supported in future. '
-                      'Please import this class from the astropy.timeseries '
-                      'module instead', AstropyDeprecationWarning)
+        warnings.warn(
+            "Importing LombScargle from astropy.stats has been "
+            "deprecated and will no longer be supported in future. "
+            "Please import this class from the astropy.timeseries "
+            "module instead",
+            AstropyDeprecationWarning,
+        )
         super().__init__(*args, **kwargs)

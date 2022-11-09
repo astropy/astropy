@@ -48,16 +48,17 @@ def test_ripley_K_implementation(points, x_min, x_max):
 
     area = 100
     r = np.linspace(0, 2.5, 5)
-    Kest = RipleysKEstimator(area=area, x_min=x_min, y_min=x_min, x_max=x_max,
-                             y_max=x_max)
+    Kest = RipleysKEstimator(
+        area=area, x_min=x_min, y_min=x_min, x_max=x_max, y_max=x_max
+    )
 
     ANS_NONE = np.array([0, 0, 0, 66.667, 66.667])
-    assert_allclose(ANS_NONE, Kest(data=points, radii=r, mode='none'),
-                    atol=1e-3)
+    assert_allclose(ANS_NONE, Kest(data=points, radii=r, mode="none"), atol=1e-3)
 
     ANS_TRANS = np.array([0, 0, 0, 82.304, 82.304])
-    assert_allclose(ANS_TRANS, Kest(data=points, radii=r, mode='translation'),
-                    atol=1e-3)
+    assert_allclose(
+        ANS_TRANS, Kest(data=points, radii=r, mode="translation"), atol=1e-3
+    )
 
 
 with NumpyRNGContext(123):
@@ -73,7 +74,7 @@ def test_ripley_uniform_property(points):
     area = 50
     Kest = RipleysKEstimator(area=area)
     r = np.linspace(0, 20, 5)
-    assert_allclose(area, Kest(data=points, radii=r, mode='none')[4])
+    assert_allclose(area, Kest(data=points, radii=r, mode="none")[4])
 
 
 with NumpyRNGContext(123):
@@ -86,7 +87,7 @@ def test_ripley_large_density(points, low, high):
     Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low, y_max=high)
     r = np.linspace(0, 0.25, 25)
     Kpos = Kest.poisson(r)
-    modes = ['ohser', 'translation', 'ripley']
+    modes = ["ohser", "translation", "ripley"]
     for m in modes:
         Kest_r = Kest(data=points, radii=r, mode=m)
         assert_allclose(Kpos, Kest_r, atol=1e-1)
@@ -102,7 +103,7 @@ def test_ripley_modes(points, low, high):
     Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low, y_min=low)
     r = np.linspace(0, 1.2, 25)
     Kpos_mean = np.mean(Kest.poisson(r))
-    modes = ['ohser', 'translation', 'ripley']
+    modes = ["ohser", "translation", "ripley"]
     for m in modes:
         Kest_mean = np.mean(Kest(data=points, radii=r, mode=m))
         assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)
@@ -115,10 +116,10 @@ with NumpyRNGContext(123):
 
 @pytest.mark.parametrize("points, low, high", [(a, 0, 1), (b, -1, 0)])
 def test_ripley_large_density_var_width(points, low, high):
-    Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low,  y_max=high)
+    Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low, y_max=high)
     r = np.linspace(0, 0.25, 25)
     Kpos = Kest.poisson(r)
-    Kest_r = Kest(data=points, radii=r, mode='var-width')
+    Kest_r = Kest(data=points, radii=r, mode="var-width")
     assert_allclose(Kpos, Kest_r, atol=1e-1)
 
 
@@ -131,6 +132,6 @@ with NumpyRNGContext(123):
 def test_ripley_var_width(points, low, high):
     Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low, y_min=low)
     r = np.linspace(0, 1.2, 25)
-    Kest_ohser = np.mean(Kest(data=points, radii=r, mode='ohser'))
-    Kest_var_width = np.mean(Kest(data=points, radii=r, mode='var-width'))
+    Kest_ohser = np.mean(Kest(data=points, radii=r, mode="ohser"))
+    Kest_var_width = np.mean(Kest(data=points, radii=r, mode="var-width"))
     assert_allclose(Kest_ohser, Kest_var_width, atol=1e-1, rtol=1e-1)
