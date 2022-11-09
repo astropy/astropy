@@ -1,6 +1,6 @@
 import numpy as np
 
-NORMALIZATIONS = ['standard', 'psd', 'model', 'log']
+NORMALIZATIONS = ["standard", "psd", "model", "log"]
 
 
 def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
@@ -27,7 +27,7 @@ def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
     if dy is None:
         dy = 1
     y, dy = np.broadcast_arrays(y, dy)
-    w = dy ** -2.0
+    w = dy**-2.0
     if center_data or fit_mean:
         mu = np.dot(w, y) / w.sum()
     else:
@@ -36,8 +36,7 @@ def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
     return np.dot(yw, yw)
 
 
-def convert_normalization(Z, N, from_normalization, to_normalization,
-                          chi2_ref=None):
+def convert_normalization(Z, N, from_normalization, to_normalization, chi2_ref=None):
     """Convert power from one normalization to another.
 
     This currently only works for standard & floating-mean models.
@@ -71,31 +70,35 @@ def convert_normalization(Z, N, from_normalization, to_normalization,
         return Z
 
     if "psd" in from_to and chi2_ref is None:
-        raise ValueError("must supply reference chi^2 when converting "
-                         "to or from psd normalization")
+        raise ValueError(
+            "must supply reference chi^2 when converting to or from psd normalization"
+        )
 
-    if from_to == ('log', 'standard'):
+    if from_to == ("log", "standard"):
         return 1 - np.exp(-Z)
-    elif from_to == ('standard', 'log'):
+    elif from_to == ("standard", "log"):
         return -np.log(1 - Z)
-    elif from_to == ('log', 'model'):
+    elif from_to == ("log", "model"):
         return np.exp(Z) - 1
-    elif from_to == ('model', 'log'):
+    elif from_to == ("model", "log"):
         return np.log(Z + 1)
-    elif from_to == ('model', 'standard'):
+    elif from_to == ("model", "standard"):
         return Z / (1 + Z)
-    elif from_to == ('standard', 'model'):
+    elif from_to == ("standard", "model"):
         return Z / (1 - Z)
     elif from_normalization == "psd":
-        return convert_normalization(2 / chi2_ref * Z, N,
-                                     from_normalization='standard',
-                                     to_normalization=to_normalization)
+        return convert_normalization(
+            2 / chi2_ref * Z,
+            N,
+            from_normalization="standard",
+            to_normalization=to_normalization,
+        )
     elif to_normalization == "psd":
-        Z_standard = convert_normalization(Z, N,
-                                           from_normalization=from_normalization,
-                                           to_normalization='standard')
+        Z_standard = convert_normalization(
+            Z, N, from_normalization=from_normalization, to_normalization="standard"
+        )
         return 0.5 * chi2_ref * Z_standard
     else:
-        raise NotImplementedError("conversion from '{}' to '{}'"
-                                  "".format(from_normalization,
-                                            to_normalization))
+        raise NotImplementedError(
+            f"conversion from '{from_normalization}' to '{to_normalization}'"
+        )
