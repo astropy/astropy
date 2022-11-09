@@ -482,8 +482,8 @@ class TimeNumeric(TimeFormat):
             )
         ):
             raise TypeError(
-                "for {} class, input should be doubles, string, or Decimal, "
-                "and second values are only allowed for doubles.".format(self.name)
+                f"for {self.name} class, input should be doubles, string, or Decimal, "
+                "and second values are only allowed for doubles."
             )
 
         val_dtype = (
@@ -501,9 +501,9 @@ class TimeNumeric(TimeFormat):
                 val1, val2 = convert(val1, val2)
             except Exception:
                 raise TypeError(
-                    "for {} class, input should be (long) doubles, string, "
+                    f"for {self.name} class, input should be (long) doubles, string, "
                     "or Decimal, and second values are only allowed for "
-                    "(long) doubles.".format(self.name)
+                    "(long) doubles."
                 )
 
         return val1, val2
@@ -710,10 +710,8 @@ class TimeFromEpoch(TimeNumeric):
             )
         except Exception as err:
             raise ScaleValueError(
-                "Cannot convert from '{}' epoch scale '{}'"
-                "to specified scale '{}', got error:\n{}".format(
-                    self.name, self.epoch_scale, self.scale, err
-                )
+                f"Cannot convert from '{self.name}' epoch scale '{self.epoch_scale}' "
+                f"to specified scale '{self.scale}', got error:\n{err}"
             ) from err
 
         self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
@@ -728,10 +726,9 @@ class TimeFromEpoch(TimeNumeric):
                 tm = getattr(parent, self.epoch_scale)
             except Exception as err:
                 raise ScaleValueError(
-                    "Cannot convert from '{}' epoch scale '{}'"
-                    "to specified scale '{}', got error:\n{}".format(
-                        self.name, self.epoch_scale, self.scale, err
-                    )
+                    f"Cannot convert from '{self.name}' epoch scale "
+                    f"'{self.epoch_scale}' to specified scale '{self.scale}', "
+                    f"got error:\n{err}"
                 ) from err
 
             jd1, jd2 = tm._time.jd1, tm._time.jd2
@@ -960,9 +957,8 @@ class TimeAstropyTime(TimeUnique):
             and all(type(val) is type(val1_0) for val in val1.flat)
         ):
             raise TypeError(
-                "Input values for {} class must all be same astropy Time type.".format(
-                    cls.name
-                )
+                f"Input values for {cls.name} class must all be the same "
+                "astropy Time type."
             )
 
         if scale is None:
@@ -1087,9 +1083,7 @@ class TimeDatetime(TimeUnique):
         if timezone is not None:
             if self._scale != "utc":
                 raise ScaleValueError(
-                    "scale is {}, must be 'utc' when timezone is supplied.".format(
-                        self._scale
-                    )
+                    f"scale is {self._scale}, must be 'utc' when timezone is supplied."
                 )
 
         # Rather than define a value property directly, we have a function,
@@ -1111,10 +1105,8 @@ class TimeDatetime(TimeUnique):
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if isec >= 60:
                 raise ValueError(
-                    "Time {} is within a leap second but datetime "
-                    "does not support leap seconds".format(
-                        (iy, im, id, ihr, imin, isec, ifracsec)
-                    )
+                    f"Time {(iy, im, id, ihr, imin, isec, ifracsec)} is within "
+                    "a leap second but datetime does not support leap seconds"
                 )
             if timezone is not None:
                 out[...] = datetime.datetime(
@@ -1761,9 +1753,7 @@ class TimeDatetime64(TimeISOT):
         if not val1.dtype.kind == "M":
             if val1.size > 0:
                 raise TypeError(
-                    "Input values for {} class must be datetime64 objects".format(
-                        self.name
-                    )
+                    f"Input values for {self.name} class must be datetime64 objects"
                 )
             else:
                 val1 = np.array([], "datetime64[D]")
@@ -1886,9 +1876,8 @@ class TimeFITS(TimeString):
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
                 raise ValueError(
-                    "Scale {!r} is not in the allowed scales {}".format(
-                        scale, sorted(TIME_SCALES)
-                    )
+                    f"Scale {scale!r} is not in the allowed scales "
+                    f"{sorted(TIME_SCALES)}"
                 )
             # If no scale was given in the initialiser, set the scale to
             # that given in the string.  Realization is ignored
@@ -1898,8 +1887,8 @@ class TimeFITS(TimeString):
                 self._scale = scale
             if scale != self.scale:
                 raise ValueError(
-                    "Input strings for {} class must all "
-                    "have consistent time scales.".format(self.name)
+                    f"Input strings for {self.name} class must all "
+                    "have consistent time scales."
                 )
         return [
             int(tm["year"]),
@@ -1954,9 +1943,8 @@ class TimeBesselianEpoch(TimeEpochDate):
         """Input value validation, typically overridden by derived classes"""
         if hasattr(val1, "to") and hasattr(val1, "unit") and val1.unit is not None:
             raise ValueError(
-                "Cannot use Quantities for 'byear' format, "
-                "as the interpretation would be ambiguous. "
-                "Use float with Besselian year instead. "
+                "Cannot use Quantities for 'byear' format, as the interpretation "
+                "would be ambiguous. Use float with Besselian year instead."
             )
         # FIXME: is val2 really okay here?
         return super()._check_val_type(val1, val2)
@@ -2044,9 +2032,7 @@ class TimeDeltaFormat(TimeFormat):
         """
         if scale is not None and scale not in TIME_DELTA_SCALES:
             raise ScaleValueError(
-                "Scale value '{}' not in allowed values {}".format(
-                    scale, TIME_DELTA_SCALES
-                )
+                f"Scale value '{scale}' not in allowed values {TIME_DELTA_SCALES}"
             )
 
         return scale
@@ -2090,9 +2076,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
     def _check_val_type(self, val1, val2):
         if not all(isinstance(val, datetime.timedelta) for val in val1.flat):
             raise TypeError(
-                "Input values for {} class must be datetime.timedelta objects".format(
-                    self.name
-                )
+                f"Input values for {self.name} class must be datetime.timedelta objects"
             )
         if val2 is not None:
             raise ValueError(
