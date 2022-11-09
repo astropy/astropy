@@ -13,8 +13,8 @@ class TestTimeComparisons:
     """Test Comparisons of Time and TimeDelta classes"""
 
     def setup_method(self):
-        self.t1 = Time(np.arange(49995, 50005), format='mjd', scale='utc')
-        self.t2 = Time(np.arange(49000, 51000, 200), format='mjd', scale='utc')
+        self.t1 = Time(np.arange(49995, 50005), format="mjd", scale="utc")
+        self.t2 = Time(np.arange(49000, 51000, 200), format="mjd", scale="utc")
 
     def test_miscompares(self):
         """
@@ -22,11 +22,13 @@ class TestTimeComparisons:
         return False and != should return True. All other comparison
         operators should raise a TypeError.
         """
-        t1 = Time('J2000', scale='utc')
-        for op, op_str in ((operator.ge, '>='),
-                           (operator.gt, '>'),
-                           (operator.le, '<='),
-                           (operator.lt, '<')):
+        t1 = Time("J2000", scale="utc")
+        for op, op_str in (
+            (operator.ge, ">="),
+            (operator.gt, ">"),
+            (operator.le, "<="),
+            (operator.lt, "<"),
+        ):
             with pytest.raises(TypeError):
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
@@ -36,32 +38,49 @@ class TestTimeComparisons:
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
-        assert np.all(t1_lt_t2 == np.array([False, False, False, False, False,
-                                            False, True, True, True, True]))
+        assert np.all(
+            t1_lt_t2
+            == np.array(
+                [False, False, False, False, False, False, True, True, True, True]
+            )
+        )
         t1_ge_t2 = self.t1 >= self.t2
         assert np.all(t1_ge_t2 != t1_lt_t2)
 
         t1_le_t2 = self.t1 <= self.t2
-        assert np.all(t1_le_t2 == np.array([False, False, False, False, False,
-                                            True, True, True, True, True]))
+        assert np.all(
+            t1_le_t2
+            == np.array(
+                [False, False, False, False, False, True, True, True, True, True]
+            )
+        )
         t1_gt_t2 = self.t1 > self.t2
         assert np.all(t1_gt_t2 != t1_le_t2)
 
         t1_eq_t2 = self.t1 == self.t2
-        assert np.all(t1_eq_t2 == np.array([False, False, False, False, False,
-                                            True, False, False, False, False]))
+        assert np.all(
+            t1_eq_t2
+            == np.array(
+                [False, False, False, False, False, True, False, False, False, False]
+            )
+        )
         t1_ne_t2 = self.t1 != self.t2
         assert np.all(t1_ne_t2 != t1_eq_t2)
 
         t1_0_gt_t2_0 = self.t1[0] > self.t2[0]
         assert t1_0_gt_t2_0 is True
         t1_0_gt_t2 = self.t1[0] > self.t2
-        assert np.all(t1_0_gt_t2 == np.array([True, True, True, True, True,
-                                              False, False, False, False,
-                                              False]))
+        assert np.all(
+            t1_0_gt_t2
+            == np.array(
+                [True, True, True, True, True, False, False, False, False, False]
+            )
+        )
         t1_gt_t2_0 = self.t1 > self.t2[0]
-        assert np.all(t1_gt_t2_0 == np.array([True, True, True, True, True,
-                                              True, True, True, True, True]))
+        assert np.all(
+            t1_gt_t2_0
+            == np.array([True, True, True, True, True, True, True, True, True, True])
+        )
 
     def test_time_boolean(self):
         t1_0_gt_t2_0 = self.t1[0] > self.t2[0]
@@ -71,13 +90,17 @@ class TestTimeComparisons:
         dt = self.t2 - self.t1
         with pytest.raises(TypeError):
             self.t1 > dt
-        dt_gt_td0 = dt > TimeDelta(0., format='sec')
-        assert np.all(dt_gt_td0 == np.array([False, False, False, False, False,
-                                             False, True, True, True, True]))
+        dt_gt_td0 = dt > TimeDelta(0.0, format="sec")
+        assert np.all(
+            dt_gt_td0
+            == np.array(
+                [False, False, False, False, False, False, True, True, True, True]
+            )
+        )
 
 
-@pytest.mark.parametrize('swap', [True, False])
-@pytest.mark.parametrize('time_delta', [True, False])
+@pytest.mark.parametrize("swap", [True, False])
+@pytest.mark.parametrize("time_delta", [True, False])
 def test_isclose_time(swap, time_delta):
     """Test functionality of Time.isclose() method.
 
@@ -87,8 +110,8 @@ def test_isclose_time(swap, time_delta):
     def isclose_swap(t1, t2, **kwargs):
         if swap:
             t1, t2 = t2, t1
-        if 'atol' in kwargs and time_delta:
-            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        if "atol" in kwargs and time_delta:
+            kwargs["atol"] = TimeDelta(kwargs["atol"])
         return t1.isclose(t2, **kwargs)
 
     # Start with original demonstration from #8742. In this issue both t2 == t1
@@ -111,20 +134,22 @@ def test_isclose_time(swap, time_delta):
 
 
 def test_isclose_time_exceptions():
-    t1 = Time('2020:001')
+    t1 = Time("2020:001")
     t2 = t1 + 1 * u.s
     match = "'other' argument must support subtraction with Time"
     with pytest.raises(TypeError, match=match):
         t1.isclose(1.5)
 
-    match = "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    match = (
+        "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    )
     with pytest.raises(TypeError, match=match):
         t1.isclose(t2, 1.5)
 
 
-@pytest.mark.parametrize('swap', [True, False])
-@pytest.mark.parametrize('time_delta', [True, False])
-@pytest.mark.parametrize('other_quantity', [True, False])
+@pytest.mark.parametrize("swap", [True, False])
+@pytest.mark.parametrize("time_delta", [True, False])
+@pytest.mark.parametrize("other_quantity", [True, False])
 def test_isclose_timedelta(swap, time_delta, other_quantity):
     """Test functionality of TimeDelta.isclose() method.
 
@@ -135,15 +160,15 @@ def test_isclose_timedelta(swap, time_delta, other_quantity):
     def isclose_swap(t1, t2, **kwargs):
         if swap:
             t1, t2 = t2, t1
-        if 'atol' in kwargs and time_delta:
-            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        if "atol" in kwargs and time_delta:
+            kwargs["atol"] = TimeDelta(kwargs["atol"])
         return t1.isclose(t2, **kwargs)
 
     def isclose_other_quantity(t1, t2, **kwargs):
         if other_quantity:
             t2 = t2.to(u.day)
-        if 'atol' in kwargs and time_delta:
-            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        if "atol" in kwargs and time_delta:
+            kwargs["atol"] = TimeDelta(kwargs["atol"])
         return t1.isclose(t2, **kwargs)
 
     t1 = TimeDelta(1.0 * u.s)
@@ -183,6 +208,8 @@ def test_isclose_timedelta_exceptions():
     with pytest.raises(TypeError, match=match):
         t1.isclose(1.5)
 
-    match = "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    match = (
+        "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    )
     with pytest.raises(TypeError, match=match):
         t1.isclose(t2, 1.5)
