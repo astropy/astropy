@@ -462,27 +462,27 @@ def test_write_extra_skycoord_cols():
     """
     Tests output for cases when table contains multiple ``SkyCoord`` columns.
     """
-    exp_output = """\
-================================================================================
-Byte-by-byte Description of file: table.dat
---------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
---------------------------------------------------------------------------------
- 1- 7  A7     ---    name    Description of name
- 9-10  I2     h      RAh     Right Ascension (hour)
-12-13  I2     min    RAm     Right Ascension (minute)
-15-27  F13.10 s      RAs     Right Ascension (second)
-   29  A1     ---    DE-     Sign of Declination
-30-31  I2     deg    DEd     Declination (degree)
-33-34  I2     arcmin DEm     Declination (arcmin)
-36-47  F12.9  arcsec DEs     Declination (arcsec)
-49-62  A14    ---    coord2  Description of coord2
---------------------------------------------------------------------------------
-Notes:
---------------------------------------------------------------------------------
-HD4760   0 49 39.9000000000 +06 24 07.999200000 12.4163 6.407
-HD81809 22 02 15.4500000000 -61 39 34.599996000 330.564 -61.66
-"""
+    exp_output = [
+        "================================================================================",
+        "Byte-by-byte Description of file: table.dat",
+        "--------------------------------------------------------------------------------",
+        " Bytes Format Units  Label     Explanations",
+        "--------------------------------------------------------------------------------",
+        " 1- 7  A7     ---    name    Description of name     ",
+        " 9-10  I2     h      RAh     Right Ascension (hour)  ",
+        "12-13  I2     min    RAm     Right Ascension (minute)",
+        "15-27  F13.10 s      RAs     Right Ascension (second)",
+        "   29  A1     ---    DE-     Sign of Declination     ",
+        "30-31  I2     deg    DEd     Declination (degree)    ",
+        "33-34  I2     arcmin DEm     Declination (arcmin)    ",
+        "36-47  F12.9  arcsec DEs     Declination (arcsec)    ",
+        "49-62  A14    ---    coord2  Description of coord2   ",
+        "--------------------------------------------------------------------------------",
+        "Notes:",
+        "--------------------------------------------------------------------------------",
+        "HD4760   0 49 39.9000000000 +06 24 07.999200000 12.4163 6.407 ",
+        "HD81809 22 02 15.4500000000 -61 39 34.599996000 330.564 -61.66",
+    ]
     t = Table()
     t["name"] = ["HD4760", "HD81809"]
     t["coord1"] = SkyCoord([12.41625, 330.564375], [6.402222, -61.65961111], unit=u.deg)
@@ -499,9 +499,9 @@ HD81809 22 02 15.4500000000 -61 39 34.599996000 330.564 -61.66
     i_bbb = lines.index("=" * 80)
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
-    assert lines[:-2] == exp_output.splitlines()[:-2]
+    assert lines[:-2] == exp_output[:-2]
 
-    for a, b in zip(lines[-2:], exp_output.splitlines()[-2:]):
+    for a, b in zip(lines[-2:], exp_output[-2:]):
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
         assert_almost_equal(
@@ -513,26 +513,26 @@ def test_write_skycoord_with_format():
     """
     Tests output with custom setting for ``SkyCoord`` (second) columns.
     """
-    exp_output = """\
-================================================================================
-Byte-by-byte Description of file: table.dat
---------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
---------------------------------------------------------------------------------
- 1- 7  A7     ---    name    Description of name
- 9-10  I2     h      RAh     Right Ascension (hour)
-12-13  I2     min    RAm     Right Ascension (minute)
-15-19  F5.2   s      RAs     Right Ascension (second)
-   21  A1     ---    DE-     Sign of Declination
-22-23  I2     deg    DEd     Declination (degree)
-25-26  I2     arcmin DEm     Declination (arcmin)
-28-31  F4.1   arcsec DEs     Declination (arcsec)
---------------------------------------------------------------------------------
-Notes:
---------------------------------------------------------------------------------
-HD4760   0 49 39.90 +06 24 08.0
-HD81809 22 02 15.45 -61 39 34.6
-"""
+    exp_output = [
+        "================================================================================",
+        "Byte-by-byte Description of file: table.dat",
+        "--------------------------------------------------------------------------------",
+        " Bytes Format Units  Label     Explanations",
+        "--------------------------------------------------------------------------------",
+        " 1- 7  A7     ---    name    Description of name     ",
+        " 9-10  I2     h      RAh     Right Ascension (hour)  ",
+        "12-13  I2     min    RAm     Right Ascension (minute)",
+        "15-19  F5.2   s      RAs     Right Ascension (second)",
+        "   21  A1     ---    DE-     Sign of Declination     ",
+        "22-23  I2     deg    DEd     Declination (degree)    ",
+        "25-26  I2     arcmin DEm     Declination (arcmin)    ",
+        "28-31  F4.1   arcsec DEs     Declination (arcsec)    ",
+        "--------------------------------------------------------------------------------",
+        "Notes:",
+        "--------------------------------------------------------------------------------",
+        "HD4760   0 49 39.90 +06 24 08.0",
+        "HD81809 22 02 15.45 -61 39 34.6",
+    ]
     t = Table()
     t["name"] = ["HD4760", "HD81809"]
     t["coord"] = SkyCoord([12.41625, 330.564375], [6.402222, -61.65961111], unit=u.deg)
@@ -551,4 +551,4 @@ HD81809 22 02 15.45 -61 39 34.6
     i_bbb = lines.index("=" * 80)
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
-    assert lines == exp_output.splitlines()
+    assert lines == exp_output

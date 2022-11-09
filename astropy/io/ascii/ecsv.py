@@ -183,10 +183,8 @@ class EcsvHeader(basic.BasicHeader):
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
             raise core.InconsistentTableError(
-                "column names from ECSV header {} do not "
-                "match names from header line of CSV data {}".format(
-                    self.names, header_names
-                )
+                f"column names from ECSV header {self.names} do not "
+                f"match names from header line of CSV data {header_names}"
             )
 
         # BaseHeader method to create self.cols, which is a list of

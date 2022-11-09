@@ -39,9 +39,8 @@ class CdsHeader(core.BaseHeader):
         match = re.match(r"\d*(\S)", col.raw_type.lower())
         if not match:
             raise ValueError(
-                'Unrecognized {} format "{}" for column "{}"'.format(
-                    self._subfmt, col.raw_type, col.name
-                )
+                f'Unrecognized {self._subfmt} format "{col.raw_type}" for column'
+                f'"{col.name}"'
             )
         return match.group(1)
 
@@ -93,9 +92,7 @@ class CdsHeader(core.BaseHeader):
 
             else:
                 raise core.InconsistentTableError(
-                    "Can't find table {} in {}".format(
-                        self.data.table_name, self.readme
-                    )
+                    f"Can't find table {self.data.table_name} in {self.readme}"
                 )
 
         found_line = False
