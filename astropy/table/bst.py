@@ -1,14 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
 
-__all__ = ['BST']
+__all__ = ["BST"]
 
 
 class MaxValue:
-    '''
+    """
     Represents an infinite value for purposes
     of tuple comparison.
-    '''
+    """
 
     def __gt__(self, other):
         return True
@@ -29,10 +29,10 @@ class MaxValue:
 
 
 class MinValue:
-    '''
+    """
     The opposite of MaxValue, i.e. a representation of
     negative infinity.
-    '''
+    """
 
     def __lt__(self, other):
         return True
@@ -53,7 +53,7 @@ class MinValue:
 
 
 class Epsilon:
-    '''
+    """
     Represents the "next largest" version of a given value,
     so that for all valid comparisons we have
     x < y < Epsilon(y) < z whenever x < y < z and x, z are
@@ -63,8 +63,9 @@ class Epsilon:
     ----------
     val : object
         Original value
-    '''
-    __slots__ = ('val',)
+    """
+
+    __slots__ = ("val",)
 
     def __init__(self, val):
         self.val = val
@@ -87,7 +88,7 @@ class Epsilon:
 
 
 class Node:
-    '''
+    """
     An element in a binary search tree, containing
     a key, data, and references to children nodes and
     a parent node.
@@ -98,14 +99,15 @@ class Node:
         Node key
     data : list or int
         Node data
-    '''
+    """
+
     __lt__ = lambda x, y: x.key < y.key
     __le__ = lambda x, y: x.key <= y.key
     __eq__ = lambda x, y: x.key == y.key
     __ge__ = lambda x, y: x.key >= y.key
     __gt__ = lambda x, y: x.key > y.key
     __ne__ = lambda x, y: x.key != y.key
-    __slots__ = ('key', 'data', 'left', 'right')
+    __slots__ = ("key", "data", "left", "right")
 
     # each node has a key and data list
     def __init__(self, key, data):
@@ -115,9 +117,9 @@ class Node:
         self.right = None
 
     def replace(self, child, new_child):
-        '''
+        """
         Replace this node's child with a new child.
-        '''
+        """
         if self.left is not None and self.left == child:
             self.left = new_child
         elif self.right is not None and self.right == child:
@@ -126,15 +128,15 @@ class Node:
             raise ValueError("Cannot call replace() on non-child")
 
     def remove(self, child):
-        '''
+        """
         Remove the given child.
-        '''
+        """
         self.replace(child, None)
 
     def set(self, other):
-        '''
+        """
         Copy the given node.
-        '''
+        """
         self.key = other.key
         self.data = other.data[:]
 
@@ -146,7 +148,7 @@ class Node:
 
 
 class BST:
-    '''
+    """
     A basic binary search tree in pure Python, used
     as an engine for indexing.
 
@@ -159,7 +161,8 @@ class BST:
     unique : bool
         Whether the values of the index must be unique.
         Defaults to False.
-    '''
+    """
+
     NodeClass = Node
 
     def __init__(self, data, row_index, unique=False):
@@ -170,9 +173,9 @@ class BST:
             self.add(tuple(key), row)
 
     def add(self, key, data=None):
-        '''
+        """
         Add a key, data pair.
-        '''
+        """
         if data is None:
             data = key
 
@@ -201,7 +204,7 @@ class BST:
                 return
 
     def find(self, key):
-        '''
+        """
         Return all data values corresponding to a given key.
 
         Parameters
@@ -213,29 +216,29 @@ class BST:
         -------
         data_vals : list
             List of rows corresponding to the input key
-        '''
+        """
         node, parent = self.find_node(key)
         return node.data if node is not None else []
 
     def find_node(self, key):
-        '''
+        """
         Find the node associated with the given key.
-        '''
+        """
         if self.root is None:
             return (None, None)
         return self._find_recursive(key, self.root, None)
 
     def shift_left(self, row):
-        '''
+        """
         Decrement all rows larger than the given row.
-        '''
+        """
         for node in self.traverse():
             node.data = [x - 1 if x > row else x for x in node.data]
 
     def shift_right(self, row):
-        '''
+        """
         Increment all rows greater than or equal to the given row.
-        '''
+        """
         for node in self.traverse():
             node.data = [x + 1 if x >= row else x for x in node.data]
 
@@ -254,8 +257,8 @@ class BST:
         except TypeError:  # wrong key type
             return (None, None)
 
-    def traverse(self, order='inorder'):
-        '''
+    def traverse(self, order="inorder"):
+        """
         Return nodes of the BST in the given order.
 
         Parameters
@@ -266,25 +269,25 @@ class BST:
             "preorder": current node, left subtree, right subtree
             "inorder": left subtree, current node, right subtree
             "postorder": left subtree, right subtree, current node
-        '''
-        if order == 'preorder':
+        """
+        if order == "preorder":
             return self._preorder(self.root, [])
-        elif order == 'inorder':
+        elif order == "inorder":
             return self._inorder(self.root, [])
-        elif order == 'postorder':
+        elif order == "postorder":
             return self._postorder(self.root, [])
-        raise ValueError(f"Invalid traversal method: \"{order}\"")
+        raise ValueError(f'Invalid traversal method: "{order}"')
 
     def items(self):
-        '''
+        """
         Return BST items in order as (key, data) pairs.
-        '''
+        """
         return [(x.key, x.data) for x in self.traverse()]
 
     def sort(self):
-        '''
+        """
         Make row order align with key order.
-        '''
+        """
         i = 0
         for node in self.traverse():
             num_rows = len(node.data)
@@ -292,9 +295,9 @@ class BST:
             i += num_rows
 
     def sorted_data(self):
-        '''
+        """
         Return BST rows sorted by key values.
-        '''
+        """
         return [x for node in self.traverse() for x in node.data]
 
     def _preorder(self, node, lst):
@@ -328,7 +331,7 @@ class BST:
             parent.replace(node, new_node)
 
     def remove(self, key, data=None):
-        '''
+        """
         Remove data corresponding to the given key.
 
         Parameters
@@ -343,7 +346,7 @@ class BST:
         -------
         successful : bool
             True if removal was successful, false otherwise
-        '''
+        """
         node, parent = self.find_node(key)
         if node is None:
             return False
@@ -372,20 +375,23 @@ class BST:
         return True
 
     def is_valid(self):
-        '''
+        """
         Returns whether this is a valid BST.
-        '''
+        """
         return self._is_valid(self.root)
 
     def _is_valid(self, node):
         if node is None:
             return True
-        return (node.left is None or node.left <= node) and \
-            (node.right is None or node.right >= node) and \
-            self._is_valid(node.left) and self._is_valid(node.right)
+        return (
+            (node.left is None or node.left <= node)
+            and (node.right is None or node.right >= node)
+            and self._is_valid(node.left)
+            and self._is_valid(node.right)
+        )
 
     def range(self, lower, upper, bounds=(True, True)):
-        '''
+        """
         Return all nodes with keys in the given range.
 
         Parameters
@@ -399,14 +405,14 @@ class BST:
             exclusive with respect to the endpoints. The first
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
-        '''
+        """
         nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 
     def range_nodes(self, lower, upper, bounds=(True, True)):
-        '''
+        """
         Return nodes in the given range.
-        '''
+        """
         if self.root is None:
             return []
         # op1 is <= or <, op2 is >= or >
@@ -415,10 +421,10 @@ class BST:
         return self._range(lower, upper, op1, op2, self.root, [])
 
     def same_prefix(self, val):
-        '''
+        """
         Assuming the given value has smaller length than keys, return
         nodes whose keys have this value as a prefix.
-        '''
+        """
         if self.root is None:
             return []
         nodes = self._same_prefix(val, self.root, [])
@@ -434,7 +440,7 @@ class BST:
         return lst
 
     def _same_prefix(self, val, node, lst):
-        prefix = node.key[:len(val)]
+        prefix = node.key[: len(val)]
         if prefix == val:
             lst.append(node)
         if prefix <= val and node.right is not None:
@@ -444,10 +450,10 @@ class BST:
         return lst
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}>'
+        return f"<{self.__class__.__name__}>"
 
     def _print(self, node, level):
-        line = '\t' * level + str(node) + '\n'
+        line = "\t" * level + str(node) + "\n"
         if node.left is not None:
             line += self._print(node.left, level + 1)
         if node.right is not None:
@@ -456,19 +462,18 @@ class BST:
 
     @property
     def height(self):
-        '''
+        """
         Return the BST height.
-        '''
+        """
         return self._height(self.root)
 
     def _height(self, node):
         if node is None:
             return -1
-        return max(self._height(node.left),
-                   self._height(node.right)) + 1
+        return max(self._height(node.left), self._height(node.right)) + 1
 
     def replace_rows(self, row_map):
-        '''
+        """
         Replace all rows with the values they map to in the
         given dictionary. Any rows not present as keys in
         the dictionary will have their nodes deleted.
@@ -477,6 +482,6 @@ class BST:
         ----------
         row_map : dict
             Mapping of row numbers to new row numbers
-        '''
+        """
         for key, data in self.items():
             data[:] = [row_map[x] for x in data if x in row_map]
