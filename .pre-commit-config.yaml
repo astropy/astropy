@@ -134,3 +134,9 @@ repos:
         exclude: >-
           ^docs/changes/(\d+\.other.rst|README.rst|template.rst)
         files: ^docs/changes/\d+.\w+.rst
+      - id: units-completion
+        name: units-completion
+        language: system
+        entry:  python
+        include: ^(astropy/units/)
+        args: [unit_completion.py]
