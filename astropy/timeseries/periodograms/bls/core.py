@@ -363,18 +363,18 @@ class BoxLeastSquares(BasePeriodogram):
         if self._tstart is None:
             if isinstance(times, Time):
                 raise TypeError(
-                    "{} was provided as an absolute time but "
+                    f"{name} was provided as an absolute time but "
                     "the BoxLeastSquares class was initialized "
-                    "with relative times.".format(name)
+                    "with relative times."
                 )
         else:
             if isinstance(times, Time):
                 times = (times - self._tstart).to(u.day)
             else:
                 raise TypeError(
-                    "{} was provided as a relative time but "
+                    f"{name} was provided as a relative time but "
                     "the BoxLeastSquares class was initialized "
-                    "with absolute times.".format(name)
+                    "with absolute times."
                 )
 
         times = validate_unit_consistency(self._trel, times)

@@ -43,23 +43,21 @@ def kepler_fits_reader(filename):
         hdu = hdulist[1]
     else:
         raise NotImplementedError(
-            "{} is not implemented, only KEPLER or TESS are "
-            "supported through this reader".format(hdulist[0].header["telescop"])
+            f"{hdulist[0].header['telescop']} is not implemented, only KEPLER or TESS"
+            " are supported through this reader"
         )
 
     if hdu.header["EXTVER"] > 1:
         raise NotImplementedError(
-            "Support for {} v{} files not yet implemented".format(
-                hdu.header["TELESCOP"], hdu.header["EXTVER"]
-            )
+            f"Support for {hdu.header['TELESCOP']} v{hdu.header['EXTVER']} files not"
+            " yet implemented"
         )
 
     # Check time scale
     if hdu.header["TIMESYS"] != "TDB":
         raise NotImplementedError(
-            "Support for {} time scale not yet implemented in {} reader".format(
-                hdu.header["TIMESYS"], hdu.header["TELESCOP"]
-            )
+            f"Support for {hdu.header['TIMESYS']} time scale not yet implemented in"
+            f" {hdu.header['TELESCOP']} reader"
         )
 
     tab = Table.read(hdu, format="fits")

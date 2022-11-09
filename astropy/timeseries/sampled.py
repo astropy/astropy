@@ -133,9 +133,7 @@ class TimeSeries(BaseTimeSeries):
 
         elif len(self.colnames) > 0 and len(time) != len(self):
             raise ValueError(
-                "Length of 'time' ({}) should match data length ({})".format(
-                    len(time), n_samples
-                )
+                f"Length of 'time' ({len(time)}) should match data length ({n_samples})"
             )
 
         elif time_delta is not None:

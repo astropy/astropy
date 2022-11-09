@@ -182,8 +182,8 @@ class BinnedTimeSeries(BaseTimeSeries):
         else:
             if len(self.colnames) > 0 and len(time_bin_start) != len(self):
                 raise ValueError(
-                    "Length of 'time_bin_start' ({}) should match "
-                    "table length ({})".format(len(time_bin_start), len(self))
+                    f"Length of 'time_bin_start' ({len(time_bin_start)}) should match "
+                    f"table length ({len(self)})"
                 )
 
             if time_bin_end is not None:

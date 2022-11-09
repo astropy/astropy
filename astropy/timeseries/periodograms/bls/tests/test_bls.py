@@ -1917,38 +1917,30 @@ def test_absolute_times(data, timedelta):
     assert_quantity_allclose(model1, model2)
 
     # Check model validation
+    MESSAGE = (
+        r"{} was provided as {} time but the BoxLeastSquares class was initialized with"
+        r" {} times\."
+    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "a relative", "absolute")
+    ):
         bls1.model(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
-    assert (
-        exc.value.args[0] == "transit_time was provided as a relative time "
-        "but the BoxLeastSquares class was initialized "
-        "with absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("t_model", "a relative", "absolute")
+    ):
         bls1.model(trel, 0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
-    assert (
-        exc.value.args[0] == "t_model was provided as a relative time "
-        "but the BoxLeastSquares class was initialized "
-        "with absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "an absolute", "relative")
+    ):
         bls2.model(trel, 0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
-    assert (
-        exc.value.args[0] == "transit_time was provided as an absolute time "
-        "but the BoxLeastSquares class was initialized "
-        "with relative times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("t_model", "an absolute", "relative")
+    ):
         bls2.model(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
-    assert (
-        exc.value.args[0] == "t_model was provided as an absolute time "
-        "but the BoxLeastSquares class was initialized "
-        "with relative times."
-    )
 
     # Check compute_stats
 
@@ -1967,22 +1959,20 @@ def test_absolute_times(data, timedelta):
             assert_allclose(stats1[key], stats2[key])
 
     # Check compute_stats validation
+    MESSAGE = (
+        r"{} was provided as {} time but the BoxLeastSquares class was"
+        r" initialized with {} times\."
+    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "a relative", "absolute")
+    ):
         bls1.compute_stats(0.2 * u.day, 0.05 * u.day, 1 * u.day)
-    assert (
-        exc.value.args[0] == "transit_time was provided as a relative time "
-        "but the BoxLeastSquares class was initialized "
-        "with absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "an absolute", "relative")
+    ):
         bls2.compute_stats(0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
-    assert (
-        exc.value.args[0] == "transit_time was provided as an absolute time "
-        "but the BoxLeastSquares class was initialized "
-        "with relative times."
-    )
 
     # Check transit_mask
 
@@ -1993,37 +1983,21 @@ def test_absolute_times(data, timedelta):
 
     # Check transit_mask validation
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "a relative", "absolute")
+    ):
         bls1.transit_mask(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
-    assert (
-        exc.value.args[0] == "transit_time was provided as a relative time "
-        "but the BoxLeastSquares class was initialized "
-        "with absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("t", "a relative", "absolute")):
         bls1.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
-    assert (
-        exc.value.args[0] == "t was provided as a relative time "
-        "but the BoxLeastSquares class was initialized "
-        "with absolute times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=MESSAGE.format("transit_time", "an absolute", "relative")
+    ):
         bls2.transit_mask(trel, 0.2 * u.day, 0.05 * u.day, Time("2019-06-04T12:34:56"))
-    assert (
-        exc.value.args[0] == "transit_time was provided as an absolute time "
-        "but the BoxLeastSquares class was initialized "
-        "with relative times."
-    )
 
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=MESSAGE.format("t", "an absolute", "relative")):
         bls2.transit_mask(t, 0.2 * u.day, 0.05 * u.day, 1 * u.day)
-    assert (
-        exc.value.args[0] == "t was provided as an absolute time "
-        "but the BoxLeastSquares class was initialized "
-        "with relative times."
-    )
 
 
 def test_transit_time_in_range(data):

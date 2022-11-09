@@ -40,9 +40,8 @@ def test_reduceat():
 
 
 def test_timeseries_invalid():
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match="time_series should be a TimeSeries"):
         aggregate_downsample(None)
-    assert exc.value.args[0] == "time_series should be a TimeSeries"
 
 
 def test_time_bin_invalid():
