@@ -73,7 +73,6 @@ force-exclude = '''
     | astropy/stats
     | astropy/table
     | astropy/tests
-    | astropy/time
     | astropy/timeseries
     | astropy/uncertainty
     | astropy/units
