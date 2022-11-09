@@ -6,8 +6,13 @@ from itertools import zip_longest
 
 import numpy as np
 
-__all__ = ['NDArrayShapeMethods', 'ShapedLikeNDArray',
-           'check_broadcast', 'IncompatibleShapeError', 'unbroadcast']
+__all__ = [
+    "NDArrayShapeMethods",
+    "ShapedLikeNDArray",
+    "check_broadcast",
+    "IncompatibleShapeError",
+    "unbroadcast",
+]
 
 
 class NDArrayShapeMethods:
@@ -39,14 +44,14 @@ class NDArrayShapeMethods:
     # 'flatten' in Time).
 
     def __getitem__(self, item):
-        return self._apply('__getitem__', item)
+        return self._apply("__getitem__", item)
 
     def copy(self, *args, **kwargs):
         """Return an instance containing copies of the internal data.
 
         Parameters are as for :meth:`~numpy.ndarray.copy`.
         """
-        return self._apply('copy', *args, **kwargs)
+        return self._apply("copy", *args, **kwargs)
 
     def reshape(self, *args, **kwargs):
         """Returns an instance containing the same data with a new shape.
@@ -58,7 +63,7 @@ class NDArrayShapeMethods:
         the shape attribute (note: this may not be implemented for all classes
         using ``NDArrayShapeMethods``).
         """
-        return self._apply('reshape', *args, **kwargs)
+        return self._apply("reshape", *args, **kwargs)
 
     def ravel(self, *args, **kwargs):
         """Return an instance with the array collapsed into one dimension.
@@ -68,14 +73,14 @@ class NDArrayShapeMethods:
         If you want an error to be raise if the data is copied, you should
         should assign shape ``(-1,)`` to the shape attribute.
         """
-        return self._apply('ravel', *args, **kwargs)
+        return self._apply("ravel", *args, **kwargs)
 
     def flatten(self, *args, **kwargs):
         """Return a copy with the array collapsed into one dimension.
 
         Parameters are as for :meth:`~numpy.ndarray.flatten`.
         """
-        return self._apply('flatten', *args, **kwargs)
+        return self._apply("flatten", *args, **kwargs)
 
     def transpose(self, *args, **kwargs):
         """Return an instance with the data transposed.
@@ -83,7 +88,7 @@ class NDArrayShapeMethods:
         Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
         data are views of the data of the original.
         """
-        return self._apply('transpose', *args, **kwargs)
+        return self._apply("transpose", *args, **kwargs)
 
     @property
     def T(self):
@@ -104,7 +109,7 @@ class NDArrayShapeMethods:
         ``axis1, axis2``.  All internal data are views of the data of the
         original.
         """
-        return self._apply('swapaxes', *args, **kwargs)
+        return self._apply("swapaxes", *args, **kwargs)
 
     def diagonal(self, *args, **kwargs):
         """Return an instance with the specified diagonals.
@@ -112,7 +117,7 @@ class NDArrayShapeMethods:
         Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
         data are views of the data of the original.
         """
-        return self._apply('diagonal', *args, **kwargs)
+        return self._apply("diagonal", *args, **kwargs)
 
     def squeeze(self, *args, **kwargs):
         """Return an instance with single-dimensional shape entries removed
@@ -120,9 +125,9 @@ class NDArrayShapeMethods:
         Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
         data are views of the data of the original.
         """
-        return self._apply('squeeze', *args, **kwargs)
+        return self._apply("squeeze", *args, **kwargs)
 
-    def take(self, indices, axis=None, out=None, mode='raise'):
+    def take(self, indices, axis=None, out=None, mode="raise"):
         """Return a new instance formed from the elements at the given indices.
 
         Parameters are as for :meth:`~numpy.ndarray.take`, except that,
@@ -131,7 +136,7 @@ class NDArrayShapeMethods:
         if out is not None:
             return NotImplementedError("cannot pass 'out' argument to 'take.")
 
-        return self._apply('take', indices, axis=axis, mode=mode)
+        return self._apply("take", indices, axis=axis, mode=mode)
 
 
 class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
@@ -206,8 +211,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     def __len__(self):
         if self.isscalar:
-            raise TypeError("Scalar {!r} object has no len()"
-                            .format(self.__class__.__name__))
+            raise TypeError(f"Scalar {self.__class__.__name__!r} object has no len()")
         return self.shape[0]
 
     def __bool__(self):
@@ -216,18 +220,22 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     def __getitem__(self, item):
         try:
-            return self._apply('__getitem__', item)
+            return self._apply("__getitem__", item)
         except IndexError:
             if self.isscalar:
-                raise TypeError('scalar {!r} object is not subscriptable.'
-                                .format(self.__class__.__name__))
+                raise TypeError(
+                    "scalar {!r} object is not subscriptable.".format(
+                        self.__class__.__name__
+                    )
+                )
             else:
                 raise
 
     def __iter__(self):
         if self.isscalar:
-            raise TypeError('scalar {!r} object is not iterable.'
-                            .format(self.__class__.__name__))
+            raise TypeError(
+                f"scalar {self.__class__.__name__!r} object is not iterable."
+            )
 
         # We cannot just write a generator here, since then the above error
         # would only be raised once we try to use the iterator, rather than
@@ -240,23 +248,38 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     # Functions that change shape or essentially do indexing.
     _APPLICABLE_FUNCTIONS = {
-        np.moveaxis, np.rollaxis,
-        np.atleast_1d, np.atleast_2d, np.atleast_3d, np.expand_dims,
-        np.broadcast_to, np.flip, np.fliplr, np.flipud, np.rot90,
-        np.roll, np.delete,
-        }
+        np.moveaxis,
+        np.rollaxis,
+        np.atleast_1d,
+        np.atleast_2d,
+        np.atleast_3d,
+        np.expand_dims,
+        np.broadcast_to,
+        np.flip,
+        np.fliplr,
+        np.flipud,
+        np.rot90,
+        np.roll,
+        np.delete,
+    }
 
     # Functions that themselves defer to a method. Those are all
     # defined in np.core.fromnumeric, but exclude alen as well as
     # sort and partition, which make copies before calling the method.
-    _METHOD_FUNCTIONS = {getattr(np, name):
-                         {'amax': 'max', 'amin': 'min', 'around': 'round',
-                          'round_': 'round', 'alltrue': 'all',
-                          'sometrue': 'any'}.get(name, name)
-                         for name in np.core.fromnumeric.__all__
-                         if name not in ['alen', 'sort', 'partition']}
+    _METHOD_FUNCTIONS = {
+        getattr(np, name): {
+            "amax": "max",
+            "amin": "min",
+            "around": "round",
+            "round_": "round",
+            "alltrue": "all",
+            "sometrue": "any",
+        }.get(name, name)
+        for name in np.core.fromnumeric.__all__
+        if name not in ["alen", "sort", "partition"]
+    }
     # Add np.copy, which we may as well let defer to our method.
-    _METHOD_FUNCTIONS[np.copy] = 'copy'
+    _METHOD_FUNCTIONS[np.copy] = "copy"
 
     # Could be made to work with a bit of effort:
     # np.where, np.compress, np.extract,
@@ -272,11 +295,11 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
             if function is np.broadcast_to:
                 # Ensure that any ndarray subclasses used are
                 # properly propagated.
-                kwargs.setdefault('subok', True)
-            elif (function in {np.atleast_1d,
-                               np.atleast_2d,
-                               np.atleast_3d}
-                  and len(args) > 1):
+                kwargs.setdefault("subok", True)
+            elif (
+                function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
+                and len(args) > 1
+            ):
                 return tuple(function(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
@@ -346,7 +369,8 @@ def check_broadcast(*shapes):
                 max_dim_idx = idx
             elif dim != max_dim:
                 raise IncompatibleShapeError(
-                    shapes[max_dim_idx], max_dim_idx, shapes[idx], idx)
+                    shapes[max_dim_idx], max_dim_idx, shapes[idx], idx
+                )
 
         full_shape.append(max_dim)
 
@@ -365,11 +389,13 @@ def unbroadcast(array):
     if array.ndim == 0:
         return array
 
-    array = array[tuple((slice(0, 1) if stride == 0 else slice(None))
-                        for stride in array.strides)]
+    array = array[
+        tuple((slice(0, 1) if stride == 0 else slice(None)) for stride in array.strides)
+    ]
 
     # Remove leading ones, which are not needed in numpy broadcasting.
-    first_not_unity = next((i for (i, s) in enumerate(array.shape) if s > 1),
-                           array.ndim)
+    first_not_unity = next(
+        (i for (i, s) in enumerate(array.shape) if s > 1), array.ndim
+    )
 
     return array.reshape(array.shape[first_not_unity:])

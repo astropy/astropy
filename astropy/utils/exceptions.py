@@ -11,13 +11,14 @@ here, but rather in the particular subpackage.
 from erfa import ErfaError, ErfaWarning  # noqa: F401
 
 __all__ = [
-    'AstropyWarning',
-    'AstropyUserWarning',
-    'AstropyDeprecationWarning',
-    'AstropyPendingDeprecationWarning',
-    'AstropyBackwardsIncompatibleChangeWarning',
-    'DuplicateRepresentationWarning',
-    'NoValue']
+    "AstropyWarning",
+    "AstropyUserWarning",
+    "AstropyDeprecationWarning",
+    "AstropyPendingDeprecationWarning",
+    "AstropyBackwardsIncompatibleChangeWarning",
+    "DuplicateRepresentationWarning",
+    "NoValue",
+]
 
 
 class AstropyWarning(Warning):
@@ -71,8 +72,9 @@ class _NoValue:
     deprecated keyword in order to check if it has been given a user
     defined value.
     """
+
     def __repr__(self):
-        return 'astropy.utils.exceptions.NoValue'
+        return "astropy.utils.exceptions.NoValue"
 
 
 NoValue = _NoValue()
