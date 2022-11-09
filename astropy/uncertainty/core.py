@@ -327,14 +327,13 @@ class _DistributionRepr:
         if reprarr.endswith(">"):
             firstspace = reprarr.find(" ")
             reprarr = reprarr[firstspace + 1 : -1]  # :-1] removes the ending '>'
-            return "<{} {} with n_samples={}>".format(
-                self.__class__.__name__, reprarr, self.n_samples
+            return (
+                f"<{self.__class__.__name__} {reprarr} with n_samples={self.n_samples}>"
             )
         else:  # numpy array-like
             firstparen = reprarr.find("(")
             reprarr = reprarr[firstparen:]
             return f"{self.__class__.__name__}{reprarr} with n_samples={self.n_samples}"
-            return reprarr
 
     def __str__(self):
         distrstr = str(self.distribution)

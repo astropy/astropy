@@ -126,9 +126,9 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
             )
         elif center.unit not in COUNT_UNITS:
             warn(
-                "Unit {} was provided to poisson, which is not one of {}, "
-                'and therefore suspect as a "counting" unit.  Ensure you mean '
-                "to use Poisson statistics.".format(center.unit, COUNT_UNITS)
+                f"Unit {center.unit} was provided to poisson, which is not one of"
+                f' {COUNT_UNITS}, and therefore suspect as a "counting" unit.  Ensure'
+                " you mean to use Poisson statistics."
             )
 
         # re-attach the unit
@@ -145,7 +145,7 @@ def uniform(
     width=None,
     n_samples,
     cls=Distribution,
-    **kwargs
+    **kwargs,
 ):
     """
     Create a Uniform distriution from the lower and upper bounds.

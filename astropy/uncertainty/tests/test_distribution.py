@@ -58,9 +58,10 @@ class TestInit:
 
 def test_init_scalar():
     parr = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis], (4, 1000))
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"Attempted to initialize a Distribution with a scalar"
+    ):
         Distribution(parr.ravel()[0])
-    assert exc.value.args[0] == "Attempted to initialize a Distribution with a scalar"
 
 
 class TestDistributionStatistics:
@@ -289,13 +290,12 @@ def test_helper_poisson_exact():
     centerq = [1, 5, 30, 400] * u.one
     ds.poisson(centerq, n_samples=1000)
 
-    with pytest.raises(u.UnitsError) as exc:
+    with pytest.raises(
+        u.UnitsError,
+        match=r"Poisson distribution can only be computed for dimensionless quantities",
+    ):
         centerq = [1, 5, 30, 400] * u.kpc
         ds.poisson(centerq, n_samples=1000)
-    assert (
-        exc.value.args[0]
-        == "Poisson distribution can only be computed for dimensionless quantities"
-    )
 
 
 def test_reprs():
