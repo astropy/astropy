@@ -6,14 +6,16 @@ from types import FunctionType
 
 from astropy.table import QTable
 
-__all__ = ['BaseTimeSeries', 'autocheck_required_columns']
+__all__ = ["BaseTimeSeries", "autocheck_required_columns"]
 
-COLUMN_RELATED_METHODS = ['add_column',
-                          'add_columns',
-                          'keep_columns',
-                          'remove_column',
-                          'remove_columns',
-                          'rename_column']
+COLUMN_RELATED_METHODS = [
+    "add_column",
+    "add_columns",
+    "keep_columns",
+    "remove_column",
+    "remove_columns",
+    "rename_column",
+]
 
 
 def autocheck_required_columns(cls):
@@ -25,7 +27,6 @@ def autocheck_required_columns(cls):
     """
 
     def decorator_method(method):
-
         @wraps(method)
         def wrapper(self, *args, **kwargs):
             result = method(self, *args, **kwargs)
@@ -35,8 +36,7 @@ def autocheck_required_columns(cls):
         return wrapper
 
     for name in COLUMN_RELATED_METHODS:
-        if (not hasattr(cls, name) or
-                not isinstance(getattr(cls, name), FunctionType)):
+        if not hasattr(cls, name) or not isinstance(getattr(cls, name), FunctionType):
             raise ValueError(f"{name} is not a valid method")
         setattr(cls, name, decorator_method(getattr(cls, name)))
 
@@ -44,7 +44,6 @@ def autocheck_required_columns(cls):
 
 
 class BaseTimeSeries(QTable):
-
     _required_columns = None
     _required_columns_enabled = True
 
@@ -67,29 +66,37 @@ class BaseTimeSeries(QTable):
             return
 
         if self._required_columns is not None:
-
             if self._required_columns_relax:
-                required_columns = self._required_columns[:len(self.colnames)]
+                required_columns = self._required_columns[: len(self.colnames)]
             else:
                 required_columns = self._required_columns
 
-            plural = 's' if len(required_columns) > 1 else ''
+            plural = "s" if len(required_columns) > 1 else ""
 
             if not self._required_columns_relax and len(self.colnames) == 0:
+                raise ValueError(
+                    "{} object is invalid - expected '{}' "
+                    "as the first column{} but time series has no columns".format(
+                        self.__class__.__name__, required_columns[0], plural
+                    )
+                )
 
-                raise ValueError("{} object is invalid - expected '{}' "
-                                 "as the first column{} but time series has no columns"
-                                 .format(self.__class__.__name__, required_columns[0], plural))
+            elif self.colnames[: len(required_columns)] != required_columns:
+                raise ValueError(
+                    "{} object is invalid - expected {} "
+                    "as the first column{} but found {}".format(
+                        self.__class__.__name__,
+                        as_scalar_or_list_str(required_columns),
+                        plural,
+                        as_scalar_or_list_str(self.colnames[: len(required_columns)]),
+                    )
+                )
 
-            elif self.colnames[:len(required_columns)] != required_columns:
-
-                raise ValueError("{} object is invalid - expected {} "
-                                 "as the first column{} but found {}"
-                                 .format(self.__class__.__name__, as_scalar_or_list_str(required_columns),
-                                            plural, as_scalar_or_list_str(self.colnames[:len(required_columns)])))
-
-            if (self._required_columns_relax
-                    and self._required_columns == self.colnames[:len(self._required_columns)]):
+            if (
+                self._required_columns_relax
+                and self._required_columns
+                == self.colnames[: len(self._required_columns)]
+            ):
                 self._required_columns_relax = False
 
     @contextmanager
