@@ -97,15 +97,15 @@ def test_wcs_swapping():
     assert np.all(swapped.wcs.get_pc().diagonal() == np.array([1, 2, 4, 3]))
 
 
-@pytest.mark.parametrize('ndim', (2, 3))
+@pytest.mark.parametrize("ndim", (2, 3))
 def test_add_stokes(ndim):
     wcs = WCS(naxis=ndim)
 
     for ii in range(ndim + 1):
         outwcs = add_stokes_axis_to_wcs(wcs, ii)
         assert outwcs.wcs.naxis == ndim + 1
-        assert outwcs.wcs.ctype[ii] == 'STOKES'
-        assert outwcs.wcs.cname[ii] == 'STOKES'
+        assert outwcs.wcs.ctype[ii] == "STOKES"
+        assert outwcs.wcs.cname[ii] == "STOKES"
 
 
 def test_slice():
@@ -155,7 +155,7 @@ def test_slice_with_sip():
     mywcs.wcs.cdelt = [0.1, 0.1]
     mywcs.wcs.crpix = [1, 1]
     mywcs._naxis = [1000, 500]
-    mywcs.wcs.ctype = ['RA---TAN-SIP', 'DEC--TAN-SIP']
+    mywcs.wcs.ctype = ["RA---TAN-SIP", "DEC--TAN-SIP"]
     a = np.array(
         [
             [0, 0, 5.33092692e-08, 3.73753773e-11, -2.02111473e-13],
@@ -242,28 +242,27 @@ def test_slice_wcs():
     sub = mywcs[0]
     assert isinstance(sub, SlicedFITSWCS)
 
-    with pytest.raises(IndexError) as exc:
+    with pytest.raises(IndexError, match="Slicing WCS with a step is not supported."):
         mywcs[0, ::2]
-    assert exc.value.args[0] == "Slicing WCS with a step is not supported."
 
 
 def test_axis_names():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT-LSR', 'STOKES']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT-LSR", "STOKES"]
 
-    assert mywcs.axis_type_names == ['RA', 'DEC', 'VOPT', 'STOKES']
+    assert mywcs.axis_type_names == ["RA", "DEC", "VOPT", "STOKES"]
 
-    mywcs.wcs.cname = ['RA', 'DEC', 'VOPT', 'STOKES']
+    mywcs.wcs.cname = ["RA", "DEC", "VOPT", "STOKES"]
 
-    assert mywcs.axis_type_names == ['RA', 'DEC', 'VOPT', 'STOKES']
+    assert mywcs.axis_type_names == ["RA", "DEC", "VOPT", "STOKES"]
 
 
 def test_celestial():
     mywcs = WCS(naxis=4)
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT', 'STOKES']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT", "STOKES"]
     cel = mywcs.celestial
-    assert tuple(cel.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
-    assert cel.axis_type_names == ['RA', 'DEC']
+    assert tuple(cel.wcs.ctype) == ("RA---TAN", "DEC--TAN")
+    assert cel.axis_type_names == ["RA", "DEC"]
 
 
 def test_wcs_to_celestial_frame():
@@ -282,52 +281,52 @@ def test_wcs_to_celestial_frame():
         assert wcs_to_celestial_frame(mywcs) is None
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+    mywcs.wcs.ctype = ["XOFFSET", "YOFFSET"]
     mywcs.wcs.set()
     with pytest.raises(ValueError):
         assert wcs_to_celestial_frame(mywcs) is None
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     mywcs.wcs.equinox = 1987.0
     mywcs.wcs.set()
     print(mywcs.to_header())
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK5)
-    assert frame.equinox == Time(1987.0, format='jyear')
+    assert frame.equinox == Time(1987.0, format="jyear")
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     mywcs.wcs.equinox = 1982
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, FK4)
-    assert frame.equinox == Time(1982.0, format='byear')
+    assert frame.equinox == Time(1982.0, format="byear")
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['GLON-SIN', 'GLAT-SIN']
+    mywcs.wcs.ctype = ["GLON-SIN", "GLAT-SIN"]
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, Galactic)
 
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['TLON-CAR', 'TLAT-CAR']
-    mywcs.wcs.dateobs = '2017-08-17T12:41:04.430'
+    mywcs.wcs.ctype = ["TLON-CAR", "TLAT-CAR"]
+    mywcs.wcs.dateobs = "2017-08-17T12:41:04.430"
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ITRS)
-    assert frame.obstime == Time('2017-08-17T12:41:04.430')
+    assert frame.obstime == Time("2017-08-17T12:41:04.430")
 
     for equinox in [np.nan, 1987, 1982]:
         mywcs = WCS(naxis=2)
-        mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-        mywcs.wcs.radesys = 'ICRS'
+        mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+        mywcs.wcs.radesys = "ICRS"
         mywcs.wcs.equinox = equinox
         mywcs.wcs.set()
         frame = wcs_to_celestial_frame(mywcs)
@@ -335,20 +334,20 @@ def test_wcs_to_celestial_frame():
 
     # Flipped order
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['DEC--TAN', 'RA---TAN']
+    mywcs.wcs.ctype = ["DEC--TAN", "RA---TAN"]
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     # More than two dimensions
     mywcs = WCS(naxis=3)
-    mywcs.wcs.ctype = ['DEC--TAN', 'VELOCITY', 'RA---TAN']
+    mywcs.wcs.ctype = ["DEC--TAN", "VELOCITY", "RA---TAN"]
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, ICRS)
 
     mywcs = WCS(naxis=3)
-    mywcs.wcs.ctype = ['GLAT-CAR', 'VELOCITY', 'GLON-CAR']
+    mywcs.wcs.ctype = ["GLAT-CAR", "VELOCITY", "GLON-CAR"]
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
     assert isinstance(frame, Galactic)
@@ -362,7 +361,7 @@ def test_wcs_to_celestial_frame_correlated():
     from astropy.coordinates.builtin_frames import ICRS
 
     mywcs = WCS(naxis=3)
-    mywcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
     mywcs.wcs.cd = np.ones((3, 3))
     mywcs.wcs.set()
     frame = wcs_to_celestial_frame(mywcs)
@@ -371,7 +370,7 @@ def test_wcs_to_celestial_frame_correlated():
 
 def test_wcs_to_celestial_frame_extend():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+    mywcs.wcs.ctype = ["XOFFSET", "YOFFSET"]
     mywcs.wcs.set()
     with pytest.raises(ValueError):
         wcs_to_celestial_frame(mywcs)
@@ -380,7 +379,7 @@ def test_wcs_to_celestial_frame_extend():
         pass
 
     def identify_offset(wcs):
-        if wcs.wcs.ctype[0].endswith('OFFSET') and wcs.wcs.ctype[1].endswith('OFFSET'):
+        if wcs.wcs.ctype[0].endswith("OFFSET") and wcs.wcs.ctype[1].endswith("OFFSET"):
             return OffsetFrame()
 
     with custom_wcs_to_frame_mappings(identify_offset):
@@ -408,69 +407,70 @@ def test_celestial_frame_to_wcs():
         pass
 
     frame = FakeFrame()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Could not determine WCS corresponding to the specified coordinate frame."
+        ),
+    ):
         celestial_frame_to_wcs(frame)
-    assert (
-        exc.value.args[0]
-        == "Could not determine WCS corresponding to the specified coordinate frame."
-    )
 
     frame = ICRS()
     mywcs = celestial_frame_to_wcs(frame)
     mywcs.wcs.set()
-    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
-    assert mywcs.wcs.radesys == 'ICRS'
+    assert tuple(mywcs.wcs.ctype) == ("RA---TAN", "DEC--TAN")
+    assert mywcs.wcs.radesys == "ICRS"
     assert np.isnan(mywcs.wcs.equinox)
     assert mywcs.wcs.lonpole == 180
     assert mywcs.wcs.latpole == 0
 
-    frame = FK5(equinox='J1987')
+    frame = FK5(equinox="J1987")
     mywcs = celestial_frame_to_wcs(frame)
-    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
-    assert mywcs.wcs.radesys == 'FK5'
+    assert tuple(mywcs.wcs.ctype) == ("RA---TAN", "DEC--TAN")
+    assert mywcs.wcs.radesys == "FK5"
     assert mywcs.wcs.equinox == 1987.0
 
-    frame = FK4(equinox='B1982')
+    frame = FK4(equinox="B1982")
     mywcs = celestial_frame_to_wcs(frame)
-    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
-    assert mywcs.wcs.radesys == 'FK4'
+    assert tuple(mywcs.wcs.ctype) == ("RA---TAN", "DEC--TAN")
+    assert mywcs.wcs.radesys == "FK4"
     assert mywcs.wcs.equinox == 1982.0
 
-    frame = FK4NoETerms(equinox='B1982')
+    frame = FK4NoETerms(equinox="B1982")
     mywcs = celestial_frame_to_wcs(frame)
-    assert tuple(mywcs.wcs.ctype) == ('RA---TAN', 'DEC--TAN')
-    assert mywcs.wcs.radesys == 'FK4-NO-E'
+    assert tuple(mywcs.wcs.ctype) == ("RA---TAN", "DEC--TAN")
+    assert mywcs.wcs.radesys == "FK4-NO-E"
     assert mywcs.wcs.equinox == 1982.0
 
     frame = Galactic()
     mywcs = celestial_frame_to_wcs(frame)
-    assert tuple(mywcs.wcs.ctype) == ('GLON-TAN', 'GLAT-TAN')
-    assert mywcs.wcs.radesys == ''
+    assert tuple(mywcs.wcs.ctype) == ("GLON-TAN", "GLAT-TAN")
+    assert mywcs.wcs.radesys == ""
     assert np.isnan(mywcs.wcs.equinox)
 
     frame = Galactic()
-    mywcs = celestial_frame_to_wcs(frame, projection='CAR')
-    assert tuple(mywcs.wcs.ctype) == ('GLON-CAR', 'GLAT-CAR')
-    assert mywcs.wcs.radesys == ''
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+    assert tuple(mywcs.wcs.ctype) == ("GLON-CAR", "GLAT-CAR")
+    assert mywcs.wcs.radesys == ""
     assert np.isnan(mywcs.wcs.equinox)
 
     frame = Galactic()
-    mywcs = celestial_frame_to_wcs(frame, projection='CAR')
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
     mywcs.wcs.crval = [100, -30]
     mywcs.wcs.set()
     assert_allclose((mywcs.wcs.lonpole, mywcs.wcs.latpole), (180, 60))
 
-    frame = ITRS(obstime=Time('2017-08-17T12:41:04.43'))
-    mywcs = celestial_frame_to_wcs(frame, projection='CAR')
-    assert tuple(mywcs.wcs.ctype) == ('TLON-CAR', 'TLAT-CAR')
-    assert mywcs.wcs.radesys == 'ITRS'
-    assert mywcs.wcs.dateobs == '2017-08-17T12:41:04.430'
+    frame = ITRS(obstime=Time("2017-08-17T12:41:04.43"))
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+    assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
+    assert mywcs.wcs.radesys == "ITRS"
+    assert mywcs.wcs.dateobs == "2017-08-17T12:41:04.430"
 
     frame = ITRS()
-    mywcs = celestial_frame_to_wcs(frame, projection='CAR')
-    assert tuple(mywcs.wcs.ctype) == ('TLON-CAR', 'TLAT-CAR')
-    assert mywcs.wcs.radesys == 'ITRS'
-    assert mywcs.wcs.dateobs == Time('J2000').utc.fits
+    mywcs = celestial_frame_to_wcs(frame, projection="CAR")
+    assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
+    assert mywcs.wcs.radesys == "ITRS"
+    assert mywcs.wcs.dateobs == Time("J2000").utc.fits
 
 
 def test_celestial_frame_to_wcs_extend():
@@ -485,12 +485,12 @@ def test_celestial_frame_to_wcs_extend():
     def identify_offset(frame, projection=None):
         if isinstance(frame, OffsetFrame):
             wcs = WCS(naxis=2)
-            wcs.wcs.ctype = ['XOFFSET', 'YOFFSET']
+            wcs.wcs.ctype = ["XOFFSET", "YOFFSET"]
             return wcs
 
     with custom_frame_to_wcs_mappings(identify_offset):
         mywcs = celestial_frame_to_wcs(frame)
-    assert tuple(mywcs.wcs.ctype) == ('XOFFSET', 'YOFFSET')
+    assert tuple(mywcs.wcs.ctype) == ("XOFFSET", "YOFFSET")
 
     # Check that things are back to normal after the context manager
     with pytest.raises(ValueError):
@@ -500,7 +500,7 @@ def test_celestial_frame_to_wcs_extend():
 def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cdelt = [0.1, 0.2]
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
     mywcs.wcs.cdelt = [-0.1, 0.2]
@@ -510,7 +510,7 @@ def test_pixscale_nodrop():
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1, 0.2, 1]
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'VOPT']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT"]
     assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
     mywcs.wcs.cdelt = [-0.1, 0.2, 1]
@@ -520,11 +520,11 @@ def test_pixscale_withdrop():
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 
-@pytest.mark.parametrize('angle', (30, 45, 60, 75))
+@pytest.mark.parametrize("angle", (30, 45, 60, 75))
 def test_pixscale_cd_rotated(angle):
     mywcs = WCS(naxis=2)
     rho = np.radians(angle)
@@ -533,23 +533,23 @@ def test_pixscale_cd_rotated(angle):
         [scale * np.cos(rho), -scale * np.sin(rho)],
         [scale * np.sin(rho), scale * np.cos(rho)],
     ]
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 
-@pytest.mark.parametrize('angle', (30, 45, 60, 75))
+@pytest.mark.parametrize("angle", (30, 45, 60, 75))
 def test_pixscale_pc_rotated(angle):
     mywcs = WCS(naxis=2)
     rho = np.radians(angle)
     scale = 0.1
     mywcs.wcs.cdelt = [-scale, scale]
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)], [np.sin(rho), np.cos(rho)]]
-    mywcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 
 @pytest.mark.parametrize(
-    ('cdelt', 'pc', 'pccd'),
+    ("cdelt", "pc", "pccd"),
     (
         ([0.1, 0.2], np.eye(2), np.diag([0.1, 0.2])),
         ([0.1, 0.2, 0.3], np.eye(3), np.diag([0.1, 0.2, 0.3])),
@@ -565,11 +565,11 @@ def test_pixel_scale_matrix(cdelt, pc, pccd):
 
 
 @pytest.mark.parametrize(
-    ('ctype', 'cel'),
+    ("ctype", "cel"),
     (
-        (['RA---TAN', 'DEC--TAN'], True),
-        (['RA---TAN', 'DEC--TAN', 'FREQ'], False),
-        (['RA---TAN', 'FREQ'], False),
+        (["RA---TAN", "DEC--TAN"], True),
+        (["RA---TAN", "DEC--TAN", "FREQ"], False),
+        (["RA---TAN", "FREQ"], False),
     ),
 )
 def test_is_celestial(ctype, cel):
@@ -580,11 +580,11 @@ def test_is_celestial(ctype, cel):
 
 
 @pytest.mark.parametrize(
-    ('ctype', 'cel'),
+    ("ctype", "cel"),
     (
-        (['RA---TAN', 'DEC--TAN'], True),
-        (['RA---TAN', 'DEC--TAN', 'FREQ'], True),
-        (['RA---TAN', 'FREQ'], False),
+        (["RA---TAN", "DEC--TAN"], True),
+        (["RA---TAN", "DEC--TAN", "FREQ"], True),
+        (["RA---TAN", "FREQ"], False),
     ),
 )
 def test_has_celestial(ctype, cel):
@@ -598,14 +598,14 @@ def test_has_celestial_correlated():
     # Regression test for astropy/astropy#8416 - has_celestial failed when
     # celestial axes were correlated with other axes.
     mywcs = WCS(naxis=3)
-    mywcs.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
     mywcs.wcs.cd = np.ones((3, 3))
     mywcs.wcs.set()
     assert mywcs.has_celestial
 
 
 @pytest.mark.parametrize(
-    ('cdelt', 'pc', 'cd', 'check_warning'),
+    ("cdelt", "pc", "cd", "check_warning"),
     (
         (np.array([0.1, 0.2]), np.eye(2), np.eye(2), True),
         (np.array([1, 1]), np.diag([0.1, 0.2]), np.eye(2), True),
@@ -631,29 +631,29 @@ def test_noncelestial_scale(cdelt, pc, cd, check_warning):
     if check_warning:
         for w in warning_lines:
             assert issubclass(w.category, RuntimeWarning)
-            assert 'cdelt will be ignored since cd is present' in str(w.message)
+            assert "cdelt will be ignored since cd is present" in str(w.message)
 
-    mywcs.wcs.ctype = ['RA---TAN', 'FREQ']
+    mywcs.wcs.ctype = ["RA---TAN", "FREQ"]
 
     ps = non_celestial_pixel_scales(mywcs)
 
     assert_almost_equal(ps.to_value(u.deg), np.array([0.1, 0.2]))
 
 
-@pytest.mark.parametrize('mode', ['all', 'wcs'])
+@pytest.mark.parametrize("mode", ["all", "wcs"])
 def test_skycoord_to_pixel(mode):
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    header = get_pkg_data_contents('data/maps/1904-66_TAN.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/maps/1904-66_TAN.hdr", encoding="binary")
     wcs = WCS(header)
 
-    ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame='icrs')
+    ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame="icrs")
 
     xp, yp = skycoord_to_pixel(ref, wcs, mode=mode)
 
     # WCS is in FK5 so we need to transform back to ICRS
-    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
+    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to("icrs")
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
@@ -662,7 +662,7 @@ def test_skycoord_to_pixel(mode):
     class SkyCoord2(SkyCoord):
         pass
 
-    new2 = pixel_to_skycoord(xp, yp, wcs, mode=mode, cls=SkyCoord2).transform_to('icrs')
+    new2 = pixel_to_skycoord(xp, yp, wcs, mode=mode, cls=SkyCoord2).transform_to("icrs")
 
     assert new2.__class__ is SkyCoord2
     assert_allclose(new2.ra.degree, ref.ra.degree)
@@ -677,12 +677,12 @@ def test_skycoord_to_pixel_swapped():
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    header = get_pkg_data_contents('data/maps/1904-66_TAN.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/maps/1904-66_TAN.hdr", encoding="binary")
     wcs = WCS(header)
 
     wcs_swapped = wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
 
-    ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame='icrs')
+    ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame="icrs")
 
     xp1, yp1 = skycoord_to_pixel(ref, wcs)
     xp2, yp2 = skycoord_to_pixel(ref, wcs_swapped)
@@ -691,8 +691,8 @@ def test_skycoord_to_pixel_swapped():
     assert_allclose(yp1, yp2)
 
     # WCS is in FK5 so we need to transform back to ICRS
-    new1 = pixel_to_skycoord(xp1, yp1, wcs).transform_to('icrs')
-    new2 = pixel_to_skycoord(xp1, yp1, wcs_swapped).transform_to('icrs')
+    new1 = pixel_to_skycoord(xp1, yp1, wcs).transform_to("icrs")
+    new2 = pixel_to_skycoord(xp1, yp1, wcs_swapped).transform_to("icrs")
 
     assert_allclose(new1.ra.degree, new2.ra.degree)
     assert_allclose(new1.dec.degree, new2.dec.degree)
@@ -702,7 +702,7 @@ def test_is_proj_plane_distorted():
     # non-orthogonal CD:
     wcs = WCS(naxis=2)
     wcs.wcs.cd = [[-0.1, 0], [0, 0.2]]
-    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert is_proj_plane_distorted(wcs)
 
     # almost orthogonal CD:
@@ -710,27 +710,27 @@ def test_is_proj_plane_distorted():
     assert not is_proj_plane_distorted(wcs)
 
     # real case:
-    header = get_pkg_data_filename('data/sip.fits')
+    header = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(FITSFixedWarning):
         wcs = WCS(header)
     assert is_proj_plane_distorted(wcs)
 
 
-@pytest.mark.parametrize('mode', ['all', 'wcs'])
+@pytest.mark.parametrize("mode", ["all", "wcs"])
 def test_skycoord_to_pixel_distortions(mode):
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    header = get_pkg_data_filename('data/sip.fits')
+    header = get_pkg_data_filename("data/sip.fits")
     with pytest.warns(FITSFixedWarning):
         wcs = WCS(header)
 
-    ref = SkyCoord(202.50 * u.deg, 47.19 * u.deg, frame='icrs')
+    ref = SkyCoord(202.50 * u.deg, 47.19 * u.deg, frame="icrs")
 
     xp, yp = skycoord_to_pixel(ref, wcs, mode=mode)
 
     # WCS is in FK5 so we need to transform back to ICRS
-    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
+    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to("icrs")
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
@@ -743,7 +743,7 @@ def spatial_wcs_2d_small_angle():
     close to the reference pixel.
     """
     wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
+    wcs.wcs.ctype = ["HPLN-TAN", "HPLT-TAN"]
     wcs.wcs.crpix = [3.0] * 2
     wcs.wcs.cdelt = [0.002] * 2
     wcs.wcs.crval = [0] * 2
@@ -772,7 +772,7 @@ def test_local_pixel_derivatives(spatial_wcs_2d_small_angle):
 
 def test_pixel_to_world_correlation_matrix_celestial():
     wcs = WCS(naxis=2)
-    wcs.wcs.ctype = 'RA---TAN', 'DEC--TAN'
+    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
     wcs.wcs.set()
 
     assert_equal(wcs.axis_correlation_matrix, [[1, 1], [1, 1]])
@@ -783,7 +783,7 @@ def test_pixel_to_world_correlation_matrix_celestial():
 
 def test_pixel_to_world_correlation_matrix_spectral_cube_uncorrelated():
     wcs = WCS(naxis=3)
-    wcs.wcs.ctype = 'RA---TAN', 'FREQ', 'DEC--TAN'
+    wcs.wcs.ctype = "RA---TAN", "FREQ", "DEC--TAN"
     wcs.wcs.set()
 
     assert_equal(wcs.axis_correlation_matrix, [[1, 0, 1], [0, 1, 0], [1, 0, 1]])
@@ -794,7 +794,7 @@ def test_pixel_to_world_correlation_matrix_spectral_cube_uncorrelated():
 
 def test_pixel_to_world_correlation_matrix_spectral_cube_correlated():
     wcs = WCS(naxis=3)
-    wcs.wcs.ctype = 'RA---TAN', 'FREQ', 'DEC--TAN'
+    wcs.wcs.ctype = "RA---TAN", "FREQ", "DEC--TAN"
     wcs.wcs.cd = np.ones((3, 3))
     wcs.wcs.set()
 
@@ -806,11 +806,11 @@ def test_pixel_to_world_correlation_matrix_spectral_cube_correlated():
 
 def test_pixel_to_pixel_correlation_matrix_celestial():
     wcs_in = WCS(naxis=2)
-    wcs_in.wcs.ctype = 'RA---TAN', 'DEC--TAN'
+    wcs_in.wcs.ctype = "RA---TAN", "DEC--TAN"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=2)
-    wcs_out.wcs.ctype = 'DEC--TAN', 'RA---TAN'
+    wcs_out.wcs.ctype = "DEC--TAN", "RA---TAN"
     wcs_out.wcs.set()
 
     matrix = _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
@@ -819,11 +819,11 @@ def test_pixel_to_pixel_correlation_matrix_celestial():
 
 def test_pixel_to_pixel_correlation_matrix_spectral_cube_uncorrelated():
     wcs_in = WCS(naxis=3)
-    wcs_in.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    wcs_in.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=3)
-    wcs_out.wcs.ctype = 'DEC--TAN', 'FREQ', 'RA---TAN'
+    wcs_out.wcs.ctype = "DEC--TAN", "FREQ", "RA---TAN"
     wcs_out.wcs.set()
 
     matrix = _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
@@ -834,11 +834,11 @@ def test_pixel_to_pixel_correlation_matrix_spectral_cube_correlated():
     # NOTE: only make one of the WCSes have correlated axes to really test this
 
     wcs_in = WCS(naxis=3)
-    wcs_in.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'FREQ'
+    wcs_in.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=3)
-    wcs_out.wcs.ctype = 'DEC--TAN', 'FREQ', 'RA---TAN'
+    wcs_out.wcs.ctype = "DEC--TAN", "FREQ", "RA---TAN"
     wcs_out.wcs.cd = np.ones((3, 3))
     wcs_out.wcs.set()
 
@@ -848,36 +848,35 @@ def test_pixel_to_pixel_correlation_matrix_spectral_cube_correlated():
 
 def test_pixel_to_pixel_correlation_matrix_mismatch():
     wcs_in = WCS(naxis=2)
-    wcs_in.wcs.ctype = 'RA---TAN', 'DEC--TAN'
+    wcs_in.wcs.ctype = "RA---TAN", "DEC--TAN"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=3)
-    wcs_out.wcs.ctype = 'DEC--TAN', 'FREQ', 'RA---TAN'
+    wcs_out.wcs.ctype = "DEC--TAN", "FREQ", "RA---TAN"
     wcs_out.wcs.set()
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"The two WCS return a different number of world coordinates"
+    ):
         _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out)
-    assert (
-        exc.value.args[0]
-        == "The two WCS return a different number of world coordinates"
-    )
 
     wcs3 = WCS(naxis=2)
-    wcs3.wcs.ctype = 'FREQ', 'PIXEL'
+    wcs3.wcs.ctype = "FREQ", "PIXEL"
     wcs3.wcs.set()
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match=r"The world coordinate types of the two WCS do not match"
+    ):
         _pixel_to_pixel_correlation_matrix(wcs_out, wcs3)
-    assert exc.value.args[0] == "The world coordinate types of the two WCS do not match"
 
     wcs4 = WCS(naxis=4)
-    wcs4.wcs.ctype = 'RA---TAN', 'DEC--TAN', 'Q1', 'Q2'
-    wcs4.wcs.cunit = ['deg', 'deg', 'm/s', 'm/s']
+    wcs4.wcs.ctype = "RA---TAN", "DEC--TAN", "Q1", "Q2"
+    wcs4.wcs.cunit = ["deg", "deg", "m/s", "m/s"]
     wcs4.wcs.set()
 
     wcs5 = WCS(naxis=4)
-    wcs5.wcs.ctype = 'Q1', 'RA---TAN', 'DEC--TAN', 'Q2'
-    wcs5.wcs.cunit = ['m/s', 'deg', 'deg', 'm/s']
+    wcs5.wcs.ctype = "Q1", "RA---TAN", "DEC--TAN", "Q2"
+    wcs5.wcs.cunit = ["m/s", "deg", "deg", "m/s"]
     wcs5.wcs.set()
 
     with pytest.raises(
@@ -908,15 +907,15 @@ def test_pixel_to_pixel_correlation_matrix_nonsquare():
         [False, False, True],
     ]
     wcs_in.world_axis_object_components = [
-        ('spat', 'ra', 'ra.degree'),
-        ('spat', 'dec', 'dec.degree'),
-        ('spec', 0, 'value'),
-        ('time', 0, 'utc.value'),
+        ("spat", "ra", "ra.degree"),
+        ("spat", "dec", "dec.degree"),
+        ("spec", 0, "value"),
+        ("time", 0, "utc.value"),
     ]
     wcs_in.world_axis_object_classes = {
-        'spat': ('astropy.coordinates.SkyCoord', (), {'frame': 'icrs'}),
-        'spec': ('astropy.units.Wavelength', (None,), {}),
-        'time': ('astropy.time.Time', (None,), {'format': 'mjd', 'scale': 'utc'}),
+        "spat": ("astropy.coordinates.SkyCoord", (), {"frame": "icrs"}),
+        "spec": ("astropy.units.Wavelength", (None,), {}),
+        "time": ("astropy.time.Time", (None,), {"format": "mjd", "scale": "utc"}),
     }
 
     wcs_out = FakeWCS()
@@ -930,10 +929,10 @@ def test_pixel_to_pixel_correlation_matrix_nonsquare():
         [False, False, False, True],
     ]
     wcs_out.world_axis_object_components = [
-        ('spec', 0, 'value'),
-        ('spat', 'ra', 'ra.degree'),
-        ('spat', 'dec', 'dec.degree'),
-        ('time', 0, 'utc.value'),
+        ("spec", 0, "value"),
+        ("spat", "ra", "ra.degree"),
+        ("spat", "dec", "dec.degree"),
+        ("time", 0, "utc.value"),
     ]
     wcs_out.world_axis_object_classes = wcs_in.world_axis_object_classes
 
@@ -993,15 +992,15 @@ def test_split_matrix():
 
 def test_pixel_to_pixel():
     wcs_in = WCS(naxis=3)
-    wcs_in.wcs.ctype = 'DEC--TAN', 'FREQ', 'RA---TAN'
+    wcs_in.wcs.ctype = "DEC--TAN", "FREQ", "RA---TAN"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=3)
-    wcs_out.wcs.ctype = 'GLON-CAR', 'GLAT-CAR', 'FREQ'
+    wcs_out.wcs.ctype = "GLON-CAR", "GLAT-CAR", "FREQ"
     wcs_out.wcs.set()
 
     # First try with scalars
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         x, y, z = pixel_to_pixel(wcs_in, wcs_out, 1, 2, 3)
     assert x.shape == ()
     assert y.shape == ()
@@ -1011,8 +1010,8 @@ def test_pixel_to_pixel():
     x = np.linspace(10, 20, 10)
     y = np.linspace(10, 20, 20)
     z = np.linspace(10, 20, 30)
-    Z1, Y1, X1 = np.meshgrid(z, y, x, indexing='ij', copy=False)
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    Z1, Y1, X1 = np.meshgrid(z, y, x, indexing="ij", copy=False)
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         X2, Y2, Z2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1, Z1)
 
     # The final arrays should have the correct shape
@@ -1026,7 +1025,7 @@ def test_pixel_to_pixel():
     assert unbroadcast(Z2).shape == (20, 1)
 
     # We can put the values back through the function to ensure round-tripping
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         X3, Y3, Z3 = pixel_to_pixel(wcs_out, wcs_in, X2, Y2, Z2)
 
     # The final arrays should have the correct shape
@@ -1047,11 +1046,11 @@ def test_pixel_to_pixel():
 
 def test_pixel_to_pixel_correlated():
     wcs_in = WCS(naxis=2)
-    wcs_in.wcs.ctype = 'DEC--TAN', 'RA---TAN'
+    wcs_in.wcs.ctype = "DEC--TAN", "RA---TAN"
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=2)
-    wcs_out.wcs.ctype = 'GLON-CAR', 'GLAT-CAR'
+    wcs_out.wcs.ctype = "GLON-CAR", "GLAT-CAR"
     wcs_out.wcs.set()
 
     # First try with scalars
@@ -1062,7 +1061,7 @@ def test_pixel_to_pixel_correlated():
     # Now try with broadcasted arrays
     x = np.linspace(10, 20, 10)
     y = np.linspace(10, 20, 20)
-    Y1, X1 = np.meshgrid(y, x, indexing='ij', copy=False)
+    Y1, X1 = np.meshgrid(y, x, indexing="ij", copy=False)
     Y2, X2 = pixel_to_pixel(wcs_in, wcs_out, X1, Y1)
 
     # The final arrays should have the correct shape
@@ -1079,13 +1078,13 @@ def test_pixel_to_pixel_1d():
     # the scenes).
 
     wcs_in = WCS(naxis=1)
-    wcs_in.wcs.ctype = ('COORD1',)
-    wcs_in.wcs.cunit = ('nm',)
+    wcs_in.wcs.ctype = ("COORD1",)
+    wcs_in.wcs.cunit = ("nm",)
     wcs_in.wcs.set()
 
     wcs_out = WCS(naxis=1)
-    wcs_out.wcs.ctype = ('COORD2',)
-    wcs_out.wcs.cunit = ('cm',)
+    wcs_out.wcs.ctype = ("COORD2",)
+    wcs_out.wcs.cunit = ("cm",)
     wcs_out.wcs.set()
 
     # First try with a scalar
@@ -1188,9 +1187,9 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 """
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
-    'header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist',
+    "header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist",
     [
         # simple testset no distortions
         (
@@ -1241,7 +1240,7 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 def test_fit_wcs_from_points(
     header_str, crval, sip_degree, user_proj_point, exp_max_dist, exp_std_dist
 ):
-    header = fits.Header.fromstring(header_str, sep='\n')
+    header = fits.Header.fromstring(header_str, sep="\n")
     header["CRVAL1"] = crval
 
     true_wcs = WCS(header, relax=True)
@@ -1260,7 +1259,7 @@ def test_fit_wcs_from_points(
         projlon = proj_point.data.lon.deg
         projlat = proj_point.data.lat.deg
     else:
-        proj_point = 'center'
+        proj_point = "center"
 
     # Fitting the wcs
     fit_wcs = fit_wcs_from_points(
@@ -1280,7 +1279,7 @@ def test_fit_wcs_from_points(
         assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fit_wcs_from_points_CRPIX_bounds():
     # Test CRPIX bounds requirement
     wcs_str = """
@@ -1318,25 +1317,25 @@ TIMEDEL =    0.020833333333333 / [d] Time resolution
 TIMEPIXR=                  0.5 / Reference position of timestamp in binned data
 RADESYS = 'ICRS'               / Equatorial coordinate system
 """
-    wcs_header = fits.Header.fromstring(wcs_str, sep='\n')
+    wcs_header = fits.Header.fromstring(wcs_str, sep="\n")
     ffi_wcs = WCS(wcs_header)
 
     yi, xi = (1000, 1000)
     y, x = (10, 200)
 
     center_coord = SkyCoord(
-        ffi_wcs.all_pix2world([[xi + x // 2, yi + y // 2]], 0), unit='deg'
+        ffi_wcs.all_pix2world([[xi + x // 2, yi + y // 2]], 0), unit="deg"
     )[0]
     ypix, xpix = (arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y])
-    world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit='deg')
+    world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit="deg")
 
-    fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point='center')
+    fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point="center")
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (1199, 1009)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason='requires scipy')
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_issue10991():
     # test issue #10991 (it just needs to run and set the user defined crval)
     xy = np.array(
@@ -1358,7 +1357,7 @@ def test_issue10991():
     proj_point = SkyCoord(64.67514918, 19.63389538, frame="icrs", unit="deg")
 
     fit_wcs = fit_wcs_from_points(
-        xy=xy, world_coords=world_coords, proj_point=proj_point, projection='TAN'
+        xy=xy, world_coords=world_coords, proj_point=proj_point, projection="TAN"
     )
     projlon = proj_point.data.lon.deg
     projlat = proj_point.data.lat.deg
@@ -1366,10 +1365,10 @@ def test_issue10991():
 
 
 @pytest.mark.remote_data
-@pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
+@pytest.mark.parametrize("x_in,y_in", [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
     """Regression test for https://github.com/astropy/astropy/pull/9609"""
-    if Version(_wcs.__version__) >= Version('7.4'):
+    if Version(_wcs.__version__) >= Version("7.4"):
         ctx = pytest.warns(
             FITSFixedWarning,
             match=(
@@ -1383,11 +1382,11 @@ def test_pixel_to_world_itrs(x_in, y_in):
     with ctx:
         wcs = WCS(
             {
-                'NAXIS': 2,
-                'CTYPE1': 'TLON-CAR',
-                'CTYPE2': 'TLAT-CAR',
-                'RADESYS': 'ITRS ',
-                'DATE-OBS': '2017-08-17T12:41:04.444',
+                "NAXIS": 2,
+                "CTYPE1": "TLON-CAR",
+                "CTYPE2": "TLAT-CAR",
+                "RADESYS": "ITRS ",
+                "DATE-OBS": "2017-08-17T12:41:04.444",
             }
         )
 

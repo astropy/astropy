@@ -18,11 +18,11 @@ class CustomLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec']
+        return ["pos.eq.ra", "pos.eq.dec"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg']
+        return ["deg", "deg"]
 
     def pixel_to_world_values(self, *pixel_arrays):
         return [np.asarray(pix) * 2 for pix in pixel_arrays]
@@ -33,13 +33,13 @@ class CustomLowLevelWCS(BaseLowLevelWCS):
     @property
     def world_axis_object_components(self):
         return [
-            ('test', 0, 'spherical.lon.degree'),
-            ('test', 1, 'spherical.lat.degree'),
+            ("test", 0, "spherical.lon.degree"),
+            ("test", 1, "spherical.lat.degree"),
         ]
 
     @property
     def world_axis_object_classes(self):
-        return {'test': (SkyCoord, (), {'unit': 'deg'})}
+        return {"test": (SkyCoord, (), {"unit": "deg"})}
 
 
 def test_wrapper():
@@ -60,8 +60,8 @@ def test_wrapper():
     assert wrapper.low_level_wcs is wcs
     assert wrapper.pixel_n_dim == 2
     assert wrapper.world_n_dim == 2
-    assert wrapper.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
-    assert wrapper.world_axis_units == ['deg', 'deg']
+    assert wrapper.world_axis_physical_types == ["pos.eq.ra", "pos.eq.dec"]
+    assert wrapper.world_axis_units == ["deg", "deg"]
     assert wrapper.array_shape is None
     assert wrapper.pixel_bounds is None
     assert np.all(wrapper.axis_correlation_matrix)

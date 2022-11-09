@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-__all__ = ['BaseLowLevelWCS', 'validate_physical_types']
+__all__ = ["BaseLowLevelWCS", "validate_physical_types"]
 
 
 class BaseLowLevelWCS(metaclass=abc.ABCMeta):
@@ -287,7 +287,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         override this property). Note that these names are just for display
         purposes and are not standardized.
         """
-        return [''] * self.pixel_n_dim
+        return [""] * self.pixel_n_dim
 
     @property
     def world_axis_names(self):
@@ -300,7 +300,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         purposes and are not standardized. For standardized axis types, see
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_physical_types`.
         """
-        return [''] * self.world_n_dim
+        return [""] * self.world_n_dim
 
     @property
     def axis_correlation_matrix(self):
@@ -341,10 +341,10 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         """
         from astropy.visualization.wcsaxes import WCSAxes
 
-        return WCSAxes, {'wcs': self}
+        return WCSAxes, {"wcs": self}
 
 
-UCDS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'ucds.txt')
+UCDS_FILE = os.path.join(os.path.dirname(__file__), "data", "ucds.txt")
 with open(UCDS_FILE) as f:
     VALID_UCDS = {x.strip() for x in f.read().splitlines()[1:]}
 
@@ -357,7 +357,7 @@ def validate_physical_types(physical_types):
         if (
             physical_type is not None
             and physical_type not in VALID_UCDS
-            and not physical_type.startswith('custom:')
+            and not physical_type.startswith("custom:")
         ):
             raise ValueError(
                 f"'{physical_type}' is not a valid IOVA UCD1+ physical type. It must be"

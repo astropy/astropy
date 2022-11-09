@@ -54,14 +54,14 @@ def test_celprm_offset():
 def test_celprm_prj():
     cel = wcs.Celprm()
     assert cel.prj is not None
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
     cel.set()
     assert cel._flag
 
 
 def test_celprm_phi0():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
 
     assert cel.phi0 == None
     assert cel._flag == 0
@@ -81,7 +81,7 @@ def test_celprm_phi0():
 
 def test_celprm_theta0():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
 
     assert cel.theta0 == None
     assert cel._flag == 0
@@ -103,7 +103,7 @@ def test_celprm_theta0():
 
 def test_celprm_ref():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
     cel.set()
 
     assert np.allclose(cel.ref, [0.0, 0.0, 180.0, 0.0], atol=1e-12, rtol=0)
@@ -121,7 +121,7 @@ def test_celprm_ref():
 
 def test_celprm_isolat():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
     cel.set()
 
     assert cel.isolat == 0
@@ -129,7 +129,7 @@ def test_celprm_isolat():
 
 def test_celprm_latpreq():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
     cel.set()
 
     assert cel.latpreq == 0
@@ -137,7 +137,7 @@ def test_celprm_latpreq():
 
 def test_celprm_euler():
     cel = wcs.Celprm()
-    cel.prj.code = 'TAN'
+    cel.prj.code = "TAN"
     cel.set()
 
     assert np.allclose(cel.euler, [0.0, 90.0, 180.0, 0.0, 1.0], atol=1e-12, rtol=0)

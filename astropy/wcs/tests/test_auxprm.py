@@ -53,7 +53,7 @@ CRLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 HGLN_OBS=             8.431123 / [deg] Stonyhurst heliographic lng of observer
 HGLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 """.lstrip(),
-    sep='\n',
+    sep="\n",
 )
 
 
@@ -104,11 +104,11 @@ def test_solar_aux_set():
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header['RSUN_REF'], 698000000)
-    assert_allclose(header['DSUN_OBS'], 140000000000)
-    assert_allclose(header['CRLN_OBS'], 10.0)
-    assert_allclose(header['HGLN_OBS'], 30.0)
-    assert_allclose(header['HGLT_OBS'], 40.0)
+    assert_allclose(header["RSUN_REF"], 698000000)
+    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["CRLN_OBS"], 10.0)
+    assert_allclose(header["HGLN_OBS"], 30.0)
+    assert_allclose(header["HGLT_OBS"], 40.0)
 
 
 def test_set_aux_on_empty():
@@ -132,11 +132,11 @@ def test_set_aux_on_empty():
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header['RSUN_REF'], 698000000)
-    assert_allclose(header['DSUN_OBS'], 140000000000)
-    assert_allclose(header['CRLN_OBS'], 10.0)
-    assert_allclose(header['HGLN_OBS'], 30.0)
-    assert_allclose(header['HGLT_OBS'], 40.0)
+    assert_allclose(header["RSUN_REF"], 698000000)
+    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["CRLN_OBS"], 10.0)
+    assert_allclose(header["HGLN_OBS"], 30.0)
+    assert_allclose(header["HGLT_OBS"], 40.0)
 
 
 def test_unset_aux():
@@ -162,11 +162,11 @@ def test_unset_aux():
     w.wcs.aux.hglt_obs = None
     assert w.wcs.aux.hglt_obs is None
 
-    assert str(w.wcs.aux) == 'rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:'
+    assert str(w.wcs.aux) == "rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:"
 
     header = w.to_header()
-    assert 'RSUN_REF' not in header
-    assert 'DSUN_OBS' not in header
-    assert 'CRLN_OBS' not in header
-    assert 'HGLN_OBS' not in header
-    assert 'HGLT_OBS' not in header
+    assert "RSUN_REF" not in header
+    assert "DSUN_OBS" not in header
+    assert "CRLN_OBS" not in header
+    assert "HGLN_OBS" not in header
+    assert "HGLT_OBS" not in header

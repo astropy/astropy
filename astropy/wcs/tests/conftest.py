@@ -7,7 +7,7 @@ from astropy import wcs
 from .helper import SimModelTAB
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def tab_wcs_2di():
     model = SimModelTAB(nx=150, ny=200)
 
@@ -20,7 +20,7 @@ def tab_wcs_2di():
     return w
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def tab_wcsh_2di():
     model = SimModelTAB(nx=150, ny=200)
 
@@ -33,7 +33,7 @@ def tab_wcsh_2di():
     return w, hdulist
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def tab_wcs_2di_f():
     model = SimModelTAB(nx=150, ny=200)
 
@@ -46,9 +46,9 @@ def tab_wcs_2di_f():
     return w
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def prj_TAB():
     prj = wcs.Prjprm()
-    prj.code = 'TAN'
+    prj.code = "TAN"
     prj.set()
     return prj

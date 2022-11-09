@@ -83,7 +83,6 @@ repos:
     rev: 22.10.0
     hooks:
       - id: black
-        args: ["--skip-string-normalization"]
 
   # We list the warnings/errors to check for here rather than in setup.cfg because
   # we don't want these options to apply whenever anyone calls flake8 from the

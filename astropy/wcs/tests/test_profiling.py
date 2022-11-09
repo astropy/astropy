@@ -30,10 +30,9 @@ def test_read_map_files():
     # how many map files we expect to see
     n_map_files = 28
 
-    assert (
-        len(hdr_map_file_list) == n_map_files
-    ), "test_read_map_files has wrong number data files: found {}, expected  {}".format(
-        len(hdr_map_file_list), n_map_files
+    assert len(hdr_map_file_list) == n_map_files, (
+        "test_read_map_files has wrong number data files: found"
+        f" {len(hdr_map_file_list)}, expected  {n_map_files}"
     )
 
 
@@ -58,10 +57,9 @@ def test_read_spec_files():
     # how many spec files expected
     n_spec_files = 6
 
-    assert (
-        len(hdr_spec_file_list) == n_spec_files
-    ), "test_spectra has wrong number data files: found {}, expected  {}".format(
-        len(hdr_spec_file_list), n_spec_files
+    assert len(hdr_spec_file_list) == n_spec_files, (
+        f"test_spectra has wrong number data files: found {len(hdr_spec_file_list)},"
+        f" expected  {n_spec_files}"
     )
     # b.t.w.  If this assert happens, pytest reports one more test
     # than it would have otherwise.

@@ -52,17 +52,17 @@ def test_empty():
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == [None]
-    assert wcs.world_axis_units == ['']
-    assert wcs.pixel_axis_names == ['']
-    assert wcs.world_axis_names == ['']
+    assert wcs.world_axis_units == [""]
+    assert wcs.pixel_axis_names == [""]
+    assert wcs.world_axis_names == [""]
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
-    assert wcs.world_axis_object_components == [('world', 0, 'value')]
+    assert wcs.world_axis_object_components == [("world", 0, "value")]
 
-    assert wcs.world_axis_object_classes['world'][0] is Quantity
-    assert wcs.world_axis_object_classes['world'][1] == ()
-    assert wcs.world_axis_object_classes['world'][2]['unit'] is u.one
+    assert wcs.world_axis_object_classes["world"][0] is Quantity
+    assert wcs.world_axis_object_classes["world"][1] == ()
+    assert wcs.world_axis_object_classes["world"][2]["unit"] is u.one
 
     assert_allclose(wcs.pixel_to_world_values(29), 29)
     assert_allclose(wcs.array_index_to_world_values(29), 29)
@@ -117,8 +117,8 @@ CUNIT2  = deg
 """
 
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', VerifyWarning)
-    WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep='\n'))
+    warnings.simplefilter("ignore", VerifyWarning)
+    WCS_SIMPLE_CELESTIAL = WCS(Header.fromstring(HEADER_SIMPLE_CELESTIAL, sep="\n"))
 
 
 def test_simple_celestial():
@@ -130,22 +130,22 @@ def test_simple_celestial():
     assert wcs.world_n_dim == 2
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
-    assert wcs.world_axis_physical_types == ['pos.eq.ra', 'pos.eq.dec']
-    assert wcs.world_axis_units == ['deg', 'deg']
-    assert wcs.pixel_axis_names == ['', '']
-    assert wcs.world_axis_names == ['', '']
+    assert wcs.world_axis_physical_types == ["pos.eq.ra", "pos.eq.dec"]
+    assert wcs.world_axis_units == ["deg", "deg"]
+    assert wcs.pixel_axis_names == ["", ""]
+    assert wcs.world_axis_names == ["", ""]
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
     assert wcs.world_axis_object_components == [
-        ('celestial', 0, 'spherical.lon.degree'),
-        ('celestial', 1, 'spherical.lat.degree'),
+        ("celestial", 0, "spherical.lon.degree"),
+        ("celestial", 1, "spherical.lat.degree"),
     ]
 
-    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert wcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
+    assert wcs.world_axis_object_classes["celestial"][1] == ()
+    assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
     assert_allclose(wcs.pixel_to_world_values(29, 39), (10, 20))
     assert_allclose(wcs.array_index_to_world_values(39, 29), (10, 20))
@@ -167,7 +167,7 @@ def test_simple_celestial():
     assert_allclose(coord.ra.deg, 10)
     assert_allclose(coord.dec.deg, 20)
 
-    coord = SkyCoord(10, 20, unit='deg', frame='icrs')
+    coord = SkyCoord(10, 20, unit="deg", frame="icrs")
 
     x, y = wcs.world_to_pixel(coord)
     assert_allclose(x, 29.0)
@@ -194,11 +194,11 @@ def test_simple_celestial():
 
     data = np.arange(3600).reshape((60, 60))
 
-    coord = SkyCoord(10, 20, unit='deg', frame='icrs')
+    coord = SkyCoord(10, 20, unit="deg", frame="icrs")
     index = wcs.world_to_array_index(coord)
     assert_equal(data[index], 2369)
 
-    coord = SkyCoord([10, 12], [20, 22], unit='deg', frame='icrs')
+    coord = SkyCoord([10, 12], [20, 22], unit="deg", frame="icrs")
     index = wcs.world_to_array_index(coord)
     assert_equal(data[index], [2369, 3550])
 
@@ -230,8 +230,8 @@ CUNIT3  = deg
 """
 
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', VerifyWarning)
-    WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
+    warnings.simplefilter("ignore", VerifyWarning)
+    WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep="\n"))
 
 
 def test_spectral_cube():
@@ -246,13 +246,13 @@ def test_spectral_cube():
     assert wcs.array_shape is None
     assert wcs.pixel_shape is None
     assert wcs.world_axis_physical_types == [
-        'pos.galactic.lat',
-        'em.freq',
-        'pos.galactic.lon',
+        "pos.galactic.lat",
+        "em.freq",
+        "pos.galactic.lon",
     ]
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_units == ["deg", "Hz", "deg"]
+    assert wcs.pixel_axis_names == ["", "", ""]
+    assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
     assert_equal(
         wcs.axis_correlation_matrix,
@@ -261,25 +261,25 @@ def test_spectral_cube():
 
     assert len(wcs.world_axis_object_components) == 3
     assert wcs.world_axis_object_components[0] == (
-        'celestial',
+        "celestial",
         1,
-        'spherical.lat.degree',
+        "spherical.lat.degree",
     )
-    assert wcs.world_axis_object_components[1][:2] == ('spectral', 0)
+    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
     assert wcs.world_axis_object_components[2] == (
-        'celestial',
+        "celestial",
         0,
-        'spherical.lon.degree',
+        "spherical.lon.degree",
     )
 
-    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert wcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
+    assert wcs.world_axis_object_classes["celestial"][1] == ()
+    assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
-    assert wcs.world_axis_object_classes['spectral'][0] is Quantity
-    assert wcs.world_axis_object_classes['spectral'][1] == ()
-    assert wcs.world_axis_object_classes['spectral'][2] == {}
+    assert wcs.world_axis_object_classes["spectral"][0] is Quantity
+    assert wcs.world_axis_object_classes["spectral"][1] == ()
+    assert wcs.world_axis_object_classes["spectral"][2] == {}
 
     assert_allclose(wcs.pixel_to_world_values(29, 39, 44), (10, 20, 25))
     assert_allclose(wcs.array_index_to_world_values(44, 39, 29), (10, 20, 25))
@@ -305,30 +305,30 @@ def test_spectral_cube():
     assert isinstance(spec, SpectralCoord)
     assert_allclose(spec.to_value(u.Hz), 20)
 
-    coord = SkyCoord(25, 10, unit='deg', frame='galactic')
+    coord = SkyCoord(25, 10, unit="deg", frame="galactic")
     spec = 20 * u.Hz
 
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         x, y, z = wcs.world_to_pixel(coord, spec)
     assert_allclose(x, 29.0)
     assert_allclose(y, 39.0)
     assert_allclose(z, 44.0)
 
     # Order of world coordinates shouldn't matter
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         x, y, z = wcs.world_to_pixel(spec, coord)
     assert_allclose(x, 29.0)
     assert_allclose(y, 39.0)
     assert_allclose(z, 44.0)
 
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i, j, k = wcs.world_to_array_index(coord, spec)
     assert_equal(i, 44)
     assert_equal(j, 39)
     assert_equal(k, 29)
 
     # Order of world coordinates shouldn't matter
-    with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i, j, k = wcs.world_to_array_index(spec, coord)
     assert_equal(i, 44)
     assert_equal(j, 39)
@@ -337,7 +337,7 @@ def test_spectral_cube():
 
 HEADER_SPECTRAL_CUBE_NONALIGNED = (
     HEADER_SPECTRAL_CUBE.strip()
-    + '\n'
+    + "\n"
     + """
 PC2_3 = -0.5
 PC3_2 = +0.5
@@ -345,9 +345,9 @@ PC3_2 = +0.5
 )
 
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', VerifyWarning)
+    warnings.simplefilter("ignore", VerifyWarning)
     WCS_SPECTRAL_CUBE_NONALIGNED = WCS(
-        Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep='\n')
+        Header.fromstring(HEADER_SPECTRAL_CUBE_NONALIGNED, sep="\n")
     )
 
 
@@ -358,13 +358,13 @@ def test_spectral_cube_nonaligned():
     wcs = WCS_SPECTRAL_CUBE_NONALIGNED
 
     assert wcs.world_axis_physical_types == [
-        'pos.galactic.lat',
-        'em.freq',
-        'pos.galactic.lon',
+        "pos.galactic.lat",
+        "em.freq",
+        "pos.galactic.lon",
     ]
-    assert wcs.world_axis_units == ['deg', 'Hz', 'deg']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['Latitude', 'Frequency', 'Longitude']
+    assert wcs.world_axis_units == ["deg", "Hz", "deg"]
+    assert wcs.pixel_axis_names == ["", "", ""]
+    assert wcs.world_axis_names == ["Latitude", "Frequency", "Longitude"]
 
     assert_equal(
         wcs.axis_correlation_matrix,
@@ -381,25 +381,25 @@ def test_spectral_cube_nonaligned():
 
     assert len(wcs.world_axis_object_components) == 3
     assert wcs.world_axis_object_components[0] == (
-        'celestial',
+        "celestial",
         1,
-        'spherical.lat.degree',
+        "spherical.lat.degree",
     )
-    assert wcs.world_axis_object_components[1][:2] == ('spectral', 0)
+    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
     assert wcs.world_axis_object_components[2] == (
-        'celestial',
+        "celestial",
         0,
-        'spherical.lon.degree',
+        "spherical.lon.degree",
     )
 
-    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert wcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], Galactic)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
+    assert wcs.world_axis_object_classes["celestial"][1] == ()
+    assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], Galactic)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
-    assert wcs.world_axis_object_classes['spectral'][0] is Quantity
-    assert wcs.world_axis_object_classes['spectral'][1] == ()
-    assert wcs.world_axis_object_classes['spectral'][2] == {}
+    assert wcs.world_axis_object_classes["spectral"][0] is Quantity
+    assert wcs.world_axis_object_classes["spectral"][1] == ()
+    assert wcs.world_axis_object_classes["spectral"][2] == {}
 
 
 ###############################################################################
@@ -459,8 +459,8 @@ PV1_3   = 42. / ZPN cubic term
 """
 
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
-    WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep='\n'))
+    warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))
+    WCS_TIME_CUBE = WCS(Header.fromstring(HEADER_TIME_CUBE, sep="\n"))
 
 
 def test_time_cube():
@@ -472,10 +472,10 @@ def test_time_cube():
     assert wcs.world_n_dim == 3
     assert wcs.array_shape == (11, 2048, 2048)
     assert wcs.pixel_shape == (2048, 2048, 11)
-    assert wcs.world_axis_physical_types == ['pos.eq.dec', 'pos.eq.ra', 'time']
-    assert wcs.world_axis_units == ['deg', 'deg', 's']
-    assert wcs.pixel_axis_names == ['', '', '']
-    assert wcs.world_axis_names == ['', '', '']
+    assert wcs.world_axis_physical_types == ["pos.eq.dec", "pos.eq.ra", "time"]
+    assert wcs.world_axis_units == ["deg", "deg", "s"]
+    assert wcs.pixel_axis_names == ["", "", ""]
+    assert wcs.world_axis_names == ["", "", ""]
 
     assert_equal(
         wcs.axis_correlation_matrix,
@@ -483,20 +483,20 @@ def test_time_cube():
     )
 
     components = wcs.world_axis_object_components
-    assert components[0] == ('celestial', 1, 'spherical.lat.degree')
-    assert components[1] == ('celestial', 0, 'spherical.lon.degree')
-    assert components[2][:2] == ('time', 0)
+    assert components[0] == ("celestial", 1, "spherical.lat.degree")
+    assert components[1] == ("celestial", 0, "spherical.lon.degree")
+    assert components[2][:2] == ("time", 0)
     assert callable(components[2][2])
 
-    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert wcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
+    assert wcs.world_axis_object_classes["celestial"][1] == ()
+    assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
-    assert wcs.world_axis_object_classes['time'][0] is Time
-    assert wcs.world_axis_object_classes['time'][1] == ()
-    assert wcs.world_axis_object_classes['time'][2] == {}
-    assert callable(wcs.world_axis_object_classes['time'][3])
+    assert wcs.world_axis_object_classes["time"][0] is Time
+    assert wcs.world_axis_object_classes["time"][1] == ()
+    assert wcs.world_axis_object_classes["time"][2] == {}
+    assert callable(wcs.world_axis_object_classes["time"][3])
 
     assert_allclose(
         wcs.pixel_to_world_values(-449.2, 2955.6, 0),
@@ -582,18 +582,18 @@ OBSGEO-B= -70
 OBSGEO-H= 2530
 """
 
-if Version(wcsver) >= Version('7.1'):
+if Version(wcsver) >= Version("7.1"):
     HEADER_TIME_1D += "DATEREF = '1995-10-12T14:24:00'\n"
 
 
 @pytest.fixture
 def header_time_1d():
-    return Header.fromstring(HEADER_TIME_1D, sep='\n')
+    return Header.fromstring(HEADER_TIME_1D, sep="\n")
 
 
 def assert_time_at(header, position, jd1, jd2, scale, format):
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header)
     time = wcs.pixel_to_world(position)
     assert_allclose(time.jd1, jd1, rtol=1e-10)
@@ -603,52 +603,52 @@ def assert_time_at(header, position, jd1, jd2, scale, format):
 
 
 @pytest.mark.parametrize(
-    'scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc', 'local')
+    "scale", ("tai", "tcb", "tcg", "tdb", "tt", "ut1", "utc", "local")
 )
 def test_time_1d_values(header_time_1d, scale):
     # Check that Time objects are instantiated with the correct values,
     # scales, and formats.
 
-    header_time_1d['CTYPE1'] = scale.upper()
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, scale, 'mjd')
+    header_time_1d["CTYPE1"] = scale.upper()
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, scale, "mjd")
 
 
 def test_time_1d_values_gps(header_time_1d):
     # Special treatment for GPS scale
-    header_time_1d['CTYPE1'] = 'GPS'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + (7 + 19) / 3600 / 24, 'tai', 'mjd')
+    header_time_1d["CTYPE1"] = "GPS"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + (7 + 19) / 3600 / 24, "tai", "mjd")
 
 
 def test_time_1d_values_deprecated(header_time_1d):
     # Deprecated (in FITS) scales
-    header_time_1d['CTYPE1'] = 'TDT'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
-    header_time_1d['CTYPE1'] = 'IAT'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
-    header_time_1d['CTYPE1'] = 'GMT'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
-    header_time_1d['CTYPE1'] = 'ET'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tt', 'mjd')
+    header_time_1d["CTYPE1"] = "TDT"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
+    header_time_1d["CTYPE1"] = "IAT"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
+    header_time_1d["CTYPE1"] = "GMT"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
+    header_time_1d["CTYPE1"] = "ET"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
 
 
 def test_time_1d_values_time(header_time_1d):
-    header_time_1d['CTYPE1'] = 'TIME'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'utc', 'mjd')
-    header_time_1d['TIMESYS'] = 'TAI'
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, 'tai', 'mjd')
+    header_time_1d["CTYPE1"] = "TIME"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
+    header_time_1d["TIMESYS"] = "TAI"
+    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
 
 
 @pytest.mark.remote_data
-@pytest.mark.parametrize('scale', ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc'))
+@pytest.mark.parametrize("scale", ("tai", "tcb", "tcg", "tdb", "tt", "ut1", "utc"))
 def test_time_1d_roundtrip(header_time_1d, scale):
     # Check that coordinates round-trip
 
     pixel_in = np.arange(3, 10)
 
-    header_time_1d['CTYPE1'] = scale.upper()
+    header_time_1d["CTYPE1"] = scale.upper()
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header_time_1d)
 
     # Simple test
@@ -658,19 +658,19 @@ def test_time_1d_roundtrip(header_time_1d, scale):
 
     # Test with an intermediate change to a different scale/format
     time = wcs.pixel_to_world(pixel_in).tdb
-    time.format = 'isot'
+    time.format = "isot"
     pixel_out = wcs.world_to_pixel(time)
     assert_allclose(pixel_in, pixel_out)
 
 
 def test_time_1d_high_precision(header_time_1d):
     # Case where the MJDREF is split into two for high precision
-    del header_time_1d['MJDREF']
-    header_time_1d['MJDREFI'] = 52000.0
-    header_time_1d['MJDREFF'] = 1e-11
+    del header_time_1d["MJDREF"]
+    header_time_1d["MJDREFI"] = 52000.0
+    header_time_1d["MJDREFF"] = 1e-11
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header_time_1d)
 
     time = wcs.pixel_to_world(10)
@@ -685,7 +685,7 @@ def test_time_1d_location_geodetic(header_time_1d):
     # Make sure that the location is correctly returned (geodetic case)
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header_time_1d)
 
     time = wcs.pixel_to_world(10)
@@ -701,10 +701,10 @@ def test_time_1d_location_geodetic(header_time_1d):
 
 @pytest.fixture
 def header_time_1d_no_obs():
-    header = Header.fromstring(HEADER_TIME_1D, sep='\n')
-    del header['OBSGEO-L']
-    del header['OBSGEO-B']
-    del header['OBSGEO-H']
+    header = Header.fromstring(HEADER_TIME_1D, sep="\n")
+    del header["OBSGEO-L"]
+    del header["OBSGEO-B"]
+    del header["OBSGEO-H"]
     return header
 
 
@@ -713,12 +713,12 @@ def test_time_1d_location_geocentric(header_time_1d_no_obs):
 
     header = header_time_1d_no_obs
 
-    header['OBSGEO-X'] = 10
-    header['OBSGEO-Y'] = -20
-    header['OBSGEO-Z'] = 30
+    header["OBSGEO-X"] = 10
+    header["OBSGEO-Y"] = -20
+    header["OBSGEO-Z"] = 30
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header)
 
     time = wcs.pixel_to_world(10)
@@ -731,7 +731,7 @@ def test_time_1d_location_geocentric(header_time_1d_no_obs):
 
 
 def test_time_1d_location_geocenter(header_time_1d_no_obs):
-    header_time_1d_no_obs['TREFPOS'] = 'GEOCENTER'
+    header_time_1d_no_obs["TREFPOS"] = "GEOCENTER"
 
     wcs = WCS(header_time_1d_no_obs)
     time = wcs.pixel_to_world(10)
@@ -750,8 +750,8 @@ def test_time_1d_location_missing(header_time_1d_no_obs):
     with pytest.warns(
         UserWarning,
         match=(
-            'Missing or incomplete observer location '
-            'information, setting location in Time to None'
+            "Missing or incomplete observer location "
+            "information, setting location in Time to None"
         ),
     ):
         time = wcs.pixel_to_world(10)
@@ -762,17 +762,17 @@ def test_time_1d_location_missing(header_time_1d_no_obs):
 def test_time_1d_location_incomplete(header_time_1d_no_obs):
     # Check what happens when location information is incomplete
 
-    header_time_1d_no_obs['OBSGEO-L'] = 10.0
+    header_time_1d_no_obs["OBSGEO-L"] = 10.0
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header_time_1d_no_obs)
 
     with pytest.warns(
         UserWarning,
         match=(
-            'Missing or incomplete observer location '
-            'information, setting location in Time to None'
+            "Missing or incomplete observer location "
+            "information, setting location in Time to None"
         ),
     ):
         time = wcs.pixel_to_world(10)
@@ -783,7 +783,7 @@ def test_time_1d_location_incomplete(header_time_1d_no_obs):
 def test_time_1d_location_unsupported(header_time_1d_no_obs):
     # Check what happens when TREFPOS is unsupported
 
-    header_time_1d_no_obs['TREFPOS'] = 'BARYCENTER'
+    header_time_1d_no_obs["TREFPOS"] = "BARYCENTER"
 
     wcs = WCS(header_time_1d_no_obs)
     with pytest.warns(
@@ -802,7 +802,7 @@ def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
     # For cases that we don't support yet, e.g. UT(...), use Time and drop sub-scale
 
     # Case where the MJDREF is split into two for high precision
-    header_time_1d_no_obs['CTYPE1'] = 'UT(WWV)'
+    header_time_1d_no_obs["CTYPE1"] = "UT(WWV)"
 
     wcs = WCS(header_time_1d_no_obs)
     with pytest.warns(
@@ -822,12 +822,12 @@ def test_unrecognized_unit():
     # TODO: Determine whether the following behavior is desirable
     wcs = WCS(naxis=1)
     with pytest.warns(UnitsWarning):
-        wcs.wcs.cunit = ['bananas // sekonds']
-        assert wcs.world_axis_units == ['bananas // sekonds']
+        wcs.wcs.cunit = ["bananas // sekonds"]
+        assert wcs.world_axis_units == ["bananas // sekonds"]
 
 
 def test_distortion_correlations():
-    filename = get_pkg_data_filename('../../tests/data/sip.fits')
+    filename = get_pkg_data_filename("../../tests/data/sip.fits")
     with pytest.warns(FITSFixedWarning):
         w = WCS(filename)
     assert_equal(w.axis_correlation_matrix, True)
@@ -838,7 +838,7 @@ def test_distortion_correlations():
     assert_equal(w.axis_correlation_matrix, True)
 
     # Nor does changing the name of the axes to make them non-celestial
-    w.wcs.ctype = ['X', 'Y']
+    w.wcs.ctype = ["X", "Y"]
     assert_equal(w.axis_correlation_matrix, True)
 
     # However once we turn off the distortions the matrix changes
@@ -846,48 +846,48 @@ def test_distortion_correlations():
     assert_equal(w.axis_correlation_matrix, [[True, False], [False, True]])
 
     # If we go back to celestial coordinates then the matrix is all True again
-    w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_equal(w.axis_correlation_matrix, True)
 
     # Or if we change to X/Y but have a non-identity PC
     w.wcs.pc = [[0.9, -0.1], [0.1, 0.9]]
-    w.wcs.ctype = ['X', 'Y']
+    w.wcs.ctype = ["X", "Y"]
     assert_equal(w.axis_correlation_matrix, True)
 
 
 def test_custom_ctype_to_ucd_mappings():
     wcs = WCS(naxis=1)
-    wcs.wcs.ctype = ['SPAM']
+    wcs.wcs.ctype = ["SPAM"]
 
     assert wcs.world_axis_physical_types == [None]
 
     # Check simple behavior
 
-    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
+    with custom_ctype_to_ucd_mapping({"APPLE": "food.fruit"}):
         assert wcs.world_axis_physical_types == [None]
 
-    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit', 'SPAM': 'food.spam'}):
-        assert wcs.world_axis_physical_types == ['food.spam']
+    with custom_ctype_to_ucd_mapping({"APPLE": "food.fruit", "SPAM": "food.spam"}):
+        assert wcs.world_axis_physical_types == ["food.spam"]
 
     # Check nesting
 
-    with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-        with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+    with custom_ctype_to_ucd_mapping({"SPAM": "food.spam"}):
+        with custom_ctype_to_ucd_mapping({"APPLE": "food.fruit"}):
+            assert wcs.world_axis_physical_types == ["food.spam"]
 
-    with custom_ctype_to_ucd_mapping({'APPLE': 'food.fruit'}):
-        with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+    with custom_ctype_to_ucd_mapping({"APPLE": "food.fruit"}):
+        with custom_ctype_to_ucd_mapping({"SPAM": "food.spam"}):
+            assert wcs.world_axis_physical_types == ["food.spam"]
 
     # Check priority in nesting
 
-    with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
-        with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-            assert wcs.world_axis_physical_types == ['food.spam']
+    with custom_ctype_to_ucd_mapping({"SPAM": "notfood"}):
+        with custom_ctype_to_ucd_mapping({"SPAM": "food.spam"}):
+            assert wcs.world_axis_physical_types == ["food.spam"]
 
-    with custom_ctype_to_ucd_mapping({'SPAM': 'food.spam'}):
-        with custom_ctype_to_ucd_mapping({'SPAM': 'notfood'}):
-            assert wcs.world_axis_physical_types == ['notfood']
+    with custom_ctype_to_ucd_mapping({"SPAM": "food.spam"}):
+        with custom_ctype_to_ucd_mapping({"SPAM": "notfood"}):
+            assert wcs.world_axis_physical_types == ["notfood"]
 
 
 def test_caching_components_and_classes():
@@ -898,24 +898,24 @@ def test_caching_components_and_classes():
     wcs = WCS_SIMPLE_CELESTIAL.deepcopy()
 
     assert wcs.world_axis_object_components == [
-        ('celestial', 0, 'spherical.lon.degree'),
-        ('celestial', 1, 'spherical.lat.degree'),
+        ("celestial", 0, "spherical.lon.degree"),
+        ("celestial", 1, "spherical.lat.degree"),
     ]
 
-    assert wcs.world_axis_object_classes['celestial'][0] is SkyCoord
-    assert wcs.world_axis_object_classes['celestial'][1] == ()
-    assert isinstance(wcs.world_axis_object_classes['celestial'][2]['frame'], ICRS)
-    assert wcs.world_axis_object_classes['celestial'][2]['unit'] is u.deg
+    assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
+    assert wcs.world_axis_object_classes["celestial"][1] == ()
+    assert isinstance(wcs.world_axis_object_classes["celestial"][2]["frame"], ICRS)
+    assert wcs.world_axis_object_classes["celestial"][2]["unit"] is u.deg
 
-    wcs.wcs.radesys = 'FK5'
+    wcs.wcs.radesys = "FK5"
 
-    frame = wcs.world_axis_object_classes['celestial'][2]['frame']
+    frame = wcs.world_axis_object_classes["celestial"][2]["frame"]
     assert isinstance(frame, FK5)
     assert frame.equinox.jyear == 2000.0
 
     wcs.wcs.equinox = 2010
 
-    frame = wcs.world_axis_object_classes['celestial'][2]['frame']
+    frame = wcs.world_axis_object_classes["celestial"][2]["frame"]
     assert isinstance(frame, FK5)
     assert frame.equinox.jyear == 2010.0
 
@@ -939,11 +939,11 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub1.pixel_shape == (30, 50)
     assert wcs_sub1.pixel_bounds == [(-1, 11), (5, 15)]
     assert wcs_sub1.world_axis_physical_types == [
-        'pos.galactic.lat',
-        'pos.galactic.lon',
+        "pos.galactic.lat",
+        "pos.galactic.lon",
     ]
-    assert wcs_sub1.world_axis_units == ['deg', 'deg']
-    assert wcs_sub1.world_axis_names == ['Latitude', 'Longitude']
+    assert wcs_sub1.world_axis_units == ["deg", "deg"]
+    assert wcs_sub1.world_axis_names == ["Latitude", "Longitude"]
 
     # Try adding axes
 
@@ -954,13 +954,13 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub2.array_shape == (None, 40, None)
     assert wcs_sub2.pixel_shape == (None, 40, None)
     assert wcs_sub2.pixel_bounds == [None, (-2, 18), None]
-    assert wcs_sub2.world_axis_physical_types == [None, 'em.freq', None]
-    assert wcs_sub2.world_axis_units == ['', 'Hz', '']
-    assert wcs_sub2.world_axis_names == ['', 'Frequency', '']
+    assert wcs_sub2.world_axis_physical_types == [None, "em.freq", None]
+    assert wcs_sub2.world_axis_units == ["", "Hz", ""]
+    assert wcs_sub2.world_axis_names == ["", "Frequency", ""]
 
     # Use strings
 
-    wcs_sub3 = wcs.sub(['longitude', 'latitude'])
+    wcs_sub3 = wcs.sub(["longitude", "latitude"])
 
     assert wcs_sub3.pixel_n_dim == 2
     assert wcs_sub3.world_n_dim == 2
@@ -968,16 +968,16 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub3.pixel_shape == (50, 30)
     assert wcs_sub3.pixel_bounds == [(5, 15), (-1, 11)]
     assert wcs_sub3.world_axis_physical_types == [
-        'pos.galactic.lon',
-        'pos.galactic.lat',
+        "pos.galactic.lon",
+        "pos.galactic.lat",
     ]
-    assert wcs_sub3.world_axis_units == ['deg', 'deg']
-    assert wcs_sub3.world_axis_names == ['Longitude', 'Latitude']
+    assert wcs_sub3.world_axis_units == ["deg", "deg"]
+    assert wcs_sub3.world_axis_names == ["Longitude", "Latitude"]
 
     # Now try without CNAME set
 
-    wcs.wcs.cname = [''] * wcs.wcs.naxis
-    wcs_sub4 = wcs.sub(['longitude', 'latitude'])
+    wcs.wcs.cname = [""] * wcs.wcs.naxis
+    wcs_sub4 = wcs.sub(["longitude", "latitude"])
 
     assert wcs_sub4.pixel_n_dim == 2
     assert wcs_sub4.world_n_dim == 2
@@ -985,11 +985,11 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.pixel_shape == (50, 30)
     assert wcs_sub4.pixel_bounds == [(5, 15), (-1, 11)]
     assert wcs_sub4.world_axis_physical_types == [
-        'pos.galactic.lon',
-        'pos.galactic.lat',
+        "pos.galactic.lon",
+        "pos.galactic.lat",
     ]
-    assert wcs_sub4.world_axis_units == ['deg', 'deg']
-    assert wcs_sub4.world_axis_names == ['', '']
+    assert wcs_sub4.world_axis_units == ["deg", "deg"]
+    assert wcs_sub4.world_axis_names == ["", ""]
 
 
 HEADER_POLARIZED = """
@@ -1001,12 +1001,12 @@ CTYPE3  = 'STOKES'
 
 @pytest.fixture
 def header_polarized():
-    return Header.fromstring(HEADER_POLARIZED, sep='\n')
+    return Header.fromstring(HEADER_POLARIZED, sep="\n")
 
 
 def test_phys_type_polarization(header_polarized):
     w = WCS(header_polarized)
-    assert w.world_axis_physical_types[2] == 'phys.polarization.stokes'
+    assert w.world_axis_physical_types[2] == "phys.polarization.stokes"
 
 
 ###############################################################################
@@ -1039,7 +1039,7 @@ RADESYS = 'FK5'
 
 @pytest.fixture
 def header_spectral_frames():
-    return Header.fromstring(HEADER_SPECTRAL_FRAMES, sep='\n')
+    return Header.fromstring(HEADER_SPECTRAL_FRAMES, sep="\n")
 
 
 def test_spectralcoord_frame(header_spectral_frames):
@@ -1049,16 +1049,16 @@ def test_spectralcoord_frame(header_spectral_frames):
     # since this is already done in test_spectralcoord_accuracy
     # in astropy.coordinates.
 
-    with iers.conf.set_temp('auto_download', False):
-        obstime = Time("2009-05-04T04:44:23", scale='utc')
+    with iers.conf.set_temp("auto_download", False):
+        obstime = Time("2009-05-04T04:44:23", scale="utc")
 
         header = header_spectral_frames.copy()
-        header['MJD-OBS'] = obstime.mjd
-        header['CRVAL1'] = 16.33211
-        header['CRVAL2'] = -34.2221
-        header['OBSGEO-L'] = 144.2
-        header['OBSGEO-B'] = -20.2
-        header['OBSGEO-H'] = 0.0
+        header["MJD-OBS"] = obstime.mjd
+        header["CRVAL1"] = 16.33211
+        header["CRVAL2"] = -34.2221
+        header["OBSGEO-L"] = 144.2
+        header["OBSGEO-B"] = -20.2
+        header["OBSGEO-H"] = 0.0
 
         # We start off with a WCS defined in topocentric frequency
         with pytest.warns(FITSFixedWarning):
@@ -1072,7 +1072,7 @@ def test_spectralcoord_frame(header_spectral_frames):
         assert isinstance(sc_topo, SpectralCoord)
         assert isinstance(sc_topo.observer, ITRS)
         assert sc_topo.observer.obstime.isot == obstime.isot
-        assert_equal(sc_topo.observer.data.differentials['s'].d_xyz.value, 0)
+        assert_equal(sc_topo.observer.data.differentials["s"].d_xyz.value, 0)
 
         observatory = (
             EarthLocation.from_geodetic(144.2, -20.2)
@@ -1084,7 +1084,7 @@ def test_spectralcoord_frame(header_spectral_frames):
         )
 
         for specsys, expected_frame in VELOCITY_FRAMES.items():
-            header['SPECSYS'] = specsys
+            header["SPECSYS"] = specsys
             with pytest.warns(FITSFixedWarning):
                 wcs = WCS(header)
             sc = wcs.pixel_to_world(0, 0, 31)[1]
@@ -1096,31 +1096,31 @@ def test_spectralcoord_frame(header_spectral_frames):
 
 
 @pytest.mark.parametrize(
-    ('ctype3', 'observer'),
-    product(['ZOPT', 'BETA', 'VELO', 'VRAD', 'VOPT'], [False, True]),
+    ("ctype3", "observer"),
+    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
 )
 def test_different_ctypes(header_spectral_frames, ctype3, observer):
     header = header_spectral_frames.copy()
-    header['CTYPE3'] = ctype3
-    header['CRVAL3'] = 0.1
-    header['CDELT3'] = 0.001
+    header["CTYPE3"] = ctype3
+    header["CRVAL3"] = 0.1
+    header["CDELT3"] = 0.001
 
-    if ctype3[0] == 'V':
-        header['CUNIT3'] = 'm s-1'
+    if ctype3[0] == "V":
+        header["CUNIT3"] = "m s-1"
     else:
-        header['CUNIT3'] = ''
+        header["CUNIT3"] = ""
 
-    header['RESTWAV'] = 1.420405752e09
-    header['MJD-OBS'] = 55197
+    header["RESTWAV"] = 1.420405752e09
+    header["MJD-OBS"] = 55197
 
     if observer:
-        header['OBSGEO-L'] = 144.2
-        header['OBSGEO-B'] = -20.2
-        header['OBSGEO-H'] = 0.0
-        header['SPECSYS'] = 'BARYCENT'
+        header["OBSGEO-L"] = 144.2
+        header["OBSGEO-B"] = -20.2
+        header["OBSGEO-H"] = 0.0
+        header["SPECSYS"] = "BARYCENT"
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header)
 
     skycoord, spectralcoord = wcs.pixel_to_world(0, 0, 31)
@@ -1130,7 +1130,7 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
     if observer:
         pix = wcs.world_to_pixel(skycoord, spectralcoord)
     else:
-        with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
             pix = wcs.world_to_pixel(skycoord, spectralcoord)
 
     assert_allclose(pix, [0, 0, 31], rtol=1e-6, atol=1e-9)
@@ -1178,38 +1178,38 @@ RADESYS = 'FK5'
 
 @pytest.fixture
 def header_spectral_1d():
-    return Header.fromstring(HEADER_SPECTRAL_1D, sep='\n')
+    return Header.fromstring(HEADER_SPECTRAL_1D, sep="\n")
 
 
 @pytest.mark.parametrize(
-    ('ctype1', 'observer'),
-    product(['ZOPT', 'BETA', 'VELO', 'VRAD', 'VOPT'], [False, True]),
+    ("ctype1", "observer"),
+    product(["ZOPT", "BETA", "VELO", "VRAD", "VOPT"], [False, True]),
 )
 def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # This is a regression test for issues that happened with 1-d WCS
     # where the target is not defined but observer is.
 
     header = header_spectral_1d.copy()
-    header['CTYPE1'] = ctype1
-    header['CRVAL1'] = 0.1
-    header['CDELT1'] = 0.001
+    header["CTYPE1"] = ctype1
+    header["CRVAL1"] = 0.1
+    header["CDELT1"] = 0.001
 
-    if ctype1[0] == 'V':
-        header['CUNIT1'] = 'm s-1'
+    if ctype1[0] == "V":
+        header["CUNIT1"] = "m s-1"
     else:
-        header['CUNIT1'] = ''
+        header["CUNIT1"] = ""
 
-    header['RESTWAV'] = 1.420405752e09
-    header['MJD-OBS'] = 55197
+    header["RESTWAV"] = 1.420405752e09
+    header["MJD-OBS"] = 55197
 
     if observer:
-        header['OBSGEO-L'] = 144.2
-        header['OBSGEO-B'] = -20.2
-        header['OBSGEO-H'] = 0.0
-        header['SPECSYS'] = 'BARYCENT'
+        header["OBSGEO-L"] = 144.2
+        header["OBSGEO-B"] = -20.2
+        header["OBSGEO-H"] = 0.0
+        header["SPECSYS"] = "BARYCENT"
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', FITSFixedWarning)
+        warnings.simplefilter("ignore", FITSFixedWarning)
         wcs = WCS(header)
 
     # First ensure that transformations round-trip
@@ -1221,9 +1221,9 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     assert (spectralcoord.observer is not None) is observer
 
     if observer:
-        expected_message = 'No target defined on SpectralCoord'
+        expected_message = "No target defined on SpectralCoord"
     else:
-        expected_message = 'No observer defined on WCS'
+        expected_message = "No observer defined on WCS"
 
     with pytest.warns(AstropyUserWarning, match=expected_message):
         pix = wcs.world_to_pixel(spectralcoord)
@@ -1233,7 +1233,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # Also make sure that we can convert a SpectralCoord on which the observer
     # is not defined but the target is.
 
-    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+    with pytest.warns(AstropyUserWarning, match="No velocity defined on frame"):
         spectralcoord_no_obs = SpectralCoord(
             spectralcoord.quantity,
             doppler_rest=spectralcoord.doppler_rest,
@@ -1242,9 +1242,9 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
         )
 
     if observer:
-        expected_message = 'No observer defined on SpectralCoord'
+        expected_message = "No observer defined on SpectralCoord"
     else:
-        expected_message = 'No observer defined on WCS'
+        expected_message = "No observer defined on WCS"
 
     with pytest.warns(AstropyUserWarning, match=expected_message):
         pix2 = wcs.world_to_pixel(spectralcoord_no_obs)
@@ -1253,7 +1253,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     # And finally check case when both observer and target are defined on the
     # SpectralCoord
 
-    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
+    with pytest.warns(AstropyUserWarning, match="No velocity defined on frame"):
         spectralcoord_no_obs = SpectralCoord(
             spectralcoord.quantity,
             doppler_rest=spectralcoord.doppler_rest,
@@ -1265,7 +1265,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     if observer:
         pix3 = wcs.world_to_pixel(spectralcoord_no_obs)
     else:
-        with pytest.warns(AstropyUserWarning, match='No observer defined on WCS'):
+        with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
             pix3 = wcs.world_to_pixel(spectralcoord_no_obs)
 
     assert_allclose(pix3, [31], rtol=1e-6)
@@ -1297,7 +1297,7 @@ TIMESYS = 'UTC'
 
 @pytest.fixture
 def header_spectral_with_time():
-    return Header.fromstring(HEADER_SPECTRAL_WITH_TIME, sep='\n')
+    return Header.fromstring(HEADER_SPECTRAL_WITH_TIME, sep="\n")
 
 
 def test_spectral_with_time_kw(header_spectral_with_time):
@@ -1313,7 +1313,7 @@ def test_spectral_with_time_kw(header_spectral_with_time):
     # Chek with MJD-AVG and TIMESYS
     hdr = header_spectral_with_time.copy()
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))
         w = WCS(hdr)
         # Make sure the correct keyword is used in a test
         assert ~np.isnan(w.wcs.mjdavg)
@@ -1322,10 +1322,10 @@ def test_spectral_with_time_kw(header_spectral_with_time):
     check_wcs(w)
 
     # Check fall back to MJD-OBS
-    hdr['MJD-OBS'] = hdr['MJD-AVG']
-    del hdr['MJD-AVG']
+    hdr["MJD-OBS"] = hdr["MJD-AVG"]
+    del hdr["MJD-AVG"]
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))
         w = WCS(hdr)
         # Make sure the correct keyword is used in a test
         assert ~np.isnan(w.wcs.mjdobs)
@@ -1333,10 +1333,10 @@ def test_spectral_with_time_kw(header_spectral_with_time):
     check_wcs(w)
 
     # Check fall back to DATE--OBS
-    hdr['DATE-OBS'] = '2020-07-15'
-    del hdr['MJD-OBS']
+    hdr["DATE-OBS"] = "2020-07-15"
+    del hdr["MJD-OBS"]
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', (VerifyWarning, FITSFixedWarning))
+        warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))
         w = WCS(hdr)
         w.wcs.mjdobs = np.nan
         # Make sure the correct keyword is used in a test
@@ -1346,5 +1346,5 @@ def test_spectral_with_time_kw(header_spectral_with_time):
     check_wcs(hdr)
 
     # Check fall back to scale='utc'
-    del hdr['TIMESYS']
+    del hdr["TIMESYS"]
     check_wcs(hdr)
