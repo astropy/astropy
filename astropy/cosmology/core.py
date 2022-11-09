@@ -113,9 +113,11 @@ class Cosmology(metaclass=abc.ABCMeta):
             derived_parameters.append(n) if v.derived else parameters.append(n)
 
         # reorder to match signature
-        ordered = [parameters.pop(parameters.index(n))
-                   for n in cls._init_signature.parameters.keys()
-                   if n in parameters]
+        ordered = [
+            parameters.pop(parameters.index(n))
+            for n in cls._init_signature.parameters.keys()
+            if n in parameters
+        ]
         parameters = ordered + parameters  # place "unordered" at the end
         cls.__parameters__ = tuple(parameters)
         cls.__all_parameters__ = cls.__parameters__ + tuple(derived_parameters)
@@ -300,7 +302,9 @@ class Cosmology(metaclass=abc.ABCMeta):
         from .funcs import cosmology_equal
 
         try:
-            return cosmology_equal(self, other, format=(None, format), allow_equivalent=True)
+            return cosmology_equal(
+                self, other, format=(None, format), allow_equivalent=True
+            )
         except Exception:
             # `is_equivalent` allows `other` to be any object and returns False
             # if `other` cannot be converted to a Cosmology, rather than
@@ -328,10 +332,10 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # Check all parameters in 'other' match those in 'self' and 'other' has
         # no extra parameters (latter part should never happen b/c same class)
-        params_eq = (set(self.__all_parameters__) == set(other.__all_parameters__)
-                     and all(np.all(getattr(self, k) == getattr(other, k))
-                             for k in self.__all_parameters__))
-        return params_eq
+        return set(self.__all_parameters__) == set(other.__all_parameters__) and all(
+            np.all(getattr(self, k) == getattr(other, k))
+            for k in self.__all_parameters__
+        )
 
     def __eq__(self, other: Any, /) -> bool:
         """Check equality between Cosmologies.
@@ -358,8 +362,10 @@ class Cosmology(metaclass=abc.ABCMeta):
             # has no extra parameters (latter part should never happen b/c same
             # class) TODO! element-wise when there are array cosmologies
             and set(self.__all_parameters__) == set(other.__all_parameters__)
-            and all(np.all(getattr(self, k) == getattr(other, k))
-                    for k in self.__all_parameters__)
+            and all(
+                np.all(getattr(self, k) == getattr(other, k))
+                for k in self.__all_parameters__
+            )
         )
 
         return eq
@@ -369,9 +375,9 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __repr__(self):
         namelead = f"{self.__class__.__qualname__}("
         if self.name is not None:
-            namelead += f"name=\"{self.name}\", "
+            namelead += f'name="{self.name}", '
         # nicely formatted parameters
-        fmtps = (f'{k}={getattr(self, k)}' for k in self.__parameters__)
+        fmtps = (f"{k}={getattr(self, k)}" for k in self.__parameters__)
 
         return namelead + ", ".join(fmtps) + ")"
 
@@ -418,7 +424,9 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     # ===============================================================
 
     @classmethod  # TODO! make metaclass-method
-    def _get_nonflat_cls(cls, kls: type[_CosmoT] | None = None) -> type[Cosmology] | None:
+    def _get_nonflat_cls(
+        cls, kls: type[_CosmoT] | None = None
+    ) -> type[Cosmology] | None:
         """Find the corresponding non-flat class.
 
         The class' bases are searched recursively.
@@ -445,15 +453,20 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         # Find non-flat classes
         nonflat: set[type[Cosmology]]
-        nonflat = {b for b in _kls.__bases__
-                   if issubclass(b, Cosmology) and not issubclass(b, FlatCosmologyMixin)}
+        nonflat = {
+            b
+            for b in _kls.__bases__
+            if issubclass(b, Cosmology) and not issubclass(b, FlatCosmologyMixin)
+        }
 
         if not nonflat:  # e.g. subclassing FlatLambdaCDM
-            nonflat = {k for b in _kls.__bases__ if (k := cls._get_nonflat_cls(b)) is not None}
+            nonflat = {
+                k for b in _kls.__bases__ if (k := cls._get_nonflat_cls(b)) is not None
+            }
 
         if len(nonflat) > 1:
             raise TypeError(
-                f"cannot create a consistent non-flat class resolution order "
+                "cannot create a consistent non-flat class resolution order "
                 f"for {_kls} with bases {nonflat} at the same inheritance level."
             )
         if not nonflat:  # e.g. FlatFLRWMixin(FlatCosmologyMixin)
@@ -461,8 +474,9 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 
         return nonflat.pop()
 
-    __nonflatclass__ = classproperty(_get_nonflat_cls, lazy=True,
-                                     doc="Return the corresponding non-flat class.")
+    __nonflatclass__ = classproperty(
+        _get_nonflat_cls, lazy=True, doc="Return the corresponding non-flat class."
+    )
 
     # ===============================================================
 
@@ -564,13 +578,16 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
         params_eq = (
             set(self.__all_parameters__) == set(other.__all_parameters__)  # no extra
             # equal
-            and all(np.all(getattr(self, k) == getattr(other, k))
-                    for k in self.__parameters__)
+            and all(
+                np.all(getattr(self, k) == getattr(other, k))
+                for k in self.__parameters__
+            )
             # flatness check
             and other.is_flat
         )
 
         return params_eq
+
 
 # -----------------------------------------------------------------------------
 
@@ -578,7 +595,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
 def __getattr__(attr):
     from . import flrw
 
-    if hasattr(flrw, attr) and attr not in ("__path__", ):
+    if hasattr(flrw, attr) and attr not in ("__path__",):
         import warnings
 
         from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -587,7 +604,7 @@ def __getattr__(attr):
             f"`astropy.cosmology.core.{attr}` has been moved (since v5.0) and "
             f"should be imported as ``from astropy.cosmology import {attr}``."
             " In future this will raise an exception.",
-            AstropyDeprecationWarning
+            AstropyDeprecationWarning,
         )
 
         return getattr(flrw, attr)

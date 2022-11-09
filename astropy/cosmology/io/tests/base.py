@@ -103,7 +103,9 @@ class IODirectTestBase(IOTestBase):
         class CosmologyWithKwargs(Cosmology):
             Tcmb0 = Parameter(unit=u.K)
 
-            def __init__(self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs):
+            def __init__(
+                self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs
+            ):
                 super().__init__(name=name, meta=meta)
                 self._Tcmb0 = Tcmb0 << u.K
 
@@ -147,6 +149,7 @@ class ToFromDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def from_format(self):
         """Convert to Cosmology using function ``from``."""
+
         def use_from_format(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["from"](*args, **kwargs)
@@ -156,6 +159,7 @@ class ToFromDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def to_format(self, cosmo):
         """Convert Cosmology to format using function ``to``."""
+
         def use_to_format(*args, **kwargs):
             return self.functions["to"](cosmo, *args, **kwargs)
 
@@ -183,6 +187,7 @@ class ReadWriteDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def read(self):
         """Read Cosmology from file using function ``read``."""
+
         def use_read(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["read"](*args, **kwargs)
@@ -192,6 +197,7 @@ class ReadWriteDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     @pytest.fixture(scope="class")
     def write(self, cosmo):
         """Write Cosmology to file using function ``write``."""
+
         def use_write(*args, **kwargs):
             return self.functions["write"](cosmo, *args, **kwargs)
 

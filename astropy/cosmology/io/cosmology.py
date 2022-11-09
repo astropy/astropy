@@ -74,7 +74,9 @@ def cosmology_identify(origin, format, *args, **kwargs):
     """
     itis = False
     if origin == "read":
-        itis = isinstance(args[1], Cosmology) and (format in (None, "astropy.cosmology"))
+        itis = isinstance(args[1], Cosmology) and (
+            format in (None, "astropy.cosmology")
+        )
     return itis
 
 

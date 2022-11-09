@@ -12,7 +12,7 @@ from .base import FLRW
 
 __all__ = ["wpwaCDM"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class wpwaCDM(FLRW):
@@ -100,16 +100,42 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float")
-    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
-                   fvalidate="float")
+    wp = Parameter(
+        doc="Dark energy equation of state at the pivot redshift zp.", fvalidate="float"
+    )
+    wa = Parameter(
+        doc="Negative derivative of dark energy equation of state w.r.t. a.",
+        fvalidate="float",
+    )
     zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
 
-    def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0 * cu.redshift,
-                 Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *,
-                 name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        wp=-1.0,
+        wa=0.0,
+        zp=0.0 * cu.redshift,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
         self.wp = wp
         self.wa = wa
         self.zp = zp
@@ -119,20 +145,39 @@ class wpwaCDM(FLRW):
         apiv = 1.0 / (1.0 + self._zp.value)
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._wp, apiv, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._wp,
+                apiv,
+                self._wa,
+            )
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._wp, apiv, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+                self._wp,
+                apiv,
+                self._wa,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._wp,
-                                           apiv, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._wp,
+                apiv,
+                self._wa,
+            )
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -187,5 +232,7 @@ class wpwaCDM(FLRW):
         """
         z = aszarr(z)
         zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        apiv = 1. / (1. + self._zp.value)
-        return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * exp(-3. * self._wa * z / zp1)
+        apiv = 1.0 / (1.0 + self._zp.value)
+        return zp1 ** (3.0 * (1.0 + self._wp + apiv * self._wa)) * exp(
+            -3.0 * self._wa * z / zp1
+        )
