@@ -43,7 +43,7 @@ from .function.logarithmic import *
 from .decorators import *
 from .structured import *
 
-from .autoaompletion import *
+from .autocompletion import *
 # isort: on
 
 del bases
