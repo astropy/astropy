@@ -2,8 +2,8 @@
 
 import numpy as np
 
-__all__ = ['jackknife_resampling', 'jackknife_stats']
-__doctest_requires__ = {'jackknife_stats': ['scipy']}
+__all__ = ["jackknife_resampling", "jackknife_stats"]
+__doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
 
 def jackknife_resampling(data):
@@ -44,7 +44,7 @@ def jackknife_resampling(data):
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")
 
-    resamples = np.empty([n, n-1])
+    resamples = np.empty([n, n - 1])
 
     for i in range(n):
         resamples[i] = np.delete(data, i)
@@ -161,16 +161,18 @@ def jackknife_stats(data, statistic, confidence_level=0.95):
     mean_jack_stat = np.mean(jack_stat, axis=0)
 
     # jackknife bias
-    bias = (n-1)*(mean_jack_stat - stat_data)
+    bias = (n - 1) * (mean_jack_stat - stat_data)
 
     # jackknife standard error
-    std_err = np.sqrt((n-1)*np.mean((jack_stat - mean_jack_stat)*(jack_stat -
-                                    mean_jack_stat), axis=0))
+    std_err = np.sqrt(
+        (n - 1)
+        * np.mean((jack_stat - mean_jack_stat) * (jack_stat - mean_jack_stat), axis=0)
+    )
 
     # bias-corrected "jackknifed estimate"
     estimate = stat_data - bias
 
-    z_score = np.sqrt(2.0)*erfinv(confidence_level)
-    conf_interval = estimate + z_score*np.array((-std_err, std_err))
+    z_score = np.sqrt(2.0) * erfinv(confidence_level)
+    conf_interval = estimate + z_score * np.array((-std_err, std_err))
 
     return estimate, bias, std_err, conf_interval

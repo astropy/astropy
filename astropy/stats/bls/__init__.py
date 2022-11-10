@@ -17,7 +17,7 @@ from astropy.timeseries.periodograms.bls import (
 )
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-__all__ = ['BoxLeastSquares', 'BoxLeastSquaresResults']
+__all__ = ["BoxLeastSquares", "BoxLeastSquaresResults"]
 
 
 class BoxLeastSquares(TimeseriesBoxLeastSquares):
@@ -29,10 +29,13 @@ class BoxLeastSquares(TimeseriesBoxLeastSquares):
     """
 
     def __init__(self, *args, **kwargs):
-        warnings.warn('Importing BoxLeastSquares from astropy.stats has been '
-                      'deprecated and will no longer be supported in future. '
-                      'Please import this class from the astropy.timeseries '
-                      'module instead', AstropyDeprecationWarning)
+        warnings.warn(
+            "Importing BoxLeastSquares from astropy.stats has been "
+            "deprecated and will no longer be supported in future. "
+            "Please import this class from the astropy.timeseries "
+            "module instead",
+            AstropyDeprecationWarning,
+        )
         super().__init__(*args, **kwargs)
 
 
@@ -45,8 +48,11 @@ class BoxLeastSquaresResults(TimeseriesBoxLeastSquaresResults):
     """
 
     def __init__(self, *args, **kwargs):
-        warnings.warn('Importing BoxLeastSquaresResults from astropy.stats has been '
-                      'deprecated and will no longer be supported in future. '
-                      'Please import this class from the astropy.timeseries '
-                      'module instead', AstropyDeprecationWarning)
+        warnings.warn(
+            "Importing BoxLeastSquaresResults from astropy.stats has been "
+            "deprecated and will no longer be supported in future. "
+            "Please import this class from the astropy.timeseries "
+            "module instead",
+            AstropyDeprecationWarning,
+        )
         super().__init__(*args, **kwargs)

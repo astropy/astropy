@@ -37,15 +37,15 @@ def test_akaike_info_criterion_lsq():
     ssr = (25.0, 26.0, 27.0)
     answer = (-130.21, -128.46, -124.68)
 
-    assert_allclose(answer[0],
-                    akaike_info_criterion_lsq(ssr[0], n_params[0], n_samples),
-                    atol=1e-2)
-    assert_allclose(answer[1],
-                    akaike_info_criterion_lsq(ssr[1], n_params[1], n_samples),
-                    atol=1e-2)
-    assert_allclose(answer[2],
-                    akaike_info_criterion_lsq(ssr[2], n_params[2], n_samples),
-                    atol=1e-2)
+    assert_allclose(
+        answer[0], akaike_info_criterion_lsq(ssr[0], n_params[0], n_samples), atol=1e-2
+    )
+    assert_allclose(
+        answer[1], akaike_info_criterion_lsq(ssr[1], n_params[1], n_samples), atol=1e-2
+    )
+    assert_allclose(
+        answer[2], akaike_info_criterion_lsq(ssr[2], n_params[2], n_samples), atol=1e-2
+    )
 
 
 def test_bayesian_info_criterion_lsq():
@@ -61,15 +61,18 @@ def test_bayesian_info_criterion_lsq():
     ssr = (48959, 32512, 37980)
     answer = (192.706, 185.706, 186.360)
 
-    assert_allclose(answer[0], bayesian_info_criterion_lsq(ssr[0],
-                                                           n_params[0],
-                                                           n_samples),
-                    atol=1e-2)
-    assert_allclose(answer[1], bayesian_info_criterion_lsq(ssr[1],
-                                                           n_params[1],
-                                                           n_samples),
-                    atol=1e-2)
-    assert_allclose(answer[2], bayesian_info_criterion_lsq(ssr[2],
-                                                           n_params[2],
-                                                           n_samples),
-                    atol=1e-2)
+    assert_allclose(
+        answer[0],
+        bayesian_info_criterion_lsq(ssr[0], n_params[0], n_samples),
+        atol=1e-2,
+    )
+    assert_allclose(
+        answer[1],
+        bayesian_info_criterion_lsq(ssr[1], n_params[1], n_samples),
+        atol=1e-2,
+    )
+    assert_allclose(
+        answer[2],
+        bayesian_info_criterion_lsq(ssr[2], n_params[2], n_samples),
+        atol=1e-2,
+    )
