@@ -26,7 +26,7 @@ def test_biweight_location():
 
 def test_biweight_location_constant():
     cbl = biweight_location(np.ones((10, 5)))
-    assert cbl == 1.
+    assert cbl == 1.0
 
 
 def test_biweight_location_constant_axis_2d():
@@ -37,9 +37,9 @@ def test_biweight_location_constant_axis_2d():
     cbl = biweight_location(data, axis=1)
     assert_allclose(cbl, np.ones(shape[0]))
 
-    val1 = 100.
-    val2 = 2.
-    val3 = 5.
+    val1 = 100.0
+    val2 = 2.0
+    val3 = 5.0
     data = np.arange(50).reshape(10, 5)
     data[2] = val1
     data[7] = val2
@@ -110,24 +110,26 @@ def test_biweight_location_axis_tuple():
     """Test a 3D array with a tuple axis keyword."""
 
     data = np.arange(24).reshape(2, 3, 4)
-    data[0, 0] = 100.
+    data[0, 0] = 100.0
 
-    assert_equal(biweight_location(data, axis=0),
-                 biweight_location(data, axis=(0,)))
-    assert_equal(biweight_location(data, axis=-1),
-                 biweight_location(data, axis=(2,)))
-    assert_equal(biweight_location(data, axis=(0, 1)),
-                 biweight_location(data, axis=(1, 0)))
-    assert_equal(biweight_location(data, axis=(0, 2)),
-                 biweight_location(data, axis=(0, -1)))
-    assert_equal(biweight_location(data, axis=(0, 1, 2)),
-                 biweight_location(data, axis=(2, 0, 1)))
-    assert_equal(biweight_location(data, axis=(0, 1, 2)),
-                 biweight_location(data, axis=None))
+    assert_equal(biweight_location(data, axis=0), biweight_location(data, axis=(0,)))
+    assert_equal(biweight_location(data, axis=-1), biweight_location(data, axis=(2,)))
+    assert_equal(
+        biweight_location(data, axis=(0, 1)), biweight_location(data, axis=(1, 0))
+    )
+    assert_equal(
+        biweight_location(data, axis=(0, 2)), biweight_location(data, axis=(0, -1))
+    )
+    assert_equal(
+        biweight_location(data, axis=(0, 1, 2)), biweight_location(data, axis=(2, 0, 1))
+    )
+    assert_equal(
+        biweight_location(data, axis=(0, 1, 2)), biweight_location(data, axis=None)
+    )
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_location_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -137,14 +139,14 @@ def test_biweight_location_ignore_nan():
     biw_expected = biweight_location(data1d[:-1], ignore_nan=False)
     assert_equal(biweight_location(data1d, ignore_nan=True), biw_expected)
 
-    assert_equal(biweight_location(data2d, axis=0, ignore_nan=True),
-                 data1d)
-    assert_equal(biweight_location(data2d, axis=1, ignore_nan=True),
-                 [biw_expected, biw_expected])
+    assert_equal(biweight_location(data2d, axis=0, ignore_nan=True), data1d)
+    assert_equal(
+        biweight_location(data2d, axis=1, ignore_nan=True), [biw_expected, biw_expected]
+    )
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_location_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     all_nan = data1d.copy()
@@ -161,12 +163,13 @@ def test_biweight_location_nan():
 
     for axis in (0, 1):
         assert np.all(np.isnan(biweight_location(data2d, axis=axis)))
-        assert isinstance(biweight_location(data2d_masked, axis=axis),
-                          np.ma.MaskedArray)
+        assert isinstance(
+            biweight_location(data2d_masked, axis=axis), np.ma.MaskedArray
+        )
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_location_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -174,10 +177,12 @@ def test_biweight_location_masked():
     data1d_masked = np.ma.masked_invalid(data1d)
     data2d_masked = np.ma.masked_invalid(data2d)
 
-    assert_equal(biweight_location(data1d, ignore_nan=True),
-                 biweight_location(data1d_masked))
-    assert_equal(biweight_location(data2d, ignore_nan=True),
-                 biweight_location(data2d_masked))
+    assert_equal(
+        biweight_location(data1d, ignore_nan=True), biweight_location(data1d_masked)
+    )
+    assert_equal(
+        biweight_location(data2d, ignore_nan=True), biweight_location(data2d_masked)
+    )
 
     bw_loc = biweight_location(data1d_masked)
     assert_allclose(bw_loc, 2.7456117)
@@ -199,8 +204,10 @@ def test_biweight_location_masked():
     assert not isinstance(bw_loc, np.ma.MaskedArray)
     assert np.isscalar(bw_loc)
     assert np.isnan(bw_loc)
-    assert_equal(biweight_location(data1d_masked, ignore_nan=True),
-                 biweight_location(data1d[1:], ignore_nan=True))
+    assert_equal(
+        biweight_location(data1d_masked, ignore_nan=True),
+        biweight_location(data1d[1:], ignore_nan=True),
+    )
 
     # ensure that input masked array is not modified
     assert np.isnan(data1d_masked[0])
@@ -240,7 +247,7 @@ def test_biweight_midvariance_small():
 def test_biweight_midvariance_5127():
     # test a regression introduced in #5127
     rand = np.random.default_rng(12345)
-    data = rand.normal(loc=0., scale=20., size=(100, 100))
+    data = rand.normal(loc=0.0, scale=20.0, size=(100, 100))
     var = biweight_midvariance(data)
     assert_allclose(var, 409.87135608846205)
 
@@ -285,8 +292,8 @@ def test_biweight_midvariance_axis_3d():
         assert_allclose(bw[y], bwi)
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_midvariance_ignore_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -297,14 +304,18 @@ def test_biweight_midvariance_ignore_nan():
     biw_var_nonan = biweight_midvariance(data1d, ignore_nan=True)
     assert_equal(biw_var_nonan, biw_var)
 
-    assert_equal(biweight_midvariance(data2d, axis=0, ignore_nan=True),
-                 [0., 0., 0., 0., 0., np.nan])
-    assert_equal(biweight_midvariance(data2d, axis=1, ignore_nan=True),
-                 [biw_var_nonan, biw_var_nonan])
+    assert_equal(
+        biweight_midvariance(data2d, axis=0, ignore_nan=True),
+        [0.0, 0.0, 0.0, 0.0, 0.0, np.nan],
+    )
+    assert_equal(
+        biweight_midvariance(data2d, axis=1, ignore_nan=True),
+        [biw_var_nonan, biw_var_nonan],
+    )
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_scale_nan():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     all_nan = data1d.copy()
@@ -323,12 +334,11 @@ def test_biweight_scale_nan():
 
     for axis in (0, 1):
         assert np.all(np.isnan(biweight_scale(data2d, axis=axis)))
-        assert isinstance(biweight_scale(data2d_masked, axis=axis),
-                          np.ma.MaskedArray)
+        assert isinstance(biweight_scale(data2d_masked, axis=axis), np.ma.MaskedArray)
 
 
-@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
-@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+@pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
+@pytest.mark.filterwarnings("ignore:Invalid value encountered in median")
 def test_biweight_midvariance_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -336,10 +346,14 @@ def test_biweight_midvariance_masked():
     data1d_masked = np.ma.masked_invalid(data1d)
     data2d_masked = np.ma.masked_invalid(data2d)
 
-    assert_allclose(biweight_midvariance(data1d, ignore_nan=True),
-                    biweight_midvariance(data1d_masked))
-    assert_allclose(biweight_midvariance(data2d, ignore_nan=True),
-                    biweight_midvariance(data2d_masked))
+    assert_allclose(
+        biweight_midvariance(data1d, ignore_nan=True),
+        biweight_midvariance(data1d_masked),
+    )
+    assert_allclose(
+        biweight_midvariance(data2d, ignore_nan=True),
+        biweight_midvariance(data2d_masked),
+    )
 
     bw_scl = biweight_midvariance(data1d_masked)
     assert_allclose(bw_scl, 2.9238456)
@@ -361,8 +375,10 @@ def test_biweight_midvariance_masked():
     assert not isinstance(bw_scl, np.ma.MaskedArray)
     assert np.isscalar(bw_scl)
     assert np.isnan(bw_scl)
-    assert_allclose(biweight_midvariance(data1d_masked, ignore_nan=True),
-                    biweight_midvariance(data1d[1:], ignore_nan=True))
+    assert_allclose(
+        biweight_midvariance(data1d_masked, ignore_nan=True),
+        biweight_midvariance(data1d[1:], ignore_nan=True),
+    )
 
     # ensure that input masked array is not modified
     assert np.isnan(data1d_masked[0])
@@ -372,22 +388,20 @@ def test_biweight_scale_axis_tuple():
     """Test a 3D array with a tuple axis keyword."""
 
     data = np.arange(24).reshape(2, 3, 4)
-    data[0, 0] = 100.
+    data[0, 0] = 100.0
 
-    assert_equal(biweight_scale(data, axis=0),
-                 biweight_scale(data, axis=(0,)))
-    assert_equal(biweight_scale(data, axis=-1),
-                 biweight_scale(data, axis=(2,)))
-    assert_equal(biweight_scale(data, axis=(0, 1)),
-                 biweight_scale(data, axis=(1, 0)))
-    assert_equal(biweight_scale(data, axis=(0, 2)),
-                 biweight_scale(data, axis=(0, -1)))
-    assert_equal(biweight_scale(data, axis=(0, 1, 2)),
-                 biweight_scale(data, axis=(2, 0, 1)))
-    assert_equal(biweight_scale(data, axis=(0, 1, 2)),
-                 biweight_scale(data, axis=None))
-    assert_equal(biweight_scale(data, axis=(0, 2), modify_sample_size=True),
-                 biweight_scale(data, axis=(0, -1), modify_sample_size=True))
+    assert_equal(biweight_scale(data, axis=0), biweight_scale(data, axis=(0,)))
+    assert_equal(biweight_scale(data, axis=-1), biweight_scale(data, axis=(2,)))
+    assert_equal(biweight_scale(data, axis=(0, 1)), biweight_scale(data, axis=(1, 0)))
+    assert_equal(biweight_scale(data, axis=(0, 2)), biweight_scale(data, axis=(0, -1)))
+    assert_equal(
+        biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=(2, 0, 1))
+    )
+    assert_equal(biweight_scale(data, axis=(0, 1, 2)), biweight_scale(data, axis=None))
+    assert_equal(
+        biweight_scale(data, axis=(0, 2), modify_sample_size=True),
+        biweight_scale(data, axis=(0, -1), modify_sample_size=True),
+    )
 
 
 def test_biweight_midvariance_constant_axis():
@@ -404,13 +418,13 @@ def test_biweight_midvariance_constant_axis_2d():
     assert_allclose(cbl, np.zeros(shape[0]))
 
     data = np.arange(50).reshape(10, 5)
-    data[2] = 100.
-    data[7] = 2.
+    data[2] = 100.0
+    data[7] = 2.0
     data[8] = [5.0, 0.8, 5.0, -0.8, 5.0]
     bw = biweight_midvariance(data, axis=1)
-    assert_allclose(bw[2], 0.)
-    assert_allclose(bw[7], 0.)
-    assert_allclose(bw[8], 0.)
+    assert_allclose(bw[2], 0.0)
+    assert_allclose(bw[7], 0.0)
+    assert_allclose(bw[8], 0.0)
 
 
 def test_biweight_midvariance_constant_axis_3d():
@@ -435,16 +449,16 @@ def test_biweight_midcovariance_2d():
     d = [[0, 1, 2], [2, 1, 0]]
     cov = biweight_midcovariance(d)
     val = 0.70121809
-    assert_allclose(cov, [[val, -val], [-val, val]])    # verified with R
+    assert_allclose(cov, [[val, -val], [-val, val]])  # verified with R
 
     d = [[5, 1, 10], [500, 5, 2]]
     cov = biweight_midcovariance(d)
-    assert_allclose(cov, [[14.54159077, -7.79026256],    # verified with R
-                          [-7.79026256, 6.92087252]])
+    assert_allclose(
+        cov, [[14.54159077, -7.79026256], [-7.79026256, 6.92087252]]  # verified with R
+    )
 
     cov = biweight_midcovariance(d, modify_sample_size=True)
-    assert_allclose(cov, [[14.54159077, -5.19350838],
-                          [-5.19350838, 4.61391501]])
+    assert_allclose(cov, [[14.54159077, -5.19350838], [-5.19350838, 4.61391501]])
 
 
 def test_biweight_midcovariance_constant():
@@ -459,8 +473,8 @@ def test_biweight_midcovariance_constant():
     val3 = 5.0
     data[1] = [val3, 0.8, val3, -0.8, val3]
     cov = biweight_midcovariance(data)
-    assert_allclose(cov[1, :], 0.)
-    assert_allclose(cov[:, 1], 0.)
+    assert_allclose(cov[1, :], 0.0)
+    assert_allclose(cov[:, 1], 0.0)
 
 
 def test_biweight_midcovariance_midvariance():
@@ -476,8 +490,7 @@ def test_biweight_midcovariance_midvariance():
     assert_allclose(cov.diagonal(), var)
 
     cov2 = biweight_midcovariance(d, modify_sample_size=True)
-    var2 = [biweight_midvariance(a, modify_sample_size=True)
-            for a in d]
+    var2 = [biweight_midvariance(a, modify_sample_size=True) for a in d]
     assert_allclose(cov2.diagonal(), var2)
 
 
@@ -487,9 +500,8 @@ def test_midcovariance_shape():
     """
 
     d = np.ones(27).reshape(3, 3, 3)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"The input array must be 2D or 1D\."):
         biweight_midcovariance(d)
-    assert 'The input array must be 2D or 1D.' in str(e.value)
 
 
 def test_midcovariance_M_shape():
@@ -500,9 +512,8 @@ def test_midcovariance_M_shape():
 
     d = [0, 1, 2]
     M = [[0, 1], [2, 3]]
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"M must be a scalar or 1D array\."):
         biweight_midcovariance(d, M=M)
-    assert 'M must be a scalar or 1D array.' in str(e.value)
 
 
 def test_biweight_midcovariance_symmetric():
@@ -537,24 +548,21 @@ def test_biweight_midcorrelation_inputs():
     a2 = np.ones(5)
     a3 = np.ones(7)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"x must be a 1D array\."):
         biweight_midcorrelation(a1, a2)
-        assert 'x must be a 1D array.' in str(e.value)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"y must be a 1D array\."):
         biweight_midcorrelation(a2, a1)
-        assert 'y must be a 1D array.' in str(e.value)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=r"x and y must have the same shape\."):
         biweight_midcorrelation(a2, a3)
-        assert 'x and y must have the same shape.' in str(e.value)
 
 
 def test_biweight_32bit_runtime_warnings():
     """Regression test for #6905."""
     with NumpyRNGContext(12345):
         data = np.random.random(100).astype(np.float32)
-        data[50] = 30000.
+        data[50] = 30000.0
         biweight_scale(data)
         biweight_midvariance(data)
 
@@ -566,8 +574,8 @@ def test_biweight_scl_var_constant_units():
     biwvar = biweight_midvariance(data)
     assert isinstance(biwscl, u.Quantity)
     assert isinstance(biwvar, u.Quantity)
-    assert_quantity_allclose(biwscl, 0. << unit)
-    assert_quantity_allclose(biwvar, 0. << unit ** 2)
+    assert_quantity_allclose(biwscl, 0.0 << unit)
+    assert_quantity_allclose(biwvar, 0.0 << unit**2)
 
     data = np.ones(10) << unit
     data[0] = np.nan
@@ -576,4 +584,4 @@ def test_biweight_scl_var_constant_units():
     assert isinstance(biwscl, u.Quantity)
     assert isinstance(biwvar, u.Quantity)
     assert_quantity_allclose(biwscl, np.nan << unit)
-    assert_quantity_allclose(biwvar, np.nan << unit ** 2)
+    assert_quantity_allclose(biwvar, np.nan << unit**2)

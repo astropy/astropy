@@ -16,7 +16,7 @@ if HAS_BOTTLENECK:
     import bottleneck
 
 
-__all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']
+__all__ = ["SigmaClip", "sigma_clip", "sigma_clipped_stats"]
 
 
 def _move_tuple_axes_first(array, axis):
@@ -79,8 +79,7 @@ def _nanstd(array, axis=None, ddof=0):
         axis = 0
 
     if isinstance(array, Quantity):
-        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis,
-                                                      ddof=ddof))
+        return array.__array_wrap__(bottleneck.nanstd(array, axis=axis, ddof=ddof))
     else:
         return bottleneck.nanstd(array, axis=axis, ddof=ddof)
 
@@ -223,8 +222,16 @@ class SigmaClip:
     standard deviation is higher.
     """
 
-    def __init__(self, sigma=3., sigma_lower=None, sigma_upper=None,
-                 maxiters=5, cenfunc='median', stdfunc='std', grow=False):
+    def __init__(
+        self,
+        sigma=3.0,
+        sigma_lower=None,
+        sigma_upper=None,
+        maxiters=5,
+        cenfunc="median",
+        stdfunc="std",
+        grow=False,
+    ):
         self.sigma = sigma
         self.sigma_lower = sigma_lower or sigma
         self.sigma_upper = sigma_upper or sigma
@@ -242,55 +249,63 @@ class SigmaClip:
         # later than necessary if __call__ needs it:
         if self.grow:
             from scipy.ndimage import binary_dilation
+
             self._binary_dilation = binary_dilation
 
     def __repr__(self):
-        return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
-                'maxiters={}, cenfunc={}, stdfunc={}, grow={})'
-                .format(self.sigma, self.sigma_lower, self.sigma_upper,
-                        self.maxiters, repr(self.cenfunc), repr(self.stdfunc),
-                        self.grow))
+        return (
+            f"SigmaClip(sigma={self.sigma}, sigma_lower={self.sigma_lower},"
+            f" sigma_upper={self.sigma_upper}, maxiters={self.maxiters},"
+            f" cenfunc={self.cenfunc!r}, stdfunc={self.stdfunc!r}, grow={self.grow})"
+        )
 
     def __str__(self):
-        lines = ['<' + self.__class__.__name__ + '>']
-        attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
-                 'stdfunc', 'grow']
+        lines = ["<" + self.__class__.__name__ + ">"]
+        attrs = [
+            "sigma",
+            "sigma_lower",
+            "sigma_upper",
+            "maxiters",
+            "cenfunc",
+            "stdfunc",
+            "grow",
+        ]
         for attr in attrs:
-            lines.append(f'    {attr}: {repr(getattr(self, attr))}')
-        return '\n'.join(lines)
+            lines.append(f"    {attr}: {repr(getattr(self, attr))}")
+        return "\n".join(lines)
 
     @staticmethod
     def _parse_cenfunc(cenfunc):
         if isinstance(cenfunc, str):
-            if cenfunc == 'median':
+            if cenfunc == "median":
                 if HAS_BOTTLENECK:
                     cenfunc = _nanmedian
                 else:
                     cenfunc = np.nanmedian  # pragma: no cover
 
-            elif cenfunc == 'mean':
+            elif cenfunc == "mean":
                 if HAS_BOTTLENECK:
                     cenfunc = _nanmean
                 else:
                     cenfunc = np.nanmean  # pragma: no cover
 
             else:
-                raise ValueError(f'{cenfunc} is an invalid cenfunc.')
+                raise ValueError(f"{cenfunc} is an invalid cenfunc.")
 
         return cenfunc
 
     @staticmethod
     def _parse_stdfunc(stdfunc):
         if isinstance(stdfunc, str):
-            if stdfunc == 'std':
+            if stdfunc == "std":
                 if HAS_BOTTLENECK:
                     stdfunc = _nanstd
                 else:
                     stdfunc = np.nanstd  # pragma: no cover
-            elif stdfunc == 'mad_std':
+            elif stdfunc == "mad_std":
                 stdfunc = _nanmadstd
             else:
-                raise ValueError(f'{stdfunc} is an invalid stdfunc.')
+                raise ValueError(f"{stdfunc} is an invalid stdfunc.")
 
         return stdfunc
 
@@ -304,9 +319,9 @@ class SigmaClip:
             self._min_value = self._max_value - (std * self.sigma_lower)
             self._max_value += std * self.sigma_upper
 
-    def _sigmaclip_fast(self, data, axis=None,
-                        masked=True, return_bounds=False,
-                        copy=True):
+    def _sigmaclip_fast(
+        self, data, axis=None, masked=True, return_bounds=False, copy=True
+    ):
         """
         Fast C implementation for simple use cases.
         """
@@ -315,10 +330,12 @@ class SigmaClip:
         else:
             unit = None
 
-        if copy is False and masked is False and data.dtype.kind != 'f':
-            raise Exception("cannot mask non-floating-point array with NaN "
-                            "values, set copy=True or masked=True to avoid "
-                            "this.")
+        if copy is False and masked is False and data.dtype.kind != "f":
+            raise Exception(
+                "cannot mask non-floating-point array with NaN "
+                "values, set copy=True or masked=True to avoid "
+                "this."
+            )
 
         if axis is None:
             axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
@@ -332,22 +349,26 @@ class SigmaClip:
             # so we combine the dimensions together as the last
             # dimension and set axis=-1
             axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
-            transposed_axes = tuple(ax for ax in range(data.ndim)
-                                    if ax not in axis) + axis
+            transposed_axes = (
+                tuple(ax for ax in range(data.ndim) if ax not in axis) + axis
+            )
             data_transposed = data.transpose(transposed_axes)
             transposed_shape = data_transposed.shape
             data_reshaped = data_transposed.reshape(
-                transposed_shape[:data.ndim - len(axis)] + (-1,))
+                transposed_shape[: data.ndim - len(axis)] + (-1,)
+            )
             axis = -1
 
-        if data_reshaped.dtype.kind != 'f' or data_reshaped.dtype.itemsize > 8:
+        if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
         mask = ~np.isfinite(data_reshaped)
         if np.any(mask):
-            warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically clipped.',
-                          AstropyUserWarning)
+            warnings.warn(
+                "Input data contains invalid values (NaNs or "
+                "infs), which were automatically clipped.",
+                AstropyUserWarning,
+            )
 
         if isinstance(data_reshaped, np.ma.MaskedArray):
             mask |= data_reshaped.mask
@@ -356,20 +377,26 @@ class SigmaClip:
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
 
         bound_lo, bound_hi = _sigma_clip_fast(
-            data_reshaped, mask, self.cenfunc == 'median',
-            self.stdfunc == 'mad_std',
+            data_reshaped,
+            mask,
+            self.cenfunc == "median",
+            self.stdfunc == "mad_std",
             -1 if np.isinf(self.maxiters) else self.maxiters,
-            self.sigma_lower, self.sigma_upper, axis=axis)
+            self.sigma_lower,
+            self.sigma_upper,
+            axis=axis,
+        )
 
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             mask |= data_reshaped < np.expand_dims(bound_lo, axis)
             mask |= data_reshaped > np.expand_dims(bound_hi, axis)
 
         if transposed_shape is not None:
             # Get mask in shape of data.
             mask = mask.reshape(transposed_shape)
-            mask = mask.transpose(tuple(transposed_axes.index(ax)
-                                        for ax in range(data.ndim)))
+            mask = mask.transpose(
+                tuple(transposed_axes.index(ax) for ax in range(data.ndim))
+            )
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
@@ -390,8 +417,7 @@ class SigmaClip:
         else:
             return result
 
-    def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False,
-                          copy=True):
+    def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False, copy=True):
         """
         Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
@@ -408,9 +434,11 @@ class SigmaClip:
         good_mask = np.isfinite(filtered_data)
         if np.any(~good_mask):
             filtered_data = filtered_data[good_mask]
-            warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically clipped.',
-                          AstropyUserWarning)
+            warnings.warn(
+                "Input data contains invalid values (NaNs or "
+                "infs), which were automatically clipped.",
+                AstropyUserWarning,
+            )
 
         nchanged = 1
         iteration = 0
@@ -419,8 +447,8 @@ class SigmaClip:
             size = filtered_data.size
             self._compute_bounds(filtered_data, axis=None)
             filtered_data = filtered_data[
-                (filtered_data >= self._min_value)
-                & (filtered_data <= self._max_value)]
+                (filtered_data >= self._min_value) & (filtered_data <= self._max_value)
+            ]
             nchanged = size - filtered_data.size
 
         self._niterations = iteration
@@ -431,17 +459,19 @@ class SigmaClip:
 
             # update the mask in place, ignoring RuntimeWarnings for
             # comparisons with NaN data values
-            with np.errstate(invalid='ignore'):
-                filtered_data.mask |= np.logical_or(data < self._min_value,
-                                                    data > self._max_value)
+            with np.errstate(invalid="ignore"):
+                filtered_data.mask |= np.logical_or(
+                    data < self._min_value, data > self._max_value
+                )
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
         else:
             return filtered_data
 
-    def _sigmaclip_withaxis(self, data, axis=None, masked=True,
-                            return_bounds=False, copy=True):
+    def _sigmaclip_withaxis(
+        self, data, axis=None, masked=True, return_bounds=False, copy=True
+    ):
         """
         Sigma clip the data when ``axis`` or ``grow`` is specified.
 
@@ -449,15 +479,17 @@ class SigmaClip:
         values.
         """
         # float array type is needed to insert nans into the array
-        filtered_data = data.astype(float)    # also makes a copy
+        filtered_data = data.astype(float)  # also makes a copy
 
         # remove invalid values
         bad_mask = ~np.isfinite(filtered_data)
         if np.any(bad_mask):
             filtered_data[bad_mask] = np.nan
-            warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically clipped.',
-                          AstropyUserWarning)
+            warnings.warn(
+                "Input data contains invalid values (NaNs or "
+                "infs), which were automatically clipped.",
+                AstropyUserWarning,
+            )
 
         # remove masked values and convert to plain ndarray
         if isinstance(filtered_data, np.ma.MaskedArray):
@@ -472,8 +504,10 @@ class SigmaClip:
 
             # define the shape of min/max arrays so that they can be broadcast
             # with the data
-            mshape = tuple(1 if dim in axis else size
-                           for dim, size in enumerate(filtered_data.shape))
+            mshape = tuple(
+                1 if dim in axis else size
+                for dim, size in enumerate(filtered_data.shape)
+            )
 
         if self.grow:
             # Construct a growth kernel from the specified radius in
@@ -489,8 +523,7 @@ class SigmaClip:
                     # points won't "grow" in that dimension:
                     if n not in axis:
                         dim[dim != cenidx] = size
-            kernel = (sum((idx - cenidx)**2 for idx in indices)
-                      <= self.grow**2)
+            kernel = sum((idx - cenidx) ** 2 for idx in indices) <= self.grow**2
             del indices
 
         nchanged = 1
@@ -502,13 +535,14 @@ class SigmaClip:
                 self._min_value = self._min_value.reshape(mshape)
                 self._max_value = self._max_value.reshape(mshape)
 
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 # Since these comparisons are always False for NaNs, the
                 # resulting mask contains only newly-rejected pixels and
                 # we can dilate it without growing masked pixels more
                 # than once.
-                new_mask = ((filtered_data < self._min_value)
-                            | (filtered_data > self._max_value))
+                new_mask = (filtered_data < self._min_value) | (
+                    filtered_data > self._max_value
+                )
             if self.grow:
                 new_mask = self._binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
@@ -520,25 +554,26 @@ class SigmaClip:
         if masked:
             # create an output masked array
             if copy:
-                filtered_data = np.ma.MaskedArray(data,
-                                                  ~np.isfinite(filtered_data),
-                                                  copy=True)
+                filtered_data = np.ma.MaskedArray(
+                    data, ~np.isfinite(filtered_data), copy=True
+                )
             else:
                 # ignore RuntimeWarnings for comparisons with NaN data values
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     out = np.ma.masked_invalid(data, copy=False)
 
-                    filtered_data = np.ma.masked_where(np.logical_or(
-                        out < self._min_value, out > self._max_value),
-                        out, copy=False)
+                    filtered_data = np.ma.masked_where(
+                        np.logical_or(out < self._min_value, out > self._max_value),
+                        out,
+                        copy=False,
+                    )
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
         else:
             return filtered_data
 
-    def __call__(self, data, axis=None, masked=True, return_bounds=False,
-                 copy=True):
+    def __call__(self, data, axis=None, masked=True, return_bounds=False, copy=True):
         """
         Perform sigma clipping on the provided data.
 
@@ -623,30 +658,44 @@ class SigmaClip:
 
         # Shortcut for common cases where a fast C implementation can be
         # used.
-        if (self.cenfunc in ('mean', 'median')
-                and self.stdfunc in ('std', 'mad_std')
-                and axis is not None and not self.grow):
-            return self._sigmaclip_fast(data, axis=axis, masked=masked,
-                                        return_bounds=return_bounds,
-                                        copy=copy)
+        if (
+            self.cenfunc in ("mean", "median")
+            and self.stdfunc in ("std", "mad_std")
+            and axis is not None
+            and not self.grow
+        ):
+            return self._sigmaclip_fast(
+                data, axis=axis, masked=masked, return_bounds=return_bounds, copy=copy
+            )
 
         # These two cases are treated separately because when
         # ``axis=None`` we can simply remove clipped values from the
         # array. This is not possible when ``axis`` or ``grow`` is
         # specified.
         if axis is None and not self.grow:
-            return self._sigmaclip_noaxis(data, masked=masked,
-                                          return_bounds=return_bounds,
-                                          copy=copy)
+            return self._sigmaclip_noaxis(
+                data, masked=masked, return_bounds=return_bounds, copy=copy
+            )
         else:
-            return self._sigmaclip_withaxis(data, axis=axis, masked=masked,
-                                            return_bounds=return_bounds,
-                                            copy=copy)
+            return self._sigmaclip_withaxis(
+                data, axis=axis, masked=masked, return_bounds=return_bounds, copy=copy
+            )
 
 
-def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
-               cenfunc='median', stdfunc='std', axis=None, masked=True,
-               return_bounds=False, copy=True, grow=False):
+def sigma_clip(
+    data,
+    sigma=3,
+    sigma_lower=None,
+    sigma_upper=None,
+    maxiters=5,
+    cenfunc="median",
+    stdfunc="std",
+    axis=None,
+    masked=True,
+    return_bounds=False,
+    copy=True,
+    grow=False,
+):
     """
     Perform sigma-clipping on the provided data.
 
@@ -828,18 +877,35 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     Note that along the other axis, no points would be clipped, as the
     standard deviation is higher.
     """
-    sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
-                        sigma_upper=sigma_upper, maxiters=maxiters,
-                        cenfunc=cenfunc, stdfunc=stdfunc, grow=grow)
+    sigclip = SigmaClip(
+        sigma=sigma,
+        sigma_lower=sigma_lower,
+        sigma_upper=sigma_upper,
+        maxiters=maxiters,
+        cenfunc=cenfunc,
+        stdfunc=stdfunc,
+        grow=grow,
+    )
 
-    return sigclip(data, axis=axis, masked=masked,
-                   return_bounds=return_bounds, copy=copy)
+    return sigclip(
+        data, axis=axis, masked=masked, return_bounds=return_bounds, copy=copy
+    )
 
 
-def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
-                        sigma_lower=None, sigma_upper=None, maxiters=5,
-                        cenfunc='median', stdfunc='std', std_ddof=0,
-                        axis=None, grow=False):
+def sigma_clipped_stats(
+    data,
+    mask=None,
+    mask_value=None,
+    sigma=3.0,
+    sigma_lower=None,
+    sigma_upper=None,
+    maxiters=5,
+    cenfunc="median",
+    stdfunc="std",
+    std_ddof=0,
+    axis=None,
+    grow=False,
+):
     """
     Calculate sigma-clipped statistics on the provided data.
 
@@ -943,11 +1009,18 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     if isinstance(data, np.ma.MaskedArray) and data.mask.all():
         return np.ma.masked, np.ma.masked, np.ma.masked
 
-    sigclip = SigmaClip(sigma=sigma, sigma_lower=sigma_lower,
-                        sigma_upper=sigma_upper, maxiters=maxiters,
-                        cenfunc=cenfunc, stdfunc=stdfunc, grow=grow)
-    data_clipped = sigclip(data, axis=axis, masked=False, return_bounds=False,
-                           copy=True)
+    sigclip = SigmaClip(
+        sigma=sigma,
+        sigma_lower=sigma_lower,
+        sigma_upper=sigma_upper,
+        maxiters=maxiters,
+        cenfunc=cenfunc,
+        stdfunc=stdfunc,
+        grow=grow,
+    )
+    data_clipped = sigclip(
+        data, axis=axis, masked=False, return_bounds=False, copy=True
+    )
 
     if HAS_BOTTLENECK:
         mean = _nanmean(data_clipped, axis=axis)

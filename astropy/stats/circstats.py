@@ -14,9 +14,17 @@ import numpy as np
 
 from astropy.units import Quantity
 
-__all__ = ['circmean', 'circstd', 'circvar', 'circmoment', 'circcorrcoef',
-           'rayleightest', 'vtest', 'vonmisesmle']
-__doctest_requires__ = {'vtest': ['scipy']}
+__all__ = [
+    "circmean",
+    "circstd",
+    "circvar",
+    "circmoment",
+    "circcorrcoef",
+    "rayleightest",
+    "vtest",
+    "vonmisesmle",
+]
+__doctest_requires__ = {"vtest": ["scipy"]}
 
 
 def _components(data, p=1, phi=0.0, axis=None, weights=None):
@@ -27,10 +35,10 @@ def _components(data, p=1, phi=0.0, axis=None, weights=None):
     try:
         weights = np.broadcast_to(weights, data.shape)
     except ValueError:
-        raise ValueError('Weights and data have inconsistent shape.')
+        raise ValueError("Weights and data have inconsistent shape.")
 
-    C = np.sum(weights * np.cos(p * (data - phi)), axis)/np.sum(weights, axis)
-    S = np.sum(weights * np.sin(p * (data - phi)), axis)/np.sum(weights, axis)
+    C = np.sum(weights * np.cos(p * (data - phi)), axis) / np.sum(weights, axis)
+    S = np.sum(weights * np.sin(p * (data - phi)), axis) / np.sum(weights, axis)
 
     return C, S
 
@@ -56,7 +64,7 @@ def _length(data, p=1, phi=0.0, axis=None, weights=None):
 
 
 def circmean(data, axis=None, weights=None):
-    """ Computes the circular mean angle of an array of circular data.
+    """Computes the circular mean angle of an array of circular data.
 
     Parameters
     ----------
@@ -98,7 +106,7 @@ def circmean(data, axis=None, weights=None):
 
 
 def circvar(data, axis=None, weights=None):
-    """ Computes the circular variance of an array of circular data.
+    """Computes the circular variance of an array of circular data.
 
     There are some concepts for defining measures of dispersion for circular
     data. The variance implemented here is based on the definition given by
@@ -151,8 +159,8 @@ def circvar(data, axis=None, weights=None):
     return 1.0 - _length(data, 1, 0.0, axis, weights)
 
 
-def circstd(data, axis=None, weights=None, method='angular'):
-    """ Computes the circular standard deviation of an array of circular data.
+def circstd(data, axis=None, weights=None, method="angular"):
+    """Computes the circular standard deviation of an array of circular data.
 
     The standard deviation implemented here is based on the definitions given
     by [1]_, which is also the same used by the R package 'CirStat' [2]_.
@@ -220,17 +228,17 @@ def circstd(data, axis=None, weights=None, method='angular'):
        Series on Multivariate Analysis, Vol. 5, 2001.
 
     """
-    if method not in ('angular', 'circular'):
+    if method not in ("angular", "circular"):
         raise ValueError("method should be either 'angular' or 'circular'")
 
-    if method == 'angular':
-        return np.sqrt(2. * (1. - _length(data, 1, 0.0, axis, weights)))
+    if method == "angular":
+        return np.sqrt(2.0 * (1.0 - _length(data, 1, 0.0, axis, weights)))
     else:
-        return np.sqrt(-2. * np.log(_length(data, 1, 0.0, axis, weights)))
+        return np.sqrt(-2.0 * np.log(_length(data, 1, 0.0, axis, weights)))
 
 
 def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
-    """ Computes the ``p``-th trigonometric circular moment for an array
+    """Computes the ``p``-th trigonometric circular moment for an array
     of circular data.
 
     Parameters
@@ -280,13 +288,11 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
     else:
         phi = 0.0
 
-    return _angle(data, p, phi, axis, weights), _length(data, p, phi, axis,
-                                                        weights)
+    return _angle(data, p, phi, axis, weights), _length(data, p, phi, axis, weights)
 
 
-def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
-                 weights_beta=None):
-    """ Computes the circular correlation coefficient between two array of
+def circcorrcoef(alpha, beta, axis=None, weights_alpha=None, weights_beta=None):
+    """Computes the circular correlation coefficient between two array of
     circular data.
 
     Parameters
@@ -343,13 +349,13 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     sin_a = np.sin(alpha - mu_a)
     sin_b = np.sin(beta - mu_b)
-    rho = np.sum(sin_a*sin_b)/np.sqrt(np.sum(sin_a*sin_a)*np.sum(sin_b*sin_b))
+    rho = np.sum(sin_a * sin_b) / np.sqrt(np.sum(sin_a * sin_a) * np.sum(sin_b * sin_b))
 
     return rho
 
 
 def rayleightest(data, axis=None, weights=None):
-    """ Performs the Rayleigh test of uniformity.
+    """Performs the Rayleigh test of uniformity.
 
     This test is  used to identify a non-uniform distribution, i.e. it is
     designed for detecting an unimodal deviation from uniformity. More
@@ -401,21 +407,24 @@ def rayleightest(data, axis=None, weights=None):
     """
     n = np.size(data, axis=axis)
     Rbar = _length(data, 1, 0.0, axis, weights)
-    z = n*Rbar*Rbar
+    z = n * Rbar * Rbar
 
     # see [3] and [4] for the formulae below
     tmp = 1.0
     if n < 50:
-        tmp = 1.0 + (2.0*z - z*z)/(4.0*n) - (24.0*z - 132.0*z**2.0 +
-                                             76.0*z**3.0 - 9.0*z**4.0)/(288.0 *
-                                                                        n * n)
+        tmp = (
+            1.0
+            + (2.0 * z - z * z) / (4.0 * n)
+            - (24.0 * z - 132.0 * z**2.0 + 76.0 * z**3.0 - 9.0 * z**4.0)
+            / (288.0 * n * n)
+        )
 
-    p_value = np.exp(-z)*tmp
+    p_value = np.exp(-z) * tmp
     return p_value
 
 
 def vtest(data, mu=0.0, axis=None, weights=None):
-    """ Performs the Rayleigh test of uniformity where the alternative
+    """Performs the Rayleigh test of uniformity where the alternative
     hypothesis H1 is assumed to have a known mean angle ``mu``.
 
     Parameters
@@ -463,16 +472,23 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     try:
         weights = np.broadcast_to(weights, data.shape)
     except ValueError:
-        raise ValueError('Weights and data have inconsistent shape.')
+        raise ValueError("Weights and data have inconsistent shape.")
 
     n = np.size(data, axis=axis)
-    R0bar = np.sum(weights * np.cos(data - mu), axis)/np.sum(weights, axis)
+    R0bar = np.sum(weights * np.cos(data - mu), axis) / np.sum(weights, axis)
     z = np.sqrt(2.0 * n) * R0bar
     pz = norm.cdf(z)
     fz = norm.pdf(z)
     # see reference [3]
-    p_value = 1 - pz + fz*((3*z - z**3)/(16.0*n) +
-                           (15*z + 305*z**3 - 125*z**5 + 9*z**7)/(4608.0*n*n))
+    p_value = (
+        1
+        - pz
+        + fz
+        * (
+            (3 * z - z**3) / (16.0 * n)
+            + (15 * z + 305 * z**3 - 125 * z**5 + 9 * z**7) / (4608.0 * n * n)
+        )
+    )
     return p_value
 
 
@@ -480,15 +496,15 @@ def _A1inv(x):
     # Approximation for _A1inv(x) according R Package 'CircStats'
     # See http://www.scienceasia.org/2012.38.n1/scias38_118.pdf, equation (4)
     if 0 <= x < 0.53:
-        return 2.0*x + x*x*x + (5.0*x**5)/6.0
+        return 2.0 * x + x * x * x + (5.0 * x**5) / 6.0
     elif x < 0.85:
-        return -0.4 + 1.39*x + 0.43/(1.0 - x)
+        return -0.4 + 1.39 * x + 0.43 / (1.0 - x)
     else:
-        return 1.0/(x*x*x - 4.0*x*x + 3.0*x)
+        return 1.0 / (x * x * x - 4.0 * x * x + 3.0 * x)
 
 
 def vonmisesmle(data, axis=None):
-    """ Computes the Maximum Likelihood Estimator (MLE) for the parameters of
+    """Computes the Maximum Likelihood Estimator (MLE) for the parameters of
     the von Mises distribution.
 
     Parameters
