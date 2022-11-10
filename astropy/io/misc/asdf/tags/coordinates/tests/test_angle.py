@@ -2,7 +2,7 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 
 from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 
@@ -11,15 +11,15 @@ from astropy.coordinates import Angle, Latitude, Longitude  # noqa: E402
 
 
 def test_angle(tmpdir):
-    tree = {'angle': Angle(100, u.deg)}
+    tree = {"angle": Angle(100, u.deg)}
     assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_latitude(tmpdir):
-    tree = {'angle': Latitude(10, u.deg)}
+    tree = {"angle": Latitude(10, u.deg)}
     assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_longitude(tmpdir):
-    tree = {'angle': Longitude(-100, u.deg, wrap_angle=180*u.deg)}
+    tree = {"angle": Longitude(-100, u.deg, wrap_angle=180 * u.deg)}
     assert_roundtrip_tree(tree, tmpdir)

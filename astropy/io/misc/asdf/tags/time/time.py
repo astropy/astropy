@@ -9,14 +9,14 @@ from astropy.coordinates import EarthLocation
 from astropy.io.misc.asdf.types import AstropyAsdfType
 from astropy.units import Quantity
 
-__all__ = ['TimeType']
+__all__ = ["TimeType"]
 
-_guessable_formats = {'iso', 'byear', 'jyear', 'yday'}
+_guessable_formats = {"iso", "byear", "jyear", "yday"}
 
 _astropy_format_to_asdf_format = {
-    'isot': 'iso',
-    'byear_str': 'byear',
-    'jyear_str': 'jyear'
+    "isot": "iso",
+    "byear_str": "byear",
+    "jyear_str": "jyear",
 }
 
 
@@ -29,24 +29,24 @@ def _assert_earthlocation_equal(a, b):
 
 
 class TimeType(AstropyAsdfType):
-    name = 'time/time'
-    version = '1.1.0'
-    supported_versions = ['1.0.0', AsdfSpec('>=1.1.0')]
-    types = ['astropy.time.core.Time']
-    requires = ['astropy']
+    name = "time/time"
+    version = "1.1.0"
+    supported_versions = ["1.0.0", AsdfSpec(">=1.1.0")]
+    types = ["astropy.time.core.Time"]
+    requires = ["astropy"]
 
     @classmethod
     def to_tree(cls, node, ctx):
         fmt = node.format
 
-        if fmt == 'byear':
-            node = time.Time(node, format='byear_str')
+        if fmt == "byear":
+            node = time.Time(node, format="byear_str")
 
-        elif fmt == 'jyear':
-            node = time.Time(node, format='jyear_str')
+        elif fmt == "jyear":
+            node = time.Time(node, format="jyear_str")
 
-        elif fmt in ('fits', 'datetime', 'plot_date'):
-            node = time.Time(node, format='isot')
+        elif fmt in ("fits", "datetime", "plot_date"):
+            node = time.Time(node, format="isot")
 
         fmt = node.format
 
@@ -54,38 +54,33 @@ class TimeType(AstropyAsdfType):
 
         guessable_format = fmt in _guessable_formats
 
-        if node.scale == 'utc' and guessable_format and node.isscalar:
+        if node.scale == "utc" and guessable_format and node.isscalar:
             return node.value
 
-        d = {'value': node.value}
+        d = {"value": node.value}
 
         if not guessable_format:
-            d['format'] = fmt
+            d["format"] = fmt
 
-        if node.scale != 'utc':
-            d['scale'] = node.scale
+        if node.scale != "utc":
+            d["scale"] = node.scale
 
         if node.location is not None:
             x, y, z = node.location.x, node.location.y, node.location.z
             # Preserve backwards compatibility for writing the old schema
             # This allows WCS to test backwards compatibility with old frames
             # This code does get tested in CI, but we don't run a coverage test
-            if cls.version == '1.0.0':  # pragma: no cover
+            if cls.version == "1.0.0":  # pragma: no cover
                 unit = node.location.unit
-                d['location'] = {
-                    'x': x.value,
-                    'y': y.value,
-                    'z': z.value,
-                    'unit': unit
-                }
+                d["location"] = {"x": x.value, "y": y.value, "z": z.value, "unit": unit}
             else:
-                d['location'] = {
+                d["location"] = {
                     # It seems like EarthLocations can be represented either in
                     # terms of Cartesian coordinates or latitude and longitude, so
                     # we rather arbitrarily choose the former for our representation
-                    'x': x,
-                    'y': y,
-                    'z': z
+                    "x": x,
+                    "y": y,
+                    "z": z,
                 }
 
         return d
@@ -99,19 +94,20 @@ class TimeType(AstropyAsdfType):
                 raise ValueError(f"Invalid time '{node}'")
             return t
 
-        value = node['value']
-        fmt = node.get('format')
-        scale = node.get('scale')
-        location = node.get('location')
+        value = node["value"]
+        fmt = node.get("format")
+        scale = node.get("scale")
+        location = node.get("location")
         if location is not None:
-            unit = location.get('unit', u.m)
+            unit = location.get("unit", u.m)
             # This ensures that we can read the v.1.0.0 schema and convert it
             # to the new EarthLocation object, which expects Quantity components
-            for comp in ['x', 'y', 'z']:
+            for comp in ["x", "y", "z"]:
                 if not isinstance(location[comp], Quantity):
                     location[comp] = Quantity(location[comp], unit=unit)
             location = EarthLocation.from_geocentric(
-                location['x'], location['y'], location['z'])
+                location["x"], location["y"], location["z"]
+            )
 
         return time.Time(value, format=fmt, scale=scale, location=location)
 

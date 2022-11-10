@@ -3,7 +3,6 @@ import numpy as np
 
 
 def run_schema_example_test(organization, standard, name, version, check_func=None):
-
     import asdf
     from asdf.schema import load_schema
     from asdf.tests import helpers
@@ -16,18 +15,22 @@ def run_schema_example_test(organization, standard, name, version, check_func=No
     examples = []
     schema = load_schema(uri, resolver=r)
     for node in asdf.treeutil.iter_tree(schema):
-        if (isinstance(node, dict) and 'examples' in node and isinstance(node['examples'], list)):
-            for _, example in node['examples']:
+        if (
+            isinstance(node, dict)
+            and "examples" in node
+            and isinstance(node["examples"], list)
+        ):
+            for _, example in node["examples"]:
                 examples.append(example)
 
     for example in examples:
-        buff = helpers.yaml_to_asdf('example: ' + example.strip())
+        buff = helpers.yaml_to_asdf("example: " + example.strip())
         ff = asdf.AsdfFile(uri=uri)
         # Add some dummy blocks so that the ndarray examples work
         for i in range(3):
-            b = asdf.block.Block(np.zeros((1024*1024*8), dtype=np.uint8))
+            b = asdf.block.Block(np.zeros((1024 * 1024 * 8), dtype=np.uint8))
             b._used = True
             ff.blocks.add(b)
-        ff._open_impl(ff, buff, mode='r')
+        ff._open_impl(ff, buff, mode="r")
         if check_func:
             check_func(ff)

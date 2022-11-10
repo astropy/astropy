@@ -11,17 +11,17 @@ def test_fnpickling_simple(tmp_path):
     pickling and unpickling a string, using both a filename and a
     file.
     """
-    fn = str(tmp_path / 'test1.pickle')
+    fn = str(tmp_path / "test1.pickle")
 
-    obj1 = 'astring'
+    obj1 = "astring"
     fnpickle(obj1, fn)
     res = fnunpickle(fn, 0)
     assert obj1 == res
 
     # now try with a file-like object instead of a string
-    with open(fn, 'wb') as f:
+    with open(fn, "wb") as f:
         fnpickle(obj1, f)
-    with open(fn, 'rb') as f:
+    with open(fn, "rb") as f:
         res = fnunpickle(f)
         assert obj1 == res
 
@@ -42,9 +42,9 @@ def test_fnpickling_class(tmp_path):
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle custom classes.
     """
-    fn = str(tmp_path / 'test2.pickle')
+    fn = str(tmp_path / "test2.pickle")
 
-    obj1 = 'astring'
+    obj1 = "astring"
     obj2 = ToBePickled(obj1)
     fnpickle(obj2, fn)
     res = fnunpickle(fn)
@@ -58,11 +58,11 @@ def test_fnpickling_protocol(tmp_path):
     """
     import pickle
 
-    obj1 = 'astring'
+    obj1 = "astring"
     obj2 = ToBePickled(obj1)
 
     for p in range(pickle.HIGHEST_PROTOCOL + 1):
-        fn = str(tmp_path / f'testp{p}.pickle')
+        fn = str(tmp_path / f"testp{p}.pickle")
         fnpickle(obj2, fn, protocol=p)
         res = fnunpickle(fn)
         assert res == obj2
@@ -74,11 +74,11 @@ def test_fnpickling_many(tmp_path):
     and unpickle multiple objects from a single file.
     """
 
-    fn = str(tmp_path / 'test3.pickle')
+    fn = str(tmp_path / "test3.pickle")
 
     # now try multiples
     obj3 = 328.3432
-    obj4 = 'blahblahfoo'
+    obj4 = "blahblahfoo"
     fnpickle(obj3, fn)
     fnpickle(obj4, fn, append=True)
 

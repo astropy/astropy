@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 
 from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
 from numpy.random import randint, random  # noqa: E402
@@ -32,5 +32,5 @@ def representation(request):
 
 
 def test_representations(tmpdir, representation):
-    tree = {'representation': representation}
+    tree = {"representation": representation}
     assert_roundtrip_tree(tree, tmpdir)

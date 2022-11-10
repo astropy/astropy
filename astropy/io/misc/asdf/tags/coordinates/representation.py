@@ -16,22 +16,22 @@ class RepresentationType(AstropyType):
         comps = representation.components
         components = {}
         for c in comps:
-            value = getattr(representation, '_' + c, None)
+            value = getattr(representation, "_" + c, None)
             if value is not None:
                 components[c] = value
 
         t = type(representation)
 
         node = {}
-        node['type'] = t.__name__
-        node['components'] = components
+        node["type"] = t.__name__
+        node["components"] = components
 
         return node
 
     @classmethod
     def from_tree(cls, node, ctx):
-        rep_type = getattr(cls._representation_module, node['type'])
-        return rep_type(**node['components'])
+        rep_type = getattr(cls._representation_module, node["type"])
+        return rep_type(**node["components"])
 
     @classmethod
     def assert_equal(cls, old, new):

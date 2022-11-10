@@ -2,7 +2,7 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 
 import numpy as np  # noqa: E402
 from asdf.tags.core.ndarray import NDArrayType  # noqa: E402
@@ -20,92 +20,93 @@ from astropy.time import Time, TimeDelta  # noqa: E402
 
 
 def test_table(tmpdir):
-    data_rows = [(1, 2.0, 'x'),
-                 (4, 5.0, 'y'),
-                 (5, 8.2, 'z')]
-    t = table.Table(rows=data_rows, names=('a', 'b', 'c'),
-                    dtype=('i4', 'f8', 'S1'))
-    t.columns['a'].description = 'RA'
-    t.columns['a'].unit = 'degree'
-    t.columns['a'].meta = {'foo': 'bar'}
-    t.columns['c'].description = 'Some description of some sort'
+    data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
+    t = table.Table(rows=data_rows, names=("a", "b", "c"), dtype=("i4", "f8", "S1"))
+    t.columns["a"].description = "RA"
+    t.columns["a"].unit = "degree"
+    t.columns["a"].meta = {"foo": "bar"}
+    t.columns["c"].description = "Some description of some sort"
 
     def check(ff):
         assert len(ff.blocks) == 3
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_array_columns(tmpdir):
-    a = np.array([([[1, 2], [3, 4]], 2.0, 'x'),
-                 ([[5, 6], [7, 8]], 5.0, 'y'),
-                  ([[9, 10], [11, 12]], 8.2, 'z')],
-                 dtype=[('a', '<i4', (2, 2)),
-                        ('b', '<f8'),
-                        ('c', '|S1')])
+    a = np.array(
+        [
+            ([[1, 2], [3, 4]], 2.0, "x"),
+            ([[5, 6], [7, 8]], 5.0, "y"),
+            ([[9, 10], [11, 12]], 8.2, "z"),
+        ],
+        dtype=[("a", "<i4", (2, 2)), ("b", "<f8"), ("c", "|S1")],
+    )
 
     t = table.Table(a, copy=False)
-    assert t.columns['a'].shape == (3, 2, 2)
+    assert t.columns["a"].shape == (3, 2, 2)
 
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_structured_array_columns(tmpdir):
-    a = np.array([((1, 'a'), 2.0, 'x'),
-                  ((4, 'b'), 5.0, 'y'),
-                  ((5, 'c'), 8.2, 'z')],
-                 dtype=[('a', [('a0', '<i4'), ('a1', '|S1')]),
-                        ('b', '<f8'), ('c', '|S1')])
+    a = np.array(
+        [((1, "a"), 2.0, "x"), ((4, "b"), 5.0, "y"), ((5, "c"), 8.2, "z")],
+        dtype=[("a", [("a0", "<i4"), ("a1", "|S1")]), ("b", "<f8"), ("c", "|S1")],
+    )
 
     t = table.Table(a, copy=False)
 
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_table_row_order(tmpdir):
-    a = np.array([(1, 2.0, 'x'), (4, 5.0, 'y'),  (5, 8.2, 'z')],
-                 dtype=[('a', '<i4'), ('b', '<f8'), ('c', '|S1')])
+    a = np.array(
+        [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")],
+        dtype=[("a", "<i4"), ("b", "<f8"), ("c", "|S1")],
+    )
 
     t = table.Table(a, copy=False)
-    t.columns['a'].description = 'RA'
-    t.columns['a'].unit = 'degree'
-    t.columns['a'].meta = {'foo': 'bar'}
-    t.columns['c'].description = 'Some description of some sort'
+    t.columns["a"].description = "RA"
+    t.columns["a"].unit = "degree"
+    t.columns["a"].meta = {"foo": "bar"}
+    t.columns["c"].description = "Some description of some sort"
 
     def check(ff):
         assert len(ff.blocks) == 1
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_table_inline(tmpdir):
-    data_rows = [(1, 2.0, 'x'),
-                 (4, 5.0, 'y'),
-                 (5, 8.2, 'z')]
-    t = table.Table(rows=data_rows, names=('a', 'b', 'c'),
-                    dtype=('i4', 'f8', 'S1'))
-    t.columns['a'].description = 'RA'
-    t.columns['a'].unit = 'degree'
-    t.columns['a'].meta = {'foo': 'bar'}
-    t.columns['c'].description = 'Some description of some sort'
+    data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
+    t = table.Table(rows=data_rows, names=("a", "b", "c"), dtype=("i4", "f8", "S1"))
+    t.columns["a"].description = "RA"
+    t.columns["a"].unit = "degree"
+    t.columns["a"].meta = {"foo": "bar"}
+    t.columns["c"].description = "Some description of some sort"
 
     def check(ff):
         assert len(list(ff.blocks.internal_blocks)) == 0
 
-    if Version(asdf.__version__) >= Version('2.8.0'):
+    if Version(asdf.__version__) >= Version("2.8.0"):
         # The auto_inline argument is deprecated as of asdf 2.8.0.
         with asdf.config_context() as config:
             config.array_inline_threshold = 64
-            helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+            helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
     else:
-        helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
-                                      write_options={'auto_inline': 64})
+        helpers.assert_roundtrip_tree(
+            {"table": t},
+            tmpdir,
+            asdf_check_func=check,
+            write_options={"auto_inline": 64},
+        )
 
 
 def test_mismatched_columns():
@@ -128,106 +129,100 @@ table: !<tag:astropy.org:astropy/table/table-1.0.0>
     with pytest.raises(ValueError) as err:
         with asdf.open(buff):
             pass
-    assert 'Inconsistent data column lengths' in str(err.value)
+    assert "Inconsistent data column lengths" in str(err.value)
 
 
 def test_masked_table(tmpdir):
-    data_rows = [(1, 2.0, 'x'),
-                 (4, 5.0, 'y'),
-                 (5, 8.2, 'z')]
-    t = table.Table(rows=data_rows, names=('a', 'b', 'c'),
-                    dtype=('i4', 'f8', 'S1'), masked=True)
-    t.columns['a'].description = 'RA'
-    t.columns['a'].unit = 'degree'
-    t.columns['a'].meta = {'foo': 'bar'}
-    t.columns['a'].mask = [True, False, True]
-    t.columns['c'].description = 'Some description of some sort'
+    data_rows = [(1, 2.0, "x"), (4, 5.0, "y"), (5, 8.2, "z")]
+    t = table.Table(
+        rows=data_rows, names=("a", "b", "c"), dtype=("i4", "f8", "S1"), masked=True
+    )
+    t.columns["a"].description = "RA"
+    t.columns["a"].unit = "degree"
+    t.columns["a"].meta = {"foo": "bar"}
+    t.columns["a"].mask = [True, False, True]
+    t.columns["c"].description = "Some description of some sort"
 
     def check(ff):
         assert len(ff.blocks) == 4
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_quantity_mixin(tmpdir):
-
     t = table.QTable()
-    t['a'] = [1, 2, 3]
-    t['b'] = ['x', 'y', 'z']
-    t['c'] = [2.0, 5.0, 8.2] * u.m
+    t["a"] = [1, 2, 3]
+    t["b"] = ["x", "y", "z"]
+    t["c"] = [2.0, 5.0, 8.2] * u.m
 
     def check(ff):
-        assert isinstance(ff['table']['c'], u.Quantity)
+        assert isinstance(ff["table"]["c"], u.Quantity)
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_time_mixin(tmpdir):
-
     t = table.Table()
-    t['a'] = [1, 2]
-    t['b'] = ['x', 'y']
-    t['c'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+    t["a"] = [1, 2]
+    t["b"] = ["x", "y"]
+    t["c"] = Time(["2001-01-02T12:34:56", "2001-02-03T00:01:02"])
 
     def check(ff):
-        assert isinstance(ff['table']['c'], Time)
+        assert isinstance(ff["table"]["c"], Time)
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_timedelta_mixin(tmpdir):
-
     t = table.Table()
-    t['a'] = [1, 2]
-    t['b'] = ['x', 'y']
-    t['c'] = TimeDelta([1, 2] * u.day)
+    t["a"] = [1, 2]
+    t["b"] = ["x", "y"]
+    t["c"] = TimeDelta([1, 2] * u.day)
 
     def check(ff):
-        assert isinstance(ff['table']['c'], TimeDelta)
+        assert isinstance(ff["table"]["c"], TimeDelta)
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_skycoord_mixin(tmpdir):
-
     t = table.Table()
-    t['a'] = [1, 2]
-    t['b'] = ['x', 'y']
-    t['c'] = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4', obstime='J1990.5')
+    t["a"] = [1, 2]
+    t["b"] = ["x", "y"]
+    t["c"] = SkyCoord([1, 2], [3, 4], unit="deg,deg", frame="fk4", obstime="J1990.5")
 
     def check(ff):
-        assert isinstance(ff['table']['c'], SkyCoord)
+        assert isinstance(ff["table"]["c"], SkyCoord)
 
     def tree_match(old, new):
-        NDArrayType.assert_equal(new['a'], old['a'])
-        NDArrayType.assert_equal(new['b'], old['b'])
-        assert skycoord_equal(new['c'], old['c'])
+        NDArrayType.assert_equal(new["a"], old["a"])
+        NDArrayType.assert_equal(new["b"], old["b"])
+        assert skycoord_equal(new["c"], old["c"])
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
-                                  tree_match_func=tree_match)
+    helpers.assert_roundtrip_tree(
+        {"table": t}, tmpdir, asdf_check_func=check, tree_match_func=tree_match
+    )
 
 
 def test_earthlocation_mixin(tmpdir):
-
     t = table.Table()
-    t['a'] = [1, 2]
-    t['b'] = ['x', 'y']
-    t['c'] = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
+    t["a"] = [1, 2]
+    t["b"] = ["x", "y"]
+    t["c"] = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 
     def check(ff):
-        assert isinstance(ff['table']['c'], EarthLocation)
+        assert isinstance(ff["table"]["c"], EarthLocation)
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir, asdf_check_func=check)
 
 
 def test_ndarray_mixin(tmpdir):
-
     t = table.Table()
-    t['a'] = [1, 2]
-    t['b'] = ['x', 'y']
-    t['c'] = table.NdarrayMixin([5, 6])
+    t["a"] = [1, 2]
+    t["b"] = ["x", "y"]
+    t["c"] = table.NdarrayMixin([5, 6])
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir)
+    helpers.assert_roundtrip_tree({"table": t}, tmpdir)
 
 
 def test_backwards_compat():
@@ -240,6 +235,6 @@ def test_backwards_compat():
     """
 
     def check(asdffile):
-        assert isinstance(asdffile['example'], table.Table)
+        assert isinstance(asdffile["example"], table.Table)
 
-    run_schema_example_test('stsci.edu', 'asdf', 'core/table', '1.0.0', check)
+    run_schema_example_test("stsci.edu", "asdf", "core/table", "1.0.0", check)
