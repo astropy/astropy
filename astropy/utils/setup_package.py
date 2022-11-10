@@ -9,6 +9,8 @@ ASTROPY_UTILS_ROOT = dirname(__file__)
 
 def get_extensions():
     return [
-        Extension('astropy.utils._compiler',
-                  [relpath(join(ASTROPY_UTILS_ROOT, 'src', 'compiler.c'))])
+        Extension(
+            "astropy.utils._compiler",
+            [relpath(join(ASTROPY_UTILS_ROOT, "src", "compiler.c"))],
+        )
     ]

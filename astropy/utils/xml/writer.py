@@ -11,6 +11,7 @@ import textwrap
 try:
     from . import _iterparser
 except ImportError:
+
     def xml_escape_cdata(s):
         """
         Escapes &, < and > in an XML CDATA string.
@@ -26,10 +27,11 @@ except ImportError:
         """
         s = s.replace("&", "&amp;")
         s = s.replace("'", "&apos;")
-        s = s.replace("\"", "&quot;")
+        s = s.replace('"', "&quot;")
         s = s.replace("<", "&lt;")
         s = s.replace(">", "&gt;")
         return s
+
 else:
     xml_escape_cdata = _iterparser.escape_xml_cdata
     xml_escape = _iterparser.escape_xml
@@ -83,16 +85,15 @@ class XMLWriter:
                 self.write(">")
             self._open = 0
         if self._data:
-            data = ''.join(self._data)
+            data = "".join(self._data)
             if wrap:
                 indent = self.get_indentation_spaces(1)
                 data = textwrap.fill(
-                    data,
-                    initial_indent=indent,
-                    subsequent_indent=indent)
-                self.write('\n')
+                    data, initial_indent=indent, subsequent_indent=indent
+                )
+                self.write("\n")
                 self.write(self.xml_escape_cdata(data))
-                self.write('\n')
+                self.write("\n")
                 self.write(self.get_indentation_spaces())
             else:
                 self.write(self.xml_escape_cdata(data))
@@ -137,13 +138,13 @@ class XMLWriter:
                     # This is just busy work -- we know our keys are clean
                     # k = xml_escape_cdata(k)
                     v = self.xml_escape(v)
-                    self.write(f" {k}=\"{v}\"")
+                    self.write(f' {k}="{v}"')
         self._open = 1
 
         return len(self._tags)
 
     @contextlib.contextmanager
-    def xml_cleaning_method(self, method='escape_xml', **clean_kwargs):
+    def xml_cleaning_method(self, method="escape_xml", **clean_kwargs):
         """Context manager to control how XML data tags are cleaned (escaped) to
         remove potentially unsafe characters or constructs.
 
@@ -181,22 +182,26 @@ class XMLWriter:
         """
         current_xml_escape_cdata = self.xml_escape_cdata
 
-        if method == 'bleach_clean':
+        if method == "bleach_clean":
             # NOTE: bleach is imported locally to avoid importing it when
             # it is not nocessary
             try:
                 import bleach
             except ImportError:
-                raise ValueError('bleach package is required when HTML escaping is disabled.\n'
-                                 'Use "pip install bleach".')
+                raise ValueError(
+                    "bleach package is required when HTML escaping is disabled.\n"
+                    'Use "pip install bleach".'
+                )
 
             if clean_kwargs is None:
                 clean_kwargs = {}
             self.xml_escape_cdata = lambda x: bleach.clean(x, **clean_kwargs)
         elif method == "none":
             self.xml_escape_cdata = lambda x: x
-        elif method != 'escape_xml':
-            raise ValueError('allowed values of method are "escape_xml", "bleach_clean", and "none"')
+        elif method != "escape_xml":
+            raise ValueError(
+                'allowed values of method are "escape_xml", "bleach_clean", and "none"'
+            )
 
         yield
 
@@ -315,7 +320,7 @@ class XMLWriter:
         Returns a string of spaces that matches the current
         indentation level.
         """
-        return self._indentation[:len(self._tags) + offset]
+        return self._indentation[: len(self._tags) + offset]
 
     @staticmethod
     def object_attrs(obj, attrs):
@@ -341,5 +346,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = str(getattr(obj, attr))
+                d[attr.replace("_", "-")] = str(getattr(obj, attr))
         return d
