@@ -7,7 +7,7 @@ from astropy.units.equivalencies import Equivalency
 class EquivalencyType(AstropyType):
     name = "units/equivalency"
     types = [Equivalency]
-    version = '1.0.0'
+    version = "1.0.0"
 
     @classmethod
     def to_tree(cls, equiv, ctx):
@@ -18,7 +18,7 @@ class EquivalencyType(AstropyType):
         for e, kwargs in zip(equiv.name, equiv.kwargs):
             kwarg_names = list(kwargs.keys())
             kwarg_values = list(kwargs.values())
-            eq = {'name': e, 'kwargs_names': kwarg_names, 'kwargs_values': kwarg_values}
+            eq = {"name": e, "kwargs_names": kwarg_names, "kwargs_values": kwarg_values}
             eqs.append(eq)
         return eqs
 
@@ -26,8 +26,8 @@ class EquivalencyType(AstropyType):
     def from_tree(cls, node, ctx):
         eqs = []
         for eq in node:
-            equiv = getattr(equivalencies, eq['name'])
-            kwargs = dict(zip(eq['kwargs_names'], eq['kwargs_values']))
+            equiv = getattr(equivalencies, eq["name"])
+            kwargs = dict(zip(eq["kwargs_names"], eq["kwargs_values"]))
             eqs.append(equiv(**kwargs))
         return sum(eqs[1:], eqs[0])
 

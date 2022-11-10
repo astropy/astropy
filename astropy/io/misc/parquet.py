@@ -18,7 +18,7 @@ from astropy.utils import minversion
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
-PARQUET_SIGNATURE = b'PAR1'
+PARQUET_SIGNATURE = b"PAR1"
 
 __all__ = []  # nothing is publicly scoped
 
@@ -51,13 +51,14 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
 
         return signature == PARQUET_SIGNATURE
     elif filepath is not None:
-        return filepath.endswith(('.parquet', '.parq'))
+        return filepath.endswith((".parquet", ".parq"))
     else:
         return False
 
 
-def read_table_parquet(input, include_names=None, exclude_names=None,
-                       schema_only=False, filters=None):
+def read_table_parquet(
+    input, include_names=None, exclude_names=None, schema_only=False, filters=None
+):
     """
     Read a Table object from a Parquet file.
 
@@ -119,7 +120,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
     if not isinstance(input, (str, os.PathLike)):
         # The 'read' attribute is the key component of a generic
         # file-like object.
-        if not hasattr(input, 'read'):
+        if not hasattr(input, "read"):
             raise TypeError("pyarrow can only open path-like or file-like objects.")
 
     schema = parquet.read_schema(input)
@@ -127,7 +128,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
     # Pyarrow stores all metadata as byte-strings, so we convert
     # to UTF-8 strings here.
     if schema.metadata is not None:
-        md = {k.decode('UTF-8'): v.decode('UTF-8') for k, v in schema.metadata.items()}
+        md = {k.decode("UTF-8"): v.decode("UTF-8") for k, v in schema.metadata.items()}
     else:
         md = {}
 
@@ -135,20 +136,20 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
 
     # parse metadata from table yaml
     meta_dict = {}
-    if 'table_meta_yaml' in md:
-        meta_yaml = md.pop('table_meta_yaml').split('\n')
+    if "table_meta_yaml" in md:
+        meta_yaml = md.pop("table_meta_yaml").split("\n")
         meta_hdr = meta.get_header_from_yaml(meta_yaml)
-        if 'meta' in meta_hdr:
-            meta_dict = meta_hdr['meta']
+        if "meta" in meta_hdr:
+            meta_dict = meta_hdr["meta"]
     else:
         meta_hdr = None
 
     # parse and set serialized columns
     full_table_columns = {name: name for name in schema.names}
     has_serialized_columns = False
-    if '__serialized_columns__' in meta_dict:
+    if "__serialized_columns__" in meta_dict:
         has_serialized_columns = True
-        serialized_columns = meta_dict['__serialized_columns__']
+        serialized_columns = meta_dict["__serialized_columns__"]
         for scol in serialized_columns:
             for name in _get_names(serialized_columns[scol]):
                 full_table_columns[name] = scol
@@ -161,7 +162,9 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
         use_names.difference_update(exclude_names)
     # Preserve column ordering via list, and use this dict trick
     # to remove duplicates and preserve ordering (for mixin columns)
-    use_names = list(dict.fromkeys([x for x in full_table_columns.values() if x in use_names]))
+    use_names = list(
+        dict.fromkeys([x for x in full_table_columns.values() if x in use_names])
+    )
 
     # names_to_read is a list of actual serialized column names, where
     # e.g. the requested name 'time' becomes ['time.jd1', 'time.jd2']
@@ -175,9 +178,9 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
 
     # We need to pop any unread serialized columns out of the meta_dict.
     if has_serialized_columns:
-        for scol in list(meta_dict['__serialized_columns__'].keys()):
+        for scol in list(meta_dict["__serialized_columns__"].keys()):
             if scol not in use_names:
-                meta_dict['__serialized_columns__'].pop(scol)
+                meta_dict["__serialized_columns__"].pop(scol)
 
     # whether to return the whole table or a formatted empty table.
     if not schema_only:
@@ -199,7 +202,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
             continue
 
         # Special-case for string and binary columns
-        md_name = f'table::len::{name}'
+        md_name = f"table::len::{name}"
         if md_name in md:
             # String/bytes length from header.
             strlen = int(md[md_name])
@@ -207,15 +210,20 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
             # Choose an arbitrary string length since
             # are not reading in the table.
             strlen = 10
-            warnings.warn(f"No {md_name} found in metadata. "
-                          f"Guessing {{strlen}} for schema.",
-                          AstropyUserWarning)
+            warnings.warn(
+                f"No {md_name} found in metadata. Guessing {{strlen}} for schema.",
+                AstropyUserWarning,
+            )
         else:
             strlen = max(len(row.as_py()) for row in pa_table[name])
-            warnings.warn(f"No {md_name} found in metadata. "
-                          f"Using longest string ({{strlen}} characters).",
-                          AstropyUserWarning)
-        dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
+            warnings.warn(
+                f"No {md_name} found in metadata. Using longest string"
+                f" ({strlen} characters).",
+                AstropyUserWarning,
+            )
+        dtype.append(
+            f"U{strlen}" if schema.field(name).type == pa.string() else f"|S{strlen}"
+        )
 
     # Create the empty numpy record array to store the pyarrow data.
     data = np.zeros(num_rows, dtype=list(zip(names_to_read, dtype)))
@@ -230,9 +238,9 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
     if meta_hdr is not None:
         # Set description, format, unit, meta from the column
         # metadata that was serialized with the table.
-        header_cols = {x['name']: x for x in meta_hdr['datatype']}
+        header_cols = {x["name"]: x for x in meta_hdr["datatype"]}
         for col in table.columns.values():
-            for attr in ('description', 'format', 'unit', 'meta'):
+            for attr in ("description", "format", "unit", "meta"):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
 
@@ -266,15 +274,15 @@ def write_table_parquet(table, output, overwrite=False):
     pa, parquet, writer_version = get_pyarrow()
 
     if not isinstance(output, (str, os.PathLike)):
-        raise TypeError(f'`output` should be a string or path-like, not {output}')
+        raise TypeError(f"`output` should be a string or path-like, not {output}")
 
     # Convert all compound columns into serialized column names, where
     # e.g. 'time' becomes ['time.jd1', 'time.jd2'].
-    with serialize_context_as('parquet'):
+    with serialize_context_as("parquet"):
         encode_table = serialize.represent_mixins_as_columns(table)
     # We store the encoded serialization metadata as a yaml string.
     meta_yaml = meta.get_yaml_from_table(encode_table)
-    meta_yaml_str = '\n'.join(meta_yaml)
+    meta_yaml_str = "\n".join(meta_yaml)
 
     metadata = {}
     for name, col in encode_table.columns.items():
@@ -282,20 +290,24 @@ def write_table_parquet(table, output, overwrite=False):
         # byte column length is lost.  Therefore, we special-case these
         # types to record the length for precise round-tripping.
         if col.dtype.type is np.str_:
-            metadata[f'table::len::{name}'] = str(col.dtype.itemsize//4)
+            metadata[f"table::len::{name}"] = str(col.dtype.itemsize // 4)
         elif col.dtype.type is np.bytes_:
-            metadata[f'table::len::{name}'] = str(col.dtype.itemsize)
+            metadata[f"table::len::{name}"] = str(col.dtype.itemsize)
 
-        metadata['table_meta_yaml'] = meta_yaml_str
+        metadata["table_meta_yaml"] = meta_yaml_str
 
     # Pyarrow stores all metadata as byte strings, so we explicitly encode
     # our unicode strings in metadata as UTF-8 byte strings here.
-    metadata_encode = {k.encode('UTF-8'): v.encode('UTF-8') for k, v in metadata.items()}
+    metadata_encode = {
+        k.encode("UTF-8"): v.encode("UTF-8") for k, v in metadata.items()
+    }
 
     # Build the pyarrow schema by converting from the numpy dtype of each
     # column to an equivalent pyarrow type with from_numpy_dtype()
-    type_list = [(name, pa.from_numpy_dtype(encode_table.dtype[name].type))
-                 for name in encode_table.dtype.names]
+    type_list = [
+        (name, pa.from_numpy_dtype(encode_table.dtype[name].type))
+        for name in encode_table.dtype.names
+    ]
     schema = pa.schema(type_list, metadata=metadata_encode)
 
     if os.path.exists(output):
@@ -332,7 +344,7 @@ def _get_names(_dict):
     for k, v in _dict.items():
         if isinstance(v, dict):
             all_names.extend(_get_names(v))
-        elif k == 'name':
+        elif k == "name":
             all_names.append(v)
     return all_names
 
@@ -344,9 +356,9 @@ def register_parquet():
     from astropy.io import registry as io_registry
     from astropy.table import Table
 
-    io_registry.register_reader('parquet', Table, read_table_parquet)
-    io_registry.register_writer('parquet', Table, write_table_parquet)
-    io_registry.register_identifier('parquet', Table, parquet_identify)
+    io_registry.register_reader("parquet", Table, read_table_parquet)
+    io_registry.register_writer("parquet", Table, write_table_parquet)
+    io_registry.register_identifier("parquet", Table, parquet_identify)
 
 
 def get_pyarrow():
@@ -356,9 +368,9 @@ def get_pyarrow():
     except ImportError:
         raise Exception("pyarrow is required to read and write parquet files")
 
-    if minversion(pa, '6.0.0'):
-        writer_version = '2.4'
+    if minversion(pa, "6.0.0"):
+        writer_version = "2.4"
     else:
-        writer_version = '2.0'
+        writer_version = "2.0"
 
     return pa, parquet, writer_version

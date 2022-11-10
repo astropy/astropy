@@ -62,7 +62,6 @@ force-exclude = '''
     | astropy/extern
     | astropy/io/ascii
     | astropy/io/fits
-    | astropy/io/misc
     | astropy/io/registry
     | astropy/io/tests
     | astropy/io/votable
