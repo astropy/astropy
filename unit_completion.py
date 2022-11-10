@@ -1,8 +1,10 @@
 from astropy import units as u
 
 with open("astropy/units/autocompletion.py", "w") as f:
+
     f.write("from .core import UnitBase\n")
     f.write("from .function import FunctionUnitBase\n")
+    f.write("\n")  # to pass isort check
     for attr in dir(u):
         value = getattr(u, attr)
         if isinstance(value, u.UnitBase):
