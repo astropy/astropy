@@ -70,7 +70,6 @@ force-exclude = '''
     | astropy/timeseries
     | astropy/units
     | astropy/visualization
-    | astropy/wcs
   )/
   # Individual files to always exclude
   | astropy/io/__init__.py
