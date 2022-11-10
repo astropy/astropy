@@ -7,7 +7,7 @@ import numpy as np
 
 from astropy.utils.misc import isiterable
 
-__all__ = ['FlagCollection']
+__all__ = ["FlagCollection"]
 
 
 class FlagCollection(OrderedDict):
@@ -24,25 +24,26 @@ class FlagCollection(OrderedDict):
     """
 
     def __init__(self, *args, **kwargs):
-
-        if 'shape' in kwargs:
-            self.shape = kwargs.pop('shape')
+        if "shape" in kwargs:
+            self.shape = kwargs.pop("shape")
             if not isiterable(self.shape):
-                raise ValueError("FlagCollection shape should be "
-                                 "an iterable object")
+                raise ValueError("FlagCollection shape should be an iterable object")
         else:
-            raise Exception("FlagCollection should be initialized with "
-                            "the shape of the data")
+            raise Exception(
+                "FlagCollection should be initialized with the shape of the data"
+            )
 
         OrderedDict.__init__(self, *args, **kwargs)
 
     def __setitem__(self, item, value, **kwargs):
-
         if isinstance(value, np.ndarray):
             if value.shape == self.shape:
                 OrderedDict.__setitem__(self, item, value, **kwargs)
             else:
-                raise ValueError("flags array shape {} does not match data "
-                                 "shape {}".format(value.shape, self.shape))
+                raise ValueError(
+                    "flags array shape {} does not match data shape {}".format(
+                        value.shape, self.shape
+                    )
+                )
         else:
             raise TypeError("flags should be given as a Numpy array")

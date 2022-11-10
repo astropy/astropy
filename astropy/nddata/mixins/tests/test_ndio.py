@@ -6,5 +6,5 @@ NDDataIO = NDDataRef
 
 def test_simple_write_read():
     ndd = NDDataIO([1, 2, 3])
-    assert hasattr(ndd, 'read')
-    assert hasattr(ndd, 'write')
+    assert hasattr(ndd, "read")
+    assert hasattr(ndd, "write")

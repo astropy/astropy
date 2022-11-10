@@ -64,7 +64,6 @@ force-exclude = '''
     | astropy/io/registry
     | astropy/io/tests
     | astropy/modeling
-    | astropy/nddata
     | astropy/samp
     | astropy/table
     | astropy/tests
