@@ -17,14 +17,19 @@ custom_functions = FunctionAssigner(CUSTOM_FUNCTIONS)
 @custom_functions(helps={np.linspace})
 def linspace(tstart, tstop, *args, **kwargs):
     from astropy.time import Time
+
     if isinstance(tstart, Time):
         if not isinstance(tstop, Time):
             return NotImplemented
 
-    if kwargs.get('retstep'):
-        offsets, step = np.linspace(np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs)
+    if kwargs.get("retstep"):
+        offsets, step = np.linspace(
+            np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs
+        )
         tdelta = tstop - tstart
         return tstart + tdelta * offsets, tdelta * step
     else:
-        offsets = np.linspace(np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs)
+        offsets = np.linspace(
+            np.zeros(tstart.shape), np.ones(tstop.shape), *args, **kwargs
+        )
         return tstart + (tstop - tstart) * offsets
