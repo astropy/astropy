@@ -43,7 +43,7 @@ class _CosmologyWrapper:
     This should never be exposed to the user.
     """
 
-    __slots__ = ("wrapped", )
+    __slots__ = ("wrapped",)
     # Use less memory and speed up initilization.
 
     _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
@@ -66,6 +66,7 @@ def _wrap_to_ufunc(nin: int, nout: int) -> Callable[[_CompFnT], np.ufunc]:
     def wrapper(pyfunc: _CompFnT) -> np.ufunc:
         ufunc = np.frompyfunc(pyfunc, 2, 1)
         return ufunc
+
     return wrapper
 
 
@@ -104,12 +105,16 @@ def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     # Shortcut if already a cosmology
     if isinstance(cosmo, Cosmology):
         if format not in _COSMO_AOK:
-            allowed = '/'.join(map(str, _COSMO_AOK))
-            raise ValueError(f"for parsing a Cosmology, 'format' must be {allowed}, not {format}")
+            allowed = "/".join(map(str, _COSMO_AOK))
+            raise ValueError(
+                f"for parsing a Cosmology, 'format' must be {allowed}, not {format}"
+            )
         return cosmo
     # Convert, if allowed.
     elif format == False_:  # catches False and False_
-        raise TypeError(f"if 'format' is False, arguments must be a Cosmology, not {cosmo}")
+        raise TypeError(
+            f"if 'format' is False, arguments must be a Cosmology, not {cosmo}"
+        )
     else:
         format = None if format == True_ else format  # str->str, None/True/True_->None
         out = Cosmology.from_format(cosmo, format=format)  # this can error!
@@ -152,7 +157,9 @@ def _parse_formats(*cosmos: object, format: _FormatsT) -> ndarray:
     # astropy.row cannot be used in an array, even if dtype=object
     # and will raise a segfault when used in a ufunc.
     towrap = (isinstance(cosmo, _CosmologyWrapper._cantbroadcast) for cosmo in cosmos)
-    wcosmos = [c if not wrap else _CosmologyWrapper(c) for c, wrap in zip(cosmos, towrap)]
+    wcosmos = [
+        c if not wrap else _CosmologyWrapper(c) for c, wrap in zip(cosmos, towrap)
+    ]
 
     return _parse_format(wcosmos, formats)
 
@@ -190,8 +197,10 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
     @functools.wraps(pyfunc)
     def wrapper(*cosmos: Any, format: _FormatsT = False, **kwargs: Any) -> bool:
         if len(cosmos) > nin:
-            raise TypeError(f"{wrapper.__wrapped__.__name__} takes {nin} positional"
-                            f" arguments but {len(cosmos)} were given")
+            raise TypeError(
+                f"{wrapper.__wrapped__.__name__} takes {nin} positional"
+                f" arguments but {len(cosmos)} were given"
+            )
         # Parse cosmologies to format. Only do specified number.
         cosmos = _parse_formats(*cosmos, format=format)
         # Evaluate pyfunc, erroring if didn't match specified number.
@@ -207,7 +216,9 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @_comparison_decorator
-def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False) -> bool:
+def cosmology_equal(
+    cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
+) -> bool:
     r"""Return element-wise equality check on the cosmologies.
 
     .. note::
@@ -303,7 +314,7 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = Fal
     """
     # Check parameter equality
     if not allow_equivalent:
-        eq = (cosmo1 == cosmo2)
+        eq = cosmo1 == cosmo2
 
     else:
         # Check parameter equivalence
@@ -322,7 +333,9 @@ def cosmology_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = Fal
 
 
 @_comparison_decorator
-def _cosmology_not_equal(cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False) -> bool:
+def _cosmology_not_equal(
+    cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
+) -> bool:
     r"""Return element-wise cosmology non-equality check.
 
     .. note::

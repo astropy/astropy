@@ -46,8 +46,10 @@ def vectorize_redshift_method(func=None, nin=1):
         """
         # process inputs
         # TODO! quantity-aware vectorization can simplify this.
-        zs = [z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
-              for z in args[:nin]]
+        zs = [
+            z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
+            for z in args[:nin]
+        ]
         # scalar inputs
         if all(isinstance(z, (Number, np.generic)) for z in zs):
             return func(self, *zs, *args[nin:], **kwargs)
@@ -62,8 +64,11 @@ def vectorize_redshift_method(func=None, nin=1):
 
 @deprecated(
     since="5.0",
-    message="vectorize_if_needed has been removed because it constructs a new ufunc on each call",
-    alternative="use a pre-vectorized function instead for a target array 'z'"
+    message=(
+        "vectorize_if_needed has been removed because it constructs a new ufunc on each"
+        " call"
+    ),
+    alternative="use a pre-vectorized function instead for a target array 'z'",
 )
 def vectorize_if_needed(f, *x, **vkw):
     """Helper function to vectorize scalar functions on array inputs.
@@ -91,9 +96,11 @@ def vectorize_if_needed(f, *x, **vkw):
 
 @deprecated(
     since="5.0",
-    message=("inf_like has been removed because it duplicates "
-             "functionality provided by numpy.full_like()"),
-    alternative="Use numpy.full_like(z, numpy.inf) instead for a target array 'z'"
+    message=(
+        "inf_like has been removed because it duplicates "
+        "functionality provided by numpy.full_like()"
+    ),
+    alternative="Use numpy.full_like(z, numpy.inf) instead for a target array 'z'",
 )
 def inf_like(x):
     """Return the shape of x with value infinity and dtype='float'.

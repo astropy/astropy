@@ -19,10 +19,16 @@ from .parameter import *
 from .realizations import available, default_cosmology
 from .utils import *
 
-__all__ = (core.__all__ + flrw.__all__       # cosmology classes
-           + realizations.__all__            # instances thereof
-           + ["units"]
-           + funcs.__all__ + parameter.__all__ + utils.__all__)  # utils
+__all__ = (
+    core.__all__
+    + flrw.__all__  # cosmology classes
+    + realizations.__all__  # instances thereof
+    + ["units"]
+    # utils
+    + funcs.__all__
+    + parameter.__all__
+    + utils.__all__
+)
 
 
 def __getattr__(name):
