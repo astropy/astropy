@@ -18,7 +18,9 @@ PYTHON_LT_3_11 = sys.version_info < (3, 11)
 
 @deprecated(
     since="v5.2",
-    message="http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
+    message=(
+        "http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
+    ),
 )
 def override__dir__(f):
     """

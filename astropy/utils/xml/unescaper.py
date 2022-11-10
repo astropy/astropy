@@ -4,16 +4,22 @@
 # STDLIB
 from xml.sax import saxutils
 
-__all__ = ['unescape_all']
+__all__ = ["unescape_all"]
 
 # This is DIY
-_bytes_entities = {b'&amp;': b'&', b'&lt;': b'<', b'&gt;': b'>',
-                   b'&amp;&amp;': b'&', b'&&': b'&', b'%2F': b'/'}
-_bytes_keys = [b'&amp;&amp;', b'&&', b'&amp;', b'&lt;', b'&gt;', b'%2F']
+_bytes_entities = {
+    b"&amp;": b"&",
+    b"&lt;": b"<",
+    b"&gt;": b">",
+    b"&amp;&amp;": b"&",
+    b"&&": b"&",
+    b"%2F": b"/",
+}
+_bytes_keys = [b"&amp;&amp;", b"&&", b"&amp;", b"&lt;", b"&gt;", b"%2F"]
 
 # This is used by saxutils
-_str_entities = {'&amp;&amp;': '&', '&&': '&', '%2F': '/'}
-_str_keys = ['&amp;&amp;', '&&', '&amp;', '&lt;', '&gt;', '%2F']
+_str_entities = {"&amp;&amp;": "&", "&&": "&", "%2F": "/"}
+_str_keys = ["&amp;&amp;", "&&", "&amp;", "&lt;", "&gt;", "%2F"]
 
 
 def unescape_all(url):

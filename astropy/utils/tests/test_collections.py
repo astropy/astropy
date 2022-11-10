@@ -55,7 +55,7 @@ def test_homogeneous_list_setitem_works_with_slice():
 
 def test_homogeneous_list_init_got_invalid_type():
     with pytest.raises(TypeError):
-        collections.HomogeneousList(int, [1, 2., 3])
+        collections.HomogeneousList(int, [1, 2.0, 3])
 
 
 def test_homogeneous_list_works_with_generators():

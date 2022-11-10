@@ -29,13 +29,26 @@ import numpy as np
 
 from . import metadata
 
-__all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
-           'DataInfo', 'MixinInfo', 'ParentDtypeInfo']
+__all__ = [
+    "data_info_factory",
+    "dtype_info_name",
+    "BaseColumnInfo",
+    "DataInfo",
+    "MixinInfo",
+    "ParentDtypeInfo",
+]
 
 # Tuple of filterwarnings kwargs to ignore when calling info
-IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
-                        'Mean of empty slice|Degrees of freedom <= 0|'
-                        'invalid value encountered in sqrt'),)
+IGNORE_WARNINGS = (
+    dict(
+        category=RuntimeWarning,
+        message=(
+            "All-NaN|"
+            "Mean of empty slice|Degrees of freedom <= 0|"
+            "invalid value encountered in sqrt"
+        ),
+    ),
+)
 
 
 @contextmanager
@@ -87,16 +100,17 @@ def dtype_info_name(dtype):
     """
     dtype = np.dtype(dtype)
     if dtype.names is not None:
-        return '({})'.format(', '.join(dtype_info_name(dt[0])
-                                       for dt in dtype.fields.values()))
+        return "({})".format(
+            ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
+        )
     if dtype.subdtype is not None:
         dtype, shape = dtype.subdtype
     else:
         shape = ()
 
-    if dtype.kind in ('S', 'U'):
-        type_name = 'bytes' if dtype.kind == 'S' else 'str'
-        length = re.search(r'(\d+)', dtype.str).group(1)
+    if dtype.kind in ("S", "U"):
+        type_name = "bytes" if dtype.kind == "S" else "str"
+        length = re.search(r"(\d+)", dtype.str).group(1)
         out = type_name + length
     else:
         out = dtype.name
@@ -138,6 +152,7 @@ def data_info_factory(names, funcs):
     func : function
         Function that can be used as a data info option
     """
+
     def func(dat):
         outs = []
         for name, func in zip(names, funcs):
@@ -147,14 +162,15 @@ def data_info_factory(names, funcs):
                 else:
                     out = func(dat)
             except Exception:
-                outs.append('--')
+                outs.append("--")
             else:
                 try:
-                    outs.append(f'{out:g}')
+                    outs.append(f"{out:g}")
                 except (TypeError, ValueError):
                     outs.append(str(out))
 
         return OrderedDict(zip(names, outs))
+
     return func
 
 
@@ -178,17 +194,17 @@ def _get_data_attribute(dat, attr=None):
     """
     Get a data object attribute for the ``attributes`` info summary method
     """
-    if attr == 'class':
+    if attr == "class":
         val = type(dat).__name__
-    elif attr == 'dtype':
+    elif attr == "dtype":
         val = dtype_info_name(dat.info.dtype)
-    elif attr == 'shape':
+    elif attr == "shape":
         datshape = dat.shape[1:]
-        val = datshape if datshape else ''
+        val = datshape if datshape else ""
     else:
         val = getattr(dat.info, attr)
     if val is None:
-        val = ''
+        val = ""
     return str(val)
 
 
@@ -206,7 +222,7 @@ class InfoAttribute:
     def __set__(self, instance, value):
         if instance is None:
             # This is an unbound descriptor on the class
-            raise ValueError('cannot set unbound descriptor')
+            raise ValueError("cannot set unbound descriptor")
 
         instance._attrs[self.attr] = value
 
@@ -224,7 +240,7 @@ class ParentAttribute:
     def __set__(self, instance, value):
         if instance is None:
             # This is an unbound descriptor on the class
-            raise ValueError('cannot set unbound descriptor')
+            raise ValueError("cannot set unbound descriptor")
 
         setattr(instance._parent, self.attr, value)
 
@@ -233,7 +249,7 @@ class DataInfoMeta(type):
     def __new__(mcls, name, bases, dct):
         # Ensure that we do not gain a __dict__, which would mean
         # arbitrary attributes could be set.
-        dct.setdefault('__slots__', [])
+        dct.setdefault("__slots__", [])
         return super().__new__(mcls, name, bases, dct)
 
     def __init__(cls, name, bases, dct):
@@ -250,15 +266,18 @@ class DataInfoMeta(type):
                     # If the attribute is supposed to be stored on the parent,
                     # and that is stated by this class yet it was not the case
                     # on the superclass, override it.
-                    if 'attrs_from_parent' in dct and not isinstance(cls_attr, ParentAttribute):
+                    if "attrs_from_parent" in dct and not isinstance(
+                        cls_attr, ParentAttribute
+                    ):
                         setattr(cls, attr, ParentAttribute(attr))
                 elif not cls_attr or isinstance(cls_attr, ParentAttribute):
                     # If the attribute is not meant to be stored on the parent,
                     # and if it was not defined already or was previously defined
                     # as an attribute on the parent, define a regular
                     # look-up-on-info attribute
-                    setattr(cls, attr,
-                            InfoAttribute(attr, cls._attr_defaults.get(attr)))
+                    setattr(
+                        cls, attr, InfoAttribute(attr, cls._attr_defaults.get(attr))
+                    )
 
 
 class DataInfo(metaclass=DataInfoMeta):
@@ -278,13 +297,14 @@ class DataInfo(metaclass=DataInfoMeta):
         If True this is a descriptor attribute in a class definition, else it
         is a DataInfo() object that is bound to a data object instance. Default is False.
     """
-    _stats = ['mean', 'std', 'min', 'max']
+
+    _stats = ["mean", "std", "min", "max"]
     attrs_from_parent = set()
-    attr_names = {'name', 'unit', 'dtype', 'format', 'description', 'meta'}
-    _attr_defaults = {'dtype': np.dtype('O')}
+    attr_names = {"name", "unit", "dtype", "format", "description", "meta"}
+    _attr_defaults = {"dtype": np.dtype("O")}
     _attrs_no_copy = set()
-    _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    __slots__ = ['_parent_cls', '_parent_ref', '_attrs']
+    _info_summary_attrs = ("dtype", "shape", "unit", "format", "description", "class")
+    __slots__ = ["_parent_cls", "_parent_ref", "_attrs"]
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -322,14 +342,16 @@ class DataInfo(metaclass=DataInfoMeta):
             return None
 
         if parent is None:
-            raise AttributeError("""\
+            raise AttributeError(
+                """\
 failed to access "info" attribute on a temporary object.
 
 It looks like you have done something like ``col[3:5].info`` or
 ``col.quantity.info``, i.e.  you accessed ``info`` from a temporary slice
 object that only exists momentarily.  This has failed because the reference to
 that temporary object is now lost.  Instead force a permanent reference (e.g.
-``c = col[3:5]`` followed by ``c.info``).""")
+``c = col[3:5]`` followed by ``c.info``)."""
+            )
 
         return parent
 
@@ -339,9 +361,9 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             self._parent_cls = owner_cls
             return self
 
-        info = instance.__dict__.get('info')
+        info = instance.__dict__.get("info")
         if info is None:
-            info = instance.__dict__['info'] = self.__class__(bound=True)
+            info = instance.__dict__["info"] = self.__class__(bound=True)
         # We set _parent_ref on every call, since if one makes copies of
         # instances, 'info' will be copied as well, which will lose the
         # reference.
@@ -351,10 +373,10 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
     def __set__(self, instance, value):
         if instance is None:
             # This is an unbound descriptor on the class
-            raise ValueError('cannot set unbound descriptor')
+            raise ValueError("cannot set unbound descriptor")
 
         if isinstance(value, DataInfo):
-            info = instance.__dict__['info'] = self.__class__(bound=True)
+            info = instance.__dict__["info"] = self.__class__(bound=True)
             attr_names = info.attr_names
             if value.__class__ is self.__class__:
                 # For same class, attributes are guaranteed to be stored in
@@ -369,7 +391,7 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
                 info._attrs[attr] = deepcopy(getattr(value, attr))
 
         else:
-            raise TypeError('info must be set with a DataInfo instance')
+            raise TypeError("info must be set with a DataInfo instance")
 
     def __getstate__(self):
         return self._attrs
@@ -391,17 +413,22 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
         return self._parent_cls(*args, **map)
 
     info_summary_attributes = staticmethod(
-        data_info_factory(names=_info_summary_attrs,
-                          funcs=[partial(_get_data_attribute, attr=attr)
-                                 for attr in _info_summary_attrs]))
+        data_info_factory(
+            names=_info_summary_attrs,
+            funcs=[
+                partial(_get_data_attribute, attr=attr) for attr in _info_summary_attrs
+            ],
+        )
+    )
 
     # No nan* methods in numpy < 1.8
     info_summary_stats = staticmethod(
-        data_info_factory(names=_stats,
-                          funcs=[getattr(np, 'nan' + stat)
-                                 for stat in _stats]))
+        data_info_factory(
+            names=_stats, funcs=[getattr(np, "nan" + stat) for stat in _stats]
+        )
+    )
 
-    def __call__(self, option='attributes', out=''):
+    def __call__(self, option="attributes", out=""):
         """
         Write summary information about data object to the ``out`` filehandle.
         By default this prints to standard output via sys.stdout.
@@ -456,40 +483,39 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
         info : `~collections.OrderedDict` or None
             `~collections.OrderedDict` if out==None else None
         """
-        if out == '':
+        if out == "":
             out = sys.stdout
 
         dat = self._parent
         info = OrderedDict()
         name = dat.info.name
         if name is not None:
-            info['name'] = name
+            info["name"] = name
 
         options = option if isinstance(option, (list, tuple)) else [option]
         for option in options:
             if isinstance(option, str):
-                if hasattr(self, 'info_summary_' + option):
-                    option = getattr(self, 'info_summary_' + option)
+                if hasattr(self, "info_summary_" + option):
+                    option = getattr(self, "info_summary_" + option)
                 else:
-                    raise ValueError('option={} is not an allowed information type'
-                                     .format(option))
+                    raise ValueError(f"{option=} is not an allowed information type")
 
             with warnings.catch_warnings():
                 for ignore_kwargs in IGNORE_WARNINGS:
-                    warnings.filterwarnings('ignore', **ignore_kwargs)
+                    warnings.filterwarnings("ignore", **ignore_kwargs)
                 info.update(option(dat))
 
-        if hasattr(dat, 'mask'):
+        if hasattr(dat, "mask"):
             n_bad = np.count_nonzero(dat.mask)
         else:
             try:
                 n_bad = np.count_nonzero(np.isinf(dat) | np.isnan(dat))
             except Exception:
                 n_bad = 0
-        info['n_bad'] = n_bad
+        info["n_bad"] = n_bad
 
         try:
-            info['length'] = len(dat)
+            info["length"] = len(dat)
         except (TypeError, IndexError):
             pass
 
@@ -497,8 +523,8 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             return info
 
         for key, val in info.items():
-            if val != '':
-                out.write(f'{key} = {val}' + os.linesep)
+            if val != "":
+                out.write(f"{key} = {val}" + os.linesep)
 
     def __repr__(self):
         if self._parent is None:
@@ -520,8 +546,9 @@ class BaseColumnInfo(DataInfo):
     Note that this class is defined here so that mixins can use it
     without importing the table package.
     """
-    attr_names = DataInfo.attr_names | {'parent_table', 'indices'}
-    _attrs_no_copy = {'parent_table', 'indices'}
+
+    attr_names = DataInfo.attr_names | {"parent_table", "indices"}
+    _attrs_no_copy = {"parent_table", "indices"}
 
     # Context for serialization.  This can be set temporarily via
     # ``serialize_context_as(context)`` context manager to allow downstream
@@ -530,11 +557,11 @@ class BaseColumnInfo(DataInfo):
     # like Time or SkyCoord will have different default serialization
     # representations depending on context.
     _serialize_context = None
-    __slots__ = ['_format_funcs', '_copy_indices']
+    __slots__ = ["_format_funcs", "_copy_indices"]
 
     @property
     def parent_table(self):
-        value = self._attrs.get('parent_table')
+        value = self._attrs.get("parent_table")
         if callable(value):
             value = value()
         return value
@@ -542,10 +569,10 @@ class BaseColumnInfo(DataInfo):
     @parent_table.setter
     def parent_table(self, parent_table):
         if parent_table is None:
-            self._attrs.pop('parent_table', None)
+            self._attrs.pop("parent_table", None)
         else:
             parent_table = weakref.ref(parent_table)
-            self._attrs['parent_table'] = parent_table
+            self._attrs["parent_table"] = parent_table
 
     def __init__(self, bound=False):
         super().__init__(bound=bound)
@@ -584,14 +611,14 @@ class BaseColumnInfo(DataInfo):
         # be used here, since on access, one should not just return the
         # default (empty list is this case), but set _attrs['indices'] so that
         # if the list is appended to, it is registered here.
-        return self._attrs.setdefault('indices', [])
+        return self._attrs.setdefault("indices", [])
 
     @indices.setter
     def indices(self, indices):
-        self._attrs['indices'] = indices
+        self._attrs["indices"] = indices
 
     def adjust_indices(self, index, value, col_len):
-        '''
+        """
         Adjust info indices after column modification.
 
         Parameters
@@ -605,7 +632,7 @@ class BaseColumnInfo(DataInfo):
             New value(s) to insert
         col_len : int
             Length of the column
-        '''
+        """
         if not self.indices:
             return
 
@@ -613,7 +640,7 @@ class BaseColumnInfo(DataInfo):
             # run through each key in slice
             t = index.indices(col_len)
             keys = list(range(*t))
-        elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
+        elif isinstance(index, np.ndarray) and index.dtype.kind == "b":
             # boolean mask
             keys = np.where(index)[0]
         else:  # single int
@@ -629,7 +656,7 @@ class BaseColumnInfo(DataInfo):
                 col_index.replace(key, self.name, val)
 
     def slice_indices(self, col_slice, item, col_len):
-        '''
+        """
         Given a sliced object, modify its indices
         to correctly represent the slice.
 
@@ -642,16 +669,17 @@ class BaseColumnInfo(DataInfo):
             Slice used to create col_slice
         col_len : int
             Length of original object
-        '''
+        """
         from astropy.table.sorted_array import SortedArray
-        if not getattr(self, '_copy_indices', True):
+
+        if not getattr(self, "_copy_indices", True):
             # Necessary because MaskedArray will perform a shallow copy
             col_slice.info.indices = []
             return col_slice
         elif isinstance(item, slice):
             col_slice.info.indices = [x[item] for x in self.indices]
         elif self.indices:
-            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+            if isinstance(item, np.ndarray) and item.dtype.kind == "b":
                 # boolean mask
                 item = np.where(item)[0]
             # Empirical testing suggests that recreating a BST/RBT index is
@@ -700,32 +728,40 @@ class BaseColumnInfo(DataInfo):
         from astropy.table.np_utils import TableMergeError
 
         def warn_str_func(key, left, right):
-            out = ("In merged column '{}' the '{}' attribute does not match "
-                   "({} != {}).  Using {} for merged output"
-                   .format(name, key, left, right, right))
+            out = (
+                f"In merged column '{name}' the '{key}' attribute does not match "
+                f"({left} != {right}).  Using {right} for merged output"
+            )
             return out
 
         def getattrs(col):
-            return {attr: getattr(col.info, attr) for attr in attrs
-                    if getattr(col.info, attr, None) is not None}
+            return {
+                attr: getattr(col.info, attr)
+                for attr in attrs
+                if getattr(col.info, attr, None) is not None
+            }
 
         out = getattrs(cols[0])
         for col in cols[1:]:
-            out = metadata.merge(out, getattrs(col), metadata_conflicts=metadata_conflicts,
-                                 warn_str_func=warn_str_func)
+            out = metadata.merge(
+                out,
+                getattrs(col),
+                metadata_conflicts=metadata_conflicts,
+                warn_str_func=warn_str_func,
+            )
 
         # Output dtype is the superset of all dtypes in in_cols
-        out['dtype'] = metadata.common_dtype(cols)
+        out["dtype"] = metadata.common_dtype(cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = {col.shape[1:] for col in cols}
         if len(uniq_shapes) != 1:
-            raise TableMergeError('columns have different shapes')
-        out['shape'] = uniq_shapes.pop()
+            raise TableMergeError("columns have different shapes")
+        out["shape"] = uniq_shapes.pop()
 
         # "Merged" output name is the supplied name
         if name is not None:
-            out['name'] = name
+            out["name"] = name
 
         return out
 
@@ -740,14 +776,13 @@ class BaseColumnInfo(DataInfo):
         -------
         arrays : list of ndarray
         """
-        raise NotImplementedError(f'column {self.name} is not sortable')
+        raise NotImplementedError(f"column {self.name} is not sortable")
 
 
 class MixinInfo(BaseColumnInfo):
-
     @property
     def name(self):
-        return self._attrs.get('name')
+        return self._attrs.get("name")
 
     @name.setter
     def name(self, name):
@@ -758,7 +793,7 @@ class MixinInfo(BaseColumnInfo):
             new_name = None if name is None else str(name)
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        self._attrs['name'] = name
+        self._attrs["name"] = name
 
     @property
     def groups(self):
@@ -767,10 +802,11 @@ class MixinInfo(BaseColumnInfo):
         # depends on the parent table of the column having `groups`. This will
         # allow aggregating mixins as long as they support those operations.
         from astropy.table import groups
-        return self._attrs.setdefault('groups', groups.ColumnGroups(self._parent))
+
+        return self._attrs.setdefault("groups", groups.ColumnGroups(self._parent))
 
 
 class ParentDtypeInfo(MixinInfo):
     """Mixin that gets info.dtype from parent"""
 
-    attrs_from_parent = {'dtype'}  # dtype and unit taken from parent
+    attrs_from_parent = {"dtype"}  # dtype and unit taken from parent

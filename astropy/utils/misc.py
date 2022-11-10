@@ -22,22 +22,36 @@ from contextlib import contextmanager
 
 from astropy.utils.decorators import deprecated
 
-__all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
-           'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
-           'JsonCustomEncoder', 'indent', 'dtype_bytes_or_chars',
-           'OrderedDescriptor', 'OrderedDescriptorContainer']
+__all__ = [
+    "isiterable",
+    "silence",
+    "format_exception",
+    "NumpyRNGContext",
+    "find_api_page",
+    "is_path_hidden",
+    "walk_skip_hidden",
+    "JsonCustomEncoder",
+    "indent",
+    "dtype_bytes_or_chars",
+    "OrderedDescriptor",
+    "OrderedDescriptorContainer",
+]
 
 
 # Because they are deprecated.
-__doctest_skip__ = ['OrderedDescriptor', 'OrderedDescriptorContainer']
+__doctest_skip__ = ["OrderedDescriptor", "OrderedDescriptorContainer"]
 
 
-NOT_OVERWRITING_MSG = ('File {} already exists. If you mean to replace it '
-                       'then use the argument "overwrite=True".')
+NOT_OVERWRITING_MSG = (
+    "File {} already exists. If you mean to replace it "
+    'then use the argument "overwrite=True".'
+)
 # A useful regex for tests.
-_NOT_OVERWRITING_MSG_MATCH = (r'File .* already exists\. If you mean to '
-                              r'replace it then use the argument '
-                              r'"overwrite=True"\.')
+_NOT_OVERWRITING_MSG_MATCH = (
+    r"File .* already exists\. If you mean to "
+    r"replace it then use the argument "
+    r'"overwrite=True"\.'
+)
 
 
 def isiterable(obj):
@@ -53,10 +67,9 @@ def isiterable(obj):
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
 
-    indented = '\n'.join(' ' * (width * shift) + l if l else ''
-                         for l in s.splitlines())
-    if s[-1] == '\n':
-        indented += '\n'
+    indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())
+    if s[-1] == "\n":
+        indented += "\n"
 
     return indented
 
@@ -109,10 +122,11 @@ def format_exception(msg, *args, **kwargs):
     if len(tb) > 0:
         filename, lineno, func, text = tb[0]
     else:
-        filename = lineno = func = text = '<unknown>'
+        filename = lineno = func = text = "<unknown>"
 
-    return msg.format(*args, filename=filename, lineno=lineno, func=func,
-                      text=text, **kwargs)
+    return msg.format(
+        *args, filename=filename, lineno=lineno, func=func, text=text, **kwargs
+    )
 
 
 class NumpyRNGContext:
@@ -207,10 +221,12 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     from astropy.utils.data import get_readable_fileobj
 
-    if (not isinstance(obj, str) and
-            hasattr(obj, '__module__') and
-            hasattr(obj, '__name__')):
-        obj = obj.__module__ + '.' + obj.__name__
+    if (
+        not isinstance(obj, str)
+        and hasattr(obj, "__module__")
+        and hasattr(obj, "__name__")
+    ):
+        obj = obj.__module__ + "." + obj.__name__
     elif inspect.ismodule(obj):
         obj = obj.__name__
 
@@ -218,28 +234,29 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         from astropy import version
 
         if version.release:
-            version = 'v' + version.version
+            version = "v" + version.version
         else:
-            version = 'dev'
+            version = "dev"
 
-    if '://' in version:
-        if version.endswith('index.html'):
+    if "://" in version:
+        if version.endswith("index.html"):
             baseurl = version[:-10]
-        elif version.endswith('/'):
+        elif version.endswith("/"):
             baseurl = version
         else:
-            baseurl = version + '/'
-    elif version == 'dev' or version == 'latest':
-        baseurl = 'http://devdocs.astropy.org/'
+            baseurl = version + "/"
+    elif version == "dev" or version == "latest":
+        baseurl = "http://devdocs.astropy.org/"
     else:
-        baseurl = f'https://docs.astropy.org/en/{version}/'
+        baseurl = f"https://docs.astropy.org/en/{version}/"
 
     # Custom request headers; see
     # https://github.com/astropy/astropy/issues/8990
-    url = baseurl + 'objects.inv'
-    headers = {'User-Agent': f'Astropy/{version}'}
-    with get_readable_fileobj(url, encoding='binary', remote_timeout=timeout,
-                              http_headers=headers) as uf:
+    url = baseurl + "objects.inv"
+    headers = {"User-Agent": f"Astropy/{version}"}
+    with get_readable_fileobj(
+        url, encoding="binary", remote_timeout=timeout, http_headers=headers
+    ) as uf:
         oiread = uf.read()
 
         # need to first read/remove the first four lines, which have info before
@@ -248,19 +265,21 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         headerlines = []
         for _ in range(4):
             oldidx = idx
-            idx = oiread.index(b'\n', oldidx + 1)
-            headerlines.append(oiread[(oldidx+1):idx].decode('utf-8'))
+            idx = oiread.index(b"\n", oldidx + 1)
+            headerlines.append(oiread[(oldidx + 1) : idx].decode("utf-8"))
 
         # intersphinx version line, project name, and project version
         ivers, proj, vers, compr = headerlines
-        if 'The remainder of this file is compressed using zlib' not in compr:
-            raise ValueError('The file downloaded from {} does not seem to be'
-                             'the usual Sphinx objects.inv format.  Maybe it '
-                             'has changed?'.format(baseurl + 'objects.inv'))
+        if "The remainder of this file is compressed using zlib" not in compr:
+            raise ValueError(
+                f"The file downloaded from {baseurl}objects.inv does not seem to be"
+                "the usual Sphinx objects.inv format.  Maybe it "
+                "has changed?"
+            )
 
-        compressed = oiread[(idx+1):]
+        compressed = oiread[(idx + 1) :]
 
-    decompressed = decompress(compressed).decode('utf-8')
+    decompressed = decompress(compressed).decode("utf-8")
 
     resurl = None
 
@@ -268,7 +287,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         ls = l.split()
         name = ls[0]
         loc = ls[3]
-        if loc.endswith('$'):
+        if loc.endswith("$"):
             loc = loc[:-1] + name
 
         if name == obj:
@@ -276,7 +295,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
             break
 
     if resurl is None:
-        raise ValueError(f'Could not find the docs for the object {obj}')
+        raise ValueError(f"Could not find the docs for the object {obj}")
     elif openinbrowser:
         webbrowser.open(resurl)
 
@@ -291,13 +310,14 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    signal_to_name_map = {k: v for v, k in signal.__dict__.items()
-                          if v.startswith('SIG')}
+    signal_to_name_map = {
+        k: v for v, k in signal.__dict__.items() if v.startswith("SIG")
+    }
 
-    return signal_to_name_map.get(signum, 'UNKNOWN')
+    return signal_to_name_map.get(signum, "UNKNOWN")
 
 
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import ctypes
 
     def _has_hidden_attribute(filepath):
@@ -314,7 +334,9 @@ if sys.platform == 'win32':
         except AttributeError:
             result = False
         return result
+
 else:
+
     def _has_hidden_attribute(filepath):
         return False
 
@@ -335,9 +357,9 @@ def is_path_hidden(filepath):
     """
     name = os.path.basename(os.path.abspath(filepath))
     if isinstance(name, bytes):
-        is_dotted = name.startswith(b'.')
+        is_dotted = name.startswith(b".")
     else:
-        is_dotted = name.startswith('.')
+        is_dotted = name.startswith(".")
     return is_dotted or _has_hidden_attribute(filepath)
 
 
@@ -354,8 +376,8 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     os.walk : For a description of the parameters
     """
     for root, dirs, files in os.walk(
-            top, topdown=True, onerror=onerror,
-            followlinks=followlinks):
+        top, topdown=True, onerror=onerror, followlinks=followlinks
+    ):
         # These lists must be updated in-place so os.walk will skip
         # hidden directories
         dirs[:] = [d for d in dirs if not is_path_hidden(d)]
@@ -390,6 +412,7 @@ class JsonCustomEncoder(json.JSONEncoder):
         import numpy as np
 
         from astropy import units as u
+
         if isinstance(obj, u.Quantity):
             return dict(value=obj.value, unit=obj.unit.to_string())
         if isinstance(obj, (np.number, np.ndarray)):
@@ -402,7 +425,7 @@ class JsonCustomEncoder(json.JSONEncoder):
             return obj.decode()
         elif isinstance(obj, (u.UnitBase, u.FunctionUnitBase)):
             if obj == u.dimensionless_unscaled:
-                obj = 'dimensionless_unit'
+                obj = "dimensionless_unit"
             else:
                 return obj.to_string()
 
@@ -415,9 +438,9 @@ def strip_accents(s):
 
     This helps with matching "ångström" to "angstrom", for example.
     """
-    return ''.join(
-        c for c in unicodedata.normalize('NFD', s)
-        if unicodedata.category(c) != 'Mn')
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn"
+    )
 
 
 def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
@@ -467,11 +490,12 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     # The heuristic here is to first try "singularizing" the word.  If
     # that doesn't match anything use difflib to find close matches in
     # original, lower and upper case.
-    if s_lower.endswith('s') and s_lower[:-1] in candidates_lower:
+    if s_lower.endswith("s") and s_lower[:-1] in candidates_lower:
         matches = [s_lower[:-1]]
     else:
         matches = difflib.get_close_matches(
-            s_lower, candidates_lower, n=n, cutoff=cutoff)
+            s_lower, candidates_lower, n=n, cutoff=cutoff
+        )
 
     if len(matches):
         capitalized_matches = set()
@@ -491,11 +515,10 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
         if len(matches) == 1:
             matches = matches[0]
         else:
-            matches = (', '.join(matches[:-1]) + ' or ' +
-                       matches[-1])
-        return f'Did you mean {matches}?'
+            matches = ", ".join(matches[:-1]) + " or " + matches[-1]
+        return f"Did you mean {matches}?"
 
-    return ''
+    return ""
 
 
 _ordered_descriptor_deprecation_message = """\
@@ -508,7 +531,7 @@ The {func} {obj_type} is deprecated and may be removed in a future version.
 """
 
 
-@deprecated('4.3', _ordered_descriptor_deprecation_message)
+@deprecated("4.3", _ordered_descriptor_deprecation_message)
 class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
@@ -580,20 +603,20 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
         are defined to sort in their creation order.
         """
 
-        if (isinstance(self, OrderedDescriptor) and
-                isinstance(other, OrderedDescriptor)):
+        if isinstance(self, OrderedDescriptor) and isinstance(other, OrderedDescriptor):
             try:
                 return self.__order < other.__order
             except AttributeError:
                 raise RuntimeError(
-                    'Could not determine ordering for {} and {}; at least '
-                    'one of them is not calling super().__init__ in its '
-                    '__init__.'.format(self, other))
+                    f"Could not determine ordering for {self} and {other}; at least "
+                    "one of them is not calling super().__init__ in its "
+                    "__init__."
+                )
         else:
             return NotImplemented
 
 
-@deprecated('4.3', _ordered_descriptor_deprecation_message)
+@deprecated("4.3", _ordered_descriptor_deprecation_message)
 class OrderedDescriptorContainer(type):
     """
     Classes should use this metaclass if they wish to use `OrderedDescriptor`
@@ -746,9 +769,9 @@ class OrderedDescriptorContainer(type):
 
                 seen.add(name)
 
-                if (not isinstance(obj, OrderedDescriptor) or
-                        (inherit_descriptors and
-                            not isinstance(obj, inherit_descriptors))):
+                if not isinstance(obj, OrderedDescriptor) or (
+                    inherit_descriptors and not isinstance(obj, inherit_descriptors)
+                ):
                     # The second condition applies when checking any
                     # subclasses, to see if we can inherit any descriptors of
                     # the given type from subclasses (by default inheritance is
@@ -768,7 +791,7 @@ class OrderedDescriptorContainer(type):
                 # TODO: It might be worth clarifying this in the docs
                 if obj.__class__ not in descr_bases:
                     for obj_cls_base in obj.__class__.__mro__:
-                        if '_class_attribute_' in obj_cls_base.__dict__:
+                        if "_class_attribute_" in obj_cls_base.__dict__:
                             descr_bases[obj.__class__] = obj_cls_base
                             descriptors[obj_cls_base].append((obj, name))
                             break
@@ -777,7 +800,7 @@ class OrderedDescriptorContainer(type):
                     obj_cls_base = descr_bases[obj.__class__]
                     descriptors[obj_cls_base].append((obj, name))
 
-            if not getattr(mro_cls, '_inherit_descriptors_', False):
+            if not getattr(mro_cls, "_inherit_descriptors_", False):
                 # If _inherit_descriptors_ is undefined then we don't inherit
                 # any OrderedDescriptors from any of the base classes, and
                 # there's no reason to continue through the MRO
@@ -830,7 +853,7 @@ def _set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
-set_locale = deprecated('4.0')(_set_locale)
+set_locale = deprecated("4.0")(_set_locale)
 set_locale.__doc__ = """Deprecated version of :func:`_set_locale` above.
 See https://github.com/astropy/astropy/issues/9196
 """
@@ -853,7 +876,7 @@ def dtype_bytes_or_chars(dtype):
     bytes_or_chars : int or None
         Bits (for numeric types) or characters (for string types)
     """
-    match = re.search(r'(\d+)$', dtype.str)
+    match = re.search(r"(\d+)$", dtype.str)
     out = int(match.group(1)) if match else None
     return out
 
@@ -869,22 +892,23 @@ def _hungry_for(option):  # pragma: no cover
 
     """
     import webbrowser
-    webbrowser.open(f'https://www.google.com/search?q={option}+near+me')
+
+    webbrowser.open(f"https://www.google.com/search?q={option}+near+me")
 
 
 def pizza():  # pragma: no cover
     """``/pizza``"""
-    _hungry_for('pizza')
+    _hungry_for("pizza")
 
 
 def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
     """``/coffee``"""
     if is_adam and is_brigitta:
-        raise ValueError('There can be only one!')
+        raise ValueError("There can be only one!")
     if is_adam:
-        option = 'fresh+third+wave+coffee'
+        option = "fresh+third+wave+coffee"
     elif is_brigitta:
-        option = 'decent+espresso'
+        option = "decent+espresso"
     else:
-        option = 'coffee'
+        option = "coffee"
     _hungry_for(option)
