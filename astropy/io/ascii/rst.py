@@ -17,7 +17,7 @@ class SimpleRSTHeader(FixedWidthHeader):
     position_line = 0
     start_line = 1
     splitter_class = DefaultSplitter
-    position_char = '='
+    position_char = "="
 
     def get_fixedwidth_params(self, line):
         vals, starts, ends = super().get_fixedwidth_params(line)
@@ -51,8 +51,9 @@ class RST(FixedWidth):
     line of dashes in the header.
 
     """
-    _format_name = 'rst'
-    _description = 'reStructuredText simple table'
+
+    _format_name = "rst"
+    _description = "reStructuredText simple table"
     data_class = SimpleRSTData
     header_class = SimpleRSTHeader
 
