@@ -19,7 +19,7 @@ from .nduncertainty import (
     VarianceUncertainty,
 )
 
-__all__ = ['CCDData', 'fits_ccddata_reader', 'fits_ccddata_writer']
+__all__ = ["CCDData", "fits_ccddata_reader", "fits_ccddata_writer"]
 
 _known_uncertainties = (StdDevUncertainty, VarianceUncertainty, InverseVariance)
 _unc_name_to_cls = {cls.__name__: cls for cls in _known_uncertainties}
@@ -51,17 +51,19 @@ def _arithmetic(op):
     ``multiply`` because only these methods from NDArithmeticMixin are
     overwritten.
     """
+
     def decorator(func):
         def inner(self, operand, operand2=None, **kwargs):
             global _config_ccd_requires_unit
             _config_ccd_requires_unit = False
-            result = self._prepare_then_do_arithmetic(op, operand,
-                                                      operand2, **kwargs)
+            result = self._prepare_then_do_arithmetic(op, operand, operand2, **kwargs)
             # Wrap it again as CCDData so it checks the final unit.
             _config_ccd_requires_unit = True
             return result.__class__(result)
+
         inner.__doc__ = f"See `astropy.nddata.NDArithmeticMixin.{func.__name__}`."
         return sharedmethod(inner)
+
     return decorator
 
 
@@ -69,9 +71,9 @@ def _uncertainty_unit_equivalent_to_parent(uncertainty_type, unit, parent_unit):
     if uncertainty_type is StdDevUncertainty:
         return unit == parent_unit
     elif uncertainty_type is VarianceUncertainty:
-        return unit == (parent_unit ** 2)
+        return unit == (parent_unit**2)
     elif uncertainty_type is InverseVariance:
-        return unit == (1 / (parent_unit ** 2))
+        return unit == (1 / (parent_unit**2))
     raise ValueError(f"unsupported uncertainty type: {uncertainty_type}")
 
 
@@ -189,9 +191,9 @@ class CCDData(NDDataArray):
     """
 
     def __init__(self, *args, **kwd):
-        if 'meta' not in kwd:
-            kwd['meta'] = kwd.pop('header', None)
-        if 'header' in kwd:
+        if "meta" not in kwd:
+            kwd["meta"] = kwd.pop("header", None)
+        if "header" in kwd:
             raise ValueError("can't have both header and meta.")
 
         super().__init__(*args, **kwd)
@@ -271,27 +273,36 @@ class CCDData(NDDataArray):
     def uncertainty(self, value):
         if value is not None:
             if isinstance(value, NDUncertainty):
-                if getattr(value, '_parent_nddata', None) is not None:
+                if getattr(value, "_parent_nddata", None) is not None:
                     value = value.__class__(value, copy=False)
                 self._uncertainty = value
             elif isinstance(value, np.ndarray):
                 if value.shape != self.shape:
-                    raise ValueError("uncertainty must have same shape as "
-                                     "data.")
+                    raise ValueError("uncertainty must have same shape as data.")
                 self._uncertainty = StdDevUncertainty(value)
-                log.info("array provided for uncertainty; assuming it is a "
-                         "StdDevUncertainty.")
+                log.info(
+                    "array provided for uncertainty; assuming it is a "
+                    "StdDevUncertainty."
+                )
             else:
-                raise TypeError("uncertainty must be an instance of a "
-                                "NDUncertainty object or a numpy array.")
+                raise TypeError(
+                    "uncertainty must be an instance of a "
+                    "NDUncertainty object or a numpy array."
+                )
             self._uncertainty.parent_nddata = self
         else:
             self._uncertainty = value
 
-    def to_hdu(self, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-               hdu_flags=None, wcs_relax=True,
-               key_uncertainty_type='UTYPE', as_image_hdu=False,
-               hdu_psf='PSFIMAGE'):
+    def to_hdu(
+        self,
+        hdu_mask="MASK",
+        hdu_uncertainty="UNCERT",
+        hdu_flags=None,
+        wcs_relax=True,
+        key_uncertainty_type="UTYPE",
+        as_image_hdu=False,
+        hdu_psf="PSFIMAGE",
+    ):
         """Creates an HDUList object from a CCDData object.
 
         Parameters
@@ -353,7 +364,7 @@ class CCDData(NDDataArray):
                 dummy_ccd._insert_in_metadata_fits_safe(k, v)
             header = dummy_ccd.header
         if self.unit is not u.dimensionless_unscaled:
-            header['bunit'] = self.unit.to_string()
+            header["bunit"] = self.unit.to_string()
         if self.wcs:
             # Simply extending the FITS header with the WCS can lead to
             # duplicates of the WCS keywords; iterating over the WCS
@@ -378,8 +389,8 @@ class CCDData(NDDataArray):
         if hdu_mask and self.mask is not None:
             # Always assuming that the mask is a np.ndarray (check that it has
             # a 'shape').
-            if not hasattr(self.mask, 'shape'):
-                raise ValueError('only a numpy.ndarray mask can be saved.')
+            if not hasattr(self.mask, "shape"):
+                raise ValueError("only a numpy.ndarray mask can be saved.")
 
             # Convert boolean mask to uint since io.fits cannot handle bool.
             hduMask = fits.ImageHDU(self.mask.astype(np.uint8), name=hdu_mask)
@@ -391,8 +402,11 @@ class CCDData(NDDataArray):
             # No idea how this can be done so only allow StdDevUncertainty.
             uncertainty_cls = self.uncertainty.__class__
             if uncertainty_cls not in _known_uncertainties:
-                raise ValueError('only uncertainties of type {} can be saved.'
-                                 .format(_known_uncertainties))
+                raise ValueError(
+                    "only uncertainties of type {} can be saved.".format(
+                        _known_uncertainties
+                    )
+                )
             uncertainty_name = _unc_cls_to_name[uncertainty_cls]
 
             hdr_uncertainty = fits.Header()
@@ -402,22 +416,25 @@ class CCDData(NDDataArray):
             # this might be problematic if the Uncertainty has a unit differing
             # from the data so abort for different units. This is important for
             # astropy > 1.2
-            if (hasattr(self.uncertainty, 'unit') and
-                    self.uncertainty.unit is not None):
+            if hasattr(self.uncertainty, "unit") and self.uncertainty.unit is not None:
                 if not _uncertainty_unit_equivalent_to_parent(
-                        uncertainty_cls, self.uncertainty.unit, self.unit):
+                    uncertainty_cls, self.uncertainty.unit, self.unit
+                ):
                     raise ValueError(
-                        'saving uncertainties with a unit that is not '
-                        'equivalent to the unit from the data unit is not '
-                        'supported.')
+                        "saving uncertainties with a unit that is not "
+                        "equivalent to the unit from the data unit is not "
+                        "supported."
+                    )
 
-            hduUncert = fits.ImageHDU(self.uncertainty.array, hdr_uncertainty,
-                                      name=hdu_uncertainty)
+            hduUncert = fits.ImageHDU(
+                self.uncertainty.array, hdr_uncertainty, name=hdu_uncertainty
+            )
             hdus.append(hduUncert)
 
         if hdu_flags and self.flags:
-            raise NotImplementedError('adding the flags to a HDU is not '
-                                      'supported at this time.')
+            raise NotImplementedError(
+                "adding the flags to a HDU is not supported at this time."
+            )
 
         if hdu_psf and self.psf is not None:
             # The PSF is an image, so write it as a separate ImageHDU.
@@ -465,26 +482,26 @@ class CCDData(NDDataArray):
 
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
-            self.meta[f'HIERARCH {key.upper()}'] = (
-                short_name, f"Shortened name for {key}")
+            self.meta[f"HIERARCH {key.upper()}"] = (
+                short_name,
+                f"Shortened name for {key}",
+            )
             self.meta[short_name] = value
         else:
             self.meta[key] = value
 
     # A dictionary mapping "known" invalid fits unit
-    known_invalid_fits_unit_strings = {'ELECTRONS/S': u.electron/u.s,
-                                       'ELECTRONS': u.electron,
-                                       'electrons': u.electron}
+    known_invalid_fits_unit_strings = {
+        "ELECTRONS/S": u.electron / u.s,
+        "ELECTRONS": u.electron,
+        "electrons": u.electron,
+    }
 
 
 # These need to be importable by the tests...
-_KEEP_THESE_KEYWORDS_IN_HEADER = [
-    'JD-OBS',
-    'MJD-OBS',
-    'DATE-OBS'
-]
-_PCs = {'PC1_1', 'PC1_2', 'PC2_1', 'PC2_2'}
-_CDs = {'CD1_1', 'CD1_2', 'CD2_1', 'CD2_2'}
+_KEEP_THESE_KEYWORDS_IN_HEADER = ["JD-OBS", "MJD-OBS", "DATE-OBS"]
+_PCs = {"PC1_1", "PC1_2", "PC2_1", "PC2_2"}
+_CDs = {"CD1_1", "CD1_2", "CD2_1", "CD2_2"}
 
 
 def _generate_wcs_and_update_header(hdr):
@@ -509,8 +526,10 @@ def _generate_wcs_and_update_header(hdr):
     except Exception as exc:
         # Normally WCS only raises Warnings and doesn't fail but in rare
         # cases (malformed header) it could fail...
-        log.info('An exception happened while extracting WCS information from '
-                 'the Header.\n{}: {}'.format(type(exc).__name__, str(exc)))
+        log.info(
+            "An exception happened while extracting WCS information from "
+            "the Header.\n{}: {}".format(type(exc).__name__, str(exc))
+        )
         return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty
     # value, return None for wcs if ctype is empty.
@@ -548,20 +567,27 @@ def _generate_wcs_and_update_header(hdr):
     # We need to check for any SIP coefficients that got left behind if the
     # header has SIP.
     if wcs.sip is not None:
-        keyword = '{}_{}_{}'
-        polynomials = ['A', 'B', 'AP', 'BP']
+        keyword = "{}_{}_{}"
+        polynomials = ["A", "B", "AP", "BP"]
         for poly in polynomials:
-            order = wcs.sip.__getattribute__(f'{poly.lower()}_order')
+            order = wcs.sip.__getattribute__(f"{poly.lower()}_order")
             for i, j in itertools.product(range(order), repeat=2):
-                new_hdr.remove(keyword.format(poly, i, j),
-                               ignore_missing=True)
+                new_hdr.remove(keyword.format(poly, i, j), ignore_missing=True)
 
     return (new_hdr, wcs)
 
 
-def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
-                        hdu_mask='MASK', hdu_flags=None,
-                        key_uncertainty_type='UTYPE', hdu_psf='PSFIMAGE', **kwd):
+def fits_ccddata_reader(
+    filename,
+    hdu=0,
+    unit=None,
+    hdu_uncertainty="UNCERT",
+    hdu_mask="MASK",
+    hdu_flags=None,
+    key_uncertainty_type="UTYPE",
+    hdu_psf="PSFIMAGE",
+    **kwd,
+):
     """
     Generate a CCDData object from a FITS file.
 
@@ -619,19 +645,19 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
     :mod:`astropy.io.fits` are disabled.
     """
     unsupport_open_keywords = {
-        'do_not_scale_image_data': 'Image data must be scaled.',
-        'scale_back': 'Scale information is not preserved.'
+        "do_not_scale_image_data": "Image data must be scaled.",
+        "scale_back": "Scale information is not preserved.",
     }
     for key, msg in unsupport_open_keywords.items():
         if key in kwd:
-            prefix = f'unsupported keyword: {key}.'
-            raise TypeError(' '.join([prefix, msg]))
+            prefix = f"unsupported keyword: {key}."
+            raise TypeError(" ".join([prefix, msg]))
     with fits.open(filename, **kwd) as hdus:
         hdr = hdus[hdu].header
 
         if hdu_uncertainty is not None and hdu_uncertainty in hdus:
             unc_hdu = hdus[hdu_uncertainty]
-            stored_unc_name = unc_hdu.header.get(key_uncertainty_type, 'None')
+            stored_unc_name = unc_hdu.header.get(key_uncertainty_type, "None")
             # For compatibility reasons the default is standard deviation
             # uncertainty because files could have been created before the
             # uncertainty type was stored in the header.
@@ -647,8 +673,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
             mask = None
 
         if hdu_flags is not None and hdu_flags in hdus:
-            raise NotImplementedError('loading flags is currently not '
-                                      'supported.')
+            raise NotImplementedError("loading flags is currently not supported.")
 
         if hdu_psf is not None and hdu_psf in hdus:
             psf = hdus[hdu_psf].data
@@ -659,8 +684,10 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
         # the primary header is empty.
         if hdu == 0 and hdus[hdu].data is None:
             for i in range(len(hdus)):
-                if (hdus.info(hdu)[i][3] == 'ImageHDU' and
-                        hdus.fileinfo(i)['datSpan'] > 0):
+                if (
+                    hdus.info(hdu)[i][3] == "ImageHDU"
+                    and hdus.fileinfo(i)["datSpan"] > 0
+                ):
                     hdu = i
                     comb_hdr = hdus[hdu].header.copy()
                     # Add header values from the primary header that aren't
@@ -670,11 +697,11 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                     log.info(f"first HDU with data is extension {hdu}.")
                     break
 
-        if 'bunit' in hdr:
-            fits_unit_string = hdr['bunit']
+        if "bunit" in hdr:
+            fits_unit_string = hdr["bunit"]
             # patch to handle FITS files using ADU for the unit instead of the
             # standard version of 'adu'
-            if fits_unit_string.strip().lower() == 'adu':
+            if fits_unit_string.strip().lower() == "adu":
                 fits_unit_string = fits_unit_string.lower()
         else:
             fits_unit_string = None
@@ -690,30 +717,44 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                     fits_unit_string = u.Unit(fits_unit_string)
                 except ValueError:
                     raise ValueError(
-                        'The Header value for the key BUNIT ({}) cannot be '
-                        'interpreted as valid unit. To successfully read the '
-                        'file as CCDData you can pass in a valid `unit` '
-                        'argument explicitly or change the header of the FITS '
-                        'file before reading it.'
-                        .format(fits_unit_string))
+                        "The Header value for the key BUNIT ({}) cannot be "
+                        "interpreted as valid unit. To successfully read the "
+                        "file as CCDData you can pass in a valid `unit` "
+                        "argument explicitly or change the header of the FITS "
+                        "file before reading it.".format(fits_unit_string)
+                    )
             else:
-                log.info("using the unit {} passed to the FITS reader instead "
-                         "of the unit {} in the FITS file."
-                         .format(unit, fits_unit_string))
+                log.info(
+                    "using the unit {} passed to the FITS reader instead "
+                    "of the unit {} in the FITS file.".format(unit, fits_unit_string)
+                )
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
-        ccd_data = CCDData(hdus[hdu].data, meta=hdr, unit=use_unit,
-                           mask=mask, uncertainty=uncertainty, wcs=wcs, psf=psf)
+        ccd_data = CCDData(
+            hdus[hdu].data,
+            meta=hdr,
+            unit=use_unit,
+            mask=mask,
+            uncertainty=uncertainty,
+            wcs=wcs,
+            psf=psf,
+        )
 
     return ccd_data
 
 
 def fits_ccddata_writer(
-        ccd_data, filename, hdu_mask='MASK', hdu_uncertainty='UNCERT',
-        hdu_flags=None, key_uncertainty_type='UTYPE', as_image_hdu=False,
-        hdu_psf='PSFIMAGE',
-        **kwd):
+    ccd_data,
+    filename,
+    hdu_mask="MASK",
+    hdu_uncertainty="UNCERT",
+    hdu_flags=None,
+    key_uncertainty_type="UTYPE",
+    as_image_hdu=False,
+    hdu_psf="PSFIMAGE",
+    **kwd,
+):
     """
     Write CCDData object to FITS file.
 
@@ -761,15 +802,19 @@ def fits_ccddata_writer(
         Saving flags is not supported.
     """
     hdu = ccd_data.to_hdu(
-        hdu_mask=hdu_mask, hdu_uncertainty=hdu_uncertainty,
-        key_uncertainty_type=key_uncertainty_type, hdu_flags=hdu_flags,
-        as_image_hdu=as_image_hdu, hdu_psf=hdu_psf)
+        hdu_mask=hdu_mask,
+        hdu_uncertainty=hdu_uncertainty,
+        key_uncertainty_type=key_uncertainty_type,
+        hdu_flags=hdu_flags,
+        as_image_hdu=as_image_hdu,
+        hdu_psf=hdu_psf,
+    )
     if as_image_hdu:
         hdu.insert(0, fits.PrimaryHDU())
     hdu.writeto(filename, **kwd)
 
 
 with registry.delay_doc_updates(CCDData):
-    registry.register_reader('fits', CCDData, fits_ccddata_reader)
-    registry.register_writer('fits', CCDData, fits_ccddata_writer)
-    registry.register_identifier('fits', CCDData, fits.connect.is_fits)
+    registry.register_reader("fits", CCDData, fits_ccddata_reader)
+    registry.register_writer("fits", CCDData, fits_ccddata_writer)
+    registry.register_identifier("fits", CCDData, fits.connect.is_fits)
