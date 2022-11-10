@@ -15,10 +15,10 @@ import re
 from packaging.version import Version
 
 __all__ = [
-    'convert_to_writable_filelike',
-    'stc_reference_frames',
-    'coerce_range_list_param',
-    ]
+    "convert_to_writable_filelike",
+    "stc_reference_frames",
+    "coerce_range_list_param",
+]
 
 
 @contextlib.contextmanager
@@ -46,18 +46,18 @@ def convert_to_writable_filelike(fd, compressed=False):
     """
     if isinstance(fd, str):
         fd = os.path.expanduser(fd)
-        if fd.endswith('.gz') or compressed:
-            with gzip.GzipFile(fd, 'wb') as real_fd:
-                encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
+        if fd.endswith(".gz") or compressed:
+            with gzip.GzipFile(fd, "wb") as real_fd:
+                encoded_fd = io.TextIOWrapper(real_fd, encoding="utf8")
                 yield encoded_fd
                 encoded_fd.flush()
                 real_fd.flush()
                 return
         else:
-            with open(fd, 'w', encoding='utf8') as real_fd:
+            with open(fd, "w", encoding="utf8") as real_fd:
                 yield real_fd
                 return
-    elif hasattr(fd, 'write'):
+    elif hasattr(fd, "write"):
         assert callable(fd.write)
 
         if compressed:
@@ -67,15 +67,15 @@ def convert_to_writable_filelike(fd, compressed=False):
         # object
         needs_wrapper = False
         try:
-            fd.write('')
+            fd.write("")
         except TypeError:
             needs_wrapper = True
 
-        if not hasattr(fd, 'encoding') or fd.encoding is None:
+        if not hasattr(fd, "encoding") or fd.encoding is None:
             needs_wrapper = True
 
         if needs_wrapper:
-            yield codecs.getwriter('utf-8')(fd)
+            yield codecs.getwriter("utf-8")(fd)
             fd.flush()
         else:
             yield fd
@@ -88,13 +88,50 @@ def convert_to_writable_filelike(fd, compressed=False):
 
 # <http://www.ivoa.net/documents/REC/DM/STC-20071030.html>
 stc_reference_frames = {
-    'FK4', 'FK5', 'ECLIPTIC', 'ICRS', 'GALACTIC', 'GALACTIC_I', 'GALACTIC_II',
-    'SUPER_GALACTIC', 'AZ_EL', 'BODY', 'GEO_C', 'GEO_D', 'MAG', 'GSE', 'GSM',
-    'SM', 'HGC', 'HGS', 'HEEQ', 'HRTN', 'HPC', 'HPR', 'HCC', 'HGI',
-    'MERCURY_C', 'VENUS_C', 'LUNA_C', 'MARS_C', 'JUPITER_C_III',
-    'SATURN_C_III', 'URANUS_C_III', 'NEPTUNE_C_III', 'PLUTO_C', 'MERCURY_G',
-    'VENUS_G', 'LUNA_G', 'MARS_G', 'JUPITER_G_III', 'SATURN_G_III',
-    'URANUS_G_III', 'NEPTUNE_G_III', 'PLUTO_G', 'UNKNOWNFrame'}
+    "FK4",
+    "FK5",
+    "ECLIPTIC",
+    "ICRS",
+    "GALACTIC",
+    "GALACTIC_I",
+    "GALACTIC_II",
+    "SUPER_GALACTIC",
+    "AZ_EL",
+    "BODY",
+    "GEO_C",
+    "GEO_D",
+    "MAG",
+    "GSE",
+    "GSM",
+    "SM",
+    "HGC",
+    "HGS",
+    "HEEQ",
+    "HRTN",
+    "HPC",
+    "HPR",
+    "HCC",
+    "HGI",
+    "MERCURY_C",
+    "VENUS_C",
+    "LUNA_C",
+    "MARS_C",
+    "JUPITER_C_III",
+    "SATURN_C_III",
+    "URANUS_C_III",
+    "NEPTUNE_C_III",
+    "PLUTO_C",
+    "MERCURY_G",
+    "VENUS_G",
+    "LUNA_G",
+    "MARS_G",
+    "JUPITER_G_III",
+    "SATURN_G_III",
+    "URANUS_G_III",
+    "NEPTUNE_G_III",
+    "PLUTO_G",
+    "UNKNOWNFrame",
+}
 
 
 def coerce_range_list_param(p, frames=None, numeric=True):
@@ -139,16 +176,17 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
             - an integer counting the number of elements
     """
+
     def str_or_none(x):
         if x is None:
-            return ''
+            return ""
         if numeric:
             x = float(x)
         return str(x)
 
     def numeric_or_range(x):
         if isinstance(x, tuple) and len(x) == 2:
-            return f'{str_or_none(x[0])}/{str_or_none(x[1])}'
+            return f"{str_or_none(x[0])}/{str_or_none(x[1])}"
         else:
             return str_or_none(x)
 
@@ -165,34 +203,31 @@ def coerce_range_list_param(p, frames=None, numeric=True):
         else:
             points = p[:]
 
-        out = ','.join([numeric_or_range(x) for x in points])
+        out = ",".join([numeric_or_range(x) for x in points])
         length = len(points)
         if has_frame_of_reference:
             if frames is not None and p[-1] not in frames:
-                raise ValueError(
-                    f"'{p[-1]}' is not a valid frame of reference")
-            out += ';' + p[-1]
+                raise ValueError(f"'{p[-1]}' is not a valid frame of reference")
+            out += ";" + p[-1]
             length += 1
 
         return out, length
 
     elif isinstance(p, str):
-        number = r'([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)?'
+        number = r"([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)?"
         if not numeric:
-            number = r'(' + number + ')|([A-Z_]+)'
+            number = r"(" + number + ")|([A-Z_]+)"
         match = re.match(
-            '^' + number + r'([,/]' + number +
-            r')+(;(?P<frame>[<A-Za-z_0-9]+))?$',
-            p)
+            "^" + number + r"([,/]" + number + r")+(;(?P<frame>[<A-Za-z_0-9]+))?$", p
+        )
 
         if match is None:
             raise ValueError(f"'{p}' is not a valid range list")
 
-        frame = match.groupdict()['frame']
+        frame = match.groupdict()["frame"]
         if frames is not None and frame is not None and frame not in frames:
-            raise ValueError(
-                f"'{frame}' is not a valid frame of reference")
-        return p, p.count(',') + p.count(';') + 1
+            raise ValueError(f"{frame!r} is not a valid frame of reference")
+        return p, p.count(",") + p.count(";") + 1
 
     try:
         float(p)
@@ -205,10 +240,12 @@ def version_compare(a, b):
     """
     Compare two VOTable version identifiers.
     """
+
     def version_to_tuple(v):
-        if v[0].lower() == 'v':
+        if v[0].lower() == "v":
             v = v[1:]
         return Version(v)
+
     av = version_to_tuple(a)
     bv = version_to_tuple(b)
     # Can't use cmp because it was removed from Python 3.x

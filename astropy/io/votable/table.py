@@ -19,17 +19,32 @@ from astropy.utils.xml import iterparser
 # LOCAL
 from . import exceptions, tree
 
-__all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
-           'reset_vo_warnings']
+__all__ = [
+    "parse",
+    "parse_single_table",
+    "from_table",
+    "writeto",
+    "validate",
+    "reset_vo_warnings",
+]
 
-VERIFY_OPTIONS = ['ignore', 'warn', 'exception']
+VERIFY_OPTIONS = ["ignore", "warn", "exception"]
 
 
-@deprecated_renamed_argument('pedantic', 'verify', since='5.0')
-def parse(source, columns=None, invalid='exception', verify=None,
-          chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
-          table_id=None, filename=None, unit_format=None,
-          datatype_mapping=None, _debug_python_based_parser=False):
+@deprecated_renamed_argument("pedantic", "verify", since="5.0")
+def parse(
+    source,
+    columns=None,
+    invalid="exception",
+    verify=None,
+    chunk_size=tree.DEFAULT_CHUNK_SIZE,
+    table_number=None,
+    table_id=None,
+    filename=None,
+    unit_format=None,
+    datatype_mapping=None,
+    _debug_python_based_parser=False,
+):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
     `~astropy.io.votable.tree.VOTableFile` object.
@@ -115,24 +130,24 @@ def parse(source, columns=None, invalid='exception', verify=None,
     from . import conf
 
     invalid = invalid.lower()
-    if invalid not in ('exception', 'mask'):
-        raise ValueError("accepted values of ``invalid`` are: "
-                         "``'exception'`` or ``'mask'``.")
+    if invalid not in ("exception", "mask"):
+        raise ValueError(
+            "accepted values of ``invalid`` are: ``'exception'`` or ``'mask'``."
+        )
 
     if verify is None:
-
         conf_verify_lowercase = conf.verify.lower()
 
         # We need to allow verify to be booleans as strings since the
         # configuration framework doesn't make it easy/possible to have mixed
         # types.
-        if conf_verify_lowercase in ['false', 'true']:
-            verify = conf_verify_lowercase == 'true'
+        if conf_verify_lowercase in ["false", "true"]:
+            verify = conf_verify_lowercase == "true"
         else:
             verify = conf_verify_lowercase
 
     if isinstance(verify, bool):
-        verify = 'exception' if verify else 'warn'
+        verify = "exception" if verify else "warn"
     elif verify not in VERIFY_OPTIONS:
         raise ValueError(f"verify should be one of {'/'.join(VERIFY_OPTIONS)}")
 
@@ -140,27 +155,26 @@ def parse(source, columns=None, invalid='exception', verify=None,
         datatype_mapping = {}
 
     config = {
-        'columns': columns,
-        'invalid': invalid,
-        'verify': verify,
-        'chunk_size': chunk_size,
-        'table_number': table_number,
-        'filename': filename,
-        'unit_format': unit_format,
-        'datatype_mapping': datatype_mapping
+        "columns": columns,
+        "invalid": invalid,
+        "verify": verify,
+        "chunk_size": chunk_size,
+        "table_number": table_number,
+        "filename": filename,
+        "unit_format": unit_format,
+        "datatype_mapping": datatype_mapping,
     }
 
     if isinstance(source, str):
         source = os.path.expanduser(source)
 
     if filename is None and isinstance(source, str):
-        config['filename'] = source
+        config["filename"] = source
 
     with iterparser.get_xml_iterator(
-            source,
-            _debug_python_based_parser=_debug_python_based_parser) as iterator:
-        return tree.VOTableFile(
-            config=config, pos=(1, 1)).parse(iterator, config)
+        source, _debug_python_based_parser=_debug_python_based_parser
+    ) as iterator:
+        return tree.VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
 
 
 def parse_single_table(source, **kwargs):
@@ -175,8 +189,8 @@ def parse_single_table(source, **kwargs):
     -------
     votable : `~astropy.io.votable.tree.Table` object
     """
-    if kwargs.get('table_number') is None:
-        kwargs['table_number'] = 0
+    if kwargs.get("table_number") is None:
+        kwargs["table_number"] = 0
 
     votable = parse(source, **kwargs)
 
@@ -202,14 +216,17 @@ def writeto(table, file, tabledata_format=None):
         :ref:`astropy:astropy:votable-serialization`.
     """
     from astropy.table import Table
+
     if isinstance(table, Table):
         table = tree.VOTableFile.from_table(table)
     elif not isinstance(table, tree.VOTableFile):
         raise TypeError(
             "first argument must be astropy.io.vo.VOTableFile or "
-            "astropy.table.Table instance")
-    table.to_xml(file, tabledata_format=tabledata_format,
-                 _debug_python_based_parser=True)
+            "astropy.table.Table instance"
+        )
+    table.to_xml(
+        file, tabledata_format=tabledata_format, _debug_python_based_parser=True
+    )
 
 
 def validate(source, output=sys.stdout, xmllint=False, filename=None):
@@ -260,7 +277,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     if isinstance(source, str):
         source = os.path.expanduser(source)
 
-    with data.get_readable_fileobj(source, encoding='binary') as fd:
+    with data.get_readable_fileobj(source, encoding="binary") as fd:
         content = fd.read()
     content_buffer = io.BytesIO(content)
     content_buffer.seek(0)
@@ -268,9 +285,9 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     if filename is None:
         if isinstance(source, str):
             filename = source
-        elif hasattr(source, 'name'):
+        elif hasattr(source, "name"):
             filename = source.name
-        elif hasattr(source, 'url'):
+        elif hasattr(source, "url"):
             filename = source.url
         else:
             filename = "<unknown>"
@@ -279,12 +296,15 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         warnings.resetwarnings()
         warnings.simplefilter("always", exceptions.VOWarning, append=True)
         try:
-            votable = parse(content_buffer, verify='warn', filename=filename)
+            votable = parse(content_buffer, verify="warn", filename=filename)
         except ValueError as e:
             lines.append(str(e))
 
-    lines = [str(x.message) for x in warning_lines if
-             issubclass(x.category, exceptions.VOWarning)] + lines
+    lines = [
+        str(x.message)
+        for x in warning_lines
+        if issubclass(x.category, exceptions.VOWarning)
+    ] + lines
 
     content_buffer.seek(0)
     output.write(f"Validation report for {filename}\n\n")
@@ -295,29 +315,34 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         for warning in lines:
             w = exceptions.parse_vowarning(warning)
 
-            if not w['is_something']:
-                output.write(w['message'])
-                output.write('\n\n')
+            if not w["is_something"]:
+                output.write(w["message"])
+                output.write("\n\n")
             else:
-                line = xml_lines[w['nline'] - 1]
-                warning = w['warning']
-                if w['is_warning']:
-                    color = 'yellow'
+                line = xml_lines[w["nline"] - 1]
+                warning = w["warning"]
+                if w["is_warning"]:
+                    color = "yellow"
                 else:
-                    color = 'red'
+                    color = "red"
                 color_print(
-                    f"{w['nline']:d}: ", '',
-                    warning or 'EXC', color,
-                    ': ', '',
+                    f"{w['nline']:d}: ",
+                    "",
+                    warning or "EXC",
+                    color,
+                    ": ",
+                    "",
                     textwrap.fill(
-                        w['message'],
-                        initial_indent='          ',
-                        subsequent_indent='  ').lstrip(),
-                    file=output)
-                print_code_line(line, w['nchar'], file=output)
-            output.write('\n')
+                        w["message"],
+                        initial_indent="          ",
+                        subsequent_indent="  ",
+                    ).lstrip(),
+                    file=output,
+                )
+                print_code_line(line, w["nchar"], file=output)
+            output.write("\n")
     else:
-        output.write('astropy.io.votable found no violations.\n\n')
+        output.write("astropy.io.votable found no violations.\n\n")
 
     success = 0
     if xmllint and os.path.exists(filename):
@@ -327,15 +352,13 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
             version = "1.1"
         else:
             version = votable.version
-        success, stdout, stderr = xmlutil.validate_schema(
-            filename, version)
+        success, stdout, stderr = xmlutil.validate_schema(filename, version)
 
         if success != 0:
-            output.write(
-                'xmllint schema violations:\n\n')
-            output.write(stderr.decode('utf-8'))
+            output.write("xmllint schema violations:\n\n")
+            output.write(stderr.decode("utf-8"))
         else:
-            output.write('xmllint passed\n')
+            output.write("xmllint passed\n")
 
     if return_as_str:
         return output.getvalue()
@@ -383,12 +406,12 @@ def is_votable(source):
     try:
         with iterparser.get_xml_iterator(source) as iterator:
             for start, tag, d, pos in iterator:
-                if tag != 'xml':
+                if tag != "xml":
                     return False
                 break
 
             for start, tag, d, pos in iterator:
-                if tag != 'VOTABLE':
+                if tag != "VOTABLE":
                     return False
                 break
 
