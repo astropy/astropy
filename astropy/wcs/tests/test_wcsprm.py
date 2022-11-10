@@ -104,7 +104,7 @@ def test_cdelt_delete():
 def test_cel_offset():
     w = _wcs.Wcsprm()
     assert w.cel_offset is False
-    w.cel_offset = 'foo'
+    w.cel_offset = "foo"
     assert w.cel_offset is True
     w.cel_offset = 0
     assert w.cel_offset is False
@@ -121,10 +121,10 @@ def test_cname():
     w = _wcs.Wcsprm()
     # Test that this works as an iterator
     for x in w.cname:
-        assert x == ''
-    assert list(w.cname) == ['', '']
-    w.cname = [b'foo', 'bar']
-    assert list(w.cname) == ['foo', 'bar']
+        assert x == ""
+    assert list(w.cname) == ["", ""]
+    w.cname = [b"foo", "bar"]
+    assert list(w.cname) == ["foo", "bar"]
 
 
 def test_cname_invalid():
@@ -153,10 +153,10 @@ def test_colnum():
     assert w.colnum == 42
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xffffffffffffffffffff
+        w.colnum = 0xFFFFFFFFFFFFFFFFFFFF
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xffffffff
+        w.colnum = 0xFFFFFFFF
 
     with pytest.raises(TypeError):
         del w.colnum
@@ -165,7 +165,7 @@ def test_colnum():
 def test_colnum_invalid():
     w = _wcs.Wcsprm()
     with pytest.raises(TypeError):
-        w.colnum = 'foo'
+        w.colnum = "foo"
 
 
 def test_crder():
@@ -240,55 +240,55 @@ def test_csyer():
 
 def test_ctype():
     w = _wcs.Wcsprm()
-    assert list(w.ctype) == ['', '']
-    w.ctype = [b'RA---TAN', 'DEC--TAN']
+    assert list(w.ctype) == ["", ""]
+    w.ctype = [b"RA---TAN", "DEC--TAN"]
     assert_array_equal(w.axis_types, [2200, 2201])
     assert w.lat == 1
     assert w.lng == 0
-    assert w.lattyp == 'DEC'
-    assert w.lngtyp == 'RA'
-    assert list(w.ctype) == ['RA---TAN', 'DEC--TAN']
-    w.ctype = ['foo', 'bar']
+    assert w.lattyp == "DEC"
+    assert w.lngtyp == "RA"
+    assert list(w.ctype) == ["RA---TAN", "DEC--TAN"]
+    w.ctype = ["foo", "bar"]
     assert_array_equal(w.axis_types, [0, 0])
-    assert list(w.ctype) == ['foo', 'bar']
+    assert list(w.ctype) == ["foo", "bar"]
     assert w.lat == -1
     assert w.lng == -1
-    assert w.lattyp == 'DEC'
-    assert w.lngtyp == 'RA'
+    assert w.lattyp == "DEC"
+    assert w.lngtyp == "RA"
 
 
 def test_ctype_repr():
     w = _wcs.Wcsprm()
-    assert list(w.ctype) == ['', '']
-    w.ctype = [b'RA-\t--TAN', 'DEC-\n-TAN']
+    assert list(w.ctype) == ["", ""]
+    w.ctype = [b"RA-\t--TAN", "DEC-\n-TAN"]
     assert repr(w.ctype == '["RA-\t--TAN", "DEC-\n-TAN"]')
 
 
 def test_ctype_index_error():
     w = _wcs.Wcsprm()
-    assert list(w.ctype) == ['', '']
+    assert list(w.ctype) == ["", ""]
     for idx in (2, -3):
         with pytest.raises(IndexError):
             w.ctype[idx]
         with pytest.raises(IndexError):
-            w.ctype[idx] = 'FOO'
+            w.ctype[idx] = "FOO"
 
 
 def test_ctype_invalid_error():
     w = _wcs.Wcsprm()
-    assert list(w.ctype) == ['', '']
+    assert list(w.ctype) == ["", ""]
     with pytest.raises(ValueError):
-        w.ctype[0] = 'X' * 100
+        w.ctype[0] = "X" * 100
     with pytest.raises(TypeError):
         w.ctype[0] = True
     with pytest.raises(TypeError):
-        w.ctype = ['a', 0]
+        w.ctype = ["a", 0]
     with pytest.raises(TypeError):
         w.ctype = None
     with pytest.raises(ValueError):
-        w.ctype = ['a', 'b', 'c']
+        w.ctype = ["a", "b", "c"]
     with pytest.raises(ValueError):
-        w.ctype = ['FOO', 'A' * 100]
+        w.ctype = ["FOO", "A" * 100]
 
 
 def test_cubeface():
@@ -301,26 +301,26 @@ def test_cubeface():
 
 def test_cunit():
     w = _wcs.Wcsprm()
-    assert list(w.cunit) == [u.Unit(''), u.Unit('')]
-    w.cunit = [u.m, 'km']
+    assert list(w.cunit) == [u.Unit(""), u.Unit("")]
+    w.cunit = [u.m, "km"]
     assert w.cunit[0] == u.m
     assert w.cunit[1] == u.km
 
 
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    with pytest.warns(u.UnitsWarning, match='foo') as warns:
-        w.cunit[0] = 'foo'
+    with pytest.warns(u.UnitsWarning, match="foo") as warns:
+        w.cunit[0] = "foo"
     assert len(warns) == 1
 
 
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
     with pytest.warns(u.UnitsWarning) as warns:
-        w.cunit = ['foo', 'bar']
+        w.cunit = ["foo", "bar"]
     assert len(warns) == 2
-    assert 'foo' in str(warns[0].message)
-    assert 'bar' in str(warns[1].message)
+    assert "foo" in str(warns[0].message)
+    assert "bar" in str(warns[1].message)
 
 
 def test_unit():
@@ -368,21 +368,21 @@ def test_cylfix():
 
 def test_dateavg():
     w = _wcs.Wcsprm()
-    assert w.dateavg == ''
+    assert w.dateavg == ""
     # TODO: When dateavg is verified, check that it works
 
 
 def test_dateobs():
     w = _wcs.Wcsprm()
-    assert w.dateobs == ''
+    assert w.dateobs == ""
     # TODO: When dateavg is verified, check that it works
 
 
 def test_datfix():
     w = _wcs.Wcsprm()
-    w.dateobs = '31/12/99'
+    w.dateobs = "31/12/99"
     assert w.datfix() == 0
-    assert w.dateobs == '1999-12-31'
+    assert w.dateobs == "1999-12-31"
     assert w.mjdobs == 51543.0
 
 
@@ -401,88 +401,100 @@ def test_equinox():
 def test_fix():
     w = _wcs.Wcsprm()
     fix_ref = {
-        'cdfix': 'No change',
-        'cylfix': 'No change',
-        'obsfix': 'No change',
-        'datfix': 'No change',
-        'spcfix': 'No change',
-        'unitfix': 'No change',
-        'celfix': 'No change',
-        'obsfix': 'No change'}
+        "cdfix": "No change",
+        "cylfix": "No change",
+        "obsfix": "No change",
+        "datfix": "No change",
+        "spcfix": "No change",
+        "unitfix": "No change",
+        "celfix": "No change",
+        "obsfix": "No change",
+    }
 
     version = wcs._wcs.__version__
-    if Version(version) <= Version('5'):
-        del fix_ref['obsfix']
+    if Version(version) <= Version("5"):
+        del fix_ref["obsfix"]
 
-    if Version(version) >= Version('7.1'):
-        w.dateref = '1858-11-17'
+    if Version(version) >= Version("7.1"):
+        w.dateref = "1858-11-17"
 
-    if Version('7.4') <= Version(version) < Version('7.6'):
-        fix_ref['datfix'] = 'Success'
+    if Version("7.4") <= Version(version) < Version("7.6"):
+        fix_ref["datfix"] = "Success"
 
     assert w.fix() == fix_ref
 
 
 def test_fix2():
     w = _wcs.Wcsprm()
-    w.dateobs = '31/12/99'
+    w.dateobs = "31/12/99"
     fix_ref = {
-        'cdfix': 'No change',
-        'cylfix': 'No change',
-        'obsfix': 'No change',
-        'datfix': ("Set MJD-OBS to 51543.000000 from DATE-OBS.\n"
-                   "Changed DATE-OBS from '31/12/99' to '1999-12-31'"),
-        'spcfix': 'No change',
-        'unitfix': 'No change',
-        'celfix': 'No change'}
+        "cdfix": "No change",
+        "cylfix": "No change",
+        "obsfix": "No change",
+        "datfix": (
+            "Set MJD-OBS to 51543.000000 from DATE-OBS.\n"
+            "Changed DATE-OBS from '31/12/99' to '1999-12-31'"
+        ),
+        "spcfix": "No change",
+        "unitfix": "No change",
+        "celfix": "No change",
+    }
     version = wcs._wcs.__version__
     if Version(version) <= Version("5"):
-        del fix_ref['obsfix']
-        fix_ref['datfix'] = "Changed '31/12/99' to '1999-12-31'"
+        del fix_ref["obsfix"]
+        fix_ref["datfix"] = "Changed '31/12/99' to '1999-12-31'"
 
-    if Version(version) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
+    if Version(version) >= Version("7.3"):
+        fix_ref["datfix"] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
+        )
 
-    elif Version(version) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+    elif Version(version) >= Version("7.1"):
+        fix_ref["datfix"] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
+        )
 
     assert w.fix() == fix_ref
-    assert w.dateobs == '1999-12-31'
+    assert w.dateobs == "1999-12-31"
     assert w.mjdobs == 51543.0
 
 
 def test_fix3():
     w = _wcs.Wcsprm()
-    w.dateobs = '31/12/F9'
+    w.dateobs = "31/12/F9"
     fix_ref = {
-        'cdfix': 'No change',
-        'cylfix': 'No change',
-        'obsfix': 'No change',
-        'datfix': "Invalid DATE-OBS format '31/12/F9'",
-        'spcfix': 'No change',
-        'unitfix': 'No change',
-        'celfix': 'No change'
+        "cdfix": "No change",
+        "cylfix": "No change",
+        "obsfix": "No change",
+        "datfix": "Invalid DATE-OBS format '31/12/F9'",
+        "spcfix": "No change",
+        "unitfix": "No change",
+        "celfix": "No change",
     }
 
     version = wcs._wcs.__version__
     if Version(version) <= Version("5"):
-        del fix_ref['obsfix']
-        fix_ref['datfix'] = "Invalid parameter value: invalid date '31/12/F9'"
+        del fix_ref["obsfix"]
+        fix_ref["datfix"] = "Invalid parameter value: invalid date '31/12/F9'"
 
-    if Version(version) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
-    elif Version(version) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+    if Version(version) >= Version("7.3"):
+        fix_ref["datfix"] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
+        )
+    elif Version(version) >= Version("7.1"):
+        fix_ref["datfix"] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
+        )
 
     assert w.fix() == fix_ref
-    assert w.dateobs == '31/12/F9'
+    assert w.dateobs == "31/12/F9"
     assert np.isnan(w.mjdobs)
 
 
 def test_fix4():
     w = _wcs.Wcsprm()
     with pytest.raises(ValueError):
-        w.fix('X')
+        w.fix("X")
 
 
 def test_fix5():
@@ -584,7 +596,7 @@ def test_lonpole():
 
 def test_mix():
     w = _wcs.Wcsprm()
-    w.ctype = [b'RA---TAN', 'DEC--TAN']
+    w.ctype = [b"RA---TAN", "DEC--TAN"]
     with pytest.raises(_wcs.InvalidCoordinateError):
         w.mix(1, 1, [240, 480], 1, 5, [0, 2], [54, 32], 1)
 
@@ -609,9 +621,9 @@ def test_mjdobs():
 
 def test_name():
     w = _wcs.Wcsprm()
-    assert w.name == ''
-    w.name = 'foo'
-    assert w.name == 'foo'
+    assert w.name == ""
+    w.name = "foo"
+    assert w.name == "foo"
 
 
 def test_naxis():
@@ -684,9 +696,9 @@ def test_print_contents():
 
 def test_radesys():
     w = _wcs.Wcsprm()
-    assert w.radesys == ''
-    w.radesys = 'foo'
-    assert w.radesys == 'foo'
+    assert w.radesys == ""
+    w.radesys = "foo"
+    assert w.radesys == "foo"
 
 
 def test_restfrq():
@@ -719,21 +731,20 @@ def test_set_ps_realloc():
 
 def test_set_pv():
     w = _wcs.Wcsprm()
-    data = [(0, 0, 42.), (1, 1, 54.)]
+    data = [(0, 0, 42.0), (1, 1, 54.0)]
     w.set_pv(data)
     assert w.get_pv() == data
 
 
 def test_set_pv_realloc():
     w = _wcs.Wcsprm()
-    w.set_pv([(0, 0, 42.)] * 16)
+    w.set_pv([(0, 0, 42.0)] * 16)
 
 
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = get_pkg_data_contents(
-        'data/spectra/orion-velo-1.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/spectra/orion-velo-1.hdr", encoding="binary")
     w = _wcs.Wcsprm(header)
     assert w.spcfix() == -1
 
@@ -751,9 +762,9 @@ def test_spec_set():
 
 def test_specsys():
     w = _wcs.Wcsprm()
-    assert w.specsys == ''
-    w.specsys = 'foo'
-    assert w.specsys == 'foo'
+    assert w.specsys == ""
+    w.specsys = "foo"
+    assert w.specsys == "foo"
 
 
 def test_sptr():
@@ -763,16 +774,16 @@ def test_sptr():
 
 def test_ssysobs():
     w = _wcs.Wcsprm()
-    assert w.ssysobs == ''
-    w.ssysobs = 'foo'
-    assert w.ssysobs == 'foo'
+    assert w.ssysobs == ""
+    w.ssysobs = "foo"
+    assert w.ssysobs == "foo"
 
 
 def test_ssyssrc():
     w = _wcs.Wcsprm()
-    assert w.ssyssrc == ''
-    w.ssyssrc = 'foo'
-    assert w.ssyssrc == 'foo'
+    assert w.ssyssrc == ""
+    w.ssyssrc = "foo"
+    assert w.ssyssrc == "foo"
 
 
 def test_tab():
@@ -832,7 +843,7 @@ def test_zsource():
 
 
 def test_cd_3d():
-    header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/3d_cd.hdr", encoding="binary")
     w = _wcs.Wcsprm(header)
     assert w.cd.shape == (3, 3)
     assert w.get_pc().shape == (3, 3)
@@ -840,7 +851,7 @@ def test_cd_3d():
 
 
 def test_get_pc():
-    header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/3d_cd.hdr", encoding="binary")
     w = _wcs.Wcsprm(header)
     pc = w.get_pc()
     try:
@@ -860,26 +871,28 @@ def test_detailed_err():
 
 def test_header_parse():
     from astropy.io import fits
+
     with get_pkg_data_fileobj(
-            'data/header_newlines.fits', encoding='binary') as test_file:
+        "data/header_newlines.fits", encoding="binary"
+    ) as test_file:
         hdulist = fits.open(test_file)
         with pytest.warns(FITSFixedWarning):
             w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
+    assert w.wcs.ctype[0] == "RA---TAN-SIP"
 
 
 def test_locale():
     try:
-        with _set_locale('fr_FR'):
-            header = get_pkg_data_contents('data/locale.hdr',
-                                           encoding='binary')
+        with _set_locale("fr_FR"):
+            header = get_pkg_data_contents("data/locale.hdr", encoding="binary")
             with pytest.warns(FITSFixedWarning):
                 w = _wcs.Wcsprm(header)
                 assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     except locale.Error:
         pytest.xfail(
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
-            "on this system")
+            "on this system"
+        )
 
 
 def test_unicode():
@@ -889,9 +902,8 @@ def test_unicode():
 
 
 def test_sub_segfault():
-    # Issue #1960
-    header = fits.Header.fromtextfile(
-        get_pkg_data_filename('data/sub-segfault.hdr'))
+    """Issue #1960"""
+    header = fits.Header.fromtextfile(get_pkg_data_filename("data/sub-segfault.hdr"))
     w = wcs.WCS(header)
     w.sub([wcs.WCSSUB_CELESTIAL])
     gc.collect()
@@ -903,24 +915,23 @@ def test_bounds_check():
 
 
 def test_wcs_sub_error_message():
-    # Issue #1587
+    """Issue #1587"""
     w = _wcs.Wcsprm()
-    with pytest.raises(TypeError) as e:
-        w.sub('latitude')
-    assert e.match("axes must None, a sequence or an integer$")
+    with pytest.raises(TypeError, match="axes must None, a sequence or an integer$"):
+        w.sub("latitude")
 
 
 def test_wcs_sub():
-    # Issue #3356
+    """Issue #3356"""
     w = _wcs.Wcsprm()
-    w.sub(['latitude'])
+    w.sub(["latitude"])
 
     w = _wcs.Wcsprm()
-    w.sub([b'latitude'])
+    w.sub([b"latitude"])
 
 
 def test_compare():
-    header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/3d_cd.hdr", encoding="binary")
     w = _wcs.Wcsprm(header)
     w2 = _wcs.Wcsprm(header)
 
@@ -945,13 +956,12 @@ def test_compare():
 
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
-    w.ctype = ['RA---TAN', 'DEC--TAN']
+    w.ctype = ["RA---TAN", "DEC--TAN"]
     w.set()
     assert w.radesys == "ICRS"
 
 
 def test_radesys_defaults_full():
-
     # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic
     # coordinates", for those systems the RADESYS keyword can be used to
     # indicate the equatorial/ecliptic frame to use. From the standard:
@@ -969,46 +979,46 @@ def test_radesys_defaults_full():
 
     # By default RADESYS is empty
     w = _wcs.Wcsprm(naxis=2)
-    assert w.radesys == ''
+    assert w.radesys == ""
     assert np.isnan(w.equinox)
 
     # For non-ecliptic or equatorial systems it is still empty
     w = _wcs.Wcsprm(naxis=2)
-    for ctype in [('GLON-CAR', 'GLAT-CAR'),
-                  ('SLON-SIN', 'SLAT-SIN')]:
+    for ctype in [("GLON-CAR", "GLAT-CAR"), ("SLON-SIN", "SLAT-SIN")]:
         w.ctype = ctype
         w.set()
-        assert w.radesys == ''
+        assert w.radesys == ""
         assert np.isnan(w.equinox)
 
-    for ctype in [('RA---TAN', 'DEC--TAN'),
-                  ('ELON-TAN', 'ELAT-TAN'),
-                  ('DEC--TAN', 'RA---TAN'),
-                  ('ELAT-TAN', 'ELON-TAN')]:
-
+    for ctype in [
+        ("RA---TAN", "DEC--TAN"),
+        ("ELON-TAN", "ELAT-TAN"),
+        ("DEC--TAN", "RA---TAN"),
+        ("ELAT-TAN", "ELON-TAN"),
+    ]:
         # Check defaults for RADESYS
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
         w.set()
-        assert w.radesys == 'ICRS'
+        assert w.radesys == "ICRS"
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
         w.equinox = 1980
         w.set()
-        assert w.radesys == 'FK4'
+        assert w.radesys == "FK4"
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
         w.equinox = 1984
         w.set()
-        assert w.radesys == 'FK5'
+        assert w.radesys == "FK5"
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
-        w.radesys = 'foo'
+        w.radesys = "foo"
         w.set()
-        assert w.radesys == 'foo'
+        assert w.radesys == "foo"
 
         # Check defaults for EQUINOX
         w = _wcs.Wcsprm(naxis=2)
@@ -1018,75 +1028,80 @@ def test_radesys_defaults_full():
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
-        w.radesys = 'ICRS'
+        w.radesys = "ICRS"
         w.set()
         assert np.isnan(w.equinox)
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
-        w.radesys = 'FK5'
+        w.radesys = "FK5"
         w.set()
-        assert w.equinox == 2000.
+        assert w.equinox == 2000.0
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
-        w.radesys = 'FK4'
+        w.radesys = "FK4"
         w.set()
         assert w.equinox == 1950
 
         w = _wcs.Wcsprm(naxis=2)
         w.ctype = ctype
-        w.radesys = 'FK4-NO-E'
+        w.radesys = "FK4-NO-E"
         w.set()
         assert w.equinox == 1950
 
 
 def test_iteration():
     world = np.array(
-        [[-0.58995335, -0.5],
-         [0.00664326, -0.5],
-         [-0.58995335, -0.25],
-         [0.00664326, -0.25],
-         [-0.58995335, 0.],
-         [0.00664326, 0.],
-         [-0.58995335, 0.25],
-         [0.00664326, 0.25],
-         [-0.58995335, 0.5],
-         [0.00664326, 0.5]],
-        float
+        [
+            [-0.58995335, -0.5],
+            [0.00664326, -0.5],
+            [-0.58995335, -0.25],
+            [0.00664326, -0.25],
+            [-0.58995335, 0.0],
+            [0.00664326, 0.0],
+            [-0.58995335, 0.25],
+            [0.00664326, 0.25],
+            [-0.58995335, 0.5],
+            [0.00664326, 0.5],
+        ],
+        float,
     )
 
     w = wcs.WCS()
-    w.wcs.ctype = ['GLON-CAR', 'GLAT-CAR']
+    w.wcs.ctype = ["GLON-CAR", "GLAT-CAR"]
     w.wcs.cdelt = [-0.006666666828, 0.006666666828]
     w.wcs.crpix = [75.907, 74.8485]
     x = w.wcs_world2pix(world, 1)
 
     expected = np.array(
-        [[1.64400000e+02, -1.51498185e-01],
-         [7.49105110e+01, -1.51498185e-01],
-         [1.64400000e+02, 3.73485009e+01],
-         [7.49105110e+01, 3.73485009e+01],
-         [1.64400000e+02, 7.48485000e+01],
-         [7.49105110e+01, 7.48485000e+01],
-         [1.64400000e+02, 1.12348499e+02],
-         [7.49105110e+01, 1.12348499e+02],
-         [1.64400000e+02, 1.49848498e+02],
-         [7.49105110e+01, 1.49848498e+02]],
-        float)
+        [
+            [1.64400000e02, -1.51498185e-01],
+            [7.49105110e01, -1.51498185e-01],
+            [1.64400000e02, 3.73485009e01],
+            [7.49105110e01, 3.73485009e01],
+            [1.64400000e02, 7.48485000e01],
+            [7.49105110e01, 7.48485000e01],
+            [1.64400000e02, 1.12348499e02],
+            [7.49105110e01, 1.12348499e02],
+            [1.64400000e02, 1.49848498e02],
+            [7.49105110e01, 1.49848498e02],
+        ],
+        float,
+    )
 
     assert_array_almost_equal(x, expected)
 
     w2 = w.wcs_pix2world(x, 1)
 
-    world[:, 0] %= 360.
+    world[:, 0] %= 360.0
 
     assert_array_almost_equal(w2, world)
 
 
 def test_invalid_args():
     with pytest.raises(TypeError):
-        _wcs.Wcsprm(keysel='A')
+        _wcs.Wcsprm(keysel="A")
 
     with pytest.raises(ValueError):
         _wcs.Wcsprm(keysel=2)
@@ -1097,16 +1112,15 @@ def test_invalid_args():
     with pytest.raises(ValueError):
         _wcs.Wcsprm(naxis=64)
 
-    header = get_pkg_data_contents(
-        'data/spectra/orion-velo-1.hdr', encoding='binary')
+    header = get_pkg_data_contents("data/spectra/orion-velo-1.hdr", encoding="binary")
     with pytest.raises(ValueError):
-        _wcs.Wcsprm(header, relax='FOO')
+        _wcs.Wcsprm(header, relax="FOO")
 
     with pytest.raises(ValueError):
         _wcs.Wcsprm(header, naxis=3)
 
     with pytest.raises(KeyError):
-        _wcs.Wcsprm(header, key='A')
+        _wcs.Wcsprm(header, key="A")
 
 
 # Test keywords in the Time standard
@@ -1114,48 +1128,74 @@ def test_invalid_args():
 
 def test_datebeg():
     w = _wcs.Wcsprm()
-    assert w.datebeg == ''
-    w.datebeg = '2001-02-11'
-    assert w.datebeg == '2001-02-11'
-    w.datebeg = '31/12/99'
+    assert w.datebeg == ""
+    w.datebeg = "2001-02-11"
+    assert w.datebeg == "2001-02-11"
+    w.datebeg = "31/12/99"
     fix_ref = {
-        'cdfix': 'No change',
-        'cylfix': 'No change',
-        'obsfix': 'No change',
-        'datfix': "Invalid DATE-BEG format '31/12/99'",
-        'spcfix': 'No change',
-        'unitfix': 'No change',
-        'celfix': 'No change'}
+        "cdfix": "No change",
+        "cylfix": "No change",
+        "obsfix": "No change",
+        "datfix": "Invalid DATE-BEG format '31/12/99'",
+        "spcfix": "No change",
+        "unitfix": "No change",
+        "celfix": "No change",
+    }
 
-    if Version(wcs._wcs.__version__) >= Version('7.3'):
-        fix_ref['datfix'] = "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref['datfix']
-    elif Version(wcs._wcs.__version__) >= Version('7.1'):
-        fix_ref['datfix'] = "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref['datfix']
+    if Version(wcs._wcs.__version__) >= Version("7.3"):
+        fix_ref["datfix"] = (
+            "Set DATEREF to '1858-11-17' from MJDREF.\n" + fix_ref["datfix"]
+        )
+    elif Version(wcs._wcs.__version__) >= Version("7.1"):
+        fix_ref["datfix"] = (
+            "Set DATE-REF to '1858-11-17' from MJD-REF.\n" + fix_ref["datfix"]
+        )
 
     assert w.fix() == fix_ref
 
 
-char_keys = ['timesys', 'trefpos', 'trefdir', 'plephem', 'timeunit',
-             'dateref', 'dateavg', 'dateend']
+char_keys = [
+    "timesys",
+    "trefpos",
+    "trefdir",
+    "plephem",
+    "timeunit",
+    "dateref",
+    "dateavg",
+    "dateend",
+]
 
 
-@pytest.mark.parametrize('key', char_keys)
+@pytest.mark.parametrize("key", char_keys)
 def test_char_keys(key):
     w = _wcs.Wcsprm()
-    assert getattr(w, key) == ''
+    assert getattr(w, key) == ""
     setattr(w, key, "foo")
-    assert getattr(w, key) == 'foo'
+    assert getattr(w, key) == "foo"
     with pytest.raises(TypeError):
         setattr(w, key, 42)
 
 
-num_keys = ['mjdobs', 'mjdbeg', 'mjdend', 'jepoch',
-            'bepoch', 'tstart', 'tstop', 'xposure', 'timsyer',
-            'timrder', 'timedel', 'timepixr', 'timeoffs',
-            'telapse', 'xposure']
+num_keys = [
+    "mjdobs",
+    "mjdbeg",
+    "mjdend",
+    "jepoch",
+    "bepoch",
+    "tstart",
+    "tstop",
+    "xposure",
+    "timsyer",
+    "timrder",
+    "timedel",
+    "timepixr",
+    "timeoffs",
+    "telapse",
+    "xposure",
+]
 
 
-@pytest.mark.parametrize('key', num_keys)
+@pytest.mark.parametrize("key", num_keys)
 def test_num_keys(key):
     w = _wcs.Wcsprm()
     assert np.isnan(getattr(w, key))
@@ -1167,17 +1207,17 @@ def test_num_keys(key):
         setattr(w, key, "foo")
 
 
-@pytest.mark.parametrize('key', ['czphs', 'cperi', 'mjdref'])
+@pytest.mark.parametrize("key", ["czphs", "cperi", "mjdref"])
 def test_array_keys(key):
     w = _wcs.Wcsprm()
     attr = getattr(w, key)
-    if key == 'mjdref' and Version(_wcs.__version__) >= Version('7.1'):
+    if key == "mjdref" and Version(_wcs.__version__) >= Version("7.1"):
         assert np.allclose(attr, [0, 0])
     else:
         assert np.all(np.isnan(attr))
     assert attr.dtype == float
-    setattr(w, key, [1., 2.])
-    assert_array_equal(getattr(w, key), [1., 2.])
+    setattr(w, key, [1.0, 2.0])
+    assert_array_equal(getattr(w, key), [1.0, 2.0])
     with pytest.raises(ValueError):
         setattr(w, key, ["foo", "bar"])
     with pytest.raises(ValueError):

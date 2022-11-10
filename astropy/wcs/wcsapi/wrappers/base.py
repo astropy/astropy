@@ -16,6 +16,7 @@ class BaseWCSWrapper(BaseLowLevelWCS, metaclass=abc.ABCMeta):
     wcs : `astropy.wcs.wcsapi.BaseLowLevelWCS`
         The WCS object to wrap
     """
+
     def __init__(self, wcs, *args, **kwargs):
         self._wcs = wcs
 

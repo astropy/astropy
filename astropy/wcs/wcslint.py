@@ -10,10 +10,11 @@ def main(args=None):
     from . import wcs
 
     parser = argparse.ArgumentParser(
-        description=("Check the WCS keywords in a FITS file for "
-                     "compliance against the standards"))
-    parser.add_argument(
-        'filename', nargs=1, help='Path to FITS file to check')
+        description=(
+            "Check the WCS keywords in a FITS file for compliance against the standards"
+        )
+    )
+    parser.add_argument("filename", nargs=1, help="Path to FITS file to check")
     args = parser.parse_args(args)
 
     print(wcs.validate(args.filename[0]))

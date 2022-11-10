@@ -5,9 +5,16 @@ from astropy.io import fits
 
 
 class SimModelTAB:
-    def __init__(self, nx=150, ny=200, crpix=[1, 1], crval = [1, 1],
-                 cdelt = [1, 1], pc = {'PC1_1': 1, 'PC2_2': 1}):
-        """  set essential parameters of the model (coord transformations)  """
+    def __init__(
+        self,
+        nx=150,
+        ny=200,
+        crpix=[1, 1],
+        crval=[1, 1],
+        cdelt=[1, 1],
+        pc={"PC1_1": 1, "PC2_2": 1},
+    ):
+        """set essential parameters of the model (coord transformations)"""
         assert nx > 2 and ny > 1  # a limitation of this particular simulation
         self.nx = nx
         self.ny = ny
@@ -49,7 +56,7 @@ class SimModelTAB:
 
     @property
     def hdulist(self):
-        """ Simulates 2D data with a _spatial_ WCS that uses the ``-TAB``
+        """Simulates 2D data with a _spatial_ WCS that uses the ``-TAB``
         algorithm with indexing.
         """
         # coordinate array (some "arbitrary" numbers with a "jump" along x axis):
@@ -69,39 +76,39 @@ class SimModelTAB:
         arr = np.array(
             [(c, xi, yi)],
             dtype=[
-                ('wavelength', np.float64, c.shape),
-                ('xi', np.double, (xi.size,)),
-                ('yi', np.double, (yi.size,))
-            ]
+                ("wavelength", np.float64, c.shape),
+                ("xi", np.double, (xi.size,)),
+                ("yi", np.double, (yi.size,)),
+            ],
         )
 
         # create binary table HDU:
         bt = fits.BinTableHDU(arr)
-        bt.header['EXTNAME'] = 'WCS-TABLE'
+        bt.header["EXTNAME"] = "WCS-TABLE"
 
         # create primary header:
         image_data = np.ones((self.ny, self.nx), dtype=np.float32)
         pu = fits.PrimaryHDU(image_data)
-        pu.header['ctype1'] = 'RA---TAB'
-        pu.header['ctype2'] = 'DEC--TAB'
-        pu.header['naxis1'] = self.nx
-        pu.header['naxis2'] = self.ny
-        pu.header['PS1_0'] = 'WCS-TABLE'
-        pu.header['PS2_0'] = 'WCS-TABLE'
-        pu.header['PS1_1'] = 'wavelength'
-        pu.header['PS2_1'] = 'wavelength'
-        pu.header['PV1_3'] = 1
-        pu.header['PV2_3'] = 2
-        pu.header['CUNIT1'] = 'deg'
-        pu.header['CUNIT2'] = 'deg'
-        pu.header['CDELT1'] = self.cdelt[0]
-        pu.header['CDELT2'] = self.cdelt[1]
-        pu.header['CRPIX1'] = self.crpix[0]
-        pu.header['CRPIX2'] = self.crpix[1]
-        pu.header['CRVAL1'] = self.crval[0]
-        pu.header['CRVAL2'] = self.crval[1]
-        pu.header['PS1_2'] = 'xi'
-        pu.header['PS2_2'] = 'yi'
+        pu.header["ctype1"] = "RA---TAB"
+        pu.header["ctype2"] = "DEC--TAB"
+        pu.header["naxis1"] = self.nx
+        pu.header["naxis2"] = self.ny
+        pu.header["PS1_0"] = "WCS-TABLE"
+        pu.header["PS2_0"] = "WCS-TABLE"
+        pu.header["PS1_1"] = "wavelength"
+        pu.header["PS2_1"] = "wavelength"
+        pu.header["PV1_3"] = 1
+        pu.header["PV2_3"] = 2
+        pu.header["CUNIT1"] = "deg"
+        pu.header["CUNIT2"] = "deg"
+        pu.header["CDELT1"] = self.cdelt[0]
+        pu.header["CDELT2"] = self.cdelt[1]
+        pu.header["CRPIX1"] = self.crpix[0]
+        pu.header["CRPIX2"] = self.crpix[1]
+        pu.header["CRVAL1"] = self.crval[0]
+        pu.header["CRVAL2"] = self.crval[1]
+        pu.header["PS1_2"] = "xi"
+        pu.header["PS2_2"] = "yi"
         for k, v in self.pc.items():
             pu.header[k] = v
 

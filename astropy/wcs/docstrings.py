@@ -6,18 +6,18 @@
 # which are then converted by setup.py into docstrings.h, which is
 # included by pywcs.c
 
-__all__ = ['TWO_OR_MORE_ARGS', 'RETURNS', 'ORIGIN', 'RA_DEC_ORDER']
+__all__ = ["TWO_OR_MORE_ARGS", "RETURNS", "ORIGIN", "RA_DEC_ORDER"]
 
 
 def _fix(content, indent=0):
-    lines = content.split('\n')
-    indent = '\n' + ' ' * indent
+    lines = content.split("\n")
+    indent = "\n" + " " * indent
     return indent.join(lines)
 
 
 def TWO_OR_MORE_ARGS(naxis, indent=0):
     return _fix(
-f"""*args
+        f"""*args
     There are two accepted forms for the positional arguments:
 
         - 2 arguments: An *N* x *{naxis}* array of coordinates, and an
@@ -30,35 +30,44 @@ f"""*args
     Here, *origin* is the coordinate in the upper left corner of the
     image.  In FITS and Fortran standards, this is 1.  In Numpy and C
     standards this is 0.
-""", indent)
+""",
+        indent,
+    )
 
 
 def RETURNS(out_type, indent=0):
-    return _fix(f"""result : array
+    return _fix(
+        f"""result : array
     Returns the {out_type}.  If the input was a single array and
     origin, a single array is returned, otherwise a tuple of arrays is
-    returned.""", indent)
+    returned.""",
+        indent,
+    )
 
 
 def ORIGIN(indent=0):
     return _fix(
-"""
+        """
 origin : int
     Specifies the origin of pixel values.  The Fortran and FITS
     standards use an origin of 1.  Numpy and C use array indexing with
     origin at 0.
-""", indent)
+""",
+        indent,
+    )
 
 
 def RA_DEC_ORDER(indent=0):
     return _fix(
-"""
+        """
 ra_dec_order : bool, optional
     When `True` will ensure that world coordinates are always given
     and returned in as (*ra*, *dec*) pairs, regardless of the order of
     the axes specified by the in the ``CTYPE`` keywords.  Default is
     `False`.
-""", indent)
+""",
+        indent,
+    )
 
 
 a = """
@@ -76,7 +85,7 @@ a_order = """
 ``int`` (read-only) Order of the polynomial (``A_ORDER``).
 """
 
-all_pix2world = """
+all_pix2world = f"""
 all_pix2world(pixcrd, origin) -> ``double array[ncoord][nelem]``
 
 Transforms pixel coordinates to world coordinates.
@@ -98,7 +107,7 @@ Parameters
 pixcrd : ndarray
     Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -130,7 +139,7 @@ InvalidTransformError
 
 InvalidTransformError
     Ill-conditioned coordinate transformation parameters.
-""".format(ORIGIN())
+"""
 
 alt = """
 ``str`` Character code for alternate coordinate descriptions.
@@ -1423,7 +1432,7 @@ coordinates with the relevant coordinate element with ``nelem`` set to
 1.  In this case ``map[0] = 0`` regardless of the value of *i*.
 """
 
-mix = """
+mix = f"""
 mix(mixpix, mixcel, vspan, vstep, viter, world, pixcrd, origin)
 
 Given either the celestial longitude or latitude plus an element of
@@ -1471,7 +1480,7 @@ pixcrd : ndarray
     Pixel coordinates as ``double array[naxis]``.  The element indicated by *mixpix* is given and
     the remaining elements will be written in-place.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -1557,7 +1566,7 @@ Because of its generality, `~astropy.wcs.Wcsprm.mix` is very
 compute-intensive.  For compute-limited applications, more efficient
 special-case solvers could be written for simple projections, for
 example non-oblique cylindrical projections.
-""".format(ORIGIN())
+"""
 
 mjdavg = """
 ``double`` Modified Julian Date corresponding to ``DATE-AVG``.
@@ -1642,7 +1651,7 @@ indices into the coordinate array such that Upsilon_m, as defined in
 Paper III, is equal to ``(p0[m] + 1) + delta[m]``.
 """
 
-p2s = """
+p2s = f"""
 p2s(pixcrd, origin)
 
 Converts pixel to world coordinates.
@@ -1653,7 +1662,7 @@ Parameters
 pixcrd : ndarray
     Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -1718,9 +1727,9 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
-""".format(ORIGIN())
+"""
 
-p4_pix2foc = """
+p4_pix2foc = f"""
 p4_pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert pixel coordinates to focal plane coordinates using `distortion
@@ -1731,7 +1740,7 @@ Parameters
 pixcrd : ndarray
     Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -1745,7 +1754,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(ORIGIN())
+"""
 
 pc = """
 ``double array[naxis][naxis]`` The ``PCi_ja`` (pixel coordinate)
@@ -1788,7 +1797,7 @@ See also
 astropy.wcs.Wcsprm.theta0
 """
 
-pix2foc = """
+pix2foc = f"""
 pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Perform both `SIP`_ polynomial and `distortion paper`_ lookup-table
@@ -1799,7 +1808,7 @@ Parameters
 pixcrd : ndarray
     Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -1813,7 +1822,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(ORIGIN())
+"""
 
 piximg_matrix = """
 ``double array[2][2]`` (read-only) Matrix containing the product of
@@ -1876,7 +1885,7 @@ rsun_ref = """
 If undefined, this is set to `None`.
 """
 
-s2p = """
+s2p = f"""
 s2p(world, origin)
 
 Transforms world coordinates to pixel coordinates.
@@ -1886,7 +1895,7 @@ Parameters
 world : ndarray
     Array of world coordinates, in decimal degrees, as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -1944,7 +1953,7 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
-""".format(ORIGIN())
+"""
 
 sense = """
 ``int array[M]`` +1 if monotonically increasing, -1 if decreasing.
@@ -2119,7 +2128,7 @@ Shupe, D. L., M. Moshir, J. Li, D. Makovoz and R. Narron.  2005.
 Headers."  ADASS XIV.
 """
 
-sip_foc2pix = """
+sip_foc2pix = f"""
 sip_foc2pix(*foccrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert focal plane coordinates to pixel coordinates using the `SIP`_
@@ -2130,7 +2139,7 @@ Parameters
 foccrd : ndarray
     Array of focal plane coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -2144,9 +2153,9 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(ORIGIN())
+"""
 
-sip_pix2foc = """
+sip_pix2foc = f"""
 sip_pix2foc(*pixcrd, origin*) -> ``double array[ncoord][nelem]``
 
 Convert pixel coordinates to focal plane coordinates using the `SIP`_
@@ -2157,7 +2166,7 @@ Parameters
 pixcrd : ndarray
     Array of pixel coordinates as ``double array[ncoord][nelem]``.
 
-{}
+{ORIGIN()}
 
 Returns
 -------
@@ -2171,7 +2180,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""".format(ORIGIN())
+"""
 
 spcfix = """
 spcfix() -> int
