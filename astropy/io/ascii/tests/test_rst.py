@@ -24,7 +24,7 @@ def test_read_normal():
 """
     reader = ascii.get_reader(Reader=ascii.RST)
     dat = reader.read(table)
-    assert_equal(dat.colnames, ['Col1', 'Col2'])
+    assert_equal(dat.colnames, ["Col1", "Col2"])
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hello"')
     assert_equal(dat[1][1], "'s worlds")
@@ -41,10 +41,9 @@ def test_read_normal_names():
    2.4  's worlds
 ======= =========
 """
-    reader = ascii.get_reader(Reader=ascii.RST,
-                              names=('name1', 'name2'))
+    reader = ascii.get_reader(Reader=ascii.RST, names=("name1", "name2"))
     dat = reader.read(table)
-    assert_equal(dat.colnames, ['name1', 'name2'])
+    assert_equal(dat.colnames, ["name1", "name2"])
     assert_almost_equal(dat[1][0], 2.4)
 
 
@@ -59,11 +58,13 @@ def test_read_normal_names_include():
    2.4    's worlds      7
 =======  ========== ======
 """
-    reader = ascii.get_reader(Reader=ascii.RST,
-                              names=('name1', 'name2', 'name3'),
-                              include_names=('name1', 'name3'))
+    reader = ascii.get_reader(
+        Reader=ascii.RST,
+        names=("name1", "name2", "name3"),
+        include_names=("name1", "name3"),
+    )
     dat = reader.read(table)
-    assert_equal(dat.colnames, ['name1', 'name3'])
+    assert_equal(dat.colnames, ["name1", "name3"])
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], 3)
 
@@ -78,10 +79,9 @@ def test_read_normal_exclude():
   2.4    's worlds
 ======= ==========
 """
-    reader = ascii.get_reader(Reader=ascii.RST,
-                              exclude_names=('Col1',))
+    reader = ascii.get_reader(Reader=ascii.RST, exclude_names=("Col1",))
     dat = reader.read(table)
-    assert_equal(dat.colnames, ['Col2'])
+    assert_equal(dat.colnames, ["Col2"])
     assert_equal(dat[1][0], "'s worlds")
 
 
@@ -137,7 +137,7 @@ def test_read_right_indented_table():
 
 
 def test_trailing_spaces_in_row_definition():
-    """ Trailing spaces in the row definition column shouldn't matter"""
+    """Trailing spaces in the row definition column shouldn't matter"""
     table = (
         "\n"
         "# comment (with blank line above)\n"
@@ -174,11 +174,14 @@ def test_write_normal():
     """Write a table as a normal SimpleRST Table"""
     out = StringIO()
     ascii.write(dat, out, Writer=ascii.RST)
-    assert_equal_splitlines(out.getvalue(), """\
+    assert_equal_splitlines(
+        out.getvalue(),
+        """\
 ==== ========= ==== ====
 Col1      Col2 Col3 Col4
 ==== ========= ==== ====
  1.2   "hello"    1    a
  2.4 's worlds    2    2
 ==== ========= ==== ====
-""")
+""",
+    )

@@ -60,7 +60,6 @@ force-exclude = '''
     | astropy/convolution
     | astropy/coordinates
     | astropy/extern
-    | astropy/io/ascii
     | astropy/io/fits
     | astropy/io/registry
     | astropy/io/tests
