@@ -12,29 +12,38 @@ from astropy.cosmology.core import CosmologyError
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ['z_at_value']
+__all__ = ["z_at_value"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
-def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-                       method='Brent', bracket=None, verbose=False):
+def _z_at_scalar_value(
+    func,
+    fval,
+    zmin=1e-8,
+    zmax=1000,
+    ztol=1e-8,
+    maxfun=500,
+    method="Brent",
+    bracket=None,
+    verbose=False,
+):
     """
     Find the redshift ``z`` at which ``func(z) = fval``.
     See :func:`astropy.cosmology.funcs.z_at_value`.
     """
     from scipy.optimize import minimize_scalar
 
-    opt = {'maxiter': maxfun}
+    opt = {"maxiter": maxfun}
     # Assume custom methods support the same options as default; otherwise user
     # will see warnings.
-    if str(method).lower() == 'bounded':
-        opt['xatol'] = ztol
+    if str(method).lower() == "bounded":
+        opt["xatol"] = ztol
         if bracket is not None:
             warnings.warn(f"Option 'bracket' is ignored by method {method}.")
             bracket = None
     else:
-        opt['xtol'] = ztol
+        opt["xtol"] = ztol
 
     # fval falling inside the interval of bracketing function values does not
     # guarantee it has a unique solution, but for Standard Cosmological
@@ -53,11 +62,13 @@ def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
                 zmin, zmax = bracket[0], bracket[-1]
                 fval_zmin, fval_zmax = fval_brac[[0, -1]]
     if nobracket:
-        warnings.warn(f"fval is not bracketed by func(zmin)={fval_zmin} and "
-                      f"func(zmax)={fval_zmax}. This means either there is no "
-                      "solution, or that there is more than one solution "
-                      "between zmin and zmax satisfying fval = func(z).",
-                      AstropyUserWarning)
+        warnings.warn(
+            f"fval is not bracketed by func(zmin)={fval_zmin} and "
+            f"func(zmax)={fval_zmax}. This means either there is no "
+            "solution, or that there is more than one solution "
+            "between zmin and zmax satisfying fval = func(z).",
+            AstropyUserWarning,
+        )
 
     if isinstance(fval_zmin, Quantity):
         val = fval.to_value(fval_zmin.unit)
@@ -67,24 +78,28 @@ def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # 'Brent' and 'Golden' ignore `bounds`, force solution inside zlim
     def f(z):
         if z > zmax:
-            return 1.e300 * (1.0 + z - zmax)
+            return 1.0e300 * (1.0 + z - zmax)
         elif z < zmin:
-            return 1.e300 * (1.0 + zmin - z)
+            return 1.0e300 * (1.0 + zmin - z)
         elif isinstance(fval_zmin, Quantity):
             return abs(func(z).value - val)
         else:
             return abs(func(z) - val)
 
-    res = minimize_scalar(f, method=method, bounds=(zmin, zmax),
-                          bracket=bracket, options=opt)
+    res = minimize_scalar(
+        f, method=method, bounds=(zmin, zmax), bracket=bracket, options=opt
+    )
 
     # Scipy docs state that `OptimizeResult` always has 'status' and 'message'
     # attributes, but only `_minimize_scalar_bounded()` seems to have really
     # implemented them.
     if not res.success:
-        warnings.warn(f"Solver returned {res.get('status')}: {res.get('message', 'Unsuccessful')}\n"
-                      f"Precision {res.fun} reached after {res.nfev} function calls.",
-                      AstropyUserWarning)
+        warnings.warn(
+            f"Solver returned {res.get('status')}:"
+            f" {res.get('message', 'Unsuccessful')}\nPrecision {res.fun} reached after"
+            f" {res.nfev} function calls.",
+            AstropyUserWarning,
+        )
 
     if verbose:
         print(res)
@@ -92,16 +107,27 @@ def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     if np.allclose(res.x, zmax):
         raise CosmologyError(
             f"Best guess z={res.x} is very close to the upper z limit {zmax}."
-            "\nTry re-running with a different zmax.")
+            "\nTry re-running with a different zmax."
+        )
     elif np.allclose(res.x, zmin):
         raise CosmologyError(
             f"Best guess z={res.x} is very close to the lower z limit {zmin}."
-            "\nTry re-running with a different zmin.")
+            "\nTry re-running with a different zmin."
+        )
     return res.x
 
 
-def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-               method='Brent', bracket=None, verbose=False):
+def z_at_value(
+    func,
+    fval,
+    zmin=1e-8,
+    zmax=1000,
+    ztol=1e-8,
+    maxfun=500,
+    method="Brent",
+    bracket=None,
+    verbose=False,
+):
     """Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -329,7 +355,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # so we strip it of units for broadcasting and restore the units when
     # passing the elements to `_z_at_scalar_value`.
     fval = np.asanyarray(fval)
-    unit = getattr(fval, 'unit', 1)  # can be unitless
+    unit = getattr(fval, "unit", 1)  # can be unitless
     zmin = Quantity(zmin, cu.redshift).value  # must be unitless
     zmax = Quantity(zmax, cu.redshift).value
 
@@ -337,8 +363,9 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # bracket: 2 or 3 elt sequence
     if not isinstance(bracket, np.ndarray):  # 'scalar' bracket
         if bracket is not None and len(bracket) not in (2, 3):
-            raise ValueError("`bracket` is not an array "
-                             "nor a 2 (or 3) element sequence.")
+            raise ValueError(
+                "`bracket` is not an array nor a 2 (or 3) element sequence."
+            )
         else:  # munge bracket into a 1-elt object array
             bracket = np.array([bracket, ()], dtype=object)[:1].squeeze()
     if bracket.dtype != np.object_:
@@ -347,17 +374,27 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # make multi-dimensional iterator for all but `method`, `verbose`
     with np.nditer(
         [fval, zmin, zmax, ztol, maxfun, bracket, None],
-        flags=['refs_ok'],
-        op_flags=[*[['readonly']] * 6,  # ← inputs  output ↓
-                  ['writeonly', 'allocate', 'no_subtype']],
-        op_dtypes=(*(None,)*6, fval.dtype),
+        flags=["refs_ok"],
+        op_flags=[
+            *[["readonly"]] * 6,  # ← inputs  output ↓
+            ["writeonly", "allocate", "no_subtype"],
+        ],
+        op_dtypes=(*(None,) * 6, fval.dtype),
         casting="no",
     ) as it:
         for fv, zmn, zmx, zt, mfe, bkt, zs in it:  # ← eltwise unpack & eval ↓
-            zs[...] = _z_at_scalar_value(func, fv * unit, zmin=zmn, zmax=zmx,
-                                         ztol=zt, maxfun=mfe, bracket=bkt.item(),
-                                         # not broadcasted
-                                         method=method, verbose=verbose)
+            zs[...] = _z_at_scalar_value(
+                func,
+                fv * unit,
+                zmin=zmn,
+                zmax=zmx,
+                ztol=zt,
+                maxfun=mfe,
+                bracket=bkt.item(),
+                # not broadcasted
+                method=method,
+                verbose=verbose,
+            )
         # since bracket is an object array, the output will be too, so it is
         # cast to the same type as the function value.
         result = it.operands[-1]  # zs

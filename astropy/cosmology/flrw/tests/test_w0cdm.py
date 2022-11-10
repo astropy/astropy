@@ -80,12 +80,14 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
         # `w` params
         c = cosmo.clone(w0=0.1)
         assert c.w0 == 0.1
-        for n in (set(cosmo.__parameters__) - {"w0"}):
+        for n in set(cosmo.__parameters__) - {"w0"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert u.allclose(
+                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
+                )
 
     @pytest.mark.parametrize("z", valid_zs)
     def test_w(self, cosmo, z):
@@ -99,9 +101,11 @@ class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("wCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
+        expected = (
+            'wCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-0.5, Tcmb0=3.0 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -121,7 +125,9 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatwCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " w0=-0.5, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=0.03)")
+        expected = (
+            'FlatwCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
+            " w0=-0.5, Tcmb0=3.0 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=0.03)"
+        )
         assert repr(cosmo) == expected

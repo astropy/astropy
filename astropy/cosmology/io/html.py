@@ -25,7 +25,15 @@ _FORMAT_TABLE = {
 }
 
 
-def read_html_table(filename, index=None, *, move_to_meta=False, cosmology=None, latex_names=True, **kwargs):
+def read_html_table(
+    filename,
+    index=None,
+    *,
+    move_to_meta=False,
+    cosmology=None,
+    latex_names=True,
+    **kwargs,
+):
     """Read a |Cosmology| from an HTML file.
 
     Parameters
@@ -89,10 +97,14 @@ def read_html_table(filename, index=None, *, move_to_meta=False, cosmology=None,
                 table.rename_column(latex, name)
 
     # Build the cosmology from table, using the private backend.
-    return from_table(table, index=index, move_to_meta=move_to_meta, cosmology=cosmology)
+    return from_table(
+        table, index=index, move_to_meta=move_to_meta, cosmology=cosmology
+    )
 
 
-def write_html_table(cosmology, file, *, overwrite=False, cls=QTable, latex_names=False, **kwargs):
+def write_html_table(
+    cosmology, file, *, overwrite=False, cls=QTable, latex_names=False, **kwargs
+):
     r"""Serialize the |Cosmology| into a HTML table.
 
     Parameters

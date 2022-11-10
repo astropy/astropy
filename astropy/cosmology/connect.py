@@ -4,8 +4,12 @@ from astropy.cosmology import units as cu
 from astropy.io import registry as io_registry
 from astropy.units import add_enabled_units
 
-__all__ = ["CosmologyRead", "CosmologyWrite",
-           "CosmologyFromFormat", "CosmologyToFormat"]
+__all__ = [
+    "CosmologyRead",
+    "CosmologyWrite",
+    "CosmologyFromFormat",
+    "CosmologyToFormat",
+]
 __doctest_skip__ = __all__
 
 
@@ -75,7 +79,8 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
             if kwargs["cosmology"] not in valid:
                 raise ValueError(
                     "keyword argument `cosmology` must be either the class "
-                    f"{valid[0]} or its qualified name '{valid[1]}'")
+                    f"{valid[0]} or its qualified name '{valid[1]}'"
+                )
 
         with add_enabled_units(cu):
             cosmo = self.registry.read(self._cls, *args, **kwargs)
@@ -191,7 +196,8 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
             if kwargs["cosmology"] not in valid:
                 raise ValueError(
                     "keyword argument `cosmology` must be either the class "
-                    f"{valid[0]} or its qualified name '{valid[1]}'")
+                    f"{valid[0]} or its qualified name '{valid[1]}'"
+                )
 
         with add_enabled_units(cu):
             cosmo = self.registry.read(self._cls, obj, *args, format=format, **kwargs)

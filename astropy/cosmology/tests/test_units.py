@@ -52,14 +52,14 @@ def test_littleh():
     assert_quantity_allclose(cosmodist.to(u.Mpc, cu.with_H0()), 100 * u.Mpc)
 
     # Now try a luminosity scaling
-    h1lum = 0.49 * u.Lsun * cu.littleh ** -2
+    h1lum = 0.49 * u.Lsun * cu.littleh**-2
     assert_quantity_allclose(h1lum.to(u.Lsun, cu.with_H0(H0_70)), 1 * u.Lsun)
 
     # And the trickiest one: magnitudes.  Using H0=10 here for the round numbers
     H0_10 = 10 * u.km / u.s / u.Mpc
     # assume the "true" magnitude M = 12.
     # Then M - 5*log_10(h)  = M + 5 = 17
-    withlittlehmag = 17 * (u.mag - u.MagUnit(cu.littleh ** 2))
+    withlittlehmag = 17 * (u.mag - u.MagUnit(cu.littleh**2))
     assert_quantity_allclose(withlittlehmag.to(u.mag, cu.with_H0(H0_10)), 12 * u.mag)
 
 
@@ -78,10 +78,10 @@ def test_dimensionless_redshift():
     assert z == val
 
     # also test that it works for powers
-    assert (3 * cu.redshift ** 3) == val
+    assert (3 * cu.redshift**3) == val
 
     # and in composite units
-    assert (3 * u.km / cu.redshift ** 3) == 3 * u.km
+    assert (3 * u.km / cu.redshift**3) == 3 * u.km
 
     # test it also works as an equivalency
     with u.set_enabled_equivalencies([]):  # turn off default equivalencies
@@ -133,7 +133,7 @@ def test_redshift_hubble():
     default_cosmo = default_cosmology.get()
     z = 15 * cu.redshift
     H = cosmo.H(z)
-    h = H.to_value(u.km/u.s/u.Mpc) / 100 * cu.littleh
+    h = H.to_value(u.km / u.s / u.Mpc) / 100 * cu.littleh
 
     # 1) Default (without specifying the cosmology)
     with default_cosmology.set(cosmo):
@@ -169,7 +169,7 @@ def test_redshift_hubble():
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 @pytest.mark.parametrize(
     "kind",
-    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"]
+    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"],
 )
 def test_redshift_distance(kind):
     """Test :func:`astropy.cosmology.units.redshift_distance`."""
@@ -287,7 +287,7 @@ class Test_with_redshift:
 
     def test_hubble(self, cosmo):
         """Test Hubble equivalency component."""
-        unit = u.km/u.s/u.Mpc
+        unit = u.km / u.s / u.Mpc
         default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
         H = cosmo.H(z)
@@ -374,8 +374,9 @@ class Test_with_redshift:
         # showing the answer changes if the cosmology changes
         # this test uses the default cosmology
         equivalency = cu.with_redshift(distance=kind)
-        assert_quantity_allclose(z.to(u.Mpc, equivalency),
-                                 getattr(default_cosmo, kind + "_distance")(z))
+        assert_quantity_allclose(
+            z.to(u.Mpc, equivalency), getattr(default_cosmo, kind + "_distance")(z)
+        )
         assert not u.allclose(getattr(default_cosmo, kind + "_distance")(z), dist)
 
         # 2) Specifying the cosmology

@@ -102,7 +102,9 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         # Register
         readwrite_registry.register_reader("json", Cosmology, read_json, force=True)
         readwrite_registry.register_writer("json", Cosmology, write_json, force=True)
-        readwrite_registry.register_identifier("json", Cosmology, json_identify, force=True)
+        readwrite_registry.register_identifier(
+            "json", Cosmology, json_identify, force=True
+        )
 
         yield  # Run all tests in class
 
@@ -113,8 +115,9 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
 
     # ========================================================================
 
-    def test_readwrite_json_subclass_partial_info(self, cosmo_cls, cosmo, read,
-                                                  write, tmp_path, add_cu):
+    def test_readwrite_json_subclass_partial_info(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -127,9 +130,13 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
         # partial information
         with open(fp) as file:
             L = file.readlines()[0]
-        L = L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]  # remove cosmology  # noqa: #203
+        L = (
+            L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]
+        )  # remove cosmology  : #203
         i = L.index('"Tcmb0":')  # delete Tcmb0
-        L = L[:i] + L[L.index(", ", L.index(", ", i) + 1) + 2 :]  # second occurence  # noqa: #203
+        L = (
+            L[:i] + L[L.index(", ", L.index(", ", i) + 1) + 2 :]
+        )  # second occurence  : #203
 
         tempfname = tmp_path / f"{cosmo.name}_temp.json"
         with open(tempfname, "w") as file:

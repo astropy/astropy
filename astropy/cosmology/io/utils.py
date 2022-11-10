@@ -8,7 +8,9 @@ from astropy.table import Column
 FULLQUALNAME_SUBSTITUTIONS = {
     "astropy.cosmology.flrw.base.FLRW": "astropy.cosmology.flrw.FLRW",
     "astropy.cosmology.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.flrw.LambdaCDM",
-    "astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM": "astropy.cosmology.flrw.FlatLambdaCDM",
+    "astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM": (
+        "astropy.cosmology.flrw.FlatLambdaCDM"
+    ),
     "astropy.cosmology.flrw.w0wacdm.w0waCDM": "astropy.cosmology.flrw.w0waCDM",
     "astropy.cosmology.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.flrw.Flatw0waCDM",
     "astropy.cosmology.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.flrw.w0wzCDM",
@@ -35,12 +37,14 @@ def convert_parameter_to_column(parameter, value, meta=None):
     """
     shape = (1,) + np.shape(value)  # minimum of 1d
 
-    col = Column(data=np.reshape(value, shape),
-                 name=parameter.name,
-                 dtype=None,  # inferred from the data
-                 description=parameter.__doc__,
-                 format=None,
-                 meta=meta)
+    col = Column(
+        data=np.reshape(value, shape),
+        name=parameter.name,
+        dtype=None,  # inferred from the data
+        description=parameter.__doc__,
+        format=None,
+        meta=meta,
+    )
 
     return col
 
@@ -62,11 +66,22 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     `astropy.modeling.Parameter`
     """
     # Get from meta information relavant to Model
-    extra = {k: v for k, v in (meta or {}).items()
-             if k in ('getter', 'setter', 'fixed', 'tied', 'min', 'max',
-                      'bounds', 'prior', 'posterior')}
+    attrs = (
+        "getter",
+        "setter",
+        "fixed",
+        "tied",
+        "min",
+        "max",
+        "bounds",
+        "prior",
+        "posterior",
+    )
+    extra = {k: v for k, v in (meta or {}).items() if k in attrs}
 
-    return ModelParameter(description=parameter.__doc__,
-                          default=value,
-                          unit=getattr(value, "unit", None),
-                          **extra)
+    return ModelParameter(
+        description=parameter.__doc__,
+        default=value,
+        unit=getattr(value, "unit", None),
+        **extra
+    )

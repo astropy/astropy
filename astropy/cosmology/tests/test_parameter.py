@@ -62,7 +62,9 @@ class ParameterTestMixin:
         # _registry_validators
         assert hasattr(all_parameter, "_registry_validators")
         assert isinstance(all_parameter._registry_validators, dict)
-        assert all(isinstance(k, str) for k in all_parameter._registry_validators.keys())
+        assert all(
+            isinstance(k, str) for k in all_parameter._registry_validators.keys()
+        )
         assert all(callable(v) for v in all_parameter._registry_validators.values())
 
     def test_Parameter_init(self):
@@ -76,8 +78,13 @@ class ParameterTestMixin:
         assert parameter.name is None
 
         # setting all kwargs
-        parameter = Parameter(fvalidate="float", doc="DOCSTRING", unit="km",
-                              equivalencies=[u.mass_energy()], derived=True)
+        parameter = Parameter(
+            fvalidate="float",
+            doc="DOCSTRING",
+            unit="km",
+            equivalencies=[u.mass_energy()],
+            derived=True,
+        )
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
@@ -260,8 +267,11 @@ class TestParameter(ParameterTestMixin):
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(doc="Description of example parameter.",
-                              unit=u.m, equivalencies=u.mass_energy())
+            param = Parameter(
+                doc="Description of example parameter.",
+                unit=u.m,
+                equivalencies=u.mass_energy(),
+            )
 
             def __init__(self, param=15):
                 self.param = param
@@ -469,8 +479,12 @@ class TestParameter(ParameterTestMixin):
         r = repr(param)
 
         assert "Parameter(" in r
-        for subs in ("derived=False", 'unit=Unit("m")', 'equivalencies=[(Unit("kg"), Unit("J")',
-                     "doc='Description of example parameter.'"):
+        for subs in (
+            "derived=False",
+            'unit=Unit("m")',
+            'equivalencies=[(Unit("kg"), Unit("J")',
+            "doc='Description of example parameter.'",
+        ):
             assert subs in r, subs
 
         # `fvalidate` is a little tricker b/c one of them is custom!

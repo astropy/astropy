@@ -6,14 +6,20 @@
 import astropy.units as u
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
-__all__ = ["littleh", "redshift",
-           # redshift equivalencies
-           "dimensionless_redshift", "with_redshift",
-           "redshift_distance", "redshift_hubble", "redshift_temperature",
-           # other equivalencies
-           "with_H0"]
+__all__ = [
+    "littleh",
+    "redshift",
+    # redshift equivalencies
+    "dimensionless_redshift",
+    "with_redshift",
+    "redshift_distance",
+    "redshift_hubble",
+    "redshift_temperature",
+    # other equivalencies
+    "with_H0",
+]
 
-__doctest_requires__ = {('with_redshift', 'redshift_distance'): ['scipy']}
+__doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}
 
 _ns = globals()
 
@@ -23,8 +29,13 @@ _ns = globals()
 
 # This is not formally a unit, but is used in that way in many contexts, and
 # an appropriate equivalency is only possible if it's treated as a unit.
-redshift = u.def_unit(['redshift'], prefixes=False, namespace=_ns,
-                      doc="Cosmological redshift.", format={'latex': r''})
+redshift = u.def_unit(
+    ["redshift"],
+    prefixes=False,
+    namespace=_ns,
+    doc="Cosmological redshift.",
+    format={"latex": r""},
+)
 u.def_physical_type(redshift, "redshift")
 
 # This is not formally a unit, but is used in that way in many contexts, and
@@ -32,9 +43,13 @@ u.def_physical_type(redshift, "redshift")
 # https://arxiv.org/pdf/1308.4150.pdf for more)
 # Also note that h or h100 or h_100 would be a better name, but they either
 # conflict or have numbers in them, which is disallowed
-littleh = u.def_unit(['littleh'], namespace=_ns, prefixes=False,
-                     doc='Reduced/"dimensionless" Hubble constant',
-                     format={'latex': r'h_{100}'})
+littleh = u.def_unit(
+    ["littleh"],
+    namespace=_ns,
+    prefixes=False,
+    doc='Reduced/"dimensionless" Hubble constant',
+    format={"latex": r"h_{100}"},
+)
 
 
 ###############################################################################
@@ -93,7 +108,7 @@ def redshift_distance(cosmology=None, kind="comoving", **atzkw):
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
         cosmology = default_cosmology.get()
 
-    allowed_kinds = ('comoving', 'lookback', 'luminosity')
+    allowed_kinds = ("comoving", "lookback", "luminosity")
     if kind not in allowed_kinds:
         raise ValueError(f"`kind` is not one of {allowed_kinds}")
 
@@ -107,9 +122,11 @@ def redshift_distance(cosmology=None, kind="comoving", **atzkw):
         """Distance to redshift."""
         return z_at_value(method, d << u.Mpc, **atzkw)
 
-    return u.Equivalency([(redshift, u.Mpc, z_to_distance, distance_to_z)],
-                         "redshift_distance",
-                         {'cosmology': cosmology, "distance": kind})
+    return u.Equivalency(
+        [(redshift, u.Mpc, z_to_distance, distance_to_z)],
+        "redshift_distance",
+        {"cosmology": cosmology, "distance": kind},
+    )
 
 
 def redshift_hubble(cosmology=None, **atzkw):
@@ -170,10 +187,14 @@ def redshift_hubble(cosmology=None, **atzkw):
         """:math:`h`-unit Quantity to redshift."""
         return hubble_to_z(h * 100)
 
-    return u.Equivalency([(redshift, u.km / u.s / u.Mpc, z_to_hubble, hubble_to_z),
-                          (redshift, littleh, z_to_littleh, littleh_to_z)],
-                         "redshift_hubble",
-                         {'cosmology': cosmology})
+    return u.Equivalency(
+        [
+            (redshift, u.km / u.s / u.Mpc, z_to_hubble, hubble_to_z),
+            (redshift, littleh, z_to_littleh, littleh_to_z),
+        ],
+        "redshift_hubble",
+        {"cosmology": cosmology},
+    )
 
 
 def redshift_temperature(cosmology=None, **atzkw):
@@ -219,14 +240,16 @@ def redshift_temperature(cosmology=None, **atzkw):
     def Tcmb_to_z(T):
         return z_at_value(cosmology.Tcmb, T << u.K, **atzkw)
 
-    return u.Equivalency([(redshift, u.K, z_to_Tcmb, Tcmb_to_z)],
-                         "redshift_temperature",
-                         {'cosmology': cosmology})
+    return u.Equivalency(
+        [(redshift, u.K, z_to_Tcmb, Tcmb_to_z)],
+        "redshift_temperature",
+        {"cosmology": cosmology},
+    )
 
 
-def with_redshift(cosmology=None, *,
-                  distance="comoving", hubble=True, Tcmb=True,
-                  atzkw=None):
+def with_redshift(
+    cosmology=None, *, distance="comoving", hubble=True, Tcmb=True, atzkw=None
+):
     """Convert quantities between measures of cosmological distance.
 
     Note: by default all equivalencies are on and must be explicitly turned off.
@@ -308,9 +331,11 @@ def with_redshift(cosmology=None, *,
         equivs.extend(redshift_distance(cosmology, kind=distance, **atzkw))
 
     # -----------
-    return u.Equivalency(equivs, "with_redshift",
-                         {'cosmology': cosmology,
-                          'distance': distance, 'hubble': hubble, 'Tcmb': Tcmb})
+    return u.Equivalency(
+        equivs,
+        "with_redshift",
+        {"cosmology": cosmology, "distance": distance, "hubble": hubble, "Tcmb": Tcmb},
+    )
 
 
 # ===================================================================

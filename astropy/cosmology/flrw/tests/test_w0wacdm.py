@@ -81,12 +81,14 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
         c = cosmo.clone(w0=0.1, wa=0.2)
         assert c.w0 == 0.1
         assert c.wa == 0.2
-        for n in (set(cosmo.__parameters__) - {"w0", "wa"}):
+        for n in set(cosmo.__parameters__) - {"w0", "wa"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert u.allclose(
+                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
+                )
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
@@ -94,16 +96,20 @@ class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
         # super().test_w(cosmo, z)
 
         assert u.allclose(cosmo.w(1.0), -1.25)
-        assert u.allclose(cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]),
-                          [-1, -1.16666667, -1.25, -1.3, -1.34848485])
+        assert u.allclose(
+            cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]),
+            [-1, -1.16666667, -1.25, -1.3, -1.34848485],
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
+        expected = (
+            'w0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -123,7 +129,9 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s),"
-                    " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
+        expected = (
+            'Flatw0waCDM(name="ABCMeta", H0=70.0 km / (Mpc s),'
+            " Om0=0.27, w0=-1.0, wa=-0.5, Tcmb0=3.0 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
         assert repr(cosmo) == expected

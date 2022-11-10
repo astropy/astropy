@@ -48,18 +48,20 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         fp = tmp_path / "test_to_html_table_failed_cls.html"
 
         with pytest.raises(TypeError, match="'cls' must be"):
-            write(fp, format='ascii.html', cls=list)
+            write(fp, format="ascii.html", cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
     @pytest.mark.skipif(not HAS_BS4, reason="requires beautifulsoup4")
     def test_to_html_table_cls(self, write, tbl_cls, tmp_path):
         fp = tmp_path / "test_to_html_table_cls.html"
-        write(fp, format='ascii.html', cls=tbl_cls)
+        write(fp, format="ascii.html", cls=tbl_cls)
 
     # -----------------------
 
     @pytest.mark.skipif(not HAS_BS4, reason="requires beautifulsoup4")
-    def test_readwrite_html_table_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):
+    def test_readwrite_html_table_instance(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
         """Test cosmology -> ascii.html -> cosmology."""
         fp = tmp_path / "test_readwrite_html_table_instance.html"
 
@@ -138,8 +140,9 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
 
     @pytest.mark.skipif(not HAS_BS4, reason="requires beautifulsoup4")
     @pytest.mark.parametrize("latex_names", [True, False])
-    def test_readwrite_html_subclass_partial_info(self, cosmo_cls, cosmo, read,
-                                                  write, latex_names, tmp_path, add_cu):
+    def test_readwrite_html_subclass_partial_info(
+        self, cosmo_cls, cosmo, read, write, latex_names, tmp_path, add_cu
+    ):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -180,8 +183,10 @@ class ReadWriteHTMLTestMixin(ReadWriteTestMixinBase):
         # Make
         cosmo1 = cosmo.clone(name="row 0")
         cosmo2 = cosmo.clone(name="row 2")
-        table = vstack([c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
-                       metadata_conflicts='silent')
+        table = vstack(
+            [c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
+            metadata_conflicts="silent",
+        )
 
         cosmo_cls = type(cosmo)
         if cosmo_cls == NoneType:
