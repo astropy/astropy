@@ -18,10 +18,21 @@ from .exceptions import (
 from .table import from_table, is_votable, parse, parse_single_table, validate, writeto
 
 __all__ = [
-    'Conf', 'conf', 'parse', 'parse_single_table', 'validate',
-    'from_table', 'is_votable', 'writeto', 'VOWarning',
-    'VOTableChangeWarning', 'VOTableSpecWarning',
-    'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
+    "Conf",
+    "conf",
+    "parse",
+    "parse_single_table",
+    "validate",
+    "from_table",
+    "is_votable",
+    "writeto",
+    "VOWarning",
+    "VOTableChangeWarning",
+    "VOTableSpecWarning",
+    "UnimplementedWarning",
+    "IOWarning",
+    "VOTableSpecError",
+]
 
 
 class Conf(_config.ConfigNamespace):
@@ -30,12 +41,12 @@ class Conf(_config.ConfigNamespace):
     """
 
     verify = _config.ConfigItem(
-        'ignore',
+        "ignore",
         "Can be 'exception' (treat fixable violations of the VOTable spec as "
         "exceptions), 'warn' (show warnings for VOTable spec violations), or "
         "'ignore' (silently ignore VOTable spec violations)",
-        aliases=['astropy.io.votable.table.pedantic',
-                 'astropy.io.votable.pedantic'])
+        aliases=["astropy.io.votable.table.pedantic", "astropy.io.votable.pedantic"],
+    )
 
 
 conf = Conf()
