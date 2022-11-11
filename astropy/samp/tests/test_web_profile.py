@@ -25,20 +25,18 @@ def setup_module(module):
 
 
 class TestWebProfile(BaseTestStandardProfile):
-
     @pytest.fixture(autouse=True)
     def setup_method(self, tmp_path):
-
         self.dialog = AlwaysApproveWebProfileDialog()
         t = threading.Thread(target=self.dialog.poll)
         t.start()
 
         self.tmpdir = str(tmp_path)
-        lockfile = str(tmp_path / '.samp')
+        lockfile = str(tmp_path / ".samp")
 
-        self.hub = SAMPHubServer(web_profile_dialog=self.dialog,
-                                 lockfile=lockfile,
-                                 web_port=0, pool_size=1)
+        self.hub = SAMPHubServer(
+            web_profile_dialog=self.dialog, lockfile=lockfile, web_port=0, pool_size=1
+        )
         self.hub.start()
 
         self.client1 = SAMPIntegratedClient()
@@ -52,7 +50,6 @@ class TestWebProfile(BaseTestStandardProfile):
         self.client2_key = self.client2.get_private_key()
 
     def teardown_method(self):
-
         if self.client1.is_connected:
             self.client1.disconnect()
         if self.client2.is_connected:
@@ -65,21 +62,24 @@ class TestWebProfile(BaseTestStandardProfile):
     # test_main from TestStandardProfile
 
     def test_web_profile(self):
-
         # Check some additional queries to the server
 
-        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/crossdomain.xml') as f:
+        with get_readable_fileobj(
+            f"http://localhost:{self.hub._web_port}/crossdomain.xml"
+        ) as f:
             assert f.read() == CROSS_DOMAIN
 
-        with get_readable_fileobj(f'http://localhost:{self.hub._web_port}/clientaccesspolicy.xml') as f:  # noqa: E501
+        with get_readable_fileobj(
+            f"http://localhost:{self.hub._web_port}/clientaccesspolicy.xml"
+        ) as f:
             assert f.read() == CLIENT_ACCESS_POLICY
 
         # Check headers
 
-        req = Request(f'http://localhost:{self.hub._web_port}/crossdomain.xml')
-        req.add_header('Origin', 'test_web_profile')
+        req = Request(f"http://localhost:{self.hub._web_port}/crossdomain.xml")
+        req.add_header("Origin", "test_web_profile")
         resp = urlopen(req)
 
-        assert resp.getheader('Access-Control-Allow-Origin') == 'test_web_profile'
-        assert resp.getheader('Access-Control-Allow-Headers') == 'Content-Type'
-        assert resp.getheader('Access-Control-Allow-Credentials') == 'true'
+        assert resp.getheader("Access-Control-Allow-Origin") == "test_web_profile"
+        assert resp.getheader("Access-Control-Allow-Headers") == "Content-Type"
+        assert resp.getheader("Access-Control-Allow-Credentials") == "true"
