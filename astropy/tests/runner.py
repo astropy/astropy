@@ -478,10 +478,10 @@ class TestRunner(TestRunnerBase):
         elif remote_data not in ("none", "astropy", "any"):
             warnings.warn(
                 "The remote_data option should be one of "
-                "none/astropy/any (found {}). For backward-compatibility, "
+                f"none/astropy/any (found {remote_data}). For backward-compatibility, "
                 "assuming 'any', but you should change the option to be "
                 "one of the supported ones to avoid issues in "
-                "future.".format(remote_data),
+                "future.",
                 AstropyDeprecationWarning,
             )
             remote_data = "any"

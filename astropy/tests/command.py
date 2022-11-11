@@ -377,18 +377,14 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             tmp.write(coveragerc_content.encode("utf-8"))
 
         cmd_pre = (
-            "import coverage; "
-            'cov = coverage.coverage(data_file=r"{}", config_file=r"{}"); '
-            "cov.start();".format(
-                os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)
-            )
+            "import coverage; cov ="
+            f' coverage.coverage(data_file=r"{os.path.abspath(".coverage")}",'
+            f' config_file=r"{os.path.abspath(tmp_coveragerc)}"); cov.start();'
         )
         cmd_post = (
-            "cov.stop(); "
-            "from astropy.tests.helper import _save_coverage; "
-            '_save_coverage(cov, result, r"{}", r"{}");'.format(
-                os.path.abspath("."), os.path.abspath(self.testing_path)
-            )
+            "cov.stop(); from astropy.tests.helper import _save_coverage;"
+            f' _save_coverage(cov, result, r"{os.path.abspath(".")}",'
+            f' r"{os.path.abspath(self.testing_path)}");'
         )
 
         return cmd_pre, cmd_post

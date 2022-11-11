@@ -47,16 +47,16 @@ teardown_module = setup_function
 
 
 def test_warnings_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match=r"Warnings logging has not been enabled"):
         log.disable_warnings_logging()
-    assert e.value.args[0] == "Warnings logging has not been enabled"
 
 
 def test_warnings_logging_enable_twice():
     log.enable_warnings_logging()
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(
+        LoggingError, match=r"Warnings logging has already been enabled"
+    ):
         log.enable_warnings_logging()
-    assert e.value.args[0] == "Warnings logging has already been enabled"
 
 
 def test_warnings_logging_overridden():
@@ -177,16 +177,16 @@ def test_import_error_in_warning_logging():
 
 
 def test_exception_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match=r"Exception logging has not been enabled"):
         log.disable_exception_logging()
-    assert e.value.args[0] == "Exception logging has not been enabled"
 
 
 def test_exception_logging_enable_twice():
     log.enable_exception_logging()
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(
+        LoggingError, match=r"Exception logging has already been enabled"
+    ):
         log.enable_exception_logging()
-    assert e.value.args[0] == "Exception logging has already been enabled"
 
 
 @pytest.mark.skipif(
