@@ -11,7 +11,7 @@ import numpy as np
 
 from . import ZScaleInterval
 
-__all__ = ['make_lupton_rgb']
+__all__ = ["make_lupton_rgb"]
 
 
 def compute_intensity(image_r, image_g=None, image_b=None):
@@ -36,11 +36,12 @@ def compute_intensity(image_r, image_g=None, image_b=None):
     """
     if image_g is None or image_b is None:
         if not (image_g is None and image_b is None):
-            raise ValueError("please specify either a single image "
-                             "or red, green, and blue images.")
+            raise ValueError(
+                "please specify either a single image or red, green, and blue images."
+            )
         return image_r
 
-    intensity = (image_r + image_g + image_b)/3.0
+    intensity = (image_r + image_g + image_b) / 3.0
 
     # Repack into whatever type was passed to us
     return np.asarray(intensity, dtype=image_r.dtype)
@@ -64,7 +65,7 @@ class Mapping:
         try:
             len(minimum)
         except TypeError:
-            minimum = 3*[minimum]
+            minimum = 3 * [minimum]
         if len(minimum) != 3:
             raise ValueError("please provide 1 or 3 values for minimum.")
 
@@ -97,7 +98,9 @@ class Mapping:
             msg = "The image shapes must match. r: {}, g: {} b: {}"
             raise ValueError(msg.format(image_r.shape, image_g.shape, image_b.shape))
 
-        return np.dstack(self._convert_images_to_uint8(image_r, image_g, image_b)).astype(np.uint8)
+        return np.dstack(
+            self._convert_images_to_uint8(image_r, image_g, image_b)
+        ).astype(np.uint8)
 
     def intensity(self, image_r, image_g, image_b):
         """
@@ -140,11 +143,13 @@ class Mapping:
         mapped_I : ndarray
             ``I`` mapped to uint8
         """
-        with np.errstate(invalid='ignore', divide='ignore'):
+        with np.errstate(invalid="ignore", divide="ignore"):
             return np.clip(I, 0, self._uint8Max)
 
     def _convert_images_to_uint8(self, image_r, image_g, image_b):
-        """Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images"""
+        """
+        Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images
+        """
         image_r = image_r - self.minimum[0]  # n.b. makes copy
         image_g = image_g - self.minimum[1]
         image_b = image_b - self.minimum[2]
@@ -154,21 +159,29 @@ class Mapping:
         image_rgb = [image_r, image_g, image_b]
         for c in image_rgb:
             c *= fac
-            with np.errstate(invalid='ignore'):
-                c[c < 0] = 0                # individual bands can still be < 0, even if fac isn't
+            with np.errstate(invalid="ignore"):
+                c[c < 0] = 0  # individual bands can still be < 0, even if fac isn't
 
         pixmax = self._uint8Max
-        r0, g0, b0 = image_rgb           # copies -- could work row by row to minimise memory usage
+        # copies -- could work row by row to minimise memory usage
+        r0, g0, b0 = image_rgb
 
-        with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
+        # n.b. np.where can't and doesn't short-circuit
+        with np.errstate(invalid="ignore", divide="ignore"):
             for i, c in enumerate(image_rgb):
-                c = np.where(r0 > g0,
-                             np.where(r0 > b0,
-                                      np.where(r0 >= pixmax, c*pixmax/r0, c),
-                                      np.where(b0 >= pixmax, c*pixmax/b0, c)),
-                             np.where(g0 > b0,
-                                      np.where(g0 >= pixmax, c*pixmax/g0, c),
-                                      np.where(b0 >= pixmax, c*pixmax/b0, c))).astype(np.uint8)
+                c = np.where(
+                    r0 > g0,
+                    np.where(
+                        r0 > b0,
+                        np.where(r0 >= pixmax, c * pixmax / r0, c),
+                        np.where(b0 >= pixmax, c * pixmax / b0, c),
+                    ),
+                    np.where(
+                        g0 > b0,
+                        np.where(g0 >= pixmax, c * pixmax / g0, c),
+                        np.where(b0 >= pixmax, c * pixmax / b0, c),
+                    ),
+                ).astype(np.uint8)
                 c[c > pixmax] = pixmax
 
                 image_rgb[i] = c
@@ -194,8 +207,10 @@ class LinearMapping(Mapping):
     def __init__(self, minimum=None, maximum=None, image=None):
         if minimum is None or maximum is None:
             if image is None:
-                raise ValueError("you must provide an image if you don't "
-                                 "set both minimum and maximum")
+                raise ValueError(
+                    "you must provide an image if you don't "
+                    "set both minimum and maximum"
+                )
             if minimum is None:
                 minimum = image.min()
             if maximum is None:
@@ -212,9 +227,15 @@ class LinearMapping(Mapping):
             self._range = float(maximum - minimum)
 
     def map_intensity_to_uint8(self, I):
-        with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
-            return np.where(I <= 0, 0,
-                            np.where(I >= self._range, self._uint8Max/I, self._uint8Max/self._range))
+        # n.b. np.where can't and doesn't short-circuit
+        with np.errstate(invalid="ignore", divide="ignore"):
+            return np.where(
+                I <= 0,
+                0,
+                np.where(
+                    I >= self._range, self._uint8Max / I, self._uint8Max / self._range
+                ),
+            )
 
 
 class AsinhMapping(Mapping):
@@ -241,7 +262,8 @@ class AsinhMapping(Mapping):
     def __init__(self, minimum, stretch, Q=8):
         Mapping.__init__(self, minimum)
 
-        epsilon = 1.0/2**23            # 32bit floating point machine epsilon; sys.float_info.epsilon is 64bit
+        # 32bit floating point machine epsilon; sys.float_info.epsilon is 64bit
+        epsilon = 1.0 / 2**23
         if abs(Q) < epsilon:
             Q = 0.1
         else:
@@ -249,14 +271,15 @@ class AsinhMapping(Mapping):
             if Q > Qmax:
                 Q = Qmax
 
-        frac = 0.1                  # gradient estimated using frac*stretch is _slope
-        self._slope = frac*self._uint8Max/np.arcsinh(frac*Q)
+        frac = 0.1  # gradient estimated using frac*stretch is _slope
+        self._slope = frac * self._uint8Max / np.arcsinh(frac * Q)
 
-        self._soften = Q/float(stretch)
+        self._soften = Q / float(stretch)
 
     def map_intensity_to_uint8(self, I):
-        with np.errstate(invalid='ignore', divide='ignore'):  # n.b. np.where can't and doesn't short-circuit
-            return np.where(I <= 0, 0, np.arcsinh(I*self._soften)*self._slope/I)
+        # n.b. np.where can't and doesn't short-circuit
+        with np.errstate(invalid="ignore", divide="ignore"):
+            return np.where(I <= 0, 0, np.arcsinh(I * self._soften) * self._slope / I)
 
 
 class AsinhZScaleMapping(AsinhMapping):
@@ -286,13 +309,11 @@ class AsinhZScaleMapping(AsinhMapping):
     """
 
     def __init__(self, image1, image2=None, image3=None, Q=8, pedestal=None):
-        """
-        """
-
         if image2 is None or image3 is None:
             if not (image2 is None and image3 is None):
-                raise ValueError("please specify either a single image "
-                                 "or three images.")
+                raise ValueError(
+                    "please specify either a single image or three images."
+                )
             image = [image1]
         else:
             image = [image1, image2, image3]
@@ -301,23 +322,24 @@ class AsinhZScaleMapping(AsinhMapping):
             try:
                 len(pedestal)
             except TypeError:
-                pedestal = 3*[pedestal]
+                pedestal = 3 * [pedestal]
 
             if len(pedestal) != 3:
                 raise ValueError("please provide 1 or 3 pedestals.")
 
-            image = list(image)        # needs to be mutable
+            image = list(image)  # needs to be mutable
             for i, im in enumerate(image):
                 if pedestal[i] != 0.0:
                     image[i] = im - pedestal[i]  # n.b. a copy
         else:
-            pedestal = len(image)*[0.0]
+            pedestal = len(image) * [0.0]
 
         image = compute_intensity(*image)
 
         zscale_limits = ZScaleInterval().get_limits(image)
         zscale = LinearMapping(*zscale_limits, image=image)
-        stretch = zscale.maximum - zscale.minimum[0]  # zscale.minimum is always a triple
+        # zscale.minimum is always a triple
+        stretch = zscale.maximum - zscale.minimum[0]
         minimum = zscale.minimum
 
         for i, level in enumerate(pedestal):
@@ -327,8 +349,9 @@ class AsinhZScaleMapping(AsinhMapping):
         self._image = image
 
 
-def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
-                    filename=None):
+def make_lupton_rgb(
+    image_r, image_g, image_b, minimum=0, stretch=5, Q=8, filename=None
+):
     """
     Return a Red/Green/Blue color image from up to 3 images using an asinh stretch.
     The input images can be int or float, and in any range or bit-depth.
@@ -364,6 +387,7 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
 
     if filename:
         import matplotlib.image
-        matplotlib.image.imsave(filename, rgb, origin='lower')
+
+        matplotlib.image.imsave(filename, rgb, origin="lower")
 
     return rgb

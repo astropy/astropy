@@ -30,15 +30,15 @@ try:
     from matplotlib import pyplot as plt
     from matplotlib.colors import Normalize
 except ImportError:
+
     class Normalize:
         def __init__(self, *args, **kwargs):
-            raise ImportError('matplotlib is required in order to use this '
-                              'class.')
+            raise ImportError("matplotlib is required in order to use this class.")
 
 
-__all__ = ['ImageNormalize', 'simple_norm', 'imshow_norm']
+__all__ = ["ImageNormalize", "simple_norm", "imshow_norm"]
 
-__doctest_requires__ = {'*': ['matplotlib']}
+__doctest_requires__ = {"*": ["matplotlib"]}
 
 
 class ImageNormalize(Normalize):
@@ -77,8 +77,16 @@ class ImageNormalize(Normalize):
         no effect if ``clip=True``.
     """
 
-    def __init__(self, data=None, interval=None, vmin=None, vmax=None,
-                 stretch=LinearStretch(), clip=False, invalid=-1.0):
+    def __init__(
+        self,
+        data=None,
+        interval=None,
+        vmin=None,
+        vmax=None,
+        stretch=LinearStretch(),
+        clip=False,
+        invalid=-1.0,
+    ):
         # this super call checks for matplotlib
         super().__init__(vmin=vmin, vmax=vmax, clip=clip)
 
@@ -86,15 +94,13 @@ class ImageNormalize(Normalize):
         self.vmax = vmax
 
         if stretch is None:
-            raise ValueError('stretch must be input')
+            raise ValueError("stretch must be input")
         if not isinstance(stretch, BaseStretch):
-            raise TypeError('stretch must be an instance of a BaseStretch '
-                            'subclass')
+            raise TypeError("stretch must be an instance of a BaseStretch subclass")
         self.stretch = stretch
 
         if interval is not None and not isinstance(interval, BaseInterval):
-            raise TypeError('interval must be an instance of a BaseInterval '
-                            'subclass')
+            raise TypeError("interval must be an instance of a BaseInterval subclass")
         self.interval = interval
 
         self.inverse_stretch = stretch.inverse
@@ -175,12 +181,11 @@ class ImageNormalize(Normalize):
 
         # Clip to the 0 to 1 range
         if clip:
-            values = np.clip(values, 0., 1., out=values)
+            values = np.clip(values, 0.0, 1.0, out=values)
 
         # Stretch values
         if self.stretch._supports_invalid_kw:
-            values = self.stretch(values, out=values, clip=False,
-                                  invalid=invalid)
+            values = self.stretch(values, out=values, clip=False, invalid=invalid)
         else:
             values = self.stretch(values, out=values, clip=False)
 
@@ -190,8 +195,7 @@ class ImageNormalize(Normalize):
     def inverse(self, values, invalid=None):
         # Find unstretched values in range 0 to 1
         if self.inverse_stretch._supports_invalid_kw:
-            values_norm = self.inverse_stretch(values, clip=False,
-                                               invalid=invalid)
+            values_norm = self.inverse_stretch(values, clip=False, invalid=invalid)
         else:
             values_norm = self.inverse_stretch(values, clip=False)
 
@@ -199,10 +203,21 @@ class ImageNormalize(Normalize):
         return values_norm * (self.vmax - self.vmin) + self.vmin
 
 
-def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
-                max_cut=None, min_percent=None, max_percent=None,
-                percent=None, clip=False, log_a=1000, invalid=-1.0,
-                sinh_a=0.3):
+def simple_norm(
+    data,
+    stretch="linear",
+    power=1.0,
+    asinh_a=0.1,
+    min_cut=None,
+    max_cut=None,
+    min_percent=None,
+    max_percent=None,
+    percent=None,
+    clip=False,
+    log_a=1000,
+    invalid=-1.0,
+    sinh_a=0.3,
+):
     """
     Return a Normalization class that can be used for displaying images
     with Matplotlib.
@@ -290,32 +305,34 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
     if percent is not None:
         interval = PercentileInterval(percent)
     elif min_percent is not None or max_percent is not None:
-        interval = AsymmetricPercentileInterval(min_percent or 0.,
-                                                max_percent or 100.)
+        interval = AsymmetricPercentileInterval(
+            min_percent or 0.0, max_percent or 100.0
+        )
     elif min_cut is not None or max_cut is not None:
         interval = ManualInterval(min_cut, max_cut)
     else:
         interval = MinMaxInterval()
 
-    if stretch == 'linear':
+    if stretch == "linear":
         stretch = LinearStretch()
-    elif stretch == 'sqrt':
+    elif stretch == "sqrt":
         stretch = SqrtStretch()
-    elif stretch == 'power':
+    elif stretch == "power":
         stretch = PowerStretch(power)
-    elif stretch == 'log':
+    elif stretch == "log":
         stretch = LogStretch(log_a)
-    elif stretch == 'asinh':
+    elif stretch == "asinh":
         stretch = AsinhStretch(asinh_a)
-    elif stretch == 'sinh':
+    elif stretch == "sinh":
         stretch = SinhStretch(sinh_a)
     else:
-        raise ValueError(f'Unknown stretch: {stretch}.')
+        raise ValueError(f"Unknown stretch: {stretch}.")
 
     vmin, vmax = interval.get_limits(data)
 
-    return ImageNormalize(vmin=vmin, vmax=vmax, stretch=stretch, clip=clip,
-                          invalid=invalid)
+    return ImageNormalize(
+        vmin=vmin, vmax=vmax, stretch=stretch, clip=clip, invalid=invalid
+    )
 
 
 # used in imshow_norm
@@ -323,7 +340,7 @@ _norm_sig = inspect.signature(ImageNormalize)
 
 
 def imshow_norm(data, ax=None, **kwargs):
-    """ A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
+    """A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
     function, using an `ImageNormalize` object as the normalization.
 
     Parameters
@@ -369,26 +386,28 @@ def imshow_norm(data, ax=None, **kwargs):
                                stretch=SqrtStretch())
         fig.colorbar(im)
     """
-    if 'X' in kwargs:
-        raise ValueError('Cannot give both ``X`` and ``data``')
+    if "X" in kwargs:
+        raise ValueError("Cannot give both ``X`` and ``data``")
 
-    if 'norm' in kwargs:
-        raise ValueError('There is no point in using imshow_norm if you give '
-                         'the ``norm`` keyword - use imshow directly if you '
-                         'want that.')
+    if "norm" in kwargs:
+        raise ValueError(
+            "There is no point in using imshow_norm if you give "
+            "the ``norm`` keyword - use imshow directly if you "
+            "want that."
+        )
 
     imshow_kwargs = dict(kwargs)
 
-    norm_kwargs = {'data': data}
+    norm_kwargs = {"data": data}
     for pname in _norm_sig.parameters:
         if pname in kwargs:
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
-    imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
+    imshow_kwargs["norm"] = ImageNormalize(**norm_kwargs)
 
     if ax is None:
         imshow_result = plt.imshow(data, **imshow_kwargs)
     else:
         imshow_result = ax.imshow(data, **imshow_kwargs)
 
-    return imshow_result, imshow_kwargs['norm']
+    return imshow_result, imshow_kwargs["norm"]
