@@ -47,8 +47,7 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
         The log likelihood of the maximum power model.
 
     """
-    f = partial(_bls_slow_one, t, y, ivar, duration,
-                oversample, use_likelihood)
+    f = partial(_bls_slow_one, t, y, ivar, duration, oversample, use_likelihood)
     return _apply(f, period)
 
 
@@ -90,25 +89,22 @@ def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
         The log likelihood of the maximum power model.
 
     """
-    return bls_impl(
-        t, y, ivar, period, duration, oversample, use_likelihood
-    )
+    return bls_impl(t, y, ivar, period, duration, oversample, use_likelihood)
 
 
 def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
     """A private function to compute the brute force periodogram result"""
     best = (-np.inf, None)
-    hp = 0.5*period
+    hp = 0.5 * period
     min_t = np.min(t)
     for dur in duration:
-
         # Compute the phase grid (this is set by the duration and oversample).
         d_phase = dur / oversample
-        phase = np.arange(0, period+d_phase, d_phase)
+        phase = np.arange(0, period + d_phase, d_phase)
 
         for t0 in phase:
             # Figure out which data points are in and out of transit.
-            m_in = np.abs((t-min_t-t0+hp) % period - hp) < 0.5*dur
+            m_in = np.abs((t - min_t - t0 + hp) % period - hp) < 0.5 * dur
             m_out = ~m_in
 
             # Compute the estimates of the in and out-of-transit flux.
@@ -123,8 +119,8 @@ def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
             snr = depth / depth_err
 
             # Compute the log likelihood of this model.
-            loglike = -0.5*np.sum((y_in - y[m_in])**2 * ivar[m_in])
-            loglike += 0.5*np.sum((y_out - y[m_in])**2 * ivar[m_in])
+            loglike = -0.5 * np.sum((y_in - y[m_in]) ** 2 * ivar[m_in])
+            loglike += 0.5 * np.sum((y_out - y[m_in]) ** 2 * ivar[m_in])
 
             # Choose which objective should be used for the optimization.
             if use_likelihood:
@@ -136,8 +132,15 @@ def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
             if depth > 0 and objective > best[0]:
                 best = (
                     objective,
-                    (objective, depth, depth_err, dur, (t0+min_t) % period,
-                     snr, loglike)
+                    (
+                        objective,
+                        depth,
+                        depth_err,
+                        dur,
+                        (t0 + min_t) % period,
+                        snr,
+                        loglike,
+                    ),
                 )
 
     return best[1]

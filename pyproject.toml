@@ -66,7 +66,6 @@ force-exclude = '''
     | astropy/modeling
     | astropy/table
     | astropy/tests
-    | astropy/timeseries
     | astropy/units
     | astropy/visualization
   )/

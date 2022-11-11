@@ -60,7 +60,7 @@ def extirpolate(x, y, N=None, M=4):
     result = np.zeros(N, dtype=y.dtype)
 
     # first take care of the easy cases where x is an integer
-    integers = (x % 1 == 0)
+    integers = x % 1 == 0
     np.add.at(result, x[integers].astype(int), y[integers])
     x, y = x[~integers], y[~integers]
 
@@ -79,8 +79,7 @@ def extirpolate(x, y, N=None, M=4):
     return result
 
 
-def trig_sum(t, h, df, N, f0=0, freq_factor=1,
-             oversampling=5, use_fft=True, Mfft=4):
+def trig_sum(t, h, df, N, f0=0, freq_factor=1, oversampling=5, use_fft=True, Mfft=4):
     """Compute (approximate) trigonometric sums for a number of frequencies
     This routine computes weighted sine and cosine sums::
 

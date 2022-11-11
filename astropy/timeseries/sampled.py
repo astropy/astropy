@@ -11,7 +11,7 @@ from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 from astropy.units import Quantity, UnitsError
 from astropy.utils.decorators import deprecated_renamed_argument
 
-__all__ = ['TimeSeries']
+__all__ = ["TimeSeries"]
 
 
 @autocheck_required_columns
@@ -56,11 +56,18 @@ class TimeSeries(BaseTimeSeries):
         Additional keyword arguments are passed to `~astropy.table.QTable`.
     """
 
-    _required_columns = ['time']
+    _required_columns = ["time"]
 
-    def __init__(self, data=None, *, time=None, time_start=None,
-                 time_delta=None, n_samples=None, **kwargs):
-
+    def __init__(
+        self,
+        data=None,
+        *,
+        time=None,
+        time_start=None,
+        time_delta=None,
+        n_samples=None,
+        **kwargs,
+    ):
         super().__init__(data=data, **kwargs)
 
         # For some operations, an empty time series needs to be created, then
@@ -76,16 +83,20 @@ class TimeSeries(BaseTimeSeries):
         if data is not None:
             if n_samples is not None:
                 if n_samples != len(self):
-                    raise TypeError("'n_samples' has been given both and it is not the "
-                                    "same length as the input data.")
+                    raise TypeError(
+                        "'n_samples' has been given both and it is not the "
+                        "same length as the input data."
+                    )
             else:
                 n_samples = len(self)
 
-        if 'time' in self.colnames:
+        if "time" in self.colnames:
             if time is None:
-                time = self.columns['time']
+                time = self.columns["time"]
             else:
-                raise TypeError("'time' has been given both in the table and as a keyword argument")
+                raise TypeError(
+                    "'time' has been given both in the table and as a keyword argument"
+                )
 
         if time is None and time_start is None:
             raise TypeError("Either 'time' or 'time_start' should be specified")
@@ -105,7 +116,6 @@ class TimeSeries(BaseTimeSeries):
             time_delta = time_delta.sec * u.s
 
         if time_start is not None:
-
             # We interpret this as meaning that time is that of the first
             # sample and that the interval is given by time_delta.
 
@@ -117,33 +127,41 @@ class TimeSeries(BaseTimeSeries):
 
             time_delta = np.cumsum(time_delta)
             time_delta = np.roll(time_delta, 1)
-            time_delta[0] = 0. * u.s
+            time_delta[0] = 0.0 * u.s
 
             time = time_start + time_delta
 
         elif len(self.colnames) > 0 and len(time) != len(self):
-            raise ValueError("Length of 'time' ({}) should match "
-                             "data length ({})".format(len(time), n_samples))
+            raise ValueError(
+                f"Length of 'time' ({len(time)}) should match data length ({n_samples})"
+            )
 
         elif time_delta is not None:
-            raise TypeError("'time_delta' should not be specified since "
-                            "'time' is an array")
+            raise TypeError(
+                "'time_delta' should not be specified since 'time' is an array"
+            )
 
         with self._delay_required_column_checks():
-            if 'time' in self.colnames:
-                self.remove_column('time')
-            self.add_column(time, index=0, name='time')
+            if "time" in self.colnames:
+                self.remove_column("time")
+            self.add_column(time, index=0, name="time")
 
     @property
     def time(self):
         """
         The time values.
         """
-        return self['time']
+        return self["time"]
 
-    @deprecated_renamed_argument('midpoint_epoch', 'epoch_time', '4.0')
-    def fold(self, period=None, epoch_time=None, epoch_phase=0,
-             wrap_phase=None, normalize_phase=False):
+    @deprecated_renamed_argument("midpoint_epoch", "epoch_time", "4.0")
+    def fold(
+        self,
+        period=None,
+        epoch_time=None,
+        epoch_phase=0,
+        wrap_phase=None,
+        normalize_phase=False,
+    ):
         """
         Return a new `~astropy.timeseries.TimeSeries` folded with a period and
         epoch.
@@ -179,8 +197,8 @@ class TimeSeries(BaseTimeSeries):
             The folded time series object with phase as the ``time`` column.
         """
 
-        if not isinstance(period, Quantity) or period.unit.physical_type != 'time':
-            raise UnitsError('period should be a Quantity in units of time')
+        if not isinstance(period, Quantity) or period.unit.physical_type != "time":
+            raise UnitsError("period should be a Quantity in units of time")
 
         folded = self.copy()
 
@@ -192,45 +210,64 @@ class TimeSeries(BaseTimeSeries):
         period_sec = period.to_value(u.s)
 
         if normalize_phase:
-            if isinstance(epoch_phase, Quantity) and epoch_phase.unit.physical_type != 'dimensionless':
-                raise UnitsError('epoch_phase should be a dimensionless Quantity '
-                                 'or a float when normalize_phase=True')
+            if (
+                isinstance(epoch_phase, Quantity)
+                and epoch_phase.unit.physical_type != "dimensionless"
+            ):
+                raise UnitsError(
+                    "epoch_phase should be a dimensionless Quantity "
+                    "or a float when normalize_phase=True"
+                )
             epoch_phase_sec = epoch_phase * period_sec
         else:
             if epoch_phase == 0:
-                epoch_phase_sec = 0.
+                epoch_phase_sec = 0.0
             else:
-                if not isinstance(epoch_phase, Quantity) or epoch_phase.unit.physical_type != 'time':
-                    raise UnitsError('epoch_phase should be a Quantity in units '
-                                     'of time when normalize_phase=False')
+                if (
+                    not isinstance(epoch_phase, Quantity)
+                    or epoch_phase.unit.physical_type != "time"
+                ):
+                    raise UnitsError(
+                        "epoch_phase should be a Quantity in units "
+                        "of time when normalize_phase=False"
+                    )
                 epoch_phase_sec = epoch_phase.to_value(u.s)
 
         if wrap_phase is None:
             wrap_phase = period_sec / 2
         else:
             if normalize_phase:
-                if isinstance(wrap_phase, Quantity) and not wrap_phase.unit.is_equivalent(u.one):
-                    raise UnitsError('wrap_phase should be dimensionless when '
-                                     'normalize_phase=True')
+                if isinstance(
+                    wrap_phase, Quantity
+                ) and not wrap_phase.unit.is_equivalent(u.one):
+                    raise UnitsError(
+                        "wrap_phase should be dimensionless when normalize_phase=True"
+                    )
                 else:
                     if wrap_phase < 0 or wrap_phase > 1:
-                        raise ValueError('wrap_phase should be between 0 and 1')
+                        raise ValueError("wrap_phase should be between 0 and 1")
                     else:
                         wrap_phase = wrap_phase * period_sec
             else:
-                if isinstance(wrap_phase, Quantity) and wrap_phase.unit.physical_type == 'time':
+                if (
+                    isinstance(wrap_phase, Quantity)
+                    and wrap_phase.unit.physical_type == "time"
+                ):
                     if wrap_phase < 0 or wrap_phase > period:
-                        raise ValueError('wrap_phase should be between 0 and the period')
+                        raise ValueError(
+                            "wrap_phase should be between 0 and the period"
+                        )
                     else:
                         wrap_phase = wrap_phase.to_value(u.s)
                 else:
-                    raise UnitsError('wrap_phase should be a Quantity in units '
-                                     'of time when normalize_phase=False')
+                    raise UnitsError(
+                        "wrap_phase should be a Quantity in units "
+                        "of time when normalize_phase=False"
+                    )
 
-        relative_time_sec = (((self.time - epoch_time).sec
-                              + epoch_phase_sec
-                              + (period_sec - wrap_phase)) % period_sec
-                             - (period_sec - wrap_phase))
+        relative_time_sec = (
+            (self.time - epoch_time).sec + epoch_phase_sec + (period_sec - wrap_phase)
+        ) % period_sec - (period_sec - wrap_phase)
 
         folded_time = TimeDelta(relative_time_sec * u.s)
 
@@ -239,19 +276,22 @@ class TimeSeries(BaseTimeSeries):
             period = period_sec = 1
 
         with folded._delay_required_column_checks():
-            folded.remove_column('time')
-            folded.add_column(folded_time, name='time', index=0)
+            folded.remove_column("time")
+            folded.add_column(folded_time, name="time", index=0)
 
         return folded
 
     def __getitem__(self, item):
         if self._is_list_or_tuple_of_str(item):
-            if 'time' not in item:
-                out = QTable([self[x] for x in item],
-                             meta=deepcopy(self.meta),
-                             copy_indices=self._copy_indices)
-                out._groups = groups.TableGroups(out, indices=self.groups._indices,
-                                                 keys=self.groups._keys)
+            if "time" not in item:
+                out = QTable(
+                    [self[x] for x in item],
+                    meta=deepcopy(self.meta),
+                    copy_indices=self._copy_indices,
+                )
+                out._groups = groups.TableGroups(
+                    out, indices=self.groups._indices, keys=self.groups._keys
+                )
                 return out
         return super().__getitem__(item)
 
@@ -261,8 +301,8 @@ class TimeSeries(BaseTimeSeries):
         """
         # Note that the docstring is inherited from QTable
         result = super().add_column(*args, **kwargs)
-        if len(self.indices) == 0 and 'time' in self.colnames:
-            self.add_index('time')
+        if len(self.indices) == 0 and "time" in self.colnames:
+            self.add_index("time")
         return result
 
     def add_columns(self, *args, **kwargs):
@@ -271,12 +311,12 @@ class TimeSeries(BaseTimeSeries):
         """
         # Note that the docstring is inherited from QTable
         result = super().add_columns(*args, **kwargs)
-        if len(self.indices) == 0 and 'time' in self.colnames:
-            self.add_index('time')
+        if len(self.indices) == 0 and "time" in self.colnames:
+            self.add_index("time")
         return result
 
     @classmethod
-    def from_pandas(self, df, time_scale='utc'):
+    def from_pandas(self, df, time_scale="utc"):
         """
         Convert a :class:`~pandas.DataFrame` to a
         :class:`astropy.timeseries.TimeSeries`.
@@ -313,10 +353,19 @@ class TimeSeries(BaseTimeSeries):
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
         """
-        return Table(self).to_pandas(index='time')
+        return Table(self).to_pandas(index="time")
 
     @classmethod
-    def read(self, filename, time_column=None, time_format=None, time_scale=None, format=None, *args, **kwargs):
+    def read(
+        self,
+        filename,
+        time_column=None,
+        time_format=None,
+        time_scale=None,
+        format=None,
+        *args,
+        **kwargs,
+    ):
         """
         Read and parse a file and returns a `astropy.timeseries.TimeSeries`.
 
@@ -361,23 +410,28 @@ class TimeSeries(BaseTimeSeries):
         -----
         """
         try:
-
             # First we try the readers defined for the BinnedTimeSeries class
             return super().read(filename, format=format, *args, **kwargs)
 
         except TypeError:
-
             # Otherwise we fall back to the default Table readers
 
             if time_column is None:
-                raise ValueError("``time_column`` should be provided since the default Table readers are being used.")
+                raise ValueError(
+                    "``time_column`` should be provided since the default Table readers"
+                    " are being used."
+                )
 
             table = Table.read(filename, format=format, *args, **kwargs)
 
             if time_column in table.colnames:
-                time = Time(table.columns[time_column], scale=time_scale, format=time_format)
+                time = Time(
+                    table.columns[time_column], scale=time_scale, format=time_format
+                )
                 table.remove_column(time_column)
             else:
-                raise ValueError(f"Time column '{time_column}' not found in the input data.")
+                raise ValueError(
+                    f"Time column '{time_column}' not found in the input data."
+                )
 
             return TimeSeries(time=time, data=table)
