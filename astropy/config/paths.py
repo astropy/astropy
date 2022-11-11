@@ -304,8 +304,9 @@ def _find_or_create_root_dir(dirnm, linkto, pkgname="astropy"):
                 if not os.path.isdir(innerdir):
                     raise
         elif not os.path.isdir(innerdir):
-            msg = "Intended {0} {1} directory {1} is actually a file."
-            raise OSError(msg.format(pkgname, dirnm, maindir))
+            raise OSError(
+                f"Intended {pkgname} {dirnm} directory {maindir} is actually a file."
+            )
 
         try:
             os.mkdir(maindir)
@@ -321,7 +322,8 @@ def _find_or_create_root_dir(dirnm, linkto, pkgname="astropy"):
             os.symlink(maindir, linkto)
 
     elif not os.path.isdir(maindir):
-        msg = "Intended {0} {1} directory {1} is actually a file."
-        raise OSError(msg.format(pkgname, dirnm, maindir))
+        raise OSError(
+            f"Intended {pkgname} {dirnm} directory {maindir} is actually a file."
+        )
 
     return os.path.abspath(maindir)
