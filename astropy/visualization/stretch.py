@@ -9,10 +9,20 @@ import numpy as np
 
 from .transform import BaseTransform, CompositeTransform
 
-__all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
-           "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",
-           "SinhStretch", "HistEqStretch", "ContrastBiasStretch",
-           "CompositeStretch"]
+__all__ = [
+    "BaseStretch",
+    "LinearStretch",
+    "SqrtStretch",
+    "PowerStretch",
+    "PowerDistStretch",
+    "SquaredStretch",
+    "LogStretch",
+    "AsinhStretch",
+    "SinhStretch",
+    "HistEqStretch",
+    "ContrastBiasStretch",
+    "CompositeStretch",
+]
 
 
 def _logn(n, x, out=None):
@@ -33,7 +43,7 @@ def _prepare(values, clip=True, out=None):
     """
 
     if clip:
-        return np.clip(values, 0., 1., out=out)
+        return np.clip(values, 0.0, 1.0, out=out)
     else:
         if out is None:
             return np.array(values, copy=True)
@@ -116,7 +126,7 @@ class LinearStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return LinearStretch(1. / self.slope, - self.intercept / self.slope)
+        return LinearStretch(1.0 / self.slope, -self.intercept / self.slope)
 
 
 class SqrtStretch(BaseStretch):
@@ -165,9 +175,9 @@ class SqrtStretch(BaseStretch):
 
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             if replace_invalid:
-                idx = (values < 0)
+                idx = values < 0
             np.sqrt(values, out=values)
 
         if replace_invalid:
@@ -240,12 +250,14 @@ class PowerStretch(BaseStretch):
         """
 
         values = _prepare(values, clip=clip, out=out)
-        replace_invalid = (not clip and invalid is not None
-                           and ((-1 < self.power < 0)
-                                or (0 < self.power < 1)))
-        with np.errstate(invalid='ignore'):
+        replace_invalid = (
+            not clip
+            and invalid is not None
+            and ((-1 < self.power < 0) or (0 < self.power < 1))
+        )
+        with np.errstate(invalid="ignore"):
             if replace_invalid:
-                idx = (values < 0)
+                idx = values < 0
             np.power(values, self.power, out=values)
 
         if replace_invalid:
@@ -258,7 +270,7 @@ class PowerStretch(BaseStretch):
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return PowerStretch(1. / self.power)
+        return PowerStretch(1.0 / self.power)
 
 
 class PowerDistStretch(BaseStretch):
@@ -411,13 +423,13 @@ class LogStretch(BaseStretch):
 
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             if replace_invalid:
-                idx = (values < 0)
+                idx = values < 0
             np.multiply(values, self.exp, out=values)
-            np.add(values, 1., out=values)
+            np.add(values, 1.0, out=values)
             np.log(values, out=values)
-            np.true_divide(values, np.log(self.exp + 1.), out=values)
+            np.true_divide(values, np.log(self.exp + 1.0), out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
@@ -457,9 +469,9 @@ class InvertedLogStretch(BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         values = _prepare(values, clip=clip, out=out)
-        np.multiply(values, np.log(self.exp + 1.), out=values)
+        np.multiply(values, np.log(self.exp + 1.0), out=values)
         np.exp(values, out=values)
-        np.subtract(values, 1., out=values)
+        np.subtract(values, 1.0, out=values)
         np.true_divide(values, self.exp, out=values)
         return values
 
@@ -498,13 +510,13 @@ class AsinhStretch(BaseStretch):
         values = _prepare(values, clip=clip, out=out)
         np.true_divide(values, self.a, out=values)
         np.arcsinh(values, out=values)
-        np.true_divide(values, np.arcsinh(1. / self.a), out=values)
+        np.true_divide(values, np.arcsinh(1.0 / self.a), out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return SinhStretch(a=1. / np.arcsinh(1. / self.a))
+        return SinhStretch(a=1.0 / np.arcsinh(1.0 / self.a))
 
 
 class SinhStretch(BaseStretch):
@@ -524,7 +536,7 @@ class SinhStretch(BaseStretch):
         Default is 1/3.
     """
 
-    def __init__(self, a=1./3.):
+    def __init__(self, a=1.0 / 3.0):
         super().__init__()
         if a <= 0 or a > 1:
             raise ValueError("a must be > 0 and <= 1")
@@ -534,13 +546,13 @@ class SinhStretch(BaseStretch):
         values = _prepare(values, clip=clip, out=out)
         np.true_divide(values, self.a, out=values)
         np.sinh(values, out=values)
-        np.true_divide(values, np.sinh(1. / self.a), out=values)
+        np.true_divide(values, np.sinh(1.0 / self.a), out=values)
         return values
 
     @property
     def inverse(self):
         """A stretch object that performs the inverse operation."""
-        return AsinhStretch(a=1. / np.sinh(1. / self.a))
+        return AsinhStretch(a=1.0 / np.sinh(1.0 / self.a))
 
 
 class HistEqStretch(BaseStretch):
@@ -566,7 +578,7 @@ class HistEqStretch(BaseStretch):
 
         # Compute relative position of each pixel
         if values is None:
-            self.values = np.linspace(0., 1., len(self.data))
+            self.values = np.linspace(0.0, 1.0, len(self.data))
         else:
             self.values = values
 
@@ -597,7 +609,7 @@ class InvertedHistEqStretch(BaseStretch):
     def __init__(self, data, values=None):
         self.data = data[np.isfinite(data)]
         if values is None:
-            self.values = np.linspace(0., 1., len(self.data))
+            self.values = np.linspace(0.0, 1.0, len(self.data))
         else:
             self.values = values
 
@@ -710,4 +722,5 @@ class CompositeStretch(CompositeTransform, BaseStretch):
 
     def __call__(self, values, clip=True, out=None):
         return self.transform_2(
-            self.transform_1(values, clip=clip, out=out), clip=clip, out=out)
+            self.transform_1(values, clip=clip, out=out), clip=clip, out=out
+        )

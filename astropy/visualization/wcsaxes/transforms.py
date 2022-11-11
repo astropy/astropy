@@ -20,8 +20,12 @@ from astropy.coordinates import (
     frame_transform_graph,
 )
 
-__all__ = ['CurvedTransform', 'CoordinateTransform',
-           'World2PixelTransform', 'Pixel2WorldTransform']
+__all__ = [
+    "CurvedTransform",
+    "CoordinateTransform",
+    "World2PixelTransform",
+    "Pixel2WorldTransform",
+]
 
 
 class CurvedTransform(Transform, metaclass=abc.ABCMeta):
@@ -59,7 +63,6 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 
 
 class CoordinateTransform(CurvedTransform):
-
     has_inverse = True
 
     def __init__(self, input_system, output_system):
@@ -76,7 +79,10 @@ class CoordinateTransform(CurvedTransform):
         elif isinstance(self._input_system_name, BaseCoordinateFrame):
             self.input_system = self._input_system_name
         else:
-            raise TypeError("input_system should be a WCS instance, string, or a coordinate frame instance")
+            raise TypeError(
+                "input_system should be a WCS instance, string, or a coordinate frame"
+                " instance"
+            )
 
         if isinstance(self._output_system_name, str):
             frame_cls = frame_transform_graph.lookup_name(self._output_system_name)
@@ -88,7 +94,10 @@ class CoordinateTransform(CurvedTransform):
         elif isinstance(self._output_system_name, BaseCoordinateFrame):
             self.output_system = self._output_system_name
         else:
-            raise TypeError("output_system should be a WCS instance, string, or a coordinate frame instance")
+            raise TypeError(
+                "output_system should be a WCS instance, string, or a coordinate frame"
+                " instance"
+            )
 
         if self.output_system == self.input_system:
             self.same_frames = True
@@ -110,16 +119,17 @@ class CoordinateTransform(CurvedTransform):
         if self.same_frames:
             return input_coords
 
-        input_coords = input_coords*u.deg
+        input_coords = input_coords * u.deg
         x_in, y_in = input_coords[:, 0], input_coords[:, 1]
 
-        c_in = SkyCoord(UnitSphericalRepresentation(x_in, y_in),
-                        frame=self.input_system)
+        c_in = SkyCoord(
+            UnitSphericalRepresentation(x_in, y_in), frame=self.input_system
+        )
 
         # We often need to transform arrays that contain NaN values, and filtering
         # out the NaN values would have a performance hit, so instead we just pass
         # on all values and just ignore Numpy warnings
-        with np.errstate(all='ignore'):
+        with np.errstate(all="ignore"):
             c_out = c_in.transform_to(self.output_system)
 
         lon = c_out.spherical.lon.deg
