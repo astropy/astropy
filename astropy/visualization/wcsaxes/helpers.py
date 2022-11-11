@@ -10,7 +10,7 @@ from mpl_toolkits.axes_grid1.anchored_artists import AnchoredEllipse, AnchoredSi
 import astropy.units as u
 from astropy.wcs.utils import proj_plane_pixel_scales
 
-__all__ = ['add_beam', 'add_scalebar']
+__all__ = ["add_beam", "add_scalebar"]
 
 CORNERS = {
     "top right": 1,
@@ -81,7 +81,9 @@ def add_beam(
     """
 
     if header and major:
-        raise ValueError("Either header or major/minor/angle must be specified, not both.")
+        raise ValueError(
+            "Either header or major/minor/angle must be specified, not both."
+        )
 
     if header:
         major = header["BMAJ"]
