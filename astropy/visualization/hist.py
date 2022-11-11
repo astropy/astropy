@@ -2,7 +2,7 @@
 
 from astropy.stats.histogram import calculate_bin_edges
 
-__all__ = ['hist']
+__all__ = ["hist"]
 
 
 def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
@@ -54,19 +54,22 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     """
     # Note that we only calculate the bin edges...matplotlib will calculate
     # the actual histogram.
-    range = kwargs.get('range', None)
-    weights = kwargs.get('weights', None)
+    range = kwargs.get("range", None)
+    weights = kwargs.get("weights", None)
     bins = calculate_bin_edges(x, bins, range=range, weights=weights)
 
     if len(bins) > max_bins:
-        raise ValueError('Histogram has too many bins: '
-                         '{nbin}. Use max_bins to increase the number '
-                         'of allowed bins or range to restrict '
-                         'the histogram range.'.format(nbin=len(bins)))
+        raise ValueError(
+            "Histogram has too many bins: "
+            "{nbin}. Use max_bins to increase the number "
+            "of allowed bins or range to restrict "
+            "the histogram range.".format(nbin=len(bins))
+        )
 
     if ax is None:
         # optional dependency; only import if strictly needed.
         import matplotlib.pyplot as plt
+
         ax = plt.gca()
 
     return ax.hist(x, bins, **kwargs)
