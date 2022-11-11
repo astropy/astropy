@@ -15,7 +15,7 @@ from .hub import SAMPHubServer
 from .standard_profile import ThreadingXMLRPCServer
 from .utils import get_num_args, internet_on
 
-__all__ = ['SAMPClient']
+__all__ = ["SAMPClient"]
 
 
 class SAMPClient:
@@ -55,9 +55,16 @@ class SAMPClient:
 
     # TODO: define what is meant by callable
 
-    def __init__(self, hub, name=None, description=None, metadata=None,
-                 addr=None, port=0, callable=True):
-
+    def __init__(
+        self,
+        hub,
+        name=None,
+        description=None,
+        metadata=None,
+        addr=None,
+        port=0,
+        callable=True,
+    ):
         # GENERAL
         self._is_running = False
         self._is_registered = False
@@ -84,8 +91,10 @@ class SAMPClient:
         self._private_key = None
         self._hub_id = None
         self._notification_bindings = {}
-        self._call_bindings = {"samp.app.ping": [self._ping, {}],
-                               "client.env.get": [self._client_env_get, {}]}
+        self._call_bindings = {
+            "samp.app.ping": [self._ping, {}],
+            "client.env.get": [self._client_env_get, {}],
+        }
         self._response_bindings = {}
 
         self._host_name = "127.0.0.1"
@@ -99,29 +108,41 @@ class SAMPClient:
         self.hub = hub
 
         if self._callable:
-
             self._thread = threading.Thread(target=self._serve_forever)
             self._thread.daemon = True
 
-            self.client = ThreadingXMLRPCServer((self._addr or self._host_name,
-                                                 self._port), logRequests=False, allow_none=True)
+            self.client = ThreadingXMLRPCServer(
+                (self._addr or self._host_name, self._port),
+                logRequests=False,
+                allow_none=True,
+            )
 
             self.client.register_introspection_functions()
-            self.client.register_function(self.receive_notification, 'samp.client.receiveNotification')
-            self.client.register_function(self.receive_call, 'samp.client.receiveCall')
-            self.client.register_function(self.receive_response, 'samp.client.receiveResponse')
+            self.client.register_function(
+                self.receive_notification, "samp.client.receiveNotification"
+            )
+            self.client.register_function(self.receive_call, "samp.client.receiveCall")
+            self.client.register_function(
+                self.receive_response, "samp.client.receiveResponse"
+            )
 
             # If the port was set to zero, then the operating system has
             # selected a free port. We now check what this port number is.
             if self._port == 0:
                 self._port = self.client.socket.getsockname()[1]
 
-            protocol = 'http'
+            protocol = "http"
 
-            self._xmlrpcAddr = urlunparse((protocol,
-                                           '{}:{}'.format(self._addr or self._host_name,
-                                                            self._port),
-                                           '', '', '', ''))
+            self._xmlrpcAddr = urlunparse(
+                (
+                    protocol,
+                    f"{self._addr or self._host_name}:{self._port}",
+                    "",
+                    "",
+                    "",
+                    "",
+                )
+            )
 
     def start(self):
         """
@@ -134,7 +155,7 @@ class SAMPClient:
             self._is_running = True
             self._run_client()
 
-    def stop(self, timeout=10.):
+    def stop(self, timeout=10.0):
         """
         Stop the client.
 
@@ -151,8 +172,9 @@ class SAMPClient:
         if self._callable and self._thread.is_alive():
             self._thread.join(timeout)
         if self._thread.is_alive():
-            raise SAMPClientError("Client was not shut down successfully "
-                                  "(timeout={}s)".format(timeout))
+            raise SAMPClientError(
+                f"Client was not shut down successfully (timeout={timeout}s)"
+            )
 
     @property
     def is_running(self):
@@ -177,39 +199,39 @@ class SAMPClient:
             try:
                 read_ready = select.select([self.client.socket], [], [], 0.1)[0]
             except OSError as exc:
-                warnings.warn(f"Call to select in SAMPClient failed: {exc}",
-                              SAMPWarning)
+                warnings.warn(
+                    f"Call to select in SAMPClient failed: {exc}", SAMPWarning
+                )
             else:
                 if read_ready:
                     self.client.handle_request()
 
         self.client.server_close()
 
-    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params,
-              message):
-
+    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):
         reply = {"samp.status": SAMP_STATUS_OK, "samp.result": {}}
 
         self.hub.reply(private_key, msg_id, reply)
 
-    def _client_env_get(self, private_key, sender_id, msg_id, msg_mtype,
-                        msg_params, message):
-
+    def _client_env_get(
+        self, private_key, sender_id, msg_id, msg_mtype, msg_params, message
+    ):
         if msg_params["name"] in os.environ:
-            reply = {"samp.status": SAMP_STATUS_OK,
-                     "samp.result": {"value": os.environ[msg_params["name"]]}}
+            reply = {
+                "samp.status": SAMP_STATUS_OK,
+                "samp.result": {"value": os.environ[msg_params["name"]]},
+            }
         else:
-            reply = {"samp.status": SAMP_STATUS_WARNING,
-                     "samp.result": {"value": ""},
-                     "samp.error": {"samp.errortxt":
-                                    "Environment variable not defined."}}
+            reply = {
+                "samp.status": SAMP_STATUS_WARNING,
+                "samp.result": {"value": ""},
+                "samp.error": {"samp.errortxt": "Environment variable not defined."},
+            }
 
         self.hub.reply(private_key, msg_id, reply)
 
     def _handle_notification(self, private_key, sender_id, message):
-
         if private_key == self.get_private_key() and "samp.mtype" in message:
-
             msg_mtype = message["samp.mtype"]
             del message["samp.mtype"]
             msg_params = message["samp.params"]
@@ -220,11 +242,13 @@ class SAMPClient:
                 if mtype in self._notification_bindings:
                     bound_func = self._notification_bindings[mtype][0]
                     if get_num_args(bound_func) == 5:
-                        bound_func(private_key, sender_id, msg_mtype,
-                                   msg_params, message)
+                        bound_func(
+                            private_key, sender_id, msg_mtype, msg_params, message
+                        )
                     else:
-                        bound_func(private_key, sender_id, None, msg_mtype,
-                                   msg_params, message)
+                        bound_func(
+                            private_key, sender_id, None, msg_mtype, msg_params, message
+                        )
 
         return ""
 
@@ -261,9 +285,7 @@ class SAMPClient:
         return self._handle_notification(private_key, sender_id, message)
 
     def _handle_call(self, private_key, sender_id, msg_id, message):
-
         if private_key == self.get_private_key() and "samp.mtype" in message:
-
             msg_mtype = message["samp.mtype"]
             del message["samp.mtype"]
             msg_params = message["samp.params"]
@@ -273,9 +295,9 @@ class SAMPClient:
 
             for mtype in msubs:
                 if mtype in self._call_bindings:
-                    self._call_bindings[mtype][0](private_key, sender_id,
-                                                  msg_id, msg_mtype,
-                                                  msg_params, message)
+                    self._call_bindings[mtype][0](
+                        private_key, sender_id, msg_id, msg_mtype, msg_params, message
+                    )
 
         return ""
 
@@ -315,10 +337,10 @@ class SAMPClient:
         return self._handle_call(private_key, sender_id, msg_id, message)
 
     def _handle_response(self, private_key, responder_id, msg_tag, response):
-        if (private_key == self.get_private_key() and
-            msg_tag in self._response_bindings):
-            self._response_bindings[msg_tag](private_key, responder_id,
-                                    msg_tag, response)
+        if private_key == self.get_private_key() and msg_tag in self._response_bindings:
+            self._response_bindings[msg_tag](
+                private_key, responder_id, msg_tag, response
+            )
         return ""
 
     def receive_response(self, private_key, responder_id, msg_tag, response):
@@ -354,11 +376,9 @@ class SAMPClient:
         confirmation : str
             Any confirmation string.
         """
-        return self._handle_response(private_key, responder_id, msg_tag,
-                                     response)
+        return self._handle_response(private_key, responder_id, msg_tag, response)
 
-    def bind_receive_message(self, mtype, function, declare=True,
-                             metadata=None):
+    def bind_receive_message(self, mtype, function, declare=True, metadata=None):
         """
         Bind a specific MType to a function or class method, being intended for
         a call or a notification.
@@ -394,11 +414,11 @@ class SAMPClient:
             :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
 
-        self.bind_receive_call(mtype, function, declare=declare,
-                               metadata=metadata)
+        self.bind_receive_call(mtype, function, declare=declare, metadata=metadata)
 
-        self.bind_receive_notification(mtype, function, declare=declare,
-                                       metadata=metadata)
+        self.bind_receive_notification(
+            mtype, function, declare=declare, metadata=metadata
+        )
 
     def bind_receive_notification(self, mtype, function, declare=True, metadata=None):
         """
@@ -598,19 +618,20 @@ class SAMPClient:
         Register the client to the SAMP Hub.
         """
         if self.hub.is_connected:
-
             if self._private_key is not None:
                 raise SAMPClientError("Client already registered")
 
             result = self.hub.register(self.hub.lockfile["samp.secret"])
 
             if result["samp.self-id"] == "":
-                raise SAMPClientError("Registration failed - "
-                                      "samp.self-id was not set by the hub.")
+                raise SAMPClientError(
+                    "Registration failed - samp.self-id was not set by the hub."
+                )
 
             if result["samp.private-key"] == "":
-                raise SAMPClientError("Registration failed - "
-                                      "samp.private-key was not set by the hub.")
+                raise SAMPClientError(
+                    "Registration failed - samp.private-key was not set by the hub."
+                )
 
             self._public_id = result["samp.self-id"]
             self._private_key = result["samp.private-key"]
@@ -626,8 +647,9 @@ class SAMPClient:
             self._is_registered = True
 
         else:
-            raise SAMPClientError("Unable to register to the SAMP Hub. "
-                                  "Hub proxy not connected.")
+            raise SAMPClientError(
+                "Unable to register to the SAMP Hub. Hub proxy not connected."
+            )
 
     def unregister(self):
         """
@@ -640,21 +662,22 @@ class SAMPClient:
             self._public_id = None
             self._private_key = None
         else:
-            raise SAMPClientError("Unable to unregister from the SAMP Hub. "
-                                  "Hub proxy not connected.")
+            raise SAMPClientError(
+                "Unable to unregister from the SAMP Hub. Hub proxy not connected."
+            )
 
     def _set_xmlrpc_callback(self):
         if self.hub.is_connected and self._private_key is not None:
-            self.hub.set_xmlrpc_callback(self._private_key,
-                                         self._xmlrpcAddr)
+            self.hub.set_xmlrpc_callback(self._private_key, self._xmlrpcAddr)
 
     def _declare_subscriptions(self, subscriptions=None):
         if self.hub.is_connected and self._private_key is not None:
-
             mtypes_dict = {}
             # Collect notification mtypes and metadata
             for mtype in self._notification_bindings.keys():
-                mtypes_dict[mtype] = copy.deepcopy(self._notification_bindings[mtype][1])
+                mtypes_dict[mtype] = copy.deepcopy(
+                    self._notification_bindings[mtype][1]
+                )
 
             # Collect notification mtypes and metadata
             for mtype in self._call_bindings.keys():
@@ -667,9 +690,11 @@ class SAMPClient:
             self.hub.declare_subscriptions(self._private_key, mtypes_dict)
 
         else:
-            raise SAMPClientError("Unable to declare subscriptions. Hub "
-                                  "unreachable or not connected or client "
-                                  "not registered.")
+            raise SAMPClientError(
+                "Unable to declare subscriptions. Hub "
+                "unreachable or not connected or client "
+                "not registered."
+            )
 
     def declare_metadata(self, metadata=None):
         """
@@ -687,9 +712,11 @@ class SAMPClient:
                 self._metadata.update(metadata)
             self.hub.declare_metadata(self._private_key, self._metadata)
         else:
-            raise SAMPClientError("Unable to declare metadata. Hub "
-                                  "unreachable or not connected or client "
-                                  "not registered.")
+            raise SAMPClientError(
+                "Unable to declare metadata. Hub "
+                "unreachable or not connected or client "
+                "not registered."
+            )
 
     def get_private_key(self):
         """

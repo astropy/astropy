@@ -8,7 +8,7 @@ from .errors import SAMPHubError
 from .lockfile_helpers import get_main_running_hub
 from .utils import ServerProxyPool
 
-__all__ = ['SAMPHubProxy']
+__all__ = ["SAMPHubProxy"]
 
 
 class SAMPHubProxy:
@@ -54,7 +54,6 @@ class SAMPHubProxy:
             raise ValueError("Cannot specify both hub and hub_params")
 
         if hub_params is None:
-
             if hub is not None:
                 if not hub.is_running:
                     raise SAMPHubError("Hub is not running")
@@ -64,11 +63,11 @@ class SAMPHubProxy:
                 hub_params = get_main_running_hub()
 
         try:
-
             url = hub_params["samp.hub.xmlrpc.url"].replace("\\", "")
 
-            self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
-                                         url, allow_none=1)
+            self.proxy = ServerProxyPool(
+                pool_size, xmlrpc.ServerProxy, url, allow_none=1
+            )
 
             self.ping()
 
@@ -78,8 +77,9 @@ class SAMPHubProxy:
         except xmlrpc.ProtocolError as p:
             # 401 Unauthorized
             if p.errcode == 401:
-                raise SAMPHubError("Unauthorized access. Basic Authentication "
-                                   "required or failed.")
+                raise SAMPHubError(
+                    "Unauthorized access. Basic Authentication required or failed."
+                )
             else:
                 raise SAMPHubError(f"Protocol Error {p.errcode}: {p.errmsg}")
 
@@ -189,8 +189,7 @@ class SAMPHubProxy:
         """
         Proxy to ``callAndWait`` SAMP Hub method.
         """
-        return self._samp_hub.callAndWait(private_key, recipient_id, message,
-                                          timeout)
+        return self._samp_hub.callAndWait(private_key, recipient_id, message, timeout)
 
     def reply(self, private_key, msg_id, response):
         """
