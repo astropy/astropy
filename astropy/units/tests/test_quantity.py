@@ -46,7 +46,6 @@ class TestQuantityCreation:
             quantity = 182.234 % u.meter
 
     def test_2(self):
-
         # create objects using the Quantity constructor:
         _ = u.Quantity(11.412, unit=u.meter)
         _ = u.Quantity(21.52, "cm")
@@ -162,7 +161,6 @@ class TestQuantityCreation:
             assert q4.dtype == np.float128
 
     def test_copy(self):
-
         # By default, a new quantity is constructed, but not if copy=False
 
         a = np.arange(10.0)
@@ -469,7 +467,6 @@ class TestQuantityOperations:
         assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
     def test_unary(self):
-
         # Test the minus unary operator
 
         new_quantity = -self.q1
@@ -487,7 +484,6 @@ class TestQuantityOperations:
         assert new_quantity.unit == self.q1.unit
 
     def test_abs(self):
-
         q = 1.0 * u.m / u.s
         new_quantity = abs(q)
         assert new_quantity.value == q.value
@@ -686,7 +682,6 @@ class TestQuantityOperations:
         assert q4 * ["a", "b", "c"] == ["a", "b", "c", "a", "b", "c"]
 
     def test_array_converters(self):
-
         # Scalar quantity
         q = u.Quantity(1.23, u.m)
         assert np.all(np.array(q) == np.array([1.23]))
@@ -1302,7 +1297,6 @@ def test_quantity_iterability():
 
 
 def test_copy():
-
     q1 = u.Quantity(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]), unit=u.m)
     q2 = q1.copy()
 

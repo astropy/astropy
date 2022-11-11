@@ -130,27 +130,24 @@ def spectral():
         * angular - :math:`2 \\pi / \\lambda` (radian per meter)
 
     """
-    hc = _si.h.value * _si.c.value
+    c = _si.c.value
+    h = _si.h.value
+    hc = h * c
     two_pi = 2.0 * np.pi
     inv_m_spec = si.m**-1
     inv_m_ang = si.radian / si.m
 
     return Equivalency(
         [
-            (si.m, si.Hz, lambda x: _si.c.value / x),
+            (si.m, si.Hz, lambda x: c / x),
             (si.m, si.J, lambda x: hc / x),
-            (si.Hz, si.J, lambda x: _si.h.value * x, lambda x: x / _si.h.value),
+            (si.Hz, si.J, lambda x: h * x, lambda x: x / h),
             (si.m, inv_m_spec, lambda x: 1.0 / x),
-            (si.Hz, inv_m_spec, lambda x: x / _si.c.value, lambda x: _si.c.value * x),
+            (si.Hz, inv_m_spec, lambda x: x / c, lambda x: c * x),
             (si.J, inv_m_spec, lambda x: x / hc, lambda x: hc * x),
             (inv_m_spec, inv_m_ang, lambda x: x * two_pi, lambda x: x / two_pi),
             (si.m, inv_m_ang, lambda x: two_pi / x),
-            (
-                si.Hz,
-                inv_m_ang,
-                lambda x: two_pi * x / _si.c.value,
-                lambda x: _si.c.value * x / two_pi,
-            ),
+            (si.Hz, inv_m_ang, lambda x: two_pi * x / c, lambda x: c * x / two_pi),
             (si.J, inv_m_ang, lambda x: x * two_pi / hc, lambda x: hc * x / two_pi),
         ],
         "spectral",
@@ -218,213 +215,108 @@ def spectral_density(wav, factor=None):
     phot_SL_la = astrophys.photon / (si.s * si.AA * si.sr)
     phot_SL_nu = astrophys.photon / (si.s * si.Hz * si.sr)
 
-    def converter(x):
+    def f_la_to_f_nu(x):
         return x * (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
-    def iconverter(x):
+    def f_la_from_f_nu(x):
         return x / (wav.to_value(si.AA, spectral()) ** 2 / c_Aps)
 
-    def converter_f_nu_to_nu_f_nu(x):
+    def f_nu_to_nu_f_nu(x):
         return x * wav.to_value(si.Hz, spectral())
 
-    def iconverter_f_nu_to_nu_f_nu(x):
+    def f_nu_from_nu_f_nu(x):
         return x / wav.to_value(si.Hz, spectral())
 
-    def converter_f_la_to_la_f_la(x):
+    def f_la_to_la_f_la(x):
         return x * wav.to_value(si.AA, spectral())
 
-    def iconverter_f_la_to_la_f_la(x):
+    def f_la_from_la_f_la(x):
         return x / wav.to_value(si.AA, spectral())
 
-    def converter_phot_f_la_to_f_la(x):
+    def phot_f_la_to_f_la(x):
         return hc * x / wav.to_value(si.AA, spectral())
 
-    def iconverter_phot_f_la_to_f_la(x):
+    def phot_f_la_from_f_la(x):
         return x * wav.to_value(si.AA, spectral()) / hc
 
-    def converter_phot_f_la_to_f_nu(x):
+    def phot_f_la_to_f_nu(x):
         return h_cgs * x * wav.to_value(si.AA, spectral())
 
-    def iconverter_phot_f_la_to_f_nu(x):
+    def phot_f_la_from_f_nu(x):
         return x / (wav.to_value(si.AA, spectral()) * h_cgs)
 
-    def converter_phot_f_la_phot_f_nu(x):
+    def phot_f_la_to_phot_f_nu(x):
         return x * wav.to_value(si.AA, spectral()) ** 2 / c_Aps
 
-    def iconverter_phot_f_la_phot_f_nu(x):
+    def phot_f_la_from_phot_f_nu(x):
         return c_Aps * x / wav.to_value(si.AA, spectral()) ** 2
 
-    converter_phot_f_nu_to_f_nu = converter_phot_f_la_to_f_la
-    iconverter_phot_f_nu_to_f_nu = iconverter_phot_f_la_to_f_la
+    phot_f_nu_to_f_nu = phot_f_la_to_f_la
+    phot_f_nu_from_f_nu = phot_f_la_from_f_la
 
-    def converter_phot_f_nu_to_f_la(x):
+    def phot_f_nu_to_f_la(x):
         return x * hc * c_Aps / wav.to_value(si.AA, spectral()) ** 3
 
-    def iconverter_phot_f_nu_to_f_la(x):
+    def phot_f_nu_from_f_la(x):
         return x * wav.to_value(si.AA, spectral()) ** 3 / (hc * c_Aps)
 
     # for luminosity density
-    converter_L_nu_to_nu_L_nu = converter_f_nu_to_nu_f_nu
-    iconverter_L_nu_to_nu_L_nu = iconverter_f_nu_to_nu_f_nu
-    converter_L_la_to_la_L_la = converter_f_la_to_la_f_la
-    iconverter_L_la_to_la_L_la = iconverter_f_la_to_la_f_la
+    L_nu_to_nu_L_nu = f_nu_to_nu_f_nu
+    L_nu_from_nu_L_nu = f_nu_from_nu_f_nu
+    L_la_to_la_L_la = f_la_to_la_f_la
+    L_la_from_la_L_la = f_la_from_la_f_la
 
-    converter_phot_L_la_to_L_la = converter_phot_f_la_to_f_la
-    iconverter_phot_L_la_to_L_la = iconverter_phot_f_la_to_f_la
-    converter_phot_L_la_to_L_nu = converter_phot_f_la_to_f_nu
-    iconverter_phot_L_la_to_L_nu = iconverter_phot_f_la_to_f_nu
-    converter_phot_L_la_phot_L_nu = converter_phot_f_la_phot_f_nu
-    iconverter_phot_L_la_phot_L_nu = iconverter_phot_f_la_phot_f_nu
-    converter_phot_L_nu_to_L_nu = converter_phot_f_nu_to_f_nu
-    iconverter_phot_L_nu_to_L_nu = iconverter_phot_f_nu_to_f_nu
-    converter_phot_L_nu_to_L_la = converter_phot_f_nu_to_f_la
-    iconverter_phot_L_nu_to_L_la = iconverter_phot_f_nu_to_f_la
+    phot_L_la_to_L_la = phot_f_la_to_f_la
+    phot_L_la_from_L_la = phot_f_la_from_f_la
+    phot_L_la_to_L_nu = phot_f_la_to_f_nu
+    phot_L_la_from_L_nu = phot_f_la_from_f_nu
+    phot_L_la_to_phot_L_nu = phot_f_la_to_phot_f_nu
+    phot_L_la_from_phot_L_nu = phot_f_la_from_phot_f_nu
+    phot_L_nu_to_L_nu = phot_f_nu_to_f_nu
+    phot_L_nu_from_L_nu = phot_f_nu_from_f_nu
+    phot_L_nu_to_L_la = phot_f_nu_to_f_la
+    phot_L_nu_from_L_la = phot_f_nu_from_f_la
 
     return Equivalency(
         [
             # flux
-            (f_la, f_nu, converter, iconverter),
-            (f_nu, nu_f_nu, converter_f_nu_to_nu_f_nu, iconverter_f_nu_to_nu_f_nu),
-            (f_la, la_f_la, converter_f_la_to_la_f_la, iconverter_f_la_to_la_f_la),
-            (
-                phot_f_la,
-                f_la,
-                converter_phot_f_la_to_f_la,
-                iconverter_phot_f_la_to_f_la,
-            ),
-            (
-                phot_f_la,
-                f_nu,
-                converter_phot_f_la_to_f_nu,
-                iconverter_phot_f_la_to_f_nu,
-            ),
-            (
-                phot_f_la,
-                phot_f_nu,
-                converter_phot_f_la_phot_f_nu,
-                iconverter_phot_f_la_phot_f_nu,
-            ),
-            (
-                phot_f_nu,
-                f_nu,
-                converter_phot_f_nu_to_f_nu,
-                iconverter_phot_f_nu_to_f_nu,
-            ),
-            (
-                phot_f_nu,
-                f_la,
-                converter_phot_f_nu_to_f_la,
-                iconverter_phot_f_nu_to_f_la,
-            ),
+            (f_la, f_nu, f_la_to_f_nu, f_la_from_f_nu),
+            (f_nu, nu_f_nu, f_nu_to_nu_f_nu, f_nu_from_nu_f_nu),
+            (f_la, la_f_la, f_la_to_la_f_la, f_la_from_la_f_la),
+            (phot_f_la, f_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
+            (phot_f_la, f_nu, phot_f_la_to_f_nu, phot_f_la_from_f_nu),
+            (phot_f_la, phot_f_nu, phot_f_la_to_phot_f_nu, phot_f_la_from_phot_f_nu),
+            (phot_f_nu, f_nu, phot_f_nu_to_f_nu, phot_f_nu_from_f_nu),
+            (phot_f_nu, f_la, phot_f_nu_to_f_la, phot_f_nu_from_f_la),
             # integrated flux
-            (
-                la_phot_f_la,
-                la_f_la,
-                converter_phot_f_la_to_f_la,
-                iconverter_phot_f_la_to_f_la,
-            ),
+            (la_phot_f_la, la_f_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
             # luminosity
-            (L_la, L_nu, converter, iconverter),
-            (L_nu, nu_L_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
-            (L_la, la_L_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la),
-            (
-                phot_L_la,
-                L_la,
-                converter_phot_L_la_to_L_la,
-                iconverter_phot_L_la_to_L_la,
-            ),
-            (
-                phot_L_la,
-                L_nu,
-                converter_phot_L_la_to_L_nu,
-                iconverter_phot_L_la_to_L_nu,
-            ),
-            (
-                phot_L_la,
-                phot_L_nu,
-                converter_phot_L_la_phot_L_nu,
-                iconverter_phot_L_la_phot_L_nu,
-            ),
-            (
-                phot_L_nu,
-                L_nu,
-                converter_phot_L_nu_to_L_nu,
-                iconverter_phot_L_nu_to_L_nu,
-            ),
-            (
-                phot_L_nu,
-                L_la,
-                converter_phot_L_nu_to_L_la,
-                iconverter_phot_L_nu_to_L_la,
-            ),
+            (L_la, L_nu, f_la_to_f_nu, f_la_from_f_nu),
+            (L_nu, nu_L_nu, L_nu_to_nu_L_nu, L_nu_from_nu_L_nu),
+            (L_la, la_L_la, L_la_to_la_L_la, L_la_from_la_L_la),
+            (phot_L_la, L_la, phot_L_la_to_L_la, phot_L_la_from_L_la),
+            (phot_L_la, L_nu, phot_L_la_to_L_nu, phot_L_la_from_L_nu),
+            (phot_L_la, phot_L_nu, phot_L_la_to_phot_L_nu, phot_L_la_from_phot_L_nu),
+            (phot_L_nu, L_nu, phot_L_nu_to_L_nu, phot_L_nu_from_L_nu),
+            (phot_L_nu, L_la, phot_L_nu_to_L_la, phot_L_nu_from_L_la),
             # surface brightness (flux equiv)
-            (S_la, S_nu, converter, iconverter),
-            (S_nu, nu_S_nu, converter_f_nu_to_nu_f_nu, iconverter_f_nu_to_nu_f_nu),
-            (S_la, la_S_la, converter_f_la_to_la_f_la, iconverter_f_la_to_la_f_la),
-            (
-                phot_S_la,
-                S_la,
-                converter_phot_f_la_to_f_la,
-                iconverter_phot_f_la_to_f_la,
-            ),
-            (
-                phot_S_la,
-                S_nu,
-                converter_phot_f_la_to_f_nu,
-                iconverter_phot_f_la_to_f_nu,
-            ),
-            (
-                phot_S_la,
-                phot_S_nu,
-                converter_phot_f_la_phot_f_nu,
-                iconverter_phot_f_la_phot_f_nu,
-            ),
-            (
-                phot_S_nu,
-                S_nu,
-                converter_phot_f_nu_to_f_nu,
-                iconverter_phot_f_nu_to_f_nu,
-            ),
-            (
-                phot_S_nu,
-                S_la,
-                converter_phot_f_nu_to_f_la,
-                iconverter_phot_f_nu_to_f_la,
-            ),
+            (S_la, S_nu, f_la_to_f_nu, f_la_from_f_nu),
+            (S_nu, nu_S_nu, f_nu_to_nu_f_nu, f_nu_from_nu_f_nu),
+            (S_la, la_S_la, f_la_to_la_f_la, f_la_from_la_f_la),
+            (phot_S_la, S_la, phot_f_la_to_f_la, phot_f_la_from_f_la),
+            (phot_S_la, S_nu, phot_f_la_to_f_nu, phot_f_la_from_f_nu),
+            (phot_S_la, phot_S_nu, phot_f_la_to_phot_f_nu, phot_f_la_from_phot_f_nu),
+            (phot_S_nu, S_nu, phot_f_nu_to_f_nu, phot_f_nu_from_f_nu),
+            (phot_S_nu, S_la, phot_f_nu_to_f_la, phot_f_nu_from_f_la),
             # surface brightness (luminosity equiv)
-            (SL_la, SL_nu, converter, iconverter),
-            (SL_nu, nu_SL_nu, converter_L_nu_to_nu_L_nu, iconverter_L_nu_to_nu_L_nu),
-            (SL_la, la_SL_la, converter_L_la_to_la_L_la, iconverter_L_la_to_la_L_la),
-            (
-                phot_SL_la,
-                SL_la,
-                converter_phot_L_la_to_L_la,
-                iconverter_phot_L_la_to_L_la,
-            ),
-            (
-                phot_SL_la,
-                SL_nu,
-                converter_phot_L_la_to_L_nu,
-                iconverter_phot_L_la_to_L_nu,
-            ),
-            (
-                phot_SL_la,
-                phot_SL_nu,
-                converter_phot_L_la_phot_L_nu,
-                iconverter_phot_L_la_phot_L_nu,
-            ),
-            (
-                phot_SL_nu,
-                SL_nu,
-                converter_phot_L_nu_to_L_nu,
-                iconverter_phot_L_nu_to_L_nu,
-            ),
-            (
-                phot_SL_nu,
-                SL_la,
-                converter_phot_L_nu_to_L_la,
-                iconverter_phot_L_nu_to_L_la,
-            ),
+            (SL_la, SL_nu, f_la_to_f_nu, f_la_from_f_nu),
+            (SL_nu, nu_SL_nu, L_nu_to_nu_L_nu, L_nu_from_nu_L_nu),
+            (SL_la, la_SL_la, L_la_to_la_L_la, L_la_from_la_L_la),
+            (phot_SL_la, SL_la, phot_L_la_to_L_la, phot_L_la_from_L_la),
+            (phot_SL_la, SL_nu, phot_L_la_to_L_nu, phot_L_la_from_L_nu),
+            (phot_SL_la, phot_SL_nu, phot_L_la_to_phot_L_nu, phot_L_la_from_phot_L_nu),
+            (phot_SL_nu, SL_nu, phot_L_nu_to_L_nu, phot_L_nu_from_L_nu),
+            (phot_SL_nu, SL_la, phot_L_nu_to_L_la, phot_L_nu_from_L_la),
         ],
         "spectral_density",
         {"wav": wav, "factor": factor},
@@ -689,33 +581,13 @@ def mass_energy():
     Returns a list of equivalence pairs that handle the conversion
     between mass and energy.
     """
-
+    c2 = _si.c.value**2
     return Equivalency(
         [
-            (
-                si.kg,
-                si.J,
-                lambda x: x * _si.c.value**2,
-                lambda x: x / _si.c.value**2,
-            ),
-            (
-                si.kg / si.m**2,
-                si.J / si.m**2,
-                lambda x: x * _si.c.value**2,
-                lambda x: x / _si.c.value**2,
-            ),
-            (
-                si.kg / si.m**3,
-                si.J / si.m**3,
-                lambda x: x * _si.c.value**2,
-                lambda x: x / _si.c.value**2,
-            ),
-            (
-                si.kg / si.s,
-                si.J / si.s,
-                lambda x: x * _si.c.value**2,
-                lambda x: x / _si.c.value**2,
-            ),
+            (si.kg, si.J, lambda x: x * c2, lambda x: x / c2),
+            (si.kg / si.m**2, si.J / si.m**2, lambda x: x * c2, lambda x: x / c2),
+            (si.kg / si.m**3, si.J / si.m**3, lambda x: x * c2, lambda x: x / c2),
+            (si.kg / si.s, si.J / si.s, lambda x: x * c2, lambda x: x / c2),
         ],
         "mass_energy",
     )
@@ -792,19 +664,17 @@ def brightness_temperature(frequency, beam_area=None):
         frequency, beam_area = beam_area, frequency
 
     nu = frequency.to(si.GHz, spectral())
+    factor_Jy = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+    factor_K = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
 
     if beam_area is not None:
         beam = beam_area.to_value(si.sr)
 
         def convert_Jy_to_K(x_jybm):
-            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
-            return x_jybm / beam / factor
+            return x_jybm / beam / factor_Jy
 
         def convert_K_to_Jy(x_K):
-            factor = (
-                (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
-            )
-            return x_K * beam / factor
+            return x_K * beam / factor_K
 
         return Equivalency(
             [
@@ -817,14 +687,10 @@ def brightness_temperature(frequency, beam_area=None):
     else:
 
         def convert_JySr_to_K(x_jysr):
-            factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
-            return x_jysr / factor
+            return x_jysr / factor_Jy
 
         def convert_K_to_JySr(x_K):
-            factor = (
-                (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
-            )
-            return x_K / factor  # multiplied by 1x for 1 steradian
+            return x_K / factor_K  # multiplied by 1x for 1 steradian
 
         return Equivalency(
             [(astrophys.Jy / si.sr, si.K, convert_JySr_to_K, convert_K_to_JySr)],
@@ -932,26 +798,20 @@ def temperature():
     """Convert between Kelvin, Celsius, Rankine and Fahrenheit here because
     Unit and CompositeUnit cannot do addition or subtraction properly.
     """
-    from .imperial import deg_F, deg_R
+    from .imperial import deg_F as F
+    from .imperial import deg_R as R
+
+    K = si.K
+    C = si.deg_C
 
     return Equivalency(
         [
-            (si.K, si.deg_C, lambda x: x - 273.15, lambda x: x + 273.15),
-            (si.deg_C, deg_F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
-            (
-                si.K,
-                deg_F,
-                lambda x: (x - 273.15) * 1.8 + 32.0,
-                lambda x: ((x - 32.0) / 1.8) + 273.15,
-            ),
-            (deg_R, deg_F, lambda x: x - 459.67, lambda x: x + 459.67),
-            (
-                deg_R,
-                si.deg_C,
-                lambda x: (x - 491.67) * (5 / 9),
-                lambda x: x * 1.8 + 491.67,
-            ),
-            (deg_R, si.K, lambda x: x * (5 / 9), lambda x: x * 1.8),
+            (K, C, lambda x: x - 273.15, lambda x: x + 273.15),
+            (C, F, lambda x: x * 1.8 + 32.0, lambda x: (x - 32.0) / 1.8),
+            (K, F, lambda x: x * 1.8 - 459.67, lambda x: (x + 459.67) / 1.8),
+            (R, F, lambda x: x - 459.67, lambda x: x + 459.67),
+            (R, C, lambda x: (x - 491.67) * (5 / 9), lambda x: x * 1.8 + 491.67),
+            (R, K, lambda x: x * (5 / 9), lambda x: x * 1.8),
         ],
         "temperature",
     )
@@ -959,15 +819,10 @@ def temperature():
 
 def temperature_energy():
     """Convert between Kelvin and keV(eV) to an equivalent amount."""
+    e = _si.e.value
+    k_B = _si.k_B.value
     return Equivalency(
-        [
-            (
-                si.K,
-                si.eV,
-                lambda x: x / (_si.e.value / _si.k_B.value),
-                lambda x: x * (_si.e.value / _si.k_B.value),
-            )
-        ],
+        [(si.K, si.eV, lambda x: x / (e / k_B), lambda x: x * (e / k_B))],
         "temperature_energy",
     )
 
@@ -1029,14 +884,7 @@ def plate_scale(platescale):
         raise UnitsError("The pixel scale must be in angle/distance or distance/angle")
 
     return Equivalency(
-        [
-            (
-                si.m,
-                si.radian,
-                lambda d: d * platescale_val,
-                lambda rad: rad / platescale_val,
-            )
-        ],
+        [(si.m, si.radian, lambda d: d * platescale_val, lambda a: a / platescale_val)],
         "plate_scale",
         {"platescale": platescale},
     )

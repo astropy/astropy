@@ -58,9 +58,7 @@ def helper_s2c(f, unit1, unit2):
         ], dimensionless_unscaled
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with angle units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with angle units"
         )
 
 
@@ -71,9 +69,7 @@ def helper_s2p(f, unit1, unit2, unit3):
         return [get_converter(unit1, radian), get_converter(unit2, radian), None], unit3
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with angle units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with angle units"
         )
 
 
@@ -98,9 +94,7 @@ def helper_gc2gd(f, nounit, unit1):
         return [None, get_converter(unit1, m)], (radian, radian, m, None)
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with length units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with length units"
         )
 
 
@@ -118,8 +112,8 @@ def helper_gd2gc(f, nounit, unit1, unit2, unit3):
         ], (m, None)
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to lon, lat "
-            "with angle and height with length units".format(f.__name__)
+            f"Can only apply '{f.__name__}' function to lon, lat "
+            "with angle and height with length units"
         )
 
 

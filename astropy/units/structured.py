@@ -53,12 +53,8 @@ def _normalize_names(names):
             result.append([name[0], _normalize_names(name[1])])
         elif isinstance(name, tuple) and len(name) > 0:
             new_tuple = _normalize_names(name)
-            result.append(
-                [
-                    "".join([(i[0] if isinstance(i, list) else i) for i in new_tuple]),
-                    new_tuple,
-                ]
-            )
+            name = "".join([(i[0] if isinstance(i, list) else i) for i in new_tuple])
+            result.append([name, new_tuple])
         else:
             raise ValueError(
                 f"invalid entry {name!r}. Should be a name, "
@@ -242,9 +238,9 @@ class StructuredUnit:
             If given, should be a subclass of `~numpy.void`. By default,
             will return a new `~astropy.units.StructuredUnit` instance.
         """
-        results = np.array(
-            tuple(func(part) for part in self.values()), self._units.dtype
-        )[()]
+        applied = tuple(func(part) for part in self.values())
+        # Once not NUMPY_LT_1_23: results = np.void(applied, self._units.dtype).
+        results = np.array(applied, self._units.dtype)[()]
         if cls is not None:
             return results.view((cls, results.dtype))
 

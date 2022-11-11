@@ -41,10 +41,8 @@ class Console(base.Base):
                 out.append(cls._get_unit_name(base_))
             else:
                 out.append(
-                    "{}{}".format(
-                        cls._get_unit_name(base_),
-                        cls._format_superscript(utils.format_power(power)),
-                    )
+                    cls._get_unit_name(base_)
+                    + cls._format_superscript(utils.format_power(power))
                 )
         return " ".join(out)
 

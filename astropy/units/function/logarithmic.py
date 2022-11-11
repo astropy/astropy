@@ -380,34 +380,24 @@ class LogQuantity(FunctionQuantity):
     # logarithmic units as they imply differences and independence of
     # physical unit.
     def var(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(
-            np.var, axis, dtype, out=out, ddof=ddof, unit=self.unit.function_unit**2
-        )
+        unit = self.unit.function_unit**2
+        return self._wrap_function(np.var, axis, dtype, out=out, ddof=ddof, unit=unit)
 
     def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(
-            np.std,
-            axis,
-            dtype,
-            out=out,
-            ddof=ddof,
-            unit=self.unit._copy(dimensionless_unscaled),
-        )
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof, unit=unit)
 
     def ptp(self, axis=None, out=None):
-        return self._wrap_function(
-            np.ptp, axis, out=out, unit=self.unit._copy(dimensionless_unscaled)
-        )
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.ptp, axis, out=out, unit=unit)
 
     def diff(self, n=1, axis=-1):
-        return self._wrap_function(
-            np.diff, n, axis, unit=self.unit._copy(dimensionless_unscaled)
-        )
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.diff, n, axis, unit=unit)
 
     def ediff1d(self, to_end=None, to_begin=None):
-        return self._wrap_function(
-            np.ediff1d, to_end, to_begin, unit=self.unit._copy(dimensionless_unscaled)
-        )
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.ediff1d, to_end, to_begin, unit=unit)
 
     _supported_functions = FunctionQuantity._supported_functions | {
         getattr(np, function) for function in ("var", "std", "ptp", "diff", "ediff1d")
@@ -439,14 +429,10 @@ ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
 
 M_bol = MagUnit(photometric.Bol)
 M_bol.__doc__ = (
-    "Absolute bolometric magnitude: M_bol=0 corresponds to L_bol0={}".format(
-        photometric.Bol.si
-    )
+    f"Absolute bolometric magnitude: M_bol=0 corresponds to L_bol0={photometric.Bol.si}"
 )
 
 m_bol = MagUnit(photometric.bol)
 m_bol.__doc__ = (
-    "Apparent bolometric magnitude: m_bol=0 corresponds to f_bol0={}".format(
-        photometric.bol.si
-    )
+    f"Apparent bolometric magnitude: m_bol=0 corresponds to f_bol0={photometric.bol.si}"
 )

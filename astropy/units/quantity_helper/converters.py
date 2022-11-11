@@ -97,9 +97,9 @@ class UfuncHelpers(dict):
                         return self[ufunc]
 
         raise TypeError(
-            "unknown ufunc {}.  If you believe this ufunc "
+            f"unknown ufunc {ufunc.__name__}.  If you believe this ufunc "
             "should be supported, please raise an issue on "
-            "https://github.com/astropy/astropy".format(ufunc.__name__)
+            "https://github.com/astropy/astropy"
         )
 
     def __setitem__(self, key, value):
@@ -198,10 +198,9 @@ def converters_and_unit(function, method, *args):
                         converters[i] = None
                     else:
                         raise UnitConversionError(
-                            "Can only apply '{}' function to "
-                            "dimensionless quantities when other "
-                            "argument is not a quantity (unless the "
-                            "latter is all zero/infinity/nan)".format(function.__name__)
+                            f"Can only apply '{function.__name__}' function to "
+                            "dimensionless quantities when other argument is not "
+                            "a quantity (unless the latter is all zero/infinity/nan)."
                         )
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
@@ -264,17 +263,15 @@ def converters_and_unit(function, method, *args):
                 raise ValueError(f"{method} only supported for binary functions")
 
             raise TypeError(
-                "Unexpected ufunc method {}.  If this should "
-                "work, please raise an issue on"
-                "https://github.com/astropy/astropy".format(method)
+                f"Unexpected ufunc method {method}.  If this should work, please "
+                "raise an issue on https://github.com/astropy/astropy"
             )
 
         # for all but __call__ method, scaling is not allowed
         if unit is not None and result_unit is None:
             raise TypeError(
-                "Cannot use '{1}' method on ufunc {0} with a "
-                "Quantity instance as the result is not a "
-                "Quantity.".format(function.__name__, method)
+                f"Cannot use '{method}' method on ufunc {function.__name__} with a "
+                "Quantity instance as the result is not a Quantity."
             )
 
         if converters[0] is not None or (
@@ -286,10 +283,8 @@ def converters_and_unit(function, method, *args):
             # then things like np.cumprod will not longer fail (they check
             # for TypeError).
             raise UnitsError(
-                "Cannot use '{1}' method on ufunc {0} with a "
-                "Quantity instance as it would change the unit.".format(
-                    function.__name__, method
-                )
+                f"Cannot use '{method}' method on ufunc {function.__name__} with a "
+                "Quantity instance as it would change the unit."
             )
 
     return converters, result_unit
@@ -377,7 +372,7 @@ def check_output(output, unit, inputs, function=None):
             ):
                 raise TypeError(
                     "Arguments cannot be cast safely to inplace "
-                    "output with dtype={}".format(output.dtype)
+                    f"output with dtype={output.dtype}"
                 )
         # Turn into ndarray, so we do not loop into array_wrap/array_ufunc
         # if the output is used to store results of a function.
@@ -389,9 +384,9 @@ def check_output(output, unit, inputs, function=None):
             raise UnitTypeError(
                 "Cannot store quantity with dimension "
                 "{}in a non-Quantity instance.".format(
-                    ""
-                    if function is None
-                    else f"resulting from {function.__name__} function "
+                    f"resulting from {function.__name__} function "
+                    if function is not None
+                    else ""
                 )
             )
 

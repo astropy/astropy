@@ -416,7 +416,6 @@ def test_invalid_physical_types(invalid_input):
 
 
 class TestDefPhysType:
-
     weird_unit = u.m**99
     strange_unit = u.s**42
 

@@ -81,8 +81,8 @@ class VOUnit(generic.Generic):
         # Check for excess solidi, but exclude fractional exponents (allowed)
         if s.count("/") > 1 and s.count("/") - len(re.findall(r"\(\d+/\d+\)", s)) > 1:
             raise core.UnitsError(
-                "'{}' contains multiple slashes, which is "
-                "disallowed by the VOUnit standard".format(s)
+                f"'{s}' contains multiple slashes, which is "
+                "disallowed by the VOUnit standard."
             )
         result = cls._do_parse(s, debug=debug)
         if hasattr(result, "function_unit"):
@@ -99,14 +99,12 @@ class VOUnit(generic.Generic):
 
             if cls._custom_unit_regex.match(t.value):
                 warnings.warn(
-                    "Unit {!r} not supported by the VOUnit standard. {}".format(
+                    f"Unit {t.value!r} not supported by the VOUnit standard. "
+                    + utils.did_you_mean_units(
                         t.value,
-                        utils.did_you_mean_units(
-                            t.value,
-                            cls._units,
-                            cls._deprecated_units,
-                            cls._to_decomposed_alternative,
-                        ),
+                        cls._units,
+                        cls._deprecated_units,
+                        cls._to_decomposed_alternative,
                     ),
                     core.UnitsWarning,
                 )
@@ -134,13 +132,13 @@ class VOUnit(generic.Generic):
         if isinstance(unit, core.PrefixUnit):
             if unit._represents.scale == 10.0:
                 raise ValueError(
-                    "In '{}': VOUnit can not represent units with the 'da' "
-                    "(deka) prefix".format(unit)
+                    f"In '{unit}': VOUnit can not represent units with the 'da' "
+                    "(deka) prefix"
                 )
             elif unit._represents.scale == 0.1:
                 raise ValueError(
-                    "In '{}': VOUnit can not represent units with the 'd' "
-                    "(deci) prefix".format(unit)
+                    f"In '{unit}': VOUnit can not represent units with the 'd' "
+                    "(deci) prefix"
                 )
 
         name = unit.get_format_name("vounit")
@@ -220,7 +218,7 @@ class VOUnit(generic.Generic):
                 raise core.UnitScaleError(
                     "The VOUnit format is not able to "
                     "represent scale for dimensionless units. "
-                    "Multiply your data by {:e}.".format(unit.scale)
+                    f"Multiply your data by {unit.scale:e}."
                 )
             s = ""
             if unit.scale != 1:

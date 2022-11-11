@@ -535,14 +535,13 @@ def get_physical_type(obj):
     if isinstance(obj, str):
         return _physical_type_from_str(obj)
 
-    try:
-        unit = (
-            obj
-            if isinstance(obj, core.UnitBase)
-            else quantity.Quantity(obj, copy=False).unit
-        )
-    except TypeError as exc:
-        raise TypeError(f"{obj} does not correspond to a physical type.") from exc
+    if isinstance(obj, core.UnitBase):
+        unit = obj
+    else:
+        try:
+            unit = quantity.Quantity(obj, copy=False).unit
+        except TypeError as exc:
+            raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 
     unit = _replace_temperatures_with_kelvin(unit)
     physical_type_id = unit._get_physical_type_id()
@@ -611,13 +610,11 @@ if __doc__ is not None:
 
     for name in sorted(_name_physical_mapping.keys()):
         physical_type = _name_physical_mapping[name]
-        doclines.extend(
-            [
-                f"    * - _`{name}`",
-                f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
-                f"      - {', '.join([n for n in physical_type if n != name])}",
-            ]
-        )
+        doclines += [
+            f"    * - _`{name}`",
+            f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
+            f"      - {', '.join([n for n in physical_type if n != name])}",
+        ]
 
     __doc__ += "\n\n" + "\n".join(doclines)
 

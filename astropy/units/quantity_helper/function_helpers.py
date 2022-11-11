@@ -271,7 +271,6 @@ def copyto(dst, src, *args, **kwargs):
     from astropy.units import Quantity
 
     if isinstance(dst, Quantity):
-
         return (dst.view(np.ndarray), dst._to_own_unit(src)) + args, kwargs, None, None
     elif isinstance(src, Quantity):
         return (dst, src.to_value(dimensionless_unscaled)) + args, kwargs, None, None

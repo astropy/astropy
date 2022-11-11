@@ -308,11 +308,11 @@ class TestLogUnitConversion:
         """Check that "dimensionless" magnitude units include a message in their
         exception text suggesting a possible cause of the problem.
         """
-        with pytest.raises(u.UnitConversionError) as excinfo:
+        with pytest.raises(
+            u.UnitConversionError,
+            match="Did you perhaps subtract magnitudes so the unit got lost?",
+        ):
             (10 * u.ABmag - 2 * u.ABmag).to(u.nJy)
-        assert "Did you perhaps subtract magnitudes so the unit got lost?" in str(
-            excinfo.value
-        )
 
 
 class TestLogUnitArithmetic:
@@ -936,13 +936,8 @@ class TestLogQuantityArithmetic:
         dm = 5.0 * DMmag
         M_st = m_st - dm
         assert M_st.unit.is_equivalent(u.erg / u.s / u.AA)
-        assert (
-            np.abs(
-                M_st.physical / (m_st.physical * 4.0 * np.pi * (100.0 * u.pc) ** 2)
-                - 1.0
-            )
-            < 1.0e-15
-        )
+        ratio = M_st.physical / (m_st.physical * 4.0 * np.pi * (100.0 * u.pc) ** 2)
+        assert np.abs(ratio - 1.0) < 1.0e-15
 
 
 class TestLogQuantityComparisons:

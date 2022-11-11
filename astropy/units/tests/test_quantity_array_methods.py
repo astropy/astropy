@@ -300,7 +300,6 @@ class TestQuantityStatsFuncs:
         assert np.all(q1.round(decimals=2) == qi)
 
     def test_sum(self):
-
         q1 = np.array([1.0, 2.0, 6.0]) * u.m
         assert np.all(q1.sum() == 9.0 * u.m)
         assert np.all(np.sum(q1) == 9.0 * u.m)
@@ -316,7 +315,6 @@ class TestQuantityStatsFuncs:
         assert qi == 9.0 * u.m
 
     def test_sum_where(self):
-
         q1 = np.array([1.0, 2.0, 6.0, 7.0]) * u.m
         where = q1 < 7 * u.m
         assert np.all(q1.sum(where=where) == 9.0 * u.m)
@@ -340,7 +338,6 @@ class TestQuantityStatsFuncs:
             q1.sum(initial=initial)
 
     def test_cumsum(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         assert np.all(q1.cumsum() == np.array([1, 3, 9]) * u.m)
         assert np.all(np.cumsum(q1) == np.array([1, 3, 9]) * u.m)
@@ -359,7 +356,6 @@ class TestQuantityStatsFuncs:
         assert np.all(q2 == qi)
 
     def test_nansum(self):
-
         q1 = np.array([1.0, 2.0, np.nan]) * u.m
         assert np.all(q1.nansum() == 3.0 * u.m)
         assert np.all(np.nansum(q1) == 3.0 * u.m)
@@ -369,7 +365,6 @@ class TestQuantityStatsFuncs:
         assert np.all(np.nansum(q2, 0) == np.array([1.0, 5.0, 10.0]) * u.s)
 
     def test_nansum_inplace(self):
-
         q1 = np.array([1.0, 2.0, np.nan]) * u.m
         qi = 1.5 * u.s
         qout = q1.nansum(out=qi)
@@ -385,7 +380,6 @@ class TestQuantityStatsFuncs:
         NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22"
     )
     def test_nansum_where(self):
-
         q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
         initial = 0 * u.m
         where = q1 < 4 * u.m
@@ -393,7 +387,6 @@ class TestQuantityStatsFuncs:
         assert np.all(np.nansum(q1, initial=initial, where=where) == 3.0 * u.m)
 
     def test_prod(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
             q1.prod()
@@ -405,7 +398,6 @@ class TestQuantityStatsFuncs:
         assert np.prod(q2) == 60.0 * u.Unit(1)
 
     def test_cumprod(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
             q1.cumprod()
@@ -417,19 +409,16 @@ class TestQuantityStatsFuncs:
         assert np.all(np.cumprod(q2) == np.array([3, 12, 60]) * u.Unit(1))
 
     def test_diff(self):
-
         q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
         assert np.all(q1.diff() == np.array([1.0, 2.0, 6.0]) * u.m)
         assert np.all(np.diff(q1) == np.array([1.0, 2.0, 6.0]) * u.m)
 
     def test_ediff1d(self):
-
         q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
         assert np.all(q1.ediff1d() == np.array([1.0, 2.0, 6.0]) * u.m)
         assert np.all(np.ediff1d(q1) == np.array([1.0, 2.0, 6.0]) * u.m)
 
     def test_dot_meth(self):
-
         q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
         q2 = np.array([3.0, 4.0, 5.0, 6.0]) * u.s
         q3 = q1.dot(q2)
@@ -437,12 +426,10 @@ class TestQuantityStatsFuncs:
         assert q3.unit == u.m * u.s
 
     def test_trace_func(self):
-
         q = np.array([[1.0, 2.0], [3.0, 4.0]]) * u.m
         assert np.trace(q) == 5.0 * u.m
 
     def test_trace_meth(self):
-
         q1 = np.array([[1.0, 2.0], [3.0, 4.0]]) * u.m
         assert q1.trace() == 5.0 * u.m
 
@@ -453,7 +440,6 @@ class TestQuantityStatsFuncs:
         assert cont == 9.0 * u.m
 
     def test_clip_func(self):
-
         q = np.arange(10) * u.m
         assert np.all(
             np.clip(q, 3 * u.m, 6 * u.m)
@@ -461,7 +447,6 @@ class TestQuantityStatsFuncs:
         )
 
     def test_clip_meth(self):
-
         expected = np.array([3.0, 3.0, 3.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0]) * u.m
 
         q1 = np.arange(10) * u.m

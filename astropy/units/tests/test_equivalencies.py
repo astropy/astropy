@@ -921,7 +921,6 @@ def test_pixel_scale():
 
 
 def test_pixel_scale_invalid_scale_unit():
-
     pixscale = 0.4 * u.arcsec
     pixscale2 = 0.4 * u.arcsec / u.pix**2
 
@@ -932,7 +931,6 @@ def test_pixel_scale_invalid_scale_unit():
 
 
 def test_pixel_scale_acceptable_scale_unit():
-
     pix = 75 * u.pix
     v = 3000 * (u.cm / u.s)
 

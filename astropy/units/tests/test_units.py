@@ -351,7 +351,6 @@ for val in u.si.__dict__.values():
     "unit", sorted(COMPOSE_SI_TO_CGS, key=_unit_as_str), ids=_unit_as_str
 )
 def test_compose_si_to_cgs(unit):
-
     # Can't convert things with Ampere to CGS without more context
     try:
         cgs = unit.to_system(u.cgs)

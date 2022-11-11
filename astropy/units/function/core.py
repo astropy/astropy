@@ -116,32 +116,27 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
     def __init__(self, physical_unit=None, function_unit=None):
         if physical_unit is None:
-            self._physical_unit = dimensionless_unscaled
+            physical_unit = dimensionless_unscaled
         else:
-            self._physical_unit = Unit(physical_unit)
-            if not isinstance(
-                self._physical_unit, UnitBase
-            ) or self._physical_unit.is_equivalent(self._default_function_unit):
-                raise UnitConversionError(
-                    f"Unit {self._physical_unit} is not a physical unit."
-                )
+            physical_unit = Unit(physical_unit)
+            if not isinstance(physical_unit, UnitBase) or physical_unit.is_equivalent(
+                self._default_function_unit
+            ):
+                raise UnitConversionError(f"{physical_unit} is not a physical unit.")
 
         if function_unit is None:
-            self._function_unit = self._default_function_unit
+            function_unit = self._default_function_unit
         else:
             # any function unit should be equivalent to subclass default
             function_unit = Unit(getattr(function_unit, "function_unit", function_unit))
-            if function_unit.is_equivalent(self._default_function_unit):
-                self._function_unit = function_unit
-            else:
+            if not function_unit.is_equivalent(self._default_function_unit):
                 raise UnitConversionError(
-                    "Cannot initialize '{}' instance with function unit '{}'"
-                    ", as it is not equivalent to default function unit '{}'.".format(
-                        self.__class__.__name__,
-                        function_unit,
-                        self._default_function_unit,
-                    )
+                    f"Cannot initialize '{self.__class__.__name__}' instance with "
+                    f"function unit '{function_unit}', as it is not equivalent to "
+                    f"default function unit '{self._default_function_unit}'."
                 )
+        self._physical_unit = physical_unit
+        self._function_unit = function_unit
 
     def _copy(self, physical_unit=None):
         """Copy oneself, possibly with a different physical unit."""
@@ -537,7 +532,6 @@ class FunctionQuantity(Quantity):
         subok=False,
         ndmin=0,
     ):
-
         if unit is not None:
             # Convert possible string input to a (function) unit.
             unit = Unit(unit)
@@ -614,10 +608,9 @@ class FunctionQuantity(Quantity):
                 unit = self._unit_class(function_unit=unit or "nonsense")
             except Exception:
                 raise UnitTypeError(
-                    "{} instances require {} function units".format(
-                        type(self).__name__, self._unit_class.__name__
-                    )
-                    + f", so cannot set it to '{unit}'."
+                    f"{type(self).__name__} instances require"
+                    f" {self._unit_class.__name__} function units, so cannot set it to"
+                    f" '{unit}'."
                 )
 
         self._unit = unit
@@ -744,8 +737,8 @@ class FunctionQuantity(Quantity):
             return self._function_view._wrap_function(function, *args, **kwargs)
 
         raise TypeError(
-            "Cannot use method that uses function '{}' with "
-            "function quantities that are not dimensionless.".format(function.__name__)
+            f"Cannot use method that uses function '{function.__name__}' with "
+            "function quantities that are not dimensionless."
         )
 
     # Override functions that are supported but do not use _wrap_function
