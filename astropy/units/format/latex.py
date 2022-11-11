@@ -24,11 +24,11 @@ class Latex(base.Base):
         # This doesn't escape arbitrary LaTeX strings, but it should
         # be good enough for unit names which are required to be alpha
         # + "_" anyway.
-        return name.replace('_', r'\_')
+        return name.replace("_", r"\_")
 
     @classmethod
     def _get_unit_name(cls, unit):
-        name = unit.get_format_name('latex')
+        name = unit.get_format_name("latex")
         if name == unit.name:
             return cls._latex_escape(name)
         return name
@@ -45,23 +45,22 @@ class Latex(base.Base):
                 # a superscript, we need to spell out the unit to avoid double
                 # superscripts. For example, the logic below ensures that
                 # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
-                if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
+                if re.match(r".*\^{[^}]*}$", base_latex):  # ends w/ superscript?
                     base_latex = base_.short_names[0]
-                out.append(f'{base_latex}^{{{utils.format_power(power)}}}')
-        return r'\,'.join(out)
+                out.append(f"{base_latex}^{{{utils.format_power(power)}}}")
+        return r"\,".join(out)
 
     @classmethod
     def _format_bases(cls, unit):
-        positives, negatives = utils.get_grouped_by_powers(
-                unit.bases, unit.powers)
+        positives, negatives = utils.get_grouped_by_powers(unit.bases, unit.powers)
 
         if len(negatives):
             if len(positives):
                 positives = cls._format_unit_list(positives)
             else:
-                positives = '1'
+                positives = "1"
             negatives = cls._format_unit_list(negatives)
-            s = fr'\frac{{{positives}}}{{{negatives}}}'
+            s = rf"\frac{{{positives}}}{{{negatives}}}"
         else:
             positives = cls._format_unit_list(positives)
             s = positives
@@ -71,16 +70,16 @@ class Latex(base.Base):
     @classmethod
     def to_string(cls, unit):
         latex_name = None
-        if hasattr(unit, '_format'):
-            latex_name = unit._format.get('latex')
+        if hasattr(unit, "_format"):
+            latex_name = unit._format.get("latex")
 
         if latex_name is not None:
             s = latex_name
         elif isinstance(unit, core.CompositeUnit):
             if unit.scale == 1:
-                s = ''
+                s = ""
             else:
-                s = cls.format_exponential_notation(unit.scale) + r'\,'
+                s = cls.format_exponential_notation(unit.scale) + r"\,"
 
             if len(unit.bases):
                 s += cls._format_bases(unit)
@@ -88,7 +87,7 @@ class Latex(base.Base):
         elif isinstance(unit, core.NamedUnit):
             s = cls._latex_escape(unit.name)
 
-        return fr'$\mathrm{{{s}}}$'
+        return rf"$\mathrm{{{s}}}$"
 
     @classmethod
     def format_exponential_notation(cls, val, format_spec=".8g"):
@@ -120,13 +119,13 @@ class Latex(base.Base):
             return r" \times ".join(parts)
         else:
             if np.isnan(val):
-                return r'{\rm NaN}'
+                return r"{\rm NaN}"
             elif val > 0:
                 # positive infinity
-                return r'\infty'
+                return r"\infty"
             else:
                 # negative infinity
-                return r'-\infty'
+                return r"-\infty"
 
 
 class LatexInline(Latex):
@@ -139,7 +138,8 @@ class LatexInline(Latex):
     `ApJ and AJ style guide
     <https://journals.aas.org/manuscript-preparation/>`_.
     """
-    name = 'latex_inline'
+
+    name = "latex_inline"
 
     @classmethod
     def _format_bases(cls, unit):

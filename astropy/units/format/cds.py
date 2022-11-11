@@ -34,18 +34,18 @@ class CDS(Base):
     """
 
     _tokens = (
-        'PRODUCT',
-        'DIVISION',
-        'OPEN_PAREN',
-        'CLOSE_PAREN',
-        'OPEN_BRACKET',
-        'CLOSE_BRACKET',
-        'X',
-        'SIGN',
-        'UINT',
-        'UFLOAT',
-        'UNIT',
-        'DIMENSIONLESS'
+        "PRODUCT",
+        "DIVISION",
+        "OPEN_PAREN",
+        "CLOSE_PAREN",
+        "OPEN_BRACKET",
+        "CLOSE_BRACKET",
+        "X",
+        "SIGN",
+        "UINT",
+        "UFLOAT",
+        "UNIT",
+        "DIMENSIONLESS",
     )
 
     @classproperty(lazy=True)
@@ -77,59 +77,59 @@ class CDS(Base):
     def _make_lexer(cls):
         tokens = cls._tokens
 
-        t_PRODUCT = r'\.'
-        t_DIVISION = r'/'
-        t_OPEN_PAREN = r'\('
-        t_CLOSE_PAREN = r'\)'
-        t_OPEN_BRACKET = r'\['
-        t_CLOSE_BRACKET = r'\]'
+        t_PRODUCT = r"\."
+        t_DIVISION = r"/"
+        t_OPEN_PAREN = r"\("
+        t_CLOSE_PAREN = r"\)"
+        t_OPEN_BRACKET = r"\["
+        t_CLOSE_BRACKET = r"\]"
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
 
         def t_UFLOAT(t):
-            r'((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?'
-            if not re.search(r'[eE\.]', t.value):
-                t.type = 'UINT'
+            r"((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?"
+            if not re.search(r"[eE\.]", t.value):
+                t.type = "UINT"
                 t.value = int(t.value)
             else:
                 t.value = float(t.value)
             return t
 
         def t_UINT(t):
-            r'\d+'
+            r"\d+"
             t.value = int(t.value)
             return t
 
         def t_SIGN(t):
-            r'[+-](?=\d)'
-            t.value = float(t.value + '1')
+            r"[+-](?=\d)"
+            t.value = float(t.value + "1")
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
-            r'[x×]'
+            r"[x×]"
             return t
 
         def t_UNIT(t):
-            r'\%|°|\\h|((?!\d)\w)+'
+            r"\%|°|\\h|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 
         def t_DIMENSIONLESS(t):
-            r'---|-'
+            r"---|-"
             # These are separate from t_UNIT since they cannot have a prefactor.
             t.value = cls._get_unit(t)
             return t
 
-        t_ignore = ''
+        t_ignore = ""
 
         # Error handling rule
         def t_error(t):
-            raise ValueError(
-                f"Invalid character at col {t.lexpos}")
+            raise ValueError(f"Invalid character at col {t.lexpos}")
 
-        return parsing.lex(lextab='cds_lextab', package='astropy/units',
-                           reflags=int(re.UNICODE))
+        return parsing.lex(
+            lextab="cds_lextab", package="astropy/units", reflags=int(re.UNICODE)
+        )
 
     @classmethod
     def _make_parser(cls):
@@ -145,16 +145,17 @@ class CDS(Base):
         tokens = cls._tokens
 
         def p_main(p):
-            '''
+            """
             main : factor combined_units
                  | combined_units
                  | DIMENSIONLESS
                  | OPEN_BRACKET combined_units CLOSE_BRACKET
                  | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET
                  | factor
-            '''
+            """
             from astropy.units import dex
             from astropy.units.core import Unit
+
             if len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
             elif len(p) == 4:
@@ -163,106 +164,104 @@ class CDS(Base):
                 p[0] = Unit(p[1])
 
         def p_combined_units(p):
-            '''
+            """
             combined_units : product_of_units
                            | division_of_units
-            '''
+            """
             p[0] = p[1]
 
         def p_product_of_units(p):
-            '''
+            """
             product_of_units : unit_expression PRODUCT combined_units
                              | unit_expression
-            '''
+            """
             if len(p) == 4:
                 p[0] = p[1] * p[3]
             else:
                 p[0] = p[1]
 
         def p_division_of_units(p):
-            '''
+            """
             division_of_units : DIVISION unit_expression
                               | unit_expression DIVISION combined_units
-            '''
+            """
             if len(p) == 3:
                 p[0] = p[2] ** -1
             else:
                 p[0] = p[1] / p[3]
 
         def p_unit_expression(p):
-            '''
+            """
             unit_expression : unit_with_power
                             | OPEN_PAREN combined_units CLOSE_PAREN
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = p[2]
 
         def p_factor(p):
-            '''
+            """
             factor : signed_float X UINT signed_int
                    | UINT X UINT signed_int
                    | UINT signed_int
                    | UINT
                    | signed_float
-            '''
+            """
             if len(p) == 5:
                 if p[3] != 10:
-                    raise ValueError(
-                        "Only base ten exponents are allowed in CDS")
+                    raise ValueError("Only base ten exponents are allowed in CDS")
                 p[0] = p[1] * 10.0 ** p[4]
             elif len(p) == 3:
                 if p[1] != 10:
-                    raise ValueError(
-                        "Only base ten exponents are allowed in CDS")
+                    raise ValueError("Only base ten exponents are allowed in CDS")
                 p[0] = 10.0 ** p[2]
             elif len(p) == 2:
                 p[0] = p[1]
 
         def p_unit_with_power(p):
-            '''
+            """
             unit_with_power : UNIT numeric_power
                             | UNIT
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = p[1] ** p[2]
 
         def p_numeric_power(p):
-            '''
+            """
             numeric_power : sign UINT
-            '''
+            """
             p[0] = p[1] * p[2]
 
         def p_sign(p):
-            '''
+            """
             sign : SIGN
                  |
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = 1.0
 
         def p_signed_int(p):
-            '''
+            """
             signed_int : SIGN UINT
-            '''
+            """
             p[0] = p[1] * p[2]
 
         def p_signed_float(p):
-            '''
+            """
             signed_float : sign UINT
                          | sign UFLOAT
-            '''
+            """
             p[0] = p[1] * p[2]
 
         def p_error(p):
             raise ValueError()
 
-        return parsing.yacc(tabmodule='cds_parsetab', package='astropy/units')
+        return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
 
     @classmethod
     def _get_unit(cls, t):
@@ -273,18 +272,17 @@ class CDS(Base):
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
-            raise ValueError(
-                f"At col {t.lexpos}, {str(e)}")
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{}' not supported by the CDS SAC "
-                    "standard. {}".format(
-                        unit, did_you_mean(
-                            unit, cls._units)))
+                    "Unit '{}' not supported by the CDS SAC standard. {}".format(
+                        unit, did_you_mean(unit, cls._units)
+                    )
+                )
             else:
                 raise ValueError()
 
@@ -292,11 +290,11 @@ class CDS(Base):
 
     @classmethod
     def parse(cls, s, debug=False):
-        if ' ' in s:
-            raise ValueError('CDS unit must not contain whitespace')
+        if " " in s:
+            raise ValueError("CDS unit must not contain whitespace")
 
         if not isinstance(s, str):
-            s = s.decode('ascii')
+            s = s.decode("ascii")
 
         # This is a short circuit for the case where the string
         # is just a single unit name
@@ -313,7 +311,7 @@ class CDS(Base):
 
     @staticmethod
     def _get_unit_name(unit):
-        return unit.get_format_name('cds')
+        return unit.get_format_name("cds")
 
     @classmethod
     def _format_unit_list(cls, units):
@@ -322,8 +320,8 @@ class CDS(Base):
             if power == 1:
                 out.append(cls._get_unit_name(base))
             else:
-                out.append(f'{cls._get_unit_name(base)}{int(power)}')
-        return '.'.join(out)
+                out.append(f"{cls._get_unit_name(base)}{int(power)}")
+        return ".".join(out)
 
     @classmethod
     def to_string(cls, unit):
@@ -332,22 +330,22 @@ class CDS(Base):
 
         if isinstance(unit, core.CompositeUnit):
             if unit == core.dimensionless_unscaled:
-                return '---'
-            elif is_effectively_unity(unit.scale*100.):
-                return '%'
+                return "---"
+            elif is_effectively_unity(unit.scale * 100.0):
+                return "%"
 
             if unit.scale == 1:
-                s = ''
+                s = ""
             else:
                 m, e = utils.split_mantissa_exponent(unit.scale)
                 parts = []
-                if m not in ('', '1'):
+                if m not in ("", "1"):
                     parts.append(m)
                 if e:
-                    if not e.startswith('-'):
+                    if not e.startswith("-"):
                         e = "+" + e
-                    parts.append(f'10{e}')
-                s = 'x'.join(parts)
+                    parts.append(f"10{e}")
+                s = "x".join(parts)
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs) > 0:

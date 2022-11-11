@@ -17,93 +17,115 @@ from .helpers import (
     helper_twoarg_invariant,
 )
 
-erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
-               'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',
-               'pvstar', 'pvtob', 'pvu', 'pvup', 'pvxpv', 'rxpv', 's2pv', 's2xpv',
-               'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd', 'ldn', 'aper',
-               'apio', 'atciq', 'atciqn', 'atciqz', 'aticq', 'atioq', 'atoiq')
+erfa_ufuncs = (
+    "s2c", "s2p", "c2s", "p2s", "pm", "pdp", "pxp", "rxp", "cpv", "p2pv", "pv2p",
+    "pv2s", "pvdpv", "pvm", "pvmpv", "pvppv", "pvstar", "pvtob", "pvu", "pvup",
+    "pvxpv", "rxpv", "s2pv", "s2xpv", "starpv", "sxpv", "trxpv", "gd2gc", "gc2gd",
+    "ldn", "aper", "apio", "atciq", "atciqn", "atciqz", "aticq", "atioq", "atoiq",
+)  # fmt: skip
 
 
 def has_matching_structure(unit, dtype):
     dtype_fields = dtype.fields
     if dtype_fields:
-        return (isinstance(unit, StructuredUnit)
-                and len(unit) == len(dtype_fields)
-                and all(has_matching_structure(u, df_v[0])
-                        for (u, df_v) in zip(unit.values(), dtype_fields.values())))
+        return (
+            isinstance(unit, StructuredUnit)
+            and len(unit) == len(dtype_fields)
+            and all(
+                has_matching_structure(u, df_v[0])
+                for (u, df_v) in zip(unit.values(), dtype_fields.values())
+            )
+        )
     else:
         return not isinstance(unit, StructuredUnit)
 
 
 def check_structured_unit(unit, dtype):
     if not has_matching_structure(unit, dtype):
-        msg = {dt_pv: 'pv',
-               dt_eraLDBODY: 'ldbody',
-               dt_eraASTROM: 'astrom'}.get(dtype, 'function')
-        raise UnitTypeError(f'{msg} input needs unit matching dtype={dtype}.')
+        msg = {dt_pv: "pv", dt_eraLDBODY: "ldbody", dt_eraASTROM: "astrom"}.get(
+            dtype, "function"
+        )
+        raise UnitTypeError(f"{msg} input needs unit matching dtype={dtype}.")
 
 
 def helper_s2c(f, unit1, unit2):
     from astropy.units.si import radian
+
     try:
-        return [get_converter(unit1, radian),
-                get_converter(unit2, radian)], dimensionless_unscaled
+        return [
+            get_converter(unit1, radian),
+            get_converter(unit2, radian),
+        ], dimensionless_unscaled
     except UnitsError:
-        raise UnitTypeError("Can only apply '{}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
+        raise UnitTypeError(
+            "Can only apply '{}' function to quantities with angle units".format(
+                f.__name__
+            )
+        )
 
 
 def helper_s2p(f, unit1, unit2, unit3):
     from astropy.units.si import radian
+
     try:
-        return [get_converter(unit1, radian),
-                get_converter(unit2, radian), None], unit3
+        return [get_converter(unit1, radian), get_converter(unit2, radian), None], unit3
     except UnitsError:
-        raise UnitTypeError("Can only apply '{}' function to "
-                            "quantities with angle units"
-                            .format(f.__name__))
+        raise UnitTypeError(
+            "Can only apply '{}' function to quantities with angle units".format(
+                f.__name__
+            )
+        )
 
 
 def helper_c2s(f, unit1):
     from astropy.units.si import radian
+
     return [None], (radian, radian)
 
 
 def helper_p2s(f, unit1):
     from astropy.units.si import radian
+
     return [None], (radian, radian, unit1)
 
 
 def helper_gc2gd(f, nounit, unit1):
     from astropy.units.si import m, radian
+
     if nounit is not None:
         raise UnitTypeError("ellipsoid cannot be a quantity.")
     try:
         return [None, get_converter(unit1, m)], (radian, radian, m, None)
     except UnitsError:
-        raise UnitTypeError("Can only apply '{}' function to "
-                            "quantities with length units"
-                            .format(f.__name__))
+        raise UnitTypeError(
+            "Can only apply '{}' function to quantities with length units".format(
+                f.__name__
+            )
+        )
 
 
 def helper_gd2gc(f, nounit, unit1, unit2, unit3):
     from astropy.units.si import m, radian
+
     if nounit is not None:
         raise UnitTypeError("ellipsoid cannot be a quantity.")
     try:
-        return [None,
-                get_converter(unit1, radian),
-                get_converter(unit2, radian),
-                get_converter(unit3, m)], (m, None)
+        return [
+            None,
+            get_converter(unit1, radian),
+            get_converter(unit2, radian),
+            get_converter(unit3, m),
+        ], (m, None)
     except UnitsError:
-        raise UnitTypeError("Can only apply '{}' function to lon, lat "
-                            "with angle and height with length units"
-                            .format(f.__name__))
+        raise UnitTypeError(
+            "Can only apply '{}' function to lon, lat "
+            "with angle and height with length units".format(f.__name__)
+        )
 
 
 def helper_p2pv(f, unit1):
     from astropy.units.si import s
+
     if isinstance(unit1, StructuredUnit):
         raise UnitTypeError("p vector unit cannot be a structured unit.")
     return [None], StructuredUnit((unit1, unit1 / s))
@@ -116,6 +138,7 @@ def helper_pv2p(f, unit1):
 
 def helper_pv2s(f, unit_pv):
     from astropy.units.si import radian
+
     check_structured_unit(unit_pv, dt_pv)
     ang_unit = radian * unit_pv[1] / unit_pv[0]
     return [None], (radian, radian, unit_pv[0], ang_unit, ang_unit, unit_pv[1])
@@ -123,21 +146,25 @@ def helper_pv2s(f, unit_pv):
 
 def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
     from astropy.units.si import radian
+
     time_unit = unit_r / unit_rd
-    return [get_converter(unit_theta, radian),
-            get_converter(unit_phi, radian),
-            None,
-            get_converter(unit_td, radian / time_unit),
-            get_converter(unit_pd, radian / time_unit),
-            None], StructuredUnit((unit_r, unit_rd))
+    return [
+        get_converter(unit_theta, radian),
+        get_converter(unit_phi, radian),
+        None,
+        get_converter(unit_td, radian / time_unit),
+        get_converter(unit_pd, radian / time_unit),
+        None,
+    ], StructuredUnit((unit_r, unit_rd))
 
 
 def helper_pv_multiplication(f, unit1, unit2):
     check_structured_unit(unit1, dt_pv)
     check_structured_unit(unit2, dt_pv)
     result_unit = StructuredUnit((unit1[0] * unit2[0], unit1[1] * unit2[0]))
-    converter = get_converter(unit2, StructuredUnit(
-        (unit2[0], unit1[1] * unit2[0] / unit1[0])))
+    converter = get_converter(
+        unit2, StructuredUnit((unit2[0], unit1[1] * unit2[0] / unit1[0]))
+    )
     return [None, converter], result_unit
 
 
@@ -150,75 +177,109 @@ def helper_pvstar(f, unit1):
     from astropy.units.astrophys import AU
     from astropy.units.si import arcsec, day, km, radian, s, year
 
-    return [get_converter(unit1, StructuredUnit((AU, AU/day)))], (
-        radian, radian, radian / year, radian / year, arcsec, km / s, None)
+    return [get_converter(unit1, StructuredUnit((AU, AU / day)))], (
+        radian,
+        radian,
+        radian / year,
+        radian / year,
+        arcsec,
+        km / s,
+        None,
+    )
 
 
-def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd,
-                  unit_px, unit_rv):
+def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd, unit_px, unit_rv):
     from astropy.units.astrophys import AU
     from astropy.units.si import arcsec, day, km, radian, s, year
 
-    return [get_converter(unit_ra, radian),
-            get_converter(unit_dec, radian),
-            get_converter(unit_pmr, radian/year),
-            get_converter(unit_pmd, radian/year),
-            get_converter(unit_px, arcsec),
-            get_converter(unit_rv, km/s)], (StructuredUnit((AU, AU/day)), None)
+    return [
+        get_converter(unit_ra, radian),
+        get_converter(unit_dec, radian),
+        get_converter(unit_pmr, radian / year),
+        get_converter(unit_pmd, radian / year),
+        get_converter(unit_px, arcsec),
+        get_converter(unit_rv, km / s),
+    ], (StructuredUnit((AU, AU / day)), None)
 
 
-def helper_pvtob(f, unit_elong, unit_phi, unit_hm,
-                 unit_xp, unit_yp, unit_sp, unit_theta):
+def helper_pvtob(
+    f, unit_elong, unit_phi, unit_hm, unit_xp, unit_yp, unit_sp, unit_theta
+):
     from astropy.units.si import m, radian, s
 
-    return [get_converter(unit_elong, radian),
-            get_converter(unit_phi, radian),
-            get_converter(unit_hm, m),
-            get_converter(unit_xp, radian),
-            get_converter(unit_yp, radian),
-            get_converter(unit_sp, radian),
-            get_converter(unit_theta, radian)], StructuredUnit((m, m/s))
+    return [
+        get_converter(unit_elong, radian),
+        get_converter(unit_phi, radian),
+        get_converter(unit_hm, m),
+        get_converter(unit_xp, radian),
+        get_converter(unit_yp, radian),
+        get_converter(unit_sp, radian),
+        get_converter(unit_theta, radian),
+    ], StructuredUnit((m, m / s))
 
 
 def helper_pvu(f, unit_t, unit_pv):
     check_structured_unit(unit_pv, dt_pv)
-    return [get_converter(unit_t, unit_pv[0]/unit_pv[1]), None], unit_pv
+    return [get_converter(unit_t, unit_pv[0] / unit_pv[1]), None], unit_pv
 
 
 def helper_pvup(f, unit_t, unit_pv):
     check_structured_unit(unit_pv, dt_pv)
-    return [get_converter(unit_t, unit_pv[0]/unit_pv[1]), None], unit_pv[0]
+    return [get_converter(unit_t, unit_pv[0] / unit_pv[1]), None], unit_pv[0]
 
 
 def helper_s2xpv(f, unit1, unit2, unit_pv):
     check_structured_unit(unit_pv, dt_pv)
-    return [None, None, None], StructuredUnit((_d(unit1) * unit_pv[0],
-                                               _d(unit2) * unit_pv[1]))
+    return [None, None, None], StructuredUnit(
+        (_d(unit1) * unit_pv[0], _d(unit2) * unit_pv[1])
+    )
 
 
 def ldbody_unit():
     from astropy.units.astrophys import AU, Msun
     from astropy.units.si import day, radian
 
-    return StructuredUnit((Msun, radian, (AU, AU/day)),
-                          erfa_ufunc.dt_eraLDBODY)
+    return StructuredUnit((Msun, radian, (AU, AU / day)), erfa_ufunc.dt_eraLDBODY)
 
 
 def astrom_unit():
     from astropy.units.astrophys import AU
     from astropy.units.si import rad, year
+
     one = rel2c = dimensionless_unscaled
 
-    return StructuredUnit((year, AU, one, AU, rel2c, one, one, rad, rad, rad, rad,
-                           one, one, rel2c, rad, rad, rad),
-                          erfa_ufunc.dt_eraASTROM)
+    return StructuredUnit(
+        (
+            year,
+            AU,
+            one,
+            AU,
+            rel2c,
+            one,
+            one,
+            rad,
+            rad,
+            rad,
+            rad,
+            one,
+            one,
+            rel2c,
+            rad,
+            rad,
+            rad,
+        ),
+        erfa_ufunc.dt_eraASTROM,
+    )
 
 
 def helper_ldn(f, unit_b, unit_ob, unit_sc):
     from astropy.units.astrophys import AU
-    return [get_converter(unit_b, ldbody_unit()),
-            get_converter(unit_ob, AU),
-            get_converter(_d(unit_sc), dimensionless_unscaled)], dimensionless_unscaled
+
+    return [
+        get_converter(unit_b, ldbody_unit()),
+        get_converter(unit_ob, AU),
+        get_converter(_d(unit_sc), dimensionless_unscaled),
+    ], dimensionless_unscaled
 
 
 def helper_aper(f, unit_theta, unit_astrom):
@@ -228,81 +289,114 @@ def helper_aper(f, unit_theta, unit_astrom):
     if unit_astrom[14] is unit_along:  # eral
         result_unit = unit_astrom
     else:
-        result_units = tuple((unit_along if i == 14 else v)
-                             for i, v in enumerate(unit_astrom.values()))
+        result_units = tuple(
+            (unit_along if i == 14 else v) for i, v in enumerate(unit_astrom.values())
+        )
         result_unit = unit_astrom.__class__(result_units, names=unit_astrom)
     return [get_converter(unit_theta, unit_along), None], result_unit
 
 
-def helper_apio(f, unit_sp, unit_theta, unit_elong, unit_phi, unit_hm,
-                unit_xp, unit_yp, unit_refa, unit_refb):
+def helper_apio(
+    f,
+    unit_sp,
+    unit_theta,
+    unit_elong,
+    unit_phi,
+    unit_hm,
+    unit_xp,
+    unit_yp,
+    unit_refa,
+    unit_refb,
+):
     from astropy.units.si import m, radian
-    return [get_converter(unit_sp, radian),
-            get_converter(unit_theta, radian),
-            get_converter(unit_elong, radian),
-            get_converter(unit_phi, radian),
-            get_converter(unit_hm, m),
-            get_converter(unit_xp, radian),
-            get_converter(unit_xp, radian),
-            get_converter(unit_xp, radian),
-            get_converter(unit_xp, radian)], astrom_unit()
+
+    return [
+        get_converter(unit_sp, radian),
+        get_converter(unit_theta, radian),
+        get_converter(unit_elong, radian),
+        get_converter(unit_phi, radian),
+        get_converter(unit_hm, m),
+        get_converter(unit_xp, radian),
+        get_converter(unit_xp, radian),
+        get_converter(unit_xp, radian),
+        get_converter(unit_xp, radian),
+    ], astrom_unit()
 
 
 def helper_atciq(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom):
     from astropy.units.si import arcsec, km, radian, s, year
-    return [get_converter(unit_rc, radian),
-            get_converter(unit_dc, radian),
-            get_converter(unit_pr, radian / year),
-            get_converter(unit_pd, radian / year),
-            get_converter(unit_px, arcsec),
-            get_converter(unit_rv, km / s),
-            get_converter(unit_astrom, astrom_unit())], (radian, radian)
+
+    return [
+        get_converter(unit_rc, radian),
+        get_converter(unit_dc, radian),
+        get_converter(unit_pr, radian / year),
+        get_converter(unit_pd, radian / year),
+        get_converter(unit_px, arcsec),
+        get_converter(unit_rv, km / s),
+        get_converter(unit_astrom, astrom_unit()),
+    ], (radian, radian)
 
 
-def helper_atciqn(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom,
-                  unit_b):
+def helper_atciqn(
+    f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom, unit_b
+):
     from astropy.units.si import arcsec, km, radian, s, year
-    return [get_converter(unit_rc, radian),
-            get_converter(unit_dc, radian),
-            get_converter(unit_pr, radian / year),
-            get_converter(unit_pd, radian / year),
-            get_converter(unit_px, arcsec),
-            get_converter(unit_rv, km / s),
-            get_converter(unit_astrom, astrom_unit()),
-            get_converter(unit_b, ldbody_unit())], (radian, radian)
+
+    return [
+        get_converter(unit_rc, radian),
+        get_converter(unit_dc, radian),
+        get_converter(unit_pr, radian / year),
+        get_converter(unit_pd, radian / year),
+        get_converter(unit_px, arcsec),
+        get_converter(unit_rv, km / s),
+        get_converter(unit_astrom, astrom_unit()),
+        get_converter(unit_b, ldbody_unit()),
+    ], (radian, radian)
 
 
 def helper_atciqz_aticq(f, unit_rc, unit_dc, unit_astrom):
     from astropy.units.si import radian
-    return [get_converter(unit_rc, radian),
-            get_converter(unit_dc, radian),
-            get_converter(unit_astrom, astrom_unit())], (radian, radian)
+
+    return [
+        get_converter(unit_rc, radian),
+        get_converter(unit_dc, radian),
+        get_converter(unit_astrom, astrom_unit()),
+    ], (radian, radian)
 
 
 def helper_aticqn(f, unit_rc, unit_dc, unit_astrom, unit_b):
     from astropy.units.si import radian
-    return [get_converter(unit_rc, radian),
-            get_converter(unit_dc, radian),
-            get_converter(unit_astrom, astrom_unit()),
-            get_converter(unit_b, ldbody_unit())], (radian, radian)
+
+    return [
+        get_converter(unit_rc, radian),
+        get_converter(unit_dc, radian),
+        get_converter(unit_astrom, astrom_unit()),
+        get_converter(unit_b, ldbody_unit()),
+    ], (radian, radian)
 
 
 def helper_atioq(f, unit_rc, unit_dc, unit_astrom):
     from astropy.units.si import radian
-    return [get_converter(unit_rc, radian),
-            get_converter(unit_dc, radian),
-            get_converter(unit_astrom, astrom_unit())], (radian,)*5
+
+    return [
+        get_converter(unit_rc, radian),
+        get_converter(unit_dc, radian),
+        get_converter(unit_astrom, astrom_unit()),
+    ], (radian,) * 5
 
 
 def helper_atoiq(f, unit_type, unit_ri, unit_di, unit_astrom):
     from astropy.units.si import radian
+
     if unit_type is not None:
         raise UnitTypeError("argument 'type' should not have a unit")
 
-    return [None,
-            get_converter(unit_ri, radian),
-            get_converter(unit_di, radian),
-            get_converter(unit_astrom, astrom_unit())], (radian, radian)
+    return [
+        None,
+        get_converter(unit_ri, radian),
+        get_converter(unit_di, radian),
+        get_converter(unit_astrom, astrom_unit()),
+    ], (radian, radian)
 
 
 def get_erfa_helpers():
@@ -349,5 +443,4 @@ def get_erfa_helpers():
     return ERFA_HELPERS
 
 
-UFUNC_HELPERS.register_module('erfa.ufunc', erfa_ufuncs,
-                              get_erfa_helpers)
+UFUNC_HELPERS.register_module("erfa.ufunc", erfa_ufuncs, get_erfa_helpers)

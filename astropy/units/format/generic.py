@@ -31,25 +31,24 @@ def _to_string(cls, unit):
         parts = []
 
         if cls._show_scale and unit.scale != 1:
-            parts.append(f'{unit.scale:g}')
+            parts.append(f"{unit.scale:g}")
 
         if len(unit.bases):
-            positives, negatives = utils.get_grouped_by_powers(
-                unit.bases, unit.powers)
+            positives, negatives = utils.get_grouped_by_powers(unit.bases, unit.powers)
             if len(positives):
                 parts.append(cls._format_unit_list(positives))
             elif len(parts) == 0:
-                parts.append('1')
+                parts.append("1")
 
             if len(negatives):
-                parts.append('/')
+                parts.append("/")
                 unit_list = cls._format_unit_list(negatives)
                 if len(negatives) == 1:
-                    parts.append(f'{unit_list}')
+                    parts.append(f"{unit_list}")
                 else:
-                    parts.append(f'({unit_list})')
+                    parts.append(f"({unit_list})")
 
-        return ' '.join(parts)
+        return " ".join(parts)
     elif isinstance(unit, core.NamedUnit):
         return cls._get_unit_name(unit)
 
@@ -66,19 +65,19 @@ class Generic(Base):
     _show_scale = True
 
     _tokens = (
-        'COMMA',
-        'DOUBLE_STAR',
-        'STAR',
-        'PERIOD',
-        'SOLIDUS',
-        'CARET',
-        'OPEN_PAREN',
-        'CLOSE_PAREN',
-        'FUNCNAME',
-        'UNIT',
-        'SIGN',
-        'UINT',
-        'UFLOAT'
+        "COMMA",
+        "DOUBLE_STAR",
+        "STAR",
+        "PERIOD",
+        "SOLIDUS",
+        "CARET",
+        "OPEN_PAREN",
+        "CLOSE_PAREN",
+        "FUNCNAME",
+        "UNIT",
+        "SIGN",
+        "UINT",
+        "UFLOAT",
     )
 
     @classproperty(lazy=True)
@@ -109,43 +108,43 @@ class Generic(Base):
     def _make_lexer(cls):
         tokens = cls._tokens
 
-        t_COMMA = r'\,'
-        t_STAR = r'\*'
-        t_PERIOD = r'\.'
-        t_SOLIDUS = r'/'
-        t_DOUBLE_STAR = r'\*\*'
-        t_CARET = r'\^'
-        t_OPEN_PAREN = r'\('
-        t_CLOSE_PAREN = r'\)'
+        t_COMMA = r"\,"
+        t_STAR = r"\*"
+        t_PERIOD = r"\."
+        t_SOLIDUS = r"/"
+        t_DOUBLE_STAR = r"\*\*"
+        t_CARET = r"\^"
+        t_OPEN_PAREN = r"\("
+        t_CLOSE_PAREN = r"\)"
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
         def t_UFLOAT(t):
-            r'((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
-            if not re.search(r'[eE\.]', t.value):
-                t.type = 'UINT'
+            r"((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?"
+            if not re.search(r"[eE\.]", t.value):
+                t.type = "UINT"
                 t.value = int(t.value)
-            elif t.value.endswith('.'):
-                t.type = 'UINT'
+            elif t.value.endswith("."):
+                t.type = "UINT"
                 t.value = int(t.value[:-1])
             else:
                 t.value = float(t.value)
             return t
 
         def t_UINT(t):
-            r'\d+'
+            r"\d+"
             t.value = int(t.value)
             return t
 
         def t_SIGN(t):
-            r'[+-](?=\d)'
-            t.value = int(t.value + '1')
+            r"[+-](?=\d)"
+            t.value = int(t.value + "1")
             return t
 
         # This needs to be a function so we can force it to happen
         # before t_UNIT
         def t_FUNCNAME(t):
-            r'((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()'
+            r"((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()"
             return t
 
         def t_UNIT(t):
@@ -153,15 +152,15 @@ class Generic(Base):
             t.value = cls._get_unit(t)
             return t
 
-        t_ignore = ' '
+        t_ignore = " "
 
         # Error handling rule
         def t_error(t):
-            raise ValueError(
-                f"Invalid character at col {t.lexpos}")
+            raise ValueError(f"Invalid character at col {t.lexpos}")
 
-        return parsing.lex(lextab='generic_lextab', package='astropy/units',
-                           reflags=int(re.UNICODE))
+        return parsing.lex(
+            lextab="generic_lextab", package="astropy/units", reflags=int(re.UNICODE)
+        )
 
     @classmethod
     def _make_parser(cls):
@@ -180,11 +179,11 @@ class Generic(Base):
         tokens = cls._tokens
 
         def p_main(p):
-            '''
+            """
             main : unit
                  | structured_unit
                  | structured_subunit
-            '''
+            """
             if isinstance(p[1], tuple):
                 # Unpack possible StructuredUnit inside a tuple, ie.,
                 # ignore any set of very outer parentheses.
@@ -193,20 +192,21 @@ class Generic(Base):
                 p[0] = p[1]
 
         def p_structured_subunit(p):
-            '''
+            """
             structured_subunit : OPEN_PAREN structured_unit CLOSE_PAREN
-            '''
+            """
             # We hide a structured unit enclosed by parentheses inside
             # a tuple, so that we can easily distinguish units like
             # "(au, au/day), yr" from "au, au/day, yr".
             p[0] = (p[2],)
 
         def p_structured_unit(p):
-            '''
+            """
             structured_unit : subunit COMMA
                             | subunit COMMA subunit
-            '''
+            """
             from ..structured import StructuredUnit
+
             inputs = (p[1],) if len(p) == 3 else (p[1], p[3])
             units = ()
             for subunit in inputs:
@@ -225,15 +225,15 @@ class Generic(Base):
             p[0] = StructuredUnit(units)
 
         def p_subunit(p):
-            '''
+            """
             subunit : unit
                     | structured_unit
                     | structured_subunit
-            '''
+            """
             p[0] = p[1]
 
         def p_unit(p):
-            '''
+            """
             unit : product_of_units
                  | factor product_of_units
                  | factor product product_of_units
@@ -244,8 +244,9 @@ class Generic(Base):
                  | factor inverse_unit
                  | factor product inverse_unit
                  | factor
-            '''
+            """
             from astropy.units.core import Unit
+
             if len(p) == 2:
                 p[0] = Unit(p[1])
             elif len(p) == 3:
@@ -254,37 +255,38 @@ class Generic(Base):
                 p[0] = Unit(p[1] * p[3])
 
         def p_division_product_of_units(p):
-            '''
+            """
             division_product_of_units : division_product_of_units division product_of_units
                                       | product_of_units
-            '''
+            """
             from astropy.units.core import Unit
+
             if len(p) == 4:
                 p[0] = Unit(p[1] / p[3])
             else:
                 p[0] = p[1]
 
         def p_inverse_unit(p):
-            '''
+            """
             inverse_unit : division unit_expression
-            '''
+            """
             p[0] = p[2] ** -1
 
         def p_factor(p):
-            '''
+            """
             factor : factor_fits
                    | factor_float
                    | factor_int
-            '''
+            """
             p[0] = p[1]
 
         def p_factor_float(p):
-            '''
+            """
             factor_float : signed_float
                          | signed_float UINT signed_int
                          | signed_float UINT power numeric_power
-            '''
-            if cls.name == 'fits':
+            """
+            if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 4:
                 p[0] = p[1] * p[2] ** float(p[3])
@@ -294,14 +296,14 @@ class Generic(Base):
                 p[0] = p[1]
 
         def p_factor_int(p):
-            '''
+            """
             factor_int : UINT
                        | UINT signed_int
                        | UINT power numeric_power
                        | UINT UINT signed_int
                        | UINT UINT power numeric_power
-            '''
-            if cls.name == 'fits':
+            """
+            if cls.name == "fits":
                 raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 2:
                 p[0] = p[1]
@@ -316,21 +318,21 @@ class Generic(Base):
                 p[0] = p[1] * p[2] ** p[4]
 
         def p_factor_fits(p):
-            '''
+            """
             factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
                         | UINT power OPEN_PAREN UINT CLOSE_PAREN
                         | UINT power signed_int
                         | UINT power UINT
                         | UINT SIGN UINT
                         | UINT OPEN_PAREN signed_int CLOSE_PAREN
-            '''
+            """
             if p[1] != 10:
-                if cls.name == 'fits':
+                if cls.name == "fits":
                     raise ValueError("Base must be 10")
                 else:
                     return
             if len(p) == 4:
-                if p[2] in ('**', '^'):
+                if p[2] in ("**", "^"):
                     p[0] = 10 ** p[3]
                 else:
                     p[0] = 10 ** (p[2] * p[3])
@@ -340,11 +342,11 @@ class Generic(Base):
                 p[0] = 10 ** p[4]
 
         def p_product_of_units(p):
-            '''
+            """
             product_of_units : unit_expression product product_of_units
                              | unit_expression product_of_units
                              | unit_expression
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             elif len(p) == 3:
@@ -353,22 +355,22 @@ class Generic(Base):
                 p[0] = p[1] * p[3]
 
         def p_unit_expression(p):
-            '''
+            """
             unit_expression : function
                             | unit_with_power
                             | OPEN_PAREN product_of_units CLOSE_PAREN
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = p[2]
 
         def p_unit_with_power(p):
-            '''
+            """
             unit_with_power : UNIT power numeric_power
                             | UNIT numeric_power
                             | UNIT
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             elif len(p) == 3:
@@ -377,89 +379,89 @@ class Generic(Base):
                 p[0] = p[1] ** p[3]
 
         def p_numeric_power(p):
-            '''
+            """
             numeric_power : sign UINT
                           | OPEN_PAREN paren_expr CLOSE_PAREN
-            '''
+            """
             if len(p) == 3:
                 p[0] = p[1] * p[2]
             elif len(p) == 4:
                 p[0] = p[2]
 
         def p_paren_expr(p):
-            '''
+            """
             paren_expr : sign UINT
                        | signed_float
                        | frac
-            '''
+            """
             if len(p) == 3:
                 p[0] = p[1] * p[2]
             else:
                 p[0] = p[1]
 
         def p_frac(p):
-            '''
+            """
             frac : sign UINT division sign UINT
-            '''
+            """
             p[0] = Fraction(p[1] * p[2], p[4] * p[5])
 
         def p_sign(p):
-            '''
+            """
             sign : SIGN
                  |
-            '''
+            """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = 1
 
         def p_product(p):
-            '''
+            """
             product : STAR
                     | PERIOD
-            '''
+            """
             pass
 
         def p_division(p):
-            '''
+            """
             division : SOLIDUS
-            '''
+            """
             pass
 
         def p_power(p):
-            '''
+            """
             power : DOUBLE_STAR
                   | CARET
-            '''
+            """
             p[0] = p[1]
 
         def p_signed_int(p):
-            '''
+            """
             signed_int : SIGN UINT
-            '''
+            """
             p[0] = p[1] * p[2]
 
         def p_signed_float(p):
-            '''
+            """
             signed_float : sign UINT
                          | sign UFLOAT
-            '''
+            """
             p[0] = p[1] * p[2]
 
         def p_function_name(p):
-            '''
+            """
             function_name : FUNCNAME
-            '''
+            """
             p[0] = p[1]
 
         def p_function(p):
-            '''
+            """
             function : function_name OPEN_PAREN main CLOSE_PAREN
-            '''
-            if p[1] == 'sqrt':
+            """
+            if p[1] == "sqrt":
                 p[0] = p[3] ** 0.5
                 return
-            elif p[1] in ('mag', 'dB', 'dex'):
+            elif p[1] in ("mag", "dB", "dex"):
                 function_unit = cls._parse_unit(p[1])
                 # In Generic, this is callable, but that does not have to
                 # be the case in subclasses (e.g., in VOUnit it is not).
@@ -472,7 +474,7 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        return parsing.yacc(tabmodule='generic_parsetab', package='astropy/units')
+        return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
 
     @classmethod
     def _get_unit(cls, t):
@@ -483,8 +485,7 @@ class Generic(Base):
             if t.value in registry.aliases:
                 return registry.aliases[t.value]
 
-            raise ValueError(
-                f"At col {t.lexpos}, {str(e)}")
+            raise ValueError(f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
@@ -493,52 +494,53 @@ class Generic(Base):
             s = cls._unit_symbols[s]
 
         elif not s.isascii():
-            if s[0] == '\N{MICRO SIGN}':
-                s = 'u' + s[1:]
+            if s[0] == "\N{MICRO SIGN}":
+                s = "u" + s[1:]
             if s[-1] in cls._prefixable_unit_symbols:
                 s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
             elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
                 s = s[:-1] + cls._unit_suffix_symbols[s[-1]]
-            elif s.endswith('R\N{INFINITY}'):
-                s = s[:-2] + 'Ry'
+            elif s.endswith("R\N{INFINITY}"):
+                s = s[:-2] + "Ry"
 
         if s in registry:
             return registry[s]
 
         if detailed_exception:
-            raise ValueError(
-                f'{s} is not a valid unit. {did_you_mean(s, registry)}')
+            raise ValueError(f"{s} is not a valid unit. {did_you_mean(s, registry)}")
         else:
             raise ValueError()
 
     _unit_symbols = {
-        '%': 'percent',
-        '\N{PRIME}': 'arcmin',
-        '\N{DOUBLE PRIME}': 'arcsec',
-        '\N{MODIFIER LETTER SMALL H}': 'hourangle',
-        'e\N{SUPERSCRIPT MINUS}': 'electron',
+        "%": "percent",
+        "\N{PRIME}": "arcmin",
+        "\N{DOUBLE PRIME}": "arcsec",
+        "\N{MODIFIER LETTER SMALL H}": "hourangle",
+        "e\N{SUPERSCRIPT MINUS}": "electron",
     }
 
     _prefixable_unit_symbols = {
-        '\N{GREEK CAPITAL LETTER OMEGA}': 'Ohm',
-        '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}': 'Angstrom',
-        '\N{SCRIPT SMALL L}': 'l',
+        "\N{GREEK CAPITAL LETTER OMEGA}": "Ohm",
+        "\N{LATIN CAPITAL LETTER A WITH RING ABOVE}": "Angstrom",
+        "\N{SCRIPT SMALL L}": "l",
     }
 
     _unit_suffix_symbols = {
-        '\N{CIRCLED DOT OPERATOR}': 'sun',
-        '\N{SUN}': 'sun',
-        '\N{CIRCLED PLUS}': 'earth',
-        '\N{EARTH}': 'earth',
-        '\N{JUPITER}': 'jupiter',
-        '\N{LATIN SUBSCRIPT SMALL LETTER E}': '_e',
-        '\N{LATIN SUBSCRIPT SMALL LETTER P}': '_p',
+        "\N{CIRCLED DOT OPERATOR}": "sun",
+        "\N{SUN}": "sun",
+        "\N{CIRCLED PLUS}": "earth",
+        "\N{EARTH}": "earth",
+        "\N{JUPITER}": "jupiter",
+        "\N{LATIN SUBSCRIPT SMALL LETTER E}": "_e",
+        "\N{LATIN SUBSCRIPT SMALL LETTER P}": "_p",
     }
 
-    _translations = str.maketrans({
-        '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
-        '\N{MINUS SIGN}': '-',
-    })
+    _translations = str.maketrans(
+        {
+            "\N{GREEK SMALL LETTER MU}": "\N{MICRO SIGN}",
+            "\N{MINUS SIGN}": "-",
+        }
+    )
     """Character translations that should be applied before parsing a string.
 
     Note that this does explicitly *not* generally translate MICRO SIGN to u,
@@ -546,44 +548,44 @@ class Generic(Base):
     """
 
     _superscripts = (
-        '\N{SUPERSCRIPT MINUS}'
-        '\N{SUPERSCRIPT PLUS SIGN}'
-        '\N{SUPERSCRIPT ZERO}'
-        '\N{SUPERSCRIPT ONE}'
-        '\N{SUPERSCRIPT TWO}'
-        '\N{SUPERSCRIPT THREE}'
-        '\N{SUPERSCRIPT FOUR}'
-        '\N{SUPERSCRIPT FIVE}'
-        '\N{SUPERSCRIPT SIX}'
-        '\N{SUPERSCRIPT SEVEN}'
-        '\N{SUPERSCRIPT EIGHT}'
-        '\N{SUPERSCRIPT NINE}'
+        "\N{SUPERSCRIPT MINUS}"
+        "\N{SUPERSCRIPT PLUS SIGN}"
+        "\N{SUPERSCRIPT ZERO}"
+        "\N{SUPERSCRIPT ONE}"
+        "\N{SUPERSCRIPT TWO}"
+        "\N{SUPERSCRIPT THREE}"
+        "\N{SUPERSCRIPT FOUR}"
+        "\N{SUPERSCRIPT FIVE}"
+        "\N{SUPERSCRIPT SIX}"
+        "\N{SUPERSCRIPT SEVEN}"
+        "\N{SUPERSCRIPT EIGHT}"
+        "\N{SUPERSCRIPT NINE}"
     )
 
-    _superscript_translations = str.maketrans(_superscripts, '-+0123456789')
-    _regex_superscript = re.compile(f'[{_superscripts}]?[{_superscripts[2:]}]+')
-    _regex_deg = re.compile('°([CF])?')
+    _superscript_translations = str.maketrans(_superscripts, "-+0123456789")
+    _regex_superscript = re.compile(f"[{_superscripts}]?[{_superscripts[2:]}]+")
+    _regex_deg = re.compile("°([CF])?")
 
     @classmethod
     def _convert_superscript(cls, m):
-        return f'({m.group().translate(cls._superscript_translations)})'
+        return f"({m.group().translate(cls._superscript_translations)})"
 
     @classmethod
     def _convert_deg(cls, m):
         if len(m.string) == 1:
-            return 'deg'
-        return m.string.replace('°', 'deg_')
+            return "deg"
+        return m.string.replace("°", "deg_")
 
     @classmethod
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
-            s = s.decode('ascii')
+            s = s.decode("ascii")
         elif not s.isascii():
             # common normalization of unicode strings to avoid
             # having to deal with multiple representations of
             # the same character. This normalizes to "composed" form
             # and will e.g. convert OHM SIGN to GREEK CAPITAL LETTER OMEGA
-            s = unicodedata.normalize('NFC', s)
+            s = unicodedata.normalize("NFC", s)
             # Translate some basic unicode items that we'd like to support on
             # input but are not standard.
             s = s.translate(cls._translations)
@@ -597,12 +599,13 @@ class Generic(Base):
 
         result = cls._do_parse(s, debug=debug)
         # Check for excess solidi, but exclude fractional exponents (accepted)
-        n_slashes = s.count('/')
-        if n_slashes > 1 and (n_slashes - len(re.findall(r'\(\d+/\d+\)', s))) > 1:
+        n_slashes = s.count("/")
+        if n_slashes > 1 and (n_slashes - len(re.findall(r"\(\d+/\d+\)", s))) > 1:
             warnings.warn(
                 "'{}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
-                core.UnitsWarning)
+                core.UnitsWarning,
+            )
         return result
 
     @classmethod
@@ -622,7 +625,7 @@ class Generic(Base):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        return unit.get_format_name('generic')
+        return unit.get_format_name("generic")
 
     @classmethod
     def _format_unit_list(cls, units):
@@ -634,11 +637,11 @@ class Generic(Base):
                 out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
-                if '/' in power or '.' in power:
-                    out.append(f'{cls._get_unit_name(base)}({power})')
+                if "/" in power or "." in power:
+                    out.append(f"{cls._get_unit_name(base)}({power})")
                 else:
-                    out.append(f'{cls._get_unit_name(base)}{power}')
-        return ' '.join(out)
+                    out.append(f"{cls._get_unit_name(base)}{power}")
+        return " ".join(out)
 
     @classmethod
     def to_string(cls, unit):
@@ -652,4 +655,5 @@ class Unscaled(Generic):
 
     This is used in some error messages where the scale is irrelevant.
     """
+
     _show_scale = False
