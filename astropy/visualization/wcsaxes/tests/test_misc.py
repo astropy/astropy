@@ -113,13 +113,11 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
 def test_invalid_frame_overlay(ignore_matplotlibrc):
     # Make sure a nice error is returned if a frame doesn't exist
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=r"Frame banana not found"):
         ax.get_coords_overlay("banana")
-    assert exc.value.args[0] == "Frame banana not found"
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=r"Unknown frame: banana"):
         get_coord_meta("banana")
-    assert exc.value.args[0] == "Unknown frame: banana"
 
 
 def test_plot_coord_transform(ignore_matplotlibrc):
@@ -358,19 +356,20 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
 
     plt.subplot(1, 1, 1, projection=wcs3d, slices=("x", "y", 1))
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=r"WCS has more than 2 pixel dimensions, so 'slices' should be set",
+    ):
         plt.subplot(1, 1, 1, projection=wcs3d)
-    assert (
-        exc.value.args[0]
-        == "WCS has more than 2 pixel dimensions, so 'slices' should be set"
-    )
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"'slices' should have as many elements as WCS has pixel dimensions .should"
+            r" be 3."
+        ),
+    ):
         plt.subplot(1, 1, 1, projection=wcs3d, slices=("x", "y", 1, 2))
-    assert (
-        exc.value.args[0] == "'slices' should have as many elements as "
-        "WCS has pixel dimensions (should be 3)"
-    )
 
     wcs2d = WCS(naxis=2)
     wcs2d.wcs.ctype = ["x", "y"]

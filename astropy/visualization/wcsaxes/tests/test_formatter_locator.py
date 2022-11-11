@@ -22,29 +22,19 @@ class TestAngleFormatterLocator:
         assert fl.spacing is None
 
     def test_too_many_options(self):
-        with pytest.raises(ValueError) as exc:
+        MESSAGE = r"At most one of values/number/spacing can be specified"
+
+        with pytest.raises(ValueError, match=MESSAGE):
             AngleFormatterLocator(values=[1.0, 2.0], number=5)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             AngleFormatterLocator(values=[1.0, 2.0], spacing=5.0 * u.deg)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             AngleFormatterLocator(number=5, spacing=5.0 * u.deg)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             AngleFormatterLocator(values=[1.0, 2.0], number=5, spacing=5.0 * u.deg)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
     def test_values(self):
         fl = AngleFormatterLocator(values=[0.1, 1.0, 14.0] * u.degree)
@@ -74,13 +64,14 @@ class TestAngleFormatterLocator:
         assert_almost_equal(values.to_value(u.degree), [35.0, 36.0])
 
     def test_spacing(self):
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError,
+            match=(
+                r"spacing should be an astropy.units.Quantity instance with units of"
+                r" angle"
+            ),
+        ):
             AngleFormatterLocator(spacing=3.0)
-        assert (
-            exc.value.args[0]
-            == "spacing should be an astropy.units.Quantity instance with units of"
-            " angle"
-        )
 
         fl = AngleFormatterLocator(spacing=3.0 * u.degree)
         assert fl.values is None
@@ -202,9 +193,8 @@ class TestAngleFormatterLocator:
     @pytest.mark.parametrize("format", ["x.xxx", "dd.ss", "dd:ss", "mdd:mm:ss"])
     def test_invalid_formats(self, format):
         fl = AngleFormatterLocator(number=5)
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=f"Invalid format: {format}"):
             fl.format = format
-        assert exc.value.args[0] == "Invalid format: " + format
 
     @pytest.mark.parametrize(
         ("format", "base_spacing"),
@@ -457,13 +447,14 @@ class TestAngleFormatterLocator:
         assert fl.formatter([15.392231] * u.degree, spacing, format="latex")[0] == latex
 
     def test_incompatible_unit_decimal(self):
-        with pytest.raises(UnitsError) as exc:
+        with pytest.raises(
+            UnitsError,
+            match=(
+                r"Units should be degrees or hours when using non-decimal .sexagesimal."
+                r" mode"
+            ),
+        ):
             AngleFormatterLocator(unit=u.arcmin, decimal=False)
-        assert (
-            exc.value.args[0]
-            == "Units should be degrees or hours when using non-decimal (sexagesimal)"
-            " mode"
-        )
 
 
 class TestScalarFormatterLocator:
@@ -474,29 +465,19 @@ class TestScalarFormatterLocator:
         assert fl.spacing is None
 
     def test_too_many_options(self):
-        with pytest.raises(ValueError) as exc:
+        MESSAGE = r"At most one of values/number/spacing can be specified"
+
+        with pytest.raises(ValueError, match=MESSAGE):
             ScalarFormatterLocator(values=[1.0, 2.0] * u.m, number=5)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             ScalarFormatterLocator(values=[1.0, 2.0] * u.m, spacing=5.0 * u.m)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             ScalarFormatterLocator(number=5, spacing=5.0 * u.m)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=MESSAGE):
             ScalarFormatterLocator(values=[1.0, 2.0] * u.m, number=5, spacing=5.0 * u.m)
-        assert (
-            exc.value.args[0] == "At most one of values/number/spacing can be specified"
-        )
 
     def test_values(self):
         fl = ScalarFormatterLocator(values=[0.1, 1.0, 14.0] * u.m, unit=u.m)
@@ -611,9 +592,8 @@ class TestScalarFormatterLocator:
     @pytest.mark.parametrize("format", ["dd", "dd:mm", "xx:mm", "mx.xxx"])
     def test_invalid_formats(self, format):
         fl = ScalarFormatterLocator(number=5, unit=u.m)
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=f"Invalid format: {format}"):
             fl.format = format
-        assert exc.value.args[0] == "Invalid format: " + format
 
     @pytest.mark.parametrize(
         ("format", "base_spacing"),
