@@ -20,8 +20,8 @@ class VOUnit(generic.Generic):
     This is an implementation of `Units in the VO 1.0
     <http://www.ivoa.net/documents/VOUnits/>`_.
     """
-    _explicit_custom_unit_regex = re.compile(
-        r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
+
+    _explicit_custom_unit_regex = re.compile(r"^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
     _custom_unit_regex = re.compile(r"^((?!\d)\w)+$")
     _custom_units = {}
 
@@ -32,33 +32,26 @@ class VOUnit(generic.Generic):
 
         names = {}
         deprecated_names = set()
-
         bases = [
-            'A', 'C', 'D', 'F', 'G', 'H', 'Hz', 'J', 'Jy', 'K', 'N',
-            'Ohm', 'Pa', 'R', 'Ry', 'S', 'T', 'V', 'W', 'Wb', 'a',
-            'adu', 'arcmin', 'arcsec', 'barn', 'beam', 'bin', 'cd',
-            'chan', 'count', 'ct', 'd', 'deg', 'eV', 'erg', 'g', 'h',
-            'lm', 'lx', 'lyr', 'm', 'mag', 'min', 'mol', 'pc', 'ph',
-            'photon', 'pix', 'pixel', 'rad', 'rad', 's', 'solLum',
-            'solMass', 'solRad', 'sr', 'u', 'voxel', 'yr'
-        ]
-        binary_bases = [
-            'bit', 'byte', 'B'
-        ]
-        simple_units = [
-            'Angstrom', 'angstrom', 'AU', 'au', 'Ba', 'dB', 'mas'
-        ]
+            "A", "C", "D", "F", "G", "H", "Hz", "J", "Jy", "K", "N",
+            "Ohm", "Pa", "R", "Ry", "S", "T", "V", "W", "Wb", "a",
+            "adu", "arcmin", "arcsec", "barn", "beam", "bin", "cd",
+            "chan", "count", "ct", "d", "deg", "eV", "erg", "g", "h",
+            "lm", "lx", "lyr", "m", "mag", "min", "mol", "pc", "ph",
+            "photon", "pix", "pixel", "rad", "rad", "s", "solLum",
+            "solMass", "solRad", "sr", "u", "voxel", "yr",
+        ]  # fmt: skip
+        binary_bases = ["bit", "byte", "B"]
+        simple_units = ["Angstrom", "angstrom", "AU", "au", "Ba", "dB", "mas"]
         si_prefixes = [
-            'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
-            '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'
-        ]
-        binary_prefixes = [
-            'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei'
-        ]
+            "y", "z", "a", "f", "p", "n", "u", "m", "c", "d",
+            "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"
+        ]  # fmt: skip
+        binary_prefixes = ["Ki", "Mi", "Gi", "Ti", "Pi", "Ei"]
         deprecated_units = {
-            'a', 'angstrom', 'Angstrom', 'au', 'Ba', 'barn', 'ct',
-            'erg', 'G', 'ph', 'pix'
-        }
+            "a", "angstrom", "Angstrom", "au", "Ba", "barn", "ct",
+            "erg", "G", "ph", "pix",
+        }  # fmt: skip
 
         def do_defines(bases, prefixes, skips=[]):
             for base in bases:
@@ -73,28 +66,27 @@ class VOUnit(generic.Generic):
                     if base in deprecated_units:
                         deprecated_names.add(key)
 
-        do_defines(bases, si_prefixes, ['pct', 'pcount', 'yd'])
-        do_defines(binary_bases, si_prefixes + binary_prefixes, ['dB', 'dbyte'])
-        do_defines(simple_units, [''])
+        do_defines(bases, si_prefixes, ["pct", "pcount", "yd"])
+        do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
+        do_defines(simple_units, [""])
 
         return names, deprecated_names, []
 
     @classmethod
     def parse(cls, s, debug=False):
-        if s in ('unknown', 'UNKNOWN'):
+        if s in ("unknown", "UNKNOWN"):
             return None
-        if s == '':
+        if s == "":
             return core.dimensionless_unscaled
         # Check for excess solidi, but exclude fractional exponents (allowed)
-        if (s.count('/') > 1 and
-                s.count('/') - len(re.findall(r'\(\d+/\d+\)', s)) > 1):
+        if s.count("/") > 1 and s.count("/") - len(re.findall(r"\(\d+/\d+\)", s)) > 1:
             raise core.UnitsError(
                 "'{}' contains multiple slashes, which is "
-                "disallowed by the VOUnit standard".format(s))
+                "disallowed by the VOUnit standard".format(s)
+            )
         result = cls._do_parse(s, debug=debug)
-        if hasattr(result, 'function_unit'):
-            raise ValueError("Function units are not yet supported in "
-                             "VOUnit.")
+        if hasattr(result, "function_unit"):
+            raise ValueError("Function units are not yet supported in VOUnit.")
         return result
 
     @classmethod
@@ -107,12 +99,17 @@ class VOUnit(generic.Generic):
 
             if cls._custom_unit_regex.match(t.value):
                 warnings.warn(
-                    "Unit {!r} not supported by the VOUnit "
-                    "standard. {}".format(
-                        t.value, utils.did_you_mean_units(
-                            t.value, cls._units, cls._deprecated_units,
-                            cls._to_decomposed_alternative)),
-                    core.UnitsWarning)
+                    "Unit {!r} not supported by the VOUnit standard. {}".format(
+                        t.value,
+                        utils.did_you_mean_units(
+                            t.value,
+                            cls._units,
+                            cls._deprecated_units,
+                            cls._to_decomposed_alternative,
+                        ),
+                    ),
+                    core.UnitsWarning,
+                )
 
                 return cls._def_custom_unit(t.value)
 
@@ -125,8 +122,8 @@ class VOUnit(generic.Generic):
 
         if unit in cls._deprecated_units:
             utils.unit_deprecation_warning(
-                unit, cls._units[unit], 'VOUnit',
-                cls._to_decomposed_alternative)
+                unit, cls._units[unit], "VOUnit", cls._to_decomposed_alternative
+            )
 
         return cls._units[unit]
 
@@ -138,25 +135,26 @@ class VOUnit(generic.Generic):
             if unit._represents.scale == 10.0:
                 raise ValueError(
                     "In '{}': VOUnit can not represent units with the 'da' "
-                    "(deka) prefix".format(unit))
+                    "(deka) prefix".format(unit)
+                )
             elif unit._represents.scale == 0.1:
                 raise ValueError(
                     "In '{}': VOUnit can not represent units with the 'd' "
-                    "(deci) prefix".format(unit))
+                    "(deci) prefix".format(unit)
+                )
 
-        name = unit.get_format_name('vounit')
+        name = unit.get_format_name("vounit")
 
         if unit in cls._custom_units.values():
             return name
 
         if name not in cls._units:
-            raise ValueError(
-                f"Unit {name!r} is not part of the VOUnit standard")
+            raise ValueError(f"Unit {name!r} is not part of the VOUnit standard")
 
         if name in cls._deprecated_units:
             utils.unit_deprecation_warning(
-                name, unit, 'VOUnit',
-                cls._to_decomposed_alternative)
+                name, unit, "VOUnit", cls._to_decomposed_alternative
+            )
 
         return name
 
@@ -169,11 +167,11 @@ class VOUnit(generic.Generic):
             if name.startswith("'"):
                 return core.def_unit(
                     [name[1:-1], name],
-                    format={'vounit': name},
-                    namespace=cls._custom_units)
+                    format={"vounit": name},
+                    namespace=cls._custom_units,
+                )
             else:
-                return core.def_unit(
-                    name, namespace=cls._custom_units)
+                return core.def_unit(name, namespace=cls._custom_units)
 
         if unit in cls._custom_units:
             return cls._custom_units[unit]
@@ -181,14 +179,16 @@ class VOUnit(generic.Generic):
         for short, full, factor in core.si_prefixes:
             for prefix in short:
                 if unit.startswith(prefix):
-                    base_name = unit[len(prefix):]
+                    base_name = unit[len(prefix) :]
                     base_unit = def_base(base_name)
                     return core.PrefixUnit(
                         [prefix + x for x in base_unit.names],
-                        core.CompositeUnit(factor, [base_unit], [1],
-                                           _error_check=False),
-                        format={'vounit': prefix + base_unit.names[-1]},
-                        namespace=cls._custom_units)
+                        core.CompositeUnit(
+                            factor, [base_unit], [1], _error_check=False
+                        ),
+                        format={"vounit": prefix + base_unit.names[-1]},
+                        namespace=cls._custom_units,
+                    )
 
         return def_base(unit)
 
@@ -202,11 +202,11 @@ class VOUnit(generic.Generic):
                 out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
-                if '/' in power or '.' in power:
-                    out.append(f'{cls._get_unit_name(base)}({power})')
+                if "/" in power or "." in power:
+                    out.append(f"{cls._get_unit_name(base)}({power})")
                 else:
-                    out.append(f'{cls._get_unit_name(base)}**{power}')
-        return '.'.join(out)
+                    out.append(f"{cls._get_unit_name(base)}**{power}")
+        return ".".join(out)
 
     @classmethod
     def to_string(cls, unit):
@@ -216,15 +216,15 @@ class VOUnit(generic.Generic):
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if unit.physical_type == 'dimensionless' and unit.scale != 1:
+            if unit.physical_type == "dimensionless" and unit.scale != 1:
                 raise core.UnitScaleError(
                     "The VOUnit format is not able to "
                     "represent scale for dimensionless units. "
-                    "Multiply your data by {:e}."
-                    .format(unit.scale))
-            s = ''
+                    "Multiply your data by {:e}.".format(unit.scale)
+                )
+            s = ""
             if unit.scale != 1:
-                s += f'{unit.scale:.8g}'
+                s += f"{unit.scale:.8g}"
 
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=operator.itemgetter(1), reverse=True)
@@ -245,5 +245,5 @@ class VOUnit(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return f'{cls.to_string(unit)} (with data multiplied by {scale})'
+            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
         return s

@@ -25,8 +25,7 @@ def _initialize_module():
     from . import astrophys, cgs
     from .core import _add_prefixes, def_unit
 
-    def_unit(['emu'], cgs.Bi, namespace=_ns,
-             doc='Biot: CGS (EMU) unit of current')
+    def_unit(["emu"], cgs.Bi, namespace=_ns, doc="Biot: CGS (EMU) unit of current")
 
     # Add only some *prefixes* as deprecated units.
     _add_prefixes(astrophys.jupiterMass, namespace=_ns, prefixes=True)
@@ -65,4 +64,5 @@ def enable():
     # Local import to avoid cyclical import
     # Local import to avoid polluting namespace
     from .core import add_enabled_units
+
     return add_enabled_units(inspect.getmodule(enable))

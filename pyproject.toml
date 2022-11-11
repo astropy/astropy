@@ -58,7 +58,6 @@ force-exclude = '''
     | astropy/convolution
     | astropy/extern
     | astropy/modeling
-    | astropy/units
   )/
   # Individual files to always exclude
   | astropy/__init__.py
@@ -68,6 +67,7 @@ force-exclude = '''
   | conftest.py
   | setup.py
   | astropy/coordinates/.*tab.py
+  | astropy/units/format/.*tab.py
 )
 '''
 

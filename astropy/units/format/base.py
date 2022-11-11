@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 class Base:
     """
     The abstract base class of all unit formats.
     """
+
     registry = {}
 
     def __new__(cls, *args, **kwargs):
@@ -15,7 +17,7 @@ class Base:
     def __init_subclass__(cls, **kwargs):
         # Keep a registry of all formats.  Key by the class name unless a name
         # is explicitly set (i.e., one *not* inherited from a superclass).
-        if 'name' not in cls.__dict__:
+        if "name" not in cls.__dict__:
             cls.name = cls.__name__.lower()
 
         Base.registry[cls.name] = cls
@@ -27,8 +29,7 @@ class Base:
         Convert a string to a unit object.
         """
 
-        raise NotImplementedError(
-            f"Can not parse with {cls.__name__} format")
+        raise NotImplementedError(f"Can not parse with {cls.__name__} format")
 
     @classmethod
     def to_string(cls, u):
@@ -36,5 +37,4 @@ class Base:
         Convert a unit object to a string.
         """
 
-        raise NotImplementedError(
-            f"Can not output in {cls.__name__} format")
+        raise NotImplementedError(f"Can not output in {cls.__name__} format")
