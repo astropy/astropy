@@ -330,8 +330,10 @@ class ConfigItem:
         try:
             value = self._validate_val(value)
         except validate.ValidateError as e:
-            msg = "Provided value for configuration item {0} not valid: {1}"
-            raise TypeError(msg.format(self.name, e.args[0]))
+            raise TypeError(
+                f"Provided value for configuration item {self.name} not valid:"
+                f" {e.args[0]}"
+            )
 
         sec = get_config(self.module, rootname=self.rootname)
 
@@ -395,32 +397,22 @@ class ConfigItem:
         return baseobj.get(self.name)
 
     def __repr__(self):
-        out = "<{}: name={!r} value={!r} at 0x{:x}>".format(
-            self.__class__.__name__, self.name, self(), id(self)
+        return (
+            f"<{self.__class__.__name__}: name={self.name!r} value={self()!r} at"
+            f" 0x{id(self):x}>"
         )
-        return out
 
     def __str__(self):
-        out = "\n".join(
+        return "\n".join(
             (
-                "{0}: {1}",
-                "  cfgtype={2!r}",
-                "  defaultvalue={3!r}",
-                "  description={4!r}",
-                "  module={5}",
-                "  value={6!r}",
+                f"{self.__class__.__name__}: {self.name}",
+                f"  cfgtype={self.cfgtype!r}",
+                f"  defaultvalue={self.defaultvalue!r}",
+                f"  description={self.description!r}",
+                f"  module={self.module}",
+                f"  value={self()!r}",
             )
         )
-        out = out.format(
-            self.__class__.__name__,
-            self.name,
-            self.cfgtype,
-            self.defaultvalue,
-            self.description,
-            self.module,
-            self(),
-        )
-        return out
 
     def __call__(self):
         """Returns the value of this ``ConfigItem``
@@ -463,14 +455,10 @@ class ConfigItem:
                 else:
                     new_module = ""
                 warn(
-                    "Config parameter '{}' {} of the file '{}' "
-                    "is deprecated. Use '{}' {} instead.".format(
-                        name,
-                        section_name(module),
-                        get_config_filename(filename, rootname=self.rootname),
-                        self.name,
-                        section_name(new_module),
-                    ),
+                    f"Config parameter '{name}' {section_name(module)} of the file"
+                    f" '{get_config_filename(filename, rootname=self.rootname)}' is"
+                    f" deprecated. Use '{self.name}'"
+                    f" {section_name(new_module)} instead.",
                     AstropyDeprecationWarning,
                 )
                 options.append((sec[name], module, name))
@@ -482,13 +470,11 @@ class ConfigItem:
         if len(options) > 1:
             filename, sec = self.module.split(".", 1)
             warn(
-                "Config parameter '{}' {} of the file '{}' is "
-                "given by more than one alias ({}). Using the first.".format(
-                    self.name,
-                    section_name(sec),
-                    get_config_filename(filename, rootname=self.rootname),
-                    ", ".join([".".join(x[1:3]) for x in options if x[1] is not None]),
-                ),
+                f"Config parameter '{self.name}' {section_name(sec)} of the file"
+                f" '{get_config_filename(filename, rootname=self.rootname)}' is given"
+                " by more than one alias"
+                f" ({', '.join(['.'.join(x[1:3]) for x in options if x[1] is not None])})."
+                " Using the first.",
                 AstropyDeprecationWarning,
             )
 
@@ -497,7 +483,7 @@ class ConfigItem:
         try:
             return self._validate_val(val)
         except validate.ValidateError as e:
-            raise TypeError("Configuration value not valid:" + e.args[0])
+            raise TypeError(f"Configuration value not valid: {e.args[0]}")
 
     def _validate_val(self, val):
         """Validates the provided value based on cfgtype and returns the
@@ -840,10 +826,10 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname="as
             # changes, display a warning.
             if not identical and not doupdate:
                 warn(
-                    "The configuration options in {} {} may have changed, "
+                    f"The configuration options in {pkg} {version} may have changed, "
                     "your configuration file was not updated in order to "
                     "preserve local changes.  A new configuration template "
-                    "has been saved to '{}'.".format(pkg, version, template_path),
+                    f"has been saved to '{template_path}'.",
                     ConfigurationChangedWarning,
                 )
 
