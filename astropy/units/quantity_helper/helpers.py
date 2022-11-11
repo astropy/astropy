@@ -70,8 +70,8 @@ def get_converters_and_unit(f, unit1, unit2):
             converters[changeable] = get_converter(unit2, unit1)
         except UnitsError:
             raise UnitConversionError(
-                "Can only apply '{}' function to quantities "
-                "with compatible dimensions".format(f.__name__)
+                f"Can only apply '{f.__name__}' function to quantities "
+                "with compatible dimensions"
             )
 
         return converters, unit1
@@ -125,9 +125,7 @@ def helper_modf(f, unit):
         )
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to dimensionless quantities".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
 
 
@@ -143,9 +141,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
         return ([get_converter(unit, dimensionless_unscaled)], dimensionless_unscaled)
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to dimensionless quantities".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
 
 
@@ -159,9 +155,7 @@ def helper_dimensionless_to_radian(f, unit):
         return [get_converter(unit, dimensionless_unscaled)], radian
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to dimensionless quantities".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
 
 
@@ -172,9 +166,7 @@ def helper_degree_to_radian(f, unit):
         return [get_converter(unit, degree)], radian
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with angle units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with angle units"
         )
 
 
@@ -185,9 +177,7 @@ def helper_radian_to_degree(f, unit):
         return [get_converter(unit, radian)], degree
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with angle units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with angle units"
         )
 
 
@@ -198,18 +188,15 @@ def helper_radian_to_dimensionless(f, unit):
         return [get_converter(unit, radian)], dimensionless_unscaled
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to quantities with angle units".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to quantities with angle units"
         )
 
 
 def helper_frexp(f, unit):
     if not unit.is_unity():
         raise UnitTypeError(
-            "Can only apply '{}' function to unscaled dimensionless quantities".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to unscaled dimensionless"
+            " quantities"
         )
     return [None], (None, None)
 
@@ -279,9 +266,7 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
         )
     except UnitsError:
         raise UnitTypeError(
-            "Can only apply '{}' function to dimensionless quantities".format(
-                f.__name__
-            )
+            f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
     return ([converter1, converter2], dimensionless_unscaled)
 
@@ -325,8 +310,8 @@ def helper_clip(f, unit1, unit2, unit3):
             ]
         except UnitsError:
             raise UnitConversionError(
-                "Can only apply '{}' function to quantities with "
-                "compatible dimensions".format(f.__name__)
+                f"Can only apply '{f.__name__}' function to quantities with "
+                "compatible dimensions"
             )
 
     else:
@@ -340,8 +325,8 @@ def helper_clip(f, unit1, unit2, unit3):
                     converters.append(False)
                 else:
                     raise UnitConversionError(
-                        "Can only apply '{}' function to quantities with "
-                        "compatible dimensions".format(f.__name__)
+                        f"Can only apply '{f.__name__}' function to quantities with "
+                        "compatible dimensions"
                     )
             else:
                 converters.append(converter)

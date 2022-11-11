@@ -111,19 +111,15 @@ def generate_unit_summary(namespace):
      - SI Prefixes
 """
     )
-
-    for unit_summary in _iter_unit_summary(namespace):
-        docstring.write(
-            """
+    template = """
    * - ``{}``
      - {}
      - {}
      - {}
      - {}
-""".format(
-                *unit_summary
-            )
-        )
+"""
+    for unit_summary in _iter_unit_summary(namespace):
+        docstring.write(template.format(*unit_summary))
 
     return docstring.getvalue()
 
@@ -154,19 +150,15 @@ def generate_prefixonly_unit_summary(namespace):
             faux_namespace[base_unit.name] = base_unit
 
     docstring = io.StringIO()
-
-    for unit_summary in _iter_unit_summary(faux_namespace):
-        docstring.write(
-            """
+    template = """
    * - Prefixes for ``{}``
      - {} prefixes
      - {}
      - {}
      - Only
-""".format(
-                *unit_summary
-            )
-        )
+"""
+    for unit_summary in _iter_unit_summary(faux_namespace):
+        docstring.write(template.format(*unit_summary))
 
     return docstring.getvalue()
 

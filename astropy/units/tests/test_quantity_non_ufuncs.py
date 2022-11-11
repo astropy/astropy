@@ -686,11 +686,9 @@ class TestUfuncLike(InvariantUnitTestSetup):
         qmin = 200 * u.cm
         qmax = [270, 280, 290] * u.cm
         out = np.clip(self.q, qmin, qmax)
+        unit = self.q.unit
         expected = (
-            np.clip(
-                self.q.value, qmin.to_value(self.q.unit), qmax.to_value(self.q.unit)
-            )
-            * self.q.unit
+            np.clip(self.q.value, qmin.to_value(unit), qmax.to_value(unit)) * unit
         )
         assert np.all(out == expected)
 
@@ -2143,7 +2141,6 @@ class TestLinAlg(metaclass=CoverageMeta):
 class TestRecFunctions(metaclass=CoverageMeta):
     @classmethod
     def setup_class(self):
-
         self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
         self.pv_t_dtype = np.dtype(
             [("pv", np.dtype([("pp", "f8"), ("vv", "f8")])), ("t", "f8")]
@@ -2255,20 +2252,18 @@ class TestRecFunctions(metaclass=CoverageMeta):
 
     def test_merge_arrays_asrecarray(self):
         with pytest.raises(ValueError, match="asrecarray=True is not supported."):
-            arr = rfn.merge_arrays(self.q_pv, asrecarray=True)
+            rfn.merge_arrays(self.q_pv, asrecarray=True)
 
     def test_merge_arrays_usemask(self):
         with pytest.raises(ValueError, match="usemask=True is not supported."):
-            arr = rfn.merge_arrays(self.q_pv, usemask=True)
+            rfn.merge_arrays(self.q_pv, usemask=True)
 
     @pytest.mark.parametrize("flatten", [True, False])
     def test_merge_arrays_str(self, flatten):
         with pytest.raises(
             TypeError, match="the Quantity implementation cannot handle"
         ):
-            arr = rfn.merge_arrays(
-                (self.q_pv, np.array(["a", "b", "c"])), flatten=flatten
-            )
+            rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
 
 
 untested_functions = set()

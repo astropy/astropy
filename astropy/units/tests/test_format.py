@@ -12,7 +12,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
-from astropy.units import UnitsWarning, core, dex
+from astropy.units import PrefixUnit, Unit, UnitBase, UnitsWarning, dex
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 
@@ -247,10 +247,10 @@ class RoundtripBase:
 
         if s in self.deprecated_units:
             with pytest.warns(UnitsWarning, match="deprecated") as w:
-                a = core.Unit(s, format=self.format_)
+                a = Unit(s, format=self.format_)
             assert len(w) == 1
         else:
-            a = core.Unit(s, format=self.format_)  # No warning
+            a = Unit(s, format=self.format_)  # No warning
 
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
 
@@ -258,7 +258,7 @@ class RoundtripBase:
         ud = unit.decompose()
         s = ud.to_string(self.format_)
         assert "  " not in s
-        a = core.Unit(s, format=self.format_)
+        a = Unit(s, format=self.format_)
         assert_allclose(a.decompose().scale, ud.scale, rtol=1e-5)
 
 
@@ -270,10 +270,7 @@ class TestRoundtripGeneric(RoundtripBase):
         [
             unit
             for unit in u.__dict__.values()
-            if (
-                isinstance(unit, core.UnitBase)
-                and not isinstance(unit, core.PrefixUnit)
-            )
+            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
     def test_roundtrip(self, unit):
@@ -291,10 +288,7 @@ class TestRoundtripVOUnit(RoundtripBase):
         [
             unit
             for unit in u_format.VOUnit._units.values()
-            if (
-                isinstance(unit, core.UnitBase)
-                and not isinstance(unit, core.PrefixUnit)
-            )
+            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
     def test_roundtrip(self, unit):
@@ -312,10 +306,7 @@ class TestRoundtripFITS(RoundtripBase):
         [
             unit
             for unit in u_format.Fits._units.values()
-            if (
-                isinstance(unit, core.UnitBase)
-                and not isinstance(unit, core.PrefixUnit)
-            )
+            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
     def test_roundtrip(self, unit):
@@ -330,10 +321,7 @@ class TestRoundtripCDS(RoundtripBase):
         [
             unit
             for unit in u_format.CDS._units.values()
-            if (
-                isinstance(unit, core.UnitBase)
-                and not isinstance(unit, core.PrefixUnit)
-            )
+            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
     def test_roundtrip(self, unit):
@@ -362,10 +350,7 @@ class TestRoundtripOGIP(RoundtripBase):
         [
             unit
             for unit in u_format.OGIP._units.values()
-            if (
-                isinstance(unit, core.UnitBase)
-                and not isinstance(unit, core.PrefixUnit)
-            )
+            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
         ],
     )
     def test_roundtrip(self, unit):
@@ -374,7 +359,7 @@ class TestRoundtripOGIP(RoundtripBase):
             # which the default check does not recognize as a deprecated unit.
             with pytest.warns(UnitsWarning):
                 s = unit.to_string(self.format_)
-                a = core.Unit(s, format=self.format_)
+                a = Unit(s, format=self.format_)
             assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-9)
         else:
             self.check_roundtrip(unit)
@@ -680,7 +665,6 @@ def test_vounit_implicit_custom():
     ],
 )
 def test_fits_scale_factor(scale, number, string):
-
     x = u.Unit(scale + " erg/(s cm**2 Angstrom)", format="fits")
     assert x == number * (u.erg / u.s / u.cm**2 / u.Angstrom)
     assert x.to_string(format="fits") == string + " Angstrom-1 cm-2 erg s-1"

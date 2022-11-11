@@ -76,15 +76,13 @@ class Fits(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{}' not supported by the FITS standard. {}".format(
+                    f"Unit '{unit}' not supported by the FITS standard. "
+                    + utils.did_you_mean_units(
                         unit,
-                        utils.did_you_mean_units(
-                            unit,
-                            cls._units,
-                            cls._deprecated_units,
-                            cls._to_decomposed_alternative,
-                        ),
-                    )
+                        cls._units,
+                        cls._deprecated_units,
+                        cls._to_decomposed_alternative,
+                    ),
                 )
             else:
                 raise ValueError()
@@ -119,7 +117,7 @@ class Fits(generic.Generic):
                 raise core.UnitScaleError(
                     "The FITS unit format is not able to represent scales "
                     "that are not powers of 10.  Multiply your data by "
-                    "{:e}.".format(unit.scale)
+                    f"{unit.scale:e}."
                 )
             elif unit.scale != 1.0:
                 parts.append(f"10**{int(base)}")

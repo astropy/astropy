@@ -26,7 +26,7 @@ def test_testcase(tc):
     results = tc.f(*tc.q_in)
     # careful of the following line, would break on a function returning
     # a single tuple (as opposed to tuple of return values)
-    results = (results,) if type(results) != tuple else results
+    results = (results,) if not isinstance(results, tuple) else results
     for result, expected in zip(results, tc.q_out):
         assert result.unit == expected.unit
         assert_allclose(result.value, expected.value, atol=1.0e-15)
@@ -471,9 +471,8 @@ class TestQuantityMathFuncs:
         assert np.all(res3 == q2 ** [2, 2])
 
     def test_power_invalid(self):
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(TypeError, match="raise something to a dimensionless"):
             np.power(3.0, 4.0 * u.m)
-        assert "raise something to a dimensionless" in exc.value.args[0]
 
     def test_copysign_scalar(self):
         assert np.copysign(3 * u.m, 1.0) == 3.0 * u.m
@@ -542,13 +541,14 @@ class TestQuantityMathFuncs:
     )
     def test_exp_invalid_units(self, function):
         # Can't use exp() with non-dimensionless quantities
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError,
+            match=(
+                f"Can only apply '{function.__name__}' function "
+                "to dimensionless quantities"
+            ),
+        ):
             function(3.0 * u.m / u.s)
-        assert exc.value.args[
-            0
-        ] == "Can only apply '{}' function to dimensionless quantities".format(
-            function.__name__
-        )
 
     def test_modf_scalar(self):
         q = np.modf(9.0 * u.m / (600.0 * u.cm))
@@ -576,20 +576,22 @@ class TestQuantityMathFuncs:
 
     def test_frexp_invalid_units(self):
         # Can't use prod() with non-dimensionless quantities
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError,
+            match=(
+                "Can only apply 'frexp' function to unscaled dimensionless quantities"
+            ),
+        ):
             np.frexp(3.0 * u.m / u.s)
-        assert (
-            exc.value.args[0]
-            == "Can only apply 'frexp' function to unscaled dimensionless quantities"
-        )
 
         # also does not work on quantities that can be made dimensionless
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError,
+            match=(
+                "Can only apply 'frexp' function to unscaled dimensionless quantities"
+            ),
+        ):
             np.frexp(np.array([2.0, 3.0, 6.0]) * u.m / (6.0 * u.cm))
-        assert (
-            exc.value.args[0]
-            == "Can only apply 'frexp' function to unscaled dimensionless quantities"
-        )
 
     @pytest.mark.parametrize("function", (np.logaddexp, np.logaddexp2))
     def test_dimensionless_twoarg_array(self, function):
@@ -601,14 +603,14 @@ class TestQuantityMathFuncs:
 
     @pytest.mark.parametrize("function", (np.logaddexp, np.logaddexp2))
     def test_dimensionless_twoarg_invalid_units(self, function):
-
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError,
+            match=(
+                f"Can only apply '{function.__name__}' function to dimensionless"
+                " quantities"
+            ),
+        ):
             function(1.0 * u.km / u.s, 3.0 * u.m / u.s)
-        assert exc.value.args[
-            0
-        ] == "Can only apply '{}' function to dimensionless quantities".format(
-            function.__name__
-        )
 
 
 class TestInvariantUfuncs:
@@ -628,7 +630,6 @@ class TestInvariantUfuncs:
         ],
     )
     def test_invariant_scalar(self, ufunc):
-
         q_i = 4.7 * u.m
         q_o = ufunc(q_i)
         assert isinstance(q_o, u.Quantity)
@@ -639,7 +640,6 @@ class TestInvariantUfuncs:
         "ufunc", [np.absolute, np.conjugate, np.negative, np.rint, np.floor, np.ceil]
     )
     def test_invariant_array(self, ufunc):
-
         q_i = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
         q_o = ufunc(q_i)
         assert isinstance(q_o, u.Quantity)
@@ -661,7 +661,6 @@ class TestInvariantUfuncs:
         ],
     )
     def test_invariant_twoarg_scalar(self, ufunc):
-
         q_i1 = 4.7 * u.m
         q_i2 = 9.4 * u.km
         q_o = ufunc(q_i1, q_i2)
@@ -684,7 +683,6 @@ class TestInvariantUfuncs:
         ],
     )
     def test_invariant_twoarg_array(self, ufunc):
-
         q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
         q_i2 = np.array([10.0, -5.0, 1.0e6]) * u.g / u.us
         q_o = ufunc(q_i1, q_i2)
@@ -728,12 +726,10 @@ class TestInvariantUfuncs:
         ],
     )
     def test_invariant_twoarg_invalid_units(self, ufunc):
-
         q_i1 = 4.7 * u.m
         q_i2 = 9.4 * u.s
-        with pytest.raises(u.UnitsError) as exc:
+        with pytest.raises(u.UnitsError, match="compatible dimensions"):
             ufunc(q_i1, q_i2)
-        assert "compatible dimensions" in exc.value.args[0]
 
 
 class TestComparisonUfuncs:
@@ -771,9 +767,8 @@ class TestComparisonUfuncs:
     def test_comparison_invalid_units(self, ufunc):
         q_i1 = 4.7 * u.m
         q_i2 = 9.4 * u.s
-        with pytest.raises(u.UnitsError) as exc:
+        with pytest.raises(u.UnitsError, match="compatible dimensions"):
             ufunc(q_i1, q_i2)
-        assert "compatible dimensions" in exc.value.args[0]
 
     @pytest.mark.parametrize("ufunc", (np.isfinite, np.isinf, np.isnan, np.signbit))
     def test_onearg_test_ufuncs(self, ufunc):
@@ -1401,10 +1396,11 @@ if HAS_SCIPY:
         @pytest.mark.parametrize("function", jv_like_ufuncs)
         def test_jv_invalid_units(self, function):
             # Can't use jv() with non-dimensionless quantities
-            with pytest.raises(TypeError) as exc:
+            with pytest.raises(
+                TypeError,
+                match=(
+                    f"Can only apply '{function.__name__}' function to dimensionless"
+                    " quantities"
+                ),
+            ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
-            assert exc.value.args[
-                0
-            ] == "Can only apply '{}' function to dimensionless quantities".format(
-                function.__name__
-            )

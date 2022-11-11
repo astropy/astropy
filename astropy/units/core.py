@@ -128,7 +128,6 @@ class _UnitRegistry:
     """
 
     def __init__(self, init=[], equivalencies=[], aliases={}):
-
         if isinstance(init, _UnitRegistry):
             # If passed another registry we don't need to rebuild everything.
             # but because these are mutable types we don't want to create
@@ -220,9 +219,9 @@ class _UnitRegistry:
             for st in unit._names:
                 if st in self._registry and unit != self._registry[st]:
                     raise ValueError(
-                        "Object with name {!r} already exists in namespace. "
+                        f"Object with name {st!r} already exists in namespace. "
                         "Filter the set of units to avoid name clashes before "
-                        "enabling them.".format(st)
+                        "enabling them."
                     )
 
             for st in unit._names:
@@ -884,7 +883,7 @@ class UnitBase:
     def __rrshift__(self, m):
         warnings.warn(
             ">> is not implemented. Did you mean to convert "
-            "to a Quantity with unit {} using '<<'?".format(self),
+            f"to a Quantity with unit {m} using '<<'?",
             AstropyWarning,
         )
         return NotImplemented
@@ -970,9 +969,7 @@ class UnitBase:
         equivalencies = self._normalize_equivalencies(equivalencies)
 
         if isinstance(other, tuple):
-            return any(
-                self.is_equivalent(u, equivalencies=equivalencies) for u in other
-            )
+            return any(self.is_equivalent(u, equivalencies) for u in other)
 
         other = Unit(other, parse_strict="silent")
 
@@ -1001,11 +998,8 @@ class UnitBase:
                         return True
                     except Exception:
                         pass
-                elif (
-                    a._is_equivalent(unit)
-                    and b._is_equivalent(other)
-                    or b._is_equivalent(unit)
-                    and a._is_equivalent(other)
+                elif (a._is_equivalent(unit) and b._is_equivalent(other)) or (
+                    b._is_equivalent(unit) and a._is_equivalent(other)
                 ):
                     return True
 
@@ -1025,10 +1019,9 @@ class UnitBase:
 
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
+                ratio = other.decompose() / unit.decompose()
                 try:
-                    ratio_in_funit = (other.decompose() / unit.decompose()).decompose(
-                        [funit]
-                    )
+                    ratio_in_funit = ratio.decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.0)
                 except UnitsError:
                     pass
@@ -1092,13 +1085,11 @@ class UnitBase:
                 for funit, tunit, a, b in other.equivalencies:
                     if other is funit:
                         try:
-                            return lambda v: b(
-                                self._get_converter(tunit, equivalencies=equivalencies)(
-                                    v
-                                )
-                            )
+                            converter = self._get_converter(tunit, equivalencies)
                         except Exception:
                             pass
+                        else:
+                            return lambda v: b(converter(v))
 
             raise exc
 
@@ -1171,7 +1162,7 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self._get_converter(Unit(other), equivalencies=equivalencies)(value)
+            return self._get_converter(Unit(other), equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -1415,9 +1406,7 @@ class UnitBase:
         decomposed = self.decompose()
 
         if units is None:
-            units = filter_units(
-                self._get_units_with_same_physical_type(equivalencies=equivalencies)
-            )
+            units = filter_units(self._get_units_with_same_physical_type(equivalencies))
             if len(units) == 0:
                 units = get_current_unit_registry().non_prefix_units
         elif isinstance(units, dict):
@@ -1748,7 +1737,6 @@ class NamedUnit(UnitBase):
     """
 
     def __init__(self, st, doc=None, format=None, namespace=None):
-
         UnitBase.__init__(self)
 
         if isinstance(st, (bytes, str)):
@@ -1792,7 +1780,7 @@ class NamedUnit(UnitBase):
         """
         names = self.names
         if len(self.names) > 1:
-            return "{1} ({0})".format(*names[:2])
+            return f"{names[1]} ({names[0]})"
         else:
             return names[0]
 
@@ -1864,8 +1852,8 @@ class NamedUnit(UnitBase):
         for name in self._names:
             if name in namespace and self != namespace[name]:
                 raise ValueError(
-                    "Object with name {!r} already exists in "
-                    "given namespace ({!r}).".format(name, namespace[name])
+                    f"Object with name {name!r} already exists in "
+                    f"given namespace ({namespace[name]!r})."
                 )
 
         for name in self._names:
@@ -1974,17 +1962,12 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
-            "The unit {!r} is unrecognized, so all arithmetic operations "
-            "with it are invalid.".format(self.name)
+            f"The unit {self.name!r} is unrecognized, so all arithmetic operations "
+            "with it are invalid."
         )
 
-    __pow__ = (
-        __truediv__
-    ) = (
-        __rtruediv__
-    ) = (
-        __mul__
-    ) = __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
+    __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = _unrecognized_operator
+    __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
 
     def __eq__(self, other):
         try:
@@ -2004,8 +1987,8 @@ class UnrecognizedUnit(IrreducibleUnit):
     def _get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
-            "The unit {!r} is unrecognized.  It can not be converted "
-            "to other units.".format(self.name)
+            f"The unit {self.name!r} is unrecognized.  It can not be converted "
+            "to other units."
         )
 
     def get_format_name(self, format):
@@ -2032,7 +2015,6 @@ class _UnitMetaClass(type):
         doc=None,
         parse_strict="raise",
     ):
-
         # Short-circuit if we're already a unit
         if hasattr(s, "_get_physical_type_id"):
             return s
@@ -2101,15 +2083,13 @@ class _UnitMetaClass(type):
                     else:
                         format_clause = ""
                     msg = (
-                        "'{}' did not parse as {}unit: {} "
+                        f"'{s}' did not parse as {format_clause}unit: {str(e)} "
                         "If this is meant to be a custom unit, "
                         "define it with 'u.def_unit'. To have it "
                         "recognized inside a file reader or other code, "
                         "enable it with 'u.add_enabled_units'. "
                         "For details, see "
-                        "https://docs.astropy.org/en/latest/units/combining_and_defining.html".format(
-                            s, format_clause, str(e)
-                        )
+                        "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                     )
                     if parse_strict == "raise":
                         raise ValueError(msg)
@@ -2223,7 +2203,6 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     """
 
     def __init__(self, st, represents=None, doc=None, format=None, namespace=None):
-
         represents = Unit(represents)
         self._represents = represents
 
@@ -2471,12 +2450,12 @@ si_prefixes = [
 
 
 binary_prefixes = [
-    (["Ki"], ["kibi"], 2.0**10),
-    (["Mi"], ["mebi"], 2.0**20),
-    (["Gi"], ["gibi"], 2.0**30),
-    (["Ti"], ["tebi"], 2.0**40),
-    (["Pi"], ["pebi"], 2.0**50),
-    (["Ei"], ["exbi"], 2.0**60),
+    (["Ki"], ["kibi"], 2**10),
+    (["Mi"], ["mebi"], 2**20),
+    (["Gi"], ["gibi"], 2**30),
+    (["Ti"], ["tebi"], 2**40),
+    (["Pi"], ["pebi"], 2**50),
+    (["Ei"], ["exbi"], 2**60),
 ]
 
 

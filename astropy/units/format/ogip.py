@@ -51,7 +51,6 @@ class OGIP(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-
         from astropy import units as u
 
         names = {}
@@ -225,8 +224,8 @@ class OGIP(generic.Generic):
 
             if p1_str in cls._functions and p1_str != "sqrt":
                 raise ValueError(
-                    "The function '{}' is valid in OGIP, but not understood "
-                    "by astropy.units.".format(p[1])
+                    f"The function '{p[1]}' is valid in OGIP, but not understood "
+                    "by astropy.units."
                 )
 
             if len(p) == 7:
@@ -350,15 +349,13 @@ class OGIP(generic.Generic):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit '{}' not supported by the OGIP standard. {}".format(
+                    f"Unit '{unit}' not supported by the OGIP standard. "
+                    + utils.did_you_mean_units(
                         unit,
-                        utils.did_you_mean_units(
-                            unit,
-                            cls._units,
-                            cls._deprecated_units,
-                            cls._to_decomposed_alternative,
-                        ),
-                    )
+                        cls._units,
+                        cls._deprecated_units,
+                        cls._to_decomposed_alternative,
+                    ),
                 )
             else:
                 raise ValueError()
@@ -437,8 +434,8 @@ class OGIP(generic.Generic):
                 scale = unit.scale
                 unit = copy.copy(unit)
                 unit._scale = 1.0
-                return "{} (with data multiplied by {})".format(
-                    generic._to_string(cls, unit), scale
+                return (
+                    f"{generic._to_string(cls, unit)} (with data multiplied by {scale})"
                 )
 
         return generic._to_string(unit)

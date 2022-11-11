@@ -190,15 +190,14 @@ def test_wrong_unit3(solarx_unit, solary_unit):
     def myfunc_args(solarx: solarx_unit, solary: solary_unit):
         return solarx, solary
 
-    with pytest.raises(u.UnitsError) as e:
+    with pytest.raises(
+        u.UnitsError,
+        match=(
+            "Argument 'solary' to function 'myfunc_args' must be in units "
+            f"convertible to '{str(solary_unit)}'."
+        ),
+    ):
         solarx, solary = myfunc_args(1 * u.arcsec, 100 * u.km)
-
-    str_to = str(solary_unit)
-    assert (
-        str(e.value)
-        == "Argument 'solary' to function 'myfunc_args' must be in units convertible"
-        f" to '{str_to}'."
-    )
 
 
 @pytest.mark.parametrize(
@@ -209,13 +208,14 @@ def test_not_quantity3(solarx_unit, solary_unit):
     def myfunc_args(solarx: solarx_unit, solary: solary_unit):
         return solarx, solary
 
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(
+        TypeError,
+        match=(
+            "Argument 'solary' to function 'myfunc_args' has no 'unit' "
+            "attribute. You should pass in an astropy Quantity instead."
+        ),
+    ):
         solarx, solary = myfunc_args(1 * u.arcsec, 100)
-    assert (
-        str(e.value)
-        == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You"
-        " should pass in an astropy Quantity instead."
-    )
 
 
 def test_decorator_override():
@@ -293,15 +293,14 @@ def test_kwarg_wrong_unit3(solarx_unit, solary_unit):
     def myfunc_args(solarx: solarx_unit, solary: solary_unit = 10 * u.deg):
         return solarx, solary
 
-    with pytest.raises(u.UnitsError) as e:
+    with pytest.raises(
+        u.UnitsError,
+        match=(
+            "Argument 'solary' to function 'myfunc_args' must be in "
+            f"units convertible to '{str(solary_unit)}'."
+        ),
+    ):
         solarx, solary = myfunc_args(1 * u.arcsec, solary=100 * u.km)
-
-    str_to = str(solary_unit)
-    assert (
-        str(e.value)
-        == "Argument 'solary' to function 'myfunc_args' must be in units convertible"
-        f" to '{str_to}'."
-    )
 
 
 @pytest.mark.parametrize(
@@ -312,13 +311,14 @@ def test_kwarg_not_quantity3(solarx_unit, solary_unit):
     def myfunc_args(solarx: solarx_unit, solary: solary_unit = 10 * u.deg):
         return solarx, solary
 
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(
+        TypeError,
+        match=(
+            "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. "
+            "You should pass in an astropy Quantity instead."
+        ),
+    ):
         solarx, solary = myfunc_args(1 * u.arcsec, solary=100)
-    assert (
-        str(e.value)
-        == "Argument 'solary' to function 'myfunc_args' has no 'unit' attribute. You"
-        " should pass in an astropy Quantity instead."
-    )
 
 
 @pytest.mark.parametrize(

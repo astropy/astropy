@@ -30,7 +30,6 @@ def _get_allowed_units(targets):
     """
     allowed_units = []
     for target in targets:
-
         try:
             unit = Unit(target)
         except (TypeError, ValueError):
@@ -72,11 +71,7 @@ def _validate_arg_value(
 
     for allowed_unit in allowed_units:
         try:
-            is_equivalent = arg.unit.is_equivalent(
-                allowed_unit, equivalencies=equivalencies
-            )
-
-            if is_equivalent:
+            if arg.unit.is_equivalent(allowed_unit, equivalencies=equivalencies):
                 break
 
         except AttributeError:  # Either there is no .unit or no .is_equivalent
@@ -104,7 +99,6 @@ def _validate_arg_value(
 
 
 def _parse_annotation(target):
-
     if target in (None, NoneType, inspect._empty):
         return target
 
@@ -228,7 +222,6 @@ class QuantityInput:
         self.strict_dimensionless = strict_dimensionless
 
     def __call__(self, wrapped_function):
-
         # Extract the function signature for the function we are wrapping.
         wrapped_signature = inspect.signature(wrapped_function)
 

@@ -441,7 +441,6 @@ class Quantity(np.ndarray):
         subok=False,
         ndmin=0,
     ):
-
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
@@ -492,8 +491,8 @@ class Quantity(np.ndarray):
 
                 except Exception:
                     raise TypeError(
-                        'Cannot parse "{}" as a {}. It does not '
-                        "start with a number.".format(value, cls.__name__)
+                        f'Cannot parse "{value}" as a {cls.__name__}. It does not '
+                        "start with a number."
                     )
 
                 unit_string = v.string[v.end() :].strip()
@@ -539,10 +538,9 @@ class Quantity(np.ndarray):
                     value_unit = Unit(value_unit)
                 except Exception as exc:
                     raise TypeError(
-                        "The unit attribute {!r} of the input could "
-                        "not be parsed as an astropy Unit, raising "
-                        "the following exception:\n{}".format(value.unit, exc)
-                    )
+                        f"The unit attribute {value.unit!r} of the input could "
+                        "not be parsed as an astropy Unit."
+                    ) from exc
 
                 if unit is None:
                     unit = value_unit
@@ -608,7 +606,6 @@ class Quantity(np.ndarray):
             self.info = obj.info
 
     def __array_wrap__(self, obj, context=None):
-
         if context is None:
             # Methods like .squeeze() created a new `ndarray` and then call
             # __array_wrap__ to turn the array into self's subclass.
@@ -833,9 +830,8 @@ class Quantity(np.ndarray):
                 unit = Unit(str(unit), parse_strict="silent")
                 if not isinstance(unit, (UnitBase, StructuredUnit)):
                     raise UnitTypeError(
-                        "{} instances require normal units, not {} instances.".format(
-                            type(self).__name__, type(unit)
-                        )
+                        f"{self.__class__.__name__} instances require normal units, "
+                        f"not {unit.__class__} instances."
                     )
 
         self._unit = unit
@@ -1257,9 +1253,8 @@ class Quantity(np.ndarray):
     def __iter__(self):
         if self.isscalar:
             raise TypeError(
-                "'{cls}' object with a scalar value is not iterable".format(
-                    cls=self.__class__.__name__
-                )
+                f"'{self.__class__.__name__}' object with a scalar value is not"
+                " iterable"
             )
 
         # Otherwise return a generator
@@ -1280,8 +1275,8 @@ class Quantity(np.ndarray):
             # so they should raise a TypeError rather than an IndexError.
             if self.isscalar:
                 raise TypeError(
-                    "'{cls}' object with a scalar value does not support "
-                    "indexing".format(cls=self.__class__.__name__)
+                    f"'{self.__class__.__name__}' object with a scalar value "
+                    "does not support indexing"
                 )
             else:
                 raise
@@ -1321,9 +1316,7 @@ class Quantity(np.ndarray):
     def __len__(self):
         if self.isscalar:
             raise TypeError(
-                "'{cls}' object with a scalar value has no len()".format(
-                    cls=self.__class__.__name__
-                )
+                f"'{self.__class__.__name__}' object with a scalar value has no len()"
             )
         else:
             return len(self.value)
@@ -1606,7 +1599,8 @@ class Quantity(np.ndarray):
 
     def tolist(self):
         raise NotImplementedError(
-            "cannot make a list of Quantities.  Get list of values with q.value.tolist()."
+            "cannot make a list of Quantities. Get list of values with"
+            " q.value.tolist()."
         )
 
     def _to_own_unit(self, value, check_precision=True, *, unit=None):
@@ -1667,9 +1661,7 @@ class Quantity(np.ndarray):
             _value = np.array(_value, copy=False, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype, subok=True)
-                if not np.all(
-                    np.logical_or(self_dtype_array == _value, np.isnan(_value))
-                ):
+                if not np.all((self_dtype_array == _value) | np.isnan(_value)):
                     raise TypeError(
                         "cannot convert value type to array type without precision loss"
                     )
@@ -1694,7 +1686,7 @@ class Quantity(np.ndarray):
 
     def tobytes(self, order="C"):
         raise NotImplementedError(
-            "cannot write Quantities to string.  Write array with q.value.tobytes(...)."
+            "cannot write Quantities to bytes.  Write array with q.value.tobytes(...)."
         )
 
     def tofile(self, fid, sep="", format="%s"):
@@ -1849,13 +1841,12 @@ class Quantity(np.ndarray):
 
         else:
             warnings.warn(
-                "function '{}' is not known to astropy's Quantity. "
-                "Will run it anyway, hoping it will treat ndarray "
-                "subclasses correctly. Please raise an issue at "
-                "https://github.com/astropy/astropy/issues. ".format(function.__name__),
+                f"function '{function.__name__}' is not known to astropy's Quantity."
+                " Will run it anyway, hoping it will treat ndarray subclasses"
+                " correctly. Please raise an issue at"
+                " https://github.com/astropy/astropy/issues.",
                 AstropyWarning,
             )
-
             return super().__array_function__(function, types, args, kwargs)
 
         # If unit is None, a plain array is expected (e.g., boolean), which
@@ -1878,8 +1869,8 @@ class Quantity(np.ndarray):
             issubclass(t, np.ndarray) and not issubclass(t, Quantity) for t in types
         ):
             raise TypeError(
-                "the Quantity implementation cannot handle {} "
-                "with the given arguments.".format(function)
+                f"the Quantity implementation cannot handle {function} "
+                "with the given arguments."
             ) from None
         else:
             return NotImplemented
