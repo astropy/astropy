@@ -128,9 +128,10 @@ def test_integers():
 
     # Don't accept integer array in output
     out = np.zeros(5, dtype=int)
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(
+        TypeError, match=r"Can only do in-place scaling for floating-point arrays"
+    ):
         values = interval([1, 3, 4, 5, 6], out=out)
-    assert exc.value.args[0] == "Can only do in-place scaling for floating-point arrays"
 
     # But integer input and floating point output is fine
     out = np.zeros(5, dtype=float)

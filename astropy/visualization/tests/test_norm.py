@@ -26,9 +26,10 @@ INVALID = (None, -np.inf, -1)
 
 @pytest.mark.skipif(HAS_MATPLOTLIB, reason="matplotlib is installed")
 def test_normalize_error_message():
-    with pytest.raises(ImportError) as exc:
+    with pytest.raises(
+        ImportError, match=r"matplotlib is required in order to use this class."
+    ):
         ImageNormalize()
-    assert exc.value.args[0] == "matplotlib is required in order to use this class."
 
 
 @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
