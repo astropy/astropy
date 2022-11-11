@@ -3,10 +3,19 @@ import numpy as np
 from .utils import trig_sum
 
 
-def lombscargle_fast(t, y, dy, f0, df, Nf,
-                     center_data=True, fit_mean=True,
-                     normalization='standard',
-                     use_fft=True, trig_sum_kwds=None):
+def lombscargle_fast(
+    t,
+    y,
+    dy,
+    f0,
+    df,
+    Nf,
+    center_data=True,
+    fit_mean=True,
+    normalization="standard",
+    use_fft=True,
+    trig_sum_kwds=None,
+):
     """Fast Lomb-Scargle Periodogram
 
     This implements the Press & Rybicki method [1]_ for fast O[N log(N)]
@@ -71,7 +80,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     if Nf <= 0:
         raise ValueError("Number of frequencies must be positive")
 
-    w = dy ** -2.0
+    w = dy**-2.0
     w /= w.sum()
 
     # Center the data. Even if we're fitting the offset,
@@ -109,7 +118,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
     # ----------------------------------------------------------------------
     # 2. Compute the periodogram, following Zechmeister & Kurster
     #    and using tricks from Press & Rybicki.
-    YY = np.dot(w, y ** 2)
+    YY = np.dot(w, y**2)
     YC = Ch * Cw + Sh * Sw
     YS = Sh * Cw - Ch * Sw
     CC = 0.5 * (1 + C2 * C2w + S2 * S2w)
@@ -119,16 +128,16 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
         CC -= (C * Cw + S * Sw) ** 2
         SS -= (S * Cw - C * Sw) ** 2
 
-    power = (YC * YC / CC + YS * YS / SS)
+    power = YC * YC / CC + YS * YS / SS
 
-    if normalization == 'standard':
+    if normalization == "standard":
         power /= YY
-    elif normalization == 'model':
+    elif normalization == "model":
         power /= YY - power
-    elif normalization == 'log':
+    elif normalization == "log":
         power = -np.log(1 - power / YY)
-    elif normalization == 'psd':
-        power *= 0.5 * (dy ** -2.0).sum()
+    elif normalization == "psd":
+        power *= 0.5 * (dy**-2.0).sum()
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")
 

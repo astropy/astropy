@@ -10,7 +10,7 @@ from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ['aggregate_downsample']
+__all__ = ["aggregate_downsample"]
 
 
 def reduceat(array, indices, function):
@@ -20,16 +20,16 @@ def reduceat(array, indices, function):
     """
     if len(indices) == 0:
         return np.array([])
-    elif hasattr(function, 'reduceat'):
+    elif hasattr(function, "reduceat"):
         return np.array(function.reduceat(array, indices))
     else:
         result = []
         for i in range(len(indices) - 1):
-            if indices[i+1] <= indices[i]+1:
+            if indices[i + 1] <= indices[i] + 1:
                 result.append(function(array[indices[i]]))
             else:
-                result.append(function(array[indices[i]:indices[i+1]]))
-        result.append(function(array[indices[-1]:]))
+                result.append(function(array[indices[i] : indices[i + 1]]))
+        result.append(function(array[indices[-1] :]))
         return np.array(result)
 
 
@@ -45,8 +45,15 @@ def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
     return (time - rel_base).to_value(format="sec", subfmt="long")
 
 
-def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None,
-                         time_bin_end=None, n_bins=None, aggregate_func=None):
+def aggregate_downsample(
+    time_series,
+    *,
+    time_bin_size=None,
+    time_bin_start=None,
+    time_bin_end=None,
+    n_bins=None,
+    aggregate_func=None
+):
     """
     Downsample a time series by binning values into bins with a fixed size or
     custom sizes, using a single function to combine the values in the bin.
@@ -97,7 +104,9 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     if not isinstance(time_series, TimeSeries):
         raise TypeError("time_series should be a TimeSeries")
 
-    if time_bin_size is not None and not isinstance(time_bin_size, (u.Quantity, TimeDelta)):
+    if time_bin_size is not None and not isinstance(
+        time_bin_size, (u.Quantity, TimeDelta)
+    ):
         raise TypeError("'time_bin_size' should be a Quantity or a TimeDelta")
 
     if time_bin_start is not None and not isinstance(time_bin_start, (Time, TimeDelta)):
@@ -121,8 +130,10 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     if time_bin_size is None and time_bin_end is None:
         if time_bin_start.isscalar:
             if n_bins is None:
-                raise TypeError("With single 'time_bin_start' either 'n_bins', "
-                                "'time_bin_size' or time_bin_end' must be provided")
+                raise TypeError(
+                    "With single 'time_bin_start' either 'n_bins', "
+                    "'time_bin_size' or time_bin_end' must be provided"
+                )
             else:
                 # `nbins` defaults to the number needed to fit all points
                 time_bin_size = time_duration / n_bins * u.s
@@ -135,7 +146,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
                 # Determine the number of bins
                 if n_bins is None:
                     bin_size_sec = time_bin_size.to_value(u.s)
-                    n_bins = int(np.ceil(time_duration/bin_size_sec))
+                    n_bins = int(np.ceil(time_duration / bin_size_sec))
         elif time_bin_end is not None:
             if not time_bin_end.isscalar:
                 # Convert start time to an array and populate using `time_bin_end`
@@ -146,16 +157,23 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
 
     # Check for overlapping bins, and warn if they are present
     if time_bin_end is not None:
-        if (not time_bin_end.isscalar and not time_bin_start.isscalar and
-                np.any(time_bin_start[1:] < time_bin_end[:-1])):
-            warnings.warn("Overlapping bins should be avoided since they "
-                          "can lead to double-counting of data during binning.",
-                          AstropyUserWarning)
+        if (
+            not time_bin_end.isscalar
+            and not time_bin_start.isscalar
+            and np.any(time_bin_start[1:] < time_bin_end[:-1])
+        ):
+            warnings.warn(
+                "Overlapping bins should be avoided since they "
+                "can lead to double-counting of data during binning.",
+                AstropyUserWarning,
+            )
 
-    binned = BinnedTimeSeries(time_bin_size=time_bin_size,
-                              time_bin_start=time_bin_start,
-                              time_bin_end=time_bin_end,
-                              n_bins=n_bins)
+    binned = BinnedTimeSeries(
+        time_bin_size=time_bin_size,
+        time_bin_start=time_bin_start,
+        time_bin_end=time_bin_end,
+        n_bins=n_bins,
+    )
 
     if aggregate_func is None:
         aggregate_func = np.nanmean
@@ -178,7 +196,9 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     rel_bin_start = _to_relative_longdouble(bin_start, rel_base)
     rel_bin_end = _to_relative_longdouble(bin_end, rel_base)
     rel_ts_sorted_time = _to_relative_longdouble(ts_sorted.time, rel_base)
-    keep = ((rel_ts_sorted_time >= rel_bin_start[0]) & (rel_ts_sorted_time <= rel_bin_end[-1]))
+    keep = (rel_ts_sorted_time >= rel_bin_start[0]) & (
+        rel_ts_sorted_time <= rel_bin_end[-1]
+    )
 
     # Find out indices to be removed because of noncontiguous bins
     #
@@ -188,8 +208,12 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     #   on thoughts on how to reduce the number of times to loop
     noncontiguous_bins_indices = np.where(rel_bin_start[1:] > rel_bin_end[:-1])[0]
     for ind in noncontiguous_bins_indices:
-        delete_indices = np.where(np.logical_and(rel_ts_sorted_time > rel_bin_end[ind],
-                                                 rel_ts_sorted_time < rel_bin_start[ind+1]))
+        delete_indices = np.where(
+            np.logical_and(
+                rel_ts_sorted_time > rel_bin_end[ind],
+                rel_ts_sorted_time < rel_bin_start[ind + 1],
+            )
+        )
         keep[delete_indices] = False
 
     rel_subset_time = rel_ts_sorted_time[keep]
@@ -201,8 +225,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # For time == bin_start[i+1] == bin_end[i], let bin_start takes precedence
     if len(indices) and np.all(rel_bin_start[1:] >= rel_bin_end[:-1]):
         indices_start = np.searchsorted(
-            rel_subset_time,
-            rel_bin_start[rel_bin_start <= rel_ts_sorted_time[-1]]
+            rel_subset_time, rel_bin_start[rel_bin_start <= rel_ts_sorted_time[-1]]
         )
         indices[indices_start] = np.arange(len(indices_start))
 
@@ -219,21 +242,23 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     # Add back columns
     subset = ts_sorted[keep]
     for colname in subset.colnames:
-
-        if colname == 'time':
+        if colname == "time":
             continue
 
         values = subset[colname]
 
         # FIXME: figure out how to avoid the following, if possible
         if not isinstance(values, (np.ndarray, u.Quantity)):
-            warnings.warn("Skipping column {0} since it has a mix-in type", AstropyUserWarning)
+            warnings.warn(
+                "Skipping column {0} since it has a mix-in type", AstropyUserWarning
+            )
             continue
 
         if isinstance(values, u.Quantity):
-            data = u.Quantity(np.repeat(np.nan,  n_bins), unit=values.unit)
-            data[unique_indices] = u.Quantity(reduceat(values.value, groups, aggregate_func),
-                                              values.unit, copy=False)
+            data = u.Quantity(np.repeat(np.nan, n_bins), unit=values.unit)
+            data[unique_indices] = u.Quantity(
+                reduceat(values.value, groups, aggregate_func), values.unit, copy=False
+            )
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)
             data.mask = 1
