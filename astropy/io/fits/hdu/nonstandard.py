@@ -22,7 +22,7 @@ class FitsHDU(NonstandardExtHDU):
     attribute which returns the contained FITS file as an `HDUList` object.
     """
 
-    _extension = 'FITS'
+    _extension = "FITS"
 
     @lazyproperty
     def hdulist(self):
@@ -34,9 +34,9 @@ class FitsHDU(NonstandardExtHDU):
         # embedded in another file
         fileobj.write(self._file.read(self.size))
         fileobj.seek(0)
-        if self._header['COMPRESS']:
+        if self._header["COMPRESS"]:
             fileobj = gzip.GzipFile(fileobj=fileobj)
-        return HDUList.fromfile(fileobj, mode='readonly')
+        return HDUList.fromfile(fileobj, mode="readonly")
 
     @classmethod
     def fromfile(cls, filename, compress=False):
@@ -70,11 +70,11 @@ class FitsHDU(NonstandardExtHDU):
 
         fileobj = bs = io.BytesIO()
         if compress:
-            if hasattr(hdulist, '_file'):
+            if hasattr(hdulist, "_file"):
                 name = fileobj_name(hdulist._file)
             else:
                 name = None
-            fileobj = gzip.GzipFile(name, mode='wb', fileobj=bs)
+            fileobj = gzip.GzipFile(name, mode="wb", fileobj=bs)
 
         hdulist.writeto(fileobj)
 
@@ -83,35 +83,40 @@ class FitsHDU(NonstandardExtHDU):
 
         # A proper HDUList should still be padded out to a multiple of 2880
         # technically speaking
-        padding = (_pad_length(bs.tell()) * cls._padding_byte).encode('ascii')
+        padding = (_pad_length(bs.tell()) * cls._padding_byte).encode("ascii")
         bs.write(padding)
 
         bs.seek(0)
 
         cards = [
-            ('XTENSION', cls._extension, 'FITS extension'),
-            ('BITPIX', 8, 'array data type'),
-            ('NAXIS', 1, 'number of array dimensions'),
-            ('NAXIS1', len(bs.getvalue()), 'Axis length'),
-            ('PCOUNT', 0, 'number of parameters'),
-            ('GCOUNT', 1, 'number of groups'),
+            ("XTENSION", cls._extension, "FITS extension"),
+            ("BITPIX", 8, "array data type"),
+            ("NAXIS", 1, "number of array dimensions"),
+            ("NAXIS1", len(bs.getvalue()), "Axis length"),
+            ("PCOUNT", 0, "number of parameters"),
+            ("GCOUNT", 1, "number of groups"),
         ]
 
         # Add the XINDn keywords proposed by Perry, though nothing is done with
         # these at the moment
         if len(hdulist) > 1:
             for idx, hdu in enumerate(hdulist[1:]):
-                cards.append(('XIND' + str(idx + 1), hdu._header_offset,
-                              f'byte offset of extension {idx + 1}'))
+                cards.append(
+                    (
+                        "XIND" + str(idx + 1),
+                        hdu._header_offset,
+                        f"byte offset of extension {idx + 1}",
+                    )
+                )
 
-        cards.append(('COMPRESS', compress, 'Uses gzip compression'))
+        cards.append(("COMPRESS", compress, "Uses gzip compression"))
         header = Header(cards)
         return cls._readfrom_internal(_File(bs), header=header)
 
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
-        if card.keyword != 'XTENSION':
+        if card.keyword != "XTENSION":
             return False
         xtension = card.value
         if isinstance(xtension, str):

@@ -59,7 +59,6 @@ force-exclude = '''
     | astropy/convolution
     | astropy/coordinates
     | astropy/extern
-    | astropy/io/fits
     | astropy/modeling
     | astropy/table
     | astropy/units
