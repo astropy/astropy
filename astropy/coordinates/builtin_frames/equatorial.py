@@ -22,7 +22,7 @@ from astropy.utils.decorators import format_doc
 
 from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 
-__all__ = ['TEME', 'TETE']
+__all__ = ["TEME", "TETE"]
 
 doc_footer_teme = """
     Other parameters
@@ -82,6 +82,7 @@ class TETE(BaseRADecFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
     location = EarthLocationAttribute(default=EARTH_CENTER)
 
+
 # Self transform goes through ICRS and is defined in icrs_cirs_transforms.py
 
 
@@ -106,6 +107,7 @@ class TEME(BaseCoordinateFrame):
     default_differential = CartesianDifferential
 
     obstime = TimeAttribute()
+
 
 # Transformation functions for getting to/from TEME and ITRS are in
 # intermediate rotation transforms.py

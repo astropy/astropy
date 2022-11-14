@@ -11,9 +11,9 @@ from .supergalactic import Supergalactic
 @frame_transform_graph.transform(StaticMatrixTransform, Galactic, Supergalactic)
 def gal_to_supergal():
     return (
-        rotation_matrix(90, 'z')
-        @ rotation_matrix(90 - Supergalactic._nsgp_gal.b.degree, 'y')
-        @ rotation_matrix(Supergalactic._nsgp_gal.l.degree, 'z')
+        rotation_matrix(90, "z")
+        @ rotation_matrix(90 - Supergalactic._nsgp_gal.b.degree, "y")
+        @ rotation_matrix(Supergalactic._nsgp_gal.l.degree, "z")
     )
 
 

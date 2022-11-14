@@ -29,8 +29,8 @@ def test_icrs_altaz_consistency():
     dist = np.linspace(0.5, 1, len(usph)) * u.km * 1e5
     icoo = SkyCoord(ra=usph.lon, dec=usph.lat, distance=dist)
 
-    observer = EarthLocation(28*u.deg, 23*u.deg, height=2000.*u.km)
-    obstime = Time('J2010')
+    observer = EarthLocation(28 * u.deg, 23 * u.deg, height=2000.0 * u.km)
+    obstime = Time("J2010")
     aa_frame = AltAz(obstime=obstime, location=observer)
 
     # check we are going direct!
@@ -40,16 +40,15 @@ def test_icrs_altaz_consistency():
     # check that ICRS-AltAz and ICRS->CIRS->AltAz are consistent
     aa1 = icoo.transform_to(aa_frame)
     aa2 = icoo.transform_to(CIRS()).transform_to(aa_frame)
-    assert_allclose(aa1.separation_3d(aa2), 0*u.mm, atol=1*u.mm)
+    assert_allclose(aa1.separation_3d(aa2), 0 * u.mm, atol=1 * u.mm)
 
     # check roundtrip
     roundtrip = icoo.transform_to(aa_frame).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
+    assert_allclose(roundtrip.separation_3d(icoo), 0 * u.mm, atol=1 * u.mm)
 
     # check there and back via CIRS mish-mash
-    roundtrip = icoo.transform_to(aa_frame).transform_to(
-        CIRS()).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
+    roundtrip = icoo.transform_to(aa_frame).transform_to(CIRS()).transform_to(icoo)
+    assert_allclose(roundtrip.separation_3d(icoo), 0 * u.mm, atol=1 * u.mm)
 
 
 def test_icrs_hadec_consistency():
@@ -60,8 +59,8 @@ def test_icrs_hadec_consistency():
     dist = np.linspace(0.5, 1, len(usph)) * u.km * 1e5
     icoo = SkyCoord(ra=usph.lon, dec=usph.lat, distance=dist)
 
-    observer = EarthLocation(28*u.deg, 23*u.deg, height=2000.*u.km)
-    obstime = Time('J2010')
+    observer = EarthLocation(28 * u.deg, 23 * u.deg, height=2000.0 * u.km)
+    obstime = Time("J2010")
     hd_frame = HADec(obstime=obstime, location=observer)
 
     # check we are going direct!
@@ -71,13 +70,12 @@ def test_icrs_hadec_consistency():
     # check that ICRS-HADec and ICRS->CIRS->HADec are consistent
     aa1 = icoo.transform_to(hd_frame)
     aa2 = icoo.transform_to(CIRS()).transform_to(hd_frame)
-    assert_allclose(aa1.separation_3d(aa2), 0*u.mm, atol=1*u.mm)
+    assert_allclose(aa1.separation_3d(aa2), 0 * u.mm, atol=1 * u.mm)
 
     # check roundtrip
     roundtrip = icoo.transform_to(hd_frame).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
+    assert_allclose(roundtrip.separation_3d(icoo), 0 * u.mm, atol=1 * u.mm)
 
     # check there and back via CIRS mish-mash
-    roundtrip = icoo.transform_to(hd_frame).transform_to(
-        CIRS()).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
+    roundtrip = icoo.transform_to(hd_frame).transform_to(CIRS()).transform_to(icoo)
+    assert_allclose(roundtrip.separation_3d(icoo), 0 * u.mm, atol=1 * u.mm)
