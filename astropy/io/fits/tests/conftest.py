@@ -13,8 +13,8 @@ from astropy.io import fits
 
 
 @pytest.fixture(
-        params=[False, 'str', 'pathlib'],
-        ids=['', 'home_is_data', 'home_is_data, pathlib'])
+    params=[False, "str", "pathlib"], ids=["", "home_is_data", "home_is_data, pathlib"]
+)
 def home_is_data(request, monkeypatch):
     """
     Pytest fixture to run a test case both with and without tilde paths.
@@ -29,12 +29,12 @@ def home_is_data(request, monkeypatch):
         request.instance.monkeypatch = monkeypatch
         request.instance.set_home_as_data()
 
-        request.instance.set_paths_via_pathlib(request.param == 'pathlib')
+        request.instance.set_paths_via_pathlib(request.param == "pathlib")
 
 
 @pytest.fixture(
-        params=[False, 'str', 'pathlib'],
-        ids=['', 'home_is_data', 'home_is_data, pathlib'])
+    params=[False, "str", "pathlib"], ids=["", "home_is_data", "home_is_data, pathlib"]
+)
 def home_is_temp(request, monkeypatch):
     """
     Pytest fixture to run a test case both with and without tilde paths.
@@ -51,13 +51,13 @@ def home_is_temp(request, monkeypatch):
         request.instance.monkeypatch = monkeypatch
         request.instance.set_home_as_temp()
 
-        request.instance.set_paths_via_pathlib(request.param == 'pathlib')
+        request.instance.set_paths_via_pathlib(request.param == "pathlib")
 
 
 class FitsTestCase:
     def setup_method(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
-        self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.temp_dir = tempfile.mkdtemp(prefix="fits-test-")
 
         self.home_is_data = False
         self.home_is_temp = False
@@ -79,7 +79,7 @@ class FitsTestCase:
                 assert not os.path.exists(temp_file)
                 assert os.path.exists(temp_file_no_tilde)
 
-        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+        if hasattr(self, "temp_dir") and os.path.exists(self.temp_dir):
             tries = 3
             while tries:
                 try:
@@ -92,25 +92,26 @@ class FitsTestCase:
                     time.sleep(0.5)
                     tries -= 1
 
-        fits.conf.reset('enable_record_valued_keyword_cards')
-        fits.conf.reset('extension_name_case_sensitive')
-        fits.conf.reset('strip_header_whitespace')
-        fits.conf.reset('use_memmap')
+        fits.conf.reset("enable_record_valued_keyword_cards")
+        fits.conf.reset("extension_name_case_sensitive")
+        fits.conf.reset("strip_header_whitespace")
+        fits.conf.reset("use_memmap")
 
     def copy_file(self, filename):
         """Copies a backup of a test data file to the temp dir and sets its
         mode to writeable.
         """
 
-        shutil.copy(os.path.expanduser(self.data(filename)),
-                os.path.expanduser(self.temp(filename)))
-        os.chmod(os.path.expanduser(self.temp(filename)),
-                stat.S_IREAD | stat.S_IWRITE)
+        shutil.copy(
+            os.path.expanduser(self.data(filename)),
+            os.path.expanduser(self.temp(filename)),
+        )
+        os.chmod(os.path.expanduser(self.temp(filename)), stat.S_IREAD | stat.S_IWRITE)
 
     def data(self, filename):
         """Returns the path to a test data file."""
         if self.home_is_data:
-            prefix = '~'
+            prefix = "~"
         else:
             prefix = self.data_dir
 
@@ -119,14 +120,13 @@ class FitsTestCase:
         return os.path.join(prefix, filename)
 
     def temp(self, filename):
-        """ Returns the full path to a file in the test temp dir."""
+        """Returns the full path to a file in the test temp dir."""
         real_target = os.path.join(self.temp_dir, filename)
         if self.home_is_temp:
-            prefix = '~'
+            prefix = "~"
             # Record the '~' path and the intended path, for use
             # in `home_is_temp`
-            self.temp_files_used.add(
-                    (os.path.join(prefix, filename), real_target))
+            self.temp_files_used.add((os.path.join(prefix, filename), real_target))
         else:
             prefix = self.temp_dir
 
@@ -142,9 +142,9 @@ class FitsTestCase:
         """
         self.home_is_data = True
         # For Unix
-        self.monkeypatch.setenv('HOME', self.data_dir)
+        self.monkeypatch.setenv("HOME", self.data_dir)
         # For Windows
-        self.monkeypatch.setenv('USERPROFILE', self.data_dir)
+        self.monkeypatch.setenv("USERPROFILE", self.data_dir)
 
     def set_home_as_temp(self):
         """
@@ -156,9 +156,9 @@ class FitsTestCase:
         """
         self.home_is_temp = True
         # For Unix
-        self.monkeypatch.setenv('HOME', self.temp_dir)
+        self.monkeypatch.setenv("HOME", self.temp_dir)
         # For Windows
-        self.monkeypatch.setenv('USERPROFILE', self.temp_dir)
+        self.monkeypatch.setenv("USERPROFILE", self.temp_dir)
 
     def set_paths_via_pathlib(self, use_pathlib):
         self.use_pathlib = use_pathlib
