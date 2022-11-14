@@ -21,21 +21,21 @@ from ..representation import CartesianDifferential
 # convention for J2000 (it is unclear if there is any "right answer" for B1950)
 # while #8600 makes this the default behavior, we show it here to ensure it's
 # clear which is used here
-EQUINOX_J2000 = Time('J2000', scale='tt')
-EQUINOX_B1950 = Time('B1950', scale='tt')
+EQUINOX_J2000 = Time("J2000", scale="tt")
+EQUINOX_B1950 = Time("B1950", scale="tt")
 
 # This is a time object that is the default "obstime" when such an attribute is
 # necessary.  Currently, we use J2000.
-DEFAULT_OBSTIME = Time('J2000', scale='tt')
+DEFAULT_OBSTIME = Time("J2000", scale="tt")
 
 # This is an EarthLocation that is the default "location" when such an attribute is
 # necessary. It is the centre of the Earth.
-EARTH_CENTER = EarthLocation(0*u.km, 0*u.km, 0*u.km)
+EARTH_CENTER = EarthLocation(0 * u.km, 0 * u.km, 0 * u.km)
 
-PIOVER2 = np.pi / 2.
+PIOVER2 = np.pi / 2.0
 
 # comes from the mean of the 1962-2014 IERS B data
-_DEFAULT_PM = (0.035, 0.29)*u.arcsec
+_DEFAULT_PM = (0.035, 0.29) * u.arcsec
 
 
 def get_polar_motion(time):
@@ -47,24 +47,23 @@ def get_polar_motion(time):
     xp, yp, status = iers_table.pm_xy(time, return_status=True)
 
     wmsg = (
-        'Tried to get polar motions for times {} IERS data is '
-        'valid. Defaulting to polar motion from the 50-yr mean for those. '
-        'This may affect precision at the arcsec level. Please check your '
-        'astropy.utils.iers.conf.iers_auto_url and point it to a newer '
-        'version if necessary.'
+        "Tried to get polar motions for times {} IERS data is "
+        "valid. Defaulting to polar motion from the 50-yr mean for those. "
+        "This may affect precision at the arcsec level. Please check your "
+        "astropy.utils.iers.conf.iers_auto_url and point it to a newer "
+        "version if necessary."
     )
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
         xp[status == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
         yp[status == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg.format('before'), AstropyWarning)
+        warnings.warn(wmsg.format("before"), AstropyWarning)
 
     if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
-
         xp[status == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
         yp[status == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg.format('after'), AstropyWarning)
+        warnings.warn(wmsg.format("after"), AstropyWarning)
 
     return xp.to_value(u.radian), yp.to_value(u.radian)
 
@@ -77,7 +76,7 @@ def _warn_iers(ierserr):
     ----------
     ierserr : An `~astropy.utils.iers.IERSRangeError`
     """
-    msg = '{0} Assuming UT1-UTC=0 for coordinate transformations.'
+    msg = "{0} Assuming UT1-UTC=0 for coordinate transformations."
     warnings.warn(msg.format(ierserr.args[0]), AstropyWarning)
 
 
@@ -126,7 +125,7 @@ def norm(p):
     """
     Normalise a p-vector.
     """
-    return p / np.sqrt(np.einsum('...i,...i', p, p))[..., np.newaxis]
+    return p / np.sqrt(np.einsum("...i,...i", p, p))[..., np.newaxis]
 
 
 def pav2pv(p, v):
@@ -134,8 +133,8 @@ def pav2pv(p, v):
     Combine p- and v- vectors into a pv-vector.
     """
     pv = np.empty(np.broadcast(p, v).shape[:-1], erfa.dt_pv)
-    pv['p'] = p
-    pv['v'] = v
+    pv["p"] = p
+    pv["v"] = v
     return pv
 
 
@@ -213,20 +212,20 @@ def aticq(srepr, astrom):
     pos = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
 
     # Bias-precession-nutation, giving GCRS proper direction.
-    ppr = erfa.trxp(astrom['bpn'], pos)
+    ppr = erfa.trxp(astrom["bpn"], pos)
 
     # Aberration, giving GCRS natural direction
     d = np.zeros_like(ppr)
     for j in range(2):
-        before = norm(ppr-d)
-        after = erfa.ab(before, astrom['v'], astrom['em'], astrom['bm1'])
+        before = norm(ppr - d)
+        after = erfa.ab(before, astrom["v"], astrom["em"], astrom["bm1"])
         d = after - before
-    pnat = norm(ppr-d)
+    pnat = norm(ppr - d)
 
     # Light deflection by the Sun, giving BCRS coordinate direction
     d = np.zeros_like(pnat)
     for j in range(5):
-        before = norm(pnat-d)
+        before = norm(pnat - d)
         if ignore_distance:
             # No distance to object, assume a long way away
             q = before
@@ -234,7 +233,7 @@ def aticq(srepr, astrom):
             # Find BCRS direction of Sun to object.
             # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
             # and distance, respectively.
-            eh = astrom['em'][..., np.newaxis] * astrom['eh']
+            eh = astrom["em"][..., np.newaxis] * astrom["eh"]
             # unit vector from Sun to object
             q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * before
             sundist, q = erfa.pn(q)
@@ -244,9 +243,9 @@ def aticq(srepr, astrom):
             # since this is reversible and drops to zero within stellar limb
             q = np.where(sundist > 1.0e-10, q, before)
 
-        after = erfa.ld(1.0, before, q, astrom['eh'], astrom['em'], 1e-6)
+        after = erfa.ld(1.0, before, q, astrom["eh"], astrom["em"], 1e-6)
         d = after - before
-    pco = norm(pnat-d)
+    pco = norm(pnat - d)
 
     # ICRS astrometric RA, Dec
     rc, dc = erfa.c2s(pco)
@@ -305,7 +304,7 @@ def atciqz(srepr, astrom):
         # Find BCRS direction of Sun to object.
         # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
         # and distance, respectively.
-        eh = astrom['em'][..., np.newaxis] * astrom['eh']
+        eh = astrom["em"][..., np.newaxis] * astrom["eh"]
         # unit vector from Sun to object
         q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * pco
         sundist, q = erfa.pn(q)
@@ -316,14 +315,14 @@ def atciqz(srepr, astrom):
         q = np.where(sundist > 1.0e-10, q, pco)
 
     # Light deflection by the Sun, giving BCRS natural direction.
-    pnat = erfa.ld(1.0, pco, q, astrom['eh'], astrom['em'], 1e-6)
+    pnat = erfa.ld(1.0, pco, q, astrom["eh"], astrom["em"], 1e-6)
 
     # Aberration, giving GCRS proper direction.
-    ppr = erfa.ab(pnat, astrom['v'], astrom['em'], astrom['bm1'])
+    ppr = erfa.ab(pnat, astrom["v"], astrom["em"], astrom["bm1"])
 
     # Bias-precession-nutation, giving CIRS proper direction.
     # Has no effect if matrix is identity matrix, in which case gives GCRS ppr.
-    pi = erfa.rxp(astrom['bpn'], ppr)
+    pi = erfa.rxp(astrom["bpn"], ppr)
 
     # CIRS (GCRS) RA, Dec
     ri, di = erfa.c2s(pi)
@@ -362,24 +361,24 @@ def prepare_earth_position_vel(time):
     # This avoids calling epv00 twice, once
     # in get_body_barycentric_posvel('earth') and once in
     # get_body_barycentric('sun')
-    if ephemeris == 'builtin':
-        jd1, jd2 = get_jd12(time, 'tdb')
+    if ephemeris == "builtin":
+        jd1, jd2 = get_jd12(time, "tdb")
         earth_pv_heliocentric, earth_pv = erfa.epv00(jd1, jd2)
-        earth_heliocentric = earth_pv_heliocentric['p']
+        earth_heliocentric = earth_pv_heliocentric["p"]
 
     # all other ephemeris providers probably don't have a shortcut like this
     else:
-        earth_p, earth_v = get_body_barycentric_posvel('earth', time)
+        earth_p, earth_v = get_body_barycentric_posvel("earth", time)
 
         # get heliocentric position of earth, preparing it for passing to erfa.
-        sun = get_body_barycentric('sun', time)
+        sun = get_body_barycentric("sun", time)
         earth_heliocentric = (earth_p - sun).get_xyz(xyz_axis=-1).to_value(u.au)
 
         # Also prepare earth_pv for passing to erfa, which wants it as
         # a structured dtype.
         earth_pv = pav2pv(
             earth_p.get_xyz(xyz_axis=-1).to_value(u.au),
-            earth_v.get_xyz(xyz_axis=-1).to_value(u.au / u.d)
+            earth_v.get_xyz(xyz_axis=-1).to_value(u.au / u.d),
         )
 
     return earth_pv, earth_heliocentric
@@ -406,7 +405,8 @@ def get_offset_sun_from_barycenter(time, include_velocity=False, reverse=False):
     if include_velocity:
         # Import here to avoid a circular import
         from astropy.coordinates.solar_system import get_body_barycentric_posvel
-        offset_pos, offset_vel = get_body_barycentric_posvel('sun', time)
+
+        offset_pos, offset_vel = get_body_barycentric_posvel("sun", time)
         if reverse:
             offset_pos, offset_vel = -offset_pos, -offset_vel
         offset_vel = offset_vel.represent_as(CartesianDifferential)
@@ -415,7 +415,8 @@ def get_offset_sun_from_barycenter(time, include_velocity=False, reverse=False):
     else:
         # Import here to avoid a circular import
         from astropy.coordinates.solar_system import get_body_barycentric
-        offset_pos = get_body_barycentric('sun', time)
+
+        offset_pos = get_body_barycentric("sun", time)
         if reverse:
             offset_pos = -offset_pos
 

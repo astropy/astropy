@@ -24,8 +24,14 @@ from .builtin_frames.utils import get_jd12
 from .representation import CartesianRepresentation, SphericalRepresentation
 from .sky_coordinate import SkyCoord
 
-__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
-           'get_constellation', 'concatenate_representations', 'concatenate']
+__all__ = [
+    "cartesian_to_spherical",
+    "spherical_to_cartesian",
+    "get_sun",
+    "get_constellation",
+    "concatenate_representations",
+    "concatenate",
+]
 
 
 def cartesian_to_spherical(x, y, z):
@@ -63,11 +69,11 @@ def cartesian_to_spherical(x, y, z):
     lon : `~astropy.units.Quantity` ['angle']
         The longitude in radians
     """
-    if not hasattr(x, 'unit'):
+    if not hasattr(x, "unit"):
         x = x * u.dimensionless_unscaled
-    if not hasattr(y, 'unit'):
+    if not hasattr(y, "unit"):
         y = y * u.dimensionless_unscaled
-    if not hasattr(z, 'unit'):
+    if not hasattr(z, "unit"):
         z = z * u.dimensionless_unscaled
 
     cart = CartesianRepresentation(x, y, z)
@@ -110,11 +116,11 @@ def spherical_to_cartesian(r, lat, lon):
         The third cartesian coordinate.
 
     """
-    if not hasattr(r, 'unit'):
+    if not hasattr(r, "unit"):
         r = r * u.dimensionless_unscaled
-    if not hasattr(lat, 'unit'):
+    if not hasattr(lat, "unit"):
         lat = lat * u.radian
-    if not hasattr(lon, 'unit'):
+    if not hasattr(lon, "unit"):
         lon = lon * u.radian
 
     sph = SphericalRepresentation(distance=r, lat=lat, lon=lon)
@@ -148,24 +154,27 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    earth_pv_helio, earth_pv_bary = erfa.epv00(*get_jd12(time, 'tdb'))
+    earth_pv_helio, earth_pv_bary = erfa.epv00(*get_jd12(time, "tdb"))
 
     # We have to manually do aberration because we're outputting directly into
     # GCRS
-    earth_p = earth_pv_helio['p']
-    earth_v = earth_pv_bary['v']
+    earth_p = earth_pv_helio["p"]
+    earth_v = earth_pv_bary["v"]
 
     # convert barycentric velocity to units of c, but keep as array for passing in to erfa
-    earth_v /= c.to_value(u.au/u.d)
+    earth_v /= c.to_value(u.au / u.d)
 
     dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
-    invlorentz = (1-np.sum(earth_v**2, axis=-1))**0.5
-    properdir = erfa.ab(earth_p/dsun.reshape(dsun.shape + (1,)),
-                        -earth_v, dsun, invlorentz)
+    invlorentz = (1 - np.sum(earth_v**2, axis=-1)) ** 0.5
+    properdir = erfa.ab(
+        earth_p / dsun.reshape(dsun.shape + (1,)), -earth_v, dsun, invlorentz
+    )
 
-    cartrep = CartesianRepresentation(x=-dsun*properdir[..., 0] * u.AU,
-                                      y=-dsun*properdir[..., 1] * u.AU,
-                                      z=-dsun*properdir[..., 2] * u.AU)
+    cartrep = CartesianRepresentation(
+        x=-dsun * properdir[..., 0] * u.AU,
+        y=-dsun * properdir[..., 1] * u.AU,
+        z=-dsun * properdir[..., 2] * u.AU,
+    )
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
 
@@ -173,7 +182,7 @@ def get_sun(time):
 _constellation_data = {}
 
 
-def get_constellation(coord, short_name=False, constellation_list='iau'):
+def get_constellation(coord, short_name=False, constellation_list="iau"):
     """
     Determines the constellation(s) a given coordinate object contains.
 
@@ -202,23 +211,26 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
     constellations, as tabulated by
     `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
-    if constellation_list != 'iau':
+    if constellation_list != "iau":
         raise ValueError("only 'iau' us currently supported for constellation_list")
 
     # read the data files and cache them if they haven't been already
     if not _constellation_data:
-        cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
-        ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
-        cnames = data.get_pkg_data_contents('data/constellation_names.dat', encoding='UTF8')
-        cnames_short_to_long = {l[:3]: l[4:] for l in cnames.split('\n')
-                                if not l.startswith('#')}
-        cnames_long = np.array([cnames_short_to_long[nm] for nm in ctable['name']])
+        cdata = data.get_pkg_data_contents("data/constellation_data_roman87.dat")
+        ctable = ascii.read(cdata, names=["ral", "rau", "decl", "name"])
+        cnames = data.get_pkg_data_contents(
+            "data/constellation_names.dat", encoding="UTF8"
+        )
+        cnames_short_to_long = {
+            l[:3]: l[4:] for l in cnames.split("\n") if not l.startswith("#")
+        }
+        cnames_long = np.array([cnames_short_to_long[nm] for nm in ctable["name"]])
 
-        _constellation_data['ctable'] = ctable
-        _constellation_data['cnames_long'] = cnames_long
+        _constellation_data["ctable"] = ctable
+        _constellation_data["cnames_long"] = cnames_long
     else:
-        ctable = _constellation_data['ctable']
-        cnames_long = _constellation_data['cnames_long']
+        ctable = _constellation_data["ctable"]
+        cnames_long = _constellation_data["cnames_long"]
 
     isscalar = coord.isscalar
 
@@ -229,8 +241,8 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
     # models aren't precisely calibrated back to then.  But it's plenty
     # sufficient for constellations
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', erfa.ErfaWarning)
-        constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
+        warnings.simplefilter("ignore", erfa.ErfaWarning)
+        constel_coord = coord.transform_to(PrecessedGeocentric(equinox="B1875"))
     if isscalar:
         rah = constel_coord.ra.ravel().hour
         decd = constel_coord.dec.ravel().deg
@@ -242,16 +254,18 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     notided = constellidx == -1  # should be all
     for i, row in enumerate(ctable):
-        msk = (row['ral'] < rah) & (rah < row['rau']) & (decd > row['decl'])
+        msk = (row["ral"] < rah) & (rah < row["rau"]) & (decd > row["decl"])
         constellidx[notided & msk] = i
         notided = constellidx == -1
         if np.sum(notided) == 0:
             break
     else:
-        raise ValueError(f'Could not find constellation for coordinates {constel_coord[notided]}')
+        raise ValueError(
+            f"Could not find constellation for coordinates {constel_coord[notided]}"
+        )
 
     if short_name:
-        names = ctable['name'][constellidx]
+        names = ctable["name"][constellidx]
     else:
         names = cnames_long[constellidx]
 
@@ -262,7 +276,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
 
 def _concatenate_components(reps_difs, names):
-    """ Helper function for the concatenate function below. Gets and
+    """Helper function for the concatenate function below. Gets and
     concatenates all of the individual components for an iterable of
     representations or differentials.
     """
@@ -300,39 +314,42 @@ def concatenate_representations(reps):
 
     """
     if not isinstance(reps, (Sequence, np.ndarray)):
-        raise TypeError('Input must be a list or iterable of representation '
-                        'objects.')
+        raise TypeError("Input must be a list or iterable of representation objects.")
 
     # First, validate that the representations are the same, and
     # concatenate all of the positional data:
     rep_type = type(reps[0])
     if any(type(r) != rep_type for r in reps):
-        raise TypeError('Input representations must all have the same type.')
+        raise TypeError("Input representations must all have the same type.")
 
     # Construct the new representation with the concatenated data from the
     # representations passed in
-    values = _concatenate_components(reps,
-                                     rep_type.attr_classes.keys())
+    values = _concatenate_components(reps, rep_type.attr_classes.keys())
     new_rep = rep_type(*values)
 
-    has_diff = any('s' in rep.differentials for rep in reps)
-    if has_diff and any('s' not in rep.differentials for rep in reps):
-        raise ValueError('Input representations must either all contain '
-                         'differentials, or not contain differentials.')
+    has_diff = any("s" in rep.differentials for rep in reps)
+    if has_diff and any("s" not in rep.differentials for rep in reps):
+        raise ValueError(
+            "Input representations must either all contain "
+            "differentials, or not contain differentials."
+        )
 
     if has_diff:
-        dif_type = type(reps[0].differentials['s'])
+        dif_type = type(reps[0].differentials["s"])
 
-        if any('s' not in r.differentials or
-                type(r.differentials['s']) != dif_type
-               for r in reps):
-            raise TypeError('All input representations must have the same '
-                            'differential type.')
+        if any(
+            "s" not in r.differentials or type(r.differentials["s"]) != dif_type
+            for r in reps
+        ):
+            raise TypeError(
+                "All input representations must have the same differential type."
+            )
 
-        values = _concatenate_components([r.differentials['s'] for r in reps],
-                                         dif_type.attr_classes.keys())
+        values = _concatenate_components(
+            [r.differentials["s"] for r in reps], dif_type.attr_classes.keys()
+        )
         new_dif = dif_type(*values)
-        new_rep = new_rep.with_differentials({'s': new_dif})
+        new_rep = new_rep.with_differentials({"s": new_dif})
 
     return new_rep
 
@@ -358,18 +375,20 @@ def concatenate(coords):
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
     """
-    if getattr(coords, 'isscalar', False) or not isiterable(coords):
-        raise TypeError('The argument to concatenate must be iterable')
+    if getattr(coords, "isscalar", False) or not isiterable(coords):
+        raise TypeError("The argument to concatenate must be iterable")
 
     scs = [SkyCoord(coord, copy=False) for coord in coords]
 
     # Check that all frames are equivalent
     for sc in scs[1:]:
         if not sc.is_equivalent_frame(scs[0]):
-            raise ValueError("All inputs must have equivalent frames: "
-                             "{} != {}".format(sc, scs[0]))
+            raise ValueError(
+                f"All inputs must have equivalent frames: {sc} != {scs[0]}"
+            )
 
     # TODO: this can be changed to SkyCoord.from_representation() for a speed
     # boost when we switch to using classmethods
-    return SkyCoord(concatenate_representations([c.data for c in coords]),
-                    frame=scs[0].frame)
+    return SkyCoord(
+        concatenate_representations([c.data for c in coords]), frame=scs[0].frame
+    )

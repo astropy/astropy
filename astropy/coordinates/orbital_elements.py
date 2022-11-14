@@ -79,7 +79,7 @@ _MOON_L_R = (
     (0, 2, 1, 0, -323, 1165),
     (1, 1, -1, 0, 299, 0),
     (2, 0, 3, 0, 294, 0),
-    (2, 0, -1, -2, 0, 8752)
+    (2, 0, -1, -2, 0, 8752),
 )
 
 # Meeus 1998: table 47.B
@@ -145,7 +145,7 @@ _MOON_B = (
     (4, 0, 1, -1, 132),
     (1, 0, -1, -1, -119),
     (4, -1, 0, -1, 115),
-    (2, -2, 0, 1, 107)
+    (2, -2, 0, 1, 107),
 )
 
 """
@@ -157,29 +157,27 @@ M: Sun's mean anomaly
 Mc : Moon's mean anomaly
 F : Moon's argument of latitude (mean distance of Moon from its ascending node).
 """
-_coLc = (2.18316448e+02, 4.81267881e+05, -1.57860000e-03,
-         1.85583502e-06, -1.53388349e-08)
-_coD = (2.97850192e+02, 4.45267111e+05, -1.88190000e-03,
-        1.83194472e-06, -8.84447000e-09)
-_coM = (3.57529109e+02, 3.59990503e+04, -1.53600000e-04,
-        4.08329931e-08)
-_coMc = (1.34963396e+02, 4.77198868e+05, 8.74140000e-03,
-         1.43474081e-05, -6.79717238e-08)
-_coF = (9.32720950e+01, 4.83202018e+05, -3.65390000e-03,
-        -2.83607487e-07, 1.15833246e-09)
+_coLc = (2.18316448e02, 4.81267881e05, -1.57860000e-03, 1.85583502e-06, -1.53388349e-08)
+_coD = (2.97850192e02, 4.45267111e05, -1.88190000e-03, 1.83194472e-06, -8.84447000e-09)
+_coM = (3.57529109e02, 3.59990503e04, -1.53600000e-04, 4.08329931e-08)
+_coMc = (1.34963396e02, 4.77198868e05, 8.74140000e-03, 1.43474081e-05, -6.79717238e-08)
+_coF = (9.32720950e01, 4.83202018e05, -3.65390000e-03, -2.83607487e-07, 1.15833246e-09)
 _coA1 = (119.75, 131.849)
 _coA2 = (53.09, 479264.290)
 _coA3 = (313.45, 481266.484)
 _coE = (1.0, -0.002516, -0.0000074)
 
 
-@deprecated(since="5.0",
-            alternative="astropy.coordinates.get_moon",
-            message=("The private calc_moon function has been deprecated, "
-                     "as its functionality is now available in ERFA. "
-                     "Note that the coordinate system was not interpreted "
-                     "quite correctly, leading to small inaccuracies. Please "
-                     "use the public get_moon or get_body functions instead."))
+@deprecated(
+    since="5.0",
+    alternative="astropy.coordinates.get_moon",
+    message=(
+        "The private calc_moon function has been deprecated, as its functionality is"
+        " now available in ERFA. Note that the coordinate system was not interpreted"
+        " quite correctly, leading to small inaccuracies. Please use the public"
+        " get_moon or get_body functions instead."
+    ),
+)
 def calc_moon(t):
     """
     Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)
@@ -204,7 +202,7 @@ def calc_moon(t):
     # number of centuries since J2000.0.
     # This should strictly speaking be in Ephemeris Time, but TDB or TT
     # will introduce error smaller than intrinsic accuracy of algorithm.
-    T = (t.tdb.jyear-2000.0)/100.
+    T = (t.tdb.jyear - 2000.0) / 100.0
 
     # constants that are needed for all calculations
     Lc = u.Quantity(polyval(T, _coLc), u.deg)
@@ -221,34 +219,39 @@ def calc_moon(t):
     suml = sumr = 0.0
     for DNum, MNum, McNum, FNum, LFac, RFac in _MOON_L_R:
         corr = E ** abs(MNum)
-        suml += LFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
-        sumr += RFac*corr*np.cos(D*DNum+M*MNum+Mc*McNum+F*FNum)
+        suml += LFac * corr * np.sin(D * DNum + M * MNum + Mc * McNum + F * FNum)
+        sumr += RFac * corr * np.cos(D * DNum + M * MNum + Mc * McNum + F * FNum)
 
     sumb = 0.0
     for DNum, MNum, McNum, FNum, BFac in _MOON_B:
         corr = E ** abs(MNum)
-        sumb += BFac*corr*np.sin(D*DNum+M*MNum+Mc*McNum+F*FNum)
+        sumb += BFac * corr * np.sin(D * DNum + M * MNum + Mc * McNum + F * FNum)
 
-    suml += (3958*np.sin(A1) + 1962*np.sin(Lc-F) + 318*np.sin(A2))
-    sumb += (-2235*np.sin(Lc) + 382*np.sin(A3) + 175*np.sin(A1-F) +
-             175*np.sin(A1+F) + 127*np.sin(Lc-Mc) - 115*np.sin(Lc+Mc))
+    suml += 3958 * np.sin(A1) + 1962 * np.sin(Lc - F) + 318 * np.sin(A2)
+    sumb += (
+        -2235 * np.sin(Lc)
+        + 382 * np.sin(A3)
+        + 175 * np.sin(A1 - F)
+        + 175 * np.sin(A1 + F)
+        + 127 * np.sin(Lc - Mc)
+        - 115 * np.sin(Lc + Mc)
+    )
 
     # ensure units
-    suml = suml*u.microdegree
-    sumb = sumb*u.microdegree
+    suml = suml * u.microdegree
+    sumb = sumb * u.microdegree
 
     # nutation of longitude
-    jd1, jd2 = get_jd12(t, 'tt')
+    jd1, jd2 = get_jd12(t, "tt")
     nut, _ = erfa.nut06a(jd1, jd2)
-    nut = nut*u.rad
+    nut = nut * u.rad
 
     # calculate ecliptic coordinates
     lon = Lc + suml + nut
     lat = sumb
-    dist = (385000.56+sumr/1000)*u.km
+    dist = (385000.56 + sumr / 1000) * u.km
 
     # Meeus algorithm gives GeocentricTrueEcliptic coordinates
-    ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
-                                          obstime=t, equinox=t)
+    ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist, obstime=t, equinox=t)
 
     return SkyCoord(ecliptic_coo.transform_to(ICRS()))
