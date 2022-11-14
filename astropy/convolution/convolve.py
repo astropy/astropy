@@ -384,7 +384,7 @@ def convolve(
                 raise ValueError(
                     "The kernel can't be normalized, because "
                     "its sum is close to zero. The sum of the "
-                    "given kernel is < {}".format(1.0 / MAX_NORMALIZATION)
+                    f"given kernel is < {1.0 / MAX_NORMALIZATION}"
                 )
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
@@ -793,10 +793,8 @@ def convolve_fft(
     if normalize_kernel is True:
         if kernel.sum() < 1.0 / MAX_NORMALIZATION:
             raise Exception(
-                "The kernel can't be normalized, because its sum is "
-                "close to zero. The sum of the given kernel is < {}".format(
-                    1.0 / MAX_NORMALIZATION
-                )
+                "The kernel can't be normalized, because its sum is close to zero. The"
+                f" sum of the given kernel is < {1.0 / MAX_NORMALIZATION}"
             )
         kernel_scale = kernel.sum()
         normalized_kernel = kernel / kernel_scale

@@ -190,9 +190,8 @@ def test_type_exception():
     """
     Test type exception.
     """
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match=r"Model must be callable\."):
         discretize_model(float(0), (-10, 11))
-    assert exc.value.args[0] == "Model must be callable."
 
 
 def test_dim_exception_1d():
@@ -203,9 +202,8 @@ def test_dim_exception_1d():
     def f(x):
         return x**2
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=r"y range specified, but model is only 1-d\."):
         discretize_model(f, (-10, 11), (-10, 11))
-    assert exc.value.args[0] == "y range specified, but model is only 1-d."
 
 
 def test_dim_exception_2d():
@@ -216,33 +214,36 @@ def test_dim_exception_2d():
     def f(x, y):
         return x**2 + y**2
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match=r"y range not specified, but model is 2-d"):
         discretize_model(f, (-10, 11))
-    assert exc.value.args[0] == "y range not specified, but model is 2-d"
 
 
 def test_float_x_range_exception():
     def f(x, y):
         return x**2 + y**2
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"The difference between the upper and lower limit of 'x_range' must be a"
+            r" whole number\."
+        ),
+    ):
         discretize_model(f, (-10.002, 11.23))
-    assert (
-        exc.value.args[0] == "The difference between the upper and lower"
-        " limit of 'x_range' must be a whole number."
-    )
 
 
 def test_float_y_range_exception():
     def f(x, y):
         return x**2 + y**2
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"The difference between the upper and lower limit of 'y_range' must be a"
+            r" whole number\."
+        ),
+    ):
         discretize_model(f, (-10, 11), (-10.002, 11.23))
-    assert (
-        exc.value.args[0] == "The difference between the upper and lower"
-        " limit of 'y_range' must be a whole number."
-    )
 
 
 def test_discretize_oversample():

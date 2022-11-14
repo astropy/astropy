@@ -995,9 +995,8 @@ def test_convolve_fft_boundary_extend_error():
     x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=">f8")
     y = np.array([[1.0]], dtype=">f8")
 
-    with pytest.raises(NotImplementedError) as err:
+    with pytest.raises(
+        NotImplementedError,
+        match=r"The 'extend' option is not implemented for fft-based convolution",
+    ):
         convolve_fft(x, y, boundary="extend")
-    assert (
-        str(err.value)
-        == "The 'extend' option is not implemented for fft-based convolution"
-    )

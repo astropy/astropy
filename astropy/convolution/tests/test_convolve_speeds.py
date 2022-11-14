@@ -9,8 +9,8 @@ max_exponents_fft = {1: 15, 2: 10, 3: 7}
 if __name__ == "__main__":
     for ndims in [1, 2, 3]:
         print(
-            "\n{}-dimensional arrays ('n' is the size of the image AND "
-            "the kernel)".format(ndims)
+            f"\n{ndims}-dimensional arrays ('n' is the size of the image AND "
+            "the kernel)"
         )
         print(" ".join(["%17s" % n for n in ("n", "convolve", "convolve_fft")]))
 

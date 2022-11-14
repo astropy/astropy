@@ -106,17 +106,16 @@ class TestKernels:
             delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=False
         )
 
-        with pytest.raises(Exception) as exc:
+        MESSAGE = r"sum is close to zero"
+        with pytest.raises(Exception, match=MESSAGE):
             astropy_1D = convolve(
                 delta_pulse_1D, ricker_kernel_1D, boundary="fill", normalize_kernel=True
             )
-        assert "sum is close to zero" in exc.value.args[0]
 
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception, match=MESSAGE):
             astropy_2D = convolve(
                 delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=True
             )
-        assert "sum is close to zero" in exc.value.args[0]
 
         # The Laplace of Gaussian filter is an inverted Ricker Wavelet filter.
         scipy_1D = -gaussian_laplace(delta_pulse_1D, width)
