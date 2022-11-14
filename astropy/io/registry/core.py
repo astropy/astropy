@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
-__all__ = ['UnifiedIORegistry', 'UnifiedInputRegistry', 'UnifiedOutputRegistry']
+__all__ = ["UnifiedIORegistry", "UnifiedInputRegistry", "UnifiedOutputRegistry"]
 
 
 PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
@@ -23,6 +23,7 @@ def _expand_user_in_args(args):
 
 
 # -----------------------------------------------------------------------------
+
 
 class UnifiedInputRegistry(_UnifiedIORegistryBase):
     """Read-only Unified Registry.
@@ -72,8 +73,9 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
     # =========================================================================
     # Read methods
 
-    def register_reader(self, data_format, data_class, function, force=False,
-                        priority=0):
+    def register_reader(
+        self, data_format, data_class, function, force=False, priority=0
+    ):
         """
         Register a reader function.
 
@@ -98,12 +100,13 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         if not (data_format, data_class) in self._readers or force:
             self._readers[(data_format, data_class)] = function, priority
         else:
-            raise IORegistryError("Reader for format '{}' and class '{}' is "
-                              'already defined'
-                              ''.format(data_format, data_class.__name__))
+            raise IORegistryError(
+                f"Reader for format '{data_format}' and class '{data_class.__name__}'"
+                " is already defined"
+            )
 
         if data_class not in self._delayed_docs_classes:
-            self._update__doc__(data_class, 'read')
+            self._update__doc__(data_class, "read")
 
     def unregister_reader(self, data_format, data_class):
         """
@@ -120,11 +123,13 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         if (data_format, data_class) in self._readers:
             self._readers.pop((data_format, data_class))
         else:
-            raise IORegistryError("No reader defined for format '{}' and class '{}'"
-                                  ''.format(data_format, data_class.__name__))
+            raise IORegistryError(
+                f"No reader defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'"
+            )
 
         if data_class not in self._delayed_docs_classes:
-            self._update__doc__(data_class, 'read')
+            self._update__doc__(data_class, "read")
 
     def get_reader(self, data_format, data_class):
         """Get reader for ``data_format``.
@@ -147,11 +152,12 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             if self._is_best_match(data_class, reader_class, readers):
                 return self._readers[(reader_format, reader_class)][0]
         else:
-            format_table_str = self._get_format_table_str(data_class, 'Read')
+            format_table_str = self._get_format_table_str(data_class, "Read")
             raise IORegistryError(
-                "No reader defined for format '{}' and class '{}'.\n\nThe "
-                "available formats are:\n\n{}".format(
-                    data_format, data_class.__name__, format_table_str))
+                f"No reader defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
+            )
 
     def read(self, cls, *args, format=None, cache=False, **kwargs):
         """
@@ -191,7 +197,9 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                             args = (os.fspath(args[0]),) + args[1:]
                         path = args[0]
                         try:
-                            ctx = get_readable_fileobj(args[0], encoding='binary', cache=cache)
+                            ctx = get_readable_fileobj(
+                                args[0], encoding="binary", cache=cache
+                            )
                             fileobj = ctx.__enter__()
                         except OSError:
                             raise
@@ -199,12 +207,13 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                             fileobj = None
                         else:
                             args = [fileobj] + list(args[1:])
-                    elif hasattr(args[0], 'read'):
+                    elif hasattr(args[0], "read"):
                         path = None
                         fileobj = args[0]
 
                 format = self._get_valid_format(
-                    'read', cls, path, fileobj, args, kwargs)
+                    "read", cls, path, fileobj, args, kwargs
+                )
 
             reader = self.get_reader(format, cls)
             data = reader(*args, **kwargs)
@@ -216,8 +225,9 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                 try:
                     data = cls(data)
                 except Exception:
-                    raise TypeError('could not convert reader output to {} '
-                                    'class.'.format(cls.__name__))
+                    raise TypeError(
+                        f"could not convert reader output to {cls.__name__} class."
+                    )
         finally:
             if ctx is not None:
                 ctx.__exit__(*sys.exc_info())
@@ -226,6 +236,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
 
 
 # -----------------------------------------------------------------------------
+
 
 class UnifiedOutputRegistry(_UnifiedIORegistryBase):
     """Write-only Registry.
@@ -237,12 +248,14 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         super().__init__()
         self._writers = OrderedDict()
         self._registries["write"] = dict(attr="_writers", column="Write")
-        self._registries_order = ("write", "identify", )
+        self._registries_order = ("write", "identify")
 
     # =========================================================================
     # Write Methods
 
-    def register_writer(self, data_format, data_class, function, force=False, priority=0):
+    def register_writer(
+        self, data_format, data_class, function, force=False, priority=0
+    ):
         """
         Register a table writer function.
 
@@ -267,12 +280,13 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         if not (data_format, data_class) in self._writers or force:
             self._writers[(data_format, data_class)] = function, priority
         else:
-            raise IORegistryError("Writer for format '{}' and class '{}' is "
-                                  'already defined'
-                                  ''.format(data_format, data_class.__name__))
+            raise IORegistryError(
+                f"Writer for format '{data_format}' and class '{data_class.__name__}'"
+                " is already defined"
+            )
 
         if data_class not in self._delayed_docs_classes:
-            self._update__doc__(data_class, 'write')
+            self._update__doc__(data_class, "write")
 
     def unregister_writer(self, data_format, data_class):
         """
@@ -289,11 +303,13 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         if (data_format, data_class) in self._writers:
             self._writers.pop((data_format, data_class))
         else:
-            raise IORegistryError("No writer defined for format '{}' and class '{}'"
-                                  ''.format(data_format, data_class.__name__))
+            raise IORegistryError(
+                f"No writer defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'"
+            )
 
         if data_class not in self._delayed_docs_classes:
-            self._update__doc__(data_class, 'write')
+            self._update__doc__(data_class, "write")
 
     def get_writer(self, data_format, data_class):
         """Get writer for ``data_format``.
@@ -316,11 +332,12 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             if self._is_best_match(data_class, writer_class, writers):
                 return self._writers[(writer_format, writer_class)][0]
         else:
-            format_table_str = self._get_format_table_str(data_class, 'Write')
+            format_table_str = self._get_format_table_str(data_class, "Write")
             raise IORegistryError(
-                "No writer defined for format '{}' and class '{}'.\n\nThe "
-                "available formats are:\n\n{}".format(
-                    data_format, data_class.__name__, format_table_str))
+                f"No writer defined for format '{data_format}' and class"
+                f" '{data_class.__name__}'.\n\nThe available formats"
+                f" are:\n\n{format_table_str}"
+            )
 
     def write(self, data, *args, format=None, **kwargs):
         """
@@ -356,18 +373,20 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
                         args = (os.fspath(args[0]),) + args[1:]
                     path = args[0]
                     fileobj = None
-                elif hasattr(args[0], 'read'):
+                elif hasattr(args[0], "read"):
                     path = None
                     fileobj = args[0]
 
             format = self._get_valid_format(
-                'write', data.__class__, path, fileobj, args, kwargs)
+                "write", data.__class__, path, fileobj, args, kwargs
+            )
 
         writer = self.get_writer(format, data.__class__)
         return writer(data, *args, **kwargs)
 
 
 # -----------------------------------------------------------------------------
+
 
 class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
     """Unified I/O Registry.
