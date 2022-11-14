@@ -3,7 +3,7 @@ import numpy as np
 
 from astropy.modeling.core import Model, custom_model
 
-__all__ = ['discretize_model', 'KernelSizeError']
+__all__ = ["discretize_model", "KernelSizeError"]
 
 
 class DiscretizationError(Exception):
@@ -38,15 +38,13 @@ def add_kernel_arrays_1D(array_1, array_2):
     if array_1.size > array_2.size:
         new_array = array_1.copy()
         center = array_1.size // 2
-        slice_ = slice(center - array_2.size // 2,
-                       center + array_2.size // 2 + 1)
+        slice_ = slice(center - array_2.size // 2, center + array_2.size // 2 + 1)
         new_array[slice_] += array_2
         return new_array
     elif array_2.size > array_1.size:
         new_array = array_2.copy()
         center = array_2.size // 2
-        slice_ = slice(center - array_1.size // 2,
-                       center + array_1.size // 2 + 1)
+        slice_ = slice(center - array_1.size // 2, center + array_1.size // 2 + 1)
         new_array[slice_] += array_1
         return new_array
     return array_2 + array_1
@@ -61,25 +59,29 @@ def add_kernel_arrays_2D(array_1, array_2):
     if array_1.size > array_2.size:
         new_array = array_1.copy()
         center = [axes_size // 2 for axes_size in array_1.shape]
-        slice_x = slice(center[1] - array_2.shape[1] // 2,
-                        center[1] + array_2.shape[1] // 2 + 1)
-        slice_y = slice(center[0] - array_2.shape[0] // 2,
-                        center[0] + array_2.shape[0] // 2 + 1)
+        slice_x = slice(
+            center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1
+        )
+        slice_y = slice(
+            center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1
+        )
         new_array[slice_y, slice_x] += array_2
         return new_array
     elif array_2.size > array_1.size:
         new_array = array_2.copy()
         center = [axes_size // 2 for axes_size in array_2.shape]
-        slice_x = slice(center[1] - array_1.shape[1] // 2,
-                        center[1] + array_1.shape[1] // 2 + 1)
-        slice_y = slice(center[0] - array_1.shape[0] // 2,
-                        center[0] + array_1.shape[0] // 2 + 1)
+        slice_x = slice(
+            center[1] - array_1.shape[1] // 2, center[1] + array_1.shape[1] // 2 + 1
+        )
+        slice_y = slice(
+            center[0] - array_1.shape[0] // 2, center[0] + array_1.shape[0] // 2 + 1
+        )
         new_array[slice_y, slice_x] += array_1
         return new_array
     return array_2 + array_1
 
 
-def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
+def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
     """
     Function to evaluate analytical model functions on a grid.
 
@@ -150,21 +152,25 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
     """
     if not callable(model):
-        raise TypeError('Model must be callable.')
+        raise TypeError("Model must be callable.")
     if not isinstance(model, Model):
         model = custom_model(model)()
     ndim = model.n_inputs
     if ndim > 2:
-        raise ValueError('discretize_model only supports 1-d and 2-d models.')
+        raise ValueError("discretize_model only supports 1-d and 2-d models.")
 
     if not float(np.diff(x_range)).is_integer():
-        raise ValueError("The difference between the upper and lower limit of"
-                         " 'x_range' must be a whole number.")
+        raise ValueError(
+            "The difference between the upper and lower limit of"
+            " 'x_range' must be a whole number."
+        )
 
     if y_range:
         if not float(np.diff(y_range)).is_integer():
-            raise ValueError("The difference between the upper and lower limit of"
-                             " 'y_range' must be a whole number.")
+            raise ValueError(
+                "The difference between the upper and lower limit of"
+                " 'y_range' must be a whole number."
+            )
 
     if ndim == 2 and y_range is None:
         raise ValueError("y range not specified, but model is 2-d")
@@ -191,7 +197,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         if ndim == 2:
             return discretize_integrate_2D(model, x_range, y_range)
     else:
-        raise DiscretizationError('Invalid mode.')
+        raise DiscretizationError("Invalid mode.")
 
 
 def discretize_center_1D(model, x_range):
@@ -233,11 +239,9 @@ def discretize_bilinear_2D(model, x_range, y_range):
     values_intermediate_grid = model(x, y)
 
     # Mean in y direction
-    values = 0.5 * (values_intermediate_grid[1:, :]
-                    + values_intermediate_grid[:-1, :])
+    values = 0.5 * (values_intermediate_grid[1:, :] + values_intermediate_grid[:-1, :])
     # Mean in x direction
-    values = 0.5 * (values[:, 1:]
-                    + values[:, :-1])
+    values = 0.5 * (values[:, 1:] + values[:, :-1])
     return values
 
 
@@ -246,9 +250,11 @@ def discretize_oversample_1D(model, x_range, factor=10):
     Discretize model by taking the average on an oversampled grid.
     """
     # Evaluate model on oversampled grid
-    x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
-                    x_range[1] - 0.5 * (1 + 1 / factor),
-                    num=int((x_range[1] - x_range[0]) * factor))
+    x = np.linspace(
+        x_range[0] - 0.5 * (1 - 1 / factor),
+        x_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((x_range[1] - x_range[0]) * factor),
+    )
 
     values = model(x)
 
@@ -262,12 +268,16 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     Discretize model by taking the average on an oversampled grid.
     """
     # Evaluate model on oversampled grid
-    x = np.linspace(x_range[0] - 0.5 * (1 - 1 / factor),
-                    x_range[1] - 0.5 * (1 + 1 / factor),
-                    num=int((x_range[1] - x_range[0]) * factor))
-    y = np.linspace(y_range[0] - 0.5 * (1 - 1 / factor),
-                    y_range[1] - 0.5 * (1 + 1 / factor),
-                    num=int((y_range[1] - y_range[0]) * factor))
+    x = np.linspace(
+        x_range[0] - 0.5 * (1 - 1 / factor),
+        x_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((x_range[1] - x_range[0]) * factor),
+    )
+    y = np.linspace(
+        y_range[0] - 0.5 * (1 - 1 / factor),
+        y_range[1] - 0.5 * (1 + 1 / factor),
+        num=int((y_range[1] - y_range[0]) * factor),
+    )
 
     x_grid, y_grid = np.meshgrid(x, y)
     values = model(x_grid, y_grid)
@@ -308,6 +318,11 @@ def discretize_integrate_2D(model, x_range, y_range):
     # Integrate over all pixels
     for i in range(x.size - 1):
         for j in range(y.size - 1):
-            values[j, i] = dblquad(lambda y, x: model(x, y), x[i], x[i + 1],
-                                   lambda x: y[j], lambda x: y[j + 1])[0]
+            values[j, i] = dblquad(
+                func=lambda y, x: model(x, y),
+                a=x[i],
+                b=x[i + 1],
+                gfun=lambda x: y[j],
+                hfun=lambda x: y[j + 1],
+            )[0]
     return values

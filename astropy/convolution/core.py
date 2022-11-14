@@ -26,7 +26,7 @@ from .utils import add_kernel_arrays_1D, add_kernel_arrays_2D, discretize_model
 
 MAX_NORMALIZATION = 100
 
-__all__ = ['Kernel', 'Kernel1D', 'Kernel2D', 'kernel_arithmetics']
+__all__ = ["Kernel", "Kernel1D", "Kernel2D", "kernel_arithmetics"]
 
 
 class Kernel:
@@ -38,6 +38,7 @@ class Kernel:
     array : ndarray
         Kernel array.
     """
+
     _separable = False
     _is_bool = True
     _model = None
@@ -51,7 +52,7 @@ class Kernel:
         Absolute deviation of the sum of the kernel array values from
         one.
         """
-        return np.abs(1. - self._array.sum())
+        return np.abs(1.0 - self._array.sum())
 
     @property
     def is_bool(self):
@@ -84,7 +85,7 @@ class Kernel:
         """
         return [axes_size // 2 for axes_size in self._array.shape]
 
-    def normalize(self, mode='integral'):
+    def normalize(self, mode="integral"):
         """
         Normalize the filter kernel.
 
@@ -98,17 +99,19 @@ class Kernel:
                     Kernel is normalized such that its peak = 1.
         """
 
-        if mode == 'integral':
+        if mode == "integral":
             normalization = self._array.sum()
-        elif mode == 'peak':
+        elif mode == "peak":
             normalization = self._array.max()
         else:
             raise ValueError("invalid mode, must be 'integral' or 'peak'")
 
         # Warn the user for kernels that sum to zero
         if normalization == 0:
-            warnings.warn('The kernel cannot be normalized because it '
-                          'sums to zero.', AstropyUserWarning)
+            warnings.warn(
+                "The kernel cannot be normalized because it sums to zero.",
+                AstropyUserWarning,
+            )
         else:
             np.divide(self._array, normalization, self._array)
 
@@ -147,13 +150,13 @@ class Kernel:
         """
         Add two filter kernels.
         """
-        return kernel_arithmetics(self, kernel, 'add')
+        return kernel_arithmetics(self, kernel, "add")
 
     def __sub__(self, kernel):
         """
         Subtract two filter kernels.
         """
-        return kernel_arithmetics(self, kernel, 'sub')
+        return kernel_arithmetics(self, kernel, "sub")
 
     def __mul__(self, value):
         """
@@ -282,7 +285,6 @@ class Kernel2D(Kernel):
     """
 
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
-
         # Initialize from model
         if self._model:
             if array is not None:
@@ -346,8 +348,10 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want "
-                            "to use convolve(kernel1, kernel2) instead.")
+            raise Exception(
+                "Kernel operation not supported. Maybe you want "
+                "to use convolve(kernel1, kernel2) instead."
+            )
         new_kernel = Kernel1D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
@@ -359,8 +363,10 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want "
-                            "to use convolve(kernel1, kernel2) instead.")
+            raise Exception(
+                "Kernel operation not supported. Maybe you want "
+                "to use convolve(kernel1, kernel2) instead."
+            )
         new_kernel = Kernel2D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
