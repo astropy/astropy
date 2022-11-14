@@ -11,9 +11,9 @@ class FunctionMixin:
 
     See units.py and logarithmic.py for usage.
     """
+
     def __call__(self, unit=None):
-        return self._function_unit_class(physical_unit=unit,
-                                         function_unit=self)
+        return self._function_unit_class(physical_unit=unit, function_unit=self)
 
 
 class IrreducibleFunctionUnit(FunctionMixin, IrreducibleUnit):

@@ -22,18 +22,19 @@ def test_emu():
     assert u.Bi.compose()[0] == u.Bi
 
     # test that the earth/jupiter mass/rad are also in the deprecated bunch
-    for body in ('earth', 'jupiter'):
-        for phystype in ('Mass', 'Rad'):
+    for body in ("earth", "jupiter"):
+        for phystype in ("Mass", "Rad"):
             # only test a couple prefixes to same time
-            for prefix in ('n', 'y'):
+            for prefix in ("n", "y"):
                 namewoprefix = body + phystype
                 unitname = prefix + namewoprefix
 
                 with pytest.raises(AttributeError):
                     getattr(u, unitname)
 
-                assert (getattr(deprecated, unitname).represents.bases[0] ==
-                        getattr(u, namewoprefix))
+                assert getattr(deprecated, unitname).represents.bases[0] == getattr(
+                    u, namewoprefix
+                )
 
 
 def test_required_by_vounit():
@@ -49,9 +50,9 @@ def test_required_by_vounit():
 
     # but they should be enabled by default via required_by_vounit, to allow
     # the Unit constructor to accept them
-    assert u.Unit('nsolMass') == required_by_vounit.nsolMass
-    assert u.Unit('nsolRad') == required_by_vounit.nsolRad
-    assert u.Unit('nsolLum') == required_by_vounit.nsolLum
+    assert u.Unit("nsolMass") == required_by_vounit.nsolMass
+    assert u.Unit("nsolRad") == required_by_vounit.nsolRad
+    assert u.Unit("nsolLum") == required_by_vounit.nsolLum
 
     # but because they are prefixes, they shouldn't be in find_equivalent_units
     assert required_by_vounit.nsolMass not in u.solMass.find_equivalent_units()

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ['quantity_input']
+__all__ = ["quantity_input"]
 
 import inspect
 from collections.abc import Sequence
@@ -30,7 +30,6 @@ def _get_allowed_units(targets):
     """
     allowed_units = []
     for target in targets:
-
         try:
             unit = Unit(target)
         except (TypeError, ValueError):
@@ -44,8 +43,9 @@ def _get_allowed_units(targets):
     return allowed_units
 
 
-def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
-                        strict_dimensionless=False):
+def _validate_arg_value(
+    param_name, func_name, arg, targets, equivalencies, strict_dimensionless=False
+):
     """
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
@@ -58,36 +58,39 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
 
     # If dimensionless is an allowed unit and the argument is unit-less,
     #   allow numbers or numpy arrays with numeric dtypes
-    if (dimensionless_unscaled in allowed_units and not strict_dimensionless
-            and not hasattr(arg, "unit")):
+    if (
+        dimensionless_unscaled in allowed_units
+        and not strict_dimensionless
+        and not hasattr(arg, "unit")
+    ):
         if isinstance(arg, Number):
             return
 
-        elif (isinstance(arg, np.ndarray)
-              and np.issubdtype(arg.dtype, np.number)):
+        elif isinstance(arg, np.ndarray) and np.issubdtype(arg.dtype, np.number):
             return
 
     for allowed_unit in allowed_units:
         try:
-            is_equivalent = arg.unit.is_equivalent(allowed_unit,
-                                                   equivalencies=equivalencies)
-
-            if is_equivalent:
+            if arg.unit.is_equivalent(allowed_unit, equivalencies=equivalencies):
                 break
 
         except AttributeError:  # Either there is no .unit or no .is_equivalent
             if hasattr(arg, "unit"):
-                error_msg = ("a 'unit' attribute without an 'is_equivalent' method")
+                error_msg = "a 'unit' attribute without an 'is_equivalent' method"
             else:
                 error_msg = "no 'unit' attribute"
 
-            raise TypeError(f"Argument '{param_name}' to function '{func_name}'"
-                            f" has {error_msg}. You should pass in an astropy "
-                            "Quantity instead.")
+            raise TypeError(
+                f"Argument '{param_name}' to function '{func_name}'"
+                f" has {error_msg}. You should pass in an astropy "
+                "Quantity instead."
+            )
 
     else:
-        error_msg = (f"Argument '{param_name}' to function '{func_name}' must "
-                     "be in units convertible to")
+        error_msg = (
+            f"Argument '{param_name}' to function '{func_name}' must "
+            "be in units convertible to"
+        )
         if len(targets) > 1:
             targ_names = ", ".join([f"'{str(targ)}'" for targ in targets])
             raise UnitsError(f"{error_msg} one of: {targ_names}.")
@@ -96,7 +99,6 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
 
 
 def _parse_annotation(target):
-
     if target in (None, NoneType, inspect._empty):
         return target
 
@@ -135,7 +137,6 @@ def _parse_annotation(target):
 
 
 class QuantityInput:
-
     @classmethod
     def as_decorator(cls, func=None, **kwargs):
         r"""
@@ -216,12 +217,11 @@ class QuantityInput:
             return self
 
     def __init__(self, func=None, strict_dimensionless=False, **kwargs):
-        self.equivalencies = kwargs.pop('equivalencies', [])
+        self.equivalencies = kwargs.pop("equivalencies", [])
         self.decorator_kwargs = kwargs
         self.strict_dimensionless = strict_dimensionless
 
     def __call__(self, wrapped_function):
-
         # Extract the function signature for the function we are wrapping.
         wrapped_signature = inspect.signature(wrapped_function)
 
@@ -234,13 +234,17 @@ class QuantityInput:
             # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
                 # We do not support variable arguments (*args, **kwargs)
-                if param.kind in (inspect.Parameter.VAR_KEYWORD,
-                                  inspect.Parameter.VAR_POSITIONAL):
+                if param.kind in (
+                    inspect.Parameter.VAR_KEYWORD,
+                    inspect.Parameter.VAR_POSITIONAL,
+                ):
                     continue
 
                 # Catch the (never triggered) case where bind relied on a default value.
-                if (param.name not in bound_args.arguments
-                        and param.default is not param.empty):
+                if (
+                    param.name not in bound_args.arguments
+                    and param.default is not param.empty
+                ):
                     bound_args.arguments[param.name] = param.default
 
                 # Get the value of this parameter (argument to new function)
@@ -272,8 +276,7 @@ class QuantityInput:
                 #   were specified in the decorator/annotation, or whether a
                 #   single string (unit or physical type) or a Unit object was
                 #   specified
-                if (isinstance(targets, str)
-                        or not isinstance(targets, Sequence)):
+                if isinstance(targets, str) or not isinstance(targets, Sequence):
                     valid_targets = [targets]
 
                 # Check for None in the supplied list of allowed units and, if
@@ -291,14 +294,22 @@ class QuantityInput:
                 #    are not strings or subclasses of Unit. This is to allow
                 #    non unit related annotations to pass through
                 if is_annotation:
-                    valid_targets = [t for t in valid_targets
-                                     if isinstance(t, (str, UnitBase, PhysicalType))]
+                    valid_targets = [
+                        t
+                        for t in valid_targets
+                        if isinstance(t, (str, UnitBase, PhysicalType))
+                    ]
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
-                _validate_arg_value(param.name, wrapped_function.__name__,
-                                    arg, valid_targets, self.equivalencies,
-                                    self.strict_dimensionless)
+                _validate_arg_value(
+                    param.name,
+                    wrapped_function.__name__,
+                    arg,
+                    valid_targets,
+                    self.equivalencies,
+                    self.strict_dimensionless,
+                )
 
             # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
@@ -308,15 +319,24 @@ class QuantityInput:
             ra = wrapped_signature.return_annotation
             valid_empty = (inspect.Signature.empty, None, NoneType, T.NoReturn)
             if ra not in valid_empty:
-                target = (ra if T.get_origin(ra) not in (T.Annotated, T.Union)
-                          else _parse_annotation(ra))
+                target = (
+                    ra
+                    if T.get_origin(ra) not in (T.Annotated, T.Union)
+                    else _parse_annotation(ra)
+                )
                 if isinstance(target, str) or not isinstance(target, Sequence):
                     target = [target]
-                valid_targets = [t for t in target
-                                 if isinstance(t, (str, UnitBase, PhysicalType))]
-                _validate_arg_value("return", wrapped_function.__name__,
-                                    return_, valid_targets, self.equivalencies,
-                                    self.strict_dimensionless)
+                valid_targets = [
+                    t for t in target if isinstance(t, (str, UnitBase, PhysicalType))
+                ]
+                _validate_arg_value(
+                    "return",
+                    wrapped_function.__name__,
+                    return_,
+                    valid_targets,
+                    self.equivalencies,
+                    self.strict_dimensionless,
+                )
                 if len(valid_targets) > 0:
                     return_ <<= valid_targets[0]
             return return_

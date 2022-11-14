@@ -16,9 +16,20 @@ from astropy.units import (
 from .core import FunctionQuantity, FunctionUnitBase
 from .units import dB, dex, mag
 
-__all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
-           'LogQuantity', 'Magnitude', 'Decibel', 'Dex',
-           'STmag', 'ABmag', 'M_bol', 'm_bol']
+__all__ = [
+    "LogUnit",
+    "MagUnit",
+    "DexUnit",
+    "DecibelUnit",
+    "LogQuantity",
+    "Magnitude",
+    "Decibel",
+    "Dex",
+    "STmag",
+    "ABmag",
+    "M_bol",
+    "m_bol",
+]
 
 
 class LogUnit(FunctionUnitBase):
@@ -37,6 +48,7 @@ class LogUnit(FunctionUnitBase):
         By default, the same as the logarithmic unit set by the subclass.
 
     """
+
     # the four essential overrides of FunctionUnitBase
     @property
     def _default_function_unit(self):
@@ -55,6 +67,7 @@ class LogUnit(FunctionUnitBase):
         """Transformation from value in logarithmic to value in physical units.
         Used in equivalency."""
         return 10 ** self._function_unit.to(dex, x)
+
     # ^^^^ the four essential overrides of FunctionUnitBase
 
     # add addition and subtraction, which imply multiplication/division of
@@ -76,24 +89,24 @@ class LogUnit(FunctionUnitBase):
         # u.dex, and u.dB are OK, i.e., other does not have to be LogUnit
         # (this will indirectly test whether other is a unit at all).
         try:
-            getattr(other, 'function_unit', other)._to(self._function_unit)
+            getattr(other, "function_unit", other)._to(self._function_unit)
         except AttributeError:
             # if other is not a unit (i.e., does not have _to).
             return NotImplemented
         except UnitsError:
-            raise UnitsError("Can only add/subtract logarithmic units "
-                             "of compatible type.")
+            raise UnitsError(
+                "Can only add/subtract logarithmic units of compatible type."
+            )
 
-        other_physical_unit = getattr(other, 'physical_unit',
-                                      dimensionless_unscaled)
+        other_physical_unit = getattr(other, "physical_unit", dimensionless_unscaled)
         physical_unit = CompositeUnit(
-            1, [self._physical_unit, other_physical_unit],
-            [sign_self, sign_other])
+            1, [self._physical_unit, other_physical_unit], [sign_self, sign_other]
+        )
 
         return self._copy(physical_unit)
 
     def __neg__(self):
-        return self._copy(self.physical_unit**(-1))
+        return self._copy(self.physical_unit ** (-1))
 
     def __add__(self, other):
         # Only know how to add to a logarithmic unit with compatible type,
@@ -125,6 +138,7 @@ class MagUnit(LogUnit):
         By default, this is ``mag``, but this allows one to use an equivalent
         unit such as ``2 mag``.
     """
+
     @property
     def _default_function_unit(self):
         return mag
@@ -156,8 +170,8 @@ class DexUnit(LogUnit):
     def _quantity_class(self):
         return Dex
 
-    def to_string(self, format='generic'):
-        if format == 'cds':
+    def to_string(self, format="generic"):
+        if format == "cds":
             if self.physical_unit == dimensionless_unscaled:
                 return "[-]"  # by default, would get "[---]".
             else:
@@ -234,6 +248,7 @@ class LogQuantity(FunctionQuantity):
         <Decibel 30. dB(mW)>
 
     """
+
     # only override of FunctionQuantity
     _unit_class = LogUnit
 
@@ -242,44 +257,42 @@ class LogQuantity(FunctionQuantity):
         # Add function units, thus multiplying physical units. If no unit is
         # given, assume dimensionless_unscaled; this will give the appropriate
         # exception in LogUnit.__add__.
-        new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
+        new_unit = self.unit + getattr(other, "unit", dimensionless_unscaled)
         # Add actual logarithmic values, rescaling, e.g., dB -> dex.
-        result = self._function_view + getattr(other, '_function_view', other)
+        result = self._function_view + getattr(other, "_function_view", other)
         return self._new_view(result, new_unit)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __iadd__(self, other):
-        new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
+        new_unit = self.unit + getattr(other, "unit", dimensionless_unscaled)
         # Do calculation in-place using _function_view of array.
         function_view = self._function_view
-        function_view += getattr(other, '_function_view', other)
+        function_view += getattr(other, "_function_view", other)
         self._set_unit(new_unit)
         return self
 
     def __sub__(self, other):
         # Subtract function units, thus dividing physical units.
-        new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
+        new_unit = self.unit - getattr(other, "unit", dimensionless_unscaled)
         # Subtract actual logarithmic values, rescaling, e.g., dB -> dex.
-        result = self._function_view - getattr(other, '_function_view', other)
+        result = self._function_view - getattr(other, "_function_view", other)
         return self._new_view(result, new_unit)
 
     def __rsub__(self, other):
-        new_unit = self.unit.__rsub__(
-            getattr(other, 'unit', dimensionless_unscaled))
-        result = self._function_view.__rsub__(
-            getattr(other, '_function_view', other))
+        new_unit = self.unit.__rsub__(getattr(other, "unit", dimensionless_unscaled))
+        result = self._function_view.__rsub__(getattr(other, "_function_view", other))
         # Ensure the result is in right function unit scale
         # (with rsub, this does not have to be one's own).
         result = result.to(new_unit.function_unit)
         return self._new_view(result, new_unit)
 
     def __isub__(self, other):
-        new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
+        new_unit = self.unit - getattr(other, "unit", dimensionless_unscaled)
         # Do calculation in-place using _function_view of array.
         function_view = self._function_view
-        function_view -= getattr(other, '_function_view', other)
+        function_view -= getattr(other, "_function_view", other)
         self._set_unit(new_unit)
         return self
 
@@ -312,7 +325,7 @@ class LogQuantity(FunctionQuantity):
         if isinstance(other, numbers.Number):
             # Dividing a log means putting the nominator into the exponent
             # of the unit
-            new_physical_unit = self.unit.physical_unit**(1/other)
+            new_physical_unit = self.unit.physical_unit ** (1 / other)
             result = self.view(np.ndarray) / other
             return self._new_view(result, self.unit._copy(new_physical_unit))
         else:
@@ -320,7 +333,7 @@ class LogQuantity(FunctionQuantity):
 
     def __itruediv__(self, other):
         if isinstance(other, numbers.Number):
-            new_physical_unit = self.unit.physical_unit**(1/other)
+            new_physical_unit = self.unit.physical_unit ** (1 / other)
             function_view = self._function_view
             function_view /= other
             self._set_unit(self.unit._copy(new_physical_unit))
@@ -334,7 +347,7 @@ class LogQuantity(FunctionQuantity):
             other = float(other)
         except TypeError:
             return NotImplemented
-        new_unit = self.unit ** other
+        new_unit = self.unit**other
         new_value = self.view(np.ndarray) ** other
         return self._new_view(new_value, new_unit)
 
@@ -367,28 +380,28 @@ class LogQuantity(FunctionQuantity):
     # logarithmic units as they imply differences and independence of
     # physical unit.
     def var(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.var, axis, dtype, out=out, ddof=ddof,
-                                   unit=self.unit.function_unit**2)
+        unit = self.unit.function_unit**2
+        return self._wrap_function(np.var, axis, dtype, out=out, ddof=ddof, unit=unit)
 
     def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
-                                   unit=self.unit._copy(dimensionless_unscaled))
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof, unit=unit)
 
     def ptp(self, axis=None, out=None):
-        return self._wrap_function(np.ptp, axis, out=out,
-                                   unit=self.unit._copy(dimensionless_unscaled))
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.ptp, axis, out=out, unit=unit)
 
     def diff(self, n=1, axis=-1):
-        return self._wrap_function(np.diff, n, axis,
-                                   unit=self.unit._copy(dimensionless_unscaled))
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.diff, n, axis, unit=unit)
 
     def ediff1d(self, to_end=None, to_begin=None):
-        return self._wrap_function(np.ediff1d, to_end, to_begin,
-                                   unit=self.unit._copy(dimensionless_unscaled))
+        unit = self.unit._copy(dimensionless_unscaled)
+        return self._wrap_function(np.ediff1d, to_end, to_begin, unit=unit)
 
-    _supported_functions = (FunctionQuantity._supported_functions |
-                            {getattr(np, function) for function in
-                                ('var', 'std', 'ptp', 'diff', 'ediff1d')})
+    _supported_functions = FunctionQuantity._supported_functions | {
+        getattr(np, function) for function in ("var", "std", "ptp", "diff", "ediff1d")
+    }
 
 
 class Dex(LogQuantity):
@@ -415,9 +428,11 @@ ABmag = MagUnit(photometric.ABflux)
 ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
 
 M_bol = MagUnit(photometric.Bol)
-M_bol.__doc__ = ("Absolute bolometric magnitude: M_bol=0 corresponds to "
-                 "L_bol0={}".format(photometric.Bol.si))
+M_bol.__doc__ = (
+    f"Absolute bolometric magnitude: M_bol=0 corresponds to L_bol0={photometric.Bol.si}"
+)
 
 m_bol = MagUnit(photometric.bol)
-m_bol.__doc__ = ("Apparent bolometric magnitude: m_bol=0 corresponds to "
-                 "f_bol0={}".format(photometric.bol.si))
+m_bol.__doc__ = (
+    f"Apparent bolometric magnitude: m_bol=0 corresponds to f_bol0={photometric.bol.si}"
+)

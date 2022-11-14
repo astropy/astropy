@@ -51,6 +51,7 @@ def _enable():
     import inspect
 
     from .core import add_enabled_units
+
     return add_enabled_units(inspect.getmodule(_enable))
 
 
