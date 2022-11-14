@@ -19,6 +19,7 @@ code under a BSD license.
 from .core import set_enabled_units
 
 # isort: off
+from .core import UnitBase
 from .core import *
 from .quantity import *
 
@@ -35,11 +36,14 @@ from .misc import *
 
 from .equivalencies import *
 
+from .function.core import FunctionUnitBase
 from .function.core import *
 from .function.logarithmic import *
 
 from .decorators import *
 from .structured import *
+
+from .autocompletion import *
 # isort: on
 
 del bases
