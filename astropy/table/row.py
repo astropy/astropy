@@ -36,8 +36,11 @@ class Row:
         n = len(table)
 
         if index < -n or index >= n:
-            raise IndexError('index {} out of range for table with length {}'
-                             .format(index, len(table)))
+            raise IndexError(
+                "index {} out of range for table with length {}".format(
+                    index, len(table)
+                )
+            )
 
         # Finally, ensure the index is positive [#8422] and set Row attributes
         self._index = index % n
@@ -72,12 +75,16 @@ class Row:
             # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
             # "Comparing rows in a structured masked array raises exception"
             # No response, so this is still unresolved.
-            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
+            raise ValueError(
+                "Unable to compare rows for masked table due to numpy.ma bug"
+            )
         return self.as_void() == other
 
     def __ne__(self, other):
         if self._table.masked:
-            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
+            raise ValueError(
+                "Unable to compare rows for masked table due to numpy.ma bug"
+            )
         return self.as_void() != other
 
     def __array__(self, dtype=None):
@@ -89,7 +96,7 @@ class Row:
         If the parent table is masked then the mask information is dropped.
         """
         if dtype is not None:
-            raise ValueError('Datatype coercion is not allowed')
+            raise ValueError("Datatype coercion is not allowed")
 
         return np.asarray(self.as_void())
 
@@ -132,8 +139,9 @@ class Row:
         cols = self._table.columns.values()
         vals = tuple(np.asarray(col)[index] for col in cols)
         if self._table.masked:
-            mask = tuple(col.mask[index] if hasattr(col, 'mask') else False
-                         for col in cols)
+            mask = tuple(
+                col.mask[index] if hasattr(col, "mask") else False for col in cols
+            )
             void_row = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
         else:
             void_row = np.array([vals], dtype=self.dtype)[0]
@@ -160,14 +168,14 @@ class Row:
         Display row as a single-line table but with appropriate header line.
         """
         index = self.index if (self.index >= 0) else self.index + len(self._table)
-        table = self._table[index:index + 1]
-        descr_vals = [self.__class__.__name__,
-                      f'index={self.index}']
+        table = self._table[index : index + 1]
+        descr_vals = [self.__class__.__name__, f"index={self.index}"]
         if table.masked:
-            descr_vals.append('masked=True')
+            descr_vals.append("masked=True")
 
-        return table._base_repr_(html, descr_vals, max_width=-1,
-                                 tableid=f'table{id(self._table)}')
+        return table._base_repr_(
+            html, descr_vals, max_width=-1, tableid=f"table{id(self._table)}"
+        )
 
     def _repr_html_(self):
         return self._base_repr_(html=True)
@@ -177,10 +185,10 @@ class Row:
 
     def __str__(self):
         index = self.index if (self.index >= 0) else self.index + len(self._table)
-        return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
+        return "\n".join(self.table[index : index + 1].pformat(max_width=-1))
 
     def __bytes__(self):
-        return str(self).encode('utf-8')
+        return str(self).encode("utf-8")
 
 
 collections.abc.Sequence.register(Row)

@@ -6,7 +6,7 @@ from collections import OrderedDict
 import numpy as np
 import yaml
 
-__all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
+__all__ = ["get_header_from_yaml", "get_yaml_from_header", "get_yaml_from_table"]
 
 
 class ColumnOrderList(list):
@@ -18,7 +18,7 @@ class ColumnOrderList(list):
     def sort(self, *args, **kwargs):
         super().sort()
 
-        column_keys = ['name', 'unit', 'datatype', 'format', 'description', 'meta']
+        column_keys = ["name", "unit", "datatype", "format", "description", "meta"]
         in_dict = dict(self)
         out_list = []
 
@@ -80,21 +80,28 @@ def _construct_odict(load, node):
     yield omap
     if not isinstance(node, yaml.SequenceNode):
         raise yaml.constructor.ConstructorError(
-            "while constructing an ordered map", node.start_mark,
-            f"expected a sequence, but found {node.id}", node.start_mark)
+            "while constructing an ordered map",
+            node.start_mark,
+            f"expected a sequence, but found {node.id}",
+            node.start_mark,
+        )
 
     for subnode in node.value:
         if not isinstance(subnode, yaml.MappingNode):
             raise yaml.constructor.ConstructorError(
-                "while constructing an ordered map", node.start_mark,
+                "while constructing an ordered map",
+                node.start_mark,
                 f"expected a mapping of length 1, but found {subnode.id}",
-                subnode.start_mark)
+                subnode.start_mark,
+            )
 
         if len(subnode.value) != 1:
             raise yaml.constructor.ConstructorError(
-                "while constructing an ordered map", node.start_mark,
+                "while constructing an ordered map",
+                node.start_mark,
                 f"expected a single mapping item, but found {len(subnode.value)} items",
-                subnode.start_mark)
+                subnode.start_mark,
+            )
 
         key_node, value_node = subnode.value[0]
         key = load.construct_object(key_node)
@@ -116,7 +123,7 @@ def _repr_pairs(dump, tag, sequence, flow_style=None):
     if dump.alias_key is not None:
         dump.represented_objects[dump.alias_key] = node
     best_style = True
-    for (key, val) in sequence:
+    for key, val in sequence:
         item = dump.represent_data({key: val})
         if not (isinstance(item, yaml.ScalarNode) and not item.style):
             best_style = False
@@ -142,7 +149,7 @@ def _repr_odict(dumper, data):
     >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
-    return _repr_pairs(dumper, 'tag:yaml.org,2002:omap', data.items())
+    return _repr_pairs(dumper, "tag:yaml.org,2002:omap", data.items())
 
 
 def _repr_column_dict(dumper, data):
@@ -153,7 +160,7 @@ def _repr_column_dict(dumper, data):
     are written in a fixed order that makes sense for astropy table
     columns.
     """
-    return dumper.represent_mapping('tag:yaml.org,2002:map', data)
+    return dumper.represent_mapping("tag:yaml.org,2002:map", data)
 
 
 def _get_variable_length_array_shape(col):
@@ -181,6 +188,7 @@ def _get_variable_length_array_shape(col):
     dtype : np.dtype
         Numpy dtype that applies to col
     """
+
     class ConvertError(ValueError):
         """Local conversion error used below"""
 
@@ -211,9 +219,9 @@ def _get_variable_length_array_shape(col):
 def _get_datatype_from_dtype(dtype):
     """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
     datatype = dtype.name
-    if datatype.startswith(('bytes', 'str')):
-        datatype = 'string'
-    if datatype.endswith('_'):
+    if datatype.startswith(("bytes", "str")):
+        datatype = "string"
+    if datatype.endswith("_"):
         datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
     return datatype
 
@@ -237,7 +245,7 @@ def _get_col_attributes(col):
     subtype = None  # Type of data for object columns serialized with JSON
     shape = col.shape[1:]  # Shape of multidim / variable length columns
 
-    if dtype.name == 'object':
+    if dtype.name == "object":
         if shape == ():
             # 1-d object type column might be a variable length array
             dtype = np.dtype(str)
@@ -255,23 +263,25 @@ def _get_col_attributes(col):
 
     # Set the output attributes
     attrs = ColumnDict()
-    attrs['name'] = col.info.name
-    attrs['datatype'] = datatype
-    for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
-                                    ('format', lambda x: x is not None, None),
-                                    ('description', lambda x: x is not None, None),
-                                    ('meta', lambda x: x, None)):
+    attrs["name"] = col.info.name
+    attrs["datatype"] = datatype
+    for attr, nontrivial, xform in (
+        ("unit", lambda x: x is not None, str),
+        ("format", lambda x: x is not None, None),
+        ("description", lambda x: x is not None, None),
+        ("meta", lambda x: x, None),
+    ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             attrs[attr] = xform(col_attr) if xform else col_attr
 
     if subtype:
-        attrs['subtype'] = _get_datatype_from_dtype(subtype)
+        attrs["subtype"] = _get_datatype_from_dtype(subtype)
         # Numpy 'object' maps to 'subtype' of 'json' in ECSV
-        if attrs['subtype'] == 'object':
-            attrs['subtype'] = 'json'
+        if attrs["subtype"] == "object":
+            attrs["subtype"] = "json"
     if shape:
-        attrs['subtype'] += json.dumps(list(shape), separators=(',', ':'))
+        attrs["subtype"] += json.dumps(list(shape), separators=(",", ":"))
 
     return attrs
 
@@ -291,9 +301,9 @@ def get_yaml_from_table(table):
         List of text lines with YAML header content
     """
 
-    header = {'cols': list(table.columns.values())}
+    header = {"cols": list(table.columns.values())}
     if table.meta:
-        header['meta'] = table.meta
+        header["meta"] = table.meta
 
     return get_yaml_from_header(header)
 
@@ -340,9 +350,9 @@ def get_yaml_from_header(header):
             if self.alias_key is not None:
                 self.represented_objects[self.alias_key] = node
             best_style = True
-            if hasattr(mapping, 'items'):
+            if hasattr(mapping, "items"):
                 mapping = mapping.items()
-                if hasattr(mapping, 'sort'):
+                if hasattr(mapping, "sort"):
                     mapping.sort()
                 else:
                     mapping = list(mapping)
@@ -356,7 +366,9 @@ def get_yaml_from_header(header):
                 node_value = self.represent_data(item_value)
                 if not (isinstance(node_key, yaml.ScalarNode) and not node_key.style):
                     best_style = False
-                if not (isinstance(node_value, yaml.ScalarNode) and not node_value.style):
+                if not (
+                    isinstance(node_value, yaml.ScalarNode) and not node_value.style
+                ):
                     best_style = False
                 value.append((node_key, node_value))
             if flow_style is None:
@@ -370,11 +382,12 @@ def get_yaml_from_header(header):
     TableDumper.add_representer(ColumnDict, _repr_column_dict)
 
     header = copy.copy(header)  # Don't overwrite original
-    header['datatype'] = [_get_col_attributes(col) for col in header['cols']]
-    del header['cols']
+    header["datatype"] = [_get_col_attributes(col) for col in header["cols"]]
+    del header["cols"]
 
-    lines = yaml.dump(header, default_flow_style=None,
-                      Dumper=TableDumper, width=130).splitlines()
+    lines = yaml.dump(
+        header, default_flow_style=None, Dumper=TableDumper, width=130
+    ).splitlines()
     return lines
 
 
@@ -412,9 +425,9 @@ def get_header_from_yaml(lines):
         custom odict constructor.
         """
 
-    TableLoader.add_constructor('tag:yaml.org,2002:omap', _construct_odict)
+    TableLoader.add_constructor("tag:yaml.org,2002:omap", _construct_odict)
     # Now actually load the YAML data structure into `meta`
-    header_yaml = textwrap.dedent('\n'.join(lines))
+    header_yaml = textwrap.dedent("\n".join(lines))
     try:
         header = yaml.load(header_yaml, Loader=TableLoader)
     except Exception as err:
