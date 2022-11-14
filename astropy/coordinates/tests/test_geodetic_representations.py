@@ -16,9 +16,9 @@ from astropy.units import allclose as quantity_allclose
 
 def test_cartesian_wgs84geodetic_roundtrip():
     # Test array-valued input in the process.
-    s1 = CartesianRepresentation(x=[1, 3000.] * u.km,
-                                 y=[7000., 4.] * u.km,
-                                 z=[5., 6000.] * u.km)
+    s1 = CartesianRepresentation(
+        x=[1, 3000.0] * u.km, y=[7000.0, 4.0] * u.km, z=[5.0, 6000.0] * u.km
+    )
 
     s2 = WGS84GeodeticRepresentation.from_representation(s1)
 
@@ -104,17 +104,17 @@ def test_geodetic_to_geocentric():
 
 
 def test_default_height_is_zero():
-    gd = WGS84GeodeticRepresentation(10*u.deg, 20*u.deg)
-    assert gd.lon == 10*u.deg
-    assert gd.lat == 20*u.deg
-    assert gd.height == 0*u.m
+    gd = WGS84GeodeticRepresentation(10 * u.deg, 20 * u.deg)
+    assert gd.lon == 10 * u.deg
+    assert gd.lat == 20 * u.deg
+    assert gd.height == 0 * u.m
 
 
 def test_non_angle_error():
     with pytest.raises(u.UnitTypeError):
-        WGS84GeodeticRepresentation(20*u.m, 20*u.deg, 20*u.m)
+        WGS84GeodeticRepresentation(20 * u.m, 20 * u.deg, 20 * u.m)
 
 
 def test_non_length_error():
-    with pytest.raises(u.UnitTypeError, match='units of length'):
-        WGS84GeodeticRepresentation(10*u.deg, 20*u.deg, 30)
+    with pytest.raises(u.UnitTypeError, match="units of length"):
+        WGS84GeodeticRepresentation(10 * u.deg, 20 * u.deg, 30)

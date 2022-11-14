@@ -23,10 +23,10 @@ def test_distances():
     transformations.
     """
 
-    '''
+    """
     Distances can also be specified, and allow for a full 3D definition of a
     coordinate.
-    '''
+    """
 
     # try all the different ways to initialize a Distance
     distance = Distance(12, u.parsec)
@@ -37,7 +37,7 @@ def test_distances():
     with pytest.raises(u.UnitsError):
         Distance(12)
 
-    with pytest.raises(ValueError, match='none of `value`, `z`, `distmod`,'):
+    with pytest.raises(ValueError, match="none of `value`, `z`, `distmod`,"):
         Distance(unit=u.km)
 
     # standard units are pre-defined
@@ -46,8 +46,11 @@ def test_distances():
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
-    c = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree,
-                 distance=Distance(12, u.parsec))
+    c = Galactic(
+        l=158.558650 * u.degree,
+        b=-43.350066 * u.degree,
+        distance=Distance(12, u.parsec),
+    )
     assert quantity_allclose(c.distance, 12 * u.pc)
 
     # or initialize distances via redshifts - this is actually tested in the
@@ -58,7 +61,7 @@ def test_distances():
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
-    c1 = Galactic(l=158.558650*u.deg, b=-43.350066*u.deg, distance=12 * u.kpc)
+    c1 = Galactic(l=158.558650 * u.deg, b=-43.350066 * u.deg, distance=12 * u.kpc)
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
@@ -71,10 +74,10 @@ def test_distances():
     assert isinstance(sep12, Distance)
     npt.assert_allclose(sep12.pc, 12005.784163916317, 10)
 
-    '''
+    """
     All spherical coordinate systems with distances can be converted to
     cartesian coordinates.
-    '''
+    """
 
     cartrep2 = c2.cartesian
     assert isinstance(cartrep2.x, u.Quantity)
@@ -83,10 +86,11 @@ def test_distances():
     npt.assert_allclose(cartrep2.z.value, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
-    c3 = Galactic(l=158.558650*u.degree, b=-43.350066*u.degree, distance=None)
+    c3 = Galactic(l=158.558650 * u.degree, b=-43.350066 * u.degree, distance=None)
     unitcart = c3.cartesian
-    npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 +
-                          unitcart.z**2)**0.5).value, 1.0)
+    npt.assert_allclose(
+        ((unitcart.x**2 + unitcart.y**2 + unitcart.z**2) ** 0.5).value, 1.0
+    )
 
     # TODO: choose between these when CartesianRepresentation gets a definite
     # decision on whether or not it gets __add__
@@ -106,7 +110,7 @@ def test_distances():
     npt.assert_allclose(csum.distance.kpc, 11.9942200501)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
 def test_distances_scipy():
     """
     The distance-related tests that require scipy due to the cosmology
@@ -122,14 +126,14 @@ def test_distances_scipy():
     npt.assert_allclose(d5.compute_z(WMAP5), 0.23, rtol=1e-8)
 
     d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
-    npt.assert_allclose(d6.value, 3.5417046898762366e+22)
+    npt.assert_allclose(d6.value, 3.5417046898762366e22)
 
-    with pytest.raises(ValueError, match='a `cosmology` was given but `z`'):
-        Distance(parallax=1*u.mas, cosmology=WMAP5)
+    with pytest.raises(ValueError, match="a `cosmology` was given but `z`"):
+        Distance(parallax=1 * u.mas, cosmology=WMAP5)
 
     # Regression test for #12531
     with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
-        Distance(z=0.23, parallax=1*u.mas)
+        Distance(z=0.23, parallax=1 * u.mas)
 
     # vectors!  regression test for #11949
     d4 = Distance(z=[0.23, 0.45])  # as of writing, Planck18
@@ -137,7 +141,6 @@ def test_distances_scipy():
 
 
 def test_distance_change():
-
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
     c1 = ICRS(ra, dec, Distance(1, unit=u.kpc))
@@ -179,13 +182,12 @@ def test_distance_is_quantity():
     assert d.value[1] != 0
 
     # regression test against #2261
-    d = Distance([2 * u.kpc, 250. * u.pc])
+    d = Distance([2 * u.kpc, 250.0 * u.pc])
     assert d.unit is u.kpc
-    assert np.all(d.value == np.array([2., 0.25]))
+    assert np.all(d.value == np.array([2.0, 0.25]))
 
 
 def test_distmod():
-
     d = Distance(10, u.pc)
     assert d.distmod.value == 0
 
@@ -193,14 +195,14 @@ def test_distmod():
     assert d.distmod.value == 20
     assert d.kpc == 100
 
-    d = Distance(distmod=-1., unit=u.au)
+    d = Distance(distmod=-1.0, unit=u.au)
     npt.assert_allclose(d.value, 1301442.9440836983)
 
     with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(value=d, distmod=20)
 
     with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
-        d = Distance(z=.23, distmod=20)
+        d = Distance(z=0.23, distmod=20)
 
     # check the Mpc/kpc/pc behavior
     assert Distance(distmod=1).unit == u.pc
@@ -213,20 +215,19 @@ def test_distmod():
 
 
 def test_parallax():
-
-    d = Distance(parallax=1*u.arcsecond)
-    assert d.pc == 1.
-
-    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
-        d = Distance(15*u.pc, parallax=20*u.milliarcsecond)
+    d = Distance(parallax=1 * u.arcsecond)
+    assert d.pc == 1.0
 
     with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
-        d = Distance(parallax=20*u.milliarcsecond, distmod=20)
+        d = Distance(15 * u.pc, parallax=20 * u.milliarcsecond)
+
+    with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
+        d = Distance(parallax=20 * u.milliarcsecond, distmod=20)
 
     # array
-    plx = [1, 10, 100.]*u.mas
+    plx = [1, 10, 100.0] * u.mas
     d = Distance(parallax=plx)
-    assert quantity_allclose(d.pc, [1000., 100., 10.])
+    assert quantity_allclose(d.pc, [1000.0, 100.0, 10.0])
     assert quantity_allclose(plx, d.parallax)
 
     error_message = (
@@ -247,8 +248,8 @@ def test_parallax():
         Distance(parallax=[10, 1, -1] * u.mas, allow_negative=True)
 
     # Regression test for #12569; `unit` was ignored if `parallax` was given.
-    d = Distance(parallax=1*u.mas, unit=u.kpc)
-    assert d.value == 1.
+    d = Distance(parallax=1 * u.mas, unit=u.kpc)
+    assert d.value == 1.0
     assert d.unit is u.kpc
 
 
@@ -260,7 +261,7 @@ def test_distance_in_coordinates():
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    coo = ICRS(ra, dec, distance=2*u.kpc)
+    coo = ICRS(ra, dec, distance=2 * u.kpc)
 
     cart = coo.cartesian
 
@@ -268,11 +269,12 @@ def test_distance_in_coordinates():
 
 
 def test_negative_distance():
-    """ Test optional kwarg allow_negative """
+    """Test optional kwarg allow_negative"""
 
     error_message = (
         r"^distance must be >= 0\. Use the argument `allow_negative=True` to allow "
-        r"negative values\.$")
+        r"negative values\.$"
+    )
 
     with pytest.raises(ValueError, match=error_message):
         Distance([-2, 3.1], u.kpc)
@@ -289,20 +291,20 @@ def test_negative_distance():
 
 def test_distance_comparison():
     """Ensure comparisons of distances work (#2206, #2250)"""
-    a = Distance(15*u.kpc)
-    b = Distance(15*u.kpc)
+    a = Distance(15 * u.kpc)
+    b = Distance(15 * u.kpc)
     assert a == b
-    c = Distance(1.*u.Mpc)
+    c = Distance(1.0 * u.Mpc)
     assert a < c
 
 
 def test_distance_to_quantity_when_not_units_of_length():
     """Any operation that leaves units other than those of length
     should turn a distance into a quantity (#2206, #2250)"""
-    d = Distance(15*u.kpc)
-    twice = 2.*d
+    d = Distance(15 * u.kpc)
+    twice = 2.0 * d
     assert isinstance(twice, Distance)
-    area = 4.*np.pi*d**2
+    area = 4.0 * np.pi * d**2
     assert area.unit.is_equivalent(u.m**2)
     assert not isinstance(area, Distance)
     assert type(area) is u.Quantity

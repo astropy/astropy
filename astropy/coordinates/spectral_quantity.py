@@ -6,19 +6,19 @@ from astropy.units import si
 from astropy.units.decorators import quantity_input
 from astropy.units.quantity import Quantity, SpecificTypeQuantity
 
-__all__ = ['SpectralQuantity']
+__all__ = ["SpectralQuantity"]
 
 # We don't want to run doctests in the docstrings we inherit from Quantity
-__doctest_skip__ = ['SpectralQuantity.*']
+__doctest_skip__ = ["SpectralQuantity.*"]
 
 KMS = si.km / si.s
 
-SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m ** -1, KMS)
+SPECTRAL_UNITS = (si.Hz, si.m, si.J, si.m**-1, KMS)
 
 DOPPLER_CONVENTIONS = {
-    'radio': eq.doppler_radio,
-    'optical': eq.doppler_optical,
-    'relativistic': eq.doppler_relativistic
+    "radio": eq.doppler_radio,
+    "optical": eq.doppler_optical,
+    "relativistic": eq.doppler_relativistic,
 }
 
 
@@ -51,18 +51,17 @@ class SpectralQuantity(SpecificTypeQuantity):
 
     _include_easy_conversion_members = True
 
-    def __new__(cls, value, unit=None,
-                doppler_rest=None, doppler_convention=None,
-                **kwargs):
-
+    def __new__(
+        cls, value, unit=None, doppler_rest=None, doppler_convention=None, **kwargs
+    ):
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
         # If we're initializing from an existing SpectralQuantity, keep any
         # parameters that aren't being overridden
         if doppler_rest is None:
-            doppler_rest = getattr(value, 'doppler_rest', None)
+            doppler_rest = getattr(value, "doppler_rest", None)
         if doppler_convention is None:
-            doppler_convention = getattr(value, 'doppler_convention', None)
+            doppler_convention = getattr(value, "doppler_convention", None)
 
         obj._doppler_rest = doppler_rest
         obj._doppler_convention = doppler_convention
@@ -71,8 +70,8 @@ class SpectralQuantity(SpecificTypeQuantity):
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
-        self._doppler_rest = getattr(obj, '_doppler_rest', None)
-        self._doppler_convention = getattr(obj, '_doppler_convention', None)
+        self._doppler_rest = getattr(obj, "_doppler_rest", None)
+        self._doppler_convention = getattr(obj, "_doppler_convention", None)
 
     def __quantity_subclass__(self, unit):
         # Always default to just returning a Quantity, unless we explicitly
@@ -87,17 +86,27 @@ class SpectralQuantity(SpecificTypeQuantity):
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
         # We always return Quantity except in a few specific cases
         result = super().__array_ufunc__(function, method, *inputs, **kwargs)
-        if ((function is np.multiply
-            or function is np.true_divide and inputs[0] is self)
+        if (
+            (
+                function is np.multiply
+                or function is np.true_divide
+                and inputs[0] is self
+            )
             and result.unit == self.unit
-            or (function in (np.minimum, np.maximum, np.fmax, np.fmin)
-                and method in ('reduce', 'reduceat'))):
+            or (
+                function in (np.minimum, np.maximum, np.fmax, np.fmin)
+                and method in ("reduce", "reduceat")
+            )
+        ):
             result = result.view(self.__class__)
             result.__array_finalize__(self)
         else:
             if result is self:
-                raise TypeError(f"Cannot store the result of this operation in {self.__class__.__name__}")
-            if result.dtype.kind == 'b':
+                raise TypeError(
+                    "Cannot store the result of this operation in"
+                    f" {self.__class__.__name__}"
+                )
+            if result.dtype.kind == "b":
                 result = result.view(np.ndarray)
             else:
                 result = result.view(Quantity)
@@ -128,10 +137,11 @@ class SpectralQuantity(SpecificTypeQuantity):
             Rest value.
         """
         if self._doppler_rest is not None:
-            raise AttributeError("doppler_rest has already been set, and cannot "
-                                 "be changed. Use the ``to`` method to convert "
-                                 "the spectral values(s) to use a different "
-                                 "rest value")
+            raise AttributeError(
+                "doppler_rest has already been set, and cannot be changed. Use the"
+                " ``to`` method to convert the spectral values(s) to use a different"
+                " rest value"
+            )
         self._doppler_rest = value
 
     @property
@@ -168,21 +178,22 @@ class SpectralQuantity(SpecificTypeQuantity):
         """
 
         if self._doppler_convention is not None:
-            raise AttributeError("doppler_convention has already been set, and cannot "
-                                 "be changed. Use the ``to`` method to convert "
-                                 "the spectral values(s) to use a different "
-                                 "convention")
+            raise AttributeError(
+                "doppler_convention has already been set, and cannot be changed. Use"
+                " the ``to`` method to convert the spectral values(s) to use a"
+                " different convention"
+            )
 
         if value is not None and value not in DOPPLER_CONVENTIONS:
-            raise ValueError(f"doppler_convention should be one of {'/'.join(sorted(DOPPLER_CONVENTIONS))}")
+            raise ValueError(
+                "doppler_convention should be one of"
+                f" {'/'.join(sorted(DOPPLER_CONVENTIONS))}"
+            )
 
         self._doppler_convention = value
 
     @quantity_input(doppler_rest=SPECTRAL_UNITS)
-    def to(self, unit,
-           equivalencies=[],
-           doppler_rest=None,
-           doppler_convention=None):
+    def to(self, unit, equivalencies=[], doppler_rest=None, doppler_convention=None):
         """
         Return a new `~astropy.coordinates.SpectralQuantity` object with the specified unit.
 
@@ -237,10 +248,12 @@ class SpectralQuantity(SpecificTypeQuantity):
         if doppler_convention is None:
             doppler_convention = self._doppler_convention
         elif doppler_convention not in DOPPLER_CONVENTIONS:
-            raise ValueError(f"doppler_convention should be one of {'/'.join(sorted(DOPPLER_CONVENTIONS))}")
+            raise ValueError(
+                "doppler_convention should be one of"
+                f" {'/'.join(sorted(DOPPLER_CONVENTIONS))}"
+            )
 
         if self.unit.is_equivalent(KMS) and unit.is_equivalent(KMS):
-
             # Special case: if the current and final units are both velocity,
             # and either the rest value or the convention are different, we
             # need to convert back to frequency temporarily.
@@ -258,11 +271,14 @@ class SpectralQuantity(SpecificTypeQuantity):
                 return result
 
             elif (doppler_rest is None) is not (doppler_convention is None):
-                raise ValueError("Either both or neither doppler_rest and "
-                                 "doppler_convention should be defined for "
-                                 "velocity conversions")
+                raise ValueError(
+                    "Either both or neither doppler_rest and doppler_convention should"
+                    " be defined for velocity conversions"
+                )
 
-            vel_equiv1 = DOPPLER_CONVENTIONS[self._doppler_convention](self._doppler_rest)
+            vel_equiv1 = DOPPLER_CONVENTIONS[self._doppler_convention](
+                self._doppler_rest
+            )
 
             freq = super().to(si.Hz, equivalencies=equivalencies + vel_equiv1)
 
@@ -271,20 +287,27 @@ class SpectralQuantity(SpecificTypeQuantity):
             result = freq.to(unit, equivalencies=equivalencies + vel_equiv2)
 
         else:
-
             additional_equivalencies = eq.spectral()
 
             if self.unit.is_equivalent(KMS) or unit.is_equivalent(KMS):
-
                 if doppler_convention is None:
-                    raise ValueError("doppler_convention not set, cannot convert to/from velocities")
+                    raise ValueError(
+                        "doppler_convention not set, cannot convert to/from velocities"
+                    )
 
                 if doppler_rest is None:
-                    raise ValueError("doppler_rest not set, cannot convert to/from velocities")
+                    raise ValueError(
+                        "doppler_rest not set, cannot convert to/from velocities"
+                    )
 
-                additional_equivalencies = additional_equivalencies + DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
+                additional_equivalencies = (
+                    additional_equivalencies
+                    + DOPPLER_CONVENTIONS[doppler_convention](doppler_rest)
+                )
 
-            result = super().to(unit, equivalencies=equivalencies + additional_equivalencies)
+            result = super().to(
+                unit, equivalencies=equivalencies + additional_equivalencies
+            )
 
         # Since we have to explicitly specify when we want to keep this as a
         # SpectralQuantity, we need to convert it back from a Quantity to

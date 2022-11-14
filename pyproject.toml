@@ -58,7 +58,6 @@ force-exclude = '''
     | astropy/config
     | astropy/constants
     | astropy/convolution
-    | astropy/coordinates
     | astropy/extern
     | astropy/io/fits
     | astropy/io/registry
@@ -76,6 +75,7 @@ force-exclude = '''
   | astropy/version.py
   | conftest.py
   | setup.py
+  | astropy/coordinates/.*tab.py
 )
 '''
 

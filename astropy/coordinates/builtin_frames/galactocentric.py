@@ -27,14 +27,14 @@ from astropy.utils.state import ScienceState
 
 from .icrs import ICRS
 
-__all__ = ['Galactocentric']
+__all__ = ["Galactocentric"]
 
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
-_ROLL0 = Angle(58.5986320306*u.degree)
+_ROLL0 = Angle(58.5986320306 * u.degree)
 
 
 class _StateProxy(MappingView):
@@ -146,7 +146,7 @@ class galactocentric_frame_defaults(ScienceState):
 
     """
 
-    _latest_value = 'v4.0'
+    _latest_value = "v4.0"
     _value = None
     _references = None
     _state = dict()  # all other data
@@ -169,8 +169,12 @@ class galactocentric_frame_defaults(ScienceState):
             ),
             "references": _StateProxy(
                 {
-                    "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
-                    "galcen_distance": "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G",
+                    "galcen_coord": (
+                        "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R"
+                    ),
+                    "galcen_distance": (
+                        "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G"
+                    ),
                     "galcen_v_sun": [
                         "https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D",
                         "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G",
@@ -197,8 +201,12 @@ class galactocentric_frame_defaults(ScienceState):
             ),
             "references": _StateProxy(
                 {
-                    "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
-                    "galcen_distance": "https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G",
+                    "galcen_coord": (
+                        "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R"
+                    ),
+                    "galcen_distance": (
+                        "https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G"
+                    ),
                     "galcen_v_sun": [
                         "https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S",
                         "https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B",
@@ -246,7 +254,7 @@ class galactocentric_frame_defaults(ScienceState):
         """
         # Resolve the meaning of 'latest': latest parameter set is from v4.0
         # - update this as newer parameter choices are added
-        if name == 'latest':
+        if name == "latest":
             name = cls._latest_value
 
         # Get the state from the registry.
@@ -298,19 +306,18 @@ class galactocentric_frame_defaults(ScienceState):
             for k in value.frame_attributes:
                 parameters[k] = getattr(value, k)
             cls._references = value.frame_attribute_references.copy()
-            cls._state = dict(parameters=parameters,
-                              references=cls._references)
+            cls._state = dict(parameters=parameters, references=cls._references)
 
         else:
-            raise ValueError("Invalid input to retrieve solar parameters for "
-                             "Galactocentric frame: input must be a string, "
-                             "dict, or Galactocentric instance")
+            raise ValueError(
+                "Invalid input to retrieve solar parameters for Galactocentric frame:"
+                " input must be a string, dict, or Galactocentric instance"
+            )
 
         return parameters
 
     @classmethod
-    def register(cls, name: str, parameters: dict, references=None,
-                 **meta: dict):
+    def register(cls, name: str, parameters: dict, references=None, **meta: dict):
         """Register a set of parameters.
 
         Parameters
@@ -327,8 +334,7 @@ class galactocentric_frame_defaults(ScienceState):
 
         """
         # check on contents of `parameters`
-        must_have = {"galcen_coord", "galcen_distance", "galcen_v_sun",
-                     "z_sun", "roll"}
+        must_have = {"galcen_coord", "galcen_distance", "galcen_v_sun", "z_sun", "roll"}
         missing = must_have.difference(parameters)
         if missing:
             raise ValueError(f"Missing parameters: {missing}")
@@ -477,8 +483,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_coord = CoordinateAttribute(frame=ICRS)
     galcen_distance = QuantityAttribute(unit=u.kpc)
 
-    galcen_v_sun = DifferentialAttribute(
-        allowed_classes=[r.CartesianDifferential])
+    galcen_v_sun = DifferentialAttribute(allowed_classes=[r.CartesianDifferential])
 
     z_sun = QuantityAttribute(unit=u.pc)
     roll = QuantityAttribute(unit=u.deg)
@@ -487,8 +492,9 @@ class Galactocentric(BaseCoordinateFrame):
         # Set default frame attribute values based on the ScienceState instance
         # for the solar parameters defined above
         default_params = galactocentric_frame_defaults.get()
-        self.frame_attribute_references = \
+        self.frame_attribute_references = (
             galactocentric_frame_defaults.references.copy()
+        )
 
         for k in default_params:
             if k in kwargs:
@@ -514,6 +520,7 @@ class Galactocentric(BaseCoordinateFrame):
         # API, so it's better for it to be accessible from Galactocentric
         return _ROLL0
 
+
 # ICRS to/from Galactocentric ----------------------->
 
 
@@ -526,19 +533,19 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
     gcf = galactocentric_frame
 
     # rotation matrix to align x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(-gcf.galcen_coord.dec, 'y')
-    mat2 = rotation_matrix(gcf.galcen_coord.ra, 'z')
+    mat1 = rotation_matrix(-gcf.galcen_coord.dec, "y")
+    mat2 = rotation_matrix(gcf.galcen_coord.ra, "z")
     # extra roll away from the Galactic x-z plane
-    mat0 = rotation_matrix(gcf.get_roll0() - gcf.roll, 'x')
+    mat0 = rotation_matrix(gcf.get_roll0() - gcf.roll, "x")
 
     # construct transformation matrix and use it
     R = mat0 @ mat1 @ mat2
 
     # Now need to translate by Sun-Galactic center distance around x' and
     # rotate about y' to account for tilt due to Sun's height above the plane
-    translation = r.CartesianRepresentation(gcf.galcen_distance * [1., 0., 0.])
+    translation = r.CartesianRepresentation(gcf.galcen_distance * [1.0, 0.0, 0.0])
     z_d = gcf.z_sun / gcf.galcen_distance
-    H = rotation_matrix(-np.arcsin(z_d), 'y')
+    H = rotation_matrix(-np.arcsin(z_d), "y")
 
     # compute total matrices
     A = H @ R
@@ -553,7 +560,8 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
         A = matrix_transpose(A)
         offset = (-offset).transform(A)
         offset_v = r.CartesianDifferential.from_cartesian(
-            (-gcf.galcen_v_sun).to_cartesian().transform(A))
+            (-gcf.galcen_v_sun).to_cartesian().transform(A)
+        )
         offset = offset.with_differentials(offset_v)
 
     else:
@@ -564,18 +572,23 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
 
 def _check_coord_repr_diff_types(c):
     if isinstance(c.data, r.UnitSphericalRepresentation):
-        raise ConvertError("Transforming to/from a Galactocentric frame "
-                           "requires a 3D coordinate, e.g. (angle, angle, "
-                           "distance) or (x, y, z).")
+        raise ConvertError(
+            "Transforming to/from a Galactocentric frame requires a 3D coordinate, e.g."
+            " (angle, angle, distance) or (x, y, z)."
+        )
 
-    if ('s' in c.data.differentials and
-            isinstance(c.data.differentials['s'],
-                       (r.UnitSphericalDifferential,
-                        r.UnitSphericalCosLatDifferential,
-                        r.RadialDifferential))):
-        raise ConvertError("Transforming to/from a Galactocentric frame "
-                           "requires a 3D velocity, e.g., proper motion "
-                           "components and radial velocity.")
+    if "s" in c.data.differentials and isinstance(
+        c.data.differentials["s"],
+        (
+            r.UnitSphericalDifferential,
+            r.UnitSphericalCosLatDifferential,
+            r.RadialDifferential,
+        ),
+    ):
+        raise ConvertError(
+            "Transforming to/from a Galactocentric frame requires a 3D velocity, e.g.,"
+            " proper motion components and radial velocity."
+        )
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, Galactocentric)

@@ -15,7 +15,7 @@ from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_g
 from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ['SpectralCoord']
+__all__ = ["SpectralCoord"]
 
 
 class NoVelocityWarning(AstropyUserWarning):
@@ -33,7 +33,7 @@ ZERO_VELOCITIES = CartesianDifferential([0, 0, 0] * KMS)
 DEFAULT_DISTANCE = 1e6 * u.kpc
 
 # We don't want to run doctests in the docstrings we inherit from Quantity
-__doctest_skip__ = ['SpectralCoord.*']
+__doctest_skip__ = ["SpectralCoord.*"]
 
 
 def _apply_relativistic_doppler_shift(scoord, velocity):
@@ -59,19 +59,24 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
 
     if squantity.unit.is_equivalent(u.m):  # wavelength
         return squantity * doppler_factor
-    elif (squantity.unit.is_equivalent(u.Hz) or
-          squantity.unit.is_equivalent(u.eV) or
-          squantity.unit.is_equivalent(1 / u.m)):
+    elif (
+        squantity.unit.is_equivalent(u.Hz)
+        or squantity.unit.is_equivalent(u.eV)
+        or squantity.unit.is_equivalent(1 / u.m)
+    ):
         return squantity / doppler_factor
     elif squantity.unit.is_equivalent(KMS):  # velocity
         return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
     else:  # pragma: no cover
-        raise RuntimeError(f"Unexpected units in velocity shift: {squantity.unit}. "
-                           "This should not happen, so please report this in the "
-                           "astropy issue tracker!")
+        raise RuntimeError(
+            f"Unexpected units in velocity shift: {squantity.unit}. This should not"
+            " happen, so please report this in the astropy issue tracker!"
+        )
 
 
-def update_differentials_to_match(original, velocity_reference, preserve_observer_frame=False):
+def update_differentials_to_match(
+    original, velocity_reference, preserve_observer_frame=False
+):
     """
     Given an original coordinate object, update the differentials so that
     the final coordinate is at the same location as the original coordinate
@@ -87,7 +92,9 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
 
     # If the reference has an obstime already defined, we should ignore
     # it and stick with the original observer obstime.
-    if 'obstime' in velocity_reference.frame_attributes and hasattr(original, 'obstime'):
+    if "obstime" in velocity_reference.frame_attributes and hasattr(
+        original, "obstime"
+    ):
         velocity_reference = velocity_reference.replicate(obstime=original.obstime)
 
     # We transform both coordinates to ICRS for simplicity and because we know
@@ -97,11 +104,13 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     original_icrs = original.transform_to(ICRS())
     velocity_reference_icrs = velocity_reference.transform_to(ICRS())
 
-    differentials = velocity_reference_icrs.data.represent_as(CartesianRepresentation,
-                                                              CartesianDifferential).differentials
+    differentials = velocity_reference_icrs.data.represent_as(
+        CartesianRepresentation, CartesianDifferential
+    ).differentials
 
-    data_with_differentials = (original_icrs.data.represent_as(CartesianRepresentation)
-                               .with_differentials(differentials))
+    data_with_differentials = original_icrs.data.represent_as(
+        CartesianRepresentation
+    ).with_differentials(differentials)
 
     final_icrs = original_icrs.realize_frame(data_with_differentials)
 
@@ -110,8 +119,10 @@ def update_differentials_to_match(original, velocity_reference, preserve_observe
     else:
         final = final_icrs.transform_to(velocity_reference)
 
-    return final.replicate(representation_type=CartesianRepresentation,
-                           differential_type=CartesianDifferential)
+    return final.replicate(
+        representation_type=CartesianRepresentation,
+        differential_type=CartesianDifferential,
+    )
 
 
 def attach_zero_velocities(coord):
@@ -123,7 +134,7 @@ def attach_zero_velocities(coord):
 
 
 def _get_velocities(coord):
-    if 's' in coord.data.differentials:
+    if "s" in coord.data.differentials:
         return coord.velocity
     else:
         return ZERO_VELOCITIES
@@ -170,12 +181,17 @@ class SpectralCoord(SpectralQuantity):
         The Doppler convention to use when expressing the spectral value as a velocity.
     """
 
-    @u.quantity_input(radial_velocity=u.km/u.s)
-    def __new__(cls, value, unit=None,
-                observer=None, target=None,
-                radial_velocity=None, redshift=None,
-                **kwargs):
-
+    @u.quantity_input(radial_velocity=u.km / u.s)
+    def __new__(
+        cls,
+        value,
+        unit=None,
+        observer=None,
+        target=None,
+        radial_velocity=None,
+        redshift=None,
+        **kwargs,
+    ):
         obj = super().__new__(cls, value, unit=unit, **kwargs)
 
         # There are two main modes of operation in this class. Either the
@@ -187,8 +203,10 @@ class SpectralCoord(SpectralQuantity):
         # or redshift.
         if target is not None and observer is not None:
             if radial_velocity is not None or redshift is not None:
-                raise ValueError("Cannot specify radial velocity or redshift if both "
-                                 "target and observer are specified")
+                raise ValueError(
+                    "Cannot specify radial velocity or redshift if both "
+                    "target and observer are specified"
+                )
 
         # We only deal with redshifts here and in the redshift property.
         # Otherwise internally we always deal with velocities.
@@ -201,37 +219,37 @@ class SpectralCoord(SpectralQuantity):
             # example as in https://github.com/astropy/astropy/pull/10232, we
             # can remove the check here and add redshift=u.one to the decorator
             if not redshift.unit.is_equivalent(u.one):
-                raise u.UnitsError('redshift should be dimensionless')
+                raise u.UnitsError("redshift should be dimensionless")
             radial_velocity = redshift.to(u.km / u.s, u.doppler_redshift())
 
         # If we're initializing from an existing SpectralCoord, keep any
         # parameters that aren't being overridden
         if observer is None:
-            observer = getattr(value, 'observer', None)
+            observer = getattr(value, "observer", None)
         if target is None:
-            target = getattr(value, 'target', None)
+            target = getattr(value, "target", None)
 
         # As mentioned above, we should only specify the radial velocity
         # manually if either or both the observer and target are not
         # specified.
         if observer is None or target is None:
             if radial_velocity is None:
-                radial_velocity = getattr(value, 'radial_velocity', None)
+                radial_velocity = getattr(value, "radial_velocity", None)
 
         obj._radial_velocity = radial_velocity
-        obj._observer = cls._validate_coordinate(observer, label='observer')
-        obj._target = cls._validate_coordinate(target, label='target')
+        obj._observer = cls._validate_coordinate(observer, label="observer")
+        obj._target = cls._validate_coordinate(target, label="target")
 
         return obj
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
-        self._radial_velocity = getattr(obj, '_radial_velocity', None)
-        self._observer = getattr(obj, '_observer', None)
-        self._target = getattr(obj, '_target', None)
+        self._radial_velocity = getattr(obj, "_radial_velocity", None)
+        self._observer = getattr(obj, "_observer", None)
+        self._target = getattr(obj, "_target", None)
 
     @staticmethod
-    def _validate_coordinate(coord, label=''):
+    def _validate_coordinate(coord, label=""):
         """
         Checks the type of the frame and whether a velocity differential and a
         distance has been defined on the frame object.
@@ -255,39 +273,50 @@ class SpectralCoord(SpectralQuantity):
             if isinstance(coord, SkyCoord):
                 coord = coord.frame
             else:
-                raise TypeError(f"{label} must be a SkyCoord or coordinate frame instance")
+                raise TypeError(
+                    f"{label} must be a SkyCoord or coordinate frame instance"
+                )
 
         # If the distance is not well-defined, ensure that it works properly
         # for generating differentials
         # TODO: change this to not set the distance and yield a warning once
         # there's a good way to address this in astropy.coordinates
         # https://github.com/astropy/astropy/issues/10247
-        with np.errstate(all='ignore'):
-            distance = getattr(coord, 'distance', None)
-        if distance is not None and distance.unit.physical_type == 'dimensionless':
+        with np.errstate(all="ignore"):
+            distance = getattr(coord, "distance", None)
+        if distance is not None and distance.unit.physical_type == "dimensionless":
             coord = SkyCoord(coord, distance=DEFAULT_DISTANCE)
             warnings.warn(
                 "Distance on coordinate object is dimensionless, an "
                 f"arbitrary distance value of {DEFAULT_DISTANCE} will be set instead.",
-                NoDistanceWarning)
+                NoDistanceWarning,
+            )
 
         # If the observer frame does not contain information about the
         # velocity of the system, assume that the velocity is zero in the
         # system.
-        if 's' not in coord.data.differentials:
+        if "s" not in coord.data.differentials:
             warnings.warn(
                 f"No velocity defined on frame, assuming {ZERO_VELOCITIES}.",
-                NoVelocityWarning)
+                NoVelocityWarning,
+            )
 
             coord = attach_zero_velocities(coord)
 
         return coord
 
-    def replicate(self, value=None, unit=None,
-                  observer=None, target=None,
-                  radial_velocity=None, redshift=None,
-                  doppler_convention=None, doppler_rest=None,
-                  copy=False):
+    def replicate(
+        self,
+        value=None,
+        unit=None,
+        observer=None,
+        target=None,
+        radial_velocity=None,
+        redshift=None,
+        doppler_convention=None,
+        doppler_rest=None,
+        copy=False,
+    ):
         """
         Return a replica of the `SpectralCoord`, optionally changing the
         values or attributes.
@@ -331,7 +360,9 @@ class SpectralCoord(SpectralQuantity):
 
         if isinstance(value, u.Quantity):
             if unit is not None:
-                raise ValueError("Cannot specify value as a Quantity and also specify unit")
+                raise ValueError(
+                    "Cannot specify value as a Quantity and also specify unit"
+                )
             else:
                 value, unit = value.value, value.unit
 
@@ -348,15 +379,26 @@ class SpectralCoord(SpectralQuantity):
 
         # Only include radial_velocity if it is not auto-computed from the
         # observer and target.
-        if (self.observer is None or self.target is None) and radial_velocity is None and redshift is None:
+        if (
+            (self.observer is None or self.target is None)
+            and radial_velocity is None
+            and redshift is None
+        ):
             radial_velocity = self.radial_velocity
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', NoVelocityWarning)
-            return self.__class__(value=value, unit=unit,
-                                  observer=observer, target=target,
-                                  radial_velocity=radial_velocity, redshift=redshift,
-                                  doppler_convention=doppler_convention, doppler_rest=doppler_rest, copy=False)
+            warnings.simplefilter("ignore", NoVelocityWarning)
+            return self.__class__(
+                value=value,
+                unit=unit,
+                observer=observer,
+                target=target,
+                radial_velocity=radial_velocity,
+                redshift=redshift,
+                doppler_convention=doppler_convention,
+                doppler_rest=doppler_rest,
+                copy=False,
+            )
 
     @property
     def quantity(self):
@@ -389,11 +431,10 @@ class SpectralCoord(SpectralQuantity):
 
     @observer.setter
     def observer(self, value):
-
         if self.observer is not None:
             raise ValueError("observer has already been set")
 
-        self._observer = self._validate_coordinate(value, label='observer')
+        self._observer = self._validate_coordinate(value, label="observer")
 
         # Switch to auto-computing radial velocity
         if self._target is not None:
@@ -416,11 +457,10 @@ class SpectralCoord(SpectralQuantity):
 
     @target.setter
     def target(self, value):
-
         if self.target is not None:
             raise ValueError("target has already been set")
 
-        self._target = self._validate_coordinate(value, label='target')
+        self._target = self._validate_coordinate(value, label="target")
 
         # Switch to auto-computing radial velocity
         if self._observer is not None:
@@ -448,8 +488,9 @@ class SpectralCoord(SpectralQuantity):
             else:
                 return self._radial_velocity
         else:
-            return self._calculate_radial_velocity(self._observer, self._target,
-                                                   as_scalar=True)
+            return self._calculate_radial_velocity(
+                self._observer, self._target, as_scalar=True
+            )
 
     @property
     def redshift(self):
@@ -518,8 +559,10 @@ class SpectralCoord(SpectralQuantity):
         pos_hat : `BaseRepresentation`
             Position representation.
         """
-        d_pos = (target.cartesian.without_differentials() -
-                 observer.cartesian.without_differentials())
+        d_pos = (
+            target.cartesian.without_differentials()
+            - observer.cartesian.without_differentials()
+        )
 
         dp_norm = d_pos.norm()
 
@@ -530,8 +573,10 @@ class SpectralCoord(SpectralQuantity):
 
         return pos_hat
 
-    @u.quantity_input(velocity=u.km/u.s)
-    def with_observer_stationary_relative_to(self, frame, velocity=None, preserve_observer_frame=False):
+    @u.quantity_input(velocity=u.km / u.s)
+    def with_observer_stationary_relative_to(
+        self, frame, velocity=None, preserve_observer_frame=False
+    ):
         """
         A new  `SpectralCoord` with the velocity of the observer altered,
         but not the position.
@@ -566,28 +611,35 @@ class SpectralCoord(SpectralQuantity):
         """
 
         if self.observer is None or self.target is None:
-            raise ValueError("This method can only be used if both observer "
-                             "and target are defined on the SpectralCoord.")
+            raise ValueError(
+                "This method can only be used if both observer "
+                "and target are defined on the SpectralCoord."
+            )
 
         # Start off by extracting frame if a SkyCoord was passed in
         if isinstance(frame, SkyCoord):
             frame = frame.frame
 
         if isinstance(frame, BaseCoordinateFrame):
-
             if not frame.has_data:
-                frame = frame.realize_frame(CartesianRepresentation(0 * u.km, 0 * u.km, 0 * u.km))
+                frame = frame.realize_frame(
+                    CartesianRepresentation(0 * u.km, 0 * u.km, 0 * u.km)
+                )
 
             if frame.data.differentials:
                 if velocity is not None:
-                    raise ValueError('frame already has differentials, cannot also specify velocity')
+                    raise ValueError(
+                        "frame already has differentials, cannot also specify velocity"
+                    )
                 # otherwise frame is ready to go
             else:
                 if velocity is None:
                     differentials = ZERO_VELOCITIES
                 else:
                     differentials = CartesianDifferential(velocity)
-                frame = frame.realize_frame(frame.data.with_differentials(differentials))
+                frame = frame.realize_frame(
+                    frame.data.with_differentials(differentials)
+                )
 
         if isinstance(frame, (type, str)):
             if isinstance(frame, type):
@@ -597,18 +649,27 @@ class SpectralCoord(SpectralQuantity):
             if velocity is None:
                 velocity = 0 * u.m / u.s, 0 * u.m / u.s, 0 * u.m / u.s
             elif velocity.shape != (3,):
-                raise ValueError('velocity should be a Quantity vector with 3 elements')
-            frame = frame_cls(0 * u.m, 0 * u.m, 0 * u.m,
-                              *velocity,
-                              representation_type='cartesian',
-                              differential_type='cartesian')
+                raise ValueError("velocity should be a Quantity vector with 3 elements")
+            frame = frame_cls(
+                0 * u.m,
+                0 * u.m,
+                0 * u.m,
+                *velocity,
+                representation_type="cartesian",
+                differential_type="cartesian",
+            )
 
-        observer = update_differentials_to_match(self.observer, frame,
-                                                 preserve_observer_frame=preserve_observer_frame)
+        observer = update_differentials_to_match(
+            self.observer, frame, preserve_observer_frame=preserve_observer_frame
+        )
 
         # Calculate the initial and final los velocity
-        init_obs_vel = self._calculate_radial_velocity(self.observer, self.target, as_scalar=True)
-        fin_obs_vel = self._calculate_radial_velocity(observer, self.target, as_scalar=True)
+        init_obs_vel = self._calculate_radial_velocity(
+            self.observer, self.target, as_scalar=True
+        )
+        fin_obs_vel = self._calculate_radial_velocity(
+            observer, self.target, as_scalar=True
+        )
 
         # Apply transformation to data
         new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
@@ -639,16 +700,20 @@ class SpectralCoord(SpectralQuantity):
             ``target_shift`` and ``observer_shift`` are both `None`.
         """
 
-        if observer_shift is not None and (self.target is None or
-                                           self.observer is None):
-            raise ValueError("Both an observer and target must be defined "
-                             "before applying a velocity shift.")
+        if observer_shift is not None and (
+            self.target is None or self.observer is None
+        ):
+            raise ValueError(
+                "Both an observer and target must be defined "
+                "before applying a velocity shift."
+            )
 
         for arg in [x for x in [target_shift, observer_shift] if x is not None]:
             if isinstance(arg, u.Quantity) and not arg.unit.is_equivalent((u.one, KMS)):
-                raise u.UnitsError("Argument must have unit physical type "
-                                   "'speed' for radial velocty or "
-                                   "'dimensionless' for redshift.")
+                raise u.UnitsError(
+                    "Argument must have unit physical type 'speed' for radial velocty"
+                    " or 'dimensionless' for redshift."
+                )
 
         # The target or observer value is defined but is not a quantity object,
         #  assume it's a redshift float value and convert to velocity
@@ -659,17 +724,19 @@ class SpectralCoord(SpectralQuantity):
             target_shift = 0 * KMS
         else:
             target_shift = u.Quantity(target_shift)
-            if target_shift.unit.physical_type == 'dimensionless':
+            if target_shift.unit.physical_type == "dimensionless":
                 target_shift = target_shift.to(u.km / u.s, u.doppler_redshift())
             if self._observer is None or self._target is None:
-                return self.replicate(value=_apply_relativistic_doppler_shift(self, target_shift),
-                                      radial_velocity=self.radial_velocity + target_shift)
+                return self.replicate(
+                    value=_apply_relativistic_doppler_shift(self, target_shift),
+                    radial_velocity=self.radial_velocity + target_shift,
+                )
 
         if observer_shift is None:
             observer_shift = 0 * KMS
         else:
             observer_shift = u.Quantity(observer_shift)
-            if observer_shift.unit.physical_type == 'dimensionless':
+            if observer_shift.unit.physical_type == "dimensionless":
                 observer_shift = observer_shift.to(u.km / u.s, u.doppler_redshift())
 
         target_icrs = self._target.transform_to(ICRS())
@@ -683,22 +750,24 @@ class SpectralCoord(SpectralQuantity):
         target_velocity = CartesianDifferential(target_velocity.xyz)
         observer_velocity = CartesianDifferential(observer_velocity.xyz)
 
-        new_target = (target_icrs
-                      .realize_frame(target_icrs.cartesian.with_differentials(target_velocity))
-                      .transform_to(self._target))
+        new_target = target_icrs.realize_frame(
+            target_icrs.cartesian.with_differentials(target_velocity)
+        ).transform_to(self._target)
 
-        new_observer = (observer_icrs
-                        .realize_frame(observer_icrs.cartesian.with_differentials(observer_velocity))
-                        .transform_to(self._observer))
+        new_observer = observer_icrs.realize_frame(
+            observer_icrs.cartesian.with_differentials(observer_velocity)
+        ).transform_to(self._observer)
 
-        init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs, as_scalar=True)
-        fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target, as_scalar=True)
+        init_obs_vel = self._calculate_radial_velocity(
+            observer_icrs, target_icrs, as_scalar=True
+        )
+        fin_obs_vel = self._calculate_radial_velocity(
+            new_observer, new_target, as_scalar=True
+        )
 
         new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
 
-        return self.replicate(value=new_data,
-                              observer=new_observer,
-                              target=new_target)
+        return self.replicate(value=new_data, observer=new_observer, target=new_target)
 
     def to_rest(self):
         """
@@ -710,48 +779,48 @@ class SpectralCoord(SpectralQuantity):
 
         result = _apply_relativistic_doppler_shift(self, -self.radial_velocity)
 
-        return self.replicate(value=result, radial_velocity=0. * KMS, redshift=None)
+        return self.replicate(value=result, radial_velocity=0.0 * KMS, redshift=None)
 
     def __repr__(self):
-
-        prefixstr = '<' + self.__class__.__name__ + ' '
+        prefixstr = "<" + self.__class__.__name__ + " "
 
         try:
             radial_velocity = self.radial_velocity
             redshift = self.redshift
         except ValueError:
-            radial_velocity = redshift = 'Undefined'
+            radial_velocity = redshift = "Undefined"
 
-        repr_items = [f'{prefixstr}']
+        repr_items = [f"{prefixstr}"]
 
         if self.observer is not None:
-            observer_repr = indent(repr(self.observer), 14 * ' ').lstrip()
-            repr_items.append(f'    observer: {observer_repr}')
+            observer_repr = indent(repr(self.observer), 14 * " ").lstrip()
+            repr_items.append(f"    observer: {observer_repr}")
 
         if self.target is not None:
-            target_repr = indent(repr(self.target), 12 * ' ').lstrip()
-            repr_items.append(f'    target: {target_repr}')
+            target_repr = indent(repr(self.target), 12 * " ").lstrip()
+            repr_items.append(f"    target: {target_repr}")
 
-        if (self._observer is not None and self._target is not None) or self._radial_velocity is not None:
+        if (
+            self._observer is not None and self._target is not None
+        ) or self._radial_velocity is not None:
             if self.observer is not None and self.target is not None:
-                repr_items.append('    observer to target (computed from above):')
+                repr_items.append("    observer to target (computed from above):")
             else:
-                repr_items.append('    observer to target:')
-            repr_items.append(f'      radial_velocity={radial_velocity}')
-            repr_items.append(f'      redshift={redshift}')
+                repr_items.append("    observer to target:")
+            repr_items.append(f"      radial_velocity={radial_velocity}")
+            repr_items.append(f"      redshift={redshift}")
 
         if self.doppler_rest is not None or self.doppler_convention is not None:
-            repr_items.append(f'    doppler_rest={self.doppler_rest}')
-            repr_items.append(f'    doppler_convention={self.doppler_convention}')
+            repr_items.append(f"    doppler_rest={self.doppler_rest}")
+            repr_items.append(f"    doppler_convention={self.doppler_convention}")
 
-        arrstr = np.array2string(self.view(np.ndarray), separator=', ',
-                                 prefix='  ')
+        arrstr = np.array2string(self.view(np.ndarray), separator=", ", prefix="  ")
 
         if len(repr_items) == 1:
-            repr_items[0] += f'{arrstr}{self._unitstr:s}'
+            repr_items[0] += f"{arrstr}{self._unitstr:s}"
         else:
-            repr_items[1] = '   (' + repr_items[1].lstrip()
-            repr_items[-1] += ')'
-            repr_items.append(f'  {arrstr}{self._unitstr:s}')
+            repr_items[1] = "   (" + repr_items[1].lstrip()
+            repr_items[-1] += ")"
+            repr_items.append(f"  {arrstr}{self._unitstr:s}")
 
-        return '\n'.join(repr_items) + '>'
+        return "\n".join(repr_items) + ">"
