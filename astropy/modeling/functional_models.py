@@ -1844,24 +1844,32 @@ class Voigt1D(Fittable1DModel):
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
         # fmt: off
-        AA = np.array([+46236.3358828121,   -147726.58393079657j,
-                       -206562.80451354137,  281369.1590631087j,
-                       +183092.74968253175, -184787.96830696272j,
-                       -66155.39578477248,   57778.05827983565j,
-                       +11682.770904216826, -9442.402767960672j,
-                       -1052.8438624933142,  814.0996198624186j,
-                       +45.94499030751872,  -34.59751573708725j,
-                       -0.7616559377907136,  0.5641895835476449j])  # 1j/sqrt(pi) to the 12. digit
+        AA = np.array(
+            [
+                +46236.3358828121,   -147726.58393079657j,
+                -206562.80451354137,  281369.1590631087j,
+                +183092.74968253175, -184787.96830696272j,
+                -66155.39578477248,   57778.05827983565j,
+                +11682.770904216826, -9442.402767960672j,
+                -1052.8438624933142,  814.0996198624186j,
+                +45.94499030751872,  -34.59751573708725j,
+                -0.7616559377907136,  0.5641895835476449j,
+            ]
+        )  # 1j/sqrt(pi) to the 12. digit
 
-        bb = np.array([+7918.06640624997, 0.0,
-                       -126689.0625,      0.0,
-                       +295607.8125,      0.0,
-                       -236486.25,        0.0,
-                       +84459.375,        0.0,
-                       -15015.0,          0.0,
-                       +1365.0,           0.0,
-                       -60.0,             0.0,
-                       +1.0])
+        bb = np.array(
+            [
+                +7918.06640624997,
+                -126689.0625,
+                +295607.8125,
+                -236486.25,
+                +84459.375,
+                -15015.0,
+                +1365.0,
+                -60.0,
+                +1.0,
+            ]
+        )
         # fmt: on
 
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
@@ -1871,75 +1879,29 @@ class Voigt1D(Fittable1DModel):
 
         if np.any(z.imag < s):
             mask = abs(z.real) + z.imag < s  # returns true for interior points
+
             # returns small complex array covering only the interior region
             Z = z[np.where(mask)] + 1.35j
             ZZ = Z * Z
-            numer = (
-                (
-                    (
-                        (
-                            (
-                                (
-                                    (
-                                        (
-                                            (
-                                                (
-                                                    (
-                                                        (
-                                                            (
-                                                                (AA[15] * Z + AA[14])
-                                                                * Z
-                                                                + AA[13]
-                                                            )
-                                                            * Z
-                                                            + AA[12]
-                                                        )
-                                                        * Z
-                                                        + AA[11]
-                                                    )
-                                                    * Z
-                                                    + AA[10]
-                                                )
-                                                * Z
-                                                + AA[9]
-                                            )
-                                            * Z
-                                            + AA[8]
-                                        )
-                                        * Z
-                                        + AA[7]
-                                    )
-                                    * Z
-                                    + AA[6]
-                                )
-                                * Z
-                                + AA[5]
-                            )
-                            * Z
-                            + AA[4]
-                        )
-                        * Z
-                        + AA[3]
-                    )
-                    * Z
-                    + AA[2]
-                )
-                * Z
-                + AA[1]
-            ) * Z + AA[0]
-            denom = (
-                (
-                    (
-                        ((((ZZ + bb[14]) * ZZ + bb[12]) * ZZ + bb[10]) * ZZ + bb[8])
-                        * ZZ
-                        + bb[6]
-                    )
-                    * ZZ
-                    + bb[4]
-                )
-                * ZZ
-                + bb[2]
-            ) * ZZ + bb[0]
+
+            # fmt: off
+            # Recursive algorithms for the polynomials in Z with coefficients AA, bb
+            # numer = 0.0
+            # for A in AA[::-1]:
+            #     numer = numer * Z + A
+            # Explicitly unrolled above loop for speed
+            numer = (((((((((((((((AA[15]*Z + AA[14])*Z + AA[13])*Z + AA[12])*Z + AA[11])*Z +
+                               AA[10])*Z + AA[9])*Z + AA[8])*Z + AA[7])*Z + AA[6])*Z +
+                          AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
+
+            # denom = 0.0
+            # for b in bb[::-1]:
+            #     denom = denom * ZZ + b
+            # Explicitly unrolled above loop for speed
+            denom = (((((((ZZ + bb[7])*ZZ + bb[6])*ZZ + bb[5])*ZZ+bb[4])*ZZ + bb[3])*ZZ +
+                      bb[2])*ZZ + bb[1])*ZZ + bb[0]
+            # fmt: on
+
             np.place(w, mask, numer / denom)
 
         return w

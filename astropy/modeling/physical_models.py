@@ -604,9 +604,8 @@ class NFW(Fittable1DModel):
                 masstype = "m"
             else:
                 raise ValueError(
-                    "Massfactor '"
-                    + str(massfactor[0])
-                    + "' not one of 'critical', 'mean', or 'virial'"
+                    f"Massfactor '{massfactor[0]}' not one of 'critical', "
+                    "'mean', or 'virial'"
                 )
         else:
             try:
@@ -624,14 +623,11 @@ class NFW(Fittable1DModel):
                     masstype = massfactor[-1].lower()
                 else:
                     raise ValueError(
-                        "Massfactor "
-                        + str(massfactor)
-                        + " string not of the form '#m', '#c', or 'virial'"
+                        f"Massfactor {massfactor} string not of the form "
+                        "'#m', '#c', or 'virial'"
                     )
             except (AttributeError, TypeError):
-                raise TypeError(
-                    "Massfactor " + str(massfactor) + " not a tuple or string"
-                )
+                raise TypeError(f"Massfactor {massfactor} not a tuple or string")
 
         # Set density from masstype specification
         if masstype == "virial":
