@@ -30,22 +30,28 @@ from .constant import Constant, EMConstant
 
 # for updating the constants module docstring
 _lines = [
-    'The following constants are available:\n',
-    '========== ============== ================ =========================',
-    '   Name        Value            Unit       Description',
-    '========== ============== ================ =========================',
+    "The following constants are available:\n",
+    "========== ============== ================ =========================",
+    "   Name        Value            Unit       Description",
+    "========== ============== ================ =========================",
 ]
 
 # Catch warnings about "already has a definition in the None system"
 with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Constant .*already has a definition')
-    _utils._set_c(codata, iaudata, find_current_module(),
-                  not_in_module_only=True, doclines=_lines, set_class=True)
+    warnings.filterwarnings("ignore", "Constant .*already has a definition")
+    _utils._set_c(
+        codata,
+        iaudata,
+        find_current_module(),
+        not_in_module_only=True,
+        doclines=_lines,
+        set_class=True,
+    )
 
 _lines.append(_lines[1])
 
 if __doc__ is not None:
-    __doc__ += '\n'.join(_lines)
+    __doc__ += "\n".join(_lines)
 
 
 # Clean up namespace

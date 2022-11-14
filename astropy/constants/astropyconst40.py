@@ -19,29 +19,49 @@ _utils._set_c(codata, iaudata, find_current_module())
 # Overwrite the following for consistency.
 # https://github.com/astropy/astropy/issues/8920
 with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', 'Constant .*already has a definition')
+    warnings.filterwarnings("ignore", "Constant .*already has a definition")
 
     # Solar mass (derived from mass parameter and gravitational constant)
     M_sun = iau2015.IAU2015(
-        'M_sun', "Solar mass", iau2015.GM_sun.value / codata2018.G.value,
-        'kg', ((codata2018.G.uncertainty / codata2018.G.value) *
-               (iau2015.GM_sun.value / codata2018.G.value)),
-        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}", system='si')
+        "M_sun",
+        "Solar mass",
+        iau2015.GM_sun.value / codata2018.G.value,
+        "kg",
+        (
+            (codata2018.G.uncertainty / codata2018.G.value)
+            * (iau2015.GM_sun.value / codata2018.G.value)
+        ),
+        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}",
+        system="si",
+    )
 
     # Jupiter mass (derived from mass parameter and gravitational constant)
     M_jup = iau2015.IAU2015(
-        'M_jup', "Jupiter mass", iau2015.GM_jup.value / codata2018.G.value,
-        'kg', ((codata2018.G.uncertainty / codata2018.G.value) *
-               (iau2015.GM_jup.value / codata2018.G.value)),
-        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}", system='si')
+        "M_jup",
+        "Jupiter mass",
+        iau2015.GM_jup.value / codata2018.G.value,
+        "kg",
+        (
+            (codata2018.G.uncertainty / codata2018.G.value)
+            * (iau2015.GM_jup.value / codata2018.G.value)
+        ),
+        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}",
+        system="si",
+    )
 
     # Earth mass (derived from mass parameter and gravitational constant)
     M_earth = iau2015.IAU2015(
-        'M_earth', "Earth mass",
+        "M_earth",
+        "Earth mass",
         iau2015.GM_earth.value / codata2018.G.value,
-        'kg', ((codata2018.G.uncertainty / codata2018.G.value) *
-               (iau2015.GM_earth.value / codata2018.G.value)),
-        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}", system='si')
+        "kg",
+        (
+            (codata2018.G.uncertainty / codata2018.G.value)
+            * (iau2015.GM_earth.value / codata2018.G.value)
+        ),
+        f"IAU 2015 Resolution B 3 + {codata2018.G.reference}",
+        system="si",
+    )
 
 # Clean up namespace
 del warnings
