@@ -182,7 +182,7 @@ def _get_kernel(value):
     if re.compile(r"de[0-9][0-9][0-9]s?").match(value.lower()):
         value = (
             "https://naif.jpl.nasa.gov/pub/naif/generic_kernels"
-            "/spk/planets/{:s}.bsp".format(value.lower())
+            f"/spk/planets/{value.lower():s}.bsp"
         )
 
     elif os.path.isfile(value):
@@ -193,8 +193,8 @@ def _get_kernel(value):
             urlparse(value)
         except Exception:
             raise ValueError(
-                "{} was not one of the standard strings and "
-                "could not be parsed as a file path or URL".format(value)
+                f"{value} was not one of the standard strings and "
+                "could not be parsed as a file path or URL"
             )
 
     return SPK.open(download_file(value, cache=True))
@@ -263,10 +263,8 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None, get_velocity=True):
                         body_index = PLAN94_BODY_NAME_TO_PLANET_INDEX[body]
                     except KeyError:
                         raise KeyError(
-                            "{}'s position and velocity cannot be "
-                            "calculated with the '{}' ephemeris.".format(
-                                body, ephemeris
-                            )
+                            f"{body}'s position and velocity cannot be "
+                            f"calculated with the '{ephemeris}' ephemeris."
                         )
                     body_pv_helio = erfa.plan94(jd1, jd2, body_index)
                     body_pv_bary = erfa.pvppv(body_pv_helio, sun_pv_bary)
@@ -286,8 +284,8 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None, get_velocity=True):
                     kernel_spec = BODY_NAME_TO_KERNEL_SPEC[body.lower()]
                 except KeyError:
                     raise KeyError(
-                        "{}'s position cannot be calculated with "
-                        "the {} ephemeris.".format(body, ephemeris)
+                        f"{body}'s position cannot be calculated with "
+                        f"the {ephemeris} ephemeris."
                     )
             else:
                 # otherwise, assume the user knows what their doing and intentionally

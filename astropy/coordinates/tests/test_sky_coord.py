@@ -323,11 +323,11 @@ def test_coord_init_list():
     assert allclose(sc.ra, Angle("1d"))
     assert allclose(sc.dec, Angle("2d"))
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(
+        ValueError,
+        match="One or more elements of input sequence does not have a length",
+    ):
         SkyCoord([1 * u.deg, 2 * u.deg])  # this list is taken as RA w/ missing dec
-    assert "One or more elements of input sequence does not have a length" in str(
-        err.value
-    )
 
 
 def test_coord_init_array():
@@ -2045,21 +2045,13 @@ NAXIS1  =                 2136 / length of first array dimension
 NAXIS2  =                 2078 / length of second array dimension
     """
 
-    header = fits.Header.fromstring(header.strip(), "\n")
-    test_wcs = WCS(header)
-
-    coord = SkyCoord(254, 2, unit="deg")
-    assert coord.contained_by(test_wcs) == True
-
-    coord = SkyCoord(240, 2, unit="deg")
-    assert coord.contained_by(test_wcs) == False
+    test_wcs = WCS(fits.Header.fromstring(header.strip(), "\n"))
+    assert SkyCoord(254, 2, unit="deg").contained_by(test_wcs)
+    assert not SkyCoord(240, 2, unit="deg").contained_by(test_wcs)
 
     img = np.zeros((2136, 2078))
-    coord = SkyCoord(250, 2, unit="deg")
-    assert coord.contained_by(test_wcs, img) == True
-
-    coord = SkyCoord(240, 2, unit="deg")
-    assert coord.contained_by(test_wcs, img) == False
+    assert SkyCoord(250, 2, unit="deg").contained_by(test_wcs, img)
+    assert not SkyCoord(240, 2, unit="deg").contained_by(test_wcs, img)
 
     ra = np.array([254.2, 254.1])
     dec = np.array([2, 12.1])

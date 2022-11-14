@@ -566,7 +566,7 @@ class Latitude(Angle):
         if invalid_angles:
             raise ValueError(
                 "Latitude angle(s) must be within -90 deg <= angle <= 90 deg, "
-                "got {}".format(angles.to(u.degree))
+                f"got {angles.to(u.degree)}"
             )
 
     def __setitem__(self, item, value):

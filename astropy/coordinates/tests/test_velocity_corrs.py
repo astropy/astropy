@@ -170,17 +170,8 @@ def generate_IRAF_input(writefn=None):
         rastr = Angle(ra).to_string(u.hour, sep=":")
         decstr = Angle(dec).to_string(u.deg, sep=":")
 
-        msg = "{yr} {mo} {day} {uth}:{utmin} {ra} {dec}"
         lines.append(
-            msg.format(
-                yr=dt.year,
-                mo=dt.month,
-                day=dt.day,
-                uth=dt.hour,
-                utmin=dt.minute,
-                ra=rastr,
-                dec=decstr,
-            )
+            f"{dt.year} {dt.month} {dt.day} {dt.hour}:{dt.minute} {rastr} {decstr}"
         )
     if writefn:
         with open(writefn, "w") as f:

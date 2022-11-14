@@ -24,13 +24,11 @@ def test_builtin_sites():
     assert "greenwich" in names
     assert "example_site" in names
 
-    with pytest.raises(KeyError) as exc:
-        reg["nonexistent site"]
-    assert (
-        exc.value.args[0]
-        == "Site 'nonexistent site' not in database. Use the 'names' attribute to see"
-        " available sites."
-    )
+    with pytest.raises(
+        KeyError,
+        match="Site 'nonexistent' not in database. Use the 'names' attribute to see",
+    ):
+        reg["nonexistent"]
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -54,21 +52,17 @@ def test_online_sites():
     assert "" not in names
     assert "Royal Observatory Greenwich" in names
 
-    with pytest.raises(KeyError) as exc:
-        reg["nonexistent site"]
-    assert (
-        exc.value.args[0]
-        == "Site 'nonexistent site' not in database. Use the 'names' attribute to see"
-        " available sites."
-    )
+    with pytest.raises(
+        KeyError,
+        match="Site 'nonexistent' not in database. Use the 'names' attribute to see",
+    ):
+        reg["nonexistent"]
 
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(
+        KeyError,
+        match="Site 'kec' not in database. Use the 'names' attribute to see available",
+    ):
         reg["kec"]
-    assert (
-        exc.value.args[0]
-        == "Site 'kec' not in database. Use the 'names' attribute to see available"
-        " sites. Did you mean one of: 'keck'?'"
-    )
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -85,13 +79,11 @@ def test_EarthLocation_basic():
     assert "greenwich" in names
     assert "example_site" in names
 
-    with pytest.raises(KeyError) as exc:
-        EarthLocation.of_site("nonexistent site")
-    assert (
-        exc.value.args[0]
-        == "Site 'nonexistent site' not in database. Use EarthLocation.get_site_names"
-        " to see available sites."
-    )
+    with pytest.raises(
+        KeyError,
+        match="Site 'nonexistent' not in database. Use EarthLocation.get_site_names",
+    ):
+        EarthLocation.of_site("nonexistent")
 
 
 def test_EarthLocation_state_offline():

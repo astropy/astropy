@@ -467,9 +467,7 @@ def test_gcrs_hadec():
     gcrs = GCRS(usph, obstime="J2000")  # broadcast with times below
 
     # check array times sure N-d arrays work
-    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day, format="jd")[
-        :, np.newaxis
-    ]
+    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day, format="jd")[:, None]
 
     loc = EarthLocation(lon=10 * u.deg, lat=80.0 * u.deg)
     hdframe = HADec(obstime=times, location=loc)

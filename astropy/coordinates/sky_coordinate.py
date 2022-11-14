@@ -554,9 +554,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         if abs(idx0) > len(self):
             raise IndexError(
-                "index {} is out of bounds for axis 0 with size {}".format(
-                    idx0, len(self)
-                )
+                f"index {idx0} is out of bounds for axis 0 with size {len(self)}"
             )
 
         # Turn negative index into positive
@@ -693,9 +691,7 @@ class SkyCoord(ShapedLikeNDArray):
         trans = frame_transform_graph.get_transform(self.frame.__class__, new_frame_cls)
         if trans is None:
             raise ConvertError(
-                "Cannot transform from {} to {}".format(
-                    self.frame.__class__, new_frame_cls
-                )
+                f"Cannot transform from {self.frame.__class__} to {new_frame_cls}"
             )
 
         # Make a generic frame which will accept all the frame kwargs that
@@ -753,12 +749,7 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .builtin_frames.icrs import ICRS
 
-        if (
-            new_obstime is None
-            and dt is None
-            or new_obstime is not None
-            and dt is not None
-        ):
+        if (new_obstime is None) == (dt is None):
             raise ValueError(
                 "You must specify one of `new_obstime` or `dt`, but not both."
             )
@@ -1053,19 +1044,14 @@ class SkyCoord(ShapedLikeNDArray):
 
         if np.isscalar(sph_coord.lon.value):
             coord_string = (
-                sph_coord.lon.to_string(**lonargs)
-                + " "
-                + sph_coord.lat.to_string(**latargs)
+                f"{sph_coord.lon.to_string(**lonargs)}"
+                f" {sph_coord.lat.to_string(**latargs)}"
             )
         else:
             coord_string = []
             for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
                 coord_string += [
-                    (
-                        lonangle.to_string(**lonargs)
-                        + " "
-                        + latangle.to_string(**latargs)
-                    )
+                    f"{lonangle.to_string(**lonargs)} {latangle.to_string(**latargs)}"
                 ]
             if len(sph_coord.shape) > 1:
                 coord_string = np.array(coord_string).reshape(sph_coord.shape)
@@ -2037,8 +2023,7 @@ class SkyCoord(ShapedLikeNDArray):
         else:
             raise ValueError(
                 "`kind` argument to radial_velocity_correction must "
-                "be 'barycentric' or 'heliocentric', but got "
-                "'{}'".format(kind)
+                f"be 'barycentric' or 'heliocentric', but got '{kind}'"
             )
 
         gcrs_p, gcrs_v = location.get_gcrs_posvel(obstime)
@@ -2184,9 +2169,8 @@ class SkyCoord(ShapedLikeNDArray):
         for k, v in comp_kwargs.items():
             if k in coord_kwargs:
                 raise ValueError(
-                    'Found column "{}" in table, but it was '
-                    'already provided as "{}" keyword to '
-                    "guess_from_table function.".format(v.name, k)
+                    f'Found column "{v.name}" in table, but it was already provided as'
+                    ' "{k}" keyword to guess_from_table function.'
                 )
             else:
                 coord_kwargs[k] = v

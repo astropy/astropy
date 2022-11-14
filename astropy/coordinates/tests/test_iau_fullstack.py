@@ -45,11 +45,8 @@ def fullstack_times(request):
     params=[(0, 0, 0), (23, 0, 0), (-70, 0, 0), (0, 100, 0), (23, 0, 3000)],
 )
 def fullstack_locations(request):
-    return EarthLocation(
-        lat=request.param[0] * u.deg,
-        lon=request.param[0] * u.deg,
-        height=request.param[0] * u.m,
-    )
+    value = request.param[0]
+    return EarthLocation(lat=value * u.deg, lon=value * u.deg, height=value * u.m)
 
 
 @pytest.fixture(
@@ -211,8 +208,7 @@ def test_future_altaz():
         SkyCoord(1 * u.deg, 2 * u.deg).transform_to(AltAz(location=location, obstime=t))
 
     if isinstance(iers.earth_orientation_table.get(), iers.IERS_B):
-        messages_found = [
+        assert any(
             "(some) times are outside of range covered by IERS table." in str(w.message)
             for w in found_warnings
-        ]
-        assert any(messages_found)
+        )

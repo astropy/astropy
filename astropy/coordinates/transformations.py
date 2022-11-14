@@ -200,12 +200,10 @@ class TransformGraph:
                     invalid_frames.update([tosys])
 
             raise ValueError(
-                "Frame(s) {} contain invalid attribute names: {}"
-                "\nFrame attributes can not conflict with *any* of"
+                f"Frame(s) {list(invalid_frames)} contain invalid attribute names:"
+                f" {invalid_attrs}\nFrame attributes can not conflict with *any* of"
                 " the frame data component names (see"
-                " `frame_transform_graph.frame_component_names`).".format(
-                    list(invalid_frames), invalid_attrs
-                )
+                " `frame_transform_graph.frame_component_names`)."
             )
 
         self._graph[fromsys][tosys] = transform
@@ -260,9 +258,8 @@ class TransformGraph:
                     self._graph[fromsys].pop(tosys)
                 else:
                     raise ValueError(
-                        "Current transform from {} to {} is not {}".format(
-                            fromsys, tosys, transform
-                        )
+                        f"Current transform from {fromsys} to {tosys} is not"
+                        f" {transform}"
                     )
 
         # Remove the subgraph if it is now empty
@@ -341,9 +338,7 @@ class TransformGraph:
             edgeweights[a] = aew = {}
             agraph = self._graph[a]
             for b in agraph:
-                aew[b] = float(
-                    agraph[b].priority if hasattr(agraph[b], "priority") else 1
-                )
+                aew[b] = float(getattr(agraph[b], "priority", 1))
 
         # entries in q are [distance, count, nodeobj, pathlist]
         # count is needed because in py 3.x, tie-breaking fails on the nodes.
@@ -1045,8 +1040,8 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                 self._diff_attr_in_tosys = diff_attr_in_tosys
             else:
                 raise ValueError(
-                    "Frame attribute name {} is not a frame "
-                    "attribute of {} or {}".format(value, self.fromsys, self.tosys)
+                    f"Frame attribute name {value} is not a frame attribute of"
+                    f" {self.fromsys} or {self.tosys}"
                 )
         self._finite_difference_frameattr_name = value
 
@@ -1196,7 +1191,7 @@ class BaseAffineTransform(CoordinateTransform):
             raise TypeError(
                 "Position information stored on coordinate frame "
                 "is insufficient to do a full-space position "
-                "transformation (representation class: {})".format(data.__class__)
+                "transformation (representation class: {data.__class__})"
             )
 
         elif (
@@ -1208,11 +1203,9 @@ class BaseAffineTransform(CoordinateTransform):
             # Coordinate has a velocity, but it is not a full-space velocity
             # that we need to do a velocity offset
             raise TypeError(
-                "Velocity information stored on coordinate frame "
-                "is insufficient to do a full-space velocity "
-                "transformation (differential class: {})".format(
-                    data.differentials["s"].__class__
-                )
+                "Velocity information stored on coordinate frame is insufficient to do"
+                " a full-space velocity transformation (differential class:"
+                f" {data.differentials['s'].__class__})"
             )
 
         elif len(data.differentials) > 1:
@@ -1220,10 +1213,9 @@ class BaseAffineTransform(CoordinateTransform):
             # allow more differentials, but this just adds protection for
             # subclasses that somehow skip the checks
             raise ValueError(
-                "Representation passed to AffineTransform contains"
-                " multiple associated differentials. Only a single"
-                " differential with velocity units is presently"
-                " supported (differentials: {}).".format(str(data.differentials))
+                "Representation passed to AffineTransform contains multiple associated"
+                " differentials. Only a single differential with velocity units is"
+                f" presently supported (differentials: {data.differentials})."
             )
 
         # If the representation is a UnitSphericalRepresentation, and this is
@@ -1608,10 +1600,8 @@ class CompositeTransform(CoordinateTransform):
         if all([isinstance(t, BaseAffineTransform) for t in transforms]):
             # Check if there may be an origin shift
             fixed_origin = all(
-                [
-                    isinstance(t, (StaticMatrixTransform, DynamicMatrixTransform))
-                    for t in transforms
-                ]
+                isinstance(t, (StaticMatrixTransform, DynamicMatrixTransform))
+                for t in transforms
             )
 
             # Dynamically define the transformation function

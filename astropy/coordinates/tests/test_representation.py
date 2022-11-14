@@ -779,14 +779,12 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(s1.r, [10, 10] * u.kpc)
 
     def test_broadcasting_mismatch(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(
+            ValueError, match="Input parameters phi, theta, and r cannot be broadcast"
+        ):
             s1 = PhysicsSphericalRepresentation(
                 phi=[8, 9, 10] * u.hourangle, theta=[5, 6] * u.deg, r=[1, 2] * u.kpc
             )
-        assert (
-            exc.value.args[0]
-            == "Input parameters phi, theta, and r cannot be broadcast"
-        )
 
     def test_readonly(self):
         s1 = PhysicsSphericalRepresentation(
@@ -1058,12 +1056,11 @@ class TestCartesianRepresentation:
         assert "xyz_axis should only be set" in str(exc.value)
 
     def test_init_one_array_yz_fail(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(
+            ValueError,
+            match="x, y, and z are required to instantiate CartesianRepresentation",
+        ):
             CartesianRepresentation(x=[1, 2, 3, 4] * u.pc, y=[1, 2] * u.pc)
-        assert (
-            exc.value.args[0]
-            == "x, y, and z are required to instantiate CartesianRepresentation"
-        )
 
     def test_init_array_nocopy(self):
         x = [8, 9, 10] * u.pc
@@ -1302,13 +1299,12 @@ class TestCylindricalRepresentation:
         assert_allclose(s1.z.value, [5, 5])
 
     def test_broadcasting_mismatch(self):
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(
+            ValueError, match="Input parameters rho, phi, and z cannot be broadcast"
+        ):
             s1 = CylindricalRepresentation(
                 rho=[1, 2] * u.kpc, phi=[3, 4] * u.deg, z=[5, 6, 7] * u.kpc
             )
-        assert (
-            exc.value.args[0] == "Input parameters rho, phi, and z cannot be broadcast"
-        )
 
     def test_readonly(self):
         s1 = CylindricalRepresentation(rho=1 * u.kpc, phi=20 * u.deg, z=3 * u.kpc)
@@ -2075,9 +2071,8 @@ def unitphysics():
 
             if np.any(self._theta < 0.0 * u.deg) or np.any(self._theta > 180.0 * u.deg):
                 raise ValueError(
-                    "Inclination angle(s) must be within "
-                    "0 deg <= angle <= 180 deg, "
-                    "got {}".format(self._theta.to(u.degree))
+                    "Inclination angle(s) must be within 0 deg <= angle <= 180 deg, "
+                    f"got {self._theta.to(u.degree)}"
                 )
 
         @property

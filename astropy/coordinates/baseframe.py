@@ -47,10 +47,8 @@ def _get_repr_cls(value):
         value = r.REPRESENTATION_CLASSES[value]
     elif not isinstance(value, type) or not issubclass(value, r.BaseRepresentation):
         raise ValueError(
-            "Representation is {!r} but must be a BaseRepresentation class "
-            "or one of the string aliases {}".format(
-                value, list(r.REPRESENTATION_CLASSES)
-            )
+            f"Representation is {value!r} but must be a BaseRepresentation class "
+            f"or one of the string aliases {list(r.REPRESENTATION_CLASSES)}"
         )
     return value
 
@@ -67,10 +65,8 @@ def _get_diff_cls(value):
         value = r.DIFFERENTIAL_CLASSES[value]
     elif not isinstance(value, type) or not issubclass(value, r.BaseDifferential):
         raise ValueError(
-            "Differential is {!r} but must be a BaseDifferential class "
-            "or one of the string aliases {}".format(
-                value, list(r.DIFFERENTIAL_CLASSES)
-            )
+            f"Differential is {value!r} but must be a BaseDifferential class "
+            f"or one of the string aliases {list(r.DIFFERENTIAL_CLASSES)}"
         )
     return value
 
@@ -110,10 +106,8 @@ def _get_repr_classes(base, **differentials):
             or not issubclass(differential_type, r.BaseDifferential)
         ):
             raise ValueError(
-                "Differential is {!r} but must be a BaseDifferential class "
-                "or one of the string aliases {}".format(
-                    differential_type, list(r.DIFFERENTIAL_CLASSES)
-                )
+                "Differential is {differential_type!r} but must be a BaseDifferential"
+                f" class or one of the string aliases {list(r.DIFFERENTIAL_CLASSES)}"
             )
         repr_classes[name] = differential_type
     return repr_classes
@@ -431,9 +425,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         differential_data = None
 
         args = list(args)  # need to be able to pop them
-        if (len(args) > 0) and (
-            isinstance(args[0], r.BaseRepresentation) or args[0] is None
-        ):
+        if args and (isinstance(args[0], r.BaseRepresentation) or args[0] is None):
             representation_data = args.pop(0)  # This can still be None
             if len(args) > 0:
                 raise TypeError(
@@ -448,11 +440,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                     differential_data is not None and len(diffs) > 1
                 ):
                     raise ValueError(
-                        "Multiple differentials are associated "
-                        "with the representation object passed in "
-                        "to the frame initializer. Only a single "
-                        "velocity differential is supported. Got: "
-                        "{}".format(diffs)
+                        "Multiple differentials are associated with the representation"
+                        " object passed in to the frame initializer. Only a single"
+                        f" velocity differential is supported. Got: {diffs}"
                     )
 
         else:

@@ -175,7 +175,7 @@ def test_name_resolve_cache(tmp_path):
         assert len(urls) == 1
         expected_urls = sesame_url.get()
         assert any(
-            [urls[0].startswith(x) for x in expected_urls]
+            urls[0].startswith(x) for x in expected_urls
         ), f"{urls[0]} not in {expected_urls}"
 
         # Try reloading coordinates, now should just reload cached data:

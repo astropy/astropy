@@ -296,17 +296,13 @@ def test_angle_formatting():
 
     res = "Angle as HMS: 3h36m29.7888s"
     assert (
-        "Angle as HMS: {}".format(
-            angle.to_string(unit=u.hour, sep=("h", "m", "s"), precision=4)
-        )
-        == res
+        "Angle as HMS:"
+        f" {angle.to_string(unit=u.hour, sep=('h', 'm', 's'), precision=4)}" == res
     )
 
     res = "Angle as HMS: 3-36|29.7888"
     assert (
-        "Angle as HMS: {}".format(
-            angle.to_string(unit=u.hour, sep=["-", "|"], precision=4)
-        )
+        f"Angle as HMS: {angle.to_string(unit=u.hour, sep=['-', '|'], precision=4)}"
         == res
     )
 
@@ -328,8 +324,7 @@ def test_angle_formatting():
 
     res = "Angle as DMS: 3:36:29.79"
     assert (
-        "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=":", precision=2))
-        == res
+        f"Angle as DMS: {angle.to_string(unit=u.degree, sep=':', precision=2)}" == res
     )
 
     # Note that you can provide one, two, or three separators passed as a
@@ -337,24 +332,19 @@ def test_angle_formatting():
 
     res = "Angle as DMS: 3d36m29.7888s"
     assert (
-        "Angle as DMS: {}".format(
-            angle.to_string(unit=u.degree, sep=("d", "m", "s"), precision=4)
-        )
+        f"Angle as DMS: {angle.to_string(unit=u.deg, sep=('d', 'm', 's'), precision=4)}"
         == res
     )
 
     res = "Angle as DMS: 3-36|29.7888"
     assert (
-        "Angle as DMS: {}".format(
-            angle.to_string(unit=u.degree, sep=["-", "|"], precision=4)
-        )
+        f"Angle as DMS: {angle.to_string(unit=u.degree, sep=['-', '|'], precision=4)}"
         == res
     )
 
     res = "Angle as DMS: 3-36-29.7888"
     assert (
-        "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep="-", precision=4))
-        == res
+        f"Angle as DMS: {angle.to_string(unit=u.degree, sep='-', precision=4)}" == res
     )
 
     res = "Angle as DMS: 03d36m29.7888s"
@@ -741,20 +731,18 @@ def test_latitude():
     assert angle == -80 * u.deg
 
     # Test errors when trying to interoperate with longitudes.
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(
+        TypeError, match="A Latitude angle cannot be created from a Longitude angle"
+    ):
         lon = Longitude(10, "deg")
         lat = Latitude(lon)
-    assert "A Latitude angle cannot be created from a Longitude angle" in str(
-        excinfo.value
-    )
 
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(
+        TypeError, match="A Longitude angle cannot be assigned to a Latitude angle"
+    ):
         lon = Longitude(10, "deg")
         lat = Latitude([20], "deg")
         lat[0] = lon
-    assert "A Longitude angle cannot be assigned to a Latitude angle" in str(
-        excinfo.value
-    )
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lon = Longitude(10, "deg")
@@ -846,20 +834,18 @@ def test_longitude():
     assert Longitude(0, u.deg, dtype=int).dtype == np.dtype(int)
 
     # Test errors when trying to interoperate with latitudes.
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(
+        TypeError, match="A Longitude angle cannot be created from a Latitude angle"
+    ):
         lat = Latitude(10, "deg")
         lon = Longitude(lat)
-    assert "A Longitude angle cannot be created from a Latitude angle" in str(
-        excinfo.value
-    )
 
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(
+        TypeError, match="A Latitude angle cannot be assigned to a Longitude angle"
+    ):
         lat = Latitude(10, "deg")
         lon = Longitude([20], "deg")
         lon[0] = lat
-    assert "A Latitude angle cannot be assigned to a Longitude angle" in str(
-        excinfo.value
-    )
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lat = Latitude(10, "deg")

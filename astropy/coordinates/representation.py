@@ -541,10 +541,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         else:
             unitstr = "({})".format(
                 ", ".join(
-                    [
-                        self._units[component].to_string()
-                        for component in self.components
-                    ]
+                    self._units[component].to_string() for component in self.components
                 )
             )
         return unitstr
@@ -563,13 +560,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             )
 
         unitstr = ("in " + self._unitstr) if self._unitstr else "[dimensionless]"
-        return "<{} ({}) {:s}\n{}{}{}>".format(
-            self.__class__.__name__,
-            ", ".join(self.components),
-            unitstr,
-            prefixstr,
-            arrstr,
-            diffstr,
+        return (
+            f"<{self.__class__.__name__} ({', '.join(self.components)})"
+            f" {unitstr:s}\n{prefixstr}{arrstr}{diffstr}>"
         )
 
 
@@ -768,10 +761,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 expected_key = diff._get_deriv_key(self)
                 if key != expected_key:
                     raise ValueError(
-                        "For differential object '{}', expected "
-                        "unit key = '{}' but received key = '{}'".format(
-                            repr(diff), expected_key, key
-                        )
+                        f"For differential object '{repr(diff)}', expected "
+                        f"unit key = '{expected_key}' but received key = '{key}'"
                     )
 
             # For now, we are very rigid: differentials must have the same shape
@@ -783,8 +774,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 #       so use a valueerror instead?
                 raise ValueError(
                     "Shape of differentials must be the same "
-                    "as the shape of the representation ({} vs "
-                    "{})".format(diff.shape, self.shape)
+                    f"as the shape of the representation ({diff.shape} vs {self.shape})"
                 )
 
         return differentials
@@ -796,10 +786,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """
         if self.differentials:
             raise TypeError(
-                "Operation '{}' is not supported when "
-                "differentials are attached to a {}.".format(
-                    op_name, self.__class__.__name__
-                )
+                f"Operation '{op_name}' is not supported when "
+                f"differentials are attached to a {self.__class__.__name__}."
             )
 
     @classproperty
@@ -887,11 +875,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             except Exception as err:
                 if differential_class[k] not in new_rep._compatible_differentials:
                     raise TypeError(
-                        "Desired differential class {} is not "
+                        f"Desired differential class {differential_class[k]} is not "
                         "compatible with the desired "
-                        "representation class {}".format(
-                            differential_class[k], new_rep.__class__
-                        )
+                        f"representation class {new_rep.__class__}"
                     ) from err
                 else:
                     raise
@@ -924,8 +910,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         else:
             if isinstance(other_class, str):
                 raise ValueError(
-                    "Input to a representation's represent_as must be a class, not a"
-                    " string. For strings, use frame objects"
+                    "Input to a representation's represent_as must be a class, not "
+                    "a string. For strings, use frame objects."
                 )
 
             if other_class is not self.__class__:
@@ -1208,13 +1194,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Vector norm, with the same shape as the representation.
         """
         return np.sqrt(
-            functools.reduce(
-                operator.add,
-                (
-                    getattr(self, component) ** 2
-                    for component, cls in self.attr_classes.items()
-                    if not issubclass(cls, Angle)
-                ),
+            sum(
+                getattr(self, component) ** 2
+                for component, cls in self.attr_classes.items()
+                if not issubclass(cls, Angle)
             )
         )
 
@@ -1378,9 +1361,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         if y is None or z is None:
             raise ValueError(
-                "x, y, and z are required to instantiate {}".format(
-                    self.__class__.__name__
-                )
+                f"x, y, and z are required to instantiate {self.__class__.__name__}"
             )
 
         if unit is not None:
@@ -1570,8 +1551,8 @@ class CartesianRepresentation(BaseRepresentation):
             other_c = other.to_cartesian()
         except Exception as err:
             raise TypeError(
-                "cannot only take dot product with another "
-                "representation, not a {} instance.".format(type(other))
+                "can only take dot product with another "
+                f"representation, not a {type(other)} instance."
             ) from err
         # erfa pdp: p-vector inner (=scalar=dot) product.
         return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1), other_c.get_xyz(xyz_axis=-1))
@@ -1595,7 +1576,7 @@ class CartesianRepresentation(BaseRepresentation):
         except Exception as err:
             raise TypeError(
                 "cannot only take cross product with another "
-                "representation, not a {} instance.".format(type(other))
+                f"representation, not a {type(other)} instance."
             ) from err
         # erfa pxp: p-vector outer (=vector=cross) product.
         sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1), other_c.get_xyz(xyz_axis=-1))
@@ -1901,9 +1882,7 @@ class RadialRepresentation(BaseRepresentation):
     def unit_vectors(self):
         """Cartesian unit vectors are undefined for radial representation."""
         raise NotImplementedError(
-            "Cartesian unit vectors are undefined for {} instances".format(
-                self.__class__
-            )
+            f"Cartesian unit vectors are undefined for {self.__class__} instances"
         )
 
     def scale_factors(self):
@@ -2257,9 +2236,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
         if np.any(self._theta < 0.0 * u.deg) or np.any(self._theta > 180.0 * u.deg):
             raise ValueError(
-                "Inclination angle(s) must be within "
-                "0 deg <= angle <= 180 deg, "
-                "got {}".format(theta.to(u.degree))
+                "Inclination angle(s) must be within 0 deg <= angle <= 180 deg, "
+                f"got {theta.to(u.degree)}"
             )
 
         if self._r.unit.physical_type == "length":
@@ -2952,9 +2930,8 @@ class CartesianDifferential(BaseDifferential):
 
         if d_y is None or d_z is None:
             raise ValueError(
-                "d_x, d_y, and d_z are required to instantiate {}".format(
-                    self.__class__.__name__
-                )
+                "d_x, d_y, and d_z are required to instantiate"
+                f" {self.__class__.__name__}"
             )
 
         if unit is not None:
@@ -3534,10 +3511,8 @@ class RadialDifferential(BaseDifferential):
     base_representation = RadialRepresentation
 
     def to_cartesian(self, base):
-        return (
-            self.d_distance
-            * base.represent_as(UnitSphericalRepresentation).to_cartesian()
-        )
+        unit_vec = base.represent_as(UnitSphericalRepresentation).to_cartesian()
+        return self.d_distance * unit_vec
 
     def norm(self, base=None):
         return self.d_distance
