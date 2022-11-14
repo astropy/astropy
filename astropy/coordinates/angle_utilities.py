@@ -23,6 +23,8 @@ from astropy.coordinates.representation import (
     UnitSphericalRepresentation,
 )
 
+_TWOPI = 2 * np.pi
+
 
 def angular_separation(lon1, lat1, lon2, lat2):
     """
@@ -180,7 +182,7 @@ def golden_spiral_grid(size):
     golden_r = (1 + 5**0.5) / 2
 
     grid = np.arange(0, size, dtype=float) + 0.5
-    lon = 2 * np.pi / golden_r * grid * u.rad
+    lon = _TWOPI / golden_r * grid * u.rad
     lat = np.arcsin(1 - 2 * grid / size) * u.rad
 
     return UnitSphericalRepresentation(lon, lat)
@@ -202,7 +204,7 @@ def uniform_spherical_random_surface(size=1):
 
     rng = np.random  # can maybe switch to this being an input later - see #11628
 
-    lon = rng.uniform(0, 2 * np.pi, size) * u.rad
+    lon = rng.uniform(0, _TWOPI, size) * u.rad
     lat = np.arcsin(rng.uniform(-1, 1, size=size)) * u.rad
 
     return UnitSphericalRepresentation(lon, lat)

@@ -455,10 +455,10 @@ def test_realizing():
     assert f2.equinox != FK5.get_frame_attr_defaults()["equinox"]
 
     # Check that a nicer error message is returned:
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(
+        TypeError, match="Class passed as data instead of a representation"
+    ):
         f.realize_frame(f.representation_type)
-
-    assert "Class passed as data instead of a representation" in excinfo.value.args[0]
 
 
 def test_replicating():

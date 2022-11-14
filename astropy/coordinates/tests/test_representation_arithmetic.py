@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
 import operator
 
 import numpy as np
@@ -48,12 +47,8 @@ def assert_differential_allclose(actual, desired, rtol=1.0e-7, **kwargs):
 
 
 def representation_equal(first, second):
-    return functools.reduce(
-        np.logical_and,
-        (
-            getattr(first, component) == getattr(second, component)
-            for component in first.components
-        ),
+    return np.all(
+        getattr(first, comp) == getattr(second, comp) for comp in first.components
     )
 
 

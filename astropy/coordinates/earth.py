@@ -218,7 +218,7 @@ class EarthLocation(u.Quantity):
                 raise TypeError(
                     "Coordinates could not be parsed as either "
                     "geocentric or geodetic, with respective "
-                    'exceptions "{}" and "{}"'.format(exc_geocentric, exc_geodetic)
+                    f'exceptions "{exc_geocentric}" and "{exc_geodetic}"'
                 )
         return self
 
@@ -671,9 +671,9 @@ class EarthLocation(u.Quantity):
 
     itrs = property(
         get_itrs,
-        doc="""An `~astropy.coordinates.ITRS` object  with
-                                     for the location of this object at the
-                                     default ``obstime``.""",
+        doc="""An `~astropy.coordinates.ITRS` object
+               for the location of this object at the
+               default ``obstime``.""",
     )
 
     def get_gcrs(self, obstime):

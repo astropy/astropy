@@ -167,7 +167,7 @@ def horoscope(birthday, corrected=True, chinese=False):
         zodiac_sign = _get_zodiac(birthday.year)
         url = (
             "https://www.horoscope.com/us/horoscopes/yearly/"
-            "{}-chinese-horoscope-{}.aspx".format(today.year, zodiac_sign)
+            f"{today.year}-chinese-horoscope-{zodiac_sign}.aspx"
         )
         summ_title_sfx = f"in {today.year}"
 
@@ -194,10 +194,9 @@ def horoscope(birthday, corrected=True, chinese=False):
             zodiac_sign = _CONST_TO_SIGNS.get(zodiac_sign, zodiac_sign)
             if zodiac_sign not in _VALID_SIGNS:
                 raise HumanError(
-                    "On your birthday the sun was in {}, which is not "
-                    "a sign of the zodiac.  You must not exist.  Or "
-                    "maybe you can settle for "
-                    "corrected=False.".format(zodiac_sign.title())
+                    f"On your birthday the sun was in {zodiac_sign.title()}, which is"
+                    " not a sign of the zodiac.  You must not exist.  Or maybe you can"
+                    " settle for corrected=False."
                 )
         else:
             zodiac_sign = get_sign(birthday.to_datetime())

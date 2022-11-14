@@ -65,11 +65,9 @@ def make_skyoffset_cls(framecls):
 
         # This transform goes through the parent frames on each side.
         # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
-        intermediate_from = from_skyoffset_coord.transform_to(
-            from_skyoffset_coord.origin
-        )
-        intermediate_to = intermediate_from.transform_to(to_skyoffset_frame.origin)
-        return intermediate_to.transform_to(to_skyoffset_frame)
+        tmp_from = from_skyoffset_coord.transform_to(from_skyoffset_coord.origin)
+        tmp_to = tmp_from.transform_to(to_skyoffset_frame.origin)
+        return tmp_to.transform_to(to_skyoffset_frame)
 
     @frame_transform_graph.transform(
         DynamicMatrixTransform, framecls, _SkyOffsetFramecls
@@ -153,7 +151,7 @@ class SkyOffsetFrame(BaseCoordinateFrame):
                 origin_frame = kwargs["origin"]
             except KeyError:
                 raise TypeError(
-                    "Can't initialize an SkyOffsetFrame without origin= keyword."
+                    "Can't initialize a SkyOffsetFrame without origin= keyword."
                 )
             if hasattr(origin_frame, "frame"):
                 origin_frame = origin_frame.frame

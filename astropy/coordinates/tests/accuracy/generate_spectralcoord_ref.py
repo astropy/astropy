@@ -41,13 +41,12 @@ if __name__ == "__main__":
         # Produce input file for rv command
         with open("rv.input", "w") as f:
             f.write(
-                row["obslon"].to_string("deg", sep=" ")
-                + " "
-                + row["obslat"].to_string("deg", sep=" ")
-                + "\n"
+                f"{row['obslon'].to_string('deg', sep=' ')}"
+                f" {row['obslat'].to_string('deg', sep=' ')}\n"
             )
             f.write(
-                f"{row['obstime'].datetime.year} {row['obstime'].datetime.month} {row['obstime'].datetime.day} 1\n"
+                f"{row['obstime'].datetime.year} {row['obstime'].datetime.month}"
+                f" {row['obstime'].datetime.day} 1\n"
             )
             f.write(row["target"].to_string("hmsdms", sep=" ") + " J2000\n")
             f.write("END\n")

@@ -123,10 +123,9 @@ class Attribute:
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(
-                        "attribute {} should be scalar or have shape {}, "
-                        "but is has shape {} and could not be broadcast.".format(
-                            self.name, instance_shape, out.shape
-                        )
+                        f"attribute {self.name} should be scalar or have shape"
+                        f" {instance_shape}, but it has shape {out.shape} and could not"
+                        " be broadcast."
                     )
 
                 converted = True
@@ -259,8 +258,8 @@ class CartesianRepresentationAttribute(Attribute):
             value = getattr(value, "xyz", value)
             if not hasattr(value, "unit"):
                 raise TypeError(
-                    "tried to set a {} with something that does "
-                    "not have a unit.".format(self.__class__.__name__)
+                    f"tried to set a {self.__class__.__name__} with something that does"
+                    " not have a unit."
                 )
 
             value = value.to(self.unit)
@@ -408,9 +407,8 @@ class EarthLocationAttribute(Attribute):
 
             if not hasattr(value, "transform_to"):
                 raise ValueError(
-                    '"{}" was passed into an '
-                    "EarthLocationAttribute, but it does not have "
-                    '"transform_to" method'.format(value)
+                    f'"{value}" was passed into an EarthLocationAttribute, but it does'
+                    ' not have "transform_to" method'
                 )
             itrsobj = value.transform_to(ITRS())
             return itrsobj.earth_location, True
@@ -531,9 +529,9 @@ class DifferentialAttribute(Attribute):
                 value = self.allowed_classes[0](value)
             else:
                 raise TypeError(
-                    "Tried to set a DifferentialAttribute with "
-                    "an unsupported Differential type {}. Allowed "
-                    "classes are: {}".format(value.__class__, self.allowed_classes)
+                    "Tried to set a DifferentialAttribute with an unsupported"
+                    f" Differential type {value.__class__}. Allowed classes are:"
+                    f" {self.allowed_classes}"
                 )
 
         return value, True

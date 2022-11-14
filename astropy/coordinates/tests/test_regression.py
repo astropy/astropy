@@ -606,10 +606,10 @@ def test_regression_6697():
     https://github.com/nanograv/PINT/blob/master/pint/erfautils.py
     """
     pint_vels = CartesianRepresentation(
-        *(348.63632871, -212.31704928, -0.60154936), unit=u.m / u.s
+        348.63632871, -212.31704928, -0.60154936, unit=u.m / u.s
     )
     location = EarthLocation(
-        *(5327448.9957829, -1718665.73869569, 3051566.90295403), unit=u.m
+        5327448.9957829, -1718665.73869569, 3051566.90295403, unit=u.m
     )
     t = Time(2458036.161966612, format="jd")
     obsgeopos, obsgeovel = location.get_gcrs_posvel(t)
@@ -692,7 +692,6 @@ def test_regression_10092():
     )
 
     with pytest.warns(ErfaWarning, match='ERFA function "pmsafe" yielded .*'):
-        # expect ErfaWarning here
         newc = c.apply_space_motion(dt=10 * u.year)
     assert_quantity_allclose(
         newc.pm_l_cosb, 33.99980714 * u.mas / u.yr, atol=1.0e-5 * u.mas / u.yr
