@@ -472,10 +472,22 @@ def _buffer_to_array(tile_buffer, header):
     """
     tile_shape = (header["ZTILE2"], header["ZTILE1"])
 
-    if header["ZCMPTYPE"].startswith("GZIP") and header["ZBITPIX"] > 8:
-        # TOOD: support float types
-        int_size = header["ZBITPIX"] // 8
-        tile_data = np.asarray(tile_buffer).view(f">i{int_size}").reshape(tile_shape)
+    if header["ZCMPTYPE"].startswith("GZIP"):
+        # This algorithm is taken from fitsio
+        # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
+        tilelen = np.product(tile_shape)
+        tilebytesize = len(tile_buffer)
+        if tilebytesize == tilelen * 2:
+            dtype = ">i2"
+        elif tilebytesize == tilelen * 4:
+            # TOOD: support float32?
+            dtype = ">i4"
+        elif tilebytesize == tilelen * 8:
+            dtype = ">f8"
+        else:
+            # Just return the raw bytes
+            dtype = ">u1"
+        tile_data = np.asarray(tile_buffer).view(dtype).reshape(tile_shape)
     else:
         if tile_buffer.format == "b":
             # NOTE: this feels like a Numpy bug - need to investigate
@@ -506,7 +518,8 @@ def decompress_hdu(hdu):
         )
         tile_data = _buffer_to_array(tile_buffer, hdu._header)
         data[
-            istart : istart + tile_shape[0], jstart : jstart + tile_shape[1]
+            istart : istart + tile_shape[0],
+            jstart : jstart + tile_shape[1],
         ] = tile_data
         jstart += tile_shape[1]
         if jstart >= data_shape[1]:
