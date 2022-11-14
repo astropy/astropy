@@ -60,18 +60,18 @@ def split_mantissa_exponent(v, format_spec=".8g"):
     -------
     mantissa, exponent : tuple of strings
     """
-    x = format(v, format_spec).split('e')
-    if x[0] != '1.' + '0' * (len(x[0]) - 2):
+    x = format(v, format_spec).split("e")
+    if x[0] != "1." + "0" * (len(x[0]) - 2):
         m = x[0]
     else:
-        m = ''
+        m = ""
 
     if len(x) == 2:
         ex = x[1].lstrip("0+")
-        if len(ex) > 0 and ex[0] == '-':
-            ex = '-' + ex[1:].lstrip('0')
+        if len(ex) > 0 and ex[0] == "-":
+            ex = "-" + ex[1:].lstrip("0")
     else:
-        ex = ''
+        ex = ""
 
     return m, ex
 
@@ -96,6 +96,7 @@ def decompose_to_known_units(unit, func):
         A flattened unit.
     """
     from astropy.units import core
+
     if isinstance(unit, core.CompositeUnit):
         new_unit = core.Unit(unit.scale)
         for base, power in zip(unit.bases, unit.powers):
@@ -110,8 +111,9 @@ def decompose_to_known_units(unit, func):
             raise
         return unit
     else:
-        raise TypeError("unit argument must be a 'NamedUnit' or 'CompositeUnit', "
-                        f"not {type(unit)}")
+        raise TypeError(
+            f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
+        )
 
 
 def format_power(power):
@@ -120,16 +122,16 @@ def format_power(power):
     `fractions.Fraction` object), into a string looking like either
     an integer or a fraction, if the power is close to that.
     """
-    if not hasattr(power, 'denominator'):
+    if not hasattr(power, "denominator"):
         power = maybe_simple_fraction(power)
-        if getattr(power, 'denonimator', None) == 1:
+        if getattr(power, "denonimator", None) == 1:
             power = power.nominator
 
     return str(power)
 
 
 def _try_decomposed(unit, format_decomposed):
-    represents = getattr(unit, '_represents', None)
+    represents = getattr(unit, "_represents", None)
     if represents is not None:
         try:
             represents_string = format_decomposed(represents)
@@ -176,11 +178,11 @@ def did_you_mean_units(s, all_units, deprecated_units, format_decomposed):
         A string message with a list of alternatives, or the empty
         string.
     """
+
     def fix_deprecated(x):
         if x in deprecated_units:
-            results = [x + ' (deprecated)']
-            decomposed = _try_decomposed(
-                all_units[x], format_decomposed)
+            results = [x + " (deprecated)"]
+            decomposed = _try_decomposed(all_units[x], format_decomposed)
             if decomposed is not None:
                 results.append(decomposed)
             return results
