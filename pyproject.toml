@@ -58,7 +58,6 @@ force-exclude = '''
     | astropy/convolution
     | astropy/extern
     | astropy/modeling
-    | astropy/table
     | astropy/units
   )/
   # Individual files to always exclude
