@@ -52,7 +52,7 @@ def test_basic(tmp_path, compression_type, dtype):
     # Load in raw compressed data
     hdulist = fits.open(tmp_path / "test.fits", disable_image_compression=True)
 
-    settings = settings_from_hdu(hdulist[1], original_data)
+    settings = _header_to_settings(hdulist[1].header)
 
     # Test decompression of the first tile
 
@@ -61,19 +61,7 @@ def test_basic(tmp_path, compression_type, dtype):
     tile_data_buffer = decompress_tile(
         compressed_tile_bytes, algorithm=compression_type, **settings
     )
-
-    # TODO: determine whether we are happy with having to interpret the returned bytes from
-    # the GZip codec or whether we want to set the dtype as a setting to the codec.
-    if compression_type.startswith("GZIP"):
-        # NOTE: It looks like the data is stored as big endian data even if it was
-        # originally little-endian.
-        tile_data = (
-            np.asarray(tile_data_buffer)
-            .view(original_data.dtype.newbyteorder(">"))
-            .reshape(tile_shape)
-        )
-    else:
-        tile_data = np.asarray(tile_data_buffer).reshape(tile_shape)
+    tile_data = _buffer_to_array(tile_data_buffer, hdulist[1].header)
 
     assert_equal(tile_data, original_data[:4, :4])
 
@@ -226,16 +214,29 @@ def original_int_hdu(canonical_data_base_path):
         yield hdul[0]
 
 
+# pytest-openfiles does not correctly check for open files when the files are
+# opened in a fixture, so we skip the check here.
+# https://github.com/astropy/pytest-openfiles/issues/32
+@pytest.mark.openfiles_ignore
 def test_canonical_data(original_int_hdu, canonical_int_hdus):
     hdr = canonical_int_hdus.header
     tile_size = (hdr["ZTILE2"], hdr["ZTILE1"])
     compression_type = hdr["ZCMPTYPE"]
     original_tile_1 = original_int_hdu.data[: tile_size[0], : tile_size[1]]
-    compressed_tile_bytes = canonical_int_hdus.data["COMPRESSED_DATA"][0].tobytes()
+    original_compressed_tile_bytes = canonical_int_hdus.data["COMPRESSED_DATA"][0].tobytes()  # fmt: skip
 
     settings = _header_to_settings(canonical_int_hdus.header)
     tile_data_buffer = decompress_tile(
-        compressed_tile_bytes, algorithm=compression_type, **settings
+        original_compressed_tile_bytes, algorithm=compression_type, **settings
     )
     tile_data = _buffer_to_array(tile_data_buffer, hdr)
     np.testing.assert_allclose(original_tile_1, tile_data)
+
+    # gzip compression can be non-deterministic i.e. compression level,
+    # compressed data dtype etc. So this test can't work for GZIP files.
+    if not compression_type.startswith("GZIP"):
+        # Now compress the original data and see if we can recover the compressed bytes we loaded
+        compressed_tile_data = compress_tile(
+            original_tile_1, algorithm=compression_type, **settings
+        )
+        assert compressed_tile_data == original_compressed_tile_bytes
