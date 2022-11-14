@@ -14,26 +14,26 @@ def test_disable_kwarg():
         def remote_data(self, remote_data, kwargs):
             return NotImplemented
 
-    r = no_remote_data('.')
+    r = no_remote_data(".")
     with pytest.raises(TypeError):
-        r.run_tests(remote_data='bob')
+        r.run_tests(remote_data="bob")
 
 
 def test_wrong_kwarg():
-    r = _TestRunner('.')
+    r = _TestRunner(".")
     with pytest.raises(TypeError):
-        r.run_tests(spam='eggs')
+        r.run_tests(spam="eggs")
 
 
 def test_invalid_kwarg():
     class bad_return(_TestRunnerBase):
         @keyword()
         def remote_data(self, remote_data, kwargs):
-            return 'bob'
+            return "bob"
 
-    r = bad_return('.')
+    r = bad_return(".")
     with pytest.raises(TypeError):
-        r.run_tests(remote_data='bob')
+        r.run_tests(remote_data="bob")
 
 
 def test_new_kwarg():
@@ -42,11 +42,11 @@ def test_new_kwarg():
         def spam(self, spam, kwargs):
             return [spam]
 
-    r = Spam('.')
+    r = Spam(".")
 
-    args = r._generate_args(spam='spam')
+    args = r._generate_args(spam="spam")
 
-    assert ['spam'] == args
+    assert ["spam"] == args
 
 
 def test_priority():
@@ -59,11 +59,11 @@ def test_priority():
         def eggs(self, eggs, kwargs):
             return [eggs]
 
-    r = Spam('.')
+    r = Spam(".")
 
-    args = r._generate_args(spam='spam', eggs='eggs')
+    args = r._generate_args(spam="spam", eggs="eggs")
 
-    assert ['eggs', 'spam'] == args
+    assert ["eggs", "spam"] == args
 
 
 def test_docs():
@@ -82,6 +82,6 @@ def test_docs():
             """
             return [eggs]
 
-    r = Spam('.')
+    r = Spam(".")
     assert "eggs" in r.run_tests.__doc__
     assert "Spam Spam Spam" in r.run_tests.__doc__

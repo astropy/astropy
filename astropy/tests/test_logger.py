@@ -25,7 +25,6 @@ except NameError:
 
 
 def setup_function(function):
-
     # Reset modules to default
     importlib.reload(warnings)
     importlib.reload(sys)
@@ -48,28 +47,30 @@ teardown_module = setup_function
 
 
 def test_warnings_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match=r"Warnings logging has not been enabled"):
         log.disable_warnings_logging()
-    assert e.value.args[0] == 'Warnings logging has not been enabled'
 
 
 def test_warnings_logging_enable_twice():
     log.enable_warnings_logging()
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(
+        LoggingError, match=r"Warnings logging has already been enabled"
+    ):
         log.enable_warnings_logging()
-    assert e.value.args[0] == 'Warnings logging has already been enabled'
 
 
 def test_warnings_logging_overridden():
     log.enable_warnings_logging()
     warnings.showwarning = lambda: None
-    with pytest.raises(LoggingError, match=r'Cannot disable warnings logging: '
-                       r'warnings\.showwarning was not set by this logger, or has been overridden'):
+    with pytest.raises(
+        LoggingError,
+        match=r"Cannot disable warnings logging: "
+        r"warnings\.showwarning was not set by this logger, or has been overridden",
+    ):
         log.disable_warnings_logging()
 
 
 def test_warnings_logging():
-
     # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
         with log.log_to_list() as log_list:
@@ -85,13 +86,14 @@ def test_warnings_logging():
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
-    assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message.startswith('This is a warning')
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "WARNING"
+    assert log_list[0].message.startswith("This is a warning")
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
     # With warnings logging (differentiate between Astropy and non-Astropy)
-    with pytest.warns(UserWarning, match="This is another warning, not "
-                      "from Astropy") as warn_list:
+    with pytest.warns(
+        UserWarning, match="This is another warning, not from Astropy"
+    ) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
@@ -99,9 +101,9 @@ def test_warnings_logging():
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 1
-    assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message.startswith('This is a warning')
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "WARNING"
+    assert log_list[0].message.startswith("This is a warning")
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
     # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
@@ -123,9 +125,11 @@ def test_warnings_logging_with_custom_class():
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
-    assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message.startswith('CustomAstropyWarningClass: This is a warning')
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "WARNING"
+    assert log_list[0].message.startswith(
+        "CustomAstropyWarningClass: This is a warning"
+    )
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
 
 def test_warning_logging_with_io_votable_warning():
@@ -134,15 +138,16 @@ def test_warning_logging_with_io_votable_warning():
     with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            vo_warn(W02, ('a', 'b'))
+            vo_warn(W02, ("a", "b"))
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
-    assert log_list[0].levelname == 'WARNING'
-    x = log_list[0].message.startswith("W02: ?:?:?: W02: a attribute 'b' is "
-                                       "invalid.  Must be a standard XML id")
+    assert log_list[0].levelname == "WARNING"
+    x = log_list[0].message.startswith(
+        "W02: ?:?:?: W02: a attribute 'b' is invalid.  Must be a standard XML id"
+    )
     assert x
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
 
 def test_import_error_in_warning_logging():
@@ -155,44 +160,53 @@ def test_import_error_in_warning_logging():
 
     class FakeModule:
         def __getattr__(self, attr):
-            raise ImportError('_showwarning should ignore any exceptions '
-                              'here')
+            raise ImportError("_showwarning should ignore any exceptions here")
 
     log.enable_warnings_logging()
 
-    sys.modules['<test fake module>'] = FakeModule()
+    sys.modules["<test fake module>"] = FakeModule()
     try:
-        warnings.showwarning(AstropyWarning('Regression test for #2671'),
-                             AstropyWarning, '<this is only a test>', 1)
+        warnings.showwarning(
+            AstropyWarning("Regression test for #2671"),
+            AstropyWarning,
+            "<this is only a test>",
+            1,
+        )
     finally:
-        del sys.modules['<test fake module>']
+        del sys.modules["<test fake module>"]
 
 
 def test_exception_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(LoggingError, match=r"Exception logging has not been enabled"):
         log.disable_exception_logging()
-    assert e.value.args[0] == 'Exception logging has not been enabled'
 
 
 def test_exception_logging_enable_twice():
     log.enable_exception_logging()
-    with pytest.raises(LoggingError) as e:
+    with pytest.raises(
+        LoggingError, match=r"Exception logging has already been enabled"
+    ):
         log.enable_exception_logging()
-    assert e.value.args[0] == 'Exception logging has already been enabled'
 
 
-@pytest.mark.skipif(ip is not None, reason="Cannot override exception handler in IPython")
+@pytest.mark.skipif(
+    ip is not None, reason="Cannot override exception handler in IPython"
+)
 def test_exception_logging_overridden():
     log.enable_exception_logging()
     sys.excepthook = lambda etype, evalue, tb: None
-    with pytest.raises(LoggingError, match='Cannot disable exception logging: '
-                       'sys.excepthook was not set by this logger, or has been overridden'):
+    with pytest.raises(
+        LoggingError,
+        match=(
+            "Cannot disable exception logging: "
+            "sys.excepthook was not set by this logger, or has been overridden"
+        ),
+    ):
         log.disable_exception_logging()
 
 
 @pytest.mark.xfail("ip is not None")
 def test_exception_logging():
-
     # Without exception logging
     try:
         with log.log_to_list() as log_list:
@@ -215,9 +229,9 @@ def test_exception_logging():
     else:
         assert False  # exception should have been raised
     assert len(log_list) == 1
-    assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message.startswith('Exception: This is an Exception')
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "ERROR"
+    assert log_list[0].message.startswith("Exception: This is an Exception")
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
     # Without exception logging
     log.disable_exception_logging()
@@ -243,18 +257,20 @@ def test_exception_logging_origin():
     try:
         log.enable_exception_logging()
         with log.log_to_list() as log_list:
-            lst.append('foo')
+            lst.append("foo")
     except TypeError as exc:
         sys.excepthook(*sys.exc_info())
         assert exc.args[0].startswith(
-            "homogeneous list must contain only objects of type ")
+            "homogeneous list must contain only objects of type "
+        )
     else:
         assert False
     assert len(log_list) == 1
-    assert log_list[0].levelname == 'ERROR'
+    assert log_list[0].levelname == "ERROR"
     assert log_list[0].message.startswith(
-        "TypeError: homogeneous list must contain only objects of type ")
-    assert log_list[0].origin == 'astropy.utils.collections'
+        "TypeError: homogeneous list must contain only objects of type "
+    )
+    assert log_list[0].origin == "astropy.utils.collections"
 
 
 @pytest.mark.skip(reason="Infinite recursion on Python 3.5+, probably a real issue")
@@ -276,14 +292,13 @@ def test_exception_logging_argless_exception():
     else:
         assert False  # exception should have been raised
     assert len(log_list) == 1
-    assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message == 'Exception [astropy.tests.test_logger]'
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "ERROR"
+    assert log_list[0].message == "Exception [astropy.tests.test_logger]"
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
 
-@pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
+@pytest.mark.parametrize("level", [None, "DEBUG", "INFO", "WARN", "ERROR"])
 def test_log_to_list(level):
-
     orig_level = log.level
 
     try:
@@ -303,49 +318,47 @@ def test_log_to_list(level):
         level = conf.log_level
 
     # Check list length
-    if level == 'DEBUG':
+    if level == "DEBUG":
         assert len(log_list) == 4
-    elif level == 'INFO':
+    elif level == "INFO":
         assert len(log_list) == 3
-    elif level == 'WARN':
+    elif level == "WARN":
         assert len(log_list) == 2
-    elif level == 'ERROR':
+    elif level == "ERROR":
         assert len(log_list) == 1
 
     # Check list content
 
-    assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message.startswith('Error message')
-    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert log_list[0].levelname == "ERROR"
+    assert log_list[0].message.startswith("Error message")
+    assert log_list[0].origin == "astropy.tests.test_logger"
 
     if len(log_list) >= 2:
-        assert log_list[1].levelname == 'WARNING'
-        assert log_list[1].message.startswith('Warning message')
-        assert log_list[1].origin == 'astropy.tests.test_logger'
+        assert log_list[1].levelname == "WARNING"
+        assert log_list[1].message.startswith("Warning message")
+        assert log_list[1].origin == "astropy.tests.test_logger"
 
     if len(log_list) >= 3:
-        assert log_list[2].levelname == 'INFO'
-        assert log_list[2].message.startswith('Information message')
-        assert log_list[2].origin == 'astropy.tests.test_logger'
+        assert log_list[2].levelname == "INFO"
+        assert log_list[2].message.startswith("Information message")
+        assert log_list[2].origin == "astropy.tests.test_logger"
 
     if len(log_list) >= 4:
-        assert log_list[3].levelname == 'DEBUG'
-        assert log_list[3].message.startswith('Debug message')
-        assert log_list[3].origin == 'astropy.tests.test_logger'
+        assert log_list[3].levelname == "DEBUG"
+        assert log_list[3].message.startswith("Debug message")
+        assert log_list[3].origin == "astropy.tests.test_logger"
 
 
 def test_log_to_list_level():
-
-    with log.log_to_list(filter_level='ERROR') as log_list:
+    with log.log_to_list(filter_level="ERROR") as log_list:
         log.error("Error message")
         log.warning("Warning message")
 
-    assert len(log_list) == 1 and log_list[0].levelname == 'ERROR'
+    assert len(log_list) == 1 and log_list[0].levelname == "ERROR"
 
 
 def test_log_to_list_origin1():
-
-    with log.log_to_list(filter_origin='astropy.tests') as log_list:
+    with log.log_to_list(filter_origin="astropy.tests") as log_list:
         log.error("Error message")
         log.warning("Warning message")
 
@@ -353,19 +366,17 @@ def test_log_to_list_origin1():
 
 
 def test_log_to_list_origin2():
-
-    with log.log_to_list(filter_origin='astropy.wcs') as log_list:
+    with log.log_to_list(filter_origin="astropy.wcs") as log_list:
         log.error("Error message")
         log.warning("Warning message")
 
     assert len(log_list) == 0
 
 
-@pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
+@pytest.mark.parametrize("level", [None, "DEBUG", "INFO", "WARN", "ERROR"])
 def test_log_to_file(tmp_path, level):
-
-    local_path = tmp_path / 'test.log'
-    log_file = local_path.open('wb')
+    local_path = tmp_path / "test.log"
+    log_file = local_path.open("wb")
     log_path = str(local_path.resolve())
     orig_level = log.level
 
@@ -383,7 +394,7 @@ def test_log_to_file(tmp_path, level):
     finally:
         log.setLevel(orig_level)
 
-    log_file = local_path.open('rb')
+    log_file = local_path.open("rb")
     log_entries = log_file.readlines()
     log_file.close()
 
@@ -392,67 +403,76 @@ def test_log_to_file(tmp_path, level):
         level = conf.log_level
 
     # Check list length
-    if level == 'DEBUG':
+    if level == "DEBUG":
         assert len(log_entries) == 4
-    elif level == 'INFO':
+    elif level == "INFO":
         assert len(log_entries) == 3
-    elif level == 'WARN':
+    elif level == "WARN":
         assert len(log_entries) == 2
-    elif level == 'ERROR':
+    elif level == "ERROR":
         assert len(log_entries) == 1
 
     # Check list content
 
     assert eval(log_entries[0].strip())[-3:] == (
-        'astropy.tests.test_logger', 'ERROR', 'Error message')
+        "astropy.tests.test_logger",
+        "ERROR",
+        "Error message",
+    )
 
     if len(log_entries) >= 2:
         assert eval(log_entries[1].strip())[-3:] == (
-            'astropy.tests.test_logger', 'WARNING', 'Warning message')
+            "astropy.tests.test_logger",
+            "WARNING",
+            "Warning message",
+        )
 
     if len(log_entries) >= 3:
         assert eval(log_entries[2].strip())[-3:] == (
-            'astropy.tests.test_logger', 'INFO', 'Information message')
+            "astropy.tests.test_logger",
+            "INFO",
+            "Information message",
+        )
 
     if len(log_entries) >= 4:
         assert eval(log_entries[3].strip())[-3:] == (
-            'astropy.tests.test_logger', 'DEBUG', 'Debug message')
+            "astropy.tests.test_logger",
+            "DEBUG",
+            "Debug message",
+        )
 
 
 def test_log_to_file_level(tmp_path):
-
-    local_path = tmp_path / 'test.log'
-    log_file = local_path.open('wb')
+    local_path = tmp_path / "test.log"
+    log_file = local_path.open("wb")
     log_path = str(local_path.resolve())
 
-    with log.log_to_file(log_path, filter_level='ERROR'):
+    with log.log_to_file(log_path, filter_level="ERROR"):
         log.error("Error message")
         log.warning("Warning message")
 
     log_file.close()
 
-    log_file = local_path.open('rb')
+    log_file = local_path.open("rb")
     log_entries = log_file.readlines()
     log_file.close()
 
     assert len(log_entries) == 1
-    assert eval(log_entries[0].strip())[-2:] == (
-        'ERROR', 'Error message')
+    assert eval(log_entries[0].strip())[-2:] == ("ERROR", "Error message")
 
 
 def test_log_to_file_origin1(tmp_path):
-
-    local_path = tmp_path / 'test.log'
-    log_file = local_path.open('wb')
+    local_path = tmp_path / "test.log"
+    log_file = local_path.open("wb")
     log_path = str(local_path.resolve())
 
-    with log.log_to_file(log_path, filter_origin='astropy.tests'):
+    with log.log_to_file(log_path, filter_origin="astropy.tests"):
         log.error("Error message")
         log.warning("Warning message")
 
     log_file.close()
 
-    log_file = local_path.open('rb')
+    log_file = local_path.open("rb")
     log_entries = log_file.readlines()
     log_file.close()
 
@@ -460,28 +480,26 @@ def test_log_to_file_origin1(tmp_path):
 
 
 def test_log_to_file_origin2(tmp_path):
-
-    local_path = tmp_path / 'test.log'
-    log_file = local_path.open('wb')
+    local_path = tmp_path / "test.log"
+    log_file = local_path.open("wb")
     log_path = str(local_path.resolve())
 
-    with log.log_to_file(log_path, filter_origin='astropy.wcs'):
+    with log.log_to_file(log_path, filter_origin="astropy.wcs"):
         log.error("Error message")
         log.warning("Warning message")
 
     log_file.close()
 
-    log_file = local_path.open('rb')
+    log_file = local_path.open("rb")
     log_entries = log_file.readlines()
     log_file.close()
 
     assert len(log_entries) == 0
 
 
-@pytest.mark.parametrize(('encoding'), ['', 'utf-8', 'cp1252'])
+@pytest.mark.parametrize("encoding", ["", "utf-8", "cp1252"])
 def test_log_to_file_encoding(tmp_path, encoding):
-
-    local_path = tmp_path / 'test.log'
+    local_path = tmp_path / "test.log"
     log_path = str(local_path.resolve())
 
     orig_encoding = conf.log_file_encoding
