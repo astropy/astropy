@@ -8,8 +8,7 @@ import shutil
 import sys
 from functools import wraps
 
-__all__ = ['get_config_dir', 'get_cache_dir', 'set_temp_config',
-           'set_temp_cache']
+__all__ = ["get_config_dir", "get_cache_dir", "set_temp_config", "set_temp_cache"]
 
 
 def _find_home():
@@ -24,54 +23,60 @@ def _find_home():
         directories.
     """
     try:
-        homedir = os.path.expanduser('~')
+        homedir = os.path.expanduser("~")
     except Exception:
         # Linux, Unix, AIX, OS X
-        if os.name == 'posix':
-            if 'HOME' in os.environ:
-                homedir = os.environ['HOME']
+        if os.name == "posix":
+            if "HOME" in os.environ:
+                homedir = os.environ["HOME"]
             else:
-                raise OSError('Could not find unix home directory to search for '
-                              'astropy config dir')
-        elif os.name == 'nt':  # This is for all modern Windows (NT or after)
-            if 'MSYSTEM' in os.environ and os.environ.get('HOME'):
+                raise OSError(
+                    "Could not find unix home directory to search for "
+                    "astropy config dir"
+                )
+        elif os.name == "nt":  # This is for all modern Windows (NT or after)
+            if "MSYSTEM" in os.environ and os.environ.get("HOME"):
                 # Likely using an msys shell; use whatever it is using for its
                 # $HOME directory
-                homedir = os.environ['HOME']
+                homedir = os.environ["HOME"]
             # See if there's a local home
-            elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
-                homedir = os.path.join(os.environ['HOMEDRIVE'],
-                                       os.environ['HOMEPATH'])
+            elif "HOMEDRIVE" in os.environ and "HOMEPATH" in os.environ:
+                homedir = os.path.join(os.environ["HOMEDRIVE"], os.environ["HOMEPATH"])
             # Maybe a user profile?
-            elif 'USERPROFILE' in os.environ:
-                homedir = os.path.join(os.environ['USERPROFILE'])
+            elif "USERPROFILE" in os.environ:
+                homedir = os.path.join(os.environ["USERPROFILE"])
             else:
                 try:
                     import winreg as wreg
-                    shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'  # noqa: E501
+
+                    shell_folders = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"  # noqa: E501
                     key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
-                    homedir = wreg.QueryValueEx(key, 'Personal')[0]
+                    homedir = wreg.QueryValueEx(key, "Personal")[0]
                     key.Close()
                 except Exception:
                     # As a final possible resort, see if HOME is present
-                    if 'HOME' in os.environ:
-                        homedir = os.environ['HOME']
+                    if "HOME" in os.environ:
+                        homedir = os.environ["HOME"]
                     else:
-                        raise OSError('Could not find windows home directory to '
-                                      'search for astropy config dir')
+                        raise OSError(
+                            "Could not find windows home directory to "
+                            "search for astropy config dir"
+                        )
         else:
             # for other platforms, try HOME, although it probably isn't there
-            if 'HOME' in os.environ:
-                homedir = os.environ['HOME']
+            if "HOME" in os.environ:
+                homedir = os.environ["HOME"]
             else:
-                raise OSError('Could not find a home directory to search for '
-                              'astropy config dir - are you on an unsupported '
-                              'platform?')
+                raise OSError(
+                    "Could not find a home directory to search for "
+                    "astropy config dir - are you on an unsupported "
+                    "platform?"
+                )
     return homedir
 
 
-def get_config_dir(rootname='astropy'):
+def get_config_dir(rootname="astropy"):
     """
     Determines the package configuration directory name and creates the
     directory if it doesn't exist.
@@ -107,7 +112,7 @@ def get_config_dir(rootname='astropy'):
         return os.path.abspath(config_path)
 
     # first look for XDG_CONFIG_HOME
-    xch = os.environ.get('XDG_CONFIG_HOME')
+    xch = os.environ.get("XDG_CONFIG_HOME")
 
     if xch is not None and os.path.exists(xch):
         xchpth = os.path.join(xch, rootname)
@@ -116,7 +121,7 @@ def get_config_dir(rootname='astropy'):
                 return os.path.abspath(xchpth)
             else:
                 linkto = xchpth
-    return os.path.abspath(_find_or_create_root_dir('config', linkto, rootname))
+    return os.path.abspath(_find_or_create_root_dir("config", linkto, rootname))
 
 
 def get_cache_dir(rootname="astropy"):
@@ -155,7 +160,7 @@ def get_cache_dir(rootname="astropy"):
         return os.path.abspath(cache_path)
 
     # first look for XDG_CACHE_HOME
-    xch = os.environ.get('XDG_CACHE_HOME')
+    xch = os.environ.get("XDG_CACHE_HOME")
 
     if xch is not None and os.path.exists(xch):
         xchpth = os.path.join(xch, rootname)
@@ -165,7 +170,7 @@ def get_cache_dir(rootname="astropy"):
             else:
                 linkto = xchpth
 
-    return os.path.abspath(_find_or_create_root_dir('cache', linkto, rootname))
+    return os.path.abspath(_find_or_create_root_dir("cache", linkto, rootname))
 
 
 class _SetTempPath:
@@ -183,7 +188,7 @@ class _SetTempPath:
     def __enter__(self):
         self.__class__._temp_path = self._path
         try:
-            return self._default_path_getter('astropy')
+            return self._default_path_getter("astropy")
         except Exception:
             self.__class__._temp_path = self._prev_path
             raise
@@ -240,12 +245,14 @@ class set_temp_config(_SetTempPath):
         # may have been set programmatically rather than be stored in the
         # config file (e.g., iers.conf.auto_download=False for our tests).
         from .configuration import _cfgobjs
+
         self._cfgobjs_copy = _cfgobjs.copy()
         _cfgobjs.clear()
         return super().__enter__()
 
     def __exit__(self, *args):
         from .configuration import _cfgobjs
+
         _cfgobjs.clear()
         _cfgobjs.update(self._cfgobjs_copy)
         del self._cfgobjs_copy
@@ -284,9 +291,9 @@ class set_temp_cache(_SetTempPath):
     _default_path_getter = staticmethod(get_cache_dir)
 
 
-def _find_or_create_root_dir(dirnm, linkto, pkgname='astropy'):
-    innerdir = os.path.join(_find_home(), f'.{pkgname}')
-    maindir = os.path.join(_find_home(), f'.{pkgname}', dirnm)
+def _find_or_create_root_dir(dirnm, linkto, pkgname="astropy"):
+    innerdir = os.path.join(_find_home(), f".{pkgname}")
+    maindir = os.path.join(_find_home(), f".{pkgname}", dirnm)
 
     if not os.path.exists(maindir):
         # first create .astropy dir if needed
@@ -297,8 +304,9 @@ def _find_or_create_root_dir(dirnm, linkto, pkgname='astropy'):
                 if not os.path.isdir(innerdir):
                     raise
         elif not os.path.isdir(innerdir):
-            msg = 'Intended {0} {1} directory {1} is actually a file.'
-            raise OSError(msg.format(pkgname, dirnm, maindir))
+            raise OSError(
+                f"Intended {pkgname} {dirnm} directory {maindir} is actually a file."
+            )
 
         try:
             os.mkdir(maindir)
@@ -306,13 +314,16 @@ def _find_or_create_root_dir(dirnm, linkto, pkgname='astropy'):
             if not os.path.isdir(maindir):
                 raise
 
-        if (not sys.platform.startswith('win') and
-            linkto is not None and
-                not os.path.exists(linkto)):
+        if (
+            not sys.platform.startswith("win")
+            and linkto is not None
+            and not os.path.exists(linkto)
+        ):
             os.symlink(maindir, linkto)
 
     elif not os.path.isdir(maindir):
-        msg = 'Intended {0} {1} directory {1} is actually a file.'
-        raise OSError(msg.format(pkgname, dirnm, maindir))
+        raise OSError(
+            f"Intended {pkgname} {dirnm} directory {maindir} is actually a file."
+        )
 
     return os.path.abspath(maindir)
