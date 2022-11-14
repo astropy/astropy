@@ -60,14 +60,11 @@ force-exclude = '''
     | astropy/coordinates
     | astropy/extern
     | astropy/io/fits
-    | astropy/io/registry
-    | astropy/io/tests
     | astropy/modeling
     | astropy/table
     | astropy/units
   )/
   # Individual files to always exclude
-  | astropy/io/__init__.py
   | astropy/__init__.py
   | astropy/conftest.py
   | astropy/logger.py
