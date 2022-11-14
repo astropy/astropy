@@ -9,7 +9,21 @@ from .nonstandard import FitsHDU
 from .streaming import StreamingHDU
 from .table import BinTableHDU, TableHDU
 
-__all__ = ['HDUList', 'PrimaryHDU', 'ImageHDU', 'TableHDU', 'BinTableHDU',
-           'GroupsHDU', 'GroupData', 'Group', 'CompImageHDU', 'FitsHDU',
-           'StreamingHDU', 'register_hdu', 'unregister_hdu', 'DELAYED',
-           'BITPIX2DTYPE', 'DTYPE2BITPIX']
+__all__ = [
+    "HDUList",
+    "PrimaryHDU",
+    "ImageHDU",
+    "TableHDU",
+    "BinTableHDU",
+    "GroupsHDU",
+    "GroupData",
+    "Group",
+    "CompImageHDU",
+    "FitsHDU",
+    "StreamingHDU",
+    "register_hdu",
+    "unregister_hdu",
+    "DELAYED",
+    "BITPIX2DTYPE",
+    "DTYPE2BITPIX",
+]
