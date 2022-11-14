@@ -449,8 +449,8 @@ def _header_to_settings(header):
     elif header["ZCMPTYPE"] == "PLIO_1":
         settings["tilesize"] = np.product(tile_shape)
     elif header["ZCMPTYPE"] == "RICE_1":
-        settings["blocksize"] = header["ZVAL1"]
-        settings["bytepix"] = header["ZVAL2"]
+        settings["blocksize"] = header.get("ZVAL1", 32)
+        settings["bytepix"] = header.get("ZVAL2", 4)
         settings["tilesize"] = np.product(tile_shape)
     elif header["ZCMPTYPE"] == "HCOMPRESS_1":
         settings["bytepix"] = 4
@@ -460,6 +460,30 @@ def _header_to_settings(header):
         settings["ny"] = header["ZTILE1"]
 
     return settings
+
+
+def _buffer_to_array(tile_buffer, header):
+    """
+    Convert a buffer to an array using the header.
+
+    This is a helper function which takes a raw buffer (as output by .decode)
+    and using the FITS header translates it into a numpy array with the correct
+    dtype, endianess and shape.
+    """
+    tile_shape = (header["ZTILE2"], header["ZTILE1"])
+
+    if header["ZCMPTYPE"].startswith("GZIP") and header["ZBITPIX"] > 8:
+        # TOOD: support float types
+        int_size = header["ZBITPIX"] // 8
+        tile_data = np.asarray(tile_buffer).view(f">i{int_size}").reshape(tile_shape)
+    else:
+        if tile_buffer.format == "b":
+            # NOTE: this feels like a Numpy bug - need to investigate
+            tile_data = np.asarray(tile_buffer, dtype=np.uint8).reshape(tile_shape)
+        else:
+            tile_data = np.asarray(tile_buffer).reshape(tile_shape)
+
+    return tile_data
 
 
 def decompress_hdu(hdu):
@@ -480,20 +504,7 @@ def decompress_hdu(hdu):
         tile_buffer = decompress_tile(
             cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
         )
-
-        if hdu._header["ZCMPTYPE"].startswith("GZIP") and hdu._header["ZBITPIX"] > 8:
-            # TOOD: support float types
-            int_size = hdu._header["ZBITPIX"] // 8
-            tile_data = (
-                np.asarray(tile_buffer).view(f">i{int_size}").reshape(tile_shape)
-            )
-        else:
-            if tile_buffer.format == "b":
-                # NOTE: this feels like a Numpy bug - need to investigate
-                tile_data = np.asarray(tile_buffer, dtype=np.uint8).reshape(tile_shape)
-            else:
-                tile_data = np.asarray(tile_buffer).reshape(tile_shape)
-
+        tile_data = _buffer_to_array(tile_buffer, hdu._header)
         data[
             istart : istart + tile_shape[0], jstart : jstart + tile_shape[1]
         ] = tile_data

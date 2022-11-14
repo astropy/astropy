@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 from numpy.testing import assert_equal
@@ -8,6 +10,10 @@ from astropy.io.fits.tiled_compression import (
     compress_tile,
     decompress_hdu,
     decompress_tile,
+)
+from astropy.io.fits.tiled_compression.tiled_compression import (
+    _buffer_to_array,
+    _header_to_settings,
 )
 
 COMPRESSION_TYPES = [
@@ -31,9 +37,6 @@ for compression_type in COMPRESSION_TYPES:
 @pytest.mark.parametrize(("compression_type", "dtype"), parameters)
 def test_basic(tmp_path, compression_type, dtype):
 
-    # In future can pass in settings as part of the parameterization
-    settings = {}
-
     # Generate compressed file dynamically
 
     original_data = np.arange(144).reshape((12, 12)).astype(dtype)
@@ -49,24 +52,7 @@ def test_basic(tmp_path, compression_type, dtype):
     # Load in raw compressed data
     hdulist = fits.open(tmp_path / "test.fits", disable_image_compression=True)
 
-    tile_shape = (hdulist[1].header["ZTILE2"], hdulist[1].header["ZTILE1"])
-
-    if compression_type == "GZIP_2":
-        settings["itemsize"] = original_data.dtype.itemsize
-    elif compression_type == "PLIO_1":
-        settings["tilesize"] = np.product(tile_shape)
-    elif compression_type == "RICE_1":
-        settings["blocksize"] = hdulist[1].header["ZVAL1"]
-        settings["bytepix"] = hdulist[1].header["ZVAL2"]
-        settings["tilesize"] = np.product(tile_shape)
-    elif compression_type == "HCOMPRESS_1":
-        # TODO: generalize bytepix, we need to pick 4 or 8 and then cast down
-        # later to smaller ints if needed.
-        settings["bytepix"] = 4
-        settings["scale"] = hdulist[1].header["ZVAL1"]
-        settings["smooth"] = hdulist[1].header["ZVAL2"]
-        settings["nx"] = hdulist[1].header["ZTILE2"]
-        settings["ny"] = hdulist[1].header["ZTILE1"]
+    settings = settings_from_hdu(hdulist[1], original_data)
 
     # Test decompression of the first tile
 
@@ -214,3 +200,42 @@ def test_compress_hdu(tmp_path, compression_type, dtype):
     heap_length_c, heap_data_c = compress_hdu_c(hdu)
 
     _assert_heap_same(heap_data, heap_data_c, 9)
+
+
+@pytest.fixture
+def canonical_data_base_path():
+    return Path(__file__).parent / "data"
+
+
+@pytest.fixture(
+    params=(Path(__file__).parent / "data").glob("m13_*.fits"), ids=lambda x: x.name
+)
+def canonical_int_hdus(request):
+    """
+    This fixture provides 4 files downloaded from https://fits.gsfc.nasa.gov/registry/tilecompression.html
+
+    Which are used as canonical tests of data not compressed by Astropy.
+    """
+    with fits.open(request.param, disable_image_compression=True) as hdul:
+        yield hdul[1]
+
+
+@pytest.fixture
+def original_int_hdu(canonical_data_base_path):
+    with fits.open(canonical_data_base_path / "m13.fits") as hdul:
+        yield hdul[0]
+
+
+def test_canonical_data(original_int_hdu, canonical_int_hdus):
+    hdr = canonical_int_hdus.header
+    tile_size = (hdr["ZTILE2"], hdr["ZTILE1"])
+    compression_type = hdr["ZCMPTYPE"]
+    original_tile_1 = original_int_hdu.data[: tile_size[0], : tile_size[1]]
+    compressed_tile_bytes = canonical_int_hdus.data["COMPRESSED_DATA"][0].tobytes()
+
+    settings = _header_to_settings(canonical_int_hdus.header)
+    tile_data_buffer = decompress_tile(
+        compressed_tile_bytes, algorithm=compression_type, **settings
+    )
+    tile_data = _buffer_to_array(tile_data_buffer, hdr)
+    np.testing.assert_allclose(original_tile_1, tile_data)
