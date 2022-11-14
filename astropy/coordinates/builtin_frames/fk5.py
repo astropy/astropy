@@ -9,7 +9,7 @@ from astropy.utils.decorators import format_doc
 from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_J2000
 
-__all__ = ['FK5']
+__all__ = ["FK5"]
 
 
 doc_footer = """

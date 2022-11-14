@@ -52,30 +52,38 @@ def test_against_hor2eq():
     """
     # Observatory position for `kpno` from here:
     # http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
-    location = EarthLocation(lon=Angle('-111d36.0m'),
-                             lat=Angle('31d57.8m'),
-                             height=2120. * u.m)
+    location = EarthLocation(
+        lon=Angle("-111d36.0m"), lat=Angle("31d57.8m"), height=2120.0 * u.m
+    )
 
-    obstime = Time(2451545.0, format='jd', scale='ut1')
+    obstime = Time(2451545.0, format="jd", scale="ut1")
 
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=0 * u.deg_C, pressure=0.781 * u.bar)
-    altaz_frame_noatm = AltAz(obstime=obstime, location=location,
-                              temperature=0 * u.deg_C, pressure=0.0 * u.bar)
-    altaz = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame)
-    altaz_noatm = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame_noatm)
+    altaz_frame = AltAz(
+        obstime=obstime,
+        location=location,
+        temperature=0 * u.deg_C,
+        pressure=0.781 * u.bar,
+    )
+    altaz_frame_noatm = AltAz(
+        obstime=obstime,
+        location=location,
+        temperature=0 * u.deg_C,
+        pressure=0.0 * u.bar,
+    )
+    altaz = SkyCoord("264d55m06s 37d54m41s", frame=altaz_frame)
+    altaz_noatm = SkyCoord("264d55m06s 37d54m41s", frame=altaz_frame_noatm)
 
-    radec_frame = 'icrs'
+    radec_frame = "icrs"
 
     radec_actual = altaz.transform_to(radec_frame)
     radec_actual_noatm = altaz_noatm.transform_to(radec_frame)
 
-    radec_expected = SkyCoord('07h36m55.2s +15d25m08s', frame=radec_frame)
-    distance = radec_actual.separation(radec_expected).to('arcsec')
+    radec_expected = SkyCoord("07h36m55.2s +15d25m08s", frame=radec_frame)
+    distance = radec_actual.separation(radec_expected).to("arcsec")
 
     # this comes from running the example hor2eq but with the pressure set to 0
-    radec_expected_noatm = SkyCoord('07h36m58.9s +15d25m37s', frame=radec_frame)
-    distance_noatm = radec_actual_noatm.separation(radec_expected_noatm).to('arcsec')
+    radec_expected_noatm = SkyCoord("07h36m58.9s +15d25m37s", frame=radec_frame)
+    distance_noatm = radec_actual_noatm.separation(radec_expected_noatm).to("arcsec")
 
     # The baseline difference is ~2.3 arcsec with one atm of pressure. The
     # difference is mainly due to the somewhat different atmospheric model that
@@ -91,10 +99,10 @@ def run_pyephem():
     import ephem
 
     observer = ephem.Observer()
-    observer.lon = -1 * np.radians(109 + 24/60. + 53.1/60**2)
-    observer.lat = np.radians(33 + 41/60. + 46.0/60.**2)
+    observer.lon = -1 * np.radians(109 + 24 / 60.0 + 53.1 / 60**2)
+    observer.lat = np.radians(33 + 41 / 60.0 + 46.0 / 60.0**2)
     observer.elevation = 300
-    observer.date = 2455822.868055556-ephem.julian_date(0)
+    observer.date = 2455822.868055556 - ephem.julian_date(0)
 
     ra, dec = observer.radec_of(np.radians(6.8927), np.radians(60.7665))
     print(f"EPHEM: {observer.date}: {np.degrees(ra)}, {np.degrees(dec)}")
@@ -111,27 +119,31 @@ def test_against_pyephem():
     https://gist.github.com/zonca/1672906
     https://github.com/phn/pytpm/issues/2#issuecomment-3698679
     """
-    obstime = Time('2011-09-18 08:50:00')
-    location = EarthLocation(lon=Angle('-109d24m53.1s'),
-                             lat=Angle('33d41m46.0s'),
-                             height=300. * u.m)
+    obstime = Time("2011-09-18 08:50:00")
+    location = EarthLocation(
+        lon=Angle("-109d24m53.1s"), lat=Angle("33d41m46.0s"), height=300.0 * u.m
+    )
     # We are using the default pressure and temperature in PyEphem
     # relative_humidity = ?
     # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=15 * u.deg_C, pressure=1.010 * u.bar)
+    altaz_frame = AltAz(
+        obstime=obstime,
+        location=location,
+        temperature=15 * u.deg_C,
+        pressure=1.010 * u.bar,
+    )
 
-    altaz = SkyCoord('6.8927d +60.7665d', frame=altaz_frame)
-    radec_actual = altaz.transform_to('icrs')
+    altaz = SkyCoord("6.8927d +60.7665d", frame=altaz_frame)
+    radec_actual = altaz.transform_to("icrs")
 
-    radec_expected = SkyCoord('27.107480889479397d +62.512687777362046d', frame='icrs')
-    distance_ephem = radec_actual.separation(radec_expected).to('arcsec')
+    radec_expected = SkyCoord("27.107480889479397d +62.512687777362046d", frame="icrs")
+    distance_ephem = radec_actual.separation(radec_expected).to("arcsec")
     # 2021-04-06: 2.42 arcsec
     assert distance_ephem < 3 * u.arcsec
 
     # Add assert on current Astropy result so that we notice if something changes
-    radec_expected = SkyCoord('27.10602683d +62.51275391d', frame='icrs')
-    distance_astropy = radec_actual.separation(radec_expected).to('arcsec')
+    radec_expected = SkyCoord("27.10602683d +62.51275391d", frame="icrs")
+    distance_astropy = radec_actual.separation(radec_expected).to("arcsec")
     # 2021-04-06: 5e-6 arcsec (erfa 1.7.2 vs erfa 1.7.1).
     assert distance_astropy < 0.1 * u.arcsec
 
@@ -143,17 +155,17 @@ def test_against_jpl_horizons():
     (from the first row of the Results table at the bottom of that page)
     http://ssd.jpl.nasa.gov/?horizons_tutorial
     """
-    obstime = Time('1998-07-28 03:00')
-    location = EarthLocation(lon=Angle('248.405300d'),
-                             lat=Angle('31.9585d'),
-                             height=2.06 * u.km)
+    obstime = Time("1998-07-28 03:00")
+    location = EarthLocation(
+        lon=Angle("248.405300d"), lat=Angle("31.9585d"), height=2.06 * u.km
+    )
     # No atmosphere
     altaz_frame = AltAz(obstime=obstime, location=location)
 
-    altaz = SkyCoord('143.2970d 2.6223d', frame=altaz_frame)
-    radec_actual = altaz.transform_to('icrs')
-    radec_expected = SkyCoord('19h24m55.01s -40d56m28.9s', frame='icrs')
-    distance = radec_actual.separation(radec_expected).to('arcsec')
+    altaz = SkyCoord("143.2970d 2.6223d", frame=altaz_frame)
+    radec_actual = altaz.transform_to("icrs")
+    radec_expected = SkyCoord("19h24m55.01s -40d56m28.9s", frame="icrs")
+    distance = radec_actual.separation(radec_expected).to("arcsec")
     # 2021-04-06: astropy 4.2.1, erfa 1.7.1: 0.23919259 arcsec
     # 2021-04-06: astropy 4.3dev, erfa 1.7.2: 0.2391959 arcsec
     assert distance < 1 * u.arcsec
@@ -166,21 +178,25 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     """
     # Observatory position for `kpno` from here:
     # http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
-    location = EarthLocation(lon=Angle('-111.598333d'),
-                             lat=Angle('31.956389d'),
-                             height=2093.093 * u.m)  # TODO: height correct?
+    location = EarthLocation(
+        lon=Angle("-111.598333d"), lat=Angle("31.956389d"), height=2093.093 * u.m
+    )  # TODO: height correct?
 
-    obstime = Time('2010-01-01 12:00:00')
+    obstime = Time("2010-01-01 12:00:00")
     # relative_humidity = ?
     # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=0 * u.deg_C, pressure=0.781 * u.bar)
+    altaz_frame = AltAz(
+        obstime=obstime,
+        location=location,
+        temperature=0 * u.deg_C,
+        pressure=0.781 * u.bar,
+    )
 
-    radec = SkyCoord('12h22m54.899s 15d49m20.57s', frame='fk5')
+    radec = SkyCoord("12h22m54.899s 15d49m20.57s", frame="fk5")
 
     altaz_actual = radec.transform_to(altaz_frame)
 
-    altaz_expected = SkyCoord('264d55m06s 37d54m41s', frame='altaz')
+    altaz_expected = SkyCoord("264d55m06s 37d54m41s", frame="altaz")
     # altaz_expected = SkyCoord('343.586827647d 15.7683070508d', frame='altaz')
     # altaz_expected = SkyCoord('133.498195532d 22.0162383595d', frame='altaz')
     distance = altaz_actual.separation(altaz_expected)

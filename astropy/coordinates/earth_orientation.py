@@ -17,8 +17,8 @@ from astropy.time import Time
 from .builtin_frames.utils import get_jd12
 from .matrix_utilities import matrix_transpose, rotation_matrix
 
-jd1950 = Time('B1950').jd
-jd2000 = Time('J2000').jd
+jd1950 = Time("B1950").jd
+jd2000 = Time("J2000").jd
 
 
 def eccentricity(jd):
@@ -42,7 +42,7 @@ def eccentricity(jd):
     """
     T = (jd - jd1950) / 36525.0
 
-    p = (-0.000000126, - 0.00004193, 0.01673011)
+    p = (-0.000000126, -0.00004193, 0.01673011)
 
     return np.polyval(p, T)
 
@@ -71,7 +71,7 @@ def mean_lon_of_perigee(jd):
 
     p = (0.012, 1.65, 6190.67, 1015489.951)
 
-    return np.polyval(p, T) / 3600.
+    return np.polyval(p, T) / 3600.0
 
 
 def obliquity(jd, algorithm=2006):
@@ -109,7 +109,7 @@ def obliquity(jd, algorithm=2006):
     elif algorithm == 1980:
         return np.rad2deg(erfa.obl80(jd, 0))
     else:
-        raise ValueError('invalid algorithm year for computing obliquity')
+        raise ValueError("invalid algorithm year for computing obliquity")
 
 
 def precession_matrix_Capitaine(fromepoch, toepoch):
@@ -133,8 +133,8 @@ def precession_matrix_Capitaine(fromepoch, toepoch):
     Hilton, J. et al., 2006, Celest.Mech.Dyn.Astron. 94, 351
     """
     # Multiply the two precession matrices (without frame bias) through J2000.0
-    fromepoch_to_J2000 = matrix_transpose(erfa.bp06(*get_jd12(fromepoch, 'tt'))[1])
-    J2000_to_toepoch = erfa.bp06(*get_jd12(toepoch, 'tt'))[1]
+    fromepoch_to_J2000 = matrix_transpose(erfa.bp06(*get_jd12(fromepoch, "tt"))[1])
+    J2000_to_toepoch = erfa.bp06(*get_jd12(toepoch, "tt"))[1]
     return J2000_to_toepoch @ fromepoch_to_J2000
 
 
@@ -169,9 +169,9 @@ def _precession_matrix_besselian(epoch1, epoch2):
     theta = np.polyval(ptheta, dt) / 3600
 
     return (
-        rotation_matrix(-z, 'z')
-        @ rotation_matrix(theta, 'y')
-        @ rotation_matrix(-zeta, 'z')
+        rotation_matrix(-z, "z")
+        @ rotation_matrix(theta, "y")
+        @ rotation_matrix(-zeta, "z")
     )
 
 
@@ -220,4 +220,4 @@ def nutation_matrix(epoch):
       Seidelmann (ed), University Science Books (1992).
     """
     # TODO: implement higher precision 2006/2000A model if requested/needed
-    return erfa.num00b(*get_jd12(epoch, 'tt'))
+    return erfa.num00b(*get_jd12(epoch, "tt"))

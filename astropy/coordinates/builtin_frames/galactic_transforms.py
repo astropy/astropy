@@ -16,9 +16,9 @@ from .utils import EQUINOX_B1950, EQUINOX_J2000
 def fk5_to_gal(fk5coord, galframe):
     # need precess to J2000 first
     return (
-        rotation_matrix(180 - Galactic._lon0_J2000.degree, 'z')
-        @ rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, 'y')
-        @ rotation_matrix(Galactic._ngp_J2000.ra.degree, 'z')
+        rotation_matrix(180 - Galactic._lon0_J2000.degree, "z")
+        @ rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, "y")
+        @ rotation_matrix(Galactic._ngp_J2000.ra.degree, "z")
         @ fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     )
 
@@ -31,9 +31,9 @@ def _gal_to_fk5(galcoord, fk5frame):
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, Galactic)
 def fk4_to_gal(fk4coords, galframe):
     return (
-        rotation_matrix(180 - Galactic._lon0_B1950.degree, 'z')
-        @ rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, 'y')
-        @ rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')
+        rotation_matrix(180 - Galactic._lon0_B1950.degree, "z")
+        @ rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, "y")
+        @ rotation_matrix(Galactic._ngp_B1950.ra.degree, "z")
         @ fk4coords._precession_matrix(fk4coords.equinox, EQUINOX_B1950)
     )
 

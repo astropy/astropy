@@ -15,14 +15,14 @@ def _icrs_to_fk5_matrix():
     functions.
     """
 
-    eta0 = -19.9 / 3600000.
-    xi0 = 9.1 / 3600000.
-    da0 = -22.9 / 3600000.
+    eta0 = -19.9 / 3600000.0
+    xi0 = 9.1 / 3600000.0
+    da0 = -22.9 / 3600000.0
 
     return (
-        rotation_matrix(-eta0, 'x')
-        @ rotation_matrix(xi0, 'y')
-        @ rotation_matrix(da0, 'z')
+        rotation_matrix(-eta0, "x")
+        @ rotation_matrix(xi0, "y")
+        @ rotation_matrix(da0, "z")
     )
 
 
