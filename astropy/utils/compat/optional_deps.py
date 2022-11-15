@@ -9,15 +9,34 @@ import warnings
 # TODO: This list is a duplicate of the dependencies in setup.cfg "all", but
 # some of the package names are different from the pip-install name (e.g.,
 # beautifulsoup4 -> bs4).
-_optional_deps = ['asdf', 'bleach', 'bottleneck', 'bs4', 'bz2', 'h5py',
-                  'html5lib', 'IPython', 'jplephem', 'lxml', 'matplotlib',
-                  'mpmath', 'pandas', 'PIL', 'pytz', 'scipy', 'skyfield',
-                  'sortedcontainers', 'lzma', 'pyarrow', 'pytest_mpl']
-_formerly_optional_deps = ['yaml']  # for backward compatibility
+_optional_deps = [
+    "asdf",
+    "bleach",
+    "bottleneck",
+    "bs4",
+    "bz2",
+    "h5py",
+    "html5lib",
+    "IPython",
+    "jplephem",
+    "lxml",
+    "matplotlib",
+    "mpmath",
+    "pandas",
+    "PIL",
+    "pytz",
+    "scipy",
+    "skyfield",
+    "sortedcontainers",
+    "lzma",
+    "pyarrow",
+    "pytest_mpl",
+]
+_formerly_optional_deps = ["yaml"]  # for backward compatibility
 _deps = {k.upper(): k for k in _optional_deps + _formerly_optional_deps}
 
 # Any subpackages that have different import behavior:
-_deps['PLT'] = 'matplotlib.pyplot'
+_deps["PLT"] = "matplotlib.pyplot"
 
 __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
@@ -28,10 +47,12 @@ def __getattr__(name):
 
         if module_name == "YAML":
             from astropy.utils.exceptions import AstropyDeprecationWarning
+
             warnings.warn(
                 "PyYaml is now a strict dependency. HAS_YAML is deprecated as "
                 "of v5.0 and will be removed in a subsequent version.",
-                category=AstropyDeprecationWarning)
+                category=AstropyDeprecationWarning,
+            )
 
         try:
             importlib.import_module(_deps[module_name])

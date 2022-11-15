@@ -3,14 +3,43 @@
 import astropy.config as _config
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
-__all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
-           'JSViewer', 'MaskedColumn', 'NdarrayMixin', 'QTable', 'Row',
-           'SCEngine', 'SerializedColumn', 'SortedArray', 'StringTruncateWarning',
-           'Table', 'TableAttribute', 'TableColumns', 'TableFormatter',
-           'TableGroups', 'TableMergeError', 'TableReplaceWarning', 'conf',
-           'connect', 'hstack', 'join', 'registry', 'represent_mixins_as_columns',
-           'setdiff', 'unique', 'vstack', 'dstack', 'conf', 'join_skycoord',
-           'join_distance', 'PprintIncludeExclude']
+__all__ = [
+    "BST",
+    "Column",
+    "ColumnGroups",
+    "ColumnInfo",
+    "Conf",
+    "JSViewer",
+    "MaskedColumn",
+    "NdarrayMixin",
+    "QTable",
+    "Row",
+    "SCEngine",
+    "SerializedColumn",
+    "SortedArray",
+    "StringTruncateWarning",
+    "Table",
+    "TableAttribute",
+    "TableColumns",
+    "TableFormatter",
+    "TableGroups",
+    "TableMergeError",
+    "TableReplaceWarning",
+    "conf",
+    "connect",
+    "hstack",
+    "join",
+    "registry",
+    "represent_mixins_as_columns",
+    "setdiff",
+    "unique",
+    "vstack",
+    "dstack",
+    "conf",
+    "join_skycoord",
+    "join_distance",
+    "PprintIncludeExclude",
+]
 
 
 class Conf(_config.ConfigNamespace):  # noqa
@@ -19,39 +48,60 @@ class Conf(_config.ConfigNamespace):  # noqa
     """
 
     auto_colname = _config.ConfigItem(
-        'col{0}',
-        'The template that determines the name of a column if it cannot be '
-        'determined. Uses new-style (format method) string formatting.',
-        aliases=['astropy.table.column.auto_colname'])
+        "col{0}",
+        "The template that determines the name of a column if it cannot be "
+        "determined. Uses new-style (format method) string formatting.",
+        aliases=["astropy.table.column.auto_colname"],
+    )
     default_notebook_table_class = _config.ConfigItem(
-        'table-striped table-bordered table-condensed',
-        'The table class to be used in Jupyter notebooks when displaying '
-        'tables (and not overridden). See <https://getbootstrap.com/css/#tables '
-        'for a list of useful bootstrap classes.')
+        "table-striped table-bordered table-condensed",
+        "The table class to be used in Jupyter notebooks when displaying "
+        "tables (and not overridden). See <https://getbootstrap.com/css/#tables "
+        "for a list of useful bootstrap classes.",
+    )
     replace_warnings = _config.ConfigItem(
         [],
-        'List of conditions for issuing a warning when replacing a table '
+        "List of conditions for issuing a warning when replacing a table "
         "column using setitem, e.g. t['a'] = value.  Allowed options are "
         "'always', 'slice', 'refcount', 'attributes'.",
-        'string_list')
+        "string_list",
+    )
     replace_inplace = _config.ConfigItem(
         False,
-        'Always use in-place update of a table column when using setitem, '
+        "Always use in-place update of a table column when using setitem, "
         "e.g. t['a'] = value.  This overrides the default behavior of "
         "replacing the column entirely with the new value when possible. "
         "This configuration option will be deprecated and then removed in "
-        "subsequent major releases.")
+        "subsequent major releases.",
+    )
 
 
 conf = Conf()  # noqa
 
 from . import connect  # noqa: E402
 from .groups import TableGroups, ColumnGroups  # noqa: E402
-from .table import (Table, QTable, TableColumns, Row, TableFormatter,
-                    NdarrayMixin, TableReplaceWarning, TableAttribute,
-                    PprintIncludeExclude)  # noqa: E402
-from .operations import (join, setdiff, hstack, dstack, vstack, unique,  # noqa: E402
-                         TableMergeError, join_skycoord, join_distance)  # noqa: E402
+from .table import (
+    Table,
+    QTable,
+    TableColumns,
+    Row,
+    TableFormatter,
+    NdarrayMixin,
+    TableReplaceWarning,
+    TableAttribute,
+    PprintIncludeExclude,
+)  # noqa: E402
+from .operations import (
+    join,
+    setdiff,
+    hstack,
+    dstack,
+    vstack,
+    unique,  # noqa: E402
+    TableMergeError,
+    join_skycoord,
+    join_distance,
+)  # noqa: E402
 from .bst import BST  # noqa: E402
 from .sorted_array import SortedArray  # noqa: E402
 from .soco import SCEngine  # noqa: E402

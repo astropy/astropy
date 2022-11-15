@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from astropy import units as u
-from astropy.coordinates.transformations import DynamicMatrixTransform, FunctionTransform
-from astropy.coordinates.baseframe import (frame_transform_graph,
-                                           BaseCoordinateFrame)
+from astropy.coordinates.transformations import (
+    DynamicMatrixTransform,
+    FunctionTransform,
+)
+from astropy.coordinates.baseframe import frame_transform_graph, BaseCoordinateFrame
 from astropy.coordinates.attributes import CoordinateAttribute, QuantityAttribute
-from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                                  matrix_product,
-                                                  matrix_transpose)
+from astropy.coordinates.matrix_utilities import (
+    rotation_matrix,
+    matrix_product,
+    matrix_transpose,
+)
 
 _skyoffset_cache = {}
 
@@ -44,40 +48,51 @@ def make_skyoffset_cls(framecls):
         return _skyoffset_cache[framecls]
 
     # Create a new SkyOffsetFrame subclass for this frame class.
-    name = 'SkyOffset' + framecls.__name__
+    name = "SkyOffset" + framecls.__name__
     _SkyOffsetFramecls = type(
-        name, (SkyOffsetFrame, framecls),
-        {'origin': CoordinateAttribute(frame=framecls, default=None),
-         # The following two have to be done because otherwise we use the
-         # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
-         '_default_representation': framecls._default_representation,
-         '_default_differential': framecls._default_differential,
-         '__doc__': SkyOffsetFrame.__doc__,
-         })
+        name,
+        (SkyOffsetFrame, framecls),
+        {
+            "origin": CoordinateAttribute(frame=framecls, default=None),
+            # The following two have to be done because otherwise we use the
+            # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
+            "_default_representation": framecls._default_representation,
+            "_default_differential": framecls._default_differential,
+            "__doc__": SkyOffsetFrame.__doc__,
+        },
+    )
 
-    @frame_transform_graph.transform(FunctionTransform, _SkyOffsetFramecls, _SkyOffsetFramecls)
+    @frame_transform_graph.transform(
+        FunctionTransform, _SkyOffsetFramecls, _SkyOffsetFramecls
+    )
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):
         """Transform between two skyoffset frames."""
 
         # This transform goes through the parent frames on each side.
         # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
-        intermediate_from = from_skyoffset_coord.transform_to(from_skyoffset_coord.origin)
+        intermediate_from = from_skyoffset_coord.transform_to(
+            from_skyoffset_coord.origin
+        )
         intermediate_to = intermediate_from.transform_to(to_skyoffset_frame.origin)
         return intermediate_to.transform_to(to_skyoffset_frame)
 
-    @frame_transform_graph.transform(DynamicMatrixTransform, framecls, _SkyOffsetFramecls)
+    @frame_transform_graph.transform(
+        DynamicMatrixTransform, framecls, _SkyOffsetFramecls
+    )
     def reference_to_skyoffset(reference_frame, skyoffset_frame):
         """Convert a reference coordinate to an sky offset frame."""
 
         # Define rotation matrices along the position angle vector, and
         # relative to the origin.
         origin = skyoffset_frame.origin.spherical
-        mat1 = rotation_matrix(-skyoffset_frame.rotation, 'x')
-        mat2 = rotation_matrix(-origin.lat, 'y')
-        mat3 = rotation_matrix(origin.lon, 'z')
+        mat1 = rotation_matrix(-skyoffset_frame.rotation, "x")
+        mat2 = rotation_matrix(-origin.lat, "y")
+        mat3 = rotation_matrix(origin.lon, "z")
         return matrix_product(mat1, mat2, mat3)
 
-    @frame_transform_graph.transform(DynamicMatrixTransform, _SkyOffsetFramecls, framecls)
+    @frame_transform_graph.transform(
+        DynamicMatrixTransform, _SkyOffsetFramecls, framecls
+    )
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
         """Convert an sky offset frame coordinate to the reference frame"""
 
@@ -139,10 +154,12 @@ class SkyOffsetFrame(BaseCoordinateFrame):
         if not (issubclass(cls, SkyOffsetFrame) and cls is not SkyOffsetFrame):
             # We get the origin argument, and handle it here.
             try:
-                origin_frame = kwargs['origin']
+                origin_frame = kwargs["origin"]
             except KeyError:
-                raise TypeError("Can't initialize an SkyOffsetFrame without origin= keyword.")
-            if hasattr(origin_frame, 'frame'):
+                raise TypeError(
+                    "Can't initialize an SkyOffsetFrame without origin= keyword."
+                )
+            if hasattr(origin_frame, "frame"):
                 origin_frame = origin_frame.frame
             newcls = make_skyoffset_cls(origin_frame.__class__)
             return newcls.__new__(newcls, *args, **kwargs)
@@ -158,18 +175,17 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.origin is not None and not self.origin.has_data:
-            raise ValueError('The origin supplied to SkyOffsetFrame has no '
-                             'data.')
+            raise ValueError("The origin supplied to SkyOffsetFrame has no data.")
         if self.has_data:
             self._set_skyoffset_data_lon_wrap_angle(self.data)
 
     @staticmethod
     def _set_skyoffset_data_lon_wrap_angle(data):
-        if hasattr(data, 'lon'):
-            data.lon.wrap_angle = 180. * u.deg
+        if hasattr(data, "lon"):
+            data.lon.wrap_angle = 180.0 * u.deg
         return data
 
-    def represent_as(self, base, s='base', in_frame_units=False):
+    def represent_as(self, base, s="base", in_frame_units=False):
         """
         Ensure the wrap angle for any spherical
         representations.

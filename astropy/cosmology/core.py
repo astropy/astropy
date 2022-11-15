@@ -12,7 +12,12 @@ from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 
-from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
+from .connect import (
+    CosmologyFromFormat,
+    CosmologyRead,
+    CosmologyToFormat,
+    CosmologyWrite,
+)
 from .parameter import Parameter
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -80,12 +85,18 @@ class Cosmology(metaclass=abc.ABCMeta):
         # override signature of __new__ to match __init__ so IDEs and Sphinx
         # will display the correct signature
         new = FunctionType(  # almost exact copy of __new__
-            cls.__new__.__code__, cls.__new__.__globals__, name=cls.__new__.__name__,
-            argdefs=cls.__new__.__defaults__, closure=cls.__new__.__closure__)
+            cls.__new__.__code__,
+            cls.__new__.__globals__,
+            name=cls.__new__.__name__,
+            argdefs=cls.__new__.__defaults__,
+            closure=cls.__new__.__closure__,
+        )
         new = functools.update_wrapper(new, cls.__new__)  # update further
         new.__kwdefaults__ = cls.__init__.__kwdefaults__  # fill in kwdefaults
         sig = cls._init_signature  # override signature to look like init
-        sig = sig.replace(parameters=[inspect.Parameter("cls", 0)] + list(sig.parameters.values()))
+        sig = sig.replace(
+            parameters=[inspect.Parameter("cls", 0)] + list(sig.parameters.values())
+        )
         new.__signature__ = sig
         # set __new__ with copied & modified version
         cls.__new__ = new
@@ -108,9 +119,11 @@ class Cosmology(metaclass=abc.ABCMeta):
             derived_parameters.append(n) if v.derived else parameters.append(n)
 
         # reorder to match signature
-        ordered = [parameters.pop(parameters.index(n))
-                   for n in cls._init_signature.parameters.keys()
-                   if n in parameters]
+        ordered = [
+            parameters.pop(parameters.index(n))
+            for n in cls._init_signature.parameters.keys()
+            if n in parameters
+        ]
         parameters = ordered + parameters  # place "unordered" at the end
         cls.__parameters__ = tuple(parameters)
         cls.__all_parameters__ = cls.__parameters__ + tuple(derived_parameters)
@@ -189,8 +202,9 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # There are changed parameter or metadata values.
         # The name needs to be changed accordingly, if it wasn't already.
-        kwargs.setdefault("name", (self.name + " (modified)"
-                                   if self.name is not None else None))
+        kwargs.setdefault(
+            "name", (self.name + " (modified)" if self.name is not None else None)
+        )
 
         # mix new meta into existing, preferring the former.
         new_meta = {**self.meta, **(meta or {})}
@@ -251,9 +265,12 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # check all parameters in 'other' match those in 'self' and 'other' has
         # no extra parameters (latter part should never happen b/c same class)
-        params_eq = (set(self.__all_parameters__) == set(other.__all_parameters__)
-                     and all(np.all(getattr(self, k) == getattr(other, k))
-                             for k in self.__all_parameters__))
+        params_eq = set(self.__all_parameters__) == set(
+            other.__all_parameters__
+        ) and all(
+            np.all(getattr(self, k) == getattr(other, k))
+            for k in self.__all_parameters__
+        )
         return params_eq
 
     def __eq__(self, other):
@@ -277,7 +294,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         # check all parameters in 'other' match those in 'self'
         equivalent = self.__equiv__(other)
         # non-Parameter checks: name
-        name_eq = (self.name == other.name)
+        name_eq = self.name == other.name
 
         return equivalent and name_eq
 
@@ -285,14 +302,18 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         ps = {k: getattr(self, k) for k in self.__parameters__}  # values
-        cps = {k: getattr(self.__class__, k) for k in self.__parameters__}  # Parameter objects
+        cps = {
+            k: getattr(self.__class__, k) for k in self.__parameters__
+        }  # Parameter objects
 
         namelead = f"{self.__class__.__qualname__}("
         if self.name is not None:
-            namelead += f"name=\"{self.name}\", "
+            namelead += f'name="{self.name}", '
         # nicely formatted parameters
-        fmtps = (k + '=' + format(v, cps[k].format_spec if v is not None else '')
-                 for k, v in ps.items())
+        fmtps = (
+            k + "=" + format(v, cps[k].format_spec if v is not None else "")
+            for k, v in ps.items()
+        )
 
         return namelead + ", ".join(fmtps) + ")"
 
@@ -325,6 +346,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
     but ``FlatLambdaCDM`` **will** be flat.
     """
+
     pass
 
 
@@ -343,7 +365,7 @@ def __getattr__(attr):
             f"`astropy.cosmology.core.{attr}` has been moved (since v5.0) and "
             f"should be imported as ``from astropy.cosmology import {attr}``."
             " In future this will raise an exception.",
-            AstropyDeprecationWarning
+            AstropyDeprecationWarning,
         )
 
         return getattr(flrw, attr)

@@ -26,13 +26,14 @@ from .core import Model
 
 try:
     from scipy.interpolate import interpn
+
     has_scipy = True
 except ImportError:
     has_scipy = False
 
-__all__ = ['tabular_model', 'Tabular1D', 'Tabular2D']
+__all__ = ["tabular_model", "Tabular1D", "Tabular2D"]
 
-__doctest_requires__ = {('tabular_model'): ['scipy']}
+__doctest_requires__ = {"tabular_model": ["scipy"]}
 
 
 class _Tabular(Model):
@@ -87,43 +88,59 @@ class _Tabular(Model):
 
     _id = 0
 
-    def __init__(self, points=None, lookup_table=None, method='linear',
-                 bounds_error=True, fill_value=np.nan, **kwargs):
-
-        n_models = kwargs.get('n_models', 1)
+    def __init__(
+        self,
+        points=None,
+        lookup_table=None,
+        method="linear",
+        bounds_error=True,
+        fill_value=np.nan,
+        **kwargs,
+    ):
+        n_models = kwargs.get("n_models", 1)
         if n_models > 1:
-            raise NotImplementedError('Only n_models=1 is supported.')
+            raise NotImplementedError("Only n_models=1 is supported.")
         super().__init__(**kwargs)
         self.outputs = ("y",)
         if lookup_table is None:
-            raise ValueError('Must provide a lookup table.')
+            raise ValueError("Must provide a lookup table.")
 
         if not isinstance(lookup_table, u.Quantity):
             lookup_table = np.asarray(lookup_table)
 
         if self.lookup_table.ndim != lookup_table.ndim:
-            raise ValueError("lookup_table should be an array with "
-                             "{} dimensions.".format(self.lookup_table.ndim))
+            raise ValueError(
+                "lookup_table should be an array with {} dimensions.".format(
+                    self.lookup_table.ndim
+                )
+            )
 
         if points is None:
-            points = tuple(np.arange(x, dtype=float)
-                           for x in lookup_table.shape)
+            points = tuple(np.arange(x, dtype=float) for x in lookup_table.shape)
         else:
             if lookup_table.ndim == 1 and not isinstance(points, tuple):
                 points = (points,)
             npts = len(points)
             if npts != lookup_table.ndim:
                 raise ValueError(
-                    "Expected grid points in "
-                    "{} directions, got {}.".format(lookup_table.ndim, npts))
-            if (npts > 1 and isinstance(points[0], u.Quantity) and
-                    len(set([getattr(p, 'unit', None) for p in points])) > 1):
-                raise ValueError('points must all have the same unit.')
+                    "Expected grid points in {} directions, got {}.".format(
+                        lookup_table.ndim, npts
+                    )
+                )
+            if (
+                npts > 1
+                and isinstance(points[0], u.Quantity)
+                and len(set([getattr(p, "unit", None) for p in points])) > 1
+            ):
+                raise ValueError("points must all have the same unit.")
 
         if isinstance(fill_value, u.Quantity):
             if not isinstance(lookup_table, u.Quantity):
-                raise ValueError('fill value is in {} but expected to be '
-                                 'unitless.'.format(fill_value.unit))
+                raise ValueError(
+                    "fill value is in {} but expected to be unitless.".format(
+                        fill_value.unit
+                    )
+                )
             fill_value = fill_value.to(lookup_table.unit).value
 
         self.points = points
@@ -134,27 +151,30 @@ class _Tabular(Model):
 
     def __repr__(self):
         return "<{}(points={}, lookup_table={})>".format(
-            self.__class__.__name__, self.points, self.lookup_table)
+            self.__class__.__name__, self.points, self.lookup_table
+        )
 
     def __str__(self):
         default_keywords = [
-            ('Model', self.__class__.__name__),
-            ('Name', self.name),
-            ('N_inputs', self.n_inputs),
-            ('N_outputs', self.n_outputs),
-            ('Parameters', ""),
-            ('  points', self.points),
-            ('  lookup_table', self.lookup_table),
-            ('  method', self.method),
-            ('  fill_value', self.fill_value),
-            ('  bounds_error', self.bounds_error)
+            ("Model", self.__class__.__name__),
+            ("Name", self.name),
+            ("N_inputs", self.n_inputs),
+            ("N_outputs", self.n_outputs),
+            ("Parameters", ""),
+            ("  points", self.points),
+            ("  lookup_table", self.lookup_table),
+            ("  method", self.method),
+            ("  fill_value", self.fill_value),
+            ("  bounds_error", self.bounds_error),
         ]
 
-        parts = [f'{keyword}: {value}'
-                 for keyword, value in default_keywords
-                 if value is not None]
+        parts = [
+            f"{keyword}: {value}"
+            for keyword, value in default_keywords
+            if value is not None
+        ]
 
-        return '\n'.join(parts)
+        return "\n".join(parts)
 
     @property
     def input_units(self):
@@ -222,13 +242,19 @@ class _Tabular(Model):
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
             raise ImportError("Tabular model requires scipy.")
-        result = interpn(self.points, self.lookup_table, inputs,
-                         method=self.method, bounds_error=self.bounds_error,
-                         fill_value=self.fill_value)
+        result = interpn(
+            self.points,
+            self.lookup_table,
+            inputs,
+            method=self.method,
+            bounds_error=self.bounds_error,
+            fill_value=self.fill_value,
+        )
 
         # return_units not respected when points has no units
-        if (isinstance(self.lookup_table, u.Quantity) and
-                not isinstance(self.points[0], u.Quantity)):
+        if isinstance(self.lookup_table, u.Quantity) and not isinstance(
+            self.points[0], u.Quantity
+        ):
             result = result * self.lookup_table.unit
 
         if self.n_outputs == 1:
@@ -254,10 +280,16 @@ class _Tabular(Model):
             else:
                 # equal-valued or double-valued lookup_table
                 raise NotImplementedError
-            return Tabular1D(points=points, lookup_table=lookup_table, method=self.method,
-                             bounds_error=self.bounds_error, fill_value=self.fill_value)
-        raise NotImplementedError("An analytical inverse transform "
-                                  "has not been implemented for this model.")
+            return Tabular1D(
+                points=points,
+                lookup_table=lookup_table,
+                method=self.method,
+                bounds_error=self.bounds_error,
+                fill_value=self.fill_value,
+            )
+        raise NotImplementedError(
+            "An analytical inverse transform has not been implemented for this model."
+        )
 
 
 def tabular_model(dim, name=None):
@@ -300,29 +332,29 @@ def tabular_model(dim, name=None):
 
     """
     if dim < 1:
-        raise ValueError('Lookup table must have at least one dimension.')
+        raise ValueError("Lookup table must have at least one dimension.")
 
     table = np.zeros([2] * dim)
-    members = {'lookup_table': table, 'n_inputs': dim, 'n_outputs': 1}
+    members = {"lookup_table": table, "n_inputs": dim, "n_outputs": 1}
 
     if dim == 1:
-        members['_separable'] = True
+        members["_separable"] = True
     else:
-        members['_separable'] = False
+        members["_separable"] = False
 
     if name is None:
         model_id = _Tabular._id
         _Tabular._id += 1
-        name = f'Tabular{model_id}'
+        name = f"Tabular{model_id}"
 
     model_class = type(str(name), (_Tabular,), members)
-    model_class.__module__ = 'astropy.modeling.tabular'
+    model_class.__module__ = "astropy.modeling.tabular"
     return model_class
 
 
-Tabular1D = tabular_model(1, name='Tabular1D')
+Tabular1D = tabular_model(1, name="Tabular1D")
 
-Tabular2D = tabular_model(2, name='Tabular2D')
+Tabular2D = tabular_model(2, name="Tabular2D")
 
 _tab_docs = """
     method : str, optional
@@ -354,7 +386,8 @@ _tab_docs = """
     Uses `scipy.interpolate.interpn`.
 """
 
-Tabular1D.__doc__ = """
+Tabular1D.__doc__ = (
+    """
     Tabular model in 1D.
     Returns an interpolated lookup table value.
 
@@ -364,9 +397,12 @@ Tabular1D.__doc__ = """
         The points defining the regular grid in n dimensions.
     lookup_table : array-like, of ndim=1.
         The data in one dimensions.
-""" + _tab_docs
+"""
+    + _tab_docs
+)
 
-Tabular2D.__doc__ = """
+Tabular2D.__doc__ = (
+    """
     Tabular model in 2D.
     Returns an interpolated lookup table value.
 
@@ -379,4 +415,6 @@ Tabular2D.__doc__ = """
         The data on a regular grid in 2 dimensions.
         Shape (m1, m2).
 
-""" + _tab_docs
+"""
+    + _tab_docs
+)

@@ -6,7 +6,7 @@ Creates a common namespace for all pre-defined models.
 
 # pylint: disable=unused-wildcard-import, unused-import, wildcard-import
 
-from .core import custom_model, hide_inverse, fix_inputs # pylint: disable=W0611
+from .core import custom_model, hide_inverse, fix_inputs  # pylint: disable=W0611
 from .mappings import *
 from .projections import *
 from .rotations import *
@@ -54,16 +54,43 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,
-    Const1D, Const2D, Ellipse2D, Disk2D,
-    Gaussian1D, Gaussian2D,
-    Linear1D, Lorentz1D, RickerWavelet1D, RickerWavelet2D,
-    PowerLaw1D, Sersic1D, Sersic2D,
-    Sine1D, Cosine1D, Tangent1D, ArcSine1D, ArcCosine1D, ArcTangent1D,
-    Trapezoid1D, TrapezoidDisk2D,
-    Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre2D, Legendre1D,
-    Polynomial1D, Polynomial2D, Voigt1D, KingProjectedAnalytic1D,
-    NFW
+    AiryDisk2D,
+    Moffat1D,
+    Moffat2D,
+    Box1D,
+    Box2D,
+    Const1D,
+    Const2D,
+    Ellipse2D,
+    Disk2D,
+    Gaussian1D,
+    Gaussian2D,
+    Linear1D,
+    Lorentz1D,
+    RickerWavelet1D,
+    RickerWavelet2D,
+    PowerLaw1D,
+    Sersic1D,
+    Sersic2D,
+    Sine1D,
+    Cosine1D,
+    Tangent1D,
+    ArcSine1D,
+    ArcCosine1D,
+    ArcTangent1D,
+    Trapezoid1D,
+    TrapezoidDisk2D,
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre2D,
+    Legendre1D,
+    Polynomial1D,
+    Polynomial2D,
+    Voigt1D,
+    KingProjectedAnalytic1D,
+    NFW,
 ]
 
 

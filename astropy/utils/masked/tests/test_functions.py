@@ -13,24 +13,30 @@ from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils.masked.core import Masked
 
-from .test_masked import (MaskedArraySetup, QuantitySetup, LongitudeSetup,
-                          assert_masked_equal)
+from .test_masked import (
+    MaskedArraySetup,
+    QuantitySetup,
+    LongitudeSetup,
+    assert_masked_equal,
+)
 
 
 class MaskedUfuncTests(MaskedArraySetup):
-    @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
-                                       np.arctan2, np.minimum))
+    @pytest.mark.parametrize(
+        "ufunc", (np.add, np.subtract, np.divide, np.arctan2, np.minimum)
+    )
     def test_2op_ufunc(self, ufunc):
         ma_mb = ufunc(self.ma, self.mb)
         expected_data = ufunc(self.a, self.b)
-        expected_mask = (self.ma.mask | self.mb.mask)
+        expected_mask = self.ma.mask | self.mb.mask
         # Note: assert_array_equal also checks type, i.e., that, e.g.,
         # Longitude decays into an Angle.
         assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
-    @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
-                                       np.arctan2, np.minimum))
+    @pytest.mark.parametrize(
+        "ufunc", (np.add, np.subtract, np.divide, np.arctan2, np.minimum)
+    )
     def test_ufunc_inplace(self, ufunc):
         ma_mb = ufunc(self.ma, self.mb)
         out = Masked(np.zeros_like(ma_mb.unmasked))
@@ -51,7 +57,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         with pytest.raises(TypeError):
             np.add(self.ma, self.mb, out=out)
 
-    @pytest.mark.parametrize('ufunc', (np.add.outer, np.minimum.outer))
+    @pytest.mark.parametrize("ufunc", (np.add.outer, np.minimum.outer))
     def test_2op_ufunc_outer(self, ufunc):
         ma_mb = ufunc(self.ma, self.mb)
         expected_data = ufunc(self.a, self.b)
@@ -68,7 +74,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
-    @pytest.mark.parametrize('axis', (0, 1, None))
+    @pytest.mark.parametrize("axis", (0, 1, None))
     def test_add_reduce(self, axis):
         ma_reduce = np.add.reduce(self.ma, axis=axis)
         expected_data = np.add.reduce(self.a, axis=axis)
@@ -76,8 +82,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
-        out = Masked(np.zeros_like(ma_reduce.unmasked),
-                     np.ones_like(ma_reduce.mask))
+        out = Masked(np.zeros_like(ma_reduce.unmasked), np.ones_like(ma_reduce.mask))
         ma_reduce2 = np.add.reduce(self.ma, axis=axis, out=out)
         assert ma_reduce2 is out
         assert_masked_equal(ma_reduce2, ma_reduce)
@@ -90,7 +95,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(out.unmasked, a_reduce)
         assert_array_equal(out.mask, np.zeros(a_reduce.shape, bool))
 
-    @pytest.mark.parametrize('axis', (0, 1, None))
+    @pytest.mark.parametrize("axis", (0, 1, None))
     def test_minimum_reduce(self, axis):
         ma_reduce = np.minimum.reduce(self.ma, axis=axis)
         expected_data = np.minimum.reduce(self.a, axis=axis)
@@ -98,7 +103,7 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
 
-    @pytest.mark.parametrize('axis', (0, 1, None))
+    @pytest.mark.parametrize("axis", (0, 1, None))
     def test_maximum_reduce(self, axis):
         ma_reduce = np.maximum.reduce(self.ma, axis=axis)
         expected_data = np.maximum.reduce(self.a, axis=axis)
@@ -109,7 +114,7 @@ class MaskedUfuncTests(MaskedArraySetup):
 
 class TestMaskedArrayUfuncs(MaskedUfuncTests):
     # multiply.reduce does not work with units, so test only for plain array.
-    @pytest.mark.parametrize('axis', (0, 1, None))
+    @pytest.mark.parametrize("axis", (0, 1, None))
     def test_multiply_reduce(self, axis):
         ma_reduce = np.multiply.reduce(self.ma, axis=axis)
         expected_data = np.multiply.reduce(self.a, axis=axis)
@@ -153,8 +158,7 @@ class TestMaskedArrayConcatenation(MaskedArraySetup):
         mb = self.mb[np.newaxis]
         concat_a_b = np.concatenate((self.ma, mb), axis=0)
         expected_data = np.concatenate((self.a, self.b[np.newaxis]), axis=0)
-        expected_mask = np.concatenate((self.mask_a, self.mask_b[np.newaxis]),
-                                       axis=0)
+        expected_mask = np.concatenate((self.mask_a, self.mask_b[np.newaxis]), axis=0)
         assert_array_equal(concat_a_b.unmasked, expected_data)
         assert_array_equal(concat_a_b.mask, expected_mask)
 
@@ -162,16 +166,19 @@ class TestMaskedArrayConcatenation(MaskedArraySetup):
         mb = self.mb[np.newaxis]
         concat_a_b = np.concatenate((self.a, mb), axis=0)
         expected_data = np.concatenate((self.a, self.b[np.newaxis]), axis=0)
-        expected_mask = np.concatenate((np.zeros(self.a.shape, bool),
-                                        self.mask_b[np.newaxis]), axis=0)
+        expected_mask = np.concatenate(
+            (np.zeros(self.a.shape, bool), self.mask_b[np.newaxis]), axis=0
+        )
         assert_array_equal(concat_a_b.unmasked, expected_data)
         assert_array_equal(concat_a_b.mask, expected_mask)
 
-    @pytest.mark.parametrize('obj', (1, slice(2, 3)))
+    @pytest.mark.parametrize("obj", (1, slice(2, 3)))
     def test_insert(self, obj):
         mc_in_a = np.insert(self.ma, obj, self.mc, axis=-1)
-        expected = Masked(np.insert(self.a, obj, self.c, axis=-1),
-                          np.insert(self.mask_a, obj, self.mask_c, axis=-1))
+        expected = Masked(
+            np.insert(self.a, obj, self.c, axis=-1),
+            np.insert(self.mask_a, obj, self.mask_c, axis=-1),
+        )
         assert_masked_equal(mc_in_a, expected)
 
     def test_insert_masked_obj(self):
@@ -180,18 +187,18 @@ class TestMaskedArrayConcatenation(MaskedArraySetup):
 
     def test_append(self):
         mc_to_a = np.append(self.ma, self.mc, axis=-1)
-        expected = Masked(np.append(self.a, self.c, axis=-1),
-                          np.append(self.mask_a, self.mask_c, axis=-1))
+        expected = Masked(
+            np.append(self.a, self.c, axis=-1),
+            np.append(self.mask_a, self.mask_c, axis=-1),
+        )
         assert_masked_equal(mc_to_a, expected)
 
 
-class TestMaskedQuantityConcatenation(TestMaskedArrayConcatenation,
-                                      QuantitySetup):
+class TestMaskedQuantityConcatenation(TestMaskedArrayConcatenation, QuantitySetup):
     pass
 
 
-class TestMaskedLongitudeConcatenation(TestMaskedArrayConcatenation,
-                                       LongitudeSetup):
+class TestMaskedLongitudeConcatenation(TestMaskedArrayConcatenation, LongitudeSetup):
     pass
 
 
@@ -201,8 +208,10 @@ class TestMaskedArrayBroadcast(MaskedArraySetup):
         ba = np.broadcast_to(self.mb, shape, subok=True)
         assert ba.shape == shape
         assert ba.mask.shape == shape
-        expected = Masked(np.broadcast_to(self.mb.unmasked, shape, subok=True),
-                          np.broadcast_to(self.mb.mask, shape, subok=True))
+        expected = Masked(
+            np.broadcast_to(self.mb.unmasked, shape, subok=True),
+            np.broadcast_to(self.mb.mask, shape, subok=True),
+        )
         assert_masked_equal(ba, expected)
 
     def test_broadcast_to_using_apply(self):
@@ -211,8 +220,10 @@ class TestMaskedArrayBroadcast(MaskedArraySetup):
         ba = self.mb._apply(np.broadcast_to, shape=shape, subok=True)
         assert ba.shape == shape
         assert ba.mask.shape == shape
-        expected = Masked(np.broadcast_to(self.mb.unmasked, shape, subok=True),
-                          np.broadcast_to(self.mb.mask, shape, subok=True))
+        expected = Masked(
+            np.broadcast_to(self.mb.unmasked, shape, subok=True),
+            np.broadcast_to(self.mb.mask, shape, subok=True),
+        )
         assert_masked_equal(ba, expected)
 
     def test_broadcast_arrays(self):
@@ -236,8 +247,7 @@ class TestMaskedArrayBroadcast(MaskedArraySetup):
         mb = np.broadcast_arrays(self.ma, self.mb, self.mc, subok=False)
         assert all(type(mb_.unmasked) is np.ndarray for mb_ in mb)
         b = np.broadcast_arrays(self.a, self.b, self.c, subok=False)
-        mask_b = np.broadcast_arrays(self.mask_a, self.mask_b,
-                                     self.mask_c, subok=False)
+        mask_b = np.broadcast_arrays(self.mask_a, self.mask_b, self.mask_c, subok=False)
         for mb_, b_, mask_ in zip(mb, b, mask_b):
             assert_array_equal(mb_.unmasked, b_)
             assert_array_equal(mb_.mask, mask_)
@@ -252,7 +262,7 @@ class TestMaskedLongitudeBroadcast(TestMaskedArrayBroadcast, LongitudeSetup):
 
 
 class TestMaskedArrayCalculation(MaskedArraySetup):
-    @pytest.mark.parametrize('n,axis', [(1, -1), (2, -1), (1, 0)])
+    @pytest.mark.parametrize("n,axis", [(1, -1), (2, -1), (1, 0)])
     def test_diff(self, n, axis):
         mda = np.diff(self.ma, n=n, axis=axis)
         expected_data = np.diff(self.a, n, axis)
@@ -263,14 +273,14 @@ class TestMaskedArrayCalculation(MaskedArraySetup):
         assert_array_equal(mda.mask, expected_mask)
 
     def test_diff_explicit(self):
-        ma = Masked(np.arange(8.),
-                    [True, False, False, False, False, True, False, False])
+        ma = Masked(
+            np.arange(8.0), [True, False, False, False, False, True, False, False]
+        )
         mda = np.diff(ma)
-        assert np.all(mda.unmasked == 1.)
-        assert np.all(mda.mask ==
-                      [True, False, False, False, True, True, False])
+        assert np.all(mda.unmasked == 1.0)
+        assert np.all(mda.mask == [True, False, False, False, True, True, False])
         mda = np.diff(ma, n=2)
-        assert np.all(mda.unmasked == 0.)
+        assert np.all(mda.unmasked == 0.0)
         assert np.all(mda.mask == [True, False, False, True, True, True])
 
 
@@ -278,13 +288,12 @@ class TestMaskedQuantityCalculation(TestMaskedArrayCalculation, QuantitySetup):
     pass
 
 
-class TestMaskedLongitudeCalculation(TestMaskedArrayCalculation,
-                                     LongitudeSetup):
+class TestMaskedLongitudeCalculation(TestMaskedArrayCalculation, LongitudeSetup):
     pass
 
 
 class TestMaskedArraySorting(MaskedArraySetup):
-    @pytest.mark.parametrize('axis', [-1, 0])
+    @pytest.mark.parametrize("axis", [-1, 0])
     def test_lexsort1(self, axis):
         ma_lexsort = np.lexsort((self.ma,), axis=axis)
         filled = self.a.copy()
@@ -292,7 +301,7 @@ class TestMaskedArraySorting(MaskedArraySetup):
         expected_data = filled.argsort(axis)
         assert_array_equal(ma_lexsort, expected_data)
 
-    @pytest.mark.parametrize('axis', [-1, 0])
+    @pytest.mark.parametrize("axis", [-1, 0])
     def test_lexsort2(self, axis):
         mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
         mamb_lexsort = np.lexsort((self.ma, mb), axis=axis)
@@ -306,7 +315,7 @@ class TestMaskedArraySorting(MaskedArraySetup):
         mbma_lexsort2 = np.lexsort(np.stack([mb, self.ma], axis=0), axis=axis)
         assert_array_equal(mbma_lexsort2, expected_ba)
 
-    @pytest.mark.parametrize('axis', [-1, 0])
+    @pytest.mark.parametrize("axis", [-1, 0])
     def test_lexsort_mix(self, axis):
         mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
         mamb_lexsort = np.lexsort((self.a, mb), axis=axis)

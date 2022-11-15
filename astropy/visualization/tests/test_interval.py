@@ -4,34 +4,34 @@ import pytest
 import numpy as np
 
 from astropy.utils import NumpyRNGContext
-from astropy.visualization.interval import (ManualInterval,
-                                            MinMaxInterval,
-                                            PercentileInterval,
-                                            AsymmetricPercentileInterval,
-                                            ZScaleInterval)
+from astropy.visualization.interval import (
+    ManualInterval,
+    MinMaxInterval,
+    PercentileInterval,
+    AsymmetricPercentileInterval,
+    ZScaleInterval,
+)
 
 
 class TestInterval:
-
-    data = np.linspace(-20., 60., 100)
+    data = np.linspace(-20.0, 60.0, 100)
 
     def test_manual(self):
-        interval = ManualInterval(-10., +15.)
+        interval = ManualInterval(-10.0, +15.0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -10.)
-        np.testing.assert_allclose(vmax, +15.)
+        np.testing.assert_allclose(vmin, -10.0)
+        np.testing.assert_allclose(vmax, +15.0)
 
     def test_manual_defaults(self):
-
-        interval = ManualInterval(vmin=-10.)
+        interval = ManualInterval(vmin=-10.0)
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -10.)
+        np.testing.assert_allclose(vmin, -10.0)
         np.testing.assert_allclose(vmax, np.max(self.data))
 
-        interval = ManualInterval(vmax=15.)
+        interval = ManualInterval(vmax=15.0)
         vmin, vmax = interval.get_limits(self.data)
         np.testing.assert_allclose(vmin, np.min(self.data))
-        np.testing.assert_allclose(vmax, 15.)
+        np.testing.assert_allclose(vmax, 15.0)
 
     def test_manual_zero_limit(self):
         # Regression test for a bug that caused ManualInterval to compute the
@@ -52,8 +52,8 @@ class TestInterval:
     def test_minmax(self):
         interval = MinMaxInterval()
         vmin, vmax = interval.get_limits(self.data)
-        np.testing.assert_allclose(vmin, -20.)
-        np.testing.assert_allclose(vmax, +60.)
+        np.testing.assert_allclose(vmin, -20.0)
+        np.testing.assert_allclose(vmax, +60.0)
 
     def test_percentile(self):
         interval = PercentileInterval(62.2)
@@ -76,15 +76,13 @@ class TestInterval:
 
 
 class TestIntervalList(TestInterval):
-
     # Make sure intervals work with lists
-    data = np.linspace(-20., 60., 100).tolist()
+    data = np.linspace(-20.0, 60.0, 100).tolist()
 
 
 class TestInterval2D(TestInterval):
-
     # Make sure intervals work with 2d arrays
-    data = np.linspace(-20., 60., 100).reshape(100, 1)
+    data = np.linspace(-20.0, 60.0, 100).reshape(100, 1)
 
 
 def test_zscale():
@@ -126,19 +124,18 @@ def test_integers():
     # Need to make sure integers get cast to float
     interval = MinMaxInterval()
     values = interval([1, 3, 4, 5, 6])
-    np.testing.assert_allclose(values, [0., 0.4, 0.6, 0.8, 1.0])
+    np.testing.assert_allclose(values, [0.0, 0.4, 0.6, 0.8, 1.0])
 
     # Don't accept integer array in output
     out = np.zeros(5, dtype=int)
     with pytest.raises(TypeError) as exc:
         values = interval([1, 3, 4, 5, 6], out=out)
-    assert exc.value.args[0] == ("Can only do in-place scaling for "
-                                 "floating-point arrays")
+    assert exc.value.args[0] == "Can only do in-place scaling for floating-point arrays"
 
     # But integer input and floating point output is fine
     out = np.zeros(5, dtype=float)
     interval([1, 3, 4, 5, 6], out=out)
-    np.testing.assert_allclose(out, [0., 0.4, 0.6, 0.8, 1.0])
+    np.testing.assert_allclose(out, [0.0, 0.4, 0.6, 0.8, 1.0])
 
 
 def test_constant_data():
@@ -148,5 +145,5 @@ def test_constant_data():
     interval = MinMaxInterval()
     limits = interval.get_limits(data)
     values = interval(data)
-    np.testing.assert_allclose(limits, (1., 1.))
+    np.testing.assert_allclose(limits, (1.0, 1.0))
     np.testing.assert_allclose(values, np.zeros(shape))

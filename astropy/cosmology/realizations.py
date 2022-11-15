@@ -22,8 +22,10 @@ for key in parameters.available:
     params.setdefault("name", key)
     # make cosmology
     cosmo = Cosmology.from_format(params, format="mapping", move_to_meta=True)
-    cosmo.__doc__ = (f"{key} instance of {cosmo.__class__.__qualname__} "
-                     f"cosmology\n(from {cosmo.meta['reference']})")
+    cosmo.__doc__ = (
+        f"{key} instance of {cosmo.__class__.__qualname__} "
+        f"cosmology\n(from {cosmo.meta['reference']})"
+    )
     # put in this namespace
     setattr(sys.modules[__name__], key, cosmo)
 
@@ -54,8 +56,7 @@ class default_cosmology(ScienceState):
 
     @staticmethod
     def get_cosmology_from_string(arg):
-        """ Return a cosmology instance from a string.
-        """
+        """Return a cosmology instance from a string."""
         if arg == "no_default":
             cosmo = None
         else:
@@ -82,6 +83,4 @@ class default_cosmology(ScienceState):
         elif isinstance(value, Cosmology):
             return value
         else:
-            raise TypeError(
-                "default_cosmology must be a string or Cosmology instance."
-            )
+            raise TypeError("default_cosmology must be a string or Cosmology instance.")

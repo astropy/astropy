@@ -11,60 +11,87 @@ max_exponents_fft = {1: 15, 2: 10, 3: 7}
 
 if __name__ == "__main__":
     for ndims in [1, 2, 3]:
-        print("\n{}-dimensional arrays ('n' is the size of the image AND "
-              "the kernel)".format(ndims))
+        print(
+            "\n{}-dimensional arrays ('n' is the size of the image AND "
+            "the kernel)".format(ndims)
+        )
         print(" ".join(["%17s" % n for n in ("n", "convolve", "convolve_fft")]))
 
         for ii in range(3, max_exponents_fft[ndims]):
             # array = np.random.random([2**ii]*ndims)
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
-                setup = ("""
+                setup = """
 import numpy as np
 from astropy.convolution.convolve import convolve
 from astropy.convolution.convolve import convolve_fft
 array = np.random.random([%i]*%i)
-kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
+kernel = np.random.random([%i]*%i)""" % (
+                    2**ii - 1,
+                    ndims,
+                    2**ii - 1,
+                    ndims,
+                )
 
-                print("%16i:" % (int(2 ** ii - 1)), end=' ')
+                print("%16i:" % (int(2**ii - 1)), end=" ")
 
                 if ii <= max_exponents_linear[ndims]:
-                    for convolve_type, extra in zip(("", "_fft"),
-                                              ("", "fft_pad=False")):
-                        statement = f"convolve{convolve_type}(array, kernel, boundary='fill', {extra})"
-                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print(f"{besttime:17f}", end=' ')
+                    for convolve_type, extra in zip(
+                        ("", "_fft"), ("", "fft_pad=False")
+                    ):
+                        statement = (
+                            f"convolve{convolve_type}(array, kernel, boundary='fill',"
+                            f" {extra})"
+                        )
+                        besttime = min(
+                            timeit.Timer(stmt=statement, setup=setup).repeat(3, 10)
+                        )
+                        print(f"{besttime:17f}", end=" ")
                 else:
-                    print("%17s" % "skipped", end=' ')
+                    print("%17s" % "skipped", end=" ")
                     statement = "convolve_fft(array, kernel, boundary='fill')"
-                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                    print(f"{besttime:17f}", end=' ')
+                    besttime = min(
+                        timeit.Timer(stmt=statement, setup=setup).repeat(3, 10)
+                    )
+                    print(f"{besttime:17f}", end=" ")
 
                 print()
 
-            setup = ("""
+            setup = """
 import numpy as np
 from astropy.convolution.convolve import convolve
 from astropy.convolution.convolve import convolve_fft
 array = np.random.random([%i]*%i)
-kernel = np.random.random([%i]*%i)""") % (2 ** ii, ndims, 2 ** ii, ndims)
+kernel = np.random.random([%i]*%i)""" % (
+                2**ii,
+                ndims,
+                2**ii,
+                ndims,
+            )
 
-            print("%16i:" % (int(2 ** ii)), end=' ')
+            print("%16i:" % (int(2**ii)), end=" ")
 
             if ii <= max_exponents_linear[ndims]:
-                for convolve_type in ("", "_fft",):
+                for convolve_type in (
+                    "",
+                    "_fft",
+                ):
                     # convolve doesn't allow even-sized kernels
                     if convolve_type == "":
-                        print("%17s" % ("-"), end=' ')
+                        print("%17s" % "-", end=" ")
                     else:
-                        statement = f"convolve{convolve_type}(array, kernel, boundary='fill')"
-                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print(f"{besttime:17f}", end=' ')
+                        statement = (
+                            f"convolve{convolve_type}(array, kernel, boundary='fill')"
+                        )
+                        besttime = min(
+                            timeit.Timer(stmt=statement, setup=setup).repeat(3, 10)
+                        )
+                        print(f"{besttime:17f}", end=" ")
             else:
-                print("%17s" % "skipped", end=' ')
+                print("%17s" % "skipped", end=" ")
                 statement = "convolve_fft(array, kernel, boundary='fill')"
                 besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                print(f"{besttime:17f}", end=' ')
+                print(f"{besttime:17f}", end=" ")
 
             print()
 

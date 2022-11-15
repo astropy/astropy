@@ -11,19 +11,35 @@ import types
 import warnings
 from inspect import signature
 
-from .exceptions import (AstropyDeprecationWarning, AstropyUserWarning,
-                         AstropyPendingDeprecationWarning)
+from .exceptions import (
+    AstropyDeprecationWarning,
+    AstropyUserWarning,
+    AstropyPendingDeprecationWarning,
+)
 
 
-__all__ = ['classproperty', 'deprecated', 'deprecated_attribute',
-           'deprecated_renamed_argument', 'format_doc',
-           'lazyproperty', 'sharedmethod']
+__all__ = [
+    "classproperty",
+    "deprecated",
+    "deprecated_attribute",
+    "deprecated_renamed_argument",
+    "format_doc",
+    "lazyproperty",
+    "sharedmethod",
+]
 
 _NotFound = object()
 
 
-def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None, warning_type=AstropyDeprecationWarning):
+def deprecated(
+    since,
+    message="",
+    name="",
+    alternative="",
+    pending=False,
+    obj_type=None,
+    warning_type=AstropyDeprecationWarning,
+):
     """
     Used to mark a function or class as deprecated.
 
@@ -80,15 +96,18 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         to it.
         """
         if not old_doc:
-            old_doc = ''
-        old_doc = textwrap.dedent(old_doc).strip('\n')
-        new_doc = (('\n.. deprecated:: {since}'
-                    '\n    {message}\n\n'.format(
-                     **{'since': since, 'message': message.strip()})) + old_doc)
+            old_doc = ""
+        old_doc = textwrap.dedent(old_doc).strip("\n")
+        new_doc = (
+            "\n.. deprecated:: {since}\n    {message}\n\n".format(
+                **{"since": since, "message": message.strip()}
+            )
+            + old_doc
+        )
         if not old_doc:
             # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
-            new_doc += r'\ '
+            new_doc += r"\ "
         return new_doc
 
     def get_function(func):
@@ -127,11 +146,10 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # functools.wraps on it, but we normally don't care.
         # This crazy way to get the type of a wrapper descriptor is
         # straight out of the Python 3.3 inspect module docs.
-        if type(func) is not type(str.__dict__['__add__']):  # nopep8
+        if type(func) is not type(str.__dict__["__add__"]):  # nopep8
             deprecated_func = functools.wraps(func)(deprecated_func)
 
-        deprecated_func.__doc__ = deprecate_doc(
-            deprecated_func.__doc__, message)
+        deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
 
         return func_wrapper(deprecated_func)
 
@@ -152,47 +170,62 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         """
         cls.__doc__ = deprecate_doc(cls.__doc__, message)
         if cls.__new__ is object.__new__:
-            cls.__init__ = deprecate_function(get_function(cls.__init__),
-                                              message, warning_type)
+            cls.__init__ = deprecate_function(
+                get_function(cls.__init__), message, warning_type
+            )
         else:
-            cls.__new__ = deprecate_function(get_function(cls.__new__),
-                                             message, warning_type)
+            cls.__new__ = deprecate_function(
+                get_function(cls.__new__), message, warning_type
+            )
         return cls
 
-    def deprecate(obj, message=message, name=name, alternative=alternative,
-                  pending=pending, warning_type=warning_type):
+    def deprecate(
+        obj,
+        message=message,
+        name=name,
+        alternative=alternative,
+        pending=pending,
+        warning_type=warning_type,
+    ):
         if obj_type is None:
             if isinstance(obj, type):
-                obj_type_name = 'class'
+                obj_type_name = "class"
             elif inspect.isfunction(obj):
-                obj_type_name = 'function'
+                obj_type_name = "function"
             elif inspect.ismethod(obj) or isinstance(obj, method_types):
-                obj_type_name = 'method'
+                obj_type_name = "method"
             else:
-                obj_type_name = 'object'
+                obj_type_name = "object"
         else:
             obj_type_name = obj_type
 
         if not name:
             name = get_function(obj).__name__
 
-        altmessage = ''
+        altmessage = ""
         if not message or type(message) is type(deprecate):
             if pending:
-                message = ('The {func} {obj_type} will be deprecated in a '
-                           'future version.')
+                message = (
+                    "The {func} {obj_type} will be deprecated in a future version."
+                )
             else:
-                message = ('The {func} {obj_type} is deprecated and may '
-                           'be removed in a future version.')
+                message = (
+                    "The {func} {obj_type} is deprecated and may "
+                    "be removed in a future version."
+                )
             if alternative:
-                altmessage = f'\n        Use {alternative} instead.'
+                altmessage = f"\n        Use {alternative} instead."
 
-        message = ((message.format(**{
-            'func': name,
-            'name': name,
-            'alternative': alternative,
-            'obj_type': obj_type_name})) +
-            altmessage)
+        message = (
+            message.format(
+                **{
+                    "func": name,
+                    "name": name,
+                    "alternative": alternative,
+                    "obj_type": obj_type_name,
+                }
+            )
+        ) + altmessage
 
         if isinstance(obj, type):
             return deprecate_class(obj, message, warning_type)
@@ -205,8 +238,14 @@ def deprecated(since, message='', name='', alternative='', pending=False,
     return deprecate
 
 
-def deprecated_attribute(name, since, message=None, alternative=None,
-                         pending=False, warning_type=AstropyDeprecationWarning):
+def deprecated_attribute(
+    name,
+    since,
+    message=None,
+    alternative=None,
+    pending=False,
+    warning_type=AstropyDeprecationWarning,
+):
     """
     Used to mark a public attribute as deprecated.  This creates a
     property that will warn when the given attribute name is accessed.
@@ -265,10 +304,15 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     """
     private_name = alternative or "_" + name
 
-    specific_deprecated = deprecated(since, name=name, obj_type='attribute',
-                                     message=message, alternative=alternative,
-                                     pending=pending,
-                                     warning_type=warning_type)
+    specific_deprecated = deprecated(
+        since,
+        name=name,
+        obj_type="attribute",
+        message=message,
+        alternative=alternative,
+        pending=pending,
+        warning_type=warning_type,
+    )
 
     @specific_deprecated
     def get(self):
@@ -285,11 +329,17 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     return property(get, set, delete)
 
 
-def deprecated_renamed_argument(old_name, new_name, since,
-                                arg_in_kwargs=False, relax=False,
-                                pending=False,
-                                warning_type=AstropyDeprecationWarning,
-                                alternative='', message=''):
+def deprecated_renamed_argument(
+    old_name,
+    new_name,
+    since,
+    arg_in_kwargs=False,
+    relax=False,
+    pending=False,
+    warning_type=AstropyDeprecationWarning,
+    alternative="",
+    message="",
+):
     """Deprecate a _renamed_ or _removed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -470,8 +520,9 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 else:
                     raise TypeError(
                         f'"{new_name[i]}" was not specified in the function '
-                        'signature. If it was meant to be part of '
-                        '"**kwargs" then set "arg_in_kwargs" to "True"')
+                        "signature. If it was meant to be part of "
+                        '"**kwargs" then set "arg_in_kwargs" to "True"'
+                    )
 
                 # There are several possibilities now:
 
@@ -490,15 +541,19 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # 3.) positional-only argument, varargs, varkwargs or some
                 #     unknown type:
                 else:
-                    raise TypeError(f'cannot replace argument "{new_name[i]}" '
-                                    f'of kind {repr(param.kind)}.')
+                    raise TypeError(
+                        f'cannot replace argument "{new_name[i]}" '
+                        f"of kind {repr(param.kind)}."
+                    )
 
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             for i in range(n):
-                msg = message[i] or (f'"{old_name[i]}" was deprecated in '
-                                     f'version {since[i]} and will be removed '
-                                     'in a future version. ')
+                msg = message[i] or (
+                    f'"{old_name[i]}" was deprecated in '
+                    f"version {since[i]} and will be removed "
+                    "in a future version. "
+                )
                 # The only way to have oldkeyword inside the function is
                 # that it is passed as kwarg because the oldkeyword
                 # parameter was renamed to newkeyword.
@@ -511,12 +566,11 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             if new_name[i] is not None:
                                 msg += f'Use argument "{new_name[i]}" instead.'
                             elif alternative:
-                                msg += f'\n        Use {alternative} instead.'
+                                msg += f"\n        Use {alternative} instead."
                         warnings.warn(msg, warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
-                    newarg_in_args = (position[i] is not None and
-                                      len(args) > position[i])
+                    newarg_in_args = position[i] is not None and len(args) > position[i]
                     newarg_in_kwargs = new_name[i] in kwargs
 
                     if newarg_in_args or newarg_in_kwargs:
@@ -526,13 +580,15 @@ def deprecated_renamed_argument(old_name, new_name, since,
                             if relax[i]:
                                 warnings.warn(
                                     f'"{old_name[i]}" and "{new_name[i]}" '
-                                    'keywords were set. '
+                                    "keywords were set. "
                                     f'Using the value of "{new_name[i]}".',
-                                    AstropyUserWarning)
+                                    AstropyUserWarning,
+                                )
                             else:
                                 raise TypeError(
                                     f'cannot specify both "{old_name[i]}" and '
-                                    f'"{new_name[i]}".')
+                                    f'"{new_name[i]}".'
+                                )
                     else:
                         # Pass the value of the old argument with the
                         # name of the new argument to the function
@@ -545,15 +601,20 @@ def deprecated_renamed_argument(old_name, new_name, since,
 
                 # Deprecated keyword without replacement is given as
                 # positional argument.
-                elif (not pending[i] and not new_name[i] and position[i] and
-                      len(args) > position[i]):
+                elif (
+                    not pending[i]
+                    and not new_name[i]
+                    and position[i]
+                    and len(args) > position[i]
+                ):
                     if alternative and not message[i]:
-                        msg += f'\n        Use {alternative} instead.'
+                        msg += f"\n        Use {alternative} instead."
                     warnings.warn(msg, warning_type, stacklevel=2)
 
             return function(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -672,7 +733,7 @@ class classproperty(property):
     def __init__(self, fget, doc=None, lazy=False):
         self._lazy = lazy
         if lazy:
-            self._lock = threading.RLock()   # Protects _cache
+            self._lock = threading.RLock()  # Protects _cache
             self._cache = {}
         fget = self._wrap_fget(fget)
 
@@ -709,12 +770,14 @@ class classproperty(property):
     def setter(self, fset):
         raise NotImplementedError(
             "classproperty can only be read-only; use a metaclass to "
-            "implement modifiable class-level properties")
+            "implement modifiable class-level properties"
+        )
 
     def deleter(self, fdel):
         raise NotImplementedError(
             "classproperty can only be read-only; use a metaclass to "
-            "implement modifiable class-level properties")
+            "implement modifiable class-level properties"
+        )
 
     @staticmethod
     def _wrap_fget(orig_fget):
@@ -804,7 +867,7 @@ class lazyproperty(property):
     def __delete__(self, obj):
         if self.fdel:
             self.fdel(obj)
-        obj.__dict__.pop(self._key, None)    # Delete if present
+        obj.__dict__.pop(self._key, None)  # Delete if present
 
 
 class sharedmethod(classmethod):
@@ -1069,6 +1132,7 @@ def format_doc(docstring, *args, **kwargs):
     on an object to first parse the new docstring and then to parse the
     original docstring or the ``args`` and ``kwargs``.
     """
+
     def set_docstring(obj):
         if docstring is None:
             # None means: use the objects __doc__
@@ -1085,12 +1149,15 @@ def format_doc(docstring, *args, **kwargs):
 
         if not doc:
             # In case the docstring is empty it's probably not what was wanted.
-            raise ValueError('docstring must be a string or containing a '
-                             'docstring that is not empty.')
+            raise ValueError(
+                "docstring must be a string or containing a "
+                "docstring that is not empty."
+            )
 
         # If the original has a not-empty docstring append it to the format
         # kwargs.
-        kwargs['__doc__'] = obj.__doc__ or ''
+        kwargs["__doc__"] = obj.__doc__ or ""
         obj.__doc__ = doc.format(*args, **kwargs)
         return obj
+
     return set_docstring

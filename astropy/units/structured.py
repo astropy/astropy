@@ -12,10 +12,10 @@ import numpy as np
 from .core import Unit, UnitBase, UNITY
 
 
-__all__ = ['StructuredUnit']
+__all__ = ["StructuredUnit"]
 
 
-DTYPE_OBJECT = np.dtype('O')
+DTYPE_OBJECT = np.dtype("O")
 
 
 def _names_from_dtype(dtype):
@@ -42,19 +42,29 @@ def _normalize_names(names):
     for name in names:
         if isinstance(name, str) and len(name) > 0:
             result.append(name)
-        elif (isinstance(name, list)
-              and len(name) == 2
-              and isinstance(name[0], str) and len(name[0]) > 0
-              and isinstance(name[1], tuple) and len(name[1]) > 0):
+        elif (
+            isinstance(name, list)
+            and len(name) == 2
+            and isinstance(name[0], str)
+            and len(name[0]) > 0
+            and isinstance(name[1], tuple)
+            and len(name[1]) > 0
+        ):
             result.append([name[0], _normalize_names(name[1])])
         elif isinstance(name, tuple) and len(name) > 0:
             new_tuple = _normalize_names(name)
-            result.append([''.join([(i[0] if isinstance(i, list) else i)
-                                    for i in new_tuple]), new_tuple])
+            result.append(
+                [
+                    "".join([(i[0] if isinstance(i, list) else i) for i in new_tuple]),
+                    new_tuple,
+                ]
+            )
         else:
-            raise ValueError(f'invalid entry {name!r}. Should be a name, '
-                             'tuple of names, or 2-element list of the '
-                             'form [name, tuple of names].')
+            raise ValueError(
+                f"invalid entry {name!r}. Should be a name, "
+                "tuple of names, or 2-element list of the "
+                "form [name, tuple of names]."
+            )
 
     return tuple(result)
 
@@ -120,6 +130,7 @@ class StructuredUnit:
         Unit("((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)")
 
     """
+
     def __new__(cls, units, names=None):
         dtype = None
         if names is not None:
@@ -128,7 +139,7 @@ class StructuredUnit:
                 names = names.field_names
             elif isinstance(names, np.dtype):
                 if not names.fields:
-                    raise ValueError('dtype should be structured, with fields.')
+                    raise ValueError("dtype should be structured, with fields.")
                 dtype = np.dtype([(name, DTYPE_OBJECT) for name in names.names])
                 names = _names_from_dtype(names)
             else:
@@ -151,7 +162,7 @@ class StructuredUnit:
                 units = (units,)
 
         if names is None:
-            names = tuple(f'f{i}' for i in range(len(units)))
+            names = tuple(f"f{i}" for i in range(len(units)))
 
         elif len(units) != len(names):
             raise ValueError("lengths of units and field names must match.")
@@ -167,15 +178,21 @@ class StructuredUnit:
                 # We are at the lowest level.  Check unit.
                 unit = Unit(unit)
                 if dtype is not None and isinstance(unit, StructuredUnit):
-                    raise ValueError("units do not match in depth with field "
-                                     "names from dtype or structured unit.")
+                    raise ValueError(
+                        "units do not match in depth with field "
+                        "names from dtype or structured unit."
+                    )
 
             converted.append(unit)
 
         self = super().__new__(cls)
         if dtype is None:
-            dtype = np.dtype([((name[0] if isinstance(name, list) else name),
-                               DTYPE_OBJECT) for name in names])
+            dtype = np.dtype(
+                [
+                    ((name[0] if isinstance(name, list) else name), DTYPE_OBJECT)
+                    for name in names
+                ]
+            )
         # Decay array to void so we can access by field name and number.
         self._units = np.array(tuple(converted), dtype)[()]
         return self
@@ -187,9 +204,10 @@ class StructuredUnit:
     @property
     def field_names(self):
         """Possibly nested tuple of the field names of the parts."""
-        return tuple(([name, unit.field_names]
-                      if isinstance(unit, StructuredUnit) else name)
-                     for name, unit in self.items())
+        return tuple(
+            ([name, unit.field_names] if isinstance(unit, StructuredUnit) else name)
+            for name, unit in self.items()
+        )
 
     # Allow StructuredUnit to be treated as an (ordered) mapping.
     def __len__(self):
@@ -224,8 +242,9 @@ class StructuredUnit:
             If given, should be a subclass of `~numpy.void`. By default,
             will return a new `~astropy.units.StructuredUnit` instance.
         """
-        results = np.array(tuple([func(part) for part in self.values()]),
-                           self._units.dtype)[()]
+        results = np.array(
+            tuple([func(part) for part in self.values()]), self._units.dtype
+        )[()]
         if cls is not None:
             return results.view((cls, results.dtype))
 
@@ -257,13 +276,14 @@ class StructuredUnit:
         for (name, unit), part in zip(self.items(), value):
             if isinstance(unit, StructuredUnit):
                 descr.append(
-                    (name, unit._recursively_get_dtype(part, enter_lists=False)))
+                    (name, unit._recursively_get_dtype(part, enter_lists=False))
+                )
             else:
                 # Got a part associated with a regular unit. Gets its dtype.
                 # Like for Quantity, we cast integers to float.
                 part = np.array(part)
                 part_dtype = part.dtype
-                if part_dtype.kind in 'iu':
+                if part_dtype.kind in "iu":
                     part_dtype = np.dtype(float)
                 descr.append((name, part_dtype, part.shape))
         return np.dtype(descr)
@@ -271,23 +291,25 @@ class StructuredUnit:
     @property
     def si(self):
         """The `StructuredUnit` instance in SI units."""
-        return self._recursively_apply(operator.attrgetter('si'))
+        return self._recursively_apply(operator.attrgetter("si"))
 
     @property
     def cgs(self):
         """The `StructuredUnit` instance in cgs units."""
-        return self._recursively_apply(operator.attrgetter('cgs'))
+        return self._recursively_apply(operator.attrgetter("cgs"))
 
     # Needed to pass through Unit initializer, so might as well use it.
     def _get_physical_type_id(self):
         return self._recursively_apply(
-            operator.methodcaller('_get_physical_type_id'), cls=Structure)
+            operator.methodcaller("_get_physical_type_id"), cls=Structure
+        )
 
     @property
     def physical_type(self):
         """Physical types of all the fields."""
         return self._recursively_apply(
-            operator.attrgetter('physical_type'), cls=Structure)
+            operator.attrgetter("physical_type"), cls=Structure
+        )
 
     def decompose(self, bases=set()):
         """The `StructuredUnit` composed of only irreducible units.
@@ -306,8 +328,7 @@ class StructuredUnit:
         `~astropy.units.StructuredUnit`
             With the unit for each field containing only irreducible units.
         """
-        return self._recursively_apply(
-            operator.methodcaller('decompose', bases=bases))
+        return self._recursively_apply(operator.methodcaller("decompose", bases=bases))
 
     def is_equivalent(self, other, equivalencies=[]):
         """`True` if all fields are equivalent to the other's fields.
@@ -334,8 +355,7 @@ class StructuredUnit:
             return False
 
         for self_part, other_part in zip(self.values(), other.values()):
-            if not self_part.is_equivalent(other_part,
-                                           equivalencies=equivalencies):
+            if not self_part.is_equivalent(other_part, equivalencies=equivalencies):
                 return False
 
         return True
@@ -344,13 +364,13 @@ class StructuredUnit:
         if not isinstance(other, type(self)):
             other = self.__class__(other, names=self)
 
-        converters = [self_part._get_converter(other_part,
-                                               equivalencies=equivalencies)
-                      for (self_part, other_part) in zip(self.values(),
-                                                         other.values())]
+        converters = [
+            self_part._get_converter(other_part, equivalencies=equivalencies)
+            for (self_part, other_part) in zip(self.values(), other.values())
+        ]
 
         def converter(value):
-            if not hasattr(value, 'dtype'):
+            if not hasattr(value, "dtype"):
                 value = np.array(value, self._recursively_get_dtype(value))
             result = np.empty_like(value)
             for name, converter_ in zip(result.dtype.names, converters):
@@ -397,7 +417,7 @@ class StructuredUnit:
             value = UNITY
         return self._get_converter(other, equivalencies=equivalencies)(value)
 
-    def to_string(self, format='generic'):
+    def to_string(self, format="generic"):
         """Output the unit in the given format as a string.
 
         Units are separated by commas.
@@ -415,22 +435,22 @@ class StructuredUnit:
 
         """
         parts = [part.to_string(format) for part in self.values()]
-        out_fmt = '({})' if len(self) > 1 else '({},)'
-        if format == 'latex':
+        out_fmt = "({})" if len(self) > 1 else "({},)"
+        if format == "latex":
             # Strip $ from parts and add them on the outside.
             parts = [part[1:-1] for part in parts]
-            out_fmt = '$' + out_fmt + '$'
-        return out_fmt.format(', '.join(parts))
+            out_fmt = "$" + out_fmt + "$"
+        return out_fmt.format(", ".join(parts))
 
     def _repr_latex_(self):
-        return self.to_string('latex')
+        return self.to_string("latex")
 
     __array_ufunc__ = None
 
     def __mul__(self, other):
         if isinstance(other, str):
             try:
-                other = Unit(other, parse_strict='silent')
+                other = Unit(other, parse_strict="silent")
             except Exception:
                 return NotImplemented
         if isinstance(other, UnitBase):
@@ -442,6 +462,7 @@ class StructuredUnit:
         # Anything not like a unit, try initialising as a structured quantity.
         try:
             from .quantity import Quantity
+
             return Quantity(other, unit=self)
         except Exception:
             return NotImplemented
@@ -452,7 +473,7 @@ class StructuredUnit:
     def __truediv__(self, other):
         if isinstance(other, str):
             try:
-                other = Unit(other, parse_strict='silent')
+                other = Unit(other, parse_strict="silent")
             except Exception:
                 return NotImplemented
 
@@ -464,6 +485,7 @@ class StructuredUnit:
     def __rlshift__(self, m):
         try:
             from .quantity import Quantity
+
             return Quantity(m, self, copy=False, subok=True)
         except Exception:
             return NotImplemented
@@ -501,6 +523,7 @@ class Structure(np.void):
     `FutureWarning` about comparisons is given.
 
     """
+
     # Note that it is important for physical type IDs to not be stored in a
     # tuple, since then the physical types would be treated as alternatives in
     # :meth:`~astropy.units.UnitBase.is_equivalent`.  (Of course, in that

@@ -5,9 +5,12 @@ from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.time import Time
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import (BaseCoordinateFrame,
-                                           RepresentationMapping,
-                                           frame_transform_graph, base_doc)
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    frame_transform_graph,
+    base_doc,
+)
 from astropy.coordinates.transformations import AffineTransform
 from astropy.coordinates.attributes import DifferentialAttribute
 
@@ -17,11 +20,11 @@ from .galactic import Galactic
 from .fk4 import FK4
 
 # For speed
-J2000 = Time('J2000')
+J2000 = Time("J2000")
 
-v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25]*u.km/u.s)
+v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25] * u.km / u.s)
 
-__all__ = ['LSR', 'GalacticLSR', 'LSRK', 'LSRD']
+__all__ = ["LSR", "GalacticLSR", "LSRK", "LSRD"]
 
 
 doc_footer_lsr = """
@@ -59,8 +62,9 @@ class LSR(BaseRADecFrame):
     """
 
     # frame attributes:
-    v_bary = DifferentialAttribute(default=v_bary_Schoenrich2010,
-                                   allowed_classes=[r.CartesianDifferential])
+    v_bary = DifferentialAttribute(
+        default=v_bary_Schoenrich2010, allowed_classes=[r.CartesianDifferential]
+    )
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
@@ -68,7 +72,7 @@ def icrs_to_lsr(icrs_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
     v_bary_icrs = v_bary_gal.transform_to(icrs_coord)
     v_offset = v_bary_icrs.data.represent_as(r.CartesianDifferential)
-    offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=v_offset)
+    offset = r.CartesianRepresentation([0, 0, 0] * u.au, differentials=v_offset)
     return None, offset
 
 
@@ -77,7 +81,7 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
     v_bary_icrs = v_bary_gal.transform_to(icrs_frame)
     v_offset = v_bary_icrs.data.represent_as(r.CartesianDifferential)
-    offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-v_offset)
+    offset = r.CartesianRepresentation([0, 0, 0] * u.au, differentials=-v_offset)
     return None, offset
 
 
@@ -134,8 +138,8 @@ class GalacticLSR(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'l'),
-            RepresentationMapping('lat', 'b')
+            RepresentationMapping("lon", "l"),
+            RepresentationMapping("lat", "b"),
         ]
     }
 
@@ -150,7 +154,7 @@ class GalacticLSR(BaseCoordinateFrame):
 def galactic_to_galacticlsr(galactic_coord, lsr_frame):
     v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
     v_offset = v_bary_gal.data.represent_as(r.CartesianDifferential)
-    offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=v_offset)
+    offset = r.CartesianRepresentation([0, 0, 0] * u.au, differentials=v_offset)
     return None, offset
 
 
@@ -158,7 +162,7 @@ def galactic_to_galacticlsr(galactic_coord, lsr_frame):
 def galacticlsr_to_galactic(lsr_coord, galactic_frame):
     v_bary_gal = Galactic(lsr_coord.v_bary.to_cartesian())
     v_offset = v_bary_gal.data.represent_as(r.CartesianDifferential)
-    offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-v_offset)
+    offset = r.CartesianRepresentation([0, 0, 0] * u.au, differentials=-v_offset)
     return None, offset
 
 
@@ -195,12 +199,16 @@ class LSRK(BaseRADecFrame):
 # V_OFFSET_LSRK = ((GORDON1975_V_BARY * GORDON1975_DIRECTION.transform_to(ICRS()).data)
 #                  .represent_as(r.CartesianDifferential))
 
-V_OFFSET_LSRK = r.CartesianDifferential([0.28999706839034606,
-                                         -17.317264789717928,
-                                         10.00141199546947]*u.km/u.s)
+V_OFFSET_LSRK = r.CartesianDifferential(
+    [0.28999706839034606, -17.317264789717928, 10.00141199546947] * u.km / u.s
+)
 
-ICRS_LSRK_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=V_OFFSET_LSRK)
-LSRK_ICRS_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-V_OFFSET_LSRK)
+ICRS_LSRK_OFFSET = r.CartesianRepresentation(
+    [0, 0, 0] * u.au, differentials=V_OFFSET_LSRK
+)
+LSRK_ICRS_OFFSET = r.CartesianRepresentation(
+    [0, 0, 0] * u.au, differentials=-V_OFFSET_LSRK
+)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSRK)
@@ -246,12 +254,16 @@ class LSRD(BaseRADecFrame):
 # V_OFFSET_LSRD = (Galactic(V_BARY_DELHAYE1965.to_cartesian()).transform_to(ICRS()).data
 #                  .represent_as(r.CartesianDifferential))
 
-V_OFFSET_LSRD = r.CartesianDifferential([-0.6382306360182073,
-                                         -14.585424483191094,
-                                         7.8011572411006815]*u.km/u.s)
+V_OFFSET_LSRD = r.CartesianDifferential(
+    [-0.6382306360182073, -14.585424483191094, 7.8011572411006815] * u.km / u.s
+)
 
-ICRS_LSRD_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=V_OFFSET_LSRD)
-LSRD_ICRS_OFFSET = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-V_OFFSET_LSRD)
+ICRS_LSRD_OFFSET = r.CartesianRepresentation(
+    [0, 0, 0] * u.au, differentials=V_OFFSET_LSRD
+)
+LSRD_ICRS_OFFSET = r.CartesianRepresentation(
+    [0, 0, 0] * u.au, differentials=-V_OFFSET_LSRD
+)
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSRD)

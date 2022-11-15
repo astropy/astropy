@@ -25,26 +25,28 @@ from .ticklabels import TickLabels
 from .axislabels import AxisLabels
 from .grid_paths import get_lon_lat_path, get_gridline_path
 
-__all__ = ['CoordinateHelper']
+__all__ = ["CoordinateHelper"]
 
 
 # Matplotlib's gridlines use Line2D, but ours use PathPatch.
 # Patches take a slightly different format of linestyle argument.
-LINES_TO_PATCHES_LINESTYLE = {'-': 'solid',
-                              '--': 'dashed',
-                              '-.': 'dashdot',
-                              ':': 'dotted',
-                              'none': 'none',
-                              'None': 'none',
-                              ' ': 'none',
-                              '': 'none'}
+LINES_TO_PATCHES_LINESTYLE = {
+    "-": "solid",
+    "--": "dashed",
+    "-.": "dashdot",
+    ":": "dotted",
+    "none": "none",
+    "None": "none",
+    " ": "none",
+    "": "none",
+}
 
 
 def wrap_angle_at(values, coord_wrap):
     # On ARM processors, np.mod emits warnings if there are NaN values in the
     # array, although this doesn't seem to happen on other processors.
-    with np.errstate(invalid='ignore'):
-        return np.mod(values - coord_wrap, 360.) - (360. - coord_wrap)
+    with np.errstate(invalid="ignore"):
+        return np.mod(values - coord_wrap, 360.0) - (360.0 - coord_wrap)
 
 
 class CoordinateHelper:
@@ -79,10 +81,19 @@ class CoordinateHelper:
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
 
-    def __init__(self, parent_axes=None, parent_map=None, transform=None,
-                 coord_index=None, coord_type='scalar', coord_unit=None,
-                 coord_wrap=None, frame=None, format_unit=None, default_label=None):
-
+    def __init__(
+        self,
+        parent_axes=None,
+        parent_map=None,
+        transform=None,
+        coord_index=None,
+        coord_type="scalar",
+        coord_unit=None,
+        coord_wrap=None,
+        frame=None,
+        format_unit=None,
+        default_label=None,
+    ):
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
         self.parent_map = parent_map
@@ -91,7 +102,7 @@ class CoordinateHelper:
         self.coord_unit = coord_unit
         self._format_unit = format_unit
         self.frame = frame
-        self.default_label = default_label or ''
+        self.default_label = default_label or ""
         self._auto_axislabel = True
         # Disable auto label for elliptical frames as it puts labels in
         # annoying places.
@@ -106,29 +117,35 @@ class CoordinateHelper:
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
 
         # Initialize tick labels
-        self.ticklabels = TickLabels(self.frame,
-                                     transform=None,  # display coordinates
-                                     figure=parent_axes.get_figure())
-        self.ticks.display_minor_ticks(rcParams['xtick.minor.visible'])
+        self.ticklabels = TickLabels(
+            self.frame,
+            transform=None,  # display coordinates
+            figure=parent_axes.get_figure(),
+        )
+        self.ticks.display_minor_ticks(rcParams["xtick.minor.visible"])
         self.minor_frequency = 5
 
         # Initialize axis labels
-        self.axislabels = AxisLabels(self.frame,
-                                     transform=None,  # display coordinates
-                                     figure=parent_axes.get_figure())
+        self.axislabels = AxisLabels(
+            self.frame,
+            transform=None,  # display coordinates
+            figure=parent_axes.get_figure(),
+        )
 
         # Initialize container for the grid lines
         self.grid_lines = []
 
         # Initialize grid style. Take defaults from matplotlib.rcParams.
         # Based on matplotlib.axis.YTick._get_gridline.
-        self.grid_lines_kwargs = {'visible': False,
-                                  'facecolor': 'none',
-                                  'edgecolor': rcParams['grid.color'],
-                                  'linestyle': LINES_TO_PATCHES_LINESTYLE[rcParams['grid.linestyle']],
-                                  'linewidth': rcParams['grid.linewidth'],
-                                  'alpha': rcParams['grid.alpha'],
-                                  'transform': self.parent_axes.transData}
+        self.grid_lines_kwargs = {
+            "visible": False,
+            "facecolor": "none",
+            "edgecolor": rcParams["grid.color"],
+            "linestyle": LINES_TO_PATCHES_LINESTYLE[rcParams["grid.linestyle"]],
+            "linewidth": rcParams["grid.linewidth"],
+            "alpha": rcParams["grid.alpha"],
+            "transform": self.parent_axes.transData,
+        }
 
     def grid(self, draw_grid=True, grid_type=None, **kwargs):
         """
@@ -152,28 +169,30 @@ class CoordinateHelper:
             an inverse, otherwise 'contours' is used.
         """
 
-        if grid_type == 'lines' and not self.transform.has_inverse:
-            raise ValueError('The specified transform has no inverse, so the '
-                             'grid cannot be drawn using grid_type=\'lines\'')
+        if grid_type == "lines" and not self.transform.has_inverse:
+            raise ValueError(
+                "The specified transform has no inverse, so the "
+                "grid cannot be drawn using grid_type='lines'"
+            )
 
         if grid_type is None:
-            grid_type = 'lines' if self.transform.has_inverse else 'contours'
+            grid_type = "lines" if self.transform.has_inverse else "contours"
 
-        if grid_type in ('lines', 'contours'):
+        if grid_type in ("lines", "contours"):
             self._grid_type = grid_type
         else:
             raise ValueError("grid_type should be 'lines' or 'contours'")
 
-        if 'color' in kwargs:
-            kwargs['edgecolor'] = kwargs.pop('color')
+        if "color" in kwargs:
+            kwargs["edgecolor"] = kwargs.pop("color")
 
         self.grid_lines_kwargs.update(kwargs)
 
-        if self.grid_lines_kwargs['visible']:
+        if self.grid_lines_kwargs["visible"]:
             if not draw_grid:
-                self.grid_lines_kwargs['visible'] = False
+                self.grid_lines_kwargs["visible"] = False
         else:
-            self.grid_lines_kwargs['visible'] = True
+            self.grid_lines_kwargs["visible"] = True
 
     def set_coord_type(self, coord_type, coord_wrap=None):
         """
@@ -189,27 +208,31 @@ class CoordinateHelper:
 
         self.coord_type = coord_type
 
-        if coord_type == 'longitude' and coord_wrap is None:
+        if coord_type == "longitude" and coord_wrap is None:
             self.coord_wrap = 360
-        elif coord_type != 'longitude' and coord_wrap is not None:
-            raise NotImplementedError('coord_wrap is not yet supported '
-                                      'for non-longitude coordinates')
+        elif coord_type != "longitude" and coord_wrap is not None:
+            raise NotImplementedError(
+                "coord_wrap is not yet supported for non-longitude coordinates"
+            )
         else:
             self.coord_wrap = coord_wrap
 
         # Initialize tick formatter/locator
-        if coord_type == 'scalar':
+        if coord_type == "scalar":
             self._coord_scale_to_deg = None
             self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
-        elif coord_type in ['longitude', 'latitude']:
+        elif coord_type in ["longitude", "latitude"]:
             if self.coord_unit is u.deg:
                 self._coord_scale_to_deg = None
             else:
                 self._coord_scale_to_deg = self.coord_unit.to(u.deg)
-            self._formatter_locator = AngleFormatterLocator(unit=self.coord_unit,
-                                                            format_unit=self._format_unit)
+            self._formatter_locator = AngleFormatterLocator(
+                unit=self.coord_unit, format_unit=self._format_unit
+            )
         else:
-            raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
+            raise ValueError(
+                "coord_type should be one of 'scalar', 'longitude', or 'latitude'"
+            )
 
     def set_major_formatter(self, formatter):
         """
@@ -225,10 +248,9 @@ class CoordinateHelper:
         elif isinstance(formatter, str):
             self._formatter_locator.format = formatter
         else:
-            raise TypeError("formatter should be a string or a Formatter "
-                            "instance")
+            raise TypeError("formatter should be a string or a Formatter instance")
 
-    def format_coord(self, value, format='auto'):
+    def format_coord(self, value, format="auto"):
         """
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
@@ -248,12 +270,11 @@ class CoordinateHelper:
 
         fl = self._formatter_locator
         if isinstance(fl, AngleFormatterLocator):
-
             # Convert to degrees if needed
             if self._coord_scale_to_deg is not None:
                 value *= self._coord_scale_to_deg
 
-            if self.coord_type == 'longitude':
+            if self.coord_type == "longitude":
                 value = wrap_angle_at(value, self.coord_wrap)
             value = value * u.degree
             value = value.to_value(fl._unit)
@@ -305,9 +326,18 @@ class CoordinateHelper:
         """
         return self._formatter_locator.format_unit
 
-    def set_ticks(self, values=None, spacing=None, number=None, size=None,
-                  width=None, color=None, alpha=None, direction=None,
-                  exclude_overlapping=None):
+    def set_ticks(
+        self,
+        values=None,
+        spacing=None,
+        number=None,
+        size=None,
+        width=None,
+        color=None,
+        alpha=None,
+        direction=None,
+        exclude_overlapping=None,
+    ):
         """
         Set the location and properties of the ticks.
 
@@ -333,8 +363,9 @@ class CoordinateHelper:
         """
 
         if sum([values is None, spacing is None, number is None]) < 2:
-            raise ValueError("At most one of values, spacing, or number should "
-                             "be specified")
+            raise ValueError(
+                "At most one of values, spacing, or number should be specified"
+            )
 
         if values is not None:
             self._formatter_locator.values = values
@@ -356,15 +387,17 @@ class CoordinateHelper:
             self.ticks.set_alpha(alpha)
 
         if direction is not None:
-            if direction in ('in', 'out'):
-                self.ticks.set_tick_out(direction == 'out')
+            if direction in ("in", "out"):
+                self.ticks.set_tick_out(direction == "out")
             else:
                 raise ValueError("direction should be 'in' or 'out'")
 
         if exclude_overlapping is not None:
-            warnings.warn("exclude_overlapping= should be passed to "
-                          "set_ticklabel instead of set_ticks",
-                          AstropyDeprecationWarning)
+            warnings.warn(
+                "exclude_overlapping= should be passed to "
+                "set_ticklabel instead of set_ticks",
+                AstropyDeprecationWarning,
+            )
             self.ticklabels.set_exclude_overlapping(exclude_overlapping)
 
     def set_ticks_position(self, position):
@@ -393,8 +426,9 @@ class CoordinateHelper:
         """
         self.ticks.set_visible(visible)
 
-    def set_ticklabel(self, color=None, size=None, pad=None,
-                      exclude_overlapping=None, **kwargs):
+    def set_ticklabel(
+        self, color=None, size=None, pad=None, exclude_overlapping=None, **kwargs
+    ):
         """
         Set the visual properties for the tick labels.
 
@@ -462,7 +496,7 @@ class CoordinateHelper:
             can include keywords to set the ``color``, ``size``, ``weight``, and
             other text properties.
         """
-        fontdict = kwargs.pop('fontdict', None)
+        fontdict = kwargs.pop("fontdict", None)
 
         # NOTE: When using plt.xlabel/plt.ylabel, minpad can get set explicitly
         # to None so we need to make sure that in that case we change to a
@@ -513,7 +547,7 @@ class CoordinateHelper:
     def _get_default_axislabel(self):
         unit = self.get_format_unit() or self.coord_unit
 
-        if not unit or unit is u.one or self.coord_type in ('longitude', 'latitude'):
+        if not unit or unit is u.one or self.coord_type in ("longitude", "latitude"):
             return f"{self.default_label}"
         else:
             return f"{self.default_label} [{unit:latex}]"
@@ -561,22 +595,20 @@ class CoordinateHelper:
         return self._formatter_locator.formatter
 
     def _draw_grid(self, renderer):
-
-        renderer.open_group('grid lines')
+        renderer.open_group("grid lines")
 
         self._update_ticks()
 
-        if self.grid_lines_kwargs['visible']:
+        if self.grid_lines_kwargs["visible"]:
             if isinstance(self.frame, RectangularFrame1D):
                 self._update_grid_lines_1d()
             else:
-                if self._grid_type == 'lines':
+                if self._grid_type == "lines":
                     self._update_grid_lines()
                 else:
                     self._update_grid_contour()
 
-            if self._grid_type == 'lines':
-
+            if self._grid_type == "lines":
                 frame_patch = self.frame.patch
                 for path in self.grid_lines:
                     p = PathPatch(path, **self.grid_lines_kwargs)
@@ -584,43 +616,47 @@ class CoordinateHelper:
                     p.draw(renderer)
 
             elif self._grid is not None:
-
                 for line in self._grid.collections:
                     line.set(**self.grid_lines_kwargs)
                     line.draw(renderer)
 
-        renderer.close_group('grid lines')
+        renderer.close_group("grid lines")
 
     def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
         """
         Draw all ticks and ticklabels.
         """
 
-        renderer.open_group('ticks')
+        renderer.open_group("ticks")
         self.ticks.draw(renderer)
-        self.ticklabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox,
-                             tick_out_size=self.ticks.out_size)
+        self.ticklabels.draw(
+            renderer,
+            bboxes=bboxes,
+            ticklabels_bbox=ticklabels_bbox,
+            tick_out_size=self.ticks.out_size,
+        )
 
-        renderer.close_group('ticks')
+        renderer.close_group("ticks")
 
     def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
         # Render the default axis label if no axis label is set.
         if self._auto_axislabel and not self.get_axislabel():
             self.set_axislabel(self._get_default_axislabel())
 
-        renderer.open_group('axis labels')
+        renderer.open_group("axis labels")
 
-        self.axislabels.draw(renderer, bboxes=bboxes,
-                             ticklabels_bbox=ticklabels_bbox,
-                             coord_ticklabels_bbox=ticklabels_bbox[self],
-                             ticks_locs=self.ticks.ticks_locs,
-                             visible_ticks=visible_ticks)
+        self.axislabels.draw(
+            renderer,
+            bboxes=bboxes,
+            ticklabels_bbox=ticklabels_bbox,
+            coord_ticklabels_bbox=ticklabels_bbox[self],
+            ticks_locs=self.ticks.ticks_locs,
+            visible_ticks=visible_ticks,
+        )
 
-        renderer.close_group('axis labels')
+        renderer.close_group("axis labels")
 
     def _update_ticks(self):
-
         if self.coord_index is None:
             return
 
@@ -635,14 +671,21 @@ class CoordinateHelper:
         coord_range = self.parent_map.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates, self._fl_spacing = self.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, self._fl_spacing = self.locator(
+            *coord_range[self.coord_index]
+        )
 
         if self.ticks.get_display_minor_ticks():
-            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
+            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(
+                self._fl_spacing,
+                self.get_minor_frequency(),
+                *coord_range[self.coord_index],
+            )
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
         from . import conf
+
         frame = self.frame.sample(conf.frame_boundary_samples)
 
         self.ticks.clear()
@@ -657,14 +700,13 @@ class CoordinateHelper:
         invertedTransLimits = transData.inverted()
 
         for axis, spine in frame.items():
-
             if not isinstance(self.frame, RectangularFrame1D):
                 # Determine tick rotation in display coordinates and compare to
                 # the normal angle in display coordinates.
 
                 pixel0 = spine.data
                 world0 = spine.world[:, self.coord_index]
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     world0 = self.transform.transform(pixel0)[:, self.coord_index]
                 axes0 = transData.transform(pixel0)
 
@@ -672,43 +714,45 @@ class CoordinateHelper:
                 pixel1 = axes0.copy()
                 pixel1[:, 0] += 2.0
                 pixel1 = invertedTransLimits.transform(pixel1)
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     world1 = self.transform.transform(pixel1)[:, self.coord_index]
 
                 # Advance 2 pixels in figure coordinates
                 pixel2 = axes0.copy()
-                pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
+                pixel2[:, 1] += 2.0 if self.frame.origin == "lower" else -2.0
                 pixel2 = invertedTransLimits.transform(pixel2)
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     world2 = self.transform.transform(pixel2)[:, self.coord_index]
 
-                dx = (world1 - world0)
-                dy = (world2 - world0)
+                dx = world1 - world0
+                dy = world2 - world0
 
                 # Rotate by 90 degrees
                 dx, dy = -dy, dx
 
-                if self.coord_type == 'longitude':
-
+                if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         dx *= self._coord_scale_to_deg
                         dy *= self._coord_scale_to_deg
 
                     # Here we wrap at 180 not self.coord_wrap since we want to
                     # always ensure abs(dx) < 180 and abs(dy) < 180
-                    dx = wrap_angle_at(dx, 180.)
-                    dy = wrap_angle_at(dy, 180.)
+                    dx = wrap_angle_at(dx, 180.0)
+                    dy = wrap_angle_at(dy, 180.0)
 
                 tick_angle = np.degrees(np.arctan2(dy, dx))
 
-                normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
-                with np.errstate(invalid='ignore'):
-                    reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
-                            ((tick_angle - normal_angle_full) % 360 > 90.))
-                tick_angle[reset] -= 180.
+                normal_angle_full = np.hstack(
+                    [spine.normal_angle, spine.normal_angle[-1]]
+                )
+                with np.errstate(invalid="ignore"):
+                    reset = ((normal_angle_full - tick_angle) % 360 > 90.0) & (
+                        (tick_angle - normal_angle_full) % 360 > 90.0
+                    )
+                tick_angle[reset] -= 180.0
 
             else:
-                rotation = 90 if axis == 'b' else -90
+                rotation = 90 if axis == "b" else -90
                 tick_angle = np.zeros((conf.frame_boundary_samples,)) + rotation
 
             # We find for each interval the starting and ending coordinate,
@@ -717,17 +761,16 @@ class CoordinateHelper:
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self.coord_type == 'longitude':
-
+            if self.coord_type == "longitude":
                 if self._coord_scale_to_deg is not None:
                     w1 = w1 * self._coord_scale_to_deg
                     w2 = w2 * self._coord_scale_to_deg
 
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)
-                with np.errstate(invalid='ignore'):
-                    w1[w2 - w1 > 180.] += 360
-                    w2[w1 - w2 > 180.] += 360
+                with np.errstate(invalid="ignore"):
+                    w1[w2 - w1 > 180.0] += 360
+                    w2[w1 - w2 > 180.0] += 360
 
                 if self._coord_scale_to_deg is not None:
                     w1 = w1 / self._coord_scale_to_deg
@@ -740,34 +783,49 @@ class CoordinateHelper:
             self._compute_ticks(tick_world_coordinates, spine, axis, w1, w2, tick_angle)
 
             if self.ticks.get_display_minor_ticks():
-                self._compute_ticks(minor_ticks_w_coordinates, spine, axis, w1,
-                                    w2, tick_angle, ticks='minor')
+                self._compute_ticks(
+                    minor_ticks_w_coordinates,
+                    spine,
+                    axis,
+                    w1,
+                    w2,
+                    tick_angle,
+                    ticks="minor",
+                )
 
         # format tick labels, add to scene
-        text = self.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
+        text = self.formatter(
+            self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing
+        )
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
-    def _compute_ticks(self, tick_world_coordinates, spine, axis, w1, w2,
-                       tick_angle, ticks='major'):
-
-        if self.coord_type == 'longitude':
+    def _compute_ticks(
+        self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks="major"
+    ):
+        if self.coord_type == "longitude":
             tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
-            tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
-                                                       tick_world_coordinates_values + 360])
+            tick_world_coordinates_values = np.hstack(
+                [tick_world_coordinates_values, tick_world_coordinates_values + 360]
+            )
             tick_world_coordinates_values *= u.deg.to(self.coord_unit)
         else:
-            tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
+            tick_world_coordinates_values = tick_world_coordinates.to_value(
+                self.coord_unit
+            )
 
         for t in tick_world_coordinates_values:
-
             # Find steps where a tick is present. We have to check
             # separately for the case where the tick falls exactly on the
             # frame points, otherwise we'll get two matches, one for w1 and
             # one for w2.
-            with np.errstate(invalid='ignore'):
-                intersections = np.hstack([np.nonzero((t - w1) == 0)[0],
-                                           np.nonzero(((t - w1) * (t - w2)) < 0)[0]])
+            with np.errstate(invalid="ignore"):
+                intersections = np.hstack(
+                    [
+                        np.nonzero((t - w1) == 0)[0],
+                        np.nonzero(((t - w1) * (t - w2)) < 0)[0],
+                    ]
+                )
 
             # But we also need to check for intersection with the last w2
             if t - w2[-1] == 0:
@@ -776,24 +834,26 @@ class CoordinateHelper:
             # Loop over ticks, and find exact pixel coordinates by linear
             # interpolation
             for imin in intersections:
-
                 imax = imin + 1
 
-                if np.allclose(w1[imin], w2[imin], rtol=1.e-13, atol=1.e-13):
+                if np.allclose(w1[imin], w2[imin], rtol=1.0e-13, atol=1.0e-13):
                     continue  # tick is exactly aligned with frame
                 else:
                     frac = (t - w1[imin]) / (w2[imin] - w1[imin])
-                    x_data_i = spine.data[imin, 0] + frac * (spine.data[imax, 0] - spine.data[imin, 0])
-                    y_data_i = spine.data[imin, 1] + frac * (spine.data[imax, 1] - spine.data[imin, 1])
+                    x_data_i = spine.data[imin, 0] + frac * (
+                        spine.data[imax, 0] - spine.data[imin, 0]
+                    )
+                    y_data_i = spine.data[imin, 1] + frac * (
+                        spine.data[imax, 1] - spine.data[imin, 1]
+                    )
                     delta_angle = tick_angle[imax] - tick_angle[imin]
-                    if delta_angle > 180.:
-                        delta_angle -= 360.
-                    elif delta_angle < -180.:
-                        delta_angle += 360.
+                    if delta_angle > 180.0:
+                        delta_angle -= 360.0
+                    elif delta_angle < -180.0:
+                        delta_angle += 360.0
                     angle_i = tick_angle[imin] + frac * delta_angle
 
-                if self.coord_type == 'longitude':
-
+                if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
                         t *= self._coord_scale_to_deg
 
@@ -805,30 +865,37 @@ class CoordinateHelper:
                 else:
                     world = t
 
-                if ticks == 'major':
-
-                    self.ticks.add(axis=axis,
-                                   pixel=(x_data_i, y_data_i),
-                                   world=world,
-                                   angle=angle_i,
-                                   axis_displacement=imin + frac)
+                if ticks == "major":
+                    self.ticks.add(
+                        axis=axis,
+                        pixel=(x_data_i, y_data_i),
+                        world=world,
+                        angle=angle_i,
+                        axis_displacement=imin + frac,
+                    )
 
                     # store information to pass to ticklabels.add
                     # it's faster to format many ticklabels at once outside
                     # of the loop
-                    self.lblinfo.append(dict(axis=axis,
-                                             data=(x_data_i, y_data_i),
-                                             world=world,
-                                             angle=spine.normal_angle[imin],
-                                             axis_displacement=imin + frac))
+                    self.lblinfo.append(
+                        dict(
+                            axis=axis,
+                            data=(x_data_i, y_data_i),
+                            world=world,
+                            angle=spine.normal_angle[imin],
+                            axis_displacement=imin + frac,
+                        )
+                    )
                     self.lbl_world.append(world)
 
                 else:
-                    self.ticks.add_minor(minor_axis=axis,
-                                         minor_pixel=(x_data_i, y_data_i),
-                                         minor_world=world,
-                                         minor_angle=angle_i,
-                                         minor_axis_displacement=imin + frac)
+                    self.ticks.add_minor(
+                        minor_axis=axis,
+                        minor_pixel=(x_data_i, y_data_i),
+                        minor_world=world,
+                        minor_angle=angle_i,
+                        minor_axis_displacement=imin + frac,
+                    )
 
     def display_minor_ticks(self, display_minor_ticks):
         """
@@ -859,7 +926,7 @@ class CoordinateHelper:
         if self.coord_index is None:
             return
 
-        x_ticks_pos = [a[0] for a in self.ticks.pixel['b']]
+        x_ticks_pos = [a[0] for a in self.ticks.pixel["b"]]
 
         ymin, ymax = self.parent_axes.get_ylim()
 
@@ -869,7 +936,6 @@ class CoordinateHelper:
             self.grid_lines.append(Path(pixel))
 
     def _update_grid_lines(self):
-
         # For 3-d WCS with a correlated third axis, the *proper* way of
         # drawing a grid should be to find the world coordinates of all pixels
         # and drawing contours. What we are doing here assumes that we can
@@ -889,6 +955,7 @@ class CoordinateHelper:
         n_coord = len(tick_world_coordinates_values)
 
         from . import conf
+
         n_samples = conf.grid_samples
 
         xy_world = np.zeros((n_samples * n_coord, 2))
@@ -899,9 +966,13 @@ class CoordinateHelper:
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
             if self.coord_index == 0:
                 xy_world[subset, 0] = np.repeat(w, n_samples)
-                xy_world[subset, 1] = np.linspace(coord_range[1][0], coord_range[1][1], n_samples)
+                xy_world[subset, 1] = np.linspace(
+                    coord_range[1][0], coord_range[1][1], n_samples
+                )
             else:
-                xy_world[subset, 0] = np.linspace(coord_range[0][0], coord_range[0][1], n_samples)
+                xy_world[subset, 0] = np.linspace(
+                    coord_range[0][0], coord_range[0][1], n_samples
+                )
                 xy_world[subset, 1] = np.repeat(w, n_samples)
 
         # We now convert all the world coordinates to pixel coordinates in a
@@ -916,21 +987,24 @@ class CoordinateHelper:
 
         for iw in range(n_coord):
             subset = slice(iw * n_samples, (iw + 1) * n_samples)
-            self.grid_lines.append(self._get_gridline(xy_world[subset], pixel[subset], xy_world_round[subset]))
+            self.grid_lines.append(
+                self._get_gridline(
+                    xy_world[subset], pixel[subset], xy_world_round[subset]
+                )
+            )
 
     def _get_gridline(self, xy_world, pixel, xy_world_round):
-        if self.coord_type == 'scalar':
+        if self.coord_type == "scalar":
             return get_gridline_path(xy_world, pixel)
         else:
             return get_lon_lat_path(xy_world, pixel, xy_world_round)
 
     def _clear_grid_contour(self):
-        if hasattr(self, '_grid') and self._grid:
+        if hasattr(self, "_grid") and self._grid:
             for line in self._grid.collections:
                 line.remove()
 
     def _update_grid_contour(self):
-
         if self.coord_index is None:
             return
 
@@ -938,10 +1012,10 @@ class CoordinateHelper:
         ymin, ymax = self.parent_axes.get_ylim()
 
         from . import conf
+
         res = conf.contour_grid_samples
 
-        x, y = np.meshgrid(np.linspace(xmin, xmax, res),
-                           np.linspace(ymin, ymax, res))
+        x, y = np.meshgrid(np.linspace(xmin, xmax, res), np.linspace(ymin, ymax, res))
         pixel = np.array([x.ravel(), y.ravel()]).T
         world = self.transform.transform(pixel)
         field = world[:, self.coord_index].reshape(res, res).T
@@ -953,29 +1027,39 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self.coord_type == 'longitude':
-
+        if self.coord_type == "longitude":
             # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
-            mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
+            mid = 0.5 * (
+                tick_world_coordinates_values[0] + tick_world_coordinates_values[1]
+            )
             field = wrap_angle_at(field, mid)
-            tick_world_coordinates_values = wrap_angle_at(tick_world_coordinates_values, mid)
+            tick_world_coordinates_values = wrap_angle_at(
+                tick_world_coordinates_values, mid
+            )
 
             # Replace wraps by NaN
-            with np.errstate(invalid='ignore'):
-                reset = (np.abs(np.diff(field[:, :-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1, :], axis=1)) > 180)
+            with np.errstate(invalid="ignore"):
+                reset = (np.abs(np.diff(field[:, :-1], axis=0)) > 180) | (
+                    np.abs(np.diff(field[:-1, :], axis=1)) > 180
+                )
             field[:-1, :-1][reset] = np.nan
             field[1:, :-1][reset] = np.nan
             field[:-1, 1:][reset] = np.nan
             field[1:, 1:][reset] = np.nan
 
         if len(tick_world_coordinates_values) > 0:
-            with np.errstate(invalid='ignore'):
-                self._grid = self.parent_axes.contour(x, y, field.transpose(), levels=np.sort(tick_world_coordinates_values))
+            with np.errstate(invalid="ignore"):
+                self._grid = self.parent_axes.contour(
+                    x,
+                    y,
+                    field.transpose(),
+                    levels=np.sort(tick_world_coordinates_values),
+                )
         else:
             self._grid = None
 
-    def tick_params(self, which='both', **kwargs):
+    def tick_params(self, which="both", **kwargs):
         """
         Method to set the tick and tick label parameters in the same way as the
         :meth:`~matplotlib.axes.Axes.tick_params` method in Matplotlib.
@@ -1030,67 +1114,75 @@ class CoordinateHelper:
         # First do some sanity checking on the keyword arguments
 
         # colors= is a fallback default for color and labelcolor
-        if 'colors' in kwargs:
-            if 'color' not in kwargs:
-                kwargs['color'] = kwargs['colors']
-            if 'labelcolor' not in kwargs:
-                kwargs['labelcolor'] = kwargs['colors']
+        if "colors" in kwargs:
+            if "color" not in kwargs:
+                kwargs["color"] = kwargs["colors"]
+            if "labelcolor" not in kwargs:
+                kwargs["labelcolor"] = kwargs["colors"]
 
         # The only property that can be set *specifically* for minor ticks is
         # the length. In future we could consider having a separate Ticks instance
         # for minor ticks so that e.g. the color can be set separately.
-        if which == 'minor':
-            if len(set(kwargs) - {'length'}) > 0:
-                raise ValueError("When setting which='minor', the only "
-                                 "property that can be set at the moment is "
-                                 "'length' (the minor tick length)")
+        if which == "minor":
+            if len(set(kwargs) - {"length"}) > 0:
+                raise ValueError(
+                    "When setting which='minor', the only "
+                    "property that can be set at the moment is "
+                    "'length' (the minor tick length)"
+                )
             else:
-                if 'length' in kwargs:
-                    self.ticks.set_minor_ticksize(kwargs['length'])
+                if "length" in kwargs:
+                    self.ticks.set_minor_ticksize(kwargs["length"])
             return
 
         # At this point, we can now ignore the 'which' argument.
 
         # Set the tick arguments
-        self.set_ticks(size=kwargs.get('length'),
-                       width=kwargs.get('width'),
-                       color=kwargs.get('color'),
-                       direction=kwargs.get('direction'))
+        self.set_ticks(
+            size=kwargs.get("length"),
+            width=kwargs.get("width"),
+            color=kwargs.get("color"),
+            direction=kwargs.get("direction"),
+        )
 
         # Set the tick position
         position = None
-        for arg in ('bottom', 'left', 'top', 'right'):
+        for arg in ("bottom", "left", "top", "right"):
             if arg in kwargs and position is None:
-                position = ''
+                position = ""
             if kwargs.get(arg):
                 position += arg[0]
         if position is not None:
             self.set_ticks_position(position)
 
         # Set the tick label arguments.
-        self.set_ticklabel(color=kwargs.get('labelcolor'),
-                           size=kwargs.get('labelsize'),
-                           pad=kwargs.get('pad'))
+        self.set_ticklabel(
+            color=kwargs.get("labelcolor"),
+            size=kwargs.get("labelsize"),
+            pad=kwargs.get("pad"),
+        )
 
         # Set the tick label position
         position = None
-        for arg in ('bottom', 'left', 'top', 'right'):
-            if 'label' + arg in kwargs and position is None:
-                position = ''
-            if kwargs.get('label' + arg):
+        for arg in ("bottom", "left", "top", "right"):
+            if "label" + arg in kwargs and position is None:
+                position = ""
+            if kwargs.get("label" + arg):
                 position += arg[0]
         if position is not None:
             self.set_ticklabel_position(position)
 
         # And the grid settings
-        if 'grid_color' in kwargs:
-            self.grid_lines_kwargs['edgecolor'] = kwargs['grid_color']
-        if 'grid_alpha' in kwargs:
-            self.grid_lines_kwargs['alpha'] = kwargs['grid_alpha']
-        if 'grid_linewidth' in kwargs:
-            self.grid_lines_kwargs['linewidth'] = kwargs['grid_linewidth']
-        if 'grid_linestyle' in kwargs:
-            if kwargs['grid_linestyle'] in LINES_TO_PATCHES_LINESTYLE:
-                self.grid_lines_kwargs['linestyle'] = LINES_TO_PATCHES_LINESTYLE[kwargs['grid_linestyle']]
+        if "grid_color" in kwargs:
+            self.grid_lines_kwargs["edgecolor"] = kwargs["grid_color"]
+        if "grid_alpha" in kwargs:
+            self.grid_lines_kwargs["alpha"] = kwargs["grid_alpha"]
+        if "grid_linewidth" in kwargs:
+            self.grid_lines_kwargs["linewidth"] = kwargs["grid_linewidth"]
+        if "grid_linestyle" in kwargs:
+            if kwargs["grid_linestyle"] in LINES_TO_PATCHES_LINESTYLE:
+                self.grid_lines_kwargs["linestyle"] = LINES_TO_PATCHES_LINESTYLE[
+                    kwargs["grid_linestyle"]
+                ]
             else:
-                self.grid_lines_kwargs['linestyle'] = kwargs['grid_linestyle']
+                self.grid_lines_kwargs["linestyle"] = kwargs["grid_linestyle"]

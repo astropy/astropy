@@ -35,17 +35,20 @@ from .tags.unit.equivalency import *  # noqa
 from .types import _astropy_types, _astropy_asdf_types
 
 
-__all__ = ['AstropyExtension', 'AstropyAsdfExtension']
+__all__ = ["AstropyExtension", "AstropyAsdfExtension"]
 
 
-ASTROPY_SCHEMA_URI_BASE = 'http://astropy.org/schemas/'
+ASTROPY_SCHEMA_URI_BASE = "http://astropy.org/schemas/"
 SCHEMA_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'data', 'schemas'))
+    os.path.join(os.path.dirname(__file__), "data", "schemas")
+)
 ASTROPY_URL_MAPPING = [
-    (ASTROPY_SCHEMA_URI_BASE,
-     filepath_to_url(
-         os.path.join(SCHEMA_PATH, 'astropy.org')) +
-         '/{url_suffix}.yaml')]
+    (
+        ASTROPY_SCHEMA_URI_BASE,
+        filepath_to_url(os.path.join(SCHEMA_PATH, "astropy.org"))
+        + "/{url_suffix}.yaml",
+    )
+]
 
 
 # This extension is used to register custom types that have both tags and
@@ -57,8 +60,9 @@ class AstropyExtension(AsdfExtension):
 
     @property
     def tag_mapping(self):
-        return [('tag:astropy.org:astropy',
-                 ASTROPY_SCHEMA_URI_BASE + 'astropy{tag_suffix}')]
+        return [
+            ("tag:astropy.org:astropy", ASTROPY_SCHEMA_URI_BASE + "astropy{tag_suffix}")
+        ]
 
     @property
     def url_mapping(self):

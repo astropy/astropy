@@ -37,12 +37,12 @@ class ToFromMappingTestMixin(IOTestMixinBase):
     def test_failed_cls_to_mapping(self, cosmo, to_format):
         """Test incorrect argument ``cls`` in ``to_mapping()``."""
         with pytest.raises(TypeError, match="'cls' must be"):
-            to_format('mapping', cls=list)
+            to_format("mapping", cls=list)
 
     @pytest.mark.parametrize("map_cls", [dict, OrderedDict])
     def test_to_mapping_cls(self, cosmo, to_format, map_cls):
         """Test argument ``cls`` in ``to_mapping()``."""
-        params = to_format('mapping', cls=map_cls)
+        params = to_format("mapping", cls=map_cls)
         assert isinstance(params, map_cls)  # test type
 
     def test_tofrom_mapping_instance(self, cosmo, to_format, from_format):
@@ -50,7 +50,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         # ------------
         # To Mapping
 
-        params = to_format('mapping')
+        params = to_format("mapping")
         assert isinstance(params, dict)  # test type
         assert params["cosmology"] is cosmo.__class__
         assert params["name"] == cosmo.name
@@ -112,7 +112,9 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         # the default value
         got = cosmo.__class__.from_format(m, format="mapping")
         got2 = Cosmology.from_format(m, format="mapping", cosmology=cosmo.__class__)
-        got3 = Cosmology.from_format(m, format="mapping", cosmology=cosmo.__class__.__qualname__)
+        got3 = Cosmology.from_format(
+            m, format="mapping", cosmology=cosmo.__class__.__qualname__
+        )
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 

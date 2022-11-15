@@ -29,7 +29,7 @@ def test_get_tables_from_qdp_file(tmpdir):
     55045.099887 1.14467592592593e-05    -1.14467592592593e-05   0.000000        -nan
     """
 
-    path = str(tmpdir.join('test.qdp'))
+    path = str(tmpdir.join("test.qdp"))
 
     with open(path, "w") as fp:
         print(example_qdp, file=fp)
@@ -71,17 +71,19 @@ def test_roundtrip(tmpdir):
     NO 1.14467592592593e-05    -1.14467592592593e-05   0.000000        NO
     """
 
-    path = str(tmpdir.join('test.qdp'))
-    path2 = str(tmpdir.join('test2.qdp'))
+    path = str(tmpdir.join("test.qdp"))
+    path2 = str(tmpdir.join("test2.qdp"))
 
     with open(path, "w") as fp:
         print(example_qdp, file=fp)
     with pytest.warns(AstropyUserWarning) as record:
-        table = _read_table_qdp(path, names=["MJD", "Rate"],
-                                table_id=0)
-    assert np.any(["This file contains multiple command blocks"
-                   in r.message.args[0]
-                   for r in record])
+        table = _read_table_qdp(path, names=["MJD", "Rate"], table_id=0)
+    assert np.any(
+        [
+            "This file contains multiple command blocks" in r.message.args[0]
+            for r in record
+        ]
+    )
 
     _write_table_qdp(table, path2)
 
@@ -93,16 +95,17 @@ def test_roundtrip(tmpdir):
             # All NaN values are read as such.
             assert np.ma.is_masked(table[col][is_masked])
 
-        is_nan = np.array([(not np.ma.is_masked(val) and np.isnan(val))
-                           for val in new_table[col]])
+        is_nan = np.array(
+            [(not np.ma.is_masked(val) and np.isnan(val)) for val in new_table[col]]
+        )
         # All non-NaN values are the same
         assert np.allclose(new_table[col][~is_nan], table[col][~is_nan])
         if np.any(is_nan):
             # All NaN values are read as such.
             assert np.isnan(table[col][is_nan])
-    assert np.allclose(new_table['MJD_perr'], [2.378472e-05, 1.1446759e-05])
+    assert np.allclose(new_table["MJD_perr"], [2.378472e-05, 1.1446759e-05])
 
-    for meta_name in ['initial_comments', 'comments']:
+    for meta_name in ["initial_comments", "comments"]:
         assert meta_name in new_table.meta
 
 
@@ -122,15 +125,15 @@ def test_read_example(tmpdir):
         54000.5   2.25  -2.5   NO  3.5  5.5 5
         55000.5   3.25  -3.5   4  4.5  6.5 nan
         """
-    dat = ascii.read(example_qdp, format='qdp', table_id=1,
-                     names=['a', 'b', 'c', 'd'])
-    t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
-                   names=['a', 'b', 'c', 'd'])
+    dat = ascii.read(example_qdp, format="qdp", table_id=1, names=["a", "b", "c", "d"])
+    t = Table.read(
+        example_qdp, format="ascii.qdp", table_id=1, names=["a", "b", "c", "d"]
+    )
 
-    assert np.allclose(t['a'], [54000, 55000])
-    assert t['c_err'][0] == 5.5
-    assert np.ma.is_masked(t['b'][0])
-    assert np.isnan(t['d'][1])
+    assert np.allclose(t["a"], [54000, 55000])
+    assert t["c_err"][0] == 5.5
+    assert np.ma.is_masked(t["b"][0])
+    assert np.isnan(t["d"][1])
 
     for col1, col2 in zip(t.itercols(), dat.itercols()):
         assert np.allclose(col1, col2, equal_nan=True)
@@ -152,12 +155,13 @@ def test_roundtrip_example(tmpdir):
         54000.5   2.25  -2.5   NO  3.5  5.5 5
         55000.5   3.25  -3.5   4  4.5  6.5 nan
         """
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = str(tmpdir.join("test.qdp"))
 
-    t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
-                   names=['a', 'b', 'c', 'd'])
-    t.write(test_file, err_specs={'terr': [1], 'serr': [3]})
-    t2 = Table.read(test_file, names=['a', 'b', 'c', 'd'], table_id=0)
+    t = Table.read(
+        example_qdp, format="ascii.qdp", table_id=1, names=["a", "b", "c", "d"]
+    )
+    t.write(test_file, err_specs={"terr": [1], "serr": [3]})
+    t2 = Table.read(test_file, names=["a", "b", "c", "d"], table_id=0)
 
     for col1, col2 in zip(t.itercols(), t2.itercols()):
         assert np.allclose(col1, col2, equal_nan=True)
@@ -179,12 +183,13 @@ def test_roundtrip_example_comma(tmpdir):
         54000.5,2.25,-2.5,NO,3.5,5.5,5
         55000.5,3.25,-3.5,4,4.5,6.5,nan
         """
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = str(tmpdir.join("test.qdp"))
 
-    t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
-                   names=['a', 'b', 'c', 'd'], sep=',')
-    t.write(test_file, err_specs={'terr': [1], 'serr': [3]})
-    t2 = Table.read(test_file, names=['a', 'b', 'c', 'd'], table_id=0)
+    t = Table.read(
+        example_qdp, format="ascii.qdp", table_id=1, names=["a", "b", "c", "d"], sep=","
+    )
+    t.write(test_file, err_specs={"terr": [1], "serr": [3]})
+    t2 = Table.read(test_file, names=["a", "b", "c", "d"], table_id=0)
 
     # t.values_equal(t2)
     for col1, col2 in zip(t.itercols(), t2.itercols()):
@@ -192,37 +197,44 @@ def test_roundtrip_example_comma(tmpdir):
 
 
 def test_read_write_simple(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = str(tmpdir.join("test.qdp"))
     t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3, 4]))
-    t1.add_column(MaskedColumn(data=[4., np.nan, 3., 1.], name='b',
-                               mask=[False, False, False, True]))
-    t1.write(test_file, format='ascii.qdp')
+    t1.add_column(Column(name="a", data=[1, 2, 3, 4]))
+    t1.add_column(
+        MaskedColumn(
+            data=[4.0, np.nan, 3.0, 1.0], name="b", mask=[False, False, False, True]
+        )
+    )
+    t1.write(test_file, format="ascii.qdp")
     with pytest.warns(UserWarning) as record:
-        t2 = Table.read(test_file, format='ascii.qdp')
-    assert np.any(["table_id not specified. Reading the first available table"
-                   in r.message.args[0]
-                   for r in record])
+        t2 = Table.read(test_file, format="ascii.qdp")
+    assert np.any(
+        [
+            "table_id not specified. Reading the first available table"
+            in r.message.args[0]
+            for r in record
+        ]
+    )
 
-    assert np.allclose(t2['col1'], t1['a'])
-    assert np.all(t2['col1'] == t1['a'])
+    assert np.allclose(t2["col1"], t1["a"])
+    assert np.all(t2["col1"] == t1["a"])
 
-    good = ~np.isnan(t1['b'])
-    assert np.allclose(t2['col2'][good], t1['b'][good])
+    good = ~np.isnan(t1["b"])
+    assert np.allclose(t2["col2"][good], t1["b"][good])
 
 
 def test_read_write_simple_specify_name(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = str(tmpdir.join("test.qdp"))
     t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1.add_column(Column(name="a", data=[1, 2, 3]))
     # Give a non-None err_specs
-    t1.write(test_file, format='ascii.qdp')
-    t2 = Table.read(test_file, table_id=0, format='ascii.qdp', names=['a'])
-    assert np.all(t2['a'] == t1['a'])
+    t1.write(test_file, format="ascii.qdp")
+    t2 = Table.read(test_file, table_id=0, format="ascii.qdp", names=["a"])
+    assert np.all(t2["a"] == t1["a"])
 
 
 def test_get_lines_from_qdp(tmpdir):
-    test_file = str(tmpdir.join('test.qdp'))
+    test_file = str(tmpdir.join("test.qdp"))
     text_string = "A\nB"
     text_output = _get_lines_from_file(text_string)
     with open(test_file, "w") as fobj:

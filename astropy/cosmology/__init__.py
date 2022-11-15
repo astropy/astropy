@@ -19,7 +19,12 @@ from .parameter import *
 from .realizations import *
 from .utils import *
 
-__all__ = (core.__all__ + flrw.__all__       # cosmology classes
-           + realizations.__all__            # instances thereof
-           + ["units"]
-           + funcs.__all__ + parameter.__all__ + utils.__all__)  # utils
+__all__ = (
+    core.__all__
+    + flrw.__all__  # cosmology classes
+    + realizations.__all__  # instances thereof
+    + ["units"]
+    + funcs.__all__
+    + parameter.__all__
+    + utils.__all__
+)  # utils

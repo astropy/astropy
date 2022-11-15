@@ -28,7 +28,7 @@ class Unicode(console.Console):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        return unit.get_format_name('unicode')
+        return unit.get_format_name("unicode")
 
     @classmethod
     def format_exponential_notation(cls, val):
@@ -36,7 +36,7 @@ class Unicode(console.Console):
 
         parts = []
         if m:
-            parts.append(m.replace('-', '−'))
+            parts.append(m.replace("-", "−"))
 
         if ex:
             parts.append(f"10{cls._format_superscript(ex)}")
@@ -46,23 +46,23 @@ class Unicode(console.Console):
     @classmethod
     def _format_superscript(cls, number):
         mapping = {
-            '0': '⁰',
-            '1': '¹',
-            '2': '²',
-            '3': '³',
-            '4': '⁴',
-            '5': '⁵',
-            '6': '⁶',
-            '7': '⁷',
-            '8': '⁸',
-            '9': '⁹',
-            '-': '⁻',
-            '−': '⁻',
+            "0": "⁰",
+            "1": "¹",
+            "2": "²",
+            "3": "³",
+            "4": "⁴",
+            "5": "⁵",
+            "6": "⁶",
+            "7": "⁷",
+            "8": "⁸",
+            "9": "⁹",
+            "-": "⁻",
+            "−": "⁻",
             # This is actually a "raised omission bracket", but it's
             # the closest thing I could find to a superscript solidus.
-            '/': '⸍',
-            }
+            "/": "⸍",
+        }
         output = []
         for c in number:
             output.append(mapping[c])
-        return ''.join(output)
+        return "".join(output)

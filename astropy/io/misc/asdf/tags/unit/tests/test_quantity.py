@@ -3,7 +3,7 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 
 import io
 
@@ -15,13 +15,13 @@ from asdf.tests import helpers
 def roundtrip_quantity(yaml, quantity):
     buff = helpers.yaml_to_asdf(yaml)
     with asdf.open(buff) as ff:
-        assert (ff.tree['quantity'] == quantity).all()
+        assert (ff.tree["quantity"] == quantity).all()
         buff2 = io.BytesIO()
         ff.write_to(buff2)
 
     buff2.seek(0)
     with asdf.open(buff2) as ff:
-        assert (ff.tree['quantity'] == quantity).all()
+        assert (ff.tree["quantity"] == quantity).all()
 
 
 def test_value_scalar(tmpdir):
@@ -51,7 +51,7 @@ quantity: !unit/quantity-1.1.0
 
 
 def test_value_multiarray(tmpdir):
-    testval = [x*2.3081 for x in range(10)]
+    testval = [x * 2.3081 for x in range(10)]
     testunit = units.ampere
     yaml = f"""
 quantity: !unit/quantity-1.1.0
@@ -65,7 +65,8 @@ quantity: !unit/quantity-1.1.0
 
 def test_value_ndarray(tmpdir):
     from numpy import array, float64
-    testval = [[1,2,3],[4,5,6]]
+
+    testval = [[1, 2, 3], [4, 5, 6]]
     testunit = units.km
     yaml = f"""
 quantity: !unit/quantity-1.1.0

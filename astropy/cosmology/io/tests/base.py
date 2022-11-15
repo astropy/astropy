@@ -64,7 +64,9 @@ class IOFormatTestBase(IOTestMixinBase):
         class CosmologyWithKwargs(Cosmology):
             Tcmb0 = Parameter(unit=u.K)
 
-            def __init__(self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs):
+            def __init__(
+                self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs
+            ):
                 super().__init__(name=name, meta=meta)
                 self._Tcmb0 = Tcmb0 << u.K
 
@@ -91,6 +93,7 @@ class IOFormatTestBase(IOTestMixinBase):
     @pytest.fixture
     def from_format(self):
         """Convert to Cosmology using function ``from``."""
+
         def use_from_format(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["from"](*args, **kwargs)
@@ -107,6 +110,7 @@ class IOFormatTestBase(IOTestMixinBase):
     @pytest.fixture
     def read(self):
         """Read Cosmology from file using function ``read``."""
+
         def use_read(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["read"](*args, **kwargs)

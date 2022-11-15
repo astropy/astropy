@@ -9,12 +9,11 @@ from astropy.stats import bayesian_blocks, RegularEvents
 
 def test_single_change_point(rseed=0):
     rng = np.random.default_rng(rseed)
-    x = np.concatenate([rng.random(100),
-                        1 + rng.random(200)])
+    x = np.concatenate([rng.random(100), 1 + rng.random(200)])
 
     bins = bayesian_blocks(x)
 
-    assert (len(bins) == 3)
+    assert len(bins) == 3
     assert_allclose(bins[1], 0.927289, rtol=0.02)
 
 
@@ -36,11 +35,11 @@ def test_duplicate_events(rseed=0):
 def test_measures_fitness_homoscedastic(rseed=0):
     rng = np.random.default_rng(rseed)
     t = np.linspace(0, 1, 11)
-    x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
+    x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01**2)
     sigma = 0.05
     x = x + sigma * rng.standard_normal(len(x))
 
-    bins = bayesian_blocks(t, x, sigma, fitness='measures')
+    bins = bayesian_blocks(t, x, sigma, fitness="measures")
 
     assert_allclose(bins, [0, 0.45, 0.55, 1])
 
@@ -48,11 +47,11 @@ def test_measures_fitness_homoscedastic(rseed=0):
 def test_measures_fitness_heteroscedastic():
     rng = np.random.default_rng(1)
     t = np.linspace(0, 1, 11)
-    x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
+    x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01**2)
     sigma = 0.02 + 0.02 * rng.random(len(x))
     x = x + sigma * rng.standard_normal(len(x))
 
-    bins = bayesian_blocks(t, x, sigma, fitness='measures')
+    bins = bayesian_blocks(t, x, sigma, fitness="measures")
 
     assert_allclose(bins, [0, 0.45, 0.55, 1])
 
@@ -60,13 +59,14 @@ def test_measures_fitness_heteroscedastic():
 def test_regular_events():
     rng = np.random.default_rng(1234)
     dt = 0.01
-    steps = np.concatenate([np.unique(rng.integers(0, 500, 100)),
-                            np.unique(rng.integers(500, 1000, 200))])
+    steps = np.concatenate(
+        [np.unique(rng.integers(0, 500, 100)), np.unique(rng.integers(500, 1000, 200))]
+    )
     t = dt * steps
 
     # string fitness
-    bins1 = bayesian_blocks(t, fitness='regular_events', dt=dt)
-    assert (len(bins1) == 3)
+    bins1 = bayesian_blocks(t, fitness="regular_events", dt=dt)
+    assert len(bins1) == 3
     assert_allclose(bins1[1], 5, rtol=0.05)
 
     # class name fitness
@@ -84,33 +84,33 @@ def test_errors():
 
     # x must be integer or None for events
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='events', x=t)
+        bayesian_blocks(t, fitness="events", x=t)
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='regular_events', x=10 * t, dt=1)
+        bayesian_blocks(t, fitness="regular_events", x=10 * t, dt=1)
 
     # x must be specified for measures
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='measures')
+        bayesian_blocks(t, fitness="measures")
 
     # sigma cannot be specified without x
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='events', sigma=0.5)
+        bayesian_blocks(t, fitness="events", sigma=0.5)
 
     # length of x must match length of t
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='measures', x=t[:-1])
+        bayesian_blocks(t, fitness="measures", x=t[:-1])
 
     # repeated values in t fail when x is specified
     t2 = t.copy()
     t2[1] = t2[0]
     with pytest.raises(ValueError):
-        bayesian_blocks(t2, fitness='measures', x=t)
+        bayesian_blocks(t2, fitness="measures", x=t)
 
     # sigma must be broadcastable with x
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='measures', x=t, sigma=t[:-1])
+        bayesian_blocks(t, fitness="measures", x=t, sigma=t[:-1])
 
 
 def test_fitness_function_results():
@@ -119,12 +119,12 @@ def test_fitness_function_results():
 
     # Event Data
     t = rng.standard_normal(100)
-    edges = bayesian_blocks(t, fitness='events')
+    edges = bayesian_blocks(t, fitness="events")
     assert_allclose(edges, [-1.95103519, -1.01861547, 0.95442154, 2.1416476])
 
     # Event data with repeats
     t[80:] = t[:20]
-    edges = bayesian_blocks(t, fitness='events', p0=0.01)
+    edges = bayesian_blocks(t, fitness="events", p0=0.01)
     assert_allclose(edges, [-1.95103519, -1.08663566, 1.17575682, 2.1416476])
 
     # Regular event data
@@ -134,7 +134,7 @@ def test_fitness_function_results():
     N = len(t) // 10
     x[rng.integers(0, len(t), N)] = 1
     x[rng.integers(0, len(t) // 2, N)] = 1
-    edges = bayesian_blocks(t, x, fitness='regular_events', dt=dt)
+    edges = bayesian_blocks(t, x, fitness="regular_events", dt=dt)
     assert_allclose(edges, [0, 4.365, 4.995, 9.99])
 
     # Measured point data with errors
@@ -142,25 +142,25 @@ def test_fitness_function_results():
     x = np.exp(-0.5 * (t - 50) ** 2)
     sigma = 0.1
     x_obs = x + sigma * rng.standard_normal(len(x))
-    edges = bayesian_blocks(t, x_obs, sigma, fitness='measures')
+    edges = bayesian_blocks(t, x_obs, sigma, fitness="measures")
     expected = [1.39362877, 44.30811196, 49.46626158, 54.37232704, 92.7562551]
     assert_allclose(edges, expected)
 
     # Optional arguments are passed (p0)
     p0_sel = 0.05
-    edges = bayesian_blocks(t, x_obs, sigma, fitness='measures', p0=p0_sel)
+    edges = bayesian_blocks(t, x_obs, sigma, fitness="measures", p0=p0_sel)
     assert_allclose(edges, expected)
 
     # Optional arguments are passed (ncp_prior)
     ncp_prior_sel = 4 - np.log(73.53 * p0_sel * (len(t) ** -0.478))
-    edges = bayesian_blocks(t, x_obs, sigma, fitness='measures',
-                            ncp_prior=ncp_prior_sel)
+    edges = bayesian_blocks(
+        t, x_obs, sigma, fitness="measures", ncp_prior=ncp_prior_sel
+    )
     assert_allclose(edges, expected)
 
     # Optional arguments are passed (gamma)
     gamma_sel = np.exp(-ncp_prior_sel)
-    edges = bayesian_blocks(t, x_obs, sigma, fitness='measures',
-                            gamma=gamma_sel)
+    edges = bayesian_blocks(t, x_obs, sigma, fitness="measures", gamma=gamma_sel)
     assert_allclose(edges, expected)
 
 

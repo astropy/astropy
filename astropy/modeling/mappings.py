@@ -8,7 +8,7 @@ from .core import FittableModel, Model
 from astropy.units import Quantity
 
 
-__all__ = ['Mapping', 'Identity', 'UnitsMapping']
+__all__ = ["Mapping", "Identity", "UnitsMapping"]
 
 
 class Mapping(FittableModel):
@@ -46,6 +46,7 @@ class Mapping(FittableModel):
     >>> model(1, 2)  # doctest: +FLOAT_CMP
     (17.0, 14.2)
     """
+
     linear = True  # FittableModel is non-linear by default
 
     def __init__(self, mapping, n_inputs=None, name=None, meta=None):
@@ -59,8 +60,8 @@ class Mapping(FittableModel):
         self._n_outputs = len(mapping)
         super().__init__(name=name, meta=meta)
 
-        self.inputs = tuple('x' + str(idx) for idx in range(self._n_inputs))
-        self.outputs = tuple('x' + str(idx) for idx in range(self._n_outputs))
+        self.inputs = tuple("x" + str(idx) for idx in range(self._n_inputs))
+        self.outputs = tuple("x" + str(idx) for idx in range(self._n_outputs))
 
         self._mapping = mapping
         self._input_units_strict = {key: False for key in self._inputs}
@@ -81,14 +82,14 @@ class Mapping(FittableModel):
 
     def __repr__(self):
         if self.name is None:
-            return f'<Mapping({self.mapping})>'
-        return f'<Mapping({self.mapping}, name={self.name!r})>'
+            return f"<Mapping({self.mapping})>"
+        return f"<Mapping({self.mapping}, name={self.name!r})>"
 
     def evaluate(self, *args):
         if len(args) != self.n_inputs:
             name = self.name if self.name is not None else "Mapping"
 
-            raise TypeError(f'{name} expects {self.n_inputs} inputs; got {len(args)}')
+            raise TypeError(f"{name} expects {self.n_inputs} inputs; got {len(args)}")
 
         result = tuple(args[idx] for idx in self._mapping)
 
@@ -110,12 +111,12 @@ class Mapping(FittableModel):
         """
 
         try:
-            mapping = tuple(self.mapping.index(idx)
-                            for idx in range(self.n_inputs))
+            mapping = tuple(self.mapping.index(idx) for idx in range(self.n_inputs))
         except ValueError:
             raise NotImplementedError(
                 "Mappings such as {} that drop one or more of their inputs "
-                "are not invertible at this time.".format(self.mapping))
+                "are not invertible at this time.".format(self.mapping)
+            )
 
         inv = self.__class__(mapping)
         inv._inputs = self._outputs
@@ -156,6 +157,7 @@ class Identity(Mapping):
         >>> model.inverse(2.4, 2) # doctest: +FLOAT_CMP
         (1.0, 1.0)
     """
+
     linear = True  # FittableModel is non-linear by default
 
     def __init__(self, n_inputs, name=None, meta=None):
@@ -164,8 +166,8 @@ class Identity(Mapping):
 
     def __repr__(self):
         if self.name is None:
-            return f'<Identity({self.n_inputs})>'
-        return f'<Identity({self.n_inputs}, name={self.name!r})>'
+            return f"<Identity({self.n_inputs})>"
+        return f"<Identity({self.n_inputs}, name={self.name!r})>"
 
     @property
     def inverse(self):
@@ -240,13 +242,14 @@ class UnitsMapping(Model):
     >>> model(10)  # doctest: +FLOAT_CMP
     <Quantity 21. s>
     """
+
     def __init__(
         self,
         mapping,
         input_units_equivalencies=None,
         input_units_allow_dimensionless=False,
         name=None,
-        meta=None
+        meta=None,
     ):
         self._mapping = mapping
 
@@ -266,7 +269,10 @@ class UnitsMapping(Model):
         self._rebuild_units()
 
     def _rebuild_units(self):
-        self._input_units = {input_name: input_unit for input_name, (input_unit, _) in zip(self.inputs, self.mapping)}
+        self._input_units = {
+            input_name: input_unit
+            for input_name, (input_unit, _) in zip(self.inputs, self.mapping)
+        }
 
     @property
     def n_inputs(self):

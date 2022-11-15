@@ -12,11 +12,18 @@ import numpy as np
 
 from astropy.io.fits import conf
 from astropy.io.fits.file import _File
-from astropy.io.fits.header import (Header, _BasicHeader, _pad_length,
-                                    _DelayedHeader)
-from astropy.io.fits.util import (_is_int, _is_pseudo_integer, _pseudo_zero,
-                    itersubclasses, decode_ascii, _get_array_mmap, first,
-                    _free_space_check, _extract_number)
+from astropy.io.fits.header import Header, _BasicHeader, _pad_length, _DelayedHeader
+from astropy.io.fits.util import (
+    _is_int,
+    _is_pseudo_integer,
+    _pseudo_zero,
+    itersubclasses,
+    decode_ascii,
+    _get_array_mmap,
+    first,
+    _free_space_check,
+    _extract_number,
+)
 from astropy.io.fits.verify import _Verify, _ErrList
 
 from astropy.utils import lazyproperty
@@ -40,13 +47,28 @@ class _Delayed:
 DELAYED = _Delayed()
 
 
-BITPIX2DTYPE = {8: 'uint8', 16: 'int16', 32: 'int32', 64: 'int64',
-                -32: 'float32', -64: 'float64'}
+BITPIX2DTYPE = {
+    8: "uint8",
+    16: "int16",
+    32: "int32",
+    64: "int64",
+    -32: "float32",
+    -64: "float64",
+}
 """Maps FITS BITPIX values to Numpy dtype names."""
 
-DTYPE2BITPIX = {'int8': 8, 'uint8': 8, 'int16': 16, 'uint16': 16,
-                'int32': 32, 'uint32': 32, 'int64': 64, 'uint64': 64,
-                'float32': -32, 'float64': -64}
+DTYPE2BITPIX = {
+    "int8": 8,
+    "uint8": 8,
+    "int16": 16,
+    "uint16": 16,
+    "int32": 32,
+    "uint32": 32,
+    "int64": 64,
+    "uint64": 64,
+    "float32": -32,
+    "float64": -64,
+}
 """
 Maps Numpy dtype names to FITS BITPIX values (this includes unsigned
 integers, with the assumption that the pseudo-unsigned integer convention
@@ -85,8 +107,10 @@ def _hdu_class_from_header(cls, header):
             try:
                 # HDU classes built into astropy.io.fits are always considered,
                 # but extension HDUs must be explicitly registered
-                if not (c.__module__.startswith('astropy.io.fits.') or
-                        c in cls._hdu_registry):
+                if not (
+                    c.__module__.startswith("astropy.io.fits.")
+                    or c in cls._hdu_registry
+                ):
                     continue
                 if c.match_header(header):
                     klass = c
@@ -95,11 +119,13 @@ def _hdu_class_from_header(cls, header):
                 continue
             except Exception as exc:
                 warnings.warn(
-                    'An exception occurred matching an HDU header to the '
-                    'appropriate HDU type: {}'.format(exc),
-                    AstropyUserWarning)
-                warnings.warn('The HDU will be treated as corrupted.',
-                              AstropyUserWarning)
+                    "An exception occurred matching an HDU header to the "
+                    "appropriate HDU type: {}".format(exc),
+                    AstropyUserWarning,
+                )
+                warnings.warn(
+                    "The HDU will be treated as corrupted.", AstropyUserWarning
+                )
                 klass = _CorruptedHDU
                 del exc
                 break
@@ -118,9 +144,9 @@ class _BaseHDU:
     _standard = True
 
     # Byte to use for padding out blocks
-    _padding_byte = '\x00'
+    _padding_byte = "\x00"
 
-    _default_name = ''
+    _default_name = ""
 
     # _header uses a descriptor to delay the loading of the fits.Header object
     # until it is necessary.
@@ -146,9 +172,9 @@ class _BaseHDU:
         self._new = True
         self._output_checksum = False
 
-        if 'DATASUM' in self._header and 'CHECKSUM' not in self._header:
-            self._output_checksum = 'datasum'
-        elif 'CHECKSUM' in self._header:
+        if "DATASUM" in self._header and "CHECKSUM" not in self._header:
+            self._output_checksum = "datasum"
+        elif "CHECKSUM" in self._header:
             self._output_checksum = True
 
     def __init_subclass__(cls, **kwargs):
@@ -156,9 +182,8 @@ class _BaseHDU:
         # It's unfortunate, but there's otherwise no straightforward way
         # that a property can inherit setters/deleters of the property of the
         # same name on base classes.
-        data_prop = cls.__dict__.get('data', None)
-        if (isinstance(data_prop, (lazyproperty, property))
-                and data_prop.fdel is None):
+        data_prop = cls.__dict__.get("data", None)
+        if isinstance(data_prop, (lazyproperty, property)) and data_prop.fdel is None:
             # Don't do anything if the class has already explicitly
             # set the deleter for its data property
             def data(self):
@@ -167,7 +192,7 @@ class _BaseHDU:
                     data_refcount = sys.getrefcount(self.data)
                     # Manually delete *now* so that FITS_rec.__del__
                     # cleanup can happen if applicable
-                    del self.__dict__['data']
+                    del self.__dict__["data"]
                     # Don't even do this unless the *only* reference to the
                     # .data array was the one we're deleting by deleting
                     # this attribute; if any other references to the array
@@ -176,7 +201,7 @@ class _BaseHDU:
                     if data_refcount == 2:
                         self._file._maybe_close_mmap()
 
-            setattr(cls, 'data', data_prop.deleter(data))
+            setattr(cls, "data", data_prop.deleter(data))
 
         return super().__init_subclass__(**kwargs)
 
@@ -192,7 +217,7 @@ class _BaseHDU:
     def name(self):
         # Convert the value to a string to be flexible in some pathological
         # cases (see ticket #96)
-        return str(self._header.get('EXTNAME', self._default_name))
+        return str(self._header.get("EXTNAME", self._default_name))
 
     @name.setter
     def name(self, value):
@@ -200,49 +225,54 @@ class _BaseHDU:
             raise TypeError("'name' attribute must be a string")
         if not conf.extension_name_case_sensitive:
             value = value.upper()
-        if 'EXTNAME' in self._header:
-            self._header['EXTNAME'] = value
+        if "EXTNAME" in self._header:
+            self._header["EXTNAME"] = value
         else:
-            self._header['EXTNAME'] = (value, 'extension name')
+            self._header["EXTNAME"] = (value, "extension name")
 
     @property
     def ver(self):
-        return self._header.get('EXTVER', 1)
+        return self._header.get("EXTVER", 1)
 
     @ver.setter
     def ver(self, value):
         if not _is_int(value):
             raise TypeError("'ver' attribute must be an integer")
-        if 'EXTVER' in self._header:
-            self._header['EXTVER'] = value
+        if "EXTVER" in self._header:
+            self._header["EXTVER"] = value
         else:
-            self._header['EXTVER'] = (value, 'extension value')
+            self._header["EXTVER"] = (value, "extension value")
 
     @property
     def level(self):
-        return self._header.get('EXTLEVEL', 1)
+        return self._header.get("EXTLEVEL", 1)
 
     @level.setter
     def level(self, value):
         if not _is_int(value):
             raise TypeError("'level' attribute must be an integer")
-        if 'EXTLEVEL' in self._header:
-            self._header['EXTLEVEL'] = value
+        if "EXTLEVEL" in self._header:
+            self._header["EXTLEVEL"] = value
         else:
-            self._header['EXTLEVEL'] = (value, 'extension level')
+            self._header["EXTLEVEL"] = (value, "extension level")
 
     @property
     def is_image(self):
-        return (
-            self.name == 'PRIMARY' or
-            ('XTENSION' in self._header and
-             (self._header['XTENSION'] == 'IMAGE' or
-              (self._header['XTENSION'] == 'BINTABLE' and
-               'ZIMAGE' in self._header and self._header['ZIMAGE'] is True))))
+        return self.name == "PRIMARY" or (
+            "XTENSION" in self._header
+            and (
+                self._header["XTENSION"] == "IMAGE"
+                or (
+                    self._header["XTENSION"] == "BINTABLE"
+                    and "ZIMAGE" in self._header
+                    and self._header["ZIMAGE"] is True
+                )
+            )
+        )
 
     @property
     def _data_loaded(self):
-        return ('data' in self.__dict__ and self.data is not DELAYED)
+        return "data" in self.__dict__ and self.data is not DELAYED
 
     @property
     def _has_data(self):
@@ -262,8 +292,7 @@ class _BaseHDU:
         raise NotImplementedError
 
     @classmethod
-    def fromstring(cls, data, checksum=False, ignore_missing_end=False,
-                   **kwargs):
+    def fromstring(cls, data, checksum=False, ignore_missing_end=False, **kwargs):
         """
         Creates a new HDU object of the appropriate type from a string
         containing the HDU's entire header and, optionally, its data.
@@ -296,13 +325,12 @@ class _BaseHDU:
            ignored.
         """
 
-        return cls._readfrom_internal(data, checksum=checksum,
-                                      ignore_missing_end=ignore_missing_end,
-                                      **kwargs)
+        return cls._readfrom_internal(
+            data, checksum=checksum, ignore_missing_end=ignore_missing_end, **kwargs
+        )
 
     @classmethod
-    def readfrom(cls, fileobj, checksum=False, ignore_missing_end=False,
-                 **kwargs):
+    def readfrom(cls, fileobj, checksum=False, ignore_missing_end=False, **kwargs):
         """
         Read the HDU from a file.  Normally an HDU should be opened with
         :func:`open` which reads the entire HDU list in a FITS file.  But this
@@ -329,22 +357,27 @@ class _BaseHDU:
         if not isinstance(fileobj, _File):
             fileobj = _File(fileobj)
 
-        hdu = cls._readfrom_internal(fileobj, checksum=checksum,
-                                     ignore_missing_end=ignore_missing_end,
-                                     **kwargs)
+        hdu = cls._readfrom_internal(
+            fileobj, checksum=checksum, ignore_missing_end=ignore_missing_end, **kwargs
+        )
 
         # If the checksum had to be checked the data may have already been read
         # from the file, in which case we don't want to seek relative
         fileobj.seek(hdu._data_offset + hdu._data_size, os.SEEK_SET)
         return hdu
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
-    def writeto(self, name, output_verify='exception', overwrite=False,
-                checksum=False):
+    @deprecated_renamed_argument(
+        "clobber",
+        "overwrite",
+        "2.0",
+        message=(
+            '"clobber" was deprecated in version '
+            "2.0 and will be removed in version "
+            '5.1. Use argument "overwrite" '
+            "instead."
+        ),
+    )
+    def writeto(self, name, output_verify="exception", overwrite=False, checksum=False):
         """
         Write the HDU to a new file. This is a convenience method to
         provide a user easier output interface if only one HDU needs
@@ -379,8 +412,7 @@ class _BaseHDU:
         from .hdulist import HDUList
 
         hdulist = HDUList([self])
-        hdulist.writeto(name, output_verify, overwrite=overwrite,
-                        checksum=checksum)
+        hdulist.writeto(name, output_verify, overwrite=overwrite, checksum=checksum)
 
     @classmethod
     def _from_data(cls, data, header, **kwargs):
@@ -392,8 +424,9 @@ class _BaseHDU:
         return klass(data=data, header=header, **kwargs)
 
     @classmethod
-    def _readfrom_internal(cls, data, header=None, checksum=False,
-                           ignore_missing_end=False, **kwargs):
+    def _readfrom_internal(
+        cls, data, header=None, checksum=False, ignore_missing_end=False, **kwargs
+    ):
         """
         Provides the bulk of the internal implementation for readfrom and
         fromstring.
@@ -421,33 +454,36 @@ class _BaseHDU:
                     # and reporting for the various issues that can be found
                     # in the wild.
                     data.seek(header_offset)
-                    header = Header.fromfile(data,
-                                             endcard=not ignore_missing_end)
+                    header = Header.fromfile(data, endcard=not ignore_missing_end)
             hdu_fileobj = data
             data_offset = data.tell()  # *after* reading the header
         else:
             try:
                 # Test that the given object supports the buffer interface by
                 # ensuring an ndarray can be created from it
-                np.ndarray((), dtype='ubyte', buffer=data)
+                np.ndarray((), dtype="ubyte", buffer=data)
             except TypeError:
                 raise TypeError(
-                    'The provided object {!r} does not contain an underlying '
-                    'memory buffer.  fromstring() requires an object that '
-                    'supports the buffer interface such as bytes, buffer, '
-                    'memoryview, ndarray, etc.  This restriction is to ensure '
-                    'that efficient access to the array/table data is possible.'
-                    .format(data))
+                    "The provided object {!r} does not contain an underlying "
+                    "memory buffer.  fromstring() requires an object that "
+                    "supports the buffer interface such as bytes, buffer, "
+                    "memoryview, ndarray, etc.  This restriction is to ensure "
+                    "that efficient access to the array/table data is possible.".format(
+                        data
+                    )
+                )
 
             if header is None:
+
                 def block_iter(nbytes):
                     idx = 0
                     while idx < len(data):
-                        yield data[idx:idx + nbytes]
+                        yield data[idx : idx + nbytes]
                         idx += nbytes
 
                 header_str, header = Header._from_blocks(
-                    block_iter, True, '', not ignore_missing_end, True)
+                    block_iter, True, "", not ignore_missing_end, True
+                )
 
                 if len(data) > len(header_str):
                     hdu_buffer = data
@@ -491,8 +527,8 @@ class _BaseHDU:
         hdu._file = hdu_fileobj
         hdu._buffer = hdu_buffer
 
-        hdu._header_offset = header_offset     # beginning of the header area
-        hdu._data_offset = data_offset         # beginning of the data area
+        hdu._header_offset = header_offset  # beginning of the header area
+        hdu._data_offset = data_offset  # beginning of the data area
 
         # data area size, including padding
         size = hdu.size
@@ -510,7 +546,7 @@ class _BaseHDU:
             hdu._header_str = header_str
 
         # Checksums are not checked on invalid HDU types
-        if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
+        if checksum and checksum != "remove" and isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum()
 
         return hdu
@@ -525,8 +561,7 @@ class _BaseHDU:
             shape = (shape,)
 
         if self._buffer:
-            return np.ndarray(shape, dtype=code, buffer=self._buffer,
-                              offset=offset)
+            return np.ndarray(shape, dtype=code, buffer=self._buffer, offset=offset)
         elif self._file:
             return self._file.readarray(offset=offset, dtype=code, shape=shape)
         else:
@@ -548,21 +583,20 @@ class _BaseHDU:
         add BSCALE/BZERO cards to header.
         """
 
-        if (self._has_data and self._standard and
-                _is_pseudo_integer(self.data.dtype)):
+        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
             # CompImageHDUs need TFIELDS immediately after GCOUNT,
             # so BSCALE has to go after TFIELDS if it exists.
-            if 'TFIELDS' in self._header:
-                self._header.set('BSCALE', 1, after='TFIELDS')
-            elif 'GCOUNT' in self._header:
-                self._header.set('BSCALE', 1, after='GCOUNT')
+            if "TFIELDS" in self._header:
+                self._header.set("BSCALE", 1, after="TFIELDS")
+            elif "GCOUNT" in self._header:
+                self._header.set("BSCALE", 1, after="GCOUNT")
             else:
-                self._header.set('BSCALE', 1)
-            self._header.set('BZERO', _pseudo_zero(self.data.dtype),
-                             after='BSCALE')
+                self._header.set("BSCALE", 1)
+            self._header.set("BZERO", _pseudo_zero(self.data.dtype), after="BSCALE")
 
-    def _update_checksum(self, checksum, checksum_keyword='CHECKSUM',
-                         datasum_keyword='DATASUM'):
+    def _update_checksum(
+        self, checksum, checksum_keyword="CHECKSUM", datasum_keyword="DATASUM"
+    ):
         """Update the 'CHECKSUM' and 'DATASUM' keywords in the header (or
         keywords with equivalent semantics given by the ``checksum_keyword``
         and ``datasum_keyword`` arguments--see for example ``CompImageHDU``
@@ -573,29 +607,37 @@ class _BaseHDU:
         # way of knowing for sure
         modified = self._header._modified or self._data_loaded
 
-        if checksum == 'remove':
+        if checksum == "remove":
             if checksum_keyword in self._header:
                 del self._header[checksum_keyword]
 
             if datasum_keyword in self._header:
                 del self._header[datasum_keyword]
-        elif (modified or self._new or
-                (checksum and ('CHECKSUM' not in self._header or
-                               'DATASUM' not in self._header or
-                               not self._checksum_valid or
-                               not self._datasum_valid))):
-            if checksum == 'datasum':
+        elif (
+            modified
+            or self._new
+            or (
+                checksum
+                and (
+                    "CHECKSUM" not in self._header
+                    or "DATASUM" not in self._header
+                    or not self._checksum_valid
+                    or not self._datasum_valid
+                )
+            )
+        ):
+            if checksum == "datasum":
                 self.add_datasum(datasum_keyword=datasum_keyword)
             elif checksum:
-                self.add_checksum(checksum_keyword=checksum_keyword,
-                                  datasum_keyword=datasum_keyword)
+                self.add_checksum(
+                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
+                )
 
     def _postwriteto(self):
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
-        if (self._has_data and self._standard and
-                _is_pseudo_integer(self.data.dtype)):
-            for keyword in ('BSCALE', 'BZERO'):
+        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
+            for keyword in ("BSCALE", "BZERO"):
                 with suppress(KeyError):
                     del self._header[keyword]
 
@@ -633,7 +675,7 @@ class _BaseHDU:
                 # reason _padding_byte is > 0x80 this will fail; but really if
                 # somebody's custom fits format is doing that, they're doing it
                 # wrong and should be reprimanded harshly.
-                fileobj.write(padding.encode('ascii'))
+                fileobj.write(padding.encode("ascii"))
                 size += len(padding)
         else:
             # The data has not been modified or does not need need to be
@@ -669,7 +711,7 @@ class _BaseHDU:
 
         If this proves too slow a more direct approach may be used.
         """
-        raw = self._get_raw_data(self._data_size, 'ubyte', self._data_offset)
+        raw = self._get_raw_data(self._data_size, "ubyte", self._data_offset)
         if raw is not None:
             fileobj.writearray(raw)
             return raw.nbytes
@@ -759,8 +801,7 @@ class _BaseHDU:
         # prevent any future access to the .data attribute if there are
         # not other references to it; if there are other references then
         # it is up to the user to clean those up
-        if (closed and self._data_loaded and
-                _get_array_mmap(self.data) is not None):
+        if closed and self._data_loaded and _get_array_mmap(self.data) is not None:
             del self.data
 
 
@@ -806,7 +847,7 @@ class _CorruptedHDU(_BaseHDU):
         return self._file.size - self._data_offset
 
     def _summary(self):
-        return (self.name, self.ver, 'CorruptedHDU')
+        return (self.name, self.ver, "CorruptedHDU")
 
     def verify(self):
         pass
@@ -841,8 +882,8 @@ class _NonstandardHDU(_BaseHDU, _Verify):
 
         # The check that 'GROUPS' is missing is a bit redundant, since the
         # match_header for GroupsHDU will always be called before this one.
-        if card.keyword == 'SIMPLE':
-            if 'GROUPS' not in header and card.value is False:
+        if card.keyword == "SIMPLE":
+            if "GROUPS" not in header and card.value is False:
                 return True
             else:
                 raise InvalidHDUException
@@ -886,7 +927,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         return offset, size
 
     def _summary(self):
-        return (self.name, self.ver, 'NonstandardHDU', len(self._header))
+        return (self.name, self.ver, "NonstandardHDU", len(self._header))
 
     @lazyproperty
     def data(self):
@@ -894,10 +935,10 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         Return the file data.
         """
 
-        return self._get_raw_data(self.size, 'ubyte', self._data_offset)
+        return self._get_raw_data(self.size, "ubyte", self._data_offset)
 
-    def _verify(self, option='warn'):
-        errs = _ErrList([], unit='Card')
+    def _verify(self, option="warn"):
+        errs = _ErrList([], unit="Card")
 
         # verify each card
         for card in self._header.cards:
@@ -914,12 +955,11 @@ class _ValidHDU(_BaseHDU, _Verify):
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super().__init__(data=data, header=header)
 
-        if (header is not None and
-                not isinstance(header, (Header, _BasicHeader))):
+        if header is not None and not isinstance(header, (Header, _BasicHeader)):
             # TODO: Instead maybe try initializing a new Header object from
             # whatever is passed in as the header--there are various types
             # of objects that could work for this...
-            raise ValueError('header must be a Header object')
+            raise ValueError("header must be a Header object")
 
         # NOTE:  private data members _checksum and _datasum are used by the
         # utility script "fitscheck" to detect missing checksums.
@@ -944,7 +984,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         case?  Not sure...
         """
 
-        return first(header.keys()) not in ('SIMPLE', 'XTENSION')
+        return first(header.keys()) not in ("SIMPLE", "XTENSION")
 
     @property
     def size(self):
@@ -953,14 +993,14 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
 
         size = 0
-        naxis = self._header.get('NAXIS', 0)
+        naxis = self._header.get("NAXIS", 0)
         if naxis > 0:
             size = 1
             for idx in range(naxis):
-                size = size * self._header['NAXIS' + str(idx + 1)]
-            bitpix = self._header['BITPIX']
-            gcount = self._header.get('GCOUNT', 1)
-            pcount = self._header.get('PCOUNT', 0)
+                size = size * self._header["NAXIS" + str(idx + 1)]
+            bitpix = self._header["BITPIX"]
+            gcount = self._header.get("GCOUNT", 1)
+            pcount = self._header.get("PCOUNT", 0)
             size = abs(bitpix) * gcount * (pcount + size) // 8
         return size
 
@@ -1003,10 +1043,14 @@ class _ValidHDU(_BaseHDU, _Verify):
            ========== ================================================
         """
 
-        if hasattr(self, '_file') and self._file:
-            return {'file': self._file, 'filemode': self._file.mode,
-                    'hdrLoc': self._header_offset, 'datLoc': self._data_offset,
-                    'datSpan': self._data_size}
+        if hasattr(self, "_file") and self._file:
+            return {
+                "file": self._file,
+                "filemode": self._file.mode,
+                "hdrLoc": self._header_offset,
+                "datLoc": self._data_offset,
+                "datSpan": self._data_size,
+            }
         else:
             return None
 
@@ -1021,8 +1065,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             data = None
         return self.__class__(data=data, header=self._header.copy())
 
-    def _verify(self, option='warn'):
-        errs = _ErrList([], unit='Card')
+    def _verify(self, option="warn"):
+        errs = _ErrList([], unit="Card")
 
         is_valid = BITPIX2DTYPE.__contains__
 
@@ -1030,57 +1074,72 @@ class _ValidHDU(_BaseHDU, _Verify):
         # Do the first card here, instead of in the respective HDU classes, so
         # the checking is in order, in case of required cards in wrong order.
         if isinstance(self, ExtensionHDU):
-            firstkey = 'XTENSION'
+            firstkey = "XTENSION"
             firstval = self._extension
         else:
-            firstkey = 'SIMPLE'
+            firstkey = "SIMPLE"
             firstval = True
 
         self.req_cards(firstkey, 0, None, firstval, option, errs)
-        self.req_cards('BITPIX', 1, lambda v: (_is_int(v) and is_valid(v)), 8,
-                       option, errs)
-        self.req_cards('NAXIS', 2,
-                       lambda v: (_is_int(v) and 0 <= v <= 999), 0,
-                       option, errs)
+        self.req_cards(
+            "BITPIX", 1, lambda v: (_is_int(v) and is_valid(v)), 8, option, errs
+        )
+        self.req_cards(
+            "NAXIS", 2, lambda v: (_is_int(v) and 0 <= v <= 999), 0, option, errs
+        )
 
-        naxis = self._header.get('NAXIS', 0)
+        naxis = self._header.get("NAXIS", 0)
         if naxis < 1000:
             for ax in range(3, naxis + 3):
-                key = 'NAXIS' + str(ax - 2)
-                self.req_cards(key, ax,
-                               lambda v: (_is_int(v) and v >= 0),
-                               _extract_number(self._header[key], default=1),
-                               option, errs)
+                key = "NAXIS" + str(ax - 2)
+                self.req_cards(
+                    key,
+                    ax,
+                    lambda v: (_is_int(v) and v >= 0),
+                    _extract_number(self._header[key], default=1),
+                    option,
+                    errs,
+                )
 
             # Remove NAXISj cards where j is not in range 1, naxis inclusive.
             for keyword in self._header:
-                if keyword.startswith('NAXIS') and len(keyword) > 5:
+                if keyword.startswith("NAXIS") and len(keyword) > 5:
                     try:
                         number = int(keyword[5:])
                         if number <= 0 or number > naxis:
                             raise ValueError
                     except ValueError:
-                        err_text = ("NAXISj keyword out of range ('{}' when "
-                                    "NAXIS == {})".format(keyword, naxis))
+                        err_text = (
+                            "NAXISj keyword out of range ('{}' when "
+                            "NAXIS == {})".format(keyword, naxis)
+                        )
 
                         def fix(self=self, keyword=keyword):
                             del self._header[keyword]
 
                         errs.append(
-                            self.run_option(option=option, err_text=err_text,
-                                            fix=fix, fix_text="Deleted."))
+                            self.run_option(
+                                option=option,
+                                err_text=err_text,
+                                fix=fix,
+                                fix_text="Deleted.",
+                            )
+                        )
 
         # Verify that the EXTNAME keyword exists and is a string
-        if 'EXTNAME' in self._header:
-            if not isinstance(self._header['EXTNAME'], str):
-                err_text = 'The EXTNAME keyword must have a string value.'
-                fix_text = 'Converted the EXTNAME keyword to a string value.'
+        if "EXTNAME" in self._header:
+            if not isinstance(self._header["EXTNAME"], str):
+                err_text = "The EXTNAME keyword must have a string value."
+                fix_text = "Converted the EXTNAME keyword to a string value."
 
                 def fix(header=self._header):
-                    header['EXTNAME'] = str(header['EXTNAME'])
+                    header["EXTNAME"] = str(header["EXTNAME"])
 
-                errs.append(self.run_option(option, err_text=err_text,
-                                            fix_text=fix_text, fix=fix))
+                errs.append(
+                    self.run_option(
+                        option, err_text=err_text, fix_text=fix_text, fix=fix
+                    )
+                )
 
         # verify each card
         for card in self._header.cards:
@@ -1171,22 +1230,34 @@ class _ValidHDU(_BaseHDU, _Verify):
                 def fix(self=self, insert_pos=insert_pos, card=card):
                     self._header.insert(insert_pos, card)
 
-            errs.append(self.run_option(option, err_text=err_text,
-                        fix_text=fix_text, fix=fix, fixable=fixable))
+            errs.append(
+                self.run_option(
+                    option,
+                    err_text=err_text,
+                    fix_text=fix_text,
+                    fix=fix,
+                    fixable=fixable,
+                )
+            )
         else:
             # if the supposed location is specified
             if pos is not None:
                 if not pos(index):
                     err_text = f"'{keyword}' card at the wrong place (card {index})."
-                    fix_text = f"Fixed by moving it to the right place (card {insert_pos})."
+                    fix_text = (
+                        f"Fixed by moving it to the right place (card {insert_pos})."
+                    )
 
                     def fix(self=self, index=index, insert_pos=insert_pos):
                         card = self._header.cards[index]
                         del self._header[index]
                         self._header.insert(insert_pos, card)
 
-                    errs.append(self.run_option(option, err_text=err_text,
-                                fix_text=fix_text, fix=fix))
+                    errs.append(
+                        self.run_option(
+                            option, err_text=err_text, fix_text=fix_text, fix=fix
+                        )
+                    )
 
             # if value checking is specified
             if test:
@@ -1196,15 +1267,23 @@ class _ValidHDU(_BaseHDU, _Verify):
                     fix_text = f"Fixed by setting a new value '{fix_value}'."
 
                     if fixable:
+
                         def fix(self=self, keyword=keyword, val=fix_value):
                             self._header[keyword] = fix_value
 
-                    errs.append(self.run_option(option, err_text=err_text,
-                                fix_text=fix_text, fix=fix, fixable=fixable))
+                    errs.append(
+                        self.run_option(
+                            option,
+                            err_text=err_text,
+                            fix_text=fix_text,
+                            fix=fix,
+                            fixable=fixable,
+                        )
+                    )
 
         return errs
 
-    def add_datasum(self, when=None, datasum_keyword='DATASUM'):
+    def add_datasum(self, when=None, datasum_keyword="DATASUM"):
         """
         Add the ``DATASUM`` card to this HDU with the value set to the
         checksum calculated for the data.
@@ -1235,13 +1314,18 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum()
 
         if when is None:
-            when = f'data unit checksum updated {self._get_timestamp()}'
+            when = f"data unit checksum updated {self._get_timestamp()}"
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
 
-    def add_checksum(self, when=None, override_datasum=False,
-                     checksum_keyword='CHECKSUM', datasum_keyword='DATASUM'):
+    def add_checksum(
+        self,
+        when=None,
+        override_datasum=False,
+        checksum_keyword="CHECKSUM",
+        datasum_keyword="DATASUM",
+    ):
         """
         Add the ``CHECKSUM`` and ``DATASUM`` cards to this HDU with
         the values set to the checksum calculated for the HDU and the
@@ -1282,17 +1366,15 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum()
 
         if when is None:
-            when = f'HDU checksum updated {self._get_timestamp()}'
+            when = f"HDU checksum updated {self._get_timestamp()}"
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:
-            self._header.set(checksum_keyword, '0' * 16, when,
-                             before=datasum_keyword)
+            self._header.set(checksum_keyword, "0" * 16, when, before=datasum_keyword)
         else:
-            self._header.set(checksum_keyword, '0' * 16, when)
+            self._header.set(checksum_keyword, "0" * 16, when)
 
-        csum = self._calculate_checksum(data_cs,
-                                        checksum_keyword=checksum_keyword)
+        csum = self._calculate_checksum(data_cs, checksum_keyword=checksum_keyword)
         self._header[checksum_keyword] = csum
 
     def verify_datasum(self):
@@ -1308,9 +1390,9 @@ class _ValidHDU(_BaseHDU, _Verify):
            - 2 - no ``DATASUM`` keyword present
         """
 
-        if 'DATASUM' in self._header:
+        if "DATASUM" in self._header:
             datasum = self._calculate_datasum()
-            if datasum == int(self._header['DATASUM']):
+            if datasum == int(self._header["DATASUM"]):
                 return 1
             else:
                 # Failed
@@ -1331,13 +1413,13 @@ class _ValidHDU(_BaseHDU, _Verify):
            - 2 - no ``CHECKSUM`` keyword present
         """
 
-        if 'CHECKSUM' in self._header:
-            if 'DATASUM' in self._header:
+        if "CHECKSUM" in self._header:
+            if "DATASUM" in self._header:
                 datasum = self._calculate_datasum()
             else:
                 datasum = 0
             checksum = self._calculate_checksum(datasum)
-            if checksum == self._header['CHECKSUM']:
+            if checksum == self._header["CHECKSUM"]:
                 return 1
             else:
                 # Failed
@@ -1351,21 +1433,27 @@ class _ValidHDU(_BaseHDU, _Verify):
         Simply displays warnings if either the checksum or datasum don't match.
         """
 
-        if 'CHECKSUM' in self._header:
-            self._checksum = self._header['CHECKSUM']
+        if "CHECKSUM" in self._header:
+            self._checksum = self._header["CHECKSUM"]
             self._checksum_valid = self.verify_checksum()
             if not self._checksum_valid:
                 warnings.warn(
-                    'Checksum verification failed for HDU {}.\n'.format(
-                        (self.name, self.ver)), AstropyUserWarning)
+                    "Checksum verification failed for HDU {}.\n".format(
+                        (self.name, self.ver)
+                    ),
+                    AstropyUserWarning,
+                )
 
-        if 'DATASUM' in self._header:
-            self._datasum = self._header['DATASUM']
+        if "DATASUM" in self._header:
+            self._datasum = self._header["DATASUM"]
             self._datasum_valid = self.verify_datasum()
             if not self._datasum_valid:
                 warnings.warn(
-                    'Datasum verification failed for HDU {}.\n'.format(
-                        (self.name, self.ver)), AstropyUserWarning)
+                    "Datasum verification failed for HDU {}.\n".format(
+                        (self.name, self.ver)
+                    ),
+                    AstropyUserWarning,
+                )
 
     def _get_timestamp(self):
         """
@@ -1387,29 +1475,30 @@ class _ValidHDU(_BaseHDU, _Verify):
             # yet.  We find the data in the file, read it, and calculate the
             # datasum.
             if self.size > 0:
-                raw_data = self._get_raw_data(self._data_size, 'ubyte',
-                                              self._data_offset)
+                raw_data = self._get_raw_data(
+                    self._data_size, "ubyte", self._data_offset
+                )
                 return self._compute_checksum(raw_data)
             else:
                 return 0
         elif self.data is not None:
-            return self._compute_checksum(self.data.view('ubyte'))
+            return self._compute_checksum(self.data.view("ubyte"))
         else:
             return 0
 
-    def _calculate_checksum(self, datasum, checksum_keyword='CHECKSUM'):
+    def _calculate_checksum(self, datasum, checksum_keyword="CHECKSUM"):
         """
         Calculate the value of the ``CHECKSUM`` card in the HDU.
         """
 
         old_checksum = self._header[checksum_keyword]
-        self._header[checksum_keyword] = '0' * 16
+        self._header[checksum_keyword] = "0" * 16
 
         # Convert the header to bytes.
-        s = self._header.tostring().encode('utf8')
+        s = self._header.tostring().encode("utf8")
 
         # Calculate the checksum of the Header and data.
-        cs = self._compute_checksum(np.frombuffer(s, dtype='ubyte'), datasum)
+        cs = self._compute_checksum(np.frombuffer(s, dtype="ubyte"), datasum)
 
         # Encode the checksum into a string.
         s = self._char_encode(~cs)
@@ -1439,8 +1528,8 @@ class _ValidHDU(_BaseHDU, _Verify):
         blocklen = 2880
         sum32 = np.uint32(sum32)
         for i in range(0, len(data), blocklen):
-            length = min(blocklen, len(data) - i)   # ????
-            sum32 = self._compute_hdu_checksum(data[i:i + length], sum32)
+            length = min(blocklen, len(data) - i)  # ????
+            sum32 = self._compute_hdu_checksum(data[i : i + length], sum32)
         return sum32
 
     def _compute_hdu_checksum(self, data, sum32=0):
@@ -1464,7 +1553,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         else:
             last = np.uint32(0)
 
-        data = data.view('>u2')
+        data = data.view(">u2")
 
         hi = sum32 >> u16
         lo = sum32 & uFFFF
@@ -1489,25 +1578,35 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     # _MASK and _EXCLUDE used for encoding the checksum value into a character
     # string.
-    _MASK = [0xFF000000,
-             0x00FF0000,
-             0x0000FF00,
-             0x000000FF]
+    _MASK = [0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF]
 
-    _EXCLUDE = [0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40,
-                0x5b, 0x5c, 0x5d, 0x5e, 0x5f, 0x60]
+    _EXCLUDE = [
+        0x3A,
+        0x3B,
+        0x3C,
+        0x3D,
+        0x3E,
+        0x3F,
+        0x40,
+        0x5B,
+        0x5C,
+        0x5D,
+        0x5E,
+        0x5F,
+        0x60,
+    ]
 
     def _encode_byte(self, byte):
         """
         Encode a single byte.
         """
 
-        quotient = byte // 4 + ord('0')
+        quotient = byte // 4 + ord("0")
         remainder = byte % 4
 
         ch = np.array(
-            [(quotient + remainder), quotient, quotient, quotient],
-            dtype='int32')
+            [(quotient + remainder), quotient, quotient, quotient], dtype="int32"
+        )
 
         check = True
         while check:
@@ -1537,8 +1636,8 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         value = np.uint32(value)
 
-        asc = np.zeros((16,), dtype='byte')
-        ascii = np.zeros((16,), dtype='byte')
+        asc = np.zeros((16,), dtype="byte")
+        ascii = np.zeros((16,), dtype="byte")
 
         for i in range(4):
             byte = (value & self._MASK[i]) >> ((3 - i) * 8)
@@ -1560,7 +1659,7 @@ class ExtensionHDU(_ValidHDU):
     `BinTableHDU` classes.
     """
 
-    _extension = ''
+    _extension = ""
 
     @classmethod
     def match_header(cls, header):
@@ -1572,13 +1671,18 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
-    def writeto(self, name, output_verify='exception', overwrite=False,
-                checksum=False):
+    @deprecated_renamed_argument(
+        "clobber",
+        "overwrite",
+        "2.0",
+        message=(
+            '"clobber" was deprecated in version '
+            "2.0 and will be removed in version "
+            '5.1. Use argument "overwrite" '
+            "instead."
+        ),
+    )
+    def writeto(self, name, output_verify="exception", overwrite=False, checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
@@ -1592,19 +1696,19 @@ class ExtensionHDU(_ValidHDU):
         from .image import PrimaryHDU
 
         hdulist = HDUList([PrimaryHDU(), self])
-        hdulist.writeto(name, output_verify, overwrite=overwrite,
-                        checksum=checksum)
+        hdulist.writeto(name, output_verify, overwrite=overwrite, checksum=checksum)
 
-    def _verify(self, option='warn'):
-
+    def _verify(self, option="warn"):
         errs = super()._verify(option=option)
 
         # Verify location and value of mandatory keywords.
-        naxis = self._header.get('NAXIS', 0)
-        self.req_cards('PCOUNT', naxis + 3, lambda v: (_is_int(v) and v >= 0),
-                       0, option, errs)
-        self.req_cards('GCOUNT', naxis + 4, lambda v: (_is_int(v) and v == 1),
-                       1, option, errs)
+        naxis = self._header.get("NAXIS", 0)
+        self.req_cards(
+            "PCOUNT", naxis + 3, lambda v: (_is_int(v) and v >= 0), 0, option, errs
+        )
+        self.req_cards(
+            "GCOUNT", naxis + 4, lambda v: (_is_int(v) and v == 1), 1, option, errs
+        )
 
         return errs
 
@@ -1642,15 +1746,14 @@ class NonstandardExtHDU(ExtensionHDU):
         # A3DTABLE is not really considered a 'standard' extension, as it was
         # sort of the prototype for BINTABLE; however, since our BINTABLE
         # implementation handles A3DTABLE HDUs it is listed here.
-        standard_xtensions = ('IMAGE', 'TABLE', 'BINTABLE', 'A3DTABLE')
+        standard_xtensions = ("IMAGE", "TABLE", "BINTABLE", "A3DTABLE")
         # The check that xtension is not one of the standard types should be
         # redundant.
-        return (card.keyword == 'XTENSION' and
-                xtension not in standard_xtensions)
+        return card.keyword == "XTENSION" and xtension not in standard_xtensions
 
     def _summary(self):
         axes = tuple(self.data.shape)
-        return (self.name, self.ver, 'NonstandardExtHDU', len(self._header), axes)
+        return (self.name, self.ver, "NonstandardExtHDU", len(self._header), axes)
 
     @lazyproperty
     def data(self):
@@ -1658,7 +1761,7 @@ class NonstandardExtHDU(ExtensionHDU):
         Return the file data.
         """
 
-        return self._get_raw_data(self.size, 'ubyte', self._data_offset)
+        return self._get_raw_data(self.size, "ubyte", self._data_offset)
 
 
 # TODO: Mark this as deprecated

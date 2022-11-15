@@ -42,10 +42,21 @@ from astropy import config as _config
 from astropy.utils.exceptions import AstropyWarning
 
 __all__ = [
-    'Conf', 'conf', 'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
-    'warn_unknown_attrs', 'parse_vowarning', 'VOWarning',
-    'VOTableChangeWarning', 'VOTableSpecWarning',
-    'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
+    "Conf",
+    "conf",
+    "warn_or_raise",
+    "vo_raise",
+    "vo_reraise",
+    "vo_warn",
+    "warn_unknown_attrs",
+    "parse_vowarning",
+    "VOWarning",
+    "VOTableChangeWarning",
+    "VOTableSpecWarning",
+    "UnimplementedWarning",
+    "IOWarning",
+    "VOTableSpecError",
+]
 
 
 # NOTE: Cannot put this in __init__.py due to circular import.
@@ -53,11 +64,12 @@ class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.io.votable.exceptions`.
     """
+
     max_warnings = _config.ConfigItem(
         10,
-        'Number of times the same type of warning is displayed '
-        'before being suppressed',
-        cfgtype='integer')
+        "Number of times the same type of warning is displayed before being suppressed",
+        cfgtype="integer",
+    )
 
 
 conf = Conf()
@@ -67,25 +79,27 @@ def _format_message(message, name, config=None, pos=None):
     if config is None:
         config = {}
     if pos is None:
-        pos = ('?', '?')
-    filename = config.get('filename', '?')
-    return f'{filename}:{pos[0]}:{pos[1]}: {name}: {message}'
+        pos = ("?", "?")
+    filename = config.get("filename", "?")
+    return f"{filename}:{pos[0]}:{pos[1]}: {name}: {message}"
 
 
 def _suppressed_warning(warning, config, stacklevel=2):
     warning_class = type(warning)
-    config.setdefault('_warning_counts', dict()).setdefault(warning_class, 0)
-    config['_warning_counts'][warning_class] += 1
-    message_count = config['_warning_counts'][warning_class]
+    config.setdefault("_warning_counts", dict()).setdefault(warning_class, 0)
+    config["_warning_counts"][warning_class] += 1
+    message_count = config["_warning_counts"][warning_class]
     if message_count <= conf.max_warnings:
         if message_count == conf.max_warnings:
-            warning.formatted_message += \
-                ' (suppressing further warnings of this type...)'
-        warn(warning, stacklevel=stacklevel+1)
+            warning.formatted_message += (
+                " (suppressing further warnings of this type...)"
+            )
+        warn(warning, stacklevel=stacklevel + 1)
 
 
-def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
-                  pos=None, stacklevel=1):
+def warn_or_raise(
+    warning_class, exception_class=None, args=(), config=None, pos=None, stacklevel=1
+):
     """
     Warn or raise an exception, depending on the verify setting.
     """
@@ -94,13 +108,13 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config=None,
     # NOTE: the default here is deliberately warn rather than ignore, since
     # one would expect that calling warn_or_raise without config should not
     # silence the warnings.
-    config_value = config.get('verify', 'warn')
-    if config_value == 'exception':
+    config_value = config.get("verify", "warn")
+    if config_value == "exception":
         if exception_class is None:
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
-    elif config_value == 'warn':
-        vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
+    elif config_value == "warn":
+        vo_warn(warning_class, args, config, pos, stacklevel=stacklevel + 1)
 
 
 def vo_raise(exception_class, args=(), config=None, pos=None):
@@ -112,7 +126,7 @@ def vo_raise(exception_class, args=(), config=None, pos=None):
     raise exception_class(args, config, pos)
 
 
-def vo_reraise(exc, config=None, pos=None, additional=''):
+def vo_reraise(exc, config=None, pos=None, additional=""):
     """
     Raise an exception, with proper position information if available.
 
@@ -125,7 +139,7 @@ def vo_reraise(exc, config=None, pos=None, additional=''):
     if message.split()[0] == str(exc).split()[0]:
         message = str(exc)
     if len(additional):
-        message += ' ' + additional
+        message += " " + additional
     exc.args = (message,)
     raise exc
 
@@ -139,20 +153,21 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     # NOTE: the default here is deliberately warn rather than ignore, since
     # one would expect that calling warn_or_raise without config should not
     # silence the warnings.
-    if config.get('verify', 'warn') != 'ignore':
+    if config.get("verify", "warn") != "ignore":
         warning = warning_class(args, config, pos)
-        _suppressed_warning(warning, config, stacklevel=stacklevel+1)
+        _suppressed_warning(warning, config, stacklevel=stacklevel + 1)
 
 
 def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
     for attr in attrs:
         if attr not in good_attr:
-            vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel+1)
+            vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel + 1)
 
 
 _warning_pat = re.compile(
-    r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
-    r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
+    r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): "
+    + r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"
+)
 
 
 def parse_vowarning(line):
@@ -162,37 +177,37 @@ def parse_vowarning(line):
     result = {}
     match = _warning_pat.search(line)
     if match:
-        result['warning'] = warning = match.group('warning')
+        result["warning"] = warning = match.group("warning")
         if warning is not None:
-            result['is_warning'] = (warning[0].upper() == 'W')
-            result['is_exception'] = not result['is_warning']
-            result['number'] = int(match.group('warning')[1:])
-            result['doc_url'] = f"io/votable/api_exceptions.html#{warning.lower()}"
+            result["is_warning"] = warning[0].upper() == "W"
+            result["is_exception"] = not result["is_warning"]
+            result["number"] = int(match.group("warning")[1:])
+            result["doc_url"] = f"io/votable/api_exceptions.html#{warning.lower()}"
         else:
-            result['is_warning'] = False
-            result['is_exception'] = False
-            result['is_other'] = True
-            result['number'] = None
-            result['doc_url'] = None
+            result["is_warning"] = False
+            result["is_exception"] = False
+            result["is_other"] = True
+            result["number"] = None
+            result["doc_url"] = None
         try:
-            result['nline'] = int(match.group('nline'))
+            result["nline"] = int(match.group("nline"))
         except ValueError:
-            result['nline'] = 0
+            result["nline"] = 0
         try:
-            result['nchar'] = int(match.group('nchar'))
+            result["nchar"] = int(match.group("nchar"))
         except ValueError:
-            result['nchar'] = 0
-        result['message'] = match.group('rest')
-        result['is_something'] = True
+            result["nchar"] = 0
+        result["message"] = match.group("rest")
+        result["is_something"] = True
     else:
-        result['warning'] = None
-        result['is_warning'] = False
-        result['is_exception'] = False
-        result['is_other'] = False
-        result['is_something'] = False
+        result["warning"] = None
+        result["is_warning"] = False
+        result["is_exception"] = False
+        result["is_other"] = False
+        result["is_something"] = False
         if not isinstance(line, str):
-            line = line.decode('utf-8')
-        result['message'] = line
+            line = line.decode("utf-8")
+        result["message"] = line
 
     return result
 
@@ -204,18 +219,20 @@ class VOWarning(AstropyWarning):
     Handles the formatting of the message with a warning or exception
     code, filename, line and column number.
     """
+
     default_args = ()
-    message_template = ''
+    message_template = ""
 
     def __init__(self, args, config=None, pos=None):
         if config is None:
             config = {}
         if not isinstance(args, tuple):
-            args = (args, )
+            args = (args,)
         msg = self.message_template.format(*args)
 
         self.formatted_message = _format_message(
-            msg, self.__class__.__name__, config, pos)
+            msg, self.__class__.__name__, config, pos
+        )
         Warning.__init__(self, self.formatted_message)
 
     def __str__(self):
@@ -307,7 +324,7 @@ class W02(VOTableSpecWarning):
     """
 
     message_template = "{} attribute '{}' is invalid.  Must be a standard XML id"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 class W03(VOTableChangeWarning):
@@ -360,7 +377,7 @@ class W03(VOTableChangeWarning):
     """
 
     message_template = "Implicitly generating an ID from a name '{}' -> '{}'"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 class W04(VOTableSpecWarning):
@@ -377,7 +394,7 @@ class W04(VOTableSpecWarning):
     """
 
     message_template = "content-type '{}' must be a valid MIME content type"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W05(VOTableSpecWarning):
@@ -387,7 +404,7 @@ class W05(VOTableSpecWarning):
     """
 
     message_template = "'{}' is not a valid URI"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W06(VOTableSpecWarning):
@@ -407,7 +424,7 @@ class W06(VOTableSpecWarning):
     """
 
     message_template = "Invalid UCD '{}': {}"
-    default_args = ('x', 'explanation')
+    default_args = ("x", "explanation")
 
 
 class W07(VOTableSpecWarning):
@@ -427,7 +444,7 @@ class W07(VOTableSpecWarning):
     """
 
     message_template = "Invalid astroYear in {}: '{}'"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 class W08(VOTableSpecWarning):
@@ -439,7 +456,7 @@ class W08(VOTableSpecWarning):
 
     message_template = "'{}' must be a str or bytes object"
 
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W09(VOTableSpecWarning):
@@ -475,7 +492,7 @@ class W10(VOTableSpecWarning):
     """
 
     message_template = "Unknown tag '{}'.  Ignoring"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W11(VOTableSpecWarning):
@@ -514,8 +531,9 @@ class W12(VOTableChangeWarning):
     """
 
     message_template = (
-        "'{}' element must have at least one of 'ID' or 'name' attributes")
-    default_args = ('x',)
+        "'{}' element must have at least one of 'ID' or 'name' attributes"
+    )
+    default_args = ("x",)
 
 
 class W13(VOTableSpecWarning):
@@ -543,7 +561,7 @@ class W13(VOTableSpecWarning):
     """
 
     message_template = "'{}' is not a valid VOTable datatype, should be '{}'"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 # W14: Deprecated
@@ -564,7 +582,8 @@ class W15(VOTableSpecWarning):
     """
 
     message_template = "{} element missing required 'name' attribute"
-    default_args = ('x',)
+    default_args = ("x",)
+
 
 # W16: Deprecated
 
@@ -585,7 +604,7 @@ class W17(VOTableSpecWarning):
     """
 
     message_template = "{} element contains more than one DESCRIPTION element"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W18(VOTableSpecWarning):
@@ -602,8 +621,8 @@ class W18(VOTableSpecWarning):
     <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html#ToC10>`__
     """
 
-    message_template = 'TABLE specified nrows={}, but table contains {} rows'
-    default_args = ('x', 'y')
+    message_template = "TABLE specified nrows={}, but table contains {} rows"
+    default_args = ("x", "y")
 
 
 class W19(VOTableSpecWarning):
@@ -614,8 +633,9 @@ class W19(VOTableSpecWarning):
     """
 
     message_template = (
-        'The fields defined in the VOTable do not match those in the ' +
-        'embedded FITS file')
+        "The fields defined in the VOTable do not match those in the "
+        + "embedded FITS file"
+    )
 
 
 class W20(VOTableSpecWarning):
@@ -624,8 +644,8 @@ class W20(VOTableSpecWarning):
     parser assumes it is written to the VOTable 1.1 specification.
     """
 
-    message_template = 'No version number specified in file.  Assuming {}'
-    default_args = ('1.1',)
+    message_template = "No version number specified in file.  Assuming {}"
+    default_args = ("1.1",)
 
 
 class W21(UnimplementedWarning):
@@ -635,9 +655,10 @@ class W21(UnimplementedWarning):
     """
 
     message_template = (
-        'astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,'
-        ' and 1.4, but this file is {}')
-    default_args = ('x',)
+        "astropy.io.votable is designed for VOTable version 1.1, 1.2, 1.3,"
+        " and 1.4, but this file is {}"
+    )
+    default_args = ("x",)
 
 
 class W22(VOTableSpecWarning):
@@ -652,7 +673,7 @@ class W22(VOTableSpecWarning):
     <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html#sec:definitions>`__
     """
 
-    message_template = 'The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring'
+    message_template = "The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring"
 
 
 class W23(IOWarning):
@@ -664,7 +685,7 @@ class W23(IOWarning):
     """
 
     message_template = "Unable to update service information for '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W24(VOWarning, FutureWarning):
@@ -675,7 +696,9 @@ class W24(VOWarning, FutureWarning):
     to the latest version.
     """
 
-    message_template = "The VO catalog database is for a later version of astropy.io.votable"
+    message_template = (
+        "The VO catalog database is for a later version of astropy.io.votable"
+    )
 
 
 class W25(IOWarning):
@@ -686,7 +709,7 @@ class W25(IOWarning):
     """
 
     message_template = "'{}' failed with: {}"
-    default_args = ('service', '...')
+    default_args = ("service", "...")
 
 
 class W26(VOTableSpecWarning):
@@ -698,7 +721,7 @@ class W26(VOTableSpecWarning):
     """
 
     message_template = "'{}' inside '{}' added in VOTable {}"
-    default_args = ('child', 'parent', 'X.X')
+    default_args = ("child", "parent", "X.X")
 
 
 class W27(VOTableSpecWarning):
@@ -723,7 +746,7 @@ class W28(VOTableSpecWarning):
     """
 
     message_template = "'{}' on '{}' added in VOTable {}"
-    default_args = ('attribute', 'element', 'X.X')
+    default_args = ("attribute", "element", "X.X")
 
 
 class W29(VOTableSpecWarning):
@@ -738,7 +761,7 @@ class W29(VOTableSpecWarning):
     """
 
     message_template = "Version specified in non-standard form '{}'"
-    default_args = ('v1.0',)
+    default_args = ("v1.0",)
 
 
 class W30(VOTableSpecWarning):
@@ -754,7 +777,7 @@ class W30(VOTableSpecWarning):
     """
 
     message_template = "Invalid literal for float '{}'.  Treating as empty."
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W31(VOTableSpecWarning):
@@ -794,7 +817,7 @@ class W32(VOTableSpecWarning):
     """
 
     message_template = "Duplicate ID '{}' renamed to '{}' to ensure uniqueness"
-    default_args = ('x', 'x_2')
+    default_args = ("x", "x_2")
 
 
 class W33(VOTableChangeWarning):
@@ -810,7 +833,7 @@ class W33(VOTableChangeWarning):
     """
 
     message_template = "Column name '{}' renamed to '{}' to ensure uniqueness"
-    default_args = ('x', 'x_2')
+    default_args = ("x", "x_2")
 
 
 class W34(VOTableSpecWarning):
@@ -821,7 +844,7 @@ class W34(VOTableSpecWarning):
     """
 
     message_template = "'{}' is an invalid token for attribute '{}'"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 class W35(VOTableSpecWarning):
@@ -836,7 +859,7 @@ class W35(VOTableSpecWarning):
     """
 
     message_template = "'{}' attribute required for INFO elements"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W36(VOTableSpecWarning):
@@ -851,7 +874,7 @@ class W36(VOTableSpecWarning):
     """
 
     message_template = "null value '{}' does not match field datatype, setting to 0"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W37(UnimplementedWarning):
@@ -866,7 +889,7 @@ class W37(UnimplementedWarning):
     """
 
     message_template = "Unsupported data format '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W38(VOTableSpecWarning):
@@ -876,7 +899,7 @@ class W38(VOTableSpecWarning):
     """
 
     message_template = "Inline binary data must be base64 encoded, got '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W39(VOTableSpecWarning):
@@ -923,9 +946,9 @@ class W41(VOTableSpecWarning):
     """
 
     message_template = (
-        "An XML namespace is specified, but is incorrect.  Expected " +
-        "'{}', got '{}'")
-    default_args = ('x', 'y')
+        "An XML namespace is specified, but is incorrect.  Expected " + "'{}', got '{}'"
+    )
+    default_args = ("x", "y")
 
 
 class W42(VOTableSpecWarning):
@@ -952,7 +975,10 @@ class W43(VOTableSpecWarning):
     """
 
     message_template = "{} ref='{}' which has not already been defined"
-    default_args = ('element', 'x',)
+    default_args = (
+        "element",
+        "x",
+    )
 
 
 class W44(VOTableSpecWarning):
@@ -971,7 +997,7 @@ class W44(VOTableSpecWarning):
     """
 
     message_template = "VALUES element with ref attribute has content ('{}')"
-    default_args = ('element',)
+    default_args = ("element",)
 
 
 class W45(VOWarning, ValueError):
@@ -994,7 +1020,7 @@ class W45(VOWarning, ValueError):
     """
 
     message_template = "content-role attribute '{}' invalid"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W46(VOTableSpecWarning):
@@ -1004,7 +1030,7 @@ class W46(VOTableSpecWarning):
     """
 
     message_template = "{} value is too long for specified length of {}"
-    default_args = ('char or unicode', 'x')
+    default_args = ("char or unicode", "x")
 
 
 class W47(VOTableSpecWarning):
@@ -1022,7 +1048,7 @@ class W48(VOTableSpecWarning):
     """
 
     message_template = "Unknown attribute '{}' on {}"
-    default_args = ('attribute', 'element')
+    default_args = ("attribute", "element")
 
 
 class W49(VOTableSpecWarning):
@@ -1049,7 +1075,7 @@ class W50(VOTableSpecWarning):
     """
 
     message_template = "Invalid unit string '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class W51(VOTableSpecWarning):
@@ -1058,7 +1084,7 @@ class W51(VOTableSpecWarning):
     """
 
     message_template = "Value '{}' is out of range for a {} integer field"
-    default_args = ('x', 'n-bit')
+    default_args = ("x", "n-bit")
 
 
 class W52(VOTableSpecWarning):
@@ -1067,9 +1093,11 @@ class W52(VOTableSpecWarning):
     not be present in files marked as an earlier version.
     """
 
-    message_template = ("The BINARY2 format was introduced in VOTable 1.3, but "
-                        "this file is declared as version '{}'")
-    default_args = ('1.2',)
+    message_template = (
+        "The BINARY2 format was introduced in VOTable 1.3, but "
+        "this file is declared as version '{}'"
+    )
+    default_args = ("1.2",)
 
 
 class W53(VOTableSpecWarning):
@@ -1077,7 +1105,7 @@ class W53(VOTableSpecWarning):
     The VOTABLE element must contain at least one RESOURCE element.
     """
 
-    message_template = ("VOTABLE element must contain at least one RESOURCE element.")
+    message_template = "VOTABLE element must contain at least one RESOURCE element."
     default_args = ()
 
 
@@ -1089,8 +1117,9 @@ class W54(VOTableSpecWarning):
 
     message_template = (
         "The TIMESYS element was introduced in VOTable 1.4, but "
-        "this file is declared as version '{}'")
-    default_args = ('1.3',)
+        "this file is declared as version '{}'"
+    )
+    default_args = ("1.3",)
 
 
 class W55(VOTableSpecWarning):
@@ -1101,9 +1130,9 @@ class W55(VOTableSpecWarning):
     """
 
     message_template = (
-        'FIELD ({}) has datatype="char" but contains non-ASCII '
-        'value ({})')
-    default_args = ('', '')
+        'FIELD ({}) has datatype="char" but contains non-ASCII value ({})'
+    )
+    default_args = ("", "")
 
 
 class E01(VOWarning, ValueError):
@@ -1126,7 +1155,7 @@ class E01(VOWarning, ValueError):
     """
 
     message_template = "Invalid size specifier '{}' for a {} field (in field '{}')"
-    default_args = ('x', 'char/unicode', 'y')
+    default_args = ("x", "char/unicode", "y")
 
 
 class E02(VOWarning, ValueError):
@@ -1136,9 +1165,9 @@ class E02(VOWarning, ValueError):
     """
 
     message_template = (
-        "Incorrect number of elements in array. " +
-        "Expected multiple of {}, got {}")
-    default_args = ('x', 'y')
+        "Incorrect number of elements in array. " + "Expected multiple of {}, got {}"
+    )
+    default_args = ("x", "y")
 
 
 class E03(VOWarning, ValueError):
@@ -1152,7 +1181,7 @@ class E03(VOWarning, ValueError):
     """
 
     message_template = "'{}' does not parse as a complex number"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E04(VOWarning, ValueError):
@@ -1166,7 +1195,7 @@ class E04(VOWarning, ValueError):
     """
 
     message_template = "Invalid bit value '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E05(VOWarning, ValueError):
@@ -1187,7 +1216,7 @@ class E05(VOWarning, ValueError):
     """
 
     message_template = "Invalid boolean value '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E06(VOWarning, ValueError):
@@ -1220,7 +1249,8 @@ class E06(VOWarning, ValueError):
     """
 
     message_template = "Unknown datatype '{}' on field '{}'"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
+
 
 # E07: Deprecated
 
@@ -1237,7 +1267,7 @@ class E08(VOWarning, ValueError):
     """
 
     message_template = "type must be 'legal' or 'actual', but is '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E09(VOWarning, ValueError):
@@ -1252,7 +1282,7 @@ class E09(VOWarning, ValueError):
     """
 
     message_template = "'{}' must have a value attribute"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E10(VOWarning, ValueError):
@@ -1267,7 +1297,7 @@ class E10(VOWarning, ValueError):
     """
 
     message_template = "'datatype' attribute required on all '{}' elements"
-    default_args = ('FIELD',)
+    default_args = ("FIELD",)
 
 
 class E11(VOWarning, ValueError):
@@ -1289,7 +1319,7 @@ class E11(VOWarning, ValueError):
     """
 
     message_template = "precision '{}' is invalid"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E12(VOWarning, ValueError):
@@ -1305,7 +1335,7 @@ class E12(VOWarning, ValueError):
     """
 
     message_template = "width must be a positive integer, got '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E13(VOWarning, ValueError):
@@ -1347,7 +1377,7 @@ class E13(VOWarning, ValueError):
     """
 
     message_template = "Invalid arraysize attribute '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E14(VOWarning, ValueError):
@@ -1389,7 +1419,7 @@ class E16(VOTableSpecWarning):
     """
 
     message_template = "Invalid system attribute '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E17(VOWarning, ValueError):
@@ -1417,7 +1447,7 @@ class E18(VOWarning, ValueError):
     """
 
     message_template = "type must be 'results' or 'meta', not '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E19(VOWarning, ValueError):
@@ -1436,7 +1466,7 @@ class E20(VOTableSpecError):
     """
 
     message_template = "Data has more columns than are defined in the header ({})"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E21(VOWarning, ValueError):
@@ -1446,7 +1476,7 @@ class E21(VOWarning, ValueError):
     """
 
     message_template = "Data has fewer columns ({}) than are defined in the header ({})"
-    default_args = ('x', 'y')
+    default_args = ("x", "y")
 
 
 class E22(VOWarning, ValueError):
@@ -1469,7 +1499,7 @@ class E23(VOTableSpecWarning):
     """
 
     message_template = "Invalid timeorigin attribute '{}'"
-    default_args = ('x',)
+    default_args = ("x",)
 
 
 class E24(VOWarning, ValueError):
@@ -1479,9 +1509,9 @@ class E24(VOWarning, ValueError):
     """
 
     message_template = (
-        'Attempt to write non-ASCII value ({}) to FIELD ({}) which '
-        'has datatype="char"')
-    default_args = ('', '')
+        'Attempt to write non-ASCII value ({}) to FIELD ({}) which has datatype="char"'
+    )
+    default_args = ("", "")
 
 
 class E25(VOTableSpecWarning):
@@ -1511,28 +1541,27 @@ def _build_doc_string():
             out.write(f".. _{name}:\n\n")
             msg = f"{cls.__name__}: {cls.get_short_name()}"
             if not isinstance(msg, str):
-                msg = msg.decode('utf-8')
+                msg = msg.decode("utf-8")
             out.write(msg)
-            out.write('\n')
-            out.write('~' * len(msg))
-            out.write('\n\n')
+            out.write("\n")
+            out.write("~" * len(msg))
+            out.write("\n\n")
             doc = cls.__doc__
             if not isinstance(doc, str):
-                doc = doc.decode('utf-8')
+                doc = doc.decode("utf-8")
             out.write(dedent(doc))
-            out.write('\n\n')
+            out.write("\n\n")
 
         return out.getvalue()
 
-    warnings = generate_set('W')
-    exceptions = generate_set('E')
+    warnings = generate_set("W")
+    exceptions = generate_set("E")
 
-    return {'warnings': warnings,
-            'exceptions': exceptions}
+    return {"warnings": warnings, "exceptions": exceptions}
 
 
 if __doc__ is not None:
     __doc__ = __doc__.format(**_build_doc_string())
 
-__all__.extend([x[0] for x in _get_warning_and_exception_classes('W')])
-__all__.extend([x[0] for x in _get_warning_and_exception_classes('E')])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes("W")])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes("E")])

@@ -40,7 +40,7 @@ from astropy.cosmology.connect import readwrite_registry
 # LOCAL
 from .core import file_reader, file_writer
 
-__doctest_skip__ = ['*']
+__doctest_skip__ = ["*"]
 
 
 def read_myformat(filename, **kwargs):
@@ -85,4 +85,6 @@ def myformat_identify(origin, filepath, fileobj, *args, **kwargs):
 
 readwrite_registry.register_reader("myformat", Cosmology, read_myformat, force=True)
 readwrite_registry.register_writer("myformat", Cosmology, write_myformat, force=True)
-readwrite_registry.register_identifier("myformat", Cosmology, myformat_identify, force=True)
+readwrite_registry.register_identifier(
+    "myformat", Cosmology, myformat_identify, force=True
+)

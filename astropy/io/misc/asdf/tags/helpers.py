@@ -8,8 +8,7 @@ __all__ = []
 
 
 def skycoord_equal(sc1, sc2):
-    """SkyCoord equality useful for testing and ASDF serialization
-    """
+    """SkyCoord equality useful for testing and ASDF serialization"""
     if not sc1.is_equivalent_frame(sc2):
         return False
     if sc1.representation_type is not sc2.representation_type:

@@ -3,9 +3,13 @@
 
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
 
-__all__ = ['BaseRADecFrame']
+__all__ = ["BaseRADecFrame"]
 
 
 doc_components = """
@@ -37,10 +41,11 @@ class BaseRADecFrame(BaseCoordinateFrame):
     represent longitude and latitude as Right Ascension and Declination
     following typical "equatorial" conventions.
     """
+
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'ra'),
-            RepresentationMapping('lat', 'dec')
+            RepresentationMapping("lon", "ra"),
+            RepresentationMapping("lat", "dec"),
         ]
     }
 

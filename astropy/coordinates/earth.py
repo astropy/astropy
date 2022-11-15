@@ -19,24 +19,32 @@ from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Longitude, Latitude
-from .representation import (BaseRepresentation, CartesianRepresentation,
-                             CartesianDifferential)
+from .representation import (
+    BaseRepresentation,
+    CartesianRepresentation,
+    CartesianDifferential,
+)
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 
 
-__all__ = ['EarthLocation', 'BaseGeodeticRepresentation',
-           'WGS84GeodeticRepresentation', 'WGS72GeodeticRepresentation',
-           'GRS80GeodeticRepresentation']
+__all__ = [
+    "EarthLocation",
+    "BaseGeodeticRepresentation",
+    "WGS84GeodeticRepresentation",
+    "WGS72GeodeticRepresentation",
+    "GRS80GeodeticRepresentation",
+]
 
-GeodeticLocation = collections.namedtuple('GeodeticLocation', ['lon', 'lat', 'height'])
+GeodeticLocation = collections.namedtuple("GeodeticLocation", ["lon", "lat", "height"])
 
 ELLIPSOIDS = {}
 """Available ellipsoids (defined in erfam.h, with numbers exposed in erfa)."""
 # Note: they get filled by the creation of the geodetic classes.
 
-OMEGA_EARTH = ((1.002_737_811_911_354_48 * u.cycle/u.day)
-               .to(1/u.s, u.dimensionless_angles()))
+OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
+    1 / u.s, u.dimensionless_angles()
+)
 """
 Rotational velocity of Earth, following SOFA's pvtob.
 
@@ -49,22 +57,22 @@ http://hpiers.obspm.fr/eop-pc/index.php?index=constants.
 """
 
 
-def _check_ellipsoid(ellipsoid=None, default='WGS84'):
+def _check_ellipsoid(ellipsoid=None, default="WGS84"):
     if ellipsoid is None:
         ellipsoid = default
     if ellipsoid not in ELLIPSOIDS:
-        raise ValueError(f'Ellipsoid {ellipsoid} not among known ones ({ELLIPSOIDS})')
+        raise ValueError(f"Ellipsoid {ellipsoid} not among known ones ({ELLIPSOIDS})")
     return ellipsoid
 
 
 def _get_json_result(url, err_str, use_google):
-
     # need to do this here to prevent a series of complicated circular imports
     from .name_resolve import NameResolveError
+
     try:
         # Retrieve JSON response from Google maps API
         resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
-        resp_data = json.loads(resp.read().decode('utf8'))
+        resp_data = json.loads(resp.read().decode("utf8"))
 
     except urllib.error.URLError as e:
         # This catches a timeout error, see:
@@ -81,11 +89,12 @@ def _get_json_result(url, err_str, use_google):
         raise NameResolveError(err_str.format(msg="connection timed out"))
 
     if use_google:
-        results = resp_data.get('results', [])
+        results = resp_data.get("results", [])
 
-        if resp_data.get('status', None) != 'OK':
-            raise NameResolveError(err_str.format(msg="unknown failure with "
-                                                  "Google API"))
+        if resp_data.get("status", None) != "OK":
+            raise NameResolveError(
+                err_str.format(msg="unknown failure with Google API")
+            )
 
     else:  # OpenStreetMap returns a list
         results = resp_data
@@ -102,17 +111,18 @@ class EarthLocationInfo(QuantityInfoBase):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    _represent_as_dict_attrs = ('x', 'y', 'z', 'ellipsoid')
+
+    _represent_as_dict_attrs = ("x", "y", "z", "ellipsoid")
 
     def _construct_from_dict(self, map):
         # Need to pop ellipsoid off and update post-instantiation.  This is
         # on the to-fix list in #4261.
-        ellipsoid = map.pop('ellipsoid')
+        ellipsoid = map.pop("ellipsoid")
         out = self._parent_cls(**map)
         out.ellipsoid = ellipsoid
         return out
 
-    def new_like(self, cols, length, metadata_conflicts='warn', name=None):
+    def new_like(self, cols, length, metadata_conflicts="warn", name=None):
         """
         Return a new EarthLocation instance which is consistent with the
         input ``cols`` and has ``length`` rows.
@@ -139,20 +149,24 @@ class EarthLocationInfo(QuantityInfoBase):
         # Very similar to QuantityInfo.new_like, but the creation of the
         # map is different enough that this needs its own rouinte.
         # Get merged info attributes shape, dtype, format, description.
-        attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
-                                           ('meta', 'format', 'description'))
+        attrs = self.merge_cols_attributes(
+            cols, metadata_conflicts, name, ("meta", "format", "description")
+        )
         # The above raises an error if the dtypes do not match, but returns
         # just the string representation, which is not useful, so remove.
-        attrs.pop('dtype')
+        attrs.pop("dtype")
         # Make empty EarthLocation using the dtype and unit of the last column.
         # Use zeros so we do not get problems for possible conversion to
         # geodetic coordinates.
-        shape = (length,) + attrs.pop('shape')
-        data = u.Quantity(np.zeros(shape=shape, dtype=cols[0].dtype),
-                          unit=cols[0].unit, copy=False)
+        shape = (length,) + attrs.pop("shape")
+        data = u.Quantity(
+            np.zeros(shape=shape, dtype=cols[0].dtype), unit=cols[0].unit, copy=False
+        )
         # Get arguments needed to reconstruct class
-        map = {key: (data[key] if key in 'xyz' else getattr(cols[-1], key))
-               for key in self._represent_as_dict_attrs}
+        map = {
+            key: (data[key] if key in "xyz" else getattr(cols[-1], key))
+            for key in self._represent_as_dict_attrs
+        }
         out = self._construct_from_dict(map)
         # Set remaining info attributes
         for attr, value in attrs.items():
@@ -186,17 +200,15 @@ class EarthLocation(u.Quantity):
     property.
     """
 
-    _ellipsoid = 'WGS84'
-    _location_dtype = np.dtype({'names': ['x', 'y', 'z'],
-                                'formats': [np.float64]*3})
+    _ellipsoid = "WGS84"
+    _location_dtype = np.dtype({"names": ["x", "y", "z"], "formats": [np.float64] * 3})
     _array_dtype = np.dtype((np.float64, (3,)))
 
     info = EarthLocationInfo()
 
     def __new__(cls, *args, **kwargs):
         # TODO: needs copy argument and better dealing with inputs.
-        if (len(args) == 1 and len(kwargs) == 0 and
-                isinstance(args[0], EarthLocation)):
+        if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], EarthLocation):
             return args[0].copy()
         try:
             self = cls.from_geocentric(*args, **kwargs)
@@ -204,10 +216,11 @@ class EarthLocation(u.Quantity):
             try:
                 self = cls.from_geodetic(*args, **kwargs)
             except Exception as exc_geodetic:
-                raise TypeError('Coordinates could not be parsed as either '
-                                'geocentric or geodetic, with respective '
-                                'exceptions "{}" and "{}"'
-                                .format(exc_geocentric, exc_geodetic))
+                raise TypeError(
+                    "Coordinates could not be parsed as either "
+                    "geocentric or geodetic, with respective "
+                    'exceptions "{}" and "{}"'.format(exc_geocentric, exc_geodetic)
+                )
         return self
 
     @classmethod
@@ -237,30 +250,30 @@ class EarthLocation(u.Quantity):
             try:
                 unit = x.unit
             except AttributeError:
-                raise TypeError("Geocentric coordinates should be Quantities "
-                                "unless an explicit unit is given.") from None
+                raise TypeError(
+                    "Geocentric coordinates should be Quantities "
+                    "unless an explicit unit is given."
+                ) from None
         else:
             unit = u.Unit(unit)
 
-        if unit.physical_type != 'length':
-            raise u.UnitsError("Geocentric coordinates should be in "
-                               "units of length.")
+        if unit.physical_type != "length":
+            raise u.UnitsError("Geocentric coordinates should be in units of length.")
 
         try:
             x = u.Quantity(x, unit, copy=False)
             y = u.Quantity(y, unit, copy=False)
             z = u.Quantity(z, unit, copy=False)
         except u.UnitsError:
-            raise u.UnitsError("Geocentric coordinate units should all be "
-                               "consistent.")
+            raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
         x, y, z = np.broadcast_arrays(x, y, z)
         struc = np.empty(x.shape, cls._location_dtype)
-        struc['x'], struc['y'], struc['z'] = x, y, z
+        struc["x"], struc["y"], struc["z"] = x, y, z
         return super().__new__(cls, struc, unit, copy=False)
 
     @classmethod
-    def from_geodetic(cls, lon, lat, height=0., ellipsoid=None):
+    def from_geodetic(cls, lon, lat, height=0.0, ellipsoid=None):
         """
         Location on Earth, initialized from geodetic coordinates.
 
@@ -364,8 +377,9 @@ class EarthLocation(u.Quantity):
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
-            raise UnknownSiteException(e.site, 'EarthLocation.get_site_names',
-                                       close_names=e.close_names) from e
+            raise UnknownSiteException(
+                e.site, "EarthLocation.get_site_names", close_names=e.close_names
+            ) from e
 
         if cls is el.__class__:
             return el
@@ -430,52 +444,50 @@ class EarthLocation(u.Quantity):
         # Fail fast if invalid options are passed:
         if not use_google and get_height:
             raise ValueError(
-                'Currently, `get_height` only works when using '
-                'the Google geocoding API, which requires passing '
-                'a Google API key with `google_api_key`. See: '
-                'https://developers.google.com/maps/documentation/geocoding/get-api-key '
-                'for information on obtaining an API key.')
+                "Currently, `get_height` only works when using the Google geocoding"
+                " API, which requires passing a Google API key with `google_api_key`."
+                " See:"
+                " https://developers.google.com/maps/documentation/geocoding/get-api-key"
+                " for information on obtaining an API key."
+            )
 
         if use_google:  # Google
-            pars = urllib.parse.urlencode({'address': address,
-                                           'key': google_api_key})
+            pars = urllib.parse.urlencode({"address": address, "key": google_api_key})
             geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?{pars}"
 
         else:  # OpenStreetMap
-            pars = urllib.parse.urlencode({'q': address,
-                                           'format': 'json'})
+            pars = urllib.parse.urlencode({"q": address, "format": "json"})
             geo_url = f"https://nominatim.openstreetmap.org/search?{pars}"
 
         # get longitude and latitude location
         err_str = f"Unable to retrieve coordinates for address '{address}'; {{msg}}"
-        geo_result = _get_json_result(geo_url, err_str=err_str,
-                                      use_google=use_google)
+        geo_result = _get_json_result(geo_url, err_str=err_str, use_google=use_google)
 
         if use_google:
-            loc = geo_result[0]['geometry']['location']
-            lat = loc['lat']
-            lon = loc['lng']
+            loc = geo_result[0]["geometry"]["location"]
+            lat = loc["lat"]
+            lon = loc["lng"]
 
         else:
             loc = geo_result[0]
-            lat = float(loc['lat'])  # strings are returned by OpenStreetMap
-            lon = float(loc['lon'])
+            lat = float(loc["lat"])  # strings are returned by OpenStreetMap
+            lon = float(loc["lon"])
 
         if get_height:
-            pars = {'locations': f'{lat:.8f},{lon:.8f}',
-                    'key': google_api_key}
+            pars = {"locations": f"{lat:.8f},{lon:.8f}", "key": google_api_key}
             pars = urllib.parse.urlencode(pars)
             ele_url = f"https://maps.googleapis.com/maps/api/elevation/json?{pars}"
 
             err_str = f"Unable to retrieve elevation for address '{address}'; {{msg}}"
-            ele_result = _get_json_result(ele_url, err_str=err_str,
-                                          use_google=use_google)
-            height = ele_result[0]['elevation']*u.meter
+            ele_result = _get_json_result(
+                ele_url, err_str=err_str, use_google=use_google
+            )
+            height = ele_result[0]["elevation"] * u.meter
 
         else:
-            height = 0.
+            height = 0.0
 
-        return cls.from_geodetic(lon=lon*u.deg, lat=lat*u.deg, height=height)
+        return cls.from_geodetic(lon=lon * u.deg, lat=lat * u.deg, height=height)
 
     @classmethod
     def get_site_names(cls):
@@ -529,12 +541,12 @@ class EarthLocation(u.Quantity):
         from .sites import get_builtin_sites, get_downloaded_sites
 
         if force_builtin and force_download:
-            raise ValueError('Cannot have both force_builtin and force_download True')
+            raise ValueError("Cannot have both force_builtin and force_download True")
 
         if force_builtin:
             reg = cls._site_registry = get_builtin_sites()
         else:
-            reg = getattr(cls, '_site_registry', None)
+            reg = getattr(cls, "_site_registry", None)
             if force_download or not reg:
                 try:
                     if isinstance(force_download, str):
@@ -544,10 +556,12 @@ class EarthLocation(u.Quantity):
                 except OSError:
                     if force_download:
                         raise
-                    msg = ('Could not access the online site list. Falling '
-                           'back on the built-in version, which is rather '
-                           'limited. If you want to retry the download, do '
-                           '{0}._get_site_registry(force_download=True)')
+                    msg = (
+                        "Could not access the online site list. Falling "
+                        "back on the built-in version, which is rather "
+                        "limited. If you want to retry the download, do "
+                        "{0}._get_site_registry(force_download=True)"
+                    )
                     warn(AstropyUserWarning(msg.format(cls.__name__)))
                     reg = get_builtin_sites()
                 cls._site_registry = reg
@@ -597,10 +611,13 @@ class EarthLocation(u.Quantity):
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         xyz = self.view(self._array_dtype, u.Quantity)
         llh = CartesianRepresentation(xyz, xyz_axis=-1, copy=False).represent_as(
-                ELLIPSOIDS[ellipsoid])
+            ELLIPSOIDS[ellipsoid]
+        )
         return GeodeticLocation(
-            Longitude(llh.lon, u.deg, wrap_angle=180*u.deg, copy=False),
-            llh.lat << u.deg, llh.height << self.unit)
+            Longitude(llh.lon, u.deg, wrap_angle=180 * u.deg, copy=False),
+            llh.lat << u.deg,
+            llh.height << self.unit,
+        )
 
     @property
     def lon(self):
@@ -650,11 +667,15 @@ class EarthLocation(u.Quantity):
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
+
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
-    itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
+    itrs = property(
+        get_itrs,
+        doc="""An `~astropy.coordinates.ITRS` object  with
                                      for the location of this object at the
-                                     default ``obstime``.""")
+                                     default ``obstime``.""",
+    )
 
     def get_gcrs(self, obstime):
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
@@ -671,8 +692,9 @@ class EarthLocation(u.Quantity):
         """
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import GCRS
+
         loc, vel = self.get_gcrs_posvel(obstime)
-        loc.differentials['s'] = CartesianDifferential.from_cartesian(vel)
+        loc.differentials["s"] = CartesianDifferential.from_cartesian(vel)
         return GCRS(loc, obstime=obstime)
 
     def _get_gcrs_posvel(self, obstime, ref_to_itrs, gcrs_to_ref):
@@ -700,8 +722,9 @@ class EarthLocation(u.Quantity):
         itrs_to_gcrs = ref_to_gcrs @ matrix_transpose(ref_to_itrs)
         # Earth's rotation vector in the ref frame is rot_vec_ref = (0,0,OMEGA_EARTH),
         # so in GCRS it is rot_vec_gcrs[..., 2] @ OMEGA_EARTH.
-        rot_vec_gcrs = CartesianRepresentation(ref_to_gcrs[..., 2] * OMEGA_EARTH,
-                                               xyz_axis=-1, copy=False)
+        rot_vec_gcrs = CartesianRepresentation(
+            ref_to_gcrs[..., 2] * OMEGA_EARTH, xyz_axis=-1, copy=False
+        )
         # Get the position in the GCRS frame.
         # Since we just need the cartesian representation of ITRS, avoid get_itrs().
         itrs_cart = CartesianRepresentation(self.x, self.y, self.z, copy=False)
@@ -728,16 +751,18 @@ class EarthLocation(u.Quantity):
         """
         # Local import to prevent circular imports.
         from .builtin_frames.intermediate_rotation_transforms import (
-            cirs_to_itrs_mat, gcrs_to_cirs_mat)
+            cirs_to_itrs_mat,
+            gcrs_to_cirs_mat,
+        )
 
         # Get gcrs_posvel by transforming via CIRS (slightly faster than TETE).
-        return self._get_gcrs_posvel(obstime,
-                                     cirs_to_itrs_mat(obstime),
-                                     gcrs_to_cirs_mat(obstime))
+        return self._get_gcrs_posvel(
+            obstime, cirs_to_itrs_mat(obstime), gcrs_to_cirs_mat(obstime)
+        )
 
-    def gravitational_redshift(self, obstime,
-                               bodies=['sun', 'jupiter', 'moon'],
-                               masses={}):
+    def gravitational_redshift(
+        self, obstime, bodies=["sun", "jupiter", "moon"], masses={}
+    ):
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -771,24 +796,28 @@ class EarthLocation(u.Quantity):
 
         bodies = list(bodies)
         # Ensure earth is included and last in the list.
-        if 'earth' in bodies:
-            bodies.remove('earth')
-        bodies.append('earth')
-        _masses = {'sun': consts.GM_sun,
-                   'jupiter': consts.GM_jup,
-                   'moon': consts.G * 7.34767309e22*u.kg,
-                   'earth': consts.GM_earth}
+        if "earth" in bodies:
+            bodies.remove("earth")
+        bodies.append("earth")
+        _masses = {
+            "sun": consts.GM_sun,
+            "jupiter": consts.GM_jup,
+            "moon": consts.G * 7.34767309e22 * u.kg,
+            "earth": consts.GM_earth,
+        }
         _masses.update(masses)
         GMs = []
         M_GM_equivalency = (u.kg, u.Unit(consts.G * u.kg))
         for body in bodies:
             try:
-                GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
+                GMs.append(_masses[body].to(u.m**3 / u.s**2, [M_GM_equivalency]))
             except KeyError as err:
                 raise KeyError(f'body "{body}" does not have a mass.') from err
             except u.UnitsError as exc:
-                exc.args += ('"masses" argument values must be masses or '
-                             'gravitational parameters.',)
+                exc.args += (
+                    '"masses" argument values must be masses or '
+                    "gravitational parameters.",
+                )
                 raise
 
         positions = [get_body_barycentric(name, obstime) for name in bodies]
@@ -797,8 +826,9 @@ class EarthLocation(u.Quantity):
         # Append distance from Earth's center for Earth's contribution.
         distances.append(CartesianRepresentation(self.geocentric).norm())
         # Get redshifts due to all objects.
-        redshifts = [-GM / consts.c / distance for (GM, distance) in
-                     zip(GMs, distances)]
+        redshifts = [
+            -GM / consts.c / distance for (GM, distance) in zip(GMs, distances)
+        ]
         # Reverse order of summing, to go from small to big, and to get
         # "earth" first, which gives m/s as unit.
         return sum(redshifts[::-1])
@@ -806,17 +836,17 @@ class EarthLocation(u.Quantity):
     @property
     def x(self):
         """The X component of the geocentric coordinates."""
-        return self['x']
+        return self["x"]
 
     @property
     def y(self):
         """The Y component of the geocentric coordinates."""
-        return self['y']
+        return self["y"]
 
     @property
     def z(self):
         """The Z component of the geocentric coordinates."""
-        return self['z']
+        return self["z"]
 
     def __getitem__(self, item):
         result = super().__getitem__(item)
@@ -827,12 +857,12 @@ class EarthLocation(u.Quantity):
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)
-        if hasattr(obj, '_ellipsoid'):
+        if hasattr(obj, "_ellipsoid"):
             self._ellipsoid = obj._ellipsoid
 
     def __len__(self):
         if self.shape == ():
-            raise IndexError('0-d EarthLocation arrays cannot be indexed')
+            raise IndexError("0-d EarthLocation arrays cannot be indexed")
         else:
             return super().__len__()
 
@@ -872,13 +902,11 @@ geodetic_base_doc = """{__doc__}
 class BaseGeodeticRepresentation(BaseRepresentation):
     """Base geodetic representation."""
 
-    attr_classes = {'lon': Longitude,
-                    'lat': Latitude,
-                    'height': u.Quantity}
+    attr_classes = {"lon": Longitude, "lat": Latitude, "height": u.Quantity}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if '_ellipsoid' in cls.__dict__:
+        if "_ellipsoid" in cls.__dict__:
             ELLIPSOIDS[cls._ellipsoid] = cls
 
     def __init__(self, lon, lat=None, height=None, copy=True):
@@ -887,16 +915,18 @@ class BaseGeodeticRepresentation(BaseRepresentation):
 
         super().__init__(lon, lat, height, copy=copy)
         if not self.height.unit.is_equivalent(u.m):
-            raise u.UnitTypeError(f"{self.__class__.__name__} requires "
-                                  f"height with units of length.")
+            raise u.UnitTypeError(
+                f"{self.__class__.__name__} requires height with units of length."
+            )
 
     def to_cartesian(self):
         """
         Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
         cartesian coordinates.
         """
-        xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
-                         self.lon, self.lat, self.height)
+        xyz = erfa.gd2gc(
+            getattr(erfa, self._ellipsoid), self.lon, self.lat, self.height
+        )
         return CartesianRepresentation(xyz, xyz_axis=-1, copy=False)
 
     @classmethod
@@ -905,8 +935,9 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
         """
-        lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid),
-                                      cart.get_xyz(xyz_axis=-1))
+        lon, lat, height = erfa.gc2gd(
+            getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1)
+        )
         return cls(lon, lat, height, copy=False)
 
 
@@ -914,18 +945,18 @@ class BaseGeodeticRepresentation(BaseRepresentation):
 class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
     """Representation of points in WGS84 3D geodetic coordinates."""
 
-    _ellipsoid = 'WGS84'
+    _ellipsoid = "WGS84"
 
 
 @format_doc(geodetic_base_doc)
 class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
     """Representation of points in WGS72 3D geodetic coordinates."""
 
-    _ellipsoid = 'WGS72'
+    _ellipsoid = "WGS72"
 
 
 @format_doc(geodetic_base_doc)
 class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
     """Representation of points in GRS80 3D geodetic coordinates."""
 
-    _ellipsoid = 'GRS80'
+    _ellipsoid = "GRS80"

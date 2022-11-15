@@ -4,9 +4,15 @@ import os
 
 import numpy as np
 
-__all__ = ['raises', 'assert_equal', 'assert_almost_equal',
-           'assert_true', 'setup_function', 'teardown_function',
-           'has_isnan']
+__all__ = [
+    "raises",
+    "assert_equal",
+    "assert_almost_equal",
+    "assert_true",
+    "setup_function",
+    "teardown_function",
+    "has_isnan",
+]
 
 CWD = os.getcwd()
 TEST_DIR = os.path.dirname(__file__)
@@ -19,7 +25,7 @@ except ImportError:
         from numpy import isnan  # noqa
     except ImportError:
         has_isnan = False
-        print('Tests requiring isnan will fail')
+        print("Tests requiring isnan will fail")
 
 
 def setup_function(function):
@@ -49,15 +55,16 @@ def make_decorator(func):
     of the decorated function, including nose's additional stuff
     (namely, setup and teardown).
     """
+
     def decorate(newfunc):
-        if hasattr(func, 'compat_func_name'):
+        if hasattr(func, "compat_func_name"):
             name = func.compat_func_name
         else:
             name = func.__name__
         newfunc.__dict__ = func.__dict__
         newfunc.__doc__ = func.__doc__
         newfunc.__module__ = func.__module__
-        if not hasattr(newfunc, 'compat_co_firstlineno'):
+        if not hasattr(newfunc, "compat_co_firstlineno"):
             try:
                 newfunc.compat_co_firstlineno = func.func_code.co_firstlineno
             except AttributeError:
@@ -68,6 +75,7 @@ def make_decorator(func):
             # can't set func name in 2.3
             newfunc.compat_func_name = name
         return newfunc
+
     return decorate
 
 
@@ -87,7 +95,7 @@ def raises(*exceptions):
     If you want to test many assertions about exceptions in a single test,
     you may want to use `assert_raises` instead.
     """
-    valid = ' or '.join([e.__name__ for e in exceptions])
+    valid = " or ".join([e.__name__ for e in exceptions])
 
     def decorate(func):
         name = func.__name__
@@ -100,6 +108,8 @@ def raises(*exceptions):
             else:
                 message = f"{name}() did not raise {valid}"
                 raise AssertionError(message)
+
         newfunc = make_decorator(func)(newfunc)
         return newfunc
+
     return decorate

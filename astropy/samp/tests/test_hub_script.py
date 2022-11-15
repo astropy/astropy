@@ -19,6 +19,6 @@ def teardown_function(function):
 
 
 def test_hub_script():
-    sys.argv.append('-m')  # run in multiple mode
-    sys.argv.append('-w')  # disable web profile
+    sys.argv.append("-m")  # run in multiple mode
+    sys.argv.append("-w")  # disable web profile
     hub_script(timeout=3)

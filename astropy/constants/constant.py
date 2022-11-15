@@ -10,7 +10,7 @@ from astropy.units.quantity import Quantity
 from astropy.utils import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ['Constant', 'EMConstant']
+__all__ = ["Constant", "EMConstant"]
 
 
 class ConstantMeta(type):
@@ -43,15 +43,16 @@ class ConstantMeta(type):
                             self._has_incompatible_units.add(name_lower)
                     self._checked_units = True
 
-                if (not self.system and
-                        name_lower in self._has_incompatible_units):
+                if not self.system and name_lower in self._has_incompatible_units:
                     systems = sorted([x for x in instances if x])
                     raise TypeError(
-                        'Constant {!r} does not have physically compatible '
-                        'units across all systems of units and cannot be '
-                        'combined with other values without specifying a '
-                        'system (eg. {}.{})'.format(self.abbrev, self.abbrev,
-                                                      systems[0]))
+                        "Constant {!r} does not have physically compatible "
+                        "units across all systems of units and cannot be "
+                        "combined with other values without specifying a "
+                        "system (eg. {}.{})".format(
+                            self.abbrev, self.abbrev, systems[0]
+                        )
+                    )
 
                 return meth(self, *args, **kwargs)
 
@@ -59,15 +60,32 @@ class ConstantMeta(type):
 
         # The wrapper applies to so many of the __ methods that it's easier to
         # just exclude the ones it doesn't apply to
-        exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
-                       '__dir__', '__getattr__', '__init__', '__str__',
-                       '__repr__', '__hash__', '__iter__', '__getitem__',
-                       '__len__', '__bool__', '__quantity_subclass__',
-                       '__setstate__'])
+        exclude = set(
+            [
+                "__new__",
+                "__array_finalize__",
+                "__array_wrap__",
+                "__dir__",
+                "__getattr__",
+                "__init__",
+                "__str__",
+                "__repr__",
+                "__hash__",
+                "__iter__",
+                "__getitem__",
+                "__len__",
+                "__bool__",
+                "__quantity_subclass__",
+                "__setstate__",
+            ]
+        )
         for attr, value in vars(Quantity).items():
-            if (isinstance(value, types.FunctionType) and
-                    attr.startswith('__') and attr.endswith('__') and
-                    attr not in exclude):
+            if (
+                isinstance(value, types.FunctionType)
+                and attr.startswith("__")
+                and attr.endswith("__")
+                and attr not in exclude
+            ):
                 d[attr] = wrap(value)
 
         return super().__new__(mcls, name, bases, d)
@@ -79,13 +97,15 @@ class Constant(Quantity, metaclass=ConstantMeta):
     These objects are quantities that are meant to represent physical
     constants.
     """
+
     _registry = {}
     _has_incompatible_units = set()
 
-    def __new__(cls, abbrev, name, value, unit, uncertainty,
-                reference=None, system=None):
+    def __new__(
+        cls, abbrev, name, value, unit, uncertainty, reference=None, system=None
+    ):
         if reference is None:
-            reference = getattr(cls, 'default_reference', None)
+            reference = getattr(cls, "default_reference", None)
             if reference is None:
                 raise TypeError(f"{cls} requires a reference.")
         name_lower = name.lower()
@@ -95,9 +115,11 @@ class Constant(Quantity, metaclass=ConstantMeta):
         inst = np.array(value).view(cls)
 
         if system in instances:
-                warnings.warn('Constant {!r} already has a definition in the '
-                              '{!r} system from {!r} reference'.format(
-                              name, system, reference), AstropyUserWarning)
+            warnings.warn(
+                "Constant {!r} already has a definition in the "
+                "{!r} system from {!r} reference".format(name, system, reference),
+                AstropyUserWarning,
+            )
         for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
                 setattr(c, system, inst)
@@ -118,19 +140,25 @@ class Constant(Quantity, metaclass=ConstantMeta):
         return inst
 
     def __repr__(self):
-        return ('<{} name={!r} value={} uncertainty={} unit={!r} '
-                'reference={!r}>'.format(self.__class__, self.name, self.value,
-                                          self.uncertainty, str(self.unit),
-                                          self.reference))
+        return "<{} name={!r} value={} uncertainty={} unit={!r} reference={!r}>".format(
+            self.__class__,
+            self.name,
+            self.value,
+            self.uncertainty,
+            str(self.unit),
+            self.reference,
+        )
 
     def __str__(self):
-        return ('  Name   = {}\n'
-                '  Value  = {}\n'
-                '  Uncertainty  = {}\n'
-                '  Unit  = {}\n'
-                '  Reference = {}'.format(self.name, self.value,
-                                           self.uncertainty, self.unit,
-                                           self.reference))
+        return (
+            "  Name   = {}\n"
+            "  Value  = {}\n"
+            "  Uncertainty  = {}\n"
+            "  Unit  = {}\n"
+            "  Reference = {}".format(
+                self.name, self.value, self.uncertainty, self.unit, self.reference
+            )
+        )
 
     def __quantity_subclass__(self, unit):
         return super().__quantity_subclass__(unit)[0], False
@@ -142,6 +170,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         ``self``.
         """
         return self
+
     __deepcopy__ = __copy__ = copy
 
     @property
@@ -199,7 +228,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
         the constant, else convert to a Quantity in the appropriate SI units.
         """
 
-        return self._instance_or_super('si')
+        return self._instance_or_super("si")
 
     @property
     def cgs(self):
@@ -207,14 +236,21 @@ class Constant(Quantity, metaclass=ConstantMeta):
         the constant, else convert to a Quantity in the appropriate CGS units.
         """
 
-        return self._instance_or_super('cgs')
+        return self._instance_or_super("cgs")
 
     def __array_finalize__(self, obj):
-        for attr in ('_abbrev', '_name', '_value', '_unit_string',
-                     '_uncertainty', '_reference', '_system'):
+        for attr in (
+            "_abbrev",
+            "_name",
+            "_value",
+            "_unit_string",
+            "_uncertainty",
+            "_reference",
+            "_system",
+        ):
             setattr(self, attr, getattr(obj, attr, None))
 
-        self._checked_units = getattr(obj, '_checked_units', False)
+        self._checked_units = getattr(obj, "_checked_units", False)
 
 
 class EMConstant(Constant):
@@ -226,8 +262,10 @@ class EMConstant(Constant):
         emphasizing that there are multiple EM extensions to CGS.
         """
 
-        raise TypeError("Cannot convert EM constants to cgs because there "
-                        "are different systems for E.M constants within the "
-                        "c.g.s system (ESU, Gaussian, etc.). Instead, "
-                        "directly use the constant with the appropriate "
-                        "suffix (e.g. e.esu, e.gauss, etc.).")
+        raise TypeError(
+            "Cannot convert EM constants to cgs because there "
+            "are different systems for E.M constants within the "
+            "c.g.s system (ESU, Gaussian, etc.). Instead, "
+            "directly use the constant with the appropriate "
+            "suffix (e.g. e.esu, e.gauss, etc.)."
+        )

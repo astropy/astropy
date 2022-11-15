@@ -51,5 +51,5 @@ myplanck = MyCosmology(
     current_age=13.787,  # Gyr
     initial_temperature=2.7255,  # Kelvin
     Neff=3.046,
-    neutrino_masses=[0., 0., 0.06],  # eV
+    neutrino_masses=[0.0, 0.0, 0.06],  # eV
 )

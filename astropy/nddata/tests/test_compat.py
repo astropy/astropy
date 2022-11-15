@@ -12,8 +12,18 @@ from astropy.wcs import WCS
 from astropy import units as u
 
 
-NDDATA_ATTRIBUTES = ['mask', 'flags', 'uncertainty', 'unit', 'shape', 'size',
-                     'dtype', 'ndim', 'wcs', 'convert_unit_to']
+NDDATA_ATTRIBUTES = [
+    "mask",
+    "flags",
+    "uncertainty",
+    "unit",
+    "shape",
+    "size",
+    "dtype",
+    "ndim",
+    "wcs",
+    "convert_unit_to",
+]
 
 
 def test_nddataarray_has_attributes_of_old_nddata():
@@ -56,35 +66,39 @@ def test_nddata_conversion():
     assert nd.dtype == np.dtype(int)
 
 
-@pytest.mark.parametrize('flags_in', [
-                         np.array([True, False]),
-                         np.array([1, 0]),
-                         [True, False],
-                         [1, 0],
-                         np.array(['a', 'b']),
-                         ['a', 'b']])
+@pytest.mark.parametrize(
+    "flags_in",
+    [
+        np.array([True, False]),
+        np.array([1, 0]),
+        [True, False],
+        [1, 0],
+        np.array(["a", "b"]),
+        ["a", "b"],
+    ],
+)
 def test_nddata_flags_init_without_np_array(flags_in):
     ndd = NDDataArray([1, 1], flags=flags_in)
     assert (ndd.flags == flags_in).all()
 
 
-@pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
+@pytest.mark.parametrize("shape", [(10,), (5, 5), (3, 10, 10)])
 def test_nddata_flags_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:
         NDDataArray(np.zeros((10, 10)), flags=np.ones(shape))
-    assert exc.value.args[0] == 'dimensions of flags do not match data'
+    assert exc.value.args[0] == "dimensions of flags do not match data"
 
 
 def test_convert_unit_to():
     # convert_unit_to should return a copy of its input
     d = NDDataArray(np.ones((5, 5)))
-    d.unit = 'km'
+    d.unit = "km"
     d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
     # workaround because zeros_like does not support dtype arg until v1.6
     # and NDData accepts only bool ndarray as mask
     tmp = np.zeros_like(d.data)
     d.mask = np.array(tmp, dtype=bool)
-    d1 = d.convert_unit_to('m')
+    d1 = d.convert_unit_to("m")
     assert np.all(d1.data == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
     assert d1.unit == u.m
@@ -92,7 +106,7 @@ def test_convert_unit_to():
     d1.mask[0, 0] = True
     assert d.mask[0, 0] != d1.mask[0, 0]
     d.flags = np.zeros_like(d.data)
-    d1 = d.convert_unit_to('m')
+    d1 = d.convert_unit_to("m")
 
 
 # check that subclasses can require wcs and/or unit to be present and use
@@ -102,6 +116,7 @@ class SubNDData(NDDataArray):
     Subclass for test initialization of subclasses in NDData._arithmetic and
     NDData.convert_unit_to
     """
+
     def __init__(self, *arg, **kwd):
         super().__init__(*arg, **kwd)
         if self.unit is None:
@@ -112,16 +127,16 @@ class SubNDData(NDDataArray):
 
 def test_init_of_subclass_in_convert_unit_to():
     data = np.ones([10, 10])
-    arr1 = SubNDData(data, unit='m', wcs=WCS(naxis=2))
-    result = arr1.convert_unit_to('km')
+    arr1 = SubNDData(data, unit="m", wcs=WCS(naxis=2))
+    result = arr1.convert_unit_to("km")
     np.testing.assert_array_equal(arr1.data, 1000 * result.data)
 
 
 # Test for issue #4129:
 def test_nddataarray_from_nddataarray():
-    ndd1 = NDDataArray([1., 4., 9.],
-                       uncertainty=StdDevUncertainty([1., 2., 3.]),
-                       flags=[0, 1, 0])
+    ndd1 = NDDataArray(
+        [1.0, 4.0, 9.0], uncertainty=StdDevUncertainty([1.0, 2.0, 3.0]), flags=[0, 1, 0]
+    )
     ndd2 = NDDataArray(ndd1)
     # Test that the 2 instances point to the same objects and aren't just
     # equal; this is explicitly documented for the main data array and we
@@ -135,8 +150,7 @@ def test_nddataarray_from_nddataarray():
 
 # Test for issue #4137:
 def test_nddataarray_from_nddata():
-    ndd1 = NDData([1., 4., 9.],
-                  uncertainty=StdDevUncertainty([1., 2., 3.]))
+    ndd1 = NDData([1.0, 4.0, 9.0], uncertainty=StdDevUncertainty([1.0, 2.0, 3.0]))
     ndd2 = NDDataArray(ndd1)
 
     assert ndd2.data is ndd1.data

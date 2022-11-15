@@ -18,11 +18,14 @@ from warnings import warn
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-warn("The ``disable_internet`` module is no longer provided by astropy. It "
-     "is now available as ``pytest_remotedata.disable_internet``. However, "
-     "developers are encouraged to avoid using this module directly. See "
-     "<https://docs.astropy.org/en/latest/whatsnew/3.0.html#pytest-plugins> "
-     "for more information.", AstropyDeprecationWarning)
+warn(
+    "The ``disable_internet`` module is no longer provided by astropy. It "
+    "is now available as ``pytest_remotedata.disable_internet``. However, "
+    "developers are encouraged to avoid using this module directly. See "
+    "<https://docs.astropy.org/en/latest/whatsnew/3.0.html#pytest-plugins> "
+    "for more information.",
+    AstropyDeprecationWarning,
+)
 
 
 try:

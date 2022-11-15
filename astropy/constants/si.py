@@ -8,8 +8,8 @@ import itertools
 from .constant import Constant
 from .config import codata, iaudata
 
-for _nm, _c in itertools.chain(sorted(vars(codata).items()),
-                               sorted(vars(iaudata).items())):
-    if (isinstance(_c, Constant) and _c.abbrev not in locals()
-            and _c.system == 'si'):
+for _nm, _c in itertools.chain(
+    sorted(vars(codata).items()), sorted(vars(iaudata).items())
+):
+    if isinstance(_c, Constant) and _c.abbrev not in locals() and _c.system == "si":
         locals()[_c.abbrev] = _c

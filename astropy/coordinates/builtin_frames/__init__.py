@@ -41,6 +41,7 @@ from .equatorial import TEME, TETE
 
 from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
 from .skyoffset import SkyOffsetFrame
+
 # need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
@@ -60,16 +61,41 @@ from astropy.coordinates.baseframe import frame_transform_graph
 
 # we define an __all__ because otherwise the transformation modules
 # get included
-__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'galactocentric_frame_defaults',
-           'Supergalactic', 'AltAz', 'HADec', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
-           'TEME', 'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
-           'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
-           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
-           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
+__all__ = [
+    "ICRS",
+    "FK5",
+    "FK4",
+    "FK4NoETerms",
+    "Galactic",
+    "Galactocentric",
+    "galactocentric_frame_defaults",
+    "Supergalactic",
+    "AltAz",
+    "HADec",
+    "GCRS",
+    "CIRS",
+    "ITRS",
+    "HCRS",
+    "TEME",
+    "TETE",
+    "PrecessedGeocentric",
+    "GeocentricMeanEcliptic",
+    "BarycentricMeanEcliptic",
+    "HeliocentricMeanEcliptic",
+    "GeocentricTrueEcliptic",
+    "BarycentricTrueEcliptic",
+    "HeliocentricTrueEcliptic",
+    "SkyOffsetFrame",
+    "GalacticLSR",
+    "LSR",
+    "LSRK",
+    "LSRD",
+    "BaseEclipticFrame",
+    "BaseRADecFrame",
+    "make_transform_graph_docs",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
+]
 
 
 def make_transform_graph_docs(transform_graph):
@@ -89,13 +115,12 @@ def make_transform_graph_docs(transform_graph):
         transform graph.
     """
     from textwrap import dedent
-    coosys = [transform_graph.lookup_name(item) for
-              item in transform_graph.get_names()]
+
+    coosys = [transform_graph.lookup_name(item) for item in transform_graph.get_names()]
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
-    graphstr = transform_graph.to_dot_graph(addnodes=coosys,
-                                            priorities=False)
+    graphstr = transform_graph.to_dot_graph(addnodes=coosys, priorities=False)
 
     docstr = """
     The diagram below shows all of the built in coordinate systems,
@@ -116,10 +141,11 @@ def make_transform_graph_docs(transform_graph):
 
     """
 
-    docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')
+    docstr = dedent(docstr) + "        " + graphstr.replace("\n", "\n        ")
 
     # colors are in dictionary at the bottom of transformations.py
     from astropy.coordinates.transformations import trans_to_color
+
     html_list_items = []
     for cls, color in trans_to_color.items():
         block = f"""
@@ -132,7 +158,7 @@ def make_transform_graph_docs(transform_graph):
         """
         html_list_items.append(block)
 
-    nl = '\n'
+    nl = "\n"
     graph_legend = f"""
     .. raw:: html
 

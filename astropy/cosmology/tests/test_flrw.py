@@ -15,8 +15,18 @@ import numpy as np
 
 # LOCAL
 import astropy.units as u
-from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
-                               LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+from astropy.cosmology import (
+    FLRW,
+    FlatLambdaCDM,
+    Flatw0waCDM,
+    FlatwCDM,
+    LambdaCDM,
+    Planck18,
+    w0waCDM,
+    w0wzCDM,
+    wCDM,
+    wpwaCDM,
+)
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
 from astropy.cosmology.parameter import Parameter
@@ -62,7 +72,9 @@ class TestFLRW(CosmologyTest):
         self.cls = SubFLRW
         # H0, Om0, Ode0
         self.cls_args = (70 * u.km / u.s / u.Mpc, 0.27 * u.one, 0.689 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def teardown_class(self):
         super().teardown_class(self)
@@ -88,7 +100,9 @@ class TestFLRW(CosmologyTest):
 
         # validation
         assert cosmo_cls.H0.validate(cosmo, 1) == 1 * u.Unit("km/(s Mpc)")
-        assert cosmo_cls.H0.validate(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.validate(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit(
+            "km/(s Mpc)"
+        )
         with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
             cosmo_cls.H0.validate(cosmo, [1, 2])
 
@@ -182,7 +196,7 @@ class TestFLRW(CosmologyTest):
         elif self._nmasslessnu == 0:  # only massive
             assert cosmo.m_nu == cosmo._massivenu_mass
         else:  # a mix -- the most complicated case
-            assert u.allclose(cosmo.m_nu[:self._nmasslessnu], 0 * u.eV)
+            assert u.allclose(cosmo.m_nu[: self._nmasslessnu], 0 * u.eV)
             assert u.allclose(cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass)
 
     def test_Ob0(self, cosmo_cls, cosmo):
@@ -365,9 +379,11 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest):
         assert not cosmo.is_equivalent(nonflat)
 
         # flat, but not FlatFLRWMixin
-        flat = nonflat_cosmo_cls(*self.cls_args,
-                                   Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
-                                   **self.cls_kwargs)
+        flat = nonflat_cosmo_cls(
+            *self.cls_args,
+            Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
+            **self.cls_kwargs
+        )
         flat._Ok0 = 0.0
         assert flat.is_equivalent(cosmo)
         assert cosmo.is_equivalent(flat)
@@ -394,15 +410,19 @@ class TestLambdaCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = LambdaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("LambdaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+        expected = (
+            'LambdaCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -416,15 +436,19 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         """Setup for testing."""
         self.cls = FlatLambdaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatLambdaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s),"
-                    " Om0=0.27, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+        expected = (
+            'FlatLambdaCDM(name="ABCMeta", H0=70 km / (Mpc s),'
+            " Om0=0.27, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -438,7 +462,9 @@ class TestwCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = wCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_clone_change_param(self, cosmo):
         """Test method ``.clone()`` changing a(many) Parameter(s)."""
@@ -458,9 +484,11 @@ class TestwCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("wCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, Tcmb0=3 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+        expected = (
+            'wCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-1, Tcmb0=3 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -474,15 +502,19 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
         """Setup for testing."""
         self.cls = FlatwCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("FlatwCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " w0=-1, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
-                    " Ob0=None)")
+        expected = (
+            'FlatwCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " w0=-1, Tcmb0=3 K, Neff=3.04, m_nu=[0. 0. 0.] eV,"
+            " Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -496,7 +528,9 @@ class Testw0waCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = w0waCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_clone_change_param(self, cosmo):
         """Test method ``.clone()`` changing a(many) Parameter(s)."""
@@ -517,9 +551,11 @@ class Testw0waCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0waCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+        expected = (
+            'w0waCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -533,15 +569,19 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         """Setup for testing."""
         self.cls = Flatw0waCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("Flatw0waCDM(name=\"ABCMeta\", H0=70 km / (Mpc s),"
-                    " Om0=0.27, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+        expected = (
+            'Flatw0waCDM(name="ABCMeta", H0=70 km / (Mpc s),'
+            " Om0=0.27, w0=-1, wa=0, Tcmb0=3 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -555,7 +595,9 @@ class TestwpwaCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = wpwaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_clone_change_param(self, cosmo):
         """Test method ``.clone()`` changing a(many) Parameter(s)."""
@@ -577,9 +619,11 @@ class TestwpwaCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("wpwaCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, wp=-1, wa=0, zp=0 redshift, Tcmb0=3 K,"
-                    " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)")
+        expected = (
+            'wpwaCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, wp=-1, wa=0, zp=0 redshift, Tcmb0=3 K,"
+            " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=None)"
+        )
         assert repr(cosmo) == expected
 
 
@@ -593,7 +637,9 @@ class Testw0wzCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = w0wzCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+        self.cls_kwargs = dict(
+            Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"}
+        )
 
     def test_clone_change_param(self, cosmo):
         """Test method ``.clone()`` changing a(many) Parameter(s)."""
@@ -614,7 +660,9 @@ class Testw0wzCDM(FLRWSubclassTest):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0wzCDM(name=\"ABCMeta\", H0=70 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1, wz=0, Tcmb0=3 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=None)")
+        expected = (
+            'w0wzCDM(name="ABCMeta", H0=70 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-1, wz=0, Tcmb0=3 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=None)"
+        )
         assert repr(cosmo) == expected

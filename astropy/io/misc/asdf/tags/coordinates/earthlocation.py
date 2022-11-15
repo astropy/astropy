@@ -6,9 +6,9 @@ from ...types import AstropyType
 
 
 class EarthLocationType(AstropyType):
-    name = 'coordinates/earthlocation'
+    name = "coordinates/earthlocation"
     types = [EarthLocation]
-    version = '1.0.0'
+    version = "1.0.0"
 
     @classmethod
     def to_tree(cls, obj, ctx):

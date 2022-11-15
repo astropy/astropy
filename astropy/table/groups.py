@@ -9,12 +9,12 @@ from .index import get_index_by_names
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-__all__ = ['TableGroups', 'ColumnGroups']
+__all__ = ["TableGroups", "ColumnGroups"]
 
 
 def table_group_by(table, keys):
     # index copies are unnecessary and slow down _table_group_by
-    with table.index_mode('discard_on_copy'):
+    with table.index_mode("discard_on_copy"):
         return _table_group_by(table, keys)
 
 
@@ -43,9 +43,11 @@ def _table_group_by(table, keys):
     if isinstance(keys, (list, tuple)):
         for name in keys:
             if name not in table.colnames:
-                raise ValueError(f'Table does not have key column {name!r}')
+                raise ValueError(f"Table does not have key column {name!r}")
             if table.masked and np.any(table[name].mask):
-                raise ValueError(f'Missing values in key column {name!r} are not allowed')
+                raise ValueError(
+                    f"Missing values in key column {name!r} are not allowed"
+                )
 
         # Make a column slice of the table without copying
         table_keys = table.__class__([table[key] for key in keys], copy=False)
@@ -57,14 +59,20 @@ def _table_group_by(table, keys):
     elif isinstance(keys, (np.ndarray, Table)):
         table_keys = keys
         if len(table_keys) != len(table):
-            raise ValueError('Input keys array length {} does not match table length {}'
-                             .format(len(table_keys), len(table)))
+            raise ValueError(
+                "Input keys array length {} does not match table length {}".format(
+                    len(table_keys), len(table)
+                )
+            )
         table_index = None
         grouped_by_table_cols = False
 
     else:
-        raise TypeError('Keys input must be string, list, tuple, Table or numpy array, but got {}'
-                        .format(type(keys)))
+        raise TypeError(
+            "Keys input must be string, list, tuple, Table or numpy array, but got {}".format(
+                type(keys)
+            )
+        )
 
     # If there is not already an available index and table_keys is a Table then ensure
     # that all cols (including mixins) are in a form that can sorted with the code below.
@@ -77,14 +85,14 @@ def _table_group_by(table, keys):
         if table_index is not None:
             idx_sort = table_index.sorted_data()
         else:
-            idx_sort = table_keys.argsort(kind='mergesort')
+            idx_sort = table_keys.argsort(kind="mergesort")
         stable_sort = True
     except TypeError:
         # Some versions (likely 1.6 and earlier) of numpy don't support
         # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
         # sort by default, nor does Windows, while Linux does (or appears to).
         idx_sort = table_keys.argsort()
-        stable_sort = platform.system() not in ('Darwin', 'Windows')
+        stable_sort = platform.system() not in ("Darwin", "Windows")
 
     # Finally do the actual sort of table_keys values
     table_keys = table_keys[idx_sort]
@@ -104,7 +112,7 @@ def _table_group_by(table, keys):
     out = table.__class__(table[idx_sort])
     out_keys = table_keys[indices[:-1]]
     if isinstance(out_keys, Table):
-        out_keys.meta['grouped_by_table_cols'] = grouped_by_table_cols
+        out_keys.meta["grouped_by_table_cols"] = grouped_by_table_cols
     out._groups = TableGroups(out, indices=indices, keys=out_keys)
 
     return out
@@ -133,11 +141,14 @@ def column_group_by(column, keys):
         keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):
-        raise TypeError(f'Keys input must be numpy array, but got {type(keys)}')
+        raise TypeError(f"Keys input must be numpy array, but got {type(keys)}")
 
     if len(keys) != len(column):
-        raise ValueError('Input keys array length {} does not match column length {}'
-                         .format(len(keys), len(column)))
+        raise ValueError(
+            "Input keys array length {} does not match column length {}".format(
+                len(keys), len(column)
+            )
+        )
 
     idx_sort = keys.argsort()
     keys = keys[idx_sort]
@@ -162,9 +173,12 @@ class BaseGroups:
       - ``indices``: index values in parent table or column corresponding to group boundaries
       - ``aggregate()``: method to create new table by aggregating within groups
     """
+
     @property
     def parent(self):
-        return self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
+        return (
+            self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
+        )
 
     def __iter__(self):
         self._iter_index = 0
@@ -178,6 +192,7 @@ class BaseGroups:
             return self.parent[i0:i1]
         else:
             raise StopIteration
+
     __next__ = next
 
     def __getitem__(self, item):
@@ -192,8 +207,10 @@ class BaseGroups:
             try:
                 i0s, i1s = indices0[item], indices1[item]
             except Exception as err:
-                raise TypeError('Index item for groups attribute must be a slice, '
-                                'numpy mask or int array') from err
+                raise TypeError(
+                    "Index item for groups attribute must be a slice, "
+                    "numpy mask or int array"
+                ) from err
             mask = np.zeros(len(parent), dtype=bool)
             # Is there a way to vectorize this in numpy?
             for i0, i1 in zip(i0s, i1s):
@@ -205,7 +222,7 @@ class BaseGroups:
         return out
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} indices={self.indices}>'
+        return f"<{self.__class__.__name__} indices={self.indices}>"
 
     def __len__(self):
         return len(self.indices) - 1
@@ -243,7 +260,7 @@ class ColumnGroups(BaseGroups):
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
         masked = isinstance(par_col, MaskedColumn)
-        reduceat = hasattr(func, 'reduceat')
+        reduceat = hasattr(func, "reduceat")
         sum_case = func is np.sum
         mean_case = func is np.mean
         try:
@@ -255,18 +272,22 @@ class ColumnGroups(BaseGroups):
                         func = np.add
                     vals = func.reduceat(par_col, i0s)
             else:
-                vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
+                vals = np.array([func(par_col[i0:i1]) for i0, i1 in zip(i0s, i1s)])
         except Exception as err:
-            raise TypeError("Cannot aggregate column '{}' with type '{}'"
-                            .format(par_col.info.name,
-                                    par_col.info.dtype)) from err
+            raise TypeError(
+                "Cannot aggregate column '{}' with type '{}'".format(
+                    par_col.info.name, par_col.info.dtype
+                )
+            ) from err
 
-        out = par_col.__class__(data=vals,
-                                name=par_col.info.name,
-                                description=par_col.info.description,
-                                unit=par_col.info.unit,
-                                format=par_col.info.format,
-                                meta=par_col.info.meta)
+        out = par_col.__class__(
+            data=vals,
+            name=par_col.info.name,
+            description=par_col.info.description,
+            unit=par_col.info.unit,
+            format=par_col.info.format,
+            meta=par_col.info.meta,
+        )
         return out
 
     def filter(self, func):
@@ -318,7 +339,9 @@ class TableGroups(BaseGroups):
         # differently in aggregation.  In this case keys will be a Table with
         # keys.meta['grouped_by_table_cols'] == True.  Keys might not be a Table so we
         # need to handle this.
-        grouped_by_table_cols = getattr(self.keys, 'meta', {}).get('grouped_by_table_cols', False)
+        grouped_by_table_cols = getattr(self.keys, "meta", {}).get(
+            "grouped_by_table_cols", False
+        )
         return self.keys.colnames if grouped_by_table_cols else ()
 
     @property

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 
 from numpy.random import random, randint
 
@@ -35,5 +35,5 @@ def representation(request):
 
 
 def test_representations(tmpdir, representation):
-    tree = {'representation': representation}
+    tree = {"representation": representation}
     assert_roundtrip_tree(tree, tmpdir)

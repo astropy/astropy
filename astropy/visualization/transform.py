@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
-__all__ = ['BaseTransform', 'CompositeTransform']
+__all__ = ["BaseTransform", "CompositeTransform"]
 
 
 class BaseTransform:
@@ -38,5 +38,4 @@ class CompositeTransform(BaseTransform):
 
     @property
     def inverse(self):
-        return self.__class__(self.transform_2.inverse,
-                              self.transform_1.inverse)
+        return self.__class__(self.transform_2.inverse, self.transform_1.inverse)

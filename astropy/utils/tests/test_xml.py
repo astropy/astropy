@@ -16,8 +16,8 @@ def test_writer():
             w.data("This is the content")
             w.comment("comment")
 
-    value = ''.join(fh.getvalue().split())
-    assert value == '<html><body>Thisisthecontent<!--comment--></body></html>'
+    value = "".join(fh.getvalue().split())
+    assert value == "<html><body>Thisisthecontent<!--comment--></body></html>"
 
 
 def test_check_id():
@@ -47,63 +47,72 @@ def test_check_anyuri():
 
 def test_unescape_all():
     # str
-    url_in = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?' \
-             'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
-    url_out = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
-              'DSACAT=IDR&DSATAB=Emitters&'
+    url_in = (
+        "http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?"
+        "DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;"
+    )
+    url_out = (
+        "http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&DSATAB=Emitters&"
+    )
     assert unescaper.unescape_all(url_in) == url_out
 
     # bytes
-    url_in = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?' \
-             b'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
-    url_out = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
-              b'DSACAT=IDR&DSATAB=Emitters&'
+    url_in = (
+        b"http://casu.ast.cam.ac.uk/ag/iphas-dsa%2FSubmitCone?"
+        b"DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;"
+    )
+    url_out = (
+        b"http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&DSATAB=Emitters&"
+    )
     assert unescaper.unescape_all(url_in) == url_out
 
 
 def test_escape_xml():
-    s = writer.xml_escape('This & That')
+    s = writer.xml_escape("This & That")
     assert type(s) == str
-    assert s == 'This &amp; That'
+    assert s == "This &amp; That"
 
     s = writer.xml_escape(1)
     assert type(s) == str
-    assert s == '1'
+    assert s == "1"
 
-    s = writer.xml_escape(b'This & That')
+    s = writer.xml_escape(b"This & That")
     assert type(s) == bytes
-    assert s == b'This &amp; That'
+    assert s == b"This &amp; That"
 
 
-@pytest.mark.skipif('HAS_BLEACH')
+@pytest.mark.skipif("HAS_BLEACH")
 def test_escape_xml_without_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
 
     with pytest.raises(ValueError) as err:
-        with w.xml_cleaning_method('bleach_clean'):
+        with w.xml_cleaning_method("bleach_clean"):
             pass
-    assert 'bleach package is required when HTML escaping is disabled' in str(err.value)
+    assert "bleach package is required when HTML escaping is disabled" in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_BLEACH')
+@pytest.mark.skipif("not HAS_BLEACH")
 def test_escape_xml_with_bleach():
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
 
     # Turn off XML escaping, but still sanitize unsafe tags like <script>
-    with w.xml_cleaning_method('bleach_clean'):
-        w.start('td')
-        w.data('<script>x</script> <em>OK</em>')
+    with w.xml_cleaning_method("bleach_clean"):
+        w.start("td")
+        w.data("<script>x</script> <em>OK</em>")
         w.end(indent=False)
-    assert fh.getvalue() == '<td>&lt;script&gt;x&lt;/script&gt; <em>OK</em></td>\n'
+    assert fh.getvalue() == "<td>&lt;script&gt;x&lt;/script&gt; <em>OK</em></td>\n"
 
     fh = io.StringIO()
     w = writer.XMLWriter(fh)
 
     # Default is True (all XML tags escaped)
     with w.xml_cleaning_method():
-        w.start('td')
-        w.data('<script>x</script> <em>OK</em>')
+        w.start("td")
+        w.data("<script>x</script> <em>OK</em>")
         w.end(indent=False)
-    assert fh.getvalue() == '<td>&lt;script&gt;x&lt;/script&gt; &lt;em&gt;OK&lt;/em&gt;</td>\n'
+    assert (
+        fh.getvalue()
+        == "<td>&lt;script&gt;x&lt;/script&gt; &lt;em&gt;OK&lt;/em&gt;</td>\n"
+    )

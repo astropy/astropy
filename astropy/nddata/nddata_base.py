@@ -5,7 +5,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-__all__ = ['NDDataBase']
+__all__ = ["NDDataBase"]
 
 
 class NDDataBase(metaclass=ABCMeta):
@@ -27,8 +27,7 @@ class NDDataBase(metaclass=ABCMeta):
     @property
     @abstractmethod
     def data(self):
-        """The stored dataset.
-        """
+        """The stored dataset."""
         pass
 
     @property
@@ -44,15 +43,13 @@ class NDDataBase(metaclass=ABCMeta):
     @property
     @abstractmethod
     def unit(self):
-        """Unit for the dataset.
-        """
+        """Unit for the dataset."""
         return None
 
     @property
     @abstractmethod
     def wcs(self):
-        """World coordinate system (WCS) for the dataset.
-        """
+        """World coordinate system (WCS) for the dataset."""
         return None
 
     @property

@@ -4,10 +4,14 @@
 from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
 from .galactic import Galactic
 
-__all__ = ['Supergalactic']
+__all__ = ["Supergalactic"]
 
 
 doc_components = """
@@ -41,18 +45,18 @@ class Supergalactic(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'sgl'),
-            RepresentationMapping('lat', 'sgb')
+            RepresentationMapping("lon", "sgl"),
+            RepresentationMapping("lat", "sgb"),
         ],
         r.CartesianRepresentation: [
-            RepresentationMapping('x', 'sgx'),
-            RepresentationMapping('y', 'sgy'),
-            RepresentationMapping('z', 'sgz')
+            RepresentationMapping("x", "sgx"),
+            RepresentationMapping("y", "sgy"),
+            RepresentationMapping("z", "sgz"),
         ],
         r.CartesianDifferential: [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s)
+            RepresentationMapping("d_x", "v_x", u.km / u.s),
+            RepresentationMapping("d_y", "v_y", u.km / u.s),
+            RepresentationMapping("d_z", "v_z", u.km / u.s),
         ],
     }
 
@@ -61,4 +65,4 @@ class Supergalactic(BaseCoordinateFrame):
 
     # North supergalactic pole in Galactic coordinates.
     # Needed for transformations to/from Galactic coordinates.
-    _nsgp_gal = Galactic(l=47.37*u.degree, b=+6.32*u.degree)
+    _nsgp_gal = Galactic(l=47.37 * u.degree, b=+6.32 * u.degree)

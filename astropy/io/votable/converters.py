@@ -19,12 +19,30 @@ from numpy import ma
 from astropy.utils.xml.writer import xml_escape_cdata
 
 # LOCAL
-from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
-    W30, W31, W39, W46, W47, W49, W51, W55, E01, E02, E03, E04,
-    E05, E06, E24)
+from .exceptions import (
+    vo_raise,
+    vo_warn,
+    warn_or_raise,
+    W01,
+    W30,
+    W31,
+    W39,
+    W46,
+    W47,
+    W49,
+    W51,
+    W55,
+    E01,
+    E02,
+    E03,
+    E04,
+    E05,
+    E06,
+    E24,
+)
 
 
-__all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
+__all__ = ["get_converter", "Converter", "table_column_to_votable_datatype"]
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -36,23 +54,26 @@ SPEC: Usage of commas is not actually allowed by the spec, but many
 files in the wild use them.
 """
 
-_zero_int = b'\0\0\0\0'
-_empty_bytes = b''
-_zero_byte = b'\0'
+_zero_int = b"\0\0\0\0"
+_empty_bytes = b""
+_zero_byte = b"\0"
 
 
 struct_unpack = _struct_unpack
 struct_pack = _struct_pack
 
 
-if sys.byteorder == 'little':
+if sys.byteorder == "little":
+
     def _ensure_bigendian(x):
-        if x.dtype.byteorder != '>':
+        if x.dtype.byteorder != ">":
             return x.byteswap()
         return x
+
 else:
+
     def _ensure_bigendian(x):
-        if x.dtype.byteorder == '<':
+        if x.dtype.byteorder == "<":
             return x.byteswap()
         return x
 
@@ -66,9 +87,7 @@ def _make_masked_array(data, mask):
     """
     # np.ma doesn't like setting mask to []
     if len(data):
-        return ma.array(
-            np.array(data),
-            mask=np.array(mask, dtype='bool'))
+        return ma.array(np.array(data), mask=np.array(mask, dtype="bool"))
     else:
         return ma.array(np.array(data))
 
@@ -95,14 +114,14 @@ def bitarray_to_bool(data, length):
     for byte in data:
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
-            bit = (bit != 0)
+            bit = bit != 0
             results.append(bit)
             if len(results) == length:
                 break
         if len(results) == length:
             break
 
-    return np.array(results, dtype='b1')
+    return np.array(results, dtype="b1")
 
 
 def bool_to_bitarray(value):
@@ -175,7 +194,7 @@ class Converter:
         """
         Returns True when the field can be completely empty.
         """
-        return config.get('version_1_3_or_later')
+        return config.get("version_1_3_or_later")
 
     def parse(self, value, config=None, pos=None):
         """
@@ -194,8 +213,7 @@ class Converter:
             The value as a Numpy array or scalar, and *mask* is True
             if the value is missing.
         """
-        raise NotImplementedError(
-            "This datatype must implement a 'parse' method.")
+        raise NotImplementedError("This datatype must implement a 'parse' method.")
 
     def parse_scalar(self, value, config=None, pos=None):
         """
@@ -237,8 +255,7 @@ class Converter:
         -------
         tabledata_repr : unicode
         """
-        raise NotImplementedError(
-            "This datatype must implement a 'output' method.")
+        raise NotImplementedError("This datatype must implement a 'output' method.")
 
     def binparse(self, read):
         """
@@ -259,8 +276,7 @@ class Converter:
             (value, mask). The value as a Numpy array or scalar, and *mask* is
             True if the value is missing.
         """
-        raise NotImplementedError(
-            "This datatype must implement a 'binparse' method.")
+        raise NotImplementedError("This datatype must implement a 'binparse' method.")
 
     def binoutput(self, value, mask):
         """
@@ -283,8 +299,7 @@ class Converter:
             The binary representation of the value, suitable for
             serialization in the BINARY_ format.
         """
-        raise NotImplementedError(
-            "This datatype must implement a 'binoutput' method.")
+        raise NotImplementedError("This datatype must implement a 'binoutput' method.")
 
 
 class Char(Converter):
@@ -293,6 +308,7 @@ class Char(Converter):
 
     Missing values are not handled for string or unicode types.
     """
+
     default = _empty_bytes
 
     def __init__(self, field, config=None, pos=None):
@@ -305,21 +321,21 @@ class Char(Converter):
 
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
-            field.arraysize = '1'
+            field.arraysize = "1"
 
-        if field.arraysize == '*':
-            self.format = 'O'
+        if field.arraysize == "*":
+            self.format = "O"
             self.binparse = self._binparse_var
             self.binoutput = self._binoutput_var
-            self.arraysize = '*'
+            self.arraysize = "*"
         else:
-            if field.arraysize.endswith('*'):
+            if field.arraysize.endswith("*"):
                 field.arraysize = field.arraysize[:-1]
             try:
                 self.arraysize = int(field.arraysize)
             except ValueError:
-                vo_raise(E01, (field.arraysize, 'char', field.ID), config)
-            self.format = f'U{self.arraysize:d}'
+                vo_raise(E01, (field.arraysize, "char", field.ID), config)
+            self.format = f"U{self.arraysize:d}"
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
             self._struct_format = f">{self.arraysize:d}s"
@@ -328,56 +344,56 @@ class Char(Converter):
         return True
 
     def parse(self, value, config=None, pos=None):
-        if self.arraysize != '*' and len(value) > self.arraysize:
-            vo_warn(W46, ('char', self.arraysize), config, pos)
+        if self.arraysize != "*" and len(value) > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), config, pos)
 
         # Warn about non-ascii characters if warnings are enabled.
         try:
-            value.encode('ascii')
+            value.encode("ascii")
         except UnicodeEncodeError:
             vo_warn(W55, (self.field_name, value), config, pos)
         return value, False
 
     def output(self, value, mask):
         if mask:
-            return ''
+            return ""
 
         # The output methods for Char assume that value is either str or bytes.
         # This method needs to return a str, but needs to warn if the str contains
         # non-ASCII characters.
         try:
             if isinstance(value, str):
-                value.encode('ascii')
+                value.encode("ascii")
             else:
                 # Check for non-ASCII chars in the bytes object.
-                value = value.decode('ascii')
+                value = value.decode("ascii")
         except (ValueError, UnicodeEncodeError):
             warn_or_raise(E24, UnicodeEncodeError, (value, self.field_name))
         finally:
             if isinstance(value, bytes):
                 # Convert the bytes to str regardless of non-ASCII chars.
-                value = value.decode('utf-8')
+                value = value.decode("utf-8")
 
         return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
-        return read(length).decode('ascii'), False
+        return read(length).decode("ascii"), False
 
     def _binparse_fixed(self, read):
         s = struct_unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
-        s = s.decode('ascii')
+        s = s.decode("ascii")
         if end != -1:
             return s[:end], False
         return s, False
 
     def _binoutput_var(self, value, mask):
-        if mask or value is None or value == '':
+        if mask or value is None or value == "":
             return _zero_int
         if isinstance(value, str):
             try:
-                value = value.encode('ascii')
+                value = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
         return self._write_length(len(value)) + value
@@ -387,7 +403,7 @@ class Char(Converter):
             value = _empty_bytes
         elif isinstance(value, str):
             try:
-                value = value.encode('ascii')
+                value = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
         return struct_pack(self._struct_format, value)
@@ -399,62 +415,63 @@ class UnicodeChar(Converter):
 
     Missing values are not handled for string or unicode types.
     """
-    default = ''
+
+    default = ""
 
     def __init__(self, field, config=None, pos=None):
         Converter.__init__(self, field, config, pos)
 
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
-            field.arraysize = '1'
+            field.arraysize = "1"
 
-        if field.arraysize == '*':
-            self.format = 'O'
+        if field.arraysize == "*":
+            self.format = "O"
             self.binparse = self._binparse_var
             self.binoutput = self._binoutput_var
-            self.arraysize = '*'
+            self.arraysize = "*"
         else:
             try:
                 self.arraysize = int(field.arraysize)
             except ValueError:
-                vo_raise(E01, (field.arraysize, 'unicode', field.ID), config)
-            self.format = f'U{self.arraysize:d}'
+                vo_raise(E01, (field.arraysize, "unicode", field.ID), config)
+            self.format = f"U{self.arraysize:d}"
             self.binparse = self._binparse_fixed
             self.binoutput = self._binoutput_fixed
             self._struct_format = f">{self.arraysize*2:d}s"
 
     def parse(self, value, config=None, pos=None):
-        if self.arraysize != '*' and len(value) > self.arraysize:
-            vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
+        if self.arraysize != "*" and len(value) > self.arraysize:
+            vo_warn(W46, ("unicodeChar", self.arraysize), config, pos)
         return value, False
 
     def output(self, value, mask):
         if mask:
-            return ''
+            return ""
         return xml_escape_cdata(str(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
-        return read(length * 2).decode('utf_16_be'), False
+        return read(length * 2).decode("utf_16_be"), False
 
     def _binparse_fixed(self, read):
         s = struct_unpack(self._struct_format, read(self.arraysize * 2))[0]
-        s = s.decode('utf_16_be')
-        end = s.find('\0')
+        s = s.decode("utf_16_be")
+        end = s.find("\0")
         if end != -1:
             return s[:end], False
         return s, False
 
     def _binoutput_var(self, value, mask):
-        if mask or value is None or value == '':
+        if mask or value is None or value == "":
             return _zero_int
-        encoded = value.encode('utf_16_be')
+        encoded = value.encode("utf_16_be")
         return self._write_length(len(encoded) / 2) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
-            value = ''
-        return struct_pack(self._struct_format, value.encode('utf_16_be'))
+            value = ""
+        return struct_pack(self._struct_format, value.encode("utf_16_be"))
 
 
 class Array(Converter):
@@ -466,7 +483,7 @@ class Array(Converter):
         if config is None:
             config = {}
         Converter.__init__(self, field, config, pos)
-        if config.get('verify', 'ignore') == 'exception':
+        if config.get("verify", "ignore") == "exception":
             self._splitter = self._splitter_pedantic
         else:
             self._splitter = self._splitter_lax
@@ -480,7 +497,7 @@ class Array(Converter):
 
     @staticmethod
     def _splitter_lax(value, config=None, pos=None):
-        if ',' in value:
+        if "," in value:
             vo_warn(W01, (), config, pos)
         return array_splitter.split(value)
 
@@ -489,7 +506,8 @@ class VarArray(Array):
     """
     Handles variable lengths arrays (i.e. where *arraysize* is '*').
     """
-    format = 'O'
+
+    format = "O"
 
     def __init__(self, field, base, arraysize, config=None, pos=None):
         Array.__init__(self, field, config)
@@ -500,7 +518,7 @@ class VarArray(Array):
     def output(self, value, mask):
         output = self._base.output
         result = [output(x, m) for x, m in np.broadcast(value, mask)]
-        return ' '.join(result)
+        return " ".join(result)
 
     def binparse(self, read):
         length = self._parse_length(read)
@@ -534,7 +552,7 @@ class ArrayVarArray(VarArray):
     """
 
     def parse(self, value, config=None, pos=None):
-        if value.strip() == '':
+        if value.strip() == "":
             return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
@@ -545,7 +563,7 @@ class ArrayVarArray(VarArray):
         result = []
         result_mask = []
         for i in range(0, len(parts), items):
-            value, mask = parse_parts(parts[i:i+items], config, pos)
+            value, mask = parse_parts(parts[i : i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
 
@@ -558,7 +576,7 @@ class ScalarVarArray(VarArray):
     """
 
     def parse(self, value, config=None, pos=None):
-        if value.strip() == '':
+        if value.strip() == "":
             return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
@@ -578,6 +596,7 @@ class NumericArray(Array):
     """
     Handles a fixed-length array of numeric scalars.
     """
+
     vararray_type = ArrayVarArray
 
     def __init__(self, field, base, arraysize, config=None, pos=None):
@@ -592,7 +611,7 @@ class NumericArray(Array):
             self._items *= dim
 
         self._memsize = np.dtype(self.format).itemsize
-        self._bigendian_format = '>' + self.format
+        self._bigendian_format = ">" + self.format
 
         self.default = np.empty(arraysize, dtype=self._base.format)
         self.default[...] = self._base.default
@@ -600,21 +619,20 @@ class NumericArray(Array):
     def parse(self, value, config=None, pos=None):
         if config is None:
             config = {}
-        elif config['version_1_3_or_later'] and value == '':
+        elif config["version_1_3_or_later"] and value == "":
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
-        if config.get('verify', 'ignore') == 'exception':
+        if config.get("verify", "ignore") == "exception":
             return self.parse_parts(parts, config, pos)
         else:
             if len(parts) == self._items:
                 pass
             elif len(parts) > self._items:
-                parts = parts[:self._items]
+                parts = parts[: self._items]
             else:
-                parts = (parts +
-                         ([self._base.default] * (self._items - len(parts))))
+                parts = parts + ([self._base.default] * (self._items - len(parts)))
             return self.parse_parts(parts, config, pos)
 
     def parse_parts(self, parts, config=None, pos=None):
@@ -625,10 +643,8 @@ class NumericArray(Array):
             value, mask = base_parse(x, config, pos)
             result.append(value)
             result_mask.append(mask)
-        result = np.array(result, dtype=self._base.format).reshape(
-            self._arraysize)
-        result_mask = np.array(result_mask, dtype='bool').reshape(
-            self._arraysize)
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="bool").reshape(self._arraysize)
         return result, result_mask
 
     def output(self, value, mask):
@@ -639,12 +655,10 @@ class NumericArray(Array):
             func = np.broadcast
         else:  # When mask is already array but value is scalar, this prevents broadcast
             func = zip
-        return ' '.join(base_output(x, m) for x, m in
-                        func(value.flat, mask.flat))
+        return " ".join(base_output(x, m) for x, m in func(value.flat, mask.flat))
 
     def binparse(self, read):
-        result = np.frombuffer(read(self._memsize),
-                               dtype=self._bigendian_format)[0]
+        result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)[0]
         result_mask = self._base.is_null(result)
         return result, result_mask
 
@@ -658,6 +672,7 @@ class Numeric(Converter):
     """
     The base class for all numeric data types.
     """
+
     array_type = NumericArray
     vararray_type = ScalarVarArray
     null = None
@@ -666,7 +681,7 @@ class Numeric(Converter):
         Converter.__init__(self, field, config, pos)
 
         self._memsize = np.dtype(self.format).itemsize
-        self._bigendian_format = '>' + self.format
+        self._bigendian_format = ">" + self.format
         if field.values.null is not None:
             self.null = np.asarray(field.values.null, dtype=self.format)
             self.default = self.null
@@ -675,8 +690,7 @@ class Numeric(Converter):
             self.is_null = np.isnan
 
     def binparse(self, read):
-        result = np.frombuffer(read(self._memsize),
-                               dtype=self._bigendian_format)
+        result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)
         return result[0], self.is_null(result[0])
 
     def _is_null(self, value):
@@ -687,6 +701,7 @@ class FloatingPoint(Numeric):
     """
     The base class for floating-point datatypes.
     """
+
     default = np.nan
 
     def __init__(self, field, config=None, pos=None):
@@ -699,29 +714,29 @@ class FloatingPoint(Numeric):
         width = field.width
 
         if precision is None:
-            format_parts = ['{!r:>']
+            format_parts = ["{!r:>"]
         else:
-            format_parts = ['{:']
+            format_parts = ["{:"]
 
         if width is not None:
             format_parts.append(str(width))
 
         if precision is not None:
             if precision.startswith("E"):
-                format_parts.append(f'.{int(precision[1:]):d}g')
+                format_parts.append(f".{int(precision[1:]):d}g")
             elif precision.startswith("F"):
-                format_parts.append(f'.{int(precision[1:]):d}f')
+                format_parts.append(f".{int(precision[1:]):d}f")
             else:
-                format_parts.append(f'.{int(precision):d}f')
+                format_parts.append(f".{int(precision):d}f")
 
-        format_parts.append('}')
+        format_parts.append("}")
 
-        self._output_format = ''.join(format_parts)
+        self._output_format = "".join(format_parts)
 
         self.nan = np.array(np.nan, self.format)
 
         if self.null is None:
-            self._null_output = 'NaN'
+            self._null_output = "NaN"
             self._null_binoutput = self.binoutput(self.nan, False)
             self.filter_array = self._filter_nan
         else:
@@ -729,7 +744,7 @@ class FloatingPoint(Numeric):
             self._null_binoutput = self.binoutput(np.asarray(self.null), False)
             self.filter_array = self._filter_null
 
-        if config.get('verify', 'ignore') == 'exception':
+        if config.get("verify", "ignore") == "exception":
             self.parse = self._parse_pedantic
         else:
             self.parse = self._parse_permissive
@@ -738,7 +753,7 @@ class FloatingPoint(Numeric):
         return True
 
     def _parse_pedantic(self, value, config=None, pos=None):
-        if value.strip() == '':
+        if value.strip() == "":
             return self.null, True
         f = float(value)
         return f, self.is_null(f)
@@ -750,7 +765,7 @@ class FloatingPoint(Numeric):
         except ValueError:
             # IRSA VOTables use the word 'null' to specify empty values,
             # but this is not defined in the VOTable spec.
-            if value.strip() != '':
+            if value.strip() != "":
                 vo_warn(W30, value, config, pos)
             return self.null, True
 
@@ -765,18 +780,17 @@ class FloatingPoint(Numeric):
             if not np.isscalar(value):
                 value = value.dtype.type(value)
             result = self._output_format.format(value)
-            if result.startswith('array'):
+            if result.startswith("array"):
                 raise RuntimeError()
-            if (self._output_format[2] == 'r' and
-                result.endswith('.0')):
+            if self._output_format[2] == "r" and result.endswith(".0"):
                 result = result[:-2]
             return result
         elif np.isnan(value):
-            return 'NaN'
+            return "NaN"
         elif np.isposinf(value):
-            return '+InF'
+            return "+InF"
         elif np.isneginf(value):
-            return '-InF'
+            return "-InF"
         # Should never raise
         vo_raise(f"Invalid floating point value '{value}'")
 
@@ -799,20 +813,23 @@ class Double(FloatingPoint):
     Handles the double datatype.  Double-precision IEEE
     floating-point.
     """
-    format = 'f8'
+
+    format = "f8"
 
 
 class Float(FloatingPoint):
     """
     Handles the float datatype.  Single-precision IEEE floating-point.
     """
-    format = 'f4'
+
+    format = "f4"
 
 
 class Integer(Numeric):
     """
     The base class for all the integral datatypes.
     """
+
     default = 0
 
     def __init__(self, field, config=None, pos=None):
@@ -824,8 +841,8 @@ class Integer(Numeric):
         mask = False
         if isinstance(value, str):
             value = value.lower()
-            if value == '':
-                if config['version_1_3_or_later']:
+            if value == "":
+                if config["version_1_3_or_later"]:
                     mask = True
                 else:
                     warn_or_raise(W49, W49, (), config, pos)
@@ -833,14 +850,14 @@ class Integer(Numeric):
                     value = self.null
                 else:
                     value = self.default
-            elif value == 'nan':
+            elif value == "nan":
                 mask = True
                 if self.null is None:
                     warn_or_raise(W31, W31, (), config, pos)
                     value = self.default
                 else:
                     value = self.null
-            elif value.startswith('0x'):
+            elif value.startswith("0x"):
                 value = int(value[2:], 16)
             else:
                 value = int(value, 10)
@@ -862,7 +879,7 @@ class Integer(Numeric):
         if mask:
             if self.null is None:
                 warn_or_raise(W31, W31)
-                return 'NaN'
+                return "NaN"
             return str(self.null)
         return str(value)
 
@@ -889,36 +906,40 @@ class UnsignedByte(Integer):
     """
     Handles the unsignedByte datatype.  Unsigned 8-bit integer.
     """
-    format = 'u1'
+
+    format = "u1"
     val_range = (0, 255)
-    bit_size = '8-bit unsigned'
+    bit_size = "8-bit unsigned"
 
 
 class Short(Integer):
     """
     Handles the short datatype.  Signed 16-bit integer.
     """
-    format = 'i2'
+
+    format = "i2"
     val_range = (-32768, 32767)
-    bit_size = '16-bit'
+    bit_size = "16-bit"
 
 
 class Int(Integer):
     """
     Handles the int datatype.  Signed 32-bit integer.
     """
-    format = 'i4'
+
+    format = "i4"
     val_range = (-2147483648, 2147483647)
-    bit_size = '32-bit'
+    bit_size = "32-bit"
 
 
 class Long(Integer):
     """
     Handles the long datatype.  Signed 64-bit integer.
     """
-    format = 'i8'
+
+    format = "i8"
     val_range = (-9223372036854775808, 9223372036854775807)
-    bit_size = '64-bit'
+    bit_size = "64-bit"
 
 
 class ComplexArrayVarArray(VarArray):
@@ -927,7 +948,7 @@ class ComplexArrayVarArray(VarArray):
     """
 
     def parse(self, value, config=None, pos=None):
-        if value.strip() == '':
+        if value.strip() == "":
             return ma.array([]), True
 
         parts = self._splitter(value, config, pos)
@@ -938,7 +959,7 @@ class ComplexArrayVarArray(VarArray):
         result = []
         result_mask = []
         for i in range(0, len(parts), items):
-            value, mask = parse_parts(parts[i:i + items], config, pos)
+            value, mask = parse_parts(parts[i : i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
 
@@ -951,7 +972,7 @@ class ComplexVarArray(VarArray):
     """
 
     def parse(self, value, config=None, pos=None):
-        if value.strip() == '':
+        if value.strip() == "":
             return ma.array([]), True
 
         parts = self._splitter(value, config, pos)
@@ -959,19 +980,22 @@ class ComplexVarArray(VarArray):
         result = []
         result_mask = []
         for i in range(0, len(parts), 2):
-            value = [float(x) for x in parts[i:i + 2]]
+            value = [float(x) for x in parts[i : i + 2]]
             value, mask = parse_parts(value, config, pos)
             result.append(value)
             result_mask.append(mask)
 
-        return _make_masked_array(
-            np.array(result, dtype=self._base.format), result_mask), False
+        return (
+            _make_masked_array(np.array(result, dtype=self._base.format), result_mask),
+            False,
+        )
 
 
 class ComplexArray(NumericArray):
     """
     Handles a fixed-size array of complex numbers.
     """
+
     vararray_type = ComplexArrayVarArray
 
     def __init__(self, field, base, arraysize, config=None, pos=None):
@@ -980,7 +1004,7 @@ class ComplexArray(NumericArray):
 
     def parse(self, value, config=None, pos=None):
         parts = self._splitter(value, config, pos)
-        if parts == ['']:
+        if parts == [""]:
             parts = []
         return self.parse_parts(parts, config, pos)
 
@@ -991,14 +1015,12 @@ class ComplexArray(NumericArray):
         result = []
         result_mask = []
         for i in range(0, self._items, 2):
-            value = [float(x) for x in parts[i:i + 2]]
+            value = [float(x) for x in parts[i : i + 2]]
             value, mask = base_parse(value, config, pos)
             result.append(value)
             result_mask.append(mask)
-        result = np.array(
-            result, dtype=self._base.format).reshape(self._arraysize)
-        result_mask = np.array(
-            result_mask, dtype='bool').reshape(self._arraysize)
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="bool").reshape(self._arraysize)
         return result, result_mask
 
 
@@ -1006,6 +1028,7 @@ class Complex(FloatingPoint, Array):
     """
     The base class for complex numbers.
     """
+
     array_type = ComplexArray
     vararray_type = ComplexVarArray
     default = np.nan
@@ -1016,13 +1039,14 @@ class Complex(FloatingPoint, Array):
 
     def parse(self, value, config=None, pos=None):
         stripped = value.strip()
-        if stripped == '' or stripped.lower() == 'nan':
+        if stripped == "" or stripped.lower() == "nan":
             return np.nan, True
         splitter = self._splitter
         parts = [float(x) for x in splitter(value, config, pos)]
         if len(parts) != 2:
             vo_raise(E03, (value,), config, pos)
         return self.parse_parts(parts, config, pos)
+
     _parse_permissive = parse
     _parse_pedantic = parse
 
@@ -1033,17 +1057,17 @@ class Complex(FloatingPoint, Array):
     def output(self, value, mask):
         if mask:
             if self.null is None:
-                return 'NaN'
+                return "NaN"
             else:
                 value = self.null
         real = self._output_format.format(float(value.real))
         imag = self._output_format.format(float(value.imag))
-        if self._output_format[2] == 'r':
-            if real.endswith('.0'):
+        if self._output_format[2] == "r":
+            if real.endswith(".0"):
                 real = real[:-2]
-            if imag.endswith('.0'):
+            if imag.endswith(".0"):
                 imag = imag[:-2]
-        return real + ' ' + imag
+        return real + " " + imag
 
 
 class FloatComplex(Complex):
@@ -1051,7 +1075,8 @@ class FloatComplex(Complex):
     Handle floatComplex datatype.  Pair of single-precision IEEE
     floating-point numbers.
     """
-    format = 'c8'
+
+    format = "c8"
 
 
 class DoubleComplex(Complex):
@@ -1059,13 +1084,15 @@ class DoubleComplex(Complex):
     Handle doubleComplex datatype.  Pair of double-precision IEEE
     floating-point numbers.
     """
-    format = 'c16'
+
+    format = "c16"
 
 
 class BitArray(NumericArray):
     """
     Handles an array of bits.
     """
+
     vararray_type = ArrayVarArray
 
     def __init__(self, field, base, arraysize, config=None, pos=None):
@@ -1075,26 +1102,26 @@ class BitArray(NumericArray):
 
     @staticmethod
     def _splitter_pedantic(value, config=None, pos=None):
-        return list(re.sub(r'\s', '', value))
+        return list(re.sub(r"\s", "", value))
 
     @staticmethod
     def _splitter_lax(value, config=None, pos=None):
-        if ',' in value:
+        if "," in value:
             vo_warn(W01, (), config, pos)
-        return list(re.sub(r'\s|,', '', value))
+        return list(re.sub(r"\s|,", "", value))
 
     def output(self, value, mask):
         if np.any(mask):
             vo_warn(W39)
         value = np.asarray(value)
-        mapping = {False: '0', True: '1'}
-        return ''.join(mapping[x] for x in value.flat)
+        mapping = {False: "0", True: "1"}
+        return "".join(mapping[x] for x in value.flat)
 
     def binparse(self, read):
         data = read(self._bytes)
         result = bitarray_to_bool(data, self._items)
         result = result.reshape(self._arraysize)
-        result_mask = np.zeros(self._arraysize, dtype='b1')
+        result_mask = np.zeros(self._arraysize, dtype="b1")
         return result, result_mask
 
     def binoutput(self, value, mask):
@@ -1108,19 +1135,20 @@ class Bit(Converter):
     """
     Handles the bit datatype.
     """
-    format = 'b1'
+
+    format = "b1"
     array_type = BitArray
     vararray_type = ScalarVarArray
     default = False
-    binary_one = b'\x08'
-    binary_zero = b'\0'
+    binary_one = b"\x08"
+    binary_zero = b"\0"
 
     def parse(self, value, config=None, pos=None):
         if config is None:
             config = {}
-        mapping = {'1': True, '0': False}
-        if value is False or value.strip() == '':
-            if not config['version_1_3_or_later']:
+        mapping = {"1": True, "0": False}
+        if value is False or value.strip() == "":
+            if not config["version_1_3_or_later"]:
                 warn_or_raise(W49, W49, (), config, pos)
             return False, True
         else:
@@ -1134,9 +1162,9 @@ class Bit(Converter):
             vo_warn(W39)
 
         if value:
-            return '1'
+            return "1"
         else:
-            return '0'
+            return "0"
 
     def binparse(self, read):
         data = read(1)
@@ -1155,6 +1183,7 @@ class BooleanArray(NumericArray):
     """
     Handles an array of boolean values.
     """
+
     vararray_type = ArrayVarArray
 
     def binparse(self, read):
@@ -1166,18 +1195,15 @@ class BooleanArray(NumericArray):
             value, mask = binparse(char)
             result.append(value)
             result_mask.append(mask)
-        result = np.array(result, dtype='b1').reshape(
-            self._arraysize)
-        result_mask = np.array(result_mask, dtype='b1').reshape(
-            self._arraysize)
+        result = np.array(result, dtype="b1").reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="b1").reshape(self._arraysize)
         return result, result_mask
 
     def binoutput(self, value, mask):
         binoutput = self._base.binoutput
         value = np.asarray(value)
         mask = np.asarray(mask)
-        result = [binoutput(x, m)
-                  for x, m in np.broadcast(value.flat, mask.flat)]
+        result = [binoutput(x, m) for x, m in np.broadcast(value.flat, mask.flat)]
         return _empty_bytes.join(result)
 
 
@@ -1185,29 +1211,32 @@ class Boolean(Converter):
     """
     Handles the boolean datatype.
     """
-    format = 'b1'
+
+    format = "b1"
     array_type = BooleanArray
     vararray_type = ScalarVarArray
     default = False
-    binary_question_mark = b'?'
-    binary_true = b'T'
-    binary_false = b'F'
+    binary_question_mark = b"?"
+    binary_true = b"T"
+    binary_false = b"F"
 
     def parse(self, value, config=None, pos=None):
-        if value == '':
+        if value == "":
             return False, True
         if value is False:
             return False, True
-        mapping = {'TRUE': (True, False),
-                   'FALSE': (False, False),
-                   '1': (True, False),
-                   '0': (False, False),
-                   'T': (True, False),
-                   'F': (False, False),
-                   '\0': (False, True),
-                   ' ': (False, True),
-                   '?': (False, True),
-                   '': (False, True)}
+        mapping = {
+            "TRUE": (True, False),
+            "FALSE": (False, False),
+            "1": (True, False),
+            "0": (False, False),
+            "T": (True, False),
+            "F": (False, False),
+            "\0": (False, True),
+            " ": (False, True),
+            "?": (False, True),
+            "": (False, True),
+        }
         try:
             return mapping[value.upper()]
         except KeyError:
@@ -1215,25 +1244,26 @@ class Boolean(Converter):
 
     def output(self, value, mask):
         if mask:
-            return '?'
+            return "?"
         if value:
-            return 'T'
-        return 'F'
+            return "T"
+        return "F"
 
     def binparse(self, read):
         value = ord(read(1))
         return self.binparse_value(value)
 
     _binparse_mapping = {
-        ord('T'): (True, False),
-        ord('t'): (True, False),
-        ord('1'): (True, False),
-        ord('F'): (False, False),
-        ord('f'): (False, False),
-        ord('0'): (False, False),
-        ord('\0'): (False, True),
-        ord(' '): (False, True),
-        ord('?'): (False, True)}
+        ord("T"): (True, False),
+        ord("t"): (True, False),
+        ord("1"): (True, False),
+        ord("F"): (False, False),
+        ord("f"): (False, False),
+        ord("0"): (False, False),
+        ord("\0"): (False, True),
+        ord(" "): (False, True),
+        ord("?"): (False, True),
+    }
 
     def binparse_value(self, value):
         try:
@@ -1250,18 +1280,19 @@ class Boolean(Converter):
 
 
 converter_mapping = {
-    'double': Double,
-    'float': Float,
-    'bit': Bit,
-    'boolean': Boolean,
-    'unsignedByte': UnsignedByte,
-    'short': Short,
-    'int': Int,
-    'long': Long,
-    'floatComplex': FloatComplex,
-    'doubleComplex': DoubleComplex,
-    'char': Char,
-    'unicodeChar': UnicodeChar}
+    "double": Double,
+    "float": Float,
+    "bit": Bit,
+    "boolean": Boolean,
+    "unsignedByte": UnsignedByte,
+    "short": Short,
+    "int": Int,
+    "long": Long,
+    "floatComplex": FloatComplex,
+    "doubleComplex": DoubleComplex,
+    "char": Char,
+    "unicodeChar": UnicodeChar,
+}
 
 
 def get_converter(field, config=None, pos=None):
@@ -1295,51 +1326,48 @@ def get_converter(field, config=None, pos=None):
 
     # With numeric datatypes, special things need to happen for
     # arrays.
-    if (field.datatype not in ('char', 'unicodeChar') and
-        arraysize is not None):
-        if arraysize[-1] == '*':
+    if field.datatype not in ("char", "unicodeChar") and arraysize is not None:
+        if arraysize[-1] == "*":
             arraysize = arraysize[:-1]
-            last_x = arraysize.rfind('x')
+            last_x = arraysize.rfind("x")
             if last_x == -1:
-                arraysize = ''
+                arraysize = ""
             else:
                 arraysize = arraysize[:last_x]
             fixed = False
         else:
             fixed = True
 
-        if arraysize != '':
+        if arraysize != "":
             arraysize = [int(x) for x in arraysize.split("x")]
             arraysize.reverse()
         else:
             arraysize = []
 
         if arraysize != []:
-            converter = converter.array_type(
-                field, converter, arraysize, config)
+            converter = converter.array_type(field, converter, arraysize, config)
 
         if not fixed:
-            converter = converter.vararray_type(
-                field, converter, arraysize, config)
+            converter = converter.vararray_type(field, converter, arraysize, config)
 
     return converter
 
 
 numpy_dtype_to_field_mapping = {
-    np.float64().dtype.num: 'double',
-    np.float32().dtype.num: 'float',
-    np.bool_().dtype.num: 'bit',
-    np.uint8().dtype.num: 'unsignedByte',
-    np.int16().dtype.num: 'short',
-    np.int32().dtype.num: 'int',
-    np.int64().dtype.num: 'long',
-    np.complex64().dtype.num: 'floatComplex',
-    np.complex128().dtype.num: 'doubleComplex',
-    np.unicode_().dtype.num: 'unicodeChar'
+    np.float64().dtype.num: "double",
+    np.float32().dtype.num: "float",
+    np.bool_().dtype.num: "bit",
+    np.uint8().dtype.num: "unsignedByte",
+    np.int16().dtype.num: "short",
+    np.int32().dtype.num: "int",
+    np.int64().dtype.num: "long",
+    np.complex64().dtype.num: "floatComplex",
+    np.complex128().dtype.num: "doubleComplex",
+    np.unicode_().dtype.num: "unicodeChar",
 }
 
 
-numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
+numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = "char"
 
 
 def _all_matching_dtype(column):
@@ -1377,20 +1405,16 @@ def numpy_to_votable_dtype(dtype, shape):
        set on a VOTable FIELD element.
     """
     if dtype.num not in numpy_dtype_to_field_mapping:
-        raise TypeError(
-            f"{dtype!r} can not be represented in VOTable")
+        raise TypeError(f"{dtype!r} can not be represented in VOTable")
 
-    if dtype.char == 'S':
-        return {'datatype': 'char',
-                'arraysize': str(dtype.itemsize)}
-    elif dtype.char == 'U':
-        return {'datatype': 'unicodeChar',
-                'arraysize': str(dtype.itemsize // 4)}
+    if dtype.char == "S":
+        return {"datatype": "char", "arraysize": str(dtype.itemsize)}
+    elif dtype.char == "U":
+        return {"datatype": "unicodeChar", "arraysize": str(dtype.itemsize // 4)}
     else:
-        result = {
-            'datatype': numpy_dtype_to_field_mapping[dtype.num]}
+        result = {"datatype": numpy_dtype_to_field_mapping[dtype.num]}
         if len(shape):
-            result['arraysize'] = 'x'.join(str(x) for x in shape)
+            result["arraysize"] = "x".join(str(x) for x in shape)
 
         return result
 
@@ -1432,27 +1456,27 @@ def table_column_to_votable_datatype(column):
     """
     votable_string_dtype = None
     if column.info.meta is not None:
-        votable_string_dtype = column.info.meta.get('_votable_string_dtype')
-    if column.dtype.char == 'O':
+        votable_string_dtype = column.info.meta.get("_votable_string_dtype")
+    if column.dtype.char == "O":
         if votable_string_dtype is not None:
-            return {'datatype': votable_string_dtype, 'arraysize': '*'}
+            return {"datatype": votable_string_dtype, "arraysize": "*"}
         elif isinstance(column[0], np.ndarray):
             dtype, shape = _all_matching_dtype(column)
             if dtype is not False:
                 result = numpy_to_votable_dtype(dtype, shape)
-                if 'arraysize' not in result:
-                    result['arraysize'] = '*'
+                if "arraysize" not in result:
+                    result["arraysize"] = "*"
                 else:
-                    result['arraysize'] += '*'
+                    result["arraysize"] += "*"
                 return result
 
         # All bets are off, do the most generic thing
-        return {'datatype': 'unicodeChar', 'arraysize': '*'}
+        return {"datatype": "unicodeChar", "arraysize": "*"}
 
     # For fixed size string columns, datatype here will be unicodeChar,
     # but honor the original FIELD datatype if present.
     result = numpy_to_votable_dtype(column.dtype, column.shape[1:])
-    if result['datatype'] == 'unicodeChar' and votable_string_dtype == 'char':
-        result['datatype'] = 'char'
+    if result["datatype"] == "unicodeChar" and votable_string_dtype == "char":
+        result["datatype"] = "char"
 
     return result

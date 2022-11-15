@@ -21,8 +21,10 @@ def test_generate_parser(tmp_path, monkeypatch):
     # We use a unique suffix so that the test can be run multiple times
     # without weirdness due to module caching.
     suffix = secrets.token_hex(16)
-    lexer_file = tmp_path / f'test_parsing_lexer_{suffix}.py'
-    lexer_file.write_text(dedent(fr"""
+    lexer_file = tmp_path / f"test_parsing_lexer_{suffix}.py"
+    lexer_file.write_text(
+        dedent(
+            rf"""
         from astropy.utils.parsing import lex
 
         def make_lexer():
@@ -35,9 +37,13 @@ def test_generate_parser(tmp_path, monkeypatch):
                 return t
 
             return lex('test_parsing_lextab_{suffix}', 'test_parsing_lexer_{suffix}')
-        """))
-    parser_file = tmp_path / f'test_parsing_parser_{suffix}.py'
-    parser_file.write_text(dedent(fr"""
+        """
+        )
+    )
+    parser_file = tmp_path / f"test_parsing_parser_{suffix}.py"
+    parser_file.write_text(
+        dedent(
+            rf"""
         from astropy.utils.parsing import yacc
 
         def make_parser():
@@ -52,18 +58,22 @@ def test_generate_parser(tmp_path, monkeypatch):
                 p[0] = p[1] + p[3]
 
             return yacc('test_parsing_parsetab_{suffix}', 'test_parsing_parser_{suffix}')
-        """))
+        """
+        )
+    )
 
     monkeypatch.syspath_prepend(tmp_path)
 
-    lexer_mod = importlib.import_module(f'test_parsing_lexer_{suffix}')
+    lexer_mod = importlib.import_module(f"test_parsing_lexer_{suffix}")
     lexer = lexer_mod.make_lexer()
-    parser_mod = importlib.import_module(f'test_parsing_parser_{suffix}')
+    parser_mod = importlib.import_module(f"test_parsing_parser_{suffix}")
     parser = parser_mod.make_parser()
-    result = parser.parse('1+2+3', lexer=lexer)
+    result = parser.parse("1+2+3", lexer=lexer)
     assert result == 6
 
-    lextab = (tmp_path / f'test_parsing_lextab_{suffix}.py').read_text()
-    assert lextab.startswith(_TAB_HEADER.format(package=f'test_parsing_lexer_{suffix}'))
-    parsetab = (tmp_path / f'test_parsing_parsetab_{suffix}.py').read_text()
-    assert parsetab.startswith(_TAB_HEADER.format(package=f'test_parsing_parser_{suffix}'))
+    lextab = (tmp_path / f"test_parsing_lextab_{suffix}.py").read_text()
+    assert lextab.startswith(_TAB_HEADER.format(package=f"test_parsing_lexer_{suffix}"))
+    parsetab = (tmp_path / f"test_parsing_parsetab_{suffix}.py").read_text()
+    assert parsetab.startswith(
+        _TAB_HEADER.format(package=f"test_parsing_parser_{suffix}")
+    )

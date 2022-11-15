@@ -1,11 +1,18 @@
-
 import numpy as np
 
 from .mle import design_matrix
 
 
-def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
-                     fit_mean=True, center_data=True, nterms=1):
+def lombscargle_chi2(
+    t,
+    y,
+    dy,
+    frequency,
+    normalization="standard",
+    fit_mean=True,
+    center_data=True,
+    nterms=1,
+):
     """Lomb-Scargle Periodogram
 
     This implements a chi-squared-based periodogram, which is relatively slow
@@ -54,7 +61,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
     if frequency.ndim != 1:
         raise ValueError("frequency should be one-dimensional")
 
-    w = dy ** -2.0
+    w = dy**-2.0
     w /= w.sum()
 
     # if fit_mean is true, centering the data now simplifies the math below.
@@ -73,13 +80,13 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
 
     p = np.array([compute_power(f) for f in frequency])
 
-    if normalization == 'psd':
+    if normalization == "psd":
         p *= 0.5
-    elif normalization == 'model':
-        p /= (chi2_ref - p)
-    elif normalization == 'log':
+    elif normalization == "model":
+        p /= chi2_ref - p
+    elif normalization == "log":
         p = -np.log(1 - p / chi2_ref)
-    elif normalization == 'standard':
+    elif normalization == "standard":
         p /= chi2_ref
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")

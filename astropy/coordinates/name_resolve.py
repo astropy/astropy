@@ -30,8 +30,11 @@ class sesame_url(ScienceState):
     """
     The URL(s) to Sesame's web-queryable database.
     """
-    _value = ["http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
-              "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/"]
+
+    _value = [
+        "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
+        "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/",
+    ]
 
     @classmethod
     def validate(cls, value):
@@ -46,11 +49,12 @@ class sesame_database(ScienceState):
     subpackage. Default is to search all databases, but this can be
     'all', 'simbad', 'ned', or 'vizier'.
     """
-    _value = 'all'
+
+    _value = "all"
 
     @classmethod
     def validate(cls, value):
-        if value not in ['all', 'simbad', 'ned', 'vizier']:
+        if value not in ["all", "simbad", "ned", "vizier"]:
             raise ValueError(f"Unknown database '{value}'")
         return value
 
@@ -131,6 +135,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     # Do this first since it may be much faster than doing the sesame query
     if parse:
         from . import jparser
+
         if jparser.search(name):
             return jparser.to_skycoord(name)
         else:
@@ -161,7 +166,8 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     for url in urls:
         try:
             resp_data = get_file_contents(
-                download_file(url, cache=cache, show_progress=False))
+                download_file(url, cache=cache, show_progress=False)
+            )
             break
         except urllib.error.URLError as e:
             exceptions.append(e)
@@ -170,18 +176,21 @@ def get_icrs_coordinates(name, parse=False, cache=False):
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
-            e.reason = ("Request took longer than the allowed "
-                        f"{data.conf.remote_timeout:.1f} seconds")
+            e.reason = (
+                "Request took longer than the allowed "
+                f"{data.conf.remote_timeout:.1f} seconds"
+            )
             exceptions.append(e)
             continue
 
     # All Sesame URL's failed...
     else:
-        messages = [f"{url}: {e.reason}"
-                    for url, e in zip(urls, exceptions)]
-        raise NameResolveError("All Sesame queries failed. Unable to "
-                               "retrieve coordinates. See errors per URL "
-                               f"below: \n {os.linesep.join(messages)}")
+        messages = [f"{url}: {e.reason}" for url, e in zip(urls, exceptions)]
+        raise NameResolveError(
+            "All Sesame queries failed. Unable to "
+            "retrieve coordinates. See errors per URL "
+            f"below: \n {os.linesep.join(messages)}"
+        )
 
     ra, dec = _parse_response(resp_data)
 
@@ -189,10 +198,13 @@ def get_icrs_coordinates(name, parse=False, cache=False):
         if db == "A":
             err = f"Unable to find coordinates for name '{name}' using {url}"
         else:
-            err = f"Unable to find coordinates for name '{name}' in database {database} using {url}"
+            err = (
+                f"Unable to find coordinates for name '{name}' in database"
+                f" {database} using {url}"
+            )
 
         raise NameResolveError(err)
 
     # Return SkyCoord object
-    sc = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame='icrs')
+    sc = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame="icrs")
     return sc

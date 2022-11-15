@@ -11,7 +11,6 @@ except (ImportError, ModuleNotFoundError):  # optional dependency
     try:
         from typing_extensions import Annotated
     except (ImportError, ModuleNotFoundError):
-
         Annotated = NotImplemented
 
     else:

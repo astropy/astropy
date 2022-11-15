@@ -6,11 +6,20 @@ import threading
 
 import numpy as np
 
-from astropy.units.core import (UnitsError, UnitConversionError, UnitTypeError,
-                                dimensionless_unscaled)
+from astropy.units.core import (
+    UnitsError,
+    UnitConversionError,
+    UnitTypeError,
+    dimensionless_unscaled,
+)
 
-__all__ = ['can_have_arbitrary_unit', 'converters_and_unit',
-           'check_output', 'UFUNC_HELPERS', 'UNSUPPORTED_UFUNCS']
+__all__ = [
+    "can_have_arbitrary_unit",
+    "converters_and_unit",
+    "check_output",
+    "UFUNC_HELPERS",
+    "UNSUPPORTED_UFUNCS",
+]
 
 
 class UfuncHelpers(dict):
@@ -24,7 +33,7 @@ class UfuncHelpers(dict):
 
     def __init__(self, *args, **kwargs):
         self.modules = {}
-        self.UNSUPPORTED = set()   # Upper-case for backwards compatibility
+        self.UNSUPPORTED = set()  # Upper-case for backwards compatibility
         self._lock = threading.RLock()
         super().__init__(*args, **kwargs)
 
@@ -43,8 +52,7 @@ class UfuncHelpers(dict):
             explicitly *not* supported.
         """
         with self._lock:
-            self.modules[module] = {'names': names,
-                                    'importer': importer}
+            self.modules[module] = {"names": names, "importer": importer}
 
     def import_module(self, module):
         """Import the helpers from the given module using its helper function.
@@ -56,7 +64,7 @@ class UfuncHelpers(dict):
         """
         with self._lock:
             module_info = self.modules.pop(module)
-            self.update(module_info['importer']())
+            self.update(module_info["importer"]())
 
     def __missing__(self, ufunc):
         """Called if a ufunc is not found.
@@ -73,7 +81,7 @@ class UfuncHelpers(dict):
                 raise TypeError(f"Cannot use ufunc '{ufunc.__name__}' with quantities")
 
             for module, module_info in list(self.modules.items()):
-                if ufunc.__name__ in module_info['names']:
+                if ufunc.__name__ in module_info["names"]:
                     # A ufunc with the same name is supported by this module.
                     # Of course, this doesn't necessarily mean it is the
                     # right module. So, we try let the importer do its work.
@@ -89,10 +97,11 @@ class UfuncHelpers(dict):
                     else:
                         return self[ufunc]
 
-        raise TypeError("unknown ufunc {}.  If you believe this ufunc "
-                        "should be supported, please raise an issue on "
-                        "https://github.com/astropy/astropy"
-                        .format(ufunc.__name__))
+        raise TypeError(
+            "unknown ufunc {}.  If you believe this ufunc "
+            "should be supported, please raise an issue on "
+            "https://github.com/astropy/astropy".format(ufunc.__name__)
+        )
 
     def __setitem__(self, key, value):
         # Implementation note: in principle, we could just let `None`
@@ -127,7 +136,7 @@ def can_have_arbitrary_unit(value):
     bool
         `True` if each member is either zero or not finite, `False` otherwise
     """
-    return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+    return np.all(np.logical_or(np.equal(value, 0.0), ~np.isfinite(value)))
 
 
 def converters_and_unit(function, method, *args):
@@ -164,11 +173,11 @@ def converters_and_unit(function, method, *args):
     # result will have (a tuple of units if there are multiple outputs).
     ufunc_helper = UFUNC_HELPERS[function]
 
-    if method == '__call__' or (method == 'outer' and function.nin == 2):
+    if method == "__call__" or (method == "outer" and function.nin == 2):
         # Find out the units of the arguments passed to the ufunc; usually,
         # at least one is a quantity, but for two-argument ufuncs, the second
         # could also be a Numpy array, etc.  These are given unit=None.
-        units = [getattr(arg, 'unit', None) for arg in args]
+        units = [getattr(arg, "unit", None) for arg in args]
 
         # Determine possible conversion functions, and the result unit.
         converters, result_unit = ufunc_helper(function, *units)
@@ -193,15 +202,17 @@ def converters_and_unit(function, method, *args):
                             "Can only apply '{}' function to "
                             "dimensionless quantities when other "
                             "argument is not a quantity (unless the "
-                            "latter is all zero/infinity/nan)"
-                            .format(function.__name__))
+                            "latter is all zero/infinity/nan)".format(function.__name__)
+                        )
             except TypeError:
                 # _can_have_arbitrary_unit failed: arg could not be compared
                 # with zero or checked to be finite. Then, ufunc will fail too.
-                raise TypeError("Unsupported operand type(s) for ufunc {}: "
-                                "'{}'".format(function.__name__,
-                                               ','.join([arg.__class__.__name__
-                                                         for arg in args])))
+                raise TypeError(
+                    "Unsupported operand type(s) for ufunc {}: '{}'".format(
+                        function.__name__,
+                        ",".join([arg.__class__.__name__ for arg in args]),
+                    )
+                )
 
         # In the case of np.power and np.float_power, the unit itself needs to
         # be modified by an amount that depends on one of the input values,
@@ -222,8 +233,7 @@ def converters_and_unit(function, method, *args):
                     # Changing the unit does not work for, e.g., array-shaped
                     # power, but this is OK if we're (scaled) dimensionless.
                     try:
-                        converters[0] = units[0]._get_converter(
-                            dimensionless_unscaled)
+                        converters[0] = units[0]._get_converter(dimensionless_unscaled)
                     except UnitConversionError:
                         raise exc
                     else:
@@ -231,51 +241,57 @@ def converters_and_unit(function, method, *args):
 
     else:  # methods for which the unit should stay the same
         nin = function.nin
-        unit = getattr(args[0], 'unit', None)
-        if method == 'at' and nin <= 2:
+        unit = getattr(args[0], "unit", None)
+        if method == "at" and nin <= 2:
             if nin == 1:
                 units = [unit]
             else:
-                units = [unit, getattr(args[2], 'unit', None)]
+                units = [unit, getattr(args[2], "unit", None)]
 
             converters, result_unit = ufunc_helper(function, *units)
 
             # ensure there is no 'converter' for indices (2nd argument)
             converters.insert(1, None)
 
-        elif method in {'reduce', 'accumulate', 'reduceat'} and nin == 2:
+        elif method in {"reduce", "accumulate", "reduceat"} and nin == 2:
             converters, result_unit = ufunc_helper(function, unit, unit)
             converters = converters[:1]
-            if method == 'reduceat':
+            if method == "reduceat":
                 # add 'scale' for indices (2nd argument)
                 converters += [None]
 
         else:
-            if method in {'reduce', 'accumulate',
-                          'reduceat', 'outer'} and nin != 2:
+            if method in {"reduce", "accumulate", "reduceat", "outer"} and nin != 2:
                 raise ValueError(f"{method} only supported for binary functions")
 
-            raise TypeError("Unexpected ufunc method {}.  If this should "
-                            "work, please raise an issue on"
-                            "https://github.com/astropy/astropy"
-                            .format(method))
+            raise TypeError(
+                "Unexpected ufunc method {}.  If this should "
+                "work, please raise an issue on"
+                "https://github.com/astropy/astropy".format(method)
+            )
 
         # for all but __call__ method, scaling is not allowed
         if unit is not None and result_unit is None:
-            raise TypeError("Cannot use '{1}' method on ufunc {0} with a "
-                            "Quantity instance as the result is not a "
-                            "Quantity.".format(function.__name__, method))
+            raise TypeError(
+                "Cannot use '{1}' method on ufunc {0} with a "
+                "Quantity instance as the result is not a "
+                "Quantity.".format(function.__name__, method)
+            )
 
-        if (converters[0] is not None or
-            (unit is not None and unit is not result_unit and
-             (not result_unit.is_equivalent(unit) or
-              result_unit.to(unit) != 1.))):
+        if converters[0] is not None or (
+            unit is not None
+            and unit is not result_unit
+            and (not result_unit.is_equivalent(unit) or result_unit.to(unit) != 1.0)
+        ):
             # NOTE: this cannot be the more logical UnitTypeError, since
             # then things like np.cumprod will not longer fail (they check
             # for TypeError).
-            raise UnitsError("Cannot use '{1}' method on ufunc {0} with a "
-                             "Quantity instance as it would change the unit."
-                             .format(function.__name__, method))
+            raise UnitsError(
+                "Cannot use '{1}' method on ufunc {0} with a "
+                "Quantity instance as it would change the unit.".format(
+                    function.__name__, method
+                )
+            )
 
     return converters, result_unit
 
@@ -308,32 +324,46 @@ def check_output(output, unit, inputs, function=None):
     TypeError : If the ``inputs`` cannot be cast safely to ``output``.
     """
     if isinstance(output, tuple):
-        return tuple(check_output(output_, unit_, inputs, function)
-                     for output_, unit_ in zip(output, unit))
+        return tuple(
+            check_output(output_, unit_, inputs, function)
+            for output_, unit_ in zip(output, unit)
+        )
 
     # ``None`` indicates no actual array is needed.  This can happen, e.g.,
     # with np.modf(a, out=(None, b)).
     if output is None:
         return None
 
-    if hasattr(output, '__quantity_subclass__'):
+    if hasattr(output, "__quantity_subclass__"):
         # Check that we're not trying to store a plain Numpy array or a
         # Quantity with an inconsistent unit (e.g., not angular for Angle).
         if unit is None:
-            raise TypeError("Cannot store non-quantity output{} in {} "
-                            "instance".format(
-                                (f" from {function.__name__} function"
-                                 if function is not None else ""),
-                                type(output)))
+            raise TypeError(
+                "Cannot store non-quantity output{} in {} instance".format(
+                    (
+                        f" from {function.__name__} function"
+                        if function is not None
+                        else ""
+                    ),
+                    type(output),
+                )
+            )
 
         q_cls, subok = output.__quantity_subclass__(unit)
         if not (subok or q_cls is type(output)):
             raise UnitTypeError(
                 "Cannot store output with unit '{}'{} "
-                "in {} instance.  Use {} instance instead."
-                .format(unit, (f" from {function.__name__} function"
-                               if function is not None else ""),
-                        type(output), q_cls))
+                "in {} instance.  Use {} instance instead.".format(
+                    unit,
+                    (
+                        f" from {function.__name__} function"
+                        if function is not None
+                        else ""
+                    ),
+                    type(output),
+                    q_cls,
+                )
+            )
 
         # check we can handle the dtype (e.g., that we are not int
         # when float is required).  Note that we only do this for Quantity
@@ -342,11 +372,14 @@ def check_output(output, unit, inputs, function=None):
         # TODO: make more logical; is this necessary at all?
         if inputs and not output.dtype.names:
             result_type = np.result_type(*inputs)
-            if not (result_type.names
-                    or np.can_cast(result_type, output.dtype,
-                                   casting='same_kind')):
-                raise TypeError("Arguments cannot be cast safely to inplace "
-                                "output with dtype={}".format(output.dtype))
+            if not (
+                result_type.names
+                or np.can_cast(result_type, output.dtype, casting="same_kind")
+            ):
+                raise TypeError(
+                    "Arguments cannot be cast safely to inplace "
+                    "output with dtype={}".format(output.dtype)
+                )
         # Turn into ndarray, so we do not loop into array_wrap/array_ufunc
         # if the output is used to store results of a function.
         return output.view(np.ndarray)
@@ -354,10 +387,13 @@ def check_output(output, unit, inputs, function=None):
     else:
         # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit is dimensionless_unscaled):
-            raise UnitTypeError("Cannot store quantity with dimension "
-                                "{}in a non-Quantity instance."
-                                .format("" if function is None else
-                                        "resulting from {} function "
-                                        .format(function.__name__)))
+            raise UnitTypeError(
+                "Cannot store quantity with dimension "
+                "{}in a non-Quantity instance.".format(
+                    ""
+                    if function is None
+                    else "resulting from {} function ".format(function.__name__)
+                )
+            )
 
         return output

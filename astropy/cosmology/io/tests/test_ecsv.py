@@ -60,12 +60,12 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         fp = tmp_path / "test_to_ecsv_failed_cls.ecsv"
 
         with pytest.raises(TypeError, match="'cls' must be"):
-            write(fp, format='ascii.ecsv', cls=list)
+            write(fp, format="ascii.ecsv", cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
     def test_to_ecsv_cls(self, write, tbl_cls, tmp_path):
         fp = tmp_path / "test_to_ecsv_cls.ecsv"
-        write(fp, format='ascii.ecsv', cls=tbl_cls)
+        write(fp, format="ascii.ecsv", cls=tbl_cls)
 
     # -----------------------
 
@@ -73,7 +73,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
     def test_to_ecsv_in_meta(self, cosmo_cls, write, in_meta, tmp_path, add_cu):
         """Test where the cosmology class is placed."""
         fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
-        write(fp, format='ascii.ecsv', cosmology_in_meta=in_meta)
+        write(fp, format="ascii.ecsv", cosmology_in_meta=in_meta)
 
         # if it's in metadata, it's not a column. And vice versa.
         tbl = QTable.read(fp)
@@ -86,7 +86,9 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
     # -----------------------
 
-    def test_tofrom_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path, add_cu):
+    def test_tofrom_ecsv_instance(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
         """Test cosmology -> ascii.ecsv -> cosmology."""
         fp = tmp_path / "test_tofrom_ecsv_instance.ecsv"
 
@@ -141,8 +143,9 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         got = read(fp)
         assert got == cosmo
 
-    def test_fromformat_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read, write,
-                                                   tmp_path, add_cu):
+    def test_fromformat_ecsv_subclass_partial_info(
+        self, cosmo_cls, cosmo, read, write, tmp_path, add_cu
+    ):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -180,8 +183,10 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         # Make
         cosmo1 = cosmo.clone(name="row 0")
         cosmo2 = cosmo.clone(name="row 2")
-        tbl = vstack([c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
-                     metadata_conflicts='silent')
+        tbl = vstack(
+            [c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
+            metadata_conflicts="silent",
+        )
         tbl.write(fp, format="ascii.ecsv")
 
         # ------------

@@ -21,7 +21,7 @@ from .utils import array_repr_oneline
 from .utils import get_inputs_and_params
 
 
-__all__ = ['Parameter', 'InputParameterError', 'ParameterError']
+__all__ = ["Parameter", "InputParameterError", "ParameterError"]
 
 
 class ParameterError(Exception):
@@ -46,7 +46,8 @@ def _tofloat(value):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
             raise InputParameterError(
-                f"Parameter of {type(value)} could not be converted to float")
+                f"Parameter of {type(value)} could not be converted to float"
+            )
     elif isinstance(value, Quantity):
         # Quantities are fine as is
         pass
@@ -57,19 +58,21 @@ def _tofloat(value):
         value = float(value)
     elif isinstance(value, bool):
         raise InputParameterError(
-            "Expected parameter to be of numerical type, not boolean")
+            "Expected parameter to be of numerical type, not boolean"
+        )
     else:
         raise InputParameterError(
-            f"Don't know how to convert parameter of {type(value)} to float")
+            f"Don't know how to convert parameter of {type(value)} to float"
+        )
     return value
 
 
 # Helpers for implementing operator overloading on Parameter
 
+
 def _binary_arithmetic_operation(op, reflected=False):
     @functools.wraps(op)
     def wrapper(self, val):
-
         if self.unit is not None:
             self_value = Quantity(self.value, self.unit)
         else:
@@ -86,7 +89,6 @@ def _binary_arithmetic_operation(op, reflected=False):
 def _binary_comparison_operation(op):
     @functools.wraps(op)
     def wrapper(self, val):
-
         if self.unit is not None:
             self_value = Quantity(self.value, self.unit)
         else:
@@ -100,7 +102,6 @@ def _binary_comparison_operation(op):
 def _unary_arithmetic_operation(op):
     @functools.wraps(op)
     def wrapper(self):
-
         if self.unit is not None:
             self_value = Quantity(self.value, self.unit)
         else:
@@ -181,7 +182,7 @@ class Parameter:
         simultaneously with min or max
     """
 
-    constraints = ('fixed', 'tied', 'bounds')
+    constraints = ("fixed", "tied", "bounds")
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'
@@ -190,9 +191,22 @@ class Parameter:
     fitters as of this writing.
     """
 
-    def __init__(self, name='', description='', default=None, unit=None,
-                 getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None, prior=None, posterior=None):
+    def __init__(
+        self,
+        name="",
+        description="",
+        default=None,
+        unit=None,
+        getter=None,
+        setter=None,
+        fixed=False,
+        tied=False,
+        min=None,
+        max=None,
+        bounds=None,
+        prior=None,
+        posterior=None,
+    ):
         super().__init__()
 
         self._model = None
@@ -207,7 +221,8 @@ class Parameter:
             if unit is not None and not unit.is_equivalent(default.unit):
                 raise ParameterDefinitionError(
                     "parameter default {0} does not have units equivalent to "
-                    "the required unit {1}".format(default, unit))
+                    "the required unit {1}".format(default, unit)
+                )
             unit = default.unit
             default = default.value
 
@@ -230,8 +245,9 @@ class Parameter:
         if bounds is not None:
             if min is not None or max is not None:
                 raise ValueError(
-                    'bounds may not be specified simultaneously with min or '
-                    'max when instantiating Parameter {}'.format(name))
+                    "bounds may not be specified simultaneously with min or "
+                    "max when instantiating Parameter {}".format(name)
+                )
         else:
             bounds = (min, max)
 
@@ -271,8 +287,10 @@ class Parameter:
         if isinstance(key, slice):
             if len(oldvalue[key]) == 0:
                 raise InputParameterError(
-                    "Slice assignment outside the parameter dimensions for "
-                    "'{}'".format(self.name))
+                    "Slice assignment outside the parameter dimensions for '{}'".format(
+                        self.name
+                    )
+                )
             for idx, val in zip(range(*key.indices(len(self))), value):
                 self.__setitem__(idx, val)
         else:
@@ -281,21 +299,22 @@ class Parameter:
             except IndexError:
                 raise InputParameterError(
                     "Input dimension {} invalid for {!r} parameter with "
-                    "dimension {}".format(key, self.name, value.shape[0]))  # likely wrong
+                    "dimension {}".format(key, self.name, value.shape[0])
+                )  # likely wrong
 
     def __repr__(self):
         args = f"'{self._name}'"
-        args += f', value={self.value}'
+        args += f", value={self.value}"
 
         if self.unit is not None:
-            args += f', unit={self.unit}'
+            args += f", unit={self.unit}"
 
         for cons in self.constraints:
             val = getattr(self, cons)
             if val not in (None, False, (None, None)):
                 # Maybe non-obvious, but False is the default for the fixed and
                 # tied constraints
-                args += f', {cons}={val}'
+                args += f", {cons}={val}"
 
         return f"{self.__class__.__name__}({args})"
 
@@ -322,9 +341,11 @@ class Parameter:
             # units that the parameter advertises to what it actually
             # uses internally.
             if self.internal_unit:
-                return np.float64(self._getter(self._internal_value,
-                                               self.internal_unit,
-                                               self.unit).value)
+                return np.float64(
+                    self._getter(
+                        self._internal_value, self.internal_unit, self.unit
+                    ).value
+                )
             elif self._getter:
                 return np.float64(self._getter(self._internal_value))
             elif self._setter:
@@ -333,15 +354,16 @@ class Parameter:
     @value.setter
     def value(self, value):
         if isinstance(value, Quantity):
-            raise TypeError("The .value property on parameters should be set"
-                            " to unitless values, not Quantity objects. To set"
-                            "a parameter to a quantity simply set the "
-                            "parameter directly without using .value")
+            raise TypeError(
+                "The .value property on parameters should be set"
+                " to unitless values, not Quantity objects. To set"
+                "a parameter to a quantity simply set the "
+                "parameter directly without using .value"
+            )
         if self._setter is None:
             self._value = np.array(value, dtype=np.float64)
         else:
-            self._internal_value = np.array(self._setter(value),
-                                            dtype=np.float64)
+            self._internal_value = np.array(self._setter(value), dtype=np.float64)
 
     @property
     def unit(self):
@@ -358,11 +380,15 @@ class Parameter:
     @unit.setter
     def unit(self, unit):
         if self.unit is None:
-            raise ValueError('Cannot attach units to parameters that were '
-                             'not initially specified with units')
+            raise ValueError(
+                "Cannot attach units to parameters that were "
+                "not initially specified with units"
+            )
         else:
-            raise ValueError('Cannot change the unit attribute directly, '
-                             'instead change the parameter to a new quantity')
+            raise ValueError(
+                "Cannot change the unit attribute directly, "
+                "instead change the parameter to a new quantity"
+            )
 
     def _set_unit(self, unit, force=False):
         if force:
@@ -397,8 +423,9 @@ class Parameter:
     @quantity.setter
     def quantity(self, quantity):
         if not isinstance(quantity, Quantity):
-            raise TypeError("The .quantity attribute should be set "
-                            "to a Quantity object")
+            raise TypeError(
+                "The .quantity attribute should be set to a Quantity object"
+            )
         self.value = quantity.value
         self._unit = quantity.unit
 
@@ -431,7 +458,6 @@ class Parameter:
 
     @std.setter
     def std(self, value):
-
         self._std = value
 
     @property
@@ -459,7 +485,7 @@ class Parameter:
 
     @fixed.setter
     def fixed(self, value):
-        """ Fix a parameter. """
+        """Fix a parameter."""
         if not isinstance(value, bool):
             raise ValueError("Value must be boolean")
         self._fixed = value
@@ -554,19 +580,35 @@ class Parameter:
                 self._validator = func
                 return self
             else:
-                raise ValueError("This decorator method expects a callable.\n"
-                                 "The use of this method as a direct validator is\n"
-                                 "deprecated; use the new validate method instead\n")
+                raise ValueError(
+                    "This decorator method expects a callable.\n"
+                    "The use of this method as a direct validator is\n"
+                    "deprecated; use the new validate method instead\n"
+                )
+
         return validator
 
     def validate(self, value):
-        """ Run the validator on this parameter"""
+        """Run the validator on this parameter"""
         if self._validator is not None and self._model is not None:
             self._validator(self._model, value)
 
-    def copy(self, name=None, description=None, default=None, unit=None,
-             getter=None, setter=None, fixed=False, tied=False, min=None,
-             max=None, bounds=None, prior=None, posterior=None):
+    def copy(
+        self,
+        name=None,
+        description=None,
+        default=None,
+        unit=None,
+        getter=None,
+        setter=None,
+        fixed=False,
+        tied=False,
+        min=None,
+        max=None,
+        bounds=None,
+        prior=None,
+        posterior=None,
+    ):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
@@ -582,26 +624,26 @@ class Parameter:
         """
 
         kwargs = locals().copy()
-        del kwargs['self']
+        del kwargs["self"]
 
         for key, value in kwargs.items():
             if value is None:
                 # Annoying special cases for min/max where are just aliases for
                 # the components of bounds
-                if key in ('min', 'max'):
+                if key in ("min", "max"):
                     continue
                 else:
                     if hasattr(self, key):
                         value = getattr(self, key)
-                    elif hasattr(self, '_' + key):
-                        value = getattr(self, '_' + key)
+                    elif hasattr(self, "_" + key):
+                        value = getattr(self, "_" + key)
                 kwargs[key] = value
 
         return self.__class__(**kwargs)
 
     @property
     def model(self):
-        """ Return the model this  parameter is associated with."""
+        """Return the model this  parameter is associated with."""
         return self._model
 
     @model.setter
@@ -641,9 +683,11 @@ class Parameter:
 
         if isinstance(wrapper, np.ufunc):
             if wrapper.nin != 1:
-                raise TypeError("A numpy.ufunc used for Parameter "
-                                "getter/setter may only take one input "
-                                "argument")
+                raise TypeError(
+                    "A numpy.ufunc used for Parameter "
+                    "getter/setter may only take one input "
+                    "argument"
+                )
         elif wrapper is None:
             # Just allow non-wrappers to fall through silently, for convenience
             return None
@@ -661,8 +705,10 @@ class Parameter:
                     model_arg = inputs[1].name
                     wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
-                raise TypeError("Parameter getter/setter must be a function "
-                                "of either one or two arguments")
+                raise TypeError(
+                    "Parameter getter/setter must be a function "
+                    "of either one or two arguments"
+                )
 
         return wrapper
 
@@ -689,8 +735,7 @@ class Parameter:
     __div__ = _binary_arithmetic_operation(operator.truediv)
     __rdiv__ = _binary_arithmetic_operation(operator.truediv, reflected=True)
     __truediv__ = _binary_arithmetic_operation(operator.truediv)
-    __rtruediv__ = _binary_arithmetic_operation(operator.truediv,
-                                                reflected=True)
+    __rtruediv__ = _binary_arithmetic_operation(operator.truediv, reflected=True)
     __eq__ = _binary_comparison_operation(operator.eq)
     __ne__ = _binary_comparison_operation(operator.ne)
     __lt__ = _binary_comparison_operation(operator.lt)
@@ -709,5 +754,5 @@ def param_repr_oneline(param):
 
     out = array_repr_oneline(param.value)
     if param.unit is not None:
-        out = f'{out} {param.unit!s}'
+        out = f"{out} {param.unit!s}"
     return out

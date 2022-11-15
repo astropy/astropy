@@ -21,34 +21,32 @@ KERNELS = []
 
 for shape in SHAPES_ODD + NOSHAPE:
     for width in WIDTHS:
+        KERNELS.append(
+            Gaussian2DKernel(
+                width, x_size=shape[0], y_size=shape[1], mode="oversample", factor=10
+            )
+        )
 
-        KERNELS.append(Gaussian2DKernel(width,
-                                        x_size=shape[0],
-                                        y_size=shape[1],
-                                        mode='oversample',
-                                        factor=10))
+        KERNELS.append(
+            Box2DKernel(
+                width, x_size=shape[0], y_size=shape[1], mode="oversample", factor=10
+            )
+        )
 
-        KERNELS.append(Box2DKernel(width,
-                                   x_size=shape[0],
-                                   y_size=shape[1],
-                                   mode='oversample',
-                                   factor=10))
-
-        KERNELS.append(Tophat2DKernel(width,
-                                      x_size=shape[0],
-                                      y_size=shape[1],
-                                      mode='oversample',
-                                      factor=10))
-        KERNELS.append(Moffat2DKernel(width, 2,
-                                      x_size=shape[0],
-                                      y_size=shape[1],
-                                      mode='oversample',
-                                      factor=10))
+        KERNELS.append(
+            Tophat2DKernel(
+                width, x_size=shape[0], y_size=shape[1], mode="oversample", factor=10
+            )
+        )
+        KERNELS.append(
+            Moffat2DKernel(
+                width, 2, x_size=shape[0], y_size=shape[1], mode="oversample", factor=10
+            )
+        )
 
 
 class Test2DConvolutions:
-
-    @pytest.mark.parametrize('kernel', KERNELS)
+    @pytest.mark.parametrize("kernel", KERNELS)
     def test_centered_makekernel(self, kernel):
         """
         Test smoothing of an image with a single positive pixel
@@ -60,12 +58,12 @@ class Test2DConvolutions:
         xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
-        c2 = convolve_fft(x, kernel, boundary='fill')
-        c1 = convolve(x, kernel, boundary='fill')
+        c2 = convolve_fft(x, kernel, boundary="fill")
+        c1 = convolve(x, kernel, boundary="fill")
 
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize('kernel', KERNELS)
+    @pytest.mark.parametrize("kernel", KERNELS)
     def test_random_makekernel(self, kernel):
         """
         Test smoothing of an image made of random noise
@@ -75,13 +73,15 @@ class Test2DConvolutions:
 
         x = np.random.randn(*shape)
 
-        c2 = convolve_fft(x, kernel, boundary='fill')
-        c1 = convolve(x, kernel, boundary='fill')
+        c2 = convolve_fft(x, kernel, boundary="fill")
+        c1 = convolve(x, kernel, boundary="fill")
 
         # not clear why, but these differ by a couple ulps...
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, WIDTHS)))
+    @pytest.mark.parametrize(
+        ("shape", "width"), list(itertools.product(SHAPES_ODD, WIDTHS))
+    )
     def test_uniform_smallkernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -99,12 +99,14 @@ class Test2DConvolutions:
         xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
-        c2 = convolve_fft(x, kernel, boundary='fill')
-        c1 = convolve(x, kernel, boundary='fill')
+        c2 = convolve_fft(x, kernel, boundary="fill")
+        c1 = convolve(x, kernel, boundary="fill")
 
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, [1, 3, 5])))
+    @pytest.mark.parametrize(
+        ("shape", "width"), list(itertools.product(SHAPES_ODD, [1, 3, 5]))
+    )
     def test_smallkernel_Box2DKernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -113,19 +115,19 @@ class Test2DConvolutions:
         """
 
         kernel1 = np.ones([width, width]) / float(width) ** 2
-        kernel2 = Box2DKernel(width, mode='oversample', factor=10)
+        kernel2 = Box2DKernel(width, mode="oversample", factor=10)
 
         x = np.zeros(shape)
         xslice = tuple([slice(sh // 2, sh // 2 + 1) for sh in shape])
         x[xslice] = 1.0
 
-        c2 = convolve_fft(x, kernel2, boundary='fill')
-        c1 = convolve_fft(x, kernel1, boundary='fill')
+        c2 = convolve_fft(x, kernel2, boundary="fill")
+        c1 = convolve_fft(x, kernel1, boundary="fill")
 
         assert_almost_equal(c1, c2, decimal=12)
 
-        c2 = convolve(x, kernel2, boundary='fill')
-        c1 = convolve(x, kernel1, boundary='fill')
+        c2 = convolve(x, kernel2, boundary="fill")
+        c1 = convolve(x, kernel1, boundary="fill")
 
         assert_almost_equal(c1, c2, decimal=12)
 
@@ -138,7 +140,6 @@ def test_gaussian_2d_kernel_quantity():
 
 
 def test_deprecated_hat():
-
     # 'MexicanHat' was deprecated as a name for the kernels which are now
     # 'RickerWavelet'. This test ensures that the kernels are correctly
     # deprecated, and can be imported from the top-level package.
