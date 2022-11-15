@@ -128,7 +128,7 @@ resulting class looks reasonable at first glance, it does not work as expected::
   >>> np_mq.unit
   Traceback (most recent call last):
   ...
-  AttributeError: 'MaskedArray' object has no attribute 'unit'
+  AttributeError: 'MaskedArray' object has no attribute 'unit'...
   >>> np_mq / u.s
   <Quantity [1., 2.] 1 / s>
 
