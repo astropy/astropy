@@ -8,12 +8,14 @@ try:
         from ._version import version
 except Exception:
     import warnings
+
     warnings.warn(
         f'could not determine {__name__.split(".")[0]} package version; '
-        f'this indicates a broken installation')
+        "this indicates a broken installation"
+    )
     del warnings
 
-    version = '0.0.0'
+    version = "0.0.0"
 
 
 # We use Version to define major, minor, micro, but ignore any suffixes.
@@ -36,4 +38,4 @@ major, minor, bugfix = split_version(version)
 
 del split_version  # clean up namespace.
 
-release = 'dev' not in version
+release = "dev" not in version
