@@ -42,15 +42,11 @@ class TestLeastSquare_XD:
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_2d_with_weights(self):
-        lsq = leastsquare_2d(
-            self.data, self.model2D, np.ones(100), self.x, self.y
-        )
+        lsq = leastsquare_2d(self.data, self.model2D, np.ones(100), self.x, self.y)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
-        lsq = leastsquare_3d(
-            self.data, self.model3D, None, self.x, self.y, self.z
-        )
+        lsq = leastsquare_3d(self.data, self.model3D, None, self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
@@ -80,15 +76,11 @@ class TestLeastSquare_ND:
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
-        lsq = leastsquare(
-            self.data, self.model3D, None, self.x, self.y, self.z
-        )
+        lsq = leastsquare(self.data, self.model3D, None, self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
-        lsq = leastsquare(
-            self.data, self.model3D, np.ones(100), self.x, self.y, self.z
-        )
+        lsq = leastsquare(self.data, self.model3D, np.ones(100), self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_shape_mismatch(self):

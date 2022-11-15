@@ -42,7 +42,7 @@ def test__validate_domain_window():
     assert _validate_domain_window(np.array([-2, 2])) == (-2, 2)
 
     # Test error
-    MESSAGE = r'domain and window should be tuples of size 2'
+    MESSAGE = r"domain and window should be tuples of size 2"
     with pytest.raises(ValueError, match=MESSAGE):
         _validate_domain_window((-2, 2, -2))
     with pytest.raises(ValueError, match=MESSAGE):
@@ -90,8 +90,8 @@ def test_get_inputs_and_params():
 
 class Test_SpecialOperatorsDict:
     def setup_method(self):
-        self.key = 'test'
-        self.val = 'value'
+        self.key = "test"
+        self.val = "value"
 
     def test__set_value(self):
         special_operators = _SpecialOperatorsDict()
@@ -129,8 +129,8 @@ class Test_SpecialOperatorsDict:
     def test__SpecialOperatorsDict_add(self):
         special_operators = _SpecialOperatorsDict()
 
-        operator_name = 'test'
-        operator = 'operator'
+        operator_name = "test"
+        operator = "operator"
 
         key0 = special_operators.add(operator_name, operator)
         assert key0 == (operator_name, special_operators._unique_id)

@@ -85,7 +85,10 @@ def test_parameter_lose_units():
 
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
 
-    MESSAGE = r"The .* parameter should be given as a .* because it was originally initialized as a .*"
+    MESSAGE = (
+        r"The .* parameter should be given as a .* because it was originally"
+        r" initialized as a .*"
+    )
     with pytest.raises(UnitsError, match=MESSAGE):
         g.amplitude = 2
 
@@ -112,12 +115,18 @@ def test_parameter_change_unit():
     g = Gaussian1D(1, 1 * u.m, 0.1 * u.m)
 
     # Setting a unit on a unitless parameter should not work
-    MESSAGE = r"Cannot attach units to parameters that were not initially specified with units"
+    MESSAGE = (
+        r"Cannot attach units to parameters that were not initially specified with"
+        r" units"
+    )
     with pytest.raises(ValueError, match=MESSAGE):
         g.amplitude.unit = u.Jy
 
     # But changing to another unit should not, even if it is an equivalent unit
-    MESSAGE = r"Cannot change the unit attribute directly, instead change the parameter to a new quantity"
+    MESSAGE = (
+        r"Cannot change the unit attribute directly, instead change the parameter to a"
+        r" new quantity"
+    )
     with pytest.raises(ValueError, match=MESSAGE):
         g.mean.unit = u.cm
 
@@ -140,7 +149,10 @@ def test_parameter_set_value():
     assert g.amplitude.unit is u.Jy
 
     # If we try setting it to a Quantity, we raise an error
-    MESSAGE = r"The .value property on parameters should be set to unitless values, not Quantity objects.*"
+    MESSAGE = (
+        r"The .value property on parameters should be set to unitless values, not"
+        r" Quantity objects.*"
+    )
     with pytest.raises(TypeError, match=MESSAGE):
         g.amplitude.value = 3 * u.Jy
 
@@ -175,15 +187,18 @@ def test_parameter_quantity_property():
 
 
 def test_parameter_default_units_match():
-
     # If the unit and default quantity units are different, raise an error
-    MESSAGE = r"parameter default 1.0 m does not have units equivalent to the required unit Jy"
+    MESSAGE = (
+        r"parameter default 1.0 m does not have units equivalent to the required"
+        r" unit Jy"
+    )
     with pytest.raises(ParameterDefinitionError, match=MESSAGE):
+
         class TestC(Fittable1DModel):
             a = Parameter(default=1.0 * u.m, unit=u.Jy)
 
 
-@pytest.mark.parametrize(('unit', 'default'), ((u.m, 1.0), (None, 1 * u.m)))
+@pytest.mark.parametrize(("unit", "default"), ((u.m, 1.0), (None, 1 * u.m)))
 def test_parameter_defaults(unit, default):
     """
     Test that default quantities are correctly taken into account
@@ -250,15 +265,18 @@ def test_parameter_quantity_arithmetic():
     assert 2 * g.mean == (2 * u.m)
 
     # Multiplication by a quantity should result in units being multiplied
-    assert g.mean * (2 * u.m) == (2 * (u.m ** 2))
-    assert (2 * u.m) * g.mean == (2 * (u.m ** 2))
+    assert g.mean * (2 * u.m) == (2 * (u.m**2))
+    assert (2 * u.m) * g.mean == (2 * (u.m**2))
 
     # Negation should work properly too
     assert -g.mean == (-1 * u.m)
     assert abs(-g.mean) == g.mean
 
     # However, addition of a quantity + scalar should not work
-    MESSAGE = r"Can only apply 'add' function to dimensionless quantities when other argument .*"
+    MESSAGE = (
+        r"Can only apply 'add' function to dimensionless quantities when other"
+        r" argument .*"
+    )
     with pytest.raises(UnitsError, match=MESSAGE):
         g.mean + 1
     with pytest.raises(UnitsError, match=MESSAGE):
@@ -282,7 +300,10 @@ def test_parameter_quantity_comparison():
     assert g.mean < 2 * u.m
     assert 2 * u.m > g.mean
 
-    MESSAGE = r"Can only apply 'less' function to dimensionless quantities when other argument .*"
+    MESSAGE = (
+        r"Can only apply 'less' function to dimensionless quantities when other"
+        r" argument .*"
+    )
     with pytest.raises(UnitsError, match=MESSAGE):
         g.mean < 2
 
