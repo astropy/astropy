@@ -20,12 +20,19 @@ from . import config as _config
 from .utils import find_current_module
 from .utils.exceptions import AstropyUserWarning, AstropyWarning
 
-__all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
+__all__ = ["Conf", "conf", "log", "AstropyLogger", "LoggingError"]
 
 # import the logging levels from logging so that one can do:
 # log.setLevel(log.DEBUG), for example
-logging_levels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-                  'FATAL', ]
+logging_levels = [
+    "NOTSET",
+    "DEBUG",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "CRITICAL",
+    "FATAL",
+]
 for level in logging_levels:
     globals()[level] = getattr(logging, level)
 __all__ += logging_levels
@@ -55,40 +62,39 @@ class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.logger`.
     """
+
     log_level = _config.ConfigItem(
-        'INFO',
+        "INFO",
         "Threshold for the logging messages. Logging "
         "messages that are less severe than this level "
         "will be ignored. The levels are ``'DEBUG'``, "
-        "``'INFO'``, ``'WARNING'``, ``'ERROR'``.")
-    log_warnings = _config.ConfigItem(
-        True,
-        "Whether to log `warnings.warn` calls.")
+        "``'INFO'``, ``'WARNING'``, ``'ERROR'``.",
+    )
+    log_warnings = _config.ConfigItem(True, "Whether to log `warnings.warn` calls.")
     log_exceptions = _config.ConfigItem(
-        False,
-        "Whether to log exceptions before raising "
-        "them.")
+        False, "Whether to log exceptions before raising them."
+    )
     log_to_file = _config.ConfigItem(
-        False,
-        "Whether to always log messages to a log "
-        "file.")
+        False, "Whether to always log messages to a log file."
+    )
     log_file_path = _config.ConfigItem(
-        '',
+        "",
         "The file to log messages to.  If empty string is given, "
         "it defaults to a file ``'astropy.log'`` in "
-        "the astropy config directory.")
+        "the astropy config directory.",
+    )
     log_file_level = _config.ConfigItem(
-        'INFO',
-        "Threshold for logging messages to "
-        "`log_file_path`.")
+        "INFO", "Threshold for logging messages to `log_file_path`."
+    )
     log_file_format = _config.ConfigItem(
-        "%(asctime)r, "
-        "%(origin)r, %(levelname)r, %(message)r",
-        "Format for log file entries.")
+        "%(asctime)r, %(origin)r, %(levelname)r, %(message)r",
+        "Format for log file entries.",
+    )
     log_file_encoding = _config.ConfigItem(
-        '',
+        "",
         "The encoding (e.g., UTF-8) to use for the log file.  If empty string "
-        "is given, it defaults to the platform-preferred encoding.")
+        "is given, it defaults to the platform-preferred encoding.",
+    )
 
 
 conf = Conf()
@@ -104,7 +110,7 @@ def _init_log():
     orig_logger_cls = logging.getLoggerClass()
     logging.setLoggerClass(AstropyLogger)
     try:
-        log = logging.getLogger('astropy')
+        log = logging.getLogger("astropy")
         log._set_defaults()
     finally:
         logging.setLoggerClass(orig_logger_cls)
@@ -136,7 +142,7 @@ def _teardown_log():
         try:
             loggerDict = logging.Logger.manager.loggerDict
             for key in loggerDict.keys():
-                if key == 'astropy' or key.startswith('astropy.'):
+                if key == "astropy" or key.startswith("astropy."):
                     del loggerDict[key]
         finally:
             logging._releaseLock()
@@ -148,7 +154,7 @@ Logger = logging.getLoggerClass()
 
 
 class AstropyLogger(Logger):
-    '''
+    """
     This class is used to set up the Astropy logging.
 
     The main functionality added by this class over the built-in
@@ -156,26 +162,46 @@ class AstropyLogger(Logger):
     messages, the ability to enable logging of warnings.warn calls and
     exceptions, and the addition of colorized output and context managers to
     easily capture messages to a file or list.
-    '''
+    """
 
-    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info,
-                   func=None, extra=None, sinfo=None):
+    def makeRecord(
+        self,
+        name,
+        level,
+        pathname,
+        lineno,
+        msg,
+        args,
+        exc_info,
+        func=None,
+        extra=None,
+        sinfo=None,
+    ):
         if extra is None:
             extra = {}
-        if 'origin' not in extra:
-            current_module = find_current_module(1, finddiff=[True, 'logging'])
+        if "origin" not in extra:
+            current_module = find_current_module(1, finddiff=[True, "logging"])
             if current_module is not None:
-                extra['origin'] = current_module.__name__
+                extra["origin"] = current_module.__name__
             else:
-                extra['origin'] = 'unknown'
-        return Logger.makeRecord(self, name, level, pathname, lineno, msg,
-                                 args, exc_info, func=func, extra=extra,
-                                 sinfo=sinfo)
+                extra["origin"] = "unknown"
+        return Logger.makeRecord(
+            self,
+            name,
+            level,
+            pathname,
+            lineno,
+            msg,
+            args,
+            exc_info,
+            func=func,
+            extra=extra,
+            sinfo=sinfo,
+        )
 
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
-
         # Bail out if we are not catching a warning from Astropy
         if not isinstance(args[0], AstropyWarning):
             return self._showwarning_orig(*args, **kwargs)
@@ -186,7 +212,7 @@ class AstropyLogger(Logger):
         # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
         if type(warning) not in (AstropyWarning, AstropyUserWarning):
-            message = f'{warning.__class__.__name__}: {args[0]}'
+            message = f"{warning.__class__.__name__}: {args[0]}"
         else:
             message = str(args[0])
 
@@ -200,7 +226,7 @@ class AstropyLogger(Logger):
             try:
                 # Believe it or not this can fail in some cases:
                 # https://github.com/astropy/astropy/issues/2671
-                path = os.path.splitext(getattr(mod, '__file__', ''))[0]
+                path = os.path.splitext(getattr(mod, "__file__", ""))[0]
             except Exception:
                 continue
             if path == mod_path:
@@ -208,7 +234,7 @@ class AstropyLogger(Logger):
                 break
 
         if mod_name is not None:
-            self.warning(message, extra={'origin': mod_name})
+            self.warning(message, extra={"origin": mod_name})
         else:
             self.warning(message)
 
@@ -216,7 +242,7 @@ class AstropyLogger(Logger):
         return self._showwarning_orig is not None
 
     def enable_warnings_logging(self):
-        '''
+        """
         Enable logging of warnings.warn() calls
 
         Once called, any subsequent calls to ``warnings.warn()`` are
@@ -224,34 +250,35 @@ class AstropyLogger(Logger):
         this replaces the output from ``warnings.warn``.
 
         This can be disabled with ``disable_warnings_logging``.
-        '''
+        """
         if self.warnings_logging_enabled():
             raise LoggingError("Warnings logging has already been enabled")
         self._showwarning_orig = warnings.showwarning
         warnings.showwarning = self._showwarning
 
     def disable_warnings_logging(self):
-        '''
+        """
         Disable logging of warnings.warn() calls
 
         Once called, any subsequent calls to ``warnings.warn()`` are no longer
         redirected to this logger.
 
         This can be re-enabled with ``enable_warnings_logging``.
-        '''
+        """
         if not self.warnings_logging_enabled():
             raise LoggingError("Warnings logging has not been enabled")
         if warnings.showwarning != self._showwarning:
-            raise LoggingError("Cannot disable warnings logging: "
-                               "warnings.showwarning was not set by this "
-                               "logger, or has been overridden")
+            raise LoggingError(
+                "Cannot disable warnings logging: "
+                "warnings.showwarning was not set by this "
+                "logger, or has been overridden"
+            )
         warnings.showwarning = self._showwarning_orig
         self._showwarning_orig = None
 
     _excepthook_orig = None
 
     def _excepthook(self, etype, value, traceback):
-
         if traceback is None:
             mod = None
         else:
@@ -262,25 +289,25 @@ class AstropyLogger(Logger):
 
         # include the the error type in the message.
         if len(value.args) > 0:
-            message = f'{etype.__name__}: {str(value)}'
+            message = f"{etype.__name__}: {str(value)}"
         else:
             message = str(etype.__name__)
 
         if mod is not None:
-            self.error(message, extra={'origin': mod.__name__})
+            self.error(message, extra={"origin": mod.__name__})
         else:
             self.error(message)
         self._excepthook_orig(etype, value, traceback)
 
     def exception_logging_enabled(self):
-        '''
+        """
         Determine if the exception-logging mechanism is enabled.
 
         Returns
         -------
         exclog : bool
             True if exception logging is on, False if not.
-        '''
+        """
         try:
             ip = get_ipython()
         except NameError:
@@ -292,14 +319,14 @@ class AstropyLogger(Logger):
             return _AstLogIPYExc in ip.custom_exceptions
 
     def enable_exception_logging(self):
-        '''
+        """
         Enable logging of exceptions
 
         Once called, any uncaught exceptions will be emitted with level
         ``ERROR`` by this logger, before being raised.
 
         This can be disabled with ``disable_exception_logging``.
-        '''
+        """
         try:
             ip = get_ipython()
         except NameError:
@@ -333,14 +360,14 @@ class AstropyLogger(Logger):
             self._excepthook_orig = lambda etype, evalue, tb: None
 
     def disable_exception_logging(self):
-        '''
+        """
         Disable logging of exceptions
 
         Once called, any uncaught exceptions will no longer be emitted by this
         logger.
 
         This can be re-enabled with ``enable_exception_logging``.
-        '''
+        """
         try:
             ip = get_ipython()
         except NameError:
@@ -352,9 +379,11 @@ class AstropyLogger(Logger):
         if ip is None:
             # standard python interpreter
             if sys.excepthook != self._excepthook:
-                raise LoggingError("Cannot disable exception logging: "
-                                   "sys.excepthook was not set by this logger, "
-                                   "or has been overridden")
+                raise LoggingError(
+                    "Cannot disable exception logging: "
+                    "sys.excepthook was not set by this logger, "
+                    "or has been overridden"
+                )
             sys.excepthook = self._excepthook_orig
             self._excepthook_orig = None
         else:
@@ -362,20 +391,20 @@ class AstropyLogger(Logger):
             ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
-        '''
+        """
         Enable colorized output
-        '''
+        """
         _conf.use_color = True
 
     def disable_color(self):
-        '''
+        """
         Disable colorized output
-        '''
+        """
         _conf.use_color = False
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
-        '''
+        """
         Context manager to temporarily log messages to a file.
 
         Parameters
@@ -408,7 +437,7 @@ class AstropyLogger(Logger):
 
             with logger.log_to_file('myfile.log'):
                 # your code here
-        '''
+        """
         encoding = conf.log_file_encoding if conf.log_file_encoding else None
         fh = logging.FileHandler(filename, encoding=encoding)
         if filter_level is not None:
@@ -424,7 +453,7 @@ class AstropyLogger(Logger):
 
     @contextmanager
     def log_to_list(self, filter_level=None, filter_origin=None):
-        '''
+        """
         Context manager to temporarily log messages to a list.
 
         Parameters
@@ -455,7 +484,7 @@ class AstropyLogger(Logger):
 
             with logger.log_to_list() as log_list:
                 # your code here
-        '''
+        """
         lh = ListHandler()
         if filter_level is not None:
             lh.setLevel(filter_level)
@@ -466,9 +495,9 @@ class AstropyLogger(Logger):
         self.removeHandler(lh)
 
     def _set_defaults(self):
-        '''
+        """
         Reset logger to its initial state
-        '''
+        """
 
         # Reset any previously installed hooks
         if self.warnings_logging_enabled():
@@ -500,9 +529,10 @@ class AstropyLogger(Logger):
                 testing_mode = False
 
             try:
-                if log_file_path == '' or testing_mode:
+                if log_file_path == "" or testing_mode:
                     log_file_path = os.path.join(
-                        _config.get_config_dir('astropy'), "astropy.log")
+                        _config.get_config_dir("astropy"), "astropy.log"
+                    )
                 else:
                     log_file_path = os.path.expanduser(log_file_path)
 
@@ -510,8 +540,10 @@ class AstropyLogger(Logger):
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(
-                    f'log file {log_file_path!r} could not be opened for writing: {str(e)}',
-                    RuntimeWarning)
+                    f"log file {log_file_path!r} could not be opened for writing:"
+                    f" {str(e)}",
+                    RuntimeWarning,
+                )
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)
@@ -533,34 +565,35 @@ class StreamHandler(logging.StreamHandler):
     """
 
     def emit(self, record):
-        '''
+        """
         The formatter for stderr
-        '''
+        """
         if record.levelno <= logging.INFO:
             stream = sys.stdout
         else:
             stream = sys.stderr
 
         if record.levelno < logging.DEBUG or not _conf.use_color:
-            print(record.levelname, end='', file=stream)
+            print(record.levelname, end="", file=stream)
         else:
             # Import utils.console only if necessary and at the latest because
             # the import takes a significant time [#4649]
             from .utils.console import color_print
+
             if record.levelno < logging.INFO:
-                color_print(record.levelname, 'magenta', end='', file=stream)
+                color_print(record.levelname, "magenta", end="", file=stream)
             elif record.levelno < logging.WARN:
-                color_print(record.levelname, 'green', end='', file=stream)
+                color_print(record.levelname, "green", end="", file=stream)
             elif record.levelno < logging.ERROR:
-                color_print(record.levelname, 'brown', end='', file=stream)
+                color_print(record.levelname, "brown", end="", file=stream)
             else:
-                color_print(record.levelname, 'red', end='', file=stream)
+                color_print(record.levelname, "red", end="", file=stream)
         record.message = f"{record.msg} [{record.origin:s}]"
         print(": " + record.message, file=stream)
 
 
 class FilterOrigin:
-    '''A filter for the record origin'''
+    """A filter for the record origin"""
 
     def __init__(self, origin):
         self.origin = origin
@@ -570,7 +603,7 @@ class FilterOrigin:
 
 
 class ListHandler(logging.Handler):
-    '''A handler that can be used to capture the records in a list'''
+    """A handler that can be used to capture the records in a list"""
 
     def __init__(self, filter_level=None, filter_origin=None):
         logging.Handler.__init__(self)
