@@ -32,15 +32,22 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 WIDTHS_ODD = [3, 5, 7, 9]
 WIDTHS_EVEN = [2, 4, 8, 16]
-MODES = ['center', 'linear_interp', 'oversample', 'integrate']
-KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
-                Box1DKernel, Box2DKernel,
-                Trapezoid1DKernel, TrapezoidDisk2DKernel,
-                RickerWavelet1DKernel, Tophat2DKernel, AiryDisk2DKernel,
-                Ring2DKernel]
+MODES = ["center", "linear_interp", "oversample", "integrate"]
+KERNEL_TYPES = [
+    Gaussian1DKernel,
+    Gaussian2DKernel,
+    Box1DKernel,
+    Box2DKernel,
+    Trapezoid1DKernel,
+    TrapezoidDisk2DKernel,
+    RickerWavelet1DKernel,
+    Tophat2DKernel,
+    AiryDisk2DKernel,
+    Ring2DKernel,
+]
 
 
-NUMS = [1, 1., np.float32(1.), np.float64(1.)]
+NUMS = [1, 1.0, np.float32(1.0), np.float64(1.0)]
 
 
 # Test data
@@ -59,8 +66,8 @@ class TestKernels:
     Test class for the built-in convolution kernels.
     """
 
-    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
-    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
+    @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_scipy_filter_gaussian(self, width):
         """
         Test GaussianKernel against SciPy ndimage gaussian filter.
@@ -72,8 +79,8 @@ class TestKernels:
         gauss_kernel_2D = Gaussian2DKernel(width)
         gauss_kernel_2D.normalize()
 
-        astropy_1D = convolve(delta_pulse_1D, gauss_kernel_1D, boundary='fill')
-        astropy_2D = convolve(delta_pulse_2D, gauss_kernel_2D, boundary='fill')
+        astropy_1D = convolve(delta_pulse_1D, gauss_kernel_1D, boundary="fill")
+        astropy_2D = convolve(delta_pulse_2D, gauss_kernel_2D, boundary="fill")
 
         scipy_1D = gaussian_filter(delta_pulse_1D, width)
         scipy_2D = gaussian_filter(delta_pulse_2D, width)
@@ -81,8 +88,8 @@ class TestKernels:
         assert_almost_equal(astropy_1D, scipy_1D, decimal=12)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=12)
 
-    @pytest.mark.skipif(not HAS_SCIPY, reason='Requires scipy')
-    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
+    @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy")
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_scipy_filter_gaussian_laplace(self, width):
         """
         Test RickerWavelet kernels against SciPy ndimage gaussian laplace filters.
@@ -92,20 +99,23 @@ class TestKernels:
         ricker_kernel_1D = RickerWavelet1DKernel(width)
         ricker_kernel_2D = RickerWavelet2DKernel(width)
 
-        astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D,
-                              boundary='fill', normalize_kernel=False)
-        astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D,
-                              boundary='fill', normalize_kernel=False)
+        astropy_1D = convolve(
+            delta_pulse_1D, ricker_kernel_1D, boundary="fill", normalize_kernel=False
+        )
+        astropy_2D = convolve(
+            delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=False
+        )
 
-        with pytest.raises(Exception) as exc:
-            astropy_1D = convolve(delta_pulse_1D, ricker_kernel_1D,
-                                  boundary='fill', normalize_kernel=True)
-        assert 'sum is close to zero' in exc.value.args[0]
+        MESSAGE = r"sum is close to zero"
+        with pytest.raises(Exception, match=MESSAGE):
+            astropy_1D = convolve(
+                delta_pulse_1D, ricker_kernel_1D, boundary="fill", normalize_kernel=True
+            )
 
-        with pytest.raises(Exception) as exc:
-            astropy_2D = convolve(delta_pulse_2D, ricker_kernel_2D,
-                                  boundary='fill', normalize_kernel=True)
-        assert 'sum is close to zero' in exc.value.args[0]
+        with pytest.raises(Exception, match=MESSAGE):
+            astropy_2D = convolve(
+                delta_pulse_2D, ricker_kernel_2D, boundary="fill", normalize_kernel=True
+            )
 
         # The Laplace of Gaussian filter is an inverted Ricker Wavelet filter.
         scipy_1D = -gaussian_laplace(delta_pulse_1D, width)
@@ -116,8 +126,9 @@ class TestKernels:
         assert_almost_equal(astropy_1D, scipy_1D, decimal=5)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'),
-                             list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
+    @pytest.mark.parametrize(
+        ("kernel_type", "width"), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD))
+    )
     def test_delta_data(self, kernel_type, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -130,16 +141,25 @@ class TestKernels:
             kernel = kernel_type(width, width * 0.2)
 
         if kernel.dimension == 1:
-            c1 = convolve_fft(delta_pulse_1D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(delta_pulse_1D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
         else:
-            c1 = convolve_fft(delta_pulse_2D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(delta_pulse_2D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'),
-                             list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
+    @pytest.mark.parametrize(
+        ("kernel_type", "width"), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD))
+    )
     def test_random_data(self, kernel_type, width):
         """
         Test smoothing of an image made of random noise
@@ -152,15 +172,23 @@ class TestKernels:
             kernel = kernel_type(width, width * 0.2)
 
         if kernel.dimension == 1:
-            c1 = convolve_fft(random_data_1D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(random_data_1D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                random_data_1D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                random_data_1D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
         else:
-            c1 = convolve_fft(random_data_2D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(random_data_2D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                random_data_2D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                random_data_2D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_uniform_smallkernel(self, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -169,20 +197,20 @@ class TestKernels:
         """
         kernel = np.ones([width, width])
 
-        c2 = convolve_fft(delta_pulse_2D, kernel, boundary='fill')
-        c1 = convolve(delta_pulse_2D, kernel, boundary='fill')
+        c2 = convolve_fft(delta_pulse_2D, kernel, boundary="fill")
+        c1 = convolve(delta_pulse_2D, kernel, boundary="fill")
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
+    @pytest.mark.parametrize("width", WIDTHS_ODD)
     def test_smallkernel_vs_Box2DKernel(self, width):
         """
         Test smoothing of an image with a single positive pixel
         """
-        kernel1 = np.ones([width, width]) / width ** 2
+        kernel1 = np.ones([width, width]) / width**2
         kernel2 = Box2DKernel(width)
 
-        c2 = convolve_fft(delta_pulse_2D, kernel2, boundary='fill')
-        c1 = convolve_fft(delta_pulse_2D, kernel1, boundary='fill')
+        c2 = convolve_fft(delta_pulse_2D, kernel2, boundary="fill")
+        c1 = convolve_fft(delta_pulse_2D, kernel1, boundary="fill")
 
         assert_almost_equal(c1, c2, decimal=12)
 
@@ -194,8 +222,9 @@ class TestKernels:
         gauss_2 = Gaussian1DKernel(4)
         test_gauss_3 = Gaussian1DKernel(5)
 
-        with pytest.warns(AstropyUserWarning, match=r'Both array and kernel '
-                          r'are Kernel instances'):
+        with pytest.warns(
+            AstropyUserWarning, match=r"Both array and kernel " r"are Kernel instances"
+        ):
             gauss_3 = convolve(gauss_1, gauss_2)
 
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
@@ -208,13 +237,14 @@ class TestKernels:
         gauss_2 = Gaussian2DKernel(4)
         test_gauss_3 = Gaussian2DKernel(5)
 
-        with pytest.warns(AstropyUserWarning, match=r'Both array and kernel '
-                          r'are Kernel instances'):
+        with pytest.warns(
+            AstropyUserWarning, match=r"Both array and kernel " r"are Kernel instances"
+        ):
             gauss_3 = convolve(gauss_1, gauss_2)
 
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
-    @pytest.mark.parametrize(('number'), NUMS)
+    @pytest.mark.parametrize("number", NUMS)
     def test_multiply_scalar(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
@@ -223,7 +253,7 @@ class TestKernels:
         gauss_new = number * gauss
         assert_almost_equal(gauss_new.array, gauss.array * number, decimal=12)
 
-    @pytest.mark.parametrize(('number'), NUMS)
+    @pytest.mark.parametrize("number", NUMS)
     def test_multiply_scalar_type(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
@@ -232,7 +262,7 @@ class TestKernels:
         gauss_new = number * gauss
         assert type(gauss_new) is Gaussian1DKernel
 
-    @pytest.mark.parametrize(('number'), NUMS)
+    @pytest.mark.parametrize("number", NUMS)
     def test_rmultiply_scalar_type(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
@@ -270,25 +300,23 @@ class TestKernels:
         """
         Check Model1DKernel against Gaussian1Dkernel
         """
-        stddev = 5.
-        gauss = Gaussian1D(1. / np.sqrt(2 * np.pi * stddev**2), 0, stddev)
+        stddev = 5.0
+        gauss = Gaussian1D(1.0 / np.sqrt(2 * np.pi * stddev**2), 0, stddev)
         model_gauss_kernel = Model1DKernel(gauss, x_size=21)
         model_gauss_kernel.normalize()
         gauss_kernel = Gaussian1DKernel(stddev, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
-                            decimal=12)
+        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
 
     def test_model_2D_kernel(self):
         """
         Check Model2DKernel against Gaussian2Dkernel
         """
-        stddev = 5.
-        gauss = Gaussian2D(1. / (2 * np.pi * stddev**2), 0, 0, stddev, stddev)
+        stddev = 5.0
+        gauss = Gaussian2D(1.0 / (2 * np.pi * stddev**2), 0, 0, stddev, stddev)
         model_gauss_kernel = Model2DKernel(gauss, x_size=21)
         model_gauss_kernel.normalize()
         gauss_kernel = Gaussian2DKernel(stddev, x_size=21)
-        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array,
-                            decimal=12)
+        assert_almost_equal(model_gauss_kernel.array, gauss_kernel.array, decimal=12)
 
     def test_custom_1D_kernel(self):
         """
@@ -300,8 +328,8 @@ class TestKernels:
         custom.normalize()
         box = Box1DKernel(5)
 
-        c2 = convolve(delta_pulse_1D, custom, boundary='fill')
-        c1 = convolve(delta_pulse_1D, box, boundary='fill')
+        c2 = convolve(delta_pulse_1D, custom, boundary="fill")
+        c1 = convolve(delta_pulse_1D, box, boundary="fill")
         assert_almost_equal(c1, c2, decimal=12)
 
     def test_custom_2D_kernel(self):
@@ -314,8 +342,8 @@ class TestKernels:
         custom.normalize()
         box = Box2DKernel(5)
 
-        c2 = convolve(delta_pulse_2D, custom, boundary='fill')
-        c1 = convolve(delta_pulse_2D, box, boundary='fill')
+        c2 = convolve(delta_pulse_2D, custom, boundary="fill")
+        c1 = convolve(delta_pulse_2D, box, boundary="fill")
         assert_almost_equal(c1, c2, decimal=12)
 
     def test_custom_1D_kernel_list(self):
@@ -329,9 +357,7 @@ class TestKernels:
         """
         Check if CustomKernel works with lists.
         """
-        custom = CustomKernel([[1, 1, 1],
-                               [1, 1, 1],
-                               [1, 1, 1]])
+        custom = CustomKernel([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         assert custom.is_bool is True
 
     def test_custom_1D_kernel_zerosum(self):
@@ -343,12 +369,14 @@ class TestKernels:
 
         custom = CustomKernel(array)
 
-        with pytest.warns(AstropyUserWarning, match=r'kernel cannot be '
-                          r'normalized because it sums to zero'):
+        with pytest.warns(
+            AstropyUserWarning,
+            match=r"kernel cannot be " r"normalized because it sums to zero",
+        ):
             custom.normalize()
 
-        assert custom.truncation == 1.
-        assert custom._kernel_sum == 0.
+        assert custom.truncation == 1.0
+        assert custom._kernel_sum == 0.0
 
     def test_custom_2D_kernel_zerosum(self):
         """
@@ -359,12 +387,14 @@ class TestKernels:
 
         custom = CustomKernel(array)
 
-        with pytest.warns(AstropyUserWarning, match=r'kernel cannot be '
-                          r'normalized because it sums to zero'):
+        with pytest.warns(
+            AstropyUserWarning,
+            match=r"kernel cannot be " r"normalized because it sums to zero",
+        ):
             custom.normalize()
 
-        assert custom.truncation == 1.
-        assert custom._kernel_sum == 0.
+        assert custom.truncation == 1.0
+        assert custom._kernel_sum == 0.0
 
     def test_custom_kernel_odd_error(self):
         """
@@ -383,14 +413,20 @@ class TestKernels:
         box_sum_1 = box_1 + box_2 + box_3
         box_sum_2 = box_2 + box_3 + box_1
         box_sum_3 = box_3 + box_1 + box_2
-        ref = [1/5., 1/5. + 1/3., 1 + 1/3. + 1/5., 1/5. + 1/3., 1/5.]
+        ref = [
+            1 / 5.0,
+            1 / 5.0 + 1 / 3.0,
+            1 + 1 / 3.0 + 1 / 5.0,
+            1 / 5.0 + 1 / 3.0,
+            1 / 5.0,
+        ]
         assert_almost_equal(box_sum_1.array, ref, decimal=12)
         assert_almost_equal(box_sum_2.array, ref, decimal=12)
         assert_almost_equal(box_sum_3.array, ref, decimal=12)
 
         # Assert that the kernels haven't changed
         assert_almost_equal(box_1.array, [0.2, 0.2, 0.2, 0.2, 0.2], decimal=12)
-        assert_almost_equal(box_2.array, [1/3., 1/3., 1/3.], decimal=12)
+        assert_almost_equal(box_2.array, [1 / 3.0, 1 / 3.0, 1 / 3.0], decimal=12)
         assert_almost_equal(box_3.array, [1], decimal=12)
 
     def test_add_2D_kernels(self):
@@ -401,12 +437,16 @@ class TestKernels:
         box_2 = Box2DKernel(1)
         box_sum_1 = box_1 + box_2
         box_sum_2 = box_2 + box_1
-        ref = [[1 / 9., 1 / 9., 1 / 9.],
-               [1 / 9., 1 + 1 / 9., 1 / 9.],
-               [1 / 9., 1 / 9., 1 / 9.]]
-        ref_1 = [[1 / 9., 1 / 9., 1 / 9.],
-                 [1 / 9., 1 / 9., 1 / 9.],
-                 [1 / 9., 1 / 9., 1 / 9.]]
+        ref = [
+            [1 / 9.0, 1 / 9.0, 1 / 9.0],
+            [1 / 9.0, 1 + 1 / 9.0, 1 / 9.0],
+            [1 / 9.0, 1 / 9.0, 1 / 9.0],
+        ]
+        ref_1 = [
+            [1 / 9.0, 1 / 9.0, 1 / 9.0],
+            [1 / 9.0, 1 / 9.0, 1 / 9.0],
+            [1 / 9.0, 1 / 9.0, 1 / 9.0],
+        ]
         assert_almost_equal(box_2.array, [[1]], decimal=12)
         assert_almost_equal(box_1.array, ref_1, decimal=12)
         assert_almost_equal(box_sum_1.array, ref, decimal=12)
@@ -429,13 +469,15 @@ class TestKernels:
     # https://github.com/astropy/astropy/issues/3605
     def test_Gaussian2DKernel_rotated(self):
         gauss = Gaussian2DKernel(
-            x_stddev=3, y_stddev=1.5, theta=0.7853981633974483,
-            x_size=5, y_size=5)  # rotated 45 deg ccw
-        ans = [[0.04087193, 0.04442386, 0.03657381, 0.02280797, 0.01077372],
-               [0.04442386, 0.05704137, 0.05547869, 0.04087193, 0.02280797],
-               [0.03657381, 0.05547869, 0.06374482, 0.05547869, 0.03657381],
-               [0.02280797, 0.04087193, 0.05547869, 0.05704137, 0.04442386],
-               [0.01077372, 0.02280797, 0.03657381, 0.04442386, 0.04087193]]
+            x_stddev=3, y_stddev=1.5, theta=0.7853981633974483, x_size=5, y_size=5
+        )  # rotated 45 deg ccw
+        ans = [
+            [0.04087193, 0.04442386, 0.03657381, 0.02280797, 0.01077372],
+            [0.04442386, 0.05704137, 0.05547869, 0.04087193, 0.02280797],
+            [0.03657381, 0.05547869, 0.06374482, 0.05547869, 0.03657381],
+            [0.02280797, 0.04087193, 0.05547869, 0.05704137, 0.04442386],
+            [0.01077372, 0.02280797, 0.03657381, 0.04442386, 0.04087193],
+        ]
         assert_allclose(gauss, ans, rtol=0.001)  # Rough comparison at 0.1 %
 
     def test_normalize_peak(self):
@@ -443,7 +485,7 @@ class TestKernels:
         Check if normalize works with peak mode.
         """
         custom = CustomKernel([1, 2, 3, 2, 1])
-        custom.normalize(mode='peak')
+        custom.normalize(mode="peak")
         assert custom.array.max() == 1
 
     def test_check_kernel_attributes(self):
@@ -463,12 +505,14 @@ class TestKernels:
 
         # Check normalization
         box.normalize()
-        assert_almost_equal(box._kernel_sum, 1., decimal=12)
+        assert_almost_equal(box._kernel_sum, 1.0, decimal=12)
 
         # Check separability
         assert box.separable
 
-    @pytest.mark.parametrize(('kernel_type', 'mode'), list(itertools.product(KERNEL_TYPES, MODES)))
+    @pytest.mark.parametrize(
+        ("kernel_type", "mode"), list(itertools.product(KERNEL_TYPES, MODES))
+    )
     def test_discretize_modes(self, kernel_type, mode):
         """
         Check if the different modes result in kernels that work with convolve.
@@ -482,26 +526,34 @@ class TestKernels:
             kernel = kernel_type(3, 3 * 0.2)
 
         if kernel.dimension == 1:
-            c1 = convolve_fft(delta_pulse_1D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(delta_pulse_1D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                delta_pulse_1D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
         else:
-            c1 = convolve_fft(delta_pulse_2D, kernel, boundary='fill', normalize_kernel=False)
-            c2 = convolve(delta_pulse_2D, kernel, boundary='fill', normalize_kernel=False)
+            c1 = convolve_fft(
+                delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
+            )
+            c2 = convolve(
+                delta_pulse_2D, kernel, boundary="fill", normalize_kernel=False
+            )
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('width'), WIDTHS_EVEN)
+    @pytest.mark.parametrize("width", WIDTHS_EVEN)
     def test_box_kernels_even_size(self, width):
         """
         Check if BoxKernel work properly with even sizes.
         """
         kernel_1D = Box1DKernel(width)
         assert kernel_1D.shape[0] % 2 != 0
-        assert kernel_1D.array.sum() == 1.
+        assert kernel_1D.array.sum() == 1.0
 
         kernel_2D = Box2DKernel(width)
         assert np.all([_ % 2 != 0 for _ in kernel_2D.shape])
-        assert kernel_2D.array.sum() == 1.
+        assert kernel_2D.array.sum() == 1.0
 
     def test_kernel_normalization(self):
         """
@@ -524,7 +576,7 @@ class TestKernels:
         """
         with pytest.raises(ValueError):
             kernel = CustomKernel(np.ones(3))
-            kernel.normalize(mode='invalid')
+            kernel.normalize(mode="invalid")
 
     def test_kernel1d_int_size(self):
         """

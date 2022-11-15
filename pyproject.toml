@@ -55,7 +55,6 @@ force-exclude = '''
     | examples
     | astropy/_dev
     | astropy/_erfa
-    | astropy/convolution
     | astropy/extern
   )/
   # Individual files to always exclude

@@ -10,11 +10,23 @@ from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 from .core import Kernel, Kernel1D, Kernel2D
 from .utils import has_even_axis, raise_even_kernel_exception
 
-__all__ = ['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
-           'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
-           'Trapezoid1DKernel', 'RickerWavelet1DKernel', 'RickerWavelet2DKernel',
-           'AiryDisk2DKernel', 'Moffat2DKernel', 'Model1DKernel',
-           'Model2DKernel', 'TrapezoidDisk2DKernel', 'Ring2DKernel']
+__all__ = [
+    "Gaussian1DKernel",
+    "Gaussian2DKernel",
+    "CustomKernel",
+    "Box1DKernel",
+    "Box2DKernel",
+    "Tophat2DKernel",
+    "Trapezoid1DKernel",
+    "RickerWavelet1DKernel",
+    "RickerWavelet2DKernel",
+    "AiryDisk2DKernel",
+    "Moffat2DKernel",
+    "Model1DKernel",
+    "Model2DKernel",
+    "TrapezoidDisk2DKernel",
+    "Ring2DKernel",
+]
 
 
 def _round_up_to_odd_integer(value):
@@ -82,8 +94,7 @@ class Gaussian1DKernel(Kernel1D):
     _is_bool = False
 
     def __init__(self, stddev, **kwargs):
-        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * stddev),
-                                        0, stddev)
+        self._model = models.Gaussian1D(1.0 / (np.sqrt(2 * np.pi) * stddev), 0, stddev)
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super().__init__(**kwargs)
         self.normalize()
@@ -156,11 +167,15 @@ class Gaussian2DKernel(Kernel2D):
     def __init__(self, x_stddev, y_stddev=None, theta=0.0, **kwargs):
         if y_stddev is None:
             y_stddev = x_stddev
-        self._model = models.Gaussian2D(1. / (2 * np.pi * x_stddev * y_stddev),
-                                        0, 0, x_stddev=x_stddev,
-                                        y_stddev=y_stddev, theta=theta)
-        self._default_size = _round_up_to_odd_integer(
-            8 * np.max([x_stddev, y_stddev]))
+        self._model = models.Gaussian2D(
+            amplitude=1.0 / (2 * np.pi * x_stddev * y_stddev),
+            x_mean=0,
+            y_mean=0,
+            x_stddev=x_stddev,
+            y_stddev=y_stddev,
+            theta=theta,
+        )
+        self._default_size = _round_up_to_odd_integer(8 * np.max([x_stddev, y_stddev]))
         super().__init__(**kwargs)
         self.normalize()
 
@@ -225,9 +240,9 @@ class Box1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.Box1D(1. / width, 0, width)
+        self._model = models.Box1D(1.0 / width, 0, width)
         self._default_size = _round_up_to_odd_integer(width)
-        kwargs['mode'] = 'linear_interp'
+        kwargs["mode"] = "linear_interp"
         super().__init__(**kwargs)
         self.normalize()
 
@@ -295,9 +310,9 @@ class Box2DKernel(Kernel2D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.Box2D(1. / width ** 2, 0, 0, width, width)
+        self._model = models.Box2D(1.0 / width**2, 0, 0, width, width)
         self._default_size = _round_up_to_odd_integer(width)
-        kwargs['mode'] = 'linear_interp'
+        kwargs["mode"] = "linear_interp"
         super().__init__(**kwargs)
         self.normalize()
 
@@ -355,7 +370,7 @@ class Tophat2DKernel(Kernel2D):
     """
 
     def __init__(self, radius, **kwargs):
-        self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
+        self._model = models.Disk2D(1.0 / (np.pi * radius**2), 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(2 * radius)
         super().__init__(**kwargs)
         self.normalize()
@@ -417,8 +432,9 @@ class Ring2DKernel(Kernel2D):
 
     def __init__(self, radius_in, width, **kwargs):
         radius_out = radius_in + width
-        self._model = models.Ring2D(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
-                                    0, 0, radius_in, width)
+        self._model = models.Ring2D(
+            1.0 / (np.pi * (radius_out**2 - radius_in**2)), 0, 0, radius_in, width
+        )
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super().__init__(**kwargs)
         self.normalize()
@@ -477,9 +493,9 @@ class Trapezoid1DKernel(Kernel1D):
 
     _is_bool = False
 
-    def __init__(self, width, slope=1., **kwargs):
+    def __init__(self, width, slope=1.0, **kwargs):
         self._model = models.Trapezoid1D(1, 0, width, slope)
-        self._default_size = _round_up_to_odd_integer(width + 2. / slope)
+        self._default_size = _round_up_to_odd_integer(width + 2.0 / slope)
         super().__init__(**kwargs)
         self.normalize()
 
@@ -538,9 +554,9 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     _is_bool = False
 
-    def __init__(self, radius, slope=1., **kwargs):
+    def __init__(self, radius, slope=1.0, **kwargs):
         self._model = models.TrapezoidDisk2D(1, 0, 0, radius, slope)
-        self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
+        self._default_size = _round_up_to_odd_integer(2 * radius + 2.0 / slope)
         super().__init__(**kwargs)
         self.normalize()
 
@@ -613,7 +629,7 @@ class RickerWavelet1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        amplitude = 1.0 / (np.sqrt(2 * np.pi) * width ** 3)
+        amplitude = 1.0 / (np.sqrt(2 * np.pi) * width**3)
         self._model = models.RickerWavelet1D(amplitude, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
@@ -691,7 +707,7 @@ class RickerWavelet2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        amplitude = 1.0 / (np.pi * width ** 4)
+        amplitude = 1.0 / (np.pi * width**4)
         self._model = models.RickerWavelet2D(amplitude, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super().__init__(**kwargs)
@@ -1032,6 +1048,6 @@ class CustomKernel(Kernel):
             raise_even_kernel_exception()
 
         # Check if array is bool
-        ones = self._array == 1.
+        ones = self._array == 1.0
         zeros = self._array == 0
         self._is_bool = bool(np.all(np.logical_or(ones, zeros)))
