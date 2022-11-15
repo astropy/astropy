@@ -50,20 +50,13 @@ force-exclude = '''
 ^/(
   (
     # Directories to always exclude (.gitignore is always excluded)
-      \.pyinstaller
-    | docs
-    | examples
-    | astropy/_dev
-    | astropy/_erfa
+      examples
+    | docs/wcs/examples
+    | docs/nddata/examples
+    | cextern
     | astropy/extern
   )/
   # Individual files to always exclude
-  | astropy/__init__.py
-  | astropy/conftest.py
-  | astropy/logger.py
-  | astropy/version.py
-  | conftest.py
-  | setup.py
   | astropy/coordinates/.*tab.py
   | astropy/units/format/.*tab.py
 )

@@ -13,11 +13,11 @@ import pytest
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
-os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
-os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
+os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
 
-os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
-os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+os.mkdir(os.path.join(os.environ["XDG_CONFIG_HOME"], "astropy"))
+os.mkdir(os.path.join(os.environ["XDG_CACHE_HOME"], "astropy"))
 
 # Note that we don't need to change the environment variables back or remove
 # them after testing, because they are only changed for the duration of the
@@ -35,7 +35,7 @@ def _docdir(request):
         # Implementation from https://github.com/pytest-dev/pytest/discussions/10437
         if "io.rst" not in request.node.name:
             old_cwd = os.getcwd()
-            tmp_path = request.getfixturevalue('tmp_path')
+            tmp_path = request.getfixturevalue("tmp_path")
             os.chdir(tmp_path)
             yield
             os.chdir(old_cwd)

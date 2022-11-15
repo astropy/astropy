@@ -3,4 +3,4 @@
 # once that repository is ready for pull requests
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = collect_data_files('skyfield')
+datas = collect_data_files("skyfield")
