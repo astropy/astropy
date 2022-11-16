@@ -3341,78 +3341,48 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         return np.log10(np.abs(self.r_tide / self.r_core))
 
     @staticmethod
-    def evaluate(x, amplitude, r_core, r_tide):
-        """
-        Analytic King model function.
-        """
-        result = (
-            amplitude
-            * r_core**2
-            * (
-                1 / np.sqrt(x**2 + r_core**2)
-                - 1 / np.sqrt(r_tide**2 + r_core**2)
-            )
-            ** 2
+    def _core_func(x, r_core, r_tide, power=1):
+        return (
+            1.0 / np.sqrt(x**2 + r_core**2) ** power
+            - 1.0 / np.sqrt(r_tide**2 + r_core**2) ** power
         )
 
-        # Set invalid r values to 0
+    @staticmethod
+    def _filter(x, r_tide, result):
+        """Set invalid r values to 0"""
         bounds = (x >= r_tide) | (x < 0)
         result[bounds] = result[bounds] * 0.0
 
+    def evaluate(self, x, amplitude, r_core, r_tide):
+        """
+        Analytic King model function.
+        """
+        result = amplitude * r_core**2 * self._core_func(x, r_core, r_tide) ** 2
+        self._filter(x, r_tide, result)
+
         return result
 
-    @staticmethod
-    def fit_deriv(x, amplitude, r_core, r_tide):
+    def fit_deriv(self, x, amplitude, r_core, r_tide):
         """
         Analytic King model function derivatives.
         """
-        d_amplitude = (
-            r_core**2
-            * (
-                1 / np.sqrt(x**2 + r_core**2)
-                - 1 / np.sqrt(r_tide**2 + r_core**2)
-            )
-            ** 2
-        )
+        d_amplitude = r_core**2 * self._core_func(x, r_core, r_tide) ** 2
+        self._filter(x, r_tide, d_amplitude)
 
         d_r_core = (
-            2
+            -2.0
             * amplitude
-            * r_core**2
-            * (
-                r_core / (r_core**2 + r_tide**2) ** (3 / 2)
-                - r_core / (r_core**2 + x**2) ** (3 / 2)
-            )
-            * (
-                1.0 / np.sqrt(r_core**2 + x**2)
-                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
-            )
-            + 2
-            * amplitude
-            * r_core
-            * (
-                1.0 / np.sqrt(r_core**2 + x**2)
-                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
-            )
-            ** 2
+            * r_core**3
+            * self._core_func(x, r_core, r_tide, power=3)
+            * self._core_func(x, r_core, r_tide)
+            + 2 * amplitude * r_core * self._core_func(x, r_core, r_tide) ** 2
         )
+        self._filter(x, r_tide, d_r_core)
 
         d_r_tide = (
-            2
-            * amplitude
-            * r_core**2
-            * r_tide
-            * (
-                1.0 / np.sqrt(r_core**2 + x**2)
-                - 1.0 / np.sqrt(r_core**2 + r_tide**2)
-            )
+            2 * amplitude * r_core**2 * r_tide * self._core_func(x, r_core, r_tide)
         ) / (r_core**2 + r_tide**2) ** (3 / 2)
-
-        # Set invalid r values to 0
-        bounds = (x >= r_tide) | (x < 0)
-        d_amplitude[bounds] = d_amplitude[bounds] * 0
-        d_r_core[bounds] = d_r_core[bounds] * 0
-        d_r_tide[bounds] = d_r_tide[bounds] * 0
+        self._filter(x, r_tide, d_r_tide)
 
         return [d_amplitude, d_r_core, d_r_tide]
 
