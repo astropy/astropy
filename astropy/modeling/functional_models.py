@@ -1763,6 +1763,8 @@ class Voigt1D(Fittable1DModel):
         ):
             return self._last_w
 
+        if isinstance(z, u.Quantity):
+            z = z.to_value(u.dimensionless_unscaled)
         self._last_w = self._faddeeva(z)
         self._last_z = z
         return self._last_w
