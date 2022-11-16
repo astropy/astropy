@@ -128,6 +128,13 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", t_bounds=None, **kw
     >>> t[80:] = t[:20]
     >>> edges = bayesian_blocks(t, fitness='events', p0=0.01)
 
+    Binned event data:
+
+    >>> t = np.linspace(.5,9.5, 10)
+    >>> x = np.random.poisson(100, size = 10)
+    >>> x[4] += 5
+    >>> bayesian_blocks(t, x, fitness='events', t_bounds = [0,10])
+
     Regular event data:
 
     >>> dt = 0.05
