@@ -8,6 +8,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .core import Fittable1DModel, Fittable2DModel
@@ -1726,7 +1727,10 @@ class Voigt1D(Fittable1DModel):
         **kwargs,
     ):
         if method is None:
-            method = "wofz"
+            if HAS_SCIPY:
+                method = "wofz"
+            else:
+                method = "humlicek2"
 
         if str(method).lower() in ("wofz", "scipy"):
             from scipy.special import wofz
@@ -1734,7 +1738,7 @@ class Voigt1D(Fittable1DModel):
             self._faddeeva = wofz
         elif str(method).lower() == "humlicek2":
             warnings.warn(
-                f"{method} has been depricated in favor of the `wofz` method which requires scipy",
+                f"{method} has been depricated in favor of the `wofz` method which requires `scipy`",
                 AstropyDeprecationWarning,
             )
 
