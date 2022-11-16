@@ -527,6 +527,15 @@ def test_Voigt1D_hum2(doppler):
     assert_allclose(dvda_h, dvda_w, rtol=1e-9, atol=1e-7 * (1 + 30 / doppler))
 
 
+def test_Voigt1D_default_method():
+    """Test Voigt1D default method"""
+    voi = models.Voigt1D()
+    if HAS_SCIPY:
+        assert voi.method == "wofz"
+    else:
+        assert voi.method == "humlicek2"
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("fitter", fitters)
 def test_KingProjectedAnalytic1D_fit(fitter):
