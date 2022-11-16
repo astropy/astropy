@@ -1763,10 +1763,11 @@ class Voigt1D(Fittable1DModel):
         ):
             return self._last_w
 
-        if isinstance(z, u.Quantity):
-            z = z.to_value(u.dimensionless_unscaled)
-        self._last_w = self._faddeeva(z)
-        self._last_z = z
+        self._last_z = (
+            z.to_value(u.dimensionless_unscaled) if isinstance(z, u.Quantity) else z
+        )
+        self._last_w = self._faddeeva(self._last_z)
+
         return self._last_w
 
     def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
