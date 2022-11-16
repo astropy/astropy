@@ -55,7 +55,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 __all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_blocks"]
 
 
-def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
+def bayesian_blocks(t, x=None, sigma=None, fitness="events", t_bounds=None, **kwargs):
     r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks
 
     This is a flexible implementation of the Bayesian Blocks algorithm
@@ -94,6 +94,11 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
 
         Alternatively, the fitness parameter can be an instance of
         :class:`FitnessFunc` or a subclass thereof.
+    t_bounds : array-like
+        Array of size 2 that representsthe start and end of the observations.
+        By default, the bounds are the minimum and maximum of values ``t``.
+        Use `t_bounds` to appropiately account for the observation time in the 
+        first and last bins.
 
     **kwargs :
         any additional keyword arguments will be passed to the specified
@@ -102,7 +107,8 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
     Returns
     -------
     edges : ndarray
-        array containing the (N+1) edges defining the N bins
+        array containing the (N+1) edges defining the N bins. The edges are the 
+        midpoints between values of ``t``
 
     Examples
     --------
@@ -169,7 +175,7 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
     else:
         raise ValueError("fitness parameter not understood")
 
-    return fitfunc.fit(t, x, sigma)
+    return fitfunc.fit(t, x, sigma, t_bounds)
 
 
 class FitnessFunc:
@@ -188,8 +194,8 @@ class FitnessFunc:
       Initialize the fitness function with any parameters beyond the normal
       ``p0`` and ``gamma``.
 
-    ``validate_input(self, t, x, sigma)``:
-      Enable specific checks of the input data (``t``, ``x``, ``sigma``)
+    ``validate_input(self, t, x, sigma, t_bounds)``:
+      Enable specific checks of the input data (``t``, ``x``, ``sigma``, ``t_bounds``)
       to be performed prior to the fit.
 
     ``compute_ncp_prior(self, N)``: If ``ncp_prior`` is not defined explicitly,
@@ -214,7 +220,7 @@ class FitnessFunc:
         self.gamma = gamma
         self.ncp_prior = ncp_prior
 
-    def validate_input(self, t, x=None, sigma=None):
+    def validate_input(self, t, x=None, sigma=None, t_bounds=None):
         """Validate inputs to the model.
 
         Parameters
@@ -225,10 +231,12 @@ class FitnessFunc:
             values observed at each time
         sigma : float or array-like, optional
             errors in values x
+        t_bounds : array-like
+            Start and end of observations, optional
 
         Returns
         -------
-        t, x, sigma : array-like, float or None
+        t, x, sigma, t_bounds : array-like, float or None
             validated and perhaps modified versions of inputs
         """
         # validate array input
@@ -270,6 +278,19 @@ class FitnessFunc:
             t = unq_t
             x = x[unq_ind]
 
+        # Check time bounds
+        if t_bounds is None:
+            t_bounds = [t[0], t[-1]]
+        else:
+            if len(t_bounds) != 2:
+                raise ValueError(f"t_bounds size={len(t_bounds)}. Size=2 expected")
+            
+            if t_bounds[0] > t[0]:
+                raise ValueError("Lower time bound ({t_bounds[0]}) set after first event ({t[0]})")
+
+            if t_bounds[1] < t[-1]:
+                raise ValueError("Upper time bound ({t_bounds[1]}) set before last event ({t[-1]})")
+
         # verify the given sigma value
         if sigma is None:
             sigma = 1
@@ -278,7 +299,7 @@ class FitnessFunc:
             if sigma.shape not in [(), (1,), (t.size,)]:
                 raise ValueError("sigma does not match the shape of x")
 
-        return t, x, sigma
+        return t, x, sigma, t_bounds
 
     def fitness(self, **kwargs):
         raise NotImplementedError()
@@ -316,7 +337,7 @@ class FitnessFunc:
                 "``gamma`` nor ``p0`` is defined."
             )
 
-    def fit(self, t, x=None, sigma=None):
+    def fit(self, t, x=None, sigma=None, t_bounds=None):
         """Fit the Bayesian Blocks model given the specified fitness function.
 
         Parameters
@@ -327,13 +348,15 @@ class FitnessFunc:
             data values
         sigma : array-like or float, optional
             data errors
+        t_bounds : array-like, optional
+            data time boundaries
 
         Returns
         -------
         edges : ndarray
             array containing the (M+1) edges defining the M optimal bins
         """
-        t, x, sigma = self.validate_input(t, x, sigma)
+        t, x, sigma, t_bounds = self.validate_input(t, x, sigma, t_bounds)
 
         # compute values needed for computation, below
         if "a_k" in self._fitness_args:
@@ -344,7 +367,7 @@ class FitnessFunc:
             ck_raw = x * x / sigma**2
 
         # create length-(N + 1) array of cell edges
-        edges = np.concatenate([t[:1], 0.5 * (t[1:] + t[:-1]), t[-1:]])
+        edges = np.concatenate([[t_bounds[0]], 0.5 * (t[1:] + t[:-1]), [t_bounds[1]]])
         block_length = t[-1] - edges
 
         # arrays to store the best configuration
@@ -443,11 +466,11 @@ class Events(FitnessFunc):
         # eq. 19 from Scargle 2013
         return N_k * (np.log(N_k / T_k))
 
-    def validate_input(self, t, x, sigma):
-        t, x, sigma = super().validate_input(t, x, sigma)
+    def validate_input(self, t, x, sigma, t_bounds):
+        t, x, sigma, t_bounds = super().validate_input(t, x, sigma, t_bounds)
         if x is not None and np.any(x % 1 > 0):
             raise ValueError("x must be integer counts for fitness='events'")
-        return t, x, sigma
+        return t, x, sigma, t_bounds
 
 
 class RegularEvents(FitnessFunc):
@@ -476,11 +499,11 @@ class RegularEvents(FitnessFunc):
         self.dt = dt
         super().__init__(p0, gamma, ncp_prior)
 
-    def validate_input(self, t, x, sigma):
-        t, x, sigma = super().validate_input(t, x, sigma)
+    def validate_input(self, t, x, sigma, t_bounds):
+        t, x, sigma, t_bounds = super().validate_input(t, x, sigma, t_bounds)
         if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
-        return t, x, sigma
+        return t, x, sigma, t_bounds
 
     def fitness(self, T_k, N_k):
         # Eq. C23 of Scargle 2013
@@ -524,7 +547,7 @@ class PointMeasures(FitnessFunc):
         # eq. 41 from Scargle 2013
         return (b_k * b_k) / (4 * a_k)
 
-    def validate_input(self, t, x, sigma):
+    def validate_input(self, t, x, sigma, t_bounds):
         if x is None:
             raise ValueError("x must be specified for point measures")
-        return super().validate_input(t, x, sigma)
+        return super().validate_input(t, x, sigma, t_bounds)
