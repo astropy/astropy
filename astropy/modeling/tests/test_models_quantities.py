@@ -161,6 +161,18 @@ FUNC_MODELS_1D = [
         "bounding_box": False,
     },
     {
+        "class": Voigt1D,
+        "parameters": {
+            "amplitude_L": 2 * u.Jy,
+            "x_0": 505 * u.nm,
+            "fwhm_L": 100 * u.AA,
+            "fwhm_G": 50 * u.AA,
+            "method": "humlicek2",
+        },
+        "evaluation": [(0.51 * u.micron, 1.0621795524 * u.Jy)],
+        "bounding_box": False,
+    },
+    {
         "class": Const1D,
         "parameters": {"amplitude": 3 * u.Jy},
         "evaluation": [(0.6 * u.micron, 3 * u.Jy)],
@@ -562,7 +574,6 @@ NON_FINITE_TRF_MODELS = [
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
-    Voigt1D,
 ]
 
 # These models will fail the LMLSQFitter fitting test due to non-finite
@@ -575,7 +586,6 @@ NON_FINITE_LM_MODELS = [
     Schechter1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
-    Voigt1D,
 ]
 
 # These models will fail the DogBoxLSQFitter fitting test due to non-finite
@@ -591,6 +601,7 @@ NON_FINITE_DogBox_MODELS = [
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_without_units(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -608,6 +619,7 @@ def test_models_evaluate_without_units(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -617,6 +629,7 @@ def test_models_evaluate_with_units(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units_x_array(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
@@ -638,13 +651,14 @@ def test_models_evaluate_with_units_x_array(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_evaluate_with_units_param_array(model):
     if not HAS_SCIPY and model["class"] in SCIPY_MODELS:
         pytest.skip()
 
     params = {}
     for key, value in model["parameters"].items():
-        if value is None or key == "degree":
+        if value is None or key in ("degree", "method"):
             params[key] = value
         else:
             params[key] = np.repeat(value, 2)
@@ -674,6 +688,7 @@ def test_models_evaluate_with_units_param_array(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_models_bounding_box(model):
     # In some cases, having units in parameters caused bounding_box to break,
     # so this is to ensure that it works correctly.
@@ -703,6 +718,7 @@ def test_models_bounding_box(model):
 
 
 @pytest.mark.parametrize("model", MODELS)
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_compound_model_input_units_equivalencies_defaults(model):
     m = model["class"](**model["parameters"])
 
@@ -739,20 +755,26 @@ def test_compound_model_input_units_equivalencies_defaults(model):
 @pytest.mark.filterwarnings(r"ignore:.*:RuntimeWarning")
 @pytest.mark.filterwarnings(r"ignore:Model is linear in parameters.*")
 @pytest.mark.filterwarnings(r"ignore:The fit may be unsuccessful.*")
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 @pytest.mark.parametrize("model", MODELS)
 @pytest.mark.parametrize("fitter", fitters)
 def test_models_fitting(model, fitter):
     fitter = fitter()
 
+    bad_voigt = model["class"] == Voigt1D and ("method" not in model["parameters"])
     if (
         (
             isinstance(fitter, LevMarLSQFitter)
             and model["class"] in NON_FINITE_LevMar_MODELS
         )
         or (
-            isinstance(fitter, TRFLSQFitter) and model["class"] in NON_FINITE_TRF_MODELS
+            isinstance(fitter, TRFLSQFitter)
+            and (model["class"] in NON_FINITE_TRF_MODELS or bad_voigt)
         )
-        or (isinstance(fitter, LMLSQFitter) and model["class"] in NON_FINITE_LM_MODELS)
+        or (
+            isinstance(fitter, LMLSQFitter)
+            and (model["class"] in NON_FINITE_LM_MODELS or bad_voigt)
+        )
         or (
             isinstance(fitter, DogBoxLSQFitter)
             and model["class"] in NON_FINITE_DogBox_MODELS
