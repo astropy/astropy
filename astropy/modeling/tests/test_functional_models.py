@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # pylint: disable=invalid-name
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
@@ -478,23 +480,25 @@ def test_Voigt1D_norm(algorithm):
     """Test integral of normalized Voigt profile."""
     from scipy.integrate import quad
 
+    if algorithm == "humlicek2":
+        ctx = pytest.warns(
+            AstropyDeprecationWarning, match=r"humlicek2 has been deprecated since .*"
+        )
+        atol = 1e-8
+    else:
+        ctx = nullcontext()
+        atol = 1e-14
+
     def voigt(algorithm):
         return models.Voigt1D(
             amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
         )
 
-    if algorithm == "humlicek2":
-        with pytest.warns(
-            AstropyDeprecationWarning, match=r"humlicek2 has been deprecated since .*"
-        ):
-            voi = voigt(algorithm)
-    else:
-        voi = voigt(algorithm)
+    with ctx:
+        voi = models.Voigt1D(
+            amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
+        )
 
-    if algorithm == "wofz":
-        atol = 1e-14
-    else:
-        atol = 1e-8
     assert_allclose(quad(voi, -np.inf, np.inf)[0], 1.0, atol=atol)
 
 
