@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.modeling import InputParameterError, fitting, models
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 fitters = [
     fitting.LevMarLSQFitter,
@@ -478,9 +478,19 @@ def test_Voigt1D_norm(algorithm):
     """Test integral of normalized Voigt profile."""
     from scipy.integrate import quad
 
-    voi = models.Voigt1D(
-        amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
-    )
+    def voigt(algorithm):
+        return models.Voigt1D(
+            amplitude_L=1.0 / np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm
+        )
+
+    if algorithm == "humlicek2":
+        with pytest.warns(
+            AstropyDeprecationWarning, match=r".* has been depricated .*"
+        ):
+            voi = voigt(algorithm)
+    else:
+        voi = voigt(algorithm)
+
     if algorithm == "wofz":
         atol = 1e-14
     else:
@@ -490,6 +500,7 @@ def test_Voigt1D_norm(algorithm):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("doppler", (1.0e-3, 1.0e-2, 0.1, 0.5, 1.0, 2.5, 5.0, 10))
+@pytest.mark.filterwarnings(r"ignore:.*has been depricated.*")
 def test_Voigt1D_hum2(doppler):
     """
     Verify accuracy of Voigt profile in Humlicek approximation to Faddeeva.cc (SciPy).
