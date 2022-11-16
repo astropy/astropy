@@ -390,6 +390,7 @@ class Fittable2DModelTester:
             )
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 class Fittable1DModelTester:
     """
     Test class for all one dimensional parametric models.
@@ -687,6 +688,7 @@ def test_ScaleModel():
     assert_equal(m([1, 2], model_set_axis=False), [[42, 84], [43, 86]])
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_voigt_model():
     """
     Currently just tests that the model peaks at its origin.
@@ -1061,6 +1063,7 @@ def test_parameter_inheritance():
     assert b.f.fixed == True  # noqa: E712
 
 
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_parameter_description():
     model = models.Gaussian1D(1.5, 2.5, 3.5)
     assert model.amplitude._description == "Amplitude (peak value) of the Gaussian"
