@@ -1738,7 +1738,8 @@ class Voigt1D(Fittable1DModel):
             self._faddeeva = wofz
         elif str(method).lower() == "humlicek2":
             warnings.warn(
-                f"{method} has been depricated in favor of the `wofz` method which requires `scipy`",
+                f"{method} has been deprecated since Astropy 5.3 and will be removed in a future version.\n"
+                "It is recommended to always use the `wofz` method which requires `scipy`.",
                 AstropyDeprecationWarning,
             )
 

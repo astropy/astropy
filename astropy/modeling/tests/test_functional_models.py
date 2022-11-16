@@ -485,7 +485,7 @@ def test_Voigt1D_norm(algorithm):
 
     if algorithm == "humlicek2":
         with pytest.warns(
-            AstropyDeprecationWarning, match=r".* has been depricated .*"
+            AstropyDeprecationWarning, match=r"humlicek2 has been deprecated since .*"
         ):
             voi = voigt(algorithm)
     else:
@@ -500,7 +500,7 @@ def test_Voigt1D_norm(algorithm):
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize("doppler", (1.0e-3, 1.0e-2, 0.1, 0.5, 1.0, 2.5, 5.0, 10))
-@pytest.mark.filterwarnings(r"ignore:.*has been depricated.*")
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_Voigt1D_hum2(doppler):
     """
     Verify accuracy of Voigt profile in Humlicek approximation to Faddeeva.cc (SciPy).
@@ -527,13 +527,23 @@ def test_Voigt1D_hum2(doppler):
     assert_allclose(dvda_h, dvda_w, rtol=1e-9, atol=1e-7 * (1 + 30 / doppler))
 
 
-def test_Voigt1D_default_method():
+@pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
+def test_Voigt1D_method():
     """Test Voigt1D default method"""
+    voi = models.Voigt1D(method="wofz")
+    assert voi.method == "wofz"
+
+    voi = models.Voigt1D(method="scipy")
+    assert voi.method == "wofz"
+
+    voi = models.Voigt1D(method="humlicek2")
+    assert voi.method == "_hum2zpf16c"
+
     voi = models.Voigt1D()
     if HAS_SCIPY:
         assert voi.method == "wofz"
     else:
-        assert voi.method == "humlicek2"
+        assert voi.method == "_hum2zpf16c"
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
