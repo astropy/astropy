@@ -2,10 +2,13 @@
 
 """Mathematical models."""
 # pylint: disable=line-too-long, too-many-lines, too-many-arguments, invalid-name
+import warnings
+
 import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .core import Fittable1DModel, Fittable2DModel
 from .parameters import InputParameterError, Parameter
@@ -1719,14 +1722,22 @@ class Voigt1D(Fittable1DModel):
         amplitude_L=amplitude_L.default,
         fwhm_L=fwhm_L.default,
         fwhm_G=fwhm_G.default,
-        method="humlicek2",
+        method=None,
         **kwargs,
     ):
+        if method is None:
+            method = "wofz"
+
         if str(method).lower() in ("wofz", "scipy"):
             from scipy.special import wofz
 
             self._faddeeva = wofz
         elif str(method).lower() == "humlicek2":
+            warnings.warn(
+                f"{method} has been depricated in favor of the `wofz` method which requires scipy",
+                AstropyDeprecationWarning,
+            )
+
             self._faddeeva = self._hum2zpf16c
         else:
             raise ValueError(
