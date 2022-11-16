@@ -562,6 +562,7 @@ NON_FINITE_TRF_MODELS = [
     PowerLaw1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
+    Voigt1D,
 ]
 
 # These models will fail the LMLSQFitter fitting test due to non-finite
@@ -574,6 +575,7 @@ NON_FINITE_LM_MODELS = [
     Schechter1D,
     ExponentialCutoffPowerLaw1D,
     BrokenPowerLaw1D,
+    Voigt1D,
 ]
 
 # These models will fail the DogBoxLSQFitter fitting test due to non-finite
