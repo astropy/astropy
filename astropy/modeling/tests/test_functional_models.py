@@ -530,17 +530,18 @@ def test_Voigt1D_hum2(doppler):
 @pytest.mark.filterwarnings(r"ignore:humlicek2 has been deprecated since .*")
 def test_Voigt1D_method():
     """Test Voigt1D default method"""
-    voi = models.Voigt1D(method="wofz")
-    assert voi.method == "wofz"
-
-    voi = models.Voigt1D(method="scipy")
-    assert voi.method == "wofz"
 
     voi = models.Voigt1D(method="humlicek2")
     assert voi.method == "_hum2zpf16c"
 
     voi = models.Voigt1D()
     if HAS_SCIPY:
+        assert voi.method == "wofz"
+
+        voi = models.Voigt1D(method="wofz")
+        assert voi.method == "wofz"
+
+        voi = models.Voigt1D(method="scipy")
         assert voi.method == "wofz"
     else:
         assert voi.method == "_hum2zpf16c"
