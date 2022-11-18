@@ -387,6 +387,7 @@
 #define fits_decompress_img fits_decomp_img
 
 #define fits_read_col        ffgcv
+#define fits_read_cols       ffgcvn
 #define fits_read_colnull    ffgcf
 #define fits_read_col_str    ffgcvs
 #define fits_read_col_log    ffgcvl
@@ -520,6 +521,7 @@
 #define fits_write_subset_dbl  ffpssd
 
 #define fits_write_col         ffpcl
+#define fits_write_cols        ffpcln
 #define fits_write_col_str     ffpcls
 #define fits_write_col_log     ffpcll
 #define fits_write_col_byt     ffpclb
@@ -576,6 +578,7 @@
 #define fits_copy_col     ffcpcl
 #define fits_copy_cols    ffccls
 #define fits_copy_rows    ffcprw
+#define fits_copy_selrows    ffcpsr
 #define fits_modify_vector_len  ffmvec
 
 #define fits_read_img_coord ffgics

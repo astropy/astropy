@@ -78,9 +78,10 @@ float ffvers(float *version)  /* IO - version number */
       *version = (float)CFITSIO_MAJOR + (float)(.01*CFITSIO_MINOR)
                    + (float)(.0001*CFITSIO_MICRO);
 
-/*    *version = 4.1.0      Feb 2022
+/*    *version = 4.2.0      Nov 2022
 
    Previous releases:
+      *version = 4.1.0      Feb 2022
       *version = 4.0.0      May 2021
       *version = 3.49       Aug 2020
       *version = 3.48       Apr 2020
@@ -1378,6 +1379,7 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
 {
     int jj;
     size_t ii, cardlen, nblank, valpos;
+    char strbuf[21];
 
     if (*status > 0)
         return(*status);
@@ -1387,6 +1389,14 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
         comm[0] = '\0';
 
     cardlen = strlen(card);
+    if (cardlen >= FLEN_CARD)
+    {
+       strncpy(strbuf,card,20);
+       strbuf[20]='\0';
+       ffpmsg("The card string starting with the chars below is too long:");
+       ffpmsg(strbuf); 
+       return(*status = BAD_KEYCHAR);
+    }
 
     /* support for ESO HIERARCH keywords; find the '=' */
     if (FSTRNCMP(card, "HIERARCH ", 9) == 0)
@@ -1493,7 +1503,7 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
     else if (card[ii] == '\'' )  /* is this a quoted string value? */
     {
         value[0] = card[ii];
-        for (jj=1, ii++; ii < cardlen; ii++, jj++)
+        for (jj=1, ii++; ii < cardlen && jj < FLEN_VALUE-1; ii++, jj++)
         {
             if (card[ii] == '\'')  /*  is this the closing quote?  */
             {
@@ -1512,9 +1522,9 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
             value[jj] = card[ii];  /* copy the next character to the output */
         }
 
-        if (ii == cardlen)
+        if (ii == cardlen || jj == FLEN_VALUE-1)
         {
-            jj = minvalue(jj, 69);  /* don't exceed 70 char string length */
+            jj = minvalue(jj, FLEN_VALUE-2);  /* don't exceed 70 char string length */
             value[jj] = '\'';  /*  close the bad value string  */
             value[jj+1] = '\0';  /*  terminate the bad value string  */
             ffpmsg("This keyword string value has no closing quote:");
@@ -1531,9 +1541,9 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
     else if (card[ii] == '(' )  /* is this a complex value? */
     {
         nblank = strcspn(&card[ii], ")" ); /* find closing ) */
-        if (nblank == strlen( &card[ii] ) )
+        if (nblank == strlen( &card[ii] ) || nblank >= FLEN_VALUE-1 )
         {
-            ffpmsg("This complex keyword value has no closing ')':");
+            ffpmsg("This complex keyword value has no closing ')' within range:");
             ffpmsg(card);
             return(*status = NO_QUOTE);
         }
@@ -1546,6 +1556,8 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
     else   /*  an integer, floating point, or logical FITS value string  */
     {
         nblank = strcspn(&card[ii], " /");  /* find the end of the token */
+        if (nblank >= FLEN_VALUE) /* This should not happen for correct input */
+           nblank = FLEN_VALUE-1;
         strncpy(value, &card[ii], nblank);
         value[nblank] = '\0';
         ii = ii + nblank;
@@ -1565,7 +1577,8 @@ int ffpsvc(char *card,    /* I - FITS header card (nominally 80 bytes long) */
             if (card[ii] == ' ')  /*  also ignore the following space  */
                 ii++;
         }
-        strcat(comm, &card[ii]);  /*  copy the remaining characters  */
+        strncpy(comm, &card[ii],FLEN_COMMENT-1);  /*  copy the remaining characters  */
+        comm[FLEN_COMMENT-1] = '\0';
 
         jj=strlen(comm);
         for (jj--; jj >= 0; jj--)  /* replace trailing blanks with nulls */
@@ -9816,3 +9829,61 @@ int fits_strncasecmp(const char *s1, const char *s2, size_t n)
    }
    return(0);
 }
+/*
+ * fits_recalloc - an allocator/reallocator in the style of calloc and realloc 
+ * 
+ * Allocates or reallocates storage upon request.  Newly allocated
+ * storage is zeroed in the style of calloc.
+ * 
+ * Cases handled are:
+ *    ptr == 0 or old_num == 0 - use calloc to allocate new storage
+ *    new_num = 0 - frees any storage if ptr is non-NULL
+ *    new_num < old_num - uses realloc() to reduce storage allocated
+ *    new_num > old_num - uses realloc() and sets newly allocated 
+ *                        storage to zero (old portion left unchanged)
+ *
+ * void *ptr - "old" pointer, or NULL to allocate new storage
+ * size_t old_num - old number of records allocated
+ * size_t new_num  - new number of records allocated
+ * size_t size - size of record in bytes
+ *
+ * RETURNS: newly allocated storage
+ *
+ * */
+void *fits_recalloc(void *ptr, size_t old_num, size_t new_num, size_t size)
+{
+  void *newptr;
+
+  if (ptr == 0 || old_num == 0) { /* Starting from nothing */
+
+    return calloc(new_num, size);
+
+  } else if (new_num == old_num) { /* Same size, do nothing */
+    
+    return ptr;
+
+  } else if (new_num == 0) { /* Freeing */
+
+    if (ptr) free(ptr);
+    return 0;
+
+  } else if (new_num < old_num) { /* Shrinking */
+    
+    newptr = realloc(ptr, new_num*size);
+    if (!newptr) free(ptr);
+    return (newptr);
+  }
+
+  /* Growing */
+  newptr = realloc(ptr, new_num*size);
+  if (!newptr) {
+    free(ptr);
+    return newptr;
+  }
+
+  /* Zero the new portion of the array */
+  memset( (char *) newptr + old_num*size/sizeof(char), 0,
+	  (new_num - old_num)*size );
+  return (newptr);
+}
+

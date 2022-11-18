@@ -1306,6 +1306,7 @@ move2hdu:
  
     if (*binspec)
     {
+       char **exprs = 0;
        if (*histfilename  && !(*pixfilter) )
            strcpy(outfile, histfilename); /* the original outfile name */
        else
@@ -1313,16 +1314,20 @@ move2hdu:
                                          /* if not already copied the file */ 
 
        /* parse the binning specifier into individual parameters */
-       ffbins(binspec, &imagetype, &haxis, colname, 
-                          minin, maxin, binsizein, 
-                          minname, maxname, binname,
-                          &weight, wtcol, &recip, status);
-
+       ffbinse(binspec, &imagetype, &haxis, colname, 
+	       minin, maxin, binsizein, 
+	       minname, maxname, binname,
+	       &weight, wtcol, &recip, &(exprs), status);
+       
        /* Create the histogram primary array and open it as the current fptr */
        /* This will close the table that was used to create the histogram. */
-       ffhist2(fptr, outfile, imagetype, haxis, colname, minin, maxin,
-              binsizein, minname, maxname, binname,
-              weight, wtcol, recip, rowselect, status);
+       ffhist2e(fptr, outfile, imagetype, haxis, 
+		colname, exprs, minin, maxin, binsizein, 
+		minname, maxname, binname,
+		weight, wtcol, (exprs?exprs[4]:0),
+		recip, rowselect, status);
+
+       if (exprs) free(exprs);
 
        if (rowselect)
           free(rowselect);
@@ -1736,6 +1741,38 @@ static int find_quote(char **string)
     }
     return(1);  /* opps, didn't find the closing character */
 }
+
+/*--------------------------------------------------------------------------*/
+char *fits_find_match_delim(char *string, char delim)
+/*
+  Find matching delimiter, respecting quoting and (potentially nested) parentheses
+  
+  char *string - null-terminated string to be searched for delimiter
+  char delim - single delimiter to search for (one of '")]} )
+
+  returns: pointer to character after delimiter, or 0 if not found
+*/
+{
+  char *tstr = string;
+  int retval = 0;
+
+  if (!string) return 0;
+  switch (delim) {
+  case '\'': retval = find_quote(&tstr); break;
+  case '"':  retval = find_doublequote(&tstr); break;
+  case '}':  retval = find_curlybracket(&tstr); break;
+  case ']':  retval = find_bracket(&tstr); break;
+  case ')':  retval = find_paren(&tstr); break;
+  default: return 0; /* Invalid delimeter, return failure */
+  }
+
+  /* Delimeter not found, return failure */
+  if (retval) return 0;
+
+  /* Delimeter was found, return next position */
+  return (tstr);
+}
+
 /*--------------------------------------------------------------------------*/
 static int find_doublequote(char **string)
 
@@ -6121,11 +6158,12 @@ int ffifile2(char *url,       /* input filename */
                     return(*status = URL_PARSE_ERROR);
             }
 
-            strcpy(binspec, ptr1 + 1);       
-            ptr2 = strchr(binspec, ']');
+            strcpy(binspec, ptr1 + 1);
+	    ptr2 = fits_find_match_delim(binspec, ']');
 
             if (ptr2)      /* terminate the binning filter */
             {
+	        --ptr2;    /* points beyond delimeter, so rewind by 1 */
                 *ptr2 = '\0';
 
                 if ( *(--ptr2) == ' ')  /* delete trailing spaces */
@@ -6141,9 +6179,16 @@ int ffifile2(char *url,       /* input filename */
         }
 
         /* delete the binning spec from the row filter string */
-        ptr2 = strchr(ptr1, ']');
-        strcpy(tmpstr, ptr2+1);  /* copy any chars after the binspec */
-        strcpy(ptr1, tmpstr);    /* overwrite binspec */
+	ptr2 = fits_find_match_delim(ptr1+1, ']');
+	if (ptr2) {
+	  strcpy(tmpstr, ptr2);    /* copy any chars after the binspec */
+	  strcpy(ptr1, tmpstr);    /* overwrite binspec */
+	} else {
+	  ffpmsg("input file URL is missing closing bracket ']'");
+	  ffpmsg(rowfilter);
+	  free(infile);
+	  return(*status = URL_PARSE_ERROR);  /* error, no closing ] */
+	}
     }
 
     /* --------------------------------------------------------- */
