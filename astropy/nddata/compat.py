@@ -16,7 +16,7 @@ from .mixins.ndio import NDIOMixin
 
 from .flag_collection import FlagCollection
 
-__all__ = ['NDDataArray']
+__all__ = ["NDDataArray"]
 
 
 class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
@@ -82,7 +82,6 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     """
 
     def __init__(self, data, *args, flags=None, **kwargs):
-
         # Initialize with the parent...
         super().__init__(data, *args, **kwargs)
 
@@ -100,8 +99,9 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
             if flags is None:
                 flags = data.flags
             else:
-                log.info("Overwriting NDDataArrays's current "
-                         "flags with specified flags")
+                log.info(
+                    "Overwriting NDDataArrays's current flags with specified flags"
+                )
         self.flags = flags
 
     # Implement uncertainty as NDUncertainty to support propagation of
@@ -117,14 +117,17 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                 class_name = self.__class__.__name__
                 if not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not
-                    raise ValueError("Cannot assign an uncertainty with unit "
-                                     "to {} without "
-                                     "a unit".format(class_name))
+                    raise ValueError(
+                        "Cannot assign an uncertainty with unit "
+                        "to {} without "
+                        "a unit".format(class_name)
+                    )
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
             else:
-                raise TypeError("Uncertainty must be an instance of "
-                                "a NDUncertainty object")
+                raise TypeError(
+                    "Uncertainty must be an instance of a NDUncertainty object"
+                )
         else:
             self._uncertainty = value
 
@@ -139,10 +142,12 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
         try:
             if self._unit is not None and conf.warn_setting_unit_directly:
-                log.info('Setting the unit directly changes the unit without '
-                         'updating the data or uncertainty. Use the '
-                         '.convert_unit_to() method to change the unit and '
-                         'scale values appropriately.')
+                log.info(
+                    "Setting the unit directly changes the unit without "
+                    "updating the data or uncertainty. Use the "
+                    ".convert_unit_to() method to change the unit and "
+                    "scale values appropriately."
+                )
         except AttributeError:
             # raised if self._unit has not been set yet, in which case the
             # warning is irrelevant
@@ -271,8 +276,9 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
             raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)
         if self.uncertainty is not None:
-            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
-                                              equivalencies=equivalencies)
+            uncertainty_values = self.unit.to(
+                unit, self.uncertainty.array, equivalencies=equivalencies
+            )
             # should work for any uncertainty class
             uncertainty = self.uncertainty.__class__(uncertainty_values)
         else:
@@ -282,9 +288,13 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         else:
             new_mask = None
         # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(data, uncertainty=uncertainty,
-                                mask=new_mask,
-                                wcs=self.wcs,
-                                meta=self.meta, unit=unit)
+        result = self.__class__(
+            data,
+            uncertainty=uncertainty,
+            mask=new_mask,
+            wcs=self.wcs,
+            meta=self.meta,
+            unit=unit,
+        )
 
         return result

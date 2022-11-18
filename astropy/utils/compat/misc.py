@@ -11,9 +11,13 @@ import functools
 from contextlib import suppress
 
 
-__all__ = ['override__dir__', 'suppress',
-           'possible_filename', 'namedtuple_asdict',
-           'PYTHON_LT_3_11']
+__all__ = [
+    "override__dir__",
+    "suppress",
+    "possible_filename",
+    "namedtuple_asdict",
+    "PYTHON_LT_3_11",
+]
 
 PYTHON_LT_3_11 = sys.version_info < (3, 11)
 
@@ -33,7 +37,7 @@ def possible_filename(filename):
     if isinstance(filename, str):
         return True
     elif isinstance(filename, bytes):
-        return not (sys.platform == 'win32')
+        return not (sys.platform == "win32")
 
     return False
 

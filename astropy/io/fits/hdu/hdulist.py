@@ -16,9 +16,16 @@ from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from astropy.io.fits.file import _File, FILE_MODES
 from astropy.io.fits.header import _pad_length
-from astropy.io.fits.util import (_free_space_check, _get_array_mmap, _is_int,
-                                  _tmp_name, fileobj_closed, fileobj_mode,
-                                  ignore_sigint, isfile)
+from astropy.io.fits.util import (
+    _free_space_check,
+    _get_array_mmap,
+    _is_int,
+    _tmp_name,
+    fileobj_closed,
+    fileobj_mode,
+    ignore_sigint,
+    isfile,
+)
 from astropy.io.fits.verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
@@ -26,18 +33,26 @@ from astropy.utils.decorators import deprecated_renamed_argument
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
+
 if HAS_BZ2:
     import bz2
 
 __all__ = ["HDUList", "fitsopen"]
 
 # FITS file signature as per RFC 4047
-FITS_SIGNATURE = b'SIMPLE  =                    T'
+FITS_SIGNATURE = b"SIMPLE  =                    T"
 
 
-def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
-             cache=True, lazy_load_hdus=None, ignore_missing_simple=False,
-             **kwargs):
+def fitsopen(
+    name,
+    mode="readonly",
+    memmap=None,
+    save_backup=False,
+    cache=True,
+    lazy_load_hdus=None,
+    ignore_missing_simple=False,
+    **kwargs,
+):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -167,14 +182,22 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     else:
         lazy_load_hdus = bool(lazy_load_hdus)
 
-    if 'uint' not in kwargs:
-        kwargs['uint'] = conf.enable_uint
+    if "uint" not in kwargs:
+        kwargs["uint"] = conf.enable_uint
 
     if not name:
-        raise ValueError(f'Empty filename: {name!r}')
+        raise ValueError(f"Empty filename: {name!r}")
 
-    return HDUList.fromfile(name, mode, memmap, save_backup, cache,
-                            lazy_load_hdus, ignore_missing_simple, **kwargs)
+    return HDUList.fromfile(
+        name,
+        mode,
+        memmap,
+        save_backup,
+        cache,
+        lazy_load_hdus,
+        ignore_missing_simple,
+        **kwargs,
+    )
 
 
 class HDUList(list, _Verify):
@@ -221,7 +244,7 @@ class HDUList(list, _Verify):
             self._read_all = True
         elif self._file is not None:
             # Should never attempt to read HDUs in ostream mode
-            self._read_all = self._file.mode == 'ostream'
+            self._read_all = self._file.mode == "ostream"
         else:
             self._read_all = False
 
@@ -309,9 +332,11 @@ class HDUList(list, _Verify):
                 if self._read_all:
                     raise e
                 else:
-                    raise IndexError('HDU not found, possibly because the index '
-                                     'is out of range, or because the file was '
-                                     'closed before all HDUs were read')
+                    raise IndexError(
+                        "HDU not found, possibly because the index "
+                        "is out of range, or because the file was "
+                        "closed before all HDUs were read"
+                    )
             else:
                 return HDUList(hdus)
 
@@ -319,16 +344,19 @@ class HDUList(list, _Verify):
         # a very large number of HDUs could blow the stack, so use a loop
         # instead
         try:
-            return self._try_while_unread_hdus(super().__getitem__,
-                                               self._positive_index_of(key))
+            return self._try_while_unread_hdus(
+                super().__getitem__, self._positive_index_of(key)
+            )
         except IndexError as e:
             # Raise a more helpful IndexError if the file was not fully read.
             if self._read_all:
                 raise e
             else:
-                raise IndexError('HDU not found, possibly because the index '
-                                 'is out of range, or because the file was '
-                                 'closed before all HDUs were read')
+                raise IndexError(
+                    "HDU not found, possibly because the index "
+                    "is out of range, or because the file was "
+                    "closed before all HDUs were read"
+                )
 
     def __contains__(self, item):
         """
@@ -353,18 +381,18 @@ class HDUList(list, _Verify):
         _key = self._positive_index_of(key)
         if isinstance(hdu, (slice, list)):
             if _is_int(_key):
-                raise ValueError('An element in the HDUList must be an HDU.')
+                raise ValueError("An element in the HDUList must be an HDU.")
             for item in hdu:
                 if not isinstance(item, _BaseHDU):
-                    raise ValueError(f'{item} is not an HDU.')
+                    raise ValueError(f"{item} is not an HDU.")
         else:
             if not isinstance(hdu, _BaseHDU):
-                raise ValueError(f'{hdu} is not an HDU.')
+                raise ValueError(f"{hdu} is not an HDU.")
 
         try:
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
-            raise IndexError(f'Extension {key} is out of bound or not found.')
+            raise IndexError(f"Extension {key} is out of bound or not found.")
 
         self._resize = True
         self._truncate = False
@@ -382,7 +410,7 @@ class HDUList(list, _Verify):
 
         self._try_while_unread_hdus(super().__delitem__, key)
 
-        if (key == end_index or key == -1 and not self._resize):
+        if key == end_index or key == -1 and not self._resize:
             self._truncate = True
         else:
             self._truncate = False
@@ -393,13 +421,21 @@ class HDUList(list, _Verify):
         return self
 
     def __exit__(self, type, value, traceback):
-        output_verify = self._open_kwargs.get('output_verify', 'exception')
+        output_verify = self._open_kwargs.get("output_verify", "exception")
         self.close(output_verify=output_verify)
 
     @classmethod
-    def fromfile(cls, fileobj, mode=None, memmap=None,
-                 save_backup=False, cache=True, lazy_load_hdus=True,
-                 ignore_missing_simple=False, **kwargs):
+    def fromfile(
+        cls,
+        fileobj,
+        mode=None,
+        memmap=None,
+        save_backup=False,
+        cache=True,
+        lazy_load_hdus=True,
+        ignore_missing_simple=False,
+        **kwargs,
+    ):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -408,10 +444,16 @@ class HDUList(list, _Verify):
         documentation for details of the parameters accepted by this method).
         """
 
-        return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
-                             save_backup=save_backup, cache=cache,
-                             ignore_missing_simple=ignore_missing_simple,
-                             lazy_load_hdus=lazy_load_hdus, **kwargs)
+        return cls._readfrom(
+            fileobj=fileobj,
+            mode=mode,
+            memmap=memmap,
+            save_backup=save_backup,
+            cache=cache,
+            ignore_missing_simple=ignore_missing_simple,
+            lazy_load_hdus=lazy_load_hdus,
+            **kwargs,
+        )
 
     @classmethod
     def fromstring(cls, data, **kwargs):
@@ -447,15 +489,16 @@ class HDUList(list, _Verify):
         try:
             # Test that the given object supports the buffer interface by
             # ensuring an ndarray can be created from it
-            np.ndarray((), dtype='ubyte', buffer=data)
+            np.ndarray((), dtype="ubyte", buffer=data)
         except TypeError:
             raise TypeError(
-                'The provided object {} does not contain an underlying '
-                'memory buffer.  fromstring() requires an object that '
-                'supports the buffer interface such as bytes, buffer, '
-                'memoryview, ndarray, etc.  This restriction is to ensure '
-                'that efficient access to the array/table data is possible.'
-                ''.format(data))
+                "The provided object {} does not contain an underlying "
+                "memory buffer.  fromstring() requires an object that "
+                "supports the buffer interface such as bytes, buffer, "
+                "memoryview, ndarray, etc.  This restriction is to ensure "
+                "that efficient access to the array/table data is possible."
+                "".format(data)
+            )
 
         return cls._readfrom(data=data, **kwargs)
 
@@ -512,15 +555,20 @@ class HDUList(list, _Verify):
                     info = hdu.fileinfo()
 
                     if info:
-                        f = info['file']
-                        fm = info['filemode']
+                        f = info["file"]
+                        fm = info["filemode"]
                         break
 
-                output = {'file': f, 'filemode': fm, 'hdrLoc': None,
-                          'datLoc': None, 'datSpan': None}
+                output = {
+                    "file": f,
+                    "filemode": fm,
+                    "hdrLoc": None,
+                    "datLoc": None,
+                    "datSpan": None,
+                }
 
-            output['filename'] = self._file.name
-            output['resized'] = self._wasresized()
+            output["filename"] = self._file.name
+            output["resized"] = self._wasresized()
         else:
             output = None
 
@@ -546,7 +594,7 @@ class HDUList(list, _Verify):
         return HDUList([hdu.copy() for hdu in self])
 
     def pop(self, index=-1):
-        """ Remove an item from the list and return it.
+        """Remove an item from the list and return it.
 
         Parameters
         ----------
@@ -591,7 +639,7 @@ class HDUList(list, _Verify):
         """
 
         if not isinstance(hdu, _BaseHDU):
-            raise ValueError(f'{hdu} is not an HDU.')
+            raise ValueError(f"{hdu} is not an HDU.")
 
         num_hdus = len(self)
 
@@ -603,7 +651,8 @@ class HDUList(list, _Verify):
                     raise ValueError(
                         "The current Primary HDU is a GroupsHDU.  "
                         "It can't be made into an extension HDU, "
-                        "so another HDU cannot be inserted before it.")
+                        "so another HDU cannot be inserted before it."
+                    )
 
                 hdu1 = ImageHDU(self[0].data, self[0].header)
 
@@ -627,8 +676,7 @@ class HDUList(list, _Verify):
                     index = 1
         else:
             if isinstance(hdu, GroupsHDU):
-                raise ValueError('A GroupsHDU must be inserted as a '
-                                 'Primary HDU.')
+                raise ValueError("A GroupsHDU must be inserted as a Primary HDU.")
 
             if isinstance(hdu, PrimaryHDU):
                 # You passed a Primary HDU but we need an Extension HDU
@@ -653,12 +701,11 @@ class HDUList(list, _Verify):
         """
 
         if not isinstance(hdu, _BaseHDU):
-            raise ValueError('HDUList can only append an HDU.')
+            raise ValueError("HDUList can only append an HDU.")
 
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
-                raise ValueError(
-                    "Can't append a GroupsHDU to a non-empty HDUList")
+                raise ValueError("Can't append a GroupsHDU to a non-empty HDUList")
 
             if isinstance(hdu, PrimaryHDU):
                 # You passed a Primary HDU but we need an Extension HDU
@@ -740,9 +787,10 @@ class HDUList(list, _Verify):
 
         if not isinstance(_key, str):
             raise KeyError(
-                '{} indices must be integers, extension names as strings, '
-                'or (extname, version) tuples; got {}'
-                ''.format(self.__class__.__name__, _key))
+                "{} indices must be integers, extension names as strings, "
+                "or (extname, version) tuples; got {}"
+                "".format(self.__class__.__name__, _key)
+            )
 
         _key = (_key.strip()).upper()
 
@@ -752,13 +800,14 @@ class HDUList(list, _Verify):
             if isinstance(name, str):
                 name = name.strip().upper()
             # 'PRIMARY' should always work as a reference to the first HDU
-            if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
-                    (_ver is None or _ver == hdu.ver)):
+            if (name == _key or (_key == "PRIMARY" and idx == 0)) and (
+                _ver is None or _ver == hdu.ver
+            ):
                 found = idx
                 break
 
-        if (found is None):
-            raise KeyError(f'Extension {key!r} not found.')
+        if found is None:
+            raise KeyError(f"Extension {key!r} not found.")
         else:
             return found
 
@@ -783,8 +832,7 @@ class HDUList(list, _Verify):
             return index
 
         if abs(index) > len(self):
-            raise IndexError(
-                f'Extension {index} is out of bound or not found.')
+            raise IndexError(f"Extension {index} is out of bound or not found.")
 
         return len(self) + index
 
@@ -796,7 +844,7 @@ class HDUList(list, _Verify):
             pass
 
     @ignore_sigint
-    def flush(self, output_verify='fix', verbose=False):
+    def flush(self, output_verify="fix", verbose=False):
         """
         Force a write of the `HDUList` back to the file (for append and
         update modes only).
@@ -814,39 +862,46 @@ class HDUList(list, _Verify):
             When `True`, print verbose messages
         """
 
-        if self._file.mode not in ('append', 'update', 'ostream'):
-            warnings.warn("Flush for '{}' mode is not supported."
-                          .format(self._file.mode), AstropyUserWarning)
+        if self._file.mode not in ("append", "update", "ostream"):
+            warnings.warn(
+                "Flush for '{}' mode is not supported.".format(self._file.mode),
+                AstropyUserWarning,
+            )
             return
 
-        save_backup = self._open_kwargs.get('save_backup', False)
-        if save_backup and self._file.mode in ('append', 'update'):
+        save_backup = self._open_kwargs.get("save_backup", False)
+        if save_backup and self._file.mode in ("append", "update"):
             filename = self._file.name
             if os.path.exists(filename):
                 # The the file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
-                backup = filename + '.bak'
+                backup = filename + ".bak"
                 idx = 1
                 while os.path.exists(backup):
-                    backup = filename + '.bak.' + str(idx)
+                    backup = filename + ".bak." + str(idx)
                     idx += 1
-                warnings.warn('Saving a backup of {} to {}.'.format(
-                        filename, backup), AstropyUserWarning)
+                warnings.warn(
+                    "Saving a backup of {} to {}.".format(filename, backup),
+                    AstropyUserWarning,
+                )
                 try:
                     shutil.copy(filename, backup)
                 except OSError as exc:
-                    raise OSError('Failed to save backup to destination {}: '
-                                  '{}'.format(filename, exc))
+                    raise OSError(
+                        "Failed to save backup to destination {}: {}".format(
+                            filename, exc
+                        )
+                    )
 
         self.verify(option=output_verify)
 
-        if self._file.mode in ('append', 'ostream'):
+        if self._file.mode in ("append", "ostream"):
             for hdu in self:
                 if verbose:
                     try:
-                        extver = str(hdu._header['extver'])
+                        extver = str(hdu._header["extver"])
                     except KeyError:
-                        extver = ''
+                        extver = ""
 
                 # only append HDU's which are "new"
                 if hdu._new:
@@ -854,11 +909,11 @@ class HDUList(list, _Verify):
                     with _free_space_check(self):
                         hdu._writeto(self._file)
                         if verbose:
-                            print('append HDU', hdu.name, extver)
+                            print("append HDU", hdu.name, extver)
                         hdu._new = False
                     hdu._postwriteto()
 
-        elif self._file.mode == 'update':
+        elif self._file.mode == "update":
             self._flush_update()
 
     def update_extend(self):
@@ -883,23 +938,30 @@ class HDUList(list, _Verify):
             except IndexError:
                 return None
 
-        if 'EXTEND' in hdr:
-            if not hdr['EXTEND'] and get_first_ext() is not None:
-                hdr['EXTEND'] = True
+        if "EXTEND" in hdr:
+            if not hdr["EXTEND"] and get_first_ext() is not None:
+                hdr["EXTEND"] = True
         elif get_first_ext() is not None:
-            if hdr['NAXIS'] == 0:
-                hdr.set('EXTEND', True, after='NAXIS')
+            if hdr["NAXIS"] == 0:
+                hdr.set("EXTEND", True, after="NAXIS")
             else:
-                n = hdr['NAXIS']
-                hdr.set('EXTEND', True, after='NAXIS' + str(n))
+                n = hdr["NAXIS"]
+                hdr.set("EXTEND", True, after="NAXIS" + str(n))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
-                                 message='"clobber" was deprecated in version '
-                                         '2.0 and will be removed in version '
-                                         '5.1. Use argument "overwrite" '
-                                         'instead.')
-    def writeto(self, fileobj, output_verify='exception', overwrite=False,
-                checksum=False):
+    @deprecated_renamed_argument(
+        "clobber",
+        "overwrite",
+        "2.0",
+        message=(
+            '"clobber" was deprecated in version '
+            "2.0 and will be removed in version "
+            '5.1. Use argument "overwrite" '
+            "instead."
+        ),
+    )
+    def writeto(
+        self, fileobj, output_verify="exception", overwrite=False, checksum=False
+    ):
         """
         Write the `HDUList` to a new file.
 
@@ -929,7 +991,7 @@ class HDUList(list, _Verify):
             to the headers of all HDU's written to the file.
         """
 
-        if (len(self) == 0):
+        if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
             return
 
@@ -943,7 +1005,7 @@ class HDUList(list, _Verify):
         # of the caller)
         closed = isinstance(fileobj, str) or fileobj_closed(fileobj)
 
-        mode = FILE_MODES[fileobj_mode(fileobj)] if isfile(fileobj) else 'ostream'
+        mode = FILE_MODES[fileobj_mode(fileobj)] if isfile(fileobj) else "ostream"
 
         # This can accept an open file object that's open to write only, or in
         # append/update modes but only if the file doesn't exist.
@@ -963,7 +1025,7 @@ class HDUList(list, _Verify):
         finally:
             hdulist.close(output_verify=output_verify, closed=closed)
 
-    def close(self, output_verify='exception', verbose=False, closed=True):
+    def close(self, output_verify="exception", verbose=False, closed=True):
         """
         Close the associated FITS file and memmap object, if any.
 
@@ -984,11 +1046,14 @@ class HDUList(list, _Verify):
         """
 
         try:
-            if (self._file and self._file.mode in ('append', 'update')
-                    and not self._file.closed):
+            if (
+                self._file
+                and self._file.mode in ("append", "update")
+                and not self._file.closed
+            ):
                 self.flush(output_verify=output_verify, verbose=verbose)
         finally:
-            if self._file and closed and hasattr(self._file, 'close'):
+            if self._file and closed and hasattr(self._file, "close"):
                 self._file.close()
 
             # Give individual HDUs an opportunity to do on-close cleanup
@@ -1014,19 +1079,21 @@ class HDUList(list, _Verify):
             output = sys.stdout
 
         if self._file is None:
-            name = '(No file associated with this HDUList)'
+            name = "(No file associated with this HDUList)"
         else:
             name = self._file.name
 
-        results = [f'Filename: {name}',
-                   'No.    Name      Ver    Type      Cards   Dimensions   Format']
+        results = [
+            f"Filename: {name}",
+            "No.    Name      Ver    Type      Cards   Dimensions   Format",
+        ]
 
-        format = '{:3d}  {:10}  {:3} {:11}  {:5d}   {}   {}   {}'
-        default = ('', '', '', 0, (), '', '')
+        format = "{:3d}  {:10}  {:3} {:11}  {:5d}   {}   {}   {}"
+        default = ("", "", "", 0, (), "", "")
         for idx, hdu in enumerate(self):
             summary = hdu._summary()
             if len(summary) < len(default):
-                summary += default[len(summary):]
+                summary += default[len(summary) :]
             summary = (idx,) + summary
             if output:
                 results.append(format.format(*summary))
@@ -1034,8 +1101,8 @@ class HDUList(list, _Verify):
                 results.append(summary)
 
         if output:
-            output.write('\n'.join(results))
-            output.write('\n')
+            output.write("\n".join(results))
+            output.write("\n")
             output.flush()
         else:
             return results[2:]
@@ -1053,14 +1120,22 @@ class HDUList(list, _Verify):
 
         """
         if self._file is not None:
-            if hasattr(self._file, 'name'):
+            if hasattr(self._file, "name"):
                 return self._file.name
         return None
 
     @classmethod
-    def _readfrom(cls, fileobj=None, data=None, mode=None, memmap=None,
-                  cache=True, lazy_load_hdus=True, ignore_missing_simple=False,
-                  **kwargs):
+    def _readfrom(
+        cls,
+        fileobj=None,
+        data=None,
+        mode=None,
+        memmap=None,
+        cache=True,
+        lazy_load_hdus=True,
+        ignore_missing_simple=False,
+        **kwargs,
+    ):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -1078,7 +1153,7 @@ class HDUList(list, _Verify):
         else:
             if mode is None:
                 # The default mode
-                mode = 'readonly'
+                mode = "readonly"
 
             hdulist = cls(file=data)
             # This method is currently only called from HDUList.fromstring and
@@ -1086,32 +1161,40 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
-        if (not ignore_missing_simple and
-                hdulist._file and
-                hdulist._file.mode != 'ostream' and
-                hdulist._file.size > 0):
+        if (
+            not ignore_missing_simple
+            and hdulist._file
+            and hdulist._file.mode != "ostream"
+            and hdulist._file.size > 0
+        ):
             pos = hdulist._file.tell()
             # FITS signature is supposed to be in the first 30 bytes, but to
             # allow reading various invalid files we will check in the first
             # card (80 bytes).
             simple = hdulist._file.read(80)
-            match_sig = (simple[:29] == FITS_SIGNATURE[:-1] and
-                         simple[29:30] in (b'T', b'F'))
+            match_sig = simple[:29] == FITS_SIGNATURE[:-1] and simple[29:30] in (
+                b"T",
+                b"F",
+            )
 
             if not match_sig:
                 # Check the SIMPLE card is there but not written correctly
                 match_sig_relaxed = re.match(rb"SIMPLE\s*=\s*[T|F]", simple)
 
                 if match_sig_relaxed:
-                    warnings.warn("Found a SIMPLE card but its format doesn't"
-                                  " respect the FITS Standard", VerifyWarning)
+                    warnings.warn(
+                        "Found a SIMPLE card but its format doesn't"
+                        " respect the FITS Standard",
+                        VerifyWarning,
+                    )
                 else:
                     if hdulist._file.close_on_error:
                         hdulist._file.close()
                     raise OSError(
-                        'No SIMPLE card found, this file does not appear to '
-                        'be a valid FITS file. If this is really a FITS file, '
-                        'try with ignore_missing_simple=True')
+                        "No SIMPLE card found, this file does not appear to "
+                        "be a valid FITS file. If this is really a FITS file, "
+                        "try with ignore_missing_simple=True"
+                    )
 
             hdulist._file.seek(pos)
 
@@ -1128,14 +1211,14 @@ class HDUList(list, _Verify):
 
         # If we're trying to read only and no header units were found,
         # raise an exception
-        if not read_one and mode in ('readonly', 'denywrite'):
+        if not read_one and mode in ("readonly", "denywrite"):
             # Close the file if necessary (issue #6168)
             if hdulist._file.close_on_error:
                 hdulist._file.close()
 
-            raise OSError('Empty or corrupt FITS file')
+            raise OSError("Empty or corrupt FITS file")
 
-        if not lazy_load_hdus or kwargs.get('checksum') is True:
+        if not lazy_load_hdus or kwargs.get("checksum") is True:
             # Go ahead and load all HDUs
             while hdulist._read_next_hdu():
                 pass
@@ -1183,8 +1266,10 @@ class HDUList(list, _Verify):
         try:
             self._in_read_next_hdu = True
 
-            if ('disable_image_compression' in kwargs and
-                    kwargs['disable_image_compression']):
+            if (
+                "disable_image_compression" in kwargs
+                and kwargs["disable_image_compression"]
+            ):
                 compressed.COMPRESSION_ENABLED = False
 
             # read all HDUs
@@ -1220,7 +1305,7 @@ class HDUList(list, _Verify):
                         self._read_all = True
                         return False
                     hdu = _BaseHDU.fromstring(data, **kwargs)
-                    self._data = data[hdu._data_offset + hdu._data_size:]
+                    self._data = data[hdu._data_offset + hdu._data_size :]
 
                 super().append(hdu)
                 if len(self) == 1:
@@ -1229,17 +1314,18 @@ class HDUList(list, _Verify):
                     self.update_extend()
 
                 hdu._new = False
-                if 'checksum' in kwargs:
-                    hdu._output_checksum = kwargs['checksum']
+                if "checksum" in kwargs:
+                    hdu._output_checksum = kwargs["checksum"]
             # check in the case there is extra space after the last HDU or
             # corrupted HDU
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
-                    'Error validating header for HDU #{} (note: Astropy '
-                    'uses zero-based indexing).\n{}\n'
-                    'There may be extra bytes after the last HDU or the '
-                    'file is corrupted.'.format(
-                        len(self), indent(str(exc))), VerifyWarning)
+                    "Error validating header for HDU #{} (note: Astropy "
+                    "uses zero-based indexing).\n{}\n"
+                    "There may be extra bytes after the last HDU or the "
+                    "file is corrupted.".format(len(self), indent(str(exc))),
+                    VerifyWarning,
+                )
                 del exc
                 self._read_all = True
                 return False
@@ -1249,38 +1335,44 @@ class HDUList(list, _Verify):
 
         return True
 
-    def _verify(self, option='warn'):
-        errs = _ErrList([], unit='HDU')
+    def _verify(self, option="warn"):
+        errs = _ErrList([], unit="HDU")
 
         # the first (0th) element must be a primary HDU
-        if len(self) > 0 and (not isinstance(self[0], PrimaryHDU)) and \
-                             (not isinstance(self[0], _NonstandardHDU)):
+        if (
+            len(self) > 0
+            and (not isinstance(self[0], PrimaryHDU))
+            and (not isinstance(self[0], _NonstandardHDU))
+        ):
             err_text = "HDUList's 0th element is not a primary HDU."
-            fix_text = 'Fixed by inserting one as 0th HDU.'
+            fix_text = "Fixed by inserting one as 0th HDU."
 
             def fix(self=self):
                 self.insert(0, PrimaryHDU())
 
-            err = self.run_option(option, err_text=err_text,
-                                  fix_text=fix_text, fix=fix)
+            err = self.run_option(option, err_text=err_text, fix_text=fix_text, fix=fix)
             errs.append(err)
 
-        if len(self) > 1 and ('EXTEND' not in self[0].header or
-                              self[0].header['EXTEND'] is not True):
-            err_text = ('Primary HDU does not contain an EXTEND keyword '
-                        'equal to T even though there are extension HDUs.')
-            fix_text = 'Fixed by inserting or updating the EXTEND keyword.'
+        if len(self) > 1 and (
+            "EXTEND" not in self[0].header or self[0].header["EXTEND"] is not True
+        ):
+            err_text = (
+                "Primary HDU does not contain an EXTEND keyword "
+                "equal to T even though there are extension HDUs."
+            )
+            fix_text = "Fixed by inserting or updating the EXTEND keyword."
 
             def fix(header=self[0].header):
-                naxis = header['NAXIS']
+                naxis = header["NAXIS"]
                 if naxis == 0:
-                    after = 'NAXIS'
+                    after = "NAXIS"
                 else:
-                    after = 'NAXIS' + str(naxis)
-                header.set('EXTEND', value=True, after=after)
+                    after = "NAXIS" + str(naxis)
+                header.set("EXTEND", value=True, after=after)
 
-            errs.append(self.run_option(option, err_text=err_text,
-                                        fix_text=fix_text, fix=fix))
+            errs.append(
+                self.run_option(option, err_text=err_text, fix_text=fix_text, fix=fix)
+            )
 
         # each element calls their own verify
         for idx, hdu in enumerate(self):
@@ -1338,29 +1430,32 @@ class HDUList(list, _Verify):
             # The underlying file is an actual file object.  The HDUList is
             # resized, so we need to write it to a tmp file, delete the
             # original file, and rename the tmp file to the original file.
-            if self._file.compression == 'gzip':
-                new_file = gzip.GzipFile(name, mode='ab+')
-            elif self._file.compression == 'bzip2':
+            if self._file.compression == "gzip":
+                new_file = gzip.GzipFile(name, mode="ab+")
+            elif self._file.compression == "bzip2":
                 if not HAS_BZ2:
                     raise ModuleNotFoundError(
-                        "This Python installation does not provide the bz2 module.")
-                new_file = bz2.BZ2File(name, mode='w')
+                        "This Python installation does not provide the bz2 module."
+                    )
+                new_file = bz2.BZ2File(name, mode="w")
             else:
                 new_file = name
 
-            with self.fromfile(new_file, mode='append') as hdulist:
-
+            with self.fromfile(new_file, mode="append") as hdulist:
                 for hdu in self:
                     hdu._writeto(hdulist._file, inplace=True, copy=True)
-                if sys.platform.startswith('win'):
+                if sys.platform.startswith("win"):
                     # Collect a list of open mmaps to the data; this well be
                     # used later.  See below.
-                    mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
-                             for idx, hdu in enumerate(self) if hdu._has_data]
+                    mmaps = [
+                        (idx, _get_array_mmap(hdu.data), hdu.data)
+                        for idx, hdu in enumerate(self)
+                        if hdu._has_data
+                    ]
 
                 hdulist._file.close()
                 self._file.close()
-            if sys.platform.startswith('win'):
+            if sys.platform.startswith("win"):
                 # Close all open mmaps to the data.  This is only necessary on
                 # Windows, which will not allow a file to be renamed or deleted
                 # until all handles to that file have been closed.
@@ -1375,11 +1470,11 @@ class HDUList(list, _Verify):
             os.chmod(old_name, old_mode)
 
             if isinstance(new_file, gzip.GzipFile):
-                old_file = gzip.GzipFile(old_name, mode='rb+')
+                old_file = gzip.GzipFile(old_name, mode="rb+")
             else:
                 old_file = old_name
 
-            ffo = _File(old_file, mode='update', memmap=old_memmap)
+            ffo = _File(old_file, mode="update", memmap=old_memmap)
 
             self._file = ffo
 
@@ -1390,7 +1485,7 @@ class HDUList(list, _Verify):
                     del hdu.data
                 hdu._file = ffo
 
-            if sys.platform.startswith('win'):
+            if sys.platform.startswith("win"):
                 # On Windows, all the original data mmaps were closed above.
                 # However, it's possible that the user still has references to
                 # the old data which would no longer work (possibly even cause
@@ -1405,7 +1500,7 @@ class HDUList(list, _Verify):
                     if mmap is not None:
                         # https://github.com/numpy/numpy/issues/8628
                         with warnings.catch_warnings():
-                            warnings.simplefilter('ignore', category=DeprecationWarning)
+                            warnings.simplefilter("ignore", category=DeprecationWarning)
                             arr.data = self[idx].data.data
                 del mmaps  # Just to be sure
 
@@ -1447,7 +1542,6 @@ class HDUList(list, _Verify):
         """
 
         if not self._resize:
-
             # determine if any of the HDU is resized
             for hdu in self:
                 # Header:
@@ -1456,7 +1550,7 @@ class HDUList(list, _Verify):
                     self._resize = True
                     self._truncate = False
                     if verbose:
-                        print('One or more header is resized.')
+                        print("One or more header is resized.")
                     break
 
                 # Data:
@@ -1469,7 +1563,7 @@ class HDUList(list, _Verify):
                     self._resize = True
                     self._truncate = False
                     if verbose:
-                        print('One or more data area is resized.')
+                        print("One or more data area is resized.")
                     break
 
             if self._truncate:

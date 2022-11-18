@@ -1,12 +1,22 @@
-
 import numpy as np
 
 from .utils import trig_sum
 
 
-def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
-                         fit_mean=True, center_data=True, nterms=1,
-                         use_fft=True, trig_sum_kwds=None):
+def lombscargle_fastchi2(
+    t,
+    y,
+    dy,
+    f0,
+    df,
+    Nf,
+    normalization="standard",
+    fit_mean=True,
+    center_data=True,
+    nterms=1,
+    use_fft=True,
+    trig_sum_kwds=None,
+):
     """Lomb-Scargle Periodogram
 
     This implements a fast chi-squared periodogram using the algorithm
@@ -66,7 +76,7 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     if Nf <= 0:
         raise ValueError("Number of frequencies must be positive")
 
-    w = dy ** -2.0
+    w = dy**-2.0
     ws = np.sum(w)
 
     # if fit_mean is true, centering the data now simplifies the math below.
@@ -88,46 +98,47 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
     yws = np.sum(y * w)
 
     SCw = [(np.zeros(Nf), ws * np.ones(Nf))]
-    SCw.extend([trig_sum(t, w, freq_factor=i, **kwargs)
-                for i in range(1, 2 * nterms + 1)])
+    SCw.extend(
+        [trig_sum(t, w, freq_factor=i, **kwargs) for i in range(1, 2 * nterms + 1)]
+    )
     Sw, Cw = zip(*SCw)
 
     SCyw = [(np.zeros(Nf), yws * np.ones(Nf))]
-    SCyw.extend([trig_sum(t, w * y, freq_factor=i, **kwargs)
-                 for i in range(1, nterms + 1)])
+    SCyw.extend(
+        [trig_sum(t, w * y, freq_factor=i, **kwargs) for i in range(1, nterms + 1)]
+    )
     Syw, Cyw = zip(*SCyw)
 
     # Now create an indexing scheme so we can quickly
     # build-up matrices at each frequency
-    order = [('C', 0)] if fit_mean else []
-    order.extend(sum([[('S', i), ('C', i)]
-                      for i in range(1, nterms + 1)], []))
+    order = [("C", 0)] if fit_mean else []
+    order.extend(sum([[("S", i), ("C", i)] for i in range(1, nterms + 1)], []))
 
-    funcs = dict(S=lambda m, i: Syw[m][i],
-                 C=lambda m, i: Cyw[m][i],
-                 SS=lambda m, n, i: 0.5 * (Cw[abs(m - n)][i] - Cw[m + n][i]),
-                 CC=lambda m, n, i: 0.5 * (Cw[abs(m - n)][i] + Cw[m + n][i]),
-                 SC=lambda m, n, i: 0.5 * (np.sign(m - n) * Sw[abs(m - n)][i]
-                                           + Sw[m + n][i]),
-                 CS=lambda m, n, i: 0.5 * (np.sign(n - m) * Sw[abs(n - m)][i]
-                                           + Sw[n + m][i]))
+    funcs = dict(
+        S=lambda m, i: Syw[m][i],
+        C=lambda m, i: Cyw[m][i],
+        SS=lambda m, n, i: 0.5 * (Cw[abs(m - n)][i] - Cw[m + n][i]),
+        CC=lambda m, n, i: 0.5 * (Cw[abs(m - n)][i] + Cw[m + n][i]),
+        SC=lambda m, n, i: 0.5 * (np.sign(m - n) * Sw[abs(m - n)][i] + Sw[m + n][i]),
+        CS=lambda m, n, i: 0.5 * (np.sign(n - m) * Sw[abs(n - m)][i] + Sw[n + m][i]),
+    )
 
     def compute_power(i):
-        XTX = np.array([[funcs[A[0] + B[0]](A[1], B[1], i)
-                         for A in order]
-                        for B in order])
+        XTX = np.array(
+            [[funcs[A[0] + B[0]](A[1], B[1], i) for A in order] for B in order]
+        )
         XTy = np.array([funcs[A[0]](A[1], i) for A in order])
         return np.dot(XTy.T, np.linalg.solve(XTX, XTy))
 
     p = np.array([compute_power(i) for i in range(Nf)])
 
-    if normalization == 'psd':
+    if normalization == "psd":
         p *= 0.5
-    elif normalization == 'standard':
+    elif normalization == "standard":
         p /= chi2_ref
-    elif normalization == 'log':
+    elif normalization == "log":
         p = -np.log(1 - p / chi2_ref)
-    elif normalization == 'model':
+    elif normalization == "model":
         p /= chi2_ref - p
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")

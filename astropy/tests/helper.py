@@ -13,18 +13,27 @@ import functools
 import pytest
 
 from astropy.units import allclose as quantity_allclose  # noqa
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyPendingDeprecationWarning)
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+)
 from astropy.utils.compat import PYTHON_LT_3_11
 
 # For backward-compatibility with affiliated packages
 from .runner import TestRunner  # pylint: disable=W0611  # noqa
 
-__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
-           'treat_deprecations_as_exceptions', 'catch_warnings',
-           'assert_follows_unicode_guidelines',
-           'assert_quantity_allclose', 'check_pickling_recovery',
-           'pickle_protocol', 'generic_recursive_equality_test']
+__all__ = [
+    "raises",
+    "enable_deprecations_as_exceptions",
+    "remote_data",
+    "treat_deprecations_as_exceptions",
+    "catch_warnings",
+    "assert_follows_unicode_guidelines",
+    "assert_quantity_allclose",
+    "check_pickling_recovery",
+    "pickle_protocol",
+    "generic_recursive_equality_test",
+]
 
 # pytest marker to mark tests which get data from the web
 # This is being maintained for backwards compatibility
@@ -58,17 +67,16 @@ def _save_coverage(cov, result, rootdir, testing_path):
 
     for key in list(lines.keys()):
         new_path = os.path.relpath(
-            os.path.realpath(key),
-            os.path.realpath(testing_path))
-        new_path = os.path.abspath(
-            os.path.join(rootdir, new_path))
+            os.path.realpath(key), os.path.realpath(testing_path)
+        )
+        new_path = os.path.abspath(os.path.join(rootdir, new_path))
         lines[new_path] = lines.pop(key)
 
-    color_print('Saving coverage data in .coverage...', 'green')
+    color_print("Saving coverage data in .coverage...", "green")
     cov.save()
 
-    color_print('Saving HTML coverage report in htmlcov...', 'green')
-    cov.html_report(directory=os.path.join(rootdir, 'htmlcov'))
+    color_print("Saving HTML coverage report in htmlcov...", "green")
+    cov.html_report(directory=os.path.join(rootdir, "htmlcov"))
 
 
 # TODO: Plan a roadmap of deprecation as pytest.raises has matured over the years.
@@ -100,6 +108,7 @@ class raises:
         @functools.wraps(func)
         def run_raises_test(*args, **kwargs):
             pytest.raises(self._exc, func, *args, **kwargs)
+
         return run_raises_test
 
     def __enter__(self):
@@ -112,41 +121,59 @@ class raises:
 
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
-_modules_to_ignore_on_import = set([
-    r'compiler',  # A deprecated stdlib module used by pytest
-    r'scipy',
-    r'pygments',
-    r'ipykernel',
-    r'IPython',   # deprecation warnings for async and await
-    r'setuptools'])
+_modules_to_ignore_on_import = set(
+    [
+        r"compiler",  # A deprecated stdlib module used by pytest
+        r"scipy",
+        r"pygments",
+        r"ipykernel",
+        r"IPython",  # deprecation warnings for async and await
+        r"setuptools",
+    ]
+)
 _warnings_to_ignore_entire_module = set([])
 _warnings_to_ignore_by_pyver = {
-    None: set([  # Python version agnostic
-        # https://github.com/astropy/astropy/pull/7372
-        (r"Importing from numpy\.testing\.decorators is deprecated, "
-         r"import from numpy\.testing instead\.", DeprecationWarning),
-        # inspect raises this slightly different warning on Python 3.7.
-        # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
-        (r"inspect\.getargspec\(\) is deprecated, use "
-         r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
-         DeprecationWarning),
-        # https://github.com/astropy/pytest-doctestplus/issues/29
-        (r"split\(\) requires a non-empty pattern match", FutureWarning),
-        # Package resolution warning that we can do nothing about
-        (r"can't resolve package from __spec__ or __package__, "
-         r"falling back on __name__ and __path__", ImportWarning)]),
-    (3, 7): set([
-        # Deprecation warning for collections.abc, fixed in Astropy but still
-        # used in lxml, and maybe others
-        (r"Using or importing the ABCs from 'collections'",
-         DeprecationWarning)])
+    None: set(
+        [  # Python version agnostic
+            # https://github.com/astropy/astropy/pull/7372
+            (
+                r"Importing from numpy\.testing\.decorators is deprecated, "
+                r"import from numpy\.testing instead\.",
+                DeprecationWarning,
+            ),
+            # inspect raises this slightly different warning on Python 3.7.
+            # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
+            (
+                r"inspect\.getargspec\(\) is deprecated, use "
+                r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",
+                DeprecationWarning,
+            ),
+            # https://github.com/astropy/pytest-doctestplus/issues/29
+            (r"split\(\) requires a non-empty pattern match", FutureWarning),
+            # Package resolution warning that we can do nothing about
+            (
+                r"can't resolve package from __spec__ or __package__, "
+                r"falling back on __name__ and __path__",
+                ImportWarning,
+            ),
+        ]
+    ),
+    (3, 7): set(
+        [
+            # Deprecation warning for collections.abc, fixed in Astropy but still
+            # used in lxml, and maybe others
+            (r"Using or importing the ABCs from 'collections'", DeprecationWarning)
+        ]
+    ),
 }
 
 
-def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
-                                      modules_to_ignore_on_import=[],
-                                      warnings_to_ignore_entire_module=[],
-                                      warnings_to_ignore_by_pyver={}):
+def enable_deprecations_as_exceptions(
+    include_astropy_deprecations=True,
+    modules_to_ignore_on_import=[],
+    warnings_to_ignore_entire_module=[],
+    warnings_to_ignore_by_pyver={},
+):
     """
     Turn on the feature that turns deprecations into exceptions.
 
@@ -221,7 +248,7 @@ def treat_deprecations_as_exceptions():
     warnings.resetwarnings()
 
     # Hide the next couple of DeprecationWarnings
-    warnings.simplefilter('ignore', DeprecationWarning)
+    warnings.simplefilter("ignore", DeprecationWarning)
     # Here's the wrinkle: a couple of our third-party dependencies
     # (pytest and scipy) are still using deprecated features
     # themselves, and we'd like to ignore those.  Fortunately, those
@@ -240,8 +267,7 @@ def treat_deprecations_as_exceptions():
 
     # Only turn astropy deprecation warnings into exceptions if requested
     if _include_astropy_deprecations:
-        _all_warns += [AstropyDeprecationWarning,
-                       AstropyPendingDeprecationWarning]
+        _all_warns += [AstropyDeprecationWarning, AstropyPendingDeprecationWarning]
 
     for w in _all_warns:
         warnings.filterwarnings("error", ".*", w)
@@ -250,7 +276,7 @@ def treat_deprecations_as_exceptions():
     # not just on import, for use of Astropy affiliated packages.
     for m in _warnings_to_ignore_entire_module:
         for w in _all_warns:
-            warnings.filterwarnings('ignore', category=w, module=m)
+            warnings.filterwarnings("ignore", category=w, module=m)
 
     # This ignores only specified warnings by Python version, if applicable.
     for v in _warnings_to_ignore_by_pyver:
@@ -291,11 +317,11 @@ class catch_warnings(warnings.catch_warnings):
         warning_list = super().__enter__()
         treat_deprecations_as_exceptions()
         if len(self.classes) == 0:
-            warnings.simplefilter('always')
+            warnings.simplefilter("always")
         else:
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             for cls in self.classes:
-                warnings.simplefilter('always', cls)
+                warnings.simplefilter("always", cls)
         return warning_list
 
     def __exit__(self, type, value, traceback):
@@ -334,14 +360,13 @@ class ignore_warnings(catch_warnings):
         retval = super().__enter__()
         if self.category is not None:
             for category in self.category:
-                warnings.simplefilter('ignore', category)
+                warnings.simplefilter("ignore", category)
         else:
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
         return retval
 
 
-def assert_follows_unicode_guidelines(
-        x, roundtrip=None):
+def assert_follows_unicode_guidelines(x, roundtrip=None):
     """
     Test that an object follows our Unicode policy.  See
     "Unicode guidelines" in the coding guidelines.
@@ -359,39 +384,39 @@ def assert_follows_unicode_guidelines(
     """
     from astropy import conf
 
-    with conf.set_temp('unicode_output', False):
+    with conf.set_temp("unicode_output", False):
         bytes_x = bytes(x)
         unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
-        bytes_x.decode('ascii')
+        bytes_x.decode("ascii")
         assert isinstance(unicode_x, str)
-        unicode_x.encode('ascii')
+        unicode_x.encode("ascii")
         assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
-            repr_x.decode('ascii')
+            repr_x.decode("ascii")
         else:
-            repr_x.encode('ascii')
+            repr_x.encode("ascii")
 
         if roundtrip is not None:
             assert x.__class__(bytes_x) == x
             assert x.__class__(unicode_x) == x
             assert eval(repr_x, roundtrip) == x
 
-    with conf.set_temp('unicode_output', True):
+    with conf.set_temp("unicode_output", True):
         bytes_x = bytes(x)
         unicode_x = str(x)
         repr_x = repr(x)
 
         assert isinstance(bytes_x, bytes)
-        bytes_x.decode('ascii')
+        bytes_x.decode("ascii")
         assert isinstance(unicode_x, str)
         assert isinstance(repr_x, str)
         if isinstance(repr_x, bytes):
-            repr_x.decode('ascii')
+            repr_x.decode("ascii")
         else:
-            repr_x.encode('ascii')
+            repr_x.encode("ascii")
 
         if roundtrip is not None:
             assert x.__class__(bytes_x) == x
@@ -414,14 +439,14 @@ def generic_recursive_equality_test(a, b, class_history):
     check if the attributes of the attributes are equal.
     """
     if PYTHON_LT_3_11:
-        dict_a = a.__getstate__() if hasattr(a, '__getstate__') else a.__dict__
+        dict_a = a.__getstate__() if hasattr(a, "__getstate__") else a.__dict__
     else:
         # NOTE: The call may need to be adapted if other objects implementing a __getstate__
         # with required argument(s) are passed to this function.
         # For a class with `__slots__` the default state is not a `dict`;
         # with neither `__dict__` nor `__slots__` it is `None`.
         state = a.__getstate__(a) if inspect.isclass(a) else a.__getstate__()
-        dict_a = state if isinstance(state, dict) else getattr(a, '__dict__', dict())
+        dict_a = state if isinstance(state, dict) else getattr(a, "__dict__", dict())
     dict_b = b.__dict__
     for key in dict_a:
         assert key in dict_b, f"Did not pickle {key}"
@@ -432,21 +457,21 @@ def generic_recursive_equality_test(a, b, class_history):
             # object.__eq__, which is equivalent to checking that two
             # instances are the same.  This will generally not be true
             # after pickling.
-            eq = (dict_a[key] == dict_b[key])
-            if '__iter__' in dir(eq):
-                eq = (False not in eq)
+            eq = dict_a[key] == dict_b[key]
+            if "__iter__" in dir(eq):
+                eq = False not in eq
             assert eq, f"Value of {key} changed by pickling"
 
-        if hasattr(dict_a[key], '__dict__'):
+        if hasattr(dict_a[key], "__dict__"):
             if dict_a[key].__class__ in class_history:
                 # attempt to prevent infinite recursion
                 pass
             else:
                 new_class_history = [dict_a[key].__class__]
                 new_class_history.extend(class_history)
-                generic_recursive_equality_test(dict_a[key],
-                                                dict_b[key],
-                                                new_class_history)
+                generic_recursive_equality_test(
+                    dict_a[key], dict_b[key], new_class_history
+                )
 
 
 def check_pickling_recovery(original, protocol):
@@ -457,12 +482,10 @@ def check_pickling_recovery(original, protocol):
     f = pickle.dumps(original, protocol=protocol)
     unpickled = pickle.loads(f)
     class_history = [original.__class__]
-    generic_recursive_equality_test(original, unpickled,
-                                    class_history)
+    generic_recursive_equality_test(original, unpickled, class_history)
 
 
-def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
-                             **kwargs):
+def assert_quantity_allclose(actual, desired, rtol=1.0e-7, atol=None, **kwargs):
     """
     Raise an assertion if two objects are not equal up to desired tolerance.
 
@@ -471,5 +494,7 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     """
     import numpy as np
     from astropy.units.quantity import _unquantify_allclose_arguments
-    np.testing.assert_allclose(*_unquantify_allclose_arguments(
-        actual, desired, rtol, atol), **kwargs)
+
+    np.testing.assert_allclose(
+        *_unquantify_allclose_arguments(actual, desired, rtol, atol), **kwargs
+    )

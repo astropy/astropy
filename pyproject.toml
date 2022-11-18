@@ -46,6 +46,24 @@ archs = ["x86_64", "arm64"]
 [tool.cibuildwheel.linux]
 archs = ["auto", "aarch64"]
 
+[tool.black]
+line-length = 88
+force-exclude = '''
+^/(
+  (
+    # Directories to always exclude (.gitignore is always excluded)
+      examples
+    | docs/wcs/examples
+    | docs/nddata/examples
+    | cextern
+    | astropy/extern
+  )/
+  # Individual files to always exclude
+  | astropy/coordinates/.*tab.py
+  | astropy/units/format/.*tab.py
+)
+'''
+
 [tool.towncrier]
     package = "astropy"
     filename = "CHANGES.rst"

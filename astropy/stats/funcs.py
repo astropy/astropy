@@ -16,16 +16,30 @@ import numpy as np
 import astropy.units as u
 from . import _stats
 
-__all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
-           'binom_conf_interval', 'binned_binom_proportion',
-           'poisson_conf_interval', 'median_absolute_deviation', 'mad_std',
-           'signal_to_noise_oir_ccd', 'bootstrap', 'kuiper', 'kuiper_two',
-           'kuiper_false_positive_probability', 'cdf_from_intervals',
-           'interval_overlap_length', 'histogram_intervals', 'fold_intervals']
+__all__ = [
+    "gaussian_fwhm_to_sigma",
+    "gaussian_sigma_to_fwhm",
+    "binom_conf_interval",
+    "binned_binom_proportion",
+    "poisson_conf_interval",
+    "median_absolute_deviation",
+    "mad_std",
+    "signal_to_noise_oir_ccd",
+    "bootstrap",
+    "kuiper",
+    "kuiper_two",
+    "kuiper_false_positive_probability",
+    "cdf_from_intervals",
+    "interval_overlap_length",
+    "histogram_intervals",
+    "fold_intervals",
+]
 
-__doctest_skip__ = ['binned_binom_proportion']
-__doctest_requires__ = {'binom_conf_interval': ['scipy'],
-                        'poisson_conf_interval': ['scipy']}
+__doctest_skip__ = ["binned_binom_proportion"]
+__doctest_requires__ = {
+    "binom_conf_interval": ["scipy"],
+    "poisson_conf_interval": ["scipy"],
+}
 
 
 gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))
@@ -34,7 +48,7 @@ Factor with which to multiply Gaussian 1-sigma standard deviation to
 convert it to full width at half maximum (FWHM).
 """
 
-gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
+gaussian_fwhm_to_sigma = 1.0 / gaussian_sigma_to_fwhm
 """
 Factor with which to multiply Gaussian full width at half maximum (FWHM)
 to convert it to 1-sigma standard deviation.
@@ -87,7 +101,7 @@ def _expand_dims(data, axis):
     return data.reshape(shape)
 
 
-def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
+def binom_conf_interval(k, n, confidence_level=0.68269, interval="wilson"):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
 
@@ -250,72 +264,75 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
            [ 0.66077835,  0.96433593]])
 
     """  # noqa
-    if confidence_level < 0. or confidence_level > 1.:
-        raise ValueError('confidence_level must be between 0. and 1.')
-    alpha = 1. - confidence_level
+    if confidence_level < 0.0 or confidence_level > 1.0:
+        raise ValueError("confidence_level must be between 0. and 1.")
+    alpha = 1.0 - confidence_level
 
     k = np.asarray(k).astype(int)
     n = np.asarray(n).astype(int)
 
     if (n <= 0).any():
-        raise ValueError('n must be positive')
+        raise ValueError("n must be positive")
     if (k < 0).any() or (k > n).any():
-        raise ValueError('k must be in {0, 1, .., n}')
+        raise ValueError("k must be in {0, 1, .., n}")
 
-    if interval == 'wilson' or interval == 'wald':
+    if interval == "wilson" or interval == "wald":
         from scipy.special import erfinv
-        kappa = np.sqrt(2.) * min(erfinv(confidence_level), 1.e10)  # Avoid overflows.
+
+        kappa = np.sqrt(2.0) * min(erfinv(confidence_level), 1.0e10)  # Avoid overflows.
         k = k.astype(float)
         n = n.astype(float)
         p = k / n
 
-        if interval == 'wilson':
-            midpoint = (k + kappa ** 2 / 2.) / (n + kappa ** 2)
-            halflength = (kappa * np.sqrt(n)) / (n + kappa ** 2) * \
-                np.sqrt(p * (1 - p) + kappa ** 2 / (4 * n))
-            conf_interval = np.array([midpoint - halflength,
-                                      midpoint + halflength])
+        if interval == "wilson":
+            midpoint = (k + kappa**2 / 2.0) / (n + kappa**2)
+            halflength = (
+                (kappa * np.sqrt(n))
+                / (n + kappa**2)
+                * np.sqrt(p * (1 - p) + kappa**2 / (4 * n))
+            )
+            conf_interval = np.array([midpoint - halflength, midpoint + halflength])
 
             # Correct intervals out of range due to floating point errors.
-            conf_interval[conf_interval < 0.] = 0.
-            conf_interval[conf_interval > 1.] = 1.
+            conf_interval[conf_interval < 0.0] = 0.0
+            conf_interval[conf_interval > 1.0] = 1.0
         else:
             midpoint = p
-            halflength = kappa * np.sqrt(p * (1. - p) / n)
-            conf_interval = np.array([midpoint - halflength,
-                                      midpoint + halflength])
+            halflength = kappa * np.sqrt(p * (1.0 - p) / n)
+            conf_interval = np.array([midpoint - halflength, midpoint + halflength])
 
-    elif interval == 'jeffreys' or interval == 'flat':
+    elif interval == "jeffreys" or interval == "flat":
         from scipy.special import betaincinv
 
-        if interval == 'jeffreys':
+        if interval == "jeffreys":
             lowerbound = betaincinv(k + 0.5, n - k + 0.5, 0.5 * alpha)
-            upperbound = betaincinv(k + 0.5, n - k + 0.5, 1. - 0.5 * alpha)
+            upperbound = betaincinv(k + 0.5, n - k + 0.5, 1.0 - 0.5 * alpha)
         else:
             lowerbound = betaincinv(k + 1, n - k + 1, 0.5 * alpha)
-            upperbound = betaincinv(k + 1, n - k + 1, 1. - 0.5 * alpha)
+            upperbound = betaincinv(k + 1, n - k + 1, 1.0 - 0.5 * alpha)
 
         # Set lower or upper bound to k/n when k/n = 0 or 1
         #  We have to treat the special case of k/n being scalars,
         #  which is an ugly kludge
         if lowerbound.ndim == 0:
             if k == 0:
-                lowerbound = 0.
+                lowerbound = 0.0
             elif k == n:
-                upperbound = 1.
+                upperbound = 1.0
         else:
             lowerbound[k == 0] = 0
             upperbound[k == n] = 1
 
         conf_interval = np.array([lowerbound, upperbound])
     else:
-        raise ValueError(f'Unrecognized interval: {interval:s}')
+        raise ValueError(f"Unrecognized interval: {interval:s}")
 
     return conf_interval
 
 
-def binned_binom_proportion(x, success, bins=10, range=None,
-                            confidence_level=0.68269, interval='wilson'):
+def binned_binom_proportion(
+    x, success, bins=10, range=None, confidence_level=0.68269, interval="wilson"
+):
     """Binomial proportion and confidence interval in bins of a continuous
     variable ``x``.
 
@@ -471,13 +488,13 @@ def binned_binom_proportion(x, success, bins=10, range=None,
     x = np.ravel(x)
     success = np.ravel(success).astype(bool)
     if x.shape != success.shape:
-        raise ValueError('sizes of x and success must match')
+        raise ValueError("sizes of x and success must match")
 
     # Put values into a histogram (`n`). Put "successful" values
     # into a second histogram (`k`) with identical binning.
     n, bin_edges = np.histogram(x, bins=bins, range=range)
     k, bin_edges = np.histogram(x[success], bins=bin_edges)
-    bin_ctr = (bin_edges[:-1] + bin_edges[1:]) / 2.
+    bin_ctr = (bin_edges[:-1] + bin_edges[1:]) / 2.0
     bin_halfwidth = bin_ctr - bin_edges[:-1]
 
     # Remove bins with zero entries.
@@ -488,7 +505,9 @@ def binned_binom_proportion(x, success, bins=10, range=None,
     k = k[valid]
 
     p = k / n
-    bounds = binom_conf_interval(k, n, confidence_level=confidence_level, interval=interval)
+    bounds = binom_conf_interval(
+        k, n, confidence_level=confidence_level, interval=interval
+    )
     perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr
@@ -503,8 +522,9 @@ def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
         raise ValueError(f"confidence_level not supported for interval {name}")
 
 
-def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
-                          confidence_level=None):
+def poisson_conf_interval(
+    n, interval="root-n", sigma=1, background=0, confidence_level=None
+):
     r"""Poisson parameter confidence interval given observed counts
 
     Parameters
@@ -710,58 +730,65 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     if not np.isscalar(n):
         n = np.asanyarray(n)
 
-    if interval == 'root-n':
+    if interval == "root-n":
         _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
-        conf_interval = np.array([n - np.sqrt(n),
-                                  n + np.sqrt(n)])
-    elif interval == 'root-n-0':
+        conf_interval = np.array([n - np.sqrt(n), n + np.sqrt(n)])
+    elif interval == "root-n-0":
         _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
-        conf_interval = np.array([n - np.sqrt(n),
-                                  n + np.sqrt(n)])
+        conf_interval = np.array([n - np.sqrt(n), n + np.sqrt(n)])
         if np.isscalar(n):
             if n == 0:
                 conf_interval[1] = 1
         else:
             conf_interval[1, n == 0] = 1
-    elif interval == 'pearson':
+    elif interval == "pearson":
         _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
-        conf_interval = np.array([n + 0.5 - np.sqrt(n + 0.25),
-                                  n + 0.5 + np.sqrt(n + 0.25)])
-    elif interval == 'sherpagehrels':
+        conf_interval = np.array(
+            [n + 0.5 - np.sqrt(n + 0.25), n + 0.5 + np.sqrt(n + 0.25)]
+        )
+    elif interval == "sherpagehrels":
         _check_poisson_conf_inputs(sigma, background, confidence_level, interval)
-        conf_interval = np.array([n - 1 - np.sqrt(n + 0.75),
-                                  n + 1 + np.sqrt(n + 0.75)])
-    elif interval == 'frequentist-confidence':
-        _check_poisson_conf_inputs(1., background, confidence_level, interval)
+        conf_interval = np.array([n - 1 - np.sqrt(n + 0.75), n + 1 + np.sqrt(n + 0.75)])
+    elif interval == "frequentist-confidence":
+        _check_poisson_conf_inputs(1.0, background, confidence_level, interval)
         import scipy.stats
+
         alpha = scipy.stats.norm.sf(sigma)
-        conf_interval = np.array([0.5 * scipy.stats.chi2(2 * n).ppf(alpha),
-                                  0.5 * scipy.stats.chi2(2 * n + 2).isf(alpha)])
+        conf_interval = np.array(
+            [
+                0.5 * scipy.stats.chi2(2 * n).ppf(alpha),
+                0.5 * scipy.stats.chi2(2 * n + 2).isf(alpha),
+            ]
+        )
         if np.isscalar(n):
             if n == 0:
                 conf_interval[0] = 0
         else:
             conf_interval[0, n == 0] = 0
-    elif interval == 'kraft-burrows-nousek':
+    elif interval == "kraft-burrows-nousek":
         # Deprecation warning in Python 3.9 when N is float, so we force int,
         # see https://github.com/astropy/astropy/issues/10832
         if np.isscalar(n):
             if not isinstance(n, int):
-                raise TypeError('Number of counts must be integer.')
+                raise TypeError("Number of counts must be integer.")
         elif not issubclass(n.dtype.type, np.integer):
-            raise TypeError('Number of counts must be integer.')
+            raise TypeError("Number of counts must be integer.")
 
         if confidence_level is None:
-            raise ValueError('Set confidence_level for method {}. (sigma is '
-                             'ignored.)'.format(interval))
+            raise ValueError(
+                "Set confidence_level for method {}. (sigma is ignored.)".format(
+                    interval
+                )
+            )
         confidence_level = np.asanyarray(confidence_level)
         if np.any(confidence_level <= 0) or np.any(confidence_level >= 1):
-            raise ValueError('confidence_level must be a number between 0 and 1.')
+            raise ValueError("confidence_level must be a number between 0 and 1.")
         background = np.asanyarray(background)
         if np.any(background < 0):
-            raise ValueError('Background must be >= 0.')
-        conf_interval = np.vectorize(_kraft_burrows_nousek,
-                                     cache=True)(n, background, confidence_level)
+            raise ValueError("Background must be >= 0.")
+        conf_interval = np.vectorize(_kraft_burrows_nousek, cache=True)(
+            n, background, confidence_level
+        )
         conf_interval = np.vstack(conf_interval)
     else:
         raise ValueError(f"Invalid method for Poisson confidence intervals: {interval}")
@@ -840,8 +867,12 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     data_median = func(data, axis=axis)
     # this conditional can be removed after this PR is merged:
     # https://github.com/astropy/astropy/issues/12165
-    if (isinstance(data, u.Quantity) and func is np.median
-            and data_median.ndim == 0 and np.isnan(data_median)):
+    if (
+        isinstance(data, u.Quantity)
+        and func is np.median
+        and data_median.ndim == 0
+        and np.isnan(data_median)
+    ):
         data_median = data.__array_wrap__(data_median)
 
     # broadcast the median array before subtraction
@@ -851,8 +882,12 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
     # this conditional can be removed after this PR is merged:
     # https://github.com/astropy/astropy/issues/12165
-    if (isinstance(data, u.Quantity) and func is np.median
-            and result.ndim == 0 and np.isnan(result)):
+    if (
+        isinstance(data, u.Quantity)
+        and func is np.median
+        and result.ndim == 0
+        and np.isnan(result)
+    ):
         result = data.__array_wrap__(result)
 
     if axis is None and np.ma.isMaskedArray(result):
@@ -921,13 +956,11 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     """
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
-    MAD = median_absolute_deviation(
-        data, axis=axis, func=func, ignore_nan=ignore_nan)
+    MAD = median_absolute_deviation(data, axis=axis, func=func, ignore_nan=ignore_nan)
     return MAD * 1.482602218505602
 
 
-def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
-                            gain=1.0):
+def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
     """Computes the signal to noise ratio for source being observed in the
     optical/IR using a CCD.
 
@@ -964,8 +997,9 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         Signal to noise ratio calculated from the inputs
     """
     signal = t * source_eps * gain
-    noise = np.sqrt(t * (source_eps * gain + npix *
-                         (sky_eps * gain + dark_eps)) + npix * rd ** 2)
+    noise = np.sqrt(
+        t * (source_eps * gain + npix * (sky_eps * gain + dark_eps)) + npix * rd**2
+    )
     return signal / noise
 
 
@@ -1083,7 +1117,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
-    '''Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1110,7 +1144,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
     implementation that is slower, but can deal with arbitrarily high numbers
     since it is based on the `mpmath <http://mpmath.org/>`_ library.
-    '''
+    """
 
     from scipy.optimize import brentq
     from scipy.integrate import quad
@@ -1120,7 +1154,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
-        return 1. / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        return 1.0 / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.
@@ -1137,17 +1171,17 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
 
     def find_s_min(S_max, N, B):
-        '''
+        """
         Kraft, Burrows and Nousek suggest to integrate from N-B in both
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
         calculate the matching s_min that has has eqn7(S_max) =
         eqn7(S_min) here.
-        '''
+        """
         y_S_max = eqn7(S_max, N, B)
         if eqn7(0, N, B) >= y_S_max:
-            return 0.
+            return 0.0
         else:
             return brentq(lambda x: eqn7(x, N, B) - y_S_max, 0, N - B)
 
@@ -1162,7 +1196,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
 
 def _mpmath_kraft_burrows_nousek(N, B, CL):
-    '''Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1188,7 +1222,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     `~astropy.stats.scipy_poisson_upper_limit` for an implementation
     that is based on scipy and evaluates faster, but runs only to about
     N = 100.
-    '''
+    """
     from mpmath import mpf, factorial, findroot, fsum, power, exp, quad
 
     # We convert these values to float. Because for some reason,
@@ -1200,7 +1234,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
-        return 1. / (exp(-B) * fsum(sumterms))
+        return 1.0 / (exp(-B) * fsum(sumterms))
 
     eqn8_res = eqn8(N, B)
     factorial_N = factorial(N)
@@ -1212,17 +1246,18 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     def eqn9_left(S_min, S_max, N, B):
         def eqn7NB(S):
             return eqn7(S, N, B)
+
         return quad(eqn7NB, [S_min, S_max])
 
     def find_s_min(S_max, N, B):
-        '''
+        """
         Kraft, Burrows and Nousek suggest to integrate from N-B in both
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
         calculate the matching s_min that has has eqn7(S_max) =
         eqn7(S_min) here.
-        '''
+        """
         y_S_max = eqn7(S_max, N, B)
         # If B > N, then N-B, the "most probable" values is < 0
         # and thus s_min is certainly 0.
@@ -1230,12 +1265,13 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         # might find the wrong root, thus it is important to handle this
         # case here and return the analytical answer (s_min = 0).
         if (B >= N) or (eqn7(0, N, B) >= y_S_max):
-            return 0.
+            return 0.0
         else:
+
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax, [0., N - B], solver='ridder',
-                            tol=tol)
+
+            return findroot(eqn7ysmax, [0.0, N - B], solver="ridder", tol=tol)
 
     def func(s):
         s_min = find_s_min(s, N, B)
@@ -1246,17 +1282,16 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     # the roots unless the starting values are very close to the final values.
     # Thus, this primitive, time-wasting, brute-force stepping here to get
     # an interval that can be fed into the ridder solver.
-    s_max_guess = max(N - B, 1.)
+    s_max_guess = max(N - B, 1.0)
     while func(s_max_guess) < 0:
         s_max_guess += 1
-    S_max = findroot(func, [s_max_guess - 1, s_max_guess], solver='ridder',
-                     tol=tol)
+    S_max = findroot(func, [s_max_guess - 1, s_max_guess], solver="ridder", tol=tol)
     S_min = find_s_min(S_max, N, B)
     return float(S_min), float(S_max)
 
 
 def _kraft_burrows_nousek(N, B, CL):
-    '''Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1281,7 +1316,7 @@ def _kraft_burrows_nousek(N, B, CL):
     This functions has an optional dependency: Either :mod:`scipy` or `mpmath
     <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
-    '''
+    """
     from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH
 
     if HAS_SCIPY and N <= 100:
@@ -1289,12 +1324,11 @@ def _kraft_burrows_nousek(N, B, CL):
             return _scipy_kraft_burrows_nousek(N, B, CL)
         except OverflowError:
             if not HAS_MPMATH:
-                raise ValueError('Need mpmath package for input numbers this '
-                                 'large.')
+                raise ValueError("Need mpmath package for input numbers this large.")
     if HAS_MPMATH:
         return _mpmath_kraft_burrows_nousek(N, B, CL)
 
-    raise ImportError('Either scipy or mpmath are required.')
+    raise ImportError("Either scipy or mpmath are required.")
 
 
 def kuiper_false_positive_probability(D, N):
@@ -1341,31 +1375,37 @@ def kuiper_false_positive_probability(D, N):
         # (factorial appears to have moved here in 0.14)
         from scipy.misc import factorial, comb
 
-    if D < 0. or D > 2.:
+    if D < 0.0 or D > 2.0:
         raise ValueError("Must have 0<=D<=2 by definition of the Kuiper test")
 
-    if D < 2. / N:
-        return 1. - factorial(N) * (D - 1. / N)**(N - 1)
-    elif D < 3. / N:
-        k = -(N * D - 1.) / 2.
-        r = np.sqrt(k**2 - (N * D - 2.)**2 / 2.)
+    if D < 2.0 / N:
+        return 1.0 - factorial(N) * (D - 1.0 / N) ** (N - 1)
+    elif D < 3.0 / N:
+        k = -(N * D - 1.0) / 2.0
+        r = np.sqrt(k**2 - (N * D - 2.0) ** 2 / 2.0)
         a, b = -k + r, -k - r
-        return 1 - (factorial(N - 1) * (b**(N - 1) * (1 - a) - a**(N - 1) * (1 - b))
-                    / N**(N - 2) / (b - a))
-    elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.) / (2. * N) and N % 2 == 1):
+        return 1 - (
+            factorial(N - 1)
+            * (b ** (N - 1) * (1 - a) - a ** (N - 1) * (1 - b))
+            / N ** (N - 2)
+            / (b - a)
+        )
+    elif (D > 0.5 and N % 2 == 0) or (D > (N - 1.0) / (2.0 * N) and N % 2 == 1):
         # NOTE: the upper limit of this sum is taken from Stephens 1965
         t = np.arange(np.floor(N * (1 - D)) + 1)
         y = D + t / N
-        Tt = y**(t - 3) * (y**3 * N
-                           - y**2 * t * (3 - 2 / N)
-                           + y * t * (t - 1) * (3 - 2 / N) / N
-                           - t * (t - 1) * (t - 2) / N**2)
+        Tt = y ** (t - 3) * (
+            y**3 * N
+            - y**2 * t * (3 - 2 / N)
+            + y * t * (t - 1) * (3 - 2 / N) / N
+            - t * (t - 1) * (t - 2) / N**2
+        )
         term1 = comb(N, t)
-        term2 = (1 - D - t / N)**(N - t - 1)
+        term2 = (1 - D - t / N) ** (N - t - 1)
         # term1 is formally finite, but is approximated by numpy as np.inf for
         # large values, so we set them to zero manually when they would be
         # multiplied by zero anyway
-        term1[(term1 == np.inf) & (term2 == 0)] = 0.
+        term1[(term1 == np.inf) & (term2 == 0)] = 0.0
         final_term = Tt * term1 * term2
         return final_term.sum()
     else:
@@ -1375,7 +1415,9 @@ def kuiper_false_positive_probability(D, N):
         # underflow warning if `under="warn"`.
         ms = np.arange(1, 18.82 / z)
         S1 = (2 * (4 * ms**2 * z**2 - 1) * np.exp(-2 * ms**2 * z**2)).sum()
-        S2 = (ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)).sum()
+        S2 = (
+            ms**2 * (4 * ms**2 * z**2 - 3) * np.exp(-2 * ms**2 * z**2)
+        ).sum()
         return S1 - 8 * D / 3 * S2
 
 
@@ -1447,8 +1489,9 @@ def kuiper(data, cdf=lambda x: x, args=()):
     data = np.sort(data)
     cdfv = cdf(data, *args)
     N = len(data)
-    D = (np.amax(cdfv - np.arange(N) / float(N)) +
-         np.amax((np.arange(N) + 1) / float(N) - cdfv))
+    D = np.amax(cdfv - np.arange(N) / float(N)) + np.amax(
+        (np.arange(N) + 1) / float(N) - cdfv
+    )
 
     return D, kuiper_false_positive_probability(D, N)
 
@@ -1477,17 +1520,18 @@ def kuiper_two(data1, data2):
     """
     data1 = np.sort(data1)
     data2 = np.sort(data2)
-    n1, = data1.shape
-    n2, = data2.shape
+    (n1,) = data1.shape
+    (n2,) = data2.shape
     common_type = np.find_common_type([], [data1.dtype, data2.dtype])
-    if not (np.issubdtype(common_type, np.number)
-            and not np.issubdtype(common_type, np.complexfloating)):
-        raise ValueError('kuiper_two only accepts real inputs')
+    if not (
+        np.issubdtype(common_type, np.number)
+        and not np.issubdtype(common_type, np.complexfloating)
+    ):
+        raise ValueError("kuiper_two only accepts real inputs")
     # nans, if any, are at the end after sorting.
     if np.isnan(data1[-1]) or np.isnan(data2[-1]):
-        raise ValueError('kuiper_two only accepts non-nan inputs')
-    D = _stats.ks_2samp(np.asarray(data1, common_type),
-                        np.asarray(data2, common_type))
+        raise ValueError("kuiper_two only accepts non-nan inputs")
+    D = _stats.ks_2samp(np.asarray(data1, common_type), np.asarray(data2, common_type))
     Ne = len(data1) * len(data2) / float(len(data1) + len(data2))
     return D, kuiper_false_positive_probability(D, Ne)
 
@@ -1524,7 +1568,7 @@ def fold_intervals(intervals):
     r = []
     breaks = set()
     tot = 0
-    for (a, b, wt) in intervals:
+    for a, b, wt in intervals:
         tot += (np.ceil(b) - np.floor(a)) * wt
         fa = a % 1
         breaks.add(fa)
@@ -1533,14 +1577,14 @@ def fold_intervals(intervals):
         breaks.add(fb)
         r.append((fb, 1, -wt))
 
-    breaks.add(0.)
-    breaks.add(1.)
+    breaks.add(0.0)
+    breaks.add(1.0)
     breaks = sorted(breaks)
     breaks_map = dict([(f, i) for (i, f) in enumerate(breaks)])
     totals = np.zeros(len(breaks) - 1)
     totals += tot
-    for (a, b, wt) in r:
-        totals[breaks_map[a]:breaks_map[b]] += wt
+    for a, b, wt in r:
+        totals[breaks_map[a] : breaks_map[b]] += wt
     return np.array(breaks), totals
 
 
@@ -1570,8 +1614,7 @@ def cdf_from_intervals(breaks, totals):
     if np.any(np.diff(breaks) <= 0):
         raise ValueError("Breaks must be strictly increasing")
     if np.any(totals < 0):
-        raise ValueError(
-            "Total weights in each subinterval must be nonnegative")
+        raise ValueError("Total weights in each subinterval must be nonnegative")
     if np.all(totals == 0):
         raise ValueError("At least one interval must have positive exposure")
     b = breaks.copy()
@@ -1598,7 +1641,7 @@ def interval_overlap_length(i1, i2):
     (c, d) = i2
     if a < c:
         if b < c:
-            return 0.
+            return 0.0
         elif b < d:
             return b - c
         else:
@@ -1638,9 +1681,8 @@ def histogram_intervals(n, breaks, totals):
     for i in range(len(totals)):
         end = breaks[i + 1]
         for j in range(n):
-            ol = interval_overlap_length((float(j) / n,
-                                          float(j + 1) / n), (start, end))
-            h[j] += ol / (1. / n) * totals[i]
+            ol = interval_overlap_length((float(j) / n, float(j + 1) / n), (start, end))
+            h[j] += ol / (1.0 / n) * totals[i]
         start = end
 
     return h

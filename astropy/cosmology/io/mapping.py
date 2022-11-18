@@ -150,15 +150,22 @@ def to_mapping(cosmology, *args, cls=dict):
          'meta': ...
     """
     if not issubclass(cls, (dict, Mapping)):
-        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {type(cls)}")
+        raise TypeError(
+            f"'cls' must be a (sub)class of dict or Mapping, not {type(cls)}"
+        )
 
     m = cls()
     # start with the cosmology class & name
     m["cosmology"] = cosmology.__class__
     m["name"] = cosmology.name  # here only for dict ordering
     # get all the immutable inputs
-    m.update({k: v for k, v in cosmology._init_arguments.items()
-              if k not in ("meta", "name")})
+    m.update(
+        {
+            k: v
+            for k, v in cosmology._init_arguments.items()
+            if k not in ("meta", "name")
+        }
+    )
     # add the mutable metadata
     m["meta"] = copy.deepcopy(cosmology.meta)
 

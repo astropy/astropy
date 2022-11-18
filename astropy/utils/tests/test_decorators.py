@@ -6,12 +6,20 @@ import pickle
 
 import pytest
 
-from astropy.utils.decorators import (deprecated_attribute, deprecated,
-                                      sharedmethod, classproperty, lazyproperty,
-                                      format_doc, deprecated_renamed_argument)
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyPendingDeprecationWarning,
-                                      AstropyUserWarning)
+from astropy.utils.decorators import (
+    deprecated_attribute,
+    deprecated,
+    sharedmethod,
+    classproperty,
+    lazyproperty,
+    format_doc,
+    deprecated_renamed_argument,
+)
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+    AstropyUserWarning,
+)
 
 
 class NewDeprecationWarning(AstropyDeprecationWarning):
@@ -27,20 +35,18 @@ def test_deprecated_attribute():
             self.other = [42]
             self._foo = 42
             self._bar = 4242
-            self._message = '42'
+            self._message = "42"
             self._pending = {42}
 
-        foo = deprecated_attribute('foo', '0.2')
+        foo = deprecated_attribute("foo", "0.2")
 
-        bar = deprecated_attribute('bar', '0.2',
-                                   warning_type=NewDeprecationWarning)
+        bar = deprecated_attribute("bar", "0.2", warning_type=NewDeprecationWarning)
 
-        alternative = deprecated_attribute('alternative', '0.2',
-                                           alternative='other')
+        alternative = deprecated_attribute("alternative", "0.2", alternative="other")
 
-        message = deprecated_attribute('message', '0.2', message='MSG')
+        message = deprecated_attribute("message", "0.2", message="MSG")
 
-        pending = deprecated_attribute('pending', '0.2', pending=True)
+        pending = deprecated_attribute("pending", "0.2", pending=True)
 
     dummy = DummyClass()
 
@@ -90,7 +96,7 @@ def test_deprecated_attribute():
 
 # This needs to be defined outside of the test function, because we
 # want to try to pickle it.
-@deprecated('100.0')
+@deprecated("100.0")
 class TA:
     """
     This is the class docstring.
@@ -107,16 +113,17 @@ class TMeta(type):
     metaclass_attr = 1
 
 
-@deprecated('100.0')
+@deprecated("100.0")
 class TB(metaclass=TMeta):
     pass
 
 
-@deprecated('100.0', warning_type=NewDeprecationWarning)
+@deprecated("100.0", warning_type=NewDeprecationWarning)
 class TC:
     """
     This class has the custom warning.
     """
+
     pass
 
 
@@ -127,18 +134,24 @@ def test_deprecated_class():
     # is __doc__, __init__, __bases__ and __subclasshook__.
     # and __init_subclass__ for Python 3.6+.
     for x in dir(orig_A):
-        if x not in ('__doc__', '__init__', '__bases__', '__dict__',
-                     '__subclasshook__', '__init_subclass__'):
+        if x not in (
+            "__doc__",
+            "__init__",
+            "__bases__",
+            "__dict__",
+            "__subclasshook__",
+            "__init_subclass__",
+        ):
             assert getattr(TA, x) == getattr(orig_A, x)
 
     with pytest.warns(AstropyDeprecationWarning) as w:
         TA()
     assert len(w) == 1
     if TA.__doc__ is not None:
-        assert 'function' not in TA.__doc__
-        assert 'deprecated' in TA.__doc__
-        assert 'function' not in TA.__init__.__doc__
-        assert 'deprecated' in TA.__init__.__doc__
+        assert "function" not in TA.__doc__
+        assert "deprecated" in TA.__doc__
+        assert "function" not in TA.__init__.__doc__
+        assert "deprecated" in TA.__init__.__doc__
 
     # Make sure the object is picklable
     pickle.dumps(TA)
@@ -155,7 +168,8 @@ def test_deprecated_class_with_new_method():
     This previously failed because the deprecated decorator would wrap objects
     __init__ which takes no arguments.
     """
-    @deprecated('1.0')
+
+    @deprecated("1.0")
     class A:
         def __new__(cls, a):
             return super().__new__(cls)
@@ -165,7 +179,7 @@ def test_deprecated_class_with_new_method():
         A(1)
     assert len(w) == 1
 
-    @deprecated('1.0')
+    @deprecated("1.0")
     class B:
         def __new__(cls, a):
             return super().__new__(cls)
@@ -186,7 +200,7 @@ def test_deprecated_class_with_super():
     MRO.
     """
 
-    @deprecated('100.0')
+    @deprecated("100.0")
     class TB:
         def __init__(self, a, b):
             super().__init__()
@@ -195,10 +209,10 @@ def test_deprecated_class_with_super():
         TB(1, 2)
     assert len(w) == 1
     if TB.__doc__ is not None:
-        assert 'function' not in TB.__doc__
-        assert 'deprecated' in TB.__doc__
-        assert 'function' not in TB.__init__.__doc__
-        assert 'deprecated' in TB.__init__.__doc__
+        assert "function" not in TB.__doc__
+        assert "deprecated" in TB.__doc__
+        assert "function" not in TB.__init__.__doc__
+        assert "deprecated" in TB.__init__.__doc__
 
 
 def test_deprecated_class_with_custom_metaclass():
@@ -225,12 +239,12 @@ def test_deprecated_static_and_classmethod():
     class A:
         """Docstring"""
 
-        @deprecated('1.0')
+        @deprecated("1.0")
         @staticmethod
         def B():
             pass
 
-        @deprecated('1.0')
+        @deprecated("1.0")
         @classmethod
         def C(cls):
             pass
@@ -239,40 +253,40 @@ def test_deprecated_static_and_classmethod():
         A.B()
     assert len(w) == 1
     if A.__doc__ is not None:
-        assert 'deprecated' in A.B.__doc__
+        assert "deprecated" in A.B.__doc__
 
     with pytest.warns(AstropyDeprecationWarning) as w:
         A.C()
     assert len(w) == 1
     if A.__doc__ is not None:
-        assert 'deprecated' in A.C.__doc__
+        assert "deprecated" in A.C.__doc__
 
 
 def test_deprecated_argument():
     # Tests the decorator with function, method, staticmethod and classmethod.
 
     class Test:
-
         @classmethod
-        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        @deprecated_renamed_argument("clobber", "overwrite", "1.3")
         def test1(cls, overwrite):
             return overwrite
 
         @staticmethod
-        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        @deprecated_renamed_argument("clobber", "overwrite", "1.3")
         def test2(overwrite):
             return overwrite
 
-        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+        @deprecated_renamed_argument("clobber", "overwrite", "1.3")
         def test3(self, overwrite):
             return overwrite
 
-        @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
-                                     warning_type=NewDeprecationWarning)
+        @deprecated_renamed_argument(
+            "clobber", "overwrite", "1.3", warning_type=NewDeprecationWarning
+        )
         def test4(self, overwrite):
             return overwrite
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=False)
+    @deprecated_renamed_argument("clobber", "overwrite", "1.3", relax=False)
     def test1(overwrite):
         return overwrite
 
@@ -287,8 +301,8 @@ def test_deprecated_argument():
         with pytest.warns(AstropyDeprecationWarning, match=r"1\.3") as w:
             assert method(clobber=1) == 1
         assert len(w) == 1
-        assert 'test_decorators.py' in str(w[0].filename)
-        if method.__name__ == 'test4':
+        assert "test_decorators.py" in str(w[0].filename)
+        if method.__name__ == "test4":
             assert issubclass(w[0].category, NewDeprecationWarning)
 
         # Using both. Both keyword
@@ -300,20 +314,20 @@ def test_deprecated_argument():
 
 
 def test_deprecated_argument_custom_message():
-    @deprecated_renamed_argument('foo', 'bar', '4.0', message='Custom msg')
+    @deprecated_renamed_argument("foo", "bar", "4.0", message="Custom msg")
     def test(bar=0):
         pass
-    with pytest.warns(AstropyDeprecationWarning, match='Custom msg'):
+
+    with pytest.warns(AstropyDeprecationWarning, match="Custom msg"):
         test(foo=0)
 
 
 def test_deprecated_argument_in_kwargs():
     # To rename an argument that is consumed by "kwargs" the "arg_in_kwargs"
     # parameter is used.
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3',
-                                 arg_in_kwargs=True)
+    @deprecated_renamed_argument("clobber", "overwrite", "1.3", arg_in_kwargs=True)
     def test(**kwargs):
-        return kwargs['overwrite']
+        return kwargs["overwrite"]
 
     # As positional argument only
     with pytest.raises(TypeError):
@@ -326,7 +340,7 @@ def test_deprecated_argument_in_kwargs():
     with pytest.warns(AstropyDeprecationWarning, match=r"1\.3") as w:
         assert test(clobber=1) == 1
     assert len(w) == 1
-    assert 'test_decorators.py' in str(w[0].filename)
+    assert "test_decorators.py" in str(w[0].filename)
 
     # Using both. Both keyword
     with pytest.raises(TypeError), pytest.warns(AstropyDeprecationWarning):
@@ -339,7 +353,7 @@ def test_deprecated_argument_in_kwargs():
 def test_deprecated_argument_relaxed():
     # Relax turns the TypeError if both old and new keyword are used into
     # a warning.
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', relax=True)
+    @deprecated_renamed_argument("clobber", "overwrite", "1.3", relax=True)
     def test(overwrite):
         return overwrite
 
@@ -372,7 +386,7 @@ def test_deprecated_argument_relaxed():
 def test_deprecated_argument_pending():
     # Relax turns the TypeError if both old and new keyword are used into
     # a warning.
-    @deprecated_renamed_argument('clobber', 'overwrite', '1.3', pending=True)
+    @deprecated_renamed_argument("clobber", "overwrite", "1.3", pending=True)
     def test(overwrite):
         return overwrite
 
@@ -393,8 +407,9 @@ def test_deprecated_argument_pending():
 
 
 def test_deprecated_argument_multi_deprecation():
-    @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
-                                 [1.3, 1.2, 1.3], relax=True)
+    @deprecated_renamed_argument(
+        ["x", "y", "z"], ["a", "b", "c"], [1.3, 1.2, 1.3], relax=True
+    )
     def test(a, b, c):
         return a, b, c
 
@@ -417,8 +432,9 @@ def test_deprecated_argument_multi_deprecation():
 
 
 def test_deprecated_argument_multi_deprecation_2():
-    @deprecated_renamed_argument(['x', 'y', 'z'], ['a', 'b', 'c'],
-                                 [1.3, 1.2, 1.3], relax=[True, True, False])
+    @deprecated_renamed_argument(
+        ["x", "y", "z"], ["a", "b", "c"], [1.3, 1.2, 1.3], relax=[True, True, False]
+    )
     def test(a, b, c):
         return a, b, c
 
@@ -438,25 +454,28 @@ def test_deprecated_argument_not_allowed_use():
     # If the argument is supposed to be inside the kwargs one needs to set the
     # arg_in_kwargs parameter. Without it it raises a TypeError.
     with pytest.raises(TypeError):
-        @deprecated_renamed_argument('clobber', 'overwrite', '1.3')
+
+        @deprecated_renamed_argument("clobber", "overwrite", "1.3")
         def test1(**kwargs):
-            return kwargs['overwrite']
+            return kwargs["overwrite"]
 
     # Cannot replace "*args".
     with pytest.raises(TypeError):
-        @deprecated_renamed_argument('overwrite', 'args', '1.3')
+
+        @deprecated_renamed_argument("overwrite", "args", "1.3")
         def test2(*args):
             return args
 
     # Cannot replace "**kwargs".
     with pytest.raises(TypeError):
-        @deprecated_renamed_argument('overwrite', 'kwargs', '1.3')
+
+        @deprecated_renamed_argument("overwrite", "kwargs", "1.3")
         def test3(**kwargs):
             return kwargs
 
 
 def test_deprecated_argument_remove():
-    @deprecated_renamed_argument('x', None, '2.0', alternative='astropy.y')
+    @deprecated_renamed_argument("x", None, "2.0", alternative="astropy.y")
     def test(dummy=11, x=3):
         return dummy, x
 
@@ -468,7 +487,7 @@ def test_deprecated_argument_remove():
         assert test(x=1, dummy=10) == (10, 1)
     assert len(w) == 1
 
-    with pytest.warns(AstropyDeprecationWarning, match=r'Use astropy\.y instead'):
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use astropy\.y instead"):
         test(121, 1) == (121, 1)
 
     assert test() == (11, 3)
@@ -532,15 +551,16 @@ def test_classproperty_docstring():
 
             return 1
 
-    assert A.__dict__['foo'].__doc__ == "The foo."
+    assert A.__dict__["foo"].__doc__ == "The foo."
 
     class B:
         # Use doc passed to classproperty constructor
-        def _get_foo(cls): return 1
+        def _get_foo(cls):
+            return 1
 
         foo = classproperty(_get_foo, doc="The foo.")
 
-    assert B.__dict__['foo'].__doc__ == "The foo."
+    assert B.__dict__["foo"].__doc__ == "The foo."
 
 
 def test_classproperty_lazy_threadsafe(fast_thread_switching):
@@ -600,56 +620,62 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
 def test_format_doc_stringInput_simple():
     # Simple tests with string input
 
-    docstring_fail = ''
+    docstring_fail = ""
 
     # Raises an valueerror if input is empty
     with pytest.raises(ValueError):
+
         @format_doc(docstring_fail)
         def testfunc_fail():
             pass
 
-    docstring = 'test'
+    docstring = "test"
 
     # A first test that replaces an empty docstring
     @format_doc(docstring)
     def testfunc_1():
         pass
+
     assert inspect.getdoc(testfunc_1) == docstring
 
     # Test that it replaces an existing docstring
     @format_doc(docstring)
     def testfunc_2():
-        '''not test'''
+        """not test"""
         pass
+
     assert inspect.getdoc(testfunc_2) == docstring
 
 
 def test_format_doc_stringInput_format():
     # Tests with string input and formatting
 
-    docstring = 'yes {0} no {opt}'
+    docstring = "yes {0} no {opt}"
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
+
         @format_doc(docstring)
         def testfunc1():
             pass
 
     # Test that the formatting is done right
-    @format_doc(docstring, '/', opt='= life')
+    @format_doc(docstring, "/", opt="= life")
     def testfunc2():
         pass
-    assert inspect.getdoc(testfunc2) == 'yes / no = life'
+
+    assert inspect.getdoc(testfunc2) == "yes / no = life"
 
     # Test that we can include the original docstring
 
-    docstring2 = 'yes {0} no {__doc__}'
+    docstring2 = "yes {0} no {__doc__}"
 
-    @format_doc(docstring2, '/')
+    @format_doc(docstring2, "/")
     def testfunc3():
-        '''= 2 / 2 * life'''
+        """= 2 / 2 * life"""
         pass
-    assert inspect.getdoc(testfunc3) == 'yes / no = 2 / 2 * life'
+
+    assert inspect.getdoc(testfunc3) == "yes / no = 2 / 2 * life"
 
 
 def test_format_doc_objectInput_simple():
@@ -660,25 +686,28 @@ def test_format_doc_objectInput_simple():
 
     # Self input while the function has no docstring raises an error
     with pytest.raises(ValueError):
+
         @format_doc(docstring_fail)
         def testfunc_fail():
             pass
 
     def docstring0():
-        '''test'''
+        """test"""
         pass
 
     # A first test that replaces an empty docstring
     @format_doc(docstring0)
     def testfunc_1():
         pass
+
     assert inspect.getdoc(testfunc_1) == inspect.getdoc(docstring0)
 
     # Test that it replaces an existing docstring
     @format_doc(docstring0)
     def testfunc_2():
-        '''not test'''
+        """not test"""
         pass
+
     assert inspect.getdoc(testfunc_2) == inspect.getdoc(docstring0)
 
 
@@ -686,32 +715,35 @@ def test_format_doc_objectInput_format():
     # Tests with object input and formatting
 
     def docstring():
-        '''test {0} test {opt}'''
+        """test {0} test {opt}"""
         pass
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
+
         @format_doc(docstring)
         def testfunc_fail():
             pass
 
     # Test that the formatting is done right
-    @format_doc(docstring, '+', opt='= 2 * test')
+    @format_doc(docstring, "+", opt="= 2 * test")
     def testfunc2():
         pass
-    assert inspect.getdoc(testfunc2) == 'test + test = 2 * test'
+
+    assert inspect.getdoc(testfunc2) == "test + test = 2 * test"
 
     # Test that we can include the original docstring
 
     def docstring2():
-        '''test {0} test {__doc__}'''
+        """test {0} test {__doc__}"""
         pass
 
-    @format_doc(docstring2, '+')
+    @format_doc(docstring2, "+")
     def testfunc3():
-        '''= 4 / 2 * test'''
+        """= 4 / 2 * test"""
         pass
-    assert inspect.getdoc(testfunc3) == 'test + test = 4 / 2 * test'
+
+    assert inspect.getdoc(testfunc3) == "test + test = 4 / 2 * test"
 
 
 def test_format_doc_selfInput_simple():
@@ -719,6 +751,7 @@ def test_format_doc_selfInput_simple():
 
     # Self input while the function has no docstring raises an error
     with pytest.raises(ValueError):
+
         @format_doc(None)
         def testfunc_fail():
             pass
@@ -726,9 +759,10 @@ def test_format_doc_selfInput_simple():
     # Test that it keeps an existing docstring
     @format_doc(None)
     def testfunc_1():
-        '''not test'''
+        """not test"""
         pass
-    assert inspect.getdoc(testfunc_1) == 'not test'
+
+    assert inspect.getdoc(testfunc_1) == "not test"
 
 
 def test_format_doc_selfInput_format():
@@ -736,49 +770,53 @@ def test_format_doc_selfInput_format():
 
     # Raises an indexerror if not given the formatted args and kwargs
     with pytest.raises(IndexError):
+
         @format_doc(None)
         def testfunc_fail():
-            '''dum {0} dum {opt}'''
+            """dum {0} dum {opt}"""
             pass
 
     # Test that the formatting is done right
-    @format_doc(None, 'di', opt='da dum')
+    @format_doc(None, "di", opt="da dum")
     def testfunc1():
-        '''dum {0} dum {opt}'''
+        """dum {0} dum {opt}"""
         pass
-    assert inspect.getdoc(testfunc1) == 'dum di dum da dum'
+
+    assert inspect.getdoc(testfunc1) == "dum di dum da dum"
 
     # Test that we cannot recursively insert the original documentation
 
-    @format_doc(None, 'di')
+    @format_doc(None, "di")
     def testfunc2():
-        '''dum {0} dum {__doc__}'''
+        """dum {0} dum {__doc__}"""
         pass
-    assert inspect.getdoc(testfunc2) == 'dum di dum '
+
+    assert inspect.getdoc(testfunc2) == "dum di dum "
 
 
 def test_format_doc_onMethod():
     # Check if the decorator works on methods too, to spice it up we try double
     # decorator
-    docstring = 'what we do {__doc__}'
+    docstring = "what we do {__doc__}"
 
     class TestClass:
         @format_doc(docstring)
-        @format_doc(None, 'strange.')
+        @format_doc(None, "strange.")
         def test_method(self):
-            '''is {0}'''
+            """is {0}"""
             pass
 
-    assert inspect.getdoc(TestClass.test_method) == 'what we do is strange.'
+    assert inspect.getdoc(TestClass.test_method) == "what we do is strange."
 
 
 def test_format_doc_onClass():
     # Check if the decorator works on classes too
-    docstring = 'what we do {__doc__} {0}{opt}'
+    docstring = "what we do {__doc__} {0}{opt}"
 
-    @format_doc(docstring, 'strange', opt='.')
+    @format_doc(docstring, "strange", opt=".")
     class TestClass:
-        '''is'''
+        """is"""
+
         pass
 
-    assert inspect.getdoc(TestClass) == 'what we do is strange.'
+    assert inspect.getdoc(TestClass) == "what we do is strange."

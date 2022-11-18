@@ -56,14 +56,14 @@ def test_littleh():
     assert_quantity_allclose(cosmodist.to(u.Mpc, cu.with_H0()), 100 * u.Mpc)
 
     # Now try a luminosity scaling
-    h1lum = 0.49 * u.Lsun * cu.littleh ** -2
+    h1lum = 0.49 * u.Lsun * cu.littleh**-2
     assert_quantity_allclose(h1lum.to(u.Lsun, cu.with_H0(H0_70)), 1 * u.Lsun)
 
     # And the trickiest one: magnitudes.  Using H0=10 here for the round numbers
     H0_10 = 10 * u.km / u.s / u.Mpc
     # assume the "true" magnitude M = 12.
     # Then M - 5*log_10(h)  = M + 5 = 17
-    withlittlehmag = 17 * (u.mag - u.MagUnit(cu.littleh ** 2))
+    withlittlehmag = 17 * (u.mag - u.MagUnit(cu.littleh**2))
     assert_quantity_allclose(withlittlehmag.to(u.mag, cu.with_H0(H0_10)), 12 * u.mag)
 
 
@@ -81,10 +81,10 @@ def test_dimensionless_redshift():
     assert z == val
 
     # also test that it works for powers
-    assert (3 * cu.redshift ** 3) == val
+    assert (3 * cu.redshift**3) == val
 
     # and in composite units
-    assert (3 * u.km / cu.redshift ** 3) == 3 * u.km
+    assert (3 * u.km / cu.redshift**3) == 3 * u.km
 
     # test it also works as an equivalency
     with u.set_enabled_equivalencies([]):  # turn off default equivalencies
@@ -136,7 +136,7 @@ def test_redshift_hubble():
     default_cosmo = default_cosmology.get()
     z = 15 * cu.redshift
     H = cosmo.H(z)
-    h = H.to_value(u.km/u.s/u.Mpc) / 100 * cu.littleh
+    h = H.to_value(u.km / u.s / u.Mpc) / 100 * cu.littleh
 
     # 1) Default (without specifying the cosmology)
     with default_cosmology.set(cosmo):
@@ -172,7 +172,7 @@ def test_redshift_hubble():
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 @pytest.mark.parametrize(
     "kind",
-    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"]
+    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"],
 )
 def test_redshift_distance(kind):
     """Test :func:`astropy.cosmology.units.redshift_distance`."""
@@ -287,7 +287,7 @@ class Test_with_redshift:
 
     def test_hubble(self, cosmo):
         """Test Hubble equivalency component."""
-        unit = u.km/u.s/u.Mpc
+        unit = u.km / u.s / u.Mpc
         default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
         H = cosmo.H(z)
@@ -374,8 +374,9 @@ class Test_with_redshift:
         # showing the answer changes if the cosmology changes
         # this test uses the default cosmology
         equivalency = cu.with_redshift(distance=kind)
-        assert_quantity_allclose(z.to(u.Mpc, equivalency),
-                                 getattr(default_cosmo, kind + "_distance")(z))
+        assert_quantity_allclose(
+            z.to(u.Mpc, equivalency), getattr(default_cosmo, kind + "_distance")(z)
+        )
         assert not u.allclose(getattr(default_cosmo, kind + "_distance")(z), dist)
 
         # 2) Specifying the cosmology
@@ -408,64 +409,75 @@ def test_equivalency_context_manager():
     assert str(base_registry.equivalencies[0][0]) == "redshift"
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason = "Cosmology needs scipy")
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 class Test_unsuitable_units:
     """Ensure that unsuitable units are rejected"""
 
     def test_scalar(self):
         with pytest.raises(u.UnitConversionError):
-            Planck13.Om(0. * u.m)
+            Planck13.Om(0.0 * u.m)
 
-    @pytest.mark.parametrize('method',
-                             ['Om', 'Ob', 'Odm', 'Ode', 'Ogamma', 'Onu', 'Tcmb', 'Tnu',
-                              'scale_factor', 'angular_diameter_distance', 'luminosity_distance'])
+    @pytest.mark.parametrize(
+        "method",
+        [
+            "Om",
+            "Ob",
+            "Odm",
+            "Ode",
+            "Ogamma",
+            "Onu",
+            "Tcmb",
+            "Tnu",
+            "scale_factor",
+            "angular_diameter_distance",
+            "luminosity_distance",
+        ],
+    )
     def test_unit_exception(self, method):
         with pytest.raises(u.UnitConversionError):
-            getattr(Planck13, method)([0., 1.] * u.m)
+            getattr(Planck13, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method',
-                             ['_EdS_age', '_flat_age', '_dS_lookback_time', 'efunc', 'inv_efunc',
-                              'Ok'])
+    @pytest.mark.parametrize(
+        "method",
+        ["_EdS_age", "_flat_age", "_dS_lookback_time", "efunc", "inv_efunc", "Ok"],
+    )
     def test_LambdaCDM_unit_exception(self, method):
         LambdaCDMTest = flrw.LambdaCDM(70.0, 0.3, 0.5)
         with pytest.raises(u.UnitConversionError):
-            getattr(LambdaCDMTest, method)([0., 1.] * u.m)
+            getattr(LambdaCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['efunc', 'inv_efunc'])
+    @pytest.mark.parametrize("method", ["efunc", "inv_efunc"])
     def test_FlatLambdaCDM_unit_exception(self, method):
         FlatLambdaCDMTest = flrw.FlatLambdaCDM(70.0, 0.3)
         with pytest.raises(u.UnitConversionError):
-            getattr(FlatLambdaCDMTest, method)([0., 1.] * u.m)
+            getattr(FlatLambdaCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['de_density_scale', 'efunc', 'inv_efunc'])
+    @pytest.mark.parametrize("method", ["de_density_scale", "efunc", "inv_efunc"])
     def test_wCDM_unit_exception(self, method):
-        wCDMTest = flrw.wCDM(60.0, 0.27, 0.6, w0 = -0.8)
+        wCDMTest = flrw.wCDM(60.0, 0.27, 0.6, w0=-0.8)
         with pytest.raises(u.UnitConversionError):
-            getattr(wCDMTest, method)([0., 1.] * u.m)
+            getattr(wCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['efunc', 'inv_efunc'])
+    @pytest.mark.parametrize("method", ["efunc", "inv_efunc"])
     def test_FlatwCDM_unit_exception(self, method):
-        FlatwCDMTest = flrw.FlatwCDM(65.0, 0.27, w0 = -0.6)
+        FlatwCDMTest = flrw.FlatwCDM(65.0, 0.27, w0=-0.6)
         with pytest.raises(u.UnitConversionError):
-            getattr(FlatwCDMTest, method)([0., 1.] * u.m)
+            getattr(FlatwCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['w', 'de_density_scale'])
+    @pytest.mark.parametrize("method", ["w", "de_density_scale"])
     def test_w0waCDM_unit_exception(self, method):
-        w0waCDMTest = flrw.w0waCDM(H0 = 70, Om0 = 0.27, Ode0 = 0.5, w0 = -1.2,
-                                   wa = -0.2)
+        w0waCDMTest = flrw.w0waCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wa=-0.2)
         with pytest.raises(u.UnitConversionError):
-            getattr(w0waCDMTest, method)([0., 1.] * u.m)
+            getattr(w0waCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['w', 'de_density_scale'])
+    @pytest.mark.parametrize("method", ["w", "de_density_scale"])
     def test_wpwaCDM_unit_exception(self, method):
-        wpwaCDMTest = flrw.wpwaCDM(H0 = 70, Om0 = 0.27, Ode0 = 0.5, wp = -1.2,
-                                   wa = -0.2, zp = 0.9)
+        wpwaCDMTest = flrw.wpwaCDM(H0=70, Om0=0.27, Ode0=0.5, wp=-1.2, wa=-0.2, zp=0.9)
         with pytest.raises(u.UnitConversionError):
-            getattr(wpwaCDMTest, method)([0., 1.] * u.m)
+            getattr(wpwaCDMTest, method)([0.0, 1.0] * u.m)
 
-    @pytest.mark.parametrize('method', ['w', 'de_density_scale'])
+    @pytest.mark.parametrize("method", ["w", "de_density_scale"])
     def test_w0wzCDM14_unit_exception(self, method):
-        w0wzCDMTest = flrw.w0wzCDM(H0 = 70, Om0 = 0.27, Ode0 = 0.5, w0 = -1.2,
-                                   wz = 0.1)
+        w0wzCDMTest = flrw.w0wzCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wz=0.1)
         with pytest.raises(u.UnitConversionError):
-            getattr(w0wzCDMTest, method)([0., 1.] * u.m)
+            getattr(w0wzCDMTest, method)([0.0, 1.0] * u.m)

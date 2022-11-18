@@ -11,48 +11,74 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy.utils import minversion
 from astropy.modeling.core import Model, ModelDefinitionError, CompoundModel
 from astropy.modeling.parameters import Parameter
-from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                                     Gaussian2D, Polynomial1D, Polynomial2D,
-                                     Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
-                                     Identity, Mapping, Linear1D,
-                                     Tabular1D, fix_inputs,)
+from astropy.modeling.models import (
+    Const1D,
+    Shift,
+    Scale,
+    Rotation2D,
+    Gaussian1D,
+    Gaussian2D,
+    Polynomial1D,
+    Polynomial2D,
+    Chebyshev2D,
+    Legendre2D,
+    Chebyshev1D,
+    Legendre1D,
+    Identity,
+    Mapping,
+    Linear1D,
+    Tabular1D,
+    fix_inputs,
+)
 from astropy.modeling.fitting import LevMarLSQFitter
 import astropy.units as u
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
-@pytest.mark.parametrize(('expr', 'result'),
-                         [(lambda x, y: x + y, [5.0, 5.0]),
-                          (lambda x, y: x - y, [-1.0, -1.0]),
-                          (lambda x, y: x * y, [6.0, 6.0]),
-                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
-                          (lambda x, y: x ** y, [8.0, 8.0])])
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, [5.0, 5.0]),
+        (lambda x, y: x - y, [-1.0, -1.0]),
+        (lambda x, y: x * y, [6.0, 6.0]),
+        (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+        (lambda x, y: x**y, [8.0, 8.0]),
+    ],
+)
 def test_model_set(expr, result):
     s = expr(Const1D((2, 2), n_models=2), Const1D((3, 3), n_models=2))
     out = s(0, model_set_axis=False)
     assert_array_equal(out, result)
 
 
-@pytest.mark.parametrize(('expr', 'result'),
-                         [(lambda x, y: x + y, [5.0, 5.0]),
-                          (lambda x, y: x - y, [-1.0, -1.0]),
-                          (lambda x, y: x * y, [6.0, 6.0]),
-                          (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
-                          (lambda x, y: x ** y, [8.0, 8.0])])
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, [5.0, 5.0]),
+        (lambda x, y: x - y, [-1.0, -1.0]),
+        (lambda x, y: x * y, [6.0, 6.0]),
+        (lambda x, y: x / y, [2.0 / 3.0, 2.0 / 3.0]),
+        (lambda x, y: x**y, [8.0, 8.0]),
+    ],
+)
 def test_model_set_raises_value_error(expr, result):
     """Check that creating model sets with components whose _n_models are
-       different raise a value error
+    different raise a value error
     """
     with pytest.raises(ValueError):
         expr(Const1D((2, 2), n_models=2), Const1D(3, n_models=1))
 
 
-@pytest.mark.parametrize(('expr', 'result'),
-                         [(lambda x, y: x + y, 5.0),
-                          (lambda x, y: x - y, -1.0),
-                          (lambda x, y: x * y, 6.0),
-                          (lambda x, y: x / y, 2.0 / 3.0),
-                          (lambda x, y: x ** y, 8.0)])
+@pytest.mark.parametrize(
+    ("expr", "result"),
+    [
+        (lambda x, y: x + y, 5.0),
+        (lambda x, y: x - y, -1.0),
+        (lambda x, y: x * y, 6.0),
+        (lambda x, y: x / y, 2.0 / 3.0),
+        (lambda x, y: x**y, 8.0),
+    ],
+)
 def test_two_model_instance_arithmetic_1d(expr, result):
     """
     Like test_two_model_class_arithmetic_1d, but creates a new model from two
@@ -145,22 +171,22 @@ def test_expression_formatting():
     G2 = Gaussian2D(1, 2, 3, 4, 5, 6)
 
     M = G + G
-    assert M._format_expression() == '[0] + [1]'
+    assert M._format_expression() == "[0] + [1]"
 
     M = G + G + G
-    assert M._format_expression() == '[0] + [1] + [2]'
+    assert M._format_expression() == "[0] + [1] + [2]"
 
     M = G + G * G
-    assert M._format_expression() == '[0] + [1] * [2]'
+    assert M._format_expression() == "[0] + [1] * [2]"
 
     M = G * G + G
-    assert M._format_expression() == '[0] * [1] + [2]'
+    assert M._format_expression() == "[0] * [1] + [2]"
 
     M = G + G * G + G
-    assert M._format_expression() == '[0] + [1] * [2] + [3]'
+    assert M._format_expression() == "[0] + [1] * [2] + [3]"
 
     M = (G + G) * (G + G)
-    assert M._format_expression() == '([0] + [1]) * ([2] + [3])'
+    assert M._format_expression() == "([0] + [1]) * ([2] + [3])"
 
     # This example uses parentheses in the expression, but those won't be
     # preserved in the expression formatting since they technically aren't
@@ -168,28 +194,28 @@ def test_expression_formatting():
     # parenthesized (short of some deep, and probably not worthwhile
     # introspection)
     M = (G * G) + (G * G)
-    assert M._format_expression() == '[0] * [1] + [2] * [3]'
+    assert M._format_expression() == "[0] * [1] + [2] * [3]"
 
-    M = G ** G
-    assert M._format_expression() == '[0] ** [1]'
+    M = G**G
+    assert M._format_expression() == "[0] ** [1]"
 
-    M = G + G ** G
-    assert M._format_expression() == '[0] + [1] ** [2]'
+    M = G + G**G
+    assert M._format_expression() == "[0] + [1] ** [2]"
 
     M = (G + G) ** G
-    assert M._format_expression() == '([0] + [1]) ** [2]'
+    assert M._format_expression() == "([0] + [1]) ** [2]"
 
     M = G + G | G
-    assert M._format_expression() == '[0] + [1] | [2]'
+    assert M._format_expression() == "[0] + [1] | [2]"
 
     M = G + (G | G)
-    assert M._format_expression() == '[0] + ([1] | [2])'
+    assert M._format_expression() == "[0] + ([1] | [2])"
 
     M = G & G | G2
-    assert M._format_expression() == '[0] & [1] | [2]'
+    assert M._format_expression() == "[0] & [1] | [2]"
 
     M = G & (G | G)
-    assert M._format_expression() == '[0] & ([1] | [2])'
+    assert M._format_expression() == "[0] & ([1] | [2])"
 
 
 def test_basic_compound_inverse():
@@ -202,13 +228,17 @@ def test_basic_compound_inverse():
     assert_allclose(t.inverse(*t(0, 1)), (0, 1))
 
 
-@pytest.mark.parametrize('model', [
-    Shift(0) + Shift(0) | Shift(0),
-    Shift(0) - Shift(0) | Shift(0),
-    Shift(0) * Shift(0) | Shift(0),
-    Shift(0) / Shift(0) | Shift(0),
-    Shift(0) ** Shift(0) | Shift(0),
-    Gaussian1D(1, 2, 3) | Gaussian1D(4, 5, 6)])
+@pytest.mark.parametrize(
+    "model",
+    [
+        Shift(0) + Shift(0) | Shift(0),
+        Shift(0) - Shift(0) | Shift(0),
+        Shift(0) * Shift(0) | Shift(0),
+        Shift(0) / Shift(0) | Shift(0),
+        Shift(0) ** Shift(0) | Shift(0),
+        Gaussian1D(1, 2, 3) | Gaussian1D(4, 5, 6),
+    ],
+)
 def test_compound_unsupported_inverse(model):
     """
     Ensure inverses aren't supported in cases where it shouldn't be.
@@ -282,7 +312,7 @@ def test_invalid_operands():
         Rotation2D(90) + Gaussian1D(1, 0, 0.1)
 
 
-@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
+@pytest.mark.parametrize("poly", [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2)])
 def test_compound_with_polynomials_2d(poly):
     """
     Tests that polynomials are scaled when used in compound models.
@@ -299,16 +329,16 @@ def test_compound_with_polynomials_2d(poly):
 
 def test_fix_inputs():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
-    g2 = Gaussian2D(1.5, .5, -.2, .5, .3)
+    g2 = Gaussian2D(1.5, 0.5, -0.2, 0.5, 0.3)
     sg1_1 = fix_inputs(g1, {1: 0})
     assert_allclose(sg1_1(0), g1(0, 0))
     assert_allclose(sg1_1([0, 1, 3]), g1([0, 1, 3], [0, 0, 0]))
-    sg1_2 = fix_inputs(g1, {'x': 1})
+    sg1_2 = fix_inputs(g1, {"x": 1})
     assert_allclose(sg1_2(1.5), g1(1, 1.5))
     gg1 = g1 & g2
     sgg1_1 = fix_inputs(gg1, {1: 0.1, 3: 0.2})
     assert_allclose(sgg1_1(0, 0), gg1(0, 0.1, 0, 0.2))
-    sgg1_2 = fix_inputs(gg1, {'x0': -.1, 2: .1})
+    sgg1_2 = fix_inputs(gg1, {"x0": -0.1, 2: 0.1})
     assert_allclose(sgg1_2(1, 1), gg1(-0.1, 1, 0.1, 1))
     assert_allclose(sgg1_2(y0=1, y1=1), gg1(-0.1, 1, 0.1, 1))
 
@@ -316,7 +346,7 @@ def test_fix_inputs():
 def test_fix_inputs_invalid():
     g1 = Gaussian2D(1, 0, 0, 1, 2)
     with pytest.raises(ValueError):
-        fix_inputs(g1, {'x0': 0, 0: 0})
+        fix_inputs(g1, {"x0": 0, 0: 0})
 
     with pytest.raises(ValueError):
         fix_inputs(g1, (0, 1))
@@ -331,10 +361,10 @@ def test_fix_inputs_invalid():
         fix_inputs(g1, {np.int64(3): 2})
 
     with pytest.raises(ValueError):
-        fix_inputs(g1, {'w': 2})
+        fix_inputs(g1, {"w": 2})
 
     with pytest.raises(ModelDefinitionError):
-        CompoundModel('#', g1, g1)
+        CompoundModel("#", g1, g1)
 
     with pytest.raises(ValueError):
         gg1 = fix_inputs(g1, {0: 1})
@@ -374,7 +404,7 @@ def test_indexing_on_instance():
     m = Gaussian1D(1, 0, 0.1) + Const1D(2)
     assert isinstance(m[0], Gaussian1D)
     assert isinstance(m[1], Const1D)
-    assert m.param_names == ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1')
+    assert m.param_names == ("amplitude_0", "mean_0", "stddev_0", "amplitude_1")
 
     # Test parameter equivalence
     assert m[0].amplitude == 1 == m.amplitude_0
@@ -392,13 +422,13 @@ def test_indexing_on_instance():
 
     # Similar couple of tests, but now where the compound model was created
     # from model instances
-    g = Gaussian1D(1, 2, 3, name='g')
-    p = Polynomial1D(2, name='p')
+    g = Gaussian1D(1, 2, 3, name="g")
+    p = Polynomial1D(2, name="p")
     m = g + p
-    assert m[0].name == 'g'
-    assert m[1].name == 'p'
-    assert m['g'].name == 'g'
-    assert m['p'].name == 'p'
+    assert m[0].name == "g"
+    assert m[1].name == "p"
+    assert m["g"].name == "g"
+    assert m["p"].name == "p"
 
     poly = m[1]
     m.c0_1 = 12345
@@ -414,19 +444,19 @@ def test_indexing_on_instance():
         m[42]
 
     with pytest.raises(IndexError):
-        m['foobar']
+        m["foobar"]
 
     # Confirm index-by-name works with fix_inputs
-    g = Gaussian2D(1, 2, 3, 4, 5, name='g')
+    g = Gaussian2D(1, 2, 3, 4, 5, name="g")
     m = fix_inputs(g, {0: 1})
-    assert m['g'].name == 'g'
+    assert m["g"].name == "g"
 
     # Test string slicing
-    A = Const1D(1.1, name='A')
-    B = Const1D(2.1, name='B')
-    C = Const1D(3.1, name='C')
+    A = Const1D(1.1, name="A")
+    B = Const1D(2.1, name="B")
+    C = Const1D(3.1, name="C")
     M = A + B * C
-    assert_allclose(M['B':'C'](1), 6.510000000000001)
+    assert_allclose(M["B":"C"](1), 6.510000000000001)
 
 
 class _ConstraintsTestA(Model):
@@ -453,20 +483,21 @@ def test_inherit_constraints():
 
     Regression test for https://github.com/astropy/astropy/issues/3481
     """
-    model = (Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
-             Gaussian1D(fixed={'mean': True}))
+    model = Gaussian1D(bounds={"stddev": (0, 0.3)}, fixed={"mean": True}) + Gaussian1D(
+        fixed={"mean": True}
+    )
 
     # Lots of assertions in this test as there are multiple interfaces to
     # parameter constraints
 
-    assert 'stddev_0' in model.bounds
-    assert model.bounds['stddev_0'] == (0, 0.3)
+    assert "stddev_0" in model.bounds
+    assert model.bounds["stddev_0"] == (0, 0.3)
     assert model.stddev_0.bounds == (0, 0.3)
-    assert 'mean_0' in model.fixed
-    assert model.fixed['mean_0'] is True
+    assert "mean_0" in model.fixed
+    assert model.fixed["mean_0"] is True
     assert model.mean_0.fixed is True
-    assert 'mean_1' in model.fixed
-    assert model.fixed['mean_1'] is True
+    assert "mean_1" in model.fixed
+    assert model.fixed["mean_1"] is True
     assert model.mean_1.fixed is True
 
     assert model.stddev_0 is model[0].stddev
@@ -474,23 +505,23 @@ def test_inherit_constraints():
     # Now what about if we update them through the sub-models?
     model.stddev_0.bounds = (0, 0.4)
     assert model[0].stddev.bounds == (0, 0.4)
-    assert model[0].bounds['stddev'] == (0, 0.4)
+    assert model[0].bounds["stddev"] == (0, 0.4)
 
     model.stddev_0.bounds = (0.1, 0.5)
     assert model[0].stddev.bounds == (0.1, 0.5)
-    assert model[0].bounds['stddev'] == (0.1, 0.5)
+    assert model[0].bounds["stddev"] == (0.1, 0.5)
 
     model[1].mean.fixed = False
     assert model.mean_1.fixed is False
     assert model[1].mean.fixed is False
 
     # Now turn off syncing of constraints
-    assert model.bounds['stddev_0']  == (0.1, 0.5)
+    assert model.bounds["stddev_0"] == (0.1, 0.5)
     model.sync_constraints = False
     model[0].stddev.bounds = (0, 0.2)
-    assert model.bounds['stddev_0'] == (0.1, 0.5)
+    assert model.bounds["stddev_0"] == (0.1, 0.5)
     model.sync_constraints = True
-    assert model.bounds['stddev_0'] == (0, 0.2)
+    assert model.bounds["stddev_0"] == (0, 0.2)
 
 
 def test_compound_custom_inverse():
@@ -559,7 +590,7 @@ def test_name():
     scl = Scale(2)
     m = offx | scl
     scl.name = "scale"
-    assert m.submodel_names == ('None_0', 'scale')
+    assert m.submodel_names == ("None_0", "scale")
     assert m.name is None
     m.name = "M"
     assert m.name == "M"
@@ -573,12 +604,12 @@ def test_name_index():
     g2 = Gaussian1D(1, 2, 1)
     g = g1 + g2
     with pytest.raises(IndexError):
-        g['bozo']
-    g1.name = 'bozo'
-    assert g['bozo'].mean == 1
-    g2.name = 'bozo'
+        g["bozo"]
+    g1.name = "bozo"
+    assert g["bozo"].mean == 1
+    g2.name = "bozo"
     with pytest.raises(IndexError):
-        g['bozo']
+        g["bozo"]
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -586,8 +617,7 @@ def test_tabular_in_compound():
     """
     Issue #7411 - evaluate should not change the shape of the output.
     """
-    t = Tabular1D(points=([1, 5, 7],), lookup_table=[12, 15, 19],
-                  bounds_error=False)
+    t = Tabular1D(points=([1, 5, 7],), lookup_table=[12, 15, 19], bounds_error=False)
     rot = Rotation2D(2)
     p = Polynomial1D(1)
     x = np.arange(12).reshape((3, 4))
@@ -601,36 +631,139 @@ def test_tabular_in_compound():
 
 
 def test_bounding_box():
-    g = Gaussian2D() + Gaussian2D(2, .5, .1, 2, 3, 0)
-    g.bounding_box = ((0, 1), (0, .5))
+    g = Gaussian2D() + Gaussian2D(2, 0.5, 0.1, 2, 3, 0)
+    g.bounding_box = ((0, 1), (0, 0.5))
     y, x = np.mgrid[0:10, 0:10]
-    y = y / 3.
-    x = x / 3.
+    y = y / 3.0
+    x = x / 3.0
     val = g(x, y, with_bounding_box=True)
-    compare = np.array([
-        [2.93738984, 2.93792011, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [2.87857153, 2.88188761, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [2.70492922, 2.71529265, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [2.45969972, 2.47912103, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan],
-        [np.nan, np.nan, np.nan, np.nan, np.nan,
-         np.nan, np.nan, np.nan, np.nan, np.nan]])
+    compare = np.array(
+        [
+            [
+                2.93738984,
+                2.93792011,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                2.87857153,
+                2.88188761,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                2.70492922,
+                2.71529265,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                2.45969972,
+                2.47912103,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+            [
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
+        ]
+    )
     mask = ~np.isnan(val)
     assert_allclose(val[mask], compare[mask])
-    val2 = g(x+2, y+2, with_bounding_box=True)
+    val2 = g(x + 2, y + 2, with_bounding_box=True)
     assert np.isnan(val2).sum() == 100
     # val3 = g(.1, .1, with_bounding_box=True)
 
@@ -641,10 +774,10 @@ def test_bounding_box_with_units():
     lt = np.arange(5) * u.AA
     t = Tabular1D(points, lt)
 
-    assert t(1 * u.pix, with_bounding_box=True) == 1. * u.AA
+    assert t(1 * u.pix, with_bounding_box=True) == 1.0 * u.AA
 
 
-@pytest.mark.parametrize('poly', [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
+@pytest.mark.parametrize("poly", [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
 def test_compound_with_polynomials_1d(poly):
     """
     Tests that polynomials are offset when used in compound models.
@@ -657,27 +790,35 @@ def test_compound_with_polynomials_1d(poly):
     result_compound = model(x)
     result = shift(poly(x))
     assert_allclose(result, result_compound)
-    assert model.param_names == ('c0_0', 'c1_0', 'c2_0', 'c3_0', 'c4_0', 'c5_0', 'offset_1')
+    assert model.param_names == (
+        "c0_0",
+        "c1_0",
+        "c2_0",
+        "c3_0",
+        "c4_0",
+        "c5_0",
+        "offset_1",
+    )
 
 
 def test_replace_submodel():
     """
     Replace a model in a Compound model
     """
-    S1 = Shift(2, name='shift2') | Scale(3, name='scale3')  # First shift then scale
-    S2 = Scale(2, name='scale2') | Shift(3, name='shift3')  # First scale then shift
+    S1 = Shift(2, name="shift2") | Scale(3, name="scale3")  # First shift then scale
+    S2 = Scale(2, name="scale2") | Shift(3, name="shift3")  # First scale then shift
 
     m = S1 & S2
     assert m(1, 2) == (9, 7)
 
-    m2 = m.replace_submodel('scale3', Scale(4, name='scale4'))
+    m2 = m.replace_submodel("scale3", Scale(4, name="scale4"))
     assert m2(1, 2) == (12, 7)
     assert m(1, 2) == (9, 7)
     # Check the inverse has been updated
     assert m2.inverse(12, 7) == (1, 2)
 
     # Produce the same result by replacing a single model with a compound
-    m3 = m.replace_submodel('shift2', Shift(2) | Scale(2))
+    m3 = m.replace_submodel("shift2", Shift(2) | Scale(2))
     assert m(1, 2) == (9, 7)
     assert m3(1, 2) == (18, 7)
     # Check the inverse has been updated
@@ -686,43 +827,42 @@ def test_replace_submodel():
     # Test with arithmetic model compunding operator
     m = S1 + S2
     assert m(1) == 14
-    m2 = m.replace_submodel('scale2', Scale(4, name='scale4'))
+    m2 = m.replace_submodel("scale2", Scale(4, name="scale4"))
     assert m2(1) == 16
 
     # Test with fix_inputs()
-    R = fix_inputs(Rotation2D(angle=90, name='rotate'), {0: 1})
+    R = fix_inputs(Rotation2D(angle=90, name="rotate"), {0: 1})
     m4 = S1 | R
     assert_allclose(m4(0), (-6, 1))
 
-    m5 = m4.replace_submodel('rotate', Rotation2D(180))
+    m5 = m4.replace_submodel("rotate", Rotation2D(180))
     assert_allclose(m5(0), (-1, -6))
 
     # Check we get a value error when model name doesn't exist
     with pytest.raises(ValueError):
-        m2 = m.replace_submodel('not_there', Scale(2))
+        m2 = m.replace_submodel("not_there", Scale(2))
 
     # And now a model set
-    P = Polynomial1D(degree=1, n_models=2, name='poly')
+    P = Polynomial1D(degree=1, n_models=2, name="poly")
     S = Shift([1, 2], n_models=2)
     m = P | S
     assert_array_equal(m([0, 1]), (1, 2))
     with pytest.raises(ValueError):
-        m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=1))
-    m2 = m.replace_submodel('poly', Polynomial1D(degree=1, c0=[1, 2],
-                                                 n_models=2))
+        m2 = m.replace_submodel("poly", Polynomial1D(degree=1, c0=1))
+    m2 = m.replace_submodel("poly", Polynomial1D(degree=1, c0=[1, 2], n_models=2))
     assert_array_equal(m2([0, 1]), (2, 4))
 
     # Ensure previous _user_inverse doesn't stick around
     S1 = Shift(1)
     S2 = Shift(2)
-    S3 = Shift(3, name='S3')
+    S3 = Shift(3, name="S3")
 
     S23 = S2 | S3
     S23.inverse = Shift(-4.9)
     m = S1 & S23
 
     # This should delete the S23._user_inverse
-    m2 = m.replace_submodel('S3', Shift(4))
+    m2 = m.replace_submodel("S3", Shift(4))
     assert m2(1, 2) == (2, 8)
     assert m2.inverse(2, 8) == (1, 2)
 
@@ -767,7 +907,7 @@ def test_compound_evaluate_power():
 
     model1 = Gaussian1D(2, 1, 5)
     model2 = Const1D(2)
-    compound = model1 ** model2
+    compound = model1**model2
 
     assert_array_equal(
         compound.evaluate(x, *p1, *p2),
@@ -816,9 +956,7 @@ def test_compound_evaluate_named_param(expr):
     compound = expr(model1, model2)
 
     assert_array_equal(
-        compound.evaluate(
-            x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]
-        ),
+        compound.evaluate(x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]),
         expr(model1.evaluate(x, *p1), model2.evaluate(x, *p2)),
     )
 
@@ -834,12 +972,10 @@ def test_compound_evaluate_name_param_power():
 
     model1 = Gaussian1D(2, 1, 5)
     model2 = Const1D(2)
-    compound = model1 ** model2
+    compound = model1**model2
 
     assert_array_equal(
-        compound.evaluate(
-            x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]
-        ),
+        compound.evaluate(x, *p2, amplitude_0=p1[0], mean_0=p1[1], stddev_0=p1[2]),
         model1.evaluate(x, *p1) ** model2.evaluate(x, *p2),
     )
 
@@ -922,7 +1058,7 @@ def test_compound_evaluate_fix_inputs_by_position():
     )
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_fit_multiplied_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -932,8 +1068,8 @@ def test_fit_multiplied_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.m * u.kg / u.s
 
-    m1 = Linear1D(slope=5*u.m/u.s/u.s, intercept=1.0*u.m/u.s)
-    m2 = Linear1D(slope=0.0*u.kg/u.s, intercept=10.0*u.kg)
+    m1 = Linear1D(slope=5 * u.m / u.s / u.s, intercept=1.0 * u.m / u.s)
+    m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     truth = m1 * m2
     fit = fitter(truth, x, y)
 
@@ -947,7 +1083,7 @@ def test_fit_multiplied_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -958,9 +1094,9 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.m * u.m * u.kg / u.s
 
-    m1 = Linear1D(slope=5*u.m/u.s/u.s, intercept=1.0*u.m/u.s)
-    m2 = Linear1D(slope=0.0*u.kg/u.s, intercept=10.0*u.kg)
-    m3 = Linear1D(slope=0.0*u.m/u.s, intercept=10.0*u.m)
+    m1 = Linear1D(slope=5 * u.m / u.s / u.s, intercept=1.0 * u.m / u.s)
+    m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
+    m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 * m2 * m3
     fit = fitter(truth, x, y)
 
@@ -976,10 +1112,10 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.m * u.m * u.kg * u.kg / u.s
 
-    m1 = Linear1D(slope=5*u.m/u.s/u.s, intercept=1.0*u.m/u.s)
-    m2 = Linear1D(slope=0.0*u.kg/u.s, intercept=10.0*u.kg)
-    m3 = Linear1D(slope=0.0*u.m/u.s, intercept=10.0*u.m)
-    m4 = Linear1D(slope=0.0*u.kg/u.s, intercept=10.0*u.kg)
+    m1 = Linear1D(slope=5 * u.m / u.s / u.s, intercept=1.0 * u.m / u.s)
+    m2 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
+    m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
+    m4 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     m11 = m1 * m2
     m22 = m3 * m4
     truth = m11 * m22
@@ -995,7 +1131,7 @@ def test_fit_multiplied_recursive_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_fit_divided_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -1005,8 +1141,8 @@ def test_fit_divided_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.kg * u.m / u.s
 
-    m1 = Linear1D(slope=5*u.kg*u.m/u.s, intercept=1.0*u.kg*u.m)
-    m2 = Linear1D(slope=0.0*u.s/u.s, intercept=10.0*u.s)
+    m1 = Linear1D(slope=5 * u.kg * u.m / u.s, intercept=1.0 * u.kg * u.m)
+    m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
     truth = m1 / m2
     fit = fitter(truth, x, y)
 
@@ -1020,7 +1156,7 @@ def test_fit_divided_compound_model_with_mixed_units():
         assert getattr(truth, name) == getattr(fit, name)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_fit_mixed_recursive_compound_model_with_mixed_units():
     """
     Regression test for issue #12320
@@ -1031,9 +1167,9 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.kg * u.m * u.m / u.s
 
-    m1 = Linear1D(slope=5*u.kg*u.m/u.s, intercept=1.0*u.kg*u.m)
-    m2 = Linear1D(slope=0.0*u.s/u.s, intercept=10.0*u.s)
-    m3 = Linear1D(slope=0.0*u.m/u.s, intercept=10.0*u.m)
+    m1 = Linear1D(slope=5 * u.kg * u.m / u.s, intercept=1.0 * u.kg * u.m)
+    m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
+    m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
     truth = m1 / m2 * m3
     fit = fitter(truth, x, y)
 
@@ -1049,10 +1185,10 @@ def test_fit_mixed_recursive_compound_model_with_mixed_units():
     x = np.linspace(0, 1, 101) * u.s
     y = np.linspace(5, 10, 101) * u.kg * u.kg * u.m * u.m / u.s
 
-    m1 = Linear1D(slope=5*u.kg*u.m/u.s, intercept=1.0*u.kg*u.m)
-    m2 = Linear1D(slope=0.0*u.s/u.s, intercept=10.0*u.s)
-    m3 = Linear1D(slope=0.0*u.m/u.s, intercept=10.0*u.m)
-    m4 = Linear1D(slope=0.0*u.kg/u.s, intercept=10.0*u.kg)
+    m1 = Linear1D(slope=5 * u.kg * u.m / u.s, intercept=1.0 * u.kg * u.m)
+    m2 = Linear1D(slope=0.0 * u.s / u.s, intercept=10.0 * u.s)
+    m3 = Linear1D(slope=0.0 * u.m / u.s, intercept=10.0 * u.m)
+    m4 = Linear1D(slope=0.0 * u.kg / u.s, intercept=10.0 * u.kg)
     m11 = m1 / m2
     m22 = m3 * m4
     truth = m11 * m22

@@ -42,7 +42,9 @@ class ReadWriteTestMixin:
         # register
         readwrite_registry.register_reader("json", Cosmology, read_json, force=True)
         readwrite_registry.register_writer("json", Cosmology, write_json, force=True)
-        readwrite_registry.register_identifier("json", Cosmology, json_identify, force=True)
+        readwrite_registry.register_identifier(
+            "json", Cosmology, json_identify, force=True
+        )
 
         yield  # run all tests in class
 
@@ -98,7 +100,9 @@ class ReadWriteTestMixin:
         assert got.meta == cosmo.meta
 
         # and also
-        got = Cosmology.read(fname, format=format, cosmology=cosmo.__class__.__qualname__)
+        got = Cosmology.read(
+            fname, format=format, cosmology=cosmo.__class__.__qualname__
+        )
         assert got == cosmo
         assert got.meta == cosmo.meta
 
@@ -167,7 +171,9 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         # the default value
         got = cosmo.__class__.read(tempfname, format=format)
         got2 = Cosmology.read(tempfname, format=format, cosmology=cosmo.__class__)
-        got3 = Cosmology.read(tempfname, format=format, cosmology=cosmo.__class__.__qualname__)
+        got3 = Cosmology.read(
+            tempfname, format=format, cosmology=cosmo.__class__.__qualname__
+        )
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 
@@ -204,7 +210,8 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 
 class ToFromFormatTestMixin(
     # convert
-    test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
+    test_mapping.ToFromMappingTestMixin,
+    test_model.ToFromModelTestMixin,
     test_table.ToFromTableTestMixin,
     # read/write
     test_ecsv.ReadWriteECSVTestMixin,
@@ -263,7 +270,9 @@ class ToFromFormatTestMixin(
         assert got.meta == cosmo.meta
 
         # and also
-        got = Cosmology.from_format(obj, format=format, cosmology=cosmo.__class__.__qualname__)
+        got = Cosmology.from_format(
+            obj, format=format, cosmology=cosmo.__class__.__qualname__
+        )
         assert got == cosmo
         assert got.meta == cosmo.meta
 

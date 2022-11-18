@@ -6,13 +6,15 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.nddata.nduncertainty import (StdDevUncertainty,
-                             VarianceUncertainty,
-                             InverseVariance,
-                             NDUncertainty,
-                             IncompatibleUncertaintiesException,
-                             MissingDataAssociationException,
-                             UnknownUncertainty)
+from astropy.nddata.nduncertainty import (
+    StdDevUncertainty,
+    VarianceUncertainty,
+    InverseVariance,
+    NDUncertainty,
+    IncompatibleUncertaintiesException,
+    MissingDataAssociationException,
+    UnknownUncertainty,
+)
 from astropy.nddata.nddata import NDData
 from astropy.nddata.compat import NDDataArray
 from astropy.nddata.ccddata import CCDData
@@ -41,10 +43,9 @@ from astropy import units as u
 
 
 class FakeUncertainty(NDUncertainty):
-
     @property
     def uncertainty_type(self):
-        return 'fake'
+        return "fake"
 
     def _data_unit_to_uncertainty_unit(self, value):
         return None
@@ -70,11 +71,11 @@ uncertainty_types_to_be_tested = [
     StdDevUncertainty,
     VarianceUncertainty,
     InverseVariance,
-    UnknownUncertainty
+    UnknownUncertainty,
 ]
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_init_fake_with_list(UncertClass):
     fake_uncert = UncertClass([1, 2, 3])
     assert_array_equal(fake_uncert.array, np.array([1, 2, 3]))
@@ -86,7 +87,7 @@ def test_init_fake_with_list(UncertClass):
     assert fake_uncert.unit is u.adu
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_init_fake_with_ndarray(UncertClass):
     uncert = np.arange(100).reshape(10, 10)
     fake_uncert = UncertClass(uncert)
@@ -103,7 +104,7 @@ def test_init_fake_with_ndarray(UncertClass):
     assert fake_uncert.unit is u.adu
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_init_fake_with_quantity(UncertClass):
     uncert = np.arange(10).reshape(2, 5) * u.adu
     fake_uncert = UncertClass(uncert)
@@ -122,7 +123,7 @@ def test_init_fake_with_quantity(UncertClass):
     assert fake_uncert.unit is u.m  # It took the explicit one
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_init_fake_with_fake(UncertClass):
     uncert = np.arange(5).reshape(5, 1)
     fake_uncert1 = UncertClass(uncert)
@@ -148,10 +149,10 @@ def test_init_fake_with_fake(UncertClass):
     assert fake_uncert2.unit is u.cm
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_init_fake_with_somethingElse(UncertClass):
     # What about a dict?
-    uncert = {'rdnoise': 2.9, 'gain': 0.6}
+    uncert = {"rdnoise": 2.9, "gain": 0.6}
     fake_uncert = UncertClass(uncert)
     assert fake_uncert.array == uncert
     # We can pass a unit too but since we cannot do uncertainty propagation
@@ -182,13 +183,13 @@ def test_init_fake_with_StdDevUncertainty():
 
 def test_uncertainty_type():
     fake_uncert = FakeUncertainty([10, 2])
-    assert fake_uncert.uncertainty_type == 'fake'
+    assert fake_uncert.uncertainty_type == "fake"
     std_uncert = StdDevUncertainty([10, 2])
-    assert std_uncert.uncertainty_type == 'std'
+    assert std_uncert.uncertainty_type == "std"
     var_uncert = VarianceUncertainty([10, 2])
-    assert var_uncert.uncertainty_type == 'var'
+    assert var_uncert.uncertainty_type == "var"
     ivar_uncert = InverseVariance([10, 2])
-    assert ivar_uncert.uncertainty_type == 'ivar'
+    assert ivar_uncert.uncertainty_type == "ivar"
 
 
 def test_uncertainty_correlated():
@@ -270,7 +271,7 @@ def test_stddevuncertainty_pickle():
         uncertainty_restored.parent_nddata
 
 
-@pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
+@pytest.mark.parametrize("UncertClass", uncertainty_types_to_be_tested)
 def test_quantity(UncertClass):
     fake_uncert = UncertClass([1, 2, 3], unit=u.adu)
     assert isinstance(fake_uncert.quantity, u.Quantity)
@@ -281,41 +282,42 @@ def test_quantity(UncertClass):
     assert fake_uncert_nounit.quantity.unit.is_equivalent(u.dimensionless_unscaled)
 
 
-@pytest.mark.parametrize(('UncertClass'),
-                         [VarianceUncertainty,
-                          StdDevUncertainty,
-                          InverseVariance])
+@pytest.mark.parametrize(
+    "UncertClass", [VarianceUncertainty, StdDevUncertainty, InverseVariance]
+)
 def test_setting_uncertainty_unit_results_in_unit_object(UncertClass):
     v = UncertClass([1, 1])
-    v.unit = 'electron'
+    v.unit = "electron"
     assert isinstance(v.unit, u.UnitBase)
 
 
-@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
-@pytest.mark.parametrize(('UncertClass'),
-                         [VarianceUncertainty,
-                          StdDevUncertainty,
-                          InverseVariance])
-def test_changing_unit_to_value_inconsistent_with_parent_fails(NDClass,
-                                                               UncertClass):
-    ndd1 = NDClass(1, unit='adu')
+@pytest.mark.parametrize("NDClass", [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(
+    "UncertClass", [VarianceUncertainty, StdDevUncertainty, InverseVariance]
+)
+def test_changing_unit_to_value_inconsistent_with_parent_fails(NDClass, UncertClass):
+    ndd1 = NDClass(1, unit="adu")
     v = UncertClass(1)
     # Sets the uncertainty unit to whatever makes sense with this data.
     ndd1.uncertainty = v
 
     with pytest.raises(u.UnitConversionError):
         # Nothing special about 15 except no one would ever use that unit
-        v.unit = ndd1.unit ** 15
+        v.unit = ndd1.unit**15
 
 
-@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
-@pytest.mark.parametrize(('UncertClass, expected_unit'),
-                         [(VarianceUncertainty, u.adu ** 2),
-                          (StdDevUncertainty, u.adu),
-                          (InverseVariance, 1 / u.adu ** 2)])
-def test_assigning_uncertainty_to_parent_gives_correct_unit(NDClass,
-                                                            UncertClass,
-                                                            expected_unit):
+@pytest.mark.parametrize("NDClass", [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(
+    "UncertClass, expected_unit",
+    [
+        (VarianceUncertainty, u.adu**2),
+        (StdDevUncertainty, u.adu),
+        (InverseVariance, 1 / u.adu**2),
+    ],
+)
+def test_assigning_uncertainty_to_parent_gives_correct_unit(
+    NDClass, UncertClass, expected_unit
+):
     # Does assigning a unitless uncertainty to an NDData result in the
     # expected unit?
     ndd = NDClass([1, 1], unit=u.adu)
@@ -324,14 +326,18 @@ def test_assigning_uncertainty_to_parent_gives_correct_unit(NDClass,
     assert v.unit == expected_unit
 
 
-@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
-@pytest.mark.parametrize(('UncertClass, expected_unit'),
-                         [(VarianceUncertainty, u.adu ** 2),
-                          (StdDevUncertainty, u.adu),
-                          (InverseVariance, 1 / u.adu ** 2)])
-def test_assigning_uncertainty_with_unit_to_parent_with_unit(NDClass,
-                                                             UncertClass,
-                                                             expected_unit):
+@pytest.mark.parametrize("NDClass", [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(
+    "UncertClass, expected_unit",
+    [
+        (VarianceUncertainty, u.adu**2),
+        (StdDevUncertainty, u.adu),
+        (InverseVariance, 1 / u.adu**2),
+    ],
+)
+def test_assigning_uncertainty_with_unit_to_parent_with_unit(
+    NDClass, UncertClass, expected_unit
+):
     # Does assigning an uncertainty with an appropriate unit to an NDData
     # with a unit work?
     ndd = NDClass([1, 1], unit=u.adu)
@@ -340,13 +346,11 @@ def test_assigning_uncertainty_with_unit_to_parent_with_unit(NDClass,
     assert v.unit == expected_unit
 
 
-@pytest.mark.parametrize('NDClass', [NDData, NDDataArray, CCDData])
-@pytest.mark.parametrize(('UncertClass'),
-                         [(VarianceUncertainty),
-                          (StdDevUncertainty),
-                          (InverseVariance)])
-def test_assigning_uncertainty_with_bad_unit_to_parent_fails(NDClass,
-                                                             UncertClass):
+@pytest.mark.parametrize("NDClass", [NDData, NDDataArray, CCDData])
+@pytest.mark.parametrize(
+    "UncertClass", [(VarianceUncertainty), (StdDevUncertainty), (InverseVariance)]
+)
+def test_assigning_uncertainty_with_bad_unit_to_parent_fails(NDClass, UncertClass):
     # Does assigning an uncertainty with a non-matching unit to an NDData
     # with a unit work?
     ndd = NDClass([1, 1], unit=u.adu)

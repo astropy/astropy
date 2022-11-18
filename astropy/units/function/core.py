@@ -6,23 +6,46 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from astropy.units import (Unit, UnitBase, UnitsError, UnitTypeError, UnitConversionError,
-                           dimensionless_unscaled, Quantity)
+from astropy.units import (
+    Unit,
+    UnitBase,
+    UnitsError,
+    UnitTypeError,
+    UnitConversionError,
+    dimensionless_unscaled,
+    Quantity,
+)
 
-__all__ = ['FunctionUnitBase', 'FunctionQuantity']
+__all__ = ["FunctionUnitBase", "FunctionQuantity"]
 
-SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
-    'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
-    'rint', 'floor', 'ceil', 'trunc',
-    '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
+SUPPORTED_UFUNCS = set(
+    getattr(np.core.umath, ufunc)
+    for ufunc in (
+        "isfinite",
+        "isinf",
+        "isnan",
+        "sign",
+        "signbit",
+        "rint",
+        "floor",
+        "ceil",
+        "trunc",
+        "_ones_like",
+        "ones_like",
+        "positive",
+    )
+    if hasattr(np.core.umath, ufunc)
+)
 
 # TODO: the following could work if helper changed relative to Quantity:
 # - spacing should return dimensionless, not same unit
 # - negative should negate unit too,
 # - add, subtract, comparisons can work if units added/subtracted
 
-SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
-                          ('clip', 'trace', 'mean', 'min', 'max', 'round'))
+SUPPORTED_FUNCTIONS = set(
+    getattr(np, function)
+    for function in ("clip", "trace", "mean", "min", "max", "round")
+)
 
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
@@ -48,6 +71,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     function_unit :  `~astropy.units.Unit` or `string`
         By default, the same as the function unit set by the subclass.
     """
+
     # ↓↓↓ the following four need to be set by subclasses
     # Make this a property so we can ensure subclasses define it.
     @property
@@ -85,6 +109,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         This method should be overridden by subclasses.  It is used to
         provide automatic transformations using an equivalency.
         """
+
     # ↑↑↑ the above four need to be set by subclasses
 
     # have priority over arrays, regular units, and regular quantities
@@ -95,26 +120,29 @@ class FunctionUnitBase(metaclass=ABCMeta):
             self._physical_unit = dimensionless_unscaled
         else:
             self._physical_unit = Unit(physical_unit)
-            if (not isinstance(self._physical_unit, UnitBase) or
-                self._physical_unit.is_equivalent(
-                    self._default_function_unit)):
-                raise UnitConversionError("Unit {} is not a physical unit."
-                                          .format(self._physical_unit))
+            if not isinstance(
+                self._physical_unit, UnitBase
+            ) or self._physical_unit.is_equivalent(self._default_function_unit):
+                raise UnitConversionError(
+                    "Unit {} is not a physical unit.".format(self._physical_unit)
+                )
 
         if function_unit is None:
             self._function_unit = self._default_function_unit
         else:
             # any function unit should be equivalent to subclass default
-            function_unit = Unit(getattr(function_unit, 'function_unit',
-                                         function_unit))
+            function_unit = Unit(getattr(function_unit, "function_unit", function_unit))
             if function_unit.is_equivalent(self._default_function_unit):
                 self._function_unit = function_unit
             else:
                 raise UnitConversionError(
                     "Cannot initialize '{}' instance with function unit '{}'"
-                    ", as it is not equivalent to default function unit '{}'."
-                    .format(self.__class__.__name__, function_unit,
-                            self._default_function_unit))
+                    ", as it is not equivalent to default function unit '{}'.".format(
+                        self.__class__.__name__,
+                        function_unit,
+                        self._default_function_unit,
+                    )
+                )
 
     def _copy(self, physical_unit=None):
         """Copy oneself, possibly with a different physical unit."""
@@ -136,8 +164,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Uses the `from_physical` and `to_physical` methods.
         """
-        return [(self, self.physical_unit,
-                 self.to_physical, self.from_physical)]
+        return [(self, self.physical_unit, self.to_physical, self.from_physical)]
 
     # ↓↓↓ properties/methods required to behave like a unit
     def decompose(self, bases=set()):
@@ -189,17 +216,23 @@ class FunctionUnitBase(metaclass=ABCMeta):
         bool
         """
         if isinstance(other, tuple):
-            return any(self.is_equivalent(u, equivalencies=equivalencies)
-                       for u in other)
+            return any(
+                self.is_equivalent(u, equivalencies=equivalencies) for u in other
+            )
 
-        other_physical_unit = getattr(other, 'physical_unit', (
-            dimensionless_unscaled if self.function_unit.is_equivalent(other)
-            else other))
+        other_physical_unit = getattr(
+            other,
+            "physical_unit",
+            (
+                dimensionless_unscaled
+                if self.function_unit.is_equivalent(other)
+                else other
+            ),
+        )
 
-        return self.physical_unit.is_equivalent(other_physical_unit,
-                                                equivalencies)
+        return self.physical_unit.is_equivalent(other_physical_unit, equivalencies)
 
-    def to(self, other, value=1., equivalencies=[]):
+    def to(self, other, value=1.0, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -234,16 +267,17 @@ class FunctionUnitBase(metaclass=ABCMeta):
         if other is self.physical_unit:
             return self.to_physical(value)
 
-        other_function_unit = getattr(other, 'function_unit', other)
+        other_function_unit = getattr(other, "function_unit", other)
         if self.function_unit.is_equivalent(other_function_unit):
             # when other is an equivalent function unit:
             # first convert physical units to other's physical units
-            other_physical_unit = getattr(other, 'physical_unit',
-                                          dimensionless_unscaled)
+            other_physical_unit = getattr(
+                other, "physical_unit", dimensionless_unscaled
+            )
             if self.physical_unit != other_physical_unit:
                 value_other_physical = self.physical_unit.to(
-                    other_physical_unit, self.to_physical(value),
-                    equivalencies)
+                    other_physical_unit, self.to_physical(value), equivalencies
+                )
                 # make function unit again, in own system
                 value = self.from_physical(value_other_physical)
 
@@ -253,10 +287,11 @@ class FunctionUnitBase(metaclass=ABCMeta):
         else:
             try:
                 # when other is not a function unit
-                return self.physical_unit.to(other, self.to_physical(value),
-                                             equivalencies)
+                return self.physical_unit.to(
+                    other, self.to_physical(value), equivalencies
+                )
             except UnitConversionError as e:
-                if self.function_unit == Unit('mag'):
+                if self.function_unit == Unit("mag"):
                     # One can get to raw magnitudes via math that strips the dimensions off.
                     # Include extra information in the exception to remind users of this.
                     msg = "Did you perhaps subtract magnitudes so the unit got lost?"
@@ -269,9 +304,9 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return False
 
     def __eq__(self, other):
-        return (self.physical_unit == getattr(other, 'physical_unit',
-                                              dimensionless_unscaled) and
-                self.function_unit == getattr(other, 'function_unit', other))
+        return self.physical_unit == getattr(
+            other, "physical_unit", dimensionless_unscaled
+        ) and self.function_unit == getattr(other, "function_unit", other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -289,8 +324,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit * other
             else:
-                raise UnitsError("Cannot multiply a function unit "
-                                 "with a physical dimension with any unit.")
+                raise UnitsError(
+                    "Cannot multiply a function unit "
+                    "with a physical dimension with any unit."
+                )
         else:
             # Anything not like a unit, try initialising as a function quantity.
             try:
@@ -307,12 +344,14 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 # If dimensionless, drop back to normal unit and retry.
                 return self.function_unit / other
             else:
-                raise UnitsError("Cannot divide a function unit "
-                                 "with a physical dimension by any unit.")
+                raise UnitsError(
+                    "Cannot divide a function unit "
+                    "with a physical dimension by any unit."
+                )
         else:
             # Anything not like a unit, try initialising as a function quantity.
             try:
-                return self._quantity_class(1./other, unit=self)
+                return self._quantity_class(1.0 / other, unit=self)
             except Exception:
                 return NotImplemented
 
@@ -322,8 +361,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
                 # If dimensionless, drop back to normal unit and retry.
                 return other / self.function_unit
             else:
-                raise UnitsError("Cannot divide a function unit "
-                                 "with a physical dimension into any unit")
+                raise UnitsError(
+                    "Cannot divide a function unit "
+                    "with a physical dimension into any unit"
+                )
         else:
             # Don't know what to do with anything not like a unit.
             return NotImplemented
@@ -339,15 +380,17 @@ class FunctionUnitBase(metaclass=ABCMeta):
             return self._copy()
 
         if self.physical_unit == dimensionless_unscaled:
-            return self.function_unit ** power
+            return self.function_unit**power
 
-        raise UnitsError("Cannot raise a function unit "
-                         "with a physical dimension to any power but 0 or 1.")
+        raise UnitsError(
+            "Cannot raise a function unit "
+            "with a physical dimension to any power but 0 or 1."
+        )
 
     def __pos__(self):
         return self._copy()
 
-    def to_string(self, format='generic'):
+    def to_string(self, format="generic"):
         """
         Output the unit in the given format as a string.
 
@@ -360,19 +403,22 @@ class FunctionUnitBase(metaclass=ABCMeta):
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-        if format not in ('generic', 'unscaled', 'latex'):
-            raise ValueError("Function units cannot be written in {} format. "
-                             "Only 'generic', 'unscaled' and 'latex' are "
-                             "supported.".format(format))
+        if format not in ("generic", "unscaled", "latex"):
+            raise ValueError(
+                "Function units cannot be written in {} format. "
+                "Only 'generic', 'unscaled' and 'latex' are "
+                "supported.".format(format)
+            )
         self_str = self.function_unit.to_string(format)
         pu_str = self.physical_unit.to_string(format)
-        if pu_str == '':
-            pu_str = '1'
-        if format == 'latex':
-            self_str += r'$\mathrm{{\left( {0} \right)}}$'.format(
-                pu_str[1:-1])   # need to strip leading and trailing "$"
+        if pu_str == "":
+            pu_str = "1"
+        if format == "latex":
+            self_str += r"$\mathrm{{\left( {0} \right)}}$".format(
+                pu_str[1:-1]
+            )  # need to strip leading and trailing "$"
         else:
-            self_str += f'({pu_str})'
+            self_str += f"({pu_str})"
         return self_str
 
     def __str__(self):
@@ -380,7 +426,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         self_str = str(self.function_unit)
         pu_str = str(self.physical_unit)
         if pu_str:
-            self_str += f'({pu_str})'
+            self_str += f"({pu_str})"
         return self_str
 
     def __repr__(self):
@@ -391,9 +437,12 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         else:
             return '{}("{}"{})'.format(
-                self.__class__.__name__, self.physical_unit,
-                "" if self.function_unit is self._default_function_unit
-                else f', unit="{self.function_unit}"')
+                self.__class__.__name__,
+                self.physical_unit,
+                ""
+                if self.function_unit is self._default_function_unit
+                else f', unit="{self.function_unit}"',
+            )
 
     def _repr_latex_(self):
         """
@@ -404,7 +453,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         -------
         Latex string
         """
-        return self.to_string('latex')
+        return self.to_string("latex")
 
     def __hash__(self):
         return hash((self.function_unit, self.physical_unit))
@@ -486,29 +535,37 @@ class FunctionQuantity(Quantity):
     _supported_ufuncs = SUPPORTED_UFUNCS
     _supported_functions = SUPPORTED_FUNCTIONS
 
-    def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
-                subok=False, ndmin=0):
-
+    def __new__(
+        cls, value, unit=None, dtype=None, copy=True, order=None, subok=False, ndmin=0
+    ):
         if unit is not None:
             # Convert possible string input to a (function) unit.
             unit = Unit(unit)
 
         if not isinstance(unit, FunctionUnitBase):
             # By default, use value's physical unit.
-            value_unit = getattr(value, 'unit', None)
+            value_unit = getattr(value, "unit", None)
             if value_unit is None:
                 # if iterable, see if first item has a unit
                 # (mixed lists fail in super call below).
                 try:
-                    value_unit = getattr(value[0], 'unit')
+                    value_unit = getattr(value[0], "unit")
                 except Exception:
                     pass
-            physical_unit = getattr(value_unit, 'physical_unit', value_unit)
+            physical_unit = getattr(value_unit, "physical_unit", value_unit)
             unit = cls._unit_class(physical_unit, function_unit=unit)
 
         # initialise!
-        return super().__new__(cls, value, unit, dtype=dtype, copy=copy,
-                               order=order, subok=subok, ndmin=ndmin)
+        return super().__new__(
+            cls,
+            value,
+            unit,
+            dtype=dtype,
+            copy=copy,
+            order=order,
+            subok=subok,
+            ndmin=ndmin,
+        )
 
     # ↓↓↓ properties not found in Quantity
     @property
@@ -554,12 +611,14 @@ class FunctionQuantity(Quantity):
             # Have to take care of, e.g., (10*u.mag).view(u.Magnitude)
             try:
                 # "or 'nonsense'" ensures `None` breaks, just in case.
-                unit = self._unit_class(function_unit=unit or 'nonsense')
+                unit = self._unit_class(function_unit=unit or "nonsense")
             except Exception:
                 raise UnitTypeError(
-                    "{} instances require {} function units"
-                    .format(type(self).__name__, self._unit_class.__name__) +
-                    f", so cannot set it to '{unit}'.")
+                    "{} instances require {} function units".format(
+                        type(self).__name__, self._unit_class.__name__
+                    )
+                    + f", so cannot set it to '{unit}'."
+                )
 
         self._unit = unit
 
@@ -570,7 +629,8 @@ class FunctionQuantity(Quantity):
         # another argument might know what to do.
         if function not in self._supported_ufuncs:
             raise UnitTypeError(
-                f"Cannot use ufunc '{function.__name__}' with function quantities")
+                f"Cannot use ufunc '{function.__name__}' with function quantities"
+            )
 
         return super().__array_ufunc__(function, method, *inputs, **kwargs)
 
@@ -579,22 +639,27 @@ class FunctionQuantity(Quantity):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view * other
 
-        raise UnitTypeError("Cannot multiply function quantities which "
-                            "are not dimensionless with anything.")
+        raise UnitTypeError(
+            "Cannot multiply function quantities which "
+            "are not dimensionless with anything."
+        )
 
     def __truediv__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view / other
 
-        raise UnitTypeError("Cannot divide function quantities which "
-                            "are not dimensionless by anything.")
+        raise UnitTypeError(
+            "Cannot divide function quantities which are not dimensionless by anything."
+        )
 
     def __rtruediv__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view.__rdiv__(other)
 
-        raise UnitTypeError("Cannot divide function quantities which "
-                            "are not dimensionless into anything.")
+        raise UnitTypeError(
+            "Cannot divide function quantities which "
+            "are not dimensionless into anything."
+        )
 
     def _comparison(self, other, comparison_func):
         """Do a comparison between self and other, raising UnitsError when
@@ -609,7 +674,8 @@ class FunctionQuantity(Quantity):
 
             try:
                 other_in_own_unit = self._function_view._to_own_unit(
-                    other, check_precision=False)
+                    other, check_precision=False
+                )
             except Exception:
                 raise exc
 
@@ -645,7 +711,7 @@ class FunctionQuantity(Quantity):
     def __lshift__(self, other):
         """Unit conversion operator `<<`"""
         try:
-            other = Unit(other, parse_strict='silent')
+            other = Unit(other, parse_strict="silent")
         except UnitTypeError:
             return NotImplemented
 
@@ -657,16 +723,18 @@ class FunctionQuantity(Quantity):
             return super()._wrap_function(function, *args, **kwargs)
 
         # For dimensionless, we can convert to regular quantities.
-        if all(arg.unit.physical_unit == dimensionless_unscaled
-               for arg in (self,) + args
-               if (hasattr(arg, 'unit') and
-                   hasattr(arg.unit, 'physical_unit'))):
-            args = tuple(getattr(arg, '_function_view', arg) for arg in args)
+        if all(
+            arg.unit.physical_unit == dimensionless_unscaled
+            for arg in (self,) + args
+            if (hasattr(arg, "unit") and hasattr(arg.unit, "physical_unit"))
+        ):
+            args = tuple(getattr(arg, "_function_view", arg) for arg in args)
             return self._function_view._wrap_function(function, *args, **kwargs)
 
-        raise TypeError("Cannot use method that uses function '{}' with "
-                        "function quantities that are not dimensionless."
-                        .format(function.__name__))
+        raise TypeError(
+            "Cannot use method that uses function '{}' with "
+            "function quantities that are not dimensionless.".format(function.__name__)
+        )
 
     # Override functions that are supported but do not use _wrap_function
     # in Quantity.
@@ -677,12 +745,12 @@ class FunctionQuantity(Quantity):
         return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
 
     def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-        return self._wrap_function(np.sum, axis, dtype, out=out,
-                                   keepdims=keepdims)
+        return self._wrap_function(np.sum, axis, dtype, out=out, keepdims=keepdims)
 
     def cumsum(self, axis=None, dtype=None, out=None):
         return self._wrap_function(np.cumsum, axis, dtype, out=out)
 
     def clip(self, a_min, a_max, out=None):
-        return self._wrap_function(np.clip, self._to_own_unit(a_min),
-                                   self._to_own_unit(a_max), out=out)
+        return self._wrap_function(
+            np.clip, self._to_own_unit(a_min), self._to_own_unit(a_max), out=out
+        )

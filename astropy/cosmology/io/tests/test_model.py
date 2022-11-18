@@ -37,8 +37,11 @@ class ToFromModelTestMixin(IOTestMixinBase):
     @pytest.fixture
     def method_name(self, cosmo):
         # get methods, ignoring private and dunder
-        methods = {n for n in dir(cosmo)
-                   if (callable(getattr(cosmo, n)) and not n.startswith("_"))}
+        methods = {
+            n
+            for n in dir(cosmo)
+            if (callable(getattr(cosmo, n)) and not n.startswith("_"))
+        }
         # sieve out incompatible methods
         for n in tuple(methods):
             # remove non-introspectable methods
@@ -58,7 +61,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
             ERROR_SEIVE = (NotImplementedError, ValueError)
             #              # ABC                can't introspect for good input
             if not HAS_SCIPY:
-                ERROR_SEIVE = ERROR_SEIVE + (ModuleNotFoundError, )
+                ERROR_SEIVE = ERROR_SEIVE + (ModuleNotFoundError,)
 
             args = np.arange(len(params)) + 1
             try:
@@ -99,7 +102,9 @@ class ToFromModelTestMixin(IOTestMixinBase):
         assert isinstance(model, _CosmologyModel)
 
         # Parameters
-        expect = tuple([n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None])
+        expect = tuple(
+            [n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None]
+        )
         assert model.param_names == expect
 
         # scalar result
@@ -115,7 +120,6 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
         # vector result
         if "scalar" not in method_name:
-
             args = (np.ones((model.n_inputs, 3)).T + np.arange(model.n_inputs)).T
 
             got = model.evaluate(*args)
@@ -126,8 +130,9 @@ class ToFromModelTestMixin(IOTestMixinBase):
             expected = getattr(cosmo, method_name)(*args)
             np.testing.assert_allclose(got, expected)
 
-    def test_tofromformat_model_instance(self, cosmo_cls, cosmo, method_name,
-                                         to_format, from_format):
+    def test_tofromformat_model_instance(
+        self, cosmo_cls, cosmo, method_name, to_format, from_format
+    ):
         """Test cosmology -> astropy.model -> cosmology."""
         if method_name is None:  # no test if no method
             return

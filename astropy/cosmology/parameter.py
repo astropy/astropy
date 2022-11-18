@@ -46,19 +46,29 @@ class Parameter:
 
     _registry_validators = {}
 
-    def __init__(self, fvalidate="default", doc=None, *,
-                 unit=None, equivalencies=[], fmt=".3g", derived=False):
+    def __init__(
+        self,
+        fvalidate="default",
+        doc=None,
+        *,
+        unit=None,
+        equivalencies=[],
+        fmt=".3g",
+        derived=False,
+    ):
         # parse registered fvalidate
         if callable(fvalidate):
             pass
         elif fvalidate in self._registry_validators:
             fvalidate = self._registry_validators[fvalidate]
         elif isinstance(fvalidate, str):
-            raise ValueError("`fvalidate`, if str, must be in "
-                             f"{self._registry_validators.keys()}")
+            raise ValueError(
+                f"`fvalidate`, if str, must be in {self._registry_validators.keys()}"
+            )
         else:
-            raise TypeError("`fvalidate` must be a function or "
-                            f"{self._registry_validators.keys()}")
+            raise TypeError(
+                f"`fvalidate` must be a function or {self._registry_validators.keys()}"
+            )
 
         self.__doc__ = doc
         self._fvalidate = fvalidate
@@ -142,10 +152,14 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fvalidate``.
         """
-        desc = type(self)(fvalidate=fvalidate,
-                          doc=self.__doc__, fmt=self.format_spec,
-                          unit=self.unit, equivalencies=self.equivalencies,
-                          derived=self.derived)
+        desc = type(self)(
+            fvalidate=fvalidate,
+            doc=self.__doc__,
+            fmt=self.format_spec,
+            unit=self.unit,
+            equivalencies=self.equivalencies,
+            derived=self.derived,
+        )
         return desc
 
     def validate(self, cosmology, value):

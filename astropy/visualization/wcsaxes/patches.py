@@ -7,23 +7,30 @@ from matplotlib.patches import Polygon
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.representation import UnitSphericalRepresentation, SphericalRepresentation
+from astropy.coordinates.representation import (
+    UnitSphericalRepresentation,
+    SphericalRepresentation,
+)
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-__all__ = ['Quadrangle', 'SphericalCircle']
+__all__ = ["Quadrangle", "SphericalCircle"]
 
 # Monkey-patch the docs to fix CapStyle and JoinStyle subs.
 # TODO! delete when upstream fix matplotlib/matplotlib#19839
 Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
-    "`.CapStyle`", "``matplotlib._enums.CapStyle``")
+    "`.CapStyle`", "``matplotlib._enums.CapStyle``"
+)
 Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
-    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``")
+    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
+)
 Polygon.set_capstyle.__doc__ = Polygon.set_capstyle.__doc__.replace(
-    "`.CapStyle`", "``matplotlib._enums.CapStyle``")
+    "`.CapStyle`", "``matplotlib._enums.CapStyle``"
+)
 Polygon.set_joinstyle.__doc__ = Polygon.set_joinstyle.__doc__.replace(
-    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``")
+    "`.JoinStyle`", "``matplotlib._enums.JoinStyle``"
+)
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):
@@ -39,8 +46,8 @@ def _rotate_polygon(lon, lat, lon0, lat0):
 
     # Determine rotation matrix to make it so that the circle is centered
     # on the correct longitude/latitude.
-    m1 = rotation_matrix(-(0.5 * np.pi * u.radian - lat0), axis='y')
-    m2 = rotation_matrix(-lon0, axis='z')
+    m1 = rotation_matrix(-(0.5 * np.pi * u.radian - lat0), axis="y")
+    m2 = rotation_matrix(-lon0, axis="z")
     transform_matrix = matrix_product(m2, m1)
 
     # Apply 3D rotation
@@ -84,23 +91,25 @@ class SphericalCircle(Polygon):
     """
 
     def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
-
         # Extract longitude/latitude, either from a SkyCoord object, or
         # from a tuple of two quantities or a single 2-element Quantity.
         # The SkyCoord is converted to SphericalRepresentation, if not already.
         if isinstance(center, SkyCoord):
             rep_type = center.representation_type
-            if not issubclass(rep_type, (SphericalRepresentation,
-                                         UnitSphericalRepresentation)):
-                warnings.warn(f'Received `center` of representation type {rep_type} '
-                              'will be converted to SphericalRepresentation ',
-                              AstropyUserWarning)
+            if not issubclass(
+                rep_type, (SphericalRepresentation, UnitSphericalRepresentation)
+            ):
+                warnings.warn(
+                    f"Received `center` of representation type {rep_type} "
+                    "will be converted to SphericalRepresentation ",
+                    AstropyUserWarning,
+                )
             longitude, latitude = center.spherical.lon, center.spherical.lat
         else:
             longitude, latitude = center
 
         # Start off by generating the circle around the North pole
-        lon = np.linspace(0., 2 * np.pi, resolution + 1)[:-1] * u.radian
+        lon = np.linspace(0.0, 2 * np.pi, resolution + 1)[:-1] * u.radian
         lat = np.repeat(0.5 * np.pi - radius.to_value(u.radian), resolution) * u.radian
 
         lon, lat = _rotate_polygon(lon, lat, longitude, latitude)
@@ -149,8 +158,9 @@ class Quadrangle(Polygon):
     Additional keyword arguments are passed to `~matplotlib.patches.Polygon`
     """
 
-    def __init__(self, anchor, width, height, resolution=100, vertex_unit=u.degree, **kwargs):
-
+    def __init__(
+        self, anchor, width, height, resolution=100, vertex_unit=u.degree, **kwargs
+    ):
         # Extract longitude/latitude, either from a tuple of two quantities, or
         # a single 2-element Quantity.
         longitude, latitude = u.Quantity(anchor).to_value(vertex_unit)
@@ -164,14 +174,22 @@ class Quadrangle(Polygon):
         lat_seq = latitude + np.linspace(0, height, resolution + 1)
 
         # Trace the path of the quadrangle
-        lon = np.concatenate([lon_seq[:-1],
-                              np.repeat(lon_seq[-1], resolution),
-                              np.flip(lon_seq[1:]),
-                              np.repeat(lon_seq[0], resolution)])
-        lat = np.concatenate([np.repeat(lat_seq[0], resolution),
-                              lat_seq[:-1],
-                              np.repeat(lat_seq[-1], resolution),
-                              np.flip(lat_seq[1:])])
+        lon = np.concatenate(
+            [
+                lon_seq[:-1],
+                np.repeat(lon_seq[-1], resolution),
+                np.flip(lon_seq[1:]),
+                np.repeat(lon_seq[0], resolution),
+            ]
+        )
+        lat = np.concatenate(
+            [
+                np.repeat(lat_seq[0], resolution),
+                lat_seq[:-1],
+                np.repeat(lat_seq[-1], resolution),
+                np.flip(lat_seq[1:]),
+            ]
+        )
 
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()

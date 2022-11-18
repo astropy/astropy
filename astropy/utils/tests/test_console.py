@@ -22,8 +22,7 @@ class FakeTTY(io.StringIO):
             return super().__new__(cls)
 
         encoding = encoding
-        cls = type(encoding.title() + cls.__name__, (cls,),
-                   {'encoding': encoding})
+        cls = type(encoding.title() + cls.__name__, (cls,), {"encoding": encoding})
 
         return cls.__new__(cls)
 
@@ -33,7 +32,7 @@ class FakeTTY(io.StringIO):
     def write(self, s):
         if isinstance(s, bytes):
             # Just allow this case to work
-            s = s.decode('latin-1')
+            s = s.decode("latin-1")
         elif self.encoding is not None:
             s.encode(self.encoding)
 
@@ -48,21 +47,21 @@ def test_fake_tty():
     # arbitrary unicode strings
     f1 = FakeTTY()
     assert f1.isatty()
-    f1.write('☃')
-    assert f1.getvalue() == '☃'
+    f1.write("☃")
+    assert f1.getvalue() == "☃"
 
     # Now test an ASCII-only TTY--it should raise a UnicodeEncodeError when
     # trying to write a string containing non-ASCII characters
-    f2 = FakeTTY('ascii')
+    f2 = FakeTTY("ascii")
     assert f2.isatty()
-    assert f2.__class__.__name__ == 'AsciiFakeTTY'
-    assert pytest.raises(UnicodeEncodeError, f2.write, '☃')
-    assert f2.getvalue() == ''
+    assert f2.__class__.__name__ == "AsciiFakeTTY"
+    assert pytest.raises(UnicodeEncodeError, f2.write, "☃")
+    assert f2.getvalue() == ""
 
 
 @pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_text():
-    assert console._color_text("foo", "green") == '\033[0;32mfoo\033[0m'
+    assert console._color_text("foo", "green") == "\033[0;32mfoo\033[0m"
 
 
 def test_color_print():
@@ -77,11 +76,11 @@ def test_color_print2():
     # not a tty
     stream = io.StringIO()
     console.color_print("foo", "green", file=stream)
-    assert stream.getvalue() == 'foo\n'
+    assert stream.getvalue() == "foo\n"
 
     stream = io.StringIO()
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
-    assert stream.getvalue() == 'foobarbaz\n'
+    assert stream.getvalue() == "foobarbaz\n"
 
 
 @pytest.mark.skipif("sys.platform.startswith('win')")
@@ -90,11 +89,11 @@ def test_color_print3():
 
     stream = FakeTTY()
     console.color_print("foo", "green", file=stream)
-    assert stream.getvalue() == '\x1b[0;32mfoo\x1b[0m\n'
+    assert stream.getvalue() == "\x1b[0;32mfoo\x1b[0m\n"
 
     stream = FakeTTY()
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
-    assert stream.getvalue() == '\x1b[0;32mfoo\x1b[0m\x1b[0;31mbar\x1b[0mbaz\n'
+    assert stream.getvalue() == "\x1b[0;32mfoo\x1b[0m\x1b[0;31mbar\x1b[0mbaz\n"
 
 
 def test_color_print_unicode():
@@ -113,11 +112,10 @@ def test_spinner_non_unicode_console():
     unicode characters.
     """
 
-    stream = FakeTTY('ascii')
+    stream = FakeTTY("ascii")
     chars = console.Spinner._default_unicode_chars
 
-    with console.Spinner("Reticulating splines", file=stream,
-                         chars=chars) as s:
+    with console.Spinner("Reticulating splines", file=stream, chars=chars) as s:
         next(s)
 
 
@@ -159,42 +157,50 @@ def test_progress_bar_as_generator():
 
 def test_progress_bar_map():
     items = list(range(100))
-    result = console.ProgressBar.map(test_progress_bar_func.func,
-                                     items, step=10, multiprocess=True)
+    result = console.ProgressBar.map(
+        test_progress_bar_func.func, items, step=10, multiprocess=True
+    )
     assert items == result
 
-    result1 = console.ProgressBar.map(test_progress_bar_func.func,
-                                      items, step=10, multiprocess=2)
+    result1 = console.ProgressBar.map(
+        test_progress_bar_func.func, items, step=10, multiprocess=2
+    )
 
     assert items == result1
 
 
-@pytest.mark.parametrize(("seconds", "string"),
-       [(864088, " 1w 3d"),
-       (187213, " 2d 4h"),
-       (3905, " 1h 5m"),
-       (64, " 1m 4s"),
-       (15, "   15s"),
-       (2, "    2s")]
+@pytest.mark.parametrize(
+    ("seconds", "string"),
+    [
+        (864088, " 1w 3d"),
+        (187213, " 2d 4h"),
+        (3905, " 1h 5m"),
+        (64, " 1m 4s"),
+        (15, "   15s"),
+        (2, "    2s"),
+    ],
 )
 def test_human_time(seconds, string):
     human_time = console.human_time(seconds)
     assert human_time == string
 
 
-@pytest.mark.parametrize(("size", "string"),
-       [(8640882, "8.6M"),
-       (187213, "187k"),
-       (3905, "3.9k"),
-       (64, " 64 "),
-       (2, "  2 "),
-       (10*u.GB, " 10G")]
+@pytest.mark.parametrize(
+    ("size", "string"),
+    [
+        (8640882, "8.6M"),
+        (187213, "187k"),
+        (3905, "3.9k"),
+        (64, " 64 "),
+        (2, "  2 "),
+        (10 * u.GB, " 10G"),
+    ],
 )
 def test_human_file_size(size, string):
     human_time = console.human_file_size(size)
     assert human_time == string
 
 
-@pytest.mark.parametrize("size", (50*u.km, 100*u.g))
+@pytest.mark.parametrize("size", (50 * u.km, 100 * u.g))
 def test_bad_human_file_size(size):
     assert pytest.raises(u.UnitConversionError, console.human_file_size, size)

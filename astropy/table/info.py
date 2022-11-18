@@ -10,10 +10,10 @@ from inspect import isclass
 import numpy as np
 from astropy.utils.data_info import DataInfo
 
-__all__ = ['table_info', 'TableInfo', 'serialize_method_as']
+__all__ = ["table_info", "TableInfo", "serialize_method_as"]
 
 
-def table_info(tbl, option='attributes', out=''):
+def table_info(tbl, option="attributes", out=""):
     """
     Write summary information about column to the ``out`` filehandle.
     By default this prints to standard output via sys.stdout.
@@ -65,15 +65,15 @@ def table_info(tbl, option='attributes', out=''):
     """
     from .table import Table
 
-    if out == '':
+    if out == "":
         out = sys.stdout
 
     descr_vals = [tbl.__class__.__name__]
     if tbl.masked:
-        descr_vals.append('masked=True')
-    descr_vals.append(f'length={len(tbl)}')
+        descr_vals.append("masked=True")
+    descr_vals.append(f"length={len(tbl)}")
 
-    outlines = ['<' + ' '.join(descr_vals) + '>']
+    outlines = ["<" + " ".join(descr_vals) + ">"]
 
     cols = list(tbl.columns.values())
     if tbl.colnames:
@@ -90,34 +90,34 @@ def table_info(tbl, option='attributes', out=''):
 
     # Since info is going to a filehandle for viewing then remove uninteresting
     # columns.
-    if 'class' in info.colnames:
+    if "class" in info.colnames:
         # Remove 'class' info column if all table columns are the same class
         # and they are the default column class for that table.
         uniq_types = set(type(col) for col in cols)
         if len(uniq_types) == 1 and isinstance(cols[0], tbl.ColumnClass):
-            del info['class']
+            del info["class"]
 
-    if 'n_bad' in info.colnames and np.all(info['n_bad'] == 0):
-        del info['n_bad']
+    if "n_bad" in info.colnames and np.all(info["n_bad"] == 0):
+        del info["n_bad"]
 
     # Standard attributes has 'length' but this is typically redundant
-    if 'length' in info.colnames and np.all(info['length'] == len(tbl)):
-        del info['length']
+    if "length" in info.colnames and np.all(info["length"] == len(tbl)):
+        del info["length"]
 
     for name in info.colnames:
-        if info[name].dtype.kind in 'SU' and np.all(info[name] == ''):
+        if info[name].dtype.kind in "SU" and np.all(info[name] == ""):
             del info[name]
 
     if tbl.colnames:
         outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
     else:
-        outlines.append('<No columns>')
+        outlines.append("<No columns>")
 
     out.writelines(outline + os.linesep for outline in outlines)
 
 
 class TableInfo(DataInfo):
-    def __call__(self, option='attributes', out=''):
+    def __call__(self, option="attributes", out=""):
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
@@ -153,6 +153,7 @@ def serialize_method_as(tbl, serialize_method):
     -------
     None (context manager)
     """
+
     def get_override_sm(col):
         """
         Determine if the ``serialize_method`` str or dict specifies an
@@ -186,7 +187,7 @@ def serialize_method_as(tbl, serialize_method):
         # Go through every column and if it has a serialize_method info
         # attribute then potentially update it for the duration of the write.
         for col in tbl.itercols():
-            if hasattr(col.info, 'serialize_method'):
+            if hasattr(col.info, "serialize_method"):
                 override_sm = get_override_sm(col)
                 if override_sm:
                     # Make a reference copy of the column serialize_method
@@ -199,8 +200,9 @@ def serialize_method_as(tbl, serialize_method):
                     # is not actually known (this gets determined by the write function
                     # in registry.py).  Note this creates a new temporary dict object
                     # so that the restored version is the same original object.
-                    col.info.serialize_method = {fmt: override_sm
-                                                 for fmt in col.info.serialize_method}
+                    col.info.serialize_method = {
+                        fmt: override_sm for fmt in col.info.serialize_method
+                    }
 
     # Finally yield for the context block
     try:

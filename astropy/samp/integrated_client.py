@@ -4,9 +4,9 @@
 from .client import SAMPClient
 from .hub_proxy import SAMPHubProxy
 
-__all__ = ['SAMPIntegratedClient']
+__all__ = ["SAMPIntegratedClient"]
 
-__doctest_skip__ = ['SAMPIntegratedClient.*']
+__doctest_skip__ = ["SAMPIntegratedClient.*"]
 
 
 class SAMPIntegratedClient:
@@ -44,18 +44,24 @@ class SAMPIntegratedClient:
         receive any.
     """
 
-    def __init__(self, name=None, description=None, metadata=None,
-                 addr=None, port=0, callable=True):
-
+    def __init__(
+        self,
+        name=None,
+        description=None,
+        metadata=None,
+        addr=None,
+        port=0,
+        callable=True,
+    ):
         self.hub = SAMPHubProxy()
 
         self.client_arguments = {
-            'name': name,
-            'description': description,
-            'metadata': metadata,
-            'addr': addr,
-            'port': port,
-            'callable': callable,
+            "name": name,
+            "description": description,
+            "metadata": metadata,
+            "addr": addr,
+            "port": port,
+            "callable": callable,
         }
         """
         Collected arguments that should be passed on to the SAMPClient below.
@@ -107,10 +113,7 @@ class SAMPIntegratedClient:
         # the client_arguments are set in __init__() because the
         # instantiation of the client used to happen there and this retains
         # backwards compatibility.
-        self.client = SAMPClient(
-            self.hub,
-            **self.client_arguments
-        )
+        self.client = SAMPClient(self.hub, **self.client_arguments)
         self.client.start()
         self.client.register()
 
@@ -167,12 +170,11 @@ class SAMPIntegratedClient:
         return self.hub.get_subscribed_clients(self.get_private_key(), mtype)
 
     def _format_easy_msg(self, mtype, params):
-
         msg = {}
 
         if "extra_kws" in params:
             extra = params["extra_kws"]
-            del(params["extra_kws"])
+            del params["extra_kws"]
             msg = {"samp.mtype": mtype, "samp.params": params}
             msg.update(extra)
         else:
@@ -344,7 +346,9 @@ class SAMPIntegratedClient:
         """
         Proxy to ``callAndWait`` SAMP Hub method.
         """
-        return self.hub.call_and_wait(self.get_private_key(), recipient_id, message, timeout)
+        return self.hub.call_and_wait(
+            self.get_private_key(), recipient_id, message, timeout
+        )
 
     def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
@@ -381,7 +385,9 @@ class SAMPIntegratedClient:
         ...                    txt = "initialization", percent = "10",
         ...                    extra_kws = {"my.extra.info": "just an example"})
         """
-        return self.call_and_wait(recipient_id, self._format_easy_msg(mtype, params), timeout)
+        return self.call_and_wait(
+            recipient_id, self._format_easy_msg(mtype, params), timeout
+        )
 
     def reply(self, msg_id, response):
         """
@@ -390,7 +396,6 @@ class SAMPIntegratedClient:
         return self.hub.reply(self.get_private_key(), msg_id, response)
 
     def _format_easy_response(self, status, result, error):
-
         msg = {"samp.status": status}
         if result is not None:
             msg.update({"samp.result": result})
@@ -443,7 +448,9 @@ class SAMPIntegratedClient:
     receive_call.__doc__ = SAMPClient.receive_call.__doc__
 
     def receive_response(self, private_key, responder_id, msg_tag, response):
-        return self.client.receive_response(private_key, responder_id, msg_tag, response)
+        return self.client.receive_response(
+            private_key, responder_id, msg_tag, response
+        )
 
     receive_response.__doc__ = SAMPClient.receive_response.__doc__
 

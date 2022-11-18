@@ -8,6 +8,7 @@ def test_imports():
     This just imports all modules in astropy, making sure they don't have any
     dependencies that sneak through
     """
+
     def onerror(name):
         # We should raise any legitimate error that occurred, but not
         # any warnings which happen to be caught because of our pytest
@@ -17,15 +18,17 @@ def test_imports():
         except Warning:
             pass
 
-    for imper, nm, ispkg in pkgutil.walk_packages(['astropy'], 'astropy.',
-                                                  onerror=onerror):
+    for imper, nm, ispkg in pkgutil.walk_packages(
+        ["astropy"], "astropy.", onerror=onerror
+    ):
         imper.find_spec(nm)
 
 
 def test_toplevel_namespace():
     import astropy
+
     d = dir(astropy)
-    assert 'os' not in d
-    assert 'log' in d
-    assert 'test' in d
-    assert 'sys' not in d
+    assert "os" not in d
+    assert "log" in d
+    assert "test" in d
+    assert "sys" not in d

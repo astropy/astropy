@@ -4,8 +4,8 @@
 
 from astropy.io import registry
 
-__all__ = ['NDIOMixin']
-__doctest_skip__ = ['NDDataRead', 'NDDataWrite']
+__all__ = ["NDIOMixin"]
+__doctest_skip__ = ["NDDataRead", "NDDataWrite"]
 
 
 class NDDataRead(registry.UnifiedReadWrite):
@@ -52,7 +52,7 @@ class NDDataRead(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'read', registry=None)
+        super().__init__(instance, cls, "read", registry=None)
         # uses default global registry
 
     def __call__(self, *args, **kwargs):
@@ -96,7 +96,7 @@ class NDDataWrite(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'write', registry=None)
+        super().__init__(instance, cls, "write", registry=None)
         # uses default global registry
 
     def __call__(self, *args, **kwargs):
@@ -109,5 +109,6 @@ class NDIOMixin:
 
     This mixin adds two methods to its subclasses, ``read`` and ``write``.
     """
+
     read = registry.UnifiedReadWriteMethod(NDDataRead)
     write = registry.UnifiedReadWriteMethod(NDDataWrite)

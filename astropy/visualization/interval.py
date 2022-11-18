@@ -11,9 +11,14 @@ import numpy as np
 from .transform import BaseTransform
 
 
-__all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
-           'AsymmetricPercentileInterval', 'PercentileInterval',
-           'ZScaleInterval']
+__all__ = [
+    "BaseInterval",
+    "ManualInterval",
+    "MinMaxInterval",
+    "AsymmetricPercentileInterval",
+    "PercentileInterval",
+    "ZScaleInterval",
+]
 
 
 class BaseInterval(BaseTransform):
@@ -40,7 +45,7 @@ class BaseInterval(BaseTransform):
             The mininium and maximum image value in the interval.
         """
 
-        raise NotImplementedError('Needs to be implemented in a subclass.')
+        raise NotImplementedError("Needs to be implemented in a subclass.")
 
     def __call__(self, values, clip=True, out=None):
         """
@@ -68,16 +73,17 @@ class BaseInterval(BaseTransform):
         if out is None:
             values = np.subtract(values, float(vmin))
         else:
-            if out.dtype.kind != 'f':
-                raise TypeError('Can only do in-place scaling for '
-                                'floating-point arrays')
+            if out.dtype.kind != "f":
+                raise TypeError(
+                    "Can only do in-place scaling for floating-point arrays"
+                )
             values = np.subtract(values, float(vmin), out=out)
 
         if (vmax - vmin) != 0:
             np.true_divide(values, vmax - vmin, out=values)
 
         if clip:
-            np.clip(values, 0., 1., out=values)
+            np.clip(values, 0.0, 1.0, out=values)
 
         return values
 
@@ -101,7 +107,6 @@ class ManualInterval(BaseInterval):
         self.vmax = vmax
 
     def get_limits(self, values):
-
         # Avoid overhead of preparing array if both limits have been specified
         # manually, for performance.
         if self.vmin is not None and self.vmax is not None:
@@ -169,8 +174,9 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin, vmax = np.percentile(values, (self.lower_percentile,
-                                            self.upper_percentile))
+        vmin, vmax = np.percentile(
+            values, (self.lower_percentile, self.upper_percentile)
+        )
 
         return vmin, vmax
 
@@ -193,8 +199,7 @@ class PercentileInterval(AsymmetricPercentileInterval):
     def __init__(self, percentile, n_samples=None):
         lower_percentile = (100 - percentile) * 0.5
         upper_percentile = 100 - lower_percentile
-        super().__init__(
-            lower_percentile, upper_percentile, n_samples=n_samples)
+        super().__init__(lower_percentile, upper_percentile, n_samples=n_samples)
 
 
 class ZScaleInterval(BaseInterval):
@@ -233,8 +238,15 @@ class ZScaleInterval(BaseInterval):
         5.
     """
 
-    def __init__(self, nsamples=1000, contrast=0.25, max_reject=0.5,
-                 min_npixels=5, krej=2.5, max_iterations=5):
+    def __init__(
+        self,
+        nsamples=1000,
+        contrast=0.25,
+        max_reject=0.5,
+        min_npixels=5,
+        krej=2.5,
+        max_iterations=5,
+    ):
         self.nsamples = nsamples
         self.contrast = contrast
         self.max_reject = max_reject
@@ -247,7 +259,7 @@ class ZScaleInterval(BaseInterval):
         values = np.asarray(values)
         values = values[np.isfinite(values)]
         stride = int(max(1.0, values.size / self.nsamples))
-        samples = values[::stride][:self.nsamples]
+        samples = values[::stride][: self.nsamples]
         samples.sort()
 
         npix = len(samples)
@@ -282,10 +294,10 @@ class ZScaleInterval(BaseInterval):
 
             # Detect and reject pixels further than k*sigma from the
             # fitted line
-            badpix[(flat < - threshold) | (flat > threshold)] = True
+            badpix[(flat < -threshold) | (flat > threshold)] = True
 
             # Convolve with a kernel of length ngrow
-            badpix = np.convolve(badpix, kernel, mode='same')
+            badpix = np.convolve(badpix, kernel, mode="same")
 
             last_ngoodpix = ngoodpix
             ngoodpix = np.sum(~badpix)

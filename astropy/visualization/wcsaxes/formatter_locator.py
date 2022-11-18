@@ -19,34 +19,43 @@ from astropy import units as u
 from astropy.units import UnitsError
 from astropy.coordinates import Angle
 
-DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
-HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')
-DDEC_RE = re.compile('^d(.(d)+)?$')
-DMIN_RE = re.compile('^m(.(m)+)?$')
-DSEC_RE = re.compile('^s(.(s)+)?$')
-SCAL_RE = re.compile('^x(.(x)+)?$')
+DMS_RE = re.compile("^dd(:mm(:ss(.(s)+)?)?)?$")
+HMS_RE = re.compile("^hh(:mm(:ss(.(s)+)?)?)?$")
+DDEC_RE = re.compile("^d(.(d)+)?$")
+DMIN_RE = re.compile("^m(.(m)+)?$")
+DSEC_RE = re.compile("^s(.(s)+)?$")
+SCAL_RE = re.compile("^x(.(x)+)?$")
 
 
 # Units with custom representations - see the note where it is used inside
 # AngleFormatterLocator.formatter for more details.
 
 CUSTOM_UNITS = {
-    u.degree: u.def_unit('custom_degree', represents=u.degree,
-                         format={'generic': '\xb0',
-                                 'latex': r'^\circ',
-                                 'unicode': '°'}),
-    u.arcmin: u.def_unit('custom_arcmin', represents=u.arcmin,
-                         format={'generic': "'",
-                                 'latex': r'^\prime',
-                                 'unicode': '′'}),
-    u.arcsec: u.def_unit('custom_arcsec', represents=u.arcsec,
-                         format={'generic': '"',
-                                 'latex': r'^{\prime\prime}',
-                                 'unicode': '″'}),
-    u.hourangle: u.def_unit('custom_hourangle', represents=u.hourangle,
-                            format={'generic': 'h',
-                                    'latex': r'^{\mathrm{h}}',
-                                    'unicode': r'$\mathregular{^h}$'})}
+    u.degree: u.def_unit(
+        "custom_degree",
+        represents=u.degree,
+        format={"generic": "\xb0", "latex": r"^\circ", "unicode": "°"},
+    ),
+    u.arcmin: u.def_unit(
+        "custom_arcmin",
+        represents=u.arcmin,
+        format={"generic": "'", "latex": r"^\prime", "unicode": "′"},
+    ),
+    u.arcsec: u.def_unit(
+        "custom_arcsec",
+        represents=u.arcsec,
+        format={"generic": '"', "latex": r"^{\prime\prime}", "unicode": "″"},
+    ),
+    u.hourangle: u.def_unit(
+        "custom_hourangle",
+        represents=u.hourangle,
+        format={
+            "generic": "h",
+            "latex": r"^{\mathrm{h}}",
+            "unicode": r"$\mathregular{^h}$",
+        },
+    ),
+}
 
 
 class BaseFormatterLocator:
@@ -54,9 +63,15 @@ class BaseFormatterLocator:
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None,
-                 unit=None, format_unit=None):
-
+    def __init__(
+        self,
+        values=None,
+        number=None,
+        spacing=None,
+        format=None,
+        unit=None,
+        format_unit=None,
+    ):
         if len([x for x in (values, number, spacing) if x is None]) < 2:
             raise ValueError("At most one of values/number/spacing can be specified")
 
@@ -83,8 +98,10 @@ class BaseFormatterLocator:
         if not isinstance(values, u.Quantity) or (not values.ndim == 1):
             raise TypeError("values should be an astropy.units.Quantity array")
         if not values.unit.is_equivalent(self._unit):
-            raise UnitsError("value should be in units compatible with "
-                             "coordinate units ({}) but found {}".format(self._unit, values.unit))
+            raise UnitsError(
+                "value should be in units compatible with "
+                "coordinate units ({}) but found {}".format(self._unit, values.unit)
+            )
         self._number = None
         self._spacing = None
         self._values = values
@@ -141,9 +158,17 @@ class AngleFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None,
-                 unit=None, decimal=None, format_unit=None, show_decimal_unit=True):
-
+    def __init__(
+        self,
+        values=None,
+        number=None,
+        spacing=None,
+        format=None,
+        unit=None,
+        decimal=None,
+        format_unit=None,
+        show_decimal_unit=True,
+    ):
         if unit is None:
             unit = u.degree
 
@@ -152,14 +177,23 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
         if format_unit not in (u.degree, u.hourangle, u.hour):
             if decimal is False:
-                raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+                raise UnitsError(
+                    "Units should be degrees or hours when using non-decimal"
+                    " (sexagesimal) mode"
+                )
 
         self._decimal = decimal
         self._sep = None
         self.show_decimal_unit = show_decimal_unit
 
-        super().__init__(values=values, number=number, spacing=spacing,
-                         format=format, unit=unit, format_unit=format_unit)
+        super().__init__(
+            values=values,
+            number=number,
+            spacing=spacing,
+            format=format,
+            unit=unit,
+            format_unit=format_unit,
+        )
 
     @property
     def decimal(self):
@@ -168,7 +202,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
             if self._decimal is None:
                 decimal = True
             elif self._decimal is False:
-                raise UnitsError("Units should be degrees or hours when using non-decimal (sexagesimal) mode")
+                raise UnitsError(
+                    "Units should be degrees or hours when using non-decimal"
+                    " (sexagesimal) mode"
+                )
         elif self._decimal is None:
             decimal = False
         return decimal
@@ -183,10 +220,13 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     @spacing.setter
     def spacing(self, spacing):
-        if spacing is not None and (not isinstance(spacing, u.Quantity) or
-                                    spacing.unit.physical_type != 'angle'):
-            raise TypeError("spacing should be an astropy.units.Quantity "
-                            "instance with units of angle")
+        if spacing is not None and (
+            not isinstance(spacing, u.Quantity) or spacing.unit.physical_type != "angle"
+        ):
+            raise TypeError(
+                "spacing should be an astropy.units.Quantity "
+                "instance with units of angle"
+            )
         self._number = None
         self._spacing = spacing
         self._values = None
@@ -205,7 +245,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     @format.setter
     def format(self, value):
-
         self._format = value
 
         if value is None:
@@ -214,43 +253,43 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if DMS_RE.match(value) is not None:
             self._decimal = False
             self._format_unit = u.degree
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
                 self._fields = 3
             else:
                 self._precision = 0
-                self._fields = value.count(':') + 1
+                self._fields = value.count(":") + 1
         elif HMS_RE.match(value) is not None:
             self._decimal = False
             self._format_unit = u.hourangle
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
                 self._fields = 3
             else:
                 self._precision = 0
-                self._fields = value.count(':') + 1
+                self._fields = value.count(":") + 1
         elif DDEC_RE.match(value) is not None:
             self._decimal = True
             self._format_unit = u.degree
             self._fields = 1
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
             else:
                 self._precision = 0
         elif DMIN_RE.match(value) is not None:
             self._decimal = True
             self._format_unit = u.arcmin
             self._fields = 1
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
             else:
                 self._precision = 0
         elif DSEC_RE.match(value) is not None:
             self._decimal = True
             self._format_unit = u.arcsec
             self._fields = 1
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
             else:
                 self._precision = 0
         else:
@@ -261,32 +300,31 @@ class AngleFormatterLocator(BaseFormatterLocator):
             self.spacing = self.base_spacing
 
         if self.spacing is not None:
-
             ratio = (self.spacing / self.base_spacing).decompose().value
             remainder = ratio - np.round(ratio)
 
-            if abs(remainder) > 1.e-10:
-                warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+            if abs(remainder) > 1.0e-10:
+                warnings.warn(
+                    "Spacing is not a multiple of base spacing - resetting spacing to"
+                    " match format"
+                )
                 self.spacing = self.base_spacing * max(1, round(ratio))
 
     @property
     def base_spacing(self):
-
         if self.decimal:
-
-            spacing = self._format_unit / (10. ** self._precision)
+            spacing = self._format_unit / (10.0**self._precision)
 
         else:
-
             if self._fields == 1:
-                spacing = 1. * u.degree
+                spacing = 1.0 * u.degree
             elif self._fields == 2:
-                spacing = 1. * u.arcmin
+                spacing = 1.0 * u.arcmin
             elif self._fields == 3:
                 if self._precision == 0:
-                    spacing = 1. * u.arcsec
+                    spacing = 1.0 * u.arcsec
                 else:
-                    spacing = u.arcsec / (10. ** self._precision)
+                    spacing = u.arcsec / (10.0**self._precision)
 
         if self._format_unit is u.hourangle:
             spacing *= 15
@@ -294,14 +332,11 @@ class AngleFormatterLocator(BaseFormatterLocator):
         return spacing
 
     def locator(self, value_min, value_max):
-
         if self.values is not None:
-
             # values were manually specified
             return self.values, 1.1 * u.arcsec
 
         else:
-
             # In the special case where value_min is the same as value_max, we
             # don't locate any ticks. This can occur for example when taking a
             # slice for a cube (along the dimension sliced). We return a
@@ -311,12 +346,10 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 return [] * self._unit, 1 * u.arcsec
 
             if self.spacing is not None:
-
                 # spacing was manually specified
                 spacing_value = self.spacing.to_value(self._unit)
 
             elif self.number is not None:
-
                 # number of ticks was specified, work out optimal spacing
 
                 # first compute the exact spacing
@@ -330,13 +363,18 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     # otherwise we clip to the nearest 'sensible' spacing
                     if self.decimal:
                         from .utils import select_step_scalar
-                        spacing_value = select_step_scalar(dv.to_value(self._format_unit)) * self._format_unit.to(self._unit)
+
+                        spacing_value = select_step_scalar(
+                            dv.to_value(self._format_unit)
+                        ) * self._format_unit.to(self._unit)
                     else:
                         if self._format_unit is u.degree:
                             from .utils import select_step_degree
+
                             spacing_value = select_step_degree(dv).to_value(self._unit)
                         else:
                             from .utils import select_step_hour
+
                             spacing_value = select_step_hour(dv).to_value(self._unit)
 
             # We now find the interval values as multiples of the spacing and
@@ -344,13 +382,11 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing_value)
             return values * spacing_value * self._unit, spacing_value * self._unit
 
-    def formatter(self, values, spacing, format='auto'):
-
+    def formatter(self, values, spacing, format="auto"):
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
-
             decimal = self.decimal
             unit = self._format_unit
 
@@ -373,7 +409,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     # which should be sufficient.
                     spacing = spacing.to_value(unit)
                     fields = 0
-                    precision = len(f"{spacing:.10f}".replace('0', ' ').strip().split('.', 1)[1])
+                    precision = len(
+                        f"{spacing:.10f}".replace("0", " ").strip().split(".", 1)[1]
+                    )
                 else:
                     spacing = spacing.to_value(unit / 3600)
                     if spacing >= 3600:
@@ -392,52 +430,60 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 fields = self._fields
                 precision = self._precision
 
-            is_latex = format == 'latex' or (format == 'auto' and rcParams['text.usetex'])
+            is_latex = format == "latex" or (
+                format == "auto" and rcParams["text.usetex"]
+            )
 
             if decimal:
                 if self.show_decimal_unit:
-                    sep = 'fromunit'
+                    sep = "fromunit"
                     if is_latex:
-                        fmt = 'latex'
+                        fmt = "latex"
                     else:
                         if unit is u.hourangle:
-                            fmt = 'unicode'
+                            fmt = "unicode"
                         else:
-                            fmt = 'generic'
+                            fmt = "generic"
                     unit = CUSTOM_UNITS.get(unit, unit)
                 else:
-                    sep = 'fromunit'
+                    sep = "fromunit"
                     fmt = None
             elif self.sep is not None:
                 sep = self.sep
                 fmt = None
             else:
-                sep = 'fromunit'
+                sep = "fromunit"
                 if unit == u.degree:
                     if is_latex:
-                        fmt = 'latex'
+                        fmt = "latex"
                     else:
-                        sep = ('\xb0', "'", '"')
+                        sep = ("\xb0", "'", '"')
                         fmt = None
                 else:
-                    if format == 'ascii':
+                    if format == "ascii":
                         fmt = None
                     elif is_latex:
-                        fmt = 'latex'
+                        fmt = "latex"
                     else:
                         # Here we still use LaTeX but this is for Matplotlib's
                         # LaTeX engine - we can't use fmt='latex' as this
                         # doesn't produce LaTeX output that respects the fonts.
-                        sep = (r'$\mathregular{^h}$', r'$\mathregular{^m}$', r'$\mathregular{^s}$')
+                        sep = (
+                            r"$\mathregular{^h}$",
+                            r"$\mathregular{^m}$",
+                            r"$\mathregular{^s}$",
+                        )
                         fmt = None
 
             angles = Angle(values)
-            string = angles.to_string(unit=unit,
-                                      precision=precision,
-                                      decimal=decimal,
-                                      fields=fields,
-                                      sep=sep,
-                                      format=fmt).tolist()
+            string = angles.to_string(
+                unit=unit,
+                precision=precision,
+                decimal=decimal,
+                fields=fields,
+                sep=sep,
+                format=fmt,
+            ).tolist()
 
             return string
         else:
@@ -449,9 +495,15 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator
     """
 
-    def __init__(self, values=None, number=None, spacing=None, format=None,
-                 unit=None, format_unit=None):
-
+    def __init__(
+        self,
+        values=None,
+        number=None,
+        spacing=None,
+        format=None,
+        unit=None,
+        format_unit=None,
+    ):
         if unit is not None:
             unit = unit
             format_unit = format_unit or unit
@@ -462,8 +514,14 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             unit = values.unit
             format_unit = format_unit or values.unit
 
-        super().__init__(values=values, number=number, spacing=spacing,
-                         format=format, unit=unit, format_unit=format_unit)
+        super().__init__(
+            values=values,
+            number=number,
+            spacing=spacing,
+            format=format,
+            unit=unit,
+            format_unit=format_unit,
+        )
 
     @property
     def spacing(self):
@@ -483,46 +541,46 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     @format.setter
     def format(self, value):
-
         self._format = value
 
         if value is None:
             return
 
         if SCAL_RE.match(value) is not None:
-            if '.' in value:
-                self._precision = len(value) - value.index('.') - 1
+            if "." in value:
+                self._precision = len(value) - value.index(".") - 1
             else:
                 self._precision = 0
 
             if self.spacing is not None and self.spacing < self.base_spacing:
-                warnings.warn("Spacing is too small - resetting spacing to match format")
+                warnings.warn(
+                    "Spacing is too small - resetting spacing to match format"
+                )
                 self.spacing = self.base_spacing
 
             if self.spacing is not None:
-
                 ratio = (self.spacing / self.base_spacing).decompose().value
                 remainder = ratio - np.round(ratio)
 
-                if abs(remainder) > 1.e-10:
-                    warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+                if abs(remainder) > 1.0e-10:
+                    warnings.warn(
+                        "Spacing is not a multiple of base spacing - resetting spacing"
+                        " to match format"
+                    )
                     self.spacing = self.base_spacing * max(1, round(ratio))
 
-        elif not value.startswith('%'):
+        elif not value.startswith("%"):
             raise ValueError(f"Invalid format: {value}")
 
     @property
     def base_spacing(self):
-        return self._format_unit / (10. ** self._precision)
+        return self._format_unit / (10.0**self._precision)
 
     def locator(self, value_min, value_max):
-
         if self.values is not None:
-
             # values were manually specified
             return self.values, 1.1 * self._unit
         else:
-
             # In the special case where value_min is the same as value_max, we
             # don't locate any ticks. This can occur for example when taking a
             # slice for a cube (along the dimension sliced).
@@ -530,24 +588,29 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 return [] * self._unit, 0 * self._unit
 
             if self.spacing is not None:
-
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
 
             elif self.number is not None:
-
                 # number of ticks was specified, work out optimal spacing
 
                 # first compute the exact spacing
                 dv = abs(float(value_max - value_min)) / self.number * self._unit
 
-                if self.format is not None and (not self.format.startswith('%')) and dv < self.base_spacing:
+                if (
+                    self.format is not None
+                    and (not self.format.startswith("%"))
+                    and dv < self.base_spacing
+                ):
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
                     spacing = self.base_spacing.to_value(self._unit)
                 else:
                     from .utils import select_step_scalar
-                    spacing = select_step_scalar(dv.to_value(self._format_unit)) * self._format_unit.to(self._unit)
+
+                    spacing = select_step_scalar(
+                        dv.to_value(self._format_unit)
+                    ) * self._format_unit.to(self._unit)
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this
@@ -555,20 +618,22 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing)
             return values * spacing * self._unit, spacing * self._unit
 
-    def formatter(self, values, spacing, format='auto'):
-
+    def formatter(self, values, spacing, format="auto"):
         if len(values) > 0:
             if self.format is None:
-                if spacing.value < 1.:
+                if spacing.value < 1.0:
                     precision = -int(np.floor(np.log10(spacing.value)))
                 else:
                     precision = 0
-            elif self.format.startswith('%'):
+            elif self.format.startswith("%"):
                 return [(self.format % x.value) for x in values]
             else:
                 precision = self._precision
 
-            return [("{0:." + str(precision) + "f}").format(x.to_value(self._format_unit)) for x in values]
+            return [
+                ("{0:." + str(precision) + "f}").format(x.to_value(self._format_unit))
+                for x in values
+            ]
 
         else:
             return []

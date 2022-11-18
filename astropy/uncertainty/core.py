@@ -11,7 +11,7 @@ import numpy as np
 from astropy import units as u
 from astropy import stats
 
-__all__ = ['Distribution']
+__all__ = ["Distribution"]
 
 
 # we set this by hand because the symbolic expression (below) requires scipy
@@ -37,18 +37,20 @@ class Distribution:
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
     """
+
     _generated_subclasses = {}
 
     def __new__(cls, samples):
         if isinstance(samples, Distribution):
             samples = samples.distribution
         else:
-            samples = np.asanyarray(samples, order='C')
+            samples = np.asanyarray(samples, order="C")
         if samples.shape == ():
-            raise TypeError('Attempted to initialize a Distribution with a scalar')
+            raise TypeError("Attempted to initialize a Distribution with a scalar")
 
-        new_dtype = np.dtype({'names': ['samples'],
-                              'formats': [(samples.dtype, (samples.shape[-1],))]})
+        new_dtype = np.dtype(
+            {"names": ["samples"], "formats": [(samples.dtype, (samples.shape[-1],))]}
+        )
         samples_cls = type(samples)
         new_cls = cls._generated_subclasses.get(samples_cls)
         if new_cls is None:
@@ -64,7 +66,8 @@ class Distribution:
             new_cls = type(
                 new_name,
                 (_DistributionRepr, samples_cls, ArrayDistribution),
-                {'_samples_cls': samples_cls})
+                {"_samples_cls": samples_cls},
+            )
             cls._generated_subclasses[samples_cls] = new_cls
 
         self = samples.view(dtype=new_dtype, type=new_cls)
@@ -74,26 +77,27 @@ class Distribution:
 
     @property
     def distribution(self):
-        return self['samples']
+        return self["samples"]
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         converted = []
-        outputs = kwargs.pop('out', None)
+        outputs = kwargs.pop("out", None)
         if outputs:
-            kwargs['out'] = tuple((output.distribution if
-                                   isinstance(output, Distribution)
-                                   else output) for output in outputs)
-        if method in {'reduce', 'accumulate', 'reduceat'}:
-            axis = kwargs.get('axis', None)
+            kwargs["out"] = tuple(
+                (output.distribution if isinstance(output, Distribution) else output)
+                for output in outputs
+            )
+        if method in {"reduce", "accumulate", "reduceat"}:
+            axis = kwargs.get("axis", None)
             if axis is None:
                 assert isinstance(inputs[0], Distribution)
-                kwargs['axis'] = tuple(range(inputs[0].ndim))
+                kwargs["axis"] = tuple(range(inputs[0].ndim))
 
         for input_ in inputs:
             if isinstance(input_, Distribution):
                 converted.append(input_.distribution)
             else:
-                shape = getattr(input_, 'shape', ())
+                shape = getattr(input_, "shape", ())
                 if shape:
                     converted.append(input_[..., np.newaxis])
                 else:
@@ -111,7 +115,7 @@ class Distribution:
             if output is not None:
                 finals.append(output)
             else:
-                if getattr(result, 'shape', False):
+                if getattr(result, "shape", False):
                     finals.append(Distribution(result))
                 else:
                     finals.append(result)
@@ -123,7 +127,7 @@ class Distribution:
         """
         The number of samples of this distribution.  A single `int`.
         """
-        return self.dtype['samples'].shape[0]
+        return self.dtype["samples"].shape[0]
 
     def pdf_mean(self, dtype=None, out=None):
         """
@@ -175,8 +179,9 @@ class Distribution:
         """
         median = self.pdf_median(out=out)
         absdiff = np.abs(self - median)
-        return np.median(absdiff.distribution, axis=-1, out=median,
-                         overwrite_input=True)
+        return np.median(
+            absdiff.distribution, axis=-1, out=median, overwrite_input=True
+        )
 
     def pdf_smad(self, out=None):
         """
@@ -217,7 +222,7 @@ class Distribution:
         percs = np.percentile(self.distribution, percentile, axis=-1, **kwargs)
         # numpy.percentile strips units for unclear reasons, so we have to make
         # a new object with units
-        if hasattr(self.distribution, '_new_view'):
+        if hasattr(self.distribution, "_new_view"):
             return self.distribution._new_view(percs)
         else:
             return percs
@@ -242,7 +247,7 @@ class Distribution:
             bin histogram dimension.
         """
         distr = self.distribution
-        raveled_distr = distr.reshape(distr.size//distr.shape[-1], distr.shape[-1])
+        raveled_distr = distr.reshape(distr.size // distr.shape[-1], distr.shape[-1])
 
         nhists = []
         bin_edges = []
@@ -252,9 +257,9 @@ class Distribution:
             bin_edges.append(bin_edge)
 
         nhists = np.array(nhists)
-        nh_shape = self.shape + (nhists.size//self.size,)
+        nh_shape = self.shape + (nhists.size // self.size,)
         bin_edges = np.array(bin_edges)
-        be_shape = self.shape + (bin_edges.size//self.size,)
+        be_shape = self.shape + (bin_edges.size // self.size,)
         return nhists.reshape(nh_shape), bin_edges.reshape(be_shape)
 
 
@@ -264,6 +269,7 @@ class ScalarDistribution(Distribution, np.void):
     This class mostly exists to make `~numpy.array2print` possible for
     all subclasses.  It is a scalar element, still with n_samples samples.
     """
+
     pass
 
 
@@ -283,17 +289,21 @@ class ArrayDistribution(Distribution, np.ndarray):
         ``dtype`` is allowed.
 
         """
-        if type is None and (isinstance(dtype, builtins.type)
-                             and issubclass(dtype, np.ndarray)):
+        if type is None and (
+            isinstance(dtype, builtins.type) and issubclass(dtype, np.ndarray)
+        ):
             type = dtype
             dtype = None
 
         view_args = [item for item in (dtype, type) if item is not None]
 
-        if type is None or (isinstance(type, builtins.type)
-                            and issubclass(type, Distribution)):
+        if type is None or (
+            isinstance(type, builtins.type) and issubclass(type, Distribution)
+        ):
             if dtype is not None and dtype != self.dtype:
-                raise ValueError('cannot view as Distribution subclass with a new dtype.')
+                raise ValueError(
+                    "cannot view as Distribution subclass with a new dtype."
+                )
             return super().view(*view_args)
 
         # View as the new non-Distribution class, but turn into a Distribution again.
@@ -303,7 +313,7 @@ class ArrayDistribution(Distribution, np.ndarray):
     # Override __getitem__ so that 'samples' is returned as the sample class.
     def __getitem__(self, item):
         result = super().__getitem__(item)
-        if item == 'samples':
+        if item == "samples":
             # Here, we need to avoid our own redefinition of view.
             return super(ArrayDistribution, result).view(self._samples_cls)
         elif isinstance(result, np.void):
@@ -315,26 +325,27 @@ class ArrayDistribution(Distribution, np.ndarray):
 class _DistributionRepr:
     def __repr__(self):
         reprarr = repr(self.distribution)
-        if reprarr.endswith('>'):
-            firstspace = reprarr.find(' ')
-            reprarr = reprarr[firstspace+1:-1]  # :-1] removes the ending '>'
-            return '<{} {} with n_samples={}>'.format(self.__class__.__name__,
-                                                      reprarr, self.n_samples)
+        if reprarr.endswith(">"):
+            firstspace = reprarr.find(" ")
+            reprarr = reprarr[firstspace + 1 : -1]  # :-1] removes the ending '>'
+            return "<{} {} with n_samples={}>".format(
+                self.__class__.__name__, reprarr, self.n_samples
+            )
         else:  # numpy array-like
-            firstparen = reprarr.find('(')
+            firstparen = reprarr.find("(")
             reprarr = reprarr[firstparen:]
-            return f'{self.__class__.__name__}{reprarr} with n_samples={self.n_samples}'
+            return f"{self.__class__.__name__}{reprarr} with n_samples={self.n_samples}"
             return reprarr
 
     def __str__(self):
         distrstr = str(self.distribution)
-        toadd = f' with n_samples={self.n_samples}'
+        toadd = f" with n_samples={self.n_samples}"
         return distrstr + toadd
 
     def _repr_latex_(self):
-        if hasattr(self.distribution, '_repr_latex_'):
+        if hasattr(self.distribution, "_repr_latex_"):
             superlatex = self.distribution._repr_latex_()
-            toadd = fr', \; n_{{\rm samp}}={self.n_samples}'
+            toadd = rf", \; n_{{\rm samp}}={self.n_samples}"
             return superlatex[:-1] + toadd + superlatex[-1]
         else:
             return None

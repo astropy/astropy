@@ -95,8 +95,7 @@ def separability_matrix(transform):
 
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
-        return np.ones((transform.n_outputs, transform.n_inputs),
-                       dtype=np.bool_)
+        return np.ones((transform.n_outputs, transform.n_inputs), dtype=np.bool_)
     separable_matrix = _separable(transform)
     separable_matrix = np.where(separable_matrix != 0, True, False)
     return separable_matrix
@@ -162,7 +161,9 @@ def _arith_oper(left, right):
             "n_outputs={}) and right (n_inputs={}, n_outputs={}); "
             "models must have the same n_inputs and the same "
             "n_outputs for this operator.".format(
-                left_inputs, left_outputs, right_inputs, right_outputs))
+                left_inputs, left_outputs, right_inputs, right_outputs
+            )
+        )
 
     result = np.ones((left_outputs, left_inputs))
     return result
@@ -194,24 +195,24 @@ def _coord_matrix(model, pos, noutp):
             axes.append(axis)
         m = np.vstack(axes)
         mat = np.zeros((noutp, model.n_inputs))
-        if pos == 'left':
-            mat[: model.n_outputs, :model.n_inputs] = m
+        if pos == "left":
+            mat[: model.n_outputs, : model.n_inputs] = m
         else:
-            mat[-model.n_outputs:, -model.n_inputs:] = m
+            mat[-model.n_outputs :, -model.n_inputs :] = m
         return mat
     if not model.separable:
         # this does not work for more than 2 coordinates
         mat = np.zeros((noutp, model.n_inputs))
-        if pos == 'left':
-            mat[:model.n_outputs, : model.n_inputs] = 1
+        if pos == "left":
+            mat[: model.n_outputs, : model.n_inputs] = 1
         else:
-            mat[-model.n_outputs:, -model.n_inputs:] = 1
+            mat[-model.n_outputs :, -model.n_inputs :] = 1
     else:
         mat = np.zeros((noutp, model.n_inputs))
 
         for i in range(model.n_inputs):
             mat[i, i] = 1
-        if pos == 'right':
+        if pos == "right":
             mat = np.roll(mat, (noutp - model.n_outputs))
     return mat
 
@@ -234,15 +235,15 @@ def _cstack(left, right):
     noutp = _compute_n_outputs(left, right)
 
     if isinstance(left, Model):
-        cleft = _coord_matrix(left, 'left', noutp)
+        cleft = _coord_matrix(left, "left", noutp)
     else:
         cleft = np.zeros((noutp, left.shape[1]))
         cleft[: left.shape[0], : left.shape[1]] = left
     if isinstance(right, Model):
-        cright = _coord_matrix(right, 'right', noutp)
+        cright = _coord_matrix(right, "right", noutp)
     else:
         cright = np.zeros((noutp, right.shape[1]))
-        cright[-right.shape[0]:, -right.shape[1]:] = right
+        cright[-right.shape[0] :, -right.shape[1] :] = right
 
     return np.hstack([cleft, cright])
 
@@ -274,16 +275,16 @@ def _cdot(left, right):
             coords = input
         return coords
 
-    cleft = _n_inputs_outputs(left, 'left')
-    cright = _n_inputs_outputs(right, 'right')
+    cleft = _n_inputs_outputs(left, "left")
+    cright = _n_inputs_outputs(right, "right")
 
     try:
         result = np.dot(cleft, cright)
     except ValueError:
         raise ModelDefinitionError(
             'Models cannot be combined with the "|" operator; '
-            'left coord_matrix is {}, right coord_matrix is {}'.format(
-                cright, cleft))
+            "left coord_matrix is {}, right coord_matrix is {}".format(cright, cleft)
+        )
     return result
 
 
@@ -301,17 +302,26 @@ def _separable(transform):
         An array of shape (transform.n_outputs,) of boolean type
         Each element represents the separablity of the corresponding output.
     """
-    if (transform_matrix := transform._calculate_separability_matrix()) is not NotImplemented:
+    if (
+        transform_matrix := transform._calculate_separability_matrix()
+    ) is not NotImplemented:
         return transform_matrix
     elif isinstance(transform, CompoundModel):
         sepleft = _separable(transform.left)
         sepright = _separable(transform.right)
         return _operators[transform.op](sepleft, sepright)
     elif isinstance(transform, Model):
-        return _coord_matrix(transform, 'left', transform.n_outputs)
+        return _coord_matrix(transform, "left", transform.n_outputs)
 
 
 # Maps modeling operators to a function computing and represents the
 # relationship of axes as an array of 0-es and 1-s
-_operators = {'&': _cstack, '|': _cdot, '+': _arith_oper, '-': _arith_oper,
-              '*': _arith_oper, '/': _arith_oper, '**': _arith_oper}
+_operators = {
+    "&": _cstack,
+    "|": _cdot,
+    "+": _arith_oper,
+    "-": _arith_oper,
+    "*": _arith_oper,
+    "/": _arith_oper,
+    "**": _arith_oper,
+}

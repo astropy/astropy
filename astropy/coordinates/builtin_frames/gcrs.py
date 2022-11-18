@@ -3,13 +3,15 @@
 
 from astropy import units as u
 from astropy.utils.decorators import format_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                                            CartesianRepresentationAttribute)
+from astropy.coordinates.attributes import (
+    TimeAttribute,
+    CartesianRepresentationAttribute,
+)
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
-__all__ = ['GCRS', 'PrecessedGeocentric']
+__all__ = ["GCRS", "PrecessedGeocentric"]
 
 
 doc_footer_gcrs = """
@@ -53,10 +55,8 @@ class GCRS(BaseRADecFrame):
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0],
-                                                 unit=u.m)
-    obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0],
-                                                 unit=u.m/u.s)
+    obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m)
+    obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m / u.s)
 
 
 # The "self-transform" is defined in icrs_cirs_transformations.py, because in
@@ -101,4 +101,4 @@ class PrecessedGeocentric(BaseRADecFrame):
     equinox = TimeAttribute(default=EQUINOX_J2000)
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
     obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m)
-    obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m/u.s)
+    obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0], unit=u.m / u.s)

@@ -17,8 +17,8 @@ from numpy import finfo
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
 # give a little margin since often multiple calculations happened
-_JUST_BELOW_UNITY = float(1.-4.*_float_finfo.epsneg)
-_JUST_ABOVE_UNITY = float(1.+4.*_float_finfo.eps)
+_JUST_BELOW_UNITY = float(1.0 - 4.0 * _float_finfo.epsneg)
+_JUST_ABOVE_UNITY = float(1.0 + 4.0 * _float_finfo.eps)
 
 
 def _get_first_sentence(s):
@@ -30,7 +30,7 @@ def _get_first_sentence(s):
     x = re.match(r".*?\S\.\s", s)
     if x is not None:
         s = x.group(0)
-    return s.replace('\n', ' ')
+    return s.replace("\n", " ")
 
 
 def _iter_unit_summary(namespace):
@@ -66,12 +66,18 @@ def _iter_unit_summary(namespace):
 
     for unit in units:
         doc = _get_first_sentence(unit.__doc__).strip()
-        represents = ''
+        represents = ""
         if isinstance(unit, core.Unit):
             represents = f":math:`{unit._represents.to_string('latex')[1:-1]}`"
-        aliases = ', '.join(f'``{x}``' for x in unit.aliases)
+        aliases = ", ".join(f"``{x}``" for x in unit.aliases)
 
-        yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')
+        yield (
+            unit,
+            doc,
+            represents,
+            aliases,
+            "Yes" if unit.name in has_prefixes else "No",
+        )
 
 
 def generate_unit_summary(namespace):
@@ -93,7 +99,8 @@ def generate_unit_summary(namespace):
 
     docstring = io.StringIO()
 
-    docstring.write("""
+    docstring.write(
+        """
 .. list-table:: Available Units
    :header-rows: 1
    :widths: 10 20 20 20 1
@@ -103,16 +110,21 @@ def generate_unit_summary(namespace):
      - Represents
      - Aliases
      - SI Prefixes
-""")
+"""
+    )
 
     for unit_summary in _iter_unit_summary(namespace):
-        docstring.write("""
+        docstring.write(
+            """
    * - ``{}``
      - {}
      - {}
      - {}
      - {}
-""".format(*unit_summary))
+""".format(
+                *unit_summary
+            )
+        )
 
     return docstring.getvalue()
 
@@ -145,13 +157,17 @@ def generate_prefixonly_unit_summary(namespace):
     docstring = io.StringIO()
 
     for unit_summary in _iter_unit_summary(faux_namespace):
-        docstring.write("""
+        docstring.write(
+            """
    * - Prefixes for ``{}``
      - {} prefixes
      - {}
      - {}
      - Only
-""".format(*unit_summary))
+""".format(
+                *unit_summary
+            )
+        )
 
     return docstring.getvalue()
 
@@ -162,8 +178,10 @@ def is_effectively_unity(value):
     try:
         return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
     except TypeError:  # value is complex
-        return (_JUST_BELOW_UNITY <= value.real <= _JUST_ABOVE_UNITY and
-                _JUST_BELOW_UNITY <= value.imag + 1 <= _JUST_ABOVE_UNITY)
+        return (
+            _JUST_BELOW_UNITY <= value.real <= _JUST_ABOVE_UNITY
+            and _JUST_BELOW_UNITY <= value.imag + 1 <= _JUST_ABOVE_UNITY
+        )
 
 
 def sanitize_scale(scale):
@@ -176,18 +194,18 @@ def sanitize_scale(scale):
 
     # We cannot have numpy scalars, since they don't autoconvert to
     # complex if necessary.  They are also slower.
-    if hasattr(scale, 'dtype'):
+    if hasattr(scale, "dtype"):
         scale = scale.item()
 
     # All classes that scale can be (int, float, complex, Fraction)
     # have an "imag" attribute.
     if scale.imag:
         if abs(scale.real) > abs(scale.imag):
-            if is_effectively_unity(scale.imag/scale.real + 1):
+            if is_effectively_unity(scale.imag / scale.real + 1):
                 return scale.real
 
-        elif is_effectively_unity(scale.real/scale.imag + 1):
-            return complex(0., scale.imag)
+        elif is_effectively_unity(scale.real / scale.imag + 1):
+            return complex(0.0, scale.imag)
 
         return scale
 
@@ -212,12 +230,12 @@ def maybe_simple_fraction(p, max_denominator=100):
     n0, d0 = 1, 0
     n1, d1 = a, 1
     while d1 <= max_denominator:
-        if _JUST_BELOW_UNITY <= n1/(d1*p) <= _JUST_ABOVE_UNITY:
+        if _JUST_BELOW_UNITY <= n1 / (d1 * p) <= _JUST_ABOVE_UNITY:
             return Fraction(n1, d1)
-        n, d = d, n-a*d
+        n, d = d, n - a * d
         a = n // d
-        n0, n1 = n1, n0+a*n1
-        d0, d1 = d1, d0+a*d1
+        n0, n1 = n1, n0 + a * n1
+        d0, d1 = d1, d0 + a * d1
 
     return p
 
@@ -236,14 +254,15 @@ def validate_power(p):
     p : float, int, Rational, Fraction
         Power to be converted
     """
-    denom = getattr(p, 'denominator', None)
+    denom = getattr(p, "denominator", None)
     if denom is None:
         try:
             p = float(p)
         except Exception:
             if not np.isscalar(p):
-                raise ValueError("Quantities and Units may only be raised "
-                                 "to a scalar power")
+                raise ValueError(
+                    "Quantities and Units may only be raised to a scalar power"
+                )
             else:
                 raise
 
@@ -276,10 +295,12 @@ def resolve_fractions(a, b):
     """
     # We short-circuit on the most common cases of int and float, since
     # isinstance(a, Fraction) is very slow for any non-Fraction instances.
-    a_is_fraction = (a.__class__ is not int and a.__class__ is not float and
-                     isinstance(a, Fraction))
-    b_is_fraction = (b.__class__ is not int and b.__class__ is not float and
-                     isinstance(b, Fraction))
+    a_is_fraction = (
+        a.__class__ is not int and a.__class__ is not float and isinstance(a, Fraction)
+    )
+    b_is_fraction = (
+        b.__class__ is not int and b.__class__ is not float and isinstance(b, Fraction)
+    )
     if a_is_fraction and not b_is_fraction:
         b = maybe_simple_fraction(b)
     elif not a_is_fraction and b_is_fraction:
@@ -289,7 +310,12 @@ def resolve_fractions(a, b):
 
 def quantity_asanyarray(a, dtype=None):
     from .quantity import Quantity
-    if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
+
+    if (
+        not isinstance(a, np.ndarray)
+        and not np.isscalar(a)
+        and any(isinstance(x, Quantity) for x in a)
+    ):
         return Quantity(a, dtype=dtype)
     else:
         return np.asanyarray(a, dtype=dtype)

@@ -17,7 +17,11 @@ import numpy as np
 import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter, _validate_to_float, _validate_with_unit
+from astropy.cosmology.parameter import (
+    Parameter,
+    _validate_to_float,
+    _validate_with_unit,
+)
 
 ##############################################################################
 # TESTS
@@ -58,7 +62,9 @@ class ParameterTestMixin:
         # _registry_validators
         assert hasattr(all_parameter, "_registry_validators")
         assert isinstance(all_parameter._registry_validators, dict)
-        assert all(isinstance(k, str) for k in all_parameter._registry_validators.keys())
+        assert all(
+            isinstance(k, str) for k in all_parameter._registry_validators.keys()
+        )
         assert all(callable(v) for v in all_parameter._registry_validators.values())
 
     def test_Parameter_init(self):
@@ -72,9 +78,14 @@ class ParameterTestMixin:
         assert parameter.derived is False
 
         # setting all kwargs
-        parameter = Parameter(fvalidate="float", doc="DOCSTRING",
-                              unit="km", equivalencies=[u.mass_energy()],
-                              fmt=".4f", derived=True)
+        parameter = Parameter(
+            fvalidate="float",
+            doc="DOCSTRING",
+            unit="km",
+            equivalencies=[u.mass_energy()],
+            fmt=".4f",
+            derived=True,
+        )
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
@@ -202,7 +213,8 @@ class ParameterTestMixin:
         class ExampleBase(cosmo_cls):
             param = Parameter()
 
-        class Example(ExampleBase): pass
+        class Example(ExampleBase):
+            pass
 
         assert Example.param is ExampleBase.param
         assert Example.__parameters__ == ExampleBase.__parameters__
@@ -249,8 +261,9 @@ class TestParameter(ParameterTestMixin):
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(doc="example parameter",
-                              unit=u.m, equivalencies=u.mass_energy())
+            param = Parameter(
+                doc="example parameter", unit=u.m, equivalencies=u.mass_energy()
+            )
 
             def __init__(self, param=15):
                 self.param = param
@@ -398,6 +411,7 @@ class TestParameter(ParameterTestMixin):
 
         # used as decorator
         try:
+
             @param.__class__.register_validator("newvalidator")
             def func(cosmology, param, value):
                 return value
@@ -420,7 +434,8 @@ class TestParameter(ParameterTestMixin):
 
             param = Parameter(doc="example parameter")
 
-        class Example(ExampleBase): pass
+        class Example(ExampleBase):
+            pass
 
         assert Example.param is ExampleBase.param
 
@@ -428,7 +443,8 @@ class TestParameter(ParameterTestMixin):
         """Cosmology reinitializes all descriptors when a subclass is defined."""
 
         # define subclass to show param is same
-        class Example(cosmo_cls): pass
+        class Example(cosmo_cls):
+            pass
 
         assert Example.param is cosmo_cls.param
 

@@ -9,7 +9,6 @@ from astropy.units import Quantity as Q
 
 
 def test_c():
-
     from astropy.constants import c
 
     # c is an exactly defined constant, so it shouldn't be changing
@@ -25,7 +24,6 @@ def test_c():
 
 
 def test_h():
-
     from astropy.constants import h
 
     # check that the value is fairly close to what it should be (not exactly
@@ -47,7 +45,7 @@ def test_e():
     from astropy.constants import e
 
     # A test quantity
-    E = Q(100, 'V/m')
+    E = Q(100, "V/m")
 
     # Without specifying a system e should not combine with other quantities
     pytest.raises(TypeError, lambda: e * E)
@@ -63,9 +61,9 @@ def test_e():
     assert isinstance(e.gauss, Q)
     assert isinstance(e.esu, Q)
 
-    assert e.si * E == Q(100, 'eV/m')
-    assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
-    assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
+    assert e.si * E == Q(100, "eV/m")
+    assert e.gauss * E == Q(e.gauss.value * E.value, "Fr V/m")
+    assert e.esu * E == Q(e.esu.value * E.value, "Fr V/m")
 
 
 def test_g0():
@@ -84,7 +82,7 @@ def test_g0():
     assert g0.unit
 
     # Check that its unit have the correct physical type
-    assert g0.unit.physical_type == 'acceleration'
+    assert g0.unit.physical_type == "acceleration"
 
 
 def test_b_wien():
@@ -94,13 +92,13 @@ def test_b_wien():
     """
     from astropy.constants import b_wien
     from astropy import units as u
+
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
 
 
 def test_unit():
-
     from astropy import units as u
 
     from astropy import constants as const
@@ -115,6 +113,7 @@ def test_unit():
 
 def test_copy():
     from astropy import constants as const
+
     cc = copy.deepcopy(const.c)
     assert cc == const.c
 
@@ -125,6 +124,7 @@ def test_copy():
 def test_view():
     """Check that Constant and Quantity views can be taken (#3537, #3538)."""
     from astropy.constants import c
+
     c2 = c.view(Constant)
     assert c2 == c
     assert c2.value == c.value
@@ -138,13 +138,13 @@ def test_view():
     assert q1 == c
     assert q1.value == c.value
     assert type(q1) is Q
-    assert not hasattr(q1, 'reference')
+    assert not hasattr(q1, "reference")
 
     q2 = Q(c)
     assert q2 == c
     assert q2.value == c.value
     assert type(q2) is Q
-    assert not hasattr(q2, 'reference')
+    assert not hasattr(q2, "reference")
 
     c3 = Q(c, subok=True)
     assert c3 == c

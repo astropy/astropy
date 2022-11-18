@@ -15,7 +15,8 @@ from . import core
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
-    comment = r'^\s*#\s*\S\D.*'  # Find lines that don't have "# digit"
+
+    comment = r"^\s*#\s*\S\D.*"  # Find lines that don't have "# digit"
 
     def get_cols(self, lines):
         """
@@ -36,7 +37,8 @@ class SExtractorHeader(core.BaseHeader):
         columns = {}
         # E.g. '# 1 ID identification number' (no units) or '# 2 MAGERR magnitude of error [mag]'
         # Updated along with issue #4603, for more robust parsing of unit
-        re_name_def = re.compile(r"""^\s* \# \s*             # possible whitespace around #
+        re_name_def = re.compile(
+            r"""^\s* \# \s*             # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
                                  (?P<colname> [-\w]+)        # name of the column
                                  # column description, match any character until...
@@ -44,19 +46,23 @@ class SExtractorHeader(core.BaseHeader):
                                  # ...until [non-space][space][unit] or [not-right-bracket][end]
                                  (?:(?<!(\]))$|(?=(?:(?<=\S)\s+\[.+\]))))?
                                  (?:\s*\[(?P<colunit>.+)\])?.* # match units in brackets
-                                 """, re.VERBOSE)
+                                 """,
+            re.VERBOSE,
+        )
         dataline = None
         for line in lines:
-            if not line.startswith('#'):
+            if not line.startswith("#"):
                 dataline = line  # save for later to infer the actual number of columns
-                break                   # End of header lines
+                break  # End of header lines
             else:
                 match = re_name_def.search(line)
                 if match:
-                    colnumber = int(match.group('colnumber'))
-                    colname = match.group('colname')
-                    coldescr = match.group('coldescr')
-                    colunit = match.group('colunit')  # If no units are given, colunit = None
+                    colnumber = int(match.group("colnumber"))
+                    colname = match.group("colname")
+                    coldescr = match.group("coldescr")
+                    colunit = match.group(
+                        "colunit"
+                    )  # If no units are given, colunit = None
                     columns[colnumber] = (colname, coldescr, colunit)
         # Handle skipped column numbers
         colnumbers = sorted(columns)
@@ -72,13 +78,16 @@ class SExtractorHeader(core.BaseHeader):
         # sextractor column number start at 1.
         columns[n_data_cols + 1] = (None, None, None)
         colnumbers.append(n_data_cols + 1)
-        if len(columns) > 1:  # only fill in skipped columns when there is genuine column initially
+        if (
+            len(columns) > 1
+        ):  # only fill in skipped columns when there is genuine column initially
             previous_column = 0
             for n in colnumbers:
                 if n != previous_column + 1:
                     for c in range(previous_column + 1, n):
-                        column_name = (columns[previous_column][0]
-                                       + f"_{c - previous_column}")
+                        column_name = (
+                            columns[previous_column][0] + f"_{c - previous_column}"
+                        )
                         column_descr = columns[previous_column][1]
                         column_unit = columns[previous_column][2]
                         columns[c] = (column_name, column_descr, column_unit)
@@ -90,7 +99,9 @@ class SExtractorHeader(core.BaseHeader):
             self.names.append(columns[n][0])
 
         if not self.names:
-            raise core.InconsistentTableError('No column names found in SExtractor header')
+            raise core.InconsistentTableError(
+                "No column names found in SExtractor header"
+            )
 
         self.cols = []
         for n in colnumbers:
@@ -102,8 +113,8 @@ class SExtractorHeader(core.BaseHeader):
 
 class SExtractorData(core.BaseData):
     start_line = 0
-    delimiter = ' '
-    comment = r'\s*#'
+    delimiter = " "
+    comment = r"\s*#"
 
 
 class SExtractor(core.BaseReader):
@@ -133,9 +144,10 @@ class SExtractor(core.BaseReader):
     and that units may be specified at the end of a line in brackets.
 
     """
-    _format_name = 'sextractor'
+
+    _format_name = "sextractor"
     _io_registry_can_write = False
-    _description = 'SExtractor format table'
+    _description = "SExtractor format table"
 
     header_class = SExtractorHeader
     data_class = SExtractorData
@@ -148,8 +160,8 @@ class SExtractor(core.BaseReader):
         """
         out = super().read(table)
         # remove the comments
-        if 'comments' in out.meta:
-            del out.meta['comments']
+        if "comments" in out.meta:
+            del out.meta["comments"]
         return out
 
     def write(self, table):

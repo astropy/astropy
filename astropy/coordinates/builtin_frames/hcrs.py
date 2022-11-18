@@ -7,7 +7,7 @@ from .utils import DEFAULT_OBSTIME
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
-__all__ = ['HCRS']
+__all__ = ["HCRS"]
 
 
 doc_footer = """
@@ -41,5 +41,6 @@ class HCRS(BaseRADecFrame):
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
+
 
 # Transformations are defined in icrs_circ_transforms.py

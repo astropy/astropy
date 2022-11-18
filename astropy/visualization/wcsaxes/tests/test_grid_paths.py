@@ -5,7 +5,7 @@ from matplotlib.lines import Path
 from astropy.visualization.wcsaxes.grid_paths import get_lon_lat_path
 
 
-@pytest.mark.parametrize('step_in_degrees', [10, 1, 0.01])
+@pytest.mark.parametrize("step_in_degrees", [10, 1, 0.01])
 def test_round_trip_visibility(step_in_degrees):
     zero = np.zeros(100)
 

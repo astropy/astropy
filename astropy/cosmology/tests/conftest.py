@@ -90,6 +90,7 @@ def json_identify(origin, filepath, fileobj, *args, **kwargs):
 ###############################################################################
 # FIXTURES
 
+
 @pytest.fixture
 def clean_registry():
     # TODO! with monkeypatch instead for thread safety.

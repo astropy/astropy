@@ -11,8 +11,8 @@ from astropy.io import fits
 
 class FitsTestCase:
     def setup_method(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
-        self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.temp_dir = tempfile.mkdtemp(prefix="fits-test-")
 
         # Restore global settings to defaults
         # TODO: Replace this when there's a better way to in the config API to
@@ -23,7 +23,7 @@ class FitsTestCase:
         fits.conf.use_memmap = True
 
     def teardown_method(self):
-        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+        if hasattr(self, "temp_dir") and os.path.exists(self.temp_dir):
             tries = 3
             while tries:
                 try:
@@ -36,10 +36,10 @@ class FitsTestCase:
                     time.sleep(0.5)
                     tries -= 1
 
-        fits.conf.reset('enable_record_valued_keyword_cards')
-        fits.conf.reset('extension_name_case_sensitive')
-        fits.conf.reset('strip_header_whitespace')
-        fits.conf.reset('use_memmap')
+        fits.conf.reset("enable_record_valued_keyword_cards")
+        fits.conf.reset("extension_name_case_sensitive")
+        fits.conf.reset("strip_header_whitespace")
+        fits.conf.reset("use_memmap")
 
     def copy_file(self, filename):
         """Copies a backup of a test data file to the temp dir and sets its
@@ -55,6 +55,6 @@ class FitsTestCase:
         return os.path.join(self.data_dir, filename)
 
     def temp(self, filename):
-        """ Returns the full path to a file in the test temp dir."""
+        """Returns the full path to a file in the test temp dir."""
 
         return os.path.join(self.temp_dir, filename)

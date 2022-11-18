@@ -47,11 +47,11 @@ class ToFromTableTestMixin(IOTestMixinBase):
     def test_to_table_failed_cls(self, to_format):
         """Test failed table type."""
         with pytest.raises(TypeError, match="'cls' must be"):
-            to_format('astropy.table', cls=list)
+            to_format("astropy.table", cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
     def test_to_table_cls(self, to_format, tbl_cls):
-        tbl = to_format('astropy.table', cls=tbl_cls)
+        tbl = to_format("astropy.table", cls=tbl_cls)
         assert isinstance(tbl, tbl_cls)  # test type
 
     # -----------------------
@@ -59,7 +59,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
     @pytest.mark.parametrize("in_meta", [True, False])
     def test_to_table_in_meta(self, cosmo_cls, to_format, in_meta):
         """Test where the cosmology class is placed."""
-        tbl = to_format('astropy.table', cosmology_in_meta=in_meta)
+        tbl = to_format("astropy.table", cosmology_in_meta=in_meta)
 
         # if it's in metadata, it's not a column. And vice versa.
         if in_meta:
@@ -121,8 +121,9 @@ class ToFromTableTestMixin(IOTestMixinBase):
         got = from_format(tbl)
         assert got == cosmo
 
-    def test_fromformat_table_subclass_partial_info(self, cosmo_cls, cosmo,
-                                                    from_format, to_format):
+    def test_fromformat_table_subclass_partial_info(
+        self, cosmo_cls, cosmo, from_format, to_format
+    ):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -139,7 +140,9 @@ class ToFromTableTestMixin(IOTestMixinBase):
         # the default value
         got = cosmo_cls.from_format(tbl, format="astropy.table")
         got2 = from_format(tbl, format="astropy.table", cosmology=cosmo_cls)
-        got3 = from_format(tbl, format="astropy.table", cosmology=cosmo_cls.__qualname__)
+        got3 = from_format(
+            tbl, format="astropy.table", cosmology=cosmo_cls.__qualname__
+        )
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 
@@ -151,15 +154,19 @@ class ToFromTableTestMixin(IOTestMixinBase):
         assert got.meta == cosmo.meta
 
     @pytest.mark.parametrize("add_index", [True, False])
-    def test_tofrom_table_mutlirow(self, cosmo_cls, cosmo, to_format, from_format, add_index):
+    def test_tofrom_table_mutlirow(
+        self, cosmo_cls, cosmo, to_format, from_format, add_index
+    ):
         """Test if table has multiple rows."""
         # ------------
         # To Table
 
         cosmo1 = cosmo.clone(name="row 0")
         cosmo2 = cosmo.clone(name="row 2")
-        tbl = vstack([c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
-                     metadata_conflicts='silent')
+        tbl = vstack(
+            [c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
+            metadata_conflicts="silent",
+        )
 
         assert isinstance(tbl, QTable)
         assert tbl.meta["cosmology"] == cosmo_cls.__qualname__

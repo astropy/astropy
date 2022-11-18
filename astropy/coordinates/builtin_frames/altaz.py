@@ -6,15 +6,21 @@ import numpy as np
 from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
-from astropy.coordinates.attributes import (TimeAttribute,
-                                            QuantityAttribute,
-                                            EarthLocationAttribute)
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
+from astropy.coordinates.attributes import (
+    TimeAttribute,
+    QuantityAttribute,
+    EarthLocationAttribute,
+)
 
-__all__ = ['AltAz']
+__all__ = ["AltAz"]
 
 
-_90DEG = 90*u.deg
+_90DEG = 90 * u.deg
 
 doc_components = """
     az : `~astropy.coordinates.Angle`, optional, keyword-only
@@ -90,8 +96,8 @@ class AltAz(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'az'),
-            RepresentationMapping('lat', 'alt')
+            RepresentationMapping("lon", "az"),
+            RepresentationMapping("lat", "alt"),
         ]
     }
 
@@ -103,7 +109,7 @@ class AltAz(BaseCoordinateFrame):
     pressure = QuantityAttribute(default=0, unit=u.hPa)
     temperature = QuantityAttribute(default=0, unit=u.deg_C)
     relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
-    obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
+    obswl = QuantityAttribute(default=1 * u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,7 +120,7 @@ class AltAz(BaseCoordinateFrame):
         Secant of the zenith angle for this coordinate, a common estimate of
         the airmass.
         """
-        return 1/np.sin(self.alt)
+        return 1 / np.sin(self.alt)
 
     @property
     def zen(self):

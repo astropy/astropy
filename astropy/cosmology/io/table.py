@@ -111,7 +111,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, find by string match
-            indices = np.where(table['name'] == index)[0]
+            indices = np.where(table["name"] == index)[0]
         else:  # has indexing column
             indices = table.loc_indices[index]  # need to convert to row index (int)
 
@@ -127,8 +127,10 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     # no index is needed for a 1-row table. For a multi-row table...
     if index is None:
         if len(table) != 1:  # multi-row table and no index
-            raise ValueError("need to select a specific row (e.g. index=1) when "
-                             "constructing a Cosmology from a multi-row table.")
+            raise ValueError(
+                "need to select a specific row (e.g. index=1) when "
+                "constructing a Cosmology from a multi-row table."
+            )
         else:  # single-row table
             index = 0
     row = table[index]  # index is now the row index (int)
@@ -137,7 +139,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     # parse row to cosmo
 
     # special values
-    name = row['name'] if 'name' in row.columns else None  # get name from column
+    name = row["name"] if "name" in row.columns else None  # get name from column
     meta = copy.deepcopy(row.meta)
 
     # turn row into mapping, filling cosmo if not in a column

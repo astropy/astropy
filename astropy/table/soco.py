@@ -14,7 +14,7 @@ if HAS_SORTEDCONTAINERS:
 
 
 class Node(object):
-    __slots__ = ('key', 'value')
+    __slots__ = ("key", "value")
 
     def __init__(self, key, value):
         self.key = key
@@ -53,11 +53,11 @@ class Node(object):
     __hash__ = None
 
     def __repr__(self):
-        return f'Node({self.key!r}, {self.value!r})'
+        return f"Node({self.key!r}, {self.value!r})"
 
 
 class SCEngine:
-    '''
+    """
     Fast tree-based implementation for indexing, using the
     ``sortedcontainers`` package.
 
@@ -70,7 +70,7 @@ class SCEngine:
     unique : bool
         Whether the values of the index must be unique.
         Defaults to False.
-    '''
+    """
 
     def __init__(self, data, row_index, unique=False):
         node_keys = map(tuple, data)
@@ -78,24 +78,24 @@ class SCEngine:
         self._unique = unique
 
     def add(self, key, value):
-        '''
+        """
         Add a key, value pair.
-        '''
+        """
         if self._unique and (key in self._nodes):
-            message = f'duplicate {key!r} in unique index'
+            message = f"duplicate {key!r} in unique index"
             raise ValueError(message)
         self._nodes.add(Node(key, value))
 
     def find(self, key):
-        '''
+        """
         Find rows corresponding to the given key.
-        '''
+        """
         return [node.value for node in self._nodes.irange(key, key)]
 
     def remove(self, key, data=None):
-        '''
+        """
         Remove data from the given key.
-        '''
+        """
         if data is not None:
             item = Node(key, data)
             try:
@@ -109,25 +109,25 @@ class SCEngine:
         return bool(items)
 
     def shift_left(self, row):
-        '''
+        """
         Decrement rows larger than the given row.
-        '''
+        """
         for node in self._nodes:
             if node.value > row:
                 node.value -= 1
 
     def shift_right(self, row):
-        '''
+        """
         Increment rows greater than or equal to the given row.
-        '''
+        """
         for node in self._nodes:
             if node.value >= row:
                 node.value += 1
 
     def items(self):
-        '''
+        """
         Return a list of key, data tuples.
-        '''
+        """
         result = OrderedDict()
         for node in self._nodes:
             if node.key in result:
@@ -137,29 +137,29 @@ class SCEngine:
         return result.items()
 
     def sort(self):
-        '''
+        """
         Make row order align with key order.
-        '''
+        """
         for index, node in enumerate(self._nodes):
             node.value = index
 
     def sorted_data(self):
-        '''
+        """
         Return a list of rows in order sorted by key.
-        '''
+        """
         return [node.value for node in self._nodes]
 
     def range(self, lower, upper, bounds=(True, True)):
-        '''
+        """
         Return row values in the given range.
-        '''
+        """
         iterator = self._nodes.irange(lower, upper, bounds)
         return [node.value for node in iterator]
 
     def replace_rows(self, row_map):
-        '''
+        """
         Replace rows with the values in row_map.
-        '''
+        """
         nodes = [node for node in self._nodes if node.value in row_map]
         for node in nodes:
             node.value = row_map[node.value]
@@ -168,8 +168,8 @@ class SCEngine:
 
     def __repr__(self):
         if len(self._nodes) > 6:
-            nodes = list(self._nodes[:3]) + ['...'] + list(self._nodes[-3:])
+            nodes = list(self._nodes[:3]) + ["..."] + list(self._nodes[-3:])
         else:
             nodes = self._nodes
-        nodes_str = ', '.join(str(node) for node in nodes)
-        return f'<{self.__class__.__name__} nodes={nodes_str}>'
+        nodes_str = ", ".join(str(node) for node in nodes)
+        return f"<{self.__class__.__name__} nodes={nodes_str}>"

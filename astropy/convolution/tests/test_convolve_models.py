@@ -12,8 +12,8 @@ from numpy.testing import assert_allclose, assert_almost_equal
 
 
 class TestConvolve1DModels:
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif("not HAS_SCIPY")
     def test_is_consistency_with_astropy_convolution(self, mode):
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
@@ -23,8 +23,8 @@ class TestConvolve1DModels:
 
         assert_allclose(ans, model_conv(x), atol=1e-5)
 
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif("not HAS_SCIPY")
     def test_against_scipy(self, mode):
         from scipy.signal import fftconvolve
 
@@ -32,25 +32,24 @@ class TestConvolve1DModels:
         model = models.Gaussian1D(1, 0, 1)
         model_conv = convolve_models(model, kernel, mode=mode)
         x = np.arange(-5, 6)
-        ans = fftconvolve(kernel(x), model(x), mode='same')
+        ans = fftconvolve(kernel(x), model(x), mode="same")
 
         assert_allclose(ans, model_conv(x) * kernel(x).sum(), atol=1e-5)
 
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif("not HAS_SCIPY")
     def test_against_scipy_with_additional_keywords(self, mode):
         from scipy.signal import fftconvolve
 
         kernel = models.Gaussian1D(1, 0, 1)
         model = models.Gaussian1D(1, 0, 1)
-        model_conv = convolve_models(model, kernel, mode=mode,
-                                     normalize_kernel=False)
+        model_conv = convolve_models(model, kernel, mode=mode, normalize_kernel=False)
         x = np.arange(-5, 6)
-        ans = fftconvolve(kernel(x), model(x), mode='same')
+        ans = fftconvolve(kernel(x), model(x), mode="same")
 
         assert_allclose(ans, model_conv(x), atol=1e-5)
 
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
     def test_sum_of_gaussians(self, mode):
         """
         Test that convolving N(a, b) with N(c, d) gives N(a + c, b + d),
@@ -60,14 +59,13 @@ class TestConvolve1DModels:
 
         kernel = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 1, 1)
         model = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 3, 1)
-        model_conv = convolve_models(model, kernel, mode=mode,
-                                     normalize_kernel=False)
+        model_conv = convolve_models(model, kernel, mode=mode, normalize_kernel=False)
         ans = models.Gaussian1D(1 / (2 * math.sqrt(np.pi)), 4, np.sqrt(2))
         x = np.arange(-5, 6)
 
         assert_allclose(ans(x), model_conv(x), atol=1e-3)
 
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
     def test_convolve_box_models(self, mode):
         kernel = models.Box1D()
         model = models.Box1D()
@@ -77,8 +75,8 @@ class TestConvolve1DModels:
 
         assert_allclose(ans, model_conv(x), atol=1e-3)
 
-    @pytest.mark.parametrize('mode', ['convolve_fft', 'convolve'])
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize("mode", ["convolve_fft", "convolve"])
+    @pytest.mark.skipif("not HAS_SCIPY")
     def test_fitting_convolve_models(self, mode):
         """
         test that a convolve model can be fitted

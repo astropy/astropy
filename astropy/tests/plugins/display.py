@@ -7,13 +7,15 @@ import warnings
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 try:
-    from pytest_astropy_header.display import (PYTEST_HEADER_MODULES,
-                                               TESTED_VERSIONS)
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
     PYTEST_HEADER_MODULES = {}
     TESTED_VERSIONS = {}
 
-warnings.warn('The astropy.tests.plugins.display plugin has been deprecated. '
-              'See the pytest-astropy-header documentation for information on '
-              'migrating to using pytest-astropy-header to customize the '
-              'pytest header.', AstropyDeprecationWarning)
+warnings.warn(
+    "The astropy.tests.plugins.display plugin has been deprecated. "
+    "See the pytest-astropy-header documentation for information on "
+    "migrating to using pytest-astropy-header to customize the "
+    "pytest header.",
+    AstropyDeprecationWarning,
+)

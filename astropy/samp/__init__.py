@@ -28,12 +28,13 @@ class Conf(_config.ConfigNamespace):
 
     use_internet = _config.ConfigItem(
         True,
-        "Whether to allow `astropy.samp` to use "
-        "the internet, if available.",
-        aliases=['astropy.samp.utils.use_internet'])
+        "Whether to allow `astropy.samp` to use the internet, if available.",
+        aliases=["astropy.samp.utils.use_internet"],
+    )
 
-    n_retries = _config.ConfigItem(10,
-        "How many times to retry communications when they fail")
+    n_retries = _config.ConfigItem(
+        10, "How many times to retry communications when they fail"
+    )
 
 
 conf = Conf()

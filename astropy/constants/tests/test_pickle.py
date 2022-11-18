@@ -5,11 +5,11 @@ import pytest
 from astropy import constants as const
 from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
 
-originals = [const.Constant('h_fake', 'Not Planck',
-                            0.0, 'J s', 0.0, 'fakeref',
-                            system='si'),
-             const.h,
-             const.e.si]
+originals = [
+    const.Constant("h_fake", "Not Planck", 0.0, "J s", 0.0, "fakeref", system="si"),
+    const.h,
+    const.e.si,
+]
 
 
 @pytest.mark.parametrize("original", originals)

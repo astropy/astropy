@@ -1,9 +1,9 @@
-
 import numpy as np
 
 
-def lombscargle_slow(t, y, dy, frequency, normalization='standard',
-                     fit_mean=True, center_data=True):
+def lombscargle_slow(
+    t, y, dy, frequency, normalization="standard", fit_mean=True, center_data=True
+):
     """Lomb-Scargle Periodogram
 
     This is a pure-python implementation of the original Lomb-Scargle formalism
@@ -50,7 +50,7 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     if frequency.ndim != 1:
         raise ValueError("frequency should be one-dimensional")
 
-    w = dy ** -2.0
+    w = dy**-2.0
     w /= w.sum()
 
     # if fit_mean is true, centering the data now simplifies the math below.
@@ -70,14 +70,14 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
     # S2 = np.dot(w.T, np.sin(2 * omega * t)
     S2 = 2 * np.dot(w.T, sin_omega_t * cos_omega_t)
     # C2 = np.dot(w.T, np.cos(2 * omega * t)
-    C2 = 2 * np.dot(w.T, 0.5 - sin_omega_t ** 2)
+    C2 = 2 * np.dot(w.T, 0.5 - sin_omega_t**2)
 
     if fit_mean:
         S = np.dot(w.T, sin_omega_t)
         C = np.dot(w.T, cos_omega_t)
 
-        S2 -= (2 * S * C)
-        C2 -= (C * C - S * S)
+        S2 -= 2 * S * C
+        C2 -= C * C - S * S
 
     # compute components needed for the fit
     omega_t_tau = omega * t - 0.5 * np.arctan2(S2, C2)
@@ -103,17 +103,17 @@ def lombscargle_slow(t, y, dy, frequency, normalization='standard',
         CCtau -= Ctau * Ctau
         SStau -= Stau * Stau
 
-    p = (YCtau * YCtau / CCtau + YStau * YStau / SStau)
+    p = YCtau * YCtau / CCtau + YStau * YStau / SStau
     YY = np.dot(w.T, y * y)
 
-    if normalization == 'standard':
+    if normalization == "standard":
         p /= YY
-    elif normalization == 'model':
+    elif normalization == "model":
         p /= YY - p
-    elif normalization == 'log':
+    elif normalization == "log":
         p = -np.log(1 - p / YY)
-    elif normalization == 'psd':
-        p *= 0.5 * (dy ** -2.0).sum()
+    elif normalization == "psd":
+        p *= 0.5 * (dy**-2.0).sum()
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")
     return p.ravel()

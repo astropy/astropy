@@ -30,7 +30,7 @@ from astropy.cosmology.connect import convert_registry
 # LOCAL
 from mypackage.cosmology import MyCosmology
 
-__doctest_skip__ = ['*']
+__doctest_skip__ = ["*"]
 
 
 def from_mypackage(mycosmo):
@@ -108,7 +108,7 @@ def to_mypackage(cosmology, *args):
     # ----------------
     # remap values
     # MyCosmology doesn't support units, so take values.
-    m["hubble_parameter"] = m.pop("H0").to_value(u.km/u.s/u.Mpc)
+    m["hubble_parameter"] = m.pop("H0").to_value(u.km / u.s / u.Mpc)
     m["initial_matter_density"] = m.pop("Om0")
     m["initial_temperature"] = m.pop("Tcmb0").to_value(u.K)
     # m["Neff"] = m.pop("Neff")  # skip b/c unchanged
@@ -138,4 +138,6 @@ def mypackage_identify(origin, format, *args, **kwargs):
 
 convert_registry.register_reader("mypackage", Cosmology, from_mypackage, force=True)
 convert_registry.register_writer("mypackage", Cosmology, to_mypackage, force=True)
-convert_registry.register_identifier("mypackage", Cosmology, mypackage_identify, force=True)
+convert_registry.register_identifier(
+    "mypackage", Cosmology, mypackage_identify, force=True
+)

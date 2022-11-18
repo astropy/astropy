@@ -11,7 +11,13 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
-__all__ = ['RectangularFrame1D', 'Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
+__all__ = [
+    "RectangularFrame1D",
+    "Spine",
+    "BaseFrame",
+    "RectangularFrame",
+    "EllipticalFrame",
+]
 
 
 class Spine:
@@ -23,7 +29,6 @@ class Spine:
     """
 
     def __init__(self, parent_axes, transform):
-
         self.parent_axes = parent_axes
         self.transform = transform
 
@@ -44,7 +49,7 @@ class Spine:
         else:
             self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 self._world = self.transform.transform(self._data)
             self._update_normal()
 
@@ -92,15 +97,17 @@ class Spine:
         """
         x_disp, y_disp = self.pixel[:, 0], self.pixel[:, 1]
         # Get distance along the path
-        d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))])
-        xcen = np.interp(d[-1] / 2., d, x_disp)
-        ycen = np.interp(d[-1] / 2., d, y_disp)
+        d = np.hstack(
+            [0.0, np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))]
+        )
+        xcen = np.interp(d[-1] / 2.0, d, x_disp)
+        ycen = np.interp(d[-1] / 2.0, d, y_disp)
 
         # Find segment along which the mid-point lies
-        imin = np.searchsorted(d, d[-1] / 2.) - 1
+        imin = np.searchsorted(d, d[-1] / 2.0) - 1
 
         # Find normal of the axis label facing outwards on that segment
-        normal_angle = self.normal_angle[imin] + 180.
+        normal_angle = self.normal_angle[imin] + 180.0
         return xcen, ycen, normal_angle
 
 
@@ -125,8 +132,8 @@ class SpineXAligned(Spine):
         else:
             self._data = value
             self._pixel = self.parent_axes.transData.transform(self._data)
-            with np.errstate(invalid='ignore'):
-                self._world = self.transform.transform(self._data[:,0:1])
+            with np.errstate(invalid="ignore"):
+                self._world = self.transform.transform(self._data[:, 0:1])
             self._update_normal()
 
     @property
@@ -142,7 +149,7 @@ class SpineXAligned(Spine):
         else:
             self._data = self.parent_axes.transData.inverted().transform(self._data)
             self._pixel = value
-            self._world = self.transform.transform(self._data[:,0:1])
+            self._world = self.transform.transform(self._data[:, 0:1])
             self._update_normal()
 
 
@@ -155,13 +162,12 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     spine_class = Spine
 
     def __init__(self, parent_axes, transform, path=None):
-
         super().__init__()
 
         self.parent_axes = parent_axes
         self._transform = transform
-        self._linewidth = rcParams['axes.linewidth']
-        self._color = rcParams['axes.edgecolor']
+        self._linewidth = rcParams["axes.linewidth"]
+        self._color = rcParams["axes.edgecolor"]
         self._path = path
 
         for axis in self.spine_names:
@@ -170,7 +176,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     @property
     def origin(self):
         ymin, ymax = self.parent_axes.get_ylim()
-        return 'lower' if ymin < ymax else 'upper'
+        return "lower" if ymin < ymax else "upper"
 
     @property
     def transform(self):
@@ -183,7 +189,6 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
             self[axis].transform = value
 
     def _update_patch_path(self):
-
         self.update_spines()
         x, y = [], []
         for axis in self:
@@ -199,28 +204,34 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     @property
     def patch(self):
         self._update_patch_path()
-        return PathPatch(self._path, transform=self.parent_axes.transData,
-                         facecolor=rcParams['axes.facecolor'], edgecolor='white')
+        return PathPatch(
+            self._path,
+            transform=self.parent_axes.transData,
+            facecolor=rcParams["axes.facecolor"],
+            edgecolor="white",
+        )
 
     def draw(self, renderer):
         for axis in self:
             x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
-            line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
+            line = Line2D(
+                x, y, linewidth=self._linewidth, color=self._color, zorder=1000
+            )
             line.draw(renderer)
 
     def sample(self, n_samples):
-
         self.update_spines()
 
         spines = OrderedDict()
 
         for axis in self:
-
             data = self[axis].data
-            p = np.linspace(0., 1., data.shape[0])
-            p_new = np.linspace(0., 1., n_samples)
+            p = np.linspace(0.0, 1.0, data.shape[0])
+            p_new = np.linspace(0.0, 1.0, n_samples)
             spines[axis] = self.spine_class(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, d) for d in data.T]).transpose()
+            spines[axis].data = np.array(
+                [np.interp(p_new, p, d) for d in data.T]
+            ).transpose()
 
         return spines
 
@@ -262,19 +273,17 @@ class RectangularFrame1D(BaseFrame):
     A classic rectangular frame.
     """
 
-    spine_names = 'bt'
+    spine_names = "bt"
     spine_class = SpineXAligned
 
     def update_spines(self):
-
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        self['b'].data = np.array(([xmin, ymin], [xmax, ymin]))
-        self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
+        self["b"].data = np.array(([xmin, ymin], [xmax, ymin]))
+        self["t"].data = np.array(([xmax, ymax], [xmin, ymax]))
 
     def _update_patch_path(self):
-
         self.update_spines()
 
         xmin, xmax = self.parent_axes.get_xlim()
@@ -297,8 +306,14 @@ class RectangularFrame1D(BaseFrame):
         x = [xmin, xmax, xmax, xmin, xmin]
         y = [ymin, ymin, ymax, ymax, ymin]
 
-        line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000,
-                      transform=self.parent_axes.transData)
+        line = Line2D(
+            x,
+            y,
+            linewidth=self._linewidth,
+            color=self._color,
+            zorder=1000,
+            transform=self.parent_axes.transData,
+        )
         line.draw(renderer)
 
 
@@ -307,17 +322,16 @@ class RectangularFrame(BaseFrame):
     A classic rectangular frame.
     """
 
-    spine_names = 'brtl'
+    spine_names = "brtl"
 
     def update_spines(self):
-
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
-        self['b'].data = np.array(([xmin, ymin], [xmax, ymin]))
-        self['r'].data = np.array(([xmax, ymin], [xmax, ymax]))
-        self['t'].data = np.array(([xmax, ymax], [xmin, ymax]))
-        self['l'].data = np.array(([xmin, ymax], [xmin, ymin]))
+        self["b"].data = np.array(([xmin, ymin], [xmax, ymin]))
+        self["r"].data = np.array(([xmax, ymin], [xmax, ymax]))
+        self["t"].data = np.array(([xmax, ymax], [xmin, ymax]))
+        self["l"].data = np.array(([xmin, ymax], [xmin, ymin]))
 
 
 class EllipticalFrame(BaseFrame):
@@ -325,10 +339,9 @@ class EllipticalFrame(BaseFrame):
     An elliptical frame.
     """
 
-    spine_names = 'chv'
+    spine_names = "chv"
 
     def update_spines(self):
-
         xmin, xmax = self.parent_axes.get_xlim()
         ymin, ymax = self.parent_axes.get_ylim()
 
@@ -338,20 +351,23 @@ class EllipticalFrame(BaseFrame):
         dx = xmid - xmin
         dy = ymid - ymin
 
-        theta = np.linspace(0., 2 * np.pi, 1000)
-        self['c'].data = np.array([xmid + dx * np.cos(theta),
-                                   ymid + dy * np.sin(theta)]).transpose()
-        self['h'].data = np.array([np.linspace(xmin, xmax, 1000),
-                                   np.repeat(ymid, 1000)]).transpose()
-        self['v'].data = np.array([np.repeat(xmid, 1000),
-                                   np.linspace(ymin, ymax, 1000)]).transpose()
+        theta = np.linspace(0.0, 2 * np.pi, 1000)
+        self["c"].data = np.array(
+            [xmid + dx * np.cos(theta), ymid + dy * np.sin(theta)]
+        ).transpose()
+        self["h"].data = np.array(
+            [np.linspace(xmin, xmax, 1000), np.repeat(ymid, 1000)]
+        ).transpose()
+        self["v"].data = np.array(
+            [np.repeat(xmid, 1000), np.linspace(ymin, ymax, 1000)]
+        ).transpose()
 
     def _update_patch_path(self):
         """Override path patch to include only the outer ellipse,
         not the major and minor axes in the middle."""
 
         self.update_spines()
-        vertices = self['c'].data
+        vertices = self["c"].data
 
         if self._path is None:
             self._path = Path(vertices)
@@ -364,7 +380,7 @@ class EllipticalFrame(BaseFrame):
 
         FIXME: we may want to add a general method to give the user control
         over which spines are drawn."""
-        axis = 'c'
+        axis = "c"
         x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
         line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
         line.draw(renderer)

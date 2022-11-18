@@ -23,7 +23,6 @@ def wrapped_function_1(data, wcs=None, unit=None):
 
 
 def test_pass_numpy():
-
     data_in = np.array([1, 2, 3])
     data_out, wcs_out, unit_out = wrapped_function_1(data=data_in)
 
@@ -33,12 +32,13 @@ def test_pass_numpy():
 
 
 def test_pass_all_separate():
-
     data_in = np.array([1, 2, 3])
     wcs_in = WCS(naxis=1)
     unit_in = u.Jy
 
-    data_out, wcs_out, unit_out = wrapped_function_1(data=data_in, wcs=wcs_in, unit=unit_in)
+    data_out, wcs_out, unit_out = wrapped_function_1(
+        data=data_in, wcs=wcs_in, unit=unit_in
+    )
 
     assert data_out is data_in
     assert wcs_out is wcs_in
@@ -46,7 +46,6 @@ def test_pass_all_separate():
 
 
 def test_pass_nddata():
-
     data_in = np.array([1, 2, 3])
     wcs_in = WCS(naxis=1)
     unit_in = u.Jy
@@ -61,7 +60,6 @@ def test_pass_nddata():
 
 
 def test_pass_nddata_and_explicit():
-
     data_in = np.array([1, 2, 3])
     wcs_in = WCS(naxis=1)
     unit_in = u.Jy
@@ -69,8 +67,13 @@ def test_pass_nddata_and_explicit():
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in)
 
-    with pytest.warns(AstropyUserWarning, match="Property unit has been passed explicitly and as "
-                      "an NDData property, using explicitly specified value") as w:
+    with pytest.warns(
+        AstropyUserWarning,
+        match=(
+            "Property unit has been passed explicitly and as "
+            "an NDData property, using explicitly specified value"
+        ),
+    ) as w:
         data_out, wcs_out, unit_out = wrapped_function_1(nddata_in, unit=unit_in_alt)
     assert len(w) == 1
 
@@ -80,15 +83,19 @@ def test_pass_nddata_and_explicit():
 
 
 def test_pass_nddata_ignored():
-
     data_in = np.array([1, 2, 3])
     wcs_in = WCS(naxis=1)
     unit_in = u.Jy
 
     nddata_in = NDData(data_in, wcs=wcs_in, unit=unit_in, mask=[0, 1, 0])
 
-    with pytest.warns(AstropyUserWarning, match="The following attributes were set on the data "
-                      "object, but will be ignored by the function: mask") as w:
+    with pytest.warns(
+        AstropyUserWarning,
+        match=(
+            "The following attributes were set on the data "
+            "object, but will be ignored by the function: mask"
+        ),
+    ) as w:
         data_out, wcs_out, unit_out = wrapped_function_1(nddata_in)
     assert len(w) == 1
 
@@ -98,28 +105,41 @@ def test_pass_nddata_ignored():
 
 
 def test_incorrect_first_argument():
-
     with pytest.raises(ValueError) as exc:
+
         @support_nddata
         def wrapped_function_2(something, wcs=None, unit=None):
             pass
-    assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
+
+    assert (
+        exc.value.args[0]
+        == "Can only wrap functions whose first positional argument is `data`"
+    )
 
     with pytest.raises(ValueError) as exc:
+
         @support_nddata
         def wrapped_function_3(something, data, wcs=None, unit=None):
             pass
-    assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
+
+    assert (
+        exc.value.args[0]
+        == "Can only wrap functions whose first positional argument is `data`"
+    )
 
     with pytest.raises(ValueError) as exc:
+
         @support_nddata
         def wrapped_function_4(wcs=None, unit=None):
             pass
-    assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
+
+    assert (
+        exc.value.args[0]
+        == "Can only wrap functions whose first positional argument is `data`"
+    )
 
 
 def test_wrap_function_no_kwargs():
-
     @support_nddata
     def wrapped_function_5(data, other_data):
         return data
@@ -131,8 +151,7 @@ def test_wrap_function_no_kwargs():
 
 
 def test_wrap_function_repack_valid():
-
-    @support_nddata(repack=True, returns=['data'])
+    @support_nddata(repack=True, returns=["data"])
     def wrapped_function_5(data, other_data):
         return data
 
@@ -146,7 +165,6 @@ def test_wrap_function_repack_valid():
 
 
 def test_wrap_function_accepts():
-
     class MyData(NDData):
         pass
 
@@ -160,13 +178,17 @@ def test_wrap_function_accepts():
 
     assert wrapped_function_5(mydata_in, [1, 2, 3]) is data_in
 
-    with pytest.raises(TypeError, match="Only NDData sub-classes that inherit "
-                       "from MyData can be used by this function"):
+    with pytest.raises(
+        TypeError,
+        match=(
+            "Only NDData sub-classes that inherit "
+            "from MyData can be used by this function"
+        ),
+    ):
         wrapped_function_5(nddata_in, [1, 2, 3])
 
 
 def test_wrap_preserve_signature_docstring():
-
     @support_nddata
     def wrapped_function_6(data, wcs=None, unit=None):
         """
@@ -191,24 +213,25 @@ def test_setup_failures1():
 def test_setup_failures2():
     # returns but no repack
     with pytest.raises(ValueError):
-        support_nddata(returns=['data'])
+        support_nddata(returns=["data"])
 
 
 def test_setup_failures9():
     # keeps but no repack
     with pytest.raises(ValueError):
-        support_nddata(keeps=['unit'])
+        support_nddata(keeps=["unit"])
 
 
 def test_setup_failures3():
     # same attribute in keeps and returns
     with pytest.raises(ValueError):
-        support_nddata(repack=True, keeps=['mask'], returns=['data', 'mask'])
+        support_nddata(repack=True, keeps=["mask"], returns=["data", "mask"])
 
 
 def test_setup_failures4():
     # function accepts *args
     with pytest.raises(ValueError):
+
         @support_nddata
         def test(data, *args):
             pass
@@ -217,6 +240,7 @@ def test_setup_failures4():
 def test_setup_failures10():
     # function accepts **kwargs
     with pytest.raises(ValueError):
+
         @support_nddata
         def test(data, **kwargs):
             pass
@@ -225,6 +249,7 @@ def test_setup_failures10():
 def test_setup_failures5():
     # function accepts *args (or **kwargs)
     with pytest.raises(ValueError):
+
         @support_nddata
         def test(data, *args):
             pass
@@ -233,6 +258,7 @@ def test_setup_failures5():
 def test_setup_failures6():
     # First argument is not data
     with pytest.raises(ValueError):
+
         @support_nddata
         def test(img):
             pass
@@ -241,9 +267,11 @@ def test_setup_failures6():
 def test_setup_failures7():
     # accepts CCDData but was given just an NDData
     with pytest.raises(TypeError):
+
         @support_nddata(accepts=CCDData)
         def test(data):
             pass
+
         test(NDData(np.ones((3, 3))))
 
 
@@ -252,15 +280,18 @@ def test_setup_failures8():
     # NDData here so we don't get into troubles when creating a CCDData without
     # unit!
     with pytest.raises(ValueError):
-        @support_nddata(repack=True, returns=['data', 'mask'])
+
+        @support_nddata(repack=True, returns=["data", "mask"])
         def test(data):
             return 10
+
         test(NDData(np.ones((3, 3))))  # do NOT use CCDData here.
 
 
 def test_setup_failures11():
     # function accepts no arguments
     with pytest.raises(ValueError):
+
         @support_nddata
         def test():
             pass
@@ -275,9 +306,10 @@ def test_setup_numpyarray_default():
 
 
 def test_still_accepts_other_input():
-    @support_nddata(repack=True, returns=['data'])
+    @support_nddata(repack=True, returns=["data"])
     def test(data):
         return data
+
     assert isinstance(test(NDData(np.ones((3, 3)))), NDData)
     assert isinstance(test(10), int)
     assert isinstance(test([1, 2, 3]), list)
@@ -303,14 +335,14 @@ def test_parameter_default_identical_to_explicit_passed_argument():
     # If the default is identical to the explicitly passed argument this
     # should still raise a Warning and use the explicit one.
     @support_nddata
-    def func(data, meta={'a': 1}):
+    def func(data, meta={"a": 1}):
         return meta
 
     with pytest.warns(AstropyUserWarning) as w:
-        assert func(NDData(1, meta={'b': 2}), {'a': 1}) == {'a': 1}
+        assert func(NDData(1, meta={"b": 2}), {"a": 1}) == {"a": 1}
     assert len(w) == 1
 
-    assert func(NDData(1, meta={'b': 2})) == {'b': 2}
+    assert func(NDData(1, meta={"b": 2})) == {"b": 2}
 
 
 def test_accepting_property_notexist():
@@ -325,7 +357,7 @@ def test_accepting_property_notexist():
 
 def test_accepting_property_translated():
     # Accepts a error attribute and we want to pass in uncertainty!
-    @support_nddata(mask='masked')
+    @support_nddata(mask="masked")
     def test(data, masked=None):
         return masked
 
@@ -348,5 +380,5 @@ def test_accepting_property_meta_empty():
 
     ndd = NDData(np.ones((3, 3)))
     assert test(ndd) is None
-    ndd._meta = {'a': 10}
-    assert test(ndd) == {'a': 10}
+    ndd._meta = {"a": 10}
+    assert test(ndd) == {"a": 10}

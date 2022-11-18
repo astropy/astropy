@@ -61,8 +61,11 @@ class _CosmologyModel(FittableModel):
         """Return |Cosmology| using `~astropy.modeling.Parameter` values."""
         cosmo = self._cosmology_class(
             name=self.name,
-            **{k: (v.value if not (v := getattr(self, k)).unit else v.quantity)
-               for k in self.param_names})
+            **{
+                k: (v.value if not (v := getattr(self, k)).unit else v.quantity)
+                for k in self.param_names
+            },
+        )
         return cosmo
 
     @classproperty
@@ -98,7 +101,9 @@ class _CosmologyModel(FittableModel):
         """
         # create BoundArgument with all available inputs beyond the Parameters,
         # which will be filled in next
-        ba = self.cosmology_class._init_signature.bind_partial(*args[self.n_inputs:], **kwargs)
+        ba = self.cosmology_class._init_signature.bind_partial(
+            *args[self.n_inputs :], **kwargs
+        )
 
         # fill in missing Parameters
         for k in self.param_names:
@@ -117,7 +122,7 @@ class _CosmologyModel(FittableModel):
         # make instance of cosmology
         cosmo = self._cosmology_class(**ba.arguments)
         # evaluate method
-        result = getattr(cosmo, self._method_name)(*args[:self.n_inputs])
+        result = getattr(cosmo, self._method_name)(*args[: self.n_inputs])
 
         return result
 
@@ -157,8 +162,11 @@ def from_model(model):
         p = getattr(model, n)
         params[p.name] = p.quantity if p.unit else p.value
         # put all attributes in a dict
-        meta[p.name] = {n: getattr(p, n) for n in dir(p)
-                        if not (n.startswith("_") or callable(getattr(p, n)))}
+        meta[p.name] = {
+            n: getattr(p, n)
+            for n in dir(p)
+            if not (n.startswith("_") or callable(getattr(p, n)))
+        }
 
     ba = cosmology._init_signature.bind(name=model.name, **params, meta=meta)
     return cosmology(*ba.args, **ba.kwargs)
@@ -216,22 +224,27 @@ def to_model(cosmology, *_, method):
         if v is None:  # skip unspecified parameters
             continue
 
-        params[n] = ModelParameter(default=getattr(cosmology, n),
-                                   unit=getattr(cosmo_cls, n).unit,
-                                   **cosmology.meta.get(n, {}))
+        params[n] = ModelParameter(
+            default=getattr(cosmology, n),
+            unit=getattr(cosmo_cls, n).unit,
+            **cosmology.meta.get(n, {}),
+        )
 
     # class name is cosmology name + method name + _CosmologyModel
-    clsname = (cosmo_cls.__qualname__.replace(".", "_")
-               + "Cosmology"
-               + method.replace("_", " ").title().replace(" ", "")
-               + "Model")
+    clsname = (
+        cosmo_cls.__qualname__.replace(".", "_")
+        + "Cosmology"
+        + method.replace("_", " ").title().replace(" ", "")
+        + "Model"
+    )
 
     # make Model class
-    CosmoModel = type(clsname, (_CosmologyModel, ), {**attrs, **params})
+    CosmoModel = type(clsname, (_CosmologyModel,), {**attrs, **params})
     # override __signature__ and format the doc.
     setattr(CosmoModel.evaluate, "__signature__", msig)
     CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
-        cosmo_cls=cosmo_cls.__qualname__, method=method)
+        cosmo_cls=cosmo_cls.__qualname__, method=method
+    )
 
     # instantiate class using default values
     ps = {n: getattr(cosmology, n) for n in params.keys()}

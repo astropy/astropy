@@ -9,15 +9,18 @@ from collections import OrderedDict
 import numpy as np
 
 
-__all__ = ['bitfield_to_boolean_mask', 'interpret_bit_flags',
-           'BitFlagNameMap', 'extend_bit_flag_map', 'InvalidBitFlag']
+__all__ = [
+    "bitfield_to_boolean_mask",
+    "interpret_bit_flags",
+    "BitFlagNameMap",
+    "extend_bit_flag_map",
+    "InvalidBitFlag",
+]
 
 
 _ENABLE_BITFLAG_CACHING = True
 _MAX_UINT_TYPE = np.maximum_sctype(np.uint)
-_SUPPORTED_FLAGS = int(np.bitwise_not(
-    0, dtype=_MAX_UINT_TYPE, casting='unsafe'
-))
+_SUPPORTED_FLAGS = int(np.bitwise_not(0, dtype=_MAX_UINT_TYPE, casting="unsafe"))
 
 
 def _is_bit_flag(n):
@@ -40,23 +43,24 @@ def _is_bit_flag(n):
     if n < 1:
         return False
 
-    return bin(n).count('1') == 1
+    return bin(n).count("1") == 1
 
 
 def _is_int(n):
-    return (
-        (isinstance(n, numbers.Integral) and not isinstance(n, bool)) or
-        (isinstance(n, np.generic) and np.issubdtype(n, np.integer))
+    return (isinstance(n, numbers.Integral) and not isinstance(n, bool)) or (
+        isinstance(n, np.generic) and np.issubdtype(n, np.integer)
     )
 
 
 class InvalidBitFlag(ValueError):
-    """ Indicates that a value is not an integer that is a power of 2. """
+    """Indicates that a value is not an integer that is a power of 2."""
+
     pass
 
 
 class BitFlag(int):
-    """ Bit flags: integer values that are powers of 2. """
+    """Bit flags: integer values that are powers of 2."""
+
     def __new__(cls, val, doc=None):
         if isinstance(val, tuple):
             if doc is not None:
@@ -78,10 +82,10 @@ class BitFlag(int):
 class BitFlagNameMeta(type):
     def __new__(mcls, name, bases, members):
         for k, v in members.items():
-            if not k.startswith('_'):
+            if not k.startswith("_"):
                 v = BitFlag(v)
 
-        attr = [k for k in members.keys() if not k.startswith('_')]
+        attr = [k for k in members.keys() if not k.startswith("_")]
         attrl = list(map(str.lower, attr))
 
         if _ENABLE_BITFLAG_CACHING:
@@ -89,35 +93,37 @@ class BitFlagNameMeta(type):
 
         for b in bases:
             for k, v in b.__dict__.items():
-                if k.startswith('_'):
+                if k.startswith("_"):
                     continue
                 kl = k.lower()
                 if kl in attrl:
                     idx = attrl.index(kl)
-                    raise AttributeError("Bit flag '{:s}' was already defined."
-                                         .format(attr[idx]))
+                    raise AttributeError(
+                        "Bit flag '{:s}' was already defined.".format(attr[idx])
+                    )
                 if _ENABLE_BITFLAG_CACHING:
                     cache[kl] = v
 
-        members = {k: v if k.startswith('_') else BitFlag(v)
-                   for k, v in members.items()}
+        members = {
+            k: v if k.startswith("_") else BitFlag(v) for k, v in members.items()
+        }
 
         if _ENABLE_BITFLAG_CACHING:
-            cache.update({k.lower(): v for k, v in members.items()
-                          if not k.startswith('_')})
-            members = {'_locked': True, '__version__': '', **members,
-                       '_cache': cache}
+            cache.update(
+                {k.lower(): v for k, v in members.items() if not k.startswith("_")}
+            )
+            members = {"_locked": True, "__version__": "", **members, "_cache": cache}
         else:
-            members = {'_locked': True, '__version__': '', **members}
+            members = {"_locked": True, "__version__": "", **members}
 
         return super().__new__(mcls, name, bases, members)
 
     def __setattr__(cls, name, val):
-        if name == '_locked':
+        if name == "_locked":
             return super().__setattr__(name, True)
 
         else:
-            if name == '__version__':
+            if name == "__version__":
                 if cls._locked:
                     raise AttributeError("Version cannot be modified.")
                 return super().__setattr__(name, val)
@@ -128,19 +134,21 @@ class BitFlagNameMeta(type):
 
         namel = name.lower()
         if _ENABLE_BITFLAG_CACHING:
-            if not namel.startswith('_') and namel in cls._cache:
+            if not namel.startswith("_") and namel in cls._cache:
                 raise AttributeError(err_msg)
 
         else:
             for b in cls.__bases__:
-                if not namel.startswith('_') and namel in list(map(str.lower, b.__dict__)):
+                if not namel.startswith("_") and namel in list(
+                    map(str.lower, b.__dict__)
+                ):
                     raise AttributeError(err_msg)
             if namel in list(map(str.lower, cls.__dict__)):
                 raise AttributeError(err_msg)
 
         val = BitFlag(val)
 
-        if _ENABLE_BITFLAG_CACHING and not namel.startswith('_'):
+        if _ENABLE_BITFLAG_CACHING and not namel.startswith("_"):
             cls._cache[namel] = val
 
         return super().__setattr__(name, val)
@@ -150,8 +158,9 @@ class BitFlagNameMeta(type):
             flagnames = cls._cache
         else:
             flagnames = {k.lower(): v for k, v in cls.__dict__.items()}
-            flagnames.update({k.lower(): v for b in cls.__bases__
-                              for k, v in b.__dict__.items()})
+            flagnames.update(
+                {k.lower(): v for b in cls.__bases__ for k, v in b.__dict__.items()}
+            )
         try:
             return flagnames[name.lower()]
         except KeyError:
@@ -167,9 +176,7 @@ class BitFlagNameMeta(type):
             items = dict(items)
 
         return extend_bit_flag_map(
-            cls.__name__ + '_' + '_'.join([k for k in items]),
-            cls,
-            **items
+            cls.__name__ + "_" + "_".join([k for k in items]), cls, **items
         )
 
     def __iadd__(cls, other):
@@ -178,12 +185,18 @@ class BitFlagNameMeta(type):
         )
 
     def __delattr__(cls, name):
-        raise AttributeError("{:s}: cannot delete {:s} member."
-                             .format(cls.__name__, cls.mro()[-2].__name__))
+        raise AttributeError(
+            "{:s}: cannot delete {:s} member.".format(
+                cls.__name__, cls.mro()[-2].__name__
+            )
+        )
 
     def __delitem__(cls, name):
-        raise AttributeError("{:s}: cannot delete {:s} member."
-                             .format(cls.__name__, cls.mro()[-2].__name__))
+        raise AttributeError(
+            "{:s}: cannot delete {:s} member.".format(
+                cls.__name__, cls.mro()[-2].__name__
+            )
+        )
 
     def __repr__(cls):
         return f"<{cls.mro()[-2].__name__:s} '{cls.__name__:s}'>"
@@ -215,6 +228,7 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
         ...     DEAD = 32
 
     """
+
     pass
 
 
@@ -249,10 +263,7 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
 
     """
     new_cls = BitFlagNameMeta.__new__(
-        BitFlagNameMeta,
-        cls_name,
-        (base_cls, ),
-        {'_locked': False}
+        BitFlagNameMeta, cls_name, (base_cls,), {"_locked": False}
     )
     for k, v in kwargs.items():
         try:
@@ -350,7 +361,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     allow_non_flags = False
 
     if _is_int(bit_flags):
-        return (~int(bit_flags) if flip_bits else int(bit_flags))
+        return ~int(bit_flags) if flip_bits else int(bit_flags)
 
     elif bit_flags is None:
         if has_flip_bits:
@@ -370,12 +381,12 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
         bit_flags = str(bit_flags).strip()
 
-        if bit_flags.upper() in ['', 'NONE', 'INDEF']:
+        if bit_flags.upper() in ["", "NONE", "INDEF"]:
             return None
 
         # check whether bitwise-NOT is present and if it is, check that it is
         # in the first position:
-        bitflip_pos = bit_flags.find('~')
+        bitflip_pos = bit_flags.find("~")
         if bitflip_pos == 0:
             flip_bits = True
             bit_flags = bit_flags[1:].lstrip()
@@ -386,8 +397,8 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
         # basic check for correct use of parenthesis:
         while True:
-            nlpar = bit_flags.count('(')
-            nrpar = bit_flags.count(')')
+            nlpar = bit_flags.count("(")
+            nrpar = bit_flags.count(")")
 
             if nlpar == 0 and nrpar == 0:
                 break
@@ -395,31 +406,32 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
             if nlpar != nrpar:
                 raise ValueError("Unbalanced parentheses in bit flag list.")
 
-            lpar_pos = bit_flags.find('(')
-            rpar_pos = bit_flags.rfind(')')
+            lpar_pos = bit_flags.find("(")
+            rpar_pos = bit_flags.rfind(")")
             if lpar_pos > 0 or rpar_pos < (len(bit_flags) - 1):
-                raise ValueError("Incorrect syntax (incorrect use of "
-                                 "parenthesis) in bit flag list.")
+                raise ValueError(
+                    "Incorrect syntax (incorrect use of parenthesis) in bit flag list."
+                )
 
             bit_flags = bit_flags[1:-1].strip()
 
-        if sum(k in bit_flags for k in '+,|') > 1:
+        if sum(k in bit_flags for k in "+,|") > 1:
             raise ValueError(
                 "Only one type of bit flag separator may be used in one "
                 "expression. Allowed separators are: '+', '|', or ','."
             )
 
-        if ',' in bit_flags:
-            bit_flags = bit_flags.split(',')
+        if "," in bit_flags:
+            bit_flags = bit_flags.split(",")
 
-        elif '+' in bit_flags:
-            bit_flags = bit_flags.split('+')
+        elif "+" in bit_flags:
+            bit_flags = bit_flags.split("+")
 
-        elif '|' in bit_flags:
-            bit_flags = bit_flags.split('|')
+        elif "|" in bit_flags:
+            bit_flags = bit_flags.split("|")
 
         else:
-            if bit_flags == '':
+            if bit_flags == "":
                 raise ValueError(
                     "Empty bit flag lists not allowed when either bitwise-NOT "
                     "or parenthesis are present."
@@ -434,14 +446,17 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
 
         allow_non_flags = len(bit_flags) == 1
 
-    elif hasattr(bit_flags, '__iter__'):
+    elif hasattr(bit_flags, "__iter__"):
         if not all([_is_int(flag) for flag in bit_flags]):
-            if (flag_name_map is not None and all([isinstance(flag, str)
-                                                   for flag in bit_flags])):
+            if flag_name_map is not None and all(
+                [isinstance(flag, str) for flag in bit_flags]
+            ):
                 bit_flags = [flag_name_map[f] for f in bit_flags]
             else:
-                raise TypeError("Every bit flag in a list must be either an "
-                                "integer flag value or a 'str' flag name.")
+                raise TypeError(
+                    "Every bit flag in a list must be either an "
+                    "integer flag value or a 'str' flag name."
+                )
 
     else:
         raise TypeError("Unsupported type for argument 'bit_flags'.")
@@ -453,8 +468,11 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     bitmask = 0
     for v in bitset:
         if not _is_bit_flag(v) and not allow_non_flags:
-            raise ValueError("Input list contains invalid (not powers of two) "
-                             "bit flag: {:d}".format(v))
+            raise ValueError(
+                "Input list contains invalid (not powers of two) bit flag: {:d}".format(
+                    v
+                )
+            )
         bitmask += v
 
     if flip_bits:
@@ -463,9 +481,14 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     return bitmask
 
 
-def bitfield_to_boolean_mask(bitfield, ignore_flags=0, flip_bits=None,
-                             good_mask_value=False, dtype=np.bool_,
-                             flag_name_map=None):
+def bitfield_to_boolean_mask(
+    bitfield,
+    ignore_flags=0,
+    flip_bits=None,
+    good_mask_value=False,
+    dtype=np.bool_,
+    flag_name_map=None,
+):
     """
     bitfield_to_boolean_mask(bitfield, ignore_flags=None, flip_bits=None, \
 good_mask_value=False, dtype=numpy.bool_)
@@ -673,8 +696,9 @@ good_mask_value=False, dtype=numpy.bool_)
     if not np.issubdtype(bitfield.dtype, np.integer):
         raise TypeError("Input bitfield array must be of integer type.")
 
-    ignore_mask = interpret_bit_flags(ignore_flags, flip_bits=flip_bits,
-                                      flag_name_map=flag_name_map)
+    ignore_mask = interpret_bit_flags(
+        ignore_flags, flip_bits=flip_bits, flag_name_map=flag_name_map
+    )
 
     if ignore_mask is None:
         if good_mask_value:
@@ -687,11 +711,12 @@ good_mask_value=False, dtype=numpy.bool_)
     ignore_mask = ignore_mask & _SUPPORTED_FLAGS
 
     # invert the "ignore" mask:
-    ignore_mask = np.bitwise_not(ignore_mask, dtype=bitfield.dtype.type,
-                                 casting='unsafe')
+    ignore_mask = np.bitwise_not(
+        ignore_mask, dtype=bitfield.dtype.type, casting="unsafe"
+    )
 
     mask = np.empty_like(bitfield, dtype=np.bool_)
-    np.bitwise_and(bitfield, ignore_mask, out=mask, casting='unsafe')
+    np.bitwise_and(bitfield, ignore_mask, out=mask, casting="unsafe")
 
     if good_mask_value:
         np.logical_not(mask, out=mask)

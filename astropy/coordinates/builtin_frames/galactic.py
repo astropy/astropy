@@ -5,13 +5,17 @@ from astropy import units as u
 from astropy.utils.decorators import format_doc
 from astropy.coordinates.angles import Angle
 from astropy.coordinates import representation as r
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
 
 # these are needed for defining the NGP
 from .fk5 import FK5
 from .fk4 import FK4NoETerms
 
-__all__ = ['Galactic']
+__all__ = ["Galactic"]
 
 
 doc_components = """
@@ -59,19 +63,19 @@ class Galactic(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'l'),
-            RepresentationMapping('lat', 'b')
+            RepresentationMapping("lon", "l"),
+            RepresentationMapping("lat", "b"),
         ],
         r.CartesianRepresentation: [
-            RepresentationMapping('x', 'u'),
-            RepresentationMapping('y', 'v'),
-            RepresentationMapping('z', 'w')
+            RepresentationMapping("x", "u"),
+            RepresentationMapping("y", "v"),
+            RepresentationMapping("z", "w"),
         ],
         r.CartesianDifferential: [
-            RepresentationMapping('d_x', 'U', u.km/u.s),
-            RepresentationMapping('d_y', 'V', u.km/u.s),
-            RepresentationMapping('d_z', 'W', u.km/u.s)
-        ]
+            RepresentationMapping("d_x", "U", u.km / u.s),
+            RepresentationMapping("d_y", "V", u.km / u.s),
+            RepresentationMapping("d_z", "W", u.km / u.s),
+        ],
     }
 
     default_representation = r.SphericalRepresentation
@@ -81,7 +85,7 @@ class Galactic(BaseCoordinateFrame):
     # transformations to/from FK4/5
 
     # These are from the IAU's definition of galactic coordinates
-    _ngp_B1950 = FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree)
+    _ngp_B1950 = FK4NoETerms(ra=192.25 * u.degree, dec=27.4 * u.degree)
     _lon0_B1950 = Angle(123, u.degree)
 
     # These are *not* from Reid & Brunthaler 2004 - instead, they were
@@ -93,5 +97,5 @@ class Galactic(BaseCoordinateFrame):
     # from Reid & Brunthaler 2004 and the best self-consistency between FK5
     # -> Galactic and FK5 -> FK4 -> Galactic. The lon0 angle was found by
     # optimizing the self-consistency.
-    _ngp_J2000 = FK5(ra=192.8594812065348*u.degree, dec=27.12825118085622*u.degree)
+    _ngp_J2000 = FK5(ra=192.8594812065348 * u.degree, dec=27.12825118085622 * u.degree)
     _lon0_J2000 = Angle(122.9319185680026, u.degree)

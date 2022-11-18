@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy.coordinates.matrix_utilities import (rotation_matrix,
-                                                  matrix_product,
-                                                  matrix_transpose)
+from astropy.coordinates.matrix_utilities import (
+    rotation_matrix,
+    matrix_product,
+    matrix_transpose,
+)
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import DynamicMatrixTransform
 
@@ -18,13 +20,13 @@ def _icrs_to_fk5_matrix():
     functions.
     """
 
-    eta0 = -19.9 / 3600000.
-    xi0 = 9.1 / 3600000.
-    da0 = -22.9 / 3600000.
+    eta0 = -19.9 / 3600000.0
+    xi0 = 9.1 / 3600000.0
+    da0 = -22.9 / 3600000.0
 
-    m1 = rotation_matrix(-eta0, 'x')
-    m2 = rotation_matrix(xi0, 'y')
-    m3 = rotation_matrix(da0, 'z')
+    m1 = rotation_matrix(-eta0, "x")
+    m2 = rotation_matrix(xi0, "y")
+    m3 = rotation_matrix(da0, "z")
 
     return matrix_product(m1, m2, m3)
 

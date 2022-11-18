@@ -54,9 +54,7 @@ def leastsquare(measured_vals, updated_model, weights, *x):
 
     if np.shape(model_vals) != np.shape(measured_vals):
         message = "Shape mismatch between model ({}) and measured ({})"
-        raise ValueError(
-            message.format(np.shape(model_vals), np.shape(measured_vals))
-        )
+        raise ValueError(message.format(np.shape(model_vals), np.shape(measured_vals)))
 
     if weights is None:
         weights = 1.0
@@ -65,6 +63,7 @@ def leastsquare(measured_vals, updated_model, weights, *x):
 
 
 # -------------------------------------------------------------------
+
 
 def leastsquare_1d(measured_vals, updated_model, weights, x):
     """

@@ -8,10 +8,15 @@ import numpy as np
 from astropy import units as u
 from astropy.utils import ShapedLikeNDArray
 
-__all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
-           'EarthLocationAttribute', 'CoordinateAttribute',
-           'CartesianRepresentationAttribute',
-           'DifferentialAttribute']
+__all__ = [
+    "Attribute",
+    "TimeAttribute",
+    "QuantityAttribute",
+    "EarthLocationAttribute",
+    "CoordinateAttribute",
+    "CartesianRepresentationAttribute",
+    "DifferentialAttribute",
+]
 
 
 class Attribute:
@@ -49,9 +54,9 @@ class Attribute:
         ``default is None`` and no value was supplied during initialization.
     """
 
-    name = '<unbound>'
+    name = "<unbound>"
 
-    def __init__(self, default=None, secondary_attribute=''):
+    def __init__(self, default=None, secondary_attribute=""):
         self.default = default
         self.secondary_attribute = secondary_attribute
         super().__init__()
@@ -97,38 +102,44 @@ class Attribute:
         if instance is None:
             out = self.default
         else:
-            out = getattr(instance, '_' + self.name, self.default)
+            out = getattr(instance, "_" + self.name, self.default)
             if out is None:
                 out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
         if instance is not None:
-            instance_shape = getattr(instance, 'shape', None)  # None if instance (frame) has no data!
-            if instance_shape is not None and (getattr(out, 'shape', ()) and
-                                               out.shape != instance_shape):
+            instance_shape = getattr(
+                instance, "shape", None
+            )  # None if instance (frame) has no data!
+            if instance_shape is not None and (
+                getattr(out, "shape", ()) and out.shape != instance_shape
+            ):
                 # If the shapes do not match, try broadcasting.
                 try:
                     if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np.broadcast_to, shape=instance_shape,
-                                         subok=True)
+                        out = out._apply(
+                            np.broadcast_to, shape=instance_shape, subok=True
+                        )
                     else:
                         out = np.broadcast_to(out, instance_shape, subok=True)
                 except ValueError:
                     # raise more informative exception.
                     raise ValueError(
                         "attribute {} should be scalar or have shape {}, "
-                        "but is has shape {} and could not be broadcast."
-                        .format(self.name, instance_shape, out.shape))
+                        "but is has shape {} and could not be broadcast.".format(
+                            self.name, instance_shape, out.shape
+                        )
+                    )
 
                 converted = True
 
             if converted:
-                setattr(instance, '_' + self.name, out)
+                setattr(instance, "_" + self.name, out)
 
         return out
 
     def __set__(self, instance, val):
-        raise AttributeError('Cannot set frame attribute')
+        raise AttributeError("Cannot set frame attribute")
 
 
 class TimeAttribute(Attribute):
@@ -180,8 +191,7 @@ class TimeAttribute(Attribute):
             try:
                 out = Time(value)
             except Exception as err:
-                raise ValueError(
-                    f'Invalid time input {self.name}={value!r}.') from err
+                raise ValueError(f"Invalid time input {self.name}={value!r}.") from err
             converted = True
 
         # Set attribute as read-only for arrays (not allowed by numpy
@@ -207,7 +217,7 @@ class CartesianRepresentationAttribute(Attribute):
         unit-checking or conversion is performed
     """
 
-    def __init__(self, default=None, secondary_attribute='', unit=None):
+    def __init__(self, default=None, secondary_attribute="", unit=None):
         super().__init__(default, secondary_attribute)
         self.unit = unit
 
@@ -234,21 +244,26 @@ class CartesianRepresentationAttribute(Attribute):
             If the input is not valid for this attribute.
         """
 
-        if (isinstance(value, list) and len(value) == 3 and
-                all(v == 0 for v in value) and self.unit is not None):
+        if (
+            isinstance(value, list)
+            and len(value) == 3
+            and all(v == 0 for v in value)
+            and self.unit is not None
+        ):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
             # is it a CartesianRepresentation with correct unit?
-            if hasattr(value, 'xyz') and value.xyz.unit == self.unit:
+            if hasattr(value, "xyz") and value.xyz.unit == self.unit:
                 return value, False
 
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity
-            value = getattr(value, 'xyz', value)
-            if not hasattr(value, 'unit'):
-                raise TypeError('tried to set a {} with something that does '
-                                'not have a unit.'
-                                .format(self.__class__.__name__))
+            value = getattr(value, "xyz", value)
+            if not hasattr(value, "unit"):
+                raise TypeError(
+                    "tried to set a {} with something that does "
+                    "not have a unit.".format(self.__class__.__name__)
+                )
 
             value = value.to(self.unit)
 
@@ -281,13 +296,13 @@ class QuantityAttribute(Attribute):
         If given, specifies the shape the attribute must be
     """
 
-    def __init__(self, default=None, secondary_attribute='', unit=None,
-                 shape=None):
-
+    def __init__(self, default=None, secondary_attribute="", unit=None, shape=None):
         if default is None and unit is None:
-            raise ValueError('Either a default quantity value must be '
-                             'provided, or a unit must be provided to define a '
-                             'QuantityAttribute.')
+            raise ValueError(
+                "Either a default quantity value must be "
+                "provided, or a unit must be provided to define a "
+                "QuantityAttribute."
+            )
 
         if default is not None and unit is None:
             unit = default.unit
@@ -322,10 +337,15 @@ class QuantityAttribute(Attribute):
         if value is None:
             return None, False
 
-        if (not hasattr(value, 'unit') and self.unit != u.dimensionless_unscaled
-                and np.any(value != 0)):
-            raise TypeError('Tried to set a QuantityAttribute with '
-                            'something that does not have a unit.')
+        if (
+            not hasattr(value, "unit")
+            and self.unit != u.dimensionless_unscaled
+            and np.any(value != 0)
+        ):
+            raise TypeError(
+                "Tried to set a QuantityAttribute with "
+                "something that does not have a unit."
+            )
 
         oldvalue = value
         value = u.Quantity(oldvalue, self.unit, copy=False)
@@ -336,7 +356,8 @@ class QuantityAttribute(Attribute):
             else:
                 raise ValueError(
                     f'The provided value has shape "{value.shape}", but '
-                    f'should have shape "{self.shape}"')
+                    f'should have shape "{self.shape}"'
+                )
 
         converted = oldvalue is not value
         return value, converted
@@ -388,10 +409,12 @@ class EarthLocationAttribute(Attribute):
             # we have to do the import here because of some tricky circular deps
             from .builtin_frames import ITRS
 
-            if not hasattr(value, 'transform_to'):
-                raise ValueError('"{}" was passed into an '
-                                 'EarthLocationAttribute, but it does not have '
-                                 '"transform_to" method'.format(value))
+            if not hasattr(value, "transform_to"):
+                raise ValueError(
+                    '"{}" was passed into an '
+                    "EarthLocationAttribute, but it does not have "
+                    '"transform_to" method'.format(value)
+                )
             itrsobj = value.transform_to(ITRS())
             return itrsobj.earth_location, True
 
@@ -416,7 +439,7 @@ class CoordinateAttribute(Attribute):
         ``default is None`` and no value was supplied during initialization.
     """
 
-    def __init__(self, frame, default=None, secondary_attribute=''):
+    def __init__(self, frame, default=None, secondary_attribute=""):
         self._frame = frame
         super().__init__(default, secondary_attribute)
 
@@ -471,9 +494,7 @@ class DifferentialAttribute(Attribute):
         ``default is None`` and no value was supplied during initialization.
     """
 
-    def __init__(self, default=None, allowed_classes=None,
-                 secondary_attribute=''):
-
+    def __init__(self, default=None, allowed_classes=None, secondary_attribute=""):
         if allowed_classes is not None:
             self.allowed_classes = tuple(allowed_classes)
         else:
@@ -510,11 +531,11 @@ class DifferentialAttribute(Attribute):
             if len(self.allowed_classes) == 1:
                 value = self.allowed_classes[0](value)
             else:
-                raise TypeError('Tried to set a DifferentialAttribute with '
-                                'an unsupported Differential type {}. Allowed '
-                                'classes are: {}'
-                                .format(value.__class__,
-                                        self.allowed_classes))
+                raise TypeError(
+                    "Tried to set a DifferentialAttribute with "
+                    "an unsupported Differential type {}. Allowed "
+                    "classes are: {}".format(value.__class__, self.allowed_classes)
+                )
 
         return value, True
 

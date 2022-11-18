@@ -6,16 +6,18 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import BaseCoordinateFrame
 
-__all__ = ['select_step_degree', 'select_step_hour', 'select_step_scalar',
-           'transform_contour_set_inplace']
+__all__ = [
+    "select_step_degree",
+    "select_step_hour",
+    "select_step_scalar",
+    "transform_contour_set_inplace",
+]
 
 
 def select_step_degree(dv):
-
     # Modified from axis_artist, supports astropy.units
 
-    if dv > 1. * u.arcsec:
-
+    if dv > 1.0 * u.arcsec:
         degree_limits_ = [1.5, 3, 7, 13, 20, 40, 70, 120, 270, 520]
         degree_steps_ = [1, 2, 5, 10, 15, 30, 45, 90, 180, 360]
         degree_units = [u.degree] * len(degree_steps_)
@@ -23,15 +25,13 @@ def select_step_degree(dv):
         minsec_limits_ = [1.5, 2.5, 3.5, 8, 11, 18, 25, 45]
         minsec_steps_ = [1, 2, 3, 5, 10, 15, 20, 30]
 
-        minute_limits_ = np.array(minsec_limits_) / 60.
+        minute_limits_ = np.array(minsec_limits_) / 60.0
         minute_units = [u.arcmin] * len(minute_limits_)
 
-        second_limits_ = np.array(minsec_limits_) / 3600.
+        second_limits_ = np.array(minsec_limits_) / 3600.0
         second_units = [u.arcsec] * len(second_limits_)
 
-        degree_limits = np.concatenate([second_limits_,
-                                        minute_limits_,
-                                        degree_limits_])
+        degree_limits = np.concatenate([second_limits_, minute_limits_, degree_limits_])
 
         degree_steps = minsec_steps_ + minsec_steps_ + degree_steps_
         degree_units = second_units + minute_units + degree_units
@@ -43,14 +43,11 @@ def select_step_degree(dv):
         return step * unit
 
     else:
-
         return select_step_scalar(dv.to_value(u.arcsec)) * u.arcsec
 
 
 def select_step_hour(dv):
-
-    if dv > 15. * u.arcsec:
-
+    if dv > 15.0 * u.arcsec:
         hour_limits_ = [1.5, 2.5, 3.5, 5, 7, 10, 15, 21, 36]
         hour_steps_ = [1, 2, 3, 4, 6, 8, 12, 18, 24]
         hour_units = [u.hourangle] * len(hour_steps_)
@@ -58,15 +55,13 @@ def select_step_hour(dv):
         minsec_limits_ = [1.5, 2.5, 3.5, 4.5, 5.5, 8, 11, 14, 18, 25, 45]
         minsec_steps_ = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]
 
-        minute_limits_ = np.array(minsec_limits_) / 60.
-        minute_units = [15. * u.arcmin] * len(minute_limits_)
+        minute_limits_ = np.array(minsec_limits_) / 60.0
+        minute_units = [15.0 * u.arcmin] * len(minute_limits_)
 
-        second_limits_ = np.array(minsec_limits_) / 3600.
-        second_units = [15. * u.arcsec] * len(second_limits_)
+        second_limits_ = np.array(minsec_limits_) / 3600.0
+        second_units = [15.0 * u.arcsec] * len(second_limits_)
 
-        hour_limits = np.concatenate([second_limits_,
-                                      minute_limits_,
-                                      hour_limits_])
+        hour_limits = np.concatenate([second_limits_, minute_limits_, hour_limits_])
 
         hour_steps = minsec_steps_ + minsec_steps_ + hour_steps_
         hour_units = second_units + minute_units + hour_units
@@ -78,12 +73,10 @@ def select_step_hour(dv):
         return step * unit
 
     else:
-
-        return select_step_scalar(dv.to_value(15. * u.arcsec)) * (15. * u.arcsec)
+        return select_step_scalar(dv.to_value(15.0 * u.arcsec)) * (15.0 * u.arcsec)
 
 
 def select_step_scalar(dv):
-
     log10_dv = np.log10(dv)
 
     base = np.floor(log10_dv)
@@ -93,15 +86,14 @@ def select_step_scalar(dv):
 
     imin = np.argmin(np.abs(frac - steps))
 
-    return 10. ** (base + steps[imin])
+    return 10.0 ** (base + steps[imin])
 
 
 def get_coord_meta(frame):
-
     coord_meta = {}
-    coord_meta['type'] = ('longitude', 'latitude')
-    coord_meta['wrap'] = (None, None)
-    coord_meta['unit'] = (u.deg, u.deg)
+    coord_meta["type"] = ("longitude", "latitude")
+    coord_meta["wrap"] = (None, None)
+    coord_meta["unit"] = (u.deg, u.deg)
 
     from astropy.coordinates import frame_transform_graph
 
@@ -115,7 +107,7 @@ def get_coord_meta(frame):
         frame = frame()
 
     names = list(frame.representation_component_names.keys())
-    coord_meta['name'] = names[:2]
+    coord_meta["name"] = names[:2]
 
     return coord_meta
 

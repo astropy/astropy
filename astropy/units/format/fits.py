@@ -22,11 +22,12 @@ class Fits(generic.Generic):
     Standard <https://fits.gsfc.nasa.gov/fits_standard.html>`_.
     """
 
-    name = 'fits'
+    name = "fits"
 
     @staticmethod
     def _generate_unit_names():
         from astropy import units as u
+
         names = {}
         deprecated_names = set()
 
@@ -39,17 +40,68 @@ class Fits(generic.Generic):
         # bases.
 
         bases = [
-            'm', 'g', 's', 'rad', 'sr', 'K', 'A', 'mol', 'cd',
-            'Hz', 'J', 'W', 'V', 'N', 'Pa', 'C', 'Ohm', 'S',
-            'F', 'Wb', 'T', 'H', 'lm', 'lx', 'a', 'yr', 'eV',
-            'pc', 'Jy', 'mag', 'R', 'bit', 'byte', 'G', 'barn'
+            "m",
+            "g",
+            "s",
+            "rad",
+            "sr",
+            "K",
+            "A",
+            "mol",
+            "cd",
+            "Hz",
+            "J",
+            "W",
+            "V",
+            "N",
+            "Pa",
+            "C",
+            "Ohm",
+            "S",
+            "F",
+            "Wb",
+            "T",
+            "H",
+            "lm",
+            "lx",
+            "a",
+            "yr",
+            "eV",
+            "pc",
+            "Jy",
+            "mag",
+            "R",
+            "bit",
+            "byte",
+            "G",
+            "barn",
         ]
         deprecated_bases = []
         prefixes = [
-            'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
-            '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+            "y",
+            "z",
+            "a",
+            "f",
+            "p",
+            "n",
+            "u",
+            "m",
+            "c",
+            "d",
+            "",
+            "da",
+            "h",
+            "k",
+            "M",
+            "G",
+            "T",
+            "P",
+            "E",
+            "Z",
+            "Y",
+        ]
 
-        special_cases = {'dbyte': u.Unit('dbyte', 0.1*u.byte)}
+        special_cases = {"dbyte": u.Unit("dbyte", 0.1 * u.byte)}
 
         for base in bases + deprecated_bases:
             for prefix in prefixes:
@@ -65,10 +117,36 @@ class Fits(generic.Generic):
                 deprecated_names.add(prefix + base)
 
         simple_units = [
-            'deg', 'arcmin', 'arcsec', 'mas', 'min', 'h', 'd', 'Ry',
-            'solMass', 'u', 'solLum', 'solRad', 'AU', 'lyr', 'count',
-            'ct', 'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan',
-            'bin', 'voxel', 'adu', 'beam', 'erg', 'Angstrom', 'angstrom'
+            "deg",
+            "arcmin",
+            "arcsec",
+            "mas",
+            "min",
+            "h",
+            "d",
+            "Ry",
+            "solMass",
+            "u",
+            "solLum",
+            "solRad",
+            "AU",
+            "lyr",
+            "count",
+            "ct",
+            "photon",
+            "ph",
+            "pixel",
+            "pix",
+            "D",
+            "Sun",
+            "chan",
+            "bin",
+            "voxel",
+            "adu",
+            "beam",
+            "erg",
+            "Angstrom",
+            "angstrom",
         ]
         deprecated_units = []
 
@@ -85,16 +163,22 @@ class Fits(generic.Generic):
             if detailed_exception:
                 raise ValueError(
                     "Unit '{}' not supported by the FITS standard. {}".format(
-                        unit, utils.did_you_mean_units(
-                            unit, cls._units, cls._deprecated_units,
-                            cls._to_decomposed_alternative)))
+                        unit,
+                        utils.did_you_mean_units(
+                            unit,
+                            cls._units,
+                            cls._deprecated_units,
+                            cls._to_decomposed_alternative,
+                        ),
+                    )
+                )
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
             utils.unit_deprecation_warning(
-                unit, cls._units[unit], 'FITS',
-                cls._to_decomposed_alternative)
+                unit, cls._units[unit], "FITS", cls._to_decomposed_alternative
+            )
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
@@ -103,7 +187,7 @@ class Fits(generic.Generic):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        name = unit.get_format_name('fits')
+        name = unit.get_format_name("fits")
         cls._validate_unit(name)
         return name
 
@@ -121,16 +205,17 @@ class Fits(generic.Generic):
                 raise core.UnitScaleError(
                     "The FITS unit format is not able to represent scales "
                     "that are not powers of 10.  Multiply your data by "
-                    "{:e}.".format(unit.scale))
+                    "{:e}.".format(unit.scale)
+                )
             elif unit.scale != 1.0:
-                parts.append(f'10**{int(base)}')
+                parts.append(f"10**{int(base)}")
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs):
                 pairs.sort(key=operator.itemgetter(1), reverse=True)
                 parts.append(cls._format_unit_list(pairs))
 
-            s = ' '.join(parts)
+            s = " ".join(parts)
         elif isinstance(unit, core.NamedUnit):
             s = cls._get_unit_name(unit)
 
@@ -144,13 +229,12 @@ class Fits(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return f'{cls.to_string(unit)} (with data multiplied by {scale})'
+            return f"{cls.to_string(unit)} (with data multiplied by {scale})"
         return s
 
     @classmethod
     def parse(cls, s, debug=False):
         result = super().parse(s, debug)
-        if hasattr(result, 'function_unit'):
-            raise ValueError("Function units are not yet supported for "
-                             "FITS units.")
+        if hasattr(result, "function_unit"):
+            raise ValueError("Function units are not yet supported for FITS units.")
         return result

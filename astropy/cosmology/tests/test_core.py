@@ -41,9 +41,13 @@ class MetaTestMixin:
         assert isinstance(cosmo.meta, dict)
 
 
-class TestCosmology(ParameterTestMixin, MetaTestMixin,
-                    ReadWriteTestMixin, ToFromFormatTestMixin,
-                    metaclass=abc.ABCMeta):
+class TestCosmology(
+    ParameterTestMixin,
+    MetaTestMixin,
+    ReadWriteTestMixin,
+    ToFromFormatTestMixin,
+    metaclass=abc.ABCMeta,
+):
     """Test :class:`astropy.cosmology.Cosmology`.
 
     Subclasses should define tests for:
@@ -57,12 +61,12 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         Setup for testing.
         Cosmology should not be instantiated, so tests are done on a subclass.
         """
-        class SubCosmology(Cosmology):
 
+        class SubCosmology(Cosmology):
             H0 = Parameter(unit=u.km / u.s / u.Mpc)
             Tcmb0 = Parameter(unit=u.K)
 
-            def __init__(self, H0, Tcmb0=0*u.K, name=None, meta=None):
+            def __init__(self, H0, Tcmb0=0 * u.K, name=None, meta=None):
                 super().__init__(name=name, meta=meta)
                 self._H0 = H0
                 self._Tcmb0 = Tcmb0
@@ -91,6 +95,7 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
     def test_init_subclass(self, cosmo_cls):
         """Test creating subclasses registers classes and manages Parameters."""
+
         class InitSubclassTest(cosmo_cls):
             pass
 
@@ -112,9 +117,13 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
 
         # test matches __init__, but without 'self'
         sig = inspect.signature(cosmo.__init__)  # (instances don't have self)
-        assert set(sig.parameters.keys()) == set(cosmo._init_signature.parameters.keys())
-        assert all(np.all(sig.parameters[k].default == p.default) for k, p in
-                   cosmo._init_signature.parameters.items())
+        assert set(sig.parameters.keys()) == set(
+            cosmo._init_signature.parameters.keys()
+        )
+        assert all(
+            np.all(sig.parameters[k].default == p.default)
+            for k, p in cosmo._init_signature.parameters.items()
+        )
 
     # ---------------------------------------------------------------
     # instance-level
@@ -243,22 +252,22 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         # class in string rep
         assert cosmo_cls.__qualname__ in r
         assert r.index(cosmo_cls.__qualname__) == 0  # it's the first thing
-        r = r[len(cosmo_cls.__qualname__) + 1:]  # remove
+        r = r[len(cosmo_cls.__qualname__) + 1 :]  # remove
 
         # name in string rep
         if cosmo.name is not None:
-            assert f"name=\"{cosmo.name}\"" in r
+            assert f'name="{cosmo.name}"' in r
             assert r.index("name=") == 0
-            r = r[6 + len(cosmo.name) + 3:]  # remove
+            r = r[6 + len(cosmo.name) + 3 :]  # remove
 
         # parameters in string rep
         ps = {k: getattr(cosmo, k) for k in cosmo.__parameters__}
         cps = {k: getattr(cosmo_cls, k) for k in cosmo.__parameters__}
         for k, v in ps.items():
-            sv = format(v, cps[k].format_spec if v is not None else '')
-            assert (k + '=' + sv) in r
+            sv = format(v, cps[k].format_spec if v is not None else "")
+            assert (k + "=" + sv) in r
             assert r.index(k) == 0
-            r = r[len((k + '=' + sv)) + 2:]  # remove
+            r = r[len((k + "=" + sv)) + 2 :]  # remove
 
     # ------------------------------------------------
 

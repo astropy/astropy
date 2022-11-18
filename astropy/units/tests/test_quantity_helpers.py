@@ -9,10 +9,9 @@ from astropy import units as u
 
 
 @pytest.mark.parametrize(
-    ('a', 'b'),
-    [([1, 2], [1, 2]),
-     ([1, 2] * u.m, [100, 200] * u.cm),
-     (1 * u.s, 1000 * u.ms)])
+    ("a", "b"),
+    [([1, 2], [1, 2]), ([1, 2] * u.m, [100, 200] * u.cm), (1 * u.s, 1000 * u.ms)],
+)
 def test_allclose_isclose_default(a, b):
     assert u.allclose(a, b)
     assert np.all(u.isclose(a, b))

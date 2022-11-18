@@ -13,10 +13,10 @@ from astropy import units as u
 from astropy.utils.exceptions import AstropyWarning
 from .angles import Angle
 
-__all__ = ['Distance']
+__all__ = ["Distance"]
 
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class Distance(u.SpecificTypeQuantity):
@@ -96,21 +96,37 @@ class Distance(u.SpecificTypeQuantity):
     _equivalent_unit = u.m
     _include_easy_conversion_members = True
 
-    def __new__(cls, value=None, unit=None, z=None, cosmology=None,
-                distmod=None, parallax=None, dtype=None, copy=True, order=None,
-                subok=False, ndmin=0, allow_negative=False):
-
+    def __new__(
+        cls,
+        value=None,
+        unit=None,
+        z=None,
+        cosmology=None,
+        distmod=None,
+        parallax=None,
+        dtype=None,
+        copy=True,
+        order=None,
+        subok=False,
+        ndmin=0,
+        allow_negative=False,
+    ):
         n_not_none = sum(x is not None for x in [value, z, distmod, parallax])
         if n_not_none == 0:
-            raise ValueError('none of `value`, `z`, `distmod`, or `parallax` '
-                             'were given to Distance constructor')
+            raise ValueError(
+                "none of `value`, `z`, `distmod`, or `parallax` "
+                "were given to Distance constructor"
+            )
         elif n_not_none > 1:
-            raise ValueError('more than one of `value`, `z`, `distmod`, or '
-                             '`parallax` were given to Distance constructor')
+            raise ValueError(
+                "more than one of `value`, `z`, `distmod`, or "
+                "`parallax` were given to Distance constructor"
+            )
 
         if z is not None:
             if cosmology is None:
                 from astropy.cosmology import default_cosmology
+
                 cosmology = default_cosmology.get()
 
             value = cosmology.luminosity_distance(z)
@@ -120,8 +136,10 @@ class Distance(u.SpecificTypeQuantity):
 
         else:
             if cosmology is not None:
-                raise ValueError('A `cosmology` was given but `z` was not '
-                                 'provided in Distance constructor')
+                raise ValueError(
+                    "A `cosmology` was given but `z` was not "
+                    "provided in Distance constructor"
+                )
 
             if distmod is not None:
                 value = cls._distmod_to_pc(distmod)
@@ -158,30 +176,43 @@ class Distance(u.SpecificTypeQuantity):
                             "distances even when `allow_negative=True`, "
                             "because negative parallaxes cannot be transformed "
                             "into distances. See discussion in this paper: "
-                            "https://arxiv.org/abs/1507.02105", AstropyWarning)
+                            "https://arxiv.org/abs/1507.02105",
+                            AstropyWarning,
+                        )
                     else:
-                        raise ValueError("Some parallaxes are negative, which "
-                                         "are notinterpretable as distances. "
-                                         "See the discussion in this paper: "
-                                         "https://arxiv.org/abs/1507.02105 . "
-                                         "If you want parallaxes to pass "
-                                         "through, with negative parallaxes "
-                                         "instead becoming NaN, use the "
-                                         "`allow_negative=True` argument.")
+                        raise ValueError(
+                            "Some parallaxes are negative, which "
+                            "are notinterpretable as distances. "
+                            "See the discussion in this paper: "
+                            "https://arxiv.org/abs/1507.02105 . "
+                            "If you want parallaxes to pass "
+                            "through, with negative parallaxes "
+                            "instead becoming NaN, use the "
+                            "`allow_negative=True` argument."
+                        )
 
         # now we have arguments like for a Quantity, so let it do the work
         distance = super().__new__(
-            cls, value, unit, dtype=dtype, copy=copy, order=order,
-            subok=subok, ndmin=ndmin)
+            cls,
+            value,
+            unit,
+            dtype=dtype,
+            copy=copy,
+            order=order,
+            subok=subok,
+            ndmin=ndmin,
+        )
 
         # This invalid catch block can be removed when the minimum numpy
         # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             any_negative = np.any(distance.value < 0)
 
         if not allow_negative and any_negative:
-            raise ValueError("Distance must be >= 0.  Use the argument "
-                             "'allow_negative=True' to allow negative values.")
+            raise ValueError(
+                "Distance must be >= 0.  Use the argument "
+                "'allow_negative=True' to allow negative values."
+            )
 
         return distance
 
@@ -226,21 +257,22 @@ class Distance(u.SpecificTypeQuantity):
 
         if cosmology is None:
             from astropy.cosmology import default_cosmology
+
             cosmology = default_cosmology.get()
 
-        atzkw.setdefault("ztol", 1.e-10)
+        atzkw.setdefault("ztol", 1.0e-10)
         return z_at_value(cosmology.luminosity_distance, self, **atzkw)
 
     @property
     def distmod(self):
         """The distance modulus as a `~astropy.units.Quantity`"""
-        val = 5. * np.log10(self.to_value(u.pc)) - 5.
+        val = 5.0 * np.log10(self.to_value(u.pc)) - 5.0
         return u.Quantity(val, u.mag, copy=False)
 
     @classmethod
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
-        return cls(10 ** ((dm.value + 5) / 5.), u.pc, copy=False)
+        return cls(10 ** ((dm.value + 5) / 5.0), u.pc, copy=False)
 
     @property
     def parallax(self):

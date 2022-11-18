@@ -6,8 +6,8 @@ from astropy.modeling.utils import _SpecialOperatorsDict
 
 
 def test__SpecialOperatorsDict__set_value():
-    key = 'test'
-    val = 'value'
+    key = "test"
+    val = "value"
 
     special_operators = _SpecialOperatorsDict()
     assert key not in special_operators
@@ -21,8 +21,8 @@ def test__SpecialOperatorsDict__set_value():
 
 
 def test__SpecialOperatorsDict___setitem__():
-    key = 'test'
-    val = 'value'
+    key = "test"
+    val = "value"
 
     special_operators = _SpecialOperatorsDict()
     assert key not in special_operators
@@ -50,8 +50,8 @@ def test__SpecialOperatorsDict__get_unique_id():
 def test__SpecialOperatorsDict_add():
     special_operators = _SpecialOperatorsDict()
 
-    operator_name = 'test'
-    operator = 'operator'
+    operator_name = "test"
+    operator = "operator"
 
     key0 = special_operators.add(operator_name, operator)
     assert key0 == (operator_name, special_operators._unique_id)

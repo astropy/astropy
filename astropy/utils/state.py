@@ -4,7 +4,7 @@ A simple class to manage a piece of global science state.  See
 """
 
 
-__all__ = ['ScienceState']
+__all__ = ["ScienceState"]
 
 
 class ScienceState:
@@ -29,8 +29,7 @@ class ScienceState:
     """
 
     def __init__(self):
-        raise RuntimeError(
-            "This class is a singleton.  Do not instantiate.")
+        raise RuntimeError("This class is a singleton.  Do not instantiate.")
 
     @classmethod
     def get(cls):
@@ -44,6 +43,7 @@ class ScienceState:
         """
         Set the current science state value.
         """
+
         class _Context:
             def __init__(self, parent, value):
                 self._value = value
@@ -58,10 +58,10 @@ class ScienceState:
             def __repr__(self):
                 # Ensure we have a single-line repr, just in case our
                 # value is not something simple like a string.
-                value_repr, lb, _ = repr(self._parent._value).partition('\n')
+                value_repr, lb, _ = repr(self._parent._value).partition("\n")
                 if lb:
-                    value_repr += '...'
-                return (f'<ScienceState {self._parent.__name__}: {value_repr}>')
+                    value_repr += "..."
+                return f"<ScienceState {self._parent.__name__}: {value_repr}>"
 
         ctx = _Context(cls, cls._value)
         value = cls.validate(value)
