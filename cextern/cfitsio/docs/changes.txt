@@ -1,5 +1,60 @@
                    Log of Changes Made to CFITSIO
 
+Version 4.2.0 - Nov 2022
+  
+  - This release includes patches to security vulnerabilities.  We
+    strongly encourage this upgrade, particularly for those running 
+    CFITSIO in web accessible applications.
+    
+  - Fix to fits_read_key function, which was failing to properly read
+    keywords declared type TUINT on compilers where sizeof(int) =
+    sizeof(long).
+
+  - Added new functions fits_read_cols and fits_write_cols to efficiently 
+    read or write multiple columns in a single function call
+
+  - Added new function fits_copy_selrows to copy only selected rows, such
+    as the selected rows returned by fits_find_rows
+
+  - Added new calculator functions ERF(X), ERFC(X) and GAMMA(X), which are
+    mathematical special functions of the same name
+
+  - Added new calculator function GTIFIND() which reports which GTI row
+    brackets a given time sample
+
+  - Added new calculator functions which operate upon vector table
+    values NAXIS(V), NAXES(V,n), ELEMENTNUM(V) and AXISELEM(V,n),
+    and ARRAY(X,d) which promotes scalar X to a vector or array
+    with given dimensions.
+
+  - The CFITSIO histogramming code now handles binning by any
+    arbitrary calculator expression rather than just a column name.
+    Both the binned columns as well as the optional weights may be
+    calculator expressions, enclosed in parentheses.  
+
+  - Binning of vector columns or expressions is now supported, as long
+    as all binned inputs (as well as the optional weighting) have the
+    same vector dimensions.  Binning of variable-length columns remains
+    unsupported.
+
+  - A bug that caused histogram weights from columns that are null values
+    to be tallied along with non-null values has been fixed.
+
+  - The CFITSIO calculator and histogramming functionality is now
+    fully reentrant and does not require multithreading interlocks.
+
+  - A long-standing segmentation fault bug in the histogramming code
+    related to binning any value using the "reciprocal" /XXXX notation
+    has been fixed.
+    
+  - Added mutex locks for thread safety in ftgiou and ftfiou.
+  
+  - Added several Fortran wrappers to support image read/write when
+    'fpixel' and 'nelements' are 8-byte integers.
+    
+  - Fixed bug which was adding spaces to some cases of long string key
+    value output.
+
 Version 4.1.0 - Feb 2022
                    
   - Calls to the zlib inflate() function in zcompress.c now handle
