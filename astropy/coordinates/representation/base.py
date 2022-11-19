@@ -1540,6 +1540,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             the other class is a differential representation, the base will be
             converted to its ``base_representation``.
         """
+        from astropy.coordinates.representation.cartesian import CartesianDifferential
+
         # route transformation through Cartesian
         cdiff = self.represent_as(CartesianDifferential, base=base).transform(matrix)
         # move back to original representation
@@ -1620,8 +1622,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
-        # RadialDifferential overrides this function, so there is no handling
-        # here
+        from astropy.coordinates.representation.cartesian import CartesianDifferential
+
+        # RadialDifferential overrides this function, so there is no handling here
         if not isinstance(self, CartesianDifferential) and base is None:
             raise ValueError(
                 "`base` must be provided to calculate the norm of a"
