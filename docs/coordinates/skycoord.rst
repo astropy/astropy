@@ -534,7 +534,7 @@ lies in some less obvious attributes::
   {'l': Unit("deg"), 'b': Unit("deg")}
 
   >>> sc_gal.representation_type
-  <class 'astropy.coordinates.representation.SphericalRepresentation'>
+  <class 'astropy.coordinates...SphericalRepresentation'>
 
 Together these tell the object that ``l`` and ``b`` are the longitude and
 latitude, and that they should both be displayed in units of degrees as
@@ -761,7 +761,7 @@ can specify one or more coordinate positions as follows:
 **REPRESENTATION**
 
 The representation can be supplied either as a
-`~astropy.coordinates.representation.BaseRepresentation` class (e.g.,
+`~astropy.coordinates.representation.base.BaseRepresentation` class (e.g.,
 `~astropy.coordinates.CartesianRepresentation`) or as a string name
 that is simply the class name in lowercase without the
 ``'representation'`` suffix (e.g., ``'cartesian'``).
@@ -796,19 +796,19 @@ and how it names all of the components, first make an instance of that frame
 without any data, and then print the ``representation_info`` property::
 
     >>> ICRS().representation_info  # doctest: +SKIP
-    {astropy.coordinates.representation.CartesianRepresentation:
+    {astropy.coordinates...CartesianRepresentation:
       {'names': ('x', 'y', 'z'),
        'units': (None, None, None)},
-     astropy.coordinates.representation.SphericalRepresentation:
+     astropy.coordinates...SphericalRepresentation:
       {'names': ('ra', 'dec', 'distance'),
        'units': (Unit("deg"), Unit("deg"), None)},
-     astropy.coordinates.representation.UnitSphericalRepresentation:
+     astropy.coordinates...UnitSphericalRepresentation:
       {'names': ('ra', 'dec'),
        'units': (Unit("deg"), Unit("deg"))},
-     astropy.coordinates.representation.PhysicsSphericalRepresentation:
+     astropy.coordinates...PhysicsSphericalRepresentation:
       {'names': ('phi', 'theta', 'r'),
        'units': (Unit("deg"), Unit("deg"), None)},
-     astropy.coordinates.representation.CylindricalRepresentation:
+     astropy.coordinates...CylindricalRepresentation:
       {'names': ('rho', 'phi', 'z'),
        'units': (None, Unit("deg"), None)}
     }
@@ -830,7 +830,7 @@ names for that frame to the component name on the representation class::
     >>> import astropy.units as u
     >>> icrs = ICRS(1*u.deg, 2*u.deg)
     >>> icrs.representation_type
-    <class 'astropy.coordinates.representation.SphericalRepresentation'>
+    <class 'astropy.coordinates...SphericalRepresentation'>
     >>> icrs.representation_component_names
     {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
@@ -901,7 +901,7 @@ state of the |SkyCoord| object, you should instead use the
     <CartesianRepresentation (x, y, z) in kpc
         (1., 2., 3.)>
     >>> c.representation_type
-    <class 'astropy.coordinates.representation.SphericalRepresentation'>
+    <class 'astropy.coordinates...SphericalRepresentation'>
 
 ..
   EXAMPLE END

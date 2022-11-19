@@ -738,7 +738,7 @@ class TestBasic(BaseImageTests):
         with pytest.warns(
             AstropyUserWarning,
             match="Received `center` of representation type "
-            "<class 'astropy.coordinates.representation.CartesianRepresentation'> "
+            "<class 'astropy.coordinates.representation.cartesian.CartesianRepresentation'> "
             "will be converted to SphericalRepresentation",
         ):
             r3 = SphericalCircle(
