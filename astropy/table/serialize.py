@@ -40,6 +40,23 @@ __construct_mixin_classes = (
     "astropy.table.table_helpers.ArrayWrapper",
     "astropy.table.column.Column",
     "astropy.table.column.MaskedColumn",
+    "astropy.utils.masked.core.MaskedNDArray",
+    # Representations
+    "astropy.coordinates.representation.cartesian.CartesianRepresentation",
+    "astropy.coordinates.representation.spherical.UnitSphericalRepresentation",
+    "astropy.coordinates.representation.spherical.RadialRepresentation",
+    "astropy.coordinates.representation.spherical.SphericalRepresentation",
+    "astropy.coordinates.representation.spherical.PhysicsSphericalRepresentation",
+    "astropy.coordinates.representation.cylindrical.CylindricalRepresentation",
+    "astropy.coordinates.representation.cartesian.CartesianDifferential",
+    "astropy.coordinates.representation.spherical.UnitSphericalDifferential",
+    "astropy.coordinates.representation.spherical.SphericalDifferential",
+    "astropy.coordinates.representation.spherical.UnitSphericalCosLatDifferential",
+    "astropy.coordinates.representation.spherical.SphericalCosLatDifferential",
+    "astropy.coordinates.representation.spherical.RadialDifferential",
+    "astropy.coordinates.representation.spherical.PhysicsSphericalDifferential",
+    "astropy.coordinates.representation.cylindrical.CylindricalDifferential",
+    # Deprecated paths
     "astropy.coordinates.representation.CartesianRepresentation",
     "astropy.coordinates.representation.UnitSphericalRepresentation",
     "astropy.coordinates.representation.RadialRepresentation",
@@ -54,7 +71,6 @@ __construct_mixin_classes = (
     "astropy.coordinates.representation.RadialDifferential",
     "astropy.coordinates.representation.PhysicsSphericalDifferential",
     "astropy.coordinates.representation.CylindricalDifferential",
-    "astropy.utils.masked.core.MaskedNDArray",
 )
 
 
