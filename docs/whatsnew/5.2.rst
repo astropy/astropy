@@ -22,6 +22,15 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-tilde-paths`
 * :ref:`whatsnew-5.2-ccddata-psf`
 
+In addition to these major changes, Astropy 5.2 includes a large number of
+smaller improvements and bug fixes, which are described in the `Full Changelog`.
+By the numbers:
+
+* 1048 commits have been added since 5.1
+* 151 issues have been closed since 5.1
+* 308 pull requests have been merged since 5.1
+* 50 people have contributed since 5.1
+* 18 of which are new contributors
 
 .. _whatsnew-5.2-quantity-dtype:
 
@@ -291,7 +300,6 @@ This support has been added throughout the ``astropy.io`` module. This feature
 is also supported within the I/O functionality of `astropy.table` and the
 FITS-file functionality in `astropy.nddata`.
 
-
 .. _whatsnew-5.2-ccddata-psf:
 
 CCDData PSF Image representation
@@ -306,5 +314,62 @@ Full change log
 To see a detailed list of all changes in version v5.2, including changes in
 API, please see the :ref:`changelog`.
 
-Renamed/removed functionality
-=============================
+Contributors to the v5.2 release
+================================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  Adrian Price-Whelan
+  -  Albert Y. Shih
+  -  Bharath Saiguhan  *
+  -  Brett Woltz  *
+  -  Brigitta Sipőcz
+  -  Chiara Marmo
+  -  Conor MacBride
+  -  David Paz  *
+  -  David Stansby
+  -  Derek Homeier
+  -  Eero Vaher
+  -  Erik Tollerud
+  -  Frazer McLean  *
+  -  Gabe Brammer  *
+  -  Gabriel Brammer
+  -  Geert Barentsen
+  -  Hans Moritz Günther
+  -  Hood Chatham  *
+  -  Jero Bado
+  -  John Parejko
+  -  Kunam Balaram Reddy  *
+  -  Larry Bradley
+  -  Lily Fahey  *
+  -  Lu Xu  *
+  -  Marten van Kerkwijk
+  -  Martin Dyer  *
+  -  Matthew Craig
+  -  Matthew Pitkin  *
+  -  Max Mahlke  *
+  -  Maximilian Nöthe
+  -  Michael Brewer
+  -  Mihai Cara
+  -  Nadia Dencheva
+  -  Nathaniel Starkman
+  -  Pey Lian Lim
+  -  Roland Weber  *
+  -  Roy Smart
+  -  Sam Van Kooten
+  -  Sam leidenuniv
+  -  Simon Conseil
+  -  Stuart Mumford
+  -  Sébastien Maret  *
+  -  T\. E\. Pickering  *
+  -  Thomas Robitaille
+  -  Timothy P\. Ellsworth Bowers  *
+  -  Tom Aldcroft
+  -  William Jamieson
+  -  Yash Nandwana  *
+
+
+Where a * indicates that this release contains their first contribution to astropy.
