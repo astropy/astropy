@@ -1,6 +1,7 @@
 #ifndef CONVOLVE_INCLUDE
 #define CONVOLVE_INCLUDE
 
+#include <stdbool.h>
 #include <stddef.h>
 
 // Forcibly disable OpenMP support at the src level
