@@ -3,6 +3,7 @@
 cimport numpy as np
 from libcpp cimport bool
 
+
 cdef extern from "src/convolve.h":
     void convolveNd_c(np.float64_t * const result,
             const np.float64_t * const f,
