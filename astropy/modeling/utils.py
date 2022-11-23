@@ -215,6 +215,7 @@ def _validate_domain_window(value):
     return value
 
 
+@deprecated("5.3", alternative="math.comb")
 def comb(N, k):
     """
     The number of combinations of N things taken k at a time.
