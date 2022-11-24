@@ -1038,6 +1038,39 @@ def test_linear_fitter_with_weights():
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
+@pytest.mark.parametrize(
+    "fixed, warns",
+    [
+        ({}, True),  # tests fitting non-fixed parameters models produces warnings
+        (
+            {"c1_0": True},
+            True,
+        ),  # tests fitting fixed par models produces warnings - #14037
+        (
+            {"c0_1": True},
+            False,
+        ),  # https://github.com/astropy/astropy/pull/14037#pullrequestreview-1191726872
+    ],
+)
+def test_polynomial_poorly_conditioned(fixed, warns):
+    p0 = models.Polynomial2D(degree=1, c0_0=3, c1_0=5, c0_1=0, fixed=fixed)
+
+    fitter = LinearLSQFitter()
+
+    x = [1, 2, 3, 4, 5]
+    y = [1, 1, 1, 1, 1]
+    values = p0(x, y)
+
+    if warns:
+        with pytest.warns(
+            AstropyUserWarning, match="The fit may be poorly conditioned"
+        ):
+            p = fitter(p0, x, y, values)
+    else:
+        p = fitter(p0, x, y, values)
+        assert np.allclose(p0.parameters, p.parameters, rtol=0, atol=1e-14)
+
+
 def test_linear_fitter_with_weights_flat():
     """Same as the above #7035 test but with flattened inputs"""
     Xin, Yin = np.mgrid[0:21, 0:21]
