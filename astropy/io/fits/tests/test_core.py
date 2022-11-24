@@ -1056,7 +1056,6 @@ class TestFileFunctions(FitsTestCase):
             mmap.mmap = old_mmap
             _File.__dict__["_mmap_available"]._cache.clear()
 
-    @pytest.mark.openfiles_ignore
     def test_mmap_allocate_error(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/1380

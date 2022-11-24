@@ -209,28 +209,6 @@ Astropy Test Function
 Test-running options
 ====================
 
-.. _open-files:
-
-Testing for open files
-----------------------
-
-Using the :ref:`openfiles-plugin` plugin (which is installed automatically
-when installing pytest-astropy),  we can test whether any of the unit tests
-inadvertently leave any files open.  Since this greatly slows down the time it
-takes to run the tests, it is turned off by default.
-
-To use it from the commandline, do::
-
-    pytest --open-files
-
-To use it from Python, do::
-
-    >>> import astropy
-    >>> astropy.test(open_files=True)
-
-For more information on the ``pytest-openfiles`` plugin see
-:ref:`openfiles-plugin`
-
 Test coverage reports
 ---------------------
 
@@ -1119,20 +1097,3 @@ The Astropy test runner enables both of these options by default. When running
 the test suite directly from ``pytest`` (instead of through the Astropy test
 runner), it is necessary to explicitly provide these options when they are
 needed.
-
-.. _openfiles-plugin:
-
-pytest-openfiles
-================
-
-The `pytest-openfiles`_ plugin allows for the detection of open I/O resources
-at the end of unit tests. This plugin adds the ``--open-files`` option to the
-``pytest`` command (which is also exposed through the Astropy test runner).
-
-When running tests with ``--open-files``, if a file is opened during the course
-of a unit test but that file  not closed before the test finishes, the test
-will fail. This is particularly useful for testing code that manipulates file
-handles or other I/O resources. It allows developers to ensure that this kind
-of code properly cleans up I/O resources when they are no longer needed.
-
-Also see :ref:`open-files`.

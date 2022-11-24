@@ -71,7 +71,7 @@ jobs:
               - tzdata
               - libcfitsio-dev
           toxargs: -v --develop
-          posargs: --open-files --run-slow
+          posargs: --run-slow
 
         - name: Python 3.8 with oldest supported version of all dependencies
           linux: py38-test-oldestdeps-alldeps-cov-clocale

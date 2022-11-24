@@ -296,7 +296,7 @@ class TestSingleTable:
         t2 = Table.read(filename, memmap=False)
         t3 = Table.read(filename, memmap=True)
         assert equal_data(t2, t3)
-        # To avoid issues with --open-files, we need to remove references to
+        # To avoid issues with open files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
@@ -311,7 +311,7 @@ class TestSingleTable:
         assert t2["b"].dtype.kind == "U"
         assert t3["b"].dtype.kind == "S"
         assert equal_data(t2, t3)
-        # To avoid issues with --open-files, we need to remove references to
+        # To avoid issues with open files, we need to remove references to
         # data that uses memory mapping and force the garbage collection
         del t1, t2, t3
         gc.collect()
