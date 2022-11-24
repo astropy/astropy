@@ -61,10 +61,12 @@ Core Package Contributors
 * Bernardo Sulzbach
 * Bernie Simon
 * Bhavya Khandelwal
+* Bharath Saiguha
 * Bili Dong
 * Bogdan Nicula
 * Bojan Nikolic
 * Brett Morris
+* Brett Woltz
 * Brian Soto
 * Brigitta Sipőcz
 * britgit
@@ -104,6 +106,7 @@ Core Package Contributors
 * Daria Cara
 * David Kirkby
 * David M. Palmer
+* David Paz
 * David Pérez-Suárez
 * David Shiga
 * David Shupe
@@ -145,8 +148,10 @@ Core Package Contributors
 * Francesco Biscani
 * Francesco Montanari
 * Francesco Montesano
+* Frazer McLean
 * Frédéric Chapoton
 * Frédéric Grollier
+* Gabe Brammer
 * Gabriel Brammer
 * Gabriel Perren
 * Geert Barentsen
@@ -168,6 +173,7 @@ Core Package Contributors
 * Helen Sherwood-Taylor
 * Himanshu Pathak
 * homeboy445
+* Hood Chatham
 * Hsin Fan
 * Hugo Buddelmeijer
 * Humna Awan
@@ -234,6 +240,7 @@ Core Package Contributors
 * Kirill Tchernyshyov
 * Kris Stern
 * Kristin Berry
+* Kunam Balaram Reddy
 * Kyle Barbary
 * Kyle Conroy
 * Kyle Oman
@@ -250,9 +257,11 @@ Core Package Contributors
 * Leo Singer
 * Leonardo Ferreira
 * Lia Corrales
+* Lily Fahey
 * Lingyi Hu
 * Lisa Martin
 * Lisa Walter
+* Lu Xu
 * Ludwig Schwardt
 * Luigi Paioro
 * Luke G. Bouma
@@ -276,6 +285,7 @@ Core Package Contributors
 * Mark Taylor
 * Markus Demleitner
 * Marten van Kerkwijk
+* Martin Dyer
 * Martin Glatzle
 * Matej Stuchlik
 * Mathieu Servillat
@@ -285,9 +295,11 @@ Core Package Contributors
 * Matthew Brett
 * Matthew Craig
 * Matthew Petroff
+* Matthew Pitkin
 * Matthew Turk
 * Matthias Bussonnier
 * Mavani Bhautik
+* Max Mahlke
 * Max Silbiger
 * Max Voronkov
 * Maximilian Nöthe
@@ -375,6 +387,7 @@ Core Package Contributors
 * Rohan Rajpal
 * Rohit Kapoor
 * Rohit Patil
+* Roland Weber
 * Roman Tolesnikov
 * Roy Smart
 * Rui Xue
@@ -394,6 +407,7 @@ Core Package Contributors
 * sashmish
 * Saurav Sachidanand
 * Scott Thomas
+* Sébastien Maret
 * Sebastian Meßlinger
 * Semyeong Oh
 * Serge Montagnac
@@ -427,6 +441,7 @@ Core Package Contributors
 * Suyog Garg
 * Swapnil Sharma
 * T\. Carl Beery
+* T\. E\. Pickering
 * Tanuj Rastogi
 * Thomas Erben
 * Thomas Robitaille
@@ -435,6 +450,7 @@ Core Package Contributors
 * Tim Gates
 * Tim Jenness
 * Tim Plummer
+* Timothy P. Ellsworth Bowers
 * Tito Dal Canton
 * Tom Aldcroft
 * Tom Donaldson
@@ -456,6 +472,7 @@ Core Package Contributors
 * Wolfgang Kerzendorf
 * Yannick Copin
 * Yash Kumar
+* Yash Nandwana
 * Yash Sharma
 * Yingqi Ying
 * Zac Hatfield-Dodds
