@@ -184,8 +184,7 @@ class TestRunnerBase:
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
-        # Using the test runner will not work without these dependencies, but
-        # pytest-openfiles is optional, so it's not listed here.
+        # Using the test runner will not work without these dependencies.
         for module in cls._required_dependencies:
             spec = find_spec(module)
             # Checking loader accounts for packages that were uninstalled
