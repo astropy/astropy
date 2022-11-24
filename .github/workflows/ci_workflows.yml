@@ -60,9 +60,6 @@ jobs:
         - name: Python 3.10 with minimal dependencies and full coverage
           linux: py310-test-cov
 
-        # NOTE: In the build below we also check that tests do not open and
-        # leave open any files. This has a performance impact on running the
-        # tests, hence why it is not enabled by default.
         - name: Python 3.9 with all optional dependencies
           linux: py39-test-alldeps-fitsio
           libraries:
