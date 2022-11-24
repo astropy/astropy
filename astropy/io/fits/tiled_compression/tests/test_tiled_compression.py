@@ -108,12 +108,6 @@ def test_decompress_hdu(tmp_path, compression_type_dtype):
 
     assert_equal(data, original_data)
 
-    # NOTE: the following block can be removed once we remove the C implementation
-    from astropy.io.fits.compression import decompress_hdu as decompress_hdu_c
-
-    data_c = decompress_hdu_c(hdu)
-    assert_equal(data, data_c)
-
     hdulist.close()
 
 
@@ -162,15 +156,7 @@ def test_compress_hdu(tmp_path, compression_type_dtype):
 
     heap_length, heap_data = compress_hdu(hdu)
 
-    # NOTE: the following block can be removed once we remove the C implementation
-    from astropy.io.fits.compression import compress_hdu as compress_hdu_c
-
-    # Note that when CompImageHDU calls compress_hdu it converts to native byte
-    # order first, so we have to do this here.
-    hdu.data = hdu.data.astype(hdu.data.dtype.newbyteorder("="))
-    heap_length_c, heap_data_c = compress_hdu_c(hdu)
-
-    _assert_heap_same(heap_data, heap_data_c, 9)
+    # TODO: need to make this test more useful!
 
 
 @pytest.fixture
