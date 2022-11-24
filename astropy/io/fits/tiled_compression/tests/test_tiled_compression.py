@@ -16,26 +16,9 @@ from astropy.io.fits.tiled_compression.tiled_compression import (
     _header_to_settings,
 )
 
-COMPRESSION_TYPES = [
-    "GZIP_1",
-    "GZIP_2",
-    "RICE_1",
-    "HCOMPRESS_1",
-    "PLIO_1",
-]
 
-parameters = []
-for compression_type in COMPRESSION_TYPES:
-    # io.fits doesn't seem able to compress 64-bit data, even though e.g. GZIP_?
-    # and HCOMPRESS_1 should be able to handle it.
-    for itemsize in [1, 2, 4]:
-        for endian in ["<", ">"]:
-            format = "u" if itemsize == 1 else "i"
-            parameters.append((compression_type, f"{endian}{format}{itemsize}"))
-
-
-@pytest.mark.parametrize(("compression_type", "dtype"), parameters)
-def test_basic(tmp_path, compression_type, dtype):
+def test_basic(tmp_path, compression_type_dtype):
+    compression_type, dtype = compression_type_dtype
 
     # Generate compressed file dynamically
 
@@ -100,8 +83,8 @@ def test_basic(tmp_path, compression_type, dtype):
     hdulist_new.close()
 
 
-@pytest.mark.parametrize(("compression_type", "dtype"), parameters)
-def test_decompress_hdu(tmp_path, compression_type, dtype):
+def test_decompress_hdu(tmp_path, compression_type_dtype):
+    compression_type, dtype = compression_type_dtype
 
     # NOTE: for now this test is designed to compare the Python implementation
     # of decompress_hdu with the C implementation - once we get rid of the C
@@ -159,8 +142,8 @@ def _assert_heap_same(heap_a, heap_b, n_tiles):
             assert_equal(data_a, data_b)
 
 
-@pytest.mark.parametrize(("compression_type", "dtype"), parameters)
-def test_compress_hdu(tmp_path, compression_type, dtype):
+def test_compress_hdu(tmp_path, compression_type_dtype):
+    compression_type, dtype = compression_type_dtype
 
     # NOTE: for now this test is designed to compare the Python implementation
     # of compress_hdu with the C implementation - once we get rid of the C
