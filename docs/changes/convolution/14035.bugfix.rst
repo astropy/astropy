@@ -1,0 +1,3 @@
+Fix import error with setuptools v65.6.0 by replacing
+``numpy.ctypeslib.load_library`` with Cython to load the C convolution
+extension.
