@@ -516,35 +516,6 @@ class TestRunner(TestRunnerBase):
             return ["--pdb"]
         return []
 
-    @keyword()
-    def open_files(self, open_files, kwargs):
-        """
-        open_files : bool, optional
-            Fail when any tests leave files open.  Off by default, because
-            this adds extra run time to the test suite.  Requires the
-            ``psutil`` package.
-        """
-        if open_files:
-            if kwargs["parallel"] != 0:
-                raise SystemError(
-                    "open file detection may not be used in conjunction with "
-                    "parallel testing."
-                )
-
-            try:
-                import psutil  # noqa: F401
-            except ImportError:
-                raise SystemError(
-                    "open file detection requested, but psutil package "
-                    "is not installed."
-                )
-
-            return ["--open-files"]
-
-            print("Checking for unclosed files")
-
-        return []
-
     @keyword(0)
     def parallel(self, parallel, kwargs):
         """
