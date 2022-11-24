@@ -1781,17 +1781,6 @@ class CompImageHDU(BinTableHDU):
                 self.data - _pseudo_zero(self.data.dtype),
                 dtype=f"=i{self.data.dtype.itemsize}",
             )
-            should_swap = False
-        else:
-            should_swap = not self.data.dtype.isnative
-
-        if should_swap:
-            if self.data.flags.writeable:
-                self.data.byteswap(True)
-            else:
-                # For read-only arrays, there is no way around making
-                # a byteswapped copy of the data.
-                self.data = self.data.byteswap(False)
 
         try:
             nrows = self._header["NAXIS2"]
@@ -1817,9 +1806,6 @@ class CompImageHDU(BinTableHDU):
             # compressed image table
             heapsize, self.compressed_data = compress_hdu(self)
         finally:
-            # if data was byteswapped return it to its original order
-            if should_swap:
-                self.data.byteswap(True)
             self.data = old_data
 
         # CFITSIO will write the compressed data in big-endian order
