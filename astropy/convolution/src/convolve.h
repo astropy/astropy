@@ -1,6 +1,7 @@
 #ifndef CONVOLVE_INCLUDE
 #define CONVOLVE_INCLUDE
 
+#include <stdbool.h>
 #include <stddef.h>
 
 // Forcibly disable OpenMP support at the src level
@@ -31,12 +32,6 @@ typedef size_t omp_iter_var;
 #define LIB_CONVOLVE_EXPORT __declspec(dllexport)
 #else
 #define LIB_CONVOLVE_EXPORT // nothing
-#endif
-
-// Distutils on Windows will automatically exports ``PyInit_lib_convolve``,
-// create dummy to prevent linker complaining about missing symbol.
-#if defined(_MSC_VER)
-void PyInit__convolve(void);
 #endif
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
