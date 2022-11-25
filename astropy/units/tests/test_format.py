@@ -788,3 +788,13 @@ def test_parse_error_message_for_output_only_format(format_):
 def test_unknown_parser():
     with pytest.raises(ValueError, match=r"Unknown.*unicode'\] for output only"):
         u.Unit("m", format="foo")
+
+
+def test_celsius_fits():
+    assert u.Unit("Celsius", format="fits") == u.deg_C
+    assert u.Unit("deg C", format="fits") == u.deg_C
+
+    # check that compounds do what we expect: what do we expect?
+    assert u.Unit("deg C kg-1", format="fits") == u.C * u.deg / u.kg
+    assert u.Unit("Celsius kg-1", format="fits") == u.deg_C / u.kg
+    assert u.deg_C.to_string("fits") == "Celsius"
