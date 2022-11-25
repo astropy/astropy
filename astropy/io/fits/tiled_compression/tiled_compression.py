@@ -465,8 +465,18 @@ def _header_to_settings(header):
         settings["bytepix"] = 4
         settings["scale"] = int(header["ZVAL1"])
         settings["smooth"] = header["ZVAL2"]
-        settings["nx"] = header["ZTILE2"]
-        settings["ny"] = header["ZTILE1"]
+        # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
+        # need to ignore all length 1 tile dimensions
+        # Also cfitsio expects the tile shape in C order, so reverse it
+        shape_2d = tuple(
+            header[f"ZTILE{n}"]
+            for n in range(header["ZNAXIS"], 0, -1)
+            if header[f"ZTILE{n}"] != 1
+        )
+        if len(shape_2d) != 2:
+            raise ValueError(f"HCOMPRESS expects two dimensional tiles, got {shape_2d}")
+        settings["nx"] = shape_2d[0]
+        settings["ny"] = shape_2d[1]
 
     return settings
 
