@@ -1,1 +1,1 @@
-MBFITS tables with variable length array can now be properly read.
+Tables with multidimensional variable length array can now be properly read and write.
