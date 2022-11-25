@@ -252,7 +252,7 @@ def_unit(
     ["deg_C", "Celsius"],
     namespace=_ns,
     doc="Degrees Celsius",
-    format={"latex": r"{}^{\circ}C", "unicode": "°C"},
+    format={"latex": r"{}^{\circ}C", "unicode": "°C", "fits": "Celsius"},
 )
 
 

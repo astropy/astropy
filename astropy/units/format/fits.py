@@ -28,7 +28,12 @@ class Fits(generic.Generic):
     def _generate_unit_names():
         from astropy import units as u
 
-        names = {}
+        # add some units up-front for which we don't want to use prefixes
+        # and that have different names from the astropy default.
+        names = {
+            "Celsius": u.deg_C,
+            "deg C": u.deg_C,
+        }
         deprecated_names = set()
         bases = [
             "m", "g", "s", "rad", "sr", "K", "A", "mol", "cd",
