@@ -17,9 +17,7 @@ from astropy.io.fits.tiled_compression.tiled_compression import (
 )
 
 
-def test_basic(tmp_path, compression_type_dtype):
-    compression_type, dtype = compression_type_dtype
-
+def test_basic(tmp_path, compression_type, dtype):
     # Generate compressed file dynamically
 
     original_data = np.arange(144).reshape((12, 12)).astype(dtype)
@@ -83,9 +81,7 @@ def test_basic(tmp_path, compression_type_dtype):
     hdulist_new.close()
 
 
-def test_decompress_hdu(tmp_path, compression_type_dtype):
-    compression_type, dtype = compression_type_dtype
-
+def test_decompress_hdu(tmp_path, compression_type, dtype):
     # NOTE: for now this test is designed to compare the Python implementation
     # of decompress_hdu with the C implementation - once we get rid of the C
     # implementation we should update this test.
@@ -136,15 +132,10 @@ def _assert_heap_same(heap_a, heap_b, n_tiles):
             assert_equal(data_a, data_b)
 
 
-def test_compress_hdu(tmp_path, compression_type_dtype):
-    compression_type, dtype = compression_type_dtype
-
+def test_compress_hdu(compression_type, dtype):
     # NOTE: for now this test is designed to compare the Python implementation
     # of compress_hdu with the C implementation - once we get rid of the C
     # implementation we should update this test.
-
-    if compression_type == "PLIO_1":
-        pytest.xfail()
 
     original_data = np.arange(144).reshape((12, 12)).astype(dtype)
 
