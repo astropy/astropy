@@ -3274,6 +3274,7 @@ class TestVLATables(FitsTestCase):
         """
         Check if multidimensional VLF are correctly write and read.
         See https://github.com/astropy/astropy/issues/12860
+        and https://github.com/astropy/astropy/issues/7810
         """
         a = np.ones((5, 1))
         b = np.ones((7, 1))
@@ -3318,16 +3319,6 @@ class TestVLATables(FitsTestCase):
                     ),
                 ],
             )
-
-    def test_MBFITS_VLA_tables(self):
-        """
-        Regression test for https://github.com/astropy/astropy/issues/7810
-        """
-        filename = self.data("P190mm-PAFBE-FEBEPAR.fits")
-
-        with fits.open(filename) as hdul:
-            hdu = hdul[1]
-            np.array_equal(hdu.data["USEFEED"], np.array([[1]], dtype=np.int32))
 
 
 # These are tests that solely test the Column and ColDefs interfaces and
