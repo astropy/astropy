@@ -724,6 +724,7 @@ class FITS_rec(np.recarray):
         base = self
         while isinstance(base, FITS_rec) and isinstance(base.base, np.recarray):
             base = base.base
+            # print("field ", base)
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
         # recursion
@@ -1146,7 +1147,7 @@ class FITS_rec(np.recarray):
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [len(arr) for arr in self._converted[name]]
+                    npts = [np.prod(arr.shape) for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
