@@ -3320,6 +3320,22 @@ class TestVLATables(FitsTestCase):
                 ],
             )
 
+        a = np.ones((1, 3))
+        b = np.ones((2, 3))
+        array = np.array([a, b], dtype=object)
+        col = fits.Column(name="test", format="PD(6)", dim="(3,2)", array=array)
+        fits.BinTableHDU.from_columns([col]).writeto(self.temp("test3.fits"))
+
+        with fits.open(self.temp("test3.fits")) as hdus:
+            assert hdus[1].columns.formats == ["PD(6)"]
+            np.array_equal(
+                hdus[1].data["test"],
+                [
+                    np.array([[1.0, 1.0, 1.0]]),
+                    np.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
+                ],
+            )
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
