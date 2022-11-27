@@ -8,9 +8,7 @@ include astropy/CITATION
 include pyproject.toml
 
 include setup.cfg
-recursive-include astropy *.pyx *.c *.h *.map *.templ
-
-include astropy/astropy.cfg
+recursive-include astropy *.pyx *.c *.h *.map
 
 include astropy/extern/configobj/*.py
 recursive-include astropy/utils/compat *.py
@@ -19,8 +17,6 @@ recursive-include docs *
 recursive-include examples *
 recursive-include licenses *
 recursive-include cextern *
-recursive-include scripts *
-recursive-include static *
 
 # This subpckage is only used in development checkouts and should not be
 # included in built tarballs
