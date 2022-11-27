@@ -33,15 +33,6 @@
 
 #include "convolve.h"
 
-// Distutils on Windows automatically exports ``PyInit__convolve``,
-// create dummy to prevent linker complaining about missing symbol.
-#if defined(_MSC_VER)
-void PyInit__convolve(void)
-{
-    return;
-}
-#endif
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
