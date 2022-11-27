@@ -841,9 +841,9 @@ class FITS_rec(np.recarray):
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
                 if column.dim and len(vla_shape) > 1:
-                    vla_dimx = vla_shape[0]
-                    vla_dimy = int(len(dummy[idx]) / vla_shape[0])
-                    dummy[idx] = dummy[idx].reshape(vla_dimx, vla_dimy)
+                    vla_dim = vla_shape[:-1]
+                    vla_dimlast = int(len(dummy[idx]) / np.prod(vla_dim))
+                    dummy[idx] = dummy[idx].reshape(vla_dim + (vla_dimlast,))
                 dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
