@@ -1213,6 +1213,8 @@ class Column(NotifierMixin):
 
             if dims_tuple:
                 if isinstance(recformat, _FormatP):
+                    # TDIMs have different meaning for VLA format,
+                    # no warning should be thrown
                     msg = None
                 elif reduce(operator.mul, dims_tuple) > format.repeat:
                     msg = (
@@ -1722,6 +1724,8 @@ class ColDefs(NotifierMixin):
                 offsets.append(offsets[-1] + dt.itemsize)
 
             if dim and format_.format not in "PQ":
+                # Note: VLA array descriptors should not be reshaped
+                # as they are always of shape (2,)
                 if format_.format == "A":
                     dt = np.dtype((dt.char + str(dim[-1]), dim[:-1]))
                 else:

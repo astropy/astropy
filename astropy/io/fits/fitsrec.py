@@ -841,6 +841,7 @@ class FITS_rec(np.recarray):
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
                 if column.dim and len(vla_shape) > 1:
+                    # The VLA is reshaped consistently with TDIM instructions
                     vla_dim = vla_shape[:-1]
                     vla_dimlast = int(len(dummy[idx]) / np.prod(vla_dim))
                     dummy[idx] = dummy[idx].reshape(vla_dim + (vla_dimlast,))
