@@ -471,7 +471,7 @@ def _header_to_settings(header):
     return settings
 
 
-def _buffer_to_array(tile_buffer, header):
+def _buffer_to_array(tile_buffer, header, tile_shape=None):
     """
     Convert a buffer to an array using the header.
 
@@ -480,7 +480,8 @@ def _buffer_to_array(tile_buffer, header):
     dtype, endianess and shape.
     """
 
-    tile_shape = _tile_shape(header)
+    if tile_shape is None:
+        tile_shape = _tile_shape(header)
 
     if header["ZCMPTYPE"].startswith("GZIP"):
         # This algorithm is taken from fitsio
@@ -499,6 +500,12 @@ def _buffer_to_array(tile_buffer, header):
             dtype = ">u1"
         tile_data = np.asarray(tile_buffer).view(dtype).reshape(tile_shape)
     else:
+
+        # For RICE_1 compression the tiles that are on the edge can end up
+        # being padded, so we truncate excess values
+        if header["ZCMPTYPE"] in ("RICE_1", "PLIO_1"):
+            tile_buffer = tile_buffer[: np.product(tile_shape)]
+
         if tile_buffer.format == "b":
             # NOTE: this feels like a Numpy bug - need to investigate
             tile_data = np.asarray(tile_buffer, dtype=np.uint8).reshape(tile_shape)
@@ -560,14 +567,26 @@ def decompress_hdu(hdu):
         tile_buffer = decompress_tile(
             cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
         )
-        tile_data = _buffer_to_array(tile_buffer, hdu._header)
-        slices = tuple(
+
+        # In the following, we don't need to special case tiles near the edge
+        # as Numpy will automatically ignore parts of the slices that are out
+        # of bounds.
+        tile_slices = tuple(
             [
                 slice(istart[idx], istart[idx] + tile_shape[idx])
                 for idx in range(len(istart))
             ]
         )
-        data[slices] = tile_data
+
+        # For tiles near the edge, the tile shape from the header might not be
+        # correct so we have to pass the shape manually.
+        actual_tile_shape = data[tile_slices].shape
+
+        tile_data = _buffer_to_array(
+            tile_buffer, hdu._header, tile_shape=actual_tile_shape
+        )
+
+        data[tile_slices] = tile_data
         istart[-1] += tile_shape[-1]
         for idx in range(data.ndim - 1, 0, -1):
             if istart[idx] >= data_shape[idx]:
@@ -597,6 +616,9 @@ def compress_hdu(hdu):
 
     while True:
 
+        # In the following, we don't need to special case tiles near the edge
+        # as Numpy will automatically ignore parts of the slices that are out
+        # of bounds.
         slices = tuple(
             [
                 slice(istart[idx], istart[idx] + tile_shape[idx])
@@ -627,11 +649,26 @@ def compress_hdu(hdu):
         if istart[0] >= data_shape[0]:
             break
 
-    heap_header = np.zeros(len(compressed_bytes) * 2, ">i4")
+    header_len = len(compressed_bytes) * 2
+
+    heap_header = np.zeros(header_len, ">i4")
     for i in range(len(compressed_bytes)):
         heap_header[i * 2] = len(compressed_bytes[i])
         heap_header[1 + i * 2] = heap_header[: i * 2 : 2].sum()
+        # For PLIO_1, the size of each heap element is a factor of two lower than
+        # the real size - not clear if this is deliberate or bug somewhere.
 
-    heap = heap_header.tobytes() + b"".join(compressed_bytes)
+    for i in range(len(compressed_bytes)):
+        heap_header[i * 2] /= 2
 
-    return heap_header[::2].sum(), np.frombuffer(heap, dtype=np.uint8)
+    compressed_bytes = b"".join(compressed_bytes)
+
+    # For PLIO_1, it looks like the compressed data is byteswapped
+    if hdu._header["ZCMPTYPE"] == "PLIO_1":
+        compressed_bytes = (
+            np.frombuffer(compressed_bytes, dtype="<i2").astype(">i2").tobytes()
+        )
+
+    heap = heap_header.tobytes() + compressed_bytes
+
+    return len(compressed_bytes), np.frombuffer(heap, dtype=np.uint8)
