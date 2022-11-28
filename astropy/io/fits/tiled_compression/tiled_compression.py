@@ -521,31 +521,86 @@ def _check_compressed_header(header):
 
     for kw in ["ZNAXIS", "ZVAL1", "ZVAL2", "ZBLANK", "BLANK"]:
         if kw in header:
-            if np.intc(header[kw]) < 0:
+            if header[kw] > 0 and np.intc(header[kw]) < 0:
                 raise OverflowError()
 
     for i in range(1, header["ZNAXIS"] + 1):
         for kw_name in ["ZNAXIS", "ZTILE"]:
             kw = f"{kw_name}{i}"
             if kw in header:
-                if np.int32(header[kw]) < 0:
+                if header[kw] > 0 and np.int32(header[kw]) < 0:
                     raise OverflowError()
 
     for i in range(1, header["NAXIS"] + 1):
         kw = f"NAXIS{i}"
         if kw in header:
-            if np.int64(header[kw]) < 0:
+            if header[kw] > 0 and np.int64(header[kw]) < 0:
                 raise OverflowError()
 
     for kw in ["TNULL1", "PCOUNT", "THEAP"]:
         if kw in header:
-            if np.int64(header[kw]) < 0:
+            if header[kw] > 0 and np.int64(header[kw]) < 0:
                 raise OverflowError()
 
     for kw in ["ZVAL3"]:
         if kw in header:
             if np.isinf(np.float32(header[kw])):
                 raise OverflowError()
+
+    # Validate data types
+
+    for kw in ["ZSCALE", "ZZERO", "TZERO1", "TSCAL1"]:
+        if kw in header:
+            if not np.isreal(header[kw]):
+                raise TypeError(f"{kw} should be floating-point")
+
+    for kw in ["TTYPE1", "TFORM1", "ZCMPTYPE", "ZNAME1", "ZQUANTIZ"]:
+        if kw in header:
+            if not isinstance(header[kw], str):
+                raise TypeError(f"{kw} should be a string")
+
+    for kw in ["ZDITHER0"]:
+        if kw in header:
+            if not np.isreal(header[kw]) or not float(header[kw]).is_integer():
+                raise TypeError(f"{kw} should be an integer")
+
+    if "TFORM1" in header:
+        for valid in ["1PB", "1PI", "1PJ", "1QB", "1QI", "1QJ"]:
+            if header["TFORM1"].startswith(valid):
+                break
+        else:
+            raise RuntimeError(f"Invalid TFORM1: {header['TFORM1']}")
+
+    # Check values
+
+    for kw in ["TFIELDS", "PCOUNT"] + [
+        f"NAXIS{idx + 1}" for idx in range(header["NAXIS"])
+    ]:
+        if kw in header:
+            if header[kw] < 0:
+                raise ValueError(f"{kw} should not be negative.")
+
+    for kw in ["ZNAXIS", "TFIELDS"]:
+        if kw in header:
+            if header[kw] < 0 or header[kw] > 999:
+                raise ValueError(f"{kw} should be in the range 0 to 999")
+
+    if header["ZBITPIX"] not in [8, 16, 32, 64, -32, -64]:
+        raise ValueError(f"Invalid value for BITPIX: {header['ZBITPIX']}")
+
+    if header["ZCMPTYPE"] not in [
+        "GZIP_1",
+        "GZIP_2",
+        "PLIO_1",
+        "RICE_1",
+        "HCOMPRESS_1",
+    ]:
+        raise ValueError(f"Unrecognized compression type: {header['ZCMPTYPE']}")
+
+    # Check that certain keys are present
+
+    header["ZNAXIS"]
+    header["ZBITPIX"]
 
 
 def decompress_hdu(hdu):
@@ -601,6 +656,9 @@ def compress_hdu(hdu):
     Drop-in replacement for compress_hdu from compressionmodule.c
     """
 
+    if not isinstance(hdu.data, np.ndarray):
+        raise TypeError("CompImageHDU.data must be a numpy.ndarray")
+
     _check_compressed_header(hdu._header)
 
     # For now this is very inefficient, just a proof of concept!
@@ -655,11 +713,12 @@ def compress_hdu(hdu):
     for i in range(len(compressed_bytes)):
         heap_header[i * 2] = len(compressed_bytes[i])
         heap_header[1 + i * 2] = heap_header[: i * 2 : 2].sum()
-        # For PLIO_1, the size of each heap element is a factor of two lower than
-        # the real size - not clear if this is deliberate or bug somewhere.
 
-    for i in range(len(compressed_bytes)):
-        heap_header[i * 2] /= 2
+    # For PLIO_1, the size of each heap element is a factor of two lower than
+    # the real size - not clear if this is deliberate or bug somewhere.
+    if hdu._header["ZCMPTYPE"] == "PLIO_1":
+        for i in range(len(compressed_bytes)):
+            heap_header[i * 2] /= 2
 
     compressed_bytes = b"".join(compressed_bytes)
 
