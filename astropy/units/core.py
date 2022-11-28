@@ -2426,6 +2426,8 @@ class CompositeUnit(UnitBase):
 
 
 si_prefixes = [
+    (["Q"], ["quetta"], 1e30),
+    (["R"], ["ronna"], 1e27),
     (["Y"], ["yotta"], 1e24),
     (["Z"], ["zetta"], 1e21),
     (["E"], ["exa"], 1e18),
@@ -2446,6 +2448,8 @@ si_prefixes = [
     (["a"], ["atto"], 1e-18),
     (["z"], ["zepto"], 1e-21),
     (["y"], ["yocto"], 1e-24),
+    (["r"], ["ronto"], 1e-27),
+    (["q"], ["quecto"], 1e-30),
 ]
 
 
