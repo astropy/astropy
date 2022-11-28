@@ -29,7 +29,7 @@ fitsio = pytest.importorskip("fitsio")
     ids=lambda x: f"shape: {x}",
 )
 def base_original_data(request, compression_type_dtype):
-    if compression_type_dtype[0] == "HCOMPRESS_1" and len(request.param) < 2:
+    if compression_type_dtype[0] == "HCOMPRESS_1" and len(request.param) != 2:
         pytest.xfail("HCOMPRESS is 2D only apparently")
     size = np.product(request.param)
     return np.arange(size).reshape(request.param)
