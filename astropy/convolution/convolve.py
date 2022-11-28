@@ -1,15 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
-
-import os
-import ctypes
-import warnings
 from functools import partial
 
 import numpy as np
-from numpy.ctypeslib import ndpointer, load_library
 
+from ._convolve import _convolveNd_c
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.console import human_file_size
@@ -19,40 +15,6 @@ from astropy.modeling.core import CompoundModel
 from astropy.modeling.core import SPECIAL_OPERATORS
 from astropy.modeling.convolution import Convolution
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
-
-LIBRARY_PATH = os.path.dirname(__file__)
-
-try:
-    with warnings.catch_warnings():
-        # numpy.distutils is deprecated since numpy 1.23
-        # see https://github.com/astropy/astropy/issues/12865
-        warnings.simplefilter("ignore", DeprecationWarning)
-        _convolve = load_library("_convolve", LIBRARY_PATH)
-except Exception:
-    raise ImportError("Convolution C extension is missing. Try re-building astropy.")
-
-# The GIL is automatically released by default when calling functions imported
-# from libraries loaded by ctypes.cdll.LoadLibrary(<path>)
-
-# Declare prototypes
-# Boundary None
-_convolveNd_c = _convolve.convolveNd_c
-_convolveNd_c.restype = None
-_convolveNd_c.argtypes = [
-    ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRITEABLE"}),  # return array
-    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # input array
-    ctypes.c_uint,  # N dim
-    # size array for input and result unless
-    # embed_result_within_padded_region is False,
-    # in which case the result array is assumed to be
-    # input.shape - 2*(kernel.shape//2). Note: integer division.
-    ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),
-    ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),  # kernel array
-    ndpointer(ctypes.c_size_t, flags="C_CONTIGUOUS"),  # size array for kernel
-    ctypes.c_bool,  # nan_interpolate
-    ctypes.c_bool,  # embed_result_within_padded_region
-    ctypes.c_uint,
-]  # n_threads
 
 # np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
 _good_sizes = np.array(
@@ -603,10 +565,7 @@ def convolve(
     _convolveNd_c(
         result,
         array_to_convolve,
-        array_to_convolve.ndim,
-        np.array(array_to_convolve.shape, dtype=ctypes.c_size_t, order="C"),
         kernel_internal,
-        np.array(kernel_shape, dtype=ctypes.c_size_t, order="C"),
         nan_interpolate,
         embed_result_within_padded_region,
         n_threads,
