@@ -373,7 +373,7 @@ longitude and latitude, but only with the Google queries::
     convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
-    <http://www.astropy.org/astroquery/>`_ or `astroplan
+    <https://astroquery.readthedocs.io/>`_ or `astroplan
     <https://astroplan.readthedocs.io/>`_ affiliated packages.
 
     Also note that these methods retrieve data from the internet to
