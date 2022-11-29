@@ -45,3 +45,13 @@ extern int Fitsio_Pthread_Status;
 #define FFUNLOCK
 #define ffstrtok(str, tok, save) strtok(str, tok)
 #endif
+
+#define N_RANDOM 10000  /* DO NOT CHANGE THIS;  used when quantizing real numbers */
+
+#define MEMORY_ALLOCATION 113  /* Could not allocate memory */
+
+#define NO_DITHER -1
+#define SUBTRACTIVE_DITHER_1 1
+#define SUBTRACTIVE_DITHER_2 2
+
+int fits_init_randoms(void);
