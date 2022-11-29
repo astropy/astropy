@@ -23,12 +23,12 @@ In particular, this release includes:
 * :ref:`whatsnew-5.2-ccddata-psf`
 
 In addition to these major changes, Astropy 5.2 includes a large number of
-smaller improvements and bug fixes, which are described in the `Full Changelog`.
-By the numbers:
+smaller improvements and bug fixes, which are described in the
+:ref:`whatsnew-5.2-changelog`. By the numbers:
 
-* 1048 commits have been added since 5.1
-* 151 issues have been closed since 5.1
-* 308 pull requests have been merged since 5.1
+* 1065 commits have been added since 5.1
+* 157 issues have been closed since 5.1
+* 320 pull requests have been merged since 5.1
 * 50 people have contributed since 5.1
 * 18 of which are new contributors
 
@@ -308,6 +308,8 @@ CCDData PSF Image representation
 The ``NDData``/``CCDData`` objects now have a specific attribute for an image representation of the point spread function (PSF) at the image center.
 This was added to support the Rubin Observatory/LSST alert packets, which will be distributed as ``CCDData`` objects.
 
+.. _whatsnew-5.2-changelog:
+
 Full change log
 ===============
 
@@ -359,8 +361,8 @@ The people who have contributed to the code for this release are:
   -  Pey Lian Lim
   -  Roland Weber  *
   -  Roy Smart
+  -  Sam Lee
   -  Sam Van Kooten
-  -  Sam leidenuniv
   -  Simon Conseil
   -  Stuart Mumford
   -  Sébastien Maret  *
