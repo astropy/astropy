@@ -351,6 +351,7 @@ int ffi2c(LONGLONG ival, char *cval, int *status);
 int ffu2c(ULONGLONG ival, char *cval, int *status);
 int ffl2c(int lval, char *cval, int *status);
 int ffs2c(const char *instr, char *outstr, int *status);
+int ffs2c_nopad(const char *instr, char *outstr, int *status);
 int ffr2f(float fval, int decim, char *cval, int *status);
 int ffr2e(float fval, int decim, char *cval, int *status);
 int ffd2f(double dval, int decim, char *cval, int *status);
@@ -405,6 +406,7 @@ int ffourl(char *url, char *urltype, char *outfile, char *tmplfile,
 int ffparsecompspec(fitsfile *fptr, char *compspec, int *status);
 int ffoptplt(fitsfile *fptr, const char *tempname, int *status);
 int fits_is_this_a_copy(char *urltype);
+char *fits_find_match_delim(char *, char);
 int fits_store_Fptr(FITSfile *Fptr, int *status);
 int fits_clear_Fptr(FITSfile *Fptr, int *status);
 int fits_already_open(fitsfile **fptr, char *url, 
@@ -414,6 +416,36 @@ int fits_already_open(fitsfile **fptr, char *url,
 int ffedit_columns(fitsfile **fptr, char *outfile, char *expr, int *status);
 int fits_get_col_minmax(fitsfile *fptr, int colnum, double *datamin, 
                      double *datamax, int *status);
+/* "Extended syntax" versions of histogram binning which permit
+   expressions instead of just columns.  The existing interfaces
+   still work */
+int fits_get_expr_minmax(fitsfile *fptr, char *expr, double *datamin, 
+			 double *datamax, int *datatype, int *status);
+int ffbinse(char *binspec, int *imagetype, int *haxis, 
+	    char colname[4][FLEN_VALUE], double *minin,
+	    double *maxin, double *binsizein,
+	    char minname[4][FLEN_VALUE], char maxname[4][FLEN_VALUE],
+	    char binname[4][FLEN_VALUE], double *weight, char *wtname,
+	    int *recip, char ***exprs, int *status);
+int ffbinre(char **binspec, char *colname, char **exprbeg, char **exprend,
+	    double *minin, double *maxin, double *binsizein, char *minname,
+	    char *maxname, char *binname, int *status);
+int ffhist2e(fitsfile **fptr, char *outfile, int imagetype, int naxis,
+	     char colname[4][FLEN_VALUE], char *colexpr[4], 
+	     double *minin, double *maxin, double *binsizein, 
+	     char minname[4][FLEN_VALUE], char maxname[4][FLEN_VALUE], 
+	     char binname[4][FLEN_VALUE], 
+	     double weightin, char wtcol[FLEN_VALUE], char *wtexpr,           
+	     int recip, char *selectrow, int *status);
+int fits_calc_binningde(fitsfile *, int, char colname[4][FLEN_VALUE],
+	  char *colexpr[4], double *minin, double *maxin, double *binsizein,
+          char minname[4][FLEN_VALUE], char maxname[4][FLEN_VALUE], char binname[4][FLEN_VALUE],			       
+          int *, int *, long *, double *, double *, double *, long *, int *);
+int fits_write_keys_histoe(fitsfile *fptr,  fitsfile *histptr, 
+          int naxis, int *colnum, char colname[4][FLEN_VALUE], char *colexpr[4], int *status);  
+int fits_make_histde(fitsfile *fptr, fitsfile *histptr, int *datatypes, int bitpix,int naxis,
+     long *naxes,  int *colnum,  char *colexpr[4], double *amin,  double *amax, double *binsize,
+     double weight, int wtcolnum, char *wtexpr, int recip, char *selectrow, int *status);
 int ffwritehisto(long totaln, long offset, long firstn, long nvalues,
              int narrays, iteratorCol *imagepars, void *userPointer);
 int ffcalchist(long totalrows, long offset, long firstrow, long nrows,
@@ -987,18 +1019,20 @@ void ieevpr(float *inarray, float *outarray, long *nvals);
 void ieevur(float *inarray, float *outarray, long *nvals);
 
 /*  routines related to the lexical parser  */
+typedef struct ParseData_struct ParseData;
 int  ffselect_table(fitsfile **fptr, char *outfile, char *expr,  int *status);
 int  ffiprs( fitsfile *fptr, int compressed, char *expr, int maxdim,
 	     int *datatype, long *nelem, int *naxis, long *naxes,
-	     int *status );
-void ffcprs( void );
+	     ParseData *, int *status );
+void ffcprs( ParseData * );
 int  ffcvtn( int inputType, void *input, char *undef, long ntodo,
 	     int outputType, void *nulval, void *output,
 	     int *anynull, int *status );
-int  parse_data( long totalrows, long offset, long firstrow,
+int  fits_parser_workfn( long totalrows, long offset, long firstrow,
                  long nrows, int nCols, iteratorCol *colData,
                  void *userPtr );
-int  uncompress_hkdata( fitsfile *fptr, long ntimes, 
+int  fits_uncompress_hkdata( ParseData *, 
+			fitsfile *fptr, long ntimes, 
                         double *times, int *status );
 int  ffffrw_work( long totalrows, long offset, long firstrow,
                   long nrows, int nCols, iteratorCol *colData,
@@ -1186,6 +1220,7 @@ int stdout_close(int handle);
 int mem_compress_openrw(char *filename, int rwmode, int *hdl);
 int mem_compress_open(char *filename, int rwmode, int *hdl);
 int mem_compress_stdin_open(char *filename, int rwmode, int *hdl);
+int mem_zuncompress_and_write(int hdl, void *buffer, long nbytes);
 int mem_iraf_open(char *filename, int rwmode, int *hdl);
 int mem_rawfile_open(char *filename, int rwmode, int *hdl);
 int mem_size(int handle, LONGLONG *filesize);
@@ -1293,6 +1328,8 @@ int compress2file_from_mem(
 /* these functions are in fitscore.c */
 int fits_strcasecmp (const char *s1, const char *s2       );
 int fits_strncasecmp(const char *s1, const char *s2, size_t n);
+/* "recalloc" which is a reallocator in the style of calloc */
+void *fits_recalloc(void *ptr, size_t old_num, size_t new_num, size_t size);
 
 /* end of the entire "ifndef _FITSIO2_H" block */
 #endif
