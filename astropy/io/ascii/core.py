@@ -1143,7 +1143,7 @@ class BaseOutputter:
                             f" column {col.name}, reverting to String.",
                             AstropyWarning,
                         )
-                        col.converters.insert(0, convert_numpy(numpy.str))
+                        col.converters.insert(0, convert_numpy(str))
                     else:
                         col.converters.pop(0)
                     last_err = err
