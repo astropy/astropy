@@ -30,33 +30,35 @@ env:
 jobs:
   tests:
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    runs-on: ubuntu-latest
     env:
       ARCH_ON_CI: "normal"
-    with:
-      submodules: false
-      coverage: codecov
-      libraries: |
-        apt:
-          - language-pack-de
-          - tzdata
-          - graphviz
+    steps:
+      - uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+        with:
+          submodules: false
+          coverage: codecov
+          libraries: |
+            apt:
+              - language-pack-de
+              - tzdata
+              - graphviz
 
-      envs: |
-        # We check numpy-dev also in a job that only runs from cron, so that
-        # we can spot issues sooner. We do not use remote data here, since
-        # that gives too many false positives due to URL timeouts. We also
-        # install all dependencies via pip here so we pick up the latest
-        # releases.
-        - name: Python 3.10 with dev version of key dependencies
-          linux: py310-test-devdeps
+          envs: |
+            # We check numpy-dev also in a job that only runs from cron, so that
+            # we can spot issues sooner. We do not use remote data here, since
+            # that gives too many false positives due to URL timeouts. We also
+            # install all dependencies via pip here so we pick up the latest
+            # releases.
+            - name: Python 3.10 with dev version of key dependencies
+              linux: py310-test-devdeps
 
-        - name: Python 3.10 with dev version of infrastructure dependencies
-          linux: py310-test-devinfra
+            - name: Python 3.10 with dev version of infrastructure dependencies
+              linux: py310-test-devinfra
 
-        - name: Documentation link check
-          toxenv: linkcheck
-          python-version: 3.8
+            - name: Documentation link check
+              toxenv: linkcheck
+              python-version: 3.8
 
   tests_more_architectures:
 
