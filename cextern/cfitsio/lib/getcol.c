@@ -983,6 +983,123 @@ int ffgcv(  fitsfile *fptr,   /* I - FITS file pointer                       */
 
     return(*status);
 }
+
+/*--------------------------------------------------------------------------*/
+int ffgcvn( fitsfile *fptr,   /* I - FITS file pointer                       */
+	    int ncols,        /* I - number of columns to read               */
+            int  *datatype,   /* I - datatypes of the values                 */
+            int  *colnum,     /* I - columns numbers to read (1 = 1st col)   */
+            LONGLONG  firstrow,   /* I - first row to read (1 = 1st row)     */
+            LONGLONG nrows,       /* I - number of rows to read              */
+            void **nulval,    /* I - array of pointers to values for undefined pixels */
+            void **array,     /* O - array of pointers to values that are returned    */
+            int  *anynul,     /* O - anynul[i] set to 1 if any values in column i are null; else 0 */
+            int  *status)     /* IO - error status                           */
+/*
+  Read arrays of values from NCOLS table columns. This is an optimization
+  to read all columns in one pass through the table.  The datatypes of the
+  input arrays are defined by the 3rd argument.  Data conversion
+  and scaling will be performed if necessary (e.g, if the datatype of
+  the FITS array is not the same as the array being read).
+  Undefined elements for column i will be set equal to *(nulval[i]), unless nulval[i]=0
+  in which case no checking for undefined values will be performed.
+  anynul[i] is returned with a value of true if any pixels in column i are undefined.
+*/
+{
+    LONGLONG ntotrows, ndone, nread, currow;
+    long nrowbuf;
+    LONGLONG *repeats = 0;
+    size_t sizes[255] = {0};
+    int icol;
+
+    sizes[TBYTE] = sizes[TSBYTE] = sizes[TLOGICAL] = sizeof(char);
+    sizes[TUSHORT] = sizes[TSHORT] = sizeof(short int);
+    sizes[TINT] = sizes[TUINT] = sizeof(int);
+    sizes[TLONG] = sizes[TULONG] = sizeof(long int);
+    sizes[TLONGLONG] = sizes[TULONGLONG] = sizeof(LONGLONG);
+    sizes[TFLOAT] = sizeof(float);
+    sizes[TDOUBLE] = sizeof(double);
+    sizes[TDBLCOMPLEX] = 2*sizeof(double);
+
+    if (*status > 0)
+        return(*status);
+
+    if (ncols <= 0) return (*status=0);
+
+    repeats = malloc(sizeof(LONGLONG)*ncols);
+    if (repeats == 0) return (*status=MEMORY_ALLOCATION);
+
+    fits_get_num_rowsll(fptr, &ntotrows, status);
+    fits_get_rowsize(fptr, &nrowbuf, status);
+
+    /* Retrieve column repeats */
+    for (icol = 0; (icol < ncols) && (icol < 1000); icol++) {
+      int typecode;
+      LONGLONG repeat, width;
+      fits_get_coltypell(fptr, colnum[icol], &typecode, 
+			 &repeat, &width, status);
+      repeats[icol] = repeat;
+
+      if (datatype[icol] == TBIT || datatype[icol] == TSTRING ||
+	  sizes[datatype[icol]] == 0) {
+	ffpmsg("Cannot read from TBIT or TSTRING datatypes (ffgcvn)");
+	*status = BAD_DATATYPE;
+      }
+      if (typecode < 0) {
+	ffpmsg("Cannot read from variable-length data (ffgcvn)");
+	*status = BAD_DIMEN;
+      }
+
+      if (*status) break;
+    }
+    if (*status) {
+      free(repeats);
+      return *status;
+    }
+
+    /* Optimize for 1 column */
+    if (ncols == 1) {
+      fits_read_col(fptr, datatype[0], colnum[0], firstrow, 1,
+		    nrows*repeats[0], nulval[0], 
+		    array[0], anynul ? &(anynul[0]) : 0, status);
+      free(repeats);
+      return *status;
+    }
+
+    /* Scan through file, in chunks of nrowbuf */
+    currow = firstrow;
+    ndone = 0;
+    while (ndone < nrows) {
+      int icol;
+      nread = (nrows-ndone);  /* Number of rows to read (not elements) */
+      if (nread > nrowbuf) nread = nrowbuf;
+
+      for (icol=0; icol<ncols; icol++) {
+	LONGLONG nelem1 = (nread*repeats[icol]);
+	char *array1 = (char *) array[icol] + repeats[icol]*ndone*sizes[datatype[icol]];
+
+	fits_read_col(fptr, datatype[icol], colnum[icol], currow, 1, 
+		      nelem1, nulval[icol], array1, 
+		      (anynul ? &(anynul[icol]) : 0), status);
+	if (*status) {
+	  char errmsg[100];
+	  sprintf(errmsg, 
+		  "Failed to read column %d data rows %lld-%lld (ffgcvn)",
+		  colnum[icol], currow, currow+nread-1);
+	  ffpmsg(errmsg);
+	  break;
+	}
+      }
+
+      if (*status) break;
+      currow += nread;
+      ndone += nread;
+    }
+
+    free(repeats);
+    return *status;
+}
+
 /*--------------------------------------------------------------------------*/
 int ffgcf(  fitsfile *fptr,   /* I - FITS file pointer                       */
             int  datatype,    /* I - datatype of the value                   */
