@@ -2158,7 +2158,10 @@ class TestPandas:
                 else:
                     assert t2[name].dtype.kind == "i"
 
-                assert_array_equal(column.data, t2[name].data.astype(column.dtype))
+                # This warning pops up when use_nullable_int is False
+                # for pandas 1.5.2.
+                with np.errstate(invalid='ignore'):
+                    assert_array_equal(column.data, t2[name].data.astype(column.dtype))
             else:
                 if column.dtype.byteorder in ("=", "|"):
                     assert column.dtype == t2[name].dtype
