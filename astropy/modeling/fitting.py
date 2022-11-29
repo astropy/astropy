@@ -590,14 +590,14 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             x, y, z, n_models=len(model_copy), model_set_axis=model_copy.model_set_axis
         )
 
-        has_fixed = any(model_copy.fixed.values())
+        n_fixed = sum(model_copy.fixed.values())
 
         # This is also done by _convert_inputs, but we need it here to allow
         # checking the array dimensionality before that gets called:
         if weights is not None:
             weights = np.asarray(weights, dtype=float)
 
-        if has_fixed:
+        if n_fixed:
             # The list of fixed params is the complement of those being fitted:
             fixparam_indices = [
                 idx
@@ -632,7 +632,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # map domain into window
             if hasattr(model_copy, "domain"):
                 x = self._map_domain_window(model_copy, x)
-            if has_fixed:
+            if n_fixed:
                 lhs = np.asarray(
                     self._deriv_with_constraints(model_copy, fitparam_indices, x=x)
                 )
@@ -662,7 +662,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             if hasattr(model_copy, "x_domain"):
                 x, y = self._map_domain_window(model_copy, x, y)
 
-            if has_fixed:
+            if n_fixed:
                 lhs = np.asarray(
                     self._deriv_with_constraints(model_copy, fitparam_indices, x=x, y=y)
                 )
@@ -724,7 +724,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         # Subtract any terms fixed by the user from (a copy of) the RHS, in
         # order to fit the remaining terms correctly:
-        if has_fixed:
+        if n_fixed:
             if model_copy.col_fit_deriv:
                 fixderivs = np.asarray(fixderivs).T  # as for lhs above
             rhs = rhs - fixderivs.dot(fixparams)  # evaluate user-fixed terms
@@ -835,8 +835,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         if (
             hasattr(model_copy, "_order")
             and len(model_copy) == 1
-            and not has_fixed
-            and rank != model_copy._order
+            and rank < (model_copy._order - n_fixed)
         ):
             warnings.warn("The fit may be poorly conditioned\n", AstropyUserWarning)
 
