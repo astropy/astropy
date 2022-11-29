@@ -333,6 +333,8 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args) {
   double bscale, bzero;
   int iminval, imaxval;
 
+  int status;
+
   if (!PyArg_ParseTuple(args, "y#lllidfi", &input_bytes, &nbytes, &row, &nx,
                         &ny, &nullcheck, &in_null_value, &qlevel,
                         &dither_method)) {
@@ -342,13 +344,13 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args) {
   input_data = (float *)input_bytes;
   quantized_data = (int *)malloc(nx * ny * sizeof(int));
 
-  fits_quantize_float(row, input_data, nx, ny, nullcheck, in_null_value, qlevel,
-                      dither_method, quantized_data, &bscale, &bzero, &iminval,
-                      &imaxval);
+  status = fits_quantize_float(row, input_data, nx, ny, nullcheck, in_null_value, qlevel,
+                               dither_method, quantized_data, &bscale, &bzero, &iminval,
+                               &imaxval);
 
   quantized_bytes = (char *)quantized_data;
 
-  result = Py_BuildValue("y#ddii", quantized_bytes, nx * ny * sizeof(int),
+  result = Py_BuildValue("y#iddii", quantized_bytes, nx * ny * sizeof(int), status,
                                    bscale, bzero, iminval, imaxval);
   free(quantized_bytes);
   return result;
@@ -373,6 +375,8 @@ static PyObject *quantize_double_c(PyObject *self, PyObject *args) {
   double bscale, bzero;
   int iminval, imaxval;
 
+  int status;
+
   if (!PyArg_ParseTuple(args, "y#lllidfi", &input_bytes, &nbytes, &row, &nx,
                         &ny, &nullcheck, &in_null_value, &qlevel,
                         &dither_method)) {
@@ -382,14 +386,14 @@ static PyObject *quantize_double_c(PyObject *self, PyObject *args) {
   input_data = (double *)input_bytes;
   quantized_data = (int *)malloc(nx * ny * sizeof(int));
 
-  fits_quantize_double(row, input_data, nx, ny, nullcheck, in_null_value,
-                       qlevel, dither_method, quantized_data, &bscale, &bzero,
-                       &iminval, &imaxval);
+  status = fits_quantize_double(row, input_data, nx, ny, nullcheck, in_null_value,
+                                qlevel, dither_method, quantized_data, &bscale, &bzero,
+                                &iminval, &imaxval);
 
   quantized_bytes = (char *)quantized_data;
 
-  result = Py_BuildValue("y#ddii", quantized_bytes, nx * ny * sizeof(int),
-                                   bscale, bzero, iminval, imaxval);
+  result = Py_BuildValue("y#iddii", quantized_bytes, nx * ny * sizeof(int), status,
+                                    bscale, bzero, iminval, imaxval);
   free(quantized_bytes);
   return result;
 }
