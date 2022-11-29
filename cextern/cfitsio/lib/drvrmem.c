@@ -1237,6 +1237,37 @@ int mem_write(int hdl, void *buffer, long nbytes)
     return(0);
 }
 
+/*--------------------------------------------------------------------------*/
+int mem_zuncompress_and_write(int hdl, void *buffer, long nbytes)
+/*
+  uncompress input buffer, length nbytes and write bytes to current
+  position in file.  output buffer needs to be at position 0 to start.
+*/
+{
+  size_t newsize;
+  int status = 0;
+
+  if (memTable[hdl].currentpos != 0) {
+      ffpmsg("cannot append uncompressed data (mem_uncompress_and_write)");
+      return(WRITE_ERROR);
+  }
+
+  uncompress2mem_from_mem(buffer, nbytes,
+			  memTable[hdl].memaddrptr,
+			  memTable[hdl].memsizeptr,
+			  memTable[hdl].mem_realloc, 
+			  &newsize, &status);
+  
+  if (status) {
+    ffpmsg("unabled to uncompress memory file (mem_uncompress_and_write)");
+    return(WRITE_ERROR);
+  }
+
+  memTable[hdl].currentpos += newsize;
+  memTable[hdl].fitsfilesize = newsize;
+  return(0);
+}
+
 
 #if HAVE_BZIP2
 void bzip2uncompress2mem(char *filename, FILE *diskfile, int hdl,
