@@ -131,7 +131,7 @@ int ffrsimll(fitsfile *fptr,    /* I - FITS file pointer           */
 
     oldsize = (oldsize + 2879) / 2880; /* old size, in blocks */
 
-    newsize = (newsize + pcount) * gcount * (abs(longbitpix) / 8);
+    newsize = (newsize + pcount) * gcount * (labs(longbitpix) / 8);
     newsize = (newsize + 2879) / 2880; /* new size, in blocks */
 
     if (newsize > oldsize)   /* have to insert new blocks for image */
@@ -2371,6 +2371,246 @@ int ffcprw(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
+int ffcpsr(fitsfile *infptr,    /* I - FITS file pointer to input file  */
+           fitsfile *outfptr,   /* I - FITS file pointer to output file */
+           LONGLONG firstrow,   /* I - number of first row to copy (1 based)  */
+           LONGLONG nrows,      /* I - number of rows to copy  */
+	   char *row_status,    /* I - quality list of rows to keep (1) or not keep (0) */
+           int *status)         /* IO - error status     */
+/*
+  copy consecutive set of rows from infptr and append it in the outfptr table.
+*/
+{
+    LONGLONG innaxis1, innaxis2, outnaxis1, outnaxis2, ii, jj, i0, icol;
+    LONGLONG iVarCol, inPos, outPos, nVarBytes, nVarAllocBytes = 0;
+    unsigned char *buffer, *varColBuff=0;
+    int nInVarCols=0, nOutVarCols=0, varColDiff=0;
+    int *inVarCols=0, *outVarCols=0;
+    long nNewBlocks;
+    LONGLONG hrepeat=0, hoffset=0;
+    tcolumn *colptr=0;
+    LONGLONG n_good_rows = nrows;
+    
+    if (*status > 0)
+        return(*status);
+
+    if (infptr->HDUposition != (infptr->Fptr)->curhdu)
+    {
+        ffmahd(infptr, (infptr->HDUposition) + 1, NULL, status);
+    }
+    else if ((infptr->Fptr)->datastart == DATA_UNDEFINED)
+        ffrdef(infptr, status);                /* rescan header */
+
+    if (outfptr->HDUposition != (outfptr->Fptr)->curhdu)
+    {
+        ffmahd(outfptr, (outfptr->HDUposition) + 1, NULL, status);
+    }
+    else if ((outfptr->Fptr)->datastart == DATA_UNDEFINED)
+        ffrdef(outfptr, status);               /* rescan header */
+
+    if (*status > 0)
+        return(*status);
+
+    if ((infptr->Fptr)->hdutype == IMAGE_HDU || (outfptr->Fptr)->hdutype == IMAGE_HDU)
+    {
+       ffpmsg
+       ("Can not copy rows to or from IMAGE HDUs (ffcprw)");
+       return(*status = NOT_TABLE);
+    }
+
+    if ( ((infptr->Fptr)->hdutype == BINARY_TBL &&  (outfptr->Fptr)->hdutype == ASCII_TBL) ||
+         ((infptr->Fptr)->hdutype == ASCII_TBL &&  (outfptr->Fptr)->hdutype == BINARY_TBL) )
+    {
+       ffpmsg
+       ("Copying rows between Binary and ASCII tables is not supported (ffcprw)");
+       return(*status = NOT_BTABLE);
+    }
+
+    ffgkyjj(infptr,  "NAXIS1", &innaxis1,  0, status);  /* width of input rows */
+    ffgkyjj(infptr,  "NAXIS2", &innaxis2,  0, status);  /* no. of input rows */
+    ffgkyjj(outfptr, "NAXIS1", &outnaxis1, 0, status);  /* width of output rows */
+    ffgkyjj(outfptr, "NAXIS2", &outnaxis2, 0, status);  /* no. of output rows */
+
+    if (*status > 0)
+        return(*status);
+
+    if (outnaxis1 != innaxis1) {
+       ffpmsg
+       ("Input and output tables do not have same width (ffcprw)");
+       return(*status = BAD_ROW_WIDTH);
+    }    
+
+    if (firstrow + nrows - 1 > innaxis2) {
+       ffpmsg
+       ("Not enough rows in input table to copy (ffcprw)");
+       return(*status = BAD_ROW_NUM);
+    }
+    
+    if ((infptr->Fptr)->tfield != (outfptr->Fptr)->tfield)
+    {
+       ffpmsg
+       ("Input and output tables do not have same number of columns (ffcprw)");
+       return(*status = BAD_COL_NUM);
+    }
+    
+    /* allocate buffer to hold 1 row of data */
+    buffer = malloc( (size_t) innaxis1);
+    if (!buffer) {
+       ffpmsg
+       ("Unable to allocate memory (ffcprw)");
+       return(*status = MEMORY_ALLOCATION);
+    }
+ 
+    inVarCols = malloc(infptr->Fptr->tfield*sizeof(int));
+    outVarCols = malloc(outfptr->Fptr->tfield*sizeof(int));
+    fffvcl(infptr, &nInVarCols, inVarCols, status);
+    fffvcl(outfptr, &nOutVarCols, outVarCols, status);
+    if (nInVarCols != nOutVarCols)
+       varColDiff=1;
+    else
+    {
+       for (ii=0; ii<nInVarCols; ++ii)
+       {
+          if (inVarCols[ii] != outVarCols[ii])
+          {
+             varColDiff=1;
+             break;
+          }
+       }
+    }
+    
+    if (varColDiff)
+    {
+       ffpmsg("Input and output tables have different variable columns (ffcprw)");
+       *status = BAD_COL_NUM;
+       goto CLEANUP_RETURN;
+    }
+    
+    jj = outnaxis2 + 1;
+    if (nInVarCols)
+    {
+      if (row_status) {
+	for (n_good_rows = 0, ii = 0; ii < nrows; ii++) {
+	  if (row_status[ii]) n_good_rows++; 
+	}
+      }
+
+       ffirow(outfptr, outnaxis2, n_good_rows, status);
+       for (ii = firstrow, i0 = 0; i0 < nrows; i0++, ii++)
+       {
+	  /* Ignore rows with row_status[] == 0 */
+	  if (row_status && !row_status[i0]) continue;
+
+          fits_read_tblbytes (infptr, ii, 1, innaxis1, buffer, status);
+          fits_write_tblbytes(outfptr, jj, 1, innaxis1, buffer, status);
+          /* Now make corrections for variable length columns */
+          iVarCol=0;
+          colptr = (infptr->Fptr)->tableptr;
+          for (icol=0; icol<(infptr->Fptr)->tfield; ++icol)
+          {
+             if (iVarCol < nInVarCols && inVarCols[iVarCol] == icol+1)
+             {
+                /* Copy from a variable length column */
+                
+                ffgdesll(infptr, icol+1, ii, &hrepeat, &hoffset, status);
+                /* If this is a bit column, hrepeat will be number of
+                   bits, not bytes. If it is a string column, hrepeat
+		   is the number of bytes, twidth is the max col width 
+		   and can be ignored.*/
+                if (colptr->tdatatype == -TBIT)
+		{
+		   nVarBytes = (hrepeat+7)/8;
+		}
+		else if (colptr->tdatatype == -TSTRING)
+		{
+		   nVarBytes = hrepeat;
+		}
+		else
+		{
+		   nVarBytes = hrepeat*colptr->twidth*sizeof(char);
+		}
+                inPos = (infptr->Fptr)->datastart + (infptr->Fptr)->heapstart
+				+ hoffset;
+		outPos = (outfptr->Fptr)->datastart + (outfptr->Fptr)->heapstart
+				+ (outfptr->Fptr)->heapsize;
+                ffmbyt(infptr, inPos, REPORT_EOF, status);
+		/* If this is not the last HDU in the file, then check if */
+		/* extending the heap would overwrite the following header. */
+		/* If so, then have to insert more blocks. */
+                if ( !((outfptr->Fptr)->lasthdu) )
+                {
+		   if (outPos+nVarBytes > 
+		      (outfptr->Fptr)->headstart[(outfptr->Fptr)->curhdu+1])
+		   {
+		      nNewBlocks = (long)(((outPos+nVarBytes - 1 -
+                        (outfptr->Fptr)->headstart[(outfptr->Fptr)->
+                        curhdu+1]) / 2880) + 1);
+                      if (ffiblk(outfptr, nNewBlocks, 1, status) > 0)
+                      {
+                         ffpmsg("Failed to extend the size of the variable length heap (ffcprw)");
+			 goto CLEANUP_RETURN;
+                      }
+
+		   }
+                }
+                if (nVarBytes)
+		{
+		   if (nVarBytes > nVarAllocBytes)
+		   {
+		     /* Grow the copy buffer to accomodate the new maximum size. 
+			Note it is safe to call realloc() with null input pointer, 
+			which is equivalent to malloc(). */
+		     unsigned char *varColBuff1 = (unsigned char *) realloc(varColBuff, nVarBytes);
+		     if (! varColBuff1)
+		     {
+		       *status = MEMORY_ALLOCATION;
+		       ffpmsg("failed to allocate memory for variable column copy (ffcprw)");
+		       goto CLEANUP_RETURN;
+		     }
+		     /* Record the new state */
+		     varColBuff = varColBuff1;
+		     nVarAllocBytes = nVarBytes;
+		   }
+		   /* Copy date from input to output */
+                   ffgbyt(infptr, nVarBytes, varColBuff, status);
+		   ffmbyt(outfptr, outPos, IGNORE_EOF, status);
+                   ffpbyt(outfptr, nVarBytes, varColBuff, status);
+		}
+		ffpdes(outfptr, icol+1, jj, hrepeat, (outfptr->Fptr)->heapsize, status);
+                (outfptr->Fptr)->heapsize += nVarBytes;
+                ++iVarCol;
+             }
+             ++colptr;
+          }
+          ++jj;
+       }
+    }
+    else
+    {    
+       /* copy the rows, 1 at a time */
+       n_good_rows = 0;
+       for (ii = firstrow, i0 = 0; i0 < nrows; i0++, ii++)
+       {
+	  /* Ignore rows with row_status[] == 0 */
+	  if (row_status && !row_status[i0]) continue;
+
+           fits_read_tblbytes (infptr,  ii, 1, innaxis1, buffer, status);
+           fits_write_tblbytes(outfptr, jj, 1, innaxis1, buffer, status);
+	   n_good_rows ++;
+           jj++;
+       }
+    }
+    outnaxis2 += n_good_rows;
+    fits_update_key(outfptr, TLONGLONG, "NAXIS2", &outnaxis2, 0, status);
+
+ CLEANUP_RETURN:
+    free(buffer);
+    free(inVarCols);
+    free(outVarCols);
+    if (varColBuff) free(varColBuff);
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
 int ffcpky(fitsfile *infptr,    /* I - FITS file pointer to input file  */
            fitsfile *outfptr,   /* I - FITS file pointer to output file */
            int incol,           /* I - input index number   */
@@ -2867,7 +3107,8 @@ int fffvcl(fitsfile *fptr,   /* I - FITS file pointer                       */
    Internal function to identify which columns in a binary table are variable length.
    The colnums array will be filled with nvarcols elements - the 1-based numbers
    of all variable length columns in the table.  This ASSUMES calling function
-   has passed in a colnums array large enough to hold these.
+   has passed in a colnums array large enough to hold these (colnums==NULL also 
+   allowed).
 */
    int tfields=0,icol;
    tcolumn *colptr=0;
@@ -2891,8 +3132,8 @@ int fffvcl(fitsfile *fptr,   /* I - FITS file pointer                       */
          /* Condition for variable length column: negative tdatatype */
          if (colptr->tdatatype < 0)
          {
-            colnums[*nvarcols] = icol + 1;
-            *nvarcols += 1;            
+	    if (colnums) colnums[*nvarcols] = icol + 1;
+	    *nvarcols += 1;            
          }
       }      
    }   
