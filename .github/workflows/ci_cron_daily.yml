@@ -28,6 +28,9 @@ env:
   ARCH_ON_CI: "normal"
   IS_CRON: "true"
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
