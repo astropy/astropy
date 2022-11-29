@@ -8,10 +8,15 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
 
   test_wheel_building:
     # This ensures that a couple of targets work fine in pull requests and pushes
+    permissions:
+      contents: none
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
     if: (github.event_name == 'push' || github.event_name == 'pull_request')
     with:
@@ -25,6 +30,8 @@ jobs:
   build_and_publish:
     # This does the actual wheel building and publishing as part of the cron job
     # or if triggered manually via the workflow dispatch, or for a tag.
+    permissions:
+      contents: none
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@v1
     if: (github.repository == 'astropy/astropy' && ( startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Build all wheels')))
     with:
