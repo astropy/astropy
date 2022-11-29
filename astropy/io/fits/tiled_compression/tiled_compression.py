@@ -34,6 +34,12 @@ __all__ = [
     "decompress_hdu",
 ]
 
+DITHER_METHODS = {"NO_DITHER": -1, "SUBTRACTIVE_DITHER_1": 1, "SUBTRACTIVE_DITHER_2": 2}
+
+
+class QuantizationFailedException(Exception):
+    pass
+
 
 # We define our compression classes in the form of a numcodecs class. We make
 # the dependency on numcodecs optional as we can use them internally without it
@@ -164,7 +170,7 @@ class Quantize(Codec):
         uarray = np.asarray(buf)
         # TODO: figure out if we need to support null checking
         if uarray.dtype.itemsize == 4:
-            qbytes, scale, zero = quantize_float_c(
+            qbytes, status, scale, zero = quantize_float_c(
                 uarray.tobytes(),
                 self.row,
                 uarray.size,
@@ -173,9 +179,9 @@ class Quantize(Codec):
                 0,
                 self.quantize_level,
                 self.dither_method,
-            )[:3]
+            )[:4]
         elif uarray.dtype.itemsize == 8:
-            qbytes, scale, zero = quantize_double_c(
+            qbytes, status, scale, zero = quantize_double_c(
                 uarray.tobytes(),
                 self.row,
                 uarray.size,
@@ -184,8 +190,11 @@ class Quantize(Codec):
                 0,
                 self.quantize_level,
                 self.dither_method,
-            )[:3]
-        return np.frombuffer(qbytes, dtype=np.int32).data, scale, zero
+            )[:4]
+        if status == 0:
+            raise QuantizationFailedException()
+        else:
+            return np.frombuffer(qbytes, dtype=np.int32).data, scale, zero
 
 
 class Gzip1(Codec):
@@ -746,10 +755,18 @@ def decompress_hdu(hdu):
     data = np.zeros(data_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
 
     istart = np.zeros(data.ndim, dtype=int)
-    for cdata in hdu.compressed_data["COMPRESSED_DATA"]:
-        tile_buffer = decompress_tile(
-            cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
-        )
+    for irow, row in enumerate(hdu.compressed_data):
+
+        cdata = row["COMPRESSED_DATA"]
+
+        if len(cdata) == 0:
+            tile_buffer = decompress_tile(
+                row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
+            )
+        else:
+            tile_buffer = decompress_tile(
+                cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
+            )
 
         # In the following, we don't need to special case tiles near the edge
         # as Numpy will automatically ignore parts of the slices that are out
@@ -768,6 +785,15 @@ def decompress_hdu(hdu):
         tile_data = _buffer_to_array(
             tile_buffer, hdu._header, tile_shape=actual_tile_shape
         )
+
+        # TODO: have a more robust way of determining whether we need to
+        # dequantize
+        if hdu._header["ZBITPIX"] < 0 and tile_data.dtype.kind != "f":
+            dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
+            q = Quantize(irow, dither_method, None, hdu._header["ZBITPIX"])
+            tile_data = np.asarray(
+                q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
+            ).reshape(actual_tile_shape)
 
         data[tile_slices] = tile_data
         istart[-1] += tile_shape[-1]
@@ -797,7 +823,11 @@ def compress_hdu(hdu):
     data_shape = _data_shape(hdu._header)
 
     compressed_bytes = []
+    lossless = []
+    scales = []
+    zeros = []
 
+    irow = 0
     istart = np.zeros(len(data_shape), dtype=int)
 
     while True:
@@ -812,21 +842,49 @@ def compress_hdu(hdu):
             ]
         )
 
-        # TODO: deal with data not being integer number of tiles
         data = hdu.data[slices]
+
+        store_lossless = False
+
+        if data.dtype.kind == "f":
+            # TODO: use NOISEBIT quantize level
+            dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
+            q = Quantize(irow, dither_method, 10, hdu._header["ZBITPIX"])
+            original_shape = data.shape
+            try:
+                data, scale, zero = q.encode_quantized(data)
+            except QuantizationFailedException:
+                scales.append(0)
+                zeros.append(0)
+                lossless.append(True)
+            else:
+                data = np.asarray(data).reshape(original_shape)
+                scales.append(scale)
+                zeros.append(zero)
+                lossless.append(False)
+        else:
+            scales.append(0)
+            zeros.append(0)
+            lossless.append(False)
+
         # The original compress_hdu assumed the data was in native endian, so we
         # change this here:
-        if hdu._header["ZCMPTYPE"].startswith("GZIP"):
+        if hdu._header["ZCMPTYPE"].startswith("GZIP") or lossless[-1]:
             # This is apparently needed so that our heap data agrees with
             # the C implementation!?
             data = data.astype(data.dtype.newbyteorder(">"))
         else:
             if not data.dtype.isnative:
                 data = data.astype(data.dtype.newbyteorder("="))
-        cbytes = compress_tile(data, algorithm=hdu._header["ZCMPTYPE"], **settings)
+
+        if lossless[-1]:
+            cbytes = compress_tile(data, algorithm="GZIP_1")
+        else:
+            cbytes = compress_tile(data, algorithm=hdu._header["ZCMPTYPE"], **settings)
         compressed_bytes.append(cbytes)
 
         istart[-1] += tile_shape[-1]
+
         for idx in range(data.ndim - 1, 0, -1):
             if istart[idx] >= data_shape[idx]:
                 istart[idx] = 0
@@ -835,18 +893,29 @@ def compress_hdu(hdu):
         if istart[0] >= data_shape[0]:
             break
 
-    header_len = len(compressed_bytes) * 2
+        irow += 1
 
-    heap_header = np.zeros(header_len, ">i4")
-    for i in range(len(compressed_bytes)):
-        heap_header[i * 2] = len(compressed_bytes[i])
-        heap_header[1 + i * 2] = heap_header[: i * 2 : 2].sum()
+    table = np.zeros(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
+
+    if "ZSCALE" in table.dtype.names:
+        table["ZSCALE"] = np.array(scales)
+        table["ZZERO"] = np.array(zeros)
+
+    for irow, cbytes in enumerate(compressed_bytes):
+        table["COMPRESSED_DATA"][irow, 0] = len(cbytes)
+
+    table["COMPRESSED_DATA"][0, 1] = 0
+    table["COMPRESSED_DATA"][1:, 1] = np.cumsum(table["COMPRESSED_DATA"][:-1, 0])
+
+    for irow in range(len(compressed_bytes)):
+        if lossless[irow]:
+            table["GZIP_COMPRESSED_DATA"][irow] = table["COMPRESSED_DATA"][irow]
+            table["COMPRESSED_DATA"][irow] = 0
 
     # For PLIO_1, the size of each heap element is a factor of two lower than
     # the real size - not clear if this is deliberate or bug somewhere.
     if hdu._header["ZCMPTYPE"] == "PLIO_1":
-        for i in range(len(compressed_bytes)):
-            heap_header[i * 2] /= 2
+        table["COMPRESSED_DATA"][:, 0] //= 2
 
     compressed_bytes = b"".join(compressed_bytes)
 
@@ -856,6 +925,12 @@ def compress_hdu(hdu):
             np.frombuffer(compressed_bytes, dtype="<i2").astype(">i2").tobytes()
         )
 
-    heap = heap_header.tobytes() + compressed_bytes
+    table_bytes = table.tobytes()
+
+    if len(table_bytes) != hdu._theap:
+        raise Exception(
+            f"Unexpected compressed table size (expected {hdu._theap}, got {len(table_bytes)})"
+        )
+    heap = table.tobytes() + compressed_bytes
 
     return len(compressed_bytes), np.frombuffer(heap, dtype=np.uint8)
