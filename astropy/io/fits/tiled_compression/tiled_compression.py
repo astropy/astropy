@@ -15,6 +15,10 @@ from astropy.io.fits.tiled_compression._compression import (
     decompress_hcompress_1_c,
     decompress_plio_1_c,
     decompress_rice_1_c,
+    quantize_double_c,
+    quantize_float_c,
+    unquantize_double_c,
+    unquantize_float_c,
 )
 
 __all__ = [
@@ -23,6 +27,7 @@ __all__ = [
     "Rice1",
     "PLIO1",
     "HCompress1",
+    "Quantize",
     "compress_tile",
     "decompress_tile",
     "compress_hdu",
@@ -73,6 +78,114 @@ except ImportError:
                 Decoded data. May be any object supporting the new-style
                 buffer protocol.
             """
+
+
+class Quantize(Codec):
+    """
+    Quantization of floating-point data following the FITS standard.
+    """
+
+    codec_id = "FITS_QUANTIZE"
+
+    def __init__(self, row: int, dither_method: int, quantize_level: int, bitpix: int):
+        super().__init__()
+        self.row = row
+        # TODO: pass dither method as a string instead of int?
+        self.quantize_level = quantize_level
+        self.dither_method = dither_method
+        self.bitpix = bitpix
+
+    # NOTE: below we use decode_quantized and encode_quantized instead of
+    # decode and encode as we need to break with the numcodec API and take/return
+    # scale and zero in addition to quantized value. We should figure out how
+    # to properly use the numcodec API for this use case.
+
+    def decode_quantized(self, buf, scale, zero):
+        """
+        Unquantize data
+
+        Parameters
+        ----------
+        buf
+            The buffer to unquantize.
+
+        Returns
+        -------
+        buf
+            The unquantized buffer.
+        """
+        qbytes = np.asarray(buf)
+        # TODO: figure out if we need to support null checking
+        if self.bitpix == -32:
+            ubytes = unquantize_float_c(
+                qbytes,
+                self.row,
+                qbytes.size,
+                scale,
+                zero,
+                self.dither_method,
+                0,
+                0,
+                0.0,
+                qbytes.dtype.itemsize,
+            )
+        elif self.bitpix == -64:
+            ubytes = unquantize_double_c(
+                qbytes,
+                self.row,
+                qbytes.size,
+                scale,
+                zero,
+                self.dither_method,
+                0,
+                0,
+                0.0,
+                qbytes.dtype.itemsize,
+            )
+        else:
+            raise TypeError("bitpix should be one of -32 or -64")
+        return np.frombuffer(ubytes, dtype=BITPIX2DTYPE[self.bitpix]).data
+
+    def encode_quantized(self, buf):
+        """
+        Quantize data.
+
+        Parameters
+        ----------
+        buf
+            The buffer to quantize.
+
+        Returns
+        -------
+        buf
+            A buffer with quantized data.
+        """
+
+        uarray = np.asarray(buf)
+        # TODO: figure out if we need to support null checking
+        if uarray.dtype.itemsize == 4:
+            qbytes, scale, zero = quantize_float_c(
+                uarray.tobytes(),
+                self.row,
+                uarray.size,
+                1,
+                0,
+                0,
+                self.quantize_level,
+                self.dither_method,
+            )[:3]
+        elif uarray.dtype.itemsize == 8:
+            qbytes, scale, zero = quantize_double_c(
+                uarray.tobytes(),
+                self.row,
+                uarray.size,
+                1,
+                0,
+                0,
+                self.quantize_level,
+                self.dither_method,
+            )[:3]
+        return np.frombuffer(qbytes, dtype=np.int32).data, scale, zero
 
 
 class Gzip1(Codec):

@@ -17,6 +17,8 @@ def get_extensions():
                 os.path.join("cextern", "cfitsio", "lib", "ricecomp.c"),
                 os.path.join("cextern", "cfitsio", "lib", "fits_hcompress.c"),
                 os.path.join("cextern", "cfitsio", "lib", "fits_hdecompress.c"),
+                os.path.join("cextern", "cfitsio", "lib", "quantize.c"),
+                os.path.join("cextern", "cfitsio", "lib", "imcompress.c"),
             ],
             include_dirs=[SRC_DIR],
         )
