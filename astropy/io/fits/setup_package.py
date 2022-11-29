@@ -44,7 +44,7 @@ def _get_compression_extension():
                     "/D",
                     "_CRT_SECURE_NO_DEPRECATE",
                     "/D",
-                    "FF_NO_UNISTD_H",
+                    "YY_NO_UNISTD_H",
                 ]
             )
         else:
