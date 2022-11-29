@@ -4,6 +4,8 @@ This module contains models representing polynomials and polynomial series.
 
 """
 # pylint: disable=invalid-name
+from math import comb
+
 import numpy as np
 
 from astropy.utils import check_broadcast, indent
@@ -11,7 +13,7 @@ from astropy.utils import check_broadcast, indent
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
-from .utils import _validate_domain_window, comb, poly_map_domain
+from .utils import _validate_domain_window, poly_map_domain
 
 __all__ = [
     "Chebyshev1D",
