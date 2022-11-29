@@ -454,7 +454,7 @@ def _header_to_settings(header):
     settings = {}
 
     if header["ZCMPTYPE"] == "GZIP_2":
-        settings["itemsize"] = header["ZBITPIX"] // 8
+        settings["itemsize"] = abs(header["ZBITPIX"]) // 8
     elif header["ZCMPTYPE"] == "PLIO_1":
         settings["tilesize"] = np.product(tile_shape)
     elif header["ZCMPTYPE"] == "RICE_1":
@@ -501,10 +501,15 @@ def _buffer_to_array(tile_buffer, header, tile_shape=None):
         if tilebytesize == tilelen * 2:
             dtype = ">i2"
         elif tilebytesize == tilelen * 4:
-            # TOOD: support float32?
-            dtype = ">i4"
+            if header["ZBITPIX"] < 0:
+                dtype = ">f4"
+            else:
+                dtype = ">i4"
         elif tilebytesize == tilelen * 8:
-            dtype = ">f8"
+            if header["ZBITPIX"] < 0:
+                dtype = ">f8"
+            else:
+                dtype = ">i8"
         else:
             # Just return the raw bytes
             dtype = ">u1"
