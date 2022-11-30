@@ -7,6 +7,7 @@ import erfa
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.builtin_frames.utils import atciqz, aticq
+from astropy.coordinates.erfa_astrom import erfa_astrom
 from astropy.coordinates.representation import (
     CartesianRepresentation,
     SphericalRepresentation,
@@ -14,7 +15,6 @@ from astropy.coordinates.representation import (
 )
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 
-from ..erfa_astrom import erfa_astrom
 from .altaz import AltAz
 from .hadec import HADec
 from .icrs import ICRS

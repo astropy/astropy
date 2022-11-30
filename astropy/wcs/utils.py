@@ -946,7 +946,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
         WCS object
     """
 
-    from ..modeling.models import SIP  # here to avoid circular import
+    from astropy.modeling.models import SIP  # here to avoid circular import
 
     # unpack params
     crpix = params[0:2]
