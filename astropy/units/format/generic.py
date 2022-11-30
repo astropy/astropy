@@ -205,7 +205,7 @@ class Generic(Base):
             structured_unit : subunit COMMA
                             | subunit COMMA subunit
             """
-            from ..structured import StructuredUnit
+            from astropy.units.structured import StructuredUnit
 
             inputs = (p[1],) if len(p) == 3 else (p[1], p[3])
             units = ()

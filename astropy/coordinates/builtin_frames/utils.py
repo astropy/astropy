@@ -11,11 +11,10 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates.earth import EarthLocation
+from astropy.coordinates.representation import CartesianDifferential
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-
-from ..representation import CartesianDifferential
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
 # convention for J2000 (it is unclear if there is any "right answer" for B1950)
