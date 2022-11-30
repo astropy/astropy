@@ -7,9 +7,8 @@ Utilities shared by the different formats.
 
 import warnings
 
+from astropy.units.utils import maybe_simple_fraction
 from astropy.utils.misc import did_you_mean
-
-from ..utils import maybe_simple_fraction
 
 
 def get_grouped_by_powers(bases, powers):

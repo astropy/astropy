@@ -23,8 +23,9 @@ from cpython.buffer cimport (
 )
 from libc cimport stdio
 
-from ...utils.data import get_readable_fileobj
-from ...utils.exceptions import AstropyWarning
+from astropy.utils.data import get_readable_fileobj
+from astropy.utils.exceptions import AstropyWarning
+
 from . import core
 
 
@@ -979,7 +980,7 @@ cdef class FastWriter:
                   fill_exclude_names=None,
                   fast_writer=True):
 
-        from ...table import pprint  # Here to avoid circular import
+        from astropy.table import pprint  # Here to avoid circular import
 
         if fast_writer is True:
             fast_writer = {}
