@@ -6,36 +6,16 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-import os
+import pathlib
 import sys
 
 from .version import version as __version__
 
-
-def _is_astropy_source(path=None):
-    """
-    Returns whether the source for this module is directly in an astropy
-    source distribution or checkout.
-    """
-
-    # If this __init__.py file is in ./astropy/ then import is within a source
-    # dir .astropy-root is a file distributed with the source, but that should
-    # not installed
-    if path is None:
-        path = os.path.join(os.path.dirname(__file__), os.pardir)
-    elif os.path.isfile(path):
-        path = os.path.dirname(path)
-
-    source_dir = os.path.abspath(path)
-    return os.path.exists(os.path.join(source_dir, ".astropy-root"))
-
-
 # The location of the online documentation for astropy
 # This location will normally point to the current released version of astropy
-if "dev" in __version__:
-    online_docs_root = "https://docs.astropy.org/en/latest/"
-else:
-    online_docs_root = f"https://docs.astropy.org/en/{__version__}/"
+online_docs_root = "https://docs.astropy.org/en/{}/".format(
+    "latest" if "dev" in __version__ else f"v{__version__}"
+)
 
 
 from . import config as _config
@@ -161,9 +141,12 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # configuration file with the defaults
 def _initialize_astropy():
     try:
-        from .utils import _compiler
+        from .utils import _compiler  # noqa: F401
     except ImportError:
-        if _is_astropy_source():
+        # If this __init__.py file is in ./astropy/ then import is within a source
+        # dir .astropy-root is a file distributed with the source, but that should
+        # not installed
+        if (pathlib.Path(__file__).parent.parent / ".astropy-root").exists():
             raise ImportError(
                 "You appear to be trying to import astropy from "
                 "within a source checkout or from an editable "
@@ -172,15 +155,15 @@ def _initialize_astropy():
                 "  pip install -e .\n\nor\n\n"
                 "  python setup.py build_ext --inplace\n\n"
                 "to make sure the extension modules are built "
-            )
-        else:
-            # Outright broken installation, just raise standard error
-            raise
+            ) from None
+
+        # Outright broken installation, just raise standard error
+        raise
 
 
 # Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
-    citation_file = os.path.join(os.path.dirname(__file__), "CITATION")
+    citation_file = pathlib.Path(__file__).parent / "CITATION"
 
     with open(citation_file) as citation:
         refs = citation.read().split("@ARTICLE")[1:]
@@ -198,7 +181,7 @@ log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
+from .utils.misc import find_api_page  # noqa: F401
 
 
 def online_help(query):
@@ -215,13 +198,7 @@ def online_help(query):
     import webbrowser
     from urllib.parse import urlencode
 
-    version = __version__
-    if "dev" in version:
-        version = "latest"
-    else:
-        version = "v" + version
-
-    url = f"https://docs.astropy.org/en/{version}/search.html?{urlencode({'q': query})}"
+    url = online_docs_root + f"search.html?{urlencode({'q': query})}"
     webbrowser.open(url)
 
 
