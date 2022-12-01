@@ -121,10 +121,14 @@ class Quantize(Codec):
             The unquantized buffer.
         """
         qbytes = np.asarray(buf)
+        qbytes = qbytes.astype(qbytes.dtype.newbyteorder("="))
         # TODO: figure out if we need to support null checking
+        if self.dither_method == -1:
+            # For NO_DITHER we should just use the scale and zero directly
+            return qbytes * scale + zero
         if self.bitpix == -32:
             ubytes = unquantize_float_c(
-                qbytes,
+                qbytes.tobytes(),
                 self.row,
                 qbytes.size,
                 scale,
@@ -137,7 +141,7 @@ class Quantize(Codec):
             )
         elif self.bitpix == -64:
             ubytes = unquantize_double_c(
-                qbytes,
+                qbytes.tobytes(),
                 self.row,
                 qbytes.size,
                 scale,
@@ -166,8 +170,8 @@ class Quantize(Codec):
         buf
             A buffer with quantized data.
         """
-
         uarray = np.asarray(buf)
+        uarray = uarray.astype(uarray.dtype.newbyteorder("="))
         # TODO: figure out if we need to support null checking
         if uarray.dtype.itemsize == 4:
             qbytes, status, scale, zero = quantize_float_c(
@@ -320,8 +324,10 @@ class Gzip2(Codec):
             The decompressed buffer.
         """
         # Start off by shuffling buffer
-        array = np.asarray(buf).ravel().view(np.uint8)
-        shuffled_buffer = array.reshape((-1, self.itemsize)).T.ravel().tobytes()
+        array = np.asarray(buf).ravel()
+        itemsize = array.dtype.itemsize
+        array = array.view(np.uint8)
+        shuffled_buffer = array.reshape((-1, itemsize)).T.ravel().tobytes()
         return gzip_compress(shuffled_buffer)
 
 
@@ -524,6 +530,7 @@ ALGORITHMS = {
     "GZIP_1": Gzip1,
     "GZIP_2": Gzip2,
     "RICE_1": Rice1,
+    "RICE_ONE": Rice1,
     "PLIO_1": PLIO1,
     "HCOMPRESS_1": HCompress1,
 }
@@ -579,14 +586,14 @@ def _header_to_settings(header):
         settings["itemsize"] = abs(header["ZBITPIX"]) // 8
     elif header["ZCMPTYPE"] == "PLIO_1":
         settings["tilesize"] = np.product(tile_shape)
-    elif header["ZCMPTYPE"] == "RICE_1":
-        settings["blocksize"] = header.get("ZVAL1", 32)
-        settings["bytepix"] = header.get("ZVAL2", 4)
+    elif header["ZCMPTYPE"] in ("RICE_1", "RICE_ONE"):
+        settings["blocksize"] = _get_compression_setting(header, "BLOCKSIZE", 32)
+        settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 4)
         settings["tilesize"] = np.product(tile_shape)
     elif header["ZCMPTYPE"] == "HCOMPRESS_1":
         settings["bytepix"] = 4
-        settings["scale"] = int(header["ZVAL1"])
-        settings["smooth"] = header["ZVAL2"]
+        settings["scale"] = int(_get_compression_setting(header, "SCALE", 0))
+        settings["smooth"] = _get_compression_setting(header, "SMOOTH", 0)
         # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
         # need to ignore all length 1 tile dimensions
         # Also cfitsio expects the tile shape in C order, so reverse it
@@ -603,7 +610,9 @@ def _header_to_settings(header):
     return settings
 
 
-def _buffer_to_array(tile_buffer, header, tile_shape=None, algorithm=None):
+def _buffer_to_array(
+    tile_buffer, header, tile_shape=None, algorithm=None, lossless=False
+):
     """
     Convert a buffer to an array using the header.
 
@@ -626,12 +635,12 @@ def _buffer_to_array(tile_buffer, header, tile_shape=None, algorithm=None):
         if tilebytesize == tilelen * 2:
             dtype = ">i2"
         elif tilebytesize == tilelen * 4:
-            if header["ZBITPIX"] < 0:
+            if header["ZBITPIX"] < 0 and lossless:
                 dtype = ">f4"
             else:
                 dtype = ">i4"
         elif tilebytesize == tilelen * 8:
-            if header["ZBITPIX"] < 0:
+            if header["ZBITPIX"] < 0 and lossless:
                 dtype = ">f8"
             else:
                 dtype = ">i8"
@@ -643,7 +652,7 @@ def _buffer_to_array(tile_buffer, header, tile_shape=None, algorithm=None):
 
         # For RICE_1 compression the tiles that are on the edge can end up
         # being padded, so we truncate excess values
-        if algorithm in ("RICE_1", "PLIO_1"):
+        if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1"):
             tile_buffer = tile_buffer[: np.product(tile_shape)]
 
         if tile_buffer.format == "b":
@@ -728,19 +737,22 @@ def _check_compressed_header(header):
     if header["ZBITPIX"] not in [8, 16, 32, 64, -32, -64]:
         raise ValueError(f"Invalid value for BITPIX: {header['ZBITPIX']}")
 
-    if header["ZCMPTYPE"] not in [
-        "GZIP_1",
-        "GZIP_2",
-        "PLIO_1",
-        "RICE_1",
-        "HCOMPRESS_1",
-    ]:
+    if header["ZCMPTYPE"] not in ALGORITHMS:
         raise ValueError(f"Unrecognized compression type: {header['ZCMPTYPE']}")
 
     # Check that certain keys are present
 
     header["ZNAXIS"]
     header["ZBITPIX"]
+
+
+def _get_compression_setting(header, name, default):
+    for i in range(1, 1000):
+        if f"ZNAME{i}" not in header:
+            break
+        if header[f"ZNAME{i}"].lower() == name.lower():
+            return header[f"ZVAL{i}"]
+    return default
 
 
 def decompress_hdu(hdu):
@@ -757,21 +769,10 @@ def decompress_hdu(hdu):
 
     data = np.zeros(data_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
 
+    quantize = "ZSCALE" in hdu.compressed_data.dtype.names
+
     istart = np.zeros(data.ndim, dtype=int)
     for irow, row in enumerate(hdu.compressed_data):
-
-        cdata = row["COMPRESSED_DATA"]
-
-        lossless = len(cdata) == 0
-
-        if lossless:
-            tile_buffer = decompress_tile(
-                row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
-            )
-        else:
-            tile_buffer = decompress_tile(
-                cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
-            )
 
         # In the following, we don't need to special case tiles near the edge
         # as Numpy will automatically ignore parts of the slices that are out
@@ -787,26 +788,48 @@ def decompress_hdu(hdu):
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
 
+        cdata = row["COMPRESSED_DATA"]
+
+        if irow == 0 and hdu._header["ZCMPTYPE"] == "GZIP_2":
+            # Decompress with GZIP_1 just to find the total number of
+            # elements in the uncompressed data
+            tile_data = np.asarray(
+                decompress_tile(row["COMPRESSED_DATA"], algorithm="GZIP_1")
+            )
+            settings["itemsize"] = tile_data.size // int(np.product(actual_tile_shape))
+
+        lossless = len(cdata) == 0
+
         if lossless:
+            tile_buffer = decompress_tile(
+                row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
+            )
             tile_data = _buffer_to_array(
                 tile_buffer,
                 hdu._header,
                 tile_shape=actual_tile_shape,
                 algorithm="GZIP_1",
+                lossless=True,
             )
         else:
-            tile_data = _buffer_to_array(
-                tile_buffer, hdu._header, tile_shape=actual_tile_shape
+            tile_buffer = decompress_tile(
+                cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
             )
-
-        # TODO: have a more robust way of determining whether we need to
-        # dequantize
-        if hdu._header["ZBITPIX"] < 0 and tile_data.dtype.kind != "f":
-            dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
-            q = Quantize(irow, dither_method, None, hdu._header["ZBITPIX"])
-            tile_data = np.asarray(
-                q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
-            ).reshape(actual_tile_shape)
+            tile_data = _buffer_to_array(
+                tile_buffer,
+                hdu._header,
+                tile_shape=actual_tile_shape,
+                lossless=lossless or not quantize,
+            )
+            if quantize:
+                dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
+                dither_seed = hdu._header.get("ZDITHER0", 0)
+                q = Quantize(
+                    irow + dither_seed, dither_method, None, hdu._header["ZBITPIX"]
+                )
+                tile_data = np.asarray(
+                    q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
+                ).reshape(actual_tile_shape)
 
         data[tile_slices] = tile_data
         istart[-1] += tile_shape[-1]
@@ -843,6 +866,8 @@ def compress_hdu(hdu):
     irow = 0
     istart = np.zeros(len(data_shape), dtype=int)
 
+    noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
+
     while True:
 
         # In the following, we don't need to special case tiles near the edge
@@ -857,10 +882,15 @@ def compress_hdu(hdu):
 
         data = hdu.data[slices]
 
-        if data.dtype.kind == "f" and hdu._header.get("NOISEBIT", 0) > 0:
-            # TODO: use NOISEBIT quantize level
+        quantize = "ZSCALE" in hdu.columns.dtype.names
+
+        if data.dtype.kind == "f" and quantize:
+            noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
             dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
-            q = Quantize(irow, dither_method, 10, hdu._header["ZBITPIX"])
+            dither_seed = hdu._header.get("ZDITHER0", 0)
+            q = Quantize(
+                irow + dither_seed, dither_method, noisebit, hdu._header["ZBITPIX"]
+            )
             original_shape = data.shape
             try:
                 data, scale, zero = q.encode_quantized(data)
