@@ -603,7 +603,7 @@ def _header_to_settings(header):
     return settings
 
 
-def _buffer_to_array(tile_buffer, header, tile_shape=None):
+def _buffer_to_array(tile_buffer, header, tile_shape=None, algorithm=None):
     """
     Convert a buffer to an array using the header.
 
@@ -615,7 +615,10 @@ def _buffer_to_array(tile_buffer, header, tile_shape=None):
     if tile_shape is None:
         tile_shape = _tile_shape(header)
 
-    if header["ZCMPTYPE"].startswith("GZIP"):
+    if algorithm is None:
+        algorithm = header["ZCMPTYPE"]
+
+    if algorithm.startswith("GZIP"):
         # This algorithm is taken from fitsio
         # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
         tilelen = np.product(tile_shape)
@@ -640,7 +643,7 @@ def _buffer_to_array(tile_buffer, header, tile_shape=None):
 
         # For RICE_1 compression the tiles that are on the edge can end up
         # being padded, so we truncate excess values
-        if header["ZCMPTYPE"] in ("RICE_1", "PLIO_1"):
+        if algorithm in ("RICE_1", "PLIO_1"):
             tile_buffer = tile_buffer[: np.product(tile_shape)]
 
         if tile_buffer.format == "b":
@@ -759,7 +762,9 @@ def decompress_hdu(hdu):
 
         cdata = row["COMPRESSED_DATA"]
 
-        if len(cdata) == 0:
+        lossless = len(cdata) == 0
+
+        if lossless:
             tile_buffer = decompress_tile(
                 row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
             )
@@ -782,9 +787,17 @@ def decompress_hdu(hdu):
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
 
-        tile_data = _buffer_to_array(
-            tile_buffer, hdu._header, tile_shape=actual_tile_shape
-        )
+        if lossless:
+            tile_data = _buffer_to_array(
+                tile_buffer,
+                hdu._header,
+                tile_shape=actual_tile_shape,
+                algorithm="GZIP_1",
+            )
+        else:
+            tile_data = _buffer_to_array(
+                tile_buffer, hdu._header, tile_shape=actual_tile_shape
+            )
 
         # TODO: have a more robust way of determining whether we need to
         # dequantize
@@ -844,9 +857,7 @@ def compress_hdu(hdu):
 
         data = hdu.data[slices]
 
-        store_lossless = False
-
-        if data.dtype.kind == "f":
+        if data.dtype.kind == "f" and hdu._header.get("NOISEBIT", 0) > 0:
             # TODO: use NOISEBIT quantize level
             dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
             q = Quantize(irow, dither_method, 10, hdu._header["ZBITPIX"])
