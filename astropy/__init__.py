@@ -6,8 +6,8 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-import pathlib
 import sys
+from pathlib import Path
 
 from .version import version as __version__
 
@@ -146,7 +146,7 @@ def _initialize_astropy():
         # If this __init__.py file is in ./astropy/ then import is within a source
         # dir .astropy-root is a file distributed with the source, but that should
         # not installed
-        if (pathlib.Path(__file__).parent.parent / ".astropy-root").exists():
+        if (Path(__file__).parent.parent / ".astropy-root").exists():
             raise ImportError(
                 "You appear to be trying to import astropy from "
                 "within a source checkout or from an editable "
@@ -163,14 +163,8 @@ def _initialize_astropy():
 
 # Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
-    citation_file = pathlib.Path(__file__).parent / "CITATION"
-
-    with open(citation_file) as citation:
-        refs = citation.read().split("@ARTICLE")[1:]
-        if len(refs) == 0:
-            return ""
-        bibtexreference = f"@ARTICLE{refs[0]}"
-    return bibtexreference
+    refs = (Path(__file__).parent / "CITATION").read_text().split("@ARTICLE")[1:]
+    return f"@ARTICLE{refs[0]}" if refs else ""
 
 
 __citation__ = __bibtex__ = _get_bibtex()
