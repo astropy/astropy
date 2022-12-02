@@ -116,6 +116,9 @@ Performance Improvements
 To help speed up coordinate transformations, several performance improvements
 were implemented, mainly concerning validity checks in ``Angle`` and
 how ``FrameAttributes``  are accessed.
+Performance improvements will vary between different tasks, e.g., the speedup of
+transforming :class:`~astropy.coordinates.AltAz` coordinates to
+:class:`~astropy.coordinates.ICRS` is 5-10 % depending on the number of coordinates.
 
 
 .. _whatsnew-5.2-io-ascii-fixed-width:
