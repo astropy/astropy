@@ -596,7 +596,8 @@ class WCSAxes(Axes):
                 return coord.get_axislabel()
 
     def get_coords_overlay(self, frame, coord_meta=None):
-        """
+        """Get coordinates overlay on given frame.
+
         Parameters
         ----------
         frame : str, `~astropy.coordinates.BaseCoordinateFrame`
@@ -604,9 +605,13 @@ class WCSAxes(Axes):
             one of the coordinate frames registered in the astropy
             frame transform graph.
 
+        coord_meta : dict
+            Metadata for the coordinates overlay.
+
         Returns
         -------
         overlay : `~astropy.visualization.wcsaxes.CoordinatesMap`
+            Coordinates overlay.
         """
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
