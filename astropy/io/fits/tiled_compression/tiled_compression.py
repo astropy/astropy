@@ -86,12 +86,10 @@ except ImportError:
             """
 
 
-class Quantize(Codec):
+class Quantize:
     """
     Quantization of floating-point data following the FITS standard.
     """
-
-    codec_id = "FITS_QUANTIZE"
 
     def __init__(self, row: int, dither_method: int, quantize_level: int, bitpix: int):
         super().__init__()
@@ -798,9 +796,9 @@ def decompress_hdu(hdu):
             )
             settings["itemsize"] = tile_data.size // int(np.product(actual_tile_shape))
 
-        lossless = len(cdata) == 0
+        gzip_fallback = len(cdata) == 0
 
-        if lossless:
+        if gzip_fallback:
             tile_buffer = decompress_tile(
                 row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
             )
@@ -819,7 +817,7 @@ def decompress_hdu(hdu):
                 tile_buffer,
                 hdu._header,
                 tile_shape=actual_tile_shape,
-                lossless=lossless or not quantize,
+                lossless=not quantize,
             )
             if quantize:
                 dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
@@ -859,7 +857,7 @@ def compress_hdu(hdu):
     data_shape = _data_shape(hdu._header)
 
     compressed_bytes = []
-    lossless = []
+    gzip_fallback = []
     scales = []
     zeros = []
 
@@ -897,20 +895,20 @@ def compress_hdu(hdu):
             except QuantizationFailedException:
                 scales.append(0)
                 zeros.append(0)
-                lossless.append(True)
+                gzip_fallback.append(True)
             else:
                 data = np.asarray(data).reshape(original_shape)
                 scales.append(scale)
                 zeros.append(zero)
-                lossless.append(False)
+                gzip_fallback.append(False)
         else:
             scales.append(0)
             zeros.append(0)
-            lossless.append(False)
+            gzip_fallback.append(False)
 
         # The original compress_hdu assumed the data was in native endian, so we
         # change this here:
-        if hdu._header["ZCMPTYPE"].startswith("GZIP") or lossless[-1]:
+        if hdu._header["ZCMPTYPE"].startswith("GZIP") or gzip_fallback[-1]:
             # This is apparently needed so that our heap data agrees with
             # the C implementation!?
             data = data.astype(data.dtype.newbyteorder(">"))
@@ -918,7 +916,7 @@ def compress_hdu(hdu):
             if not data.dtype.isnative:
                 data = data.astype(data.dtype.newbyteorder("="))
 
-        if lossless[-1]:
+        if gzip_fallback[-1]:
             cbytes = compress_tile(data, algorithm="GZIP_1")
         else:
             cbytes = compress_tile(data, algorithm=hdu._header["ZCMPTYPE"], **settings)
@@ -949,7 +947,7 @@ def compress_hdu(hdu):
     table["COMPRESSED_DATA"][1:, 1] = np.cumsum(table["COMPRESSED_DATA"][:-1, 0])
 
     for irow in range(len(compressed_bytes)):
-        if lossless[irow]:
+        if gzip_fallback[irow]:
             table["GZIP_COMPRESSED_DATA"][irow] = table["COMPRESSED_DATA"][irow]
             table["COMPRESSED_DATA"][irow] = 0
 
