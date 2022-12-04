@@ -179,7 +179,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.arcsec]
-    assert coord_meta["wrap"] == [180.0, None]
+    assert coord_meta["wrap"] == [180.0 * u.deg, None]
 
     _, coord_meta = transform_coord_meta_from_wcs(
         wcs, RectangularFrame, slices=("y", "x")
@@ -205,7 +205,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.deg, u.deg]
-    assert coord_meta["wrap"] == [180.0, None]
+    assert coord_meta["wrap"] == [180.0 * u.deg, None]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["CRLN-TAN", "CRLT-TAN"]
@@ -218,7 +218,7 @@ def test_coord_type_from_ctype(cube_wcs):
 
     assert coord_meta["type"] == ["longitude", "latitude"]
     assert coord_meta["format_unit"] == [u.deg, u.deg]
-    assert coord_meta["wrap"] == [360.0, None]
+    assert coord_meta["wrap"] == [360.0 * u.deg, None]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
@@ -373,7 +373,7 @@ def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
             ("custom:pos.helioprojective.lon", "hpln-tan", "hpln"),
         ]
         assert coord_meta["type"] == ["scalar", "latitude", "longitude"]
-        assert coord_meta["wrap"] == [None, None, 180.0]
+        assert coord_meta["wrap"] == [None, None, 180.0 * u.deg]
         assert coord_meta["unit"] == [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
         assert coord_meta["visible"] == [False, True, True]
         assert coord_meta["format_unit"] == [
