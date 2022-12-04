@@ -207,6 +207,15 @@ class CoordinateHelper:
 
         self.coord_type = coord_type
 
+        if coord_wrap is not None:
+            if not isinstance(coord_wrap, u.Quantity):
+                warnings.warn(
+                    "Passing 'coord_wrap' as a number is deprecated. Use a Quantity with units convertible to angular degrees instead.",
+                    AstropyDeprecationWarning,
+                )
+            else:
+                coord_wrap = coord_wrap.to_value(u.deg)
+
         if coord_type == "longitude" and coord_wrap is None:
             self.coord_wrap = 360
         elif coord_type != "longitude" and coord_wrap is not None:

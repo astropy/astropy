@@ -1,0 +1,2 @@
+Passing a bare number as the ``coord_wrap`` argument to ``CoordinateHelper.set_coord_type`` is deprecated.
+Pass a ``Quantity`` with units equivalent to angular degrees instead.

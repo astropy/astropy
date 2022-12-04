@@ -646,7 +646,7 @@ class TestBasic(BaseImageTests):
 
         ax.imshow(np.zeros([1024, 1024]), origin="lower")
 
-        ax.coords[0].set_coord_type("longitude", coord_wrap=180)
+        ax.coords[0].set_coord_type("longitude", coord_wrap=180 * u.deg)
         ax.coords[1].set_coord_type("latitude")
 
         ax.coords[0].set_major_formatter("s.s")
