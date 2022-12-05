@@ -1,0 +1,3 @@
+Fixed two bugs in validator.validator.make_validation_report:
+- ProgressBar iterator was not called correctly.
+- make_validation_report now handles input string urls correctly.
