@@ -95,7 +95,7 @@ You can also run checks or commands not directly related to tests - for instance
 
     tox -e codestyle
 
-will run checks using the flake8 tool.
+will run checks using the ``ruff`` tool.
 
 .. note::
     It is suggested that you automate the code-style checks using the provided
