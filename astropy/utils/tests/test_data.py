@@ -2138,8 +2138,10 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
-@pytest.mark.skipif(CI and os.environ.get("IS_CRON", "false") == "false",
-                    reason="Flaky/too much external traffic for regular CI")
+@pytest.mark.skipif(
+    CI and os.environ.get("IS_CRON", "false") == "false",
+    reason="Flaky/too much external traffic for regular CI",
+)
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
     """Test that download automatically enables TLS/SSL when required"""
