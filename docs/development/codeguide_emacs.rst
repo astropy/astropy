@@ -4,6 +4,7 @@ Emacs setup for following coding guidelines
 
 .. _flycheck: https://www.flycheck.org/
 .. _flake8: http://flake8.pycqa.org/
+.. _ruff: https://github.com/charliermarsh/ruff
 
 The Astropy coding guidelines are listed in :doc:`codeguide`. Here, we describe
 how to configure Emacs to help ensure Python code satisfies the guidelines.
