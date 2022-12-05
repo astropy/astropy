@@ -124,8 +124,10 @@ def make_validation_report(
         with Spinner("Loading URLs", "green") as s:
             urls = get_urls(destdir, s)
     else:
+        urls = [url.encode() for url in urls if isinstance(url, str)]
+
         color_print("Marking URLs", "green")
-        for url in ProgressBar.iterate(urls):
+        for url in ProgressBar(urls):
             with result.Result(url, root=destdir) as r:
                 r["expected"] = type
 
