@@ -1,0 +1,2 @@
+Fixed an incompatibility with latest Python 3.1x versions that kept
+``astropy.utils.data.download_file`` from switching to TLS+FTP mode.
