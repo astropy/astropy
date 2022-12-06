@@ -121,7 +121,7 @@ def make_transform_graph_docs(transform_graph):
 
     Parameters
     ----------
-    transform_graph : `~.coordinates.TransformGraph`
+    transform_graph : `~astropy.coordinates.TransformGraph`
 
     Returns
     -------

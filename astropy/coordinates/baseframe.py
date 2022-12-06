@@ -202,12 +202,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     Unless overridden via `frame_specific_representation_info`, velocity name
     defaults are:
 
-      * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for `SphericalCosLatDifferential`
-        proper motion components
-      * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper motion
-        components
+      * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for `~astropy.coordinates.SphericalCosLatDifferential` velocity components
+      * ``pm_{lon}``, ``pm_{lat}`` for `~astropy.coordinates.SphericalDifferential` velocity components
       * ``radial_velocity`` for any ``d_distance`` component
-      * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
+      * ``v_{x,y,z}`` for `~astropy.coordinates.CartesianDifferential` velocity components
 
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
@@ -986,7 +984,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Returns
         -------
-        frameobj : `BaseCoordinateFrame` subclass instance
+        frameobj : `~astropy.coordinates.BaseCoordinateFrame` subclass instance
             Replica of this object, but possibly with new frame attributes.
         """
         return self._replicate(self.data, copy=copy, **kwargs)
@@ -1014,7 +1012,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Returns
         -------
-        frameobj : `BaseCoordinateFrame` subclass instance
+        frameobj : `~astropy.coordinates.BaseCoordinateFrame` subclass instance
             Replica of this object, but without data and possibly with new frame
             attributes.
         """
@@ -1036,7 +1034,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Returns
         -------
-        frameobj : `BaseCoordinateFrame` subclass instance
+        frameobj : `~astropy.coordinates.BaseCoordinateFrame` subclass instance
             A new object in *this* frame, with the same frame attributes as
             this one, but with the ``data`` as the coordinate data.
 
@@ -1248,7 +1246,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : coordinate-like or `BaseCoordinateFrame` subclass instance
+        new_frame : coordinate-like or `~astropy.coordinates.BaseCoordinateFrame` subclass instance
             The frame to transform this coordinate frame into.
             The frame class option is deprecated.
 
@@ -1314,7 +1312,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : `BaseCoordinateFrame` subclass or instance
+        new_frame : `~astropy.coordinates.BaseCoordinateFrame` subclass or instance
             The proposed frame to transform into.
 
         Returns
@@ -1457,7 +1455,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         Raises
         ------
         TypeError
-            If ``other`` isn't a `BaseCoordinateFrame` or subclass.
+            If ``other`` isn't a `~astropy.coordinates.BaseCoordinateFrame` or subclass.
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.frame_attributes:
@@ -1941,7 +1939,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def sphericalcoslat(self):
         """
         Shorthand for a spherical representation of the positional data and a
-        `SphericalCosLatDifferential` for the velocity data in this object.
+        `~astropy.coordinates.SphericalCosLatDifferential` for the velocity
+        data in this object.
         """
 
         # TODO: if representations are updated to use a full transform graph,
@@ -1952,8 +1951,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def velocity(self):
         """
         Shorthand for retrieving the Cartesian space-motion as a
-        `CartesianDifferential` object. This is equivalent to calling
-        ``self.cartesian.differentials['s']``.
+        `~astropy.coordinates.CartesianDifferential` object.
+
+        This is equivalent to calling ``self.cartesian.differentials['s']``.
         """
         if "s" not in self.data.differentials:
             raise ValueError(
