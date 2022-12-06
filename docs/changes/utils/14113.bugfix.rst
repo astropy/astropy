@@ -1,0 +1,2 @@
+ ``np.quantile`` and ``np.percentile`` can now be used on ``Masked``
+ arrays and quantities also with ``keepdims=True``.
