@@ -12,7 +12,7 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_1_23
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_25
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -579,17 +579,25 @@ def _masked_median(a, axis=None, out=None, overwrite_input=False):
 
 
 @dispatched_function
-def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
+def median(a, axis=None, out=None, **kwargs):
     from astropy.utils.masked import Masked
 
     if out is not None and not isinstance(out, Masked):
         raise NotImplementedError
 
     a = Masked(a)
-    r, k = np.lib.function_base._ureduce(
-        a, func=_masked_median, axis=axis, out=out, overwrite_input=overwrite_input
-    )
-    return (r.reshape(k) if keepdims else r) if out is None else out
+
+    if NUMPY_LT_1_25:
+        keepdims = kwargs.pop("keepdims", False)
+        r, k = np.lib.function_base._ureduce(
+            a, func=_masked_median, axis=axis, out=out, **kwargs
+        )
+        return (r.reshape(k) if keepdims else r) if out is None else out
+
+    else:
+        return np.lib.function_base._ureduce(
+            a, func=_masked_median, axis=axis, out=out, **kwargs
+        )
 
 
 def _masked_quantile_1d(a, q, **kwargs):
@@ -635,11 +643,16 @@ def quantile(a, q, axis=None, out=None, **kwargs):
     if not np.lib.function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
-    keepdims = kwargs.pop("keepdims", False)
-    r, k = np.lib.function_base._ureduce(
-        a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
-    )
-    return (r.reshape(q.shape + k) if keepdims else r) if out is None else out
+    if NUMPY_LT_1_25:
+        keepdims = kwargs.pop("keepdims", False)
+        r, k = np.lib.function_base._ureduce(
+            a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
+        )
+        return (r.reshape(q.shape + k) if keepdims else r) if out is None else out
+    else:
+        return np.lib.function_base._ureduce(
+            a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
+        )
 
 
 @dispatched_function
