@@ -255,10 +255,10 @@ Reference/API
 .. automodapi:: astropy.units.equivalencies
 
 .. automodapi:: astropy.units.function
+   :noindex:
 
 .. automodapi:: astropy.units.function.logarithmic
    :include-all-objects:
-   :noindex:
 
 .. automodapi:: astropy.units.deprecated
 
