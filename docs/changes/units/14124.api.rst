@@ -1,0 +1,5 @@
+The conversion of ``astropy.units.Quantity`` to ``bool``
+that was deprecated since astropy 3.0 now raises a ``ValueError``.
+This affects statements like ``if quantity``.
+Use explicit comparisons like ``if quantity.value != 0``
+or ``if quantity is not None`` instead.

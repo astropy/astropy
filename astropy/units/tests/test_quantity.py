@@ -14,7 +14,7 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
 from astropy.utils import isiterable, minversion
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -587,15 +587,8 @@ class TestQuantityOperations:
         assert not 1.0 * u.cm == 1.0
         assert 1.0 * u.cm != 1.0
 
-        # comparison with zero should raise a deprecation warning
         for quantity in (1.0 * u.cm, 1.0 * u.dimensionless_unscaled):
-            with pytest.warns(
-                AstropyDeprecationWarning,
-                match=(
-                    "The truth value of a Quantity is ambiguous. "
-                    "In the future this will raise a ValueError."
-                ),
-            ):
+            with pytest.raises(ValueError, match="ambiguous"):
                 bool(quantity)
 
     def test_numeric_converters(self):
