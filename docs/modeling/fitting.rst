@@ -29,6 +29,13 @@ The rules for passing input to fitters are:
   `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
   ``x, y -> x', y'``).
 
+* The units of the fitting data and the model parameters are stripped before fitting
+  so that the underlying ``scipy`` methods can handle this data. One should be aware
+  of this when fitting data with units as unit conversions will only be performed
+  initially. These conversions will be performed using the ``equivalencies``
+  argument to the fitter combined with the ``model.input_units_equivalencies`` attribute
+  of the model being fit.
+
 .. note::
     In general, non-linear fitters do not support fitting to data which contains
     non-finite values: ``NaN``, ``Inf``, or ``-Inf``. This is a limitation of the
