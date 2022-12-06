@@ -639,7 +639,7 @@ def quantile(a, q, axis=None, out=None, **kwargs):
     r, k = np.lib.function_base._ureduce(
         a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
     )
-    return (r.reshape(k) if keepdims else r) if out is None else out
+    return (r.reshape(q.shape + k) if keepdims else r) if out is None else out
 
 
 @dispatched_function

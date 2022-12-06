@@ -888,31 +888,37 @@ class TestPartitionLikeFunctions:
         self.ma = Masked(self.a, mask=self.mask_a)
 
     def check(self, function, *args, **kwargs):
+        # Check function by comparing to nan-equivalent, with masked
+        # values set to NaN.
         o = function(self.ma, *args, **kwargs)
         nanfunc = getattr(np, "nan" + function.__name__)
         nanfilled = self.ma.filled(np.nan)
         expected = nanfunc(nanfilled, *args, **kwargs)
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
-
-        if not kwargs.get("axis", 1):
-            # no need to test for all
+        # Also check that we can give an output MaskedArray.
+        if kwargs.get("keepdims", False):
+            # numpy bug gh-22714 prevents using out with keepdims=True.
+            # This is fixed in numpy 1.25.
             return
 
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
         assert o2 is out
         assert_masked_equal(o2, o)
+        # But that a regular array cannot be used since it has no mask.
         with pytest.raises(TypeError):
             function(self.ma, *args, out=np.zeros_like(expected), **kwargs)
 
+    @pytest.mark.parametrize("keepdims", [False, True])
     @pytest.mark.parametrize("axis", [None, 0, 1])
-    def test_median(self, axis):
-        self.check(np.median, axis=axis)
+    def test_median(self, axis, keepdims):
+        self.check(np.median, axis=axis, keepdims=keepdims)
 
+    @pytest.mark.parametrize("keepdims", [False, True])
     @pytest.mark.parametrize("axis", [None, 0, 1])
-    def test_quantile(self, axis):
-        self.check(np.quantile, q=[0.25, 0.5], axis=axis)
+    def test_quantile(self, axis, keepdims):
+        self.check(np.quantile, q=[0.25, 0.5], axis=axis, keepdims=keepdims)
 
     def test_quantile_out_of_range(self):
         with pytest.raises(ValueError, match="must be in the range"):
