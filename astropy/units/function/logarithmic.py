@@ -36,7 +36,8 @@ class LogUnit(FunctionUnitBase):
     """Logarithmic unit containing a physical one
 
     Usually, logarithmic units are instantiated via specific subclasses
-    such `MagUnit`, `DecibelUnit`, and `DexUnit`.
+    such `~astropy.units.MagUnit`, `~astropy.units.DecibelUnit`, and
+    `~astropy.units.DexUnit`.
 
     Parameters
     ----------
