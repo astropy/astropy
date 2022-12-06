@@ -170,7 +170,7 @@ def make_transform_graph_docs(transform_graph):
                     <span style="font-size: 24px; color: {color};"><b>➝</b></span>
                 </p>
             </li>
-        """  # noqa: E501
+        """
         html_list_items.append(block)
 
     nl = "\n"

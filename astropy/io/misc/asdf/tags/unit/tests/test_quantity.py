@@ -4,11 +4,11 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import io  # noqa: E402
+import io
 
-from asdf.tests import helpers  # noqa: E402
+from asdf.tests import helpers
 
-from astropy import units  # noqa: E402
+from astropy import units
 
 
 def roundtrip_quantity(yaml, quantity):

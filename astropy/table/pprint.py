@@ -85,7 +85,7 @@ def get_auto_format_func(
             return col.info._format_funcs[format_](format_, val)
 
         if callable(format_):
-            format_func = lambda format_, val: format_(val)  # noqa: E731
+            format_func = lambda format_, val: format_(val)
             try:
                 out = format_func(format_, val)
                 if not isinstance(out, str):

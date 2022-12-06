@@ -60,8 +60,8 @@ if missing_requirements:
     print('Please install the "docs" requirements.')
     sys.exit(1)
 
-from sphinx_astropy.conf.v1 import *  # noqa: E402, F403
-from sphinx_astropy.conf.v1 import (
+from sphinx_astropy.conf.v1 import *  # noqa: E402
+from sphinx_astropy.conf.v1 import (  # noqa: E402
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
     numpydoc_xref_ignore,
@@ -103,9 +103,9 @@ intersphinx_mapping["astropy-dev"] = ("https://docs.astropy.org/en/latest/", Non
 intersphinx_mapping["pyerfa"] = ("https://pyerfa.readthedocs.io/en/stable/", None)  # noqa: F405
 intersphinx_mapping["pytest"] = ("https://docs.pytest.org/en/stable/", None)  # noqa: F405
 intersphinx_mapping["ipython"] = ("https://ipython.readthedocs.io/en/stable/", None)  # noqa: F405
-intersphinx_mapping["pandas"] = ("https://pandas.pydata.org/pandas-docs/stable/", None)  # noqa: E501, F405
-intersphinx_mapping["sphinx_automodapi"] = ("https://sphinx-automodapi.readthedocs.io/en/stable/", None)  # noqa: E501, F405
-intersphinx_mapping["packagetemplate"] = ("https://docs.astropy.org/projects/package-template/en/latest/", None)  # noqa: E501, F405
+intersphinx_mapping["pandas"] = ("https://pandas.pydata.org/pandas-docs/stable/", None)  # noqa: F405
+intersphinx_mapping["sphinx_automodapi"] = ("https://sphinx-automodapi.readthedocs.io/en/stable/", None)  # noqa: F405
+intersphinx_mapping["packagetemplate"] = ("https://docs.astropy.org/projects/package-template/en/latest/", None)  # noqa: F405
 intersphinx_mapping["h5py"] = ("https://docs.h5py.org/en/stable/", None)  # noqa: F405
 intersphinx_mapping["asdf-astropy"] = ("https://asdf-astropy.readthedocs.io/en/latest/", None)  # noqa: F405
 intersphinx_mapping["fsspec"] = ("https://filesystem-spec.readthedocs.io/en/latest/", None)  # noqa: F405
@@ -328,8 +328,8 @@ try:
     extensions += ["sphinx_gallery.gen_gallery"]
 
     sphinx_gallery_conf = {
-        "backreferences_dir": "generated/modules",  # path to store the module using example template  # noqa: E501
-        "filename_pattern": "^((?!skip_).)*$",  # execute all examples except those that start with "skip_"  # noqa: E501
+        "backreferences_dir": "generated/modules",  # path to store the module using example template
+        "filename_pattern": "^((?!skip_).)*$",  # execute all examples except those that start with "skip_"
         "examples_dirs": f"..{os.sep}examples",  # path to the examples scripts
         "gallery_dirs": "generated/examples",  # path to save gallery generated examples
         "reference_url": {

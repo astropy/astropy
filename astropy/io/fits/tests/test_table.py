@@ -1918,7 +1918,7 @@ class TestTableFunctions(FitsTestCase):
             array=np.array([[45, 56], [11, 12, 13]], dtype=np.object_),
         )
         hdu = fits.BinTableHDU.from_columns([col1])
-        assert type(hdu.data["x"]) == type(hdu.data.x)  # noqa: E721
+        assert type(hdu.data["x"]) == type(hdu.data.x)
         assert (hdu.data["x"][0] == hdu.data.x[0]).all()
         assert (hdu.data["x"][1] == hdu.data.x[1]).all()
 

@@ -4,10 +4,10 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
-import astropy.units as u  # noqa: E402
-from astropy.coordinates import Angle, Latitude, Longitude  # noqa: E402
+import astropy.units as u
+from astropy.coordinates import Angle, Latitude, Longitude
 
 
 def test_angle(tmpdir):

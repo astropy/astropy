@@ -4,18 +4,18 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import warnings  # noqa: E402
+import warnings
 
-import asdf  # noqa: E402
-import numpy as np  # noqa: E402
-from asdf import AsdfFile, util  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
-from packaging.version import Version  # noqa: E402
+import asdf
+import numpy as np
+from asdf import AsdfFile, util
+from asdf.tests import helpers
+from packaging.version import Version
 
-import astropy.units as u  # noqa: E402
-from astropy.modeling import models as astmodels  # noqa: E402
-from astropy.modeling.core import fix_inputs  # noqa: E402
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa: E402
+import astropy.units as u
+from astropy.modeling import models as astmodels
+from astropy.modeling.core import fix_inputs
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def custom_and_analytical_inverse():

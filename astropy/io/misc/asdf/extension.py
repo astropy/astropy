@@ -9,29 +9,29 @@ from asdf.util import filepath_to_url
 # the extension class so that _astropy_asdf_types is populated correctly. We
 # could do this using __init__ files, except it causes pytest import errors in
 # the case that asdf is not installed.
-from .tags.coordinates.angle import *  # noqa: F401, F403
-from .tags.coordinates.earthlocation import *  # noqa: F401, F403
-from .tags.coordinates.frames import *  # noqa: F401, F403
-from .tags.coordinates.representation import *  # noqa: F401, F403
-from .tags.coordinates.skycoord import *  # noqa: F401, F403
-from .tags.coordinates.spectralcoord import *  # noqa: F401, F403
-from .tags.fits.fits import *  # noqa: F401, F403
-from .tags.table.table import *  # noqa: F401, F403
-from .tags.time.time import *  # noqa: F401, F403
-from .tags.time.timedelta import *  # noqa: F401, F403
-from .tags.transform.basic import *  # noqa: F401, F403
-from .tags.transform.compound import *  # noqa: F401, F403
-from .tags.transform.functional_models import *  # noqa: F401, F403
-from .tags.transform.math import *  # noqa: F401, F403
-from .tags.transform.physical_models import *  # noqa: F401, F403
-from .tags.transform.polynomial import *  # noqa: F401, F403
-from .tags.transform.powerlaws import *  # noqa: F401, F403
-from .tags.transform.projections import *  # noqa: F401, F403
-from .tags.transform.spline import *  # noqa: F401, F403
-from .tags.transform.tabular import *  # noqa: F401, F403
-from .tags.unit.equivalency import *  # noqa: F401, F403
-from .tags.unit.quantity import *  # noqa: F401, F403
-from .tags.unit.unit import *  # noqa: F401, F403
+from .tags.coordinates.angle import *  # noqa: F401
+from .tags.coordinates.earthlocation import *  # noqa: F401
+from .tags.coordinates.frames import *  # noqa: F401
+from .tags.coordinates.representation import *  # noqa: F401
+from .tags.coordinates.skycoord import *  # noqa: F401
+from .tags.coordinates.spectralcoord import *  # noqa: F401
+from .tags.fits.fits import *  # noqa: F401
+from .tags.table.table import *  # noqa: F401
+from .tags.time.time import *  # noqa: F401
+from .tags.time.timedelta import *  # noqa: F401
+from .tags.transform.basic import *  # noqa: F401
+from .tags.transform.compound import *  # noqa: F401
+from .tags.transform.functional_models import *  # noqa: F401
+from .tags.transform.math import *  # noqa: F401
+from .tags.transform.physical_models import *  # noqa: F401
+from .tags.transform.polynomial import *  # noqa: F401
+from .tags.transform.powerlaws import *  # noqa: F401
+from .tags.transform.projections import *  # noqa: F401
+from .tags.transform.spline import *  # noqa: F401
+from .tags.transform.tabular import *  # noqa: F401
+from .tags.unit.equivalency import *  # noqa: F401
+from .tags.unit.quantity import *  # noqa: F401
+from .tags.unit.unit import *  # noqa: F401
 from .types import _astropy_asdf_types, _astropy_types
 
 __all__ = ["AstropyExtension", "AstropyAsdfExtension"]

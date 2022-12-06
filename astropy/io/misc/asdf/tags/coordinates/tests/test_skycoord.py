@@ -7,7 +7,7 @@ from astropy import units as u
 from astropy.coordinates import FK4, ICRS, Galactic, Longitude, SkyCoord
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
 # These tests are cribbed directly from the Examples section of
 # https://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html

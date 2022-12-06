@@ -84,35 +84,12 @@ repos:
     hooks:
       - id: black
 
-  # We list the warnings/errors to check for here rather than in setup.cfg because
-  # we don't want these options to apply whenever anyone calls flake8 from the
-  # command-line or their code editor - in this case all warnings/errors should be
-  # checked for. The warnings/errors we check for here are:
-  # E101 - mix of tabs and spaces
-  # E111 - 4 spaces per indentation level
-  # E112 - 4 spaces per indentation level
-  # E113 - 4 spaces per indentation level
-  # E201 - whitespace after '('
-  # E202 - whitespace before ')'
-  # E27 - spaces and tabs after
-  # E3 - Blank line
-  # E502 - the backslash is redundant between brackets
-  # E70 - multiple statements on a line
-  # E9 - Runtime
-  # F - Flake8 Errors
-  # W - Whitespace
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
         args:
-          [
-            "--count",
-            "--select",
-            "E10,E11,E201,E202,E27,E3,E5,E70,E722,E9,F,W",
-            "--ignore",
-            "E114,E116,E501,F403,F821,F841,W5"
-          ]
+          - --count
         exclude: ".*(data.*|extern.*|cextern)$"
 
   - repo: local

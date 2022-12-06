@@ -8,7 +8,7 @@ from astropy.cosmology.units import with_H0
 from astropy.units import equivalencies as eq
 
 asdf = pytest.importorskip("asdf", minversion="2.3.0.dev0")
-from asdf.tests import helpers  # noqa: E402
+from asdf.tests import helpers
 
 
 def get_equivalencies():

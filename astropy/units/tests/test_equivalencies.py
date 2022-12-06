@@ -28,7 +28,7 @@ def test_dimensionless_angles():
     assert (1.0 * u.deg).to_value(1, equivalencies=rad1) == u.deg.to(u.rad)
     assert (1.0 * u.steradian).to_value(1, equivalencies=rad1) == 1.0
     # more complicated example
-    I = 1.0e45 * u.g * u.cm**2  # noqa: E741
+    I = 1.0e45 * u.g * u.cm**2
     Omega = u.cycle / (1.0 * u.s)
     Erot = 0.5 * I * Omega**2
     # check that equivalency makes this work
