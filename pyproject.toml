@@ -74,7 +74,7 @@ force-exclude = '''
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "RUF100", "W", "YTT"]
+select = ["E", "F", "RUF100", "T100", "W", "YTT"]
 extend-ignore = ["E501","E711","E721","E731","E741","F403","F821","F841"]
 unfixable = ["E711"]
 exclude=[
