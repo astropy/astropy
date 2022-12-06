@@ -218,7 +218,7 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval="wilson"):
     array([[-0.26077835, -0.16433593],
            [ 0.66077835,  0.96433593]])
 
-    """  # noqa: E501
+    """
     if confidence_level < 0.0 or confidence_level > 1.0:
         raise ValueError("confidence_level must be between 0. and 1.")
     alpha = 1.0 - confidence_level
@@ -680,7 +680,7 @@ def poisson_conf_interval(
     ...     interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
     array([[ 3.47894005, 16.113329533]])
 
-    """  # noqa: E501
+    """
 
     if not np.isscalar(n):
         n = np.asanyarray(n)

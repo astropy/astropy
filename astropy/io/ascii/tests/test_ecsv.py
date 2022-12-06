@@ -1022,7 +1022,7 @@ def test_masked_vals_in_array_subtypes():
     assert t2.colnames == t.colnames
     for name in t2.colnames:
         assert t2[name].dtype == t[name].dtype
-        assert type(t2[name]) is type(t[name])  # noqa: E721
+        assert type(t2[name]) is type(t[name])
         for val1, val2 in zip(t2[name], t[name]):
             if isinstance(val1, np.ndarray):
                 assert val1.dtype == val2.dtype

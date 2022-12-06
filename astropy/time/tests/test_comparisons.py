@@ -33,8 +33,8 @@ class TestTimeComparisons:
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__
-        assert (t1 == None) is False  # noqa: E711
-        assert (t1 != None) is True  # noqa: E711
+        assert (t1 == None) is False
+        assert (t1 != None) is True
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2

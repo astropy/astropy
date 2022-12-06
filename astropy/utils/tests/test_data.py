@@ -2146,7 +2146,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
 def test_ftp_tls_auto(temp_cache):
     """Test that download automatically enables TLS/SSL when required"""
 
-    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.daily"  # noqa: E501
+    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.daily"
     download_file(url)
 
 

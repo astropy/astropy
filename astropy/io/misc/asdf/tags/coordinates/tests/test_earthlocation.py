@@ -3,11 +3,11 @@
 import pytest
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy import units as u  # noqa: E402
-from astropy.coordinates.angles import Latitude, Longitude  # noqa: E402
-from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation  # noqa: E402
+from astropy import units as u
+from astropy.coordinates.angles import Latitude, Longitude
+from astropy.coordinates.earth import ELLIPSOIDS, EarthLocation
 
 
 @pytest.fixture

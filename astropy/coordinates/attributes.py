@@ -538,5 +538,5 @@ class DifferentialAttribute(Attribute):
 
 
 # do this here to prevent a series of complicated circular imports
-from .earth import EarthLocation
-from .representation import BaseDifferential, CartesianRepresentation
+from .earth import EarthLocation  # noqa: E402
+from .representation import BaseDifferential, CartesianRepresentation  # noqa: E402
