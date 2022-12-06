@@ -143,7 +143,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
         Returns
         -------
-        col : `BaseRepresentation` or `BaseDifferential` subclass instance
+        col : `~astropy.coordinates.BaseRepresentation` or `~astropy.coordinates.BaseDifferential` subclass instance
             Empty instance of this class consistent with ``cols``
 
         """
@@ -313,12 +313,12 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         Parameters
         ----------
-        other : `CartesianRepresentation`
+        other : `~astropy.coordinates.CartesianRepresentation`
             The representation to turn into this class
 
         Returns
         -------
-        representation : `BaseRepresentation` subclass instance
+        representation : `~astropy.coordinates.BaseRepresentation` subclass instance
             A new representation of this class's type.
         """
         # Note: the above docstring gets overridden for differentials.
@@ -346,7 +346,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         Returns
         -------
-        cartrepr : `CartesianRepresentation`
+        cartrepr : `~astropy.coordinates.CartesianRepresentation`
             The representation in Cartesian form.
         """
         # Note: the above docstring gets overridden for differentials.
@@ -818,7 +818,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        unit_vectors : dict of `CartesianRepresentation`
+        unit_vectors : dict of `~astropy.coordinates.CartesianRepresentation`
             The keys are the component names.
         """
         raise NotImplementedError(f"{type(self)} has not implemented unit vectors")
@@ -1301,11 +1301,11 @@ class CartesianRepresentation(BaseRepresentation):
         The axis along which the coordinates are stored when a single array is
         provided rather than distinct ``x``, ``y``, and ``z`` (default: 0).
 
-    differentials : dict, `CartesianDifferential`, optional
+    differentials : dict, `~astropy.coordinates.CartesianDifferential`, optional
         Any differential classes that should be associated with this
         representation. The input must either be a single
-        `CartesianDifferential` instance, or a dictionary of
-        `CartesianDifferential` s with keys set to a string representation of
+        `~astropy.coordinates.CartesianDifferential` instance, or a dictionary of
+        `~astropy.coordinates.CartesianDifferential` s with keys set to a string representation of
         the SI unit with which the differential (derivative) is taken. For
         example, for a velocity differential on a positional representation, the
         key would be ``'s'`` for seconds, indicating that the derivative is a
@@ -1711,9 +1711,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         Returns
         -------
-        `UnitSphericalRepresentation` or `SphericalRepresentation`
+        `~astropy.coordinates.UnitSphericalRepresentation` or `~astropy.coordinates.SphericalRepresentation`
             If ``matrix`` is O(3) -- :math:`M \dot M^T = I` -- like a rotation,
-            then the result is a `UnitSphericalRepresentation`.
+            then the result is a `~astropy.coordinates.UnitSphericalRepresentation`.
             All other matrices will change the distance, so the dimensional
             representation is used instead.
 
@@ -2210,10 +2210,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
 
-    differentials : dict, `PhysicsSphericalDifferential`, optional
+    differentials : dict, `~astropy.coordinates.PhysicsSphericalDifferential`, optional
         Any differential classes that should be associated with this
         representation. The input must either be a single
-        `PhysicsSphericalDifferential` instance, or a dictionary of of
+        `~astropy.coordinates.PhysicsSphericalDifferential` instance, or a dictionary of of
         differential instances with keys set to a string representation of the
         SI unit with which the differential (derivative) is taken. For example,
         for a velocity differential on a positional representation, the key
@@ -2428,10 +2428,10 @@ class CylindricalRepresentation(BaseRepresentation):
     z : `~astropy.units.Quantity`
         The z coordinate(s) of the point(s)
 
-    differentials : dict, `CylindricalDifferential`, optional
+    differentials : dict, `~astropy.coordinates.CylindricalDifferential`, optional
         Any differential classes that should be associated with this
         representation. The input must either be a single
-        `CylindricalDifferential` instance, or a dictionary of of differential
+        `~astropy.coordinates.CylindricalDifferential` instance, or a dictionary of of differential
         instances with keys set to a string representation of the SI unit with
         which the differential (derivative) is taken. For example, for a
         velocity differential on a positional representation, the key would be
@@ -2661,7 +2661,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        unit_vectors : dict of `CartesianRepresentation`
+        unit_vectors : dict of `~astropy.coordinates.CartesianRepresentation`
             In the directions of the coordinates of base.
         scale_factors : dict of `~astropy.units.Quantity`
             Scale factors for each of the coordinates
@@ -2684,7 +2684,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        `CartesianDifferential`
+        `~astropy.coordinates.CartesianDifferential`
             This object, converted.
 
         """
@@ -2706,14 +2706,14 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         ----------
         other
             The object to convert into this differential.
-        base : `BaseRepresentation`
+        base : `~astropy.coordinates.BaseRepresentation`
             The points for which the differentials are to be converted: each of
             the components is multiplied by its unit vectors and scale factors.
             Will be converted to ``cls.base_representation`` if needed.
 
         Returns
         -------
-        `BaseDifferential` subclass instance
+        `~astropy.coordinates.BaseDifferential` subclass instance
             A new differential object that is this class' type.
         """
         base = base.represent_as(cls.base_representation)
@@ -3248,7 +3248,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
 
         Returns
         -------
-        unit_vectors : dict of `CartesianRepresentation`
+        unit_vectors : dict of `~astropy.coordinates.CartesianRepresentation`
             In the directions of the coordinates of base.
         scale_factors : dict of `~astropy.units.Quantity`
             Scale factors for each of the coordinates.  The scale factor for

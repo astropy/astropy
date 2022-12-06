@@ -133,7 +133,7 @@ class SkyCoordInfo(MixinInfo):
 
         Returns
         -------
-        skycoord : SkyCoord (or subclass)
+        skycoord : |SkyCoord| (or subclass)
             Instance of this class consistent with ``skycoords``
 
         """
@@ -169,7 +169,7 @@ class SkyCoord(ShapedLikeNDArray):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
-    The `SkyCoord` class accepts a wide variety of inputs for initialization. At
+    The |SkyCoord| class accepts a wide variety of inputs for initialization. At
     a minimum these must provide one or more celestial coordinate values with
     unambiguous units.  Inputs may be scalars or lists/tuples/arrays, yielding
     scalar or array coordinates (can be checked via ``SkyCoord.isscalar``).
@@ -190,7 +190,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     Examples
     --------
-    The examples below illustrate common ways of initializing a `SkyCoord`
+    The examples below illustrate common ways of initializing a |SkyCoord|
     object.  For a complete description of the allowed syntax see the
     full coordinates documentation.  First some imports::
 
@@ -232,16 +232,14 @@ class SkyCoord(ShapedLikeNDArray):
       >>> c = SkyCoord(ra=1*u.deg, dec=2*u.deg, pm_ra_cosdec=2*u.mas/u.yr, pm_dec=1*u.mas/u.yr)
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
-    class or the corresponding string alias.  The frame classes that are built in
-    to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, and `Galactic`.
-    The string aliases are simply lower-case versions of the class name, and
-    allow for creating a `SkyCoord` object and transforming frames without
-    explicitly importing the frame classes.
+    class or the corresponding string alias -- lower-case versions of the
+    class name that allow for creating a |SkyCoord| object and transforming
+    frames without explicitly importing the frame classes.
 
     Parameters
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
-        Type of coordinate frame this `SkyCoord` should represent. Defaults to
+        Type of coordinate frame this |SkyCoord| should represent. Defaults to
         to ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied coordinate values.
@@ -275,8 +273,8 @@ class SkyCoord(ShapedLikeNDArray):
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
         pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
-            Proper motion components in the `Galactic` frame, in angle per time
-            units.
+            Proper motion components in the `~astropy.coordinates.Galactic` frame,
+            in angle per time units.
         x, y, z : float or `~astropy.units.Quantity` ['length'], optional
             Cartesian coordinates values
         u, v, w : float or `~astropy.units.Quantity` ['length'], optional
@@ -514,7 +512,7 @@ class SkyCoord(ShapedLikeNDArray):
         return a new Frame object.
 
         The values to be inserted must conform to the rules for in-place setting
-        of ``SkyCoord`` objects.
+        of |SkyCoord| objects.
 
         The API signature matches the ``np.insert`` API, but is more limited.
         The specification of insert index ``obj`` must be a single integer,
@@ -629,14 +627,14 @@ class SkyCoord(ShapedLikeNDArray):
         value in the destination frame.
 
         Note that in either case, any explicitly set attributes on the source
-        `SkyCoord` that are not part of the destination frame's definition are
-        kept (stored on the resulting `SkyCoord`), and thus one can round-trip
+        |SkyCoord| that are not part of the destination frame's definition are
+        kept (stored on the resulting |SkyCoord|), and thus one can round-trip
         (e.g., from FK4 to ICRS to FK4 without losing obstime).
 
         Parameters
         ----------
-        frame : str, `BaseCoordinateFrame` class or instance, or `SkyCoord` instance
-            The frame to transform this coordinate into.  If a `SkyCoord`, the
+        frame : str, `~astropy.coordinates.BaseCoordinateFrame` class or instance, or |SkyCoord| instance
+            The frame to transform this coordinate into.  If a |SkyCoord|, the
             underlying frame is extracted, and all other information ignored.
         merge_attributes : bool, optional
             Whether the default attributes in the destination frame are allowed
@@ -645,7 +643,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        coord : `SkyCoord`
+        coord : |SkyCoord|
             A new object with this coordinate represented in the `frame` frame.
 
         Raises
@@ -742,7 +740,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        new_coord : `SkyCoord`
+        new_coord : |SkyCoord|
             A new coordinate object with the evolved location of this coordinate
             at the new time.  ``obstime`` will be set on this object to the new
             time only if ``self`` also has ``obstime``.
@@ -1104,7 +1102,7 @@ class SkyCoord(ShapedLikeNDArray):
         object.
 
         To be the same frame, two objects must be the same frame class and have
-        the same frame attributes. For two `SkyCoord` objects, *all* of the
+        the same frame attributes. For two |SkyCoord| objects, *all* of the
         frame attributes have to match, not just those relevant for the object's
         frame.
 
@@ -1121,7 +1119,8 @@ class SkyCoord(ShapedLikeNDArray):
         Raises
         ------
         TypeError
-            If ``other`` isn't a `SkyCoord` or a `BaseCoordinateFrame` or subclass.
+            If ``other`` isn't a |SkyCoord| or a subclass of
+            `~astropy.coordinates.BaseCoordinateFrame`.
         """
         if isinstance(other, BaseCoordinateFrame):
             return self.frame.is_equivalent_frame(other)
@@ -1541,7 +1540,7 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         searcharoundcoords : coordinate-like
             The coordinates to search around to try to find matching points in
-            this `SkyCoord`. This should be an object with array coordinates,
+            this |SkyCoord|. This should be an object with array coordinates,
             not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` ['angle']
             The on-sky separation to search within.
@@ -1601,7 +1600,7 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
             The coordinates to search around to try to find matching points in
-            this `SkyCoord`. This should be an object with array coordinates,
+            this |SkyCoord|. This should be an object with array coordinates,
             not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` ['length']
             The physical radius to search within.
@@ -1647,11 +1646,11 @@ class SkyCoord(ShapedLikeNDArray):
     def position_angle(self, other):
         """
         Computes the on-sky position angle (East of North) between this
-        `SkyCoord` and another.
+        SkyCoord and another.
 
         Parameters
         ----------
-        other : `SkyCoord`
+        other : |SkyCoord|
             The other coordinate to compute the position angle to.  It is
             treated as the "head" of the vector of the position angle.
 
@@ -1693,19 +1692,22 @@ class SkyCoord(ShapedLikeNDArray):
 
     def skyoffset_frame(self, rotation=None):
         """
-        Returns the sky offset frame with this `SkyCoord` at the origin.
+        Returns the sky offset frame with this SkyCoord at the origin.
 
-        Returns
-        -------
-        astrframe : `~astropy.coordinates.SkyOffsetFrame`
-            A sky offset frame of the same type as this `SkyCoord` (e.g., if
-            this object has an ICRS coordinate, the resulting frame is
-            SkyOffsetICRS, with the origin set to this object)
+        Parameters
+        ----------
         rotation : angle-like
             The final rotation of the frame about the ``origin``. The sign of
             the rotation is the left-hand rule. That is, an object at a
             particular position angle in the un-rotated system will be sent to
             the positive latitude (z) direction in the final frame.
+
+        Returns
+        -------
+        astrframe : `~astropy.coordinates.SkyOffsetFrame`
+            A sky offset frame of the same type as this |SkyCoord| (e.g., if
+            this object has an ICRS coordinate, the resulting frame is
+            SkyOffsetICRS, with the origin set to this object)
         """
         from .builtin_frames.skyoffset import SkyOffsetFrame
 
@@ -1713,8 +1715,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def get_constellation(self, short_name=False, constellation_list="iau"):
         """
-        Determines the constellation(s) of the coordinates this `SkyCoord`
-        contains.
+        Determines the constellation(s) of the coordinates this SkyCoord contains.
 
         Parameters
         ----------
@@ -1729,7 +1730,7 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         constellation : str or string array
             If this is a scalar coordinate, returns the name of the
-            constellation.  If it is an array `SkyCoord`, it returns an array of
+            constellation.  If it is an array |SkyCoord|, it returns an array of
             names.
 
         Notes
@@ -1789,8 +1790,7 @@ class SkyCoord(ShapedLikeNDArray):
     @classmethod
     def from_pixel(cls, xp, yp, wcs, origin=0, mode="all"):
         """
-        Create a new `SkyCoord` from pixel coordinates using an
-        `~astropy.wcs.WCS` object.
+        Create a new SkyCoord from pixel coordinates using a World Coordinate System.
 
         Parameters
         ----------
@@ -1872,18 +1872,18 @@ class SkyCoord(ShapedLikeNDArray):
             'heliocentric'.
         obstime : `~astropy.time.Time` or None, optional
             The time at which to compute the correction.  If `None`, the
-            ``obstime`` frame attribute on the `SkyCoord` will be used.
+            ``obstime`` frame attribute on the |SkyCoord| will be used.
         location : `~astropy.coordinates.EarthLocation` or None, optional
             The observer location at which to compute the correction.  If
             `None`, the  ``location`` frame attribute on the passed-in
             ``obstime`` will be used, and if that is None, the ``location``
-            frame attribute on the `SkyCoord` will be used.
+            frame attribute on the |SkyCoord| will be used.
 
         Raises
         ------
         ValueError
             If either ``obstime`` or ``location`` are passed in (not ``None``)
-            when the frame attribute is already set on this `SkyCoord`.
+            when the frame attribute is already set on this |SkyCoord|.
         TypeError
             If ``obstime`` or ``location`` aren't provided, either as arguments
             or as frame attributes.
@@ -2075,7 +2075,7 @@ class SkyCoord(ShapedLikeNDArray):
     @classmethod
     def guess_from_table(cls, table, **coord_kwargs):
         r"""
-        A convenience method to create and return a new `SkyCoord` from the data
+        A convenience method to create and return a new SkyCoord from the data
         in an astropy Table.
 
         This method matches table columns that start with the case-insensitive
@@ -2108,7 +2108,7 @@ class SkyCoord(ShapedLikeNDArray):
         Returns
         -------
         newsc : `~astropy.coordinates.SkyCoord` or subclass
-            The new `SkyCoord` (or subclass) object.
+            The new instance.
 
         Raises
         ------

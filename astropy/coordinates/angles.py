@@ -33,8 +33,8 @@ class Angle(u.SpecificTypeQuantity):
     :class:`~astropy.coordinates.Angle`.
 
     The input parser is flexible and supports a variety of formats.
-    The examples below illustrate common ways of initializing an `Angle`
-    object. First some imports::
+    The examples below illustrate common ways of initializing an
+    `~astropy.coordinates.Angle` object. First some imports::
 
       >>> from astropy.coordinates import Angle
       >>> from astropy import units as u
@@ -76,7 +76,7 @@ class Angle(u.SpecificTypeQuantity):
 
     Parameters
     ----------
-    angle : `~numpy.array`, scalar, `~astropy.units.Quantity`, :class:`~astropy.coordinates.Angle`
+    angle : `~numpy.array`, scalar, `~astropy.units.Quantity`, `~astropy.coordinates.Angle`
         The angle value. If a tuple, will be interpreted as ``(h, m,
         s)`` or ``(d, m, s)`` depending on ``unit``. If a string, it
         will be interpreted following the rules described above.
