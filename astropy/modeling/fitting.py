@@ -36,7 +36,7 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
-from .spline import (  # noqa: F401
+from .spline import (
     SplineExactKnotsFitter,
     SplineInterpolateFitter,
     SplineSmoothingFitter,
@@ -58,6 +58,10 @@ __all__ = [
     "Fitter",
     "ModelLinearityError",
     "ModelsError",
+    "SplineExactKnotsFitter",
+    "SplineInterpolateFitter",
+    "SplineSmoothingFitter",
+    "SplineSplrepFitter",
 ]
 
 
