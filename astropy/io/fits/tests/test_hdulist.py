@@ -929,7 +929,7 @@ class TestHDUListFunctions(FitsTestCase):
         bad_keys = [None, 3.5, {}]
 
         for key in bad_keys:
-            assert not (key in hdulist)
+            assert key not in hdulist
 
     def test_iteration_of_lazy_loaded_hdulist(self):
         """

@@ -3,12 +3,9 @@
 
 
 from astropy import log
-from astropy.wcs.wcsapi import (
-    BaseHighLevelWCS,
-    BaseLowLevelWCS,
-    HighLevelWCSWrapper,
-    SlicedLowLevelWCS,
-)
+from astropy.wcs.wcsapi import BaseHighLevelWCS  # noqa: F401
+from astropy.wcs.wcsapi import BaseLowLevelWCS  # noqa: F401
+from astropy.wcs.wcsapi import HighLevelWCSWrapper, SlicedLowLevelWCS
 
 __all__ = ["NDSlicingMixin"]
 

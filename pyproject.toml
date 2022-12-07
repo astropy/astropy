@@ -71,6 +71,27 @@ force-exclude = '''
     known_first_party = ["astropy", "extension_helpers"]
     group_by_package = true
 
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "RUF100", "W"]
+extend-ignore = ["E501","E711","E721","E731","E741","F403","F821","F841"]
+unfixable = ["E711"]
+exclude=[
+    "astropy/extern/*",
+    "*parsetab.py",
+    "*lextab.py"
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402", "F401", "F403"]
+"astropy/io/registry/compat.py" = ["F822"]
+"astropy/modeling/models.py" = ["F401", "F403", "F405"]
+"test_*.py" = ["E402"]
+"examples/*.py" = ["E402"]
+"*/examples/*.py" = ["E402"]
+
+
 [tool.coverage]
 
     [tool.coverage.run]
