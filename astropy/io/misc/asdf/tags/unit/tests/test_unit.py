@@ -6,9 +6,9 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-from asdf.tests import helpers  # noqa: E402
+from asdf.tests import helpers
 
-from astropy import units as u  # noqa: E402
+from astropy import units as u
 
 # TODO: Implement defunit
 

@@ -371,7 +371,7 @@ class EarthLocation(u.Quantity):
         See Also
         --------
         get_site_names : the list of sites that this function can access
-        """  # noqa: E501
+        """
         registry = cls._get_site_registry()
         try:
             el = registry[site_name]

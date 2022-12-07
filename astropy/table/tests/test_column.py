@@ -877,7 +877,7 @@ def test_col_unicode_sandwich_bytes(Column):
     assert np.all(c == [uba, "def"])
 
     ok = c == [uba8, b"def"]
-    assert type(ok) is type(c.data)  # noqa: E721
+    assert type(ok) is type(c.data)
     assert ok.dtype.char == "?"
     assert np.all(ok)
 
@@ -888,7 +888,7 @@ def test_col_unicode_sandwich_bytes(Column):
     cmps = (uba, uba8)
     for cmp in cmps:
         ok = c == cmp
-        assert type(ok) is type(c.data)  # noqa: E721
+        assert type(ok) is type(c.data)
         assert np.all(ok == [True, False])
 
 

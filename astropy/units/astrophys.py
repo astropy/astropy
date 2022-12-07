@@ -14,7 +14,7 @@ from .core import UnitBase, def_unit, set_enabled_units
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _numpy
+import numpy as _np  # noqa: E402
 
 _ns = globals()
 
@@ -154,7 +154,7 @@ def_unit(
 )
 def_unit(
     ["R", "Rayleigh", "rayleigh"],
-    (1e10 / (4 * _numpy.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
+    (1e10 / (4 * _np.pi)) * ph * si.m**-2 * si.s**-1 * si.sr**-1,
     namespace=_ns,
     prefixes=True,
     doc="Rayleigh: photon flux",
@@ -226,11 +226,11 @@ del si
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
-
 if __doc__ is not None:
+    # This generates a docstring for this module that describes all of the
+    # standard units defined here.
+    from .utils import generate_unit_summary as _generate_unit_summary
+
     __doc__ += _generate_unit_summary(globals())
 
 

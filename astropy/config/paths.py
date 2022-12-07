@@ -49,7 +49,7 @@ def _find_home():
                 try:
                     import winreg as wreg
 
-                    shell_folders = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"  # noqa: E501
+                    shell_folders = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
                     key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
                     homedir = wreg.QueryValueEx(key, "Personal")[0]

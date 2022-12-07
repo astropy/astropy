@@ -7,7 +7,7 @@ from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.tests.helper import assert_quantity_allclose
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
 
 def test_scalar_spectralcoord(tmpdir):

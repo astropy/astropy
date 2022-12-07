@@ -4,14 +4,14 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import datetime  # noqa: E402
+import datetime
 
-import asdf.schema as asdf_schema  # noqa: E402
-import numpy as np  # noqa: E402
-from asdf import AsdfFile, tagged, yamlutil  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
+import asdf.schema as asdf_schema
+import numpy as np
+from asdf import AsdfFile, tagged, yamlutil
+from asdf.tests import helpers
 
-from astropy import time  # noqa: E402
+from astropy import time
 
 
 def _flatten_combiners(schema):

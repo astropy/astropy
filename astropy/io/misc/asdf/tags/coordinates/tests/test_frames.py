@@ -3,10 +3,10 @@
 import pytest
 
 asdf = pytest.importorskip("asdf")
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy import units  # noqa: E402
-from astropy.coordinates import FK5, ICRS, Angle, Latitude, Longitude  # noqa: E402
+from astropy import units
+from astropy.coordinates import FK5, ICRS, Angle, Latitude, Longitude
 
 
 def test_hcrs_basic(tmpdir):
