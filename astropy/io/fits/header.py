@@ -40,6 +40,7 @@ HEADER_END_RE = re.compile(
 VALID_HEADER_CHARS = set(map(chr, range(0x20, 0x7F)))
 END_CARD = "END" + " " * 77
 
+_commentary_keywords = Card._commentary_keywords
 
 __doctest_skip__ = [
     "Header",
@@ -156,7 +157,7 @@ class Header:
             )
         elif isinstance(key, str):
             key = key.strip()
-            if key.upper() in Card._commentary_keywords:
+            if key.upper() in _commentary_keywords:
                 key = key.upper()
                 # Special case for commentary cards
                 return _HeaderCommentaryCards(self, key)
@@ -961,7 +962,7 @@ class Header:
         else:
             new_keyword = keyword
 
-        if new_keyword not in Card._commentary_keywords and new_keyword in self:
+        if new_keyword not in _commentary_keywords and new_keyword in self:
             if comment is None:
                 comment = self.comments[keyword]
             if value is None:
@@ -1207,10 +1208,8 @@ class Header:
             while idx >= 0 and self._cards[idx].is_blank:
                 idx -= 1
 
-            if not bottom and card.keyword not in Card._commentary_keywords:
-                while (
-                    idx >= 0 and self._cards[idx].keyword in Card._commentary_keywords
-                ):
+            if not bottom and card.keyword not in _commentary_keywords:
+                while idx >= 0 and self._cards[idx].keyword in _commentary_keywords:
                     idx -= 1
 
             idx += 1
@@ -1226,7 +1225,7 @@ class Header:
             # If the appended card was a commentary card, and it was appended
             # before existing cards with the same keyword, the indices for
             # cards with that keyword may have changed
-            if not bottom and card.keyword in Card._commentary_keywords:
+            if not bottom and card.keyword in _commentary_keywords:
                 self._keyword_indices[keyword].sort()
 
             # Finally, if useblanks, delete a blank cards from the end
@@ -1311,7 +1310,7 @@ class Header:
 
         for idx, card in enumerate(temp.cards):
             keyword = card.keyword
-            if keyword not in Card._commentary_keywords:
+            if keyword not in _commentary_keywords:
                 if unique and not update and keyword in self:
                     continue
                 elif update:
@@ -1483,7 +1482,7 @@ class Header:
         count = len(self._keyword_indices[keyword])
         if count > 1:
             # There were already keywords with this same name
-            if keyword not in Card._commentary_keywords:
+            if keyword not in _commentary_keywords:
                 warnings.warn(
                     "A {!r} keyword already exists in this header.  Inserting "
                     "duplicate keyword.".format(keyword),
@@ -1553,13 +1552,10 @@ class Header:
         if newkeyword == "CONTINUE":
             raise ValueError("Can not rename to CONTINUE")
 
-        if (
-            newkeyword in Card._commentary_keywords
-            or oldkeyword in Card._commentary_keywords
-        ):
+        if newkeyword in _commentary_keywords or oldkeyword in _commentary_keywords:
             if not (
-                newkeyword in Card._commentary_keywords
-                and oldkeyword in Card._commentary_keywords
+                newkeyword in _commentary_keywords
+                and oldkeyword in _commentary_keywords
             ):
                 raise ValueError(
                     "Regular and commentary keys can not be renamed to each other."
@@ -1706,10 +1702,7 @@ class Header:
         if keyword.startswith("HIERARCH "):
             keyword = keyword[9:]
 
-        if (
-            keyword not in Card._commentary_keywords
-            and keyword in self._keyword_indices
-        ):
+        if keyword not in _commentary_keywords and keyword in self._keyword_indices:
             # Easy; just update the value/comment
             idx = self._keyword_indices[keyword][0]
             existing_card = self._cards[idx]
@@ -1719,7 +1712,7 @@ class Header:
                 existing_card.comment = comment
             if existing_card._modified:
                 self._modified = True
-        elif keyword in Card._commentary_keywords:
+        elif keyword in _commentary_keywords:
             cards = self._splitcommentary(keyword, value)
             if keyword in self._keyword_indices:
                 # Append after the last keyword of the same type
@@ -1859,7 +1852,7 @@ class Header:
         # old card was deleted
         idx = get_insertion_idx()
 
-        if card[0] in Card._commentary_keywords:
+        if card[0] in _commentary_keywords:
             cards = reversed(self._splitcommentary(card[0], card[1]))
         else:
             cards = [card]
