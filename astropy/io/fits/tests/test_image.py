@@ -1042,7 +1042,7 @@ class TestImageFunctions(FitsTestCase):
         hdu.header["BLANK"] = "nan"
         with pytest.warns(
             fits.verify.VerifyWarning,
-            match=r"Invalid value for " r"'BLANK' keyword in header: 'nan'",
+            match=r"Invalid value for 'BLANK' keyword in header: 'nan'",
         ):
             hdu.writeto(self.temp("test.fits"))
 

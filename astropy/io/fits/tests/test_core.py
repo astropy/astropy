@@ -1082,7 +1082,7 @@ class TestFileFunctions(FitsTestCase):
             with patch.object(mmap, "mmap", side_effect=mmap_patched) as p:
                 with pytest.warns(
                     AstropyUserWarning,
-                    match=r"Could not memory " r"map array with mode='readonly'",
+                    match=r"Could not memory map array with mode='readonly'",
                 ):
                     data = hdulist[1].data
                 p.reset_mock()
