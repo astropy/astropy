@@ -558,7 +558,6 @@ Built-in Frame Classes
 .. automodapi:: astropy.coordinates.builtin_frames
     :skip: make_transform_graph_docs
     :no-inheritance-diagram:
-    :skip: galactocentric_frame_defaults
 
 
 .. _astropy-coordinates-api:
@@ -567,3 +566,35 @@ Reference/API
 =============
 
 .. automodapi:: astropy.coordinates
+    :skip: ICRS
+    :skip: FK5
+    :skip: FK4
+    :skip: FK4NoETerms
+    :skip: Galactic
+    :skip: Galactocentric
+    :skip: galactocentric_frame_defaults
+    :skip: Supergalactic
+    :skip: AltAz
+    :skip: HADec
+    :skip: GCRS
+    :skip: CIRS
+    :skip: ITRS
+    :skip: HCRS
+    :skip: TEME
+    :skip: TETE
+    :skip: PrecessedGeocentric
+    :skip: GeocentricMeanEcliptic
+    :skip: BarycentricMeanEcliptic
+    :skip: HeliocentricMeanEcliptic
+    :skip: GeocentricTrueEcliptic
+    :skip: BarycentricTrueEcliptic
+    :skip: HeliocentricTrueEcliptic
+    :skip: SkyOffsetFrame
+    :skip: GalacticLSR
+    :skip: LSR
+    :skip: LSRK
+    :skip: LSRD
+    :skip: BaseEclipticFrame
+    :skip: BaseRADecFrame
+    :skip: HeliocentricEclipticIAU76
+    :skip: CustomBarycentricEcliptic
