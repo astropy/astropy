@@ -447,13 +447,11 @@ class _BaseHDU:
                 np.ndarray((), dtype="ubyte", buffer=data)
             except TypeError:
                 raise TypeError(
-                    "The provided object {!r} does not contain an underlying "
+                    f"The provided object {data!r} does not contain an underlying "
                     "memory buffer.  fromstring() requires an object that "
                     "supports the buffer interface such as bytes, buffer, "
                     "memoryview, ndarray, etc.  This restriction is to ensure "
-                    "that efficient access to the array/table data is possible.".format(
-                        data
-                    )
+                    "that efficient access to the array/table data is possible."
                 )
 
             if header is None:
@@ -1521,21 +1519,8 @@ class _ValidHDU(_BaseHDU, _Verify):
     # string.
     _MASK = [0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF]
 
-    _EXCLUDE = [
-        0x3A,
-        0x3B,
-        0x3C,
-        0x3D,
-        0x3E,
-        0x3F,
-        0x40,
-        0x5B,
-        0x5C,
-        0x5D,
-        0x5E,
-        0x5F,
-        0x60,
-    ]
+    _EXCLUDE = [0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40,
+                0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60]  # fmt: skip
 
     def _encode_byte(self, byte):
         """

@@ -231,23 +231,9 @@ class TestTableFunctions(FitsTestCase):
         fout.writeto(self.temp("tableout1.fits"), overwrite=True)
 
         with fits.open(self.temp("tableout1.fits")) as f2:
+            exp = [True, True, False, True, False, True, True, True, False, False, True]
             temp = f2[1].data.field(7)
-            assert (
-                temp[0]
-                == [
-                    True,
-                    True,
-                    False,
-                    True,
-                    False,
-                    True,
-                    True,
-                    True,
-                    False,
-                    False,
-                    True,
-                ]
-            ).all()
+            assert (temp[0] == exp).all()
 
         # An alternative way to create an output table FITS file:
         fout2 = fits.open(self.temp("tableout2.fits"), "append")
@@ -941,18 +927,10 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
+        columns_info = "[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]"
         info = [
             (0, "PRIMARY", 1, "PrimaryHDU", 4, (), "", ""),
-            (
-                1,
-                "",
-                1,
-                "BinTableHDU",
-                30,
-                "4R x 10C",
-                "[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]",
-                "",
-            ),
+            (1, "", 1, "BinTableHDU", 30, "4R x 10C", columns_info, ""),
         ]
 
         assert fits.info(self.temp("newtable.fits"), output=False) == info

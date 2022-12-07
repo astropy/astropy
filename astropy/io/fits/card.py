@@ -453,10 +453,8 @@ class Card(_Verify):
             if not m:
                 raise ValueError(
                     "FITS header comments must contain standard printable "
-                    "ASCII characters; {!r} contains characters not "
-                    "representable in ASCII or non-printable characters.".format(
-                        comment
-                    )
+                    f"ASCII characters; {comment!r} contains characters not "
+                    "representable in ASCII or non-printable characters."
                 )
 
         try:
@@ -503,9 +501,8 @@ class Card(_Verify):
             )
         elif not self.field_specifier:
             raise AttributeError(
-                "Cannot coerce cards to be record-valued "
-                "keyword cards by setting the "
-                "field_specifier attribute"
+                "Cannot coerce cards to be record-valued keyword cards by "
+                "setting the field_specifier attribute"
             )
         elif field_specifier != self.field_specifier:
             self._field_specifier = field_specifier
@@ -947,9 +944,8 @@ class Card(_Verify):
     def _format_keyword(self):
         if self.keyword:
             if self.field_specifier:
-                return "{:{len}}".format(
-                    self.keyword.split(".", 1)[0], len=KEYWORD_LENGTH
-                )
+                keyword = self.keyword.split(".", 1)[0]
+                return "{:{len}}".format(keyword, len=KEYWORD_LENGTH)
             elif self._hierarch:
                 return f"HIERARCH {self.keyword} "
             else:
@@ -1175,10 +1171,8 @@ class Card(_Verify):
                 errs.append(
                     dict(
                         err_text=(
-                            "Unprintable string {!r}; commentary cards may "
-                            "only contain printable ASCII characters".format(
-                                valuecomment
-                            )
+                            f"Unprintable string {valuecomment!r}; commentary "
+                            "cards may only contain printable ASCII characters"
                         ),
                         fixable=False,
                     )
@@ -1211,9 +1205,8 @@ class Card(_Verify):
                     errs.append(
                         dict(
                             err_text=(
-                                f"Unprintable string {comment!r}; header "
-                                "comments may only contain printable "
-                                "ASCII characters"
+                                f"Unprintable string {comment!r}; header comments "
+                                "may only contain printable ASCII characters"
                             ),
                             fixable=False,
                         )

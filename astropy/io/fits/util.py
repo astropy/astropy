@@ -277,8 +277,7 @@ def decode_ascii(s):
         except UnicodeDecodeError:
             warnings.warn(
                 "non-ASCII characters are present in the FITS "
-                'file header and have been replaced by "?" '
-                "characters",
+                'file header and have been replaced by "?" characters',
                 AstropyUserWarning,
             )
             s = s.decode("ascii", errors="replace")

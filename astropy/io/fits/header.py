@@ -650,8 +650,7 @@ class Header:
                     warnings.warn(
                         "Missing padding to end of the FITS block after the "
                         "END keyword; additional spaces will be appended to "
-                        "the file upon writing to pad out to {} "
-                        "bytes.".format(BLOCK_SIZE),
+                        f"the file upon writing to pad out to {BLOCK_SIZE} bytes.",
                         AstropyUserWarning,
                     )
 
@@ -1904,13 +1903,8 @@ class Header:
         """
         pattern = pattern.replace("*", r".*").replace("?", r".")
         pattern = pattern.replace("...", r"\S*") + "$"
-        pattern_re = re.compile(pattern, re.I)
-
-        return [
-            idx
-            for idx, card in enumerate(self._cards)
-            if pattern_re.match(card.keyword)
-        ]
+        pattern = re.compile(pattern, re.I)
+        return [i for i, card in enumerate(self._cards) if pattern.match(card.keyword)]
 
     def _set_slice(self, key, value, target):
         """
