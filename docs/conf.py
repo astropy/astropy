@@ -204,6 +204,8 @@ numpydoc_xref_aliases.update(
 # Add from sphinx-astropy 1) glossary aliases 2) physical types.
 numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
+# Turn off table of contents entries for functions and classes
+toc_object_entries = False
 
 # -- Project information ------------------------------------------------------
 
