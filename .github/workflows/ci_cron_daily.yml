@@ -38,6 +38,7 @@ jobs:
     with:
       submodules: false
       coverage: codecov
+      toxdeps: "'tox<4'"
       libraries: |
         apt:
           - language-pack-de
