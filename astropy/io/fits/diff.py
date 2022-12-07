@@ -290,11 +290,8 @@ class FITSDiff(_BaseDiff):
             try:
                 a = fitsopen(a)
             except Exception as exc:
-                raise OSError(
-                    "error opening file a ({}): {}: {}".format(
-                        a, exc.__class__.__name__, exc.args[0]
-                    )
-                )
+                exc_name = exc.__class__.__name__
+                raise OSError(f"error opening file a ({a}): {exc_name}: {exc.args[0]}")
             close_a = True
         else:
             close_a = False
@@ -303,11 +300,8 @@ class FITSDiff(_BaseDiff):
             try:
                 b = fitsopen(b)
             except Exception as exc:
-                raise OSError(
-                    "error opening file b ({}): {}: {}".format(
-                        b, exc.__class__.__name__, exc.args[0]
-                    )
-                )
+                exc_name = exc.__class__.__name__
+                raise OSError(f"error opening file b ({b}): {exc_name}: {exc.args[0]}")
             close_b = True
         else:
             close_b = False
@@ -363,20 +357,10 @@ class FITSDiff(_BaseDiff):
             a_names = [hdu.name for hdu in self.a]
             b_names = [hdu.name for hdu in self.b]
             for pattern in self.ignore_hdu_patterns:
-                self.a = HDUList(
-                    [
-                        h
-                        for h in self.a
-                        if h.name not in fnmatch.filter(a_names, pattern)
-                    ]
-                )
-                self.b = HDUList(
-                    [
-                        h
-                        for h in self.b
-                        if h.name not in fnmatch.filter(b_names, pattern)
-                    ]
-                )
+                a_filt = fnmatch.filter(a_names, pattern)
+                self.a = HDUList([h for h in self.a if h.name not in a_filt])
+                b_filt = fnmatch.filter(b_names, pattern)
+                self.b = HDUList([h for h in self.b if h.name not in b_filt])
 
         # For now, just compare the extensions one by one in order.
         # Might allow some more sophisticated types of diffing later.

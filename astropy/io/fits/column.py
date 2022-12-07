@@ -198,7 +198,7 @@ ATTRIBUTE_TO_KEYWORD = OrderedDict(zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES))
 
 # TFORMn regular expression
 TFORMAT_RE = re.compile(
-    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])" r"(?P<option>[!-~]*)", re.I
+    r"(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])(?P<option>[!-~]*)", re.I
 )
 
 # TFORMn for ASCII tables; two different versions depending on whether
@@ -213,8 +213,7 @@ TFORMAT_ASCII_RE = re.compile(
 
 TTYPE_RE = re.compile(r"[0-9a-zA-Z_]+")
 """
-Regular expression for valid table column names.  See FITS Standard v3.0 section
-7.2.2.
+Regular expression for valid table column names.  See FITS Standard v3.0 section 7.2.2.
 """
 
 # table definition keyword regular expression
@@ -1329,8 +1328,7 @@ class Column(NotifierMixin):
             raise ValueError(
                 "Columns cannot have both a start (TCOLn) and dim "
                 "(TDIMn) option, since the former is only applies to "
-                "ASCII tables, and the latter is only valid for binary "
-                "tables."
+                "ASCII tables, and the latter is only valid for binary tables."
             )
         elif start:
             # Only ASCII table columns can have a 'start' option
@@ -2350,9 +2348,8 @@ def _parse_ascii_tformat(tform, strict=False):
 
     if precision >= width:
         raise VerifyError(
-            "Format {!r} not valid--the number of decimal digits "
-            "must be less than the format's total "
-            "width {}.".format(tform, width)
+            f"Format {tform!r} not valid--the number of decimal digits "
+            f"must be less than the format's total width {width}."
         )
 
     return format, width, precision
@@ -2731,13 +2728,10 @@ def python_to_tdisp(format_string, logical_dtype=False):
             width, precision = fmt_str.split(".")
             sep = "."
             if width == "":
-                ascii_key = ftype if ftype != "G" else "F"
+                key = ftype if ftype != "G" else "F"
                 width = str(
                     int(precision)
-                    + (
-                        ASCII_DEFAULT_WIDTHS[ascii_key][0]
-                        - ASCII_DEFAULT_WIDTHS[ascii_key][1]
-                    )
+                    + (ASCII_DEFAULT_WIDTHS[key][0] - ASCII_DEFAULT_WIDTHS[key][1])
                 )
         # Otherwise we just have a width
         else:
@@ -2745,9 +2739,8 @@ def python_to_tdisp(format_string, logical_dtype=False):
 
     else:
         warnings.warn(
-            "Format {} cannot be mapped to the accepted "
-            "TDISPn keyword values.  Format will not be "
-            "moved into TDISPn keyword.".format(format_string),
+            f"Format {format_string} cannot be mapped to the accepted TDISPn "
+            "keyword values.  Format will not be moved into TDISPn keyword.",
             AstropyUserWarning,
         )
         return None

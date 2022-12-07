@@ -1546,27 +1546,24 @@ class Header:
             the creation of a duplicate keyword. Otherwise a
             `ValueError` is raised.
         """
-        oldkeyword = Card.normalize_keyword(oldkeyword)
-        newkeyword = Card.normalize_keyword(newkeyword)
+        old = Card.normalize_keyword(oldkeyword)
+        new = Card.normalize_keyword(newkeyword)
 
-        if newkeyword == "CONTINUE":
+        if new == "CONTINUE":
             raise ValueError("Can not rename to CONTINUE")
 
-        if newkeyword in _commentary_keywords or oldkeyword in _commentary_keywords:
-            if not (
-                newkeyword in _commentary_keywords
-                and oldkeyword in _commentary_keywords
-            ):
+        if new in _commentary_keywords or old in _commentary_keywords:
+            if not (new in _commentary_keywords and old in _commentary_keywords):
                 raise ValueError(
                     "Regular and commentary keys can not be renamed to each other."
                 )
-        elif not force and newkeyword in self:
-            raise ValueError(f"Intended keyword {newkeyword} already exists in header.")
+        elif not force and new in self:
+            raise ValueError(f"Intended keyword {new} already exists in header.")
 
-        idx = self.index(oldkeyword)
+        idx = self.index(old)
         card = self._cards[idx]
         del self[idx]
-        self.insert(idx, (newkeyword, card.value, card.comment))
+        self.insert(idx, (new, card.value, card.comment))
 
     def add_history(self, value, before=None, after=None):
         """
