@@ -22,7 +22,7 @@ jobs:
           command: |
               sudo apt update
               sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
-              pip install pip tox --upgrade
+              pip install pip "tox<4"
       - run:
           name: Run tests
           command: tox -v
