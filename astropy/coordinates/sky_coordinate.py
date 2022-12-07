@@ -264,14 +264,14 @@ class SkyCoord(ShapedLikeNDArray):
 
         ra, dec : angle-like, optional
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-            frame's ``representation_component_names``, including `ICRS`,
-            `FK5`, `FK4`, and `FK4NoETerms`.
+            frame's ``representation_component_names``, including ``ICRS``,
+            ``FK5``, ``FK4``, and ``FK4NoETerms``.
         pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components, in angle per time units.
         l, b : angle-like, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
-            the `Galactic` frame.
+            the ``Galactic`` frame.
         pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components in the `~astropy.coordinates.Galactic` frame,
             in angle per time units.
