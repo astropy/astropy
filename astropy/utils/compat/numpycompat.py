@@ -14,6 +14,7 @@ __all__ = [
     "NUMPY_LT_1_22_1",
     "NUMPY_LT_1_23",
     "NUMPY_LT_1_24",
+    "NUMPY_LT_1_25",
 ]
 
 # TODO: It might also be nice to have aliases to these named for specific
@@ -23,4 +24,5 @@ NUMPY_LT_1_21_1 = not minversion(np, "1.21.1")
 NUMPY_LT_1_22 = not minversion(np, "1.22")
 NUMPY_LT_1_22_1 = not minversion(np, "1.22.1")
 NUMPY_LT_1_23 = not minversion(np, "1.23")
-NUMPY_LT_1_24 = not minversion(np, "1.24dev0")
+NUMPY_LT_1_24 = not minversion(np, "1.24")
+NUMPY_LT_1_25 = not minversion(np, "1.25.0.dev0+151")
