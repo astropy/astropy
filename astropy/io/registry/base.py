@@ -252,7 +252,7 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             register_identifier('ipac', Table, my_identifier)
             unregister_identifier('ipac', Table)
         """
-        if not (data_format, data_class) in self._identifiers or force:
+        if not (data_format, data_class) in self._identifiers or force:  # noqa: E713
             self._identifiers[(data_format, data_class)] = identifier
         else:
             raise IORegistryError(

@@ -97,7 +97,7 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
             preferred over lower priorities, with the default priority being 0
             (negative numbers are allowed though).
         """
-        if not (data_format, data_class) in self._readers or force:
+        if (data_format, data_class) not in self._readers or force:
             self._readers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(
@@ -277,7 +277,7 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             over lower priorities, with the default priority being 0 (negative
             numbers are allowed though).
         """
-        if not (data_format, data_class) in self._writers or force:
+        if not (data_format, data_class) in self._writers or force:  # noqa: E713
             self._writers[(data_format, data_class)] = function, priority
         else:
             raise IORegistryError(

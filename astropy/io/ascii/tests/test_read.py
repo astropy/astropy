@@ -25,13 +25,9 @@ from astropy.utils.data import get_pkg_data_path
 from astropy.utils.exceptions import AstropyWarning
 
 # setup/teardown function to have the tests run in the correct directory
-from .common import (  # noqa: F401
-    assert_almost_equal,
-    assert_equal,
-    assert_true,
-    setup_function,
-    teardown_function,
-)
+from .common import setup_function  # noqa: F401
+from .common import teardown_function  # noqa: F401
+from .common import assert_almost_equal, assert_equal, assert_true
 
 
 def asciiIO(x):

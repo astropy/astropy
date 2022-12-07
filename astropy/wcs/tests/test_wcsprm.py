@@ -408,7 +408,6 @@ def test_fix():
         "spcfix": "No change",
         "unitfix": "No change",
         "celfix": "No change",
-        "obsfix": "No change",
     }
 
     version = wcs._wcs.__version__
