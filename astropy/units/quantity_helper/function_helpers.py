@@ -562,9 +562,9 @@ def close(a, b, rtol=1e-05, atol=1e-08, *args, **kwargs):
 
 
 @function_helper
-def array_equal(a1, a2):
+def array_equal(a1, a2, equal_nan=False):
     args, unit = _quantities2arrays(a1, a2)
-    return args, {}, None, None
+    return args, dict(equal_nan=equal_nan), None, None
 
 
 @function_helper

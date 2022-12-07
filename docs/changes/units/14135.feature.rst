@@ -1,0 +1,2 @@
+Enabled the ``equal_nan`` keyword argument for ``np.array_equal()`` when the
+arguments are ``astropy.units.Quantity`` instances.
