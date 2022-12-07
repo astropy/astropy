@@ -558,6 +558,7 @@ Built-in Frame Classes
 .. automodapi:: astropy.coordinates.builtin_frames
     :skip: make_transform_graph_docs
     :no-inheritance-diagram:
+    :skip: galactocentric_frame_defaults
 
 
 .. _astropy-coordinates-api:
