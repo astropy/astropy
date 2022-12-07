@@ -1351,7 +1351,7 @@ class AffineTransform(BaseAffineTransform):
     A coordinate transformation specified as a function that yields a 3 x 3
     cartesian transformation matrix and a tuple of displacement vectors.
 
-    See `~astropy.coordinates.builtin_frames.galactocentric.Galactocentric` for
+    See `~astropy.coordinates.Galactocentric` for
     an example.
 
     Parameters
