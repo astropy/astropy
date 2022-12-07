@@ -243,6 +243,7 @@ def ignore_sigint(func):
 if sys.version_info[:2] >= (3, 10):
     from itertools import pairwise
 else:
+
     def pairwise(iterable):
         """Return the items of an iterable paired with its next item.
 
@@ -511,7 +512,7 @@ def fill(text, width, **kwargs):
     paragraphs = text.split("\n\n")
 
     def maybe_fill(t):
-        if all(len(l) < width for l in t.splitlines()):
+        if all(len(line) < width for line in t.splitlines()):
             return t
         else:
             return textwrap.fill(t, width, **kwargs)
@@ -813,9 +814,7 @@ def _free_space_check(hdulist, dirname=None):
     except OSError as exc:
         error_message = ""
         if not isinstance(hdulist, list):
-            hdulist = [
-                hdulist,
-            ]
+            hdulist = [hdulist]
         if dirname is None:
             dirname = os.path.dirname(hdulist._file.name)
         if os.path.isdir(dirname):

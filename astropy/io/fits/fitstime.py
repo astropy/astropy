@@ -32,30 +32,30 @@ FITS_TIME_UNIT = ["s", "d", "a", "cy", "min", "h", "yr", "ta", "Ba"]
 
 
 # Global time reference coordinate keywords
+OBSGEO_XYZ = ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
+OBSGEO_LBH = ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
 TIME_KEYWORDS = (
-    "TIMESYS",
-    "MJDREF",
-    "JDREF",
-    "DATEREF",
-    "TREFPOS",
-    "TREFDIR",
-    "TIMEUNIT",
-    "TIMEOFFS",
-    "OBSGEO-X",
-    "OBSGEO-Y",
-    "OBSGEO-Z",
-    "OBSGEO-L",
-    "OBSGEO-B",
-    "OBSGEO-H",
-    "DATE",
-    "DATE-OBS",
-    "DATE-AVG",
-    "DATE-BEG",
-    "DATE-END",
-    "MJD-OBS",
-    "MJD-AVG",
-    "MJD-BEG",
-    "MJD-END",
+    (
+        "TIMESYS",
+        "MJDREF",
+        "JDREF",
+        "DATEREF",
+        "TREFPOS",
+        "TREFDIR",
+        "TIMEUNIT",
+        "TIMEOFFS",
+        "DATE",
+        "DATE-OBS",
+        "DATE-AVG",
+        "DATE-BEG",
+        "DATE-END",
+        "MJD-OBS",
+        "MJD-AVG",
+        "MJD-BEG",
+        "MJD-END",
+    )
+    + OBSGEO_LBH
+    + OBSGEO_XYZ
 )
 
 
@@ -145,11 +145,7 @@ def _verify_global_info(global_info):
         global_info["format"] = None
 
     # Check if geocentric global location is specified
-    obs_geo = [
-        global_info[attr]
-        for attr in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
-        if attr in global_info
-    ]
+    obs_geo = [global_info[attr] for attr in OBSGEO_XYZ if attr in global_info]
 
     # Location full specification is (X, Y, Z)
     if len(obs_geo) == 3:
@@ -166,11 +162,7 @@ def _verify_global_info(global_info):
             )
 
         # Check geodetic location
-        obs_geo = [
-            global_info[attr]
-            for attr in ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
-            if attr in global_info
-        ]
+        obs_geo = [global_info[attr] for attr in OBSGEO_LBH if attr in global_info]
 
         if len(obs_geo) == 3:
             global_info["location"] = EarthLocation.from_geodetic(*obs_geo)
@@ -514,9 +506,7 @@ def fits_to_time(hdr, table):
             time_columns[int(idx)][base] = value
             hcopy.remove(key)
 
-        elif value in ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z") and re.match(
-            "TTYPE[0-9]+", key
-        ):
+        elif value in OBSGEO_XYZ and re.match("TTYPE[0-9]+", key):
             global_info[value] = table[value]
 
     # Verify and get the global time reference frame information
