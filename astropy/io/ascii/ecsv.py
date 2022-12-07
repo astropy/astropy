@@ -300,7 +300,7 @@ class EcsvOutputter(core.TableOutputter):
                             # is None values (indicating missing values).
                             data = np.array(obj_val, dtype=object)
                             # Replace all the None with an appropriate fill value
-                            mask = data == None  # noqa: E711
+                            mask = data == None
                             kind = np.dtype(col.subtype).kind
                             data[mask] = {"U": "", "S": b""}.get(kind, 0)
                             arr_val = np.ma.array(data.astype(col.subtype), mask=mask)
@@ -336,7 +336,7 @@ class EcsvOutputter(core.TableOutputter):
                     # Make a numpy object array of col_vals to look for None
                     # (masked values)
                     data = np.array(col_vals, dtype=object)
-                    mask = data == None  # noqa: E711
+                    mask = data == None
                     if not np.any(mask):
                         # No None's, just convert to required dtype
                         col.data = data.astype(col.subtype)

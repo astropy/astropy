@@ -3580,7 +3580,7 @@ class CompoundModel(Model):
         operands = deque()
 
         if format_leaf is None:
-            format_leaf = lambda i, l: f"[{i}]"  # noqa: E731
+            format_leaf = lambda i, l: f"[{i}]"
 
         for node in self.traverse_postorder():
             if not isinstance(node, CompoundModel):

@@ -606,7 +606,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     --------
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_filename : returns a local name for a file containing the data
-    """  # noqa: E501
+    """
 
     datafn = get_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):

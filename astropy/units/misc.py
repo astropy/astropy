@@ -14,7 +14,7 @@ from .core import UnitBase, binary_prefixes, def_unit, set_enabled_units, si_pre
 # To ensure si units of the constants can be interpreted.
 set_enabled_units([si])
 
-import numpy as _numpy
+import numpy as _np  # noqa: E402
 
 _ns = globals()
 
@@ -35,14 +35,14 @@ def_unit(
 
 def_unit(
     ["cycle", "cy"],
-    2.0 * _numpy.pi * si.rad,
+    2.0 * _np.pi * si.rad,
     namespace=_ns,
     prefixes=False,
     doc="cycle: angular measurement, a full turn or rotation",
 )
 def_unit(
     ["spat", "sp"],
-    4.0 * _numpy.pi * si.sr,
+    4.0 * _np.pi * si.sr,
     namespace=_ns,
     prefixes=False,
     doc="spat: the solid angle of the sphere, 4pi sr",
@@ -141,9 +141,9 @@ del si
 ###########################################################################
 # DOCSTRING
 
-# This generates a docstring for this module that describes all of the
-# standard units defined here.
-from .utils import generate_unit_summary as _generate_unit_summary
-
 if __doc__ is not None:
+    # This generates a docstring for this module that describes all of the
+    # standard units defined here.
+    from .utils import generate_unit_summary as _generate_unit_summary
+
     __doc__ += _generate_unit_summary(globals())

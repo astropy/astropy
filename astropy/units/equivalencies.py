@@ -498,7 +498,7 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
-    """  # noqa: E501
+    """
 
     assert_is_spectral_unit(rest)
 
@@ -649,7 +649,7 @@ def brightness_temperature(frequency, beam_area=None):
         >>> surf_brightness = 1e6*u.MJy/u.sr
         >>> surf_brightness.to(u.K, equivalencies=u.brightness_temperature(500*u.GHz)) # doctest: +FLOAT_CMP
         <Quantity 130.1931904778803 K>
-    """  # noqa: E501
+    """
     if frequency.unit.is_equivalent(si.sr):
         if not beam_area.unit.is_equivalent(si.Hz):
             raise ValueError(

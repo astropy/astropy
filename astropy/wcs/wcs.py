@@ -417,7 +417,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
        be raised by the constructor, not when subsequently calling a
        transformation method.
 
-    """  # noqa: E501
+    """
 
     def __init__(
         self,
@@ -1247,7 +1247,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 While the SIP distortion coefficients are being applied here, if that was indeed the intent,
                 for consistency please append "-SIP" to the CTYPE in the FITS header or the WCS object.
 
-                """  # noqa: E501
+                """
                 log.info(message)
         elif "B_ORDER" in header and header["B_ORDER"] > 1:
             raise ValueError(
@@ -2639,7 +2639,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         --------
         astropy.wcs.utils.proj_plane_pixel_scales
 
-        """  # noqa: E501
+        """
         from astropy.wcs.utils import proj_plane_pixel_scales  # Avoid circular import
 
         values = proj_plane_pixel_scales(self)
@@ -2689,7 +2689,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         --------
         astropy.wcs.utils.proj_plane_pixel_area
 
-        """  # noqa: E501
+        """
         from astropy.wcs.utils import proj_plane_pixel_area  # Avoid circular import
 
         value = proj_plane_pixel_area(self)
@@ -2814,7 +2814,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
         # default precision for numerical WCS keywords
-        precision = WCSHDO_P14  # Defined by C-ext  # noqa: F821
+        precision = WCSHDO_P14  # Defined by C-ext
         display_warning = False
         if relax is None:
             display_warning = True
@@ -3385,7 +3385,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A copy of the current WCS with only the celestial axes included
         """
-        return self.sub([WCSSUB_CELESTIAL])  # Defined by C-ext  # noqa: F821
+        return self.sub([WCSSUB_CELESTIAL])  # Defined by C-ext
 
     @property
     def is_celestial(self):
@@ -3403,7 +3403,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A copy of the current WCS with only the spectral axes included
         """
-        return self.sub([WCSSUB_SPECTRAL])  # Defined by C-ext  # noqa: F821
+        return self.sub([WCSSUB_SPECTRAL])  # Defined by C-ext
 
     @property
     def is_spectral(self):
@@ -3427,7 +3427,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 f"greater but linked WCSLIB version is {_wcs.__version__}"
             )
 
-        return self.sub([WCSSUB_TIME])  # Defined by C-ext  # noqa: F821
+        return self.sub([WCSSUB_TIME])  # Defined by C-ext
 
     @property
     def is_temporal(self):

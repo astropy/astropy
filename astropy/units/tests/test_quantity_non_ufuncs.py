@@ -1914,8 +1914,8 @@ class TestLinAlg(metaclass=CoverageMeta):
     def setup_method(self):
         self.q = (
             np.array(
-                [[ 1.0, -1.0,  2.0],  # noqa: E201
-                 [ 0.0,  3.0, -1.0],  # noqa: E201
+                [[ 1.0, -1.0,  2.0],
+                 [ 0.0,  3.0, -1.0],
                  [-1.0, -1.0,  1.0]]
             ) << u.m
         )  # fmt: skip

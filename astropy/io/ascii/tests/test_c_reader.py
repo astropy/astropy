@@ -32,7 +32,7 @@ from astropy.utils.exceptions import AstropyWarning
 
 from .common import assert_almost_equal, assert_equal, assert_true
 
-StringIO = lambda x: BytesIO(x.encode("ascii"))  # noqa: E731
+StringIO = lambda x: BytesIO(x.encode("ascii"))
 CI = os.environ.get("CI", False)
 
 
@@ -1149,7 +1149,7 @@ def test_fast_tab_with_names(parallel, read_tab):
     """
     content = """#
 \tdecDeg\tRate_pn_offAxis\tRate_mos2_offAxis\tObsID\tSourceID\tRADeg\tversion\tCounts_pn\tRate_pn\trun\tRate_mos1\tRate_mos2\tInserted_pn\tInserted_mos2\tbeta\tRate_mos1_offAxis\trcArcsec\tname\tInserted\tCounts_mos1\tInserted_mos1\tCounts_mos2\ty\tx\tCounts\toffAxis\tRot
--3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""  # noqa: E501
+-3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""
     head = [f"A{i}" for i in range(28)]
     read_tab(content, data_start=1, parallel=parallel, names=head)
 

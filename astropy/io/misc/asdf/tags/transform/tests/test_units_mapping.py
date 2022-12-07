@@ -3,10 +3,10 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-from asdf.tests.helpers import assert_roundtrip_tree  # noqa: E402
+from asdf.tests.helpers import assert_roundtrip_tree
 
-from astropy import units as u  # noqa: E402
-from astropy.modeling.models import UnitsMapping  # noqa: E402
+from astropy import units as u
+from astropy.modeling.models import UnitsMapping
 
 
 def assert_model_roundtrip(model, tmpdir):

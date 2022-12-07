@@ -4,15 +4,13 @@ import pytest
 
 asdf = pytest.importorskip("asdf")
 
-import os  # noqa: E402
+import os
 
-import numpy as np  # noqa: E402
-from asdf.tests import helpers  # noqa: E402
+import numpy as np
+from asdf.tests import helpers
 
-from astropy.io import fits  # noqa: E402
-from astropy.io.misc.asdf.tags.tests.helpers import (  # noqa: E402
-    run_schema_example_test,
-)
+from astropy.io import fits
+from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test
 
 
 def test_complex_structure(tmpdir):

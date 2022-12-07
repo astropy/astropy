@@ -234,10 +234,10 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
     return SphericalRepresentation(usph.lon, usph.lat, r)
 
 
-from astropy.coordinates import angle_formats
+from astropy.coordinates import angle_formats  # noqa: E402
 
 # # below here can be deleted in v5.0
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecated  # noqa: E402
 
 __old_angle_utilities_funcs = [
     "check_hms_ranges",
