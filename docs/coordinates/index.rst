@@ -555,9 +555,7 @@ coordinate systems implemented here include:
 Built-in Frame Classes
 ======================
 
-.. automodapi:: astropy.coordinates.builtin_frames
-    :skip: make_transform_graph_docs
-    :no-inheritance-diagram:
+.. automodule:: astropy.coordinates.builtin_frames
 
 
 .. _astropy-coordinates-api:
