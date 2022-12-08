@@ -74,8 +74,8 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : float
-        The angle at which the longitude wraps (defaults to 360)
+    coord_wrap : `astropy.units.Quantity`
+        The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
@@ -201,23 +201,21 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : float, optional
-            The value to wrap at for angular coordinates
+        coord_wrap : `~astropy.units.Quantity`, optional
+            The value to wrap at for angular coordinates.
         """
 
         self.coord_type = coord_type
 
-        if coord_wrap is not None:
-            if not isinstance(coord_wrap, u.Quantity):
-                warnings.warn(
-                    "Passing 'coord_wrap' as a number is deprecated. Use a Quantity with units convertible to angular degrees instead.",
-                    AstropyDeprecationWarning,
-                )
-            else:
-                coord_wrap = coord_wrap.to_value(u.deg)
+        if coord_wrap is not None and not isinstance(coord_wrap, u.Quantity):
+            warnings.warn(
+                "Passing 'coord_wrap' as a number is deprecated. Use a Quantity with units convertible to angular degrees instead.",
+                AstropyDeprecationWarning,
+            )
+            coord_wrap = coord_wrap * u.deg
 
         if coord_type == "longitude" and coord_wrap is None:
-            self.coord_wrap = 360
+            self.coord_wrap = 360 * u.deg
         elif coord_type != "longitude" and coord_wrap is not None:
             raise NotImplementedError(
                 "coord_wrap is not yet supported for non-longitude coordinates"
@@ -283,7 +281,7 @@ class CoordinateHelper:
                 value *= self._coord_scale_to_deg
 
             if self.coord_type == "longitude":
-                value = wrap_angle_at(value, self.coord_wrap)
+                value = wrap_angle_at(value, self.coord_wrap.to_value(u.deg))
             value = value * u.degree
             value = value.to_value(fl._unit)
 
@@ -777,8 +775,8 @@ class CoordinateHelper:
                     w1 = w1 * self._coord_scale_to_deg
                     w2 = w2 * self._coord_scale_to_deg
 
-                w1 = wrap_angle_at(w1, self.coord_wrap)
-                w2 = wrap_angle_at(w2, self.coord_wrap)
+                w1 = wrap_angle_at(w1, self.coord_wrap.to_value(u.deg))
+                w2 = wrap_angle_at(w2, self.coord_wrap.to_value(u.deg))
                 with np.errstate(invalid="ignore"):
                     w1[w2 - w1 > 180.0] += 360
                     w2[w1 - w2 > 180.0] += 360
@@ -868,7 +866,7 @@ class CoordinateHelper:
                     if self._coord_scale_to_deg is not None:
                         t *= self._coord_scale_to_deg
 
-                    world = wrap_angle_at(t, self.coord_wrap)
+                    world = wrap_angle_at(t, self.coord_wrap.to_value(u.deg))
 
                     if self._coord_scale_to_deg is not None:
                         world /= self._coord_scale_to_deg
