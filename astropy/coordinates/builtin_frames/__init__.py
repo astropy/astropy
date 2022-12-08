@@ -75,7 +75,8 @@ from . import ecliptic_transforms
 from .lsr import LSR, LSRD, LSRK, GalacticLSR
 
 # we define an __all__ because otherwise the transformation modules
-# get included
+# get included.  Note that the order here determines the order in the
+# documentation of the built-in frames (see make_transform_graphs_docs).
 __all__ = [
     "ICRS",
     "FK5",
@@ -83,7 +84,6 @@ __all__ = [
     "FK4NoETerms",
     "Galactic",
     "Galactocentric",
-    "galactocentric_frame_defaults",
     "Supergalactic",
     "AltAz",
     "HADec",
@@ -100,17 +100,36 @@ __all__ = [
     "GeocentricTrueEcliptic",
     "BarycentricTrueEcliptic",
     "HeliocentricTrueEcliptic",
-    "SkyOffsetFrame",
-    "GalacticLSR",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
     "LSR",
     "LSRK",
     "LSRD",
+    "GalacticLSR",
+    "SkyOffsetFrame",
     "BaseEclipticFrame",
     "BaseRADecFrame",
+    "galactocentric_frame_defaults",
     "make_transform_graph_docs",
-    "HeliocentricEclipticIAU76",
-    "CustomBarycentricEcliptic",
 ]
+
+
+def _get_doc_header(cls):
+    """Get the first line of a docstring.
+
+    Skips possible empty first lines, and then combine following text until
+    the first period or a fully empty line.
+    """
+    out = []
+    for line in cls.__doc__.splitlines():
+        if line:
+            parts = line.split(".")
+            out.append(parts[0].strip())
+            if len(parts) > 1:
+                break
+        elif out:
+            break
+    return " ".join(out) + "."
 
 
 def make_transform_graph_docs(transform_graph):
@@ -131,11 +150,16 @@ def make_transform_graph_docs(transform_graph):
     """
     from textwrap import dedent
 
-    coosys = [transform_graph.lookup_name(item) for item in transform_graph.get_names()]
+    coosys = {
+        (cls := transform_graph.lookup_name(item)).__name__: cls
+        for item in transform_graph.get_names()
+    }
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
-    graphstr = transform_graph.to_dot_graph(addnodes=coosys, priorities=False)
+    graphstr = transform_graph.to_dot_graph(
+        addnodes=list(coosys.values()), priorities=False
+    )
 
     docstr = """
     The diagram below shows all of the built in coordinate systems,
@@ -183,7 +207,23 @@ def make_transform_graph_docs(transform_graph):
     """
     docstr = docstr + dedent(graph_legend)
 
-    return docstr
+    # Add table with built-in frame classes.
+    template = """
+       * - `~astropy.coordinates.{}`
+         - {}
+    """
+    table = """
+    Built-in Frame Classes
+    ^^^^^^^^^^^^^^^^^^^^^^
+    .. list-table::
+       :widths: 20 80
+    """ + "".join(
+        template.format(name, _get_doc_header(coosys[name]))
+        for name in __all__
+        if name in coosys
+    )
+
+    return docstr + dedent(table)
 
 
 _transform_graph_docs = make_transform_graph_docs(frame_transform_graph)
