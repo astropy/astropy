@@ -397,6 +397,12 @@ class EllipticalFrame(BaseFrame):
         over which spines are drawn.
         """
         axis = "c"
-        x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
-        line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
+        pixel = self[axis]._get_pixel()
+        line = Line2D(
+            pixel[:, 0],
+            pixel[:, 1],
+            linewidth=self._linewidth,
+            color=self._color,
+            zorder=1000,
+        )
         line.draw(renderer)
