@@ -924,6 +924,14 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         q3 = q1.value * u.cm
         assert not np.array_equal(q1, q3)
 
+    @pytest.mark.parametrize("equal_nan", [False, True])
+    def test_array_equal_nan(self, equal_nan):
+        q1 = np.linspace(0, 1, num=11) * u.m
+        q1[0] = np.nan
+        q2 = q1.to(u.cm)
+        result = np.array_equal(q1, q2, equal_nan=equal_nan)
+        assert result == equal_nan
+
     @needs_array_function
     def test_array_equiv(self):
         q1 = np.array([[0.0, 1.0, 2.0]] * 3) * u.m
