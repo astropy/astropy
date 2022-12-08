@@ -113,7 +113,7 @@ doc_components_gal = """
 @format_doc(base_doc, components=doc_components_gal, footer=doc_footer_lsr)
 class GalacticLSR(BaseCoordinateFrame):
     r"""A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
-    to the `Galactic` frame.
+    to the Galactic frame.
 
     This coordinate frame is axis-aligned and co-spatial with
     `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
