@@ -552,8 +552,8 @@ coordinate systems implemented here include:
     the True Equator Mean Equinox (TEME) coordinate frame.
 
 
-Built-in Frame Classes
-======================
+Built-in Frames and Transformations
+===================================
 
 .. automodule:: astropy.coordinates.builtin_frames
 
