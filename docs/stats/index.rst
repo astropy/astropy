@@ -9,7 +9,7 @@ Introduction
 
 The `astropy.stats` package holds statistical functions or algorithms
 used in astronomy.  While the `scipy.stats` and `statsmodels
-<http://www.statsmodels.org/stable/index.html>`_ packages contains a
+<https://www.statsmodels.org/stable/index.html>`_ packages contains a
 wide range of statistical tools, they are general-purpose packages and
 are missing some tools that are particularly useful or specific to
 astronomy. This package is intended to provide such functionality,
@@ -140,7 +140,7 @@ See Also
     and classes. The functionality in `astropy.stats` is intended to supplement
     this, *not* replace it.
 
-* `statsmodels <http://www.statsmodels.org/stable/index.html>`_
+* `statsmodels <https://www.statsmodels.org/stable/index.html>`_
     The statsmodels package provides functionality for estimating
     different statistical models, tests, and data exploration.
 
@@ -149,7 +149,6 @@ See Also
     data mining. Some of the tools from this package have been
     migrated here, but there are still a number of tools there that
     are useful for astronomy and statistical analysis.
-
 
 * :func:`astropy.visualization.hist`
     The :func:`~astropy.stats.histogram` routine and related functionality
