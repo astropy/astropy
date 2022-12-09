@@ -254,7 +254,7 @@ Reference/API
 
 .. automodapi:: astropy.units.equivalencies
 
-.. automodapi:: astropy.units.function
+.. automodapi:: astropy.units.function.core
 
 .. automodapi:: astropy.units.function.logarithmic
    :include-all-objects:
