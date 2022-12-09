@@ -487,6 +487,18 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test
+    def test_no_ticks(self):
+        # Check that setting no ticks works
+        fig = plt.figure(figsize=(6, 6))
+        ax = fig.add_axes(
+            [0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect="equal"
+        )
+        ax.set_xlim(-0.5, 148.5)
+        ax.set_ylim(-0.5, 148.5)
+        ax.coords[0].set_ticks(number=0)
+        return fig
+
+    @figure_test
     def test_rcparams(self):
         # Test custom rcParams
 
