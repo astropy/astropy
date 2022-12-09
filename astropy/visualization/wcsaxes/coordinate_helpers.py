@@ -957,6 +957,8 @@ class CoordinateHelper:
         tick_world_coordinates_values = tick_world_coordinates.to_value(self.coord_unit)
 
         n_coord = len(tick_world_coordinates_values)
+        if n_coord == 0:
+            return
 
         from . import conf
 
