@@ -318,7 +318,7 @@ class W02(VOTableSpecWarning):
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
-    `XML Names <http://www.w3.org/TR/REC-xml/#NT-Name>`__
+    `XML Names <https://www.w3.org/TR/xml-names/>`__
     """
 
     message_template = "{} attribute '{}' is invalid.  Must be a standard XML id"
