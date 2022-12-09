@@ -58,7 +58,7 @@ jobs:
           command: |
               sudo apt update
               sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
-              pip install pip tox --upgrade
+              pip install pip "tox<4"
       - run: ssh-add -D
       - add_ssh_keys:
           fingerprints: "bf:aa:ef:e3:8d:95:11:0b:75:c7:92:52:ba:fb:e0:fc"
