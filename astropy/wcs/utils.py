@@ -218,8 +218,8 @@ def wcs_to_celestial_frame(wcs):
 
     Returns
     -------
-    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
+    frame : :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.BaseCoordinateFrame`
         subclass instance that best matches the specified WCS.
 
     Notes
@@ -254,8 +254,8 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Parameters
     ----------
-    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
+    frame : :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.BaseCoordinateFrame`
         subclass instance for which to find the WCS
     projection : str
         Projection code to use in ctype, if applicable
@@ -297,7 +297,7 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a
-    :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass
+    :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
     instance and a projection (given as a string) and should return either a WCS
     instance, or `None` if the WCS could not be determined. You can register
     this function temporarily with::
@@ -1226,7 +1226,7 @@ def fit_wcs_from_points(
 
 def obsgeo_to_frame(obsgeo, obstime):
     """
-    Convert a WCS obsgeo property into an `~.builtin_frames.ITRS` coordinate frame.
+    Convert a WCS obsgeo property into an ITRS coordinate frame.
 
     Parameters
     ----------
@@ -1236,12 +1236,12 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     obstime : time-like
         The time associated with the coordinate, will be passed to
-        `~.builtin_frames.ITRS` as the obstime keyword.
+        `~astropy.coordinates.ITRS` as the obstime keyword.
 
     Returns
     -------
-    `~.builtin_frames.ITRS`
-        An `~.builtin_frames.ITRS` coordinate frame
+    ~astropy.coordinates.ITRS
+        An `~astropy.coordinates.ITRS` coordinate frame
         representing the coordinates.
 
     Notes

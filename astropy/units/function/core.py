@@ -587,7 +587,7 @@ class FunctionQuantity(Quantity):
         return self.__class__(self.physical.cgs)
 
     def decompose(self, bases=[]):
-        """Generate a new `FunctionQuantity` with the physical unit decomposed.
+        """Generate a new instance with the physical unit decomposed.
 
         For details, see `~astropy.units.Quantity.decompose`.
         """
