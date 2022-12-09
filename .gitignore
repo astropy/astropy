@@ -86,3 +86,6 @@ v
 
 .tmp
 pip-wheel-metadata
+
+# Files generated if figure tests are run
+results
