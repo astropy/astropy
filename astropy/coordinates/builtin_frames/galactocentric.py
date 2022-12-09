@@ -57,14 +57,15 @@ class _StateProxy(MappingView):
 
 
 class galactocentric_frame_defaults(ScienceState):
-    """This class controls the global setting of default values for the frame
-    attributes in the `~astropy.coordinates.Galactocentric` frame, which may be
-    updated in future versions of ``astropy``. Note that when using
-    `~astropy.coordinates.Galactocentric`, changing values here will not affect
-    any attributes that are set explicitly by passing values in to the
-    `~astropy.coordinates.Galactocentric` initializer. Modifying these defaults
-    will only affect the frame attribute values when using the frame as, e.g.,
-    ``Galactocentric`` or ``Galactocentric()`` with no explicit arguments.
+    """Global setting of default values for the frame attributes in the `~astropy.coordinates.Galactocentric` frame.
+
+    These constancts may be updated in future versions of ``astropy``. Note
+    that when using `~astropy.coordinates.Galactocentric`, changing values
+    here will not affect any attributes that are set explicitly by passing
+    values in to the `~astropy.coordinates.Galactocentric`
+    initializer. Modifying these defaults will only affect the frame attribute
+    values when using the frame as, e.g., ``Galactocentric`` or
+    ``Galactocentric()`` with no explicit arguments.
 
     This class controls the parameter settings by specifying a string name,
     with the following pre-specified options:
@@ -88,8 +89,8 @@ class galactocentric_frame_defaults(ScienceState):
     parameter uncertainties.
 
     The preferred method for getting a parameter set and metadata, by name, is
-    :meth:`~galactocentric_frame_defaults.get_from_registry` since
-    it ensures the immutability of the registry.
+    :meth:`~astropy.coordinates.galactocentric_frame_defaults.get_from_registry`
+    since it ensures the immutability of the registry.
 
     See :ref:`astropy:astropy-coordinates-galactocentric-defaults` for more
     information.
@@ -366,11 +367,11 @@ doc_components = """
 doc_footer = """
     Other parameters
     ----------------
-    galcen_coord : `ICRS`, optional, keyword-only
+    galcen_coord : `~astropy.coordinates.ICRS`, optional, keyword-only
         The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, keyword-only
         The distance from the sun to the Galactic center.
-    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, `~astropy.units.Quantity` ['speed'], optional, keyword-only
+    galcen_v_sun : `~astropy.coordinates.CartesianDifferential`, `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The velocity of the sun *in the Galactocentric frame* as Cartesian
         velocity components.
     z_sun : `~astropy.units.Quantity` ['length'], optional, keyword-only
@@ -509,11 +510,12 @@ class Galactocentric(BaseCoordinateFrame):
 
     @classmethod
     def get_roll0(cls):
-        """
-        The additional roll angle (about the final x axis) necessary to align
-        the final z axis to match the Galactic yz-plane.  Setting the ``roll``
-        frame attribute to  -this method's return value removes this rotation,
-        allowing the use of the `Galactocentric` frame in more general contexts.
+        """The additional roll angle (about the final x axis) necessary to align the
+        final z axis to match the Galactic yz-plane.  Setting the ``roll``
+        frame attribute to -this method's return value removes this rotation,
+        allowing the use of the `~astropy.coordinates.Galactocentric` frame
+        in more general contexts.
+
         """
         # note that the actual value is defined at the module level.  We make at
         # a property here because this module isn't actually part of the public
