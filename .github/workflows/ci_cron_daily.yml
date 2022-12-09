@@ -33,22 +33,40 @@ permissions:
 
 jobs:
   tests:
+    runs-on: ${{ matrix.os }}
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
-    with:
-      submodules: false
-      coverage: codecov
-      toxdeps: "'tox<4'"
-      libraries: |
-        apt:
-          - language-pack-de
-          - tzdata
-      envs: |
-        - name: Bundling with pyinstaller
-          linux: pyinstaller
-          python-version: 3.8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
 
-        - name: Python 3.10 with all optional dependencies and pre-releases
-          linux: py310-test-alldeps-predeps
-          toxargs: -v
-          toxposargs: --remote-data=any
+          - name: Bundling with pyinstaller
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: pyinstaller
+
+          - name: Python 3.10 with all optional dependencies and pre-releases
+            os: ubuntu-latest
+            python: '3.10'
+            toxenv: py310-test-alldeps-predeps
+            toxargs: -v
+            toxposargs: --remote-data=any
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install "tox<4"
+    - name: Run tests
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
