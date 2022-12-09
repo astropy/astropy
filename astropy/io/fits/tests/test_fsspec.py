@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Can `astropy.io.fits.open` access (remote) data using the fsspec package?
 """
+import os
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
@@ -108,6 +110,11 @@ class TestFsspecRemote:
                 assert "partially read" in repr(hdul)
                 assert "partially read" in str(hdul)
 
+    @pytest.mark.skipif(
+        os.environ.get("CI", "false") == "true"
+        and os.environ.get("IS_CRON", "false") != "true",
+        reason="S3 downloads may become too expensive",
+    )
     @pytest.mark.skipif(not HAS_S3FS, reason="requires s3fs")
     def test_fsspec_s3(self):
         """Can we use fsspec to open a FITS file in a public Amazon S3 bucket?"""
