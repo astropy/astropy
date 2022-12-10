@@ -708,6 +708,8 @@ class CoordinateHelper:
 
                 pixel0 = spine.data
                 world0 = spine.world[:, self.coord_index]
+                if np.isnan(world0).all():
+                    continue
                 axes0 = transData.transform(pixel0)
 
                 # Advance 2 pixels in figure coordinates
