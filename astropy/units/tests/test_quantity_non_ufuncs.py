@@ -932,6 +932,9 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         result = np.array_equal(q1, q2, equal_nan=equal_nan)
         assert result == equal_nan
 
+    def test_array_equal_incompatible_units(self):
+        assert not np.array_equal([1, 2] * u.m, [1, 2] * u.s)
+
     @needs_array_function
     def test_array_equiv(self):
         q1 = np.array([[0.0, 1.0, 2.0]] * 3) * u.m
@@ -939,6 +942,9 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.array_equiv(q1, q2)
         q3 = q1[0].value * u.cm
         assert not np.array_equiv(q1, q3)
+
+    def test_array_equiv_incompatible_units(self):
+        assert not np.array_equiv([1, 1] * u.m, [1] * u.s)
 
 
 class TestNanFunctions(InvariantUnitTestSetup):
