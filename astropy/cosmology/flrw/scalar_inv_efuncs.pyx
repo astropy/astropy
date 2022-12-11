@@ -216,10 +216,9 @@ def w0wzcdm_inv_efunc(double z, double Om0, double Ode0, double Ok0,
 #                                   contribution -- see any cosmology book
 #  The Komatsu reference is: Komatsu et al. 2011, ApJS 192, 18
 cdef nufunc(double opz, double NeffPerNu, int nmasslessnu, list nu_y):
-  cdef int N = len(nu_y)
+  cdef Py_ssize_t i, N = len(nu_y)
   cdef double k = 0.3173 / opz
   cdef double rel_mass_sum = nmasslessnu
-  cdef unsigned int i
   for i in range(N):
     rel_mass_sum += pow(1.0 + (k * <double>nu_y[i])**1.83, 0.54644808743)
   return 0.22710731766 * NeffPerNu * rel_mass_sum
