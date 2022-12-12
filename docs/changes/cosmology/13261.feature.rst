@@ -1,2 +1,0 @@
-Cosmology equivalence for flat FLRW cosmologies has been generalized to apply
-to all cosmologies using the FlatCosmology mixin.

@@ -1,1 +1,0 @@
-Added the ``astropy.time.Time.mean()`` method which also enables the ``numpy.mean()`` function to be used on instances of ``astropy.time.Time``.

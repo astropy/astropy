@@ -1,4 +1,0 @@
-Add ability to read and write a fixed width ASCII table that includes additional
-header rows specifying any or all of the column dtype, unit, format, and
-description. This is available in the ``fixed_width`` and
-``fixed_width_two_line`` formats via the new ``header_rows`` keyword argument.
