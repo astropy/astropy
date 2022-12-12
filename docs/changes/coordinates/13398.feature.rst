@@ -1,6 +1,0 @@
-Adds new topocentric ITRS frame and direct transforms to and from the observed
-frames ``AltAz`` and ``HADec`` with the ability to add or remove refraction
-corrections as required. Since these frames are all within the ITRS, there are
-no corrections applied other than refraction in the transforms. This makes the
-topocentric ITRS frame and these transforms convenient for observers of near
-Earth objects where stellar aberration should be omitted.

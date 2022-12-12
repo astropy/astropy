@@ -1,2 +1,0 @@
-Add option to non-linear fitters which enables automatic
-exclusion of non-finite values from the fit data.

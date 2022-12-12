@@ -1,3 +1,0 @@
-The deprecated private ``astropy._erfa`` module has been removed. Use
-``pyerfa``, which is a dependency of ``astropy`` and can be imported directly
-using ``import erfa``.

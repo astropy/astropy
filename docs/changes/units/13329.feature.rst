@@ -1,2 +1,0 @@
-Ensure that the ``argmin`` and ``argmax`` methods of ``Quantity`` support the
-``keepdims`` argument when numpy does (numpy version 1.22 and later).
