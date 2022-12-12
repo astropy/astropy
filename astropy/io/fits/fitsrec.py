@@ -724,7 +724,6 @@ class FITS_rec(np.recarray):
         base = self
         while isinstance(base, FITS_rec) and isinstance(base.base, np.recarray):
             base = base.base
-            # print("field ", base)
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
         # recursion
