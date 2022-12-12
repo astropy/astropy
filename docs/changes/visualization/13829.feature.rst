@@ -1,1 +1,0 @@
-It is now possible to define "tickable" gridlines for the purpose of placing ticks or tick labels in the interior of WCSAxes plots.

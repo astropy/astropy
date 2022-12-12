@@ -1,2 +1,0 @@
-``numpy.lib.recfunctions.merge_arrays()`` is registered with numpy overload for
-``Quantity``.

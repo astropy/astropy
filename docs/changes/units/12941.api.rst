@@ -1,4 +1,0 @@
-Quantity normally upcasts integer dtypes to floats, unless the dtype is
-specifically provided.
-Before this happened when ``dtype=None``; now the default has been changed to
-``dtype=numpy.inexact`` and ``dtype=None`` has the same meaning as in `numpy`.

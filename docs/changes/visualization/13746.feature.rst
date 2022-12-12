@@ -1,1 +1,0 @@
-Added a ``sinh`` stretch option to ``simple_norm``.

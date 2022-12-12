@@ -1,4 +1,0 @@
-``BaseCoordinateFrame.get_frame_attr_names()`` had a misleading name,
-because it actually provided a ``dict`` of attribute names and
-their default values. It is now deprecated and replaced by ``BaseCoordinateFrame.get_frame_attr_defaults()``.
-The fastest way to obtain the attribute names is ``BaseFrame.frame_attributes.keys()``.

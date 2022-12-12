@@ -1,2 +1,0 @@
-Cosmology instance can be parsed from or converted to a HTML table using
-the new HTML methods in Cosmology's ``to/from_format`` I/O.

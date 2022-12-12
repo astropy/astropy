@@ -1,2 +1,0 @@
-Added support for opening remote and cloud-hosted FITS files using the
-``fsspec`` package, which has been added as an optional dependency.

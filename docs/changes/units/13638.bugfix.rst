@@ -1,3 +1,0 @@
-Unit changes of the form ``quantity <<= new_unit`` will now work also if the
-quantity is integer. The result will always be float. This means that the result
-will not share memory with the original.
