@@ -1,2 +1,0 @@
-Add a ``scatter_coord`` method to the ``wcsaxes`` functionality based on the
-existing ``plot_coord`` method but that calls ``matplotlib.pyplot.scatter``.

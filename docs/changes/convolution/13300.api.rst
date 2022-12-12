@@ -1,3 +1,0 @@
-Removed deprecated ``MexicanHat1DKernel`` and ``MexicanHat2DKernel``
-classes. Please use ``RickerWavelet1DKernel`` and
-``RickerWavelet2DKernel`` instead.

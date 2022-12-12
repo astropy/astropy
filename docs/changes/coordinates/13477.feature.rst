@@ -1,1 +1,0 @@
-Allow comparing ``SkyCoord`` to frames with data.

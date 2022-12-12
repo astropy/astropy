@@ -1,2 +1,0 @@
-When ``Quantity`` is constructed from a structured array and ``unit`` is
-``None``, the default unit is now structured like the input data.
