@@ -209,7 +209,7 @@ class LogQuantity(FunctionQuantity):
 
     Parameters
     ----------
-    value : number, `~astropy.units.Quantity`, `~astropy.units.function.logarithmic.LogQuantity`, or sequence of quantity-like.
+    value : number, `~astropy.units.Quantity`, `~astropy.units.LogQuantity`, or sequence of quantity-like.
         The numerical value of the logarithmic quantity. If a number or
         a `~astropy.units.Quantity` with a logarithmic unit, it will be
         converted to ``unit`` and the physical unit will be inferred from
@@ -217,8 +217,8 @@ class LogQuantity(FunctionQuantity):
         it will converted to the logarithmic unit, after, if necessary,
         converting it to the physical unit inferred from ``unit``.
 
-    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.function.FunctionUnitBase`, optional
-        For an `~astropy.units.function.FunctionUnitBase` instance, the
+    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.FunctionUnitBase`, optional
+        For an `~astropy.units.FunctionUnitBase` instance, the
         physical unit will be taken from it; for other input, it will be
         inferred from ``value``. By default, ``unit`` is set by the subclass.
 
@@ -237,7 +237,7 @@ class LogQuantity(FunctionQuantity):
 
     Examples
     --------
-    Typically, use is made of an `~astropy.units.function.FunctionQuantity`
+    Typically, use is made of an `~astropy.units.FunctionQuantity`
     subclass, as in::
 
         >>> import astropy.units as u
