@@ -1,5 +1,0 @@
-In "in-place unit changes" of the form ``quantity <<= new_unit``, the result
-will now share memory with the original only if the conversion could be done
-through a simple multiplication with a scale factor. Hence, memory will not be
-shared if the quantity has integer ```dtype``` or is structured, or when the
-conversion is through an equivalency.

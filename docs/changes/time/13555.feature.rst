@@ -1,4 +1,0 @@
-Improve the performance of getting the string representation of a large ``Time``
-or ``TimeDelta`` object. This is done via a new ``to_string()`` method that does
-the time string format conversion only for the outputted values. Previously the
-entire array was formatted in advance.

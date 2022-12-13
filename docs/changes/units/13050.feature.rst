@@ -1,3 +1,0 @@
-It is now possible to use unit format names as string format specifiers for a
-``Quantity``, e.g. ``f'{1e12*u.m/u.s:latex_inline}'`` now produces the string
-``'$1 \\times 10^{12} \\; \\mathrm{m\\,s^{-1}}$'``.

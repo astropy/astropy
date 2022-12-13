@@ -1,3 +1,0 @@
-Fixed convolution Kernels to ensure the that returned kernels
-are normalized to sum to one (e.g., ``Gaussian1DKernel``,
-``Gaussian2DKernel``). Also fixed the Kernel ``truncation`` calculation.

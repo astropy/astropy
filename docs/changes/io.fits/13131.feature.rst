@@ -1,3 +1,0 @@
-Added support to the ``io.fits`` API for reading and writing file paths of the
-form ``~/file.fits`` or ``~<username>/file.fits``, referring to the home
-directory of the current user or the specified user, respectively.

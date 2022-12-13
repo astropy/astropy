@@ -1,2 +1,0 @@
-Added the ``use_fsspec``, ``fsspec_kwargs``, and ``close_files`` arguments
-to ``utils.data.get_readable_fileobj``.

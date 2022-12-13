@@ -1,3 +1,0 @@
-Rename number-of-samples keyword ``nsamples`` in ``ZScaleInterval`` to align
-with the ``n_samples`` keyword used in all other ``Interval`` classes in
-this module.

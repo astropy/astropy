@@ -1,2 +1,0 @@
-Multiplying a ``LogQuantity`` like ``Magnitude`` with dimensionless physical
-units by an array will no longer downcast to ``Quantity``.

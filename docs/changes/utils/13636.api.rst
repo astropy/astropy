@@ -1,5 +1,0 @@
-``astropy.utils.misc.suppress`` has been removed, use ``contextlib.suppress``
-instead. ``astropy.utils.namedtuple_asdict`` has been removed, instead use
-method ``._asdict`` on a ``namedtuple``. ``override__dir__`` has been deprecated
-and will be removed in a future version, see the docstring for the better
-alternative.
