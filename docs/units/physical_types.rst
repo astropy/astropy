@@ -8,6 +8,8 @@ compatible units. For example, the physical type *mass* corresponds to
 physical quantities with units that can be converted to kilograms.
 Physical types are represented as instances of the |PhysicalType| class.
 
+For a list of physical types, see `astropy.units.physical`.
+
 Accessing Physical Types
 ========================
 
