@@ -446,13 +446,17 @@ def compress_hdu(hdu):
     if hdu._header["ZCMPTYPE"] == "PLIO_1":
         table["COMPRESSED_DATA"][:, 0] //= 2
 
-    compressed_bytes = b"".join(compressed_bytes)
-
     # For PLIO_1, it looks like the compressed data is byteswapped
     if hdu._header["ZCMPTYPE"] == "PLIO_1":
-        compressed_bytes = (
-            np.frombuffer(compressed_bytes, dtype="<i2").astype(">i2").tobytes()
-        )
+        for irow in range(len(compressed_bytes)):
+            if not gzip_fallback[irow]:
+                compressed_bytes[irow] = (
+                    np.frombuffer(compressed_bytes[irow], dtype="<i2")
+                    .astype(">i2")
+                    .tobytes()
+                )
+
+    compressed_bytes = b"".join(compressed_bytes)
 
     table_bytes = table.tobytes()
 
