@@ -4,16 +4,19 @@
 import pickle
 import textwrap
 from collections import OrderedDict
+from itertools import chain, permutations
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
+from astropy.nddata import NDDataArray
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nddata import NDData
 from astropy.nddata.nduncertainty import StdDevUncertainty
 from astropy.utils import NumpyRNGContext
+from astropy.utils.masked import Masked
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, HighLevelWCSWrapper, SlicedLowLevelWCS
 
@@ -176,11 +179,11 @@ def test_nddata_init_data_maskedarray():
 @pytest.mark.parametrize("data", [np.array([1, 2, 3]), 5])
 def test_nddata_init_data_quantity(data):
     # Test an array and a scalar because a scalar Quantity does not always
-    # behaves the same way as an array.
+    # behave the same way as an array.
     quantity = data * u.adu
     ndd = NDData(quantity)
     assert ndd.unit == quantity.unit
-    assert_array_equal(ndd.data, np.array(quantity.value))
+    assert_array_equal(ndd.data, np.array(quantity))
     if ndd.data.size > 1:
         # check that if it is an array it is not copied
         quantity.value[1] = 100
@@ -196,7 +199,7 @@ def test_nddata_init_data_masked_quantity():
     a = np.array([2, 3])
     q = a * u.m
     m = False
-    mq = np.ma.array(q, mask=m)
+    mq = Masked(q, mask=m)
     nd = NDData(mq)
     assert_array_equal(nd.data, a)
     # This test failed before the change in nddata init because the masked
@@ -384,11 +387,15 @@ def test_param_unit():
     assert nd.unit == u.cm
     # (masked quantity)
     mq = np.ma.array(np.array([2, 3]) * u.m, mask=False)
-    nd2 = NDData(mq, unit=u.s)
-    assert nd2.unit == u.s
+    nd2 = NDData(mq, unit=u.pc)
+    assert nd2.unit == u.pc
     # (another NDData as data)
     nd3 = NDData(nd, unit="km")
     assert nd3.unit == u.km
+    # (MaskedQuantity given to NDData)
+    mq_astropy = Masked.from_unmasked(q, False)
+    nd4 = NDData(mq_astropy, unit="km")
+    assert nd4.unit == u.km
 
 
 def test_pickle_nddata_with_uncertainty():
@@ -587,3 +594,99 @@ def test_overriden_wcs():
     # Check that a sub-class that overrides `.wcs` without providing a setter
     # works
     NDDataCustomWCS(np.ones((5, 5)))
+
+
+# set up parameters for test_collapse:
+np.random.seed(42)
+collapse_units = [None, u.Jy]
+collapse_propagate = [True, False]
+collapse_data_shapes = [
+    # 3D example:
+    # (4, 3, 2),
+    # 5D example
+    (6, 5, 4, 3, 2)
+]
+collapse_masks = list(
+    chain.from_iterable(
+        [
+            # try the operations without a mask (all False):
+            np.zeros(collapse_data_shape).astype(bool)
+        ]
+        + [
+            # assemble a bunch of random masks:
+            np.random.randint(0, 2, size=collapse_data_shape).astype(bool)
+            for _ in range(10)
+        ]
+        for collapse_data_shape in collapse_data_shapes
+    )
+)
+permute = len(collapse_masks) * len(collapse_propagate) * len(collapse_units)
+collapse_units = permute // len(collapse_units) * collapse_units
+collapse_propagate = permute // len(collapse_propagate) * collapse_propagate
+collapse_masks = permute // len(collapse_masks) * collapse_masks
+
+
+# The filtered warning below is given when "invalid value
+# encountered in divide", and can be removed when this div by zero
+# errors are prevented in the Masked implementation of `mean`.
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.parametrize(
+    "mask, unit, propagate_uncertainties",
+    [
+        (mask, unit, propagate_uncertainties)
+        for mask, unit, propagate_uncertainties in zip(
+            collapse_masks, collapse_units, collapse_propagate
+        )
+    ],
+)
+def test_collapse(mask, unit, propagate_uncertainties):
+
+    # unique set of combinations of each of the N-1 axes for an N-D cube:
+    axes_permutations = {tuple(axes[:2]) for axes in permutations(range(mask.ndim))}
+
+    # each of the single axis slices:
+    axes_permutations.update({axis for axis in range(mask.ndim)})
+    axes_permutations.update({None})
+
+    cube = np.arange(np.prod(mask.shape)).reshape(mask.shape)
+    ma_cube = Masked(cube, mask=mask)
+    ndarr = NDDataArray(cube, uncertainty=StdDevUncertainty(cube), unit=unit, mask=mask)
+
+    # By construction, the minimum value along each axis is always the zeroth index and
+    # the maximum is always the last along that axis. We verify that here, so we can
+    # test that the correct uncertainties are extracted during the
+    # `NDDataArray.min` and `NDDataArray.max` methods later:
+    for axis in range(cube.ndim):
+        assert np.all(np.equal(cube.argmin(axis=axis), 0))
+        assert np.all(np.equal(cube.argmax(axis=axis), cube.shape[axis] - 1))
+
+    # confirm that supported nddata methods agree with corresponding numpy methods
+    # for the masked data array:
+    sum_methods = ["sum", "mean"]
+    ext_methods = ["min", "max"]
+    all_methods = sum_methods + ext_methods
+
+    # for all supported methods, ensure the masking is propagated:
+    for method in all_methods:
+        for axes in axes_permutations:
+            astropy_method = getattr(ma_cube, method)(axis=axes)
+            nddata_method = getattr(ndarr, method)(
+                axis=axes, propagate_uncertainties=propagate_uncertainties
+            )
+
+            astropy_unmasked = astropy_method.base[~astropy_method.mask]
+            nddata_unmasked = nddata_method.data[~nddata_method.mask]
+
+            # check if the units are passed through correctly:
+            assert unit == nddata_method.unit
+
+            # check if the numpy and astropy.utils.masked results agree when
+            # the result is not fully masked:
+            if len(astropy_unmasked) > 0:
+                assert np.all(np.equal(astropy_unmasked, nddata_unmasked))
+
+            # For extremum methods, ensure the uncertainty returned corresponds to the
+            # min/max data value. We've created the uncertainties to have the same value
+            # as the data array, so we can just check for equality:
+            if method in ext_methods and propagate_uncertainties:
+                assert np.ma.all(np.ma.equal(astropy_method, nddata_method))

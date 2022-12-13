@@ -275,8 +275,8 @@ To change the default value of an existing parameter for arithmetic methods::
 
     >>> ndd1 = NDDDiffAritDefaults(1, mask=False)
     >>> ndd2 = NDDDiffAritDefaults(1, mask=True)
-    >>> ndd1.add(ndd2).mask is None  # it will be None
-    True
+    >>> # No mask handling logic will return no mask:
+    >>> ndd1.add(ndd2).mask
 
     >>> # But giving other values is still possible:
     >>> ndd1.add(ndd2, handle_mask=np.logical_or).mask
