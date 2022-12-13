@@ -1,3 +1,0 @@
-Added support in ``io.votable`` for reading and writing file paths of the form
-``~/file.xml`` or ``~<username>/file.xml``, referring to the home directory of
-the current user or the specified user, respectively.

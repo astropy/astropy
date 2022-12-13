@@ -1,2 +1,0 @@
-Modified ``Cutout2D`` to allow objects of type ``astropy.io.fits.Section``
-to be passed to the ``data`` parameter.

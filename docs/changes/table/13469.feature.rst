@@ -1,3 +1,0 @@
-An Astropy table can now be converted to a scalar NumPy object array. For NumPy
->= 1.20, a list of Astropy tables can be converted to an NumPy object array of
-tables.
