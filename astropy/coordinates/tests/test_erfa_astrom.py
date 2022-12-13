@@ -3,13 +3,16 @@ import pytest
 
 import astropy.units as u
 from astropy.coordinates import CIRS, GCRS, AltAz, EarthLocation, SkyCoord
-from astropy.coordinates.erfa_astrom import ErfaAstrom, ErfaAstromInterpolator, erfa_astrom
+from astropy.coordinates.erfa_astrom import (
+    ErfaAstrom,
+    ErfaAstromInterpolator,
+    erfa_astrom,
+)
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
 
 def test_science_state():
-
     assert erfa_astrom.get().__class__ is ErfaAstrom
 
     res = 300 * u.s
@@ -22,11 +25,10 @@ def test_science_state():
 
     # must be a subclass of BaseErfaAstrom
     with pytest.raises(TypeError):
-        erfa_astrom.set('foo')
+        erfa_astrom.set("foo")
 
 
 def test_warnings():
-
     with pytest.warns(AstropyWarning):
         with erfa_astrom.set(ErfaAstromInterpolator(9 * u.us)):
             pass
@@ -43,7 +45,7 @@ def test_erfa_astrom():
         lat=28.761584 * u.deg,
         height=2200 * u.m,
     )
-    obstime = Time('2020-01-01T18:00') + np.linspace(0, 1, 100) * u.hour
+    obstime = Time("2020-01-01T18:00") + np.linspace(0, 1, 100) * u.hour
 
     altaz = AltAz(location=location, obstime=obstime)
     coord = SkyCoord(ra=83.63308333, dec=22.0145, unit=u.deg)
@@ -62,9 +64,9 @@ def test_erfa_astrom():
 
 
 def test_interpolation_nd():
-    '''
+    """
     Test that the interpolation also works for nd-arrays
-    '''
+    """
 
     fact = EarthLocation(
         lon=-17.891105 * u.deg,
@@ -75,16 +77,16 @@ def test_interpolation_nd():
     interp_provider = ErfaAstromInterpolator(300 * u.s)
     provider = ErfaAstrom()
 
-    for shape in [tuple(), (1, ), (10, ), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
+    for shape in [tuple(), (1,), (10,), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
         # create obstimes of the desired shapes
         delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
-        obstime = (Time('2020-01-01T18:00') + delta_t).reshape(shape)
+        obstime = (Time("2020-01-01T18:00") + delta_t).reshape(shape)
 
         altaz = AltAz(location=fact, obstime=obstime)
         gcrs = GCRS(obstime=obstime)
         cirs = CIRS(obstime=obstime)
 
-        for frame, tcode in zip([altaz, cirs, gcrs], ['apio', 'apco', 'apcs']):
+        for frame, tcode in zip([altaz, cirs, gcrs], ["apio", "apco", "apcs"]):
             without_interp = getattr(provider, tcode)(frame)
             assert without_interp.shape == shape
 
@@ -104,7 +106,7 @@ def test_interpolation_broadcasting():
     coord = SkyCoord(rep)
 
     # 30 times over the space of 1 hours
-    times = Time('2020-01-01T20:00') + np.linspace(-0.5, 0.5, 30) * u.hour
+    times = Time("2020-01-01T20:00") + np.linspace(-0.5, 0.5, 30) * u.hour
 
     lst1 = EarthLocation(
         lon=-17.891498 * u.deg,

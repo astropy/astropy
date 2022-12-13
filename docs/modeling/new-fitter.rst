@@ -182,10 +182,10 @@ The last thing to define is the ``__call__`` method::
 
         farg = _convert_input(x, y)
         farg = (model_copy, x_sigma, y_sigma) + farg
-        p0, _ = _model_to_fit_params(model_copy)
+        p0, _, _ = model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, p0, farg, **kwargs)
-        _fitter_to_model_params(model_copy, fitparams)
+        fitter_to_model_params(model_copy, fitparams)
 
         return model_copy

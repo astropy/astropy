@@ -41,7 +41,7 @@ def matrix_transpose(matrix):
     return matrix.swapaxes(-2, -1)
 
 
-def rotation_matrix(angle, axis='z', unit=None):
+def rotation_matrix(angle, axis="z", unit=None):
     """
     Generate matrices for rotation by some angle around some axis.
 
@@ -77,12 +77,15 @@ def rotation_matrix(angle, axis='z', unit=None):
 
     # use optimized implementations for x/y/z
     try:
-        i = 'xyz'.index(axis)
+        i = "xyz".index(axis)
     except TypeError:
         axis = np.asarray(axis)
         axis = axis / np.sqrt((axis * axis).sum(axis=-1, keepdims=True))
-        R = (axis[..., np.newaxis] * axis[..., np.newaxis, :] *
-             (1. - c)[..., np.newaxis, np.newaxis])
+        R = (
+            axis[..., np.newaxis]
+            * axis[..., np.newaxis, :]
+            * (1.0 - c)[..., np.newaxis, np.newaxis]
+        )
 
         for i in range(0, 3):
             R[..., i, i] += c
@@ -94,8 +97,8 @@ def rotation_matrix(angle, axis='z', unit=None):
     else:
         a1 = (i + 1) % 3
         a2 = (i + 2) % 3
-        R = np.zeros(getattr(angle, 'shape', ()) + (3, 3))
-        R[..., i, i] = 1.
+        R = np.zeros(getattr(angle, "shape", ()) + (3, 3))
+        R[..., i, i] = 1.0
         R[..., a1, a1] = c
         R[..., a1, a2] = s
         R[..., a2, a1] = -s
@@ -122,15 +125,14 @@ def angle_axis(matrix):
     """
     m = np.asanyarray(matrix)
     if m.shape[-2:] != (3, 3):
-        raise ValueError('matrix is not 3x3')
+        raise ValueError("matrix is not 3x3")
 
     axis = np.zeros(m.shape[:-1])
     axis[..., 0] = m[..., 2, 1] - m[..., 1, 2]
     axis[..., 1] = m[..., 0, 2] - m[..., 2, 0]
     axis[..., 2] = m[..., 1, 0] - m[..., 0, 1]
     r = np.sqrt((axis * axis).sum(-1, keepdims=True))
-    angle = np.arctan2(r[..., 0],
-                       m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2] - 1.)
+    angle = np.arctan2(r[..., 0], m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2] - 1.0)
     return Angle(angle, u.radian), -axis / r
 
 
@@ -157,8 +159,9 @@ def is_O3(matrix):
     """
     # matrix is in O(3) (rotations, proper and improper).
     I = np.identity(matrix.shape[-1])
-    is_o3 = np.all(np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15),
-                   axis=(-2, -1))
+    is_o3 = np.all(
+        np.isclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15), axis=(-2, -1)
+    )
 
     return is_o3
 

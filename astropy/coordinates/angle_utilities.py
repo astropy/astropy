@@ -4,16 +4,26 @@ This module contains utility functions for working with angles. These are both
 used internally in astropy.coordinates.angles, and of possible
 """
 
-__all__ = ['angular_separation', 'position_angle', 'offset_by',
-           'golden_spiral_grid', 'uniform_spherical_random_surface',
-           'uniform_spherical_random_volume']
+__all__ = [
+    "angular_separation",
+    "position_angle",
+    "offset_by",
+    "golden_spiral_grid",
+    "uniform_spherical_random_surface",
+    "uniform_spherical_random_volume",
+]
 
 # Third-party
 import numpy as np
 
 # Astropy
 import astropy.units as u
-from astropy.coordinates.representation import SphericalRepresentation, UnitSphericalRepresentation
+from astropy.coordinates.representation import (
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+)
+
+_TWOPI = 2 * np.pi
 
 
 def angular_separation(lon1, lat1, lon2, lat2):
@@ -82,7 +92,7 @@ def position_angle(lon1, lat1, lon2, lat2):
     x = np.sin(lat2) * np.cos(lat1) - colat * np.sin(lat1) * np.cos(deltalon)
     y = np.sin(deltalon) * colat
 
-    return Angle(np.arctan2(y, x), u.radian).wrap_at(360*u.deg)
+    return Angle(np.arctan2(y, x), u.radian).wrap_at(360 * u.deg)
 
 
 def offset_by(lon, lat, posang, distance):
@@ -136,7 +146,7 @@ def offset_by(lon, lat, posang, distance):
     small_sin_c = sin_c < 1e-12
     if small_sin_c.any():
         # For south pole (cos_c = -1), A = posang; for North pole, A=180 deg - posang
-        A_pole = (90*u.deg + cos_c*(90*u.deg-Angle(posang, u.radian))).to(u.rad)
+        A_pole = (90 * u.deg + cos_c * (90 * u.deg - Angle(posang, u.radian))).to(u.rad)
         if A.shape:
             # broadcast to ensure the shape is like that of A, which is also
             # affected by the (possible) shapes of lat, posang, and distance.
@@ -145,7 +155,7 @@ def offset_by(lon, lat, posang, distance):
         else:
             A = A_pole
 
-    outlon = (Angle(lon, u.radian) + A).wrap_at(360.0*u.deg).to(u.deg)
+    outlon = (Angle(lon, u.radian) + A).wrap_at(360.0 * u.deg).to(u.deg)
     outlat = Angle(np.arcsin(cos_b), u.radian).to(u.deg)
 
     return outlon, outlat
@@ -172,7 +182,7 @@ def golden_spiral_grid(size):
     golden_r = (1 + 5**0.5) / 2
 
     grid = np.arange(0, size, dtype=float) + 0.5
-    lon = 2*np.pi / golden_r * grid * u.rad
+    lon = _TWOPI / golden_r * grid * u.rad
     lat = np.arcsin(1 - 2 * grid / size) * u.rad
 
     return UnitSphericalRepresentation(lon, lat)
@@ -194,7 +204,7 @@ def uniform_spherical_random_surface(size=1):
 
     rng = np.random  # can maybe switch to this being an input later - see #11628
 
-    lon = rng.uniform(0, 2*np.pi, size) * u.rad
+    lon = rng.uniform(0, _TWOPI, size) * u.rad
     lat = np.arcsin(rng.uniform(-1, 1, size=size)) * u.rad
 
     return UnitSphericalRepresentation(lon, lat)
@@ -224,21 +234,35 @@ def uniform_spherical_random_volume(size=1, max_radius=1):
     return SphericalRepresentation(usph.lon, usph.lat, r)
 
 
-from astropy.coordinates import angle_formats
-# # below here can be deleted in v5.0
-from astropy.utils.decorators import deprecated
+from astropy.coordinates import angle_formats  # noqa: E402
 
-__old_angle_utilities_funcs = ['check_hms_ranges', 'degrees_to_dms',
-                               'degrees_to_string', 'dms_to_degrees',
-                               'format_exception', 'hms_to_degrees',
-                               'hms_to_dms', 'hms_to_hours',
-                               'hms_to_radians', 'hours_to_decimal',
-                               'hours_to_hms', 'hours_to_radians',
-                               'hours_to_string', 'parse_angle',
-                               'radians_to_degrees', 'radians_to_dms',
-                               'radians_to_hms', 'radians_to_hours',
-                               'sexagesimal_to_string']
+# # below here can be deleted in v5.0
+from astropy.utils.decorators import deprecated  # noqa: E402
+
+__old_angle_utilities_funcs = [
+    "check_hms_ranges",
+    "degrees_to_dms",
+    "degrees_to_string",
+    "dms_to_degrees",
+    "format_exception",
+    "hms_to_degrees",
+    "hms_to_dms",
+    "hms_to_hours",
+    "hms_to_radians",
+    "hours_to_decimal",
+    "hours_to_hms",
+    "hours_to_radians",
+    "hours_to_string",
+    "parse_angle",
+    "radians_to_degrees",
+    "radians_to_dms",
+    "radians_to_hms",
+    "radians_to_hours",
+    "sexagesimal_to_string",
+]
 for funcname in __old_angle_utilities_funcs:
-    vars()[funcname] = deprecated(name='astropy.coordinates.angle_utilities.' + funcname,
-                                  alternative='astropy.coordinates.angle_formats.' + funcname,
-                                  since='v4.3')(getattr(angle_formats, funcname))
+    vars()[funcname] = deprecated(
+        name="astropy.coordinates.angle_utilities." + funcname,
+        alternative="astropy.coordinates.angle_formats." + funcname,
+        since="v4.3",
+    )(getattr(angle_formats, funcname))

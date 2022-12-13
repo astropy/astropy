@@ -5,37 +5,45 @@ Utilities for console input and output.
 
 import codecs
 import locale
-import re
 import math
 import multiprocessing
 import os
+import re
 import struct
 import sys
 import threading
 import time
+
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
 
 try:
     import fcntl
-    import termios
     import signal
+    import termios
+
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
 from astropy import conf
 
-from .misc import isiterable
 from .decorators import classproperty
-
+from .misc import isiterable
 
 __all__ = [
-    'isatty', 'color_print', 'human_time', 'human_file_size',
-    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner',
-    'terminal_size']
+    "isatty",
+    "color_print",
+    "human_time",
+    "human_file_size",
+    "ProgressBar",
+    "Spinner",
+    "print_code_line",
+    "ProgressBarOrSpinner",
+    "terminal_size",
+]
 
-_DEFAULT_ENCODING = 'utf-8'
+_DEFAULT_ENCODING = "utf-8"
 
 
 class _IPython:
@@ -51,7 +59,7 @@ class _IPython:
 
     @classproperty
     def OutStream(cls):
-        if not hasattr(cls, '_OutStream'):
+        if not hasattr(cls, "_OutStream"):
             cls._OutStream = None
             try:
                 cls.get_ipython()
@@ -65,6 +73,7 @@ class _IPython:
                     from IPython.zmq.iostream import OutStream
                 except ImportError:
                     from IPython import version_info
+
                     if version_info[0] >= 4:
                         return None
 
@@ -79,7 +88,7 @@ class _IPython:
 
     @classproperty
     def ipyio(cls):
-        if not hasattr(cls, '_ipyio'):
+        if not hasattr(cls, "_ipyio"):
             try:
                 from IPython.utils import io
             except ImportError:
@@ -104,9 +113,9 @@ def _get_stdout(stderr=False):
     """
 
     if stderr:
-        stream = 'stderr'
+        stream = "stderr"
     else:
-        stream = 'stdout'
+        stream = "stdout"
 
     sys_stream = getattr(sys, stream)
     return sys_stream
@@ -120,11 +129,13 @@ def isatty(file):
     but some user-defined types may not, so this assumes those are not
     ttys.
     """
-    if (multiprocessing.current_process().name != 'MainProcess' or
-            threading.current_thread().name != 'MainThread'):
+    if (
+        multiprocessing.current_process().name != "MainProcess"
+        or threading.current_thread().name != "MainThread"
+    ):
         return False
 
-    if hasattr(file, 'isatty'):
+    if hasattr(file, "isatty"):
         return file.isatty()
 
     if _IPython.OutStream is None or (not isinstance(file, _IPython.OutStream)):
@@ -133,10 +144,10 @@ def isatty(file):
     # File is an IPython OutStream. Check whether:
     # - File name is 'stdout'; or
     # - File wraps a Console
-    if getattr(file, 'name', None) == 'stdout':
+    if getattr(file, "name", None) == "stdout":
         return True
 
-    if hasattr(file, 'stream'):
+    if hasattr(file, "stream"):
         # FIXME: pyreadline has no had new release since 2015, drop it when
         #        IPython minversion is 5.x.
         # On Windows, in IPython 2 the standard I/O streams will wrap
@@ -174,13 +185,12 @@ def terminal_size(file=None):
         if width > 10:
             width -= 1
         if lines <= 0 or width <= 0:
-            raise Exception('unable to get terminal size')
+            raise Exception("unable to get terminal size")
         return (lines, width)
     except Exception:
         try:
             # see if POSIX standard variables will work
-            return (int(os.environ.get('LINES')),
-                    int(os.environ.get('COLUMNS')))
+            return (int(os.environ.get("LINES")), int(os.environ.get("COLUMNS")))
         except TypeError:
             # fall back on configuration variables, or if not
             # set, (25, 80)
@@ -214,30 +224,31 @@ def _color_text(text, color):
         lightmagenta, lightcyan, white, or '' (the empty string).
     """
     color_mapping = {
-        'black': '0;30',
-        'red': '0;31',
-        'green': '0;32',
-        'brown': '0;33',
-        'blue': '0;34',
-        'magenta': '0;35',
-        'cyan': '0;36',
-        'lightgrey': '0;37',
-        'default': '0;39',
-        'darkgrey': '1;30',
-        'lightred': '1;31',
-        'lightgreen': '1;32',
-        'yellow': '1;33',
-        'lightblue': '1;34',
-        'lightmagenta': '1;35',
-        'lightcyan': '1;36',
-        'white': '1;37'}
+        "black": "0;30",
+        "red": "0;31",
+        "green": "0;32",
+        "brown": "0;33",
+        "blue": "0;34",
+        "magenta": "0;35",
+        "cyan": "0;36",
+        "lightgrey": "0;37",
+        "default": "0;39",
+        "darkgrey": "1;30",
+        "lightred": "1;31",
+        "lightgreen": "1;32",
+        "yellow": "1;33",
+        "lightblue": "1;34",
+        "lightmagenta": "1;35",
+        "lightcyan": "1;36",
+        "white": "1;37",
+    }
 
-    if sys.platform == 'win32' and _IPython.OutStream is None:
+    if sys.platform == "win32" and _IPython.OutStream is None:
         # On Windows do not colorize text unless in IPython
         return text
 
-    color_code = color_mapping.get(color, '0;39')
-    return f'\033[{color_code}m{text}\033[0m'
+    color_code = color_mapping.get(color, "0;39")
+    return f"\033[{color_code}m{text}\033[0m"
 
 
 def _decode_preferred_encoding(s):
@@ -255,7 +266,7 @@ def _decode_preferred_encoding(s):
             enc = _DEFAULT_ENCODING
         return s.decode(enc)
     except UnicodeDecodeError:
-        return s.decode('latin-1')
+        return s.decode("latin-1")
 
 
 def _write_with_fallback(s, write, fileobj):
@@ -284,7 +295,7 @@ def _write_with_fallback(s, write, fileobj):
         write(s)
         return write
     except UnicodeEncodeError:
-        Writer = codecs.getwriter('latin-1')
+        Writer = codecs.getwriter("latin-1")
         f = Writer(fileobj)
         write = f.write
 
@@ -293,7 +304,7 @@ def _write_with_fallback(s, write, fileobj):
     return write
 
 
-def color_print(*args, end='\n', **kwargs):
+def color_print(*args, end="\n", **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -324,14 +335,14 @@ def color_print(*args, end='\n', **kwargs):
         be printed after resetting any color or font state.
     """
 
-    file = kwargs.get('file', _get_stdout())
+    file = kwargs.get("file", _get_stdout())
 
     write = file.write
     if isatty(file) and conf.use_color:
         for i in range(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
-                color = ''
+                color = ""
             else:
                 color = args[i + 1]
 
@@ -356,7 +367,7 @@ def strip_ansi_codes(s):
     """
     Remove ANSI color codes from the string.
     """
-    return re.sub('\033\\[([0-9]+)(;[0-9]+)*m', '', s)
+    return re.sub("\033\\[([0-9]+)(;[0-9]+)*m", "", s)
 
 
 def human_time(seconds):
@@ -386,26 +397,26 @@ def human_time(seconds):
         that is always exactly 6 characters.
     """
     units = [
-        ('y', 60 * 60 * 24 * 7 * 52),
-        ('w', 60 * 60 * 24 * 7),
-        ('d', 60 * 60 * 24),
-        ('h', 60 * 60),
-        ('m', 60),
-        ('s', 1),
+        ("y", 60 * 60 * 24 * 7 * 52),
+        ("w", 60 * 60 * 24 * 7),
+        ("d", 60 * 60 * 24),
+        ("h", 60 * 60),
+        ("m", 60),
+        ("s", 1),
     ]
 
     seconds = int(seconds)
 
     if seconds < 60:
-        return f'   {seconds:2d}s'
+        return f"   {seconds:2d}s"
     for i in range(len(units) - 1):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return '{:2d}{}{:2d}{}'.format(
-                seconds // limit1, unit1,
-                (seconds % limit1) // limit2, unit2)
-    return '  ~inf'
+            return "{:2d}{}{:2d}{}".format(
+                seconds // limit1, unit1, (seconds % limit1) // limit2, unit2
+            )
+    return "  ~inf"
 
 
 def human_file_size(size):
@@ -430,27 +441,28 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
-    if hasattr(size, 'unit'):
+    if hasattr(size, "unit"):
         # Import units only if necessary because the import takes a
         # significant time [#4649]
         from astropy import units as u
+
         size = u.Quantity(size, u.byte).value
 
-    suffixes = ' kMGTPEZY'
+    suffixes = " kMGTPEZY"
     if size == 0:
         num_scale = 0
     else:
         num_scale = int(math.floor(math.log(size) / math.log(1000)))
     if num_scale > 7:
-        suffix = '?'
+        suffix = "?"
     else:
         suffix = suffixes[num_scale]
     num_scale = int(math.pow(1000, num_scale))
     value = size / num_scale
     str_value = str(value)
-    if suffix == ' ':
-        str_value = str_value[:str_value.index('.')]
-    elif str_value[2] == '.':
+    if suffix == " ":
+        str_value = str_value[: str_value.index(".")]
+    elif str_value[2] == ".":
         str_value = str_value[:2]
     else:
         str_value = str_value[:3]
@@ -532,8 +544,7 @@ class ProgressBar:
 
         self._signal_set = False
         if not ipython_widget:
-            self._should_handle_resize = (
-                _CAN_RESIZE_TERMINAL and self._file.isatty())
+            self._should_handle_resize = _CAN_RESIZE_TERMINAL and self._file.isatty()
             self._handle_resize()
             if self._should_handle_resize:
                 signal.signal(signal.SIGWINCH, self._handle_resize)
@@ -552,7 +563,7 @@ class ProgressBar:
         if not self._silent:
             if exc_type is None:
                 self.update(self._total)
-            self._file.write('\n')
+            self._file.write("\n")
             self._file.flush()
             if self._signal_set:
                 signal.signal(signal.SIGWINCH, signal.SIG_DFL)
@@ -604,24 +615,24 @@ class ProgressBar:
             bar_fill = int(self._bar_length)
         else:
             bar_fill = int(float(self._bar_length) * frac)
-        write('\r|')
-        color_print('=' * bar_fill, 'blue', file=file, end='')
+        write("\r|")
+        color_print("=" * bar_fill, "blue", file=file, end="")
         if bar_fill < self._bar_length:
-            color_print('>', 'green', file=file, end='')
-            write('-' * (self._bar_length - bar_fill - 1))
-        write('|')
+            color_print(">", "green", file=file, end="")
+            write("-" * (self._bar_length - bar_fill - 1))
+        write("|")
 
         if value >= self._total:
             t = time.time() - self._start_time
-            prefix = '     '
+            prefix = "     "
         elif value <= 0:
             t = None
-            prefix = ''
+            prefix = ""
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
-            prefix = ' ETA '
-        write(f' {human_file_size(value):>4s}/{self._human_total:>4s}')
-        write(f' ({frac:>6.2%})')
+            prefix = " ETA "
+        write(f" {human_file_size(value):>4s}/{self._human_total:>4s}")
+        write(f" ({frac:>6.2%})")
         write(prefix)
         if t is not None:
             write(human_time(t))
@@ -637,15 +648,18 @@ class ProgressBar:
 
         # Create and display an empty progress bar widget,
         # if none exists.
-        if not hasattr(self, '_widget'):
+        if not hasattr(self, "_widget"):
             # Import only if an IPython widget, i.e., widget in iPython NB
             from IPython import version_info
+
             if version_info[0] < 4:
                 from IPython.html import widgets
+
                 self._widget = widgets.FloatProgressWidget()
             else:
                 _IPython.get_ipython()
                 from ipywidgets import widgets
+
                 self._widget = widgets.FloatProgress()
             from IPython.display import display
 
@@ -653,16 +667,24 @@ class ProgressBar:
             self._widget.value = 0
 
         # Calculate percent completion, and update progress bar
-        frac = (value/self._total)
+        frac = value / self._total
         self._widget.value = frac * 100
-        self._widget.description = f' ({frac:>6.2%})'
+        self._widget.description = f" ({frac:>6.2%})"
 
     def _silent_update(self, value=None):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=None, step=100,
-            ipython_widget=False, multiprocessing_start_method=None):
+    def map(
+        cls,
+        function,
+        items,
+        multiprocess=False,
+        file=None,
+        step=100,
+        ipython_widget=False,
+        multiprocessing_start_method=None,
+    ):
         """Map function over items while displaying a progress bar with percentage complete.
 
         The map operation may run in arbitrary order on the items, but the results are
@@ -719,10 +741,14 @@ class ProgressBar:
             items = list(enumerate(items))
 
         results = cls.map_unordered(
-            function, items, multiprocess=multiprocess,
-            file=file, step=step,
+            function,
+            items,
+            multiprocess=multiprocess,
+            file=file,
+            step=step,
             ipython_widget=ipython_widget,
-            multiprocessing_start_method=multiprocessing_start_method)
+            multiprocessing_start_method=multiprocessing_start_method,
+        )
 
         if multiprocess:
             _, results = zip(*sorted(results))
@@ -731,9 +757,16 @@ class ProgressBar:
         return results
 
     @classmethod
-    def map_unordered(cls, function, items, multiprocess=False, file=None,
-                      step=100, ipython_widget=False,
-                      multiprocessing_start_method=None):
+    def map_unordered(
+        cls,
+        function,
+        items,
+        multiprocess=False,
+        file=None,
+        step=100,
+        ipython_widget=False,
+        multiprocessing_start_method=None,
+    ):
         """Map function over items, reporting the progress.
 
         Does a `map` operation while displaying a progress bar with
@@ -810,14 +843,14 @@ class ProgressBar:
                 kwargs = dict(mp_context=ctx)
 
                 with ProcessPoolExecutor(
-                        max_workers=(int(multiprocess)
-                                     if multiprocess is not True
-                                     else None),
-                        **kwargs) as p:
+                    max_workers=(
+                        int(multiprocess) if multiprocess is not True else None
+                    ),
+                    **kwargs,
+                ) as p:
                     for i, f in enumerate(
-                            as_completed(
-                                p.submit(function, item)
-                                for item in items)):
+                        as_completed(p.submit(function, item) for item in items)
+                    ):
                         bar.update(i)
                         results.append(f.result())
 
@@ -834,11 +867,11 @@ class Spinner:
             for item in enumerate(items):
                 s.update()
     """
+
     _default_unicode_chars = "◓◑◒◐"
     _default_ascii_chars = "-/|\\"
 
-    def __init__(self, msg, color='default', file=None, step=1,
-                 chars=None):
+    def __init__(self, msg, color="default", file=None, step=1, chars=None):
         """
         Parameters
         ----------
@@ -895,9 +928,9 @@ class Spinner:
         try_fallback = True
 
         while True:
-            write('\r')
-            color_print(self._msg, self._color, file=file, end='')
-            write(' ')
+            write("\r")
+            color_print(self._msg, self._color, file=file, end="")
+            write(" ")
             try:
                 if try_fallback:
                     write = _write_with_fallback(chars[index], write, file)
@@ -926,12 +959,12 @@ class Spinner:
         flush = file.flush
 
         if not self._silent:
-            write('\r')
-            color_print(self._msg, self._color, file=file, end='')
+            write("\r")
+            color_print(self._msg, self._color, file=file, end="")
         if exc_type is None:
-            color_print(' [Done]', 'green', file=file)
+            color_print(" [Done]", "green", file=file)
         else:
-            color_print(' [Failed]', 'red', file=file)
+            color_print(" [Failed]", "red", file=file)
         flush()
 
     def __iter__(self):
@@ -953,7 +986,7 @@ class Spinner:
         next(self)
 
     def _silent_iterator(self):
-        color_print(self._msg, self._color, file=self._file, end='')
+        color_print(self._msg, self._color, file=self._file, end="")
         self._file.flush()
 
         while True:
@@ -979,7 +1012,7 @@ class ProgressBarOrSpinner:
                 bar.update(bytes_read)
     """
 
-    def __init__(self, total, msg, color='default', file=None):
+    def __init__(self, total, msg, color="default", file=None):
         """
         Parameters
         ----------
@@ -1073,40 +1106,40 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         file = _get_stdout()
 
     if conf.unicode_output:
-        ellipsis = '…'
+        ellipsis = "…"
     else:
-        ellipsis = '...'
+        ellipsis = "..."
 
     write = file.write
 
     if col is not None:
         if col >= len(line):
-            raise ValueError('col must be less the the line length.')
-        ntabs = line[:col].count('\t')
+            raise ValueError("col must be less the the line length.")
+        ntabs = line[:col].count("\t")
         col += ntabs * (tabwidth - 1)
 
-    line = line.rstrip('\n')
-    line = line.replace('\t', ' ' * tabwidth)
+    line = line.rstrip("\n")
+    line = line.replace("\t", " " * tabwidth)
 
     if col is not None and col > width:
         new_col = min(width // 2, len(line) - col)
         offset = col - new_col
-        line = line[offset + len(ellipsis):]
+        line = line[offset + len(ellipsis) :]
         width -= len(ellipsis)
         new_col = col
         col -= offset
-        color_print(ellipsis, 'darkgrey', file=file, end='')
+        color_print(ellipsis, "darkgrey", file=file, end="")
 
     if len(line) > width:
-        write(line[:width - len(ellipsis)])
-        color_print(ellipsis, 'darkgrey', file=file)
+        write(line[: width - len(ellipsis)])
+        color_print(ellipsis, "darkgrey", file=file)
     else:
         write(line)
-        write('\n')
+        write("\n")
 
     if col is not None:
-        write(' ' * col)
-        color_print('^', 'red', file=file)
+        write(" " * col)
+        color_print("^", "red", file=file)
 
 
 # The following four Getch* classes implement unbuffered character reading from
@@ -1114,6 +1147,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 # Code Recipes:
 # http://code.activestate.com/recipes/134892-getch-like-unbuffered-character-reading-from-stdin/
 #
+
 
 class Getch:
     """Get a single character from standard input without screen echo.
@@ -1138,17 +1172,18 @@ class Getch:
 
 class _GetchUnix:
     def __init__(self):
-        import tty  # pylint: disable=W0611
-        import sys  # pylint: disable=W0611
+        import sys  # noqa: F401
 
         # import termios now or else you'll get the Unix
         # version on the Mac
-        import termios  # pylint: disable=W0611
+        import termios  # noqa: F401
+        import tty  # noqa: F401
 
     def __call__(self):
         import sys
-        import tty
         import termios
+        import tty
+
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -1161,10 +1196,11 @@ class _GetchUnix:
 
 class _GetchWindows:
     def __init__(self):
-        import msvcrt  # pylint: disable=W0611
+        import msvcrt  # noqa: F401
 
     def __call__(self):
         import msvcrt
+
         return msvcrt.getch()
 
 
@@ -1178,12 +1214,14 @@ class _GetchMacCarbon:
 
     def __init__(self):
         import Carbon
+
         Carbon.Evt  # see if it has this (in Unix, it doesn't)
 
     def __call__(self):
         import Carbon
+
         if Carbon.Evt.EventAvail(0x0008)[0] == 0:  # 0x0008 is the keyDownMask
-            return ''
+            return ""
         else:
             #
             # The event contains the following info:

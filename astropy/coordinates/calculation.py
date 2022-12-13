@@ -26,46 +26,91 @@ class CelestialError(ValueError):
 
 
 def get_sign(dt):
-    """
-    """
-    if ((int(dt.month) == 12 and int(dt.day) >= 22)or(int(dt.month) == 1 and int(dt.day) <= 19)):
+    """ """
+    if (int(dt.month) == 12 and int(dt.day) >= 22) or (
+        int(dt.month) == 1 and int(dt.day) <= 19
+    ):
         zodiac_sign = "capricorn"
-    elif ((int(dt.month) == 1 and int(dt.day) >= 20)or(int(dt.month) == 2 and int(dt.day) <= 17)):
+    elif (int(dt.month) == 1 and int(dt.day) >= 20) or (
+        int(dt.month) == 2 and int(dt.day) <= 17
+    ):
         zodiac_sign = "aquarius"
-    elif ((int(dt.month) == 2 and int(dt.day) >= 18)or(int(dt.month) == 3 and int(dt.day) <= 19)):
+    elif (int(dt.month) == 2 and int(dt.day) >= 18) or (
+        int(dt.month) == 3 and int(dt.day) <= 19
+    ):
         zodiac_sign = "pisces"
-    elif ((int(dt.month) == 3 and int(dt.day) >= 20)or(int(dt.month) == 4 and int(dt.day) <= 19)):
+    elif (int(dt.month) == 3 and int(dt.day) >= 20) or (
+        int(dt.month) == 4 and int(dt.day) <= 19
+    ):
         zodiac_sign = "aries"
-    elif ((int(dt.month) == 4 and int(dt.day) >= 20)or(int(dt.month) == 5 and int(dt.day) <= 20)):
+    elif (int(dt.month) == 4 and int(dt.day) >= 20) or (
+        int(dt.month) == 5 and int(dt.day) <= 20
+    ):
         zodiac_sign = "taurus"
-    elif ((int(dt.month) == 5 and int(dt.day) >= 21)or(int(dt.month) == 6 and int(dt.day) <= 20)):
+    elif (int(dt.month) == 5 and int(dt.day) >= 21) or (
+        int(dt.month) == 6 and int(dt.day) <= 20
+    ):
         zodiac_sign = "gemini"
-    elif ((int(dt.month) == 6 and int(dt.day) >= 21)or(int(dt.month) == 7 and int(dt.day) <= 22)):
+    elif (int(dt.month) == 6 and int(dt.day) >= 21) or (
+        int(dt.month) == 7 and int(dt.day) <= 22
+    ):
         zodiac_sign = "cancer"
-    elif ((int(dt.month) == 7 and int(dt.day) >= 23)or(int(dt.month) == 8 and int(dt.day) <= 22)):
+    elif (int(dt.month) == 7 and int(dt.day) >= 23) or (
+        int(dt.month) == 8 and int(dt.day) <= 22
+    ):
         zodiac_sign = "leo"
-    elif ((int(dt.month) == 8 and int(dt.day) >= 23)or(int(dt.month) == 9 and int(dt.day) <= 22)):
+    elif (int(dt.month) == 8 and int(dt.day) >= 23) or (
+        int(dt.month) == 9 and int(dt.day) <= 22
+    ):
         zodiac_sign = "virgo"
-    elif ((int(dt.month) == 9 and int(dt.day) >= 23)or(int(dt.month) == 10 and int(dt.day) <= 22)):
+    elif (int(dt.month) == 9 and int(dt.day) >= 23) or (
+        int(dt.month) == 10 and int(dt.day) <= 22
+    ):
         zodiac_sign = "libra"
-    elif ((int(dt.month) == 10 and int(dt.day) >= 23)or(int(dt.month) == 11 and int(dt.day) <= 21)):
+    elif (int(dt.month) == 10 and int(dt.day) >= 23) or (
+        int(dt.month) == 11 and int(dt.day) <= 21
+    ):
         zodiac_sign = "scorpio"
-    elif ((int(dt.month) == 11 and int(dt.day) >= 22)or(int(dt.month) == 12 and int(dt.day) <= 21)):
+    elif (int(dt.month) == 11 and int(dt.day) >= 22) or (
+        int(dt.month) == 12 and int(dt.day) <= 21
+    ):
         zodiac_sign = "sagittarius"
 
     return zodiac_sign
 
 
-_VALID_SIGNS = ["capricorn", "aquarius", "pisces", "aries", "taurus", "gemini",
-                "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius"]
+_VALID_SIGNS = [
+    "capricorn",
+    "aquarius",
+    "pisces",
+    "aries",
+    "taurus",
+    "gemini",
+    "cancer",
+    "leo",
+    "virgo",
+    "libra",
+    "scorpio",
+    "sagittarius",
+]
 # Some of the constellation names map to different astrological "sign names".
 # Astrologers really needs to talk to the IAU...
-_CONST_TO_SIGNS = {'capricornus': 'capricorn', 'scorpius': 'scorpio'}
+_CONST_TO_SIGNS = {"capricornus": "capricorn", "scorpius": "scorpio"}
 
-_ZODIAC = ((1900, "rat"), (1901, "ox"), (1902, "tiger"),
-           (1903, "rabbit"), (1904, "dragon"), (1905, "snake"),
-           (1906, "horse"), (1907, "goat"), (1908, "monkey"),
-           (1909, "rooster"), (1910, "dog"), (1911, "pig"))
+_ZODIAC = (
+    (1900, "rat"),
+    (1901, "ox"),
+    (1902, "tiger"),
+    (1903, "rabbit"),
+    (1904, "dragon"),
+    (1905, "snake"),
+    (1906, "horse"),
+    (1907, "goat"),
+    (1908, "monkey"),
+    (1909, "rooster"),
+    (1910, "dog"),
+    (1911, "pig"),
+)
 
 
 # https://stackoverflow.com/questions/12791871/chinese-zodiac-python-program
@@ -103,34 +148,36 @@ def horoscope(birthday, corrected=True, chinese=False):
 
     today = datetime.now()
     err_msg = "Invalid response from celestial gods (failed to load horoscope)."
-    headers = {'User-Agent': 'foo/bar'}
+    headers = {"User-Agent": "foo/bar"}
 
     special_words = {
-        '([sS]tar[s^ ]*)': 'yellow',
-        '([yY]ou[^ ]*)': 'magenta',
-        '([pP]lay[^ ]*)': 'blue',
-        '([hH]eart)': 'red',
-        '([fF]ate)': 'lightgreen',
+        "([sS]tar[s^ ]*)": "yellow",
+        "([yY]ou[^ ]*)": "magenta",
+        "([pP]lay[^ ]*)": "blue",
+        "([hH]eart)": "red",
+        "([fF]ate)": "lightgreen",
     }
 
     if isinstance(birthday, str):
-        birthday = datetime.strptime(birthday, '%Y-%m-%d')
+        birthday = datetime.strptime(birthday, "%Y-%m-%d")
 
     if chinese:
         # TODO: Make this more accurate by using the actual date, not just year
         # Might need third-party tool like https://pypi.org/project/lunardate
         zodiac_sign = _get_zodiac(birthday.year)
-        url = ('https://www.horoscope.com/us/horoscopes/yearly/'
-               '{}-chinese-horoscope-{}.aspx'.format(today.year, zodiac_sign))
-        summ_title_sfx = f'in {today.year}'
+        url = (
+            "https://www.horoscope.com/us/horoscopes/yearly/"
+            f"{today.year}-chinese-horoscope-{zodiac_sign}.aspx"
+        )
+        summ_title_sfx = f"in {today.year}"
 
         try:
             res = Request(url, headers=headers)
             with urlopen(res) as f:
                 try:
-                    doc = BeautifulSoup(f, 'html.parser')
+                    doc = BeautifulSoup(f, "html.parser")
                     # TODO: Also include Love, Family & Friends, Work, Money, More?
-                    item = doc.find(id='overview')
+                    item = doc.find(id="overview")
                     desc = item.getText()
                 except Exception:
                     raise CelestialError(err_msg)
@@ -142,32 +189,32 @@ def horoscope(birthday, corrected=True, chinese=False):
 
         if corrected:
             with warnings.catch_warnings():
-                warnings.simplefilter('ignore')  # Ignore ErfaWarning
+                warnings.simplefilter("ignore")  # Ignore ErfaWarning
                 zodiac_sign = get_sun(birthday).get_constellation().lower()
             zodiac_sign = _CONST_TO_SIGNS.get(zodiac_sign, zodiac_sign)
             if zodiac_sign not in _VALID_SIGNS:
-                raise HumanError('On your birthday the sun was in {}, which is not '
-                                 'a sign of the zodiac.  You must not exist.  Or '
-                                 'maybe you can settle for '
-                                 'corrected=False.'.format(zodiac_sign.title()))
+                raise HumanError(
+                    f"On your birthday the sun was in {zodiac_sign.title()}, which is"
+                    " not a sign of the zodiac.  You must not exist.  Or maybe you can"
+                    " settle for corrected=False."
+                )
         else:
             zodiac_sign = get_sign(birthday.to_datetime())
-        url = f"http://www.astrology.com/us/horoscope/daily-overview.aspx?sign={zodiac_sign}"
+        url = f"https://astrology.com/horoscope/daily/{zodiac_sign}.html"
         summ_title_sfx = f"on {today.strftime('%Y-%m-%d')}"
 
         res = Request(url, headers=headers)
         with urlopen(res) as f:
             try:
-                doc = BeautifulSoup(f, 'html.parser')
-                item = doc.find('div', {'id': 'content'})
+                doc = BeautifulSoup(f, "html.parser")
+                item = doc.find("div", {"id": "content"})
                 desc = item.getText()
             except Exception:
                 raise CelestialError(err_msg)
 
-    print("*"*79)
-    color_print(f"Horoscope for {zodiac_sign.capitalize()} {summ_title_sfx}:",
-                'green')
-    print("*"*79)
+    print("*" * 79)
+    color_print(f"Horoscope for {zodiac_sign.capitalize()} {summ_title_sfx}:", "green")
+    print("*" * 79)
     for block in textwrap.wrap(desc, 79):
         split_block = block.split()
         for i, word in enumerate(split_block):
@@ -181,6 +228,7 @@ def horoscope(birthday, corrected=True, chinese=False):
 
 def inject_horoscope():
     import astropy
+
     astropy._yourfuture = horoscope
 
 

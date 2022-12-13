@@ -26,37 +26,43 @@ class Conf(_config.ConfigNamespace):
 
     enable_record_valued_keyword_cards = _config.ConfigItem(
         True,
-        'If True, enable support for record-valued keywords as described by '
-        'FITS WCS distortion paper. Otherwise they are treated as normal '
-        'keywords.',
-        aliases=['astropy.io.fits.enabled_record_valued_keyword_cards'])
+        "If True, enable support for record-valued keywords as described by "
+        "FITS WCS distortion paper. Otherwise they are treated as normal "
+        "keywords.",
+        aliases=["astropy.io.fits.enabled_record_valued_keyword_cards"],
+    )
     extension_name_case_sensitive = _config.ConfigItem(
         False,
-        'If True, extension names (i.e. the ``EXTNAME`` keyword) should be '
-        'treated as case-sensitive.')
+        "If True, extension names (i.e. the ``EXTNAME`` keyword) should be "
+        "treated as case-sensitive.",
+    )
     strip_header_whitespace = _config.ConfigItem(
         True,
-        'If True, automatically remove trailing whitespace for string values in'
-        ' headers. Otherwise the values are returned verbatim, with all '
-        'whitespace intact.')
+        "If True, automatically remove trailing whitespace for string values in"
+        " headers. Otherwise the values are returned verbatim, with all "
+        "whitespace intact.",
+    )
     use_memmap = _config.ConfigItem(
         True,
-        'If True, use memory-mapped file access to read/write the data in '
-        'FITS files. This generally provides better performance, especially '
-        'for large files, but may affect performance in I/O-heavy '
-        'applications.')
+        "If True, use memory-mapped file access to read/write the data in "
+        "FITS files. This generally provides better performance, especially "
+        "for large files, but may affect performance in I/O-heavy "
+        "applications.",
+    )
     lazy_load_hdus = _config.ConfigItem(
         True,
-        'If True, use lazy loading of HDUs when opening FITS files by '
-        'default; that is fits.open() will only seek for and read HDUs on '
-        'demand rather than reading all HDUs at once.  See the documentation '
-        'for fits.open() for more datails.')
+        "If True, use lazy loading of HDUs when opening FITS files by "
+        "default; that is fits.open() will only seek for and read HDUs on "
+        "demand rather than reading all HDUs at once.  See the documentation "
+        "for fits.open() for more details.",
+    )
     enable_uint = _config.ConfigItem(
         True,
-        'If True, default to recognizing the convention for representing '
-        'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
-        'and BZERO = 2**BITPIX, represent the data as unsigned integers '
-        'per this convention.')
+        "If True, default to recognizing the convention for representing "
+        "unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, "
+        "and BZERO = 2**BITPIX, represent the data as unsigned integers "
+        "per this convention.",
+    )
 
 
 conf = Conf()
@@ -65,25 +71,33 @@ conf = Conf()
 # Public API compatibility imports
 # These need to come after the global config variables, as some of the
 # submodules use them
-from . import card
-from . import column
-from . import convenience
-from . import hdu
+from . import card, column, convenience, hdu
 from .card import *
 from .column import *
 from .convenience import *
 from .diff import *
-from .fitsrec import FITS_record, FITS_rec
+from .fitsrec import FITS_rec, FITS_record
 from .hdu import *
-
 from .hdu.groups import GroupData
 from .hdu.hdulist import fitsopen as open
 from .hdu.image import Section
 from .header import Header
 from .verify import VerifyError
 
-
-__all__ = (['Conf', 'conf'] + card.__all__ + column.__all__ +
-           convenience.__all__ + hdu.__all__ +
-           ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-            'Header', 'VerifyError', 'conf'])
+__all__ = (
+    ["Conf", "conf"]
+    + card.__all__
+    + column.__all__
+    + convenience.__all__
+    + hdu.__all__
+    + [
+        "FITS_record",
+        "FITS_rec",
+        "GroupData",
+        "open",
+        "Section",
+        "Header",
+        "VerifyError",
+        "conf",
+    ]
+)

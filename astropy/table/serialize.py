@@ -23,37 +23,37 @@ from .table import QTable, Table, has_info_class
 # using local imports.  See also
 # https://github.com/astropy/astropy/pull/10210#discussion_r419087286
 __construct_mixin_classes = (
-    'astropy.time.core.Time',
-    'astropy.time.core.TimeDelta',
-    'astropy.units.quantity.Quantity',
-    'astropy.units.function.logarithmic.Magnitude',
-    'astropy.units.function.logarithmic.Decibel',
-    'astropy.units.function.logarithmic.Dex',
-    'astropy.coordinates.angles.Latitude',
-    'astropy.coordinates.angles.Longitude',
-    'astropy.coordinates.angles.Angle',
-    'astropy.coordinates.distances.Distance',
-    'astropy.coordinates.earth.EarthLocation',
-    'astropy.coordinates.sky_coordinate.SkyCoord',
-    'astropy.table.ndarray_mixin.NdarrayMixin',
-    'astropy.table.table_helpers.ArrayWrapper',
-    'astropy.table.column.Column',
-    'astropy.table.column.MaskedColumn',
-    'astropy.coordinates.representation.CartesianRepresentation',
-    'astropy.coordinates.representation.UnitSphericalRepresentation',
-    'astropy.coordinates.representation.RadialRepresentation',
-    'astropy.coordinates.representation.SphericalRepresentation',
-    'astropy.coordinates.representation.PhysicsSphericalRepresentation',
-    'astropy.coordinates.representation.CylindricalRepresentation',
-    'astropy.coordinates.representation.CartesianDifferential',
-    'astropy.coordinates.representation.UnitSphericalDifferential',
-    'astropy.coordinates.representation.SphericalDifferential',
-    'astropy.coordinates.representation.UnitSphericalCosLatDifferential',
-    'astropy.coordinates.representation.SphericalCosLatDifferential',
-    'astropy.coordinates.representation.RadialDifferential',
-    'astropy.coordinates.representation.PhysicsSphericalDifferential',
-    'astropy.coordinates.representation.CylindricalDifferential',
-    'astropy.utils.masked.core.MaskedNDArray',
+    "astropy.time.core.Time",
+    "astropy.time.core.TimeDelta",
+    "astropy.units.quantity.Quantity",
+    "astropy.units.function.logarithmic.Magnitude",
+    "astropy.units.function.logarithmic.Decibel",
+    "astropy.units.function.logarithmic.Dex",
+    "astropy.coordinates.angles.Latitude",
+    "astropy.coordinates.angles.Longitude",
+    "astropy.coordinates.angles.Angle",
+    "astropy.coordinates.distances.Distance",
+    "astropy.coordinates.earth.EarthLocation",
+    "astropy.coordinates.sky_coordinate.SkyCoord",
+    "astropy.table.ndarray_mixin.NdarrayMixin",
+    "astropy.table.table_helpers.ArrayWrapper",
+    "astropy.table.column.Column",
+    "astropy.table.column.MaskedColumn",
+    "astropy.coordinates.representation.CartesianRepresentation",
+    "astropy.coordinates.representation.UnitSphericalRepresentation",
+    "astropy.coordinates.representation.RadialRepresentation",
+    "astropy.coordinates.representation.SphericalRepresentation",
+    "astropy.coordinates.representation.PhysicsSphericalRepresentation",
+    "astropy.coordinates.representation.CylindricalRepresentation",
+    "astropy.coordinates.representation.CartesianDifferential",
+    "astropy.coordinates.representation.UnitSphericalDifferential",
+    "astropy.coordinates.representation.SphericalDifferential",
+    "astropy.coordinates.representation.UnitSphericalCosLatDifferential",
+    "astropy.coordinates.representation.SphericalCosLatDifferential",
+    "astropy.coordinates.representation.RadialDifferential",
+    "astropy.coordinates.representation.PhysicsSphericalDifferential",
+    "astropy.coordinates.representation.CylindricalDifferential",
+    "astropy.utils.masked.core.MaskedNDArray",
 )
 
 
@@ -63,6 +63,7 @@ class SerializedColumnInfo(MixinInfo):
 
     Used to help create a dict of columns in ColumnInfo for structured data.
     """
+
     def _represent_as_dict(self):
         # SerializedColumn is already a `dict`, so we can return it directly.
         return self._parent
@@ -76,6 +77,7 @@ class SerializedColumn(dict):
     array-like attribute) that is serialized as a column in the table.
 
     """
+
     info = SerializedColumnInfo()
 
     @property
@@ -85,12 +87,12 @@ class SerializedColumn(dict):
         Returns the shape of the first item that has a shape at all,
         or ``()`` if none of the values has a shape attribute.
         """
-        return next((value.shape for value in self.values()
-                     if hasattr(value, 'shape')), ())
+        return next(
+            (value.shape for value in self.values() if hasattr(value, "shape")), ()
+        )
 
 
-def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
-                               exclude_classes=()):
+def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
     """Carry out processing needed to serialize ``col`` in an output table
     consisting purely of plain ``Column`` or ``MaskedColumn`` columns.  This
     relies on the object determine if any transformation is required and may
@@ -129,10 +131,12 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     # - description: DO store
     # - meta: DO store
     info = {}
-    for attr, nontrivial in (('unit', lambda x: x is not None and x != ''),
-                             ('format', lambda x: x is not None),
-                             ('description', lambda x: x is not None),
-                             ('meta', lambda x: x)):
+    for attr, nontrivial in (
+        ("unit", lambda x: x is not None and x != ""),
+        ("format", lambda x: x is not None),
+        ("description", lambda x: x is not None),
+        ("meta", lambda x: x),
+    ):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             info[attr] = col_attr
@@ -142,8 +146,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
     # Examples include SkyCoord.ra (what is typically considered the data and is
     # always an array) and Skycoord.obs_time (which can be a scalar or an
     # array).
-    data_attrs = [key for key, value in obj_attrs.items() if
-                  getattr(value, 'shape', ())[:1] == col.shape[:1]]
+    data_attrs = [
+        key
+        for key, value in obj_attrs.items()
+        if getattr(value, "shape", ())[:1] == col.shape[:1]
+    ]
 
     for data_attr in data_attrs:
         data = obj_attrs[data_attr]
@@ -159,12 +166,15 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             new_name = name
             new_info = info
         else:
-            new_name = name + '.' + data_attr
+            new_name = name + "." + data_attr
             new_info = {}
 
         if not has_info_class(data, MixinInfo):
-            col_cls = MaskedColumn if (hasattr(data, 'mask')
-                                       and np.any(data.mask)) else Column
+            col_cls = (
+                MaskedColumn
+                if (hasattr(data, "mask") and np.any(data.mask))
+                else Column
+            )
             data = col_cls(data, name=new_name, **new_info)
             if is_primary:
                 # Don't store info in the __serialized_columns__ dict for this column
@@ -176,8 +186,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # stored, etc.), it will define obj_attrs[new_name]. Otherwise, it will
         # just add to new_cols and all we have to do is to link to the new name.
         _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
-        obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name,
-                                                              {'name': new_name}))
+        obj_attrs[data_attr] = SerializedColumn(
+            obj_attrs.pop(new_name, {"name": new_name})
+        )
 
     # Strip out from info any attributes defined by the parent,
     # and store whatever remains.
@@ -185,12 +196,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if attr in info:
             del info[attr]
     if info:
-        obj_attrs['__info__'] = info
+        obj_attrs["__info__"] = info
 
     # Store the fully qualified class name
     if not isinstance(col, SerializedColumn):
-        obj_attrs.setdefault('__class__',
-                             col.__module__ + '.' + col.__class__.__name__)
+        obj_attrs.setdefault("__class__", col.__module__ + "." + col.__class__.__name__)
 
     mixin_cols[name] = obj_attrs
 
@@ -261,13 +271,14 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     # Go through table columns and represent each column as one or more
     # plain Column objects (in new_cols) + metadata (in mixin_cols).
     for col in tbl.itercols():
-        _represent_mixin_as_column(col, col.info.name, new_cols, mixin_cols,
-                                   exclude_classes=exclude_classes)
+        _represent_mixin_as_column(
+            col, col.info.name, new_cols, mixin_cols, exclude_classes=exclude_classes
+        )
 
     # If no metadata was created then just return the original table.
     if mixin_cols:
         meta = deepcopy(tbl.meta)
-        meta['__serialized_columns__'] = mixin_cols
+        meta["__serialized_columns__"] = mixin_cols
         out = Table(new_cols, meta=meta, copy=False)
     else:
         out = tbl
@@ -278,11 +289,12 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
             # therefore were not converted. See the corresponding test in
             # test_mixin.py for an example.
             raise TypeError(
-                'failed to represent column '
-                f'{col.info.name!r} ({col.__class__.__name__}) as one '
-                'or more Column subclasses. This looks like a mixin class '
-                'that does not have the correct _represent_as_dict() method '
-                'in the class `info` attribute.')
+                "failed to represent column "
+                f"{col.info.name!r} ({col.__class__.__name__}) as one "
+                "or more Column subclasses. This looks like a mixin class "
+                "that does not have the correct _represent_as_dict() method "
+                "in the class `info` attribute."
+            )
 
     return out
 
@@ -291,18 +303,18 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
     # If this is a supported class then import the class and run
     # the _construct_from_col method.  Prevent accidentally running
     # untrusted code by only importing known astropy classes.
-    cls_full_name = obj_attrs.pop('__class__', None)
+    cls_full_name = obj_attrs.pop("__class__", None)
     if cls_full_name is None:
         # We're dealing with a SerializedColumn holding columns, stored in
         # obj_attrs. For this case, info holds the name (and nothing else).
         mixin = SerializedColumn(obj_attrs)
-        mixin.info.name = info['name']
+        mixin.info.name = info["name"]
         return mixin
 
     if cls_full_name not in __construct_mixin_classes:
-        raise ValueError(f'unsupported class for construct {cls_full_name}')
+        raise ValueError(f"unsupported class for construct {cls_full_name}")
 
-    mod_name, _, cls_name = cls_full_name.rpartition('.')
+    mod_name, _, cls_name = cls_full_name.rpartition(".")
     module = import_module(mod_name)
     cls = getattr(module, cls_name)
     for attr, value in info.items():
@@ -350,10 +362,10 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
             # (e.g., time.jd1), or itself be a mixin (e.g., coord.obstime).  Note
             # that in principle a mixin could have include a column called 'name',
             # hence we check whether the value is actually a string (see gh-13232).
-            if 'name' in val and isinstance(val['name'], str):
-                data_attrs_map[val['name']] = name
+            if "name" in val and isinstance(val["name"], str):
+                data_attrs_map[val["name"]] = name
             else:
-                out_name = f'{new_name}.{name}'
+                out_name = f"{new_name}.{name}"
                 _construct_mixin_from_columns(out_name, val, out)
                 data_attrs_map[out_name] = name
 
@@ -374,7 +386,7 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
         obj_attrs[data_attrs_map[name]] = out[name]
         del out[name]
 
-    info = obj_attrs.pop('__info__', {})
+    info = obj_attrs.pop("__info__", {})
     if len(names) == 1:
         # col is the first and only serialized column; in that case, use info
         # stored on the column. First step is to get that first column which
@@ -382,25 +394,27 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
         col = obj_attrs[data_attrs_map[name]]
 
         # Now copy the relevant attributes
-        for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
-                                 ('format', lambda x: x is not None),
-                                 ('description', lambda x: x is not None),
-                                 ('meta', lambda x: x)):
+        for attr, nontrivial in (
+            ("unit", lambda x: x not in (None, "")),
+            ("format", lambda x: x is not None),
+            ("description", lambda x: x is not None),
+            ("meta", lambda x: x),
+        ):
             col_attr = getattr(col.info, attr)
             if nontrivial(col_attr):
                 info[attr] = col_attr
 
-    info['name'] = new_name
+    info["name"] = new_name
     col = _construct_mixin_from_obj_attrs_and_info(obj_attrs, info)
     out.add_column(col, index=idx)
 
 
 def _construct_mixins_from_columns(tbl):
-    if '__serialized_columns__' not in tbl.meta:
+    if "__serialized_columns__" not in tbl.meta:
         return tbl
 
     meta = tbl.meta.copy()
-    mixin_cols = meta.pop('__serialized_columns__')
+    mixin_cols = meta.pop("__serialized_columns__")
 
     out = _TableLite(tbl.columns)
 
@@ -411,8 +425,7 @@ def _construct_mixins_from_columns(tbl):
     # For instance ascii.read(file, format='ecsv') doesn't specify an
     # output class and should return the minimal table class that
     # represents the table file.
-    has_quantities = any(isinstance(col.info, QuantityInfo)
-                         for col in out.itercols())
+    has_quantities = any(isinstance(col.info, QuantityInfo) for col in out.itercols())
     out_cls = QTable if has_quantities else Table
 
     return out_cls(list(out.values()), names=out.colnames, copy=False, meta=meta)

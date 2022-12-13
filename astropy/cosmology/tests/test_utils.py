@@ -5,7 +5,12 @@ from math import inf
 import numpy as np
 import pytest
 
-from astropy.cosmology.utils import aszarr, inf_like, vectorize_if_needed, vectorize_redshift_method
+from astropy.cosmology.utils import (
+    aszarr,
+    inf_like,
+    vectorize_if_needed,
+    vectorize_redshift_method,
+)
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_core import _zarr, invalid_zs, valid_zs
@@ -13,8 +18,8 @@ from .test_core import _zarr, invalid_zs, valid_zs
 
 def test_vectorize_redshift_method():
     """Test :func:`astropy.cosmology.utils.vectorize_redshift_method`."""
-    class Class:
 
+    class Class:
         @vectorize_redshift_method
         def method(self, z):
             return z
@@ -48,8 +53,9 @@ def test_vectorize_if_needed():
     `numpy.vectorize` which thoroughly tests the various inputs.
 
     """
+
     def func(x):
-        return x ** 2
+        return x**2
 
     with pytest.warns(AstropyDeprecationWarning):
         # not vectorized
@@ -58,12 +64,15 @@ def test_vectorize_if_needed():
         assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
 
 
-@pytest.mark.parametrize("arr, expected",
-                         [(0.0, inf),  # float scalar
-                          (1, inf),  # integer scalar should give float output
-                          ([0.0, 1.0, 2.0, 3.0], (inf, inf, inf, inf)),
-                          ([0, 1, 2, 3], (inf, inf, inf, inf)),  # integer list
-                          ])
+@pytest.mark.parametrize(
+    "arr, expected",
+    [
+        (0.0, inf),  # float scalar
+        (1, inf),  # integer scalar should give float output
+        ([0.0, 1.0, 2.0, 3.0], (inf, inf, inf, inf)),
+        ([0, 1, 2, 3], (inf, inf, inf, inf)),  # integer list
+    ],
+)
 def test_inf_like(arr, expected):
     """
     Test :func:`astropy.cosmology.utils.inf_like`.
@@ -79,10 +88,15 @@ def test_inf_like(arr, expected):
 
 
 class Test_aszarr:
-
-    @pytest.mark.parametrize("z, expect", list(zip(valid_zs, [
-        0, 1, 1100, np.float64(3300), 2.0, 3.0, _zarr, _zarr, _zarr, _zarr
-    ])))
+    @pytest.mark.parametrize(
+        "z, expect",
+        list(
+            zip(
+                valid_zs,
+                [0, 1, 1100, np.float64(3300), 2.0, 3.0, _zarr, _zarr, _zarr, _zarr],
+            )
+        ),
+    )
     def test_valid(self, z, expect):
         """Test :func:`astropy.cosmology.utils.aszarr`."""
         got = aszarr(z)

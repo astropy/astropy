@@ -20,14 +20,17 @@ from astropy import time
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.units import allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_representations_api():
     from astropy.coordinates import Angle, Distance, Latitude, Longitude
     from astropy.coordinates.representation import (
-        CartesianRepresentation, PhysicsSphericalRepresentation, SphericalRepresentation,
-        UnitSphericalRepresentation)
+        CartesianRepresentation,
+        PhysicsSphericalRepresentation,
+        SphericalRepresentation,
+        UnitSphericalRepresentation,
+    )
 
     # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
@@ -35,61 +38,77 @@ def test_representations_api():
     # length-0  "arrays")
     # They can be initialized with a variety of ways that make intuitive sense.
     # Distance is optional.
-    UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
-    UnitSphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg)
-    SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, distance=10*u.kpc)
+    UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg)
+    UnitSphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg)
+    SphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, distance=10 * u.kpc)
 
     # In the initial implementation, the lat/lon/distance arguments to the
     # initializer must be in order. A *possible* future change will be to allow
     # smarter guessing of the order.  E.g. `Latitude` and `Longitude` objects can be
     # given in any order.
     UnitSphericalRepresentation(Longitude(8, u.hour), Latitude(5, u.deg))
-    SphericalRepresentation(Longitude(8, u.hour), Latitude(5, u.deg), Distance(10, u.kpc))
+    SphericalRepresentation(
+        Longitude(8, u.hour), Latitude(5, u.deg), Distance(10, u.kpc)
+    )
 
     # Arrays of any of the inputs are fine
-    UnitSphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg)
+    UnitSphericalRepresentation(lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg)
 
     # Default is to copy arrays, but optionally, it can be a reference
-    UnitSphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, copy=False)
+    UnitSphericalRepresentation(
+        lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg, copy=False
+    )
 
     # strings are parsed by `Latitude` and `Longitude` constructors, so no need to
     # implement parsing in the Representation classes
-    UnitSphericalRepresentation(lon=Angle('2h6m3.3s'), lat=Angle('0.1rad'))
+    UnitSphericalRepresentation(lon=Angle("2h6m3.3s"), lat=Angle("0.1rad"))
 
     # Or, you can give `Quantity`s with keywords, and they will be internally
     # converted to Angle/Distance
-    c1 = SphericalRepresentation(lon=8*u.hourangle, lat=5*u.deg, distance=10*u.kpc)
+    c1 = SphericalRepresentation(
+        lon=8 * u.hourangle, lat=5 * u.deg, distance=10 * u.kpc
+    )
 
     # Can also give another representation object with the `reprobj` keyword.
     c2 = SphericalRepresentation.from_representation(c1)
 
     #  distance, lat, and lon typically will just match in shape
-    SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, distance=[10, 11]*u.kpc)
+    SphericalRepresentation(
+        lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg, distance=[10, 11] * u.kpc
+    )
     # if the inputs are not the same, if possible they will be broadcast following
     # numpy's standard broadcasting rules.
-    c2 = SphericalRepresentation(lon=[8, 9]*u.hourangle, lat=[5, 6]*u.deg, distance=10*u.kpc)
+    c2 = SphericalRepresentation(
+        lon=[8, 9] * u.hourangle, lat=[5, 6] * u.deg, distance=10 * u.kpc
+    )
     assert len(c2.distance) == 2
     # when they can't be broadcast, it is a ValueError (same as Numpy)
     with pytest.raises(ValueError):
-        c2 = UnitSphericalRepresentation(lon=[8, 9, 10]*u.hourangle, lat=[5, 6]*u.deg)
+        c2 = UnitSphericalRepresentation(
+            lon=[8, 9, 10] * u.hourangle, lat=[5, 6] * u.deg
+        )
 
     # It's also possible to pass in scalar quantity lists with mixed units. These
     # are converted to array quantities following the same rule as `Quantity`: all
     # elements are converted to match the first element's units.
-    c2 = UnitSphericalRepresentation(lon=Angle([8*u.hourangle, 135*u.deg]),
-                                     lat=Angle([5*u.deg, (6*np.pi/180)*u.rad]))
+    c2 = UnitSphericalRepresentation(
+        lon=Angle([8 * u.hourangle, 135 * u.deg]),
+        lat=Angle([5 * u.deg, (6 * np.pi / 180) * u.rad]),
+    )
     assert c2.lat.unit == u.deg and c2.lon.unit == u.hourangle
     npt.assert_almost_equal(c2.lon[1].value, 9)
 
     # The Quantity initializer itself can also be used to force the unit even if the
     # first element doesn't have the right unit
-    lon = u.Quantity([120*u.deg, 135*u.deg], u.hourangle)
-    lat = u.Quantity([(5*np.pi/180)*u.rad, 0.4*u.hourangle], u.deg)
+    lon = u.Quantity([120 * u.deg, 135 * u.deg], u.hourangle)
+    lat = u.Quantity([(5 * np.pi / 180) * u.rad, 0.4 * u.hourangle], u.deg)
     c2 = UnitSphericalRepresentation(lon, lat)
 
     # regardless of how input, the `lat` and `lon` come out as angle/distance
     assert isinstance(c1.lat, Angle)
-    assert isinstance(c1.lat, Latitude)  # `Latitude` is an `~astropy.coordinates.Angle` subclass
+    assert isinstance(
+        c1.lat, Latitude
+    )  # `Latitude` is an `~astropy.coordinates.Angle` subclass
     assert isinstance(c1.distance, Distance)
 
     # but they are read-only, as representations are immutable once created
@@ -103,7 +122,7 @@ def test_representations_api():
     # coordinates are defined, other conventions can be included as new classes.
     # Later there may be other conventions that we implement - for now just the
     # physics convention, as it is one of the most common cases.
-    _ = PhysicsSphericalRepresentation(phi=120*u.deg, theta=85*u.deg, r=3*u.kpc)
+    _ = PhysicsSphericalRepresentation(phi=120 * u.deg, theta=85 * u.deg, r=3 * u.kpc)
 
     # first dimension must be length-3 if a lone `Quantity` is passed in.
     c1 = CartesianRepresentation(np.random.randn(3, 100) * u.kpc)
@@ -113,23 +132,25 @@ def test_representations_api():
     assert c1.y.shape[0] == 100
     assert c1.z.shape[0] == 100
     # can also give each as separate keywords
-    CartesianRepresentation(x=np.random.randn(100)*u.kpc,
-                            y=np.random.randn(100)*u.kpc,
-                            z=np.random.randn(100)*u.kpc)
+    CartesianRepresentation(
+        x=np.random.randn(100) * u.kpc,
+        y=np.random.randn(100) * u.kpc,
+        z=np.random.randn(100) * u.kpc,
+    )
     # if the units don't match but are all distances, they will automatically be
     # converted to match `x`
     xarr, yarr, zarr = np.random.randn(3, 100)
-    c1 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.kpc)
-    c2 = CartesianRepresentation(x=xarr*u.kpc, y=yarr*u.kpc, z=zarr*u.pc)
+    c1 = CartesianRepresentation(x=xarr * u.kpc, y=yarr * u.kpc, z=zarr * u.kpc)
+    c2 = CartesianRepresentation(x=xarr * u.kpc, y=yarr * u.kpc, z=zarr * u.pc)
     assert c1.xyz.unit == c2.xyz.unit == u.kpc
-    assert_allclose((c1.z / 1000) - c2.z, 0*u.kpc, atol=1e-10*u.kpc)
+    assert_allclose((c1.z / 1000) - c2.z, 0 * u.kpc, atol=1e-10 * u.kpc)
 
     # representations convert into other representations via  `represent_as`
-    srep = SphericalRepresentation(lon=90*u.deg, lat=0*u.deg, distance=1*u.pc)
+    srep = SphericalRepresentation(lon=90 * u.deg, lat=0 * u.deg, distance=1 * u.pc)
     crep = srep.represent_as(CartesianRepresentation)
-    assert_allclose(crep.x, 0*u.pc, atol=1e-10*u.pc)
-    assert_allclose(crep.y, 1*u.pc, atol=1e-10*u.pc)
-    assert_allclose(crep.z, 0*u.pc, atol=1e-10*u.pc)
+    assert_allclose(crep.x, 0 * u.pc, atol=1e-10 * u.pc)
+    assert_allclose(crep.y, 1 * u.pc, atol=1e-10 * u.pc)
+    assert_allclose(crep.z, 0 * u.pc, atol=1e-10 * u.pc)
     # The functions that actually do the conversion are defined via methods on the
     # representation classes. This may later be expanded into a full registerable
     # transform graph like the coordinate frames, but initially it will be a simpler
@@ -139,49 +160,53 @@ def test_representations_api():
 def test_frame_api():
     from astropy.coordinates.builtin_frames import FK5, ICRS
     from astropy.coordinates.representation import (
-        SphericalRepresentation, UnitSphericalRepresentation)
+        SphericalRepresentation,
+        UnitSphericalRepresentation,
+    )
 
     # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate
     # frames and they *may* also contain data as one of the representation objects,
     # in which case they are the actual coordinate objects themselves.
     # They can always accept a representation as a first argument
-    icrs = ICRS(UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
+    icrs = ICRS(UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg))
 
     # which is stored as the `data` attribute
-    assert icrs.data.lat == 5*u.deg
-    assert icrs.data.lon == 8*u.hourangle
+    assert icrs.data.lat == 5 * u.deg
+    assert icrs.data.lon == 8 * u.hourangle
 
     # Frames that require additional information like equinoxs or obstimes get them
     # as keyword parameters to the frame constructor.  Where sensible, defaults are
     # used. E.g., FK5 is almost always J2000 equinox
-    fk5 = FK5(UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg))
-    J2000 = time.Time('J2000')
-    fk5_2000 = FK5(UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg), equinox=J2000)
+    fk5 = FK5(UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg))
+    J2000 = time.Time("J2000")
+    fk5_2000 = FK5(
+        UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg), equinox=J2000
+    )
     assert fk5.equinox == fk5_2000.equinox
 
     # the information required to specify the frame is immutable
-    J2001 = time.Time('J2001')
+    J2001 = time.Time("J2001")
     with pytest.raises(AttributeError):
         fk5.equinox = J2001
 
     # Similar for the representation data.
     with pytest.raises(AttributeError):
-        fk5.data = UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
+        fk5.data = UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg)
 
     # There is also a class-level attribute that lists the attributes needed to
     # identify the frame.  These include attributes like `equinox` shown above.
-    assert all(nm in ('equinox', 'obstime') for nm in fk5.get_frame_attr_names())
+    assert all(nm in ("equinox", "obstime") for nm in fk5.frame_attributes)
 
-    # the result of `get_frame_attr_names` is called for particularly in  the
+    # the `frame_attributes` are called for particularly in  the
     # high-level class (discussed below) to allow round-tripping between various
     # frames.  It is also part of the public API for other similar developer /
     # advanced users' use.
 
     # The actual position information is accessed via the representation objects
-    assert_allclose(icrs.represent_as(SphericalRepresentation).lat, 5*u.deg)
+    assert_allclose(icrs.represent_as(SphericalRepresentation).lat, 5 * u.deg)
     # shorthand for the above
-    assert_allclose(icrs.spherical.lat, 5*u.deg)
+    assert_allclose(icrs.spherical.lat, 5 * u.deg)
     assert icrs.cartesian.z.value > 0
 
     # Many frames have a "default" representation, the one in which they are
@@ -189,14 +214,14 @@ def test_frame_api():
     # coordinates. E.g., most equatorial coordinate systems are spherical with RA and
     # Dec. This works simply as a shorthand for the longer form above
 
-    assert_allclose(icrs.dec, 5*u.deg)
-    assert_allclose(fk5.ra, 8*u.hourangle)
+    assert_allclose(icrs.dec, 5 * u.deg)
+    assert_allclose(fk5.ra, 8 * u.hourangle)
 
     assert icrs.representation_type == SphericalRepresentation
 
     # low-level classes can also be initialized with names valid for that representation
     # and frame:
-    icrs_2 = ICRS(ra=8*u.hour, dec=5*u.deg, distance=1*u.kpc)
+    icrs_2 = ICRS(ra=8 * u.hour, dec=5 * u.deg, distance=1 * u.kpc)
     assert_allclose(icrs.ra, icrs_2.ra)
 
     # and these are taken as the default if keywords are not given:
@@ -205,14 +230,14 @@ def test_frame_api():
 
     # they also are capable of computing on-sky or 3d separations from each other,
     # which will be a direct port of the existing methods:
-    coo1 = ICRS(ra=0*u.hour, dec=0*u.deg)
-    coo2 = ICRS(ra=0*u.hour, dec=1*u.deg)
+    coo1 = ICRS(ra=0 * u.hour, dec=0 * u.deg)
+    coo2 = ICRS(ra=0 * u.hour, dec=1 * u.deg)
     # `separation` is the on-sky separation
     assert_allclose(coo1.separation(coo2).degree, 1.0)
 
     # while `separation_3d` includes the 3D distance information
-    coo3 = ICRS(ra=0*u.hour, dec=0*u.deg, distance=1*u.kpc)
-    coo4 = ICRS(ra=0*u.hour, dec=0*u.deg, distance=2*u.kpc)
+    coo3 = ICRS(ra=0 * u.hour, dec=0 * u.deg, distance=1 * u.kpc)
+    coo4 = ICRS(ra=0 * u.hour, dec=0 * u.deg, distance=2 * u.kpc)
     assert coo3.separation_3d(coo4).kpc == 1.0
 
     # The next example fails because `coo1` and `coo2` don't have distances
@@ -233,11 +258,11 @@ def test_transform_api():
     # Transformation functionality is the key to the whole scheme: they transform
     # low-level classes from one frame to another.
     # (used below but defined above in the API)
-    fk5 = FK5(ra=8*u.hour, dec=5*u.deg)
+    fk5 = FK5(ra=8 * u.hour, dec=5 * u.deg)
 
     # If no data (or `None`) is given, the class acts as a specifier of a frame, but
     # without any stored data.
-    J2001 = time.Time('J2001')
+    J2001 = time.Time("J2001")
     fk5_J2001_frame = FK5(equinox=J2001)
 
     # if they do not have data, the string instead is the frame specification
@@ -246,7 +271,7 @@ def test_transform_api():
     #  Note that, although a frame object is immutable and can't have data added, it
     #  can be used to create a new object that does have data by giving the
     # `realize_frame` method a representation:
-    srep = UnitSphericalRepresentation(lon=8*u.hour, lat=5*u.deg)
+    srep = UnitSphericalRepresentation(lon=8 * u.hour, lat=5 * u.deg)
     fk5_j2001_with_data = fk5_J2001_frame.realize_frame(srep)
     assert fk5_j2001_with_data.data is not None
     # Now `fk5_j2001_with_data` is in the same frame as `fk5_J2001_frame`, but it
@@ -261,17 +286,17 @@ def test_transform_api():
     # transforming to a new frame necessarily loses framespec information if that
     # information is not applicable to the new frame.  This means transforms are not
     # always round-trippable:
-    fk5_2 = FK5(ra=8*u.hour, dec=5*u.deg, equinox=J2001)
+    fk5_2 = FK5(ra=8 * u.hour, dec=5 * u.deg, equinox=J2001)
     ic_trans = fk5_2.transform_to(ICRS())
 
     # `ic_trans` does not have an `equinox`, so now when we transform back to FK5,
     # it's a *different* RA and Dec
     fk5_trans = ic_trans.transform_to(FK5())
-    assert not allclose(fk5_2.ra, fk5_trans.ra, rtol=0, atol=1e-10*u.deg)
+    assert not allclose(fk5_2.ra, fk5_trans.ra, rtol=0, atol=1e-10 * u.deg)
 
     # But if you explicitly give the right equinox, all is fine
     fk5_trans_2 = fk5_2.transform_to(FK5(equinox=J2001))
-    assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10*u.deg)
+    assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10 * u.deg)
 
     # Trying to transforming a frame with no data is of course an error:
     with pytest.raises(ValueError):
@@ -304,7 +329,7 @@ def test_transform_api():
 
 
 def test_highlevel_api():
-    J2001 = time.Time('J2001')
+    J2001 = time.Time("J2001")
 
     # <--------------------------"High-level" class-------------------------------->
     # The "high-level" class is intended to wrap the lower-level classes in such a
@@ -316,16 +341,20 @@ def test_highlevel_api():
     # this creates an object that contains an `ICRS` low-level class, initialized
     # identically to the first ICRS example further up.
 
-    sc = coords.SkyCoord(coords.SphericalRepresentation(lon=8 * u.hour,
-                         lat=5 * u.deg, distance=1 * u.kpc), frame='icrs')
+    sc = coords.SkyCoord(
+        coords.SphericalRepresentation(
+            lon=8 * u.hour, lat=5 * u.deg, distance=1 * u.kpc
+        ),
+        frame="icrs",
+    )
 
     # Other representations and `system` keywords delegate to the appropriate
     # low-level class. The already-existing registry for user-defined coordinates
     # will be used by `SkyCoordinate` to figure out what various the `system`
     # keyword actually means.
 
-    sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
-    sc = coords.SkyCoord(l=120 * u.deg, b=5 * u.deg, frame='galactic')
+    sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame="icrs")
+    sc = coords.SkyCoord(l=120 * u.deg, b=5 * u.deg, frame="galactic")
 
     # High-level classes can also be initialized directly from low-level objects
     sc = coords.SkyCoord(coords.ICRS(ra=8 * u.hour, dec=5 * u.deg))
@@ -341,7 +370,7 @@ def test_highlevel_api():
     # funny ways
     # assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
     rscf = repr(sc.frame)
-    assert rscf.startswith('<ICRS Coordinate: (ra, dec) in deg')
+    assert rscf.startswith("<ICRS Coordinate: (ra, dec) in deg")
 
     # and  the string representation will be inherited from the low-level class.
 
@@ -349,18 +378,18 @@ def test_highlevel_api():
     # versions may round the numbers differently
     # assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'
     rsc = repr(sc)
-    assert rsc.startswith('<SkyCoord (ICRS): (ra, dec) in deg')
+    assert rsc.startswith("<SkyCoord (ICRS): (ra, dec) in deg")
 
     # Supports a variety of possible complex string formats
-    sc = coords.SkyCoord('8h00m00s +5d00m00.0s', frame='icrs')
+    sc = coords.SkyCoord("8h00m00s +5d00m00.0s", frame="icrs")
 
     # In the next example, the unit is only needed b/c units are ambiguous.  In
     # general, we *never* accept ambiguity
-    sc = coords.SkyCoord('8:00:00 +5:00:00.0', unit=(u.hour, u.deg), frame='icrs')
+    sc = coords.SkyCoord("8:00:00 +5:00:00.0", unit=(u.hour, u.deg), frame="icrs")
 
     # The next one would yield length-2 array coordinates, because of the comma
 
-    sc = coords.SkyCoord(['8h 5d', '2°2′3″ 0.3rad'], frame='icrs')
+    sc = coords.SkyCoord(["8h 5d", "2°2′3″ 0.3rad"], frame="icrs")
 
     # It should also interpret common designation styles as a coordinate
     # NOT YET
@@ -376,23 +405,23 @@ def test_highlevel_api():
 
     # The key difference is that the high-level class remembers frame information
     # necessary for round-tripping, unlike the low-level classes:
-    sc1 = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, equinox=J2001, frame='fk5')
-    sc2 = sc1.transform_to('icrs')
+    sc1 = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, equinox=J2001, frame="fk5")
+    sc2 = sc1.transform_to("icrs")
 
     # The next assertion succeeds, but it doesn't mean anything for ICRS, as ICRS
     # isn't defined in terms of an equinox
     assert sc2.equinox == J2001
 
     # But it *is* necessary once we transform to FK5
-    sc3 = sc2.transform_to('fk5')
+    sc3 = sc2.transform_to("fk5")
     assert sc3.equinox == J2001
     assert_allclose(sc1.ra, sc3.ra)
 
     # `SkyCoord` will also include the attribute-style access that is in the
     # v0.2/0.3 coordinate objects.  This will *not* be in the low-level classes
-    sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
+    sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame="icrs")
     scgal = sc.galactic
-    assert str(scgal).startswith('<SkyCoord (Galactic): (l, b)')
+    assert str(scgal).startswith("<SkyCoord (Galactic): (l, b)")
 
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.
@@ -402,10 +431,18 @@ def test_highlevel_api():
     # assert str(m31icrs) == '<SkyCoord (ICRS) RA=10.68471 deg, Dec=41.26875 deg>'
 
     if HAS_SCIPY:
-        cat1 = coords.SkyCoord(ra=[1, 2]*u.hr, dec=[3, 4.01]*u.deg,
-                               distance=[5, 6]*u.kpc, frame='icrs')
-        cat2 = coords.SkyCoord(ra=[1, 2, 2.01]*u.hr, dec=[3, 4, 5]*u.deg,
-                               distance=[5, 200, 6]*u.kpc, frame='icrs')
+        cat1 = coords.SkyCoord(
+            ra=[1, 2] * u.hr,
+            dec=[3, 4.01] * u.deg,
+            distance=[5, 6] * u.kpc,
+            frame="icrs",
+        )
+        cat2 = coords.SkyCoord(
+            ra=[1, 2, 2.01] * u.hr,
+            dec=[3, 4, 5] * u.deg,
+            distance=[5, 200, 6] * u.kpc,
+            frame="icrs",
+        )
         idx1, sep2d1, dist3d1 = cat1.match_to_catalog_sky(cat2)
         idx2, sep2d2, dist3d2 = cat1.match_to_catalog_3d(cat2)
 
@@ -417,19 +454,19 @@ def test_highlevel_api():
 
 @pytest.mark.remote_data
 def test_highlevel_api_remote():
-    m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
+    m31icrs = coords.SkyCoord.from_name("M31", frame="icrs")
 
     m31str = str(m31icrs)
-    assert m31str.startswith('<SkyCoord (ICRS): (ra, dec) in deg\n    (')
-    assert m31str.endswith(')>')
-    assert '10.68' in m31str
-    assert '41.26' in m31str
+    assert m31str.startswith("<SkyCoord (ICRS): (ra, dec) in deg\n    (")
+    assert m31str.endswith(")>")
+    assert "10.68" in m31str
+    assert "41.26" in m31str
     # The above is essentially a replacement of the below, but tweaked so that
     # small/moderate changes in what `from_name` returns don't cause the tests
     # to fail
     # assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
-    m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
+    m31fk4 = coords.SkyCoord.from_name("M31", frame="fk4")
 
     assert not m31icrs.is_equivalent_frame(m31fk4)
-    assert np.abs(m31icrs.ra - m31fk4.ra) > .5*u.deg
+    assert np.abs(m31icrs.ra - m31fk4.ra) > 0.5 * u.deg

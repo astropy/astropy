@@ -12,7 +12,7 @@ from .base import FLRW, FlatFLRWMixin
 
 __all__ = ["wCDM", "FlatwCDM"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class wCDM(FLRW):
@@ -80,29 +80,59 @@ class wCDM(FLRW):
 
     w0 = Parameter(doc="Dark energy equation of state.", fvalidate="float")
 
-    def __init__(self, H0, Om0, Ode0, w0=-1.0, Tcmb0=0.0*u.K, Neff=3.04,
-                 m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        w0=-1.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
         self.w0 = w0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._w0)
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0, self._w0)
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._w0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._w0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._w0,
+            )
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -148,7 +178,7 @@ class wCDM(FLRW):
         and in this case is given by
         :math:`I = \left(1 + z\right)^{3\left(1 + w_0\right)}`
         """
-        return (aszarr(z) + 1.0) ** (3.0 * (1. + self._w0))
+        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
@@ -165,12 +195,17 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
-                    self._Ode0 * zp1 ** (3. * (1. + self._w0)))
+        return sqrt(
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+        )
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -187,12 +222,17 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
-                self._Ode0 * zp1 ** (3. * (1. + self._w0)))**(-0.5)
+        return (
+            zp1**2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+        ) ** (-0.5)
 
 
 class FlatwCDM(FlatFLRWMixin, wCDM):
@@ -261,28 +301,56 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     wCDM(H0=70.0 km / (Mpc s), Om0=0.3, ...
     """
 
-    def __init__(self, H0, Om0, w0=-1.0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
-                 Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, Tcmb0=Tcmb0,
-                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        w0=-1.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=0.0,
+            w0=w0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._w0)
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0)
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._w0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._w0)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._w0,
+            )
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
@@ -299,11 +367,17 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0 * zp1 ** (3.0 * (1 + self._w0)))
+        return sqrt(
+            zp1**3 * (Or * zp1 + self._Om0)
+            + self._Ode0 * zp1 ** (3.0 * (1 + self._w0))
+        )
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -320,9 +394,14 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        Or = self._Ogamma0 + (self._Onu0 if not self._massivenu
-                              else self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (
+            self._Onu0
+            if not self._massivenu
+            else self._Ogamma0 * self.nu_relative_density(z)
+        )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
 
-        return (zp1 ** 3 * (Or * zp1 + self._Om0) +
-                self._Ode0 * zp1 ** (3. * (1. + self._w0)))**(-0.5)
+        return (
+            zp1**3 * (Or * zp1 + self._Om0)
+            + self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0))
+        ) ** (-0.5)

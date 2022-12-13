@@ -40,15 +40,15 @@ Example uses of fitscheck:
 """
 
 
-import sys
-import logging
 import argparse
+import logging
+import sys
 import warnings
 
-from astropy.io import fits
 from astropy import __version__
+from astropy.io import fits
 
-log = logging.getLogger('fitscheck')
+log = logging.getLogger("fitscheck")
 
 DESCRIPTION = """
 e.g. fitscheck example.fits
@@ -65,58 +65,82 @@ for further documentation.
 
 def handle_options(args):
     if not len(args):
-        args = ['-h']
+        args = ["-h"]
 
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     parser.add_argument(
-        '--version', action='version',
-        version=f'%(prog)s {__version__}')
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
 
     parser.add_argument(
-        'fits_files', metavar='file', nargs='+',
-        help='.fits files to process.')
+        "fits_files", metavar="file", nargs="+", help=".fits files to process."
+    )
 
     parser.add_argument(
-        '-k', '--checksum', dest='checksum_kind',
-        choices=['standard', 'remove', 'none'],
-        help='Choose FITS checksum mode or none.  Defaults standard.',
-        default='standard')
+        "-k",
+        "--checksum",
+        dest="checksum_kind",
+        choices=["standard", "remove", "none"],
+        help="Choose FITS checksum mode or none.  Defaults standard.",
+        default="standard",
+    )
 
     parser.add_argument(
-        '-w', '--write', dest='write_file',
-        help='Write out file checksums and/or FITS compliance fixes.',
-        default=False, action='store_true')
+        "-w",
+        "--write",
+        dest="write_file",
+        help="Write out file checksums and/or FITS compliance fixes.",
+        default=False,
+        action="store_true",
+    )
 
     parser.add_argument(
-        '-f', '--force', dest='force',
-        help='Do file update even if original checksum was bad.',
-        default=False, action='store_true')
+        "-f",
+        "--force",
+        dest="force",
+        help="Do file update even if original checksum was bad.",
+        default=False,
+        action="store_true",
+    )
 
     parser.add_argument(
-        '-c', '--compliance', dest='compliance',
-        help='Do FITS compliance checking; fix if possible.',
-        default=False, action='store_true')
+        "-c",
+        "--compliance",
+        dest="compliance",
+        help="Do FITS compliance checking; fix if possible.",
+        default=False,
+        action="store_true",
+    )
 
     parser.add_argument(
-        '-i', '--ignore-missing', dest='ignore_missing',
-        help='Ignore missing checksums.',
-        default=False, action='store_true')
+        "-i",
+        "--ignore-missing",
+        dest="ignore_missing",
+        help="Ignore missing checksums.",
+        default=False,
+        action="store_true",
+    )
 
     parser.add_argument(
-        '-v', '--verbose', dest='verbose', help='Generate extra output.',
-        default=False, action='store_true')
+        "-v",
+        "--verbose",
+        dest="verbose",
+        help="Generate extra output.",
+        default=False,
+        action="store_true",
+    )
 
     global OPTIONS
     OPTIONS = parser.parse_args(args)
 
-    if OPTIONS.checksum_kind == 'none':
+    if OPTIONS.checksum_kind == "none":
         OPTIONS.checksum_kind = False
-    elif OPTIONS.checksum_kind == 'standard':
+    elif OPTIONS.checksum_kind == "standard":
         OPTIONS.checksum_kind = True
-    elif OPTIONS.checksum_kind == 'remove':
+    elif OPTIONS.checksum_kind == "remove":
         OPTIONS.write_file = True
         OPTIONS.force = True
 
@@ -132,7 +156,7 @@ def setup_logging():
         log.setLevel(logging.WARNING)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter('%(message)s'))
+    handler.setFormatter(logging.Formatter("%(message)s"))
     log.addHandler(handler)
 
 
@@ -141,28 +165,35 @@ def verify_checksums(filename):
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
     with warnings.catch_warnings(record=True) as wlist:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):
                 # looping on HDUs is needed to read them and verify the
                 # checksums
                 if not OPTIONS.ignore_missing:
                     if not hdu._checksum:
-                        log.warning('MISSING {!r} .. Checksum not found '
-                                    'in HDU #{}'.format(filename, i))
+                        log.warning(
+                            "MISSING {!r} .. Checksum not found in HDU #{}".format(
+                                filename, i
+                            )
+                        )
                         return 1
                     if not hdu._datasum:
-                        log.warning('MISSING {!r} .. Datasum not found '
-                                    'in HDU #{}'.format(filename, i))
+                        log.warning(
+                            "MISSING {!r} .. Datasum not found in HDU #{}".format(
+                                filename, i
+                            )
+                        )
                         return 1
 
     for w in wlist:
-        if str(w.message).startswith(('Checksum verification failed',
-                                      'Datasum verification failed')):
-            log.warning('BAD %r %s', filename, str(w.message))
+        if str(w.message).startswith(
+            ("Checksum verification failed", "Datasum verification failed")
+        ):
+            log.warning("BAD %r %s", filename, str(w.message))
             return 1
 
-    log.info(f'OK {filename!r}')
+    log.info(f"OK {filename!r}")
     return 0
 
 
@@ -171,10 +202,9 @@ def verify_compliance(filename):
 
     with fits.open(filename) as hdulist:
         try:
-            hdulist.verify('exception')
+            hdulist.verify("exception")
         except fits.VerifyError as exc:
-            log.warning('NONCOMPLIANT %r .. %s',
-                        filename, str(exc).replace('\n', ' '))
+            log.warning("NONCOMPLIANT %r .. %s", filename, str(exc).replace("\n", " "))
             return 1
     return 0
 
@@ -186,7 +216,7 @@ def update(filename):
     Also updates fixes standards violations if possible and requested.
     """
 
-    output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
+    output_verify = "silentfix" if OPTIONS.compliance else "ignore"
 
     # For unit tests we reset temporarily the warning filters. Indeed, before
     # updating the checksums, fits.open will verify the existing checksums and
@@ -195,8 +225,12 @@ def update(filename):
     # warnings to exceptions.
     with warnings.catch_warnings():
         warnings.resetwarnings()
-        with fits.open(filename, do_not_scale_image_data=True,
-                       checksum=OPTIONS.checksum_kind, mode='update') as hdulist:
+        with fits.open(
+            filename,
+            do_not_scale_image_data=True,
+            checksum=OPTIONS.checksum_kind,
+            mode="update",
+        ) as hdulist:
             hdulist.flush(output_verify=output_verify)
 
 
@@ -216,7 +250,7 @@ def process_file(filename):
             update(filename)
         return checksum_errors + compliance_errors
     except Exception as e:
-        log.error(f'EXCEPTION {filename!r} .. {e}')
+        log.error(f"EXCEPTION {filename!r} .. {e}")
         return 1
 
 
@@ -232,5 +266,5 @@ def main(args=None):
     for filename in fits_files:
         errors += process_file(filename)
     if errors:
-        log.warning(f'{errors} errors')
+        log.warning(f"{errors} errors")
     return int(bool(errors))

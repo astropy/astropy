@@ -1,8 +1,7 @@
 import numpy as np
 
 
-def lombscargle_scipy(t, y, frequency, normalization='standard',
-                      center_data=True):
+def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
     """Lomb-Scargle Periodogram
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
@@ -58,14 +57,14 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
     # Note: scipy input accepts angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency)
 
-    if normalization == 'psd':
+    if normalization == "psd":
         pass
-    elif normalization == 'standard':
-        p *= 2 / (t.size * np.mean(y ** 2))
-    elif normalization == 'log':
-        p = -np.log(1 - 2 * p / (t.size * np.mean(y ** 2)))
-    elif normalization == 'model':
-        p /= 0.5 * t.size * np.mean(y ** 2) - p
+    elif normalization == "standard":
+        p *= 2 / (t.size * np.mean(y**2))
+    elif normalization == "log":
+        p = -np.log(1 - 2 * p / (t.size * np.mean(y**2)))
+    elif normalization == "model":
+        p /= 0.5 * t.size * np.mean(y**2) - p
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")
     return p

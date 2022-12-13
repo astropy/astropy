@@ -9,27 +9,35 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.io.fits.hdu.image import Section
 from astropy.utils import lazyproperty
-from astropy.wcs.utils import skycoord_to_pixel, proj_plane_pixel_scales
 from astropy.wcs import Sip
+from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
-__all__ = ['extract_array', 'add_array', 'subpixel_indices',
-           'overlap_slices', 'NoOverlapError', 'PartialOverlapError',
-           'Cutout2D']
+__all__ = [
+    "extract_array",
+    "add_array",
+    "subpixel_indices",
+    "overlap_slices",
+    "NoOverlapError",
+    "PartialOverlapError",
+    "Cutout2D",
+]
 
 
 class NoOverlapError(ValueError):
-    '''Raised when determining the overlap of non-overlapping arrays.'''
+    """Raised when determining the overlap of non-overlapping arrays."""
+
     pass
 
 
 class PartialOverlapError(ValueError):
-    '''Raised when arrays only partially overlap.'''
+    """Raised when arrays only partially overlap."""
+
     pass
 
 
-def overlap_slices(large_array_shape, small_array_shape, position,
-                   mode='partial'):
+def overlap_slices(large_array_shape, small_array_shape, position, mode="partial"):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -77,68 +85,85 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         inside the large array.
     """
 
-    if mode not in ['partial', 'trim', 'strict']:
+    if mode not in ["partial", "trim", "strict"]:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if np.isscalar(small_array_shape):
-        small_array_shape = (small_array_shape, )
+        small_array_shape = (small_array_shape,)
     if np.isscalar(large_array_shape):
-        large_array_shape = (large_array_shape, )
+        large_array_shape = (large_array_shape,)
     if np.isscalar(position):
-        position = (position, )
+        position = (position,)
 
     if any(~np.isfinite(position)):
-        raise ValueError('Input position contains invalid values (NaNs or '
-                         'infs).')
+        raise ValueError("Input position contains invalid values (NaNs or infs).")
 
     if len(small_array_shape) != len(large_array_shape):
-        raise ValueError('"large_array_shape" and "small_array_shape" must '
-                         'have the same number of dimensions.')
+        raise ValueError(
+            '"large_array_shape" and "small_array_shape" must '
+            "have the same number of dimensions."
+        )
 
     if len(small_array_shape) != len(position):
-        raise ValueError('"position" must have the same number of dimensions '
-                         'as "small_array_shape".')
+        raise ValueError(
+            '"position" must have the same number of dimensions as "small_array_shape".'
+        )
 
     # define the min/max pixel indices
-    indices_min = [int(np.ceil(pos - (small_shape / 2.)))
-                   for (pos, small_shape) in zip(position, small_array_shape)]
-    indices_max = [int(np.ceil(pos + (small_shape / 2.)))
-                   for (pos, small_shape) in zip(position, small_array_shape)]
+    indices_min = [
+        int(np.ceil(pos - (small_shape / 2.0)))
+        for (pos, small_shape) in zip(position, small_array_shape)
+    ]
+    indices_max = [
+        int(np.ceil(pos + (small_shape / 2.0)))
+        for (pos, small_shape) in zip(position, small_array_shape)
+    ]
 
     for e_max in indices_max:
         if e_max < 0:
-            raise NoOverlapError('Arrays do not overlap.')
+            raise NoOverlapError("Arrays do not overlap.")
     for e_min, large_shape in zip(indices_min, large_array_shape):
         if e_min >= large_shape:
-            raise NoOverlapError('Arrays do not overlap.')
+            raise NoOverlapError("Arrays do not overlap.")
 
-    if mode == 'strict':
+    if mode == "strict":
         for e_min in indices_min:
             if e_min < 0:
-                raise PartialOverlapError('Arrays overlap only partially.')
+                raise PartialOverlapError("Arrays overlap only partially.")
         for e_max, large_shape in zip(indices_max, large_array_shape):
             if e_max > large_shape:
-                raise PartialOverlapError('Arrays overlap only partially.')
+                raise PartialOverlapError("Arrays overlap only partially.")
 
     # Set up slices
-    slices_large = tuple(slice(max(0, indices_min),
-                               min(large_shape, indices_max))
-                         for (indices_min, indices_max, large_shape) in
-                         zip(indices_min, indices_max, large_array_shape))
-    if mode == 'trim':
-        slices_small = tuple(slice(0, slc.stop - slc.start)
-                             for slc in slices_large)
+    slices_large = tuple(
+        slice(max(0, indices_min), min(large_shape, indices_max))
+        for (indices_min, indices_max, large_shape) in zip(
+            indices_min, indices_max, large_array_shape
+        )
+    )
+    if mode == "trim":
+        slices_small = tuple(slice(0, slc.stop - slc.start) for slc in slices_large)
     else:
-        slices_small = tuple(slice(max(0, -indices_min),
-                                   min(large_shape - indices_min,
-                                       indices_max - indices_min))
-                             for (indices_min, indices_max, large_shape) in
-                             zip(indices_min, indices_max, large_array_shape))
+        slices_small = tuple(
+            slice(
+                max(0, -indices_min),
+                min(large_shape - indices_min, indices_max - indices_min),
+            )
+            for (indices_min, indices_max, large_shape) in zip(
+                indices_min, indices_max, large_array_shape
+            )
+        )
 
     return slices_large, slices_small
 
 
-def extract_array(array_large, shape, position, mode='partial',
-                  fill_value=np.nan, return_position=False):
+def extract_array(
+    array_large,
+    shape,
+    position,
+    mode="partial",
+    fill_value=np.nan,
+    return_position=False,
+):
     """
     Extract a smaller array of the given shape and position from a
     larger array.
@@ -206,36 +231,38 @@ def extract_array(array_large, shape, position, mode='partial',
     """
 
     if np.isscalar(shape):
-        shape = (shape, )
+        shape = (shape,)
     if np.isscalar(position):
-        position = (position, )
+        position = (position,)
 
-    if mode not in ['partial', 'trim', 'strict']:
+    if mode not in ["partial", "trim", "strict"]:
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
 
-    large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position, mode=mode)
+    large_slices, small_slices = overlap_slices(
+        array_large.shape, shape, position, mode=mode
+    )
     extracted_array = array_large[large_slices]
     if return_position:
         new_position = [i - s.start for i, s in zip(position, large_slices)]
 
     # Extracting on the edges is presumably a rare case, so treat special here
-    if (extracted_array.shape != shape) and (mode == 'partial'):
+    if (extracted_array.shape != shape) and (mode == "partial"):
         extracted_array = np.zeros(shape, dtype=array_large.dtype)
         try:
             extracted_array[:] = fill_value
         except ValueError as exc:
-            exc.args += ('fill_value is inconsistent with the data type of '
-                         'the input array (e.g., fill_value cannot be set to '
-                         'np.nan if the input array has integer type). Please '
-                         'change either the input array dtype or the '
-                         'fill_value.',)
+            exc.args += (
+                "fill_value is inconsistent with the data type of "
+                "the input array (e.g., fill_value cannot be set to "
+                "np.nan if the input array has integer type). Please "
+                "change either the input array dtype or the "
+                "fill_value.",
+            )
             raise exc
 
         extracted_array[small_slices] = array_large[large_slices]
         if return_position:
-            new_position = [i + s.start for i, s in zip(new_position,
-                                                        small_slices)]
+            new_position = [i + s.start for i, s in zip(new_position, small_slices)]
     if return_position:
         return extracted_array, tuple(new_position)
     else:
@@ -284,11 +311,13 @@ def add_array(array_large, array_small, position):
            [0., 0., 0., 0., 0.]])
     """
     # Check if large array is not smaller
-    if all(large_shape >= small_shape for (large_shape, small_shape)
-           in zip(array_large.shape, array_small.shape)):
-        large_slices, small_slices = overlap_slices(array_large.shape,
-                                                    array_small.shape,
-                                                    position)
+    if all(
+        large_shape >= small_shape
+        for (large_shape, small_shape) in zip(array_large.shape, array_small.shape)
+    ):
+        large_slices, small_slices = overlap_slices(
+            array_large.shape, array_small.shape, position
+        )
         array_large[large_slices] += array_small[small_slices]
         return array_large
     else:
@@ -517,16 +546,16 @@ class Cutout2D:
      [nan  4.  5.]]
     """
 
-    def __init__(self, data, position, size, wcs=None, mode='trim',
-                 fill_value=np.nan, copy=False):
+    def __init__(
+        self, data, position, size, wcs=None, mode="trim", fill_value=np.nan, copy=False
+    ):
         if wcs is None:
-            wcs = getattr(data, 'wcs', None)
+            wcs = getattr(data, "wcs", None)
 
         if isinstance(position, SkyCoord):
             if wcs is None:
-                raise ValueError('wcs must be input if position is a '
-                                 'SkyCoord')
-            position = skycoord_to_pixel(position, wcs, mode='all')  # (x, y)
+                raise ValueError("wcs must be input if position is a SkyCoord")
+            position = skycoord_to_pixel(position, wcs, mode="all")  # (x, y)
 
         if np.isscalar(size):
             size = np.repeat(size, 2)
@@ -538,7 +567,7 @@ class Cutout2D:
                 size = np.repeat(size, 2)
 
         if len(size) > 2:
-            raise ValueError('size must have at most two elements')
+            raise ValueError("size must have at most two elements")
 
         shape = np.zeros(2).astype(int)
         pixel_scales = None
@@ -546,38 +575,47 @@ class Cutout2D:
         # so evaluate each axis separately
         for axis, side in enumerate(size):
             if not isinstance(side, u.Quantity):
-                shape[axis] = int(np.round(size[axis]))     # pixels
+                shape[axis] = int(np.round(size[axis]))  # pixels
             else:
                 if side.unit == u.pixel:
                     shape[axis] = int(np.round(side.value))
-                elif side.unit.physical_type == 'angle':
+                elif side.unit.physical_type == "angle":
                     if wcs is None:
-                        raise ValueError('wcs must be input if any element '
-                                         'of size has angular units')
+                        raise ValueError(
+                            "wcs must be input if any element of size has angular units"
+                        )
                     if pixel_scales is None:
                         pixel_scales = u.Quantity(
-                            proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
-                    shape[axis] = int(np.round(
-                        (side / pixel_scales[axis]).decompose()))
+                            proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis]
+                        )
+                    shape[axis] = int(np.round((side / pixel_scales[axis]).decompose()))
                 else:
-                    raise ValueError('shape can contain Quantities with only '
-                                     'pixel or angular units')
+                    raise ValueError(
+                        "shape can contain Quantities with only pixel or angular units"
+                    )
 
-        data = np.asanyarray(data)
+        if not isinstance(data, Section):  # Accept lazy-loaded image sections
+            data = np.asanyarray(data)
         # reverse position because extract_array and overlap_slices
         # use (y, x), but keep the input position
         pos_yx = position[::-1]
 
         cutout_data, input_position_cutout = extract_array(
-            data, tuple(shape), pos_yx, mode=mode, fill_value=fill_value,
-            return_position=True)
+            data,
+            tuple(shape),
+            pos_yx,
+            mode=mode,
+            fill_value=fill_value,
+            return_position=True,
+        )
         if copy:
             cutout_data = np.copy(cutout_data)
         self.data = cutout_data
 
-        self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
+        self.input_position_cutout = input_position_cutout[::-1]  # (x, y)
         slices_original, slices_cutout = overlap_slices(
-            data.shape, shape, pos_yx, mode=mode)
+            data.shape, shape, pos_yx, mode=mode
+        )
 
         self.slices_original = slices_original
         self.slices_cutout = slices_cutout
@@ -586,26 +624,35 @@ class Cutout2D:
         self.input_position_original = position
         self.shape_input = shape
 
-        ((self.ymin_original, self.ymax_original),
-         (self.xmin_original, self.xmax_original)) = self.bbox_original
+        (
+            (self.ymin_original, self.ymax_original),
+            (self.xmin_original, self.xmax_original),
+        ) = self.bbox_original
 
-        ((self.ymin_cutout, self.ymax_cutout),
-         (self.xmin_cutout, self.xmax_cutout)) = self.bbox_cutout
+        (
+            (self.ymin_cutout, self.ymax_cutout),
+            (self.xmin_cutout, self.xmax_cutout),
+        ) = self.bbox_cutout
 
         # the true origin pixel of the cutout array, including any
         # filled cutout values
         self._origin_original_true = (
             self.origin_original[0] - self.slices_cutout[1].start,
-            self.origin_original[1] - self.slices_cutout[0].start)
+            self.origin_original[1] - self.slices_cutout[0].start,
+        )
 
         if wcs is not None:
             self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
             self.wcs.array_shape = self.data.shape
             if wcs.sip is not None:
-                self.wcs.sip = Sip(wcs.sip.a, wcs.sip.b,
-                                   wcs.sip.ap, wcs.sip.bp,
-                                   wcs.sip.crpix - self._origin_original_true)
+                self.wcs.sip = Sip(
+                    wcs.sip.a,
+                    wcs.sip.b,
+                    wcs.sip.ap,
+                    wcs.sip.bp,
+                    wcs.sip.crpix - self._origin_original_true,
+                )
         else:
             self.wcs = None
 
@@ -625,8 +672,7 @@ class Cutout2D:
             The corresponding ``(x, y)`` pixel position in the original
             large array.
         """
-        return tuple(cutout_position[i] + self.origin_original[i]
-                     for i in [0, 1])
+        return tuple(cutout_position[i] + self.origin_original[i] for i in [0, 1])
 
     def to_cutout_position(self, original_position):
         """
@@ -644,8 +690,7 @@ class Cutout2D:
             The corresponding ``(x, y)`` pixel position in the cutout
             array.
         """
-        return tuple(original_position[i] - self.origin_original[i]
-                     for i in [0, 1])
+        return tuple(original_position[i] - self.origin_original[i] for i in [0, 1])
 
     def plot_on_original(self, ax=None, fill=False, **kwargs):
         """
@@ -672,18 +717,18 @@ class Cutout2D:
             input ``ax``.
         """
 
-        import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
 
-        kwargs['fill'] = fill
+        kwargs["fill"] = fill
 
         if ax is None:
             ax = plt.gca()
 
         height, width = self.shape
-        hw, hh = width / 2., height / 2.
+        hw, hh = width / 2.0, height / 2.0
         pos_xy = self.position_original - np.array([hw, hh])
-        patch = mpatches.Rectangle(pos_xy, width, height, 0., **kwargs)
+        patch = mpatches.Rectangle(pos_xy, width, height, 0.0, **kwargs)
         ax.add_patch(patch)
         return ax
 
@@ -695,8 +740,7 @@ class Cutout2D:
         central position is calculated for the valid (non-filled) cutout
         values.
         """
-        return tuple(0.5 * (slices[i].start + slices[i].stop - 1)
-                     for i in [1, 0])
+        return tuple(0.5 * (slices[i].start + slices[i].stop - 1) for i in [1, 0])
 
     @staticmethod
     def _calc_bbox(slices):
@@ -707,8 +751,10 @@ class Cutout2D:
         for the valid (non-filled) cutout values.
         """
         # (stop - 1) to return the max pixel location, not the slice index
-        return ((slices[0].start, slices[0].stop - 1),
-                (slices[1].start, slices[1].stop - 1))
+        return (
+            (slices[0].start, slices[0].stop - 1),
+            (slices[1].start, slices[1].stop - 1),
+        )
 
     @lazyproperty
     def origin_original(self):
@@ -746,8 +792,10 @@ class Cutout2D:
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the original array.
         """
-        return (self._round(self.input_position_original[0]),
-                self._round(self.input_position_original[1]))
+        return (
+            self._round(self.input_position_original[0]),
+            self._round(self.input_position_original[1]),
+        )
 
     @lazyproperty
     def position_cutout(self):
@@ -755,8 +803,10 @@ class Cutout2D:
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the cutout array.
         """
-        return (self._round(self.input_position_cutout[0]),
-                self._round(self.input_position_cutout[1]))
+        return (
+            self._round(self.input_position_cutout[0]),
+            self._round(self.input_position_cutout[1]),
+        )
 
     @lazyproperty
     def center_original(self):

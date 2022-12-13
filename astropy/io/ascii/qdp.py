@@ -4,15 +4,17 @@ This package contains functions for reading and writing QDP tables that are
 not meant to be used directly, but instead are available as readers/writers in
 `astropy.table`. See :ref:`astropy:table_io` for more details.
 """
-import re
 import copy
-from collections.abc import Iterable
-import numpy as np
+import re
 import warnings
-from astropy.utils.exceptions import AstropyUserWarning
-from astropy.table import Table
+from collections.abc import Iterable
 
-from . import core, basic
+import numpy as np
+
+from astropy.table import Table
+from astropy.utils.exceptions import AstropyUserWarning
+
+from . import basic, core
 
 
 def _line_type(line, delimiter=None):
@@ -57,28 +59,28 @@ def _line_type(line, delimiter=None):
         ...
     ValueError: Unrecognized QDP line...
     """
-    _decimal_re = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
-    _command_re = r'READ [TS]ERR(\s+[0-9]+)+'
+    _decimal_re = r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+    _command_re = r"READ [TS]ERR(\s+[0-9]+)+"
 
     sep = delimiter
     if delimiter is None:
-        sep = r'\s+'
-    _new_re = rf'NO({sep}NO)+'
-    _data_re = rf'({_decimal_re}|NO|[-+]?nan)({sep}({_decimal_re}|NO|[-+]?nan))*)'
-    _type_re = rf'^\s*((?P<command>{_command_re})|(?P<new>{_new_re})|(?P<data>{_data_re})?\s*(\!(?P<comment>.*))?\s*$'
+        sep = r"\s+"
+    _new_re = rf"NO({sep}NO)+"
+    _data_re = rf"({_decimal_re}|NO|[-+]?nan)({sep}({_decimal_re}|NO|[-+]?nan))*)"
+    _type_re = rf"^\s*((?P<command>{_command_re})|(?P<new>{_new_re})|(?P<data>{_data_re})?\s*(\!(?P<comment>.*))?\s*$"
     _line_type_re = re.compile(_type_re)
     line = line.strip()
     if not line:
-        return 'comment'
+        return "comment"
     match = _line_type_re.match(line)
 
     if match is None:
-        raise ValueError(f'Unrecognized QDP line: {line}')
+        raise ValueError(f"Unrecognized QDP line: {line}")
     for type_, val in match.groupdict().items():
         if val is None:
             continue
-        if type_ == 'data':
-            return f'data,{len(val.split(sep=delimiter))}'
+        if type_ == "data":
+            return f"data,{len(val.split(sep=delimiter))}"
         else:
             return type_
 
@@ -121,12 +123,12 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
     types = [_line_type(line, delimiter=delimiter) for line in lines]
     current_ncol = None
     for type_ in types:
-        if type_.startswith('data', ):
+        if type_.startswith("data,"):
             ncol = int(type_[5:])
             if current_ncol is None:
                 current_ncol = ncol
             elif ncol != current_ncol:
-                raise ValueError('Inconsistent number of columns')
+                raise ValueError("Inconsistent number of columns")
 
     return types, current_ncol
 
@@ -140,7 +142,7 @@ def _get_lines_from_file(qdp_file):
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
     else:
-        raise ValueError('invalid value of qdb_file')
+        raise ValueError("invalid value of qdb_file")
 
     return lines
 
@@ -269,10 +271,10 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
     current_rows = None
 
     for line, datatype in zip(lines, contents):
-        line = line.strip().lstrip('!')
+        line = line.strip().lstrip("!")
         # Is this a comment?
         if datatype == "comment":
-            comment_text += line + '\n'
+            comment_text += line + "\n"
             continue
 
         if datatype == "command":
@@ -285,25 +287,22 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
             if err_specs != {}:
                 warnings.warn(
                     "This file contains multiple command blocks. Please verify",
-                    AstropyUserWarning
+                    AstropyUserWarning,
                 )
-            command_lines += line + '\n'
+            command_lines += line + "\n"
             continue
 
         if datatype.startswith("data"):
             # The first time I find data, I define err_specs
             if err_specs == {} and command_lines != "":
-                for cline in command_lines.strip().split('\n'):
+                for cline in command_lines.strip().split("\n"):
                     command = cline.strip().split()
                     # This should never happen, but just in case.
                     if len(command) < 3:
                         continue
-                    err_specs[command[1].lower()] = [int(c) for c in
-                                                     command[2:]]
+                    err_specs[command[1].lower()] = [int(c) for c in command[2:]]
             if colnames is None:
-                colnames = _interpret_err_lines(
-                    err_specs, ncol, names=input_colnames
-                )
+                colnames = _interpret_err_lines(err_specs, ncol, names=input_colnames)
 
             if current_rows is None:
                 current_rows = []
@@ -325,7 +324,9 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
             # Save table to table_list and reset
             if current_rows is not None:
                 new_table = Table(names=colnames, rows=current_rows)
-                new_table.meta["initial_comments"] = initial_comments.strip().split("\n")
+                new_table.meta["initial_comments"] = initial_comments.strip().split(
+                    "\n"
+                )
                 new_table.meta["comments"] = comment_text.strip().split("\n")
                 # Reset comments
                 comment_text = ""
@@ -376,10 +377,10 @@ def _understand_err_col(colnames):
             shift += 1
         elif col.endswith("_perr"):
             terr.append(i - shift)
-            if len(colnames) == i + 1 or not colnames[i + 1].endswith('_nerr'):
+            if len(colnames) == i + 1 or not colnames[i + 1].endswith("_nerr"):
                 raise ValueError("Missing negative error")
             shift += 2
-        elif col.endswith("_nerr") and not colnames[i - 1].endswith('_perr'):
+        elif col.endswith("_nerr") and not colnames[i - 1].endswith("_perr"):
             raise ValueError("Missing positive error")
     return serr, terr
 
@@ -411,11 +412,15 @@ def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
         List containing all the tables present inside the QDP file
     """
     if table_id is None:
-        warnings.warn("table_id not specified. Reading the first available "
-                      "table", AstropyUserWarning)
+        warnings.warn(
+            "table_id not specified. Reading the first available table",
+            AstropyUserWarning,
+        )
         table_id = 0
 
-    tables = _get_tables_from_qdp_file(qdp_file, input_colnames=names, delimiter=delimiter)
+    tables = _get_tables_from_qdp_file(
+        qdp_file, input_colnames=names, delimiter=delimiter
+    )
 
     return tables[table_id]
 
@@ -438,10 +443,11 @@ def _write_table_qdp(table, filename=None, err_specs=None):
         specification)
     """
     import io
+
     fobj = io.StringIO()
 
-    if 'initial_comments' in table.meta and table.meta['initial_comments'] != []:
-        for line in table.meta['initial_comments']:
+    if "initial_comments" in table.meta and table.meta["initial_comments"] != []:
+        for line in table.meta["initial_comments"]:
             line = line.strip()
             if not line.startswith("!"):
                 line = "!" + line
@@ -459,8 +465,8 @@ def _write_table_qdp(table, filename=None, err_specs=None):
         col_string = " ".join([str(val) for val in terr_cols])
         print(f"READ TERR {col_string}", file=fobj)
 
-    if 'comments' in table.meta and table.meta['comments'] != []:
-        for line in table.meta['comments']:
+    if "comments" in table.meta and table.meta["comments"] != []:
+        for line in table.meta["comments"]:
             line = line.strip()
             if not line.startswith("!"):
                 line = "!" + line
@@ -482,7 +488,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
     fobj.close()
 
     if filename is not None:
-        with open(filename, 'w') as fobj:
+        with open(filename, "w") as fobj:
             print(full_string, file=fobj)
 
     return full_string.split("\n")
@@ -492,13 +498,15 @@ class QDPSplitter(core.DefaultSplitter):
     """
     Split on space for QDP tables
     """
-    delimiter = ' '
+
+    delimiter = " "
 
 
 class QDPHeader(basic.CommentedHeaderHeader):
     """
     Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`
     """
+
     splitter_class = QDPSplitter
     comment = "!"
     write_comment = "!"
@@ -508,8 +516,9 @@ class QDPData(basic.BasicData):
     """
     Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`
     """
+
     splitter_class = QDPSplitter
-    fill_values = [(core.masked, 'NO')]
+    fill_values = [(core.masked, "NO")]
     comment = "!"
     write_comment = None
 
@@ -605,10 +614,11 @@ class QDP(basic.Basic):
     Note how the ``terr`` and ``serr`` commands are passed to the writer.
 
     """
-    _format_name = 'qdp'
+
+    _format_name = "qdp"
     _io_registry_can_write = True
-    _io_registry_suffix = '.qdp'
-    _description = 'Quick and Dandy Plotter'
+    _io_registry_suffix = ".qdp"
+    _description = "Quick and Dandy Plotter"
 
     header_class = QDPHeader
     data_class = QDPData
@@ -622,8 +632,12 @@ class QDP(basic.Basic):
 
     def read(self, table):
         self.lines = self.inputter.get_lines(table, newline="\n")
-        return _read_table_qdp(self.lines, table_id=self.table_id,
-                               names=self.names, delimiter=self.delimiter)
+        return _read_table_qdp(
+            self.lines,
+            table_id=self.table_id,
+            names=self.names,
+            delimiter=self.delimiter,
+        )
 
     def write(self, table):
         self._check_multidim_table(table)

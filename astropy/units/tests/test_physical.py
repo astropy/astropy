@@ -14,30 +14,30 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 unit_physical_type_pairs = [
     (u.m, "length"),
-    (u.cm ** 3, "volume"),
+    (u.cm**3, "volume"),
     (u.km / u.h, "speed"),
     (u.barn * u.Mpc, "volume"),
-    (u.m * u.s ** 8, "unknown"),
+    (u.m * u.s**8, "unknown"),
     (u.m / u.m, "dimensionless"),
     (hbar.unit, "angular momentum"),
-    (u.erg / (u.cm ** 2 * u.s * u.AA), "spectral flux density wav"),
-    (u.photon / (u.cm ** 2 * u.s * u.AA), "photon flux density wav"),
-    (u.photon / (u.cm ** 2 * u.s * u.Hz), "photon flux density"),
+    (u.erg / (u.cm**2 * u.s * u.AA), "spectral flux density wav"),
+    (u.photon / (u.cm**2 * u.s * u.AA), "photon flux density wav"),
+    (u.photon / (u.cm**2 * u.s * u.Hz), "photon flux density"),
     (u.byte, "data quantity"),
     (u.bit, "data quantity"),
     (u.imperial.mi / u.week, "speed"),
     (u.erg / u.s, "power"),
     (u.C / u.s, "electrical current"),
-    (u.C / u.s / u.cm ** 2, "electrical current density"),
-    (u.T * u.m ** 2, "magnetic flux"),
+    (u.C / u.s / u.cm**2, "electrical current density"),
+    (u.T * u.m**2, "magnetic flux"),
     (u.N * u.m, "energy"),
     (u.rad / u.ms, "angular speed"),
     (u.Unit(1), "dimensionless"),
-    (u.m ** 2, "area"),
+    (u.m**2, "area"),
     (u.s, "time"),
     (u.rad, "angle"),
     (u.sr, "solid angle"),
-    (u.m / u.s ** 2, "acceleration"),
+    (u.m / u.s**2, "acceleration"),
     (u.Hz, "frequency"),
     (u.g, "mass"),
     (u.mol, "amount of substance"),
@@ -50,16 +50,16 @@ unit_physical_type_pairs = [
     (u.J, "energy"),
     (u.Pa, "pressure"),
     (u.W, "power"),
-    (u.kg / u.m ** 3, "mass density"),
-    (u.m ** 3 / u.kg, "specific volume"),
-    (u.mol / u.m ** 3, "molar concentration"),
+    (u.kg / u.m**3, "mass density"),
+    (u.m**3 / u.kg, "specific volume"),
+    (u.mol / u.m**3, "molar concentration"),
     (u.kg * u.m / u.s, "momentum/impulse"),
-    (u.kg * u.m ** 2 / u.s, "angular momentum"),
+    (u.kg * u.m**2 / u.s, "angular momentum"),
     (u.rad / u.s, "angular speed"),
-    (u.rad / u.s ** 2, "angular acceleration"),
+    (u.rad / u.s**2, "angular acceleration"),
     (u.g / (u.m * u.s), "dynamic viscosity"),
-    (u.m ** 2 / u.s, "kinematic viscosity"),
-    (u.m ** -1, "wavenumber"),
+    (u.m**2 / u.s, "kinematic viscosity"),
+    (u.m**-1, "wavenumber"),
     (u.A, "electrical current"),
     (u.C, "electrical charge"),
     (u.V, "electrical potential"),
@@ -67,10 +67,10 @@ unit_physical_type_pairs = [
     (u.S, "electrical conductance"),
     (u.F, "electrical capacitance"),
     (u.C * u.m, "electrical dipole moment"),
-    (u.A / u.m ** 2, "electrical current density"),
+    (u.A / u.m**2, "electrical current density"),
     (u.V / u.m, "electrical field strength"),
-    (u.C / u.m ** 2, "electrical flux density"),
-    (u.C / u.m ** 3, "electrical charge density"),
+    (u.C / u.m**2, "electrical flux density"),
+    (u.C / u.m**3, "electrical charge density"),
     (u.F / u.m, "permittivity"),
     (u.Wb, "magnetic flux"),
     (u.T, "magnetic flux density"),
@@ -81,7 +81,7 @@ unit_physical_type_pairs = [
     (u.lm, "luminous flux"),
     (u.lx, "luminous emittance/illuminance"),
     (u.W / u.sr, "radiant intensity"),
-    (u.cd / u.m ** 2, "luminance"),
+    (u.cd / u.m**2, "luminance"),
     (u.astrophys.Jy, "spectral flux density"),
     (u.astrophys.R, "photon flux"),
     (u.misc.bit, "data quantity"),
@@ -93,31 +93,31 @@ unit_physical_type_pairs = [
     (u.imperial.btu / (u.s * u.m * u.imperial.deg_F), "thermal conductivity"),
     (u.imperial.cal / u.deg_C, "heat capacity"),
     (u.imperial.cal / u.deg_C / u.g, "specific heat capacity"),
-    (u.J * u.m ** -2 * u.s ** -1, "energy flux"),
-    (u.W / u.m ** 2, "energy flux"),
-    (u.m ** 3 / u.mol, "molar volume"),
+    (u.J * u.m**-2 * u.s**-1, "energy flux"),
+    (u.W / u.m**2, "energy flux"),
+    (u.m**3 / u.mol, "molar volume"),
     (u.m / u.S, "electrical resistivity"),
     (u.S / u.m, "electrical conductivity"),
-    (u.A * u.m ** 2, "magnetic moment"),
+    (u.A * u.m**2, "magnetic moment"),
     (u.J / u.T, "magnetic moment"),
-    (u.yr ** -1 * u.Mpc ** -3, "volumetric rate"),
-    (u.m / u.s ** 3, "jerk"),
-    (u.m / u.s ** 4, "snap"),
-    (u.m / u.s ** 5, "crackle"),
-    (u.m / u.s ** 6, "pop"),
+    (u.yr**-1 * u.Mpc**-3, "volumetric rate"),
+    (u.m / u.s**3, "jerk"),
+    (u.m / u.s**4, "snap"),
+    (u.m / u.s**5, "crackle"),
+    (u.m / u.s**6, "pop"),
     (u.deg_C / u.m, "temperature gradient"),
     (u.imperial.deg_F / u.m, "temperature gradient"),
     (u.imperial.deg_R / u.imperial.ft, "temperature gradient"),
     (u.imperial.Calorie / u.g, "specific energy"),
     (u.mol / u.L / u.s, "reaction rate"),
-    (u.imperial.lbf * u.imperial.ft * u.s ** 2, "moment of inertia"),
+    (u.imperial.lbf * u.imperial.ft * u.s**2, "moment of inertia"),
     (u.mol / u.s, "catalytic activity"),
     (u.imperial.kcal / u.deg_C / u.mol, "molar heat capacity"),
     (u.mol / u.kg, "molality"),
     (u.imperial.inch * u.hr, "absement"),
-    (u.imperial.ft ** 3 / u.s, "volumetric flow rate"),
+    (u.imperial.ft**3 / u.s, "volumetric flow rate"),
     (u.Hz / u.s, "frequency drift"),
-    (u.Pa ** -1, "compressibility"),
+    (u.Pa**-1, "compressibility"),
     (u.dimensionless_unscaled, "dimensionless"),
 ]
 
@@ -139,22 +139,23 @@ def test_physical_type_names(unit, physical_type):
 length = u.m.physical_type
 time = u.s.physical_type
 speed = (u.m / u.s).physical_type
-area = (u.m ** 2).physical_type
-wavenumber = (u.m ** -1).physical_type
+area = (u.m**2).physical_type
+wavenumber = (u.m**-1).physical_type
 dimensionless = u.dimensionless_unscaled.physical_type
 pressure = u.Pa.physical_type
 momentum = (u.kg * u.m / u.s).physical_type
 
 
 @pytest.mark.parametrize(
-    "physical_type_representation, physical_type_name", [
+    "physical_type_representation, physical_type_name",
+    [
         (1.0, "dimensionless"),
         (u.m, "length"),
         ("work", "work"),
         (5 * u.m, "length"),
         (length, length),
         (u.Pa, "energy_density"),  # attribute-accessible name
-        ("energy_density", "energy_density")  # attribute-accessible name
+        ("energy_density", "energy_density"),  # attribute-accessible name
     ],
 )
 def test_getting_physical_type(physical_type_representation, physical_type_name):
@@ -165,11 +166,12 @@ def test_getting_physical_type(physical_type_representation, physical_type_name)
 
 
 @pytest.mark.parametrize(
-    "argument, exception", [
+    "argument, exception",
+    [
         ("unknown", ValueError),
         ("not a name of a physical type", ValueError),
         ({"this set cannot be made into a Quantity"}, TypeError),
-    ]
+    ],
 )
 def test_getting_physical_type_exceptions(argument, exception):
     """
@@ -199,8 +201,8 @@ operation_parameters = [
     (dimensionless, dimensionless, "__eq__", True),
     (momentum, "momentum/impulse", "__eq__", True),  # test delimiters in names
     (pressure, "energy_density", "__eq__", True),  # test underscores in names
-    ((u.m ** 8).physical_type, "unknown", "__eq__", True),
-    ((u.m ** 8).physical_type, (u.m ** 9).physical_type, "__eq__", False),
+    ((u.m**8).physical_type, "unknown", "__eq__", True),
+    ((u.m**8).physical_type, (u.m**9).physical_type, "__eq__", False),
     (length, length, "__ne__", False),
     (speed, time, "__ne__", True),
     (pressure, dimensionless, "__ne__", True),
@@ -282,13 +284,13 @@ def test_physical_type_in():
 equivalent_unit_pairs = [
     (u.m, u.m),
     (u.m, u.cm),
-    (u.N, u.kg * u.m * u.s ** -2),
-    (u.barn * u.Mpc, u.cm ** 3),
+    (u.N, u.kg * u.m * u.s**-2),
+    (u.barn * u.Mpc, u.cm**3),
     (u.K, u.deg_C),
     (u.K, u.imperial.deg_R),
     (u.K, u.imperial.deg_F),
     (u.deg_C, u.imperial.deg_F),
-    (u.m ** 18, u.pc ** 18),
+    (u.m**18, u.pc**18),
 ]
 
 
@@ -318,7 +320,7 @@ def test_get_physical_type_equivalent_pairs(unit1, unit2):
 
 nonequivalent_unit_pairs = [
     (u.m, u.s),
-    (u.m ** 18, u.m ** 19),
+    (u.m**18, u.m**19),
     (u.N, u.J),
     (u.barn, u.imperial.deg_F),
 ]
@@ -349,8 +351,10 @@ physical_type_with_expected_repr = [
     (speed, "PhysicalType({'speed', 'velocity'})"),
     (pressure, "PhysicalType({'energy density', 'pressure', 'stress'})"),
     (u.deg_C.physical_type, "PhysicalType('temperature')"),
-    ((u.J / u.K / u.kg).physical_type,
-     "PhysicalType({'specific entropy', 'specific heat capacity'})"),
+    (
+        (u.J / u.K / u.kg).physical_type,
+        "PhysicalType({'specific entropy', 'specific heat capacity'})",
+    ),
 ]
 
 
@@ -405,16 +409,15 @@ def test_invalid_physical_types(invalid_input):
     supplied names is not a string, while making sure that the physical
     type for the unit remains unknown.
     """
-    obscure_unit = u.s ** 87
+    obscure_unit = u.s**87
     with pytest.raises(ValueError):
         physical.PhysicalType(obscure_unit, invalid_input)
     assert obscure_unit.physical_type == "unknown"
 
 
 class TestDefPhysType:
-
-    weird_unit = u.m ** 99
-    strange_unit = u.s ** 42
+    weird_unit = u.m**99
+    strange_unit = u.s**42
 
     def test_attempt_to_define_unknown_physical_type(self):
         """Test that a unit cannot be defined as unknown."""
@@ -448,7 +451,7 @@ class TestDefPhysType:
         except Exception:
             raise
         finally:  # cleanup added name
-            physical._attrname_physical_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(weird_name.replace(" ", "_"), None)
             physical._name_physical_mapping.pop(weird_name, None)
 
         # add both strange_name and weird_name
@@ -457,13 +460,15 @@ class TestDefPhysType:
             assert set((self.weird_unit).physical_type) == {
                 weird_name,
                 strange_name,
-            }, f"did not correctly append a new physical type name."
+            }, "did not correctly append a new physical type name."
         except Exception:
             raise
         finally:  # cleanup added names
-            physical._attrname_physical_mapping.pop(strange_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(
+                strange_name.replace(" ", "_"), None
+            )
             physical._name_physical_mapping.pop(strange_name, None)
-            physical._attrname_physical_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(weird_name.replace(" ", "_"), None)
             physical._name_physical_mapping.pop(weird_name, None)
 
     def test_redundant_physical_type(self):
@@ -493,13 +498,14 @@ class TestDefPhysType:
                 self._undef_physical_type(unit)
             assert unit.physical_type == "unknown", (
                 f"the physical type for {unit}, which was added for"
-                f"testing, was not deleted."
+                "testing, was not deleted."
             )
 
 
-@pytest.mark.parametrize("method, expected", [
-    ("title", 'Length'), ("isalpha", True), ("isnumeric", False), ("upper", 'LENGTH')
-])
+@pytest.mark.parametrize(
+    "method, expected",
+    [("title", "Length"), ("isalpha", True), ("isnumeric", False), ("upper", "LENGTH")],
+)
 def test_that_str_methods_work_with_physical_types(method, expected):
     """
     Test that str methods work for `PhysicalType` instances while issuing
@@ -522,7 +528,7 @@ def test_missing_physical_type_attribute():
         length.not_the_name_of_a_str_or_physical_type_attribute
 
 
-@pytest.mark.parametrize('ptype_name', ['length', 'speed', 'entropy'])
+@pytest.mark.parametrize("ptype_name", ["length", "speed", "entropy"])
 def test_pickling(ptype_name):
     # Regression test for #11685
     ptype = u.get_physical_type(ptype_name)

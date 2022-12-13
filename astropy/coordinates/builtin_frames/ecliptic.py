@@ -8,11 +8,17 @@ from astropy.utils.decorators import format_doc
 
 from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 
-__all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
-           'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
-           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
+__all__ = [
+    "GeocentricMeanEcliptic",
+    "BarycentricMeanEcliptic",
+    "HeliocentricMeanEcliptic",
+    "BaseEclipticFrame",
+    "GeocentricTrueEcliptic",
+    "BarycentricTrueEcliptic",
+    "HeliocentricTrueEcliptic",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
+]
 
 
 doc_components_ecl = """
@@ -37,9 +43,9 @@ doc_components_ecl = """
 """
 
 
-@format_doc(base_doc,
-            components=doc_components_ecl.format('specified location'),
-            footer="")
+@format_doc(
+    base_doc, components=doc_components_ecl.format("specified location"), footer=""
+)
 class BaseEclipticFrame(BaseCoordinateFrame):
     """
     A base class for frames that have names and conventions like that of
@@ -69,8 +75,9 @@ doc_footer_geo = """
 """
 
 
-@format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
-            footer=doc_footer_geo)
+@format_doc(
+    base_doc, components=doc_components_ecl.format("geocenter"), footer=doc_footer_geo
+)
 class GeocentricMeanEcliptic(BaseEclipticFrame):
     """
     Geocentric mean ecliptic coordinates.  These origin of the coordinates are the
@@ -89,8 +96,9 @@ class GeocentricMeanEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
-@format_doc(base_doc, components=doc_components_ecl.format('geocenter'),
-            footer=doc_footer_geo)
+@format_doc(
+    base_doc, components=doc_components_ecl.format("geocenter"), footer=doc_footer_geo
+)
 class GeocentricTrueEcliptic(BaseEclipticFrame):
     """
     Geocentric true ecliptic coordinates.  These origin of the coordinates are the
@@ -119,8 +127,9 @@ doc_footer_bary = """
 """
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
-            footer=doc_footer_bary)
+@format_doc(
+    base_doc, components=doc_components_ecl.format("barycenter"), footer=doc_footer_bary
+)
 class BarycentricMeanEcliptic(BaseEclipticFrame):
     """
     Barycentric mean ecliptic coordinates.  These origin of the coordinates are the
@@ -135,8 +144,9 @@ class BarycentricMeanEcliptic(BaseEclipticFrame):
     equinox = TimeAttribute(default=EQUINOX_J2000)
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
-            footer=doc_footer_bary)
+@format_doc(
+    base_doc, components=doc_components_ecl.format("barycenter"), footer=doc_footer_bary
+)
 class BarycentricTrueEcliptic(BaseEclipticFrame):
     """
     Barycentric true ecliptic coordinates.  These origin of the coordinates are the
@@ -164,8 +174,11 @@ doc_footer_helio = """
 """
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
-            footer=doc_footer_helio)
+@format_doc(
+    base_doc,
+    components=doc_components_ecl.format("sun's center"),
+    footer=doc_footer_helio,
+)
 class HeliocentricMeanEcliptic(BaseEclipticFrame):
     """
     Heliocentric mean ecliptic coordinates.  These origin of the coordinates are the
@@ -185,8 +198,11 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
-            footer=doc_footer_helio)
+@format_doc(
+    base_doc,
+    components=doc_components_ecl.format("sun's center"),
+    footer=doc_footer_helio,
+)
 class HeliocentricTrueEcliptic(BaseEclipticFrame):
     """
     Heliocentric true ecliptic coordinates.  These origin of the coordinates are the
@@ -206,8 +222,7 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("sun's center"),
-            footer="")
+@format_doc(base_doc, components=doc_components_ecl.format("sun's center"), footer="")
 class HeliocentricEclipticIAU76(BaseEclipticFrame):
     """
     Heliocentric mean (IAU 1976) ecliptic coordinates.  These origin of the coordinates are the
@@ -227,8 +242,7 @@ class HeliocentricEclipticIAU76(BaseEclipticFrame):
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
 
 
-@format_doc(base_doc, components=doc_components_ecl.format("barycenter"),
-            footer="")
+@format_doc(base_doc, components=doc_components_ecl.format("barycenter"), footer="")
 class CustomBarycentricEcliptic(BaseEclipticFrame):
     """
     Barycentric ecliptic coordinates with custom obliquity.

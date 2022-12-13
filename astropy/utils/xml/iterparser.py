@@ -11,8 +11,7 @@ import sys
 # ASTROPY
 from astropy.utils import data
 
-
-__all__ = ['get_xml_iterator', 'get_xml_encoding', 'xml_readlines']
+__all__ = ["get_xml_iterator", "get_xml_encoding", "xml_readlines"]
 
 
 @contextlib.contextmanager
@@ -60,8 +59,8 @@ def _convert_to_fd_or_read_function(fd):
         yield fd
         return
 
-    with data.get_readable_fileobj(fd, encoding='binary') as new_fd:
-        if sys.platform.startswith('win'):
+    with data.get_readable_fileobj(fd, encoding="binary") as new_fd:
+        if sys.platform.startswith("win"):
             yield new_fd.read
         else:
             if isinstance(new_fd, io.FileIO):
@@ -70,7 +69,7 @@ def _convert_to_fd_or_read_function(fd):
                 yield new_fd.read
 
 
-def _fast_iterparse(fd, buffersize=2 ** 10):
+def _fast_iterparse(fd, buffersize=2**10):
     from xml.parsers import expat
 
     if not callable(fd):
@@ -82,13 +81,20 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
     text = []
 
     def start(name, attr):
-        queue.append((True, name, attr,
-                      (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
+        queue.append(
+            (True, name, attr, (parser.CurrentLineNumber, parser.CurrentColumnNumber))
+        )
         del text[:]
 
     def end(name):
-        queue.append((False, name, ''.join(text).strip(),
-                      (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
+        queue.append(
+            (
+                False,
+                name,
+                "".join(text).strip(),
+                (parser.CurrentLineNumber, parser.CurrentColumnNumber),
+            )
+        )
 
     parser = expat.ParserCreate()
     parser.specified_attributes = True
@@ -104,7 +110,7 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
         del queue[:]
         data = read(buffersize)
 
-    Parse('', True)
+    Parse("", True)
     yield from queue
 
 
@@ -113,6 +119,7 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
 _slow_iterparse = _fast_iterparse
 try:
     from . import _iterparser
+
     _fast_iterparse = _iterparser.IterParser
 except ImportError:
     pass
@@ -180,11 +187,11 @@ def get_xml_encoding(source):
     """
     with get_xml_iterator(source) as iterator:
         start, tag, data, pos = next(iterator)
-        if not start or tag != 'xml':
-            raise OSError('Invalid XML file')
+        if not start or tag != "xml":
+            raise OSError("Invalid XML file")
 
     # The XML spec says that no encoding === utf-8
-    return data.get('encoding') or 'utf-8'
+    return data.get("encoding") or "utf-8"
 
 
 def xml_readlines(source):

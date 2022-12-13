@@ -51,7 +51,7 @@ Getting Started
    :maxdepth: 1
 
    install
-   whatsnew/5.2
+   whatsnew/5.3
    importing_astropy
    Example Gallery <generated/examples/index>
    Tutorials <https://learn.astropy.org/>
@@ -139,6 +139,7 @@ as a whole, see :doc:`development/vision`.
    :maxdepth: 1
 
    development/workflow/development_workflow
+   development/workflow/virtual_pythons
    development/workflow/get_devel_version
    development/when_to_rebase
    development/codeguide

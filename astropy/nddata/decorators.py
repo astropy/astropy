@@ -1,27 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import warnings
 from copy import deepcopy
+from functools import wraps
 from inspect import signature
 from itertools import islice
-import warnings
-from functools import wraps
 
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .nddata import NDData
 
-__all__ = ['support_nddata']
+__all__ = ["support_nddata"]
 
 
 # All supported properties are optional except "data" which is mandatory!
-SUPPORTED_PROPERTIES = ['data', 'uncertainty', 'mask', 'meta', 'unit', 'wcs',
-                        'flags']
+SUPPORTED_PROPERTIES = ["data", "uncertainty", "mask", "meta", "unit", "wcs", "flags"]
 
 
-def support_nddata(_func=None, accepts=NDData,
-                   repack=False, returns=None, keeps=None,
-                   **attribute_argument_mapping):
+def support_nddata(
+    _func=None,
+    accepts=NDData,
+    repack=False,
+    returns=None,
+    keeps=None,
+    **attribute_argument_mapping
+):
     """Decorator to wrap functions that could accept an NDData instance with
     its properties passed as function arguments.
 
@@ -124,9 +128,9 @@ def support_nddata(_func=None, accepts=NDData,
     argument.
     """
     if (returns is not None or keeps is not None) and not repack:
-        raise ValueError('returns or keeps should only be set if repack=True.')
+        raise ValueError("returns or keeps should only be set if repack=True.")
     elif returns is None and repack:
-        raise ValueError('returns should be set if repack=True.')
+        raise ValueError("returns should be set if repack=True.")
     else:
         # Use empty lists for returns and keeps so we don't need to check
         # if any of those is None later on.
@@ -138,8 +142,7 @@ def support_nddata(_func=None, accepts=NDData,
     # Short version to avoid the long variable name later.
     attr_arg_map = attribute_argument_mapping
     if any(keep in returns for keep in keeps):
-        raise ValueError("cannot specify the same attribute in `returns` and "
-                         "`keeps`.")
+        raise ValueError("cannot specify the same attribute in `returns` and `keeps`.")
     all_returns = returns + keeps
 
     def support_nddata_decorator(func):
@@ -159,17 +162,21 @@ def support_nddata(_func=None, accepts=NDData,
             # it's quite obvious that there was a default and it should be
             # appended to the "func_kwargs".
             except ValueError as exc:
-                if ('The truth value of an array with more than one element '
-                        'is ambiguous.') in str(exc):
+                if (
+                    "The truth value of an array with more than one element "
+                    "is ambiguous." in str(exc)
+                ):
                     func_kwargs.append(param_name)
                 else:
                     raise
 
         # First argument should be data
-        if not func_args or func_args[0] != attr_arg_map.get('data', 'data'):
-            raise ValueError("Can only wrap functions whose first positional "
-                             "argument is `{}`"
-                             "".format(attr_arg_map.get('data', 'data')))
+        if not func_args or func_args[0] != attr_arg_map.get("data", "data"):
+            raise ValueError(
+                "Can only wrap functions whose first positional "
+                "argument is `{}`"
+                "".format(attr_arg_map.get("data", "data"))
+            )
 
         @wraps(func)
         def wrapper(data, *args, **kwargs):
@@ -178,9 +185,11 @@ def support_nddata(_func=None, accepts=NDData,
             input_data = data
             ignored = []
             if not unpack and isinstance(data, NDData):
-                raise TypeError("Only NDData sub-classes that inherit from {}"
-                                " can be used by this function"
-                                "".format(accepts.__name__))
+                raise TypeError(
+                    "Only NDData sub-classes that inherit from {}"
+                    " can be used by this function"
+                    "".format(accepts.__name__)
+                )
 
             # If data is an NDData instance, we can try and find properties
             # that can be passed as kwargs.
@@ -194,7 +203,7 @@ def support_nddata(_func=None, accepts=NDData,
                     except AttributeError:
                         continue
                     # Skip if the property exists but is None or empty.
-                    if prop == 'meta' and not value:
+                    if prop == "meta" and not value:
                         continue
                     elif value is None:
                         continue
@@ -220,17 +229,22 @@ def support_nddata(_func=None, accepts=NDData,
                         # indistinguishable from an explicitly passed kwarg
                         # and it won't notice that and use the attribute of the
                         # NDData.
-                        if (propmatch in func_args or
-                                (propmatch in func_kwargs and
-                                 (bound_args.arguments[propmatch] is not
-                                  sig[propmatch].default))):
+                        if propmatch in func_args or (
+                            propmatch in func_kwargs
+                            and (
+                                bound_args.arguments[propmatch]
+                                is not sig[propmatch].default
+                            )
+                        ):
                             warnings.warn(
                                 "Property {} has been passed explicitly and "
                                 "as an NDData property{}, using explicitly "
                                 "specified value"
-                                "".format(propmatch, '' if prop == propmatch
-                                          else ' ' + prop),
-                                AstropyUserWarning)
+                                "".format(
+                                    propmatch, "" if prop == propmatch else " " + prop
+                                ),
+                                AstropyUserWarning,
+                            )
                             continue
                     # Otherwise use the property as input for the function.
                     kwargs[propmatch] = value
@@ -238,10 +252,12 @@ def support_nddata(_func=None, accepts=NDData,
                 data = data.data
 
                 if ignored:
-                    warnings.warn("The following attributes were set on the "
-                                  "data object, but will be ignored by the "
-                                  "function: " + ", ".join(ignored),
-                                  AstropyUserWarning)
+                    warnings.warn(
+                        "The following attributes were set on the "
+                        "data object, but will be ignored by the "
+                        "function: " + ", ".join(ignored),
+                        AstropyUserWarning,
+                    )
 
             result = func(data, *args, **kwargs)
 
@@ -251,22 +267,23 @@ def support_nddata(_func=None, accepts=NDData,
                 # numpy arrays or compare their length, never!) and has the
                 # same length.
                 if len(returns) > 1:
-                    if (not isinstance(result, tuple) or
-                            len(returns) != len(result)):
-                        raise ValueError("Function did not return the "
-                                         "expected number of arguments.")
+                    if not isinstance(result, tuple) or len(returns) != len(result):
+                        raise ValueError(
+                            "Function did not return the expected number of arguments."
+                        )
                 elif len(returns) == 1:
                     result = [result]
                 if keeps is not None:
                     for keep in keeps:
                         result.append(deepcopy(getattr(input_data, keep)))
-                resultdata = result[all_returns.index('data')]
-                resultkwargs = {ret: res
-                                for ret, res in zip(all_returns, result)
-                                if ret != 'data'}
+                resultdata = result[all_returns.index("data")]
+                resultkwargs = {
+                    ret: res for ret, res in zip(all_returns, result) if ret != "data"
+                }
                 return input_data.__class__(resultdata, **resultkwargs)
             else:
                 return result
+
         return wrapper
 
     # If _func is set, this means that the decorator was used without

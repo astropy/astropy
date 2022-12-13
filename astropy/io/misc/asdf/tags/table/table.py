@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-
 from asdf.tags.core.ndarray import NDArrayType
 
 from astropy import table
-from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
 class TableType:
@@ -16,25 +15,25 @@ class TableType:
     Otherwise, the behavior will conform to the custom table schema defined by
     Astropy.
     """
+
     _compat = False
 
     @classmethod
     def from_tree(cls, node, ctx):
-
         # This is getting meta, guys
-        meta = node.get('meta', {})
+        meta = node.get("meta", {})
 
         # This enables us to support files that use the table definition from
         # the ASDF Standard, rather than the custom one that Astropy defines.
         if cls._compat:
-            return table.Table(node['columns'], meta=meta)
+            return table.Table(node["columns"], meta=meta)
 
-        if node.get('qtable', False):
-            t = table.QTable(meta=node.get('meta', {}))
+        if node.get("qtable", False):
+            t = table.QTable(meta=node.get("meta", {}))
         else:
-            t = table.Table(meta=node.get('meta', {}))
+            t = table.Table(meta=node.get("meta", {}))
 
-        for name, col in zip(node['colnames'], node['columns']):
+        for name, col in zip(node["colnames"], node["columns"]):
             t[name] = col
 
         return t
@@ -47,10 +46,10 @@ class TableType:
         # Files that use the table definition from the ASDF Standard (instead
         # of the one defined by Astropy) will not contain these fields
         if not cls._compat:
-            node['colnames'] = data.colnames
-            node['qtable'] = isinstance(data, table.QTable)
+            node["colnames"] = data.colnames
+            node["qtable"] = isinstance(data, table.QTable)
         if data.meta:
-            node['meta'] = data.meta
+            node["meta"] = data.meta
 
         return node
 
@@ -75,9 +74,10 @@ class AstropyTableType(TableType, AstropyType):
     support of Astropy mixin columns, which are not supported by the ASDF
     Standard.
     """
-    name = 'table/table'
-    types = ['astropy.table.Table']
-    requires = ['astropy']
+
+    name = "table/table"
+    types = ["astropy.table.Table"]
+    requires = ["astropy"]
 
 
 class AsdfTableType(TableType, AstropyAsdfType):
@@ -87,42 +87,47 @@ class AsdfTableType(TableType, AstropyAsdfType):
     custom one defined by Astropy). This is important to maintain for
     cross-compatibility.
     """
-    name = 'core/table'
-    types = ['astropy.table.Table']
-    requires = ['astropy']
+
+    name = "core/table"
+    types = ["astropy.table.Table"]
+    requires = ["astropy"]
     _compat = True
 
 
 class ColumnType(AstropyAsdfType):
-    name = 'core/column'
-    types = ['astropy.table.Column', 'astropy.table.MaskedColumn']
-    requires = ['astropy']
+    name = "core/column"
+    types = ["astropy.table.Column", "astropy.table.MaskedColumn"]
+    requires = ["astropy"]
     handle_dynamic_subclasses = True
 
     @classmethod
     def from_tree(cls, node, ctx):
-        data = node['data']
-        name = node['name']
-        description = node.get('description')
-        unit = node.get('unit')
-        meta = node.get('meta', None)
+        data = node["data"]
+        name = node["name"]
+        description = node.get("description")
+        unit = node.get("unit")
+        meta = node.get("meta", None)
 
         return table.Column(
-            data=data._make_array(), name=name, description=description,
-            unit=unit, meta=meta)
+            data=data._make_array(),
+            name=name,
+            description=description,
+            unit=unit,
+            meta=meta,
+        )
 
     @classmethod
     def to_tree(cls, data, ctx):
         node = {
-            'data': data.data,
-            'name': data.name
+            "data": data.data,
+            "name": data.name,
         }
         if data.description:
-            node['description'] = data.description
+            node["description"] = data.description
         if data.unit:
-            node['unit'] = data.unit
+            node["unit"] = data.unit
         if data.meta:
-            node['meta'] = data.meta
+            node["meta"] = data.meta
 
         return node
 

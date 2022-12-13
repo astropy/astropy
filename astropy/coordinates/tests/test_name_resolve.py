@@ -14,11 +14,18 @@ from pytest_remotedata.disable_internet import no_internet
 from astropy import units as u
 from astropy.config import paths
 from astropy.coordinates.name_resolve import (
-    NameResolveError, _parse_response, get_icrs_coordinates, sesame_database, sesame_url)
+    NameResolveError,
+    _parse_response,
+    get_icrs_coordinates,
+    sesame_database,
+    sesame_url,
+)
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 _cached_ngc3642 = dict()
-_cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
+_cached_ngc3642[
+    "simbad"
+] = """# NGC 3642    #Q22523669
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -33,7 +40,9 @@ _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
 
 #====Done (2013-Feb-12,16:37:11z)===="""
 
-_cached_ngc3642["vizier"] = """# NGC 3642    #Q22523677
+_cached_ngc3642[
+    "vizier"
+] = """# NGC 3642    #Q22523677
 #=V=VizieR (local):    1
 %J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
@@ -42,7 +51,9 @@ _cached_ngc3642["vizier"] = """# NGC 3642    #Q22523677
 
 #====Done (2013-Feb-12,16:37:42z)===="""
 
-_cached_ngc3642["all"] = """# ngc3642    #Q22523722
+_cached_ngc3642[
+    "all"
+] = """# ngc3642    #Q22523722
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -65,7 +76,9 @@ _cached_ngc3642["all"] = """# ngc3642    #Q22523722
 #====Done (2013-Feb-12,16:39:48z)===="""
 
 _cached_castor = dict()
-_cached_castor["all"] = """# castor    #Q22524249
+_cached_castor[
+    "all"
+] = """# castor    #Q22524249
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR
@@ -87,7 +100,9 @@ _cached_castor["all"] = """# castor    #Q22524249
 
 #====Done (2013-Feb-12,16:52:02z)===="""
 
-_cached_castor["simbad"] = """# castor    #Q22524495
+_cached_castor[
+    "simbad"
+] = """# castor    #Q22524495
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR
@@ -106,10 +121,16 @@ _cached_castor["simbad"] = """# castor    #Q22524495
 
 @pytest.mark.remote_data
 def test_names():
-
     # First check that sesame is up
-    if urllib.request.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
-        pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
+    if (
+        urllib.request.urlopen(
+            "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame"
+        ).getcode()
+        != 200
+    ):
+        pytest.skip(
+            "SESAME appears to be down, skipping test_name_resolve.py:test_names()..."
+        )
 
     with pytest.raises(NameResolveError):
         get_icrs_coordinates("m87h34hhh")
@@ -118,7 +139,7 @@ def test_names():
         icrs = get_icrs_coordinates("NGC 3642")
     except NameResolveError:
         ra, dec = _parse_response(_cached_ngc3642["all"])
-        icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
+        icrs = SkyCoord(ra=float(ra) * u.degree, dec=float(dec) * u.degree)
 
     icrs_true = SkyCoord(ra="11h 22m 18.014s", dec="59d 04m 27.27s")
 
@@ -131,7 +152,7 @@ def test_names():
         icrs = get_icrs_coordinates("castor")
     except NameResolveError:
         ra, dec = _parse_response(_cached_castor["all"])
-        icrs = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree)
+        icrs = SkyCoord(ra=float(ra) * u.degree, dec=float(dec) * u.degree)
 
     icrs_true = SkyCoord(ra="07h 34m 35.87s", dec="+31d 53m 17.8s")
     np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 1)
@@ -139,12 +160,12 @@ def test_names():
 
 
 @pytest.mark.remote_data
-def test_name_resolve_cache(tmpdir):
+def test_name_resolve_cache(tmp_path):
     from astropy.utils.data import get_cached_urls
 
     target_name = "castor"
 
-    temp_cache_dir = str(tmpdir.mkdir('cache'))
+    (temp_cache_dir := tmp_path / "cache").mkdir()
     with paths.set_temp_cache(temp_cache_dir, delete=True):
         assert len(get_cached_urls()) == 0
 
@@ -153,7 +174,9 @@ def test_name_resolve_cache(tmpdir):
         urls = get_cached_urls()
         assert len(urls) == 1
         expected_urls = sesame_url.get()
-        assert any([urls[0].startswith(x) for x in expected_urls]), f'{urls[0]} not in {expected_urls}'
+        assert any(
+            urls[0].startswith(x) for x in expected_urls
+        ), f"{urls[0]} not in {expected_urls}"
 
         # Try reloading coordinates, now should just reload cached data:
         with no_internet():
@@ -167,29 +190,34 @@ def test_name_resolve_cache(tmpdir):
 
 def test_names_parse():
     # a few test cases for parsing embedded coordinates from object name
-    test_names = ['CRTS SSS100805 J194428-420209',
-                  'MASTER OT J061451.7-272535.5',
-                  '2MASS J06495091-0737408',
-                  '1RXS J042555.8-194534',
-                  'SDSS J132411.57+032050.5',
-                  'DENIS-P J203137.5-000511',
-                  '2QZ J142438.9-022739',
-                  'CXOU J141312.3-652013']
+    test_names = [
+        "CRTS SSS100805 J194428-420209",
+        "MASTER OT J061451.7-272535.5",
+        "2MASS J06495091-0737408",
+        "1RXS J042555.8-194534",
+        "SDSS J132411.57+032050.5",
+        "DENIS-P J203137.5-000511",
+        "2QZ J142438.9-022739",
+        "CXOU J141312.3-652013",
+    ]
     for name in test_names:
         sc = get_icrs_coordinates(name, parse=True)
 
 
 @pytest.mark.remote_data
-@pytest.mark.parametrize(("name", "db_dict"), [('NGC 3642', _cached_ngc3642),
-                                               ('castor', _cached_castor)])
+@pytest.mark.parametrize(
+    ("name", "db_dict"), [("NGC 3642", _cached_ngc3642), ("castor", _cached_castor)]
+)
 def test_database_specify(name, db_dict):
     # First check that at least some sesame mirror is up
     for url in sesame_url.get():
         if urllib.request.urlopen(url).getcode() == 200:
             break
     else:
-        pytest.skip("All SESAME mirrors appear to be down, skipping "
-                    "test_name_resolve.py:test_database_specify()...")
+        pytest.skip(
+            "All SESAME mirrors appear to be down, skipping "
+            "test_name_resolve.py:test_database_specify()..."
+        )
 
     for db in db_dict.keys():
         with sesame_database.set(db):

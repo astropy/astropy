@@ -2,11 +2,19 @@
 
 from astropy import units as u
 from astropy.coordinates import representation as r
-from astropy.coordinates.attributes import EarthLocationAttribute, QuantityAttribute, TimeAttribute
-from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping, base_doc
+from astropy.coordinates.attributes import (
+    EarthLocationAttribute,
+    QuantityAttribute,
+    TimeAttribute,
+)
+from astropy.coordinates.baseframe import (
+    BaseCoordinateFrame,
+    RepresentationMapping,
+    base_doc,
+)
 from astropy.utils.decorators import format_doc
 
-__all__ = ['HADec']
+__all__ = ["HADec"]
 
 
 doc_components = """
@@ -83,8 +91,8 @@ class HADec(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'ha', u.hourangle),
-            RepresentationMapping('lat', 'dec')
+            RepresentationMapping("lon", "ha", u.hourangle),
+            RepresentationMapping("lat", "dec"),
         ]
     }
 
@@ -96,7 +104,7 @@ class HADec(BaseCoordinateFrame):
     pressure = QuantityAttribute(default=0, unit=u.hPa)
     temperature = QuantityAttribute(default=0, unit=u.deg_C)
     relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
-    obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
+    obswl = QuantityAttribute(default=1 * u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,11 +113,11 @@ class HADec(BaseCoordinateFrame):
 
     @staticmethod
     def _set_data_lon_wrap_angle(data):
-        if hasattr(data, 'lon'):
-            data.lon.wrap_angle = 180. * u.deg
+        if hasattr(data, "lon"):
+            data.lon.wrap_angle = 180.0 * u.deg
         return data
 
-    def represent_as(self, base, s='base', in_frame_units=False):
+    def represent_as(self, base, s="base", in_frame_units=False):
         """
         Ensure the wrap angle for any spherical
         representations.

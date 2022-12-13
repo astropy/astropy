@@ -3,9 +3,8 @@
 from datetime import date
 from itertools import count
 
-import pytest
-
 import numpy as np
+import pytest
 from erfa import DJM0
 
 from astropy.time import Time, TimeFormat
@@ -20,7 +19,7 @@ class SpecificException(ValueError):
 def custom_format_name():
     for i in count():
         if not i:
-            custom = f"custom_format_name"
+            custom = "custom_format_name"
         else:
             custom = f"custom_format_name_{i}"
         if custom not in Time.FORMATS:
@@ -90,6 +89,7 @@ def test_custom_time_format_fine(custom_format_name):
 
 def test_custom_time_format_forgot_property(custom_format_name):
     with pytest.raises(ValueError):
+
         class Custom(TimeFormat):
             name = custom_format_name
 
@@ -108,7 +108,7 @@ def test_custom_time_format_problematic_name():
 
         class Custom(TimeFormat):
             name = "sort"
-            _dtype = np.dtype([('jd1', 'f8'), ('jd2', 'f8')])
+            _dtype = np.dtype([("jd1", "f8"), ("jd2", "f8")])
 
             def set_jds(self, val, val2):
                 self.jd1, self.jd2 = val, val2
@@ -116,8 +116,8 @@ def test_custom_time_format_problematic_name():
             @property
             def value(self):
                 result = np.empty(self.jd1.shape, self._dtype)
-                result['jd1'] = self.jd1
-                result['jd2'] = self.jd2
+                result["jd1"] = self.jd1
+                result["jd2"] = self.jd2
                 return result
 
         t = Time.now()
@@ -157,9 +157,10 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
     t = Time(m, format=custom_format_name)
     # Pick a different long double (ensuring it will give a different jd2
     # even when long doubles are more precise than Time, as on arm64).
-    m2 = np.longdouble(m) + max(2. * m * np.finfo(np.longdouble).eps,
-                                np.finfo(float).eps)
-    assert m2 != m, 'long double is weird!'
+    m2 = np.longdouble(m) + max(
+        2.0 * m * np.finfo(np.longdouble).eps, np.finfo(float).eps
+    )
+    assert m2 != m, "long double is weird!"
     t2 = Time(m2, format=custom_format_name)
     assert t != t2
     assert isinstance(getattr(t, custom_format_name), np.longdouble)
@@ -174,10 +175,13 @@ def test_mjd_longdouble_preserves_precision(custom_format_name):
         ("foo", "bar"),
         (1j, 2j),
         pytest.param(
-            np.longdouble(3), np.longdouble(5),
+            np.longdouble(3),
+            np.longdouble(5),
             marks=pytest.mark.skipif(
                 np.longdouble().itemsize == np.dtype(float).itemsize,
-                reason="long double == double on this platform")),
+                reason="long double == double on this platform",
+            ),
+        ),
         ({1: 2}, {3: 4}),
         ({1, 2}, {3, 4}),
         ([1, 2], [3, 4]),
@@ -225,7 +229,7 @@ def test_custom_format_scalar_jd1_jd2_okay(custom_format_name):
         b"foo",
         Time(5, format="mjd"),
         lambda: 7,
-        np.datetime64('2005-02-25'),
+        np.datetime64("2005-02-25"),
         date(2006, 2, 25),
     ],
 )
@@ -234,16 +238,18 @@ def test_custom_format_can_return_any_scalar(custom_format_name, thing):
         name = custom_format_name
 
         def set_jds(self, val, val2):
-            self.jd1, self.jd2 = 2., 0.
+            self.jd1, self.jd2 = 2.0, 0.0
 
         @property
         def value(self):
             return np.array(thing)
 
-    assert type(getattr(Time(5, format=custom_format_name),
-                        custom_format_name)) == type(thing)
-    assert np.all(getattr(Time(5, format=custom_format_name),
-                          custom_format_name) == thing)
+    assert type(
+        getattr(Time(5, format=custom_format_name), custom_format_name)
+    ) == type(thing)
+    assert np.all(
+        getattr(Time(5, format=custom_format_name), custom_format_name) == thing
+    )
 
 
 @pytest.mark.parametrize(
@@ -262,13 +268,15 @@ def test_custom_format_can_return_any_iterable(custom_format_name, thing):
         name = custom_format_name
 
         def set_jds(self, val, val2):
-            self.jd1, self.jd2 = 2., 0.
+            self.jd1, self.jd2 = 2.0, 0.0
 
         @property
         def value(self):
             return thing
 
-    assert type(getattr(Time(5, format=custom_format_name),
-                        custom_format_name)) == type(thing)
-    assert np.all(getattr(Time(5, format=custom_format_name),
-                          custom_format_name) == thing)
+    assert type(
+        getattr(Time(5, format=custom_format_name), custom_format_name)
+    ) == type(thing)
+    assert np.all(
+        getattr(Time(5, format=custom_format_name), custom_format_name) == thing
+    )

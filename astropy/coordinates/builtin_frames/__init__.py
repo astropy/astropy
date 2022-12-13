@@ -28,7 +28,17 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from .altaz import AltAz
 from .baseradec import BaseRADecFrame
 from .cirs import CIRS
-from .ecliptic import *  # there are a lot of these so we don't list them all explicitly
+from .ecliptic import (
+    BarycentricMeanEcliptic,
+    BarycentricTrueEcliptic,
+    BaseEclipticFrame,
+    CustomBarycentricEcliptic,
+    GeocentricMeanEcliptic,
+    GeocentricTrueEcliptic,
+    HeliocentricEclipticIAU76,
+    HeliocentricMeanEcliptic,
+    HeliocentricTrueEcliptic,
+)
 from .equatorial import TEME, TETE
 from .fk4 import FK4, FK4NoETerms
 from .fk5 import FK5
@@ -45,9 +55,16 @@ from .supergalactic import Supergalactic
 # isort: split
 # need to import transformations so that they get registered in the graph
 from . import (
-    cirs_observed_transforms, fk4_fk5_transforms, galactic_transforms, icrs_cirs_transforms,
-    icrs_fk5_transforms, icrs_observed_transforms, intermediate_rotation_transforms,
-    itrs_observed_transforms, supergalactic_transforms)
+    cirs_observed_transforms,
+    fk4_fk5_transforms,
+    galactic_transforms,
+    icrs_cirs_transforms,
+    icrs_fk5_transforms,
+    icrs_observed_transforms,
+    intermediate_rotation_transforms,
+    itrs_observed_transforms,
+    supergalactic_transforms,
+)
 
 # isort: split
 from . import ecliptic_transforms
@@ -58,17 +75,61 @@ from . import ecliptic_transforms
 from .lsr import LSR, LSRD, LSRK, GalacticLSR
 
 # we define an __all__ because otherwise the transformation modules
-# get included
-__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'galactocentric_frame_defaults',
-           'Supergalactic', 'AltAz', 'HADec', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
-           'TEME', 'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
-           'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
-           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'SkyOffsetFrame', 'GalacticLSR', 'LSR', 'LSRK', 'LSRD',
-           'BaseEclipticFrame', 'BaseRADecFrame', 'make_transform_graph_docs',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
+# get included.  Note that the order here determines the order in the
+# documentation of the built-in frames (see make_transform_graphs_docs).
+__all__ = [
+    "ICRS",
+    "FK5",
+    "FK4",
+    "FK4NoETerms",
+    "Galactic",
+    "Galactocentric",
+    "Supergalactic",
+    "AltAz",
+    "HADec",
+    "GCRS",
+    "CIRS",
+    "ITRS",
+    "HCRS",
+    "TEME",
+    "TETE",
+    "PrecessedGeocentric",
+    "GeocentricMeanEcliptic",
+    "BarycentricMeanEcliptic",
+    "HeliocentricMeanEcliptic",
+    "GeocentricTrueEcliptic",
+    "BarycentricTrueEcliptic",
+    "HeliocentricTrueEcliptic",
+    "HeliocentricEclipticIAU76",
+    "CustomBarycentricEcliptic",
+    "LSR",
+    "LSRK",
+    "LSRD",
+    "GalacticLSR",
+    "SkyOffsetFrame",
+    "BaseEclipticFrame",
+    "BaseRADecFrame",
+    "galactocentric_frame_defaults",
+    "make_transform_graph_docs",
+]
+
+
+def _get_doc_header(cls):
+    """Get the first line of a docstring.
+
+    Skips possible empty first lines, and then combine following text until
+    the first period or a fully empty line.
+    """
+    out = []
+    for line in cls.__doc__.splitlines():
+        if line:
+            parts = line.split(".")
+            out.append(parts[0].strip())
+            if len(parts) > 1:
+                break
+        elif out:
+            break
+    return " ".join(out) + "."
 
 
 def make_transform_graph_docs(transform_graph):
@@ -79,7 +140,7 @@ def make_transform_graph_docs(transform_graph):
 
     Parameters
     ----------
-    transform_graph : `~.coordinates.TransformGraph`
+    transform_graph : `~astropy.coordinates.TransformGraph`
 
     Returns
     -------
@@ -88,13 +149,17 @@ def make_transform_graph_docs(transform_graph):
         transform graph.
     """
     from textwrap import dedent
-    coosys = [transform_graph.lookup_name(item) for
-              item in transform_graph.get_names()]
+
+    coosys = {
+        (cls := transform_graph.lookup_name(item)).__name__: cls
+        for item in transform_graph.get_names()
+    }
 
     # currently, all of the priorities are set to 1, so we don't need to show
     #   then in the transform graph.
-    graphstr = transform_graph.to_dot_graph(addnodes=coosys,
-                                            priorities=False)
+    graphstr = transform_graph.to_dot_graph(
+        addnodes=list(coosys.values()), priorities=False
+    )
 
     docstr = """
     The diagram below shows all of the built in coordinate systems,
@@ -115,10 +180,11 @@ def make_transform_graph_docs(transform_graph):
 
     """
 
-    docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')
+    docstr = dedent(docstr) + "        " + graphstr.replace("\n", "\n        ")
 
     # colors are in dictionary at the bottom of transformations.py
     from astropy.coordinates.transformations import trans_to_color
+
     html_list_items = []
     for cls, color in trans_to_color.items():
         block = f"""
@@ -131,7 +197,7 @@ def make_transform_graph_docs(transform_graph):
         """
         html_list_items.append(block)
 
-    nl = '\n'
+    nl = "\n"
     graph_legend = f"""
     .. raw:: html
 
@@ -141,7 +207,23 @@ def make_transform_graph_docs(transform_graph):
     """
     docstr = docstr + dedent(graph_legend)
 
-    return docstr
+    # Add table with built-in frame classes.
+    template = """
+       * - `~astropy.coordinates.{}`
+         - {}
+    """
+    table = """
+    Built-in Frame Classes
+    ^^^^^^^^^^^^^^^^^^^^^^
+    .. list-table::
+       :widths: 20 80
+    """ + "".join(
+        template.format(name, _get_doc_header(coosys[name]))
+        for name in __all__
+        if name in coosys
+    )
+
+    return docstr + dedent(table)
 
 
 _transform_graph_docs = make_transform_graph_docs(frame_transform_graph)

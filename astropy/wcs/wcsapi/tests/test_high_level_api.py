@@ -1,11 +1,14 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.units import Quantity
 from astropy.coordinates import SkyCoord
-
+from astropy.units import Quantity
+from astropy.wcs.wcsapi.high_level_api import (
+    HighLevelWCSMixin,
+    high_level_objects_to_values,
+    values_to_high_level_objects,
+)
 from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
-from astropy.wcs.wcsapi.high_level_api import HighLevelWCSMixin, high_level_objects_to_values, values_to_high_level_objects
 
 
 class DoubleLowLevelWCS(BaseLowLevelWCS):
@@ -36,25 +39,25 @@ class SimpleDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec']
+        return ["pos.eq.ra", "pos.eq.dec"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg']
+        return ["deg", "deg"]
 
     @property
     def world_axis_object_components(self):
-        return [('test1', 0, 'value'),
-                ('test2', 0, 'value')]
+        return [("test1", 0, "value"), ("test2", 0, "value")]
 
     @property
     def world_axis_object_classes(self):
-        return {'test1': (Quantity, (), {'unit': 'deg'}),
-                'test2': (Quantity, (), {'unit': 'deg'})}
+        return {
+            "test1": (Quantity, (), {"unit": "deg"}),
+            "test2": (Quantity, (), {"unit": "deg"}),
+        }
 
 
 def test_simple_duplicate():
-
     # Make sure that things work properly when the low-level WCS uses the same
     # class for two of the coordinates.
 
@@ -86,29 +89,32 @@ class SkyCoordDuplicateWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec', 'pos.galactic.lon', 'pos.galactic.lat']
+        return ["pos.eq.ra", "pos.eq.dec", "pos.galactic.lon", "pos.galactic.lat"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg', 'deg', 'deg']
+        return ["deg", "deg", "deg", "deg"]
 
     @property
     def world_axis_object_components(self):
         # Deliberately use 'ra'/'dec' here to make sure that string argument
         # names work properly.
-        return [('test1', 'ra', 'spherical.lon.degree'),
-                ('test1', 'dec', 'spherical.lat.degree'),
-                ('test2', 0, 'spherical.lon.degree'),
-                ('test2', 1, 'spherical.lat.degree')]
+        return [
+            ("test1", "ra", "spherical.lon.degree"),
+            ("test1", "dec", "spherical.lat.degree"),
+            ("test2", 0, "spherical.lon.degree"),
+            ("test2", 1, "spherical.lat.degree"),
+        ]
 
     @property
     def world_axis_object_classes(self):
-        return {'test1': (SkyCoord, (), {'unit': 'deg'}),
-                'test2': (SkyCoord, (), {'unit': 'deg', 'frame': 'galactic'})}
+        return {
+            "test1": (SkyCoord, (), {"unit": "deg"}),
+            "test2": (SkyCoord, (), {"unit": "deg", "frame": "galactic"}),
+        }
 
 
 def test_skycoord_duplicate():
-
     # Make sure that things work properly when the low-level WCS uses the same
     # class, and specifically a SkyCoord for two of the coordinates.
 
@@ -145,24 +151,28 @@ class SerializedWCS(DoubleLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def world_axis_physical_types(self):
-        return ['pos.eq.ra', 'pos.eq.dec']
+        return ["pos.eq.ra", "pos.eq.dec"]
 
     @property
     def world_axis_units(self):
-        return ['deg', 'deg']
+        return ["deg", "deg"]
 
     @property
     def world_axis_object_components(self):
-        return [('test', 0, 'value')]
+        return [("test", 0, "value")]
 
     @property
     def world_axis_object_classes(self):
-        return {'test': ('astropy.units.Quantity', (),
-                         {'unit': ('astropy.units.Unit', ('deg',), {})})}
+        return {
+            "test": (
+                "astropy.units.Quantity",
+                (),
+                {"unit": ("astropy.units.Unit", ("deg",), {})},
+            )
+        }
 
 
 def test_serialized_classes():
-
     wcs = SerializedWCS()
     q = wcs.pixel_to_world(1)
 
@@ -186,7 +196,7 @@ def test_values_to_objects():
     wcs = SkyCoordDuplicateWCS()
     c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
 
-    c1_out, c2_out = values_to_high_level_objects(*[2,4,6,8], low_level_wcs=wcs)
+    c1_out, c2_out = values_to_high_level_objects(*[2, 4, 6, 8], low_level_wcs=wcs)
     assert c1.ra == c1_out.ra
     assert c2.l == c2_out.l
 

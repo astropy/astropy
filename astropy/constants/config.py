@@ -11,5 +11,5 @@ import astropy
 phys_version = astropy.physical_constants.get()
 astro_version = astropy.astronomical_constants.get()
 
-codata = importlib.import_module('.constants.' + phys_version, 'astropy')
-iaudata = importlib.import_module('.constants.' + astro_version, 'astropy')
+codata = importlib.import_module(".constants." + phys_version, "astropy")
+iaudata = importlib.import_module(".constants." + astro_version, "astropy")

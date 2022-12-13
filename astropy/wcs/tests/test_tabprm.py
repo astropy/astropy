@@ -2,13 +2,7 @@
 
 from copy import deepcopy
 
-import pytest
-
 import numpy as np
-
-from astropy import wcs
-
-from . helper import SimModelTAB
 
 
 def test_wcsprm_tab_basic(tab_wcs_2di):
@@ -70,8 +64,10 @@ def test_tabprm_nc(tab_wcs_2di):
 def test_tabprm_extrema(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     extrema = np.array(
-        [[[-0.0026, -0.5], [1.001, -0.5]],
-         [[-0.0026, 0.5], [1.001, 0.5]]]
+        [
+            [[-0.0026, -0.5], [1.001, -0.5]],
+            [[-0.0026, 0.5], [1.001, 0.5]],
+        ]
     )
     assert np.allclose(t.extrema, extrema)
 
@@ -87,12 +83,12 @@ def test_tabprm_map(tab_wcs_2di_f):
     assert np.all(tab_wcs_2di_f.wcs.tab[0].map == [1, 4])
 
 
-def  test_tabprm_sense(tab_wcs_2di):
+def test_tabprm_sense(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     assert np.all(t.sense == [1, 1])
 
 
-def  test_tabprm_p0(tab_wcs_2di):
+def test_tabprm_p0(tab_wcs_2di):
     t = tab_wcs_2di.wcs.tab[0]
     assert np.all(t.p0 == [0, 0])
 
@@ -102,10 +98,10 @@ def test_tabprm_print(tab_wcs_2di_f, capfd):
     captured = capfd.readouterr()
     s = str(tab_wcs_2di_f.wcs.tab[0])
     out = str(captured.out)
-    lout= out.split('\n')
+    lout = out.split("\n")
     assert out == s
-    assert lout[0] == '       flag: 137'
-    assert lout[1] == '          M: 2'
+    assert lout[0] == "       flag: 137"
+    assert lout[1] == "          M: 2"
 
 
 def test_wcstab_copy(tab_wcs_2di_f):

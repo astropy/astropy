@@ -1,16 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 
-asdf = pytest.importorskip('asdf')
-
-from numpy.random import random, randint
-
-import astropy.units as u
-
-from astropy.coordinates import Angle
-import astropy.coordinates.representation as r
+asdf = pytest.importorskip("asdf")
 
 from asdf.tests.helpers import assert_roundtrip_tree
+from numpy.random import randint, random
+
+import astropy.coordinates.representation as r
+import astropy.units as u
+from astropy.coordinates import Angle
 
 
 @pytest.fixture(params=filter(lambda x: "Base" not in x, r.__all__))
@@ -34,5 +32,5 @@ def representation(request):
 
 
 def test_representations(tmpdir, representation):
-    tree = {'representation': representation}
+    tree = {"representation": representation}
     assert_roundtrip_tree(tree, tmpdir)

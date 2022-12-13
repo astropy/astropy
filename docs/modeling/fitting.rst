@@ -29,6 +29,13 @@ The rules for passing input to fitters are:
   `~astropy.modeling.polynomial.Chebyshev2D` but not compound models that map
   ``x, y -> x', y'``).
 
+* The units of the fitting data and the model parameters are stripped before fitting
+  so that the underlying ``scipy`` methods can handle this data. One should be aware
+  of this when fitting data with units as unit conversions will only be performed
+  initially. These conversions will be performed using the ``equivalencies``
+  argument to the fitter combined with the ``model.input_units_equivalencies`` attribute
+  of the model being fit.
+
 .. note::
     In general, non-linear fitters do not support fitting to data which contains
     non-finite values: ``NaN``, ``Inf``, or ``-Inf``. This is a limitation of the
@@ -104,10 +111,10 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     from astropy.modeling import models, fitting
 
     # Generate fake data
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     x = np.linspace(-5., 5., 200)
     y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
-    y += np.random.normal(0., 0.2, x.shape)
+    y += rng.normal(0., 0.2, x.shape)
 
     # Fit the data using a box model.
     # Bounds are not really needed but included here to demonstrate usage.
@@ -153,10 +160,10 @@ background in an image.
     from astropy.utils.exceptions import AstropyUserWarning
 
     # Generate fake data
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     y, x = np.mgrid[:128, :128]
     z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
-    z += np.random.normal(0., 0.1, z.shape) * 50000.
+    z += rng.normal(0., 0.1, z.shape) * 50000.
 
     # Fit the data using astropy.modeling
     p_init = models.Polynomial2D(degree=2)

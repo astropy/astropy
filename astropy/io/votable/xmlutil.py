@@ -11,16 +11,19 @@ from astropy.utils.xml import check as xml_check
 from astropy.utils.xml import validate
 
 # LOCAL
-from .exceptions import (warn_or_raise, vo_warn, W02, W03, W04, W05)
-
+from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
 
 __all__ = [
-    'check_id', 'fix_id', 'check_token', 'check_mime_content_type',
-    'check_anyuri', 'validate_schema'
-    ]
+    "check_id",
+    "fix_id",
+    "check_token",
+    "check_mime_content_type",
+    "check_anyuri",
+    "validate_schema",
+]
 
 
-def check_id(ID, name='ID', config=None, pos=None):
+def check_id(ID, name="ID", config=None, pos=None):
     """
     Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if *ID*
     is not a valid XML ID_.
@@ -28,7 +31,7 @@ def check_id(ID, name='ID', config=None, pos=None):
     *name* is the name of the attribute being checked (used only for
     error messages).
     """
-    if (ID is not None and not xml_check.check_id(ID)):
+    if ID is not None and not xml_check.check_id(ID):
         warn_or_raise(W02, W02, (name, ID), config, pos)
         return False
     return True
@@ -58,7 +61,7 @@ def check_token(token, attr_name, config=None, pos=None):
 
     As defined by XML Schema Part 2.
     """
-    if (token is not None and not xml_check.check_token(token)):
+    if token is not None and not xml_check.check_token(token):
         return False
     return True
 
@@ -70,8 +73,7 @@ def check_mime_content_type(content_type, config=None, pos=None):
 
     As defined by RFC 2045 (syntactically, at least).
     """
-    if (content_type is not None and
-        not xml_check.check_mime_content_type(content_type)):
+    if content_type is not None and not xml_check.check_mime_content_type(content_type):
         warn_or_raise(W04, W04, content_type, config, pos)
         return False
     return True
@@ -84,13 +86,13 @@ def check_anyuri(uri, config=None, pos=None):
 
     As defined in RFC 2396.
     """
-    if (uri is not None and not xml_check.check_anyuri(uri)):
+    if uri is not None and not xml_check.check_anyuri(uri):
         warn_or_raise(W05, W05, uri, config, pos)
         return False
     return True
 
 
-def validate_schema(filename, version='1.1'):
+def validate_schema(filename, version="1.1"):
     """
     Validates the given file against the appropriate VOTable schema.
 
@@ -113,15 +115,13 @@ def validate_schema(filename, version='1.1'):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    if version not in ('1.0', '1.1', '1.2', '1.3'):
-        log.info(f'{filename} has version {version}, using schema 1.1')
-        version = '1.1'
+    if version not in ("1.0", "1.1", "1.2", "1.3"):
+        log.info(f"{filename} has version {version}, using schema 1.1")
+        version = "1.1"
 
-    if version in ('1.1', '1.2', '1.3'):
-        schema_path = data.get_pkg_data_filename(
-            f'data/VOTable.v{version}.xsd')
+    if version in ("1.1", "1.2", "1.3"):
+        schema_path = data.get_pkg_data_filename(f"data/VOTable.v{version}.xsd")
     else:
-        schema_path = data.get_pkg_data_filename(
-            'data/VOTable.dtd')
+        schema_path = data.get_pkg_data_filename("data/VOTable.dtd")
 
     return validate.validate_schema(filename, schema_path)

@@ -20,10 +20,9 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     """
 
     def do_GET(self):
-
-        if self.path == '/samp/icon':
-            self.send_response(200, 'OK')
-            self.send_header('Content-Type', 'image/png')
+        if self.path == "/samp/icon":
+            self.send_response(200, "OK")
+            self.send_header("Content-Type", "image/png")
             self.end_headers()
             self.wfile.write(SAMP_ICON)
 
@@ -53,27 +52,30 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 chunk_size = min(size_remaining, max_chunk_size)
                 L.append(self.rfile.read(chunk_size))
                 size_remaining -= len(L[-1])
-            data = b''.join(L)
+            data = b"".join(L)
 
             params, method = xmlrpc.loads(data)
 
             if method == "samp.webhub.register":
                 params = list(params)
                 params.append(self.client_address)
-                if 'Origin' in self.headers:
-                    params.append(self.headers.get('Origin'))
+                if "Origin" in self.headers:
+                    params.append(self.headers.get("Origin"))
                 else:
-                    params.append('unknown')
+                    params.append("unknown")
                 params = tuple(params)
                 data = xmlrpc.dumps(params, methodname=method)
 
-            elif method in ('samp.hub.notify', 'samp.hub.notifyAll',
-                            'samp.hub.call', 'samp.hub.callAll',
-                            'samp.hub.callAndWait'):
-
+            elif method in (
+                "samp.hub.notify",
+                "samp.hub.notifyAll",
+                "samp.hub.call",
+                "samp.hub.callAll",
+                "samp.hub.callAndWait",
+            ):
                 user = "unknown"
 
-                if method == 'samp.hub.callAndWait':
+                if method == "samp.hub.callAndWait":
                     params[2]["host"] = self.address_string()
                     params[2]["user"] = user
                 else:
@@ -92,7 +94,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             # check to see if a subclass implements _dispatch and dispatch
             # using that method if present.
             response = self.server._marshaled_dispatch(
-                data, getattr(self, '_dispatch', None), self.path
+                data, getattr(self, "_dispatch", None), self.path
             )
         except Exception as e:
             # This should only happen if the module is buggy
@@ -100,11 +102,13 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             self.send_response(500)
 
             # Send information about the exception if requested
-            if hasattr(self.server, '_send_traceback_header') and \
-               self.server._send_traceback_header:
+            if (
+                hasattr(self.server, "_send_traceback_header")
+                and self.server._send_traceback_header
+            ):
                 self.send_header("X-exception", str(e))
                 trace = traceback.format_exc()
-                trace = str(trace.encode('ASCII', 'backslashreplace'), 'ASCII')
+                trace = str(trace.encode("ASCII", "backslashreplace"), "ASCII")
                 self.send_header("X-traceback", trace)
 
             self.send_header("Content-length", "0")
@@ -132,17 +136,27 @@ class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
     Asynchronous multithreaded XMLRPC server.
     """
 
-    def __init__(self, addr, log=None,
-                 requestHandler=SAMPSimpleXMLRPCRequestHandler,
-                 logRequests=True, allow_none=True, encoding=None):
+    def __init__(
+        self,
+        addr,
+        log=None,
+        requestHandler=SAMPSimpleXMLRPCRequestHandler,
+        logRequests=True,
+        allow_none=True,
+        encoding=None,
+    ):
         self.log = log
-        SimpleXMLRPCServer.__init__(self, addr, requestHandler,
-                                    logRequests, allow_none, encoding)
+        SimpleXMLRPCServer.__init__(
+            self, addr, requestHandler, logRequests, allow_none, encoding
+        )
 
     def handle_error(self, request, client_address):
         if self.log is None:
             socketserver.BaseServer.handle_error(self, request, client_address)
         else:
-            warnings.warn("Exception happened during processing of request "
-                          "from {}: {}".format(client_address, sys.exc_info()[1]),
-                          SAMPWarning)
+            warnings.warn(
+                "Exception happened during processing of request from {}: {}".format(
+                    client_address, sys.exc_info()[1]
+                ),
+                SAMPWarning,
+            )

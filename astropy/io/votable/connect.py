@@ -3,14 +3,15 @@
 
 import os
 
-
-from . import parse, from_table
-from .tree import VOTableFile, Table as VOTable
 from astropy.io import registry as io_registry
 from astropy.table import Table
 from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 from astropy.utils.misc import NOT_OVERWRITING_MSG
+
+from . import from_table, parse
+from .tree import Table as VOTable
+from .tree import VOTableFile
 
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
@@ -28,7 +29,8 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
         Returns `True` if the given file is a VOTable file.
     """
     from . import is_votable
-    if origin == 'read':
+
+    if origin == "read":
         if fileobj is not None:
             try:
                 result = is_votable(fileobj)
@@ -45,8 +47,9 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_votable(input, table_id=None, use_names_over_ids=False,
-                       verify=None, **kwargs):
+def read_table_votable(
+    input, table_id=None, use_names_over_ids=False, verify=None, **kwargs
+):
     """
     Read a Table object from an VO table file
 
@@ -98,24 +101,24 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False,
         if len(tables) > 1:
             if table_id is None:
                 raise ValueError(
-                    "Multiple tables found: table id should be set via "
-                    "the table_id= argument. The available tables are {}, "
-                    'or integers less than {}.'.format(
-                        ', '.join(table_id_mapping.keys()), len(tables)))
+                    "Multiple tables found: table id should be set via the table_id="
+                    " argument. The available tables are"
+                    f" {', '.join(table_id_mapping)}, or integers less than"
+                    f" {len(tables)}."
+                )
             elif isinstance(table_id, str):
                 if table_id in table_id_mapping:
                     table = table_id_mapping[table_id]
                 else:
-                    raise ValueError(
-                        f"No tables with id={table_id} found")
+                    raise ValueError(f"No tables with id={table_id} found")
             elif isinstance(table_id, int):
                 if table_id < len(tables):
                     table = tables[table_id]
                 else:
                     raise IndexError(
-                        "Table index {} is out of range. "
-                        "{} tables found".format(
-                            table_id, len(tables)))
+                        f"Table index {table_id} is out of range. {len(tables)} tables"
+                        " found"
+                    )
         elif len(tables) == 1:
             table = tables[0]
         else:
@@ -127,8 +130,9 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False,
     return table.to_table(use_names_over_ids=use_names_over_ids)
 
 
-def write_table_votable(input, output, table_id=None, overwrite=False,
-                        tabledata_format=None):
+def write_table_votable(
+    input, output, table_id=None, overwrite=False, tabledata_format=None
+):
     """
     Write a Table object to an VO table file
 
@@ -157,8 +161,9 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
     unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
     if unsupported_cols:
         unsupported_names = [col.info.name for col in unsupported_cols]
-        raise ValueError('cannot write table with mixin column(s) {} to VOTable'
-                         .format(unsupported_names))
+        raise ValueError(
+            f"cannot write table with mixin column(s) {unsupported_names} to VOTable"
+        )
 
     # Check if output file already exists
     if isinstance(output, str) and os.path.exists(output):
@@ -174,6 +179,6 @@ def write_table_votable(input, output, table_id=None, overwrite=False,
     table_file.to_xml(output, tabledata_format=tabledata_format)
 
 
-io_registry.register_reader('votable', Table, read_table_votable)
-io_registry.register_writer('votable', Table, write_table_votable)
-io_registry.register_identifier('votable', Table, is_votable)
+io_registry.register_reader("votable", Table, read_table_votable)
+io_registry.register_writer("votable", Table, write_table_votable)
+io_registry.register_identifier("votable", Table, is_votable)

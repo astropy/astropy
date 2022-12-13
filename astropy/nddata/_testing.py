@@ -36,20 +36,36 @@ def _create_wcs_simple(naxis, ctype, crpix, crval, cdelt):
 def create_two_equal_wcs(naxis):
     return [
         _create_wcs_simple(
-            naxis=naxis, ctype=["deg"]*naxis, crpix=[10]*naxis,
-            crval=[10]*naxis, cdelt=[1]*naxis),
+            naxis=naxis,
+            ctype=["deg"] * naxis,
+            crpix=[10] * naxis,
+            crval=[10] * naxis,
+            cdelt=[1] * naxis,
+        ),
         _create_wcs_simple(
-            naxis=naxis, ctype=["deg"]*naxis, crpix=[10]*naxis,
-            crval=[10]*naxis, cdelt=[1]*naxis)
+            naxis=naxis,
+            ctype=["deg"] * naxis,
+            crpix=[10] * naxis,
+            crval=[10] * naxis,
+            cdelt=[1] * naxis,
+        ),
     ]
 
 
 def create_two_unequal_wcs(naxis):
     return [
         _create_wcs_simple(
-            naxis=naxis, ctype=["deg"]*naxis, crpix=[10]*naxis,
-            crval=[10]*naxis, cdelt=[1]*naxis),
+            naxis=naxis,
+            ctype=["deg"] * naxis,
+            crpix=[10] * naxis,
+            crval=[10] * naxis,
+            cdelt=[1] * naxis,
+        ),
         _create_wcs_simple(
-            naxis=naxis, ctype=["m"]*naxis, crpix=[20]*naxis,
-            crval=[20]*naxis, cdelt=[2]*naxis),
+            naxis=naxis,
+            ctype=["m"] * naxis,
+            crpix=[20] * naxis,
+            crval=[20] * naxis,
+            cdelt=[2] * naxis,
+        ),
     ]

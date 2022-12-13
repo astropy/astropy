@@ -4,19 +4,31 @@ import copy
 import operator
 import warnings
 import weakref
-
 from contextlib import suppress
 from functools import reduce
 
 import numpy as np
-
 from numpy import char as chararray
 
-from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
-                     _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
-                     _wrapx, _unwrapx, _makep, Delayed)
-from .util import decode_ascii, encode_ascii, _rstrip_inplace
 from astropy.utils import lazyproperty
+
+from .column import (
+    _VLF,
+    ASCII2NUMPY,
+    ASCII2STR,
+    ASCIITNULL,
+    FITS2NUMPY,
+    ColDefs,
+    Delayed,
+    _AsciiColDefs,
+    _FormatP,
+    _FormatX,
+    _get_index,
+    _makep,
+    _unwrapx,
+    _wrapx,
+)
+from .util import _rstrip_inplace, decode_ascii, encode_ascii
 
 
 class FITS_record:
@@ -29,8 +41,9 @@ class FITS_record:
     class expects a `FITS_rec` object as input.
     """
 
-    def __init__(self, input, row=0, start=None, end=None, step=None,
-                 base=None, **kwargs):
+    def __init__(
+        self, input, row=0, start=None, end=None, step=None, base=None, **kwargs
+    ):
         """
         Parameters
         ----------
@@ -64,13 +77,12 @@ class FITS_record:
             if indx < self.start or indx > self.end - 1:
                 raise KeyError(f"Key '{key}' does not exist.")
         elif isinstance(key, slice):
-            return type(self)(self.array, self.row, key.start, key.stop,
-                              key.step, self)
+            return type(self)(self.array, self.row, key.start, key.stop, key.step, self)
         else:
             indx = self._get_index(key)
 
             if indx > self.array._nfields - 1:
-                raise IndexError('Index out of bounds')
+                raise IndexError("Index out of bounds")
 
         return self.array.field(indx)[self.row]
 
@@ -87,7 +99,7 @@ class FITS_record:
         else:
             indx = self._get_index(key)
             if indx > self.array._nfields - 1:
-                raise IndexError('Index out of bounds')
+                raise IndexError("Index out of bounds")
 
         self.array.field(indx)[self.row] = value
 
@@ -128,7 +140,7 @@ class FITS_record:
         return bases
 
     def _get_index(self, indx):
-        indices = np.ogrid[:self.array._nfields]
+        indices = np.ogrid[: self.array._nfields]
         for base in reversed(self._bases):
             if base.step < 1:
                 s = slice(base.start, None, base.step)
@@ -158,11 +170,13 @@ class FITS_rec(np.recarray):
 
         # input should be a record array
         if input.dtype.subdtype is None:
-            self = np.recarray.__new__(subtype, input.shape, input.dtype,
-                                       buf=input.data)
+            self = np.recarray.__new__(
+                subtype, input.shape, input.dtype, buf=input.data
+            )
         else:
-            self = np.recarray.__new__(subtype, input.shape, input.dtype,
-                                       buf=input.data, strides=input.strides)
+            self = np.recarray.__new__(
+                subtype, input.shape, input.dtype, buf=input.data, strides=input.strides
+            )
 
         self._init()
         if self.dtype.fields:
@@ -195,13 +209,20 @@ class FITS_rec(np.recarray):
         column_state = []
         meta = []
 
-        for attrs in ['_converted', '_heapoffset', '_heapsize', '_nfields',
-                      '_gap', '_uint', 'parnames', '_coldefs']:
-
+        for attrs in [
+            "_converted",
+            "_heapoffset",
+            "_heapsize",
+            "_nfields",
+            "_gap",
+            "_uint",
+            "parnames",
+            "_coldefs",
+        ]:
             with suppress(AttributeError):
                 # _coldefs can be Delayed, and file objects cannot be
                 # picked, it needs to be deepcopied first
-                if attrs == '_coldefs':
+                if attrs == "_coldefs":
                     column_state.append(self._coldefs.__deepcopy__(None))
                 else:
                     column_state.append(getattr(self, attrs))
@@ -233,11 +254,11 @@ class FITS_rec(np.recarray):
             self._nfields = len(self.dtype.fields)
             self._converted = {}
 
-            self._heapoffset = getattr(obj, '_heapoffset', 0)
-            self._heapsize = getattr(obj, '_heapsize', 0)
+            self._heapoffset = getattr(obj, "_heapoffset", 0)
+            self._heapsize = getattr(obj, "_heapsize", 0)
 
-            self._gap = getattr(obj, '_gap', 0)
-            self._uint = getattr(obj, '_uint', False)
+            self._gap = getattr(obj, "_gap", 0)
+            self._uint = getattr(obj, "_uint", False)
             self._col_weakrefs = weakref.WeakSet()
             self._coldefs = ColDefs(self)
 
@@ -307,8 +328,7 @@ class FITS_rec(np.recarray):
                 if arr.hdu.data is None:
                     column.array = None
                 else:
-                    column.array = _get_recarray_field(arr.hdu.data,
-                                                       arr.field)
+                    column.array = _get_recarray_field(arr.hdu.data, arr.field)
         # Reset columns._arrays (which we may want to just do away with
         # altogether
         del columns._arrays
@@ -384,16 +404,15 @@ class FITS_rec(np.recarray):
                     _wrapx(inarr, outarr, recformat.repeat)
                     continue
             elif isinstance(recformat, _FormatP):
-                data._cache_field(name, _makep(inarr, field, recformat,
-                                               nrows=nrows))
+                data._cache_field(name, _makep(inarr, field, recformat, nrows=nrows))
                 continue
             # TODO: Find a better way of determining that the column is meant
             # to be FITS L formatted
-            elif recformat[-2:] == FITS2NUMPY['L'] and inarr.dtype == bool:
+            elif recformat[-2:] == FITS2NUMPY["L"] and inarr.dtype == bool:
                 # column is boolean
                 # The raw data field should be filled with either 'T' or 'F'
                 # (not 0).  Use 'F' as a default
-                field[:] = ord('F')
+                field[:] = ord("F")
                 # Also save the original boolean array in data._converted so
                 # that it doesn't have to be re-converted
                 converted = np.zeros(field.shape, dtype=bool)
@@ -401,9 +420,8 @@ class FITS_rec(np.recarray):
                 data._cache_field(name, converted)
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
-                inarr = np.where(inarr == np.False_, ord('F'), ord('T'))
-            elif (columns[idx]._physical_values and
-                    columns[idx]._pseudo_unsigned_ints):
+                inarr = np.where(inarr == np.False_, ord("F"), ord("T"))
+            elif columns[idx]._physical_values and columns[idx]._pseudo_unsigned_ints:
                 # Temporary hack...
                 bzero = column.bzero
                 converted = np.zeros(field.shape, dtype=inarr.dtype)
@@ -424,7 +442,7 @@ class FITS_rec(np.recarray):
                     # strings, but we need to view it as a normal ndarray of
                     # 8-bit ints to fill it with ASCII codes for 'T' and 'F'
                     outarr = field.view(np.uint8, np.ndarray)[:n]
-                elif arr.dtype.kind not in ('S', 'U'):
+                elif arr.dtype.kind not in ("S", "U"):
                     # Set up views of numeric columns with the appropriate
                     # numeric dtype
                     # Fill with the appropriate blanks for the column format
@@ -435,10 +453,11 @@ class FITS_rec(np.recarray):
                 continue
 
             if inarr.shape != outarr.shape:
-                if (inarr.dtype.kind == outarr.dtype.kind and
-                        inarr.dtype.kind in ('U', 'S') and
-                        inarr.dtype != outarr.dtype):
-
+                if (
+                    inarr.dtype.kind == outarr.dtype.kind
+                    and inarr.dtype.kind in ("U", "S")
+                    and inarr.dtype != outarr.dtype
+                ):
                     inarr_rowsize = inarr[0].size
                     inarr = inarr.flatten().view(outarr.dtype)
 
@@ -558,16 +577,20 @@ class FITS_rec(np.recarray):
                 for idx in range(self._nfields):
                     self.field(idx)[key] = value[idx]
             else:
-                raise ValueError('Input tuple or list required to have {} '
-                                 'elements.'.format(self._nfields))
+                raise ValueError(
+                    "Input tuple or list required to have {} elements.".format(
+                        self._nfields
+                    )
+                )
         else:
-            raise TypeError('Assignment requires a FITS_record, tuple, or '
-                            'list as input.')
+            raise TypeError(
+                "Assignment requires a FITS_record, tuple, or list as input."
+            )
 
     def _ipython_key_completions_(self):
         return self.names
 
-    def copy(self, order='C'):
+    def copy(self, order="C"):
         """
         The Numpy documentation lies; `numpy.ndarray.copy` is not equivalent to
         `numpy.copy`.  Differences include that it re-views the copied array as
@@ -607,11 +630,11 @@ class FITS_rec(np.recarray):
         # that information in __del__ to save off copies of the array data
         # for those columns to their Column.array property before our memory
         # is freed.
-        return self.__dict__.get('_coldefs')
+        return self.__dict__.get("_coldefs")
 
     @_coldefs.setter
     def _coldefs(self, cols):
-        self.__dict__['_coldefs'] = cols
+        self.__dict__["_coldefs"] = cols
         if isinstance(cols, ColDefs):
             for col in cols.columns:
                 self._col_weakrefs.add(col)
@@ -619,7 +642,7 @@ class FITS_rec(np.recarray):
     @_coldefs.deleter
     def _coldefs(self):
         try:
-            del self.__dict__['_coldefs']
+            del self.__dict__["_coldefs"]
         except KeyError as exc:
             raise AttributeError(exc.args[0])
 
@@ -628,7 +651,6 @@ class FITS_rec(np.recarray):
             del self._coldefs
             if self.dtype.fields is not None:
                 for col in self._col_weakrefs:
-
                     if col.array is not None:
                         col.array = col.array.copy()
 
@@ -642,7 +664,7 @@ class FITS_rec(np.recarray):
 
         if self.dtype.fields:
             return list(self.dtype.names)
-        elif getattr(self, '_coldefs', None) is not None:
+        elif getattr(self, "_coldefs", None) is not None:
             return self._coldefs.names
         else:
             return None
@@ -651,7 +673,7 @@ class FITS_rec(np.recarray):
     def formats(self):
         """List of column FITS formats."""
 
-        if getattr(self, '_coldefs', None) is not None:
+        if getattr(self, "_coldefs", None) is not None:
             return self._coldefs.formats
 
         return None
@@ -670,7 +692,7 @@ class FITS_rec(np.recarray):
             total_itemsize = 0
             for field in self.dtype.fields.values():
                 itemsize = field[0].itemsize
-                if field[0].kind == 'U':
+                if field[0].kind == "U":
                     itemsize = itemsize // 4
                 total_itemsize += itemsize
             return total_itemsize
@@ -691,16 +713,16 @@ class FITS_rec(np.recarray):
 
         if format.dtype.itemsize == 0:
             warnings.warn(
-                'Field {!r} has a repeat count of 0 in its format code, '
-                'indicating an empty field.'.format(key))
+                "Field {!r} has a repeat count of 0 in its format code, "
+                "indicating an empty field.".format(key)
+            )
             return np.array([], dtype=format.dtype)
 
         # If field's base is a FITS_rec, we can run into trouble because it
         # contains a reference to the ._coldefs object of the original data;
         # this can lead to a circular reference; see ticket #49
         base = self
-        while (isinstance(base, FITS_rec) and
-                isinstance(base.base, np.recarray)):
+        while isinstance(base, FITS_rec) and isinstance(base.base, np.recarray):
             base = base.base
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
@@ -744,20 +766,19 @@ class FITS_rec(np.recarray):
                 if self_base is base:
                     return
 
-                if getattr(self_base, 'base', None) is not None:
+                if getattr(self_base, "base", None) is not None:
                     self_base = self_base.base
                 else:
                     break
 
-            if getattr(base, 'base', None) is not None:
+            if getattr(base, "base", None) is not None:
                 base = base.base
             else:
                 break
 
         self._converted[name] = field
 
-    def _update_column_attribute_changed(self, column, idx, attr, old_value,
-                                         new_value):
+    def _update_column_attribute_changed(self, column, idx, attr, old_value, new_value):
         """
         Update how the data is formatted depending on changes to column
         attributes initiated by the user through the `Column` interface.
@@ -766,7 +787,7 @@ class FITS_rec(np.recarray):
         for each attribute ``_update_column_<attr>``
         """
 
-        method_name = f'_update_column_{attr}'
+        method_name = f"_update_column_{attr}"
         if hasattr(self, method_name):
             # Right now this is so we can be lazy and not implement updaters
             # for every attribute yet--some we may not need at all, TBD
@@ -777,7 +798,7 @@ class FITS_rec(np.recarray):
 
         dtype = self.dtype
         # Updating the names on the dtype should suffice
-        dtype.names = dtype.names[:idx] + (name,) + dtype.names[idx + 1:]
+        dtype.names = dtype.names[:idx] + (name,) + dtype.names[idx + 1 :]
 
     def _convert_x(self, field, recformat):
         """Convert a raw table column to a bit array as specified by the
@@ -799,23 +820,24 @@ class FITS_rec(np.recarray):
         if raw_data is None:
             raise OSError(
                 "Could not find heap data for the {!r} variable-length "
-                "array column.".format(column.name))
+                "array column.".format(column.name)
+            )
 
         for idx in range(len(self)):
             offset = field[idx, 1] + self._heapoffset
             count = field[idx, 0]
 
-            if recformat.dtype == 'a':
+            if recformat.dtype == "a":
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
-                da = raw_data[offset:offset + arr_len].view(dt)
+                da = raw_data[offset : offset + arr_len].view(dt)
                 da = np.char.array(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
             else:
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
-                dummy[idx] = raw_data[offset:offset + arr_len].view(dt)
-                dummy[idx].dtype = dummy[idx].dtype.newbyteorder('>')
+                dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
+                dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
                 # TODO: The same scaling parameters apply to every
@@ -825,8 +847,7 @@ class FITS_rec(np.recarray):
                 # TODO: Test that this works for X format; I don't think
                 # that it does--the recformat variable only applies to the P
                 # format not the X format
-                dummy[idx] = self._convert_other(column, dummy[idx],
-                                                 recformat)
+                dummy[idx] = self._convert_other(column, dummy[idx], recformat)
 
         return dummy
 
@@ -837,18 +858,18 @@ class FITS_rec(np.recarray):
         """
 
         format = column.format
-        recformat = getattr(format, 'recformat', ASCII2NUMPY[format[0]])
+        recformat = getattr(format, "recformat", ASCII2NUMPY[format[0]])
         # if the string = TNULL, return ASCIITNULL
-        nullval = str(column.null).strip().encode('ascii')
+        nullval = str(column.null).strip().encode("ascii")
         if len(nullval) > format.width:
-            nullval = nullval[:format.width]
+            nullval = nullval[: format.width]
 
         # Before using .replace make sure that any trailing bytes in each
         # column are filled with spaces, and *not*, say, nulls; this causes
         # functions like replace to potentially leave gibberish bytes in the
         # array buffer.
         dummy = np.char.ljust(field, format.width)
-        dummy = np.char.replace(dummy, encode_ascii('D'), encode_ascii('E'))
+        dummy = np.char.replace(dummy, encode_ascii("D"), encode_ascii("E"))
         null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
 
         # Convert all fields equal to the TNULL value (nullval) to empty fields.
@@ -857,17 +878,17 @@ class FITS_rec(np.recarray):
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         # always replace empty fields, see https://github.com/astropy/astropy/pull/5394
-        if nullval != b'':
-            dummy = np.where(np.char.strip(dummy) == b'', null_fill, dummy)
+        if nullval != b"":
+            dummy = np.where(np.char.strip(dummy) == b"", null_fill, dummy)
 
         try:
             dummy = np.array(dummy, dtype=recformat)
         except ValueError as exc:
             indx = self.names.index(column.name)
             raise ValueError(
-                '{}; the header may be missing the necessary TNULL{} '
-                'keyword or the table contains invalid data'.format(
-                    exc, indx + 1))
+                "{}; the header may be missing the necessary TNULL{} "
+                "keyword or the table contains invalid data".format(exc, indx + 1)
+            )
 
         return dummy
 
@@ -882,8 +903,16 @@ class FITS_rec(np.recarray):
             # special handling for the X format
             return self._convert_x(field, recformat)
 
-        (_str, _bool, _number, _scale, _zero, bscale, bzero, dim) = \
-            self._get_scale_factors(column)
+        (
+            _str,
+            _bool,
+            _number,
+            _scale,
+            _zero,
+            bscale,
+            bzero,
+            dim,
+        ) = self._get_scale_factors(column)
 
         indx = self.names.index(column.name)
 
@@ -917,16 +946,19 @@ class FITS_rec(np.recarray):
                 nitems = reduce(operator.mul, dim)
                 if _str:
                     actual_nitems = field.itemsize
-                elif len(field.shape) == 1:  # No repeat count in TFORMn, equivalent to 1
+                elif (
+                    len(field.shape) == 1
+                ):  # No repeat count in TFORMn, equivalent to 1
                     actual_nitems = 1
                 else:
                     actual_nitems = field.shape[1]
                 if nitems > actual_nitems:
                     warnings.warn(
-                        'TDIM{} value {:d} does not fit with the size of '
-                        'the array items ({:d}).  TDIM{:d} will be ignored.'
-                        .format(indx + 1, self._coldefs[indx].dims,
-                                actual_nitems, indx + 1))
+                        "TDIM{} value {:d} does not fit with the size of "
+                        "the array items ({:d}).  TDIM{:d} will be ignored.".format(
+                            indx + 1, self._coldefs[indx].dims, actual_nitems, indx + 1
+                        )
+                    )
                     dim = None
 
         # further conversion for both ASCII and binary tables
@@ -944,18 +976,18 @@ class FITS_rec(np.recarray):
             # format is something like P or Q
             format_code = column.format.format
 
-        if (_number and (_scale or _zero) and not column._physical_values):
+        if _number and (_scale or _zero) and not column._physical_values:
             # This is to handle pseudo unsigned ints in table columns
             # TODO: For now this only really works correctly for binary tables
             # Should it work for ASCII tables as well?
             if self._uint:
-                if bzero == 2**15 and format_code == 'I':
+                if bzero == 2**15 and format_code == "I":
                     field = np.array(field, dtype=np.uint16)
-                elif bzero == 2**31 and format_code == 'J':
+                elif bzero == 2**31 and format_code == "J":
                     field = np.array(field, dtype=np.uint32)
-                elif bzero == 2**63 and format_code == 'K':
+                elif bzero == 2**63 and format_code == "K":
                     field = np.array(field, dtype=np.uint64)
-                    bzero64 = np.uint64(2 ** 63)
+                    bzero64 = np.uint64(2**63)
                 else:
                     field = np.array(field, dtype=np.float64)
             else:
@@ -964,7 +996,7 @@ class FITS_rec(np.recarray):
             if _scale:
                 np.multiply(field, bscale, field)
             if _zero:
-                if self._uint and format_code == 'K':
+                if self._uint and format_code == "K":
                     # There is a chance of overflow, so be careful
                     test_overflow = field.copy()
                     try:
@@ -972,7 +1004,8 @@ class FITS_rec(np.recarray):
                     except OverflowError:
                         warnings.warn(
                             "Overflow detected while applying TZERO{:d}. "
-                            "Returning unscaled data.".format(indx + 1))
+                            "Returning unscaled data.".format(indx + 1)
+                        )
                     else:
                         field = test_overflow
                 else:
@@ -982,7 +1015,7 @@ class FITS_rec(np.recarray):
             column._physical_values = True
 
         elif _bool and field.dtype != bool:
-            field = np.equal(field, ord('T'))
+            field = np.equal(field, ord("T"))
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
@@ -995,7 +1028,7 @@ class FITS_rec(np.recarray):
                 field = field[:, :nitems]
             if _str:
                 fmt = field.dtype.char
-                dtype = (f'|{fmt}{dim[-1]}', dim[:-1])
+                dtype = (f"|{fmt}{dim[-1]}", dim[:-1])
                 field.dtype = dtype
             else:
                 field.shape = (field.shape[0],) + dim
@@ -1012,7 +1045,7 @@ class FITS_rec(np.recarray):
         if self._heapsize:
             raw_data = self._get_raw_data().view(np.ubyte)
             heap_end = self._heapoffset + self._heapsize
-            return raw_data[self._heapoffset:heap_end]
+            return raw_data[self._heapoffset : heap_end]
         else:
             return np.array([], dtype=np.ubyte)
 
@@ -1035,25 +1068,32 @@ class FITS_rec(np.recarray):
 
         raw_data_bytes = self.nbytes + self._heapsize
         base = self
-        while hasattr(base, 'base') and base.base is not None:
+        while hasattr(base, "base") and base.base is not None:
             base = base.base
-            if hasattr(base, 'nbytes') and base.nbytes >= raw_data_bytes:
-                return base
+            # Variable-length-arrays: should take into account the case of
+            # empty arrays
+            if hasattr(base, "_heapoffset"):
+                if hasattr(base, "nbytes") and base.nbytes > raw_data_bytes:
+                    return base
+            # non variable-length-arrays
+            else:
+                if hasattr(base, "nbytes") and base.nbytes >= raw_data_bytes:
+                    return base
 
     def _get_scale_factors(self, column):
         """Get all the scaling flags and factors for one column."""
 
         # TODO: Maybe this should be a method/property on Column?  Or maybe
         # it's not really needed at all...
-        _str = column.format.format == 'A'
-        _bool = column.format.format == 'L'
+        _str = column.format.format == "A"
+        _bool = column.format.format == "L"
 
         _number = not (_bool or _str)
         bscale = column.bscale
         bzero = column.bzero
 
-        _scale = bscale not in ('', None, 1)
-        _zero = bzero not in ('', None, 0)
+        _scale = bscale not in ("", None, 1)
+        _zero = bzero not in ("", None, 0)
 
         # ensure bscale/bzero are numbers
         if not _scale:
@@ -1102,9 +1142,10 @@ class FITS_rec(np.recarray):
                     raw_field[:] = 0  # reset
                     npts = [len(arr) for arr in self._converted[name]]
 
-                    raw_field[:len(npts), 0] = npts
-                    raw_field[1:, 1] = (np.add.accumulate(raw_field[:-1, 0]) *
-                                        dtype.itemsize)
+                    raw_field[: len(npts), 0] = npts
+                    raw_field[1:, 1] = (
+                        np.add.accumulate(raw_field[:-1, 0]) * dtype.itemsize
+                    )
                     raw_field[:, 1][:] += heapsize
 
                 heapsize += raw_field[:, 0].sum() * dtype.itemsize
@@ -1112,16 +1153,26 @@ class FITS_rec(np.recarray):
                 # include the size of its constituent arrays in the heap size
                 # total
                 if heapsize >= 2**31:
-                    raise ValueError("The heapsize limit for 'P' format "
-                                     "has been reached. "
-                                     "Please consider using the 'Q' format "
-                                     "for your file.")
+                    raise ValueError(
+                        "The heapsize limit for 'P' format "
+                        "has been reached. "
+                        "Please consider using the 'Q' format "
+                        "for your file."
+                    )
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)
                 continue
 
-            _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
-                self._get_scale_factors(column)
+            (
+                _str,
+                _bool,
+                _number,
+                _scale,
+                _zero,
+                bscale,
+                bzero,
+                _,
+            ) = self._get_scale_factors(column)
 
             field = self._converted.get(name, raw_field)
 
@@ -1150,8 +1201,7 @@ class FITS_rec(np.recarray):
                     self._scale_back_strings(indx, dummy, raw_field)
                 # all other binary table columns
                 else:
-                    if len(raw_field) and isinstance(raw_field[0],
-                                                     np.integer):
+                    if len(raw_field) and isinstance(raw_field[0], np.integer):
                         dummy = np.around(dummy)
 
                     if raw_field.shape == dummy.shape:
@@ -1166,8 +1216,10 @@ class FITS_rec(np.recarray):
 
             # ASCII table does not have Boolean type
             elif _bool and name in self._converted:
-                choices = (np.array([ord('F')], dtype=np.int8)[0],
-                           np.array([ord('T')], dtype=np.int8)[0])
+                choices = (
+                    np.array([ord("F")], dtype=np.int8)[0],
+                    np.array([ord("T")], dtype=np.int8)[0],
+                )
                 raw_field[:] = np.choose(field, choices)
 
         # Store the updated heapsize
@@ -1192,7 +1244,7 @@ class FITS_rec(np.recarray):
 
         # If the output_field is non-ASCII we will worry about ASCII encoding
         # later when writing; otherwise we can do it right here
-        if input_field.dtype.kind == 'U' and output_field.dtype.kind == 'S':
+        if input_field.dtype.kind == "U" and output_field.dtype.kind == "S":
             try:
                 _ascii_encode(input_field, out=output_field)
             except _UnicodeArrayEncodeError as exc:
@@ -1203,7 +1255,9 @@ class FITS_rec(np.recarray):
                     "the string at that location.".format(
                         self._coldefs[col_idx].name,
                         exc.index[0] if len(exc.index) == 1 else exc.index,
-                        exc.start))
+                        exc.start,
+                    )
+                )
         else:
             # Otherwise go ahead and do a direct copy into--if both are type
             # 'U' we'll handle encoding later
@@ -1239,31 +1293,33 @@ class FITS_rec(np.recarray):
             lead = 0
 
         if lead < 0:
-            warnings.warn('Column {!r} starting point overlaps the previous '
-                          'column.'.format(col_idx + 1))
+            warnings.warn(
+                "Column {!r} starting point overlaps the previous column.".format(
+                    col_idx + 1
+                )
+            )
 
         trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
 
         if trail < 0:
-            warnings.warn('Column {!r} ending point overlaps the next '
-                          'column.'.format(col_idx + 1))
+            warnings.warn(
+                f"Column {col_idx + 1!r} ending point overlaps the next column."
+            )
 
         # TODO: It would be nice if these string column formatting
         # details were left to a specialized class, as is the case
         # with FormatX and FormatP
-        if 'A' in format:
-            _pc = '{:'
+        if "A" in format:
+            _pc = "{:"
         else:
-            _pc = '{:>'
+            _pc = "{:>"
 
-        fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]], '}',
-                       (' ' * trail)])
+        fmt = "".join([_pc, format[1:], ASCII2STR[format[0]], "}", (" " * trail)])
 
         # Even if the format precision is 0, we should output a decimal point
         # as long as there is space to do so--not including a decimal point in
         # a float value is discouraged by the FITS Standard
-        trailing_decimal = (format.precision == 0 and
-                            format.format in ('F', 'E', 'D'))
+        trailing_decimal = format.precision == 0 and format.format in ("F", "E", "D")
 
         # not using numarray.strings's num2char because the
         # result is not allowed to expand (as C/Python does).
@@ -1271,19 +1327,21 @@ class FITS_rec(np.recarray):
             value = fmt.format(value)
             if len(value) > starts[col_idx + 1] - starts[col_idx]:
                 raise ValueError(
-                    "Value {!r} does not fit into the output's itemsize of "
-                    "{}.".format(value, spans[col_idx]))
+                    "Value {!r} does not fit into the output's itemsize of {}.".format(
+                        value, spans[col_idx]
+                    )
+                )
 
-            if trailing_decimal and value[0] == ' ':
+            if trailing_decimal and value[0] == " ":
                 # We have some extra space in the field for the trailing
                 # decimal point
-                value = value[1:] + '.'
+                value = value[1:] + "."
 
             output_field[jdx] = value
 
         # Replace exponent separator in floating point numbers
-        if 'D' in format:
-            output_field[:] = output_field.replace(b'E', b'D')
+        if "D" in format:
+            output_field[:] = output_field.replace(b"E", b"D")
 
     def tolist(self):
         # Override .tolist to take care of special case of VLF
@@ -1304,8 +1362,7 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if (field.dtype.char in ('S', 'U') and
-            not isinstance(field, chararray.chararray)):
+    if field.dtype.char in ("S", "U") and not isinstance(field, chararray.chararray):
         field = field.view(chararray.chararray)
     return field
 
@@ -1331,19 +1388,19 @@ def _ascii_encode(inarray, out=None):
     the item that couldn't be encoded.
     """
 
-    out_dtype = np.dtype((f'S{inarray.dtype.itemsize // 4}',
-                         inarray.dtype.shape))
+    out_dtype = np.dtype((f"S{inarray.dtype.itemsize // 4}", inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)
 
     op_dtypes = [inarray.dtype, out_dtype]
-    op_flags = [['readonly'], ['writeonly', 'allocate']]
-    it = np.nditer([inarray, out], op_dtypes=op_dtypes,
-                   op_flags=op_flags, flags=['zerosize_ok'])
+    op_flags = [["readonly"], ["writeonly", "allocate"]]
+    it = np.nditer(
+        [inarray, out], op_dtypes=op_dtypes, op_flags=op_flags, flags=["zerosize_ok"]
+    )
 
     try:
         for initem, outitem in it:
-            outitem[...] = initem.item().encode('ascii')
+            outitem[...] = initem.item().encode("ascii")
     except UnicodeEncodeError as exc:
         index = np.unravel_index(it.iterindex, inarray.shape)
         raise _UnicodeArrayEncodeError(*(exc.args + (index,)))
@@ -1357,4 +1414,4 @@ def _has_unicode_fields(array):
     """
 
     dtypes = (d[0] for d in array.dtype.fields.values())
-    return any(d.kind == 'U' for d in dtypes)
+    return any(d.kind == "U" for d in dtypes)

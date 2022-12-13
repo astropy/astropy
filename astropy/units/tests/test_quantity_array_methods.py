@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_21_1, NUMPY_LT_1_22
+from astropy.utils.compat import NUMPY_LT_1_21_1, NUMPY_LT_1_22
 
 
 class TestQuantityArrayCopy:
@@ -16,27 +16,27 @@ class TestQuantityArrayCopy:
     """
 
     def test_copy_on_creation(self):
-        v = np.arange(1000.)
+        v = np.arange(1000.0)
         q_nocopy = u.Quantity(v, "km/s", copy=False)
         q_copy = u.Quantity(v, "km/s", copy=True)
-        v[0] = -1.
+        v[0] = -1.0
         assert q_nocopy[0].value == v[0]
         assert q_copy[0].value != v[0]
 
     def test_to_copies(self):
-        q = u.Quantity(np.arange(1., 100.), "km/s")
-        q2 = q.to(u.m/u.s)
+        q = u.Quantity(np.arange(1.0, 100.0), "km/s")
+        q2 = q.to(u.m / u.s)
         assert np.all(q.value != q2.value)
-        q3 = q.to(u.km/u.s)
+        q3 = q.to(u.km / u.s)
         assert np.all(q.value == q3.value)
-        q[0] = -1.*u.km/u.s
+        q[0] = -1.0 * u.km / u.s
         assert q[0].value != q3[0].value
 
     def test_si_copies(self):
-        q = u.Quantity(np.arange(100.), "m/s")
+        q = u.Quantity(np.arange(100.0), "m/s")
         q2 = q.si
         assert np.all(q.value == q2.value)
-        q[0] = -1.*u.m/u.s
+        q[0] = -1.0 * u.m / u.s
         assert q[0].value != q2[0].value
 
     def test_getitem_is_view(self):
@@ -45,35 +45,36 @@ class TestQuantityArrayCopy:
 
         Also test that one can add axes (closes #1422)
         """
-        q = u.Quantity(np.arange(100.), "m/s")
+        q = u.Quantity(np.arange(100.0), "m/s")
         q_sel = q[10:20]
-        q_sel[0] = -1.*u.m/u.s
+        q_sel[0] = -1.0 * u.m / u.s
         assert q_sel[0] == q[10]
         # also check that getitem can do new axes
         q2 = q[:, np.newaxis]
-        q2[10, 0] = -9*u.m/u.s
+        q2[10, 0] = -9 * u.m / u.s
         assert np.all(q2.flatten() == q)
 
     def test_flat(self):
-        q = u.Quantity(np.arange(9.).reshape(3, 3), "m/s")
+        q = u.Quantity(np.arange(9.0).reshape(3, 3), "m/s")
         q_flat = q.flat
         # check that a single item is a quantity (with the right value)
-        assert q_flat[8] == 8. * u.m / u.s
+        assert q_flat[8] == 8.0 * u.m / u.s
         # and that getting a range works as well
-        assert np.all(q_flat[0:2] == np.arange(2.) * u.m / u.s)
+        assert np.all(q_flat[0:2] == np.arange(2.0) * u.m / u.s)
         # as well as getting items via iteration
         q_flat_list = [_q for _q in q.flat]
-        assert np.all(u.Quantity(q_flat_list) ==
-                      u.Quantity([_a for _a in q.value.flat], q.unit))
+        assert np.all(
+            u.Quantity(q_flat_list) == u.Quantity([_a for _a in q.value.flat], q.unit)
+        )
         # check that flat works like a view of the real array
-        q_flat[8] = -1. * u.km / u.s
-        assert q_flat[8] == -1. * u.km / u.s
-        assert q[2, 2] == -1. * u.km / u.s
+        q_flat[8] = -1.0 * u.km / u.s
+        assert q_flat[8] == -1.0 * u.km / u.s
+        assert q[2, 2] == -1.0 * u.km / u.s
         # while if one goes by an iterated item, a copy is made
         q_flat_list[8] = -2 * u.km / u.s
-        assert q_flat_list[8] == -2. * u.km / u.s
-        assert q_flat[8] == -1. * u.km / u.s
-        assert q[2, 2] == -1. * u.km / u.s
+        assert q_flat_list[8] == -2.0 * u.km / u.s
+        assert q_flat[8] == -1.0 * u.km / u.s
+        assert q[2, 2] == -1.0 * u.km / u.s
 
 
 class TestQuantityReshapeFuncs:
@@ -83,52 +84,53 @@ class TestQuantityReshapeFuncs:
     """
 
     def test_reshape(self):
-        q = np.arange(6.) * u.m
+        q = np.arange(6.0) * u.m
         q_reshape = q.reshape(3, 2)
         assert isinstance(q_reshape, u.Quantity)
         assert q_reshape.unit == q.unit
         assert np.all(q_reshape.value == q.value.reshape(3, 2))
 
     def test_squeeze(self):
-        q = np.arange(6.).reshape(6, 1) * u.m
+        q = np.arange(6.0).reshape(6, 1) * u.m
         q_squeeze = q.squeeze()
         assert isinstance(q_squeeze, u.Quantity)
         assert q_squeeze.unit == q.unit
         assert np.all(q_squeeze.value == q.value.squeeze())
 
     def test_ravel(self):
-        q = np.arange(6.).reshape(3, 2) * u.m
+        q = np.arange(6.0).reshape(3, 2) * u.m
         q_ravel = q.ravel()
         assert isinstance(q_ravel, u.Quantity)
         assert q_ravel.unit == q.unit
         assert np.all(q_ravel.value == q.value.ravel())
 
     def test_flatten(self):
-        q = np.arange(6.).reshape(3, 2) * u.m
+        q = np.arange(6.0).reshape(3, 2) * u.m
         q_flatten = q.flatten()
         assert isinstance(q_flatten, u.Quantity)
         assert q_flatten.unit == q.unit
         assert np.all(q_flatten.value == q.value.flatten())
 
     def test_transpose(self):
-        q = np.arange(6.).reshape(3, 2) * u.m
+        q = np.arange(6.0).reshape(3, 2) * u.m
         q_transpose = q.transpose()
         assert isinstance(q_transpose, u.Quantity)
         assert q_transpose.unit == q.unit
         assert np.all(q_transpose.value == q.value.transpose())
 
     def test_swapaxes(self):
-        q = np.arange(6.).reshape(3, 1, 2) * u.m
+        q = np.arange(6.0).reshape(3, 1, 2) * u.m
         q_swapaxes = q.swapaxes(0, 2)
         assert isinstance(q_swapaxes, u.Quantity)
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
-    @pytest.mark.xfail(sys.byteorder == 'big' and NUMPY_LT_1_21_1,
-                       reason="Numpy GitHub Issue 19153")
+    @pytest.mark.xfail(
+        sys.byteorder == "big" and NUMPY_LT_1_21_1, reason="Numpy GitHub Issue 19153"
+    )
     def test_flat_attributes(self):
         """While ``flat`` doesn't make a copy, it changes the shape."""
-        q = np.arange(6.).reshape(3, 1, 2) * u.m
+        q = np.arange(6.0).reshape(3, 1, 2) * u.m
         qf = q.flat
         # flat shape is same as before reshaping
         assert len(qf) == 6
@@ -157,145 +159,138 @@ class TestQuantityStatsFuncs:
     """
 
     def test_mean(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert_array_equal(np.mean(q1), 3.6 * u.m)
         assert_array_equal(np.mean(q1, keepdims=True), [3.6] * u.m)
 
     def test_mean_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         qi = 1.5 * u.s
         qi2 = np.mean(q1, out=qi)
         assert qi2 is qi
         assert qi == 3.6 * u.m
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_mean_where(self):
-        q1 = np.array([1., 2., 4., 5., 6., 7.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0, 7.0]) * u.m
         assert_array_equal(np.mean(q1, where=q1 < 7 * u.m), 3.6 * u.m)
 
     def test_std(self):
-        q1 = np.array([1., 2.]) * u.m
+        q1 = np.array([1.0, 2.0]) * u.m
         assert_array_equal(np.std(q1), 0.5 * u.m)
         assert_array_equal(q1.std(axis=-1, keepdims=True), [0.5] * u.m)
 
     def test_std_inplace(self):
-        q1 = np.array([1., 2.]) * u.m
+        q1 = np.array([1.0, 2.0]) * u.m
         qi = 1.5 * u.s
         np.std(q1, out=qi)
         assert qi == 0.5 * u.m
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_std_where(self):
-        q1 = np.array([1., 2., 3.]) * u.m
+        q1 = np.array([1.0, 2.0, 3.0]) * u.m
         assert_array_equal(np.std(q1, where=q1 < 3 * u.m), 0.5 * u.m)
 
     def test_var(self):
-        q1 = np.array([1., 2.]) * u.m
-        assert_array_equal(np.var(q1), 0.25 * u.m ** 2)
-        assert_array_equal(q1.var(axis=0, keepdims=True), [0.25] * u.m ** 2)
+        q1 = np.array([1.0, 2.0]) * u.m
+        assert_array_equal(np.var(q1), 0.25 * u.m**2)
+        assert_array_equal(q1.var(axis=0, keepdims=True), [0.25] * u.m**2)
 
     def test_var_inplace(self):
-        q1 = np.array([1., 2.]) * u.m
+        q1 = np.array([1.0, 2.0]) * u.m
         qi = 1.5 * u.s
         np.var(q1, out=qi)
-        assert qi == 0.25 * u.m ** 2
+        assert qi == 0.25 * u.m**2
 
-    @pytest.mark.xfail(NUMPY_LT_1_20, reason="'where' keyword argument not supported for numpy < 1.20")
     def test_var_where(self):
-        q1 = np.array([1., 2., 3.]) * u.m
-        assert_array_equal(np.var(q1, where=q1 < 3 * u.m), 0.25 * u.m ** 2)
+        q1 = np.array([1.0, 2.0, 3.0]) * u.m
+        assert_array_equal(np.var(q1, where=q1 < 3 * u.m), 0.25 * u.m**2)
 
     def test_median(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
-        assert np.median(q1) == 4. * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.median(q1) == 4.0 * u.m
 
     def test_median_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         qi = 1.5 * u.s
         np.median(q1, out=qi)
         assert qi == 4 * u.m
 
     def test_min(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
-        assert np.min(q1) == 1. * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.min(q1) == 1.0 * u.m
 
     def test_min_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         qi = 1.5 * u.s
         np.min(q1, out=qi)
-        assert qi == 1. * u.m
+        assert qi == 1.0 * u.m
 
     def test_min_where(self):
-        q1 = np.array([0., 1., 2., 4., 5., 6.]) * u.m
-        assert np.min(q1, initial=10 * u.m, where=q1 > 0 * u.m) == 1. * u.m
+        q1 = np.array([0.0, 1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.min(q1, initial=10 * u.m, where=q1 > 0 * u.m) == 1.0 * u.m
 
     def test_argmin(self):
-        q1 = np.array([6., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([6.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmin(q1) == 1
 
-    @pytest.mark.skipif(NUMPY_LT_1_22,
-                        reason='keepdims only introduced in numpy 1.22')
+    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmin_keepdims(self):
-        q1 = np.array([[6., 2.], [4., 5.]]) * u.m
+        q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmin(axis=0, keepdims=True), np.array([[1, 0]]))
 
     def test_max(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
-        assert np.max(q1) == 6. * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.max(q1) == 6.0 * u.m
 
     def test_max_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         qi = 1.5 * u.s
         np.max(q1, out=qi)
-        assert qi == 6. * u.m
+        assert qi == 6.0 * u.m
 
     def test_max_where(self):
-        q1 = np.array([1., 2., 4., 5., 6., 7.]) * u.m
-        assert np.max(q1, initial=0 * u.m, where=q1 < 7 * u.m) == 6. * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0, 7.0]) * u.m
+        assert np.max(q1, initial=0 * u.m, where=q1 < 7 * u.m) == 6.0 * u.m
 
     def test_argmax(self):
-        q1 = np.array([5., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([5.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         assert np.argmax(q1) == 4
 
-    @pytest.mark.skipif(NUMPY_LT_1_22,
-                        reason='keepdims only introduced in numpy 1.22')
+    @pytest.mark.skipif(NUMPY_LT_1_22, reason="keepdims only introduced in numpy 1.22")
     def test_argmax_keepdims(self):
-        q1 = np.array([[6., 2.], [4., 5.]]) * u.m
+        q1 = np.array([[6.0, 2.0], [4.0, 5.0]]) * u.m
         assert_array_equal(q1.argmax(axis=0, keepdims=True), np.array([[0, 1]]))
 
     def test_clip(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.km / u.m
         c1 = q1.clip(1500, 5.5 * u.Mm / u.km)
-        assert np.all(c1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
+        assert np.all(c1 == np.array([1.5, 2.0, 4.0, 5.0, 5.5]) * u.km / u.m)
 
     def test_clip_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.km / u.m
         c1 = q1.clip(1500, 5.5 * u.Mm / u.km, out=q1)
-        assert np.all(q1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
-        c1[0] = 10 * u.Mm/u.mm
+        assert np.all(q1 == np.array([1.5, 2.0, 4.0, 5.0, 5.5]) * u.km / u.m)
+        c1[0] = 10 * u.Mm / u.mm
         assert np.all(c1.value == q1.value)
 
     def test_conj(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.km / u.m
         assert np.all(q1.conj() == q1)
 
     def test_ptp(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
-        assert np.ptp(q1) == 5. * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.ptp(q1) == 5.0 * u.m
 
     def test_ptp_inplace(self):
-        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
         qi = 1.5 * u.s
         np.ptp(q1, out=qi)
-        assert qi == 5. * u.m
+        assert qi == 5.0 * u.m
 
     def test_round(self):
         q1 = np.array([1.253, 2.253, 3.253]) * u.kg
         assert np.all(np.round(q1) == np.array([1, 2, 3]) * u.kg)
-        assert np.all(np.round(q1, decimals=2) ==
-                      np.round(q1.value, decimals=2) * u.kg)
-        assert np.all(q1.round(decimals=2) ==
-                      q1.value.round(decimals=2) * u.kg)
+        assert np.all(np.round(q1, decimals=2) == np.round(q1.value, decimals=2) * u.kg)
+        assert np.all(q1.round(decimals=2) == q1.value.round(decimals=2) * u.kg)
 
     def test_round_inplace(self):
         q1 = np.array([1.253, 2.253, 3.253]) * u.kg
@@ -305,47 +300,44 @@ class TestQuantityStatsFuncs:
         assert np.all(q1.round(decimals=2) == qi)
 
     def test_sum(self):
+        q1 = np.array([1.0, 2.0, 6.0]) * u.m
+        assert np.all(q1.sum() == 9.0 * u.m)
+        assert np.all(np.sum(q1) == 9.0 * u.m)
 
-        q1 = np.array([1., 2., 6.]) * u.m
-        assert np.all(q1.sum() == 9. * u.m)
-        assert np.all(np.sum(q1) == 9. * u.m)
-
-        q2 = np.array([[4., 5., 9.], [1., 1., 1.]]) * u.s
-        assert np.all(q2.sum(0) == np.array([5., 6., 10.]) * u.s)
-        assert np.all(np.sum(q2, 0) == np.array([5., 6., 10.]) * u.s)
+        q2 = np.array([[4.0, 5.0, 9.0], [1.0, 1.0, 1.0]]) * u.s
+        assert np.all(q2.sum(0) == np.array([5.0, 6.0, 10.0]) * u.s)
+        assert np.all(np.sum(q2, 0) == np.array([5.0, 6.0, 10.0]) * u.s)
 
     def test_sum_inplace(self):
-        q1 = np.array([1., 2., 6.]) * u.m
+        q1 = np.array([1.0, 2.0, 6.0]) * u.m
         qi = 1.5 * u.s
         np.sum(q1, out=qi)
-        assert qi == 9. * u.m
+        assert qi == 9.0 * u.m
 
     def test_sum_where(self):
-
-        q1 = np.array([1., 2., 6., 7.]) * u.m
+        q1 = np.array([1.0, 2.0, 6.0, 7.0]) * u.m
         where = q1 < 7 * u.m
-        assert np.all(q1.sum(where=where) == 9. * u.m)
-        assert np.all(np.sum(q1, where=where) == 9. * u.m)
+        assert np.all(q1.sum(where=where) == 9.0 * u.m)
+        assert np.all(np.sum(q1, where=where) == 9.0 * u.m)
 
-    @pytest.mark.parametrize('initial', [0, 0*u.m, 1*u.km])
+    @pytest.mark.parametrize("initial", [0, 0 * u.m, 1 * u.km])
     def test_sum_initial(self, initial):
-        q1 = np.array([1., 2., 6., 7.]) * u.m
-        expected = 16*u.m + initial
+        q1 = np.array([1.0, 2.0, 6.0, 7.0]) * u.m
+        expected = 16 * u.m + initial
         assert q1.sum(initial=initial) == expected
         assert np.sum(q1, initial=initial) == expected
 
     def test_sum_dimensionless_initial(self):
-        q1 = np.array([1., 2., 6., 7.]) * u.one
-        assert q1.sum(initial=1000) == 1016*u.one
+        q1 = np.array([1.0, 2.0, 6.0, 7.0]) * u.one
+        assert q1.sum(initial=1000) == 1016 * u.one
 
-    @pytest.mark.parametrize('initial', [10, 1*u.s])
+    @pytest.mark.parametrize("initial", [10, 1 * u.s])
     def test_sum_initial_exception(self, initial):
-        q1 = np.array([1., 2., 6., 7.]) * u.m
+        q1 = np.array([1.0, 2.0, 6.0, 7.0]) * u.m
         with pytest.raises(u.UnitsError):
             q1.sum(initial=initial)
 
     def test_cumsum(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         assert np.all(q1.cumsum() == np.array([1, 3, 9]) * u.m)
         assert np.all(np.cumsum(q1) == np.array([1, 3, 9]) * u.m)
@@ -364,18 +356,16 @@ class TestQuantityStatsFuncs:
         assert np.all(q2 == qi)
 
     def test_nansum(self):
+        q1 = np.array([1.0, 2.0, np.nan]) * u.m
+        assert np.all(q1.nansum() == 3.0 * u.m)
+        assert np.all(np.nansum(q1) == 3.0 * u.m)
 
-        q1 = np.array([1., 2., np.nan]) * u.m
-        assert np.all(q1.nansum() == 3. * u.m)
-        assert np.all(np.nansum(q1) == 3. * u.m)
-
-        q2 = np.array([[np.nan, 5., 9.], [1., np.nan, 1.]]) * u.s
-        assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
-        assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
+        q2 = np.array([[np.nan, 5.0, 9.0], [1.0, np.nan, 1.0]]) * u.s
+        assert np.all(q2.nansum(0) == np.array([1.0, 5.0, 10.0]) * u.s)
+        assert np.all(np.nansum(q2, 0) == np.array([1.0, 5.0, 10.0]) * u.s)
 
     def test_nansum_inplace(self):
-
-        q1 = np.array([1., 2., np.nan]) * u.m
+        q1 = np.array([1.0, 2.0, np.nan]) * u.m
         qi = 1.5 * u.s
         qout = q1.nansum(out=qi)
         assert qout is qi
@@ -386,29 +376,28 @@ class TestQuantityStatsFuncs:
         assert qout2 is qi2
         assert qi2 == np.nansum(q1.value) * q1.unit
 
-    @pytest.mark.xfail(NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22")
+    @pytest.mark.xfail(
+        NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22"
+    )
     def test_nansum_where(self):
-
-        q1 = np.array([1., 2., np.nan, 4.]) * u.m
+        q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
         initial = 0 * u.m
         where = q1 < 4 * u.m
-        assert np.all(q1.nansum(initial=initial, where=where) == 3. * u.m)
-        assert np.all(np.nansum(q1, initial=initial, where=where) == 3. * u.m)
+        assert np.all(q1.nansum(initial=initial, where=where) == 3.0 * u.m)
+        assert np.all(np.nansum(q1, initial=initial, where=where) == 3.0 * u.m)
 
     def test_prod(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
             q1.prod()
         with pytest.raises(u.UnitsError) as exc:
             np.prod(q1)
 
-        q2 = np.array([3., 4., 5.]) * u.Unit(1)
-        assert q2.prod() == 60. * u.Unit(1)
-        assert np.prod(q2) == 60. * u.Unit(1)
+        q2 = np.array([3.0, 4.0, 5.0]) * u.Unit(1)
+        assert q2.prod() == 60.0 * u.Unit(1)
+        assert np.prod(q2) == 60.0 * u.Unit(1)
 
     def test_cumprod(self):
-
         q1 = np.array([1, 2, 6]) * u.m
         with pytest.raises(u.UnitsError) as exc:
             q1.cumprod()
@@ -420,49 +409,45 @@ class TestQuantityStatsFuncs:
         assert np.all(np.cumprod(q2) == np.array([3, 12, 60]) * u.Unit(1))
 
     def test_diff(self):
-
-        q1 = np.array([1., 2., 4., 10.]) * u.m
-        assert np.all(q1.diff() == np.array([1., 2., 6.]) * u.m)
-        assert np.all(np.diff(q1) == np.array([1., 2., 6.]) * u.m)
+        q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
+        assert np.all(q1.diff() == np.array([1.0, 2.0, 6.0]) * u.m)
+        assert np.all(np.diff(q1) == np.array([1.0, 2.0, 6.0]) * u.m)
 
     def test_ediff1d(self):
-
-        q1 = np.array([1., 2., 4., 10.]) * u.m
-        assert np.all(q1.ediff1d() == np.array([1., 2., 6.]) * u.m)
-        assert np.all(np.ediff1d(q1) == np.array([1., 2., 6.]) * u.m)
+        q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
+        assert np.all(q1.ediff1d() == np.array([1.0, 2.0, 6.0]) * u.m)
+        assert np.all(np.ediff1d(q1) == np.array([1.0, 2.0, 6.0]) * u.m)
 
     def test_dot_meth(self):
-
-        q1 = np.array([1., 2., 4., 10.]) * u.m
-        q2 = np.array([3., 4., 5., 6.]) * u.s
+        q1 = np.array([1.0, 2.0, 4.0, 10.0]) * u.m
+        q2 = np.array([3.0, 4.0, 5.0, 6.0]) * u.s
         q3 = q1.dot(q2)
         assert q3.value == np.dot(q1.value, q2.value)
         assert q3.unit == u.m * u.s
 
     def test_trace_func(self):
-
-        q = np.array([[1., 2.], [3., 4.]]) * u.m
-        assert np.trace(q) == 5. * u.m
+        q = np.array([[1.0, 2.0], [3.0, 4.0]]) * u.m
+        assert np.trace(q) == 5.0 * u.m
 
     def test_trace_meth(self):
+        q1 = np.array([[1.0, 2.0], [3.0, 4.0]]) * u.m
+        assert q1.trace() == 5.0 * u.m
 
-        q1 = np.array([[1., 2.], [3., 4.]]) * u.m
-        assert q1.trace() == 5. * u.m
+        cont = u.Quantity(4.0, u.s)
 
-        cont = u.Quantity(4., u.s)
-
-        q2 = np.array([[3., 4.], [5., 6.]]) * u.m
+        q2 = np.array([[3.0, 4.0], [5.0, 6.0]]) * u.m
         q2.trace(out=cont)
-        assert cont == 9. * u.m
+        assert cont == 9.0 * u.m
 
     def test_clip_func(self):
-
         q = np.arange(10) * u.m
-        assert np.all(np.clip(q, 3 * u.m, 6 * u.m) == np.array([3., 3., 3., 3., 4., 5., 6., 6., 6., 6.]) * u.m)
+        assert np.all(
+            np.clip(q, 3 * u.m, 6 * u.m)
+            == np.array([3.0, 3.0, 3.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0]) * u.m
+        )
 
     def test_clip_meth(self):
-
-        expected = np.array([3., 3., 3., 3., 4., 5., 6., 6., 6., 6.]) * u.m
+        expected = np.array([3.0, 3.0, 3.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0]) * u.m
 
         q1 = np.arange(10) * u.m
         q3 = q1.clip(3 * u.m, 6 * u.m)
@@ -511,24 +496,24 @@ class TestArrayConversion:
     def test_slice(self):
         """Test that setitem changes the unit if needed (or ignores it for
         values where that is allowed; viz., #2695)"""
-        q2 = np.array([[1., 2., 3.], [4., 5., 6.]]) * u.km / u.m
+        q2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]) * u.km / u.m
         q1 = q2.copy()
-        q2[0, 0] = 10000.
+        q2[0, 0] = 10000.0
         assert q2.unit == q1.unit
-        assert q2[0, 0].value == 10.
-        q2[0] = 9. * u.Mm / u.km
-        assert all(q2.flatten()[:3].value == np.array([9., 9., 9.]))
-        q2[0, :-1] = 8000.
-        assert all(q2.flatten()[:3].value == np.array([8., 8., 9.]))
+        assert q2[0, 0].value == 10.0
+        q2[0] = 9.0 * u.Mm / u.km
+        assert all(q2.flatten()[:3].value == np.array([9.0, 9.0, 9.0]))
+        q2[0, :-1] = 8000.0
+        assert all(q2.flatten()[:3].value == np.array([8.0, 8.0, 9.0]))
         with pytest.raises(u.UnitsError):
             q2[1, 1] = 10 * u.s
         # just to be sure, repeat with a dimensionfull unit
-        q3 = u.Quantity(np.arange(10.), "m/s")
-        q3[5] = 100. * u.cm / u.s
-        assert q3[5].value == 1.
+        q3 = u.Quantity(np.arange(10.0), "m/s")
+        q3[5] = 100.0 * u.cm / u.s
+        assert q3[5].value == 1.0
         # and check unit is ignored for 0, inf, nan, where that is reasonable
-        q3[5] = 0.
-        assert q3[5] == 0.
+        q3[5] = 0.0
+        assert q3[5] == 0.0
         q3[5] = np.inf
         assert np.isinf(q3[5])
         q3[5] = np.nan
@@ -548,8 +533,7 @@ class TestArrayConversion:
         assert q2.unit == q1.unit
         q2 = q1.compress(np.array([True, True, False, False]))
         assert q2.unit == q1.unit
-        assert all(q2.value == q1.value.compress(np.array([True, True,
-                                                           False, False])))
+        assert all(q2.value == q1.value.compress(np.array([True, True, False, False])))
         q1 = np.array([[1, 2], [3, 4]]) * u.m / u.km
         q2 = q1.diagonal()
         assert q2.unit == q1.unit
@@ -558,7 +542,7 @@ class TestArrayConversion:
     def test_view(self):
         q1 = np.array([1, 2, 3], dtype=np.int64) * u.m / u.km
         q2 = q1.view(np.ndarray)
-        assert not hasattr(q2, 'unit')
+        assert not hasattr(q2, "unit")
         q3 = q2.view(u.Quantity)
         assert q3._unit is None
         # MaskedArray copies and properties assigned in __dict__
@@ -573,7 +557,7 @@ class TestArrayConversion:
         """
 
         a = np.random.uniform(size=(10, 8))
-        x, y, z = a[:, 1:4].T * u.km/u.s
+        x, y, z = a[:, 1:4].T * u.km / u.s
         total = np.sum(a[:, 1] * u.km / u.s - x)
 
         assert isinstance(total, u.Quantity)
@@ -593,14 +577,15 @@ class TestArrayConversion:
         assert all(q2b.byteswap() == q2a)
 
     def test_sort(self):
-        q1 = np.array([1., 5., 2., 4.]) * u.km / u.m
+        q1 = np.array([1.0, 5.0, 2.0, 4.0]) * u.km / u.m
         i = q1.argsort()
-        assert not hasattr(i, 'unit')
+        assert not hasattr(i, "unit")
         q1.sort()
         i = q1.searchsorted([1500, 2500])
-        assert not hasattr(i, 'unit')
-        assert all(i == q1.to(
-            u.dimensionless_unscaled).value.searchsorted([1500, 2500]))
+        assert not hasattr(i, "unit")
+        assert all(
+            i == q1.to(u.dimensionless_unscaled).value.searchsorted([1500, 2500])
+        )
 
     def test_not_implemented(self):
         q1 = np.array([1, 2, 3]) * u.m / u.km
@@ -617,7 +602,7 @@ class TestArrayConversion:
         with pytest.raises(NotImplementedError):
             q1.tofile(0)
         with pytest.raises(NotImplementedError):
-            q1.dump('a.a')
+            q1.dump("a.a")
         with pytest.raises(NotImplementedError):
             q1.dumps()
 
@@ -626,9 +611,10 @@ class TestRecArray:
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
 
-    def setup(self):
-        self.ra = (np.array(np.arange(12.).reshape(4, 3))
-              .view(dtype=('f8,f8,f8')).squeeze())
+    def setup_method(self):
+        self.ra = (
+            np.array(np.arange(12.0).reshape(4, 3)).view(dtype="f8,f8,f8").squeeze()
+        )
 
     def test_creation(self):
         qra = u.Quantity(self.ra, u.m)

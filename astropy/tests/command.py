@@ -5,25 +5,26 @@ once astropy-helpers has reached end-of-life.
 
 """
 import os
-import stat
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
 
 from setuptools import Command
+
 from astropy.logger import log
 
 
 @contextmanager
 def _suppress_stdout():
-    '''
+    """
     A context manager to temporarily disable stdout.
 
     Used later when installing a temporary copy of astropy to avoid a
     very verbose output.
-    '''
+    """
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
@@ -41,83 +42,106 @@ class FixRemoteDataOption(type):
     enable all remote tests. With this metaclass, we can modify sys.argv
     before setuptools try to parse the command-line options.
     """
+
     def __init__(cls, name, bases, dct):
-
         try:
-            idx = sys.argv.index('--remote-data')
+            idx = sys.argv.index("--remote-data")
         except ValueError:
             pass
         else:
-            sys.argv[idx] = '--remote-data=any'
+            sys.argv[idx] = "--remote-data=any"
 
         try:
-            idx = sys.argv.index('-R')
+            idx = sys.argv.index("-R")
         except ValueError:
             pass
         else:
-            sys.argv[idx] = '-R=any'
+            sys.argv[idx] = "-R=any"
 
         return super().__init__(name, bases, dct)
 
 
 class AstropyTest(Command, metaclass=FixRemoteDataOption):
-    description = 'Run the tests for this package'
+    description = "Run the tests for this package"
 
     user_options = [
-        ('package=', 'P',
-         "The name of a specific package to test, e.g. 'io.fits' or 'utils'. "
-         "Accepts comma separated string to specify multiple packages. "
-         "If nothing is specified, all default tests are run."),
-        ('test-path=', 't',
-         'Specify a test location by path.  If a relative path to a  .py file, '
-         'it is relative to the built package, so e.g., a  leading "astropy/" '
-         'is necessary.  If a relative  path to a .rst file, it is relative to '
-         'the directory *below* the --docs-path directory, so a leading '
-         '"docs/" is usually necessary.  May also be an absolute path.'),
-        ('verbose-results', 'V',
-         'Turn on verbose output from pytest.'),
-        ('plugins=', 'p',
-         'Plugins to enable when running pytest.'),
-        ('pastebin=', 'b',
-         "Enable pytest pastebin output. Either 'all' or 'failed'."),
-        ('args=', 'a',
-         'Additional arguments to be passed to pytest.'),
-        ('remote-data=', 'R', 'Run tests that download remote data. Should be '
-         'one of none/astropy/any (defaults to none).'),
-        ('pep8', '8',
-         'Enable PEP8 checking and disable regular tests. '
-         'Requires the pytest-pep8 plugin.'),
-        ('pdb', 'd',
-         'Start the interactive Python debugger on errors.'),
-        ('coverage', 'c',
-         'Create a coverage report. Requires the coverage package.'),
-        ('open-files', 'o', 'Fail if any tests leave files open.  Requires the '
-         'psutil package.'),
-        ('parallel=', 'j',
-         'Run the tests in parallel on the specified number of '
-         'CPUs.  If "auto", all the cores on the machine will be '
-         'used.  Requires the pytest-xdist plugin.'),
-        ('docs-path=', None,
-         'The path to the documentation .rst files.  If not provided, and '
-         'the current directory contains a directory called "docs", that '
-         'will be used.'),
-        ('skip-docs', None,
-         "Don't test the documentation .rst files."),
-        ('repeat=', None,
-         'How many times to repeat each test (can be used to check for '
-         'sporadic failures).'),
-        ('temp-root=', None,
-         'The root directory in which to create the temporary testing files. '
-         'If unspecified the system default is used (e.g. /tmp) as explained '
-         'in the documentation for tempfile.mkstemp.'),
-        ('verbose-install', None,
-         'Turn on terminal output from the installation of astropy in a '
-         'temporary folder.'),
-        ('readonly', None,
-         'Make the temporary installation being tested read-only.')
+        (
+            "package=",
+            "P",
+            "The name of a specific package to test, e.g. 'io.fits' or 'utils'. "
+            "Accepts comma separated string to specify multiple packages. "
+            "If nothing is specified, all default tests are run.",
+        ),
+        (
+            "test-path=",
+            "t",
+            "Specify a test location by path.  If a relative path to a  .py file, "
+            'it is relative to the built package, so e.g., a  leading "astropy/" '
+            "is necessary.  If a relative  path to a .rst file, it is relative to "
+            "the directory *below* the --docs-path directory, so a leading "
+            '"docs/" is usually necessary.  May also be an absolute path.',
+        ),
+        ("verbose-results", "V", "Turn on verbose output from pytest."),
+        ("plugins=", "p", "Plugins to enable when running pytest."),
+        ("pastebin=", "b", "Enable pytest pastebin output. Either 'all' or 'failed'."),
+        ("args=", "a", "Additional arguments to be passed to pytest."),
+        (
+            "remote-data=",
+            "R",
+            "Run tests that download remote data. Should be "
+            "one of none/astropy/any (defaults to none).",
+        ),
+        (
+            "pep8",
+            "8",
+            "Enable PEP8 checking and disable regular tests. "
+            "Requires the pytest-pep8 plugin.",
+        ),
+        ("pdb", "d", "Start the interactive Python debugger on errors."),
+        ("coverage", "c", "Create a coverage report. Requires the coverage package."),
+        (
+            "open-files",
+            "o",
+            "Fail if any tests leave files open.  Requires the psutil package.",
+        ),
+        (
+            "parallel=",
+            "j",
+            "Run the tests in parallel on the specified number of "
+            'CPUs.  If "auto", all the cores on the machine will be '
+            "used.  Requires the pytest-xdist plugin.",
+        ),
+        (
+            "docs-path=",
+            None,
+            "The path to the documentation .rst files.  If not provided, and "
+            'the current directory contains a directory called "docs", that '
+            "will be used.",
+        ),
+        ("skip-docs", None, "Don't test the documentation .rst files."),
+        (
+            "repeat=",
+            None,
+            "How many times to repeat each test (can be used to check for "
+            "sporadic failures).",
+        ),
+        (
+            "temp-root=",
+            None,
+            "The root directory in which to create the temporary testing files. "
+            "If unspecified the system default is used (e.g. /tmp) as explained "
+            "in the documentation for tempfile.mkstemp.",
+        ),
+        (
+            "verbose-install",
+            None,
+            "Turn on terminal output from the installation of astropy in a "
+            "temporary folder.",
+        ),
+        ("readonly", None, "Make the temporary installation being tested read-only."),
     ]
 
-    package_name = ''
+    package_name = ""
 
     def initialize_options(self):
         self.package = None
@@ -126,7 +150,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         self.plugins = None
         self.pastebin = None
         self.args = None
-        self.remote_data = 'none'
+        self.remote_data = "none"
         self.pep8 = False
         self.pdb = False
         self.coverage = False
@@ -149,8 +173,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         Build a Python script to run the tests.
         """
 
-        cmd_pre = ''  # Commands to run before the test function
-        cmd_post = ''  # Commands to run after the test function
+        cmd_pre = ""  # Commands to run before the test function
+        cmd_post = ""  # Commands to run after the test function
 
         if self.coverage:
             pre, post = self._generate_coverage_commands()
@@ -159,25 +183,27 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
 
-        cmd = ('{cmd_pre}{0}; import {1.package_name}, sys; result = ('
-               '{1.package_name}.test('
-               'package={1.package!r}, '
-               'test_path={1.test_path!r}, '
-               'args={1.args!r}, '
-               'plugins={1.plugins!r}, '
-               'verbose={1.verbose_results!r}, '
-               'pastebin={1.pastebin!r}, '
-               'remote_data={1.remote_data!r}, '
-               'pep8={1.pep8!r}, '
-               'pdb={1.pdb!r}, '
-               'open_files={1.open_files!r}, '
-               'parallel={1.parallel!r}, '
-               'docs_path={1.docs_path!r}, '
-               'skip_docs={1.skip_docs!r}, '
-               'add_local_eggs_to_path=True, '  # see _build_temp_install below
-               'repeat={1.repeat!r})); '
-               '{cmd_post}'
-               'sys.exit(result)')
+        cmd = (  # see _build_temp_install below
+            "{cmd_pre}{0}; import {1.package_name}, sys; result = ("
+            "{1.package_name}.test("
+            "package={1.package!r}, "
+            "test_path={1.test_path!r}, "
+            "args={1.args!r}, "
+            "plugins={1.plugins!r}, "
+            "verbose={1.verbose_results!r}, "
+            "pastebin={1.pastebin!r}, "
+            "remote_data={1.remote_data!r}, "
+            "pep8={1.pep8!r}, "
+            "pdb={1.pdb!r}, "
+            "open_files={1.open_files!r}, "
+            "parallel={1.parallel!r}, "
+            "docs_path={1.docs_path!r}, "
+            "skip_docs={1.skip_docs!r}, "
+            "add_local_eggs_to_path=True, "
+            "repeat={1.repeat!r})); "
+            "{cmd_post}"
+            "sys.exit(result)"
+        )
         return cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
     def run(self):
@@ -191,7 +217,9 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         # Ensure there is a doc path
         if self.docs_path is None:
-            cfg_docs_dir = self.distribution.get_option_dict('build_docs').get('source_dir', None)
+            cfg_docs_dir = self.distribution.get_option_dict("build_docs").get(
+                "source_dir", None
+            )
 
             # Some affiliated packages use this.
             # See astropy/package-template#157
@@ -199,8 +227,8 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
                 self.docs_path = os.path.abspath(cfg_docs_dir[1])
 
             # fall back on a default path of "docs"
-            elif os.path.exists('docs'):  # pragma: no cover
-                self.docs_path = os.path.abspath('docs')
+            elif os.path.exists("docs"):  # pragma: no cover
+                self.docs_path = os.path.abspath("docs")
 
         # Build a testing install of the package
         self._build_temp_install()
@@ -216,13 +244,13 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         # tests_requires or install_requires. We then pass the
         # add_local_eggs_to_path=True option to package.test() to make sure the
         # eggs get included in the path.
-        if os.path.exists('.eggs'):
-            shutil.copytree('.eggs', os.path.join(self.testing_path, '.eggs'))
+        if os.path.exists(".eggs"):
+            shutil.copytree(".eggs", os.path.join(self.testing_path, ".eggs"))
 
         # This option exists so that we can make sure that the tests don't
         # write to an installed location.
         if self.readonly:
-            log.info('changing permissions of temporary installation to read-only')
+            log.info("changing permissions of temporary installation to read-only")
             self._change_permissions_testing_path(writable=False)
 
         # Run everything in a try: finally: so that the tmp dir gets deleted.
@@ -235,11 +263,12 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
             # easiest way to set up a new environment
 
             testproc = subprocess.Popen(
-                [sys.executable, '-c', cmd],
-                cwd=self.testing_path, close_fds=False)
+                [sys.executable, "-c", cmd], cwd=self.testing_path, close_fds=False
+            )
             retcode = testproc.wait()
         except KeyboardInterrupt:
             import signal
+
             # If a keyboard interrupt is handled, pass it to the test
             # subprocess to prompt pytest to initiate its teardown
             testproc.send_signal(signal.SIGINT)
@@ -265,39 +294,41 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         # dereference that link, because pytest is very sensitive to relative
         # paths...
 
-        tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
-                                   dir=self.temp_root)
+        tmp_dir = tempfile.mkdtemp(
+            prefix=self.package_name + "-test-", dir=self.temp_root
+        )
         self.tmp_dir = os.path.realpath(tmp_dir)
 
-        log.info(f'installing to temporary directory: {self.tmp_dir}')
+        log.info(f"installing to temporary directory: {self.tmp_dir}")
 
         # We now install the package to the temporary directory. We do this
         # rather than build and copy because this will ensure that e.g. entry
         # points work.
-        self.reinitialize_command('install')
-        install_cmd = self.distribution.get_command_obj('install')
+        self.reinitialize_command("install")
+        install_cmd = self.distribution.get_command_obj("install")
         install_cmd.prefix = self.tmp_dir
         if self.verbose_install:
-            self.run_command('install')
+            self.run_command("install")
         else:
             with _suppress_stdout():
-                self.run_command('install')
+                self.run_command("install")
 
         # We now get the path to the site-packages directory that was created
         # inside self.tmp_dir
-        install_cmd = self.get_finalized_command('install')
+        install_cmd = self.get_finalized_command("install")
         self.testing_path = install_cmd.install_lib
 
         # Ideally, docs_path is set properly in run(), but if it is still
         # not set here, do not pretend it is, otherwise bad things happen.
         # See astropy/package-template#157
         if self.docs_path is not None:
-            new_docs_path = os.path.join(self.testing_path,
-                                         os.path.basename(self.docs_path))
+            new_docs_path = os.path.join(
+                self.testing_path, os.path.basename(self.docs_path)
+            )
             shutil.copytree(self.docs_path, new_docs_path)
             self.docs_path = new_docs_path
 
-        shutil.copy('setup.cfg', self.testing_path)
+        shutil.copy("setup.cfg", self.testing_path)
 
     def _change_permissions_testing_path(self, writable=False):
         if writable:
@@ -316,41 +347,44 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         generated
         """
         if self.parallel != 0:
-            raise ValueError(
-                "--coverage can not be used with --parallel")
+            raise ValueError("--coverage can not be used with --parallel")
 
         try:
-            import coverage  # pylint: disable=W0611
+            import coverage  # noqa: F401
         except ImportError:
             raise ImportError(
-                "--coverage requires that the coverage package is "
-                "installed.")
+                "--coverage requires that the coverage package is installed."
+            )
 
         # Don't use get_pkg_data_filename here, because it
         # requires importing astropy.config and thus screwing
         # up coverage results for those packages.
         coveragerc = os.path.join(
-            self.testing_path, self.package_name.replace('.', '/'),
-            'tests', 'coveragerc')
+            self.testing_path,
+            self.package_name.replace(".", "/"),
+            "tests",
+            "coveragerc",
+        )
 
         with open(coveragerc) as fd:
             coveragerc_content = fd.read()
 
         coveragerc_content = coveragerc_content.replace(
-            "{packagename}", self.package_name.replace('.', '/'))
-        tmp_coveragerc = os.path.join(self.tmp_dir, 'coveragerc')
-        with open(tmp_coveragerc, 'wb') as tmp:
-            tmp.write(coveragerc_content.encode('utf-8'))
+            "{packagename}", self.package_name.replace(".", "/")
+        )
+        tmp_coveragerc = os.path.join(self.tmp_dir, "coveragerc")
+        with open(tmp_coveragerc, "wb") as tmp:
+            tmp.write(coveragerc_content.encode("utf-8"))
 
         cmd_pre = (
-            'import coverage; '
-            'cov = coverage.coverage(data_file=r"{}", config_file=r"{}"); '
-            'cov.start();'.format(
-                os.path.abspath(".coverage"), os.path.abspath(tmp_coveragerc)))
+            "import coverage; cov ="
+            f' coverage.coverage(data_file=r"{os.path.abspath(".coverage")}",'
+            f' config_file=r"{os.path.abspath(tmp_coveragerc)}"); cov.start();'
+        )
         cmd_post = (
-            'cov.stop(); '
-            'from astropy.tests.helper import _save_coverage; '
-            '_save_coverage(cov, result, r"{}", r"{}");'.format(
-                os.path.abspath('.'), os.path.abspath(self.testing_path)))
+            "cov.stop(); from astropy.tests.helper import _save_coverage;"
+            f' _save_coverage(cov, result, r"{os.path.abspath(".")}",'
+            f' r"{os.path.abspath(self.testing_path)}");'
+        )
 
         return cmd_pre, cmd_post

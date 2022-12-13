@@ -11,11 +11,10 @@ import textwrap
 
 from .introspection import find_current_module
 
+__all__ = ["make_function_with_signature"]
 
-__all__ = ['make_function_with_signature']
 
-
-_ARGNAME_RE = re.compile(r'^[A-Za-z][A-Za-z_]*')
+_ARGNAME_RE = re.compile(r"^[A-Za-z][A-Za-z_]*")
 """
 Regular expression used my make_func which limits the allowed argument
 names for the created function.  Only valid Python variable names in
@@ -23,8 +22,9 @@ the ASCII range and not beginning with '_' are allowed, currently.
 """
 
 
-def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
-                                 varkwargs=None, name=None):
+def make_function_with_signature(
+    func, args=(), kwargs={}, varargs=None, varkwargs=None, name=None
+):
     """
     Make a new function from an existing function but with the desired
     signature.
@@ -66,39 +66,39 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
             pos_args.append(item)
 
         if keyword.iskeyword(argname) or not _ARGNAME_RE.match(argname):
-            raise SyntaxError(f'invalid argument name: {argname}')
+            raise SyntaxError(f"invalid argument name: {argname}")
 
     for item in (varargs, varkwargs):
         if item is not None:
             if keyword.iskeyword(item) or not _ARGNAME_RE.match(item):
-                raise SyntaxError(f'invalid argument name: {item}')
+                raise SyntaxError(f"invalid argument name: {item}")
 
-    def_signature = [', '.join(pos_args)]
+    def_signature = [", ".join(pos_args)]
 
     if varargs:
-        def_signature.append(f', *{varargs}')
+        def_signature.append(f", *{varargs}")
 
     call_signature = def_signature[:]
 
     if name is None:
         name = func.__name__
 
-    global_vars = {f'__{name}__func': func}
+    global_vars = {f"__{name}__func": func}
     local_vars = {}
     # Make local variables to handle setting the default args
     for idx, item in enumerate(key_args):
         key, value = item
-        default_var = f'_kwargs{idx}'
+        default_var = f"_kwargs{idx}"
         local_vars[default_var] = value
-        def_signature.append(f', {key}={default_var}')
-        call_signature.append(', {0}={0}'.format(key))
+        def_signature.append(f", {key}={default_var}")
+        call_signature.append(", {0}={0}".format(key))
 
     if varkwargs:
-        def_signature.append(f', **{varkwargs}')
-        call_signature.append(f', **{varkwargs}')
+        def_signature.append(f", **{varkwargs}")
+        call_signature.append(f", **{varkwargs}")
 
-    def_signature = ''.join(def_signature).lstrip(', ')
-    call_signature = ''.join(call_signature).lstrip(', ')
+    def_signature = "".join(def_signature).lstrip(", ")
+    call_signature = "".join(call_signature).lstrip(", ")
 
     mod = find_current_module(2)
     frm = inspect.currentframe().f_back
@@ -106,11 +106,11 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
     if mod:
         filename = mod.__file__
         modname = mod.__name__
-        if filename.endswith('.pyc'):
-            filename = os.path.splitext(filename)[0] + '.py'
+        if filename.endswith(".pyc"):
+            filename = os.path.splitext(filename)[0] + ".py"
     else:
-        filename = '<string>'
-        modname = '__main__'
+        filename = "<string>"
+        modname = "__main__"
 
     # Subtract 2 from the line number since the length of the template itself
     # is two lines.  Therefore we have to subtract those off in order for the
@@ -119,13 +119,16 @@ def make_function_with_signature(func, args=(), kwargs={}, varargs=None,
 
     # The lstrip is in case there were *no* positional arguments (a rare case)
     # in any context this will actually be used...
-    template = textwrap.dedent("""{0}\
+    template = textwrap.dedent(
+        """{0}\
     def {name}({sig1}):
         return __{name}__func({sig2})
-    """.format('\n' * lineno, name=name, sig1=def_signature,
-               sig2=call_signature))
+    """.format(
+            "\n" * lineno, name=name, sig1=def_signature, sig2=call_signature
+        )
+    )
 
-    code = compile(template, filename, 'single')
+    code = compile(template, filename, "single")
 
     eval(code, global_vars, local_vars)
 

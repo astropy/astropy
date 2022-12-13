@@ -9,20 +9,23 @@ Test :mod:`astropy.io.registry`.
 
 """
 
-import contextlib
 import os
 from collections import Counter
-from copy import copy, deepcopy
+from copy import deepcopy
 from io import StringIO
 
-import pytest
-
 import numpy as np
+import pytest
 
 import astropy.units as u
 from astropy.io import registry as io_registry
-from astropy.io.registry import (IORegistryError, UnifiedInputRegistry,
-                                 UnifiedIORegistry, UnifiedOutputRegistry, compat)
+from astropy.io.registry import (
+    IORegistryError,
+    UnifiedInputRegistry,
+    UnifiedIORegistry,
+    UnifiedOutputRegistry,
+    compat,
+)
 from astropy.io.registry.base import _UnifiedIORegistryBase
 from astropy.io.registry.compat import default_registry
 from astropy.table import Table
@@ -102,7 +105,6 @@ def test_fmcls1_fmtcls2(fmtcls1, fmtcls2):
 
 
 def test_IORegistryError():
-
     with pytest.raises(IORegistryError, match="just checking"):
         raise IORegistryError("just checking")
 
@@ -203,8 +205,8 @@ class TestUnifiedIORegistryBase:
         with pytest.raises(IORegistryError) as exc:
             registry.unregister_identifier(fmt, cls)
         assert (
-            str(exc.value) == f"No identifier defined for format '{fmt}' "
-            f"and class '{cls.__name__}'"
+            str(exc.value)
+            == f"No identifier defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
     def test_identify_format(self, registry, fmtcls1):
@@ -342,8 +344,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.read.__doc__.split("\n")
-                ihd = [i for i, s in enumerate(docs)
-                       if ("Format" in s)][0]
+                ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
                 ifmt = docs[ihd].index("Format") + 1
                 iread = docs[ihd].index("Read") + 1
                 # there might not actually be anything here, which is also good
@@ -427,8 +428,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(IORegistryError) as exc:
             registry.unregister_reader(*fmtcls1)
         assert (
-            str(exc.value) == f"No reader defined for format '{fmt}' and "
-            f"class '{cls.__name__}'"
+            str(exc.value)
+            == f"No reader defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
     # -----------------------
@@ -474,10 +475,10 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_read_noformat_arbitrary_file(self, tmpdir, registry, original):
+    def test_read_noformat_arbitrary_file(self, tmp_path, registry, original):
         """Tests that all identifier functions can accept arbitrary files"""
         registry._readers.update(original["readers"])
-        testfile = str(tmpdir.join("foo.example"))
+        testfile = tmp_path / "foo.example"
         with open(testfile, "w") as f:
             f.write("Hello world")
 
@@ -497,7 +498,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         registry.register_identifier(fmt2, cls, lambda o, *x, **y: True)
         with pytest.raises(IORegistryError) as exc:
             cls.read(registry=registry)
-        assert str(exc.value) == (f"Format is ambiguous - options are: {fmt1}, {fmt2}")
+        assert str(exc.value) == f"Format is ambiguous - options are: {fmt1}, {fmt2}"
 
     def test_read_uses_priority(self, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
@@ -529,7 +530,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             f"No reader defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_read_identifier(self, tmpdir, registry, fmtcls1, fmtcls2):
+    def test_read_identifier(self, tmp_path, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
 
@@ -544,7 +545,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         # the reader. The registry.get_reader will fail but the error message
         # will tell us if the identifier worked.
 
-        filename = tmpdir.join("testfile.a").strpath
+        filename = tmp_path / "testfile.a"
         open(filename, "w").close()
         with pytest.raises(IORegistryError) as exc:
             cls.read(filename, registry=registry)
@@ -552,7 +553,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             f"No reader defined for format '{fmt1}' and class '{cls.__name__}'"
         )
 
-        filename = tmpdir.join("testfile.b").strpath
+        filename = tmp_path / "testfile.b"
         open(filename, "w").close()
         with pytest.raises(IORegistryError) as exc:
             cls.read(filename, registry=registry)
@@ -572,7 +573,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(OSError):
             data = fmtcls1[1].read("non-existing-file-with-unknown.ext")
 
-    def test_read_directory(self, tmpdir, registry, fmtcls1):
+    def test_read_directory(self, tmp_path, registry, fmtcls1):
         """
         Regression test for a bug that caused the I/O registry infrastructure to
         not work correctly for datasets that are represented by folders as
@@ -584,7 +585,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         )
         registry.register_reader("test_folder_format", cls, empty_reader)
 
-        filename = tmpdir.mkdir("folder_dataset").strpath
+        filename = tmp_path / "folder_dataset"
+        filename.mkdir()
 
         # With the format explicitly specified
         dataset = cls.read(filename, format="test_folder_format", registry=registry)
@@ -711,8 +713,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.write.__doc__.split("\n")
-                ihd = [i for i, s in enumerate(docs)
-                       if ("Format" in s)][0]
+                ihd = [i for i, s in enumerate(docs) if ("Format" in s)][0]
                 ifmt = docs[ihd].index("Format")
                 iwrite = docs[ihd].index("Write") + 1
                 # there might not actually be anything here, which is also good
@@ -792,8 +793,8 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(IORegistryError) as exc:
             registry.unregister_writer(fmt, cls)
         assert (
-            str(exc.value) == f"No writer defined for format '{fmt}' "
-            f"and class '{cls.__name__}'"
+            str(exc.value)
+            == f"No writer defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
     # -----------------------
@@ -840,10 +841,10 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_write_noformat_arbitrary_file(self, tmpdir, registry, original):
+    def test_write_noformat_arbitrary_file(self, tmp_path, registry, original):
         """Tests that all identifier functions can accept arbitrary files"""
         registry._writers.update(original["writers"])
-        testfile = str(tmpdir.join("foo.example"))
+        testfile = tmp_path / "foo.example"
 
         with pytest.raises(IORegistryError) as exc:
             Table().write(testfile, registry=registry)
@@ -858,8 +859,9 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         registry.register_identifier(*fmtcls2, lambda o, *x, **y: True)
         with pytest.raises(IORegistryError) as exc:
             fmtcls1[1]().write(registry=registry)
-        assert str(exc.value) == (
-            f"Format is ambiguous - options are: {fmtcls1[0]}, {fmtcls2[0]}"
+        assert (
+            str(exc.value)
+            == f"Format is ambiguous - options are: {fmtcls1[0]}, {fmtcls2[0]}"
         )
 
     def test_write_uses_priority(self, registry, fmtcls1, fmtcls2):
@@ -923,7 +925,6 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
     # Compat tests
 
     def test_compat_register_writer(self, registry, fmtcls1):
-
         # with registry specified
         assert fmtcls1 not in registry._writers
         compat.register_writer(*fmtcls1, empty_writer, registry=registry)
@@ -1117,7 +1118,7 @@ class TestSubclass:
         mt.write(buffer, format="ascii")
         assert buffer.getvalue() == os.linesep.join(["a b", "1 2", ""])
 
-    def test_read_table_subclass_with_columns_attributes(self, tmpdir):
+    def test_read_table_subclass_with_columns_attributes(self, tmp_path):
         """Regression test for https://github.com/astropy/astropy/issues/7181"""
 
         class MTable(Table):
@@ -1128,7 +1129,7 @@ class TestSubclass:
         mt["a"].format = ".4f"
         mt["a"].description = "hello"
 
-        testfile = str(tmpdir.join("junk.fits"))
+        testfile = tmp_path / "junk.fits"
         mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)

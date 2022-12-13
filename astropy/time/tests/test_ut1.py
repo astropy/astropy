@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import functools
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.time import Time
 from astropy.utils.iers import conf as iers_conf
@@ -32,7 +32,7 @@ def do_ut1_prediction_tst(iers_type):
     with iers.earth_orientation_table.set(iers_type.open()):
         delta2, status2 = tnow.get_delta_ut1_utc(return_status=True)
         assert status2 == status
-        assert delta2.to_value('s') == delta_ut1_utc
+        assert delta2.to_value("s") == delta_ut1_utc
 
         tnow_ut1 = tnow.ut1
         assert tnow_ut1._delta_ut1_utc == delta_ut1_utc
@@ -51,16 +51,27 @@ class TestTimeUT1Remote:
         iers_conf.auto_download = False
 
     def test_utc_to_ut1(self):
-        "Test conversion of UTC to UT1, making sure to include a leap second"""
-        t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
-                  '2012-06-30 23:59:60', '2012-07-01 00:00:00',
-                  '2012-07-01 12:00:00'], scale='utc')
+        "Test conversion of UTC to UT1, making sure to include a leap second"
+        t = Time(
+            [
+                "2012-06-30 12:00:00",
+                "2012-06-30 23:59:59",
+                "2012-06-30 23:59:60",
+                "2012-07-01 00:00:00",
+                "2012-07-01 12:00:00",
+            ],
+            scale="utc",
+        )
         t_ut1_jd = t.ut1.jd
-        t_comp = np.array([2456108.9999932079,
-                           2456109.4999816339,
-                           2456109.4999932083,
-                           2456109.5000047823,
-                           2456110.0000047833])
+        t_comp = np.array(
+            [
+                2456108.9999932079,
+                2456109.4999816339,
+                2456109.4999932083,
+                2456109.5000047823,
+                2456110.0000047833,
+            ]
+        )
         assert allclose_jd(t_ut1_jd, t_comp)
         t_back = t.ut1.utc
         assert allclose_jd(t.jd, t_back.jd)
@@ -79,16 +90,27 @@ class TestTimeUT1:
     def test_ut1_to_utc(self):
         """Also test the reverse, around the leap second
         (round-trip test closes #2077)"""
-        with iers_conf.set_temp('auto_download', False):
-            t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
-                      '2012-07-01 00:00:00', '2012-07-01 00:00:01',
-                      '2012-07-01 12:00:00'], scale='ut1')
+        with iers_conf.set_temp("auto_download", False):
+            t = Time(
+                [
+                    "2012-06-30 12:00:00",
+                    "2012-06-30 23:59:59",
+                    "2012-07-01 00:00:00",
+                    "2012-07-01 00:00:01",
+                    "2012-07-01 12:00:00",
+                ],
+                scale="ut1",
+            )
             t_utc_jd = t.utc.jd
-            t_comp = np.array([2456109.0000010049,
-                               2456109.4999836441,
-                               2456109.4999952177,
-                               2456109.5000067917,
-                               2456109.9999952167])
+            t_comp = np.array(
+                [
+                    2456109.0000010049,
+                    2456109.4999836441,
+                    2456109.4999952177,
+                    2456109.5000067917,
+                    2456109.9999952167,
+                ]
+            )
             assert allclose_jd(t_utc_jd, t_comp)
             t_back = t.utc.ut1
             assert allclose_jd(t.jd, t_back.jd)
@@ -97,19 +119,20 @@ class TestTimeUT1:
         """Testing for a zero-length Time object from UTC to UT1
         when an empty array is passed"""
         from astropy import units as u
-        with iers_conf.set_temp('auto_download', False):
-            t = Time(['2012-06-30 12:00:00']) + np.arange(24) * u.hour
+
+        with iers_conf.set_temp("auto_download", False):
+            t = Time(["2012-06-30 12:00:00"]) + np.arange(24) * u.hour
             t_empty = t[[]].ut1
             assert isinstance(t_empty, Time)
-            assert t_empty.scale == 'ut1'
+            assert t_empty.scale == "ut1"
             assert t_empty.size == 0
 
     def test_delta_ut1_utc(self):
         """Accessing delta_ut1_utc should try to get it from IERS
         (closes #1924 partially)"""
-        with iers_conf.set_temp('auto_download', False):
-            t = Time('2012-06-30 12:00:00', scale='utc')
-            assert not hasattr(t, '_delta_ut1_utc')
+        with iers_conf.set_temp("auto_download", False):
+            t = Time("2012-06-30 12:00:00", scale="utc")
+            assert not hasattr(t, "_delta_ut1_utc")
             # accessing delta_ut1_utc calculates it
             assert allclose_sec(t.delta_ut1_utc, -0.58682110003124965)
             # and keeps it around
@@ -117,7 +140,7 @@ class TestTimeUT1:
 
 
 class TestTimeUT1SpecificIERSTable:
-    @pytest.mark.skipif('not HAS_IERS_A')
+    @pytest.mark.skipif(not HAS_IERS_A, reason="requires IERS_A")
     def test_ut1_iers_A(self):
         do_ut1_prediction_tst(iers.IERS_A)
 

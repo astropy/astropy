@@ -5,27 +5,26 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, translate, _words_group
-from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
-
-from . import conf
 from astropy.utils.exceptions import AstropyUserWarning
 
+from . import conf
+from .util import _is_int, _str_to_num, _words_group, translate
+from .verify import VerifyError, VerifyWarning, _ErrList, _Verify
 
-__all__ = ['Card', 'Undefined']
+__all__ = ["Card", "Undefined"]
 
 
-FIX_FP_TABLE = str.maketrans('de', 'DE')
-FIX_FP_TABLE2 = str.maketrans('dD', 'eE')
+FIX_FP_TABLE = str.maketrans("de", "DE")
+FIX_FP_TABLE2 = str.maketrans("dD", "eE")
 
 
 CARD_LENGTH = 80
-BLANK_CARD = ' ' * CARD_LENGTH
+BLANK_CARD = " " * CARD_LENGTH
 KEYWORD_LENGTH = 8  # The max length for FITS-standard keywords
 
-VALUE_INDICATOR = '= '  # The standard FITS value indicator
+VALUE_INDICATOR = "= "  # The standard FITS value indicator
 VALUE_INDICATOR_LEN = len(VALUE_INDICATOR)
-HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
+HIERARCH_VALUE_INDICATOR = "="  # HIERARCH cards may use a shortened indicator
 
 
 class Undefined:
@@ -40,41 +39,38 @@ UNDEFINED = Undefined()
 
 
 class Card(_Verify):
-
     length = CARD_LENGTH
     """The length of a Card image; should always be 80 for valid FITS files."""
 
     # String for a FITS standard compliant (FSC) keyword.
-    _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)
+    _keywd_FSC_RE = re.compile(r"^[A-Z0-9_-]{0,%d}$" % KEYWORD_LENGTH)
     # This will match any printable ASCII character excluding '='
-    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$',
-                                    re.I)
+    _keywd_hierarch_RE = re.compile(r"^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$", re.I)
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
     # NFSC allows lower case of DE for exponent, allows space between sign,
     # digits, exponent sign, and exponents
-    _digits_FSC = r'(\.\d+|\d+(\.\d*)?)([DE][+-]?\d+)?'
-    _digits_NFSC = r'(\.\d+|\d+(\.\d*)?) *([deDE] *[+-]? *\d+)?'
-    _numr_FSC = r'[+-]?' + _digits_FSC
-    _numr_NFSC = r'[+-]? *' + _digits_NFSC
+    _digits_FSC = r"(\.\d+|\d+(\.\d*)?)([DE][+-]?\d+)?"
+    _digits_NFSC = r"(\.\d+|\d+(\.\d*)?) *([deDE] *[+-]? *\d+)?"
+    _numr_FSC = r"[+-]?" + _digits_FSC
+    _numr_NFSC = r"[+-]? *" + _digits_NFSC
 
     # This regex helps delete leading zeros from numbers, otherwise
     # Python might evaluate them as octal values (this is not-greedy, however,
     # so it may not strip leading zeros from a float, which is fine)
-    _number_FSC_RE = re.compile(rf'(?P<sign>[+-])?0*?(?P<digt>{_digits_FSC})')
-    _number_NFSC_RE = \
-            re.compile(rf'(?P<sign>[+-])? *0*?(?P<digt>{_digits_NFSC})')
+    _number_FSC_RE = re.compile(rf"(?P<sign>[+-])?0*?(?P<digt>{_digits_FSC})")
+    _number_NFSC_RE = re.compile(rf"(?P<sign>[+-])? *0*?(?P<digt>{_digits_NFSC})")
 
     # Used in cards using the CONTINUE convention which expect a string
     # followed by an optional comment
-    _strg = r'\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )'
-    _comm_field = r'(?P<comm_field>(?P<sepr>/ *)(?P<comm>(.|\n)*))'
-    _strg_comment_RE = re.compile(f'({_strg})? *{_comm_field}?')
+    _strg = r"\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )"
+    _comm_field = r"(?P<comm_field>(?P<sepr>/ *)(?P<comm>(.|\n)*))"
+    _strg_comment_RE = re.compile(f"({_strg})? *{_comm_field}?")
 
     # FSC commentary card string which must contain printable ASCII characters.
     # Note: \Z matches the end of the string without allowing newlines
-    _ascii_text_re = re.compile(r'[ -~]*\Z')
+    _ascii_text_re = re.compile(r"[ -~]*\Z")
 
     # Checks for a valid value/comment string.  It returns a match object
     # for a valid value/comment string.
@@ -83,6 +79,7 @@ class Card(_Verify):
     # None, meaning the keyword is undefined.  The comment field will
     # return a match if the comment separator is found, though the
     # comment maybe an empty string.
+    # fmt: off
     _value_FSC_RE = re.compile(
         r'(?P<valu_field> *'
             r'(?P<valu>'
@@ -111,8 +108,11 @@ class Card(_Verify):
         r'(?P<comm_field>'
             r'(?P<sepr>/ *)'
             r'(?P<comm>[!-~][ -~]*)?'
-        r')?$')
+        r')?$'
+    )
+    # fmt: on
 
+    # fmt: off
     _value_NFSC_RE = re.compile(
         r'(?P<valu_field> *'
             r'(?P<valu>'
@@ -122,33 +122,37 @@ class Card(_Verify):
                 r'(?P<cplx>\( *'
                     r'(?P<real>' + _numr_NFSC + r') *, *'
                     r'(?P<imag>' + _numr_NFSC + r') *\))'
-            fr')? *){_comm_field}?$')
+            fr')? *){_comm_field}?$'
+    )
+    # fmt: on
 
-    _rvkc_identifier = r'[a-zA-Z_]\w*'
-    _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
-    _rvkc_field_specifier_s = fr'{_rvkc_field}(\.{_rvkc_field})*'
-    _rvkc_field_specifier_val = (r'(?P<keyword>{}): +(?P<val>{})'.format(
-            _rvkc_field_specifier_s, _numr_FSC))
-    _rvkc_keyword_val = fr'\'(?P<rawval>{_rvkc_field_specifier_val})\''
-    _rvkc_keyword_val_comm = (r' *{} *(/ *(?P<comm>[ -~]*))?$'.format(
-            _rvkc_keyword_val))
+    _rvkc_identifier = r"[a-zA-Z_]\w*"
+    _rvkc_field = _rvkc_identifier + r"(\.\d+)?"
+    _rvkc_field_specifier_s = rf"{_rvkc_field}(\.{_rvkc_field})*"
+    _rvkc_field_specifier_val = r"(?P<keyword>{}): +(?P<val>{})".format(
+        _rvkc_field_specifier_s, _numr_FSC
+    )
+    _rvkc_keyword_val = rf"\'(?P<rawval>{_rvkc_field_specifier_val})\'"
+    _rvkc_keyword_val_comm = rf" *{_rvkc_keyword_val} *(/ *(?P<comm>[ -~]*))?$"
 
-    _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val + '$')
+    _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val + "$")
 
     # regular expression to extract the key and the field specifier from a
     # string that is being used to index into a card list that contains
     # record value keyword cards (ex. 'DP1.AXIS.1')
-    _rvkc_keyword_name_RE = (
-        re.compile(r'(?P<keyword>{})\.(?P<field_specifier>{})$'.format(
-                _rvkc_identifier, _rvkc_field_specifier_s)))
+    _rvkc_keyword_name_RE = re.compile(
+        r"(?P<keyword>{})\.(?P<field_specifier>{})$".format(
+            _rvkc_identifier, _rvkc_field_specifier_s
+        )
+    )
 
     # regular expression to extract the field specifier and value and comment
     # from the string value of a record value keyword card
     # (ex "'AXIS.1: 1' / a comment")
     _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-    _commentary_keywords = {'', 'COMMENT', 'HISTORY', 'END'}
-    _special_keywords = _commentary_keywords.union(['CONTINUE'])
+    _commentary_keywords = {"", "COMMENT", "HISTORY", "END"}
+    _special_keywords = _commentary_keywords.union(["CONTINUE"])
 
     # The default value indicator; may be changed if required by a convention
     # (namely HIERARCH cards)
@@ -156,8 +160,8 @@ class Card(_Verify):
 
     def __init__(self, keyword=None, value=None, comment=None, **kwargs):
         # For backwards compatibility, support the 'key' keyword argument:
-        if keyword is None and 'key' in kwargs:
-            keyword = kwargs['key']
+        if keyword is None and "key" in kwargs:
+            keyword = kwargs["key"]
 
         self._keyword = None
         self._value = None
@@ -184,8 +188,11 @@ class Card(_Verify):
         self._rawkeyword = None
         self._rawvalue = None
 
-        if not (keyword is not None and value is not None and
-                self._check_if_rvkc(keyword, value)):
+        if not (
+            keyword is not None
+            and value is not None
+            and self._check_if_rvkc(keyword, value)
+        ):
             # If _check_if_rvkc passes, it will handle setting the keyword and
             # value
             if keyword is not None:
@@ -220,26 +227,26 @@ class Card(_Verify):
             self._keyword = self._parse_keyword()
             return self._keyword
         else:
-            self.keyword = ''
-            return ''
+            self.keyword = ""
+            return ""
 
     @keyword.setter
     def keyword(self, keyword):
         """Set the key attribute; once set it cannot be modified."""
         if self._keyword is not None:
-            raise AttributeError(
-                'Once set, the Card keyword may not be modified')
+            raise AttributeError("Once set, the Card keyword may not be modified")
         elif isinstance(keyword, str):
             # Be nice and remove trailing whitespace--some FITS code always
             # pads keywords out with spaces; leading whitespace, however,
             # should be strictly disallowed.
             keyword = keyword.rstrip()
             keyword_upper = keyword.upper()
-            if (len(keyword) <= KEYWORD_LENGTH and
-                    self._keywd_FSC_RE.match(keyword_upper)):
+            if len(keyword) <= KEYWORD_LENGTH and self._keywd_FSC_RE.match(
+                keyword_upper
+            ):
                 # For keywords with length > 8 they will be HIERARCH cards,
                 # and can have arbitrary case keywords
-                if keyword_upper == 'END':
+                if keyword_upper == "END":
                     raise ValueError("Keyword 'END' not allowed.")
                 keyword = keyword_upper
             elif self._keywd_hierarch_RE.match(keyword):
@@ -254,7 +261,7 @@ class Card(_Verify):
                 self._hierarch = True
                 self._value_indicator = HIERARCH_VALUE_INDICATOR
 
-                if keyword_upper[:9] == 'HIERARCH ':
+                if keyword_upper[:9] == "HIERARCH ":
                     # The user explicitly asked for a HIERARCH card, so don't
                     # bug them about it...
                     keyword = keyword[9:].strip()
@@ -262,16 +269,17 @@ class Card(_Verify):
                     # We'll gladly create a HIERARCH card, but a warning is
                     # also displayed
                     warnings.warn(
-                        'Keyword name {!r} is greater than 8 characters or '
-                        'contains characters not allowed by the FITS '
-                        'standard; a HIERARCH card will be created.'.format(
-                            keyword), VerifyWarning)
+                        "Keyword name {!r} is greater than 8 characters or "
+                        "contains characters not allowed by the FITS "
+                        "standard; a HIERARCH card will be created.".format(keyword),
+                        VerifyWarning,
+                    )
             else:
-                raise ValueError(f'Illegal keyword name: {keyword!r}.')
+                raise ValueError(f"Illegal keyword name: {keyword!r}.")
             self._keyword = keyword
             self._modified = True
         else:
-            raise ValueError(f'Keyword name {keyword!r} is not a string.')
+            raise ValueError(f"Keyword name {keyword!r} is not a string.")
 
     @property
     def value(self):
@@ -285,8 +293,8 @@ class Card(_Verify):
         elif self._valuestring is not None or self._image:
             value = self._value = self._parse_value()
         else:
-            if self._keyword == '':
-                self._value = value = ''
+            if self._keyword == "":
+                self._value = value = ""
             else:
                 self._value = value = UNDEFINED
 
@@ -299,8 +307,9 @@ class Card(_Verify):
     def value(self, value):
         if self._invalid:
             raise ValueError(
-                'The value of invalid/unparsable cards cannot set.  Either '
-                'delete this card from the header or replace it.')
+                "The value of invalid/unparsable cards cannot set.  Either "
+                "delete this card from the header or replace it."
+            )
 
         if value is None:
             value = UNDEFINED
@@ -315,38 +324,54 @@ class Card(_Verify):
         if oldvalue is None:
             oldvalue = UNDEFINED
 
-        if not isinstance(value,
-                          (str, int, float, complex, bool, Undefined,
-                           np.floating, np.integer, np.complexfloating,
-                           np.bool_)):
-            raise ValueError(f'Illegal value: {value!r}.')
+        if not isinstance(
+            value,
+            (
+                str,
+                int,
+                float,
+                complex,
+                bool,
+                Undefined,
+                np.floating,
+                np.integer,
+                np.complexfloating,
+                np.bool_,
+            ),
+        ):
+            raise ValueError(f"Illegal value: {value!r}.")
 
-        if isinstance(value, (float, np.float32)) and (np.isnan(value) or
-                                                       np.isinf(value)):
+        if isinstance(value, (float, np.float32)) and (
+            np.isnan(value) or np.isinf(value)
+        ):
             # value is checked for both float and np.float32 instances
             # since np.float32 is not considered a Python float.
-            raise ValueError("Floating point {!r} values are not allowed "
-                             "in FITS headers.".format(value))
+            raise ValueError(
+                "Floating point {!r} values are not allowed in FITS headers.".format(
+                    value
+                )
+            )
 
         elif isinstance(value, str):
             m = self._ascii_text_re.match(value)
             if not m:
                 raise ValueError(
-                    'FITS header values must contain standard printable ASCII '
-                    'characters; {!r} contains characters not representable in '
-                    'ASCII or non-printable characters.'.format(value))
+                    "FITS header values must contain standard printable ASCII "
+                    "characters; {!r} contains characters not representable in "
+                    "ASCII or non-printable characters.".format(value)
+                )
         elif isinstance(value, np.bool_):
             value = bool(value)
 
-        if (conf.strip_header_whitespace and
-                (isinstance(oldvalue, str) and isinstance(value, str))):
+        if conf.strip_header_whitespace and (
+            isinstance(oldvalue, str) and isinstance(value, str)
+        ):
             # Ignore extra whitespace when comparing the new value to the old
             different = oldvalue.rstrip() != value.rstrip()
         elif isinstance(oldvalue, bool) or isinstance(value, bool):
             different = oldvalue is not value
         else:
-            different = (oldvalue != value or
-                         not isinstance(value, type(oldvalue)))
+            different = oldvalue != value or not isinstance(value, type(oldvalue))
 
         if different:
             self._value = value
@@ -358,20 +383,22 @@ class Card(_Verify):
                 try:
                     self._value = _int_or_float(self._value)
                 except ValueError:
-                    raise ValueError(f'value {self._value} is not a float')
+                    raise ValueError(f"value {self._value} is not a float")
 
     @value.deleter
     def value(self):
         if self._invalid:
             raise ValueError(
-                'The value of invalid/unparsable cards cannot deleted.  '
-                'Either delete this card from the header or replace it.')
+                "The value of invalid/unparsable cards cannot deleted.  "
+                "Either delete this card from the header or replace it."
+            )
 
         if not self.field_specifier:
-            self.value = ''
+            self.value = ""
         else:
-            raise AttributeError('Values cannot be deleted from record-valued '
-                                 'keyword cards')
+            raise AttributeError(
+                "Values cannot be deleted from record-valued keyword cards"
+            )
 
     @property
     def rawkeyword(self):
@@ -383,7 +410,7 @@ class Card(_Verify):
         if self._rawkeyword is not None:
             return self._rawkeyword
         elif self.field_specifier is not None:
-            self._rawkeyword = self.keyword.split('.', 1)[0]
+            self._rawkeyword = self.keyword.split(".", 1)[0]
             return self._rawkeyword
         else:
             return self.keyword
@@ -398,7 +425,7 @@ class Card(_Verify):
         if self._rawvalue is not None:
             return self._rawvalue
         elif self.field_specifier is not None:
-            self._rawvalue = f'{self.field_specifier}: {self.value}'
+            self._rawvalue = f"{self.field_specifier}: {self.value}"
             return self._rawvalue
         else:
             return self.value
@@ -413,27 +440,30 @@ class Card(_Verify):
             self._comment = self._parse_comment()
             return self._comment
         else:
-            self._comment = ''
-            return ''
+            self._comment = ""
+            return ""
 
     @comment.setter
     def comment(self, comment):
         if self._invalid:
             raise ValueError(
-                'The comment of invalid/unparsable cards cannot set.  Either '
-                'delete this card from the header or replace it.')
+                "The comment of invalid/unparsable cards cannot set.  Either "
+                "delete this card from the header or replace it."
+            )
 
         if comment is None:
-            comment = ''
+            comment = ""
 
         if isinstance(comment, str):
             m = self._ascii_text_re.match(comment)
             if not m:
                 raise ValueError(
-                    'FITS header comments must contain standard printable '
-                    'ASCII characters; {!r} contains characters not '
-                    'representable in ASCII or non-printable characters.'
-                    .format(comment))
+                    "FITS header comments must contain standard printable "
+                    "ASCII characters; {!r} contains characters not "
+                    "representable in ASCII or non-printable characters.".format(
+                        comment
+                    )
+                )
 
         try:
             oldcomment = self.comment
@@ -443,7 +473,7 @@ class Card(_Verify):
             oldcomment = self._comment
 
         if oldcomment is None:
-            oldcomment = ''
+            oldcomment = ""
         if comment != oldcomment:
             self._comment = comment
             self._modified = True
@@ -452,10 +482,11 @@ class Card(_Verify):
     def comment(self):
         if self._invalid:
             raise ValueError(
-                'The comment of invalid/unparsable cards cannot deleted.  '
-                'Either delete this card from the header or replace it.')
+                "The comment of invalid/unparsable cards cannot deleted.  "
+                "Either delete this card from the header or replace it."
+            )
 
-        self.comment = ''
+        self.comment = ""
 
     @property
     def field_specifier(self):
@@ -474,23 +505,28 @@ class Card(_Verify):
     @field_specifier.setter
     def field_specifier(self, field_specifier):
         if not field_specifier:
-            raise ValueError('The field-specifier may not be blank in '
-                             'record-valued keyword cards.')
+            raise ValueError(
+                "The field-specifier may not be blank in record-valued keyword cards."
+            )
         elif not self.field_specifier:
-            raise AttributeError('Cannot coerce cards to be record-valued '
-                                 'keyword cards by setting the '
-                                 'field_specifier attribute')
+            raise AttributeError(
+                "Cannot coerce cards to be record-valued "
+                "keyword cards by setting the "
+                "field_specifier attribute"
+            )
         elif field_specifier != self.field_specifier:
             self._field_specifier = field_specifier
             # The keyword need also be updated
-            keyword = self._keyword.split('.', 1)[0]
-            self._keyword = '.'.join([keyword, field_specifier])
+            keyword = self._keyword.split(".", 1)[0]
+            self._keyword = ".".join([keyword, field_specifier])
             self._modified = True
 
     @field_specifier.deleter
     def field_specifier(self):
-        raise AttributeError('The field_specifier attribute may not be '
-                             'deleted from record-valued keyword cards.')
+        raise AttributeError(
+            "The field_specifier attribute may not be "
+            "deleted from record-valued keyword cards."
+        )
 
     @property
     def image(self):
@@ -500,7 +536,7 @@ class Card(_Verify):
         """
 
         if self._image and not self._verified:
-            self.verify('fix+warn')
+            self.verify("fix+warn")
         if self._image is None or self._modified:
             self._image = self._format_image()
         return self._image
@@ -522,9 +558,11 @@ class Card(_Verify):
         # If the keyword, value, and comment are all empty (for self.value
         # explicitly check that it is a string value, since a blank value is
         # returned as '')
-        return (not self.keyword and
-                (isinstance(self.value, str) and not self.value) and
-                not self.comment)
+        return (
+            not self.keyword
+            and (isinstance(self.value, str) and not self.value)
+            and not self.comment
+        )
 
     @classmethod
     def fromstring(cls, image):
@@ -541,7 +579,7 @@ class Card(_Verify):
             # bytes for now; if it results in mojibake due to e.g. UTF-8
             # encoded data in a FITS header that's OK because it shouldn't be
             # there in the first place
-            image = image.decode('latin1')
+            image = image.decode("latin1")
 
         card._image = _pad(image)
         card._verified = False
@@ -562,17 +600,17 @@ class Card(_Verify):
 
         # Test first for the most common case: a standard FITS keyword provided
         # in standard all-caps
-        if (len(keyword) <= KEYWORD_LENGTH and
-                cls._keywd_FSC_RE.match(keyword)):
+        if len(keyword) <= KEYWORD_LENGTH and cls._keywd_FSC_RE.match(keyword):
             return keyword
 
         # Test if this is a record-valued keyword
         match = cls._rvkc_keyword_name_RE.match(keyword)
 
         if match:
-            return '.'.join((match.group('keyword').strip().upper(),
-                             match.group('field_specifier')))
-        elif len(keyword) > 9 and keyword[:9].upper() == 'HIERARCH ':
+            return ".".join(
+                (match.group("keyword").strip().upper(), match.group("field_specifier"))
+            )
+        elif len(keyword) > 9 and keyword[:9].upper() == "HIERARCH ":
             # Remove 'HIERARCH' from HIERARCH keywords; this could lead to
             # ambiguity if there is actually a keyword card containing
             # "HIERARCH HIERARCH", but shame on you if you do that.
@@ -617,17 +655,19 @@ class Card(_Verify):
                 return False
             match = self._rvkc_keyword_name_RE.match(keyword)
             if match and isinstance(value, (int, float)):
-                self._init_rvkc(match.group('keyword'),
-                                match.group('field_specifier'), None, value)
+                self._init_rvkc(
+                    match.group("keyword"), match.group("field_specifier"), None, value
+                )
                 return True
 
             # Testing for ': ' is a quick way to avoid running the full regular
             # expression, speeding this up for the majority of cases
-            if isinstance(value, str) and value.find(': ') > 0:
+            if isinstance(value, str) and value.find(": ") > 0:
                 match = self._rvkc_field_specifier_val_RE.match(value)
                 if match and self._keywd_FSC_RE.match(keyword):
-                    self._init_rvkc(keyword, match.group('keyword'), value,
-                                    match.group('val'))
+                    self._init_rvkc(
+                        keyword, match.group("keyword"), value, match.group("val")
+                    )
                     return True
 
     def _check_if_rvkc_image(self, *args):
@@ -644,7 +684,7 @@ class Card(_Verify):
             if eq_idx < 0 or eq_idx > 9:
                 return False
             keyword = image[:eq_idx]
-            rest = image[eq_idx + VALUE_INDICATOR_LEN:]
+            rest = image[eq_idx + VALUE_INDICATOR_LEN :]
         else:
             keyword, rest = args
 
@@ -654,13 +694,17 @@ class Card(_Verify):
         # the majority of cards that do not contain strings or that definitely
         # do not contain RVKC field-specifiers; it's very much a
         # micro-optimization but it does make a measurable difference
-        if not rest or rest[0] != "'" or rest.find(': ') < 2:
+        if not rest or rest[0] != "'" or rest.find(": ") < 2:
             return False
 
         match = self._rvkc_keyword_val_comm_RE.match(rest)
         if match:
-            self._init_rvkc(keyword, match.group('keyword'),
-                            match.group('rawval'), match.group('val'))
+            self._init_rvkc(
+                keyword,
+                match.group("keyword"),
+                match.group("rawval"),
+                match.group("val"),
+            )
             return True
 
     def _init_rvkc(self, keyword, field_specifier, field, value):
@@ -670,7 +714,7 @@ class Card(_Verify):
         """
 
         keyword_upper = keyword.upper()
-        self._keyword = '.'.join((keyword_upper, field_specifier))
+        self._keyword = ".".join((keyword_upper, field_specifier))
         self._rawkeyword = keyword_upper
         self._field_specifier = field_specifier
         self._value = _int_or_float(value)
@@ -682,8 +726,11 @@ class Card(_Verify):
 
         if keyword_upper in self._special_keywords:
             return keyword_upper
-        elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
-              HIERARCH_VALUE_INDICATOR in self._image):
+        elif (
+            keyword_upper == "HIERARCH"
+            and self._image[8] == " "
+            and HIERARCH_VALUE_INDICATOR in self._image
+        ):
             # This is valid HIERARCH card as described by the HIERARCH keyword
             # convention:
             # http://fits.gsfc.nasa.gov/registry/hierarch_keyword.html
@@ -700,7 +747,7 @@ class Card(_Verify):
                     keyword = keyword[:val_ind_idx]
                     keyword_upper = keyword_upper[:val_ind_idx]
 
-                rest = self._image[val_ind_idx + VALUE_INDICATOR_LEN:]
+                rest = self._image[val_ind_idx + VALUE_INDICATOR_LEN :]
 
                 # So far this looks like a standard FITS keyword; check whether
                 # the value represents a RVKC; if so then we pass things off to
@@ -711,9 +758,10 @@ class Card(_Verify):
                 return keyword_upper
             else:
                 warnings.warn(
-                    'The following header keyword is invalid or follows an '
-                    'unrecognized non-standard convention:\n{}'
-                    .format(self._image), AstropyUserWarning)
+                    "The following header keyword is invalid or follows an "
+                    "unrecognized non-standard convention:\n{}".format(self._image),
+                    AstropyUserWarning,
+                )
                 self._invalid = True
                 return keyword
 
@@ -731,44 +779,47 @@ class Card(_Verify):
         m = self._value_NFSC_RE.match(self._split()[1])
 
         if m is None:
-            raise VerifyError("Unparsable card ({}), fix it first with "
-                              ".verify('fix').".format(self.keyword))
+            raise VerifyError(
+                "Unparsable card ({}), fix it first with .verify('fix').".format(
+                    self.keyword
+                )
+            )
 
-        if m.group('bool') is not None:
-            value = m.group('bool') == 'T'
-        elif m.group('strg') is not None:
-            value = re.sub("''", "'", m.group('strg'))
-        elif m.group('numr') is not None:
+        if m.group("bool") is not None:
+            value = m.group("bool") == "T"
+        elif m.group("strg") is not None:
+            value = re.sub("''", "'", m.group("strg"))
+        elif m.group("numr") is not None:
             #  Check for numbers with leading 0s.
-            numr = self._number_NFSC_RE.match(m.group('numr'))
-            digt = translate(numr.group('digt'), FIX_FP_TABLE2, ' ')
-            if numr.group('sign') is None:
-                sign = ''
+            numr = self._number_NFSC_RE.match(m.group("numr"))
+            digt = translate(numr.group("digt"), FIX_FP_TABLE2, " ")
+            if numr.group("sign") is None:
+                sign = ""
             else:
-                sign = numr.group('sign')
+                sign = numr.group("sign")
             value = _str_to_num(sign + digt)
 
-        elif m.group('cplx') is not None:
+        elif m.group("cplx") is not None:
             #  Check for numbers with leading 0s.
-            real = self._number_NFSC_RE.match(m.group('real'))
-            rdigt = translate(real.group('digt'), FIX_FP_TABLE2, ' ')
-            if real.group('sign') is None:
-                rsign = ''
+            real = self._number_NFSC_RE.match(m.group("real"))
+            rdigt = translate(real.group("digt"), FIX_FP_TABLE2, " ")
+            if real.group("sign") is None:
+                rsign = ""
             else:
-                rsign = real.group('sign')
+                rsign = real.group("sign")
             value = _str_to_num(rsign + rdigt)
-            imag = self._number_NFSC_RE.match(m.group('imag'))
-            idigt = translate(imag.group('digt'), FIX_FP_TABLE2, ' ')
-            if imag.group('sign') is None:
-                isign = ''
+            imag = self._number_NFSC_RE.match(m.group("imag"))
+            idigt = translate(imag.group("digt"), FIX_FP_TABLE2, " ")
+            if imag.group("sign") is None:
+                isign = ""
             else:
-                isign = imag.group('sign')
+                isign = imag.group("sign")
             value += _str_to_num(isign + idigt) * 1j
         else:
             value = UNDEFINED
 
         if not self._valuestring:
-            self._valuestring = m.group('valu')
+            self._valuestring = m.group("valu")
         return value
 
     def _parse_comment(self):
@@ -777,22 +828,22 @@ class Card(_Verify):
         # for commentary cards, no need to parse further
         # likewise for invalid/unparsable cards
         if self.keyword in Card._commentary_keywords or self._invalid:
-            return ''
+            return ""
 
         valuecomment = self._split()[1]
         m = self._value_NFSC_RE.match(valuecomment)
-        comment = ''
+        comment = ""
         if m is not None:
             # Don't combine this if statement with the one above, because
             # we only want the elif case to run if this was not a valid
             # card at all
-            if m.group('comm'):
-                comment = m.group('comm').rstrip()
-        elif '/' in valuecomment:
+            if m.group("comm"):
+                comment = m.group("comm").rstrip()
+        elif "/" in valuecomment:
             # The value in this FITS file was not in a valid/known format.  In
             # this case the best we can do is guess that everything after the
             # first / was meant to be the comment
-            comment = valuecomment.split('/', 1)[1].strip()
+            comment = valuecomment.split("/", 1)[1].strip()
 
         return comment
 
@@ -829,24 +880,24 @@ class Card(_Verify):
                 if not m:
                     return kw, vc
 
-                value = m.group('strg') or ''
+                value = m.group("strg") or ""
                 value = value.rstrip().replace("''", "'")
-                if value and value[-1] == '&':
+                if value and value[-1] == "&":
                     value = value[:-1]
                 values.append(value)
-                comment = m.group('comm')
+                comment = m.group("comm")
                 if comment:
                     comments.append(comment.rstrip())
 
             if keyword in self._commentary_keywords:
-                valuecomment = ''.join(values)
+                valuecomment = "".join(values)
             else:
                 # CONTINUE card
                 valuecomment = f"'{''.join(values)}' / {' '.join(comments)}"
             return keyword, valuecomment
 
         if self.keyword in self._special_keywords:
-            keyword, valuecomment = image.split(' ', 1)
+            keyword, valuecomment = image.split(" ", 1)
         else:
             try:
                 delim_index = image.index(self._value_indicator)
@@ -858,7 +909,7 @@ class Card(_Verify):
             if delim_index is None:
                 keyword = image[:KEYWORD_LENGTH]
                 valuecomment = image[KEYWORD_LENGTH:]
-            elif delim_index > 10 and image[:9] != 'HIERARCH ':
+            elif delim_index > 10 and image[:9] != "HIERARCH ":
                 keyword = image[:8]
                 valuecomment = image[8:]
             else:
@@ -867,8 +918,8 @@ class Card(_Verify):
 
     def _fix_keyword(self):
         if self.field_specifier:
-            keyword, field_specifier = self._keyword.split('.', 1)
-            self._keyword = '.'.join([keyword.upper(), field_specifier])
+            keyword, field_specifier = self._keyword.split(".", 1)
+            self._keyword = ".".join([keyword.upper(), field_specifier])
         else:
             self._keyword = self._keyword.upper()
         self._modified = True
@@ -883,30 +934,30 @@ class Card(_Verify):
         # for the unparsable case
         if m is None:
             try:
-                value, comment = valuecomment.split('/', 1)
+                value, comment = valuecomment.split("/", 1)
                 self.value = value.strip()
                 self.comment = comment.strip()
             except (ValueError, IndexError):
                 self.value = valuecomment
             self._valuestring = self._value
             return
-        elif m.group('numr') is not None:
-            numr = self._number_NFSC_RE.match(m.group('numr'))
-            value = translate(numr.group('digt'), FIX_FP_TABLE, ' ')
-            if numr.group('sign') is not None:
-                value = numr.group('sign') + value
+        elif m.group("numr") is not None:
+            numr = self._number_NFSC_RE.match(m.group("numr"))
+            value = translate(numr.group("digt"), FIX_FP_TABLE, " ")
+            if numr.group("sign") is not None:
+                value = numr.group("sign") + value
 
-        elif m.group('cplx') is not None:
-            real = self._number_NFSC_RE.match(m.group('real'))
-            rdigt = translate(real.group('digt'), FIX_FP_TABLE, ' ')
-            if real.group('sign') is not None:
-                rdigt = real.group('sign') + rdigt
+        elif m.group("cplx") is not None:
+            real = self._number_NFSC_RE.match(m.group("real"))
+            rdigt = translate(real.group("digt"), FIX_FP_TABLE, " ")
+            if real.group("sign") is not None:
+                rdigt = real.group("sign") + rdigt
 
-            imag = self._number_NFSC_RE.match(m.group('imag'))
-            idigt = translate(imag.group('digt'), FIX_FP_TABLE, ' ')
-            if imag.group('sign') is not None:
-                idigt = imag.group('sign') + idigt
-            value = f'({rdigt}, {idigt})'
+            imag = self._number_NFSC_RE.match(m.group("imag"))
+            idigt = translate(imag.group("digt"), FIX_FP_TABLE, " ")
+            if imag.group("sign") is not None:
+                idigt = imag.group("sign") + idigt
+            value = f"({rdigt}, {idigt})"
         self._valuestring = value
         # The value itself has not been modified, but its serialized
         # representation (as stored in self._valuestring) has been changed, so
@@ -916,14 +967,15 @@ class Card(_Verify):
     def _format_keyword(self):
         if self.keyword:
             if self.field_specifier:
-                return '{:{len}}'.format(self.keyword.split('.', 1)[0],
-                                         len=KEYWORD_LENGTH)
+                return "{:{len}}".format(
+                    self.keyword.split(".", 1)[0], len=KEYWORD_LENGTH
+                )
             elif self._hierarch:
-                return f'HIERARCH {self.keyword} '
+                return f"HIERARCH {self.keyword} "
             else:
-                return '{:{len}}'.format(self.keyword, len=KEYWORD_LENGTH)
+                return "{:{len}}".format(self.keyword, len=KEYWORD_LENGTH)
         else:
-            return ' ' * KEYWORD_LENGTH
+            return " " * KEYWORD_LENGTH
 
     def _format_value(self):
         # value string
@@ -939,10 +991,13 @@ class Card(_Verify):
             # The value of a commentary card must be just a raw unprocessed
             # string
             value = str(value)
-        elif (self._valuestring and not self._valuemodified and
-              isinstance(self.value, float_types)):
+        elif (
+            self._valuestring
+            and not self._valuemodified
+            and isinstance(self.value, float_types)
+        ):
             # Keep the existing formatting for float/complex numbers
-            value = f'{self._valuestring:>20}'
+            value = f"{self._valuestring:>20}"
         elif self.field_specifier:
             value = _format_value(self._value).strip()
             value = f"'{self.field_specifier}: {value}'"
@@ -957,9 +1012,9 @@ class Card(_Verify):
 
     def _format_comment(self):
         if not self.comment:
-            return ''
+            return ""
         else:
-            return f' / {self._comment}'
+            return f" / {self._comment}"
 
     def _format_image(self):
         keyword = self._format_keyword()
@@ -967,7 +1022,7 @@ class Card(_Verify):
         value = self._format_value()
         is_commentary = keyword.strip() in self._commentary_keywords
         if is_commentary:
-            comment = ''
+            comment = ""
         else:
             comment = self._format_comment()
 
@@ -976,38 +1031,40 @@ class Card(_Verify):
         # later we may abbreviate it if necessary
         delimiter = VALUE_INDICATOR
         if is_commentary:
-            delimiter = ''
+            delimiter = ""
 
         # put all parts together
-        output = ''.join([keyword, delimiter, value, comment])
+        output = "".join([keyword, delimiter, value, comment])
 
         # For HIERARCH cards we can save a bit of space if necessary by
         # removing the space between the keyword and the equals sign; I'm
         # guessing this is part of the HIEARCH card specification
         keywordvalue_length = len(keyword) + len(delimiter) + len(value)
-        if (keywordvalue_length > self.length and
-                keyword.startswith('HIERARCH')):
-            if (keywordvalue_length == self.length + 1 and keyword[-1] == ' '):
-                output = ''.join([keyword[:-1], delimiter, value, comment])
+        if keywordvalue_length > self.length and keyword.startswith("HIERARCH"):
+            if keywordvalue_length == self.length + 1 and keyword[-1] == " ":
+                output = "".join([keyword[:-1], delimiter, value, comment])
             else:
                 # I guess the HIERARCH card spec is incompatible with CONTINUE
                 # cards
-                raise ValueError('The header keyword {!r} with its value is '
-                                 'too long'.format(self.keyword))
+                raise ValueError(
+                    "The header keyword {!r} with its value is too long".format(
+                        self.keyword
+                    )
+                )
 
         if len(output) <= self.length:
-            output = f'{output:80}'
+            output = f"{output:80}"
         else:
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if (isinstance(self.value, str) and
-                    len(value) > (self.length - 10)):
+            if isinstance(self.value, str) and len(value) > (self.length - 10):
                 output = self._format_long_image()
             else:
-                warnings.warn('Card is too long, comment will be truncated.',
-                              VerifyWarning)
-                output = output[:Card.length]
+                warnings.warn(
+                    "Card is too long, comment will be truncated.", VerifyWarning
+                )
+                output = output[: Card.length]
         return output
 
     def _format_long_image(self):
@@ -1031,9 +1088,9 @@ class Card(_Verify):
         words = _words_group(value, value_length)
         for idx, word in enumerate(words):
             if idx == 0:
-                headstr = '{:{len}}= '.format(self.keyword, len=KEYWORD_LENGTH)
+                headstr = "{:{len}}= ".format(self.keyword, len=KEYWORD_LENGTH)
             else:
-                headstr = 'CONTINUE  '
+                headstr = "CONTINUE  "
 
             # If this is the final CONTINUE remove the '&'
             if not self.comment and idx == len(words) - 1:
@@ -1043,7 +1100,7 @@ class Card(_Verify):
 
             value = value_format.format(word)
 
-            output.append(f'{headstr + value:80}')
+            output.append(f"{headstr + value:80}")
 
         # do the comment string
         comment_format = "{}"
@@ -1058,9 +1115,9 @@ class Card(_Verify):
                     headstr = "CONTINUE  '&' / "
 
                 comment = headstr + comment_format.format(word)
-                output.append(f'{comment:80}')
+                output.append(f"{comment:80}")
 
-        return ''.join(output)
+        return "".join(output)
 
     def _format_long_commentary_image(self):
         """
@@ -1074,13 +1131,13 @@ class Card(_Verify):
         output = []
         idx = 0
         while idx < len(value):
-            output.append(str(Card(self.keyword, value[idx:idx + maxlen])))
+            output.append(str(Card(self.keyword, value[idx : idx + maxlen])))
             idx += maxlen
-        return ''.join(output)
+        return "".join(output)
 
-    def _verify(self, option='warn'):
+    def _verify(self, option="warn"):
         errs = []
-        fix_text = f'Fixed {self.keyword!r} card to meet the FITS standard.'
+        fix_text = f"Fixed {self.keyword!r} card to meet the FITS standard."
 
         # Don't try to verify cards that already don't meet any recognizable
         # standard
@@ -1088,20 +1145,26 @@ class Card(_Verify):
             return _ErrList(errs)
 
         # verify the equal sign position
-        if (self.keyword not in self._commentary_keywords and
-            (self._image and self._image[:9].upper() != 'HIERARCH ' and
-             self._image.find('=') != 8)):
-            errs.append(dict(
-                err_text='Card {!r} is not FITS standard (equal sign not '
-                         'at column 8).'.format(self.keyword),
-                fix_text=fix_text,
-                fix=self._fix_value))
+        if self.keyword not in self._commentary_keywords and (
+            self._image
+            and self._image[:9].upper() != "HIERARCH "
+            and self._image.find("=") != 8
+        ):
+            errs.append(
+                dict(
+                    err_text=(
+                        "Card {!r} is not FITS standard (equal sign not "
+                        "at column 8).".format(self.keyword)
+                    ),
+                    fix_text=fix_text,
+                    fix=self._fix_value,
+                )
+            )
 
         # verify the key, it is never fixable
         # always fix silently the case where "=" is before column 9,
         # since there is no way to communicate back to the _keys.
-        if ((self._image and self._image[:8].upper() == 'HIERARCH') or
-                self._hierarch):
+        if (self._image and self._image[:8].upper() == "HIERARCH") or self._hierarch:
             pass
         else:
             if self._image:
@@ -1110,19 +1173,22 @@ class Card(_Verify):
                 keyword = self._split()[0]
                 if keyword != keyword.upper():
                     # Keyword should be uppercase unless it's a HIERARCH card
-                    errs.append(dict(
-                        err_text=f'Card keyword {keyword!r} is not upper case.',
-                        fix_text=fix_text,
-                        fix=self._fix_keyword))
+                    errs.append(
+                        dict(
+                            err_text=f"Card keyword {keyword!r} is not upper case.",
+                            fix_text=fix_text,
+                            fix=self._fix_keyword,
+                        )
+                    )
 
             keyword = self.keyword
             if self.field_specifier:
-                keyword = keyword.split('.', 1)[0]
+                keyword = keyword.split(".", 1)[0]
 
             if not self._keywd_FSC_RE.match(keyword):
-                errs.append(dict(
-                    err_text=f'Illegal keyword name {keyword!r}',
-                    fixable=False))
+                errs.append(
+                    dict(err_text=f"Illegal keyword name {keyword!r}", fixable=False)
+                )
 
         # verify the value, it may be fixable
         keyword, valuecomment = self._split()
@@ -1130,11 +1196,17 @@ class Card(_Verify):
             # For commentary keywords all that needs to be ensured is that it
             # contains only printable ASCII characters
             if not self._ascii_text_re.match(valuecomment):
-                errs.append(dict(
-                    err_text='Unprintable string {!r}; commentary cards may '
-                             'only contain printable ASCII characters'.format(
-                             valuecomment),
-                    fixable=False))
+                errs.append(
+                    dict(
+                        err_text=(
+                            "Unprintable string {!r}; commentary cards may "
+                            "only contain printable ASCII characters".format(
+                                valuecomment
+                            )
+                        ),
+                        fixable=False,
+                    )
+                )
         else:
             if not self._valuemodified:
                 m = self._value_FSC_RE.match(valuecomment)
@@ -1143,23 +1215,33 @@ class Card(_Verify):
                 # don't bother verifying the old value.  See
                 # https://github.com/astropy/astropy/issues/5408
                 if m is None:
-                    errs.append(dict(
-                        err_text=f'Card {self.keyword!r} is not FITS standard '
-                                 f'(invalid value string: {valuecomment!r}).',
-                        fix_text=fix_text,
-                        fix=self._fix_value))
+                    errs.append(
+                        dict(
+                            err_text=(
+                                f"Card {self.keyword!r} is not FITS standard "
+                                f"(invalid value string: {valuecomment!r})."
+                            ),
+                            fix_text=fix_text,
+                            fix=self._fix_value,
+                        )
+                    )
 
         # verify the comment (string), it is never fixable
         m = self._value_NFSC_RE.match(valuecomment)
         if m is not None:
-            comment = m.group('comm')
+            comment = m.group("comm")
             if comment is not None:
                 if not self._ascii_text_re.match(comment):
-                    errs.append(dict(
-                        err_text=f'Unprintable string {comment!r}; header '
-                                  'comments may only contain printable '
-                                  'ASCII characters',
-                        fixable=False))
+                    errs.append(
+                        dict(
+                            err_text=(
+                                f"Unprintable string {comment!r}; header "
+                                "comments may only contain printable "
+                                "ASCII characters"
+                            ),
+                            fixable=False,
+                        )
+                    )
 
         errs = _ErrList([self.run_option(option, **err) for err in errs])
         self._verified = True
@@ -1179,15 +1261,16 @@ class Card(_Verify):
         ncards = len(self._image) // Card.length
 
         for idx in range(0, Card.length * ncards, Card.length):
-            card = Card.fromstring(self._image[idx:idx + Card.length])
+            card = Card.fromstring(self._image[idx : idx + Card.length])
             if idx > 0 and card.keyword.upper() not in self._special_keywords:
                 raise VerifyError(
-                        'Long card images must have CONTINUE cards after '
-                        'the first card or have commentary keywords like '
-                        'HISTORY or COMMENT.')
+                    "Long card images must have CONTINUE cards after "
+                    "the first card or have commentary keywords like "
+                    "HISTORY or COMMENT."
+                )
 
             if not isinstance(card.value, str):
-                raise VerifyError('CONTINUE cards must have string values.')
+                raise VerifyError("CONTINUE cards must have string values.")
 
             yield card
 
@@ -1221,61 +1304,61 @@ def _format_value(value):
     # string value should occupies at least 8 columns, unless it is
     # a null string
     if isinstance(value, str):
-        if value == '':
+        if value == "":
             return "''"
         else:
             exp_val_str = value.replace("'", "''")
             val_str = f"'{exp_val_str:8}'"
-            return f'{val_str:20}'
+            return f"{val_str:20}"
 
     # must be before int checking since bool is also int
     elif isinstance(value, (bool, np.bool_)):
-        return f'{repr(value)[0]:>20}'  # T or F
+        return f"{repr(value)[0]:>20}"  # T or F
 
     elif _is_int(value):
-        return f'{value:>20d}'
+        return f"{value:>20d}"
 
     elif isinstance(value, (float, np.floating)):
-        return f'{_format_float(value):>20}'
+        return f"{_format_float(value):>20}"
 
     elif isinstance(value, (complex, np.complexfloating)):
-        val_str = f'({_format_float(value.real)}, {_format_float(value.imag)})'
-        return f'{val_str:>20}'
+        val_str = f"({_format_float(value.real)}, {_format_float(value.imag)})"
+        return f"{val_str:>20}"
 
     elif isinstance(value, Undefined):
-        return ''
+        return ""
     else:
-        return ''
+        return ""
 
 
 def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
 
-    value_str = f'{value:.16G}'
-    if '.' not in value_str and 'E' not in value_str:
-        value_str += '.0'
-    elif 'E' in value_str:
+    value_str = f"{value:.16G}"
+    if "." not in value_str and "E" not in value_str:
+        value_str += ".0"
+    elif "E" in value_str:
         # On some Windows builds of Python (and possibly other platforms?) the
         # exponent is zero-padded out to, it seems, three digits.  Normalize
         # the format to pad only to two digits.
-        significand, exponent = value_str.split('E')
-        if exponent[0] in ('+', '-'):
+        significand, exponent = value_str.split("E")
+        if exponent[0] in ("+", "-"):
             sign = exponent[0]
             exponent = exponent[1:]
         else:
-            sign = ''
-        value_str = f'{significand}E{sign}{int(exponent):02d}'
+            sign = ""
+        value_str = f"{significand}E{sign}{int(exponent):02d}"
 
     # Limit the value string to at most 20 characters.
     str_len = len(value_str)
 
     if str_len > 20:
-        idx = value_str.find('E')
+        idx = value_str.find("E")
 
         if idx < 0:
             value_str = value_str[:20]
         else:
-            value_str = value_str[:20 - (str_len - idx)] + value_str[idx:]
+            value_str = value_str[: 20 - (str_len - idx)] + value_str[idx:]
 
     return value_str
 
@@ -1291,9 +1374,9 @@ def _pad(input):
         if strlen == 0:
             return input
         else:
-            return input + ' ' * (Card.length - strlen)
+            return input + " " * (Card.length - strlen)
 
     # minimum length is 80
     else:
         strlen = _len % Card.length
-        return input + ' ' * (Card.length - strlen)
+        return input + " " * (Card.length - strlen)

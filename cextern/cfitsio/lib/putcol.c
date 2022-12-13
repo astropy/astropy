@@ -887,6 +887,121 @@ int ffpcn(  fitsfile *fptr,  /* I - FITS file pointer                       */
 
     return(*status);
 }
+
+/*--------------------------------------------------------------------------*/
+int ffpcln( fitsfile *fptr,   /* I - FITS file pointer                       */
+	    int ncols,        /* I - number of columns to write              */
+            int  *datatype,   /* I - datatypes of the values                 */
+            int  *colnum,     /* I - columns numbers to write (1 = 1st col)  */
+            LONGLONG  firstrow,   /* I - first row to write (1 = 1st row)    */
+            LONGLONG nrows,       /* I - number of rows to write             */
+            void **array,     /* I - array of pointers to values to write    */
+            void **nulval,    /* I - array of pointers to values for undefined pixels */
+            int  *status)     /* IO - error status                           */
+/*
+  Write arrays of values to NCOLS table columns. This is an optimization
+  to write all columns in one pass through the table.  The datatypes of the
+  input arrays are defined by the 3rd argument.  Data conversion
+  and scaling will be performed if necessary (e.g, if the datatype of
+  the FITS array is not the same as the array being written).
+  Undefined elements for column i that are equal to *(nulval[i]) are set to
+  the defined null value, unless nulval[i]=0,
+  in which case no checking for undefined values will be performed.
+*/
+{
+    LONGLONG ntotrows, ndone, nwrite, currow;
+    long nrowbuf;
+    LONGLONG *repeats = 0;
+    size_t sizes[255] = {0};
+    int icol;
+
+    sizes[TBYTE] = sizes[TSBYTE] = sizes[TLOGICAL] = sizeof(char);
+    sizes[TUSHORT] = sizes[TSHORT] = sizeof(short int);
+    sizes[TINT] = sizes[TUINT] = sizeof(int);
+    sizes[TLONG] = sizes[TULONG] = sizeof(long int);
+    sizes[TLONGLONG] = sizes[TULONGLONG] = sizeof(LONGLONG);
+    sizes[TFLOAT] = sizeof(float);
+    sizes[TDOUBLE] = sizeof(double);
+    sizes[TDBLCOMPLEX] = 2*sizeof(double);
+
+    if (*status > 0)
+        return(*status);
+
+    if (ncols <= 0) return (*status=0);
+
+    repeats = malloc(sizeof(LONGLONG)*ncols);
+    if (repeats == 0) return (*status=MEMORY_ALLOCATION);
+
+    fits_get_num_rowsll(fptr, &ntotrows, status);
+    fits_get_rowsize(fptr, &nrowbuf, status);
+
+    /* Retrieve column repeats */
+    for (icol = 0; (icol < ncols) && (icol < 1000); icol++) {
+      int typecode;
+      LONGLONG repeat, width;
+      fits_get_coltypell(fptr, colnum[icol], &typecode, 
+			 &repeat, &width, status);
+      repeats[icol] = repeat;
+
+      if (datatype[icol] == TBIT || datatype[icol] == TSTRING ||
+	  sizes[datatype[icol]] == 0) {
+	ffpmsg("Cannot write to TBIT or TSTRING datatypes (ffpcln)");
+	*status = BAD_DATATYPE;
+      }
+      if (typecode < 0) {
+	ffpmsg("Cannot write to variable-length data (ffpcln)");
+	*status = BAD_DIMEN;
+      }
+
+      if (*status) break;
+    }
+    if (*status) {
+      free(repeats);
+      return *status;
+    }
+
+    /* Optimize for 1 column */
+    if (ncols == 1) {
+      fits_write_colnull(fptr, datatype[0], colnum[0], firstrow, 1,
+			 nrows*repeats[0], 
+			 array[0], nulval[0], status);
+      free(repeats);
+      return *status;
+    }
+
+    /* Scan through file, in chunks of nrowbuf */
+    currow = firstrow;
+    ndone = 0;
+    while (ndone < nrows) {
+      int icol;
+      nwrite = (nrows-ndone);
+      if (nwrite > nrowbuf) nwrite = nrowbuf;
+
+      for (icol=0; icol<ncols; icol++) {
+	LONGLONG nelem1 = (nwrite*repeats[icol]);
+	char *array1 = (char *) array[icol] + repeats[icol]*ndone*sizes[datatype[icol]];
+
+	fits_write_colnull(fptr, datatype[icol], colnum[icol], ndone+1, 1, 
+			   nelem1, array1, nulval[icol], status);
+	if (*status) {
+	  char errmsg[100];
+	  sprintf(errmsg,
+		  "Failed to write column %d data rows %lld-%lld (ffpcln)",
+		  colnum[icol], currow, currow+nwrite-1);
+	  ffpmsg(errmsg);
+	  break;
+	}
+      }
+
+      if (*status) break;
+      currow += nwrite;
+      ndone += nwrite;
+    }
+
+    free(repeats);
+    return *status;
+}
+
 /*--------------------------------------------------------------------------*/
 int fits_iter_set_by_name(iteratorCol *col, /* I - iterator col structure */
            fitsfile *fptr,  /* I - FITS file pointer                      */
@@ -1135,14 +1250,28 @@ int ffiter(int n_cols,
         /* check that output datatype code value is legal */
         type = cols[jj].datatype;  
 
-        /* Allow variable length arrays for InputCol and InputOutputCol columns,
-	   but not for OutputCol columns.  Variable length arrays have a
-	   negative type code value. */
+        /* Allow variable length arrays for InputCol and
+	   InputOutputCol columns, but not for OutputCol/TemporaryCol
+	   columns.  Variable length arrays have a negative type code
+	   value. */
 
-        if ((cols[jj].iotype != OutputCol) && (type<0)) {
+        if ( !((cols[jj].iotype == OutputCol) || (cols[jj].iotype == TemporaryCol))
+	     && (type<0)) {
             type*=-1;
         }
 
+	/* TemporaryCol must have defined datatype and repeat */
+	if (cols[jj].iotype == TemporaryCol &&
+	    (type <= 0 || cols[jj].repeat <= 0)) {
+	  
+	  snprintf(message,FLEN_ERRMSG,
+		   "TemporaryCol column must have defined datatype and repeat for column %d (ffiter)",
+		   jj + 1);
+	  ffpmsg(message);
+	  return(*status = BAD_DATATYPE);
+	}
+
+	/* Check for variable length or illegal data types */
         if (type != 0      && type != TBYTE  &&
             type != TSBYTE && type != TLOGICAL && type != TSTRING &&
             type != TSHORT && type != TINT     && type != TLONG && 
@@ -1170,7 +1299,12 @@ int ffiter(int n_cols,
         cols[jj].tunit[0] = '\0';
         cols[jj].tdisp[0] = '\0';
 
-        ffghdt(cols[jj].fptr, &jtype, status);  /* get HDU type */
+	/* Determine HDU type of this table (or BINARY_TBL for TemporaryCol) */
+	if (cols[jj].iotype != TemporaryCol) {
+	  ffghdt(cols[jj].fptr, &jtype, status);  /* get HDU type */
+	} else {
+	  hdutype = BINARY_TBL;
+	}
 
         if (hdutype == IMAGE_HDU) /* operating on FITS images */
         {
@@ -1188,6 +1322,13 @@ int ffiter(int n_cols,
 
             tstatus = 0;
             ffgkys(cols[jj].fptr, "BUNIT", cols[jj].tunit, 0, &tstatus);
+
+	    if (cols[jj].iotype == TemporaryCol) {
+                snprintf(message,FLEN_ERRMSG,
+			 "Column type TemporaryCol not permitted for IMAGE HDUs (ffiter)");
+                return(*status = BAD_DATATYPE);
+            }
+	      
         }
         else  /* operating on FITS tables */
         {
@@ -1199,53 +1340,56 @@ int ffiter(int n_cols,
                 return(*status = NOT_TABLE);
             }
 
-            if (cols[jj].colnum < 1)
-            {
-                /* find the column number for the named column */
-                if (ffgcno(cols[jj].fptr, CASEINSEN, cols[jj].colname,
-                           &cols[jj].colnum, status) )
-                {
-                    snprintf(message,FLEN_ERRMSG,
-                      "Column '%s' not found for column number %d  (ffiter)",
-                       cols[jj].colname, jj + 1);
-                    ffpmsg(message);
-                    return(*status);
-                }
-            }
-
-            /* check that the column number is valid */
-            if (cols[jj].colnum < 1 || 
-                cols[jj].colnum > ((cols[jj].fptr)->Fptr)->tfield)
-            {
-                snprintf(message,FLEN_ERRMSG,
-                  "Column %d has illegal table position number: %d  (ffiter)",
-                    jj + 1, cols[jj].colnum);
-                ffpmsg(message);
-                return(*status = BAD_COL_NUM);
-            }
-
-            /* look for column description keywords and update structure */
-            tstatus = 0;
-            ffkeyn("TLMIN", cols[jj].colnum, keyname, &tstatus);
-            ffgkyj(cols[jj].fptr, keyname, &cols[jj].tlmin, 0, &tstatus);
-
-            tstatus = 0;
-            ffkeyn("TLMAX", cols[jj].colnum, keyname, &tstatus);
-            ffgkyj(cols[jj].fptr, keyname, &cols[jj].tlmax, 0, &tstatus);
-
-            tstatus = 0;
-            ffkeyn("TTYPE", cols[jj].colnum, keyname, &tstatus);
-            ffgkys(cols[jj].fptr, keyname, cols[jj].colname, 0, &tstatus);
-            if (tstatus)
+	    if (cols[jj].iotype != TemporaryCol)
+	    {
+	      if (cols[jj].colnum < 1)
+		{
+		  /* find the column number for the named column */
+		  if (ffgcno(cols[jj].fptr, CASEINSEN, cols[jj].colname,
+			     &cols[jj].colnum, status) )
+		    {
+		      snprintf(message,FLEN_ERRMSG,
+			       "Column '%s' not found for column number %d  (ffiter)",
+			       cols[jj].colname, jj + 1);
+		      ffpmsg(message);
+		      return(*status);
+		    }
+		}
+	      
+	      /* check that the column number is valid */
+	      if (cols[jj].colnum < 1 || 
+		  cols[jj].colnum > ((cols[jj].fptr)->Fptr)->tfield)
+		{
+		  snprintf(message,FLEN_ERRMSG,
+			   "Column %d has illegal table position number: %d  (ffiter)",
+			   jj + 1, cols[jj].colnum);
+		  ffpmsg(message);
+		  return(*status = BAD_COL_NUM);
+		}
+	      
+	      /* look for column description keywords and update structure */
+	      tstatus = 0;
+	      ffkeyn("TLMIN", cols[jj].colnum, keyname, &tstatus);
+	      ffgkyj(cols[jj].fptr, keyname, &cols[jj].tlmin, 0, &tstatus);
+	      
+	      tstatus = 0;
+	      ffkeyn("TLMAX", cols[jj].colnum, keyname, &tstatus);
+	      ffgkyj(cols[jj].fptr, keyname, &cols[jj].tlmax, 0, &tstatus);
+	      
+	      tstatus = 0;
+	      ffkeyn("TTYPE", cols[jj].colnum, keyname, &tstatus);
+	      ffgkys(cols[jj].fptr, keyname, cols[jj].colname, 0, &tstatus);
+	      if (tstatus)
                 cols[jj].colname[0] = '\0';
-
-            tstatus = 0;
-            ffkeyn("TUNIT", cols[jj].colnum, keyname, &tstatus);
-            ffgkys(cols[jj].fptr, keyname, cols[jj].tunit, 0, &tstatus);
-
-            tstatus = 0;
-            ffkeyn("TDISP", cols[jj].colnum, keyname, &tstatus);
-            ffgkys(cols[jj].fptr, keyname, cols[jj].tdisp, 0, &tstatus);
+	      
+	      tstatus = 0;
+	      ffkeyn("TUNIT", cols[jj].colnum, keyname, &tstatus);
+	      ffgkys(cols[jj].fptr, keyname, cols[jj].tunit, 0, &tstatus);
+	      
+	      tstatus = 0;
+	      ffkeyn("TDISP", cols[jj].colnum, keyname, &tstatus);
+	      ffgkys(cols[jj].fptr, keyname, cols[jj].tdisp, 0, &tstatus);
+	    }
         }
     }  /* end of loop over all columns */
 
@@ -1255,6 +1399,7 @@ int ffiter(int n_cols,
 
     offset = maxvalue(offset, 0L);  /* make sure offset is legal */
 
+    felement = 0;
     if (hdutype == IMAGE_HDU)   /* get total number of pixels in the image */
     {
       fits_get_img_dim(cols[0].fptr, &naxis, status);
@@ -1281,9 +1426,32 @@ int ffiter(int n_cols,
     }
     else   /* get total number or rows in the table */
     {
-      ffgkyj(cols[0].fptr, "NAXIS2", &totaln, 0, status);
-      frow = 1 + offset;
-      felement = 1;
+      /* Note the maxvalue here is a special case to deal with
+	 how the calculator treats expressions that have NO 
+	 referenced columns, just constants and other derivable
+	 values like #ROW.  In that case, the calculator creates
+	 a cols[0].fptr even though there is no column for it,
+	 and the iterator is not meant to allocate any space,
+	 etc for the column.  So the maxvalue() here assures
+	 that cols[0] is always checked, even if ncols==0, which
+	 is how the original logic worked.  This is a bit 
+	 dangerous in the sense that, what happens if the user
+	 passes a non-calculator input to this iterator, and
+	 has NOT set fptr to a legitimate FITS handle.  Boom! */
+      for (jj=0; jj < maxvalue(n_cols,1); jj++) {
+	if (cols[jj].iotype != TemporaryCol && cols[jj].fptr) {
+	  ffgkyj(cols[jj].fptr, "NAXIS2", &totaln, 0, status);
+	  frow = 1 + offset;
+	  felement = 1;
+	  break;
+	}
+      }
+      if (felement != 1) {
+	snprintf(message,FLEN_ERRMSG,
+		 "There must be at least one input or output column in iterator (ffiter)");
+	ffpmsg(message);
+	return(*status = BAD_COL_NUM);
+      }
     }
 
     /*  adjust total by the input starting offset value */
@@ -1301,10 +1469,12 @@ int ffiter(int n_cols,
         /* of unique files.                                          */
 
         nfiles = 1;
-        ffgrsz(cols[0].fptr, &n_optimum, status);
+	n_optimum = 0;
+        if (cols[0].iotype != TemporaryCol) ffgrsz(cols[0].fptr, &n_optimum, status);
 
         for (jj = 1; jj < n_cols; jj++)
         {
+	    if (cols[jj].iotype == TemporaryCol) continue;
             for (ii = 0; ii < jj; ii++)
             {
                 if (cols[ii].fptr == cols[jj].fptr)
@@ -1315,7 +1485,11 @@ int ffiter(int n_cols,
             {
                 nfiles++;
                 ffgrsz(cols[jj].fptr, &i_optimum, status);
-                n_optimum = minvalue(n_optimum, i_optimum);
+		if (n_optimum == 0) { /* If first column is TemporaryCol */
+		  n_optimum = i_optimum;
+		} else {
+		  n_optimum = minvalue(n_optimum, i_optimum);
+		}
             }
         }
 
@@ -1372,7 +1546,7 @@ int ffiter(int n_cols,
                  break;
             }
         }
-        else
+        else if (cols[jj].iotype != TemporaryCol)
         {
             if (ffgtcl(cols[jj].fptr, cols[jj].colnum, &typecode, &rept,
                   &width, status) > 0)
@@ -1394,6 +1568,28 @@ int ffiter(int n_cols,
               }
 	   }
         }
+	else 
+	{
+	    /* TemporaryCol - datatype etc must be defined */
+	    typecode = cols[jj].datatype;
+	    if (typecode <= 0 || typecode == TBIT || typecode == TSTRING) {
+	      snprintf(message,FLEN_ERRMSG,
+		       "Invalid typecode for temporary output column number %d (ffiter)",
+		       jj+1);
+	      ffpmsg(message);
+                return(*status = BAD_DATATYPE);
+	    }
+
+	    rept = cols[jj].repeat;
+	    if (rept <= 0) {
+	      snprintf(message,FLEN_ERRMSG,
+		       "Invalid repeat (%ld) for temporary output column number %d (ffiter)",
+		       rept, jj+1);
+	      ffpmsg(message);
+	      return(*status = BAD_DIMEN);
+	    }
+
+	}
 
         /* special case where sizeof(long) = 8: use TINT instead of TLONG */
         if (abs(typecode) == TLONG && sizeof(long) == 8 && sizeof(int) == 4) {
@@ -1454,7 +1650,7 @@ int ffiter(int n_cols,
 		rept = maxvalue(rept, rowrept);
 	      }
             }
-	    
+
             ntodo = n_optimum * rept;   /* vector columns */
             cols[jj].repeat = rept;
 
@@ -1789,7 +1985,7 @@ int ffiter(int n_cols,
       /*  read input columns from FITS file(s)  */
       for (jj = 0; jj < n_cols; jj++)
       {
-        if (cols[jj].iotype != OutputCol)
+        if (cols[jj].iotype != OutputCol && cols[jj].iotype != TemporaryCol)
         {
           if (cols[jj].datatype == TSTRING)
           {
@@ -1879,7 +2075,7 @@ int ffiter(int n_cols,
       tstatus = 0;
       for (jj = 0; jj < n_cols; jj++)
       {
-        if (cols[jj].iotype != InputCol)
+        if (cols[jj].iotype != InputCol && cols[jj].iotype != TemporaryCol)
         {
           if (cols[jj].datatype == TSTRING)
           {

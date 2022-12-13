@@ -52,8 +52,16 @@ class Parameter:
     _registry_validators = {}
 
     @deprecated_renamed_argument("fmt", None, since="5.1")
-    def __init__(self, *, derived=False, unit=None, equivalencies=[],
-                 fvalidate="default", fmt="", doc=None):
+    def __init__(
+        self,
+        *,
+        derived=False,
+        unit=None,
+        equivalencies=[],
+        fvalidate="default",
+        fmt="",
+        doc=None,
+    ):
         # attribute name on container cosmology class.
         # really set in __set_name__, but if Parameter is not init'ed as a
         # descriptor this ensures that the attributes exist.
@@ -74,11 +82,13 @@ class Parameter:
         elif fvalidate in self._registry_validators:
             fvalidate = self._registry_validators[fvalidate]
         elif isinstance(fvalidate, str):
-            raise ValueError("`fvalidate`, if str, must be in "
-                             f"{self._registry_validators.keys()}")
+            raise ValueError(
+                f"`fvalidate`, if str, must be in {self._registry_validators.keys()}"
+            )
         else:
-            raise TypeError("`fvalidate` must be a function or "
-                            f"{self._registry_validators.keys()}")
+            raise TypeError(
+                f"`fvalidate` must be a function or {self._registry_validators.keys()}"
+            )
         self._fvalidate = fvalidate
 
     def __set_name__(self, cosmo_cls, name):
@@ -235,13 +245,15 @@ class Parameter:
         dict[str, Any]
         """
         # The keys are added in this order because `repr` prints them in order.
-        kw = {"derived": self.derived,
-              "unit": self.unit,
-              "equivalencies": self.equivalencies,
-              # Validator is always turned into a function, but for ``repr`` it's nice
-              # to know if it was originally a string.
-              "fvalidate": self.fvalidate if processed else self._fvalidate_in,
-              "doc": self.__doc__}
+        kw = {
+            "derived": self.derived,
+            "unit": self.unit,
+            "equivalencies": self.equivalencies,
+            # Validator is always turned into a function, but for ``repr`` it's nice
+            # to know if it was originally a string.
+            "fvalidate": self.fvalidate if processed else self._fvalidate_in,
+            "doc": self.__doc__,
+        }
         # fmt will issue a deprecation warning if passed, so only passed if
         # it's not the default.
         if self._format_spec:
@@ -306,8 +318,9 @@ class Parameter:
         # Check equality on all `_init_arguments` & `name`.
         # Need to compare the processed arguments because the inputs are many-
         # to-one, e.g. `fvalidate` can be a string or the equivalent function.
-        return ((self._get_init_arguments(True) == other._get_init_arguments(True))
-                and (self.name == other.name))
+        return (self._get_init_arguments(True) == other._get_init_arguments(True)) and (
+            self.name == other.name
+        )
 
     def __repr__(self):
         """String representation.
@@ -315,8 +328,9 @@ class Parameter:
         ``eval(repr())`` should work, depending if contents like ``fvalidate``
         can be similarly round-tripped.
         """
-        return "Parameter({})".format(", ".join(f"{k}={v!r}" for k, v in
-                                                self._get_init_arguments().items()))
+        return "Parameter({})".format(
+            ", ".join(f"{k}={v!r}" for k, v in self._get_init_arguments().items())
+        )
 
 
 # ===================================================================

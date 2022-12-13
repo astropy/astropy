@@ -1,1 +1,0 @@
-Fixed bug that caused ``earth_orientation.nutation_matrix()`` to error instead of returning output.

@@ -11,7 +11,7 @@ from .base import FLRW, FlatFLRWMixin
 
 __all__ = ["w0waCDM", "Flatw0waCDM"]
 
-__doctest_requires__ = {'*': ['scipy']}
+__doctest_requires__ = {"*": ["scipy"]}
 
 
 class w0waCDM(FLRW):
@@ -90,13 +90,37 @@ class w0waCDM(FLRW):
     """
 
     w0 = Parameter(doc="Dark energy equation of state at z=0.", fvalidate="float")
-    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.",
-                   fvalidate="float")
+    wa = Parameter(
+        doc="Negative derivative of dark energy equation of state w.r.t. a.",
+        fvalidate="float",
+    )
 
-    def __init__(self, H0, Om0, Ode0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
-                 m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
-                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        Ode0,
+        w0=-1.0,
+        wa=0.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=Ode0,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
         self.w0 = w0
         self.wa = wa
 
@@ -104,20 +128,36 @@ class w0waCDM(FLRW):
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._w0, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._w0,
+                self._wa,
+            )
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._w0, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
+                self._wa,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._w0,
-                                           self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ok0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._w0,
+                self._wa,
+            )
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -251,26 +291,57 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
-    def __init__(self, H0, Om0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
-                 m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
-        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
-                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
+    def __init__(
+        self,
+        H0,
+        Om0,
+        w0=-1.0,
+        wa=0.0,
+        Tcmb0=0.0 * u.K,
+        Neff=3.04,
+        m_nu=0.0 * u.eV,
+        Ob0=None,
+        *,
+        name=None,
+        meta=None
+    ):
+        super().__init__(
+            H0=H0,
+            Om0=Om0,
+            Ode0=0.0,
+            w0=w0,
+            wa=wa,
+            Tcmb0=Tcmb0,
+            Neff=Neff,
+            m_nu=m_nu,
+            Ob0=Ob0,
+            name=name,
+            meta=meta,
+        )
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_norel
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._w0, self._wa)
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._w0, self._wa)
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_nomnu
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0 + self._Onu0,
-                                           self._w0, self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0 + self._Onu0,
+                self._w0,
+                self._wa,
+            )
         else:
             self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc
-            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0, self._neff_per_nu,
-                                           self._nmasslessnu,
-                                           self._nu_y_list, self._w0,
-                                           self._wa)
+            self._inv_efunc_scalar_args = (
+                self._Om0,
+                self._Ode0,
+                self._Ogamma0,
+                self._neff_per_nu,
+                self._nmasslessnu,
+                self._nu_y_list,
+                self._w0,
+                self._wa,
+            )

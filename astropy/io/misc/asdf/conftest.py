@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from astropy.utils.introspection import minversion
 
 

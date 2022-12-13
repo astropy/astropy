@@ -1,19 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
+import weakref
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
-import weakref
 
+import numpy as np
 
 # from astropy.utils.compat import ignored
 from astropy import log
-from astropy.units import Unit, Quantity, UnitConversionError
+from astropy.units import Quantity, Unit, UnitConversionError
 
-__all__ = ['MissingDataAssociationException',
-           'IncompatibleUncertaintiesException', 'NDUncertainty',
-           'StdDevUncertainty', 'UnknownUncertainty',
-           'VarianceUncertainty', 'InverseVariance']
+__all__ = [
+    "MissingDataAssociationException",
+    "IncompatibleUncertaintiesException",
+    "NDUncertainty",
+    "StdDevUncertainty",
+    "UnknownUncertainty",
+    "VarianceUncertainty",
+    "InverseVariance",
+]
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -67,20 +72,17 @@ class NDUncertainty(metaclass=ABCMeta):
             if array.uncertainty_type != self.uncertainty_type:
                 raise IncompatibleUncertaintiesException
             # Check if two units are given and take the explicit one then.
-            if (unit is not None and unit != array._unit):
+            if unit is not None and unit != array._unit:
                 # TODO : Clarify it (see NDData.init for same problem)?
-                log.info("overwriting Uncertainty's current "
-                         "unit with specified unit.")
+                log.info("overwriting Uncertainty's current unit with specified unit.")
             elif array._unit is not None:
                 unit = array.unit
             array = array.array
 
         elif isinstance(array, Quantity):
             # Check if two units are given and take the explicit one then.
-            if (unit is not None and array.unit is not None and
-                    unit != array.unit):
-                log.info("overwriting Quantity's current "
-                         "unit with specified unit.")
+            if unit is not None and array.unit is not None and unit != array.unit:
+                log.info("overwriting Quantity's current unit with specified unit.")
             elif array.unit is not None:
                 unit = array.unit
             array = array.value
@@ -117,8 +119,7 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @property
     def array(self):
-        """`numpy.ndarray` : the uncertainty's value.
-        """
+        """`numpy.ndarray` : the uncertainty's value."""
         return self._array
 
     @array.setter
@@ -129,8 +130,7 @@ class NDUncertainty(metaclass=ABCMeta):
 
     @property
     def unit(self):
-        """`~astropy.units.Unit` : The unit of the uncertainty, if any.
-        """
+        """`~astropy.units.Unit` : The unit of the uncertainty, if any."""
         return self._unit
 
     @unit.setter
@@ -148,10 +148,11 @@ class NDUncertainty(metaclass=ABCMeta):
                     # Check for consistency with the unit of the parent_nddata
                     self._data_unit_to_uncertainty_unit(parent_unit).to(value)
                 except UnitConversionError:
-                    raise UnitConversionError("Unit {} is incompatible "
-                                              "with unit {} of parent "
-                                              "nddata".format(value,
-                                                              parent_unit))
+                    raise UnitConversionError(
+                        "Unit {} is incompatible with unit {} of parent nddata".format(
+                            value, parent_unit
+                        )
+                    )
 
             self._unit = Unit(value)
         else:
@@ -197,8 +198,7 @@ class NDUncertainty(metaclass=ABCMeta):
                         log.info(parent_lost_message)
                     return resolved_parent
                 else:
-                    log.info("parent_nddata should be a weakref to an NDData "
-                             "object.")
+                    log.info("parent_nddata should be a weakref to an NDData object.")
                     return self._parent_nddata
 
     @parent_nddata.setter
@@ -229,10 +229,11 @@ class NDUncertainty(metaclass=ABCMeta):
                 try:
                     unit_from_data.to(self.unit)
                 except UnitConversionError:
-                    raise UnitConversionError("Unit {} of uncertainty "
-                                              "incompatible with unit {} of "
-                                              "data".format(self.unit,
-                                                            parent_unit))
+                    raise UnitConversionError(
+                        "Unit {} of uncertainty "
+                        "incompatible with unit {} of "
+                        "data".format(self.unit, parent_unit)
+                    )
 
     @abstractmethod
     def _data_unit_to_uncertainty_unit(self, value):
@@ -244,13 +245,13 @@ class NDUncertainty(metaclass=ABCMeta):
         return None
 
     def __repr__(self):
-        prefix = self.__class__.__name__ + '('
+        prefix = self.__class__.__name__ + "("
         try:
-            body = np.array2string(self.array, separator=', ', prefix=prefix)
+            body = np.array2string(self.array, separator=", ", prefix=prefix)
         except AttributeError:
             # In case it wasn't possible to use array2string
             body = str(self.array)
-        return ''.join([prefix, body, ')'])
+        return "".join([prefix, body, ")"])
 
     def __getstate__(self):
         # Because of the weak reference the class wouldn't be picklable.
@@ -262,7 +263,7 @@ class NDUncertainty(metaclass=ABCMeta):
 
     def __setstate__(self, state):
         if len(state) != 3:
-            raise TypeError('The state should contain 3 items.')
+            raise TypeError("The state should contain 3 items.")
         self._array = state[0]
         self._unit = state[1]
 
@@ -272,8 +273,7 @@ class NDUncertainty(metaclass=ABCMeta):
         self._parent_nddata = parent
 
     def __getitem__(self, item):
-        """Normal slicing on the array, keep the unit and return a reference.
-        """
+        """Normal slicing on the array, keep the unit and return a reference."""
         return self.__class__(self.array[item], unit=self.unit, copy=False)
 
     def propagate(self, operation, other_nddata, result_data, correlation):
@@ -323,27 +323,25 @@ class NDUncertainty(metaclass=ABCMeta):
         # Check if the subclass supports correlation
         if not self.supports_correlated:
             if isinstance(correlation, np.ndarray) or correlation != 0:
-                raise ValueError("{} does not support uncertainty propagation"
-                                 " with correlation."
-                                 "".format(self.__class__.__name__))
+                raise ValueError(
+                    "{} does not support uncertainty propagation"
+                    " with correlation."
+                    "".format(self.__class__.__name__)
+                )
 
         # Get the other uncertainty (and convert it to a matching one)
         other_uncert = self._convert_uncertainty(other_nddata.uncertainty)
 
-        if operation.__name__ == 'add':
-            result = self._propagate_add(other_uncert, result_data,
-                                         correlation)
-        elif operation.__name__ == 'subtract':
-            result = self._propagate_subtract(other_uncert, result_data,
-                                              correlation)
-        elif operation.__name__ == 'multiply':
-            result = self._propagate_multiply(other_uncert, result_data,
-                                              correlation)
-        elif operation.__name__ in ['true_divide', 'divide']:
-            result = self._propagate_divide(other_uncert, result_data,
-                                            correlation)
+        if operation.__name__ == "add":
+            result = self._propagate_add(other_uncert, result_data, correlation)
+        elif operation.__name__ == "subtract":
+            result = self._propagate_subtract(other_uncert, result_data, correlation)
+        elif operation.__name__ == "multiply":
+            result = self._propagate_multiply(other_uncert, result_data, correlation)
+        elif operation.__name__ in ["true_divide", "divide"]:
+            result = self._propagate_divide(other_uncert, result_data, correlation)
         else:
-            raise ValueError('unsupported operation')
+            raise ValueError("unsupported operation")
 
         return self.__class__(result, copy=False)
 
@@ -418,8 +416,7 @@ class NDUncertainty(metaclass=ABCMeta):
         as_variance = getattr(self, "_convert_to_variance", None)
         if as_variance is None:
             raise TypeError(
-                f"{type(self)} does not support conversion to another "
-                "uncertainty type."
+                f"{type(self)} does not support conversion to another uncertainty type."
             )
         from_variance = getattr(other_uncert, "_convert_from_variance", None)
         if from_variance is None:
@@ -444,8 +441,7 @@ class UnknownUncertainty(NDUncertainty):
 
     @property
     def supports_correlated(self):
-        """`False` : Uncertainty propagation is *not* possible for this class.
-        """
+        """`False` : Uncertainty propagation is *not* possible for this class."""
         return False
 
     @property
@@ -453,7 +449,7 @@ class UnknownUncertainty(NDUncertainty):
         """``"unknown"`` : `UnknownUncertainty` implements any unknown \
                            uncertainty type.
         """
-        return 'unknown'
+        return "unknown"
 
     def _data_unit_to_uncertainty_unit(self, value):
         """
@@ -469,8 +465,7 @@ class UnknownUncertainty(NDUncertainty):
         raise IncompatibleUncertaintiesException(msg)
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        """Not possible for unknown uncertainty types.
-        """
+        """Not possible for unknown uncertainty types."""
         return None
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
@@ -490,9 +485,15 @@ class _VariancePropagationMixin:
     variance).
     """
 
-    def _propagate_add_sub(self, other_uncert, result_data, correlation,
-                           subtract=False,
-                           to_variance=lambda x: x, from_variance=lambda x: x):
+    def _propagate_add_sub(
+        self,
+        other_uncert,
+        result_data,
+        correlation,
+        subtract=False,
+        to_variance=lambda x: x,
+        from_variance=lambda x: x,
+    ):
         """
         Error propagation for addition or subtraction of variance or
         variance-like uncertainties. Uncertainties are calculated using the
@@ -529,18 +530,22 @@ class _VariancePropagationMixin:
             correlation_sign = 1
 
         try:
-            result_unit_sq = result_data.unit ** 2
+            result_unit_sq = result_data.unit**2
         except AttributeError:
             result_unit_sq = None
 
         if other_uncert.array is not None:
             # Formula: sigma**2 = dB
-            if (other_uncert.unit is not None and
-                    result_unit_sq != to_variance(other_uncert.unit)):
+            if other_uncert.unit is not None and result_unit_sq != to_variance(
+                other_uncert.unit
+            ):
                 # If the other uncertainty has a unit and this unit differs
                 # from the unit of the result convert it to the results unit
-                other = to_variance(other_uncert.array <<
-                                    other_uncert.unit).to(result_unit_sq).value
+                other = (
+                    to_variance(other_uncert.array << other_uncert.unit)
+                    .to(result_unit_sq)
+                    .value
+                )
             else:
                 other = to_variance(other_uncert.array)
         else:
@@ -549,7 +554,10 @@ class _VariancePropagationMixin:
         if self.array is not None:
             # Formula: sigma**2 = dA
 
-            if self.unit is not None and to_variance(self.unit) != self.parent_nddata.unit**2:
+            if (
+                self.unit is not None
+                and to_variance(self.unit) != self.parent_nddata.unit**2
+            ):
                 # If the uncertainty has a different unit than the result we
                 # need to convert it to the results unit.
                 this = to_variance(self.array << self.unit).to(result_unit_sq).value
@@ -571,11 +579,15 @@ class _VariancePropagationMixin:
 
         return from_variance(result)
 
-    def _propagate_multiply_divide(self, other_uncert, result_data,
-                                   correlation,
-                                   divide=False,
-                                   to_variance=lambda x: x,
-                                   from_variance=lambda x: x):
+    def _propagate_multiply_divide(
+        self,
+        other_uncert,
+        result_data,
+        correlation,
+        divide=False,
+        to_variance=lambda x: x,
+        from_variance=lambda x: x,
+    ):
         """
         Error propagation for multiplication or division of variance or
         variance-like uncertainties. Uncertainties are calculated using the
@@ -619,11 +631,16 @@ class _VariancePropagationMixin:
             # We want the result to have a unit consistent with the parent, so
             # we only need to convert the unit of the other uncertainty if it
             # is different from its data's unit.
-            if (other_uncert.unit and
-                to_variance(1 * other_uncert.unit) !=
-                    ((1 * other_uncert.parent_nddata.unit)**2).unit):
-                d_b = to_variance(other_uncert.array << other_uncert.unit).to(
-                    (1 * other_uncert.parent_nddata.unit)**2).value
+            if (
+                other_uncert.unit
+                and to_variance(1 * other_uncert.unit)
+                != ((1 * other_uncert.parent_nddata.unit) ** 2).unit
+            ):
+                d_b = (
+                    to_variance(other_uncert.array << other_uncert.unit)
+                    .to((1 * other_uncert.parent_nddata.unit) ** 2)
+                    .value
+                )
             else:
                 d_b = to_variance(other_uncert.array)
             # Formula: sigma**2 = |A|**2 * d_b
@@ -633,11 +650,16 @@ class _VariancePropagationMixin:
 
         if self.array is not None:
             # Just the reversed case
-            if (self.unit and
-                to_variance(1 * self.unit) !=
-                    ((1 * self.parent_nddata.unit)**2).unit):
-                d_a = to_variance(self.array << self.unit).to(
-                    (1 * self.parent_nddata.unit)**2).value
+            if (
+                self.unit
+                and to_variance(1 * self.unit)
+                != ((1 * self.parent_nddata.unit) ** 2).unit
+            ):
+                d_a = (
+                    to_variance(self.array << self.unit)
+                    .to((1 * self.parent_nddata.unit) ** 2)
+                    .value
+                )
             else:
                 d_a = to_variance(self.array)
             # Formula: sigma**2 = |B|**2 * d_a
@@ -674,15 +696,21 @@ class _VariancePropagationMixin:
         #               the correlation)
 
         if isinstance(correlation, np.ndarray) or correlation != 0:
-            corr = (2 * correlation * np.sqrt(d_a * d_b) *
-                    self.parent_nddata.data *
-                    other_uncert.parent_nddata.data)
+            corr = (
+                2
+                * correlation
+                * np.sqrt(d_a * d_b)
+                * self.parent_nddata.data
+                * other_uncert.parent_nddata.data
+            )
         else:
             corr = 0
 
         if divide:
-            return from_variance((left + right + correlation_sign * corr) /
-                                 other_uncert.parent_nddata.data**4)
+            return from_variance(
+                (left + right + correlation_sign * corr)
+                / other_uncert.parent_nddata.data**4
+            )
         else:
             return from_variance(left + right + correlation_sign * corr)
 
@@ -743,9 +771,8 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     @property
     def uncertainty_type(self):
-        """``"std"`` : `StdDevUncertainty` implements standard deviation.
-        """
-        return 'std'
+        """``"std"`` : `StdDevUncertainty` implements standard deviation."""
+        return "std"
 
     def _convert_uncertainty(self, other_uncert):
         if isinstance(other_uncert, StdDevUncertainty):
@@ -754,37 +781,51 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
             raise IncompatibleUncertaintiesException
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=False,
-                                          to_variance=np.square,
-                                          from_variance=np.sqrt)
+        return super()._propagate_add_sub(
+            other_uncert,
+            result_data,
+            correlation,
+            subtract=False,
+            to_variance=np.square,
+            from_variance=np.sqrt,
+        )
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=True,
-                                          to_variance=np.square,
-                                          from_variance=np.sqrt)
+        return super()._propagate_add_sub(
+            other_uncert,
+            result_data,
+            correlation,
+            subtract=True,
+            to_variance=np.square,
+            from_variance=np.sqrt,
+        )
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=False,
-                                                  to_variance=np.square,
-                                                  from_variance=np.sqrt)
+        return super()._propagate_multiply_divide(
+            other_uncert,
+            result_data,
+            correlation,
+            divide=False,
+            to_variance=np.square,
+            from_variance=np.sqrt,
+        )
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=True,
-                                                  to_variance=np.square,
-                                                  from_variance=np.sqrt)
+        return super()._propagate_multiply_divide(
+            other_uncert,
+            result_data,
+            correlation,
+            divide=True,
+            to_variance=np.square,
+            from_variance=np.sqrt,
+        )
 
     def _data_unit_to_uncertainty_unit(self, value):
         return value
 
     def _convert_to_variance(self):
-        new_array = None if self.array is None else self.array ** 2
-        new_unit = None if self.unit is None else self.unit ** 2
+        new_array = None if self.array is None else self.array**2
+        new_unit = None if self.unit is None else self.unit**2
         return VarianceUncertainty(new_array, unit=new_unit)
 
     @classmethod
@@ -842,11 +883,11 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
     .. note::
         The unit will not be displayed.
     """
+
     @property
     def uncertainty_type(self):
-        """``"var"`` : `VarianceUncertainty` implements variance.
-        """
-        return 'var'
+        """``"var"`` : `VarianceUncertainty` implements variance."""
+        return "var"
 
     @property
     def supports_correlated(self):
@@ -859,25 +900,27 @@ class VarianceUncertainty(_VariancePropagationMixin, NDUncertainty):
         return True
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=False)
+        return super()._propagate_add_sub(
+            other_uncert, result_data, correlation, subtract=False
+        )
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=True)
+        return super()._propagate_add_sub(
+            other_uncert, result_data, correlation, subtract=True
+        )
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=False)
+        return super()._propagate_multiply_divide(
+            other_uncert, result_data, correlation, divide=False
+        )
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=True)
+        return super()._propagate_multiply_divide(
+            other_uncert, result_data, correlation, divide=True
+        )
 
     def _data_unit_to_uncertainty_unit(self, value):
-        return value ** 2
+        return value**2
 
     def _convert_to_variance(self):
         return self
@@ -941,11 +984,11 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
     .. note::
         The unit will not be displayed.
     """
+
     @property
     def uncertainty_type(self):
-        """``"ivar"`` : `InverseVariance` implements inverse variance.
-        """
-        return 'ivar'
+        """``"ivar"`` : `InverseVariance` implements inverse variance."""
+        return "ivar"
 
     @property
     def supports_correlated(self):
@@ -958,33 +1001,47 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
         return True
 
     def _propagate_add(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=False,
-                                          to_variance=_inverse,
-                                          from_variance=_inverse)
+        return super()._propagate_add_sub(
+            other_uncert,
+            result_data,
+            correlation,
+            subtract=False,
+            to_variance=_inverse,
+            from_variance=_inverse,
+        )
 
     def _propagate_subtract(self, other_uncert, result_data, correlation):
-        return super()._propagate_add_sub(other_uncert, result_data,
-                                          correlation, subtract=True,
-                                          to_variance=_inverse,
-                                          from_variance=_inverse)
+        return super()._propagate_add_sub(
+            other_uncert,
+            result_data,
+            correlation,
+            subtract=True,
+            to_variance=_inverse,
+            from_variance=_inverse,
+        )
 
     def _propagate_multiply(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=False,
-                                                  to_variance=_inverse,
-                                                  from_variance=_inverse)
+        return super()._propagate_multiply_divide(
+            other_uncert,
+            result_data,
+            correlation,
+            divide=False,
+            to_variance=_inverse,
+            from_variance=_inverse,
+        )
 
     def _propagate_divide(self, other_uncert, result_data, correlation):
-        return super()._propagate_multiply_divide(other_uncert,
-                                                  result_data, correlation,
-                                                  divide=True,
-                                                  to_variance=_inverse,
-                                                  from_variance=_inverse)
+        return super()._propagate_multiply_divide(
+            other_uncert,
+            result_data,
+            correlation,
+            divide=True,
+            to_variance=_inverse,
+            from_variance=_inverse,
+        )
 
     def _data_unit_to_uncertainty_unit(self, value):
-        return 1 / value ** 2
+        return 1 / value**2
 
     def _convert_to_variance(self):
         new_array = None if self.array is None else 1 / self.array

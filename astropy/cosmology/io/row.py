@@ -60,7 +60,7 @@ def from_row(row, *, move_to_meta=False, cosmology=None):
                       Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
     """
     # special values
-    name = row['name'] if 'name' in row.columns else None  # get name from column
+    name = row["name"] if "name" in row.columns else None  # get name from column
 
     meta = defaultdict(dict, copy.deepcopy(row.meta))
     # Now need to add the Columnar metadata. This is only available on the

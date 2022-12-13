@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from copy import copy, deepcopy
-import pytest
 
 import numpy as np
-from astropy import wcs
+import pytest
 
-from . helper import SimModelTAB
+from astropy import wcs
 
 
 def test_prjprm_init():
@@ -30,8 +29,9 @@ def test_prjprm_copy():
     prj2 = copy(prj)
     prj3 = copy(prj2)
     prj.pv = [0, 6, 8, 18, 3]
-    assert (np.allclose(prj.pv, prj2.pv, atol=1e-12, rtol=0) and
-            np.allclose(prj.pv, prj3.pv, atol=1e-12, rtol=0))
+    assert np.allclose(prj.pv, prj2.pv, atol=1e-12, rtol=0) and np.allclose(
+        prj.pv, prj3.pv, atol=1e-12, rtol=0
+    )
     del prj, prj2, prj3
 
     # deep copy
@@ -50,19 +50,19 @@ def test_prjprm_flag():
 def test_prjprm_code():
     prj = wcs.Prjprm()
 
-    assert prj.code == '   '
+    assert prj.code == "   "
     assert prj._flag == 0
 
-    prj.code = 'TAN'
+    prj.code = "TAN"
     prj.set()
-    assert prj.code == 'TAN'
+    assert prj.code == "TAN"
     assert prj._flag
 
-    prj.code = 'TAN'
+    prj.code = "TAN"
     assert prj._flag
 
     prj.code = None
-    assert prj.code == '   '
+    assert prj.code == "   "
     assert prj._flag == 0
 
 
@@ -72,7 +72,7 @@ def test_prjprm_phi0():
     assert prj.phi0 == None
     assert prj._flag == 0
 
-    prj.code = 'TAN'
+    prj.code = "TAN"
     prj.phi0 = 2.0
     prj.set()
     assert prj.phi0 == 0
@@ -94,7 +94,7 @@ def test_prjprm_theta0():
     assert prj.theta0 == None
     assert prj._flag == 0
 
-    prj.code = 'TAN'
+    prj.code = "TAN"
     prj.phi0 = 2.0
     prj.theta0 = 4.0
     prj.set()
@@ -119,7 +119,7 @@ def test_prjprm_pv():
     assert prj.theta0 == None
     assert prj._flag == 0
 
-    prj.code = 'ZPN'
+    prj.code = "ZPN"
     prj.phi0 = 2.0
     prj.theta0 = 4.0
     pv = [float(i) if (i % 2) else i for i in range(wcs.PRJ_PVN)]
@@ -143,7 +143,7 @@ def test_prjprm_pv():
 
     # check that None in pv list leave value unchanged and values not set
     # by the list are left unchanged:
-    prj.code = 'SZP'
+    prj.code = "SZP"
     prj.pv = [0.0, 99.0, None]
     assert np.allclose(prj.pv[:4], [0.0, 99.0, 2.0, 3.0], atol=1e-6, rtol=0)
 
@@ -155,7 +155,7 @@ def test_prjprm_pv():
 
     # check we can set all PVs to nan:
     nan_pvs = wcs.PRJ_PVN * [np.nan]
-    prj.code = 'TAN'
+    prj.code = "TAN"
     prj.pv = nan_pvs  # set using a list
     prj.set()
     assert np.all(np.isnan(prj.pv))
@@ -166,14 +166,14 @@ def test_prjprm_pv():
 
 def test_prjprm_pvrange():
     prj = wcs.Prjprm()
-    prj.code = 'ZPN'
+    prj.code = "ZPN"
     prj.phi0 = 2.0
     prj.theta0 = 4.0
     prj.pv = [0.0, 1.0, 2.0, 3.0]
     prj.set()
     assert prj.pvrange == wcs.PRJ_PVN
 
-    prj.code = 'SZP'
+    prj.code = "SZP"
     prj.set()
     assert prj.pvrange == 103
 
@@ -241,7 +241,7 @@ def test_prjprm_prj_roundtrips(prj_TAB):
 
     # same test for a Prjprm that was not previously explicitly "set":
     prj = wcs.Prjprm()
-    prj.code = 'TAN'
+    prj.code = "TAN"
     xr, yr = prj.prjs2x(*prj.prjx2s(x, y))
     assert np.allclose(x, xr, atol=1e-12, rtol=0)
     assert np.allclose(y, yr, atol=1e-12, rtol=0)

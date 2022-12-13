@@ -9,11 +9,10 @@ import os
 
 # LOCAL
 from astropy.utils.data import get_pkg_data_filename
-from . import html
-from . import result
 
+from . import html, result
 
-__all__ = ['make_validation_report']
+__all__ = ["make_validation_report"]
 
 
 def get_srcdir():
@@ -23,20 +22,19 @@ def get_srcdir():
 def get_urls(destdir, s):
     import gzip
 
-    types = ['good', 'broken', 'incorrect']
+    types = ["good", "broken", "incorrect"]
 
     seen = set()
     urls = []
     for type in types:
-        filename = get_pkg_data_filename(
-            f'data/urls/cone.{type}.dat.gz')
-        with gzip.open(filename, 'rb') as fd:
+        filename = get_pkg_data_filename(f"data/urls/cone.{type}.dat.gz")
+        with gzip.open(filename, "rb") as fd:
             for url in fd.readlines():
                 next(s)
                 url = url.strip()
                 if url not in seen:
                     with result.Result(url, root=destdir) as r:
-                        r['expected'] = type
+                        r["expected"] = type
                     urls.append(url)
                 seen.add(url)
 
@@ -58,7 +56,7 @@ def validate_vo(args):
 def votlint_validate(args):
     path_to_stilts_jar, url, destdir = args
     with result.Result(url, root=destdir) as r:
-        if r['network_error'] is None:
+        if r["network_error"] is None:
             r.validate_with_votlint(path_to_stilts_jar)
 
 
@@ -74,8 +72,11 @@ def write_subindex(args):
 
 
 def make_validation_report(
-    urls=None, destdir='astropy.io.votable.validator.results',
-    multiprocess=True, stilts=None):
+    urls=None,
+    destdir="astropy.io.votable.validator.results",
+    multiprocess=True,
+    stilts=None,
+):
     """
     Validates a large collection of web-accessible VOTable files.
 
@@ -110,51 +111,48 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from astropy.utils.console import (color_print, ProgressBar, Spinner)
+    from astropy.utils.console import ProgressBar, Spinner, color_print
 
     if stilts is not None:
         if not os.path.exists(stilts):
-            raise ValueError(
-                f'{stilts} does not exist.')
+            raise ValueError(f"{stilts} does not exist.")
 
+    destdir = os.path.expanduser(destdir)
     destdir = os.path.abspath(destdir)
 
     if urls is None:
-        with Spinner('Loading URLs', 'green') as s:
+        with Spinner("Loading URLs", "green") as s:
             urls = get_urls(destdir, s)
     else:
-        color_print('Marking URLs', 'green')
-        for url in ProgressBar.iterate(urls):
+        urls = [url.encode() for url in urls if isinstance(url, str)]
+
+        color_print("Marking URLs", "green")
+        for url in ProgressBar(urls):
             with result.Result(url, root=destdir) as r:
-                r['expected'] = type
+                r["expected"] = type
 
     args = [(url, destdir) for url in urls]
 
-    color_print('Downloading VO files', 'green')
-    ProgressBar.map(
-        download, args, multiprocess=multiprocess)
+    color_print("Downloading VO files", "green")
+    ProgressBar.map(download, args, multiprocess=multiprocess)
 
-    color_print('Validating VO files', 'green')
-    ProgressBar.map(
-        validate_vo, args, multiprocess=multiprocess)
+    color_print("Validating VO files", "green")
+    ProgressBar.map(validate_vo, args, multiprocess=multiprocess)
 
     if stilts is not None:
-        color_print('Validating with votlint', 'green')
+        color_print("Validating with votlint", "green")
         votlint_args = [(stilts, x, destdir) for x in urls]
-        ProgressBar.map(
-            votlint_validate, votlint_args, multiprocess=multiprocess)
+        ProgressBar.map(votlint_validate, votlint_args, multiprocess=multiprocess)
 
-    color_print('Generating HTML files', 'green')
-    ProgressBar.map(
-        write_html_result, args, multiprocess=multiprocess)
+    color_print("Generating HTML files", "green")
+    ProgressBar.map(write_html_result, args, multiprocess=multiprocess)
 
-    with Spinner('Grouping results', 'green') as s:
+    with Spinner("Grouping results", "green") as s:
         subsets = result.get_result_subsets(urls, destdir, s)
 
-    color_print('Generating index', 'green')
+    color_print("Generating index", "green")
     html.write_index(subsets, urls, destdir)
 
-    color_print('Generating subindices', 'green')
+    color_print("Generating subindices", "green")
     subindex_args = [(subset, destdir, len(urls)) for subset in subsets]
-    ProgressBar.map(
-        write_subindex, subindex_args, multiprocess=multiprocess)
+    ProgressBar.map(write_subindex, subindex_args, multiprocess=multiprocess)

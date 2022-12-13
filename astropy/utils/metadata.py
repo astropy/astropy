@@ -3,23 +3,31 @@
 This module contains helper functions and classes for handling metadata.
 """
 
-from functools import wraps
-
 import warnings
-
 from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
+from functools import wraps
 
 import numpy as np
+
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import dtype_bytes_or_chars
 
-
-__all__ = ['MergeConflictError', 'MergeConflictWarning', 'MERGE_STRATEGIES',
-           'common_dtype', 'MergePlus', 'MergeNpConcatenate', 'MergeStrategy',
-           'MergeStrategyMeta', 'enable_merge_strategies', 'merge', 'MetaData',
-           'MetaAttribute']
+__all__ = [
+    "MergeConflictError",
+    "MergeConflictWarning",
+    "MERGE_STRATEGIES",
+    "common_dtype",
+    "MergePlus",
+    "MergeNpConcatenate",
+    "MergeStrategy",
+    "MergeStrategyMeta",
+    "enable_merge_strategies",
+    "merge",
+    "MetaData",
+    "MetaAttribute",
+]
 
 
 class MergeConflictError(TypeError):
@@ -50,16 +58,19 @@ def common_dtype(arrs):
     dtype_str : str
         String representation of dytpe (dtype ``str`` attribute)
     """
+
     def dtype(arr):
-        return getattr(arr, 'dtype', np.dtype('O'))
+        return getattr(arr, "dtype", np.dtype("O"))
 
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
-    uniq_types = {tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
-                  for arr in arrs}
+    uniq_types = {
+        tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
+        for arr in arrs
+    }
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [dtype(arr).name for arr in arrs]
-        tme = MergeConflictError(f'Arrays have incompatible types {incompat_types}')
+        tme = MergeConflictError(f"Arrays have incompatible types {incompat_types}")
         tme._incompat_types = incompat_types
         raise tme
 
@@ -68,12 +79,18 @@ def common_dtype(arrs):
     # For string-type arrays need to explicitly fill in non-zero
     # values or the final arr_common = .. step is unpredictable.
     for i, arr in enumerate(arrs):
-        if arr.dtype.kind in ('S', 'U'):
-            arrs[i] = [('0' if arr.dtype.kind == 'U' else b'0') *
-                       dtype_bytes_or_chars(arr.dtype)]
+        if arr.dtype.kind in ("S", "U"):
+            arrs[i] = [
+                ("0" if arr.dtype.kind == "U" else b"0")
+                * dtype_bytes_or_chars(arr.dtype)
+            ]
 
     arr_common = np.array([arr[0] for arr in arrs])
-    return arr_common.dtype.str if arr_common.dtype.names is None else arr_common.dtype.descr
+    return (
+        arr_common.dtype.str
+        if arr_common.dtype.names is None
+        else arr_common.dtype.descr
+    )
 
 
 class MergeStrategyMeta(type):
@@ -87,8 +104,8 @@ class MergeStrategyMeta(type):
 
         # Wrap ``merge`` classmethod to catch any exception and re-raise as
         # MergeConflictError.
-        if 'merge' in members and isinstance(members['merge'], classmethod):
-            orig_merge = members['merge'].__func__
+        if "merge" in members and isinstance(members["merge"], classmethod):
+            orig_merge = members["merge"].__func__
 
             @wraps(orig_merge)
             def merge(cls, left, right):
@@ -100,8 +117,8 @@ class MergeStrategyMeta(type):
             cls.merge = classmethod(merge)
 
         # Register merging class (except for base MergeStrategy class)
-        if 'types' in members:
-            types = members['types']
+        if "types" in members:
+            types = members["types"]
             if isinstance(types, tuple):
                 types = [types]
             for left, right in reversed(types):
@@ -161,6 +178,7 @@ class MergeStrategy(metaclass=MergeStrategyMeta):
       ...         return [left, right]
 
     """
+
     # Set ``enabled = True`` to globally enable applying this merge strategy.
     # This is not generally recommended.
     enabled = False
@@ -173,6 +191,7 @@ class MergePlus(MergeStrategy):
     Merge ``left`` and ``right`` objects using the plus operator.  This
     merge strategy is globally enabled by default.
     """
+
     types = [(list, list), (tuple, tuple)]
     enabled = True
 
@@ -189,9 +208,12 @@ class MergeNpConcatenate(MergeStrategy):
     This will upcast a list or tuple to np.ndarray and the output is
     always ndarray.
     """
-    types = [(np.ndarray, np.ndarray),
-             (np.ndarray, (list, tuple)),
-             ((list, tuple), np.ndarray)]
+
+    types = [
+        (np.ndarray, np.ndarray),
+        (np.ndarray, (list, tuple)),
+        ((list, tuple), np.ndarray),
+    ]
     enabled = True
 
     @classmethod
@@ -289,27 +311,33 @@ def enable_merge_strategies(*merge_strategies):
 
 
 def _warn_str_func(key, left, right):
-    out = ('Cannot merge meta key {0!r} types {1!r}'
-           ' and {2!r}, choosing {0}={3!r}'
-           .format(key, type(left), type(right), right))
+    out = (
+        f"Cannot merge meta key {key!r} types {type(left)!r}"
+        f" and {type(right)!r}, choosing {key}={right!r}"
+    )
     return out
 
 
 def _error_str_func(key, left, right):
-    out = f'Cannot merge meta key {key!r} types {type(left)!r} and {type(right)!r}'
+    out = f"Cannot merge meta key {key!r} types {type(left)!r} and {type(right)!r}"
     return out
 
 
-def merge(left, right, merge_func=None, metadata_conflicts='warn',
-          warn_str_func=_warn_str_func,
-          error_str_func=_error_str_func):
+def merge(
+    left,
+    right,
+    merge_func=None,
+    metadata_conflicts="warn",
+    warn_str_func=_warn_str_func,
+    error_str_func=_error_str_func,
+):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
     This is a simplistic and limited implementation at this point.
     """
     if not _both_isinstance(left, right, dict):
-        raise MergeConflictError('Can only merge two dict-based objects')
+        raise MergeConflictError("Can only merge two dict-based objects")
 
     out = deepcopy(left)
 
@@ -321,8 +349,9 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
 
         # There is a conflict that must be resolved
         if _both_isinstance(left[key], right[key], dict):
-            out[key] = merge(left[key], right[key], merge_func,
-                             metadata_conflicts=metadata_conflicts)
+            out[key] = merge(
+                left[key], right[key], merge_func, metadata_conflicts=metadata_conflicts
+            )
 
         else:
             try:
@@ -330,8 +359,9 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
                     for left_type, right_type, merge_cls in MERGE_STRATEGIES:
                         if not merge_cls.enabled:
                             continue
-                        if (isinstance(left[key], left_type) and
-                                isinstance(right[key], right_type)):
+                        if isinstance(left[key], left_type) and isinstance(
+                            right[key], right_type
+                        ):
                             out[key] = merge_cls.merge(left[key], right[key])
                             break
                     else:
@@ -339,7 +369,6 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
                 else:
                     out[key] = merge_func(left[key], right[key])
             except MergeConflictError:
-
                 # Pick the metadata item that is not None, or they are both not
                 # None, then if they are equal, there is no conflict, and if
                 # they are different, there is a conflict and we pick the one
@@ -353,14 +382,20 @@ def merge(left, right, merge_func=None, metadata_conflicts='warn',
                 elif right[key] is None:
                     out[key] = left[key]
                 elif _not_equal(left[key], right[key]):
-                    if metadata_conflicts == 'warn':
-                        warnings.warn(warn_str_func(key, left[key], right[key]),
-                                      MergeConflictWarning)
-                    elif metadata_conflicts == 'error':
-                        raise MergeConflictError(error_str_func(key, left[key], right[key]))
-                    elif metadata_conflicts != 'silent':
-                        raise ValueError('metadata_conflicts argument must be one '
-                                         'of "silent", "warn", or "error"')
+                    if metadata_conflicts == "warn":
+                        warnings.warn(
+                            warn_str_func(key, left[key], right[key]),
+                            MergeConflictWarning,
+                        )
+                    elif metadata_conflicts == "error":
+                        raise MergeConflictError(
+                            error_str_func(key, left[key], right[key])
+                        )
+                    elif metadata_conflicts != "silent":
+                        raise ValueError(
+                            "metadata_conflicts argument must be one "
+                            'of "silent", "warn", or "error"'
+                        )
                     out[key] = right[key]
                 else:
                     out[key] = right[key]
@@ -397,7 +432,7 @@ class MetaData:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        if not hasattr(instance, '_meta'):
+        if not hasattr(instance, "_meta"):
             instance._meta = OrderedDict()
         return instance._meta
 
@@ -443,6 +478,7 @@ class MetaAttribute:
     :param default: default value
 
     """
+
     def __init__(self, default=None):
         self.default = default
 
@@ -456,12 +492,13 @@ class MetaAttribute:
         # without doing touching meta['__attributes__'] at all. This helps e.g.
         # with the Table._hidden_columns attribute so it doesn't auto-create
         # meta['__attributes__'] always.
-        if (self.default is None
-                and self.name not in instance.meta.get('__attributes__', {})):
+        if self.default is None and self.name not in instance.meta.get(
+            "__attributes__", {}
+        ):
             return None
 
         # Get the __attributes__ dict and create if not there already.
-        attributes = instance.meta.setdefault('__attributes__', {})
+        attributes = instance.meta.setdefault("__attributes__", {})
         try:
             value = attributes[self.name]
         except KeyError:
@@ -473,30 +510,34 @@ class MetaAttribute:
 
     def __set__(self, instance, value):
         # Get the __attributes__ dict and create if not there already.
-        attributes = instance.meta.setdefault('__attributes__', {})
+        attributes = instance.meta.setdefault("__attributes__", {})
         attributes[self.name] = value
 
     def __delete__(self, instance):
         # Remove this attribute from meta['__attributes__'] if it exists.
-        if '__attributes__' in instance.meta:
-            attrs = instance.meta['__attributes__']
+        if "__attributes__" in instance.meta:
+            attrs = instance.meta["__attributes__"]
             if self.name in attrs:
                 del attrs[self.name]
             # If this was the last attribute then remove the meta key as well
             if not attrs:
-                del instance.meta['__attributes__']
+                del instance.meta["__attributes__"]
 
     def __set_name__(self, owner, name):
         import inspect
-        params = [param.name for param in inspect.signature(owner).parameters.values()
-                  if param.kind not in (inspect.Parameter.VAR_KEYWORD,
-                                        inspect.Parameter.VAR_POSITIONAL)]
+
+        params = [
+            param.name
+            for param in inspect.signature(owner).parameters.values()
+            if param.kind
+            not in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
+        ]
 
         # Reject names from existing params or best guess at parent class
         if name in params or hasattr(owner.__mro__[1], name):
-            raise ValueError(f'{name} not allowed as {self.__class__.__name__}')
+            raise ValueError(f"{name} not allowed as {self.__class__.__name__}")
 
         self.name = name
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} name={self.name} default={self.default}>'
+        return f"<{self.__class__.__name__} name={self.name} default={self.default}>"

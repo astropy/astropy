@@ -13,7 +13,7 @@ packages or code.
 
 """
 
-from .misc import *  # noqa
+from .misc import *
 
 # Importing this module will also install monkey-patches defined in it
-from .numpycompat import *  # noqa
+from .numpycompat import *

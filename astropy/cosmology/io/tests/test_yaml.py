@@ -9,7 +9,12 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import Cosmology, FlatLambdaCDM, Planck18
 from astropy.cosmology import units as cu
-from astropy.cosmology.io.yaml import from_yaml, to_yaml, yaml_constructor, yaml_representer
+from astropy.cosmology.io.yaml import (
+    from_yaml,
+    to_yaml,
+    yaml_constructor,
+    yaml_representer,
+)
 from astropy.io.misc.yaml import AstropyDumper, dump, load
 
 from .base import ToFromDirectTestBase, ToFromTestMixinBase
@@ -68,21 +73,24 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         Some of the tests define custom cosmologies. They are not registered.
         """
         if cosmo_cls not in AstropyDumper.yaml_representers:
-            pytest.xfail(f"Cosmologies of type {cosmo_cls} are not registered with YAML.")
+            pytest.xfail(
+                f"Cosmologies of type {cosmo_cls} are not registered with YAML."
+            )
 
     # ===============================================================
 
     def test_to_yaml(self, cosmo, to_format, xfail_if_not_registered_with_yaml):
         """Test cosmology -> YAML."""
-        yml = to_format('yaml')
+        yml = to_format("yaml")
 
         assert isinstance(yml, str)  # test type
         assert yml.startswith("!astropy.cosmology.")
 
-    def test_from_yaml_default(self, cosmo, to_format, from_format,
-                               xfail_if_not_registered_with_yaml):
+    def test_from_yaml_default(
+        self, cosmo, to_format, from_format, xfail_if_not_registered_with_yaml
+    ):
         """Test cosmology -> YAML -> cosmology."""
-        yml = to_format('yaml')
+        yml = to_format("yaml")
 
         got = from_format(yml, format="yaml")  # (cannot autoidentify)
 
@@ -97,8 +105,9 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         # auto-identify test moved because it doesn't work.
         # see test_from_yaml_autoidentify
 
-    def test_from_yaml_autoidentify(self, cosmo, to_format, from_format,
-                                    xfail_if_not_registered_with_yaml):
+    def test_from_yaml_autoidentify(
+        self, cosmo, to_format, from_format, xfail_if_not_registered_with_yaml
+    ):
         """As a non-path string, it does NOT auto-identifies 'format'.
 
         TODO! this says there should be different types of I/O registries.
@@ -108,7 +117,7 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
 
         # Showing the specific error. The str is interpreted as a file location
         # but is too long a file name.
-        yml = to_format('yaml')
+        yml = to_format("yaml")
         with pytest.raises((FileNotFoundError, OSError)):  # OSError in Windows
             from_format(yml)
 
@@ -122,8 +131,9 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
     # -----------------------------------------------------
 
     @pytest.mark.parametrize("format", [True, False, None])
-    def test_is_equivalent_to_yaml(self, cosmo, to_format, format,
-                                   xfail_if_not_registered_with_yaml):
+    def test_is_equivalent_to_yaml(
+        self, cosmo, to_format, format, xfail_if_not_registered_with_yaml
+    ):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
 
         This test checks that Cosmology equivalency can be extended to any
@@ -136,8 +146,9 @@ class ToFromYAMLTestMixin(ToFromTestMixinBase):
         is_equiv = cosmo.is_equivalent(obj, format=format)
         assert is_equiv is False
 
-    def test_is_equivalent_to_yaml_specify_format(self, cosmo, to_format,
-                                                  xfail_if_not_registered_with_yaml):
+    def test_is_equivalent_to_yaml_specify_format(
+        self, cosmo, to_format, xfail_if_not_registered_with_yaml
+    ):
         """Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
 
         Same as ``test_is_equivalent_to_yaml`` but with ``format="yaml"``.

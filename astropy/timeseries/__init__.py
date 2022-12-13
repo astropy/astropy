@@ -4,9 +4,9 @@
 This subpackage contains classes and functions for work with time series.
 """
 
-from astropy.timeseries.core import *  # noqa
-from astropy.timeseries.sampled import *  # noqa
-from astropy.timeseries.binned import *  # noqa
-from astropy.timeseries import io  # noqa
-from astropy.timeseries.downsample import *  # noqa
-from astropy.timeseries.periodograms import *  # noqa
+from astropy.timeseries import io
+from astropy.timeseries.binned import *
+from astropy.timeseries.core import *
+from astropy.timeseries.downsample import *
+from astropy.timeseries.periodograms import *
+from astropy.timeseries.sampled import *

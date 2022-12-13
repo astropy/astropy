@@ -1,20 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-import itertools
 import copy
+import itertools
+import warnings
 
-import pytest
 import numpy as np
+import pytest
 
+import astropy.units as u
 from astropy.time import Time
-from astropy.utils import iers
+from astropy.time.utils import day_frac
 from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
-
+from astropy.utils import iers
 
 needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED,
-    reason="Needs __array_function__ support")
+    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
+)
 
 
 def assert_time_all_equal(t1, t2):
@@ -26,25 +27,41 @@ def assert_time_all_equal(t1, t2):
 class ShapeSetup:
     def setup_class(cls):
         mjd = np.arange(50000, 50010)
-        frac = np.arange(0., 0.999, 0.2)
+        frac = np.arange(0.0, 0.999, 0.2)
         frac_masked = np.ma.array(frac)
         frac_masked[1] = np.ma.masked
 
         cls.t0 = {
-            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc'),
-            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc')
+            "not_masked": Time(mjd[:, np.newaxis] + frac, format="mjd", scale="utc"),
+            "masked": Time(mjd[:, np.newaxis] + frac_masked, format="mjd", scale="utc"),
         }
         cls.t1 = {
-            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                               location=('45d', '50d')),
-            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc',
-                           location=('45d', '50d')),
+            "not_masked": Time(
+                mjd[:, np.newaxis] + frac,
+                format="mjd",
+                scale="utc",
+                location=("45d", "50d"),
+            ),
+            "masked": Time(
+                mjd[:, np.newaxis] + frac_masked,
+                format="mjd",
+                scale="utc",
+                location=("45d", "50d"),
+            ),
         }
         cls.t2 = {
-            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                               location=(np.arange(len(frac)), np.arange(len(frac)))),
-            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc',
-                           location=(np.arange(len(frac_masked)), np.arange(len(frac_masked)))),
+            "not_masked": Time(
+                mjd[:, np.newaxis] + frac,
+                format="mjd",
+                scale="utc",
+                location=(np.arange(len(frac)), np.arange(len(frac))),
+            ),
+            "masked": Time(
+                mjd[:, np.newaxis] + frac_masked,
+                format="mjd",
+                scale="utc",
+                location=(np.arange(len(frac_masked)), np.arange(len(frac_masked))),
+            ),
         }
 
     def create_data(self, use_mask):
@@ -53,9 +70,10 @@ class ShapeSetup:
         self.t2 = self.__class__.t2[use_mask]
 
 
-@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
+@pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestManipulation(ShapeSetup):
     """Manipulation of Time objects, ensuring attributes are done correctly."""
+
     def test_ravel(self, use_mask):
         self.create_data(use_mask)
 
@@ -201,10 +219,10 @@ class TestManipulation(ShapeSetup):
         t2_reshape_t_reshape = t2_reshape_t.reshape(10, 5)
         assert t2_reshape_t_reshape.shape == (10, 5)
         assert not np.may_share_memory(t2_reshape_t_reshape.jd1, self.t2.jd1)
-        assert (t2_reshape_t_reshape.location.shape
-                == t2_reshape_t_reshape.shape)
-        assert not np.may_share_memory(t2_reshape_t_reshape.location,
-                                       t2_reshape_t.location)
+        assert t2_reshape_t_reshape.location.shape == t2_reshape_t_reshape.shape
+        assert not np.may_share_memory(
+            t2_reshape_t_reshape.location, t2_reshape_t.location
+        )
 
     def test_squeeze(self, use_mask):
         self.create_data(use_mask)
@@ -288,7 +306,7 @@ class TestManipulation(ShapeSetup):
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
 
 
-@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
+@pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestSetShape(ShapeSetup):
     def test_shape_setting(self, use_mask):
         # Shape-setting should be on the object itself, since copying removes
@@ -340,7 +358,7 @@ class TestSetShape(ShapeSetup):
         assert self.t2.location.shape == oldshape
 
 
-@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
+@pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestShapeFunctions(ShapeSetup):
     @needs_array_function
     def test_broadcast(self, use_mask):
@@ -449,21 +467,22 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0d[2:], self.t0[4:])
 
 
-@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
+@pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestArithmetic:
     """Arithmetic on Time objects, using both doubles."""
-    kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
-    functions = ('min', 'max', 'sort')
+
+    kwargs = ({}, {"axis": None}, {"axis": 0}, {"axis": 1}, {"axis": 2})
+    functions = ("min", "max", "sort")
 
     def setup_class(cls):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
-        frac = np.array([0.1, 0.1 + 1.e-15, 0.1 - 1.e-15, 0.9 + 2.e-16, 0.9])
+        frac = np.array([0.1, 0.1 + 1.0e-15, 0.1 - 1.0e-15, 0.9 + 2.0e-16, 0.9])
         frac_masked = np.ma.array(frac)
         frac_masked[1] = np.ma.masked
 
         cls.t0 = {
-            'not_masked': Time(mjd, frac, format='mjd', scale='utc'),
-            'masked': Time(mjd, frac_masked, format='mjd', scale='utc')
+            "not_masked": Time(mjd, frac, format="mjd", scale="utc"),
+            "masked": Time(mjd, frac_masked, format="mjd", scale="utc"),
         }
 
         # Define arrays with same ordinal properties
@@ -472,20 +491,33 @@ class TestArithmetic:
         frac_masked[1] = np.ma.masked
 
         cls.t1 = {
-            'not_masked': Time(mjd + frac, format='mjd', scale='utc'),
-            'masked': Time(mjd + frac_masked, format='mjd', scale='utc'),
+            "not_masked": Time(mjd + frac, format="mjd", scale="utc"),
+            "masked": Time(mjd + frac_masked, format="mjd", scale="utc"),
         }
-        cls.jd = {
-            'not_masked': mjd + frac,
-            'masked': mjd + frac_masked
-            }
+        cls.jd = {"not_masked": mjd + frac, "masked": mjd + frac_masked}
+
+        cls.t2 = {
+            "not_masked": Time(
+                mjd + frac,
+                format="mjd",
+                scale="utc",
+                location=(np.arange(len(frac)), np.arange(len(frac))),
+            ),
+            "masked": Time(
+                mjd + frac_masked,
+                format="mjd",
+                scale="utc",
+                location=(np.arange(len(frac_masked)), np.arange(len(frac_masked))),
+            ),
+        }
 
     def create_data(self, use_mask):
         self.t0 = self.__class__.t0[use_mask]
         self.t1 = self.__class__.t1[use_mask]
+        self.t2 = self.__class__.t2[use_mask]
         self.jd = self.__class__.jd[use_mask]
 
-    @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
+    @pytest.mark.parametrize("kw, func", itertools.product(kwargs, functions))
     def test_argfuncs(self, kw, func, use_mask):
         """
         Test that ``np.argfunc(jd, **kw)`` is the same as ``t0.argfunc(**kw)``
@@ -495,11 +527,11 @@ class TestArithmetic:
         """
         self.create_data(use_mask)
 
-        t0v = getattr(self.t0, 'arg' + func)(**kw)
-        t1v = getattr(self.t1, 'arg' + func)(**kw)
-        jdv = getattr(np, 'arg' + func)(self.jd, **kw)
+        t0v = getattr(self.t0, "arg" + func)(**kw)
+        t1v = getattr(self.t1, "arg" + func)(**kw)
+        jdv = getattr(np, "arg" + func)(self.jd, **kw)
 
-        if self.t0.masked and kw == {'axis': None} and func == 'sort':
+        if self.t0.masked and kw == {"axis": None} and func == "sort":
             t0v = np.ma.array(t0v, mask=self.t0.mask.reshape(t0v.shape)[t0v])
             t1v = np.ma.array(t1v, mask=self.t1.mask.reshape(t1v.shape)[t1v])
             jdv = np.ma.array(jdv, mask=self.jd.mask.reshape(jdv.shape)[jdv])
@@ -509,7 +541,7 @@ class TestArithmetic:
         assert t0v.shape == jdv.shape
         assert t1v.shape == jdv.shape
 
-    @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
+    @pytest.mark.parametrize("kw, func", itertools.product(kwargs, functions))
     def test_funcs(self, kw, func, use_mask):
         """
         Test that ``np.func(jd, **kw)`` is the same as ``t1.func(**kw)`` where
@@ -534,7 +566,7 @@ class TestArithmetic:
         self.create_data(use_mask)
 
         assert self.t0.argmax() == self.t0.size - 2
-        if use_mask == 'masked':
+        if use_mask == "masked":
             # The 0 is where all entries are masked in that axis
             assert np.all(self.t0.argmax(axis=0) == [1, 0, 1, 1, 1])
             assert np.all(self.t0.argmax(axis=1) == [4, 0, 4, 4, 4])
@@ -546,13 +578,13 @@ class TestArithmetic:
     def test_argsort(self, use_mask):
         self.create_data(use_mask)
 
-        order = [2, 0, 4, 3, 1] if use_mask == 'masked' else [2, 0, 1, 4, 3]
+        order = [2, 0, 4, 3, 1] if use_mask == "masked" else [2, 0, 1, 4, 3]
         assert np.all(self.t0.argsort() == np.array(order))
         assert np.all(self.t0.argsort(axis=0) == np.arange(2).reshape(2, 1, 1))
         assert np.all(self.t0.argsort(axis=1) == np.arange(5).reshape(5, 1))
         assert np.all(self.t0.argsort(axis=2) == np.array(order))
         ravel = np.arange(50).reshape(-1, 5)[:, order].ravel()
-        if use_mask == 'masked':
+        if use_mask == "masked":
             t0v = self.t0.argsort(axis=None)
             # Manually remove elements in ravel that correspond to masked
             # entries in self.t0.  This removes the 10 entries that are masked
@@ -563,14 +595,14 @@ class TestArithmetic:
         else:
             assert np.all(self.t0.argsort(axis=None) == ravel)
 
-    @pytest.mark.parametrize('scale', Time.SCALES)
+    @pytest.mark.parametrize("scale", Time.SCALES)
     def test_argsort_warning(self, use_mask, scale):
         self.create_data(use_mask)
 
-        if scale == 'utc':
+        if scale == "utc":
             pytest.xfail()
         with warnings.catch_warnings(record=True) as wlist:
-            Time([1, 2, 3], format='jd', scale=scale).argsort()
+            Time([1, 2, 3], format="jd", scale=scale).argsort()
         assert len(wlist) == 0
 
     def test_min(self, use_mask):
@@ -608,24 +640,111 @@ class TestArithmetic:
     def test_sort(self, use_mask):
         self.create_data(use_mask)
 
-        order = [2, 0, 4, 3, 1] if use_mask == 'masked' else [2, 0, 1, 4, 3]
+        order = [2, 0, 4, 3, 1] if use_mask == "masked" else [2, 0, 1, 4, 3]
         assert np.all(self.t0.sort() == self.t0[:, :, order])
         assert np.all(self.t0.sort(0) == self.t0)
         assert np.all(self.t0.sort(1) == self.t0)
         assert np.all(self.t0.sort(2) == self.t0[:, :, order])
-        if use_mask == 'not_masked':
-            assert np.all(self.t0.sort(None)
-                          == self.t0[:, :, order].ravel())
+        if use_mask == "not_masked":
+            assert np.all(self.t0.sort(None) == self.t0[:, :, order].ravel())
             # Bit superfluous, but good to check.
             assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
             assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
+
+    @pytest.mark.parametrize("axis", [None, 0, 1, 2, (0, 1)])
+    @pytest.mark.parametrize(
+        "where", [True, np.array([True, False, True, True, False])[..., np.newaxis]]
+    )
+    @pytest.mark.parametrize("keepdims", [False, True])
+    def test_mean(self, use_mask, axis, where, keepdims):
+        self.create_data(use_mask)
+
+        kwargs = dict(axis=axis, where=where, keepdims=keepdims)
+
+        def is_consistent(time):
+            where_expected = where & ~time.mask
+            where_expected = np.broadcast_to(where_expected, time.shape)
+
+            kw = kwargs.copy()
+            kw["where"] = where_expected
+
+            divisor = where_expected.sum(axis=axis, keepdims=keepdims)
+
+            if np.any(divisor == 0):
+                with pytest.raises(ValueError):
+                    time.mean(**kwargs)
+
+            else:
+                time_mean = time.mean(**kwargs)
+                time_expected = Time(
+                    *day_frac(
+                        val1=np.ma.getdata(time.tai.jd1).sum(**kw),
+                        val2=np.ma.getdata(time.tai.jd2).sum(**kw),
+                        divisor=divisor,
+                    ),
+                    format="jd",
+                    scale="tai",
+                )
+                time_expected._set_scale(time.scale)
+                assert np.all(time_mean == time_expected)
+
+        is_consistent(self.t0)
+        is_consistent(self.t1)
+
+        axes_location_not_constant = [None, 2]
+        if axis in axes_location_not_constant:
+            with pytest.raises(ValueError):
+                self.t2.mean(**kwargs)
+        else:
+            is_consistent(self.t2)
+
+    def test_mean_precision(self, use_mask):
+        scale = "tai"
+        epsilon = 1 * u.ns
+
+        t0 = Time("2021-07-27T00:00:00", scale=scale)
+        t1 = Time("2022-07-27T00:00:00", scale=scale)
+        t2 = Time("2023-07-27T00:00:00", scale=scale)
+
+        t = Time([t0, t2 + epsilon])
+
+        if use_mask == "masked":
+            t[0] = np.ma.masked
+            assert t.mean() == (t2 + epsilon)
+
+        else:
+            assert t.mean() == (t1 + epsilon / 2)
+
+    def test_mean_dtype(self, use_mask):
+        self.create_data(use_mask)
+        with pytest.raises(ValueError):
+            self.t0.mean(dtype=int)
+
+    def test_mean_out(self, use_mask):
+        self.create_data(use_mask)
+        with pytest.raises(ValueError):
+            self.t0.mean(out=Time(np.zeros_like(self.t0.jd1), format="jd"))
+
+    def test_mean_leap_second(self, use_mask):
+        # Check that leap second is dealt with correctly: for UTC, across a leap
+        # second bounday, one cannot just average jd, but has to go through TAI.
+        if use_mask == "not_masked":
+            t = Time(["2012-06-30 23:59:60.000", "2012-07-01 00:00:01.000"])
+            mean_expected = t[0] + (t[1] - t[0]) / 2
+            mean_expected_explicit = Time("2012-07-01 00:00:00")
+            mean_test = t.mean()
+            assert mean_expected == mean_expected_explicit
+            assert mean_expected == mean_test
+            assert mean_test != Time(
+                *day_frac(t.jd1.sum(), t.jd2.sum(), divisor=2), format="jd"
+            )
 
 
 def test_regression():
     # For #5225, where a time with a single-element delta_ut1_utc could not
     # be copied, flattened, or ravelled. (For copy, it is in test_basic.)
-    with iers.conf.set_temp('auto_download', False):
-        t = Time(49580.0, scale='tai', format='mjd')
+    with iers.conf.set_temp("auto_download", False):
+        t = Time(49580.0, scale="tai", format="mjd")
         t_ut1 = t.ut1
         t_ut1_copy = copy.deepcopy(t_ut1)
         assert type(t_ut1_copy.delta_ut1_utc) is np.ndarray

@@ -22,9 +22,9 @@ from .standard_profile import ThreadingXMLRPCServer
 from .utils import ServerProxyPool, _HubAsClient, internet_on
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 
-__all__ = ['SAMPHubServer', 'WebProfileDialog']
+__all__ = ["SAMPHubServer", "WebProfileDialog"]
 
-__doctest_skip__ = ['.', 'SAMPHubServer.*']
+__doctest_skip__ = [".", "SAMPHubServer.*"]
 
 
 class SAMPHubServer:
@@ -92,11 +92,21 @@ class SAMPHubServer:
         clients.
     """
 
-    def __init__(self, secret=None, addr=None, port=0, lockfile=None,
-                 timeout=0, client_timeout=0, mode='single', label="",
-                 web_profile=True, web_profile_dialog=None, web_port=21012,
-                 pool_size=20):
-
+    def __init__(
+        self,
+        secret=None,
+        addr=None,
+        port=0,
+        lockfile=None,
+        timeout=0,
+        client_timeout=0,
+        mode="single",
+        label="",
+        web_profile=True,
+        web_profile_dialog=None,
+        web_port=21012,
+        pool_size=20,
+    ):
         # Generate random ID for the hub
         self._id = str(uuid.uuid1())
 
@@ -127,8 +137,7 @@ class SAMPHubServer:
         if internet_on():
             try:
                 self._host_name = socket.getfqdn()
-                socket.getaddrinfo(self._addr or self._host_name,
-                                   self._port or 0)
+                socket.getaddrinfo(self._addr or self._host_name, self._port or 0)
             except OSError:
                 self._host_name = "127.0.0.1"
 
@@ -189,57 +198,79 @@ class SAMPHubServer:
 
     def _register_standard_api(self, server):
         # Standard Profile only operations
-        server.register_function(self._ping, 'samp.hub.ping')
-        server.register_function(self._set_xmlrpc_callback, 'samp.hub.setXmlrpcCallback')
+        server.register_function(self._ping, "samp.hub.ping")
+        server.register_function(
+            self._set_xmlrpc_callback, "samp.hub.setXmlrpcCallback"
+        )
 
         # Standard API operations
-        server.register_function(self._register, 'samp.hub.register')
-        server.register_function(self._unregister, 'samp.hub.unregister')
-        server.register_function(self._declare_metadata, 'samp.hub.declareMetadata')
-        server.register_function(self._get_metadata, 'samp.hub.getMetadata')
-        server.register_function(self._declare_subscriptions, 'samp.hub.declareSubscriptions')
-        server.register_function(self._get_subscriptions, 'samp.hub.getSubscriptions')
-        server.register_function(self._get_registered_clients, 'samp.hub.getRegisteredClients')
-        server.register_function(self._get_subscribed_clients, 'samp.hub.getSubscribedClients')
-        server.register_function(self._notify, 'samp.hub.notify')
-        server.register_function(self._notify_all, 'samp.hub.notifyAll')
-        server.register_function(self._call, 'samp.hub.call')
-        server.register_function(self._call_all, 'samp.hub.callAll')
-        server.register_function(self._call_and_wait, 'samp.hub.callAndWait')
-        server.register_function(self._reply, 'samp.hub.reply')
+        server.register_function(self._register, "samp.hub.register")
+        server.register_function(self._unregister, "samp.hub.unregister")
+        server.register_function(self._declare_metadata, "samp.hub.declareMetadata")
+        server.register_function(self._get_metadata, "samp.hub.getMetadata")
+        server.register_function(
+            self._declare_subscriptions, "samp.hub.declareSubscriptions"
+        )
+        server.register_function(self._get_subscriptions, "samp.hub.getSubscriptions")
+        server.register_function(
+            self._get_registered_clients, "samp.hub.getRegisteredClients"
+        )
+        server.register_function(
+            self._get_subscribed_clients, "samp.hub.getSubscribedClients"
+        )
+        server.register_function(self._notify, "samp.hub.notify")
+        server.register_function(self._notify_all, "samp.hub.notifyAll")
+        server.register_function(self._call, "samp.hub.call")
+        server.register_function(self._call_all, "samp.hub.callAll")
+        server.register_function(self._call_and_wait, "samp.hub.callAndWait")
+        server.register_function(self._reply, "samp.hub.reply")
 
     def _register_web_profile_api(self, server):
         # Web Profile methods like Standard Profile
-        server.register_function(self._ping, 'samp.webhub.ping')
-        server.register_function(self._unregister, 'samp.webhub.unregister')
-        server.register_function(self._declare_metadata, 'samp.webhub.declareMetadata')
-        server.register_function(self._get_metadata, 'samp.webhub.getMetadata')
-        server.register_function(self._declare_subscriptions, 'samp.webhub.declareSubscriptions')
-        server.register_function(self._get_subscriptions, 'samp.webhub.getSubscriptions')
-        server.register_function(self._get_registered_clients, 'samp.webhub.getRegisteredClients')
-        server.register_function(self._get_subscribed_clients, 'samp.webhub.getSubscribedClients')
-        server.register_function(self._notify, 'samp.webhub.notify')
-        server.register_function(self._notify_all, 'samp.webhub.notifyAll')
-        server.register_function(self._call, 'samp.webhub.call')
-        server.register_function(self._call_all, 'samp.webhub.callAll')
-        server.register_function(self._call_and_wait, 'samp.webhub.callAndWait')
-        server.register_function(self._reply, 'samp.webhub.reply')
+        server.register_function(self._ping, "samp.webhub.ping")
+        server.register_function(self._unregister, "samp.webhub.unregister")
+        server.register_function(self._declare_metadata, "samp.webhub.declareMetadata")
+        server.register_function(self._get_metadata, "samp.webhub.getMetadata")
+        server.register_function(
+            self._declare_subscriptions, "samp.webhub.declareSubscriptions"
+        )
+        server.register_function(
+            self._get_subscriptions, "samp.webhub.getSubscriptions"
+        )
+        server.register_function(
+            self._get_registered_clients, "samp.webhub.getRegisteredClients"
+        )
+        server.register_function(
+            self._get_subscribed_clients, "samp.webhub.getSubscribedClients"
+        )
+        server.register_function(self._notify, "samp.webhub.notify")
+        server.register_function(self._notify_all, "samp.webhub.notifyAll")
+        server.register_function(self._call, "samp.webhub.call")
+        server.register_function(self._call_all, "samp.webhub.callAll")
+        server.register_function(self._call_and_wait, "samp.webhub.callAndWait")
+        server.register_function(self._reply, "samp.webhub.reply")
 
         # Methods particularly for Web Profile
-        server.register_function(self._web_profile_register, 'samp.webhub.register')
-        server.register_function(self._web_profile_allowReverseCallbacks, 'samp.webhub.allowReverseCallbacks')
-        server.register_function(self._web_profile_pullCallbacks, 'samp.webhub.pullCallbacks')
+        server.register_function(self._web_profile_register, "samp.webhub.register")
+        server.register_function(
+            self._web_profile_allowReverseCallbacks, "samp.webhub.allowReverseCallbacks"
+        )
+        server.register_function(
+            self._web_profile_pullCallbacks, "samp.webhub.pullCallbacks"
+        )
 
     def _start_standard_server(self):
-
         self._server = ThreadingXMLRPCServer(
-                (self._addr or self._host_name, self._port or 0),
-                log, logRequests=False, allow_none=True)
-        prot = 'http'
+            (self._addr or self._host_name, self._port or 0),
+            log,
+            logRequests=False,
+            allow_none=True,
+        )
+        prot = "http"
 
         self._port = self._server.socket.getsockname()[1]
         addr = f"{self._addr or self._host_name}:{self._port}"
-        self._url = urlunparse((prot, addr, '', '', '', ''))
+        self._url = urlunparse((prot, addr, "", "", "", ""))
         self._server.register_introspection_functions()
         self._register_standard_api(self._server)
 
@@ -250,23 +281,23 @@ class SAMPHubServer:
 
         if self._web_profile_dialog is not None:
             # TODO: Some sort of duck-typing on the web_profile_dialog object
-            self._web_profile_dialog.queue_request = \
-                    self._web_profile_requests_queue
-            self._web_profile_dialog.queue_result = \
-                    self._web_profile_requests_result
+            self._web_profile_dialog.queue_request = self._web_profile_requests_queue
+            self._web_profile_dialog.queue_result = self._web_profile_requests_result
 
         try:
             self._web_profile_server = WebProfileXMLRPCServer(
-                    ('localhost', self._web_port), log, logRequests=False,
-                    allow_none=True)
+                ("localhost", self._web_port), log, logRequests=False, allow_none=True
+            )
             self._web_port = self._web_profile_server.socket.getsockname()[1]
             self._web_profile_server.register_introspection_functions()
             self._register_web_profile_api(self._web_profile_server)
             log.info("Hub set to run with Web Profile support enabled.")
         except OSError:
-            log.warning("Port {} already in use. Impossible to run the "
-                        "Hub with Web Profile support.".format(self._web_port),
-                        SAMPWarning)
+            log.warning(
+                "Port {} already in use. Impossible to run the "
+                "Hub with Web Profile support.".format(self._web_port),
+                SAMPWarning,
+            )
             self._web_profile = False
             # Cleanup
             self._web_profile_requests_queue = None
@@ -274,7 +305,6 @@ class SAMPHubServer:
             self._web_profile_requests_semaphore = None
 
     def _launch_thread(self, group=None, target=None, name=None, args=None):
-
         # Remove inactive threads
         remove = []
         for t in self._launched_threads:
@@ -295,7 +325,6 @@ class SAMPHubServer:
             t.join(timeout=timeout)
 
     def _timeout_test_hub(self):
-
         if self._timeout == 0:
             return
 
@@ -303,18 +332,18 @@ class SAMPHubServer:
         while self._is_running:
             time.sleep(0.05)  # keep this small to check _is_running often
             now = time.time()
-            if now - last > 1.:
+            if now - last > 1.0:
                 with self._thread_lock:
                     if self._last_activity_time is not None:
                         if now - self._last_activity_time >= self._timeout:
-                            warnings.warn("Timeout expired, Hub is shutting down!",
-                                          SAMPWarning)
+                            warnings.warn(
+                                "Timeout expired, Hub is shutting down!", SAMPWarning
+                            )
                             self.stop()
                             return
                 last = now
 
     def _timeout_test_client(self):
-
         if self._client_timeout == 0:
             return
 
@@ -322,43 +351,47 @@ class SAMPHubServer:
         while self._is_running:
             time.sleep(0.05)  # keep this small to check _is_running often
             now = time.time()
-            if now - last > 1.:
+            if now - last > 1.0:
                 for private_key in self._client_activity_time.keys():
-                    if (now - self._client_activity_time[private_key] > self._client_timeout
-                        and private_key != self._hub_private_key):
+                    if (
+                        now - self._client_activity_time[private_key]
+                        > self._client_timeout
+                        and private_key != self._hub_private_key
+                    ):
                         warnings.warn(
-                            f"Client {private_key} timeout expired!",
-                            SAMPWarning)
+                            f"Client {private_key} timeout expired!", SAMPWarning
+                        )
                         self._notify_disconnection(private_key)
                         self._unregister(private_key)
                 last = now
 
     def _hub_as_client_request_handler(self, method, args):
-        if method == 'samp.client.receiveCall':
+        if method == "samp.client.receiveCall":
             return self._receive_call(*args)
-        elif method == 'samp.client.receiveNotification':
+        elif method == "samp.client.receiveNotification":
             return self._receive_notification(*args)
-        elif method == 'samp.client.receiveResponse':
+        elif method == "samp.client.receiveResponse":
             return self._receive_response(*args)
-        elif method == 'samp.app.ping':
+        elif method == "samp.app.ping":
             return self._ping(*args)
 
     def _setup_hub_as_client(self):
-
-        hub_metadata = {"samp.name": "Astropy SAMP Hub",
-                        "samp.description.text": self._label,
-                        "author.name": "The Astropy Collaboration",
-                        "samp.documentation.url": "https://docs.astropy.org/en/stable/samp",
-                        "samp.icon.url": self._url + "/samp/icon"}
+        hub_metadata = {
+            "samp.name": "Astropy SAMP Hub",
+            "samp.description.text": self._label,
+            "author.name": "The Astropy Collaboration",
+            "samp.documentation.url": "https://docs.astropy.org/en/stable/samp",
+            "samp.icon.url": self._url + "/samp/icon",
+        }
 
         result = self._register(self._hub_secret)
         self._hub_public_id = result["samp.self-id"]
         self._hub_private_key = result["samp.private-key"]
         self._set_xmlrpc_callback(self._hub_private_key, self._url)
         self._declare_metadata(self._hub_private_key, hub_metadata)
-        self._declare_subscriptions(self._hub_private_key,
-                                    {"samp.app.ping": {},
-                                     "x-samp.query.by-meta": {}})
+        self._declare_subscriptions(
+            self._hub_private_key, {"samp.app.ping": {}, "x-samp.query.by-meta": {}}
+        )
 
     def start(self, wait=False):
         """
@@ -387,9 +420,12 @@ class SAMPHubServer:
 
         self._start_standard_server()
 
-        self._lockfile = create_lock_file(lockfilename=self._customlockfilename,
-                                          mode=self._mode, hub_id=self.id,
-                                          hub_params=self.params)
+        self._lockfile = create_lock_file(
+            lockfilename=self._customlockfilename,
+            mode=self._mode,
+            hub_id=self.id,
+            hub_params=self.params,
+        )
 
         self._update_last_activity_time()
         self._setup_hub_as_client()
@@ -412,14 +448,14 @@ class SAMPHubServer:
 
         # Keys required by standard profile
 
-        params['samp.secret'] = self._hub_secret
-        params['samp.hub.xmlrpc.url'] = self._url
-        params['samp.profile.version'] = __profile_version__
+        params["samp.secret"] = self._hub_secret
+        params["samp.hub.xmlrpc.url"] = self._url
+        params["samp.profile.version"] = __profile_version__
 
         # Custom keys
 
-        params['hub.id'] = self.id
-        params['hub.label'] = self._label or f"Hub {self.id}"
+        params["hub.id"] = self.id
+        params["hub.label"] = self._label or f"Hub {self.id}"
 
         return params
 
@@ -429,16 +465,16 @@ class SAMPHubServer:
 
         if self._timeout > 0:
             self._thread_hub_timeout = threading.Thread(
-                    target=self._timeout_test_hub,
-                    name="Hub timeout test")
+                target=self._timeout_test_hub, name="Hub timeout test"
+            )
             self._thread_hub_timeout.daemon = True
         else:
             self._thread_hub_timeout = None
 
         if self._client_timeout > 0:
             self._thread_client_timeout = threading.Thread(
-                    target=self._timeout_test_client,
-                    name="Client timeout test")
+                target=self._timeout_test_client, name="Client timeout test"
+            )
             self._thread_client_timeout.daemon = True
         else:
             self._thread_client_timeout = None
@@ -473,13 +509,13 @@ class SAMPHubServer:
 
         if self._lockfile and os.path.isfile(self._lockfile):
             lockfiledict = read_lockfile(self._lockfile)
-            if lockfiledict['samp.secret'] == self._hub_secret:
+            if lockfiledict["samp.secret"] == self._hub_secret:
                 os.remove(self._lockfile)
         self._lockfile = None
 
         # Reset variables
         # TODO: What happens if not all threads are stopped after timeout?
-        self._join_all_threads(timeout=10.)
+        self._join_all_threads(timeout=10.0)
 
         self._hub_msg_id_counter = 0
         self._hub_secret = self._create_secret_code()
@@ -502,11 +538,17 @@ class SAMPHubServer:
             self._thread_run.join(timeout=timeout)
             if not self._thread_run.is_alive():
                 self._thread_run = None
-        if self._thread_hub_timeout is not None and self._thread_hub_timeout is not current_thread:
+        if (
+            self._thread_hub_timeout is not None
+            and self._thread_hub_timeout is not current_thread
+        ):
             self._thread_hub_timeout.join(timeout=timeout)
             if not self._thread_hub_timeout.is_alive():
                 self._thread_hub_timeout = None
-        if self._thread_client_timeout is not None and self._thread_client_timeout is not current_thread:
+        if (
+            self._thread_client_timeout is not None
+            and self._thread_client_timeout is not current_thread
+        ):
             self._thread_client_timeout.join(timeout=timeout)
             if not self._thread_client_timeout.is_alive():
                 self._thread_client_timeout = None
@@ -525,20 +567,18 @@ class SAMPHubServer:
         return self._is_running
 
     def _serve_forever(self):
-
         while self._is_running:
-
             try:
                 read_ready = select.select([self._server.socket], [], [], 0.01)[0]
             except OSError as exc:
-                warnings.warn(f"Call to select() in SAMPHubServer failed: {exc}",
-                              SAMPWarning)
+                warnings.warn(
+                    f"Call to select() in SAMPHubServer failed: {exc}", SAMPWarning
+                )
             else:
                 if read_ready:
                     self._server.handle_request()
 
             if self._web_profile:
-
                 # We now check if there are any connection requests from the
                 # web profile, and if so, we initialize the pop-up.
                 if self._web_profile_dialog is None:
@@ -547,15 +587,20 @@ class SAMPHubServer:
                     except queue.Empty:
                         pass
                     else:
-                        web_profile_text_dialog(request, self._web_profile_requests_result)
+                        web_profile_text_dialog(
+                            request, self._web_profile_requests_result
+                        )
 
                 # We now check for requests over the web profile socket, and we
                 # also update the pop-up in case there are any changes.
                 try:
-                    read_ready = select.select([self._web_profile_server.socket], [], [], 0.01)[0]
+                    read_ready = select.select(
+                        [self._web_profile_server.socket], [], [], 0.01
+                    )[0]
                 except OSError as exc:
-                    warnings.warn(f"Call to select() in SAMPHubServer failed: {exc}",
-                                  SAMPWarning)
+                    warnings.warn(
+                        f"Call to select() in SAMPHubServer failed: {exc}", SAMPWarning
+                    )
                 else:
                     if read_ready:
                         self._web_profile_server.handle_request()
@@ -569,10 +614,11 @@ class SAMPHubServer:
         for mtype in msubs:
             if mtype in self._mtype2ids:
                 for key in self._mtype2ids[mtype]:
-                    self._notify_(self._hub_private_key,
-                                  self._private_keys[key][0],
-                                  {"samp.mtype": "samp.hub.event.shutdown",
-                                   "samp.params": {}})
+                    self._notify_(
+                        self._hub_private_key,
+                        self._private_keys[key][0],
+                        {"samp.mtype": "samp.hub.event.shutdown", "samp.params": {}},
+                    )
 
     def _notify_register(self, private_key):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.register")
@@ -581,10 +627,14 @@ class SAMPHubServer:
                 public_id = self._private_keys[private_key][0]
                 for key in self._mtype2ids[mtype]:
                     # if key != private_key:
-                    self._notify(self._hub_private_key,
-                                 self._private_keys[key][0],
-                                 {"samp.mtype": "samp.hub.event.register",
-                                  "samp.params": {"id": public_id}})
+                    self._notify(
+                        self._hub_private_key,
+                        self._private_keys[key][0],
+                        {
+                            "samp.mtype": "samp.hub.event.register",
+                            "samp.params": {"id": public_id},
+                        },
+                    )
 
     def _notify_unregister(self, private_key):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.unregister")
@@ -593,10 +643,14 @@ class SAMPHubServer:
                 public_id = self._private_keys[private_key][0]
                 for key in self._mtype2ids[mtype]:
                     if key != private_key:
-                        self._notify(self._hub_private_key,
-                                     self._private_keys[key][0],
-                                     {"samp.mtype": "samp.hub.event.unregister",
-                                      "samp.params": {"id": public_id}})
+                        self._notify(
+                            self._hub_private_key,
+                            self._private_keys[key][0],
+                            {
+                                "samp.mtype": "samp.hub.event.unregister",
+                                "samp.params": {"id": public_id},
+                            },
+                        )
 
     def _notify_metadata(self, private_key):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.metadata")
@@ -605,12 +659,17 @@ class SAMPHubServer:
                 public_id = self._private_keys[private_key][0]
                 for key in self._mtype2ids[mtype]:
                     # if key != private_key:
-                    self._notify(self._hub_private_key,
-                                 self._private_keys[key][0],
-                                 {"samp.mtype": "samp.hub.event.metadata",
-                                  "samp.params": {"id": public_id,
-                                                  "metadata": self._metadata[private_key]}
-                                  })
+                    self._notify(
+                        self._hub_private_key,
+                        self._private_keys[key][0],
+                        {
+                            "samp.mtype": "samp.hub.event.metadata",
+                            "samp.params": {
+                                "id": public_id,
+                                "metadata": self._metadata[private_key],
+                            },
+                        },
+                    )
 
     def _notify_subscriptions(self, private_key):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.subscriptions")
@@ -618,17 +677,23 @@ class SAMPHubServer:
             if mtype in self._mtype2ids:
                 public_id = self._private_keys[private_key][0]
                 for key in self._mtype2ids[mtype]:
-                    self._notify(self._hub_private_key,
-                                 self._private_keys[key][0],
-                                 {"samp.mtype": "samp.hub.event.subscriptions",
-                                  "samp.params": {"id": public_id,
-                                                  "subscriptions": self._id2mtypes[private_key]}
-                                  })
+                    self._notify(
+                        self._hub_private_key,
+                        self._private_keys[key][0],
+                        {
+                            "samp.mtype": "samp.hub.event.subscriptions",
+                            "samp.params": {
+                                "id": public_id,
+                                "subscriptions": self._id2mtypes[private_key],
+                            },
+                        },
+                    )
 
     def _notify_disconnection(self, private_key):
-
         def _xmlrpc_call_disconnect(endpoint, private_key, hub_public_id, message):
-            endpoint.samp.client.receiveNotification(private_key, hub_public_id, message)
+            endpoint.samp.client.receiveNotification(
+                private_key, hub_public_id, message
+            )
 
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.disconnect")
         public_id = self._private_keys[private_key][0]
@@ -637,11 +702,18 @@ class SAMPHubServer:
         for mtype in msubs:
             if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
                 log.debug(f"notify disconnection to {public_id}")
-                self._launch_thread(target=_xmlrpc_call_disconnect,
-                                   args=(endpoint, private_key,
-                                         self._hub_public_id,
-                                         {"samp.mtype": "samp.hub.disconnect",
-                                          "samp.params": {"reason": "Timeout expired!"}}))
+                self._launch_thread(
+                    target=_xmlrpc_call_disconnect,
+                    args=(
+                        endpoint,
+                        private_key,
+                        self._hub_public_id,
+                        {
+                            "samp.mtype": "samp.hub.disconnect",
+                            "samp.params": {"reason": "Timeout expired!"},
+                        },
+                    ),
+                )
 
     def _ping(self):
         self._update_last_activity_time()
@@ -662,8 +734,10 @@ class SAMPHubServer:
         if private_key in self._private_keys:
             if private_key == self._hub_private_key:
                 public_id = self._private_keys[private_key][0]
-                self._xmlrpc_endpoints[public_id] = \
-                    (xmlrpc_addr, _HubAsClient(self._hub_as_client_request_handler))
+                self._xmlrpc_endpoints[public_id] = (
+                    xmlrpc_addr,
+                    _HubAsClient(self._hub_as_client_request_handler),
+                )
                 return ""
 
             # Dictionary stored with the public id
@@ -672,29 +746,29 @@ class SAMPHubServer:
 
             server_proxy_pool = None
 
-            server_proxy_pool = ServerProxyPool(self._pool_size,
-                                                xmlrpc.ServerProxy,
-                                                xmlrpc_addr, allow_none=1)
+            server_proxy_pool = ServerProxyPool(
+                self._pool_size, xmlrpc.ServerProxy, xmlrpc_addr, allow_none=1
+            )
 
             public_id = self._private_keys[private_key][0]
-            self._xmlrpc_endpoints[public_id] = (xmlrpc_addr,
-                                                server_proxy_pool)
+            self._xmlrpc_endpoints[public_id] = (xmlrpc_addr, server_proxy_pool)
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
         return ""
 
     def _perform_standard_register(self):
-
         with self._thread_lock:
             private_key, public_id = self._get_new_ids()
         self._private_keys[private_key] = (public_id, time.time())
         self._update_last_activity_time(private_key)
         self._notify_register(private_key)
         log.debug(f"register: private-key = {private_key} and self-id = {public_id}")
-        return {"samp.self-id": public_id,
-                "samp.private-key": private_key,
-                "samp.hub-id": self._hub_public_id}
+        return {
+            "samp.self-id": public_id,
+            "samp.private-key": private_key,
+            "samp.hub-id": self._hub_public_id,
+        }
 
     def _register(self, secret):
         self._update_last_activity_time()
@@ -707,14 +781,13 @@ class SAMPHubServer:
     def _get_new_ids(self):
         private_key = str(uuid.uuid1())
         self._client_id_counter += 1
-        public_id = 'cli#hub'
+        public_id = "cli#hub"
         if self._client_id_counter > 0:
             public_id = f"cli#{self._client_id_counter}"
 
         return private_key, public_id
 
     def _unregister(self, private_key):
-
         self._update_last_activity_time()
 
         public_key = ""
@@ -722,7 +795,6 @@ class SAMPHubServer:
         self._notify_unregister(private_key)
 
         with self._thread_lock:
-
             if private_key in self._private_keys:
                 public_key = self._private_keys[private_key][0]
                 del self._private_keys[private_key]
@@ -757,8 +829,11 @@ class SAMPHubServer:
     def _declare_metadata(self, private_key, metadata):
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
-            log.debug("declare_metadata: private-key = {} metadata = {}"
-                      .format(private_key, str(metadata)))
+            log.debug(
+                "declare_metadata: private-key = {} metadata = {}".format(
+                    private_key, str(metadata)
+                )
+            )
             self._metadata[private_key] = metadata
             self._notify_metadata(private_key)
         else:
@@ -769,8 +844,11 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
             client_private_key = self._public_id_to_private_key(client_id)
-            log.debug("get_metadata: private-key = {} client-id = {}"
-                      .format(private_key, client_id))
+            log.debug(
+                "get_metadata: private-key = {} client-id = {}".format(
+                    private_key, client_id
+                )
+            )
             if client_private_key is not None:
                 if client_private_key in self._metadata:
                     log.debug(f"--> metadata = {self._metadata[client_private_key]}")
@@ -783,17 +861,17 @@ class SAMPHubServer:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _declare_subscriptions(self, private_key, mtypes):
-
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-
-            log.debug("declare_subscriptions: private-key = {} mtypes = {}"
-                      .format(private_key, str(mtypes)))
+            log.debug(
+                "declare_subscriptions: private-key = {} mtypes = {}".format(
+                    private_key, str(mtypes)
+                )
+            )
 
             # remove subscription to previous mtypes
             if private_key in self._id2mtypes:
-
                 prev_mtypes = self._id2mtypes[private_key]
 
                 for mtype in prev_mtypes:
@@ -810,16 +888,17 @@ class SAMPHubServer:
             for mtype in original_mtypes:
                 if mtype.endswith("*"):
                     for mtype2 in original_mtypes:
-                        if mtype2.startswith(mtype[:-1]) and \
-                           mtype2 != mtype:
+                        if mtype2.startswith(mtype[:-1]) and mtype2 != mtype:
                             if mtype2 in mtypes:
-                                del(mtypes[mtype2])
+                                del mtypes[mtype2]
 
-            log.debug("declare_subscriptions: subscriptions accepted from "
-                      "{} => {}".format(private_key, str(mtypes)))
+            log.debug(
+                "declare_subscriptions: subscriptions accepted from {} => {}".format(
+                    private_key, str(mtypes)
+                )
+            )
 
             for mtype in mtypes:
-
                 if mtype in self._mtype2ids:
                     if private_key not in self._mtype2ids[mtype]:
                         self._mtype2ids[mtype].append(private_key)
@@ -834,20 +913,24 @@ class SAMPHubServer:
         return ""
 
     def _get_subscriptions(self, private_key, client_id):
-
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
             client_private_key = self._public_id_to_private_key(client_id)
             if client_private_key is not None:
                 if client_private_key in self._id2mtypes:
-                    log.debug("get_subscriptions: client-id = {} mtypes = {}"
-                              .format(client_id,
-                                      str(self._id2mtypes[client_private_key])))
+                    log.debug(
+                        "get_subscriptions: client-id = {} mtypes = {}".format(
+                            client_id, str(self._id2mtypes[client_private_key])
+                        )
+                    )
                     return self._id2mtypes[client_private_key]
                 else:
-                    log.debug("get_subscriptions: client-id = {} mtypes = "
-                              "missing".format(client_id))
+                    log.debug(
+                        "get_subscriptions: client-id = {} mtypes = missing".format(
+                            client_id
+                        )
+                    )
                     return {}
             else:
                 raise SAMPProxyError(6, "Invalid client ID")
@@ -855,7 +938,6 @@ class SAMPHubServer:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _get_registered_clients(self, private_key):
-
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
@@ -863,14 +945,16 @@ class SAMPHubServer:
             for pkey in self._private_keys.keys():
                 if pkey != private_key:
                     reg_clients.append(self._private_keys[pkey][0])
-            log.debug("get_registered_clients: private_key = {} clients = {}"
-                      .format(private_key, reg_clients))
+            log.debug(
+                "get_registered_clients: private_key = {} clients = {}".format(
+                    private_key, reg_clients
+                )
+            )
             return reg_clients
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _get_subscribed_clients(self, private_key, mtype):
-
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
@@ -880,8 +964,10 @@ class SAMPHubServer:
                 if pkey != private_key and self._is_subscribed(pkey, mtype):
                     sub_clients[self._private_keys[pkey][0]] = {}
 
-            log.debug("get_subscribed_clients: private_key = {} mtype = {} "
-                      "clients = {}".format(private_key, mtype, sub_clients))
+            log.debug(
+                "get_subscribed_clients: private_key = {} mtype = {} "
+                "clients = {}".format(private_key, mtype, sub_clients)
+            )
             return sub_clients
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
@@ -916,7 +1002,7 @@ class SAMPHubServer:
         indexes.append(-1)
 
         for i in indexes:
-            tmp_mtype = ".".join(msubs[:i + 1])
+            tmp_mtype = ".".join(msubs[: i + 1])
             if tmp_mtype != mtype:
                 if tmp_mtype != "":
                     tmp_mtype = tmp_mtype + ".*"
@@ -927,7 +1013,6 @@ class SAMPHubServer:
         return subtypes
 
     def _is_subscribed(self, private_key, mtype):
-
         subscribed = False
 
         msubs = SAMPHubServer.get_mtype_subtypes(mtype)
@@ -943,43 +1028,53 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if self._is_subscribed(self._public_id_to_private_key(recipient_id),
-                                   message["samp.mtype"]) is False:
-                raise SAMPProxyError(2, "Client {} not subscribed to MType {}"
-                                    .format(recipient_id, message["samp.mtype"]))
+            if not (
+                self._is_subscribed(
+                    self._public_id_to_private_key(recipient_id), message["samp.mtype"]
+                )
+            ):
+                raise SAMPProxyError(
+                    2,
+                    "Client {} not subscribed to MType {}".format(
+                        recipient_id, message["samp.mtype"]
+                    ),
+                )
 
-            self._launch_thread(target=self._notify_, args=(private_key,
-                                                            recipient_id,
-                                                            message))
+            self._launch_thread(
+                target=self._notify_, args=(private_key, recipient_id, message)
+            )
             return {}
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _notify_(self, sender_private_key, recipient_public_id, message):
-
         if sender_private_key not in self._private_keys:
             return
 
         sender_public_id = self._private_keys[sender_private_key][0]
 
         try:
-
-            log.debug("notify {} from {} to {}".format(
-                    message["samp.mtype"], sender_public_id,
-                    recipient_public_id))
+            log.debug(
+                "notify {} from {} to {}".format(
+                    message["samp.mtype"], sender_public_id, recipient_public_id
+                )
+            )
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
             arg_params = (sender_public_id, message)
             samp_method_name = "receiveNotification"
 
-            self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
+            self._retry_method(
+                recipient_private_key, recipient_public_id, samp_method_name, arg_params
+            )
 
         except Exception as exc:
-            warnings.warn("{} notification from client {} to client {} "
-                          "failed [{}]".format(message["samp.mtype"],
-                                               sender_public_id,
-                                               recipient_public_id, exc),
-                          SAMPWarning)
+            warnings.warn(
+                "{} notification from client {} to client {} failed [{}]".format(
+                    message["samp.mtype"], sender_public_id, recipient_public_id, exc
+                ),
+                SAMPWarning,
+            )
 
     def _notify_all(self, private_key, message):
         self._update_last_activity_time(private_key)
@@ -993,7 +1088,6 @@ class SAMPHubServer:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _notify_all_(self, sender_private_key, message):
-
         recipient_ids = []
         msubs = SAMPHubServer.get_mtype_subtypes(message["samp.mtype"])
 
@@ -1003,10 +1097,10 @@ class SAMPHubServer:
                     if key != sender_private_key:
                         _recipient_id = self._private_keys[key][0]
                         recipient_ids.append(_recipient_id)
-                        self._launch_thread(target=self._notify,
-                                         args=(sender_private_key,
-                                               _recipient_id, message)
-                                         )
+                        self._launch_thread(
+                            target=self._notify,
+                            args=(sender_private_key, _recipient_id, message),
+                        )
 
         return recipient_ids
 
@@ -1014,52 +1108,75 @@ class SAMPHubServer:
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
-            if self._is_subscribed(self._public_id_to_private_key(recipient_id),
-                                   message["samp.mtype"]) is False:
-                raise SAMPProxyError(2, "Client {} not subscribed to MType {}"
-                                     .format(recipient_id, message["samp.mtype"]))
+            if not (
+                self._is_subscribed(
+                    self._public_id_to_private_key(recipient_id), message["samp.mtype"]
+                )
+            ):
+                raise SAMPProxyError(
+                    2,
+                    "Client {} not subscribed to MType {}".format(
+                        recipient_id, message["samp.mtype"]
+                    ),
+                )
             public_id = self._private_keys[private_key][0]
             msg_id = self._get_new_hub_msg_id(public_id, msg_tag)
-            self._launch_thread(target=self._call_, args=(private_key, public_id,
-                                                          recipient_id, msg_id,
-                                                          message))
+            self._launch_thread(
+                target=self._call_,
+                args=(private_key, public_id, recipient_id, msg_id, message),
+            )
             return msg_id
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
-    def _call_(self, sender_private_key, sender_public_id,
-               recipient_public_id, msg_id, message):
-
+    def _call_(
+        self, sender_private_key, sender_public_id, recipient_public_id, msg_id, message
+    ):
         if sender_private_key not in self._private_keys:
             return
 
         try:
-
-            log.debug("call {} from {} to {} ({})".format(
-                    msg_id.split(";;")[0], sender_public_id,
-                    recipient_public_id, message["samp.mtype"]))
+            log.debug(
+                "call {} from {} to {} ({})".format(
+                    msg_id.split(";;")[0],
+                    sender_public_id,
+                    recipient_public_id,
+                    message["samp.mtype"],
+                )
+            )
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
             arg_params = (sender_public_id, msg_id, message)
             samp_methodName = "receiveCall"
 
-            self._retry_method(recipient_private_key, recipient_public_id, samp_methodName, arg_params)
+            self._retry_method(
+                recipient_private_key, recipient_public_id, samp_methodName, arg_params
+            )
 
         except Exception as exc:
-            warnings.warn("{} call {} from client {} to client {} failed "
-                          "[{},{}]".format(message["samp.mtype"],
-                                           msg_id.split(";;")[0],
-                                           sender_public_id,
-                                           recipient_public_id, type(exc), exc),
-                          SAMPWarning)
+            warnings.warn(
+                "{} call {} from client {} to client {} failed [{},{}]".format(
+                    message["samp.mtype"],
+                    msg_id.split(";;")[0],
+                    sender_public_id,
+                    recipient_public_id,
+                    type(exc),
+                    exc,
+                ),
+                SAMPWarning,
+            )
 
     def _call_all(self, private_key, msg_tag, message):
         self._update_last_activity_time(private_key)
 
         if private_key in self._private_keys:
             if "samp.mtype" not in message:
-                raise SAMPProxyError(3, "samp.mtype keyword is missing in "
-                                        "message tagged as {}".format(msg_tag))
+                raise SAMPProxyError(
+                    3,
+                    "samp.mtype keyword is missing in message tagged as {}".format(
+                        msg_tag
+                    ),
+                )
 
             public_id = self._private_keys[private_key][0]
             msg_id = self._call_all_(private_key, public_id, msg_tag, message)
@@ -1067,9 +1184,7 @@ class SAMPHubServer:
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
-    def _call_all_(self, sender_private_key, sender_public_id, msg_tag,
-                   message):
-
+    def _call_all_(self, sender_private_key, sender_public_id, msg_tag, message):
         msg_id = {}
         msubs = SAMPHubServer.get_mtype_subtypes(message["samp.mtype"])
 
@@ -1077,15 +1192,19 @@ class SAMPHubServer:
             if mtype in self._mtype2ids:
                 for key in self._mtype2ids[mtype]:
                     if key != sender_private_key:
-                        _msg_id = self._get_new_hub_msg_id(sender_public_id,
-                                                           msg_tag)
+                        _msg_id = self._get_new_hub_msg_id(sender_public_id, msg_tag)
                         receiver_public_id = self._private_keys[key][0]
                         msg_id[receiver_public_id] = _msg_id
-                        self._launch_thread(target=self._call_,
-                                            args=(sender_private_key,
-                                                  sender_public_id,
-                                                  receiver_public_id, _msg_id,
-                                                  message))
+                        self._launch_thread(
+                            target=self._call_,
+                            args=(
+                                sender_private_key,
+                                sender_public_id,
+                                receiver_public_id,
+                                _msg_id,
+                                message,
+                            ),
+                        )
         return msg_id
 
     def _call_and_wait(self, private_key, recipient_id, message, timeout):
@@ -1097,18 +1216,17 @@ class SAMPHubServer:
             now = time.time()
             response = {}
 
-            msg_id = self._call(private_key, recipient_id, "samp::sync::call",
-                                message)
+            msg_id = self._call(private_key, recipient_id, "samp::sync::call", message)
             self._sync_msg_ids_heap[msg_id] = None
 
             while self._is_running:
                 if 0 < timeout <= time.time() - now:
-                    del(self._sync_msg_ids_heap[msg_id])
+                    del self._sync_msg_ids_heap[msg_id]
                     raise SAMPProxyError(1, "Timeout expired!")
 
                 if self._sync_msg_ids_heap[msg_id] is not None:
                     response = copy.deepcopy(self._sync_msg_ids_heap[msg_id])
-                    del(self._sync_msg_ids_heap[msg_id])
+                    del self._sync_msg_ids_heap[msg_id]
                     break
                 time.sleep(0.01)
 
@@ -1123,46 +1241,59 @@ class SAMPHubServer:
         """
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
-            self._launch_thread(target=self._reply_, args=(private_key, msg_id,
-                                                           response))
+            self._launch_thread(
+                target=self._reply_, args=(private_key, msg_id, response)
+            )
         else:
             raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
         return {}
 
     def _reply_(self, responder_private_key, msg_id, response):
-
         if responder_private_key not in self._private_keys or not msg_id:
             return
 
         responder_public_id = self._private_keys[responder_private_key][0]
-        counter, hub_public_id, recipient_public_id, recipient_msg_tag = msg_id.split(";;", 3)
+        counter, hub_public_id, recipient_public_id, recipient_msg_tag = msg_id.split(
+            ";;", 3
+        )
 
         try:
-
-            log.debug("reply {} from {} to {}".format(
-                    counter, responder_public_id, recipient_public_id))
+            log.debug(
+                "reply {} from {} to {}".format(
+                    counter, responder_public_id, recipient_public_id
+                )
+            )
 
             if recipient_msg_tag == "samp::sync::call":
-
                 if msg_id in self._sync_msg_ids_heap.keys():
                     self._sync_msg_ids_heap[msg_id] = response
 
             else:
-
-                recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+                recipient_private_key = self._public_id_to_private_key(
+                    recipient_public_id
+                )
                 arg_params = (responder_public_id, recipient_msg_tag, response)
                 samp_method_name = "receiveResponse"
 
-                self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
+                self._retry_method(
+                    recipient_private_key,
+                    recipient_public_id,
+                    samp_method_name,
+                    arg_params,
+                )
 
         except Exception as exc:
-            warnings.warn("{} reply from client {} to client {} failed [{}]"
-                          .format(recipient_msg_tag, responder_public_id,
-                                  recipient_public_id, exc),
-                          SAMPWarning)
+            warnings.warn(
+                "{} reply from client {} to client {} failed [{}]".format(
+                    recipient_msg_tag, responder_public_id, recipient_public_id, exc
+                ),
+                SAMPWarning,
+            )
 
-    def _retry_method(self, recipient_private_key, recipient_public_id, samp_method_name, arg_params):
+    def _retry_method(
+        self, recipient_private_key, recipient_public_id, samp_method_name, arg_params
+    ):
         """
         This method is used to retry a SAMP call several times.
 
@@ -1184,41 +1315,46 @@ class SAMPHubServer:
         from . import conf
 
         for attempt in range(conf.n_retries):
-
             if not self._is_running:
                 time.sleep(0.01)
                 continue
 
             try:
-
-                if (self._web_profile and
-                    recipient_private_key in self._web_profile_callbacks):
-
+                if (
+                    self._web_profile
+                    and recipient_private_key in self._web_profile_callbacks
+                ):
                     # Web Profile
-                    callback = {"samp.methodName": samp_method_name,
-                                "samp.params": arg_params}
+                    callback = {
+                        "samp.methodName": samp_method_name,
+                        "samp.params": arg_params,
+                    }
                     self._web_profile_callbacks[recipient_private_key].put(callback)
 
                 else:
-
                     # Standard Profile
                     hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, *arg_params)
+                    getattr(hub.samp.client, samp_method_name)(
+                        recipient_private_key, *arg_params
+                    )
 
             except xmlrpc.Fault as exc:
-                log.debug("{} XML-RPC endpoint error (attempt {}): {}"
-                          .format(recipient_public_id, attempt + 1,
-                                  exc.faultString))
+                log.debug(
+                    "{} XML-RPC endpoint error (attempt {}): {}".format(
+                        recipient_public_id, attempt + 1, exc.faultString
+                    )
+                )
                 time.sleep(0.01)
             else:
                 return
 
         # If we are here, then the above attempts failed
-        error_message = samp_method_name + " failed after " + str(conf.n_retries) + " attempts"
+        error_message = (
+            samp_method_name + " failed after " + str(conf.n_retries) + " attempts"
+        )
         raise SAMPHubError(error_message)
 
     def _public_id_to_private_key(self, public_id):
-
         for private_key in self._private_keys.keys():
             if self._private_keys[private_key][0] == public_id:
                 return private_key
@@ -1227,9 +1363,12 @@ class SAMPHubServer:
     def _get_new_hub_msg_id(self, sender_public_id, sender_msg_id):
         with self._thread_lock:
             self._hub_msg_id_counter += 1
-        return "msg#{};;{};;{};;{}".format(self._hub_msg_id_counter,
-                                           self._hub_public_id,
-                                           sender_public_id, sender_msg_id)
+        return "msg#{};;{};;{};;{}".format(
+            self._hub_msg_id_counter,
+            self._hub_public_id,
+            sender_public_id,
+            sender_msg_id,
+        )
 
     def _update_last_activity_time(self, private_key=None):
         with self._thread_lock:
@@ -1242,20 +1381,25 @@ class SAMPHubServer:
 
     def _receive_call(self, private_key, sender_id, msg_id, message):
         if private_key == self._hub_private_key:
-
             if "samp.mtype" in message and message["samp.mtype"] == "samp.app.ping":
-                self._reply(self._hub_private_key, msg_id,
-                            {"samp.status": SAMP_STATUS_OK, "samp.result": {}})
+                self._reply(
+                    self._hub_private_key,
+                    msg_id,
+                    {"samp.status": SAMP_STATUS_OK, "samp.result": {}},
+                )
 
-            elif ("samp.mtype" in message and
-                 (message["samp.mtype"] == "x-samp.query.by-meta" or
-                  message["samp.mtype"] == "samp.query.by-meta")):
-
-                ids_list = self._query_by_metadata(message["samp.params"]["key"],
-                                                   message["samp.params"]["value"])
-                self._reply(self._hub_private_key, msg_id,
-                            {"samp.status": SAMP_STATUS_OK,
-                             "samp.result": {"ids": ids_list}})
+            elif "samp.mtype" in message and (
+                message["samp.mtype"] == "x-samp.query.by-meta"
+                or message["samp.mtype"] == "samp.query.by-meta"
+            ):
+                ids_list = self._query_by_metadata(
+                    message["samp.params"]["key"], message["samp.params"]["value"]
+                )
+                self._reply(
+                    self._hub_private_key,
+                    msg_id,
+                    {"samp.status": SAMP_STATUS_OK, "samp.result": {"ids": ids_list}},
+                )
 
             return ""
         else:
@@ -1264,15 +1408,13 @@ class SAMPHubServer:
     def _receive_response(self, private_key, responder_id, msg_tag, response):
         return ""
 
-    def _web_profile_register(self, identity_info,
-                              client_address=("unknown", 0),
-                              origin="unknown"):
-
+    def _web_profile_register(
+        self, identity_info, client_address=("unknown", 0), origin="unknown"
+    ):
         self._update_last_activity_time()
 
         if not client_address[0] in ["localhost", "127.0.0.1"]:
-            raise SAMPProxyError(403, "Request of registration rejected "
-                                      "by the Hub.")
+            raise SAMPProxyError(403, "Request of registration rejected by the Hub.")
 
         if not origin:
             origin = "unknown"
@@ -1280,15 +1422,17 @@ class SAMPHubServer:
         if isinstance(identity_info, dict):
             # an old version of the protocol provided just a string with the app name
             if "samp.name" not in identity_info:
-                raise SAMPProxyError(403, "Request of registration rejected "
-                                          "by the Hub (application name not "
-                                          "provided).")
+                raise SAMPProxyError(
+                    403,
+                    "Request of registration rejected "
+                    "by the Hub (application name not "
+                    "provided).",
+                )
 
         # Red semaphore for the other threads
         self._web_profile_requests_semaphore.put("wait")
         # Set the request to be displayed for the current thread
-        self._web_profile_requests_queue.put((identity_info, client_address,
-                                              origin))
+        self._web_profile_requests_queue.put((identity_info, client_address, origin))
         # Get the popup dialogue response
         response = self._web_profile_requests_result.get()
         # OK, semaphore green
@@ -1296,14 +1440,14 @@ class SAMPHubServer:
 
         if response:
             register_map = self._perform_standard_register()
-            translator_url = ("http://localhost:{}/translator/{}?ref="
-                              .format(self._web_port, register_map["samp.private-key"]))
+            translator_url = "http://localhost:{}/translator/{}?ref=".format(
+                self._web_port, register_map["samp.private-key"]
+            )
             register_map["samp.url-translator"] = translator_url
             self._web_profile_server.add_client(register_map["samp.private-key"])
             return register_map
         else:
-            raise SAMPProxyError(403, "Request of registration rejected by "
-                                      "the user.")
+            raise SAMPProxyError(403, "Request of registration rejected by the user.")
 
     def _web_profile_allowReverseCallbacks(self, private_key, allow):
         self._update_last_activity_time()

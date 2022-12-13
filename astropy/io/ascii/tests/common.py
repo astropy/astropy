@@ -6,22 +6,27 @@ import numpy as np
 
 from astropy.utils.decorators import deprecated
 
-__all__ = ['assert_equal', 'assert_almost_equal',
-           'assert_true', 'setup_function', 'teardown_function',
-           'has_isnan']
+__all__ = [
+    "assert_equal",
+    "assert_almost_equal",
+    "assert_true",
+    "setup_function",
+    "teardown_function",
+    "has_isnan",
+]
 
 CWD = os.getcwd()
 TEST_DIR = os.path.dirname(__file__)
 
 has_isnan = True
 try:
-    from math import isnan  # noqa
+    from math import isnan
 except ImportError:
     try:
-        from numpy import isnan  # noqa
+        from numpy import isnan  # noqa: F401
     except ImportError:
         has_isnan = False
-        print('Tests requiring isnan will fail')
+        print("Tests requiring isnan will fail")
 
 
 def setup_function(function):
@@ -51,15 +56,16 @@ def make_decorator(func):
     of the decorated function, including nose's additional stuff
     (namely, setup and teardown).
     """
+
     def decorate(newfunc):
-        if hasattr(func, 'compat_func_name'):
+        if hasattr(func, "compat_func_name"):
             name = func.compat_func_name
         else:
             name = func.__name__
         newfunc.__dict__ = func.__dict__
         newfunc.__doc__ = func.__doc__
         newfunc.__module__ = func.__module__
-        if not hasattr(newfunc, 'compat_co_firstlineno'):
+        if not hasattr(newfunc, "compat_co_firstlineno"):
             try:
                 newfunc.compat_co_firstlineno = func.func_code.co_firstlineno
             except AttributeError:
@@ -70,10 +76,11 @@ def make_decorator(func):
             # can't set func name in 2.3
             newfunc.compat_func_name = name
         return newfunc
+
     return decorate
 
 
-@deprecated('5.1', alternative='pytest.raises')
+@deprecated("5.1", alternative="pytest.raises")
 def raises(*exceptions):
     """Test must raise one of expected exceptions to pass.
 
@@ -88,7 +95,7 @@ def raises(*exceptions):
           pass
 
     """
-    valid = ' or '.join([e.__name__ for e in exceptions])
+    valid = " or ".join([e.__name__ for e in exceptions])
 
     def decorate(func):
         name = func.__name__
@@ -101,6 +108,8 @@ def raises(*exceptions):
             else:
                 message = f"{name}() did not raise {valid}"
                 raise AssertionError(message)
+
         newfunc = make_decorator(func)(newfunc)
         return newfunc
+
     return decorate

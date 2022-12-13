@@ -2,17 +2,16 @@ import dask.array as da
 
 from astropy.utils.data_info import ParentDtypeInfo
 
-__all__ = ['as_dask_column']
+__all__ = ["as_dask_column"]
 
 
 class DaskInfo(ParentDtypeInfo):
     @staticmethod
     def default_format(val):
-        return f'{val.compute()}'
+        return f"{val.compute()}"
 
 
 class DaskColumn(da.Array):
-
     info = DaskInfo()
 
     def copy(self):
@@ -28,8 +27,7 @@ class DaskColumn(da.Array):
             return as_dask_column(result, info=self.info)
 
     def insert(self, obj, values, axis=0):
-        return as_dask_column(da.insert(self, obj, values, axis=axis),
-                              info=self.info)
+        return as_dask_column(da.insert(self, obj, values, axis=axis), info=self.info)
 
 
 def as_dask_column(array, info=None):

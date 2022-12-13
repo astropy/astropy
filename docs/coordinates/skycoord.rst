@@ -542,15 +542,14 @@ a spherical-type coordinate (and not, for example, a Cartesian coordinate).
 Furthermore, the frame's ``representation_component_names`` attribute defines
 the coordinate keyword arguments that |SkyCoord| will accept.
 
-Another important attribute is ``frame_attr_names``, which defines the
+Another important attribute is ``frame_attributes``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
-  >>> sc_fk4.get_frame_attr_names()
-  {'equinox': <Time object: scale='tt' format='byear_str' value=B1950.000>, 'obstime': None}
+  >>> sc_fk4.frame_attributes   # doctest: +ELLIPSIS
+  {'equinox': <...TimeAttribute ...>, 'obstime': <...TimeAttribute ...>}
 
-The key values correspond to the defaults if no explicit value is provided by
-the user. This example shows that the `~astropy.coordinates.FK4` frame has two
+This example shows that the `~astropy.coordinates.FK4` frame has two
 attributes, ``equinox`` and ``obstime``, that are required to fully define the
 frame.
 
@@ -931,8 +930,9 @@ of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
 (``dec_random``). Finally, we multiply these values by degrees to get a
 `~astropy.units.Quantity` with units of degrees.
 
-    >>> ra_random = np.random.rand(100)*360.0 * u.degree
-    >>> dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+    >>> rng = np.random.default_rng()
+    >>> ra_random = rng.uniform(0, 360, 100) * u.degree
+    >>> dec_random = rng.uniform(-90, 90, 100) * u.degree
 
 As the next step, those coordinates are transformed into an
 `astropy.coordinates` |SkyCoord| object.
@@ -984,8 +984,9 @@ its usual position to avoid overlap with the axis labels.
     # of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
     # (``dec_random``). Finally, we multiply these values by degrees to get a
     # `~astropy.units.Quantity` with units of degrees.
-    ra_random = np.random.rand(100)*360.0 * u.degree
-    dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+    rng = np.random.default_rng()
+    ra_random = rng.uniform(0, 360, 100) * u.degree
+    dec_random = rng.uniform(-90, 90, 100) * u.degree
 
     # As the next step, those coordinates are transformed into an astropy.coordinates
     # astropy.coordinates.SkyCoord object.
@@ -1034,8 +1035,9 @@ As in the last example, we first import the required packages.
 We now generate random data for visualization using
 ``numpy.random.Generator.multivariate_normal``.
 
-    >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
-    >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    >>> rng = np.random.default_rng()
+    >>> disk = rng.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    >>> bulge = rng.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
     >>> galaxy = np.concatenate([disk, bulge])
 
 As the next step, those coordinates are transformed into an
@@ -1080,9 +1082,10 @@ We use the same plotting setup as in the last example:
     import numpy as np
 
     # We now generate random data for visualization with
-    # np.random.multivariate_normal.
-    disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
-    bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    # np.random.Generator.multivariate_normal.
+    rng = np.random.default_rng()
+    disk = rng.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    bulge = rng.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
     galaxy = np.concatenate([disk, bulge])
 
     # As the next step, those coordinates are transformed into an astropy.coordinates

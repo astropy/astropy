@@ -4,18 +4,16 @@ from numpy.testing import assert_array_equal
 
 from astropy import modeling
 from astropy import units as u
-from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.io.misc.asdf.tags.transform.basic import TransformType
+from astropy.modeling.bounding_box import ModelBoundingBox
 
-__all__ = ['TabularType']
+__all__ = ["TabularType"]
 
 
 class TabularType(TransformType):
     name = "transform/tabular"
-    version = '1.2.0'
-    types = [
-        modeling.models.Tabular2D, modeling.models.Tabular1D
-    ]
+    version = "1.2.0"
+    types = [modeling.models.Tabular2D, modeling.models.Tabular1D]
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
@@ -24,22 +22,34 @@ class TabularType(TransformType):
         fill_value = node.pop("fill_value", None)
         if dim == 1:
             # The copy is necessary because the array is memory mapped.
-            points = (node['points'][0][:],)
-            model = modeling.models.Tabular1D(points=points, lookup_table=lookup_table,
-                                              method=node['method'], bounds_error=node['bounds_error'],
-                                              fill_value=fill_value)
+            points = (node["points"][0][:],)
+            model = modeling.models.Tabular1D(
+                points=points,
+                lookup_table=lookup_table,
+                method=node["method"],
+                bounds_error=node["bounds_error"],
+                fill_value=fill_value,
+            )
         elif dim == 2:
-            points = tuple(p[:] for p in node['points'])
-            model = modeling.models.Tabular2D(points=points, lookup_table=lookup_table,
-                                              method=node['method'], bounds_error=node['bounds_error'],
-                                              fill_value=fill_value)
+            points = tuple(p[:] for p in node["points"])
+            model = modeling.models.Tabular2D(
+                points=points,
+                lookup_table=lookup_table,
+                method=node["method"],
+                bounds_error=node["bounds_error"],
+                fill_value=fill_value,
+            )
 
         else:
-            tabular_class = modeling.models.tabular_model(dim, name)
-            points = tuple(p[:] for p in node['points'])
-            model = tabular_class(points=points, lookup_table=lookup_table,
-                                  method=node['method'], bounds_error=node['bounds_error'],
-                                  fill_value=fill_value)
+            tabular_class = modeling.models.tabular_model(dim)
+            points = tuple(p[:] for p in node["points"])
+            model = tabular_class(
+                points=points,
+                lookup_table=lookup_table,
+                method=node["method"],
+                bounds_error=node["bounds_error"],
+                fill_value=fill_value,
+            )
 
         return model
 
@@ -77,11 +87,11 @@ class TabularType(TransformType):
             if isinstance(b_box, ModelBoundingBox):
                 b_box = b_box.bounding_box()
             assert_array_equal(a_box, b_box)
-        assert (a.method == b.method)
+        assert a.method == b.method
         if a.fill_value is None:
             assert b.fill_value is None
         elif np.isnan(a.fill_value):
             assert np.isnan(b.fill_value)
         else:
-            assert(a.fill_value == b.fill_value)
-        assert(a.bounds_error == b.bounds_error)
+            assert a.fill_value == b.fill_value
+        assert a.bounds_error == b.bounds_error

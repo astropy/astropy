@@ -9,38 +9,40 @@ ui.py:
 """
 
 
-import re
-import os
-import sys
+import collections
+import contextlib
 import copy
+import os
+import re
+import sys
 import time
 import warnings
-import contextlib
-import collections
 from io import StringIO
 
 import numpy as np
 
-from . import core
-from . import basic
-from . import cds
-from . import mrt
-from . import daophot
-from . import ecsv
-from . import sextractor
-from . import ipac
-from . import latex
-from . import html
-from . import rst
-from . import fastbasic
-from . import cparser
-from . import fixedwidth
-from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
-
-from astropy.table import Table, MaskedColumn
+from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
+
+from . import (
+    basic,
+    cds,
+    core,
+    cparser,
+    daophot,
+    ecsv,
+    fastbasic,
+    fixedwidth,
+    html,
+    ipac,
+    latex,
+    mrt,
+    rst,
+    sextractor,
+)
+from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 _read_trace = []
 
@@ -64,7 +66,7 @@ def _probably_html(table, maxchars=100000):
             for i, line in enumerate(table):
                 size += len(line)
                 if size > maxchars:
-                    table = table[:i + 1]
+                    table = table[: i + 1]
                     break
             table = os.linesep.join(table)
         except Exception:
@@ -75,22 +77,28 @@ def _probably_html(table, maxchars=100000):
         table = table[:maxchars]
 
         # URL ending in .htm or .html
-        if re.match(r'( http[s]? | ftp | file ) :// .+ \.htm[l]?$', table,
-                    re.IGNORECASE | re.VERBOSE):
+        if re.match(
+            r"( http[s]? | ftp | file ) :// .+ \.htm[l]?$",
+            table,
+            re.IGNORECASE | re.VERBOSE,
+        ):
             return True
 
         # Filename ending in .htm or .html which exists
-        if (re.search(r'\.htm[l]?$', table[-5:], re.IGNORECASE) and
-                os.path.exists(os.path.expanduser(table))):
+        if re.search(r"\.htm[l]?$", table[-5:], re.IGNORECASE) and os.path.exists(
+            os.path.expanduser(table)
+        ):
             return True
 
         # Table starts with HTML document type declaration
-        if re.match(r'\s* <! \s* DOCTYPE \s* HTML', table, re.IGNORECASE | re.VERBOSE):
+        if re.match(r"\s* <! \s* DOCTYPE \s* HTML", table, re.IGNORECASE | re.VERBOSE):
             return True
 
         # Look for <TABLE .. >, <TR .. >, <TD .. > tag openers.
-        if all(re.search(fr'< \s* {element} [^>]* >', table, re.IGNORECASE | re.VERBOSE)
-               for element in ('table', 'tr', 'td')):
+        if all(
+            re.search(rf"< \s* {element} [^>]* >", table, re.IGNORECASE | re.VERBOSE)
+            for element in ("table", "tr", "td")
+        ):
             return True
 
     return False
@@ -167,7 +175,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     if Reader is None:
         # Default reader is Basic unless fast reader is forced
         fast_reader = _get_fast_reader_dict(kwargs)
-        if fast_reader['enable'] == 'force':
+        if fast_reader["enable"] == "force":
             Reader = fastbasic.FastBasic
         else:
             Reader = basic.Basic
@@ -178,14 +186,17 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
 
 def _get_format_class(format, ReaderWriter, label):
     if format is not None and ReaderWriter is not None:
-        raise ValueError(f'Cannot supply both format and {label} keywords')
+        raise ValueError(f"Cannot supply both format and {label} keywords")
 
     if format is not None:
         if format in core.FORMAT_CLASSES:
             ReaderWriter = core.FORMAT_CLASSES[format]
         else:
-            raise ValueError('ASCII format {!r} not in allowed list {}'
-                             .format(format, sorted(core.FORMAT_CLASSES)))
+            raise ValueError(
+                "ASCII format {!r} not in allowed list {}".format(
+                    format, sorted(core.FORMAT_CLASSES)
+                )
+            )
     return ReaderWriter
 
 
@@ -193,11 +204,11 @@ def _get_fast_reader_dict(kwargs):
     """Convert 'fast_reader' key in kwargs into a dict if not already and make sure
     'enable' key is available.
     """
-    fast_reader = copy.deepcopy(kwargs.get('fast_reader', True))
+    fast_reader = copy.deepcopy(kwargs.get("fast_reader", True))
     if isinstance(fast_reader, dict):
-        fast_reader.setdefault('enable', 'force')
+        fast_reader.setdefault("enable", "force")
     else:
-        fast_reader = {'enable': fast_reader}
+        fast_reader = {"enable": fast_reader}
     return fast_reader
 
 
@@ -212,9 +223,8 @@ def _validate_read_write_kwargs(read_write, **kwargs):
         This has a special-case of ``cls`` being 'list-like', meaning it is
         an iterable but not a string.
         """
-        if cls == 'list-like':
-            ok = (not isinstance(val, str)
-                  and isinstance(val, collections.abc.Iterable))
+        if cls == "list-like":
+            ok = not isinstance(val, str) and isinstance(val, collections.abc.Iterable)
         else:
             ok = isinstance(val, cls)
             if not ok:
@@ -228,7 +238,7 @@ def _validate_read_write_kwargs(read_write, **kwargs):
                     ok = True
         return ok
 
-    kwarg_types = READ_KWARG_TYPES if read_write == 'read' else WRITE_KWARG_TYPES
+    kwarg_types = READ_KWARG_TYPES if read_write == "read" else WRITE_KWARG_TYPES
 
     for arg, val in kwargs.items():
         # Kwarg type checking is opt-in, so kwargs not in the list are considered OK.
@@ -239,8 +249,10 @@ def _validate_read_write_kwargs(read_write, **kwargs):
 
         # Single type or tuple of types for this arg (like isinstance())
         types = kwarg_types[arg]
-        err_msg = (f"{read_write}() argument '{arg}' must be a "
-                   f"{types} object, got {type(val)} instead")
+        err_msg = (
+            f"{read_write}() argument '{arg}' must be a "
+            f"{types} object, got {type(val)} instead"
+        )
 
         # Force `types` to be a tuple for the any() check below
         if not isinstance(types, tuple):
@@ -256,8 +268,9 @@ def _expand_user_if_path(argument):
         # the table data itself. File names for io.ascii cannot have newlines
         # in them and io.ascii does not accept table data as `bytes`, so we can
         # attempt to detect data strings like this.
-        is_str_data = (isinstance(argument, str)
-                and ('\n' in argument or '\r' in argument))
+        is_str_data = isinstance(argument, str) and (
+            "\n" in argument or "\r" in argument
+        )
         if not is_str_data:
             # Remain conservative in expanding the presumed-path
             ex_user = os.path.expanduser(argument)
@@ -277,38 +290,40 @@ def read(table, guess=None, **kwargs):
     # Downstream readers might munge kwargs
     kwargs = copy.deepcopy(kwargs)
 
-    _validate_read_write_kwargs('read', **kwargs)
+    _validate_read_write_kwargs("read", **kwargs)
 
     # Convert 'fast_reader' key in kwargs into a dict if not already and make sure
     # 'enable' key is available.
     fast_reader = _get_fast_reader_dict(kwargs)
-    kwargs['fast_reader'] = fast_reader
+    kwargs["fast_reader"] = fast_reader
 
-    if fast_reader['enable'] and fast_reader.get('chunk_size'):
+    if fast_reader["enable"] and fast_reader.get("chunk_size"):
         return _read_in_chunks(table, **kwargs)
 
-    if 'fill_values' not in kwargs:
-        kwargs['fill_values'] = [('', '0')]
+    if "fill_values" not in kwargs:
+        kwargs["fill_values"] = [("", "0")]
 
     # If an Outputter is supplied in kwargs that will take precedence.
-    if 'Outputter' in kwargs:  # user specified Outputter, not supported for fast reading
-        fast_reader['enable'] = False
+    if (
+        "Outputter" in kwargs
+    ):  # user specified Outputter, not supported for fast reading
+        fast_reader["enable"] = False
 
-    format = kwargs.get('format')
+    format = kwargs.get("format")
     # Dictionary arguments are passed by reference per default and thus need
     # special protection:
     new_kwargs = copy.deepcopy(kwargs)
-    kwargs['fast_reader'] = copy.deepcopy(fast_reader)
+    kwargs["fast_reader"] = copy.deepcopy(fast_reader)
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
-    Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
+    Reader = _get_format_class(format, kwargs.get("Reader"), "Reader")
     if Reader is not None:
-        new_kwargs['Reader'] = Reader
+        new_kwargs["Reader"] = Reader
         format = Reader._format_name
 
     # Remove format keyword if there, this is only allowed in read() not get_reader()
-    if 'format' in new_kwargs:
-        del new_kwargs['format']
+    if "format" in new_kwargs:
+        del new_kwargs["format"]
 
     if guess is None:
         guess = _GUESS
@@ -319,7 +334,7 @@ def read(table, guess=None, **kwargs):
         # issue #3691 (and others) where libxml can segfault on a long non-HTML
         # file, thus prompting removal of the HTML reader from the default
         # guess list.
-        new_kwargs['guess_html'] = _probably_html(table)
+        new_kwargs["guess_html"] = _probably_html(table)
 
         # If `table` is a filename or readable file object then read in the
         # file now.  This prevents problems in Python 3 with the file object
@@ -327,8 +342,8 @@ def read(table, guess=None, **kwargs):
         # #2001.  If a `readme` arg was passed that implies CDS format, in
         # which case the original `table` as the data filename must be left
         # intact.
-        if 'readme' not in new_kwargs:
-            encoding = kwargs.get('encoding')
+        if "readme" not in new_kwargs:
+            encoding = kwargs.get("encoding")
             try:
                 table = _expand_user_if_path(table)
                 with get_readable_fileobj(table, encoding=encoding) as fileobj:
@@ -343,14 +358,14 @@ def read(table, guess=None, **kwargs):
                 # ('\n' not in table and '\r' not in table)
                 # will fail and so `table` cannot be interpreted there
                 # as a filename.  See #4160.
-                if not re.search(r'[\r\n]', table):
+                if not re.search(r"[\r\n]", table):
                     table = table + os.linesep
 
                 # If the table got successfully read then look at the content
                 # to see if is probably HTML, but only if it wasn't already
                 # identified as HTML based on the filename.
-                if not new_kwargs['guess_html']:
-                    new_kwargs['guess_html'] = _probably_html(table)
+                if not new_kwargs["guess_html"]:
+                    new_kwargs["guess_html"] = _probably_html(table)
 
         # Get the table from guess in ``dat``.  If ``dat`` comes back as None
         # then there was just one set of kwargs in the guess list so fall
@@ -370,40 +385,60 @@ def read(table, guess=None, **kwargs):
         # Try the fast reader version of `format` first if applicable.  Note that
         # if user specified a fast format (e.g. format='fast_basic') this test
         # will fail and the else-clause below will be used.
-        if fast_reader['enable'] and f'fast_{format}' in core.FAST_CLASSES:
+        if fast_reader["enable"] and f"fast_{format}" in core.FAST_CLASSES:
             fast_kwargs = copy.deepcopy(new_kwargs)
-            fast_kwargs['Reader'] = core.FAST_CLASSES[f'fast_{format}']
+            fast_kwargs["Reader"] = core.FAST_CLASSES[f"fast_{format}"]
             fast_reader_rdr = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader_rdr.read(table)
-                _read_trace.append({'kwargs': copy.deepcopy(fast_kwargs),
-                                    'Reader': fast_reader_rdr.__class__,
-                                    'status': 'Success with fast reader (no guessing)'})
-            except (core.ParameterError, cparser.CParserError, UnicodeEncodeError) as err:
+                _read_trace.append(
+                    {
+                        "kwargs": copy.deepcopy(fast_kwargs),
+                        "Reader": fast_reader_rdr.__class__,
+                        "status": "Success with fast reader (no guessing)",
+                    }
+                )
+            except (
+                core.ParameterError,
+                cparser.CParserError,
+                UnicodeEncodeError,
+            ) as err:
                 # special testing value to avoid falling back on the slow reader
-                if fast_reader['enable'] == 'force':
+                if fast_reader["enable"] == "force":
                     raise core.InconsistentTableError(
-                        f'fast reader {fast_reader_rdr.__class__} exception: {err}')
+                        f"fast reader {fast_reader_rdr.__class__} exception: {err}"
+                    )
                 # If the fast reader doesn't work, try the slow version
                 reader = get_reader(**new_kwargs)
                 dat = reader.read(table)
-                _read_trace.append({'kwargs': copy.deepcopy(new_kwargs),
-                                    'Reader': reader.__class__,
-                                    'status': 'Success with slow reader after failing'
-                                    ' with fast (no guessing)'})
+                _read_trace.append(
+                    {
+                        "kwargs": copy.deepcopy(new_kwargs),
+                        "Reader": reader.__class__,
+                        "status": (
+                            "Success with slow reader after failing"
+                            " with fast (no guessing)"
+                        ),
+                    }
+                )
         else:
             reader = get_reader(**new_kwargs)
             dat = reader.read(table)
-            _read_trace.append({'kwargs': copy.deepcopy(new_kwargs),
-                                'Reader': reader.__class__,
-                                'status': 'Success with specified Reader class '
-                                          '(no guessing)'})
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(new_kwargs),
+                    "Reader": reader.__class__,
+                    "status": "Success with specified Reader class (no guessing)",
+                }
+            )
 
     # Static analysis (pyright) indicates `dat` might be left undefined, so just
     # to be sure define it at the beginning and check here.
     if dat is None:
-        raise RuntimeError('read() function failed due to code logic error, '
-                           'please report this bug on github')
+        raise RuntimeError(
+            "read() function failed due to code logic error, "
+            "please report this bug on github"
+        )
 
     return dat
 
@@ -444,10 +479,13 @@ def _guess(table, read_kwargs, format, fast_reader):
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
     # If a fast version of the reader is available, try that before the slow version
-    if (fast_reader['enable'] and format is not None and f'fast_{format}' in
-            core.FAST_CLASSES):
+    if (
+        fast_reader["enable"]
+        and format is not None
+        and f"fast_{format}" in core.FAST_CLASSES
+    ):
         fast_kwargs = copy.deepcopy(read_kwargs)
-        fast_kwargs['Reader'] = core.FAST_CLASSES[f'fast_{format}']
+        fast_kwargs["Reader"] = core.FAST_CLASSES[f"fast_{format}"]
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
         fast_kwargs = None
@@ -455,25 +493,37 @@ def _guess(table, read_kwargs, format, fast_reader):
     # Filter the full guess list so that each entry is consistent with user kwarg inputs.
     # This also removes any duplicates from the list.
     filtered_guess_kwargs = []
-    fast_reader = read_kwargs.get('fast_reader')
+    fast_reader = read_kwargs.get("fast_reader")
 
     for guess_kwargs in full_list_guess:
         # If user specified slow reader then skip all fast readers
-        if (fast_reader['enable'] is False
-                and guess_kwargs['Reader'] in core.FAST_CLASSES.values()):
-            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'Reader': guess_kwargs['Reader'].__class__,
-                                'status': 'Disabled: reader only available in fast version',
-                                'dt': f'{0.0:.3f} ms'})
+        if (
+            fast_reader["enable"] is False
+            and guess_kwargs["Reader"] in core.FAST_CLASSES.values()
+        ):
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(guess_kwargs),
+                    "Reader": guess_kwargs["Reader"].__class__,
+                    "status": "Disabled: reader only available in fast version",
+                    "dt": f"{0.0:.3f} ms",
+                }
+            )
             continue
 
         # If user required a fast reader then skip all non-fast readers
-        if (fast_reader['enable'] == 'force'
-                and guess_kwargs['Reader'] not in core.FAST_CLASSES.values()):
-            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'Reader': guess_kwargs['Reader'].__class__,
-                                'status': 'Disabled: no fast version of reader available',
-                                'dt': f'{0.0:.3f} ms'})
+        if (
+            fast_reader["enable"] == "force"
+            and guess_kwargs["Reader"] not in core.FAST_CLASSES.values()
+        ):
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(guess_kwargs),
+                    "Reader": guess_kwargs["Reader"].__class__,
+                    "status": "Disabled: no fast version of reader available",
+                    "dt": f"{0.0:.3f} ms",
+                }
+            )
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -506,9 +556,15 @@ def _guess(table, read_kwargs, format, fast_reader):
     # Define whitelist of exceptions that are expected from readers when
     # processing invalid inputs.  Note that OSError must fall through here
     # so one cannot simply catch any exception.
-    guess_exception_classes = (core.InconsistentTableError, ValueError, TypeError,
-                               AttributeError, core.OptionalTableImportError,
-                               core.ParameterError, cparser.CParserError)
+    guess_exception_classes = (
+        core.InconsistentTableError,
+        ValueError,
+        TypeError,
+        AttributeError,
+        core.OptionalTableImportError,
+        core.ParameterError,
+        cparser.CParserError,
+    )
 
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
@@ -517,59 +573,82 @@ def _guess(table, read_kwargs, format, fast_reader):
         t0 = time.time()
         try:
             # If guessing will try all Readers then use strict req'ts on column names
-            if 'Reader' not in read_kwargs:
-                guess_kwargs['strict_names'] = True
+            if "Reader" not in read_kwargs:
+                guess_kwargs["strict_names"] = True
 
             reader = get_reader(**guess_kwargs)
 
             reader.guessing = True
             dat = reader.read(table)
-            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'Reader': reader.__class__,
-                                'status': 'Success (guessing)',
-                                'dt': f'{(time.time() - t0) * 1000:.3f} ms'})
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(guess_kwargs),
+                    "Reader": reader.__class__,
+                    "status": "Success (guessing)",
+                    "dt": f"{(time.time() - t0) * 1000:.3f} ms",
+                }
+            )
             return dat
 
         except guess_exception_classes as err:
-            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'status': f'{err.__class__.__name__}: {str(err)}',
-                                'dt': f'{(time.time() - t0) * 1000:.3f} ms'})
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(guess_kwargs),
+                    "status": f"{err.__class__.__name__}: {str(err)}",
+                    "dt": f"{(time.time() - t0) * 1000:.3f} ms",
+                }
+            )
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
         try:
             reader = get_reader(**read_kwargs)
             dat = reader.read(table)
-            _read_trace.append({'kwargs': copy.deepcopy(read_kwargs),
-                                'Reader': reader.__class__,
-                                'status': 'Success with original kwargs without strict_names '
-                                          '(guessing)'})
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(read_kwargs),
+                    "Reader": reader.__class__,
+                    "status": (
+                        "Success with original kwargs without strict_names (guessing)"
+                    ),
+                }
+            )
             return dat
 
         except guess_exception_classes as err:
-            _read_trace.append({'kwargs': copy.deepcopy(read_kwargs),
-                                'status': f'{err.__class__.__name__}: {str(err)}'})
+            _read_trace.append(
+                {
+                    "kwargs": copy.deepcopy(read_kwargs),
+                    "status": f"{err.__class__.__name__}: {str(err)}",
+                }
+            )
             failed_kwargs.append(read_kwargs)
-            lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
+            lines = [
+                "\nERROR: Unable to guess table format with the guesses listed below:"
+            ]
             for kwargs in failed_kwargs:
-                sorted_keys = sorted(x for x in sorted(kwargs) if x not in ('Reader', 'Outputter'))
-                reader_repr = repr(kwargs.get('Reader', basic.Basic))
-                keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
+                sorted_keys = sorted(
+                    x for x in sorted(kwargs) if x not in ("Reader", "Outputter")
+                )
+                reader_repr = repr(kwargs.get("Reader", basic.Basic))
+                keys_vals = ["Reader:" + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
-                keys_vals.extend([f'{key}: {val!r}' for key, val in kwargs_sorted])
-                lines.append(' '.join(keys_vals))
+                keys_vals.extend([f"{key}: {val!r}" for key, val in kwargs_sorted])
+                lines.append(" ".join(keys_vals))
 
-            msg = ['',
-                   '************************************************************************',
-                   '** ERROR: Unable to guess table format with the guesses listed above. **',
-                   '**                                                                    **',
-                   '** To figure out why the table did not read, use guess=False and      **',
-                   '** fast_reader=False, along with any appropriate arguments to read(). **',
-                   '** In particular specify the format and any known attributes like the **',
-                   '** delimiter.                                                         **',
-                   '************************************************************************']
+            msg = [
+                "",
+                "************************************************************************",
+                "** ERROR: Unable to guess table format with the guesses listed above. **",
+                "**                                                                    **",
+                "** To figure out why the table did not read, use guess=False and      **",
+                "** fast_reader=False, along with any appropriate arguments to read(). **",
+                "** In particular specify the format and any known attributes like the **",
+                "** delimiter.                                                         **",
+                "************************************************************************",
+            ]
             lines.extend(msg)
-            raise core.InconsistentTableError('\n'.join(lines)) from None
+            raise core.InconsistentTableError("\n".join(lines)) from None
 
 
 def _get_guess_kwargs_list(read_kwargs):
@@ -602,7 +681,7 @@ def _get_guess_kwargs_list(read_kwargs):
 
     # If the table is probably HTML based on some heuristics then start with the
     # HTML reader.
-    if read_kwargs.pop('guess_html', None):
+    if read_kwargs.pop("guess_html", None):
         guess_kwargs_list.append(dict(Reader=html.HTML))
 
     # Start with ECSV because an ECSV file will be read by Basic.  This format
@@ -613,23 +692,40 @@ def _get_guess_kwargs_list(read_kwargs):
     # (actually include all here - check for compatibility of arguments later).
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first;
     # same for RST.
-    for reader in (fixedwidth.FixedWidthTwoLine, rst.RST,
-                   fastbasic.FastBasic, basic.Basic,
-                   fastbasic.FastRdb, basic.Rdb,
-                   fastbasic.FastTab, basic.Tab,
-                   cds.Cds, mrt.Mrt, daophot.Daophot, sextractor.SExtractor,
-                   ipac.Ipac, latex.Latex, latex.AASTex):
+    for reader in (
+        fixedwidth.FixedWidthTwoLine,
+        rst.RST,
+        fastbasic.FastBasic,
+        basic.Basic,
+        fastbasic.FastRdb,
+        basic.Rdb,
+        fastbasic.FastTab,
+        basic.Tab,
+        cds.Cds,
+        mrt.Mrt,
+        daophot.Daophot,
+        sextractor.SExtractor,
+        ipac.Ipac,
+        latex.Latex,
+        latex.AASTex,
+    ):
         guess_kwargs_list.append(dict(Reader=reader))
 
     # Cycle through the basic-style readers using all combinations of delimiter
     # and quotechar.
-    for Reader in (fastbasic.FastCommentedHeader, basic.CommentedHeader,
-                   fastbasic.FastBasic, basic.Basic,
-                   fastbasic.FastNoHeader, basic.NoHeader):
+    for Reader in (
+        fastbasic.FastCommentedHeader,
+        basic.CommentedHeader,
+        fastbasic.FastBasic,
+        basic.Basic,
+        fastbasic.FastNoHeader,
+        basic.NoHeader,
+    ):
         for delimiter in ("|", ",", " ", r"\s"):
             for quotechar in ('"', "'"):
-                guess_kwargs_list.append(dict(
-                    Reader=Reader, delimiter=delimiter, quotechar=quotechar))
+                guess_kwargs_list.append(
+                    dict(Reader=Reader, delimiter=delimiter, quotechar=quotechar)
+                )
 
     return guess_kwargs_list
 
@@ -639,10 +735,10 @@ def _read_in_chunks(table, **kwargs):
     For fast_reader read the ``table`` in chunks and vstack to create
     a single table, OR return a generator of chunk tables.
     """
-    fast_reader = kwargs['fast_reader']
-    chunk_size = fast_reader.pop('chunk_size')
-    chunk_generator = fast_reader.pop('chunk_generator', False)
-    fast_reader['parallel'] = False  # No parallel with chunks
+    fast_reader = kwargs["fast_reader"]
+    chunk_size = fast_reader.pop("chunk_size")
+    chunk_generator = fast_reader.pop("chunk_generator", False)
+    fast_reader["parallel"] = False  # No parallel with chunks
 
     tbl_chunks = _read_in_chunks_generator(table, chunk_size, **kwargs)
     if chunk_generator:
@@ -654,7 +750,7 @@ def _read_in_chunks(table, **kwargs):
     # Numpy won't allow resizing the original so make a copy here.
     out_cols = {col.name: col.data.copy() for col in tbl0.itercols()}
 
-    str_kinds = ('S', 'U')
+    str_kinds = ("S", "U")
     for tbl in tbl_chunks:
         masked |= tbl.masked
         for name, col in tbl.columns.items():
@@ -678,8 +774,7 @@ def _read_in_chunks(table, **kwargs):
 
     # Make final table from numpy arrays, converting dict to list
     out_cols = [out_cols[name] for name in tbl0.colnames]
-    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta,
-                         copy=False)
+    out = tbl0.__class__(out_cols, names=tbl0.colnames, meta=tbl0.meta, copy=False)
 
     return out
 
@@ -701,43 +796,42 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
 
     # Convert table-as-string to a File object.  Finding a newline implies
     # that the string is not a filename.
-    if (isinstance(table, str) and ('\n' in table or '\r' in table)):
+    if isinstance(table, str) and ("\n" in table or "\r" in table):
         table = StringIO(table)
         fileobj_context = passthrough_fileobj
-    elif hasattr(table, 'read') and hasattr(table, 'seek'):
+    elif hasattr(table, "read") and hasattr(table, "seek"):
         fileobj_context = passthrough_fileobj
     else:
         # string filename or pathlib
         fileobj_context = get_readable_fileobj
 
     # Set up for iterating over chunks
-    kwargs['fast_reader']['return_header_chars'] = True
-    header = ''  # Table header (up to start of data)
-    prev_chunk_chars = ''  # Chars from previous chunk after last newline
+    kwargs["fast_reader"]["return_header_chars"] = True
+    header = ""  # Table header (up to start of data)
+    prev_chunk_chars = ""  # Chars from previous chunk after last newline
     first_chunk = True  # True for the first chunk, False afterward
 
-    with fileobj_context(table, encoding=kwargs.get('encoding')) as fh:
-
+    with fileobj_context(table, encoding=kwargs.get("encoding")) as fh:
         while True:
             chunk = fh.read(chunk_size)
             # Got fewer chars than requested, must be end of file
             final_chunk = len(chunk) < chunk_size
 
             # If this is the last chunk and there is only whitespace then break
-            if final_chunk and not re.search(r'\S', chunk):
+            if final_chunk and not re.search(r"\S", chunk):
                 break
 
             # Step backwards from last character in chunk and find first newline
             for idx in range(len(chunk) - 1, -1, -1):
-                if final_chunk or chunk[idx] == '\n':
+                if final_chunk or chunk[idx] == "\n":
                     break
             else:
-                raise ValueError('no newline found in chunk (chunk_size too small?)')
+                raise ValueError("no newline found in chunk (chunk_size too small?)")
 
             # Stick on the header to the chunk part up to (and including) the
             # last newline.  Make sure the small strings are concatenated first.
-            complete_chunk = (header + prev_chunk_chars) + chunk[:idx + 1]
-            prev_chunk_chars = chunk[idx + 1:]
+            complete_chunk = (header + prev_chunk_chars) + chunk[: idx + 1]
+            prev_chunk_chars = chunk[idx + 1 :]
 
             # Now read the chunk as a complete table
             tbl = read(complete_chunk, guess=False, **kwargs)
@@ -746,7 +840,7 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
             # characters (everything up to the start of data) then fix kwargs
             # so it doesn't return that in meta any more.
             if first_chunk:
-                header = tbl.meta.pop('__ascii_fast_reader_header_chars__')
+                header = tbl.meta.pop("__ascii_fast_reader_header_chars__")
                 first_chunk = False
 
             yield tbl
@@ -755,8 +849,16 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
                 break
 
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
-                     'names', 'include_names', 'exclude_names', 'strip_whitespace')
+extra_writer_pars = (
+    "delimiter",
+    "comment",
+    "quotechar",
+    "formats",
+    "names",
+    "include_names",
+    "exclude_names",
+    "strip_whitespace",
+)
 
 
 def get_writer(Writer=None, fast_writer=True, **kwargs):
@@ -794,8 +896,8 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     """
     if Writer is None:
         Writer = basic.Basic
-    if 'strip_whitespace' not in kwargs:
-        kwargs['strip_whitespace'] = True
+    if "strip_whitespace" not in kwargs:
+        kwargs["strip_whitespace"] = True
     writer = core._get_writer(Writer, fast_writer, **kwargs)
 
     # Handle the corner case of wanting to disable writing table comments for the
@@ -804,21 +906,33 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     # set the input `comment` to None.  Without adding a new keyword or assuming
     # a default comment character, there is no other option but to tell user to
     # simply remove the meta['comments'].
-    if (isinstance(writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader))
-            and not isinstance(kwargs.get('comment', ''), str)):
-        raise ValueError("for the commented_header writer you must supply a string\n"
-                         "value for the `comment` keyword.  In order to disable writing\n"
-                         "table comments use `del t.meta['comments']` prior to writing.")
+    if isinstance(
+        writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader)
+    ) and not isinstance(kwargs.get("comment", ""), str):
+        raise ValueError(
+            "for the commented_header writer you must supply a string\n"
+            "value for the `comment` keyword.  In order to disable writing\n"
+            "table comments use `del t.meta['comments']` prior to writing."
+        )
 
     return writer
 
 
-def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
-          overwrite=False, **kwargs):
+def write(
+    table,
+    output=None,
+    format=None,
+    Writer=None,
+    fast_writer=True,
+    *,
+    overwrite=False,
+    **kwargs,
+):
     # Docstring inserted below
 
-    _validate_read_write_kwargs('write', format=format, fast_writer=fast_writer,
-                                overwrite=overwrite, **kwargs)
+    _validate_read_write_kwargs(
+        "write", format=format, fast_writer=fast_writer, overwrite=overwrite, **kwargs
+    )
 
     if isinstance(output, (str, bytes, os.PathLike)):
         output = os.path.expanduser(output)
@@ -829,7 +943,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
         output = sys.stdout
 
     # Ensure that `table` is a Table subclass.
-    names = kwargs.get('names')
+    names = kwargs.get("names")
     if isinstance(table, Table):
         # While we are only going to read data from columns, we may need to
         # to adjust info attributes such as format, so we make a shallow copy.
@@ -839,19 +953,25 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
         table = Table(table, names=names, copy=False)
 
     table0 = table[:0].copy()
-    core._apply_include_exclude_names(table0, kwargs.get('names'),
-                                      kwargs.get('include_names'), kwargs.get('exclude_names'))
-    diff_format_with_names = set(kwargs.get('formats', [])) - set(table0.colnames)
+    core._apply_include_exclude_names(
+        table0,
+        kwargs.get("names"),
+        kwargs.get("include_names"),
+        kwargs.get("exclude_names"),
+    )
+    diff_format_with_names = set(kwargs.get("formats", [])) - set(table0.colnames)
 
     if diff_format_with_names:
         warnings.warn(
-            'The key(s) {} specified in the formats argument do not match a column name.'
-            .format(diff_format_with_names), AstropyWarning)
+            "The key(s) {} specified in the formats argument do not match a column"
+            " name.".format(diff_format_with_names),
+            AstropyWarning,
+        )
 
     if table.has_mixin_columns:
         fast_writer = False
 
-    Writer = _get_format_class(format, Writer, 'Writer')
+    Writer = _get_format_class(format, Writer, "Writer")
     writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)
     if writer._format_name in core.FAST_CLASSES:
         writer.write(table, output)
@@ -861,12 +981,12 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
 
     # Write the lines to output
     outstr = os.linesep.join(lines)
-    if not hasattr(output, 'write'):
+    if not hasattr(output, "write"):
         # NOTE: we need to specify newline='', otherwise the default
         # behavior is for Python to translate \r\n (which we write because
         # of os.linesep) into \r\r\n. Specifying newline='' disables any
         # auto-translation.
-        output = open(output, 'w', newline='')
+        output = open(output, "w", newline="")
         output.write(outstr)
         output.write(os.linesep)
         output.close()

@@ -16,6 +16,8 @@ code under a BSD license.
 # this also makes it easier to understand where most time is spent
 # (e.g., using python -X importtime).
 
+from .core import set_enabled_units
+
 # isort: off
 from .core import *
 from .quantity import *
@@ -38,6 +40,7 @@ from .function.logarithmic import *
 
 from .decorators import *
 from .structured import *
+
 # isort: on
 
 del bases
@@ -50,12 +53,15 @@ set_enabled_units([si, cgs, astrophys, function_units, misc, photometric])
 
 # -------------------------------------------------------------------------
 
+
 def __getattr__(attr):
     if attr == "littleh":
         from astropy.units.astrophys import littleh
+
         return littleh
     elif attr == "with_H0":
         from astropy.units.equivalencies import with_H0
+
         return with_H0
 
     raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

@@ -7,7 +7,6 @@ from numpy.testing import assert_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 
-
 STR_EXPECTED_EMPTY = """
 rsun_ref:
 dsun_obs:
@@ -26,7 +25,8 @@ def test_empty():
     assert str(w.wcs.aux) == STR_EXPECTED_EMPTY
 
 
-HEADER_SOLAR = fits.Header.fromstring("""
+HEADER_SOLAR = fits.Header.fromstring(
+    """
 WCSAXES =                    2 / Number of coordinate axes
 CRPIX1  =                 64.5 / Pixel coordinate of reference point
 CRPIX2  =                 64.5 / Pixel coordinate of reference point
@@ -52,7 +52,9 @@ CRLN_OBS=            22.814522 / [deg] Carrington heliographic lng of observer
 CRLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
 HGLN_OBS=             8.431123 / [deg] Stonyhurst heliographic lng of observer
 HGLT_OBS=            -6.820544 / [deg] Heliographic latitude of observer
-""".lstrip(), sep='\n')
+""".lstrip(),
+    sep="\n",
+)
 
 
 STR_EXPECTED_GET = """
@@ -82,7 +84,6 @@ hglt_obs: 40.000000""".lstrip()
 
 
 def test_solar_aux_set():
-
     w = WCS(HEADER_SOLAR)
 
     w.wcs.aux.rsun_ref = 698000000
@@ -91,27 +92,26 @@ def test_solar_aux_set():
     w.wcs.aux.dsun_obs = 140000000000
     assert_allclose(w.wcs.aux.dsun_obs, 140000000000)
 
-    w.wcs.aux.crln_obs = 10.
-    assert_allclose(w.wcs.aux.crln_obs, 10.)
+    w.wcs.aux.crln_obs = 10.0
+    assert_allclose(w.wcs.aux.crln_obs, 10.0)
 
-    w.wcs.aux.hgln_obs = 30.
-    assert_allclose(w.wcs.aux.hgln_obs, 30.)
+    w.wcs.aux.hgln_obs = 30.0
+    assert_allclose(w.wcs.aux.hgln_obs, 30.0)
 
-    w.wcs.aux.hglt_obs = 40.
-    assert_allclose(w.wcs.aux.hglt_obs, 40.)
+    w.wcs.aux.hglt_obs = 40.0
+    assert_allclose(w.wcs.aux.hglt_obs, 40.0)
 
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header['RSUN_REF'], 698000000)
-    assert_allclose(header['DSUN_OBS'], 140000000000)
-    assert_allclose(header['CRLN_OBS'], 10.)
-    assert_allclose(header['HGLN_OBS'], 30.)
-    assert_allclose(header['HGLT_OBS'], 40.)
+    assert_allclose(header["RSUN_REF"], 698000000)
+    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["CRLN_OBS"], 10.0)
+    assert_allclose(header["HGLN_OBS"], 30.0)
+    assert_allclose(header["HGLT_OBS"], 40.0)
 
 
 def test_set_aux_on_empty():
-
     w = WCS(naxis=2)
 
     w.wcs.aux.rsun_ref = 698000000
@@ -120,23 +120,23 @@ def test_set_aux_on_empty():
     w.wcs.aux.dsun_obs = 140000000000
     assert_allclose(w.wcs.aux.dsun_obs, 140000000000)
 
-    w.wcs.aux.crln_obs = 10.
-    assert_allclose(w.wcs.aux.crln_obs, 10.)
+    w.wcs.aux.crln_obs = 10.0
+    assert_allclose(w.wcs.aux.crln_obs, 10.0)
 
-    w.wcs.aux.hgln_obs = 30.
-    assert_allclose(w.wcs.aux.hgln_obs, 30.)
+    w.wcs.aux.hgln_obs = 30.0
+    assert_allclose(w.wcs.aux.hgln_obs, 30.0)
 
-    w.wcs.aux.hglt_obs = 40.
-    assert_allclose(w.wcs.aux.hglt_obs, 40.)
+    w.wcs.aux.hglt_obs = 40.0
+    assert_allclose(w.wcs.aux.hglt_obs, 40.0)
 
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header['RSUN_REF'], 698000000)
-    assert_allclose(header['DSUN_OBS'], 140000000000)
-    assert_allclose(header['CRLN_OBS'], 10.)
-    assert_allclose(header['HGLN_OBS'], 30.)
-    assert_allclose(header['HGLT_OBS'], 40.)
+    assert_allclose(header["RSUN_REF"], 698000000)
+    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["CRLN_OBS"], 10.0)
+    assert_allclose(header["HGLN_OBS"], 30.0)
+    assert_allclose(header["HGLT_OBS"], 40.0)
 
 
 def test_unset_aux():
@@ -162,11 +162,11 @@ def test_unset_aux():
     w.wcs.aux.hglt_obs = None
     assert w.wcs.aux.hglt_obs is None
 
-    assert str(w.wcs.aux) == 'rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:'
+    assert str(w.wcs.aux) == "rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:"
 
     header = w.to_header()
-    assert 'RSUN_REF' not in header
-    assert 'DSUN_OBS' not in header
-    assert 'CRLN_OBS' not in header
-    assert 'HGLN_OBS' not in header
-    assert 'HGLT_OBS' not in header
+    assert "RSUN_REF" not in header
+    assert "DSUN_OBS" not in header
+    assert "CRLN_OBS" not in header
+    assert "HGLN_OBS" not in header
+    assert "HGLT_OBS" not in header

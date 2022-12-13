@@ -4,7 +4,7 @@
 # then add objects to tables that are not formally mixin columns and where
 # adding an info attribute is beyond our control.
 
-__all__ = ['MixinRegistryError', 'register_mixin_handler', 'get_mixin_handler']
+__all__ = ["MixinRegistryError", "register_mixin_handler", "get_mixin_handler"]
 
 # The internal dictionary of handlers maps fully qualified names of classes
 # to a function that can take an object and return a mixin-compatible object.
@@ -41,7 +41,9 @@ def register_mixin_handler(fully_qualified_name, handler, force=False):
     if fully_qualified_name not in _handlers or force:
         _handlers[fully_qualified_name] = handler
     else:
-        raise MixinRegistryError(f"Handler for class {fully_qualified_name} is already defined")
+        raise MixinRegistryError(
+            f"Handler for class {fully_qualified_name} is already defined"
+        )
 
 
 def get_mixin_handler(obj):
@@ -61,16 +63,20 @@ def get_mixin_handler(obj):
     if isinstance(obj, str):
         return _handlers.get(obj, None)
     else:
-        return _handlers.get(obj.__class__.__module__ + '.' + obj.__class__.__name__, None)
+        return _handlers.get(
+            obj.__class__.__module__ + "." + obj.__class__.__name__, None
+        )
 
 
 # Add built-in handlers to registry. Note that any third-party package imports
 # required by the handlers should go inside the handler function to delay
 # the imports until they are actually needed.
 
+
 def dask_handler(arr):
     from astropy.table.mixins.dask import as_dask_column
+
     return as_dask_column(arr)
 
 
-register_mixin_handler('dask.array.core.Array', dask_handler)
+register_mixin_handler("dask.array.core.Array", dask_handler)

@@ -5,36 +5,37 @@ The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
 """
 
-__all__ = ['lombscargle', 'available_methods']
+__all__ = ["lombscargle", "available_methods"]
 
 import numpy as np
 
-from .slow_impl import lombscargle_slow
-from .fast_impl import lombscargle_fast
-from .scipy_impl import lombscargle_scipy
 from .chi2_impl import lombscargle_chi2
-from .fastchi2_impl import lombscargle_fastchi2
 from .cython_impl import lombscargle_cython
+from .fast_impl import lombscargle_fast
+from .fastchi2_impl import lombscargle_fastchi2
+from .scipy_impl import lombscargle_scipy
+from .slow_impl import lombscargle_slow
 
-
-METHODS = {'slow': lombscargle_slow,
-           'fast': lombscargle_fast,
-           'chi2': lombscargle_chi2,
-           'scipy': lombscargle_scipy,
-           'fastchi2': lombscargle_fastchi2,
-           'cython': lombscargle_cython}
+METHODS = {
+    "slow": lombscargle_slow,
+    "fast": lombscargle_fast,
+    "chi2": lombscargle_chi2,
+    "scipy": lombscargle_scipy,
+    "fastchi2": lombscargle_fastchi2,
+    "cython": lombscargle_cython,
+}
 
 
 def available_methods():
-    methods = ['auto', 'slow', 'chi2', 'cython', 'fast', 'fastchi2']
+    methods = ["auto", "slow", "chi2", "cython", "fast", "fastchi2"]
 
     # Scipy required for scipy algorithm (obviously)
     try:
-        import scipy
+        import scipy  # noqa: F401
     except ImportError:
         pass
     else:
-        methods.append('scipy')
+        methods.append("scipy")
     return methods
 
 
@@ -76,31 +77,30 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_mean, nterms,
-                    frequency, assume_regular_frequency):
+def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
     """
     Validate the method argument, and if method='auto'
     choose the appropriate method
     """
     methods = available_methods()
-    prefer_fast = (len(frequency) > 200
-                   and (assume_regular_frequency or _is_regular(frequency)))
-    prefer_scipy = 'scipy' in methods and dy is None and not fit_mean
+    prefer_fast = len(frequency) > 200 and (
+        assume_regular_frequency or _is_regular(frequency)
+    )
+    prefer_scipy = "scipy" in methods and dy is None and not fit_mean
 
     # automatically choose the appropriate method
-    if method == 'auto':
-
+    if method == "auto":
         if nterms != 1:
             if prefer_fast:
-                method = 'fastchi2'
+                method = "fastchi2"
             else:
-                method = 'chi2'
+                method = "chi2"
         elif prefer_fast:
-            method = 'fast'
+            method = "fast"
         elif prefer_scipy:
-            method = 'scipy'
+            method = "scipy"
         else:
-            method = 'cython'
+            method = "cython"
 
     if method not in METHODS:
         raise ValueError(f"invalid method: {method}")
@@ -108,13 +108,19 @@ def validate_method(method, dy, fit_mean, nterms,
     return method
 
 
-def lombscargle(t, y, dy=None,
-                frequency=None,
-                method='auto',
-                assume_regular_frequency=False,
-                normalization='standard',
-                fit_mean=True, center_data=True,
-                method_kwds=None, nterms=1):
+def lombscargle(
+    t,
+    y,
+    dy=None,
+    frequency=None,
+    method="auto",
+    assume_regular_frequency=False,
+    normalization="standard",
+    fit_mean=True,
+    center_data=True,
+    method_kwds=None,
+    nterms=1,
+):
     """
     Compute the Lomb-scargle Periodogram with a given method.
 
@@ -179,39 +185,47 @@ def lombscargle(t, y, dy=None,
 
     # we'll need to adjust args and kwds for each method
     args = (t, y, dy)
-    kwds = dict(frequency=frequency,
-                center_data=center_data,
-                fit_mean=fit_mean,
-                normalization=normalization,
-                nterms=nterms,
-                **(method_kwds or {}))
+    kwds = dict(
+        frequency=frequency,
+        center_data=center_data,
+        fit_mean=fit_mean,
+        normalization=normalization,
+        nterms=nterms,
+        **(method_kwds or {}),
+    )
 
-    method = validate_method(method, dy=dy, fit_mean=fit_mean, nterms=nterms,
-                             frequency=frequency,
-                             assume_regular_frequency=assume_regular_frequency)
+    method = validate_method(
+        method,
+        dy=dy,
+        fit_mean=fit_mean,
+        nterms=nterms,
+        frequency=frequency,
+        assume_regular_frequency=assume_regular_frequency,
+    )
 
     # scipy doesn't support dy or fit_mean=True
-    if method == 'scipy':
-        if kwds.pop('fit_mean'):
+    if method == "scipy":
+        if kwds.pop("fit_mean"):
             raise ValueError("scipy method does not support fit_mean=True")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
-                raise ValueError("scipy method only supports "
-                                 "uniform uncertainties dy")
+                raise ValueError("scipy method only supports uniform uncertainties dy")
         args = (t, y)
 
     # fast methods require frequency expressed as a grid
-    if method.startswith('fast'):
-        f0, df, Nf = _get_frequency_grid(kwds.pop('frequency'),
-                                         assume_regular_frequency)
+    if method.startswith("fast"):
+        f0, df, Nf = _get_frequency_grid(
+            kwds.pop("frequency"), assume_regular_frequency
+        )
         kwds.update(f0=f0, df=df, Nf=Nf)
 
     # only chi2 methods support nterms
-    if not method.endswith('chi2'):
-        if kwds.pop('nterms') != 1:
-            raise ValueError("nterms != 1 only supported with 'chi2' "
-                             "or 'fastchi2' methods")
+    if not method.endswith("chi2"):
+        if kwds.pop("nterms") != 1:
+            raise ValueError(
+                "nterms != 1 only supported with 'chi2' or 'fastchi2' methods"
+            )
 
     PLS = METHODS[method](*args, **kwds)
     return PLS.reshape(output_shape)

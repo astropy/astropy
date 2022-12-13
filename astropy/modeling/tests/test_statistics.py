@@ -3,12 +3,18 @@
 Module to test statistic functions
 """
 import numpy as np
+
 # pylint: disable=invalid-name
 import pytest
 from numpy.testing import assert_almost_equal
 
 from astropy.modeling.models import Identity, Mapping
-from astropy.modeling.statistic import leastsquare, leastsquare_1d, leastsquare_2d, leastsquare_3d
+from astropy.modeling.statistic import (
+    leastsquare,
+    leastsquare_1d,
+    leastsquare_2d,
+    leastsquare_3d,
+)
 
 
 class TestLeastSquare_XD:
@@ -36,15 +42,11 @@ class TestLeastSquare_XD:
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_2d_with_weights(self):
-        lsq = leastsquare_2d(
-            self.data, self.model2D, np.ones(100), self.x, self.y
-        )
+        lsq = leastsquare_2d(self.data, self.model2D, np.ones(100), self.x, self.y)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
-        lsq = leastsquare_3d(
-            self.data, self.model3D, None, self.x, self.y, self.z
-        )
+        lsq = leastsquare_3d(self.data, self.model3D, None, self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
@@ -74,17 +76,14 @@ class TestLeastSquare_ND:
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_no_weights(self):
-        lsq = leastsquare(
-            self.data, self.model3D, None, self.x, self.y, self.z
-        )
+        lsq = leastsquare(self.data, self.model3D, None, self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_3d_with_weights(self):
-        lsq = leastsquare(
-            self.data, self.model3D, np.ones(100), self.x, self.y, self.z
-        )
+        lsq = leastsquare(self.data, self.model3D, np.ones(100), self.x, self.y, self.z)
         assert_almost_equal(lsq, self.lsq_exp)
 
     def test_shape_mismatch(self):
-        with pytest.raises(ValueError):
+        MESSAGE = r"Shape mismatch between model .* and measured .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             leastsquare(0, self.model1D, None, self.x)

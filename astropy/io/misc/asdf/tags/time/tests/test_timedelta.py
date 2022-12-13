@@ -2,16 +2,15 @@
 
 import pytest
 
-asdf = pytest.importorskip('asdf')
+asdf = pytest.importorskip("asdf")
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy import units as u
 from astropy.time import Time, TimeDelta
 
 
-@pytest.mark.parametrize('fmt', TimeDelta.FORMATS.keys())
+@pytest.mark.parametrize("fmt", TimeDelta.FORMATS.keys())
 def test_timedelta(fmt, tmpdir):
-
     t1 = Time(Time.now())
     t2 = Time(Time.now())
 
@@ -20,14 +19,12 @@ def test_timedelta(fmt, tmpdir):
     assert_roundtrip_tree(tree, tmpdir)
 
 
-@pytest.mark.parametrize('scale', list(TimeDelta.SCALES) + [None])
+@pytest.mark.parametrize("scale", list(TimeDelta.SCALES) + [None])
 def test_timedelta_scales(scale, tmpdir):
-
     tree = dict(timedelta=TimeDelta(0.125, scale=scale, format="jd"))
     assert_roundtrip_tree(tree, tmpdir)
 
 
 def test_timedelta_vector(tmpdir):
-
     tree = dict(timedelta=TimeDelta([1, 2] * u.day))
     assert_roundtrip_tree(tree, tmpdir)

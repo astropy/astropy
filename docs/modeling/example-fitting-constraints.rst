@@ -28,7 +28,7 @@ to the data minus that constant. The fixed coefficients and corresponding terms
 are restored to the fit polynomial and this is the polynomial returned from the fitter::
 
     >>> import numpy as np
-    >>> np.random.seed(seed=12345)
+    >>> rng = np.random.default_rng(seed=12345)
     >>> from astropy.modeling import models, fitting
     >>> x = np.arange(1, 10, .1)
     >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
@@ -36,7 +36,7 @@ are restored to the fit polynomial and this is the polynomial returned from the 
     >>> p1  # doctest: +FLOAT_CMP
     <Polynomial1D(2, c0=[1., 1.], c1=[2., 2.], c2=[3., 3.], n_models=2)>
     >>> y = p1(x, model_set_axis=False)
-    >>> n = (np.random.randn(y.size)).reshape(y.shape)
+    >>> n = (rng.standard_normal(y.size)).reshape(y.shape)
     >>> p1.c0.fixed = True
     >>> pfit = fitting.LinearLSQFitter()
     >>> new_model = pfit(p1, x, y + n)  # doctest: +IGNORE_WARNINGS

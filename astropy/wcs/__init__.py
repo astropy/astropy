@@ -23,9 +23,9 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 """
 
+from . import utils
 from .wcs import *
 from .wcs import InvalidTabularParametersError  # just for docs
-from . import utils
 
 
 def get_include():
@@ -33,4 +33,5 @@ def get_include():
     Get the path to astropy.wcs's C header files.
     """
     import os
+
     return os.path.join(os.path.dirname(__file__), "include")

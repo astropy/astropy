@@ -4,44 +4,64 @@
 """
 # flake8: noqa
 
-from .core import (InconsistentTableError,
-                   ParameterError,
-                   NoType, StrType, NumType, FloatType, IntType, AllType,
-                   Column,
-                   BaseInputter, ContinuationLinesInputter,
-                   BaseHeader,
-                   BaseData,
-                   BaseOutputter, TableOutputter,
-                   BaseReader,
-                   BaseSplitter, DefaultSplitter, WhitespaceSplitter,
-                   convert_numpy,
-                   masked
-                   )
-from .basic import (Basic, BasicHeader, BasicData,
-                    Rdb,
-                    Csv,
-                    Tab,
-                    NoHeader,
-                    CommentedHeader)
-from .fastbasic import (FastBasic,
-                        FastCsv,
-                        FastTab,
-                        FastNoHeader,
-                        FastCommentedHeader,
-                        FastRdb)
+from . import connect
+from .basic import (
+    Basic,
+    BasicData,
+    BasicHeader,
+    CommentedHeader,
+    Csv,
+    NoHeader,
+    Rdb,
+    Tab,
+)
 from .cds import Cds
-from .mrt import Mrt
+from .core import (
+    AllType,
+    BaseData,
+    BaseHeader,
+    BaseInputter,
+    BaseOutputter,
+    BaseReader,
+    BaseSplitter,
+    Column,
+    ContinuationLinesInputter,
+    DefaultSplitter,
+    FloatType,
+    InconsistentTableError,
+    IntType,
+    NoType,
+    NumType,
+    ParameterError,
+    StrType,
+    TableOutputter,
+    WhitespaceSplitter,
+    convert_numpy,
+    masked,
+)
+from .daophot import Daophot
 from .ecsv import Ecsv
-from .latex import Latex, AASTex, latexdicts
+from .fastbasic import (
+    FastBasic,
+    FastCommentedHeader,
+    FastCsv,
+    FastNoHeader,
+    FastRdb,
+    FastTab,
+)
+from .fixedwidth import (
+    FixedWidth,
+    FixedWidthData,
+    FixedWidthHeader,
+    FixedWidthNoHeader,
+    FixedWidthSplitter,
+    FixedWidthTwoLine,
+)
 from .html import HTML
 from .ipac import Ipac
-from .daophot import Daophot
+from .latex import AASTex, Latex, latexdicts
+from .mrt import Mrt
 from .qdp import QDP
-from .sextractor import SExtractor
-from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
-                         FixedWidthTwoLine, FixedWidthSplitter,
-                         FixedWidthHeader, FixedWidthData)
 from .rst import RST
-from .ui import (set_guess, get_reader, read, get_writer, write, get_read_trace)
-
-from . import connect
+from .sextractor import SExtractor
+from .ui import get_read_trace, get_reader, get_writer, read, set_guess, write

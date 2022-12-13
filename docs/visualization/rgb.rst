@@ -38,9 +38,10 @@ To generate a color PNG file with the default (arcsinh) scaling:
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.visualization import make_lupton_rgb
-    image_r = np.random.random((100,100))
-    image_g = np.random.random((100,100))
-    image_b = np.random.random((100,100))
+    rng = np.random.default_rng()
+    image_r = rng.random((100,100))
+    image_g = rng.random((100,100))
+    image_b = rng.random((100,100))
     image = make_lupton_rgb(image_r, image_g, image_b, stretch=0.5)
     plt.imshow(image)
 

@@ -2,21 +2,22 @@
 
 import numpy as np
 
-from .implementations import lombscargle, available_methods
-from .implementations.mle import periodic_fit, design_matrix
-from . import _statistics
 from astropy import units
-from astropy.time import Time, TimeDelta
 from astropy import units as u
+from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.base import BasePeriodogram
+
+from . import _statistics
+from .implementations import available_methods, lombscargle
+from .implementations.mle import design_matrix, periodic_fit
 
 
 def has_units(obj):
-    return hasattr(obj, 'unit')
+    return hasattr(obj, "unit")
 
 
 def get_unit(obj):
-    return getattr(obj, 'unit', 1)
+    return getattr(obj, "unit", 1)
 
 
 def strip_units(*arrs):
@@ -99,16 +100,24 @@ class LombScargle(BasePeriodogram):
     .. [2] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
         Time Series*. ApJ 812.1:18 (2015)
     """
+
     available_methods = available_methods()
 
-    def __init__(self, t, y, dy=None, fit_mean=True, center_data=True,
-                 nterms=1, normalization='standard'):
-
+    def __init__(
+        self,
+        t,
+        y,
+        dy=None,
+        fit_mean=True,
+        center_data=True,
+        nterms=1,
+        normalization="standard",
+    ):
         # If t is a TimeDelta, convert it to a quantity. The units we convert
         # to don't really matter since the user gets a Quantity back at the end
         # so can convert to any units they like.
         if isinstance(t, TimeDelta):
-            t = t.to('day')
+            t = t.to("day")
 
         # We want to expose self.t as being the times the user passed in, but
         # if the times are absolute, we need to convert them to relative times
@@ -147,8 +156,7 @@ class LombScargle(BasePeriodogram):
                 try:
                     dy = units.Quantity(dy, unit=y.unit)
                 except units.UnitConversionError:
-                    raise ValueError("Units of dy not equivalent "
-                                     "to units of y")
+                    raise ValueError("Units of dy not equivalent to units of y")
         return t, y, dy
 
     def _validate_frequency(self, frequency):
@@ -157,10 +165,9 @@ class LombScargle(BasePeriodogram):
         if has_units(self._trel):
             frequency = units.Quantity(frequency)
             try:
-                frequency = units.Quantity(frequency, unit=1./self._trel.unit)
+                frequency = units.Quantity(frequency, unit=1.0 / self._trel.unit)
             except units.UnitConversionError:
-                raise ValueError("Units of frequency not equivalent to "
-                                 "units of 1/t")
+                raise ValueError("Units of frequency not equivalent to units of 1/t")
         else:
             if has_units(frequency):
                 raise ValueError("frequency have units while 1/t doesn't.")
@@ -174,22 +181,26 @@ class LombScargle(BasePeriodogram):
             try:
                 t = units.Quantity(t, unit=self._trel.unit)
             except units.UnitConversionError:
-                raise ValueError("Units of t not equivalent to "
-                                 "units of input self.t")
+                raise ValueError("Units of t not equivalent to units of input self.t")
         return t
 
     def _power_unit(self, norm):
         if has_units(self.y):
-            if self.dy is None and norm == 'psd':
-                return self.y.unit ** 2
+            if self.dy is None and norm == "psd":
+                return self.y.unit**2
             else:
                 return units.dimensionless_unscaled
         else:
             return 1
 
-    def autofrequency(self, samples_per_peak=5, nyquist_factor=5,
-                      minimum_frequency=None, maximum_frequency=None,
-                      return_freq_limits=False):
+    def autofrequency(
+        self,
+        samples_per_peak=5,
+        nyquist_factor=5,
+        minimum_frequency=None,
+        maximum_frequency=None,
+        return_freq_limits=False,
+    ):
         """Determine a suitable frequency grid for data.
 
         Note that this assumes the peak width is driven by the observational
@@ -245,10 +256,16 @@ class LombScargle(BasePeriodogram):
         else:
             return minimum_frequency + df * np.arange(Nf)
 
-    def autopower(self, method='auto', method_kwds=None,
-                  normalization=None, samples_per_peak=5,
-                  nyquist_factor=5, minimum_frequency=None,
-                  maximum_frequency=None):
+    def autopower(
+        self,
+        method="auto",
+        method_kwds=None,
+        normalization=None,
+        samples_per_peak=5,
+        nyquist_factor=5,
+        minimum_frequency=None,
+        maximum_frequency=None,
+    ):
         """Compute Lomb-Scargle power at automatically-determined frequencies.
 
         Parameters
@@ -294,18 +311,29 @@ class LombScargle(BasePeriodogram):
         frequency, power : ndarray
             The frequency and Lomb-Scargle power
         """
-        frequency = self.autofrequency(samples_per_peak=samples_per_peak,
-                                       nyquist_factor=nyquist_factor,
-                                       minimum_frequency=minimum_frequency,
-                                       maximum_frequency=maximum_frequency)
-        power = self.power(frequency,
-                           normalization=normalization,
-                           method=method, method_kwds=method_kwds,
-                           assume_regular_frequency=True)
+        frequency = self.autofrequency(
+            samples_per_peak=samples_per_peak,
+            nyquist_factor=nyquist_factor,
+            minimum_frequency=minimum_frequency,
+            maximum_frequency=maximum_frequency,
+        )
+        power = self.power(
+            frequency,
+            normalization=normalization,
+            method=method,
+            method_kwds=method_kwds,
+            assume_regular_frequency=True,
+        )
         return frequency, power
 
-    def power(self, frequency, normalization=None, method='auto',
-              assume_regular_frequency=False, method_kwds=None):
+    def power(
+        self,
+        frequency,
+        normalization=None,
+        method="auto",
+        assume_regular_frequency=False,
+        method_kwds=None,
+    ):
         """Compute the Lomb-Scargle power at the given frequencies.
 
         Parameters
@@ -350,14 +378,17 @@ class LombScargle(BasePeriodogram):
         if normalization is None:
             normalization = self.normalization
         frequency = self._validate_frequency(frequency)
-        power = lombscargle(*strip_units(self._trel, self.y, self.dy),
-                            frequency=strip_units(frequency),
-                            center_data=self.center_data,
-                            fit_mean=self.fit_mean,
-                            nterms=self.nterms,
-                            normalization=normalization,
-                            method=method, method_kwds=method_kwds,
-                            assume_regular_frequency=assume_regular_frequency)
+        power = lombscargle(
+            *strip_units(self._trel, self.y, self.dy),
+            frequency=strip_units(frequency),
+            center_data=self.center_data,
+            fit_mean=self.fit_mean,
+            nterms=self.nterms,
+            normalization=normalization,
+            method=method,
+            method_kwds=method_kwds,
+            assume_regular_frequency=assume_regular_frequency,
+        )
         return power * self._power_unit(normalization)
 
     def _as_relative_time(self, name, times):
@@ -368,20 +399,24 @@ class LombScargle(BasePeriodogram):
         """
 
         if isinstance(times, TimeDelta):
-            times = times.to('day')
+            times = times.to("day")
 
         if self._tstart is None:
             if isinstance(times, Time):
-                raise TypeError('{} was provided as an absolute time but '
-                                'the LombScargle class was initialized '
-                                'with relative times.'.format(name))
+                raise TypeError(
+                    f"{name} was provided as an absolute time but "
+                    "the LombScargle class was initialized "
+                    "with relative times."
+                )
         else:
             if isinstance(times, Time):
                 times = (times - self._tstart).to(u.day)
             else:
-                raise TypeError('{} was provided as a relative time but '
-                                'the LombScargle class was initialized '
-                                'with absolute times.'.format(name))
+                raise TypeError(
+                    f"{name} was provided as a relative time but "
+                    "the LombScargle class was initialized "
+                    "with absolute times."
+                )
 
         return times
 
@@ -411,13 +446,15 @@ class LombScargle(BasePeriodogram):
         model_parameters
         """
         frequency = self._validate_frequency(frequency)
-        t = self._validate_t(self._as_relative_time('t', t))
-        y_fit = periodic_fit(*strip_units(self._trel, self.y, self.dy),
-                             frequency=strip_units(frequency),
-                             t_fit=strip_units(t),
-                             center_data=self.center_data,
-                             fit_mean=self.fit_mean,
-                             nterms=self.nterms)
+        t = self._validate_t(self._as_relative_time("t", t))
+        y_fit = periodic_fit(
+            *strip_units(self._trel, self.y, self.dy),
+            frequency=strip_units(frequency),
+            t_fit=strip_units(t),
+            center_data=self.center_data,
+            fit_mean=self.fit_mean,
+            nterms=self.nterms,
+        )
         return y_fit * get_unit(self.y)
 
     def offset(self):
@@ -441,7 +478,7 @@ class LombScargle(BasePeriodogram):
             dy = 1
         dy = np.broadcast_to(dy, y.shape)
         if self.center_data:
-            w = dy ** -2.0
+            w = dy**-2.0
             y_mean = np.dot(y, w) / w.sum()
         else:
             y_mean = 0
@@ -484,8 +521,7 @@ class LombScargle(BasePeriodogram):
 
         dy = np.ones_like(y) if dy is None else np.asarray(dy)
         X = self.design_matrix(frequency)
-        parameters = np.linalg.solve(np.dot(X.T, X),
-                                     np.dot(X.T, y / dy))
+        parameters = np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y / dy))
         if units:
             parameters = get_unit(self.y) * parameters
         return parameters
@@ -517,10 +553,8 @@ class LombScargle(BasePeriodogram):
         if t is None:
             t, dy = strip_units(self._trel, self.dy)
         else:
-            t, dy = strip_units(self._validate_t(self._as_relative_time('t', t)), None)
-        return design_matrix(t, frequency, dy,
-                             nterms=self.nterms,
-                             bias=self.fit_mean)
+            t, dy = strip_units(self._validate_t(self._as_relative_time("t", t)), None)
+        return design_matrix(t, frequency, dy, nterms=self.nterms, bias=self.fit_mean)
 
     def distribution(self, power, cumulative=False):
         """Expected periodogram distribution under the null hypothesis.
@@ -554,10 +588,16 @@ class LombScargle(BasePeriodogram):
         dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
         return dist(power, len(self._trel), self.normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(self, power, method='baluev',
-                                samples_per_peak=5, nyquist_factor=5,
-                                minimum_frequency=None, maximum_frequency=None,
-                                method_kwds=None):
+    def false_alarm_probability(
+        self,
+        power,
+        method="baluev",
+        samples_per_peak=5,
+        nyquist_factor=5,
+        minimum_frequency=None,
+        maximum_frequency=None,
+        method_kwds=None,
+    ):
         """False alarm probability of periodogram maxima under the null hypothesis.
 
         This gives an estimate of the false alarm probability given the height
@@ -607,28 +647,43 @@ class LombScargle(BasePeriodogram):
         .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
         """
         if self.nterms != 1:
-            raise NotImplementedError("false alarm probability is not "
-                                      "implemented for multiterm periodograms.")
+            raise NotImplementedError(
+                "false alarm probability is not implemented for multiterm periodograms."
+            )
         if not (self.fit_mean or self.center_data):
-            raise NotImplementedError("false alarm probability is implemented "
-                                      "only for periodograms of centered data.")
+            raise NotImplementedError(
+                "false alarm probability is implemented "
+                "only for periodograms of centered data."
+            )
 
-        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
-                                        nyquist_factor=nyquist_factor,
-                                        minimum_frequency=minimum_frequency,
-                                        maximum_frequency=maximum_frequency,
-                                        return_freq_limits=True)
-        return _statistics.false_alarm_probability(power,
-                                                   fmax=fmax,
-                                                   t=self._trel, y=self.y, dy=self.dy,
-                                                   normalization=self.normalization,
-                                                   method=method,
-                                                   method_kwds=method_kwds)
+        fmin, fmax = self.autofrequency(
+            samples_per_peak=samples_per_peak,
+            nyquist_factor=nyquist_factor,
+            minimum_frequency=minimum_frequency,
+            maximum_frequency=maximum_frequency,
+            return_freq_limits=True,
+        )
+        return _statistics.false_alarm_probability(
+            power,
+            fmax=fmax,
+            t=self._trel,
+            y=self.y,
+            dy=self.dy,
+            normalization=self.normalization,
+            method=method,
+            method_kwds=method_kwds,
+        )
 
-    def false_alarm_level(self, false_alarm_probability, method='baluev',
-                          samples_per_peak=5, nyquist_factor=5,
-                          minimum_frequency=None, maximum_frequency=None,
-                          method_kwds=None):
+    def false_alarm_level(
+        self,
+        false_alarm_probability,
+        method="baluev",
+        samples_per_peak=5,
+        nyquist_factor=5,
+        minimum_frequency=None,
+        maximum_frequency=None,
+        method_kwds=None,
+    ):
         """Level of maximum at a given false alarm probability.
 
         This gives an estimate of the periodogram level corresponding to a
@@ -680,20 +735,29 @@ class LombScargle(BasePeriodogram):
         .. [1] Baluev, R.V. MNRAS 385, 1279 (2008)
         """
         if self.nterms != 1:
-            raise NotImplementedError("false alarm probability is not "
-                                      "implemented for multiterm periodograms.")
+            raise NotImplementedError(
+                "false alarm probability is not implemented for multiterm periodograms."
+            )
         if not (self.fit_mean or self.center_data):
-            raise NotImplementedError("false alarm probability is implemented "
-                                      "only for periodograms of centered data.")
+            raise NotImplementedError(
+                "false alarm probability is implemented "
+                "only for periodograms of centered data."
+            )
 
-        fmin, fmax = self.autofrequency(samples_per_peak=samples_per_peak,
-                                        nyquist_factor=nyquist_factor,
-                                        minimum_frequency=minimum_frequency,
-                                        maximum_frequency=maximum_frequency,
-                                        return_freq_limits=True)
-        return _statistics.false_alarm_level(false_alarm_probability,
-                                             fmax=fmax,
-                                             t=self._trel, y=self.y, dy=self.dy,
-                                             normalization=self.normalization,
-                                             method=method,
-                                             method_kwds=method_kwds)
+        fmin, fmax = self.autofrequency(
+            samples_per_peak=samples_per_peak,
+            nyquist_factor=nyquist_factor,
+            minimum_frequency=minimum_frequency,
+            maximum_frequency=maximum_frequency,
+            return_freq_limits=True,
+        )
+        return _statistics.false_alarm_level(
+            false_alarm_probability,
+            fmax=fmax,
+            t=self._trel,
+            y=self.y,
+            dy=self.dy,
+            normalization=self.normalization,
+            method=method,
+            method_kwds=method_kwds,
+        )

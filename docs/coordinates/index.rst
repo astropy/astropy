@@ -338,7 +338,7 @@ To see the list of site names available, use
 :func:`~astropy.coordinates.EarthLocation.get_site_names`::
 
     >>> EarthLocation.get_site_names()  # doctest: +REMOTE_DATA
-    ['ALMA', 'ATST', 'Anglo-Australian Observatory', ...]
+    ['ALMA', 'AO', 'ARCA', ...]
 
 For arbitrary Earth addresses (e.g., not observatory sites), use the
 :func:`~astropy.coordinates.EarthLocation.of_address` classmethod to retrieve
@@ -373,7 +373,7 @@ longitude and latitude, but only with the Google queries::
     convenience, not accuracy. If you need accurate coordinates for an
     object you should find the appropriate reference and input the coordinates
     manually, or use more specialized functionality like that in the `astroquery
-    <http://www.astropy.org/astroquery/>`_ or `astroplan
+    <https://astroquery.readthedocs.io/>`_ or `astroplan
     <https://astroplan.readthedocs.io/>`_ affiliated packages.
 
     Also note that these methods retrieve data from the internet to
@@ -552,12 +552,10 @@ coordinate systems implemented here include:
     the True Equator Mean Equinox (TEME) coordinate frame.
 
 
-Built-in Frame Classes
-======================
+Built-in Frames and Transformations
+===================================
 
-.. automodapi:: astropy.coordinates.builtin_frames
-    :skip: make_transform_graph_docs
-    :no-inheritance-diagram:
+.. automodule:: astropy.coordinates.builtin_frames
 
 
 .. _astropy-coordinates-api:

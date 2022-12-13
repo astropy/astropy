@@ -4,19 +4,17 @@
 Creates a common namespace for all pre-defined models.
 """
 
-# pylint: disable=unused-wildcard-import, unused-import, wildcard-import
-
-from . import math_functions as math  # noqa: F401, F403
-from .core import custom_model, fix_inputs, hide_inverse  # pylint: disable=W0611 # noqa: F401, F403
-from .functional_models import *  # noqa: F401, F403
-from .mappings import *  # noqa: F401, F403
-from .physical_models import *  # noqa: F401, F403
-from .polynomial import *  # noqa: F401, F403
-from .powerlaws import *  # noqa: F401, F403
-from .projections import *  # noqa: F401, F403
-from .rotations import *  # noqa: F401, F403
-from .spline import *  # noqa: F401, F403
-from .tabular import *  # noqa: F401, F403
+from . import math_functions as math
+from .core import custom_model, fix_inputs, hide_inverse
+from .functional_models import *
+from .mappings import *
+from .physical_models import *
+from .polynomial import *
+from .powerlaws import *
+from .projections import *
+from .rotations import *
+from .spline import *
+from .tabular import *
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list
@@ -53,16 +51,43 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,  # noqa: F405
-    Const1D, Const2D, Ellipse2D, Disk2D,  # noqa: F405
-    Gaussian1D, Gaussian2D,  # noqa: F405
-    Linear1D, Lorentz1D, RickerWavelet1D, RickerWavelet2D,  # noqa: F405
-    PowerLaw1D, Sersic1D, Sersic2D,  # noqa: F405
-    Sine1D, Cosine1D, Tangent1D, ArcSine1D, ArcCosine1D, ArcTangent1D,  # noqa: F405
-    Trapezoid1D, TrapezoidDisk2D,  # noqa: F405
-    Chebyshev1D, Chebyshev2D, Hermite1D, Hermite2D, Legendre2D, Legendre1D,  # noqa: F405
-    Polynomial1D, Polynomial2D, Voigt1D, KingProjectedAnalytic1D,  # noqa: F405
-    NFW  # noqa: F405
+    AiryDisk2D,
+    Moffat1D,
+    Moffat2D,
+    Box1D,
+    Box2D,
+    Const1D,
+    Const2D,
+    Ellipse2D,
+    Disk2D,
+    Gaussian1D,
+    Gaussian2D,
+    Linear1D,
+    Lorentz1D,
+    RickerWavelet1D,
+    RickerWavelet2D,
+    PowerLaw1D,
+    Sersic1D,
+    Sersic2D,
+    Sine1D,
+    Cosine1D,
+    Tangent1D,
+    ArcSine1D,
+    ArcCosine1D,
+    ArcTangent1D,
+    Trapezoid1D,
+    TrapezoidDisk2D,
+    Chebyshev1D,
+    Chebyshev2D,
+    Hermite1D,
+    Hermite2D,
+    Legendre2D,
+    Legendre1D,
+    Polynomial1D,
+    Polynomial2D,
+    Voigt1D,
+    KingProjectedAnalytic1D,
+    NFW,
 ]
 
 

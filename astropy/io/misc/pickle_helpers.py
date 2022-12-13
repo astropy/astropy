@@ -6,11 +6,11 @@ part of a larger framework or standard.
 
 import pickle
 
-__all__ = ['fnpickle', 'fnunpickle']
+__all__ = ["fnpickle", "fnunpickle"]
 
 
 def fnunpickle(fileorname, number=0):
-    """ Unpickle pickled objects from a specified file and return the contents.
+    """Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
     ----------
@@ -39,7 +39,7 @@ def fnunpickle(fileorname, number=0):
     """
 
     if isinstance(fileorname, str):
-        f = open(fileorname, 'rb')
+        f = open(fileorname, "rb")
         close = True
     else:
         f = fileorname
@@ -90,7 +90,7 @@ def fnpickle(object, fileorname, protocol=None, append=False):
         protocol = pickle.HIGHEST_PROTOCOL
 
     if isinstance(fileorname, str):
-        f = open(fileorname, 'ab' if append else 'wb')
+        f = open(fileorname, "ab" if append else "wb")
         close = True
     else:
         f = fileorname

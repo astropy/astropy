@@ -14,7 +14,7 @@
 # review requests for specific sub-packages below:
 
 # astropy/constants
-# astropy/convolution
+astropy/convolution         @larrybradley
 # astropy/coordinates
 astropy/cosmology           @astropy/cosmology
 astropy/io/ascii            @taldcroft          @dhomeier
@@ -25,19 +25,19 @@ astropy/io/registry         @nstarman
 astropy/modeling            @astropy/modeling
 # astropy/nddata
 # astropy/samp
-# astropy/stats
+astropy/stats               @larrybradley
 astropy/table               @taldcroft
 astropy/time                @taldcroft
 # astropy/timeseries
 # astropy/uncertainty
 # astropy/units
 # astropy/utils
-astropy/visualization       @astrofrog          @Cadair
-# astropy/wcs
+astropy/visualization       @astrofrog          @Cadair     @larrybradley
+astropy/wcs                 @mcara
 astropy/wcs/wcsapi          @astrofrog          @Cadair
 
 # docs/constants
-# docs/convolution
+docs/convolution            @larrybradley
 # docs/coordinates
 docs/cosmology              @astropy/cosmology
 docs/io/ascii               @taldcroft          @dhomeier
@@ -46,12 +46,14 @@ docs/io/fits                @saimn
 docs/modeling               @astropy/modeling
 # docs/nddata
 # docs/samp
-# docs/stats
+docs/stats                  @larrybradley
 docs/table                  @taldcroft
 docs/time                   @taldcroft
 # docs/timeseries
 # docs/uncertainty
 # docs/units
 # docs/utils
-docs/visualization          @astrofrog          @Cadair
-# docs/wcs
+docs/visualization          @astrofrog          @Cadair      @larrybradley
+docs/wcs                    @mcara
+
+.pre-commit-config.yaml     @WilliamJamieson    @nstarman

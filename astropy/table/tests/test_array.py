@@ -14,14 +14,14 @@ def array():
     col1 = np.array([x for x in range(1, 11)])
     t = Table([col0, col1])
     t = t[t.argsort()]
-    return SortedArray(t, t['col1'].copy())
+    return SortedArray(t, t["col1"].copy())
 
 
 @pytest.fixture
 def wide_array():
     # array with 100 columns
     t = Table([[x] * 10 for x in np.arange(100)])
-    return SortedArray(t, t['col0'].copy())
+    return SortedArray(t, t["col0"].copy())
 
 
 def test_array_find(array):

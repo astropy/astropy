@@ -60,21 +60,39 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.exceptions import AstropyUserWarning
+
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
-from .hdu.hdulist import fitsopen, HDUList
-from .hdu.image import PrimaryHDU, ImageHDU
+from .hdu.hdulist import HDUList, fitsopen
+from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import (fileobj_closed, fileobj_name, fileobj_mode, _is_int,
-                   _is_dask_array)
-from astropy.utils.exceptions import AstropyUserWarning
+from .util import (
+    _is_dask_array,
+    _is_int,
+    fileobj_closed,
+    fileobj_mode,
+    fileobj_name,
+    path_like,
+)
 
-
-__all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
-           'append', 'update', 'info', 'tabledump', 'tableload',
-           'table_to_hdu', 'printdiff']
+__all__ = [
+    "getheader",
+    "getdata",
+    "getval",
+    "setval",
+    "delval",
+    "writeto",
+    "append",
+    "update",
+    "info",
+    "tabledump",
+    "tableload",
+    "table_to_hdu",
+    "printdiff",
+]
 
 
 def getheader(filename, *args, **kwargs):
@@ -110,8 +128,7 @@ def getheader(filename, *args, **kwargs):
     return header
 
 
-def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
-            **kwargs):
+def getdata(filename, *args, header=None, lower=None, upper=None, view=None, **kwargs):
     """
     Get the data from an HDU of a FITS file (and optionally the
     header).
@@ -194,11 +211,12 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
     mode, closed = _get_file_mode(filename)
 
-    ext = kwargs.get('ext')
-    extname = kwargs.get('extname')
-    extver = kwargs.get('extver')
-    ext_given = not (len(args) == 0 and ext is None and
-                     extname is None and extver is None)
+    ext = kwargs.get("ext")
+    extname = kwargs.get("extname")
+    extver = kwargs.get("extver")
+    ext_given = not (
+        len(args) == 0 and ext is None and extname is None and extver is None
+    )
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
@@ -210,15 +228,11 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
             # fallback to the first extension HDU
             if len(hdulist) == 1:
-                raise IndexError(
-                    "No data in Primary HDU and no extension HDU found."
-                    )
+                raise IndexError("No data in Primary HDU and no extension HDU found.")
             hdu = hdulist[1]
             data = hdu.data
             if data is None:
-                raise IndexError(
-                    "No data in either Primary or first extension HDUs."
-                    )
+                raise IndexError("No data in either Primary or first extension HDUs.")
 
         if header:
             hdr = hdu.header
@@ -228,14 +242,14 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
     # Change case of names if requested
     trans = None
     if lower:
-        trans = operator.methodcaller('lower')
+        trans = operator.methodcaller("lower")
     elif upper:
-        trans = operator.methodcaller('upper')
+        trans = operator.methodcaller("upper")
     if trans:
         if data.dtype.names is None:
             # this data does not have fields
             return
-        if data.dtype.descr[0][0] == '':
+        if data.dtype.descr[0][0] == "":
             # this data does not have fields
             return
         data.dtype.names = [trans(n) for n in data.dtype.names]
@@ -279,15 +293,24 @@ def getval(filename, keyword, *args, **kwargs):
     keyword value : str, int, or float
     """
 
-    if 'do_not_scale_image_data' not in kwargs:
-        kwargs['do_not_scale_image_data'] = True
+    if "do_not_scale_image_data" not in kwargs:
+        kwargs["do_not_scale_image_data"] = True
 
     hdr = getheader(filename, *args, **kwargs)
     return hdr[keyword]
 
 
-def setval(filename, keyword, *args, value=None, comment=None, before=None,
-           after=None, savecomment=False, **kwargs):
+def setval(
+    filename,
+    keyword,
+    *args,
+    value=None,
+    comment=None,
+    before=None,
+    after=None,
+    savecomment=False,
+    **kwargs,
+):
     """
     Set a keyword's value from a header in a FITS file.
 
@@ -342,11 +365,11 @@ def setval(filename, keyword, *args, value=None, comment=None, before=None,
         unmodified header.
     """
 
-    if 'do_not_scale_image_data' not in kwargs:
-        kwargs['do_not_scale_image_data'] = True
+    if "do_not_scale_image_data" not in kwargs:
+        kwargs["do_not_scale_image_data"] = True
 
     closed = fileobj_closed(filename)
-    hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
+    hdulist, extidx = _getext(filename, "update", *args, **kwargs)
     try:
         if keyword in hdulist[extidx].header and savecomment:
             comment = None
@@ -381,19 +404,25 @@ def delval(filename, keyword, *args, **kwargs):
         unmodified header.
     """
 
-    if 'do_not_scale_image_data' not in kwargs:
-        kwargs['do_not_scale_image_data'] = True
+    if "do_not_scale_image_data" not in kwargs:
+        kwargs["do_not_scale_image_data"] = True
 
     closed = fileobj_closed(filename)
-    hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
+    hdulist, extidx = _getext(filename, "update", *args, **kwargs)
     try:
         del hdulist[extidx].header[keyword]
     finally:
         hdulist.close(closed=closed)
 
 
-def writeto(filename, data, header=None, output_verify='exception',
-            overwrite=False, checksum=False):
+def writeto(
+    filename,
+    data,
+    header=None,
+    output_verify="exception",
+    overwrite=False,
+    checksum=False,
+):
     """
     Create a new FITS file using the supplied data/header.
 
@@ -431,8 +460,9 @@ def writeto(filename, data, header=None, output_verify='exception',
     hdu = _makehdu(data, header)
     if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
-    hdu.writeto(filename, overwrite=overwrite, output_verify=output_verify,
-                checksum=checksum)
+    hdu.writeto(
+        filename, overwrite=overwrite, output_verify=output_verify, checksum=checksum
+    )
 
 
 def table_to_hdu(table, character_as_bytes=False):
@@ -455,8 +485,8 @@ def table_to_hdu(table, character_as_bytes=False):
         The FITS binary table HDU.
     """
     # Avoid circular imports
-    from .connect import is_column_keyword, REMOVE_KEYWORDS
     from .column import python_to_tdisp
+    from .connect import REMOVE_KEYWORDS, is_column_keyword
 
     # Header to store Time related metadata
     hdr = None
@@ -468,6 +498,7 @@ def table_to_hdu(table, character_as_bytes=False):
         from astropy.table.column import BaseColumn
         from astropy.time import Time
         from astropy.units import Quantity
+
         from .fitstime import time_to_fits
 
         # Only those columns which are instances of BaseColumn, Quantity or Time can
@@ -475,8 +506,9 @@ def table_to_hdu(table, character_as_bytes=False):
         unsupported_cols = table.columns.not_isinstance((BaseColumn, Quantity, Time))
         if unsupported_cols:
             unsupported_names = [col.info.name for col in unsupported_cols]
-            raise ValueError(f'cannot write table with mixin column(s) '
-                             f'{unsupported_names}')
+            raise ValueError(
+                f"cannot write table with mixin column(s) {unsupported_names}"
+            )
 
         time_cols = table.columns.isinstance(Time)
         if time_cols:
@@ -496,43 +528,45 @@ def table_to_hdu(table, character_as_bytes=False):
             if np.all(tarray.fill_value[colname] == default_fill_value[colname]):
                 # Since multi-element columns with dtypes such as '2f8' have
                 # a subdtype, we should look up the type of column on that.
-                coltype = (coldtype.subdtype[0].type
-                           if coldtype.subdtype else coldtype.type)
+                coltype = (
+                    coldtype.subdtype[0].type if coldtype.subdtype else coldtype.type
+                )
                 if issubclass(coltype, np.complexfloating):
                     tarray.fill_value[colname] = complex(np.nan, np.nan)
                 elif issubclass(coltype, np.inexact):
                     tarray.fill_value[colname] = np.nan
                 elif issubclass(coltype, np.character):
-                    tarray.fill_value[colname] = ''
+                    tarray.fill_value[colname] = ""
 
         # TODO: it might be better to construct the FITS table directly from
         # the Table columns, rather than go via a structured array.
-        table_hdu = BinTableHDU.from_columns(tarray.filled(), header=hdr,
-                                             character_as_bytes=character_as_bytes)
+        table_hdu = BinTableHDU.from_columns(
+            tarray.filled(), header=hdr, character_as_bytes=character_as_bytes
+        )
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
             # with non-default fill values in FITS (if at all possible).
-            int_formats = ('B', 'I', 'J', 'K')
-            if not (col.format in int_formats or
-                    col.format.p_format in int_formats):
+            int_formats = ("B", "I", "J", "K")
+            if not (col.format in int_formats or col.format.p_format in int_formats):
                 continue
 
             fill_value = tarray[col.name].fill_value
             col.null = fill_value.astype(int)
     else:
-        table_hdu = BinTableHDU.from_columns(tarray, header=hdr,
-                                             character_as_bytes=character_as_bytes)
+        table_hdu = BinTableHDU.from_columns(
+            tarray, header=hdr, character_as_bytes=character_as_bytes
+        )
 
     # Set units and format display for output HDU
     for col in table_hdu.columns:
-
         if table[col.name].info.format is not None:
             # check for boolean types, special format case
             logical = table[col.name].info.dtype == bool
 
-            tdisp_format = python_to_tdisp(table[col.name].info.format,
-                                           logical_dtype=logical)
+            tdisp_format = python_to_tdisp(
+                table[col.name].info.format, logical_dtype=logical
+            )
             if tdisp_format is not None:
                 col.disp = tdisp_format
 
@@ -542,62 +576,71 @@ def table_to_hdu(table, character_as_bytes=False):
             # e.g. for command-line scripts
             from astropy.units import Unit
             from astropy.units.format.fits import UnitScaleError
+
             try:
-                col.unit = unit.to_string(format='fits')
+                col.unit = unit.to_string(format="fits")
             except UnitScaleError:
                 scale = unit.scale
                 raise UnitScaleError(
                     f"The column '{col.name}' could not be stored in FITS "
                     f"format because it has a scale '({str(scale)})' that "
-                    f"is not recognized by the FITS standard. Either scale "
-                    f"the data or change the units.")
+                    "is not recognized by the FITS standard. Either scale "
+                    "the data or change the units."
+                )
             except ValueError:
                 # Warn that the unit is lost, but let the details depend on
                 # whether the column was serialized (because it was a
                 # quantity), since then the unit can be recovered by astropy.
                 warning = (
                     f"The unit '{unit.to_string()}' could not be saved in "
-                    f"native FITS format ")
-                if any('SerializedColumn' in item and 'name: '+col.name in item
-                       for item in table.meta.get('comments', [])):
+                    "native FITS format "
+                )
+                if any(
+                    "SerializedColumn" in item and "name: " + col.name in item
+                    for item in table.meta.get("comments", [])
+                ):
                     warning += (
                         "and hence will be lost to non-astropy fits readers. "
                         "Within astropy, the unit can roundtrip using QTable, "
-                        "though one has to enable the unit before reading.")
+                        "though one has to enable the unit before reading."
+                    )
                 else:
                     warning += (
                         "and cannot be recovered in reading. It can roundtrip "
                         "within astropy by using QTable both to write and read "
-                        "back, though one has to enable the unit before reading.")
+                        "back, though one has to enable the unit before reading."
+                    )
                 warnings.warn(warning, AstropyUserWarning)
 
             else:
                 # Try creating a Unit to issue a warning if the unit is not
                 # FITS compliant
-                Unit(col.unit, format='fits', parse_strict='warn')
+                Unit(col.unit, format="fits", parse_strict="warn")
 
     # Column-specific override keywords for coordinate columns
-    coord_meta = table.meta.pop('__coordinate_columns__', {})
+    coord_meta = table.meta.pop("__coordinate_columns__", {})
     for col_name, col_info in coord_meta.items():
         col = table_hdu.columns[col_name]
         # Set the column coordinate attributes from data saved earlier.
         # Note: have to set these, even if we have no data.
-        for attr in 'coord_type', 'coord_unit':
+        for attr in "coord_type", "coord_unit":
             setattr(col, attr, col_info.get(attr, None))
-        trpos = col_info.get('time_ref_pos', None)
+        trpos = col_info.get("time_ref_pos", None)
         if trpos is not None:
-            setattr(col, 'time_ref_pos', trpos)
+            setattr(col, "time_ref_pos", trpos)
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
             warnings.warn(
                 f"Meta-data keyword {key} will be ignored since it conflicts "
-                f"with a FITS reserved keyword", AstropyUserWarning)
+                "with a FITS reserved keyword",
+                AstropyUserWarning,
+            )
             continue
 
         # Convert to FITS format
-        if key == 'comments':
-            key = 'comment'
+        if key == "comments":
+            key = "comment"
 
         if isinstance(value, list):
             for item in value:
@@ -606,14 +649,18 @@ def table_to_hdu(table, character_as_bytes=False):
                 except ValueError:
                     warnings.warn(
                         f"Attribute `{key}` of type {type(value)} cannot be "
-                        f"added to FITS Header - skipping", AstropyUserWarning)
+                        "added to FITS Header - skipping",
+                        AstropyUserWarning,
+                    )
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
                 warnings.warn(
                     f"Attribute `{key}` of type {type(value)} cannot be "
-                    f"added to FITS Header - skipping", AstropyUserWarning)
+                    "added to FITS Header - skipping",
+                    AstropyUserWarning,
+                )
     return table_hdu
 
 
@@ -657,6 +704,8 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         - Otherwise no additional arguments can be used.
 
     """
+    if isinstance(filename, path_like):
+        filename = os.path.expanduser(filename)
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
 
     if noexist_or_empty:
@@ -673,7 +722,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             hdu = ImageHDU(data, header)
 
         if verify or not closed:
-            f = fitsopen(filename, mode='append', **kwargs)
+            f = fitsopen(filename, mode="append", **kwargs)
             try:
                 f.append(hdu)
 
@@ -683,7 +732,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             finally:
                 f.close(closed=closed)
         else:
-            f = _File(filename, mode='append')
+            f = _File(filename, mode="append")
             try:
                 hdu._output_checksum = checksum
                 hdu._writeto(f)
@@ -737,13 +786,13 @@ def update(filename, data, *args, **kwargs):
         header = None
     # The header can also be a keyword argument--if both are provided the
     # keyword takes precedence
-    header = kwargs.pop('header', header)
+    header = kwargs.pop("header", header)
 
     new_hdu = _makehdu(data, header)
 
     closed = fileobj_closed(filename)
 
-    hdulist, _ext = _getext(filename, 'update', *args, **kwargs)
+    hdulist, _ext = _getext(filename, "update", *args, **kwargs)
     try:
         hdulist[_ext] = new_hdu
     finally:
@@ -773,10 +822,10 @@ def info(filename, output=None, **kwargs):
         *Note:* This function sets ``ignore_missing_end=True`` by default.
     """
 
-    mode, closed = _get_file_mode(filename, default='readonly')
+    mode, closed = _get_file_mode(filename, default="readonly")
     # Set the default value for the ignore_missing_end parameter
-    if 'ignore_missing_end' not in kwargs:
-        kwargs['ignore_missing_end'] = True
+    if "ignore_missing_end" not in kwargs:
+        kwargs["ignore_missing_end"] = True
 
     f = fitsopen(filename, mode=mode, **kwargs)
     try:
@@ -850,8 +899,9 @@ def printdiff(inputa, inputb, *args, **kwargs):
     """
 
     # Pop extension keywords
-    extension = {key: kwargs.pop(key) for key in ['ext', 'extname', 'extver']
-                 if key in kwargs}
+    extension = {
+        key: kwargs.pop(key) for key in ["ext", "extname", "extver"] if key in kwargs
+    }
     has_extensions = args or extension
 
     if isinstance(inputa, str) and has_extensions:
@@ -881,15 +931,15 @@ def printdiff(inputa, inputb, *args, **kwargs):
     # If input is not a string, can feed HDU objects or HDUList directly,
     # but can't currently handle extensions
     elif isinstance(inputa, _ValidHDU) and has_extensions:
-        raise ValueError("Cannot use extension keywords when providing an "
-                         "HDU object.")
+        raise ValueError("Cannot use extension keywords when providing an HDU object.")
 
     elif isinstance(inputa, _ValidHDU) and not has_extensions:
         print(HDUDiff(inputa, inputb, **kwargs).report())
 
     elif isinstance(inputa, HDUList) and has_extensions:
-        raise NotImplementedError("Extension specification with HDUList "
-                                  "objects not implemented.")
+        raise NotImplementedError(
+            "Extension specification with HDUList objects not implemented."
+        )
 
     # This function is EXCLUSIVELY for printing the diff report to screen
     # in a one-liner call, hence the use of print instead of logging
@@ -897,8 +947,7 @@ def printdiff(inputa, inputb, *args, **kwargs):
         print(FITSDiff(inputa, inputb, **kwargs).report())
 
 
-def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
-              overwrite=False):
+def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1, overwrite=False):
     """
     Dump a table HDU to a file in ASCII format.  The table may be
     dumped in three separate files, one containing column definitions,
@@ -943,14 +992,14 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     # and leave the file in the same state (opened or closed) as when
     # the function was called
 
-    mode, closed = _get_file_mode(filename, default='readonly')
+    mode, closed = _get_file_mode(filename, default="readonly")
     f = fitsopen(filename, mode=mode)
 
     # Create the default data file name if one was not provided
     try:
         if not datafile:
             root, tail = os.path.splitext(f._file.name)
-            datafile = root + '_' + repr(ext) + '.txt'
+            datafile = root + "_" + repr(ext) + ".txt"
 
         # Dump the data from the HDU to the files
         f[ext].dump(datafile, cdfile, hfile, overwrite)
@@ -960,7 +1009,7 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
 
 if isinstance(tabledump.__doc__, str):
-    tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+    tabledump.__doc__ += BinTableHDU._tdump_file_format.replace("\n", "\n    ")
 
 
 def tableload(datafile, cdfile, hfile=None):
@@ -999,11 +1048,10 @@ def tableload(datafile, cdfile, hfile=None):
 
 
 if isinstance(tableload.__doc__, str):
-    tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+    tableload.__doc__ += BinTableHDU._tdump_file_format.replace("\n", "\n    ")
 
 
-def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
-            **kwargs):
+def _getext(filename, mode, *args, ext=None, extname=None, extver=None, **kwargs):
     """
     Open the input file, return the `HDUList` and the extension.
 
@@ -1011,9 +1059,9 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
     :func:`getdata()` documentation for the different possibilities.
     """
 
-    err_msg = ('Redundant/conflicting extension arguments(s): {}'.format(
-            {'args': args, 'ext': ext, 'extname': extname,
-             'extver': extver}))
+    err_msg = "Redundant/conflicting extension arguments(s): {}".format(
+        {"args": args, "ext": ext, "extname": extname, "extver": extver}
+    )
 
     # This code would be much simpler if just one way of specifying an
     # extension were picked.  But now we need to support all possible ways for
@@ -1042,19 +1090,25 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
         extname = args[0]
         extver = args[1]
     elif len(args) > 2:
-        raise TypeError('Too many positional arguments.')
+        raise TypeError("Too many positional arguments.")
 
-    if (ext is not None and
-            not (_is_int(ext) or
-                 (isinstance(ext, tuple) and len(ext) == 2 and
-                  isinstance(ext[0], str) and _is_int(ext[1])))):
+    if ext is not None and not (
+        _is_int(ext)
+        or (
+            isinstance(ext, tuple)
+            and len(ext) == 2
+            and isinstance(ext[0], str)
+            and _is_int(ext[1])
+        )
+    ):
         raise ValueError(
-            'The ext keyword must be either an extension number '
-            '(zero-indexed) or a (extname, extver) tuple.')
+            "The ext keyword must be either an extension number "
+            "(zero-indexed) or a (extname, extver) tuple."
+        )
     if extname is not None and not isinstance(extname, str):
-        raise ValueError('The extname argument must be a string.')
+        raise ValueError("The extname argument must be a string.")
     if extver is not None and not _is_int(extver):
-        raise ValueError('The extver argument must be an integer.')
+        raise ValueError("The extver argument must be an integer.")
 
     if ext is None and extname is None and extver is None:
         ext = 0
@@ -1066,7 +1120,7 @@ def _getext(filename, mode, *args, ext=None, extname=None, extver=None,
         else:
             ext = (extname, 1)
     elif extver and extname is None:
-        raise TypeError('extver alone cannot specify an extension.')
+        raise TypeError("extver alone cannot specify an extension.")
 
     hdulist = fitsopen(filename, mode=mode, **kwargs)
 
@@ -1080,13 +1134,14 @@ def _makehdu(data, header):
     if hdu.__class__ in (_BaseHDU, _ValidHDU):
         # The HDU type was unrecognized, possibly due to a
         # nonexistent/incomplete header
-        if ((isinstance(data, np.ndarray) and data.dtype.fields is not None) or
-                isinstance(data, np.recarray)):
+        if (
+            isinstance(data, np.ndarray) and data.dtype.fields is not None
+        ) or isinstance(data, np.recarray):
             hdu = BinTableHDU(data, header=header)
         elif isinstance(data, np.ndarray) or _is_dask_array(data):
             hdu = ImageHDU(data, header=header)
         else:
-            raise KeyError('Data must be a numpy array.')
+            raise KeyError("Data must be a numpy array.")
     return hdu
 
 
@@ -1094,22 +1149,21 @@ def _stat_filename_or_fileobj(filename):
     if isinstance(filename, os.PathLike):
         filename = os.fspath(filename)
     closed = fileobj_closed(filename)
-    name = fileobj_name(filename) or ''
+    name = fileobj_name(filename) or ""
 
     try:
         loc = filename.tell()
     except AttributeError:
         loc = 0
 
-    noexist_or_empty = ((name and
-                         (not os.path.exists(name) or
-                          (os.path.getsize(name) == 0)))
-                        or (not name and loc == 0))
+    noexist_or_empty = (
+        name and (not os.path.exists(name) or (os.path.getsize(name) == 0))
+    ) or (not name and loc == 0)
 
     return name, closed, noexist_or_empty
 
 
-def _get_file_mode(filename, default='readonly'):
+def _get_file_mode(filename, default="readonly"):
     """
     Allow file object to already be opened in any of the valid modes and
     and leave the file in the same state (opened or closed) as when
@@ -1125,6 +1179,7 @@ def _get_file_mode(filename, default='readonly'):
         if mode is None:
             raise OSError(
                 "File mode of the input file object ({!r}) cannot be used to "
-                "read/write FITS files.".format(fmode))
+                "read/write FITS files.".format(fmode)
+            )
 
     return mode, closed

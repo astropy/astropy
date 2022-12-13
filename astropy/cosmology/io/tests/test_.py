@@ -12,7 +12,7 @@ def test_expected_readwrite_io():
     """Test that ONLY the expected I/O is registered."""
 
     got = {k for k, _ in readwrite_registry._readers.keys()}
-    expected = {"ascii.ecsv"}
+    expected = {"ascii.ecsv", "ascii.html"}
 
     assert got == expected
 
@@ -21,7 +21,13 @@ def test_expected_convert_io():
     """Test that ONLY the expected I/O is registered."""
 
     got = {k for k, _ in convert_registry._readers.keys()}
-    expected = {"astropy.cosmology", "mapping", "astropy.model", "astropy.row",
-                "astropy.table", "yaml"}
+    expected = {
+        "astropy.cosmology",
+        "mapping",
+        "astropy.model",
+        "astropy.row",
+        "astropy.table",
+        "yaml",
+    }
 
     assert got == expected

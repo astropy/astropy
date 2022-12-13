@@ -1,18 +1,22 @@
 import abc
-import numpy as np
-from astropy.timeseries import TimeSeries, BinnedTimeSeries
 
-__all__ = ['BasePeriodogram']
+import numpy as np
+
+from astropy.timeseries.binned import BinnedTimeSeries
+from astropy.timeseries.sampled import TimeSeries
+
+__all__ = ["BasePeriodogram"]
 
 
 class BasePeriodogram:
-
     @abc.abstractmethod
     def __init__(self, t, y, dy=None):
         pass
 
     @classmethod
-    def from_timeseries(cls, timeseries, signal_column_name=None, uncertainty=None, **kwargs):
+    def from_timeseries(
+        cls, timeseries, signal_column_name=None, uncertainty=None, **kwargs
+    ):
         """
         Initialize a periodogram from a time series object.
 
@@ -33,7 +37,7 @@ class BasePeriodogram:
         """
 
         if signal_column_name is None:
-            raise ValueError('signal_column_name should be set to a valid column name')
+            raise ValueError("signal_column_name should be set to a valid column name")
 
         y = timeseries[signal_column_name]
         keep = ~np.isnan(y)
@@ -50,7 +54,9 @@ class BasePeriodogram:
         elif isinstance(timeseries, BinnedTimeSeries):
             time = timeseries.time_bin_center
         else:
-            raise TypeError('Input time series should be an instance of '
-                            'TimeSeries or BinnedTimeSeries')
+            raise TypeError(
+                "Input time series should be an instance of "
+                "TimeSeries or BinnedTimeSeries"
+            )
 
         return cls(time[keep], y[keep], dy=dy, **kwargs)

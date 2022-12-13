@@ -6,8 +6,8 @@ everything in `__all__` will be imported into `astropy.utils.compat` and can
 be accessed from there.
 """
 
-import sys
 import functools
+import sys
 
 from astropy.utils.decorators import deprecated
 
@@ -18,7 +18,9 @@ PYTHON_LT_3_11 = sys.version_info < (3, 11)
 
 @deprecated(
     since="v5.2",
-    message="http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
+    message=(
+        "http://bugs.python.org/issue12166 is resolved. See docstring for alternatives."
+    ),
 )
 def override__dir__(f):
     """

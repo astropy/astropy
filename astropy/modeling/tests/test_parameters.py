@@ -14,7 +14,12 @@ import pytest
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.core import FittableModel, Model
-from astropy.modeling.parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
+from astropy.modeling.parameters import (
+    InputParameterError,
+    Parameter,
+    _tofloat,
+    param_repr_oneline,
+)
 from astropy.utils.data import get_pkg_data_filename
 
 from . import irafutil
@@ -30,7 +35,6 @@ def setter2(val, model):
 
 
 class SetterModel(FittableModel):
-
     n_inputs = 2
     n_outputs = 1
 
@@ -47,7 +51,7 @@ class SetterModel(FittableModel):
         self.yc = yc
 
     def evaluate(self, x, y, xc, yc):
-        return (x - xc)**2 + (y - yc)**2
+        return (x - xc) ** 2 + (y - yc) ** 2
 
 
 class TParModel(Model):
@@ -67,7 +71,7 @@ class TParModel(Model):
 
 
 class MockModel(FittableModel):
-    alpha = Parameter(name='alpha', default=42)
+    alpha = Parameter(name="alpha", default=42)
 
     @staticmethod
     def evaluate(*args):
@@ -84,9 +88,9 @@ def test__tofloat():
     assert isinstance(value, np.ndarray)
     assert (value == np.array([1, 2, 3])).all()
     assert np.all([isinstance(val, float) for val in value])
-    with pytest.raises(InputParameterError) as err:
-        _tofloat('test')
-    assert str(err.value) == "Parameter of <class 'str'> could not be converted to float"
+    MESSAGE = r"Parameter of .* could not be converted to float"
+    with pytest.raises(InputParameterError, match=MESSAGE):
+        _tofloat("test")
 
     # quantity
     assert _tofloat(1 * u.m) == 1 * u.m
@@ -117,32 +121,31 @@ def test__tofloat():
     assert value == 3
 
     # boolean
-    message = "Expected parameter to be of numerical type, not boolean"
-    with pytest.raises(InputParameterError) as err:
+    MESSAGE = r"Expected parameter to be of numerical type, not boolean"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         _tofloat(True)
-    assert str(err.value) == message
-    with pytest.raises(InputParameterError) as err:
+    with pytest.raises(InputParameterError, match=MESSAGE):
         _tofloat(False)
-    assert str(err.value) == message
 
     # other
     class Value:
         pass
-    with pytest.raises(InputParameterError) as err:
+
+    MESSAGE = r"Don't know how to convert parameter of .* to float"
+    with pytest.raises(InputParameterError, match=MESSAGE):
         _tofloat(Value)
-    assert str(err.value) == "Don't know how to convert parameter of <class 'type'> to float"
 
 
 def test_parameter_properties():
     """Test if getting / setting of Parameter properties works."""
 
-    p = Parameter('alpha', default=1)
+    p = Parameter("alpha", default=1)
 
-    assert p.name == 'alpha'
+    assert p.name == "alpha"
 
     # Parameter names are immutable
     with pytest.raises(AttributeError):
-        p.name = 'beta'
+        p.name = "beta"
 
     assert p.fixed is False
     p.fixed = True
@@ -168,16 +171,16 @@ def test_parameter_properties():
 def test_parameter_operators():
     """Test if the parameter arithmetic operators work."""
 
-    par = Parameter('alpha', default=42)
-    num = 42.
+    par = Parameter("alpha", default=42)
+    num = 42.0
     val = 3
 
     assert par - val == num - val
     assert val - par == val - num
     assert par / val == num / val
     assert val / par == val / num
-    assert par ** val == num ** val
-    assert val ** par == val ** num
+    assert par**val == num**val
+    assert val**par == val**num
     assert par < 45
     assert par > 41
     assert par <= par
@@ -186,48 +189,48 @@ def test_parameter_operators():
     assert -par == -num
     assert abs(par) == abs(num)
 
+
 # Test inherited models
 
 
 class M1(Model):
-    m1a = Parameter(default=1.)
-    m1b = Parameter(default=5.)
+    m1a = Parameter(default=1.0)
+    m1b = Parameter(default=5.0)
 
     def evaluate():
         pass
 
 
 class M2(M1):
-    m2c = Parameter(default=11.)
+    m2c = Parameter(default=11.0)
 
 
 class M3(M2):
-    m3d = Parameter(default=20.)
+    m3d = Parameter(default=20.0)
 
 
 def test_parameter_inheritance():
     mod = M3()
-    assert mod.m1a == 1.
-    assert mod.m1b == 5.
-    assert mod.m2c == 11.
-    assert mod.m3d == 20.
-    for key in ['m1a', 'm1b', 'm2c', 'm3d']:
+    assert mod.m1a == 1.0
+    assert mod.m1b == 5.0
+    assert mod.m2c == 11.0
+    assert mod.m3d == 20.0
+    for key in ["m1a", "m1b", "m2c", "m3d"]:
         assert key in mod.__dict__
-    assert mod.param_names == ('m1a', 'm1b', 'm2c', 'm3d')
+    assert mod.param_names == ("m1a", "m1b", "m2c", "m3d")
 
 
 def test_param_metric():
     mod = M3()
-    assert mod._param_metrics['m1a']['slice'] == slice(0, 1)
-    assert mod._param_metrics['m1b']['slice'] == slice(1, 2)
-    assert mod._param_metrics['m2c']['slice'] == slice(2, 3)
-    assert mod._param_metrics['m3d']['slice'] == slice(3, 4)
+    assert mod._param_metrics["m1a"]["slice"] == slice(0, 1)
+    assert mod._param_metrics["m1b"]["slice"] == slice(1, 2)
+    assert mod._param_metrics["m2c"]["slice"] == slice(2, 3)
+    assert mod._param_metrics["m3d"]["slice"] == slice(3, 4)
     mod._parameters_to_array()
-    assert (mod._parameters == np.array([1., 5., 11., 20], dtype=np.float64)).all()
+    assert (mod._parameters == np.array([1.0, 5.0, 11.0, 20], dtype=np.float64)).all()
 
 
 class TestParameters:
-
     def setup_class(self):
         """
         Unit tests for parameters
@@ -237,14 +240,14 @@ class TestParameters:
 
         Create also a gaussian model.
         """
-        test_file = get_pkg_data_filename('data/idcompspec.fits')
+        test_file = get_pkg_data_filename("data/idcompspec.fits")
         f = open(test_file)
         lines = f.read()
         reclist = lines.split("begin")
         f.close()
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
-        order = int(record.fields['order'])
+        order = int(record.fields["order"])
         self.model = models.Chebyshev1D(order - 1)
         self.gmodel = models.Gaussian1D(2, mean=3, stddev=4)
         self.linear_fitter = fitting.LinearLSQFitter()
@@ -256,13 +259,13 @@ class TestParameters:
         """Tests updating parameters using a list."""
 
         self.model.parameters = [30, 40, 50, 60, 70]
-        assert (self.model.parameters == [30., 40., 50., 60, 70]).all()
+        assert (self.model.parameters == [30.0, 40.0, 50.0, 60, 70]).all()
 
     def test_set_parameters_as_array(self):
         """Tests updating parameters using an array."""
 
         self.model.parameters = np.array([3, 4, 5, 6, 7])
-        assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
+        assert (self.model.parameters == [3.0, 4.0, 5.0, 6.0, 7.0]).all()
 
     def test_set_as_tuple(self):
         """Tests updating parameters using a tuple."""
@@ -276,9 +279,9 @@ class TestParameters:
         parameter (in this case coeff) is updated.
         """
 
-        self.model.parameters = [0, 0., 0., 0, 0]
+        self.model.parameters = [0, 0.0, 0.0, 0, 0]
         self.model.c0 = 7
-        assert (self.model.parameters == [7, 0., 0., 0, 0]).all()
+        assert (self.model.parameters == [7, 0.0, 0.0, 0, 0]).all()
 
     def test_set_model_attr_num(self):
         """Update the parameter list when a model's parameter is updated."""
@@ -291,7 +294,7 @@ class TestParameters:
 
         self.model.parameters = [1, 2, 3, 4, 5]
         tpar = self.model.parameters
-        tpar[0] = 10.
+        tpar[0] = 10.0
         self.model.parameters = tpar
         assert (self.model.parameters == [10, 2, 3, 4, 5]).all()
         assert self.model.c0 == 10
@@ -302,7 +305,10 @@ class TestParameters:
         using a list of a different size.
         """
 
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Input parameter values not compatible with the model parameters array: .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             self.model.parameters = [1, 2, 3]
 
     def test_wrong_size2(self):
@@ -311,7 +317,11 @@ class TestParameters:
         parameter (in this case coeff) with a sequence of the wrong size.
         """
 
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Value for parameter c0 does not match shape or size\nexpected by model .*"
+            r" vs .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             self.model.c0 = [1, 2, 3]
 
     def test_wrong_shape(self):
@@ -320,7 +330,11 @@ class TestParameters:
         parameter and the new value has the wrong shape.
         """
 
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Value for parameter amplitude does not match shape or size\nexpected by"
+            r" model .* vs .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             self.gmodel.amplitude = [1, 2]
 
     def test_par_against_iraf(self):
@@ -333,23 +347,33 @@ class TestParameters:
         new_model = self.linear_fitter(self.model, self.x, self.y)
         np.testing.assert_allclose(
             new_model.parameters,
-            np.array([4826.1066602783685, 952.8943813407858, 12.641236013982386,
-                      -1.7910672553339604, 0.90252884366711317]),
-            rtol=10 ** (-2))
+            np.array(
+                [
+                    4826.1066602783685,
+                    952.8943813407858,
+                    12.641236013982386,
+                    -1.7910672553339604,
+                    0.90252884366711317,
+                ]
+            ),
+            rtol=10 ** (-2),
+        )
 
     def testPolynomial1D(self):
-        d = {'c0': 11, 'c1': 12, 'c2': 13, 'c3': 14}
+        d = {"c0": 11, "c1": 12, "c2": 13, "c3": 14}
         p1 = models.Polynomial1D(3, **d)
         np.testing.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
         p1 = models.Polynomial1D(3, n_models=3)
-        np.testing.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0])
+        np.testing.assert_equal(
+            p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
         np.testing.assert_array_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
-        np.testing.assert_equal(p1.parameters, [10.0, 10.0, 10.0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0])
+        np.testing.assert_equal(
+            p1.parameters, [10.0, 10.0, 10.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
 
     def test_par_slicing(self):
         """
@@ -357,8 +381,9 @@ class TestParameters:
         """
         p1 = models.Polynomial1D(3, n_models=3)
         p1.c0[:2] = [10, 10]
-        np.testing.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0])
+        np.testing.assert_equal(
+            p1.parameters, [10.0, 10.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
 
     def test_poly2d(self):
         p2 = models.Polynomial2D(degree=3)
@@ -366,11 +391,16 @@ class TestParameters:
         np.testing.assert_equal(p2.parameters, [5, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d_multiple_sets(self):
-        kw = {'c0_0': [2, 3], 'c1_0': [1, 2], 'c2_0': [4, 5],
-              'c0_1': [1, 1], 'c0_2': [2, 2], 'c1_1': [5, 5]}
+        kw = {
+            "c0_0": [2, 3],
+            "c1_0": [1, 2],
+            "c2_0": [4, 5],
+            "c0_1": [1, 1],
+            "c0_2": [2, 2],
+            "c1_1": [5, 5],
+        }
         p2 = models.Polynomial2D(2, **kw)
-        np.testing.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
-                                                1, 1, 2, 2, 5, 5])
+        np.testing.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5, 1, 1, 2, 2, 5, 5])
 
     def test_shift_model_parameters1d(self):
         sh1 = models.Shift(2)
@@ -392,29 +422,24 @@ class TestParameters:
         assert param.bounds == (1, 2)
 
         # Errors __init__
-        message = ("bounds may not be specified simultaneously with min or max"
-                   " when instantiating Parameter test")
-        with pytest.raises(ValueError) as err:
-            Parameter(bounds=(1, 2), min=1, name='test')
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
-            Parameter(bounds=(1, 2), max=2, name='test')
-        assert str(err.value) == message
-        with pytest.raises(ValueError) as err:
-            Parameter(bounds=(1, 2), min=1, max=2, name='test')
-        assert str(err.value) == message
+        MESSAGE = r"bounds may not be specified simultaneously with min or max .*"
+        with pytest.raises(ValueError, match=MESSAGE):
+            Parameter(bounds=(1, 2), min=1, name="test")
+        with pytest.raises(ValueError, match=MESSAGE):
+            Parameter(bounds=(1, 2), max=2, name="test")
+        with pytest.raises(ValueError, match=MESSAGE):
+            Parameter(bounds=(1, 2), min=1, max=2, name="test")
 
         # Setters
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.bounds == (None, None) == param._bounds
 
         # Set errors
-        with pytest.raises(TypeError) as err:
-            param.bounds = ('test', None)
-        assert str(err.value) == "Min value must be a number or a Quantity"
-        with pytest.raises(TypeError) as err:
-            param.bounds = (None, 'test')
-        assert str(err.value) == "Max value must be a number or a Quantity"
+        MESSAGE = "{} value must be a number or a Quantity"
+        with pytest.raises(TypeError, match=MESSAGE.format("Min")):
+            param.bounds = ("test", None)
+        with pytest.raises(TypeError, match=MESSAGE.format("Max")):
+            param.bounds = (None, "test")
 
         # Set number
         param.bounds = (1, 2)
@@ -425,17 +450,17 @@ class TestParameters:
         assert param.bounds == (1, 2) == param._bounds
 
     def test_modify_value(self):
-        param = Parameter(name='test', default=[1, 2, 3])
+        param = Parameter(name="test", default=[1, 2, 3])
         assert (param.value == [1, 2, 3]).all()
 
         # Errors
-        with pytest.raises(InputParameterError) as err:
+        MESSAGE = r"Slice assignment outside the parameter dimensions for 'test'"
+        with pytest.raises(InputParameterError, match=MESSAGE):
             param[slice(0, 0)] = 2
-        assert str(err.value) == "Slice assignment outside the parameter dimensions for 'test'"
 
-        with pytest.raises(InputParameterError) as err:
+        MESSAGE = r"Input dimension 3 invalid for 'test' parameter with dimension 1"
+        with pytest.raises(InputParameterError, match=MESSAGE):
             param[3] = np.array([5])
-        assert str(err.value) == "Input dimension 3 invalid for 'test' parameter with dimension 1"
 
         # assignment of a slice
         param[slice(0, 2)] = [4, 5]
@@ -446,22 +471,21 @@ class TestParameters:
         assert (param.value == [4, 5, 6]).all()
 
     def test__set_unit(self):
-        param = Parameter(name='test', default=[1, 2, 3])
+        param = Parameter(name="test", default=[1, 2, 3])
         assert param.unit is None
 
         # No force Error (no existing unit)
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"Cannot attach units to parameters that were .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             param._set_unit(u.m)
-        assert str(err.value) == ("Cannot attach units to parameters that were "
-                                  "not initially specified with units")
 
         # Force
         param._set_unit(u.m, True)
         assert param.unit == u.m
 
         # Force magnitude unit (mag=False)
-        with pytest.raises(ValueError,
-                           match=r"This parameter does not support the magnitude units such as .*"):
+        MESSAGE = r"This parameter does not support the magnitude units such as .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             param._set_unit(u.ABmag, True)
 
         # Force magnitude unit (mag=True)
@@ -470,63 +494,61 @@ class TestParameters:
         assert param._unit == u.ABmag
 
         # No force Error (existing unit)
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"Cannot change the unit attribute directly, instead change the .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             param._set_unit(u.K)
-        assert str(err.value) == ("Cannot change the unit attribute directly, instead change the "
-                                  "parameter to a new quantity")
 
     def test_quantity(self):
-        param = Parameter(name='test', default=[1, 2, 3])
+        param = Parameter(name="test", default=[1, 2, 3])
         assert param.unit is None
         assert param.quantity is None
 
-        param = Parameter(name='test', default=[1, 2, 3], unit=u.m)
+        param = Parameter(name="test", default=[1, 2, 3], unit=u.m)
         assert param.unit == u.m
         assert (param.quantity == np.array([1, 2, 3]) * u.m).all()
 
     def test_shape(self):
         # Array like
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.shape == (4,)
         # Reshape error
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"cannot reshape array of size 4 into shape .*"
+        with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
-        assert str(err.value) == "cannot reshape array of size 4 into shape (5,)"
         # Reshape success
         param.shape = (2, 2)
         assert param.shape == (2, 2)
         assert (param.value == [[1, 2], [3, 4]]).all()
 
         # Scalar
-        param = Parameter(name='test', default=1)
+        param = Parameter(name="test", default=1)
         assert param.shape == ()
         # Reshape error
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"Cannot assign this shape to a scalar quantity"
+        with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
-        assert str(err.value) == "Cannot assign this shape to a scalar quantity"
         param.shape = (1,)
 
         # single value
-        param = Parameter(name='test', default=np.array([1]))
+        param = Parameter(name="test", default=np.array([1]))
         assert param.shape == (1,)
         # Reshape error
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError, match=MESSAGE):
             param.shape = (5,)
-        assert str(err.value) == "Cannot assign this shape to a scalar quantity"
         param.shape = ()
 
     def test_size(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.size == 4
 
-        param = Parameter(name='test', default=[1])
+        param = Parameter(name="test", default=[1])
         assert param.size == 1
 
-        param = Parameter(name='test', default=1)
+        param = Parameter(name="test", default=1)
         assert param.size == 1
 
     def test_std(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.std is None
         assert param._std is None
 
@@ -534,14 +556,14 @@ class TestParameters:
         assert param.std == 5 == param._std
 
     def test_fixed(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.fixed is False
         assert param._fixed is False
 
         # Set error
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"Value must be boolean"
+        with pytest.raises(ValueError, match=MESSAGE):
             param.fixed = 3
-        assert str(err.value) == "Value must be boolean"
 
         # Set
         param.fixed = True
@@ -549,14 +571,14 @@ class TestParameters:
         assert param._fixed is True
 
     def test_tied(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.tied is False
         assert param._tied is False
 
         # Set error
-        with pytest.raises(TypeError) as err:
+        MESSAGE = r"Tied must be a callable or set to False or None"
+        with pytest.raises(TypeError, match=MESSAGE):
             param.tied = mk.NonCallableMagicMock()
-        assert str(err.value) == "Tied must be a callable or set to False or None"
 
         # Set None
         param.tied = None
@@ -574,21 +596,19 @@ class TestParameters:
         assert param.tied == tied == param._tied
 
     def test_validator(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param._validator is None
 
         valid = mk.MagicMock()
         param.validator(valid)
         assert param._validator == valid
 
-        with pytest.raises(ValueError) as err:
+        MESSAGE = r"This decorator method expects a callable.*"
+        with pytest.raises(ValueError, match=MESSAGE):
             param.validator(mk.NonCallableMagicMock())
-        assert str(err.value) == ("This decorator method expects a callable.\n"
-                                  "The use of this method as a direct validator is\n"
-                                  "deprecated; use the new validate method instead\n")
 
     def test_validate(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param._validator is None
         assert param.model is None
 
@@ -609,14 +629,14 @@ class TestParameters:
         assert validator.call_args_list == [mk.call(param._model, value)]
 
     def test_copy(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         copy_param = param.copy()
 
         assert (param == copy_param).all()
         assert id(param) != id(copy_param)
 
     def test_model(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert param.model is None
         assert param._model is None
         assert param._model_required is False
@@ -632,15 +652,16 @@ class TestParameters:
         model0 = mk.MagicMock()
         setter0 = mk.MagicMock()
         getter0 = mk.MagicMock()
-        with mk.patch.object(Parameter, '_create_value_wrapper',
-                             side_effect=[setter0, getter0]) as mkCreate:
+        with mk.patch.object(
+            Parameter, "_create_value_wrapper", side_effect=[setter0, getter0]
+        ) as mkCreate:
             param.model = model0
             assert param.model == model0 == param._model
             assert param._setter == setter0
             assert param._getter == getter0
             assert mkCreate.call_args_list == [
                 mk.call(setter, model0),
-                mk.call(getter, model0)
+                mk.call(getter, model0),
             ]
             assert param._value == [5, 6, 7, 8]
 
@@ -654,35 +675,37 @@ class TestParameters:
         getter1 = mk.MagicMock()
         setter1.return_value = [9, 10, 11, 12]
         getter1.return_value = [9, 10, 11, 12]
-        with mk.patch.object(Parameter, '_create_value_wrapper',
-                             side_effect=[setter1, getter1]) as mkCreate:
+        with mk.patch.object(
+            Parameter, "_create_value_wrapper", side_effect=[setter1, getter1]
+        ) as mkCreate:
             param.model = model1
             assert param.model == model1 == param._model
             assert param._setter == setter1
             assert param._getter == getter1
             assert mkCreate.call_args_list == [
                 mk.call(setter, model1),
-                mk.call(getter, model1)
+                mk.call(getter, model1),
             ]
             assert (param.value == [9, 10, 11, 12]).all()
 
         param._setter = setter
         param._getter = getter
         param._default = None
-        with mk.patch.object(Parameter, '_create_value_wrapper',
-                             side_effect=[setter1, getter1]) as mkCreate:
+        with mk.patch.object(
+            Parameter, "_create_value_wrapper", side_effect=[setter1, getter1]
+        ) as mkCreate:
             param.model = model1
             assert param.model == model1 == param._model
             assert param._setter == setter1
             assert param._getter == getter1
             assert mkCreate.call_args_list == [
                 mk.call(setter, model1),
-                mk.call(getter, model1)
+                mk.call(getter, model1),
             ]
             assert param._value is None
 
     def test_raw_value(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
 
         # Normal case
         assert (param._raw_value == param.value).all()
@@ -693,13 +716,12 @@ class TestParameters:
         assert param._raw_value == 4
 
     def test__create_value_wrapper(self):
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
 
         # Bad ufunc
-        with pytest.raises(TypeError) as err:
+        MESSAGE = r"A numpy.ufunc used for Parameter getter/setter .*"
+        with pytest.raises(TypeError, match=MESSAGE):
             param._create_value_wrapper(np.add, mk.MagicMock())
-        assert str(err.value) == ("A numpy.ufunc used for Parameter getter/setter "
-                                  "may only take one input argument")
         # Good ufunc
         assert param._create_value_wrapper(np.negative, mk.MagicMock()) == np.negative
 
@@ -709,11 +731,13 @@ class TestParameters:
         # wrapper with one argument
         def wrapper1(a):
             pass
+
         assert param._create_value_wrapper(wrapper1, mk.MagicMock()) == wrapper1
 
         # wrapper with two argument2
         def wrapper2(a, b):
             pass
+
         # model is None
         assert param._model_required is False
         assert param._create_value_wrapper(wrapper2, None) == wrapper2
@@ -721,20 +745,22 @@ class TestParameters:
         # model is not None
         param._model_required = False
         model = mk.MagicMock()
-        with mk.patch.object(functools, 'partial', autospec=True) as mkPartial:
-            assert param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
+        with mk.patch.object(functools, "partial", autospec=True) as mkPartial:
+            assert (
+                param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
+            )
 
         # wrapper with more than 2 arguments
         def wrapper3(a, b, c):
             pass
-        with pytest.raises(TypeError) as err:
+
+        MESSAGE = r"Parameter getter/setter must be a function .*"
+        with pytest.raises(TypeError, match=MESSAGE):
             param._create_value_wrapper(wrapper3, mk.MagicMock())
-        assert str(err.value) == ("Parameter getter/setter must be a function "
-                                  "of either one or two arguments")
 
     def test_bool(self):
         # single value is true
-        param = Parameter(name='test', default=1)
+        param = Parameter(name="test", default=1)
         assert param.value == 1
         assert np.all(param)
         if param:
@@ -743,7 +769,7 @@ class TestParameters:
             assert False
 
         # single value is false
-        param = Parameter(name='test', default=0)
+        param = Parameter(name="test", default=0)
         assert param.value == 0
         assert not np.all(param)
         if param:
@@ -752,7 +778,7 @@ class TestParameters:
             assert True
 
         # vector value all true
-        param = Parameter(name='test', default=[1, 2, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 3, 4])
         assert np.all(param.value == [1, 2, 3, 4])
         assert np.all(param)
         if param:
@@ -761,7 +787,7 @@ class TestParameters:
             assert False
 
         # vector value at least one false
-        param = Parameter(name='test', default=[1, 2, 0, 3, 4])
+        param = Parameter(name="test", default=[1, 2, 0, 3, 4])
         assert np.all(param.value == [1, 2, 0, 3, 4])
         assert not np.all(param)
         if param:
@@ -771,30 +797,30 @@ class TestParameters:
 
     def test_param_repr_oneline(self):
         # Single value no units
-        param = Parameter(name='test', default=1)
-        assert param_repr_oneline(param) == '1.'
+        param = Parameter(name="test", default=1)
+        assert param_repr_oneline(param) == "1."
 
         # Vector value no units
-        param = Parameter(name='test', default=[1, 2, 3, 4])
-        assert param_repr_oneline(param) == '[1., 2., 3., 4.]'
+        param = Parameter(name="test", default=[1, 2, 3, 4])
+        assert param_repr_oneline(param) == "[1., 2., 3., 4.]"
 
         # Single value units
-        param = Parameter(name='test', default=1*u.m)
-        assert param_repr_oneline(param) == '1. m'
+        param = Parameter(name="test", default=1 * u.m)
+        assert param_repr_oneline(param) == "1. m"
 
         # Vector value units
-        param = Parameter(name='test', default=[1, 2, 3, 4] * u.m)
-        assert param_repr_oneline(param) == '[1., 2., 3., 4.] m'
+        param = Parameter(name="test", default=[1, 2, 3, 4] * u.m)
+        assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
 
 
 class TestMultipleParameterSets:
-
     def setup_class(self):
-        self.x1 = np.arange(1, 10, .1)
+        self.x1 = np.arange(1, 10, 0.1)
         self.y, self.x = np.mgrid[:10, :7]
         self.x11 = np.array([self.x1, self.x1]).T
-        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7],
-                                        n_models=2)
+        self.gmodel = models.Gaussian1D(
+            [12, 10], [3.5, 5.2], stddev=[0.4, 0.7], n_models=2
+        )
 
     def test_change_par(self):
         """
@@ -803,12 +829,14 @@ class TestMultipleParameterSets:
         self.gmodel.amplitude = [1, 10]
         np.testing.assert_almost_equal(
             self.gmodel.param_sets,
-            np.array([[1.,
-                       10],
-                      [3.5,
-                       5.2],
-                      [0.4,
-                       0.7]]))
+            np.array(
+                [
+                    [1.0, 10],
+                    [3.5, 5.2],
+                    [0.4, 0.7],
+                ]
+            ),
+        )
         np.all(self.gmodel.parameters == [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
     def test_change_par2(self):
@@ -819,18 +847,20 @@ class TestMultipleParameterSets:
         self.gmodel.amplitude[0] = 11
         np.testing.assert_almost_equal(
             self.gmodel.param_sets,
-            np.array([[11.,
-                       10],
-                      [3.5,
-                       5.2],
-                      [0.4,
-                       0.7]]))
+            np.array(
+                [
+                    [11.0, 10],
+                    [3.5, 5.2],
+                    [0.4, 0.7],
+                ]
+            ),
+        )
         np.all(self.gmodel.parameters == [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
-        np.testing.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
-        np.testing.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
+        np.testing.assert_almost_equal(self.gmodel.amplitude.value, [13.0, 10.0])
+        np.testing.assert_almost_equal(self.gmodel.mean.value, [9.0, 5.2])
 
 
 class TestParameterInitialization:
@@ -871,7 +901,11 @@ class TestParameterInitialization:
         assert t.e.shape == (2,)
 
     def test_single_model_1d_array_different_length_parameters(self):
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
+            r" shape .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             # Not broadcastable
             TParModel([1, 2], [3, 4, 5])
 
@@ -879,41 +913,64 @@ class TestParameterInitialization:
         t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]])
         assert len(t) == 1
         assert t.model_set_axis is False
-        assert np.all(t.param_sets == [[[[10, 20], [30, 40]]],
-                                       [[[1, 2], [3, 4]]]])
+        assert np.all(
+            t.param_sets
+            == [
+                [[[10, 20], [30, 40]]],
+                [[[1, 2], [3, 4]]],
+            ]
+        )
         assert np.all(t.parameters == [10, 20, 30, 40, 1, 2, 3, 4])
         assert t.coeff.shape == (2, 2)
         assert t.e.shape == (2, 2)
 
     def test_single_model_2d_non_square_parameters(self):
-        coeff = np.array([[10, 20], [30, 40], [50, 60]])
+        coeff = np.array(
+            [
+                [10, 20],
+                [30, 40],
+                [50, 60],
+            ]
+        )
         e = np.array([[1, 2], [3, 4], [5, 6]])
 
         t = TParModel(coeff, e)
         assert len(t) == 1
         assert t.model_set_axis is False
-        assert np.all(t.param_sets == [[[[10, 20], [30, 40], [50, 60]]],
-                                       [[[1, 2], [3, 4], [5, 6]]]])
-        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60,
-                                       1, 2, 3, 4, 5, 6])
+        assert np.all(
+            t.param_sets
+            == [
+                [[[10, 20], [30, 40], [50, 60]]],
+                [[[1, 2], [3, 4], [5, 6]]],
+            ]
+        )
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3, 4, 5, 6])
         assert t.coeff.shape == (3, 2)
         assert t.e.shape == (3, 2)
 
         t2 = TParModel(coeff.T, e.T)
         assert len(t2) == 1
         assert t2.model_set_axis is False
-        assert np.all(t2.param_sets == [[[[10, 30, 50], [20, 40, 60]]],
-                                        [[[1, 3, 5], [2, 4, 6]]]])
-        assert np.all(t2.parameters == [10, 30, 50, 20, 40, 60,
-                                        1, 3, 5, 2, 4, 6])
+        assert np.all(
+            t2.param_sets
+            == [
+                [[[10, 30, 50], [20, 40, 60]]],
+                [[[1, 3, 5], [2, 4, 6]]],
+            ]
+        )
+        assert np.all(t2.parameters == [10, 30, 50, 20, 40, 60, 1, 3, 5, 2, 4, 6])
         assert t2.coeff.shape == (2, 3)
         assert t2.e.shape == (2, 3)
 
         # Not broadcastable
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
+            r" shape .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff, e.T)
 
-        with pytest.raises(InputParameterError):
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff.T, e)
 
     def test_single_model_2d_broadcastable_parameters(self):
@@ -922,20 +979,37 @@ class TestParameterInitialization:
         assert t.model_set_axis is False
         assert len(t.param_sets) == 2
         assert np.issubdtype(t.param_sets.dtype, np.object_)
-        assert np.all(t.param_sets[0] == [[[10, 20, 30], [40, 50, 60]]])
+        assert np.all(
+            t.param_sets[0]
+            == [
+                [[10, 20, 30], [40, 50, 60]],
+            ]
+        )
         assert np.all(t.param_sets[1] == [[1, 2, 3]])
         assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3])
 
-    @pytest.mark.parametrize(('p1', 'p2'), [
-        (1, 2), (1, [2, 3]), ([1, 2], 3), ([1, 2, 3], [4, 5]),
-        ([1, 2], [3, 4, 5])])
+    @pytest.mark.parametrize(
+        ("p1", "p2"),
+        [
+            (1, 2),
+            (1, [2, 3]),
+            ([1, 2], 3),
+            ([1, 2, 3], [4, 5]),
+            ([1, 2], [3, 4, 5]),
+        ],
+    )
     def test_two_model_incorrect_scalar_parameters(self, p1, p2):
-        with pytest.raises(InputParameterError):
+        with pytest.raises(InputParameterError, match=r".*"):
             TParModel(p1, p2, n_models=2)
 
-    @pytest.mark.parametrize('kwargs', [
-        {'n_models': 2}, {'model_set_axis': 0},
-        {'n_models': 2, 'model_set_axis': 0}])
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"n_models": 2},
+            {"model_set_axis": 0},
+            {"n_models": 2, "model_set_axis": 0},
+        ],
+    )
     def test_two_model_scalar_parameters(self, kwargs):
         t = TParModel([10, 20], [1, 2], **kwargs)
         assert len(t) == 2
@@ -945,9 +1019,14 @@ class TestParameterInitialization:
         assert t.coeff.shape == (2,)
         assert t.e.shape == (2,)
 
-    @pytest.mark.parametrize('kwargs', [
-        {'n_models': 2}, {'model_set_axis': 0},
-        {'n_models': 2, 'model_set_axis': 0}])
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"n_models": 2},
+            {"model_set_axis": 0},
+            {"n_models": 2, "model_set_axis": 0},
+        ],
+    )
     def test_two_model_scalar_and_array_parameters(self, kwargs):
         t = TParModel([10, 20], [[1, 2], [3, 4]], **kwargs)
         assert len(t) == 2
@@ -964,54 +1043,75 @@ class TestParameterInitialization:
         t = TParModel([[10, 20], [30, 40]], [[1, 2], [3, 4]], n_models=2)
         assert len(t) == 2
         assert t.model_set_axis == 0
-        assert np.all(t.param_sets == [[[10, 20], [30, 40]],
-                                       [[1, 2], [3, 4]]])
+        assert np.all(
+            t.param_sets
+            == [
+                [[10, 20], [30, 40]],
+                [[1, 2], [3, 4]],
+            ]
+        )
         assert np.all(t.parameters == [10, 20, 30, 40, 1, 2, 3, 4])
         assert t.coeff.shape == (2, 2)
         assert t.e.shape == (2, 2)
 
-        t2 = TParModel([[10, 20, 30], [40, 50, 60]],
-                       [[1, 2, 3], [4, 5, 6]], n_models=2)
+        t2 = TParModel([[10, 20, 30], [40, 50, 60]], [[1, 2, 3], [4, 5, 6]], n_models=2)
         assert len(t2) == 2
         assert t2.model_set_axis == 0
-        assert np.all(t2.param_sets == [[[10, 20, 30], [40, 50, 60]],
-                                        [[1, 2, 3], [4, 5, 6]]])
-        assert np.all(t2.parameters == [10, 20, 30, 40, 50, 60,
-                                        1, 2, 3, 4, 5, 6])
+        assert np.all(
+            t2.param_sets
+            == [
+                [[10, 20, 30], [40, 50, 60]],
+                [[1, 2, 3], [4, 5, 6]],
+            ]
+        )
+        assert np.all(t2.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3, 4, 5, 6])
         assert t2.coeff.shape == (2, 3)
         assert t2.e.shape == (2, 3)
 
     def test_two_model_mixed_dimension_array_parameters(self):
-        with pytest.raises(InputParameterError):
+        MESSAGE = (
+            r"Parameter .* of shape .* cannot be broadcast with parameter .* of"
+            r" shape .*"
+        )
+        with pytest.raises(InputParameterError, match=MESSAGE):
             # Can't broadcast different array shapes
-            TParModel([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
-                      [[9, 10, 11], [12, 13, 14]], n_models=2)
+            TParModel(
+                [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                [[9, 10, 11], [12, 13, 14]],
+                n_models=2,
+            )
 
-        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
-                      [[1, 2], [3, 4]], n_models=2)
+        t = TParModel(
+            [[[10, 20], [30, 40]], [[50, 60], [70, 80]]], [[1, 2], [3, 4]], n_models=2
+        )
         assert len(t) == 2
         assert t.model_set_axis == 0
         assert len(t.param_sets) == 2
         assert np.issubdtype(t.param_sets.dtype, np.object_)
-        assert np.all(t.param_sets[0] == [[[10, 20], [30, 40]],
-                                          [[50, 60], [70, 80]]])
+        assert np.all(t.param_sets[0] == [[[10, 20], [30, 40]], [[50, 60], [70, 80]]])
         assert np.all(t.param_sets[1] == [[[1, 2]], [[3, 4]]])
-        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 70, 80,
-                                       1, 2, 3, 4])
+        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 70, 80, 1, 2, 3, 4])
         assert t.coeff.shape == (2, 2, 2)
         assert t.e.shape == (2, 2)
 
     def test_two_model_2d_array_parameters(self):
-        t = TParModel([[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
-                      [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], n_models=2)
+        t = TParModel(
+            [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+            n_models=2,
+        )
         assert len(t) == 2
         assert t.model_set_axis == 0
-        assert np.all(t.param_sets == [[[[10, 20], [30, 40]],
-                                        [[50, 60], [70, 80]]],
-                                       [[[1, 2], [3, 4]],
-                                        [[5, 6], [7, 8]]]])
-        assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 70, 80,
-                                       1, 2, 3, 4, 5, 6, 7, 8])
+        assert np.all(
+            t.param_sets
+            == [
+                [[[10, 20], [30, 40]], [[50, 60], [70, 80]]],
+                [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+            ]
+        )
+        assert np.all(
+            t.parameters == [10, 20, 30, 40, 50, 60, 70, 80, 1, 2, 3, 4, 5, 6, 7, 8]
+        )
         assert t.coeff.shape == (2, 2, 2)
         assert t.e.shape == (2, 2, 2)
 
@@ -1027,34 +1127,44 @@ class TestParameterInitialization:
         assert t.model_set_axis == -1
         assert len(t.param_sets) == 2
         assert np.issubdtype(t.param_sets.dtype, np.object_)
-        assert np.all(t.param_sets[0] == [[[10, 50], [20, 60], [30, 70]],
-                                          [[30, 70], [40, 80], [50, 90]]])
+        assert np.all(
+            t.param_sets[0]
+            == [
+                [[10, 50], [20, 60], [30, 70]],
+                [[30, 70], [40, 80], [50, 90]],
+            ]
+        )
         assert np.all(t.param_sets[1] == [[[1, 3], [2, 4], [3, 5]]])
-        assert np.all(t.parameters == [10, 50, 20, 60, 30, 70, 30, 70, 40, 80,
-                                       50, 90, 1, 3, 2, 4, 3, 5])
+        assert np.all(
+            t.parameters
+            == [10, 50, 20, 60, 30, 70, 30, 70, 40, 80, 50, 90, 1, 3, 2, 4, 3, 5]
+        )
         assert t.coeff.shape == (2, 3, 2)  # note change in api
         assert t.e.shape == (3, 2)  # note change in api
 
     def test_wrong_number_of_params(self):
-        with pytest.raises(InputParameterError):
+        MESSAGE = r"Inconsistent dimensions for parameter .* for 2 model sets.*"
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), n_models=2)
-        with pytest.raises(InputParameterError):
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), model_set_axis=0)
 
     def test_wrong_number_of_params2(self):
-        with pytest.raises(InputParameterError):
+        MESSAGE = r"All parameter values must be arrays of dimension at .*"
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=4, n_models=2)
-        with pytest.raises(InputParameterError):
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(coeff=[[1, 2], [3, 4]], e=4, model_set_axis=0)
 
     def test_array_parameter1(self):
-        with pytest.raises(InputParameterError):
+        MESSAGE = r"All parameter values must be arrays of dimension at .*"
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TParModel(np.array([[1, 2], [3, 4]]), 1, model_set_axis=0)
 
     def test_array_parameter2(self):
-        with pytest.raises(InputParameterError):
-            TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11),
-                      model_set_axis=0)
+        MESSAGE = r"Inconsistent dimensions for parameter .* for 2 model sets.*"
+        with pytest.raises(InputParameterError, match=MESSAGE):
+            TParModel(np.array([[1, 2], [3, 4]]), (1, 1, 11), model_set_axis=0)
 
     def test_array_parameter4(self):
         """
@@ -1083,7 +1193,6 @@ def test_non_broadcasting_parameters():
     c = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
 
     class TestModel(Model):
-
         p1 = Parameter()
         p2 = Parameter()
         p3 = Parameter()
@@ -1092,8 +1201,12 @@ def test_non_broadcasting_parameters():
             return
 
     # a broadcasts with both b and c, but b does not broadcast with c
+    MESSAGE = (
+        r"Parameter '.*' of shape .* cannot be broadcast with parameter '.*' of"
+        r" shape .*"
+    )
     for args in itertools.permutations((a, b, c)):
-        with pytest.raises(InputParameterError):
+        with pytest.raises(InputParameterError, match=MESSAGE):
             TestModel(*args)
 
 
@@ -1103,6 +1216,4 @@ def test_setter():
     model = SetterModel(xc=-1, yc=3, p=np.pi)
 
     for x, y in pars:
-        np.testing.assert_almost_equal(
-            model(x, y),
-            (x + 1)**2 + (y - np.pi * 3)**2)
+        np.testing.assert_almost_equal(model(x, y), (x + 1) ** 2 + (y - np.pi * 3) ** 2)

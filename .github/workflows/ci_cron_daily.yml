@@ -28,6 +28,9 @@ env:
   ARCH_ON_CI: "normal"
   IS_CRON: "true"
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
@@ -64,6 +67,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install language-pack-de tzdata
     - name: Install Python dependencies
-      run: python -m pip install --upgrade tox
+      run: python -m pip install "tox<4"
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}

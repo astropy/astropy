@@ -32,9 +32,10 @@ consider a noisy Lorentz curve:
 >>> import numpy as np
 >>> from astropy.modeling.models import Lorentz1D
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
+>>> rng = np.random.default_rng()
 >>> lorentz = Lorentz1D(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
->>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+>>> data_1D = lorentz(x) + 0.1 * (rng.random(100) - 0.5)
 
 Smoothing the noisy data with a `~astropy.convolution.Gaussian1DKernel`
 with a standard deviation of 2 pixels:
@@ -58,9 +59,10 @@ The following plot illustrates the results:
     from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 
     # Fake Lorentz data including noise
+    rng = np.random.default_rng()
     lorentz = Lorentz1D(1, 0, 1)
     x = np.linspace(-5, 5, 100)
-    data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+    data_1D = lorentz(x) + 0.1 * (rng.random(100) - 0.5)
 
     # Smooth data
     gauss_kernel = Gaussian1DKernel(2)
@@ -109,10 +111,11 @@ middle of the image and add 10% noise:
 >>> from astropy.modeling.models import Gaussian2D
 >>> gauss = Gaussian2D(1, 0, 0, 3, 3)
 >>> # Fake image data including noise
+>>> rng = np.random.default_rng()
 >>> x = np.arange(-100, 101)
 >>> y = np.arange(-100, 101)
 >>> x, y = np.meshgrid(x, y)
->>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+>>> data_2D = gauss(x, y) + 0.1 * (rng.random((201, 201)) - 0.5)
 
 Smoothing the noisy data with a
 :class:`~astropy.convolution.Gaussian2DKernel` with a standard
@@ -136,10 +139,11 @@ This is what the original image looks like:
     from astropy.modeling.models import Gaussian2D
     gauss = Gaussian2D(1, 0, 0, 2, 2)
     # Fake image data including noise
+    rng = np.random.default_rng()
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
     x, y = np.meshgrid(x, y)
-    data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+    data_2D = gauss(x, y) + 0.1 * (rng.random((201, 201)) - 0.5)
     plt.imshow(data_2D, origin='lower')
     plt.xlabel('x [pixels]')
     plt.ylabel('y [pixels]')
@@ -161,10 +165,11 @@ scale compared to the original image.
     # Small Gaussian source in the middle of the image
     gauss = Gaussian2D(1, 0, 0, 2, 2)
     # Fake data including noise
+    rng = np.random.default_rng()
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
     x, y = np.meshgrid(x, y)
-    data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+    data_2D = gauss(x, y) + 0.1 * (rng.random((201, 201)) - 0.5)
 
     # Setup kernels, including unity kernel for original image
     # Choose normalization for linear scale space for RickerWavelet
@@ -292,9 +297,10 @@ Or in case of multistage smoothing:
 >>> import numpy as np
 >>> from astropy.modeling.models import Lorentz1D
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
+>>> rng = np.random.default_rng()
 >>> lorentz = Lorentz1D(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
->>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+>>> data_1D = lorentz(x) + 0.1 * (rng.random(100) - 0.5)
 
 >>> gauss = Gaussian1DKernel(3)
 >>> box = Box1DKernel(5)
@@ -350,6 +356,7 @@ Especially in the range where the kernel width is in order of only a few pixels,
 it can be advantageous to use the mode ``oversample`` or ``integrate`` to
 conserve the integral on a subpixel scale.
 
+.. _kernel_normalization:
 
 Normalization
 =============

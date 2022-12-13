@@ -2,6 +2,8 @@
 Installation
 ************
 
+.. _installing-astropy:
+
 Installing ``astropy``
 ======================
 
@@ -208,6 +210,12 @@ The further dependencies provide more specific features:
 - `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
   To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
 
+- `fsspec`_ |minimum_fsspec_version| or later: Enables access to :ref:`subsets
+  of remote FITS files <fits_io_cloud>` without having to download the entire file.
+
+- `s3fs`_ |minimum_s3fs_version| or later: Enables access to files hosted in
+  AWS S3 cloud storage.
+
 However, note that these packages require installation only if those particular
 features are needed. ``astropy`` will import even if these dependencies are not
 installed.
@@ -233,7 +241,7 @@ The following packages can optionally be used when testing:
 - `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
   coordinates.
 
-- `spgp4 <https://pypi.org/project/sgp4/>`_: Used for testing satellite positions.
+- `sgp4 <https://pypi.org/project/sgp4/>`_: Used for testing satellite positions.
 
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
@@ -371,41 +379,7 @@ The C libraries currently bundled with ``astropy`` include:
 - `expat <https://libexpat.github.io/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
 
-
-Installing ``astropy`` into CASA
---------------------------------
-
-If you want to be able to use ``astropy`` inside `CASA
-<https://casa.nrao.edu/>`_, the easiest way is to do so from inside CASA.
-
-First, we need to make sure `pip <https://pip.pypa.io>`__ is
-installed. Start up CASA as normal, and then type::
-
-    CASA <2>: from setuptools.command import easy_install
-
-    CASA <3>: easy_install.main(['--user', 'pip'])
-
-Now, quit CASA and re-open it, then type the following to install ``astropy``::
-
-    CASA <2>: import subprocess, sys
-
-    CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'astropy'])
-
-Then close CASA again and open it, and you should be able to import ``astropy``::
-
-    CASA <2>: import astropy
-
-Any ``astropy`` affiliated package can be installed the same way (e.g. the
-`spectral-cube <https://spectral-cube.readthedocs.io>`_ or other
-packages that may be useful for radio astronomy).
-
-.. note:: The above instructions have not been tested on all systems.
-   We know of a few examples that do work, but that is not a guarantee
-   that this will work on all systems. If you install ``astropy`` and begin to
-   encounter issues with CASA, please look at the `known CASA issues
-   <https://github.com/astropy/astropy/issues?q=+label%3ACASA-Installation+>`_
-   and if you do not encounter your issue there, please post a new one.
-
+.. _install_astropy_nightly:
 
 Installing pre-built Development Versions of ``astropy``
 --------------------------------------------------------
@@ -508,7 +482,18 @@ Alternatively, you can do::
     cd docs
     make html
 
-And the documentation will be generated in the same location. Note that
+.. note::
+   If you have a multi-core processor, and wish to leverage this for building
+   documentation, you can do so as follows::
+
+       cd docs
+       SPHINXOPTS="-j N" make html
+
+   where ``N`` is the number of processes over which to distribute the build, as
+   described in the `sphinx-build Documentation
+   <https://www.sphinx-doc.org/en/master/man/sphinx-build.html#cmdoption-sphinx-build-j>`_.
+
+The documentation will be generated in the same location. Note that
 this uses the installed version of astropy, so if you want to make sure
 the current repository version is used, you will need to install it with
 e.g.::

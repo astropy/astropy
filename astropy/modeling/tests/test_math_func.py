@@ -9,11 +9,11 @@ from astropy.modeling import math_functions
 x = np.linspace(-20, 360, 100)
 
 
-@pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
+@pytest.mark.filterwarnings(r"ignore:.*:RuntimeWarning")
 def test_math():
     for name in math_functions.__all__:
         model_class = getattr(math_functions, name)
-        assert model_class.__module__ == 'astropy.modeling.math_functions'
+        assert model_class.__module__ == "astropy.modeling.math_functions"
         model = model_class()
         func = getattr(np, model.func.__name__)
         if model.n_inputs == 1:

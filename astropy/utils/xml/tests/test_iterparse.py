@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # LOCAL
-from astropy.utils.xml.iterparser import _fast_iterparse
-
 # SYSTEM
 import io
 import zlib
+
+from astropy.utils.xml.iterparser import _fast_iterparse
 
 # The C-based XML parser for VOTables previously used fixed-sized
 # buffers (allocated at __init__() time).  This test will
@@ -63,7 +63,7 @@ FOOTER = """
 # 1024 / 2 => 512 tags for overflow
 # 512 - 7 tags in header, - 5 tags in footer = 500 tags required for overflow
 # 500 / 4 tags (<tr><td></td></tr>) per row == 125 rows required for overflow
-VOTABLE_XML = HEADER + 125*ROW + FOOTER
+VOTABLE_XML = HEADER + 125 * ROW + FOOTER
 
 # UngzipFileWrapper() wraps an existing file-like Object,
 # decompressing the content and returning the plaintext.
@@ -96,6 +96,7 @@ class UngzipFileWrapper:
     def __getattr__(self, attr):
         return getattr(self._file, attr)
 
+
 # test_iterparser_over_read_simple() is a very cut down test,
 # of the original more flexible test-case, but without external
 # dependencies.  The plaintext is compressed and then decompressed
@@ -113,9 +114,9 @@ def test_iterparser_over_read_simple():
     # Gzip-style header (+16), to most closely emulate the behavior
     # of most HTTP servers.
     zlib_GZIP_STYLE_HEADER = 16
-    compo = zlib.compressobj(zlib.Z_BEST_COMPRESSION,
-                             zlib.DEFLATED,
-                             zlib.MAX_WBITS + zlib_GZIP_STYLE_HEADER)
+    compo = zlib.compressobj(
+        zlib.Z_BEST_COMPRESSION, zlib.DEFLATED, zlib.MAX_WBITS + zlib_GZIP_STYLE_HEADER
+    )
 
     # Bytes vs. String  .encode()/.decode() for compatibility with Python 3.5.
     s = compo.compress(VOTABLE_XML.encode())
@@ -127,6 +128,5 @@ def test_iterparser_over_read_simple():
     # and a situation in which it can be called a-la the VOTable Parser.
     MINIMUM_REQUESTABLE_BUFFER_SIZE = 1024
     uncompressed_fd = UngzipFileWrapper(fd)
-    iterable = _fast_iterparse(uncompressed_fd.read,
-                               MINIMUM_REQUESTABLE_BUFFER_SIZE)
+    iterable = _fast_iterparse(uncompressed_fd.read, MINIMUM_REQUESTABLE_BUFFER_SIZE)
     list(iterable)

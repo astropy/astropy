@@ -2,6 +2,12 @@
 Overplotting markers and artists
 ********************************
 
+The class :class:`~astropy.visualization.wcsaxes.WCSAxes` provides two handy methods:
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord`,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`
+
+Used to plots and scatter respectively :class:`~astropy.coordinates.SkyCoord` or :class:`~astropy.coordinates.BaseCoordinateFrame` coordinates on the axes. The ``transform`` keyword argument will be created based on the coordinate, specifying it here will throw a :class:`~TypeError`.
+
 For the example in the following page we start from the example introduced in
 :ref:`initialization`.
 
@@ -346,3 +352,56 @@ and a |Quantity| as the radius:
                         transform=ax.get_transform('fk5'))
 
     ax.add_patch(s)
+
+Beam shape and scale bar
+************************
+
+Adding an ellipse that represents the shape of the beam on a celestial
+image can be done with the
+:func:`~astropy.visualization.wcsaxes.add_beam` function:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+
+    ax.set_autoscale_on(False)
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    from astropy import units as u
+    from astropy.visualization.wcsaxes import add_beam, add_scalebar
+
+    add_beam(ax, major=1.2 * u.arcmin, minor=1.2 * u.arcmin, angle=0, frame=True)
+
+To add a segment that shows a physical scale, you can use the
+:func:`~astropy.visualization.wcsaxes.add_scalebar` function:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    # Compute the angle corresponding to 10 pc at the distance of the galactic center
+    gc_distance = 8.2 * u.kpc
+    scalebar_lenght = 10 * u.pc
+    scalebar_angle = (scalebar_lenght / gc_distance).to(
+        u.deg, equivalencies=u.dimensionless_angles()
+    )
+
+    # Add a scale bar
+    add_scalebar(ax, scalebar_angle, label="10 pc", color="white")

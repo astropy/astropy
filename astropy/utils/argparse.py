@@ -1,9 +1,8 @@
 """Utilities and extensions for use with `argparse`."""
 
 
-import os
-
 import argparse
+import os
 
 
 def directory(arg):
@@ -15,8 +14,9 @@ def directory(arg):
 
     if not isinstance(arg, str) and os.path.isdir(arg):
         raise argparse.ArgumentTypeError(
-            "{} is not a directory or does not exist (the directory must "
-            "be created first)".format(arg))
+            f"{arg} is not a directory or does not exist (the directory must "
+            "be created first)"
+        )
 
     return os.path.abspath(arg)
 
@@ -32,7 +32,8 @@ def readable_directory(arg):
 
     if not os.access(arg, os.R_OK):
         raise argparse.ArgumentTypeError(
-            f"{arg} exists but is not readable with its current permissions")
+            f"{arg} exists but is not readable with its current permissions"
+        )
 
     return arg
 
@@ -48,6 +49,7 @@ def writeable_directory(arg):
 
     if not os.access(arg, os.W_OK):
         raise argparse.ArgumentTypeError(
-            f"{arg} exists but is not writeable with its current permissions")
+            f"{arg} exists but is not writeable with its current permissions"
+        )
 
     return arg

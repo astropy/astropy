@@ -50,7 +50,7 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
             continue
 
         # Add anything callable, optionally excluding private methods.
-        if callable(m) and (not n.startswith('_') or include_private):
+        if callable(m) and (not n.startswith("_") or include_private):
             methods.add(n)
 
     # Sieve out incompatible methods.
@@ -69,10 +69,16 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
         # Remove non redshift methods:
         if len(params) <= iz1:  # Check there are enough arguments.
             methods.discard(n)
-        elif len(params) >= iz1 + 1 and not params[iz1].startswith("z"):  # First non-self arg is z.
+        elif len(params) >= iz1 + 1 and not params[iz1].startswith(
+            "z"
+        ):  # First non-self arg is z.
             methods.discard(n)
         # If methods with 2 z args are not allowed, the following arg is checked.
-        elif not include_z2 and (len(params) >= iz1 + 2) and params[iz1 + 1].startswith("z"):
+        elif (
+            not include_z2
+            and (len(params) >= iz1 + 2)
+            and params[iz1 + 1].startswith("z")
+        ):
             methods.discard(n)
 
     return methods
@@ -80,6 +86,7 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
 
 ###############################################################################
 # FIXTURES
+
 
 @pytest.fixture
 def clean_registry():

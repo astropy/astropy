@@ -11,7 +11,7 @@ def test_table_read_help_fits():
     Test dynamically created documentation help via the I/O registry for 'fits'.
     """
     out = StringIO()
-    Table.read.help('fits', out)
+    Table.read.help("fits", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -26,7 +26,7 @@ def test_table_read_help_ascii():
     Test dynamically created documentation help via the I/O registry for 'ascii'.
     """
     out = StringIO()
-    Table.read.help('ascii', out)
+    Table.read.help("ascii", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -43,7 +43,7 @@ def test_table_write_help_hdf5():
     Test dynamically created documentation help via the I/O registry for 'hdf5'.
     """
     out = StringIO()
-    Table.write.help('hdf5', out)
+    Table.write.help("hdf5", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -62,10 +62,13 @@ def test_list_formats():
     CCDData.write.list_formats(out)
     output = out.getvalue()
 
-    assert output == """\
+    assert (
+        output
+        == """\
 Format Read Write Auto-identify
 ------ ---- ----- -------------
   fits  Yes   Yes           Yes"""
+    )
 
 
 def test_table_write_help_fits():
@@ -73,7 +76,7 @@ def test_table_write_help_fits():
     Test dynamically created documentation help via the I/O registry for 'fits'.
     """
     out = StringIO()
-    Table.write.help('fits', out)
+    Table.write.help("fits", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -116,7 +119,7 @@ def test_ccddata_write_help_fits():
     Test dynamically created documentation help via the I/O registry for 'fits'.
     """
     out = StringIO()
-    CCDData.write.help('fits', out)
+    CCDData.write.help("fits", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -131,7 +134,7 @@ def test_ccddata_read_help_fits():
 
     """
     out = StringIO()
-    CCDData.read.help('fits', out)
+    CCDData.read.help("fits", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content
@@ -146,7 +149,7 @@ def test_table_write_help_jsviewer():
     'jsviewer'.
     """
     out = StringIO()
-    Table.write.help('jsviewer', out)
+    Table.write.help("jsviewer", out)
     doc = out.getvalue()
 
     # Check a smattering of expected content

@@ -9,13 +9,19 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
-    ARRAY_FUNCTION_ENABLED, DISPATCHED_FUNCTIONS, FUNCTION_HELPERS, IGNORED_FUNCTIONS,
-    SUBCLASS_SAFE_FUNCTIONS, TBD_FUNCTIONS, UNSUPPORTED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_20, NUMPY_LT_1_23
+    ARRAY_FUNCTION_ENABLED,
+    DISPATCHED_FUNCTIONS,
+    FUNCTION_HELPERS,
+    IGNORED_FUNCTIONS,
+    SUBCLASS_SAFE_FUNCTIONS,
+    TBD_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS,
+)
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24
 
 needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED,
-    reason="Needs __array_function__ support")
+    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
+)
 
 
 # To get the functions that could be covered, we look for those that
@@ -24,14 +30,16 @@ def get_wrapped_functions(*modules):
     wrapped_functions = {}
     for mod in modules:
         for name, f in mod.__dict__.items():
-            if f is np.printoptions or name.startswith('_'):
+            if f is np.printoptions or name.startswith("_"):
                 continue
-            if callable(f) and hasattr(f, '__wrapped__'):
+            if callable(f) and hasattr(f, "__wrapped__"):
                 wrapped_functions[name] = f
     return wrapped_functions
 
 
-all_wrapped_functions = get_wrapped_functions(np, np.fft, np.linalg, np.lib.recfunctions)
+all_wrapped_functions = get_wrapped_functions(
+    np, np.fft, np.linalg, np.lib.recfunctions
+)
 all_wrapped = set(all_wrapped_functions.values())
 
 
@@ -40,12 +48,13 @@ class CoverageMeta(type):
 
     Assumes that a test is called 'test_<function_name>'.
     """
+
     covered = set()
 
     def __new__(mcls, name, bases, members):
         for k, v in members.items():
-            if inspect.isfunction(v) and k.startswith('test'):
-                f = k.replace('test_', '')
+            if inspect.isfunction(v) and k.startswith("test"):
+                f = k.replace("test_", "")
                 if f in all_wrapped_functions:
                     mcls.covered.add(all_wrapped_functions[f])
 
@@ -57,8 +66,9 @@ class BasicTestSetup(metaclass=CoverageMeta):
 
     Also provides a default Quantity with shape (3, 3) and units of m.
     """
-    def setup(self):
-        self.q = np.arange(9.).reshape(3, 3) / 4. * u.m
+
+    def setup_method(self):
+        self.q = np.arange(9.0).reshape(3, 3) / 4.0 * u.m
 
 
 class InvariantUnitTestSetup(BasicTestSetup):
@@ -113,7 +123,7 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         self.check(np.transpose)
 
     def test_atleast_1d(self):
-        q = 1. * u.m
+        q = 1.0 * u.m
         o, so = np.atleast_1d(q, self.q)
         assert o.shape == (1,)
         assert o == q
@@ -121,7 +131,7 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert np.all(so == expected)
 
     def test_atleast_2d(self):
-        q = 1. * u.m
+        q = 1.0 * u.m
         o, so = np.atleast_2d(q, self.q)
         assert o.shape == (1, 1)
         assert o == q
@@ -129,7 +139,7 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert np.all(so == expected)
 
     def test_atleast_3d(self):
-        q = 1. * u.m
+        q = 1.0 * u.m
         o, so = np.atleast_3d(q, self.q)
         assert o.shape == (1, 1, 1)
         assert o == q
@@ -193,7 +203,7 @@ class TestArgFunctions(NoUnitTestSetup):
 
     def test_searchsorted(self):
         q = self.q.ravel()
-        q2 = np.array([150., 350.]) * u.cm
+        q2 = np.array([150.0, 350.0]) * u.cm
         out = np.searchsorted(q, q2)
         expected = np.searchsorted(q.value, q2.to_value(q.unit))
         assert np.all(out == expected)
@@ -216,8 +226,7 @@ class TestAlongAxis(BasicTestSetup):
     def test_take_along_axis(self):
         indices = np.expand_dims(np.argmax(self.q, axis=0), axis=0)
         out = np.take_along_axis(self.q, indices, axis=0)
-        expected = np.take_along_axis(self.q.value, indices,
-                                      axis=0) * self.q.unit
+        expected = np.take_along_axis(self.q.value, indices, axis=0) * self.q.unit
         assert np.all(out == expected)
 
     def test_put_along_axis(self):
@@ -229,15 +238,14 @@ class TestAlongAxis(BasicTestSetup):
         expected = expected * q.unit
         assert np.all(q == expected)
 
-    @pytest.mark.parametrize('axis', (0, 1))
+    @pytest.mark.parametrize("axis", (0, 1))
     def test_apply_along_axis(self, axis):
         out = np.apply_along_axis(np.square, axis, self.q)
-        expected = np.apply_along_axis(np.square, axis,
-                                       self.q.value) * self.q.unit ** 2
+        expected = np.apply_along_axis(np.square, axis, self.q.value) * self.q.unit**2
         assert_array_equal(out, expected)
 
     @needs_array_function
-    @pytest.mark.parametrize('axes', ((1,), (0,), (0, 1)))
+    @pytest.mark.parametrize("axes", ((1,), (0,), (0, 1)))
     def test_apply_over_axes(self, axes):
         def function(x, axis):
             return np.sum(np.square(x), axis)
@@ -260,8 +268,8 @@ class TestIndicesFrom(NoUnitTestSetup):
 
 
 class TestRealImag(InvariantUnitTestSetup):
-    def setup(self):
-        self.q = (np.arange(9.).reshape(3, 3) + 1j) * u.m
+    def setup_method(self):
+        self.q = (np.arange(9.0).reshape(3, 3) + 1j) * u.m
 
     def test_real(self):
         self.check(np.real)
@@ -299,7 +307,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     def test_zeros_like(self):
         self.check(np.zeros_like)
         o2 = np.zeros_like(a=self.q)
-        assert_array_equal(o2, self.q * 0.)
+        assert_array_equal(o2, self.q * 0.0)
 
     def test_ones_like(self):
         self.check(np.ones_like)
@@ -336,14 +344,12 @@ class TestAccessingParts(InvariantUnitTestSetup):
 
     def test_compress(self):
         o = np.compress([True, False, True], self.q, axis=0)
-        expected = np.compress([True, False, True], self.q.value,
-                               axis=0) * self.q.unit
+        expected = np.compress([True, False, True], self.q.value, axis=0) * self.q.unit
         assert np.all(o == expected)
 
     def test_extract(self):
         o = np.extract([True, False, True], self.q)
-        expected = np.extract([True, False, True],
-                              self.q.value) * self.q.unit
+        expected = np.extract([True, False, True], self.q.value) * self.q.unit
         assert np.all(o == expected)
 
     def test_delete(self):
@@ -367,7 +373,7 @@ class TestAccessingParts(InvariantUnitTestSetup):
 
 class TestSettingParts(metaclass=CoverageMeta):
     def test_put(self):
-        q = np.arange(3.) * u.m
+        q = np.arange(3.0) * u.m
         np.put(q, [0, 2], [50, 150] * u.cm)
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
@@ -375,7 +381,7 @@ class TestSettingParts(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_putmask(self):
-        q = np.arange(3.) * u.m
+        q = np.arange(3.0) * u.m
         mask = [True, False, True]
         values = [50, 0, 150] * u.cm
         np.putmask(q, mask, values)
@@ -386,46 +392,46 @@ class TestSettingParts(metaclass=CoverageMeta):
             np.putmask(q, mask, values.value)
         with pytest.raises(u.UnitsError):
             np.putmask(q.value, mask, values)
-        a = np.arange(3.)
+        a = np.arange(3.0)
         values = [50, 0, 150] * u.percent
         np.putmask(a, mask, values)
-        expected = np.array([0.5, 1., 1.5])
+        expected = np.array([0.5, 1.0, 1.5])
         assert np.all(a == expected)
 
     @needs_array_function
     def test_place(self):
-        q = np.arange(3.) * u.m
+        q = np.arange(3.0) * u.m
         np.place(q, [True, False, True], [50, 150] * u.cm)
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-        a = np.arange(3.)
+        a = np.arange(3.0)
         np.place(a, [True, False, True], [50, 150] * u.percent)
         assert type(a) is np.ndarray
-        expected = np.array([0.5, 1., 1.5])
+        expected = np.array([0.5, 1.0, 1.5])
         assert np.all(a == expected)
 
     @needs_array_function
     def test_copyto(self):
-        q = np.arange(3.) * u.m
+        q = np.arange(3.0) * u.m
         np.copyto(q, [50, 0, 150] * u.cm, where=[True, False, True])
         assert q.unit == u.m
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-        a = np.arange(3.)
+        a = np.arange(3.0)
         np.copyto(a, [50, 0, 150] * u.percent, where=[True, False, True])
         assert type(a) is np.ndarray
-        expected = np.array([0.5, 1., 1.5])
+        expected = np.array([0.5, 1.0, 1.5])
         assert np.all(a == expected)
 
     def test_fill_diagonal(self):
-        q = np.arange(9.).reshape(3, 3) * u.m
+        q = np.arange(9.0).reshape(3, 3) * u.m
         expected = q.value.copy()
         np.fill_diagonal(expected, 0.25)
         expected = expected * u.m
-        np.fill_diagonal(q, 25. * u.cm)
+        np.fill_diagonal(q, 25.0 * u.cm)
         assert q.unit == u.m
         assert np.all(q == expected)
 
@@ -443,13 +449,13 @@ class TestRepeat(InvariantUnitTestSetup):
 
 
 class TestConcatenate(metaclass=CoverageMeta):
-    def setup(self):
-        self.q1 = np.arange(6.).reshape(2, 3) * u.m
+    def setup_method(self):
+        self.q1 = np.arange(6.0).reshape(2, 3) * u.m
         self.q2 = self.q1.to(u.cm)
 
     def check(self, func, *args, **kwargs):
-        q_list = kwargs.pop('q_list', [self.q1, self.q2])
-        q_ref = kwargs.pop('q_ref', q_list[0])
+        q_list = kwargs.pop("q_list", [self.q1, self.q2])
+        q_ref = kwargs.pop("q_ref", q_list[0])
         o = func(q_list, *args, **kwargs)
         v_list = [q_ref._to_own_unit(q) for q in q_list]
         expected = func(v_list, *args, **kwargs) * q_ref.unit
@@ -460,20 +466,23 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
-        if not NUMPY_LT_1_20:
-            # dtype argument only introduced in numpy 1.20
-            # regression test for gh-13322.
-            self.check(np.concatenate, dtype='f4')
+        # regression test for gh-13322.
+        self.check(np.concatenate, dtype="f4")
 
-        self.check(np.concatenate, q_list=[np.zeros(self.q1.shape), self.q1, self.q2],
-                   q_ref=self.q1)
+        self.check(
+            np.concatenate,
+            q_list=[np.zeros(self.q1.shape), self.q1, self.q2],
+            q_ref=self.q1,
+        )
 
         out = np.empty((4, 3)) * u.dimensionless_unscaled
         result = np.concatenate([self.q1, self.q2], out=out)
         assert out is result
         assert out.unit == self.q1.unit
-        expected = np.concatenate(
-            [self.q1.value, self.q2.to_value(self.q1.unit)]) * self.q1.unit
+        expected = (
+            np.concatenate([self.q1.value, self.q2.to_value(self.q1.unit)])
+            * self.q1.unit
+        )
         assert np.all(result == expected)
 
         with pytest.raises(TypeError):
@@ -503,19 +512,21 @@ class TestConcatenate(metaclass=CoverageMeta):
     def test_block(self):
         self.check(np.block)
 
-        result = np.block([[0., 1.*u.m], [1.*u.cm, 2.*u.km]])
-        assert np.all(result == np.block([[0, 1.], [.01, 2000.]]) << u.m)
+        result = np.block([[0.0, 1.0 * u.m], [1.0 * u.cm, 2.0 * u.km]])
+        assert np.all(result == np.block([[0, 1.0], [0.01, 2000.0]]) << u.m)
 
     @needs_array_function
     def test_append(self):
         out = np.append(self.q1, self.q2, axis=0)
         assert out.unit == self.q1.unit
-        expected = np.append(self.q1.value, self.q2.to_value(self.q1.unit),
-                             axis=0) * self.q1.unit
+        expected = (
+            np.append(self.q1.value, self.q2.to_value(self.q1.unit), axis=0)
+            * self.q1.unit
+        )
         assert np.all(out == expected)
 
-        a = np.arange(3.)
-        result = np.append(a, 50. * u.percent)
+        a = np.arange(3.0)
+        result = np.append(a, 50.0 * u.percent)
         assert isinstance(result, u.Quantity)
         assert result.unit == u.dimensionless_unscaled
         expected = np.append(a, 0.5) * u.dimensionless_unscaled
@@ -524,8 +535,8 @@ class TestConcatenate(metaclass=CoverageMeta):
     @needs_array_function
     def test_insert(self):
         # Unit of inserted values is not ignored.
-        q = np.arange(12.).reshape(6, 2) * u.m
-        out = np.insert(q, (3, 5), [50., 25.] * u.cm)
+        q = np.arange(12.0).reshape(6, 2) * u.m
+        out = np.insert(q, (3, 5), [50.0, 25.0] * u.cm)
         assert isinstance(out, u.Quantity)
         assert out.unit == q.unit
         expected = np.insert(q.value, (3, 5), [0.5, 0.25]) << q.unit
@@ -535,41 +546,42 @@ class TestConcatenate(metaclass=CoverageMeta):
         expected2 = np.insert(q.value, (3, 5), 0) << q.unit
         assert np.all(out2 == expected2)
 
-        a = np.arange(3.)
-        result = np.insert(a, (2,), 50. * u.percent)
+        a = np.arange(3.0)
+        result = np.insert(a, (2,), 50.0 * u.percent)
         assert isinstance(result, u.Quantity)
         assert result.unit == u.dimensionless_unscaled
         expected = np.insert(a, (2,), 0.5) * u.dimensionless_unscaled
         assert np.all(result == expected)
 
         with pytest.raises(TypeError):
-            np.insert(q, 3 * u.cm, 50. * u.cm)
+            np.insert(q, 3 * u.cm, 50.0 * u.cm)
         with pytest.raises(u.UnitsError):
-            np.insert(q, (3, 5), 0. * u.s)
+            np.insert(q, (3, 5), 0.0 * u.s)
 
     @needs_array_function
     def test_pad(self):
-        q = np.arange(1., 6.) * u.m
-        out = np.pad(q, (2, 3), 'constant', constant_values=(0., 150.*u.cm))
+        q = np.arange(1.0, 6.0) * u.m
+        out = np.pad(q, (2, 3), "constant", constant_values=(0.0, 150.0 * u.cm))
         assert out.unit == q.unit
-        expected = np.pad(q.value, (2, 3), 'constant',
-                          constant_values=(0., 1.5)) * q.unit
+        expected = (
+            np.pad(q.value, (2, 3), "constant", constant_values=(0.0, 1.5)) * q.unit
+        )
         assert np.all(out == expected)
-        out2 = np.pad(q, (2, 3), 'constant', constant_values=150.*u.cm)
+        out2 = np.pad(q, (2, 3), "constant", constant_values=150.0 * u.cm)
         assert out2.unit == q.unit
-        expected2 = np.pad(q.value, (2, 3), 'constant',
-                           constant_values=1.5) * q.unit
+        expected2 = np.pad(q.value, (2, 3), "constant", constant_values=1.5) * q.unit
         assert np.all(out2 == expected2)
-        out3 = np.pad(q, (2, 3), 'linear_ramp', end_values=(25.*u.cm, 0.))
+        out3 = np.pad(q, (2, 3), "linear_ramp", end_values=(25.0 * u.cm, 0.0))
         assert out3.unit == q.unit
-        expected3 = np.pad(q.value, (2, 3), 'linear_ramp',
-                           end_values=(0.25, 0.)) * q.unit
+        expected3 = (
+            np.pad(q.value, (2, 3), "linear_ramp", end_values=(0.25, 0.0)) * q.unit
+        )
         assert np.all(out3 == expected3)
 
 
 class TestSplit(metaclass=CoverageMeta):
-    def setup(self):
-        self.q = np.arange(54.).reshape(3, 3, 6) * u.m
+    def setup_method(self):
+        self.q = np.arange(54.0).reshape(3, 3, 6) * u.m
 
     def check(self, func, *args, **kwargs):
         out = func(self.q, *args, **kwargs)
@@ -656,13 +668,13 @@ class TestUfuncLike(InvariantUnitTestSetup):
         self.check(np.fix)
 
     def test_angle(self):
-        q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
+        q = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j]) * u.m
         out = np.angle(q)
         expected = np.angle(q.value) * u.radian
         assert np.all(out == expected)
 
     def test_i0(self):
-        q = np.array([0., 10., 20.]) * u.percent
+        q = np.array([0.0, 10.0, 20.0]) * u.percent
         out = np.i0(q)
         expected = np.i0(q.to_value(u.one)) * u.one
         assert isinstance(out, u.Quantity)
@@ -674,25 +686,26 @@ class TestUfuncLike(InvariantUnitTestSetup):
         qmin = 200 * u.cm
         qmax = [270, 280, 290] * u.cm
         out = np.clip(self.q, qmin, qmax)
-        expected = np.clip(self.q.value, qmin.to_value(self.q.unit),
-                           qmax.to_value(self.q.unit)) * self.q.unit
+        unit = self.q.unit
+        expected = (
+            np.clip(self.q.value, qmin.to_value(unit), qmax.to_value(unit)) * unit
+        )
         assert np.all(out == expected)
 
     @needs_array_function
     def test_sinc(self):
-        q = [0., 3690., -270., 690.] * u.deg
+        q = [0.0, 3690.0, -270.0, 690.0] * u.deg
         out = np.sinc(q)
         expected = np.sinc(q.to_value(u.radian)) * u.one
         assert isinstance(out, u.Quantity)
         assert np.all(out == expected)
         with pytest.raises(u.UnitsError):
-            np.sinc(1.*u.one)
+            np.sinc(1.0 * u.one)
 
     @needs_array_function
     def test_where(self):
-        out = np.where([True, False, True], self.q, 1. * u.km)
-        expected = np.where([True, False, True], self.q.value,
-                            1000.) * self.q.unit
+        out = np.where([True, False, True], self.q, 1.0 * u.km)
+        expected = np.where([True, False, True], self.q.value, 1000.0) * self.q.unit
         assert np.all(out == expected)
 
     @needs_array_function
@@ -709,15 +722,18 @@ class TestUfuncLike(InvariantUnitTestSetup):
     @needs_array_function
     def test_select(self):
         q = self.q
-        out = np.select([q < 0.55 * u.m, q > 1. * u.m],
-                        [q, q.to(u.cm)], default=-1. * u.km)
-        expected = np.select([q.value < 0.55, q.value > 1],
-                             [q.value, q.value], default=-1000) * u.m
+        out = np.select(
+            [q < 0.55 * u.m, q > 1.0 * u.m], [q, q.to(u.cm)], default=-1.0 * u.km
+        )
+        expected = (
+            np.select([q.value < 0.55, q.value > 1], [q.value, q.value], default=-1000)
+            * u.m
+        )
         assert np.all(out == expected)
 
     @needs_array_function
     def test_real_if_close(self):
-        q = np.array([1+0j, 0+1j, 1+1j, 0+0j]) * u.m
+        q = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j]) * u.m
         out = np.real_if_close(q)
         expected = np.real_if_close(q.value) * u.m
         assert np.all(out == expected)
@@ -732,39 +748,39 @@ class TestUfuncLike(InvariantUnitTestSetup):
 
     @needs_array_function
     def test_unwrap(self):
-        q = [0., 3690., -270., 690.] * u.deg
+        q = [0.0, 3690.0, -270.0, 690.0] * u.deg
         out = np.unwrap(q)
         expected = (np.unwrap(q.to_value(u.rad)) * u.rad).to(q.unit)
         assert out.unit == expected.unit
-        assert np.allclose(out, expected, atol=1*u.urad, rtol=0)
+        assert np.allclose(out, expected, atol=1 * u.urad, rtol=0)
         with pytest.raises(u.UnitsError):
-            np.unwrap([1., 2.]*u.m)
+            np.unwrap([1.0, 2.0] * u.m)
         with pytest.raises(u.UnitsError):
-            np.unwrap(q, discont=1.*u.m)
+            np.unwrap(q, discont=1.0 * u.m)
 
     def test_nan_to_num(self):
-        q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
+        q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
         out = np.nan_to_num(q)
         expected = np.nan_to_num(q.value) * q.unit
         assert np.all(out == expected)
 
     @needs_array_function
     def test_nan_to_num_complex(self):
-        q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
-        out = np.nan_to_num(q, nan=1.*u.km, posinf=2.*u.km, neginf=-2*u.km)
-        expected = [-2000., 2000., 1000., 3., 4.] * u.m
+        q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
+        out = np.nan_to_num(q, nan=1.0 * u.km, posinf=2.0 * u.km, neginf=-2 * u.km)
+        expected = [-2000.0, 2000.0, 1000.0, 3.0, 4.0] * u.m
         assert np.all(out == expected)
 
 
 class TestUfuncLikeTests(metaclass=CoverageMeta):
-    def setup(self):
-        self.q = np.array([-np.inf, +np.inf, np.nan, 3., 4.]) * u.m
+    def setup_method(self):
+        self.q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
 
     def check(self, func):
         out = func(self.q)
         expected = func(self.q.value)
         assert type(out) is np.ndarray
-        assert out.dtype.kind == 'b'
+        assert out.dtype.kind == "b"
         assert np.all(out == expected)
 
     def test_isposinf(self):
@@ -775,28 +791,28 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
 
     def test_isreal(self):
         self.check(np.isreal)
-        assert not np.isreal([1. + 1j]*u.m)
+        assert not np.isreal([1.0 + 1j] * u.m)
 
     def test_iscomplex(self):
         self.check(np.iscomplex)
-        assert np.iscomplex([1. + 1j]*u.m)
+        assert np.iscomplex([1.0 + 1j] * u.m)
 
     def test_isclose(self):
-        q1 = np.arange(3.) * u.m
-        q2 = np.array([0., 102., 199.]) * u.cm
+        q1 = np.arange(3.0) * u.m
+        q2 = np.array([0.0, 102.0, 199.0]) * u.cm
         atol = 1.5 * u.cm
-        rtol = 1. * u.percent
+        rtol = 1.0 * u.percent
         out = np.isclose(q1, q2, atol=atol)
-        expected = np.isclose(q1.value, q2.to_value(q1.unit),
-                              atol=atol.to_value(q1.unit))
+        expected = np.isclose(
+            q1.value, q2.to_value(q1.unit), atol=atol.to_value(q1.unit)
+        )
         assert type(out) is np.ndarray
-        assert out.dtype.kind == 'b'
+        assert out.dtype.kind == "b"
         assert np.all(out == expected)
         out = np.isclose(q1, q2, atol=0, rtol=rtol)
-        expected = np.isclose(q1.value, q2.to_value(q1.unit),
-                              atol=0, rtol=0.01)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit), atol=0, rtol=0.01)
         assert type(out) is np.ndarray
-        assert out.dtype.kind == 'b'
+        assert out.dtype.kind == "b"
         assert np.all(out == expected)
 
     @needs_array_function
@@ -805,21 +821,19 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         out = np.isclose(self.q, q_cm)
         expected = np.isclose(self.q.value, q_cm.to_value(u.m))
         assert np.all(out == expected)
-        q1 = np.arange(3.) * u.m
-        q2 = np.array([0., 101., 198.]) * u.cm
+        q1 = np.arange(3.0) * u.m
+        q2 = np.array([0.0, 101.0, 198.0]) * u.cm
         out = np.isclose(q1, q2, atol=0.011, rtol=0)
-        expected = np.isclose(q1.value, q2.to_value(q1.unit),
-                              atol=0.011, rtol=0)
+        expected = np.isclose(q1.value, q2.to_value(q1.unit), atol=0.011, rtol=0)
         assert np.all(out == expected)
         out2 = np.isclose(q2, q1, atol=0.011, rtol=0)
-        expected2 = np.isclose(q2.value, q1.to_value(q2.unit),
-                               atol=0.011, rtol=0)
+        expected2 = np.isclose(q2.value, q1.to_value(q2.unit), atol=0.011, rtol=0)
         assert np.all(out2 == expected2)
 
 
 class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_average(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
         q2 = np.eye(3) / u.s
         o = np.average(q1, weights=q2)
         expected = np.average(q1.value, weights=q2.value) * u.m
@@ -833,7 +847,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
 
     def test_var(self):
         o = np.var(self.q)
-        expected = np.var(self.q.value) * self.q.unit ** 2
+        expected = np.var(self.q.value) * self.q.unit**2
         assert np.all(o == expected)
 
     def test_median(self):
@@ -870,7 +884,7 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
 
     @needs_array_function
     def test_count_nonzero(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
         assert type(o) is not u.Quantity
         assert o == 8
@@ -880,39 +894,47 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.all(o == np.array([2, 3, 3]))
 
     def test_allclose(self):
-        q1 = np.arange(3.) * u.m
-        q2 = np.array([0., 101., 199.]) * u.cm
+        q1 = np.arange(3.0) * u.m
+        q2 = np.array([0.0, 101.0, 199.0]) * u.cm
         atol = 2 * u.cm
-        rtol = 1. * u.percent
+        rtol = 1.0 * u.percent
         assert np.allclose(q1, q2, atol=atol)
-        assert np.allclose(q1, q2, atol=0., rtol=rtol)
+        assert np.allclose(q1, q2, atol=0.0, rtol=rtol)
 
     @needs_array_function
     def test_allclose_atol_default_unit(self):
-        q1 = np.arange(3.) * u.m
-        q2 = np.array([0., 101., 199.]) * u.cm
+        q1 = np.arange(3.0) * u.m
+        q2 = np.array([0.0, 101.0, 199.0]) * u.cm
         assert np.allclose(q1, q2, atol=0.011, rtol=0)
         assert not np.allclose(q2, q1, atol=0.011, rtol=0)
 
     def test_allclose_failures(self):
-        q1 = np.arange(3.) * u.m
-        q2 = np.array([0., 101., 199.]) * u.cm
+        q1 = np.arange(3.0) * u.m
+        q2 = np.array([0.0, 101.0, 199.0]) * u.cm
         with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=2*u.s, rtol=0)
+            np.allclose(q1, q2, atol=2 * u.s, rtol=0)
         with pytest.raises(u.UnitsError):
-            np.allclose(q1, q2, atol=0, rtol=1.*u.s)
+            np.allclose(q1, q2, atol=0, rtol=1.0 * u.s)
 
     @needs_array_function
     def test_array_equal(self):
-        q1 = np.arange(3.) * u.m
+        q1 = np.arange(3.0) * u.m
         q2 = q1.to(u.cm)
         assert np.array_equal(q1, q2)
         q3 = q1.value * u.cm
         assert not np.array_equal(q1, q3)
 
+    @pytest.mark.parametrize("equal_nan", [False, True])
+    def test_array_equal_nan(self, equal_nan):
+        q1 = np.linspace(0, 1, num=11) * u.m
+        q1[0] = np.nan
+        q2 = q1.to(u.cm)
+        result = np.array_equal(q1, q2, equal_nan=equal_nan)
+        assert result == equal_nan
+
     @needs_array_function
     def test_array_equiv(self):
-        q1 = np.array([[0., 1., 2.]]*3) * u.m
+        q1 = np.array([[0.0, 1.0, 2.0]] * 3) * u.m
         q2 = q1[0].to(u.cm)
         assert np.array_equiv(q1, q2)
         q3 = q1[0].value * u.cm
@@ -920,8 +942,8 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
 
 
 class TestNanFunctions(InvariantUnitTestSetup):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self.q[1, 1] = np.nan
 
     def test_nanmax(self):
@@ -957,7 +979,7 @@ class TestNanFunctions(InvariantUnitTestSetup):
 
     def test_nanvar(self):
         out = np.nanvar(self.q)
-        expected = np.nanvar(self.q.value) * self.q.unit ** 2
+        expected = np.nanvar(self.q.value) * self.q.unit**2
         assert np.all(out == expected)
 
     def test_nanprod(self):
@@ -987,10 +1009,11 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
     """
     Test functions that are similar to gufuncs
     """
+
     @needs_array_function
     def test_cross(self):
-        q1 = np.arange(6.).reshape(2, 3) * u.m
-        q2 = np.array([4., 5., 6.]) / u.s
+        q1 = np.arange(6.0).reshape(2, 3) * u.m
+        q2 = np.array([4.0, 5.0, 6.0]) / u.s
         o = np.cross(q1, q2)
         expected = np.cross(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
@@ -1019,26 +1042,25 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_dot(self):
-        q1 = np.array([1., 2., 3.]) * u.m
-        q2 = np.array([4., 5., 6.]) / u.s
+        q1 = np.array([1.0, 2.0, 3.0]) * u.m
+        q2 = np.array([4.0, 5.0, 6.0]) / u.s
         o = np.dot(q1, q2)
-        assert o == 32. * u.m / u.s
+        assert o == 32.0 * u.m / u.s
 
     @needs_array_function
     def test_vdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vdot(q1, q2)
-        assert o == (32. + 0j) * u.m / u.s
+        assert o == (32.0 + 0j) * u.m / u.s
 
     @needs_array_function
     def test_tensordot(self):
         # From the docstring example
-        a = np.arange(60.).reshape(3, 4, 5) * u.m
-        b = np.arange(24.).reshape(4, 3, 2) / u.s
+        a = np.arange(60.0).reshape(3, 4, 5) * u.m
+        b = np.arange(24.0).reshape(4, 3, 2) / u.s
         c = np.tensordot(a, b, axes=([1, 0], [0, 1]))
-        expected = np.tensordot(a.value, b.value,
-                                axes=([1, 0], [0, 1])) * u.m / u.s
+        expected = np.tensordot(a.value, b.value, axes=([1, 0], [0, 1])) * u.m / u.s
         assert np.all(c == expected)
 
     @needs_array_function
@@ -1051,65 +1073,64 @@ class TestVariousProductFunctions(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_einsum(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.einsum('...i', q1)
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        o = np.einsum("...i", q1)
         assert np.all(o == q1)
-        o = np.einsum('ii', q1)
-        expected = np.einsum('ii', q1.value) * u.m
+        o = np.einsum("ii", q1)
+        expected = np.einsum("ii", q1.value) * u.m
         assert np.all(o == expected)
         q2 = np.eye(3) / u.s
-        o2 = np.einsum('ij,jk', q1, q2)
+        o2 = np.einsum("ij,jk", q1, q2)
         assert np.all(o2 == q1 / u.s)
         o3 = 0 * o2
-        result = np.einsum('ij,jk', q1, q2, out=o3)
+        result = np.einsum("ij,jk", q1, q2, out=o3)
         assert result is o3
         assert np.all(o3 == o2)
 
     def test_einsum_path(self):
-        q1 = np.arange(9.).reshape(3, 3) * u.m
-        o = np.einsum_path('...i', q1)
-        assert o[0] == ['einsum_path', (0,)]
-        o = np.einsum_path('ii', q1)
-        assert o[0] == ['einsum_path', (0,)]
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        o = np.einsum_path("...i", q1)
+        assert o[0] == ["einsum_path", (0,)]
+        o = np.einsum_path("ii", q1)
+        assert o[0] == ["einsum_path", (0,)]
         q2 = np.eye(3) / u.s
-        o = np.einsum_path('ij,jk', q1, q2)
-        assert o[0] == ['einsum_path', (0, 1)]
+        o = np.einsum_path("ij,jk", q1, q2)
+        assert o[0] == ["einsum_path", (0, 1)]
 
 
 class TestIntDiffFunctions(metaclass=CoverageMeta):
     def test_trapz(self):
-        y = np.arange(9.) * u.m / u.s
+        y = np.arange(9.0) * u.m / u.s
         out = np.trapz(y)
         expected = np.trapz(y.value) * y.unit
         assert np.all(out == expected)
 
-        dx = 10. * u.s
+        dx = 10.0 * u.s
         out = np.trapz(y, dx=dx)
         expected = np.trapz(y.value, dx=dx.value) * y.unit * dx.unit
         assert np.all(out == expected)
 
-        x = np.arange(9.) * u.s
+        x = np.arange(9.0) * u.s
         out = np.trapz(y, x)
         expected = np.trapz(y.value, x.value) * y.unit * x.unit
         assert np.all(out == expected)
 
     def test_diff(self):
         # Simple diff works out of the box.
-        x = np.arange(10.) * u.m
+        x = np.arange(10.0) * u.m
         out = np.diff(x)
         expected = np.diff(x.value) * u.m
         assert np.all(out == expected)
 
     @needs_array_function
     def test_diff_prepend_append(self):
-        x = np.arange(10.) * u.m
-        out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km)
-        expected = np.diff(x.value, prepend=-0.125, append=1000.) * x.unit
+        x = np.arange(10.0) * u.m
+        out = np.diff(x, prepend=-12.5 * u.cm, append=1 * u.km)
+        expected = np.diff(x.value, prepend=-0.125, append=1000.0) * x.unit
         assert np.all(out == expected)
-        x = np.arange(10.) * u.m
-        out = np.diff(x, prepend=-12.5*u.cm, append=1*u.km, n=2)
-        expected = np.diff(x.value, prepend=-0.125, append=1000.,
-                           n=2) * x.unit
+        x = np.arange(10.0) * u.m
+        out = np.diff(x, prepend=-12.5 * u.cm, append=1 * u.km, n=2)
+        expected = np.diff(x.value, prepend=-0.125, append=1000.0, n=2) * x.unit
         assert np.all(out == expected)
 
         with pytest.raises(TypeError):
@@ -1117,7 +1138,7 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
 
     def test_gradient(self):
         # Simple gradient works out of the box.
-        x = np.arange(10.) * u.m
+        x = np.arange(10.0) * u.m
         out = np.gradient(x)
         expected = np.gradient(x.value) * u.m
         assert np.all(out == expected)
@@ -1125,15 +1146,14 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
     @needs_array_function
     def test_gradient_spacing(self):
         # Simple gradient works out of the box.
-        x = np.arange(10.) * u.m
-        spacing = 10. * u.s
+        x = np.arange(10.0) * u.m
+        spacing = 10.0 * u.s
         out = np.gradient(x, spacing)
-        expected = np.gradient(x.value, spacing.value) * (x.unit /
-                                                          spacing.unit)
+        expected = np.gradient(x.value, spacing.value) * (x.unit / spacing.unit)
         assert np.all(out == expected)
         f = np.array([[1, 2, 6], [3, 4, 5]]) * u.m
-        dx = 2. * u.s
-        y = [1., 1.5, 3.5] * u.GHz
+        dx = 2.0 * u.s
+        y = [1.0, 1.5, 3.5] * u.GHz
         dfdx, dfdy = np.gradient(f, dx, y)
         exp_dfdx, exp_dfdy = np.gradient(f.value, dx.value, y.value)
         exp_dfdx = exp_dfdx * f.unit / dx.unit
@@ -1150,12 +1170,12 @@ class TestIntDiffFunctions(metaclass=CoverageMeta):
 class TestSpaceFunctions(metaclass=CoverageMeta):
     def test_linspace(self):
         # Note: linspace gets unit of end point, not superlogical.
-        out = np.linspace(1000.*u.m, 10.*u.km, 5)
+        out = np.linspace(1000.0 * u.m, 10.0 * u.km, 5)
         expected = np.linspace(1, 10, 5) * u.km
         assert np.all(out == expected)
 
-        q1 = np.arange(6.).reshape(2, 3) * u.m
-        q2 = 10000. * u.cm
+        q1 = np.arange(6.0).reshape(2, 3) * u.m
+        q2 = 10000.0 * u.cm
         out = np.linspace(q1, q2, 5)
         expected = np.linspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
@@ -1163,21 +1183,21 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
     @needs_array_function
     def test_logspace(self):
         unit = u.m / u.s**2
-        out = np.logspace(10.*u.dex(unit), 20*u.dex(unit), 10)
-        expected = np.logspace(10., 20., 10) * unit
+        out = np.logspace(10.0 * u.dex(unit), 20 * u.dex(unit), 10)
+        expected = np.logspace(10.0, 20.0, 10) * unit
         assert np.all(out == expected)
-        out = np.logspace(10.*u.STmag, 20*u.STmag, 10)
-        expected = np.logspace(10., 20., 10, base=10.**(-0.4)) * u.ST
+        out = np.logspace(10.0 * u.STmag, 20 * u.STmag, 10)
+        expected = np.logspace(10.0, 20.0, 10, base=10.0 ** (-0.4)) * u.ST
         assert u.allclose(out, expected)
 
     @needs_array_function
     def test_geomspace(self):
-        out = np.geomspace(1000.*u.m, 10.*u.km, 5)
+        out = np.geomspace(1000.0 * u.m, 10.0 * u.km, 5)
         expected = np.geomspace(1, 10, 5) * u.km
         assert np.all(out == expected)
 
-        q1 = np.arange(1., 7.).reshape(2, 3) * u.m
-        q2 = 10000. * u.cm
+        q1 = np.arange(1.0, 7.0).reshape(2, 3) * u.m
+        q2 = 10000.0 * u.cm
         out = np.geomspace(q1, q2, 5)
         expected = np.geomspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
@@ -1186,9 +1206,9 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
 class TestInterpolationFunctions(metaclass=CoverageMeta):
     @needs_array_function
     def test_interp(self):
-        x = np.array([1250., 2750.]) * u.m
-        xp = np.arange(5.) * u.km
-        yp = np.arange(5.) * u.day
+        x = np.array([1250.0, 2750.0]) * u.m
+        xp = np.arange(5.0) * u.km
+        yp = np.arange(5.0) * u.day
         out = np.interp(x, xp, yp)
         expected = np.interp(x.to_value(xp.unit), xp.value, yp.value) * yp.unit
         assert np.all(out == expected)
@@ -1200,31 +1220,37 @@ class TestInterpolationFunctions(metaclass=CoverageMeta):
     @needs_array_function
     def test_piecewise(self):
         x = np.linspace(-2.5, 2.5, 6) * u.m
-        out = np.piecewise(x, [x < 0, x >= 0], [-1*u.s, 1*u.day])
-        expected = np.piecewise(x.value, [x.value < 0, x.value >= 0],
-                                [-1, 24*3600]) * u.s
+        out = np.piecewise(x, [x < 0, x >= 0], [-1 * u.s, 1 * u.day])
+        expected = (
+            np.piecewise(x.value, [x.value < 0, x.value >= 0], [-1, 24 * 3600]) * u.s
+        )
         assert out.unit == expected.unit
         assert np.all(out == expected)
 
-        out2 = np.piecewise(x, [x < 1 * u.m, x >= 0],
-                            [-1*u.s, 1*u.day, lambda x: 1*u.hour])
-        expected2 = np.piecewise(x.value, [x.value < 1, x.value >= 0],
-                                 [-1, 24*3600, 3600]) * u.s
+        out2 = np.piecewise(
+            x, [x < 1 * u.m, x >= 0], [-1 * u.s, 1 * u.day, lambda x: 1 * u.hour]
+        )
+        expected2 = (
+            np.piecewise(x.value, [x.value < 1, x.value >= 0], [-1, 24 * 3600, 3600])
+            * u.s
+        )
         assert out2.unit == expected2.unit
         assert np.all(out2 == expected2)
 
-        out3 = np.piecewise(x, [x < 1 * u.m, x >= 0],
-                            [0, 1*u.percent, lambda x: 1*u.one])
-        expected3 = np.piecewise(x.value, [x.value < 1, x.value >= 0],
-                                 [0, 0.01, 1]) * u.one
+        out3 = np.piecewise(
+            x, [x < 1 * u.m, x >= 0], [0, 1 * u.percent, lambda x: 1 * u.one]
+        )
+        expected3 = (
+            np.piecewise(x.value, [x.value < 1, x.value >= 0], [0, 0.01, 1]) * u.one
+        )
         assert out3.unit == expected3.unit
         assert np.all(out3 == expected3)
 
         with pytest.raises(TypeError):  # no Quantity in condlist.
-            np.piecewise(x, [x], [0.])
+            np.piecewise(x, [x], [0.0])
 
         with pytest.raises(TypeError):  # no Quantity in condlist.
-            np.piecewise(x.value, [x], [0.])
+            np.piecewise(x.value, [x], [0.0])
 
 
 class TestBincountDigitize(metaclass=CoverageMeta):
@@ -1241,22 +1267,28 @@ class TestBincountDigitize(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_digitize(self):
-        x = np.array([1500., 2500., 4500.]) * u.m
-        bins = np.arange(10.) * u.km
+        x = np.array([1500.0, 2500.0, 4500.0]) * u.m
+        bins = np.arange(10.0) * u.km
         out = np.digitize(x, bins)
         expected = np.digitize(x.to_value(bins.unit), bins.value)
         assert_array_equal(out, expected)
 
 
 class TestHistogramFunctions(metaclass=CoverageMeta):
-
-    def setup(self):
+    def setup_method(self):
         self.x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         self.y = np.array([1.2, 2.2, 2.4, 3.0, 4.0]) * u.cm
         self.weights = np.arange(len(self.x)) / u.s
 
-    def check(self, function, *args, value_args=None, value_kwargs=None,
-              expected_units=None, **kwargs):
+    def check(
+        self,
+        function,
+        *args,
+        value_args=None,
+        value_kwargs=None,
+        expected_units=None,
+        **kwargs
+    ):
         """Check quanties are treated correctly in the histogram function.
         Test is done by applying ``function(*args, **kwargs)``, where
         the argument can be quantities, and comparing the result to
@@ -1291,9 +1323,9 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         else:
             bin_slice = slice(1, None)
 
-        for o_bin, e_bin, e_unit in zip(out[bin_slice],
-                                        expected[bin_slice],
-                                        expected_units[bin_slice]):
+        for o_bin, e_bin, e_unit in zip(
+            out[bin_slice], expected[bin_slice], expected_units[bin_slice]
+        ):
             if e_unit is not None:
                 e_bin = e_bin * e_unit
             assert_array_equal(o_bin, e_bin)
@@ -1303,28 +1335,47 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         x = self.x
         weights = self.weights
         # Plain histogram.
-        self.check(np.histogram, x,
-                   value_args=(x.value,),
-                   expected_units=(None, x.unit))
+        self.check(
+            np.histogram, x, value_args=(x.value,), expected_units=(None, x.unit)
+        )
         # With bins.
-        self.check(np.histogram, x, [125, 200] * u.cm,
-                   value_args=(x.value, [1.25, 2.]),
-                   expected_units=(None, x.unit))
+        self.check(
+            np.histogram,
+            x,
+            [125, 200] * u.cm,
+            value_args=(x.value, [1.25, 2.0]),
+            expected_units=(None, x.unit),
+        )
         # With density.
-        self.check(np.histogram, x, [125, 200] * u.cm, density=True,
-                   value_args=(x.value, [1.25, 2.]),
-                   expected_units=(1/x.unit, x.unit))
+        self.check(
+            np.histogram,
+            x,
+            [125, 200] * u.cm,
+            density=True,
+            value_args=(x.value, [1.25, 2.0]),
+            expected_units=(1 / x.unit, x.unit),
+        )
         # With weights.
-        self.check(np.histogram, x, [125, 200] * u.cm, weights=weights,
-                   value_args=(x.value, [1.25, 2.]),
-                   value_kwargs=dict(weights=weights.value),
-                   expected_units=(weights.unit, x.unit))
+        self.check(
+            np.histogram,
+            x,
+            [125, 200] * u.cm,
+            weights=weights,
+            value_args=(x.value, [1.25, 2.0]),
+            value_kwargs=dict(weights=weights.value),
+            expected_units=(weights.unit, x.unit),
+        )
         # With weights and density.
-        self.check(np.histogram, x, [125, 200] * u.cm,
-                   weights=weights, density=True,
-                   value_args=(x.value, [1.25, 2.]),
-                   value_kwargs=dict(weights=weights.value),
-                   expected_units=(weights.unit/x.unit, x.unit))
+        self.check(
+            np.histogram,
+            x,
+            [125, 200] * u.cm,
+            weights=weights,
+            density=True,
+            value_args=(x.value, [1.25, 2.0]),
+            value_kwargs=dict(weights=weights.value),
+            expected_units=(weights.unit / x.unit, x.unit),
+        )
 
         with pytest.raises(u.UnitsError):
             np.histogram(x, [125, 200] * u.s)
@@ -1343,7 +1394,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         assert np.all(out_b == expected_b)
         # With bins
         out2_b = np.histogram_bin_edges(x, [125, 200] * u.cm)
-        expected2_b = np.histogram_bin_edges(x.value, [1.25, 2.]) * x.unit
+        expected2_b = np.histogram_bin_edges(x.value, [1.25, 2.0]) * x.unit
         assert np.all(out2_b == expected2_b)
         with pytest.raises(u.UnitsError):
             np.histogram_bin_edges(x, [125, 200] * u.s)
@@ -1359,30 +1410,53 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         x, y = self.x, self.y
         weights = self.weights
         # Basic tests with X, Y.
-        self.check(np.histogram2d, x, y,
-                   value_args=(x.value, y.value),
-                   expected_units=(None, x.unit, y.unit))
+        self.check(
+            np.histogram2d,
+            x,
+            y,
+            value_args=(x.value, y.value),
+            expected_units=(None, x.unit, y.unit),
+        )
         # Check units with density.
-        self.check(np.histogram2d, x, y, density=True,
-                   value_args=(x.value, y.value),
-                   expected_units=(1/(x.unit*y.unit), x.unit, y.unit))
+        self.check(
+            np.histogram2d,
+            x,
+            y,
+            density=True,
+            value_args=(x.value, y.value),
+            expected_units=(1 / (x.unit * y.unit), x.unit, y.unit),
+        )
         # Check units with weights.
-        self.check(np.histogram2d, x, y, weights=weights,
-                   value_args=(x.value, y.value),
-                   value_kwargs=dict(weights=weights.value),
-                   expected_units=(weights.unit, x.unit, y.unit))
+        self.check(
+            np.histogram2d,
+            x,
+            y,
+            weights=weights,
+            value_args=(x.value, y.value),
+            value_kwargs=dict(weights=weights.value),
+            expected_units=(weights.unit, x.unit, y.unit),
+        )
         # Check quantity bin sizes.
-        inb_y = [0, 0.025, 1.] * u.m
-        self.check(np.histogram2d, x, y, [5, inb_y],
-                   value_args=(x.value, y.value,
-                               [5, np.array([0, 2.5, 100.])]),
-                   expected_units=(None, x.unit, y.unit))
+        inb_y = [0, 0.025, 1.0] * u.m
+        self.check(
+            np.histogram2d,
+            x,
+            y,
+            [5, inb_y],
+            value_args=(x.value, y.value, [5, np.array([0, 2.5, 100.0])]),
+            expected_units=(None, x.unit, y.unit),
+        )
         # Check we dispatch on bin sizes (and check kwarg as well).
-        inb2_y = [0, 250, 10000.] * u.percent
-        self.check(np.histogram2d, x.value, y.value, bins=[5, inb2_y],
-                   value_args=(x.value, y.value),
-                   value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.])]),
-                   expected_units=(None, u.one, u.one))
+        inb2_y = [0, 250, 10000.0] * u.percent
+        self.check(
+            np.histogram2d,
+            x.value,
+            y.value,
+            bins=[5, inb2_y],
+            value_args=(x.value, y.value),
+            value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.0])]),
+            expected_units=(None, u.one, u.one),
+        )
 
         # Single-item bins should be integer, not Quantity.
         with pytest.raises(TypeError):
@@ -1412,42 +1486,66 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         sample_values = (self.x.value, self.y.value)
         weights = self.weights
         # Basic tests with X, Y
-        self.check(np.histogramdd, sample,
-                   value_args=(sample_values,),
-                   expected_units=(None, sample_units))
+        self.check(
+            np.histogramdd,
+            sample,
+            value_args=(sample_values,),
+            expected_units=(None, sample_units),
+        )
         # Check units with density.
-        self.check(np.histogramdd, sample, density=True,
-                   value_args=(sample_values,),
-                   expected_units=(1/(self.x.unit*self.y.unit),
-                                   sample_units))
+        self.check(
+            np.histogramdd,
+            sample,
+            density=True,
+            value_args=(sample_values,),
+            expected_units=(1 / (self.x.unit * self.y.unit), sample_units),
+        )
         # Check units with weights.
-        self.check(np.histogramdd, sample, weights=weights,
-                   value_args=(sample_values,),
-                   value_kwargs=dict(weights=weights.value),
-                   expected_units=(weights.unit, sample_units))
+        self.check(
+            np.histogramdd,
+            sample,
+            weights=weights,
+            value_args=(sample_values,),
+            value_kwargs=dict(weights=weights.value),
+            expected_units=(weights.unit, sample_units),
+        )
         # Check quantity bin sizes.
-        inb_y = [0, 0.025, 1.] * u.m
-        self.check(np.histogramdd, sample, [5, inb_y],
-                   value_args=(sample_values, [5, np.array([0, 2.5, 100.])]),
-                   expected_units=(None, sample_units))
+        inb_y = [0, 0.025, 1.0] * u.m
+        self.check(
+            np.histogramdd,
+            sample,
+            [5, inb_y],
+            value_args=(sample_values, [5, np.array([0, 2.5, 100.0])]),
+            expected_units=(None, sample_units),
+        )
         # Check we dispatch on bin sizes (and check kwarg as well).
-        inb2_y = [0, 250, 10000.] * u.percent
-        self.check(np.histogramdd, sample_values, bins=[5, inb2_y],
-                   value_args=(sample_values,),
-                   value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.])]),
-                   expected_units=(None, (u.one, u.one)))
+        inb2_y = [0, 250, 10000.0] * u.percent
+        self.check(
+            np.histogramdd,
+            sample_values,
+            bins=[5, inb2_y],
+            value_args=(sample_values,),
+            value_kwargs=dict(bins=[5, np.array([0, 2.5, 100.0])]),
+            expected_units=(None, (u.one, u.one)),
+        )
         # For quantities, it is probably not that likely one would pass
         # in the sample as an array, but check that it works anyway.
         # This also gives a 3-D check.
         xyz = np.random.normal(size=(10, 3)) * u.m
-        self.check(np.histogramdd, xyz,
-                   value_args=(xyz.value,),
-                   expected_units=(None, (xyz.unit,)*3))
+        self.check(
+            np.histogramdd,
+            xyz,
+            value_args=(xyz.value,),
+            expected_units=(None, (xyz.unit,) * 3),
+        )
         # Passing it in as a tuple should work just as well; note the
         # *last* axis contains the sample dimension.
-        self.check(np.histogramdd, (xyz[:, 0], xyz[:, 1], xyz[:, 2]),
-                   value_args=(xyz.value,),
-                   expected_units=(None, (xyz.unit,)*3))
+        self.check(
+            np.histogramdd,
+            (xyz[:, 0], xyz[:, 1], xyz[:, 2]),
+            value_args=(xyz.value,),
+            expected_units=(None, (xyz.unit,) * 3),
+        )
 
         # Single-item bins should be integer, not Quantity.
         with pytest.raises(TypeError):
@@ -1472,7 +1570,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
         out = np.correlate(x1, x2)
-        expected = np.correlate(x1.value, x2.value) * u.m ** 2
+        expected = np.correlate(x1.value, x2.value) * u.m**2
         assert np.all(out == expected)
 
     @needs_array_function
@@ -1480,7 +1578,7 @@ class TestHistogramFunctions(metaclass=CoverageMeta):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
         out = np.convolve(x1, x2)
-        expected = np.convolve(x1.value, x2.value) * u.m ** 2
+        expected = np.convolve(x1.value, x2.value) * u.m**2
         assert np.all(out == expected)
 
     @needs_array_function
@@ -1502,12 +1600,16 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort(self):
         self.check(np.sort)
 
+    def test_sort_axis(self):
+        self.check(np.sort, axis=0)
+
+    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
+    def test_msort(self):
+        self.check(np.msort)
+
     @needs_array_function
     def test_sort_complex(self):
         self.check(np.sort_complex)
-
-    def test_msort(self):
-        self.check(np.msort)
 
     def test_partition(self):
         self.check(np.partition, 2)
@@ -1516,8 +1618,8 @@ class TestSortFunctions(InvariantUnitTestSetup):
 class TestStringFunctions(metaclass=CoverageMeta):
     # For these, making behaviour work means deviating only slightly from
     # the docstring, and by default they fail miserably.  So, might as well.
-    def setup(self):
-        self.q = np.arange(3.) * u.Jy
+    def setup_method(self):
+        self.q = np.arange(3.0) * u.Jy
 
     @needs_array_function
     def test_array2string(self):
@@ -1528,26 +1630,27 @@ class TestStringFunctions(metaclass=CoverageMeta):
         expected0 = str(self.q.value)
         assert out0 == expected0
         # Arguments are interpreted as usual.
-        out1 = np.array2string(self.q, separator=', ')
-        expected1 = '[0., 1., 2.]'
+        out1 = np.array2string(self.q, separator=", ")
+        expected1 = "[0., 1., 2.]"
         assert out1 == expected1
         # If we do pass in a formatter, though, it should be used.
-        out2 = np.array2string(self.q, separator=', ', formatter={'all': str})
-        expected2 = '[0.0 Jy, 1.0 Jy, 2.0 Jy]'
+        out2 = np.array2string(self.q, separator=", ", formatter={"all": str})
+        expected2 = "[0.0 Jy, 1.0 Jy, 2.0 Jy]"
         assert out2 == expected2
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(self.q, None, None, None, ', ', '',
-                               np._NoValue, {'float': str})
+        out3 = np.array2string(
+            self.q, None, None, None, ", ", "", np._NoValue, {"float": str}
+        )
         assert out3 == expected2
         # But not if the formatter is not relevant for us.
-        out4 = np.array2string(self.q, separator=', ', formatter={'int': str})
+        out4 = np.array2string(self.q, separator=", ", formatter={"int": str})
         assert out4 == expected1
 
     @needs_array_function
     def test_array_repr(self):
         out = np.array_repr(self.q)
         assert out == "Quantity([0., 1., 2.], unit='Jy')"
-        q2 = self.q.astype('f4')
+        q2 = self.q.astype("f4")
         out2 = np.array_repr(q2)
         assert out2 == "Quantity([0., 1., 2.], unit='Jy', dtype=float32)"
 
@@ -1561,9 +1664,9 @@ class TestStringFunctions(metaclass=CoverageMeta):
 class TestBitAndIndexFunctions(metaclass=CoverageMeta):
     # Index/bit functions generally fail for floats, so the usual
     # float quantity are safe, but the integer ones are not.
-    def setup(self):
+    def setup_method(self):
         self.q = np.arange(3) * u.m
-        self.uint_q = u.Quantity(np.arange(3), 'm', dtype='u1')
+        self.uint_q = u.Quantity(np.arange(3), "m", dtype="u1")
 
     @needs_array_function
     def test_packbits(self):
@@ -1610,7 +1713,7 @@ class TestDtypeFunctions(NoUnitTestSetup):
 
     def test_can_cast(self):
         self.check(np.can_cast, self.q.dtype)
-        self.check(np.can_cast, 'f4')
+        self.check(np.can_cast, "f4")
 
     def test_min_scalar_type(self):
         out = np.min_scalar_type(self.q[0])
@@ -1626,8 +1729,8 @@ class TestDtypeFunctions(NoUnitTestSetup):
 
 class TestMeshGrid(metaclass=CoverageMeta):
     def test_meshgrid(self):
-        q1 = np.arange(3.) * u.m
-        q2 = np.arange(5.) * u.s
+        q1 = np.arange(3.0) * u.m
+        q2 = np.arange(5.0) * u.s
         o1, o2 = np.meshgrid(q1, q2)
         e1, e2 = np.meshgrid(q1.value, q2.value)
         assert np.all(o1 == e1 * q1.unit)
@@ -1643,14 +1746,12 @@ class TestMemoryFunctions(NoUnitTestSetup):
 
 
 class TestSetOpsFcuntions(metaclass=CoverageMeta):
-    def setup(self):
-        self.q = np.array([[0., 1., -1.],
-                           [3., 5., 3.],
-                           [0., 1., -1]]) * u.m
-        self.q2 = np.array([0., 100., 150., 200.]) * u.cm
+    def setup_method(self):
+        self.q = np.array([[0.0, 1.0, -1.0], [3.0, 5.0, 3.0], [0.0, 1.0, -1]]) * u.m
+        self.q2 = np.array([0.0, 100.0, 150.0, 200.0]) * u.cm
 
     def check(self, function, qs, *args, **kwargs):
-        unit = kwargs.pop('unit', self.q.unit)
+        unit = kwargs.pop("unit", self.q.unit)
         out = function(*qs, *args, **kwargs)
         qv = tuple(q.to_value(self.q.unit) for q in qs)
         expected = function(*qv, *args, **kwargs)
@@ -1670,25 +1771,31 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     def check2(self, function, *args, **kwargs):
         self.check(function, (self.q, self.q2), *args, **kwargs)
 
-    @pytest.mark.parametrize('kwargs', (
-        dict(return_index=True, return_inverse=True),
-        dict(return_counts=True),
-        dict(return_index=True, return_inverse=True, return_counts=True)))
+    @pytest.mark.parametrize(
+        "kwargs",
+        (
+            dict(return_index=True, return_inverse=True),
+            dict(return_counts=True),
+            dict(return_index=True, return_inverse=True, return_counts=True),
+        ),
+    )
     def test_unique(self, kwargs):
         self.check1(np.unique, **kwargs)
 
     @needs_array_function
-    @pytest.mark.parametrize('kwargs', (
-        dict(axis=0),
-        dict(axis=1),
-        dict(return_counts=True, return_inverse=False, axis=1)))
+    @pytest.mark.parametrize(
+        "kwargs",
+        (
+            dict(axis=0),
+            dict(axis=1),
+            dict(return_counts=True, return_inverse=False, axis=1),
+        ),
+    )
     def test_unique_more_complex(self, kwargs):
         self.check1(np.unique, **kwargs)
 
     @needs_array_function
-    @pytest.mark.parametrize('kwargs', (
-        dict(),
-        dict(return_indices=True)))
+    @pytest.mark.parametrize("kwargs", (dict(), dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
@@ -1699,9 +1806,9 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     @needs_array_function
     def test_union1d(self):
         self.check2(np.union1d)
-        result = np.union1d(np.array([0., np.nan]), np.arange(3) << u.m)
+        result = np.union1d(np.array([0.0, np.nan]), np.arange(3) << u.m)
         assert result.unit is u.m
-        assert_array_equal(result.value, np.array([0., 1., 2., np.nan]))
+        assert_array_equal(result.value, np.array([0.0, 1.0, 2.0, np.nan]))
 
     @needs_array_function
     def test_setdiff1d(self):
@@ -1722,9 +1829,9 @@ class TestSetOpsFcuntions(metaclass=CoverageMeta):
     def test_ediff1d(self):
         # ediff1d works always as it calls the Quantity method.
         self.check1(np.ediff1d)
-        x = np.arange(10.) * u.m
-        out = np.ediff1d(x, to_begin=-12.5*u.cm, to_end=1*u.km)
-        expected = np.ediff1d(x.value, to_begin=-0.125, to_end=1000.) * x.unit
+        x = np.arange(10.0) * u.m
+        out = np.ediff1d(x, to_begin=-12.5 * u.cm, to_end=1 * u.km)
+        expected = np.ediff1d(x.value, to_begin=-0.125, to_end=1000.0) * x.unit
         assert_array_equal(out, expected)
 
 
@@ -1748,9 +1855,9 @@ class TestDatetimeFunctions(BasicTestSetup):
 
 # These functions always worked; ensure they do not regress.
 # Note that they are *not* wrapped so no need to check coverage.
-@pytest.mark.parametrize('function', [np.fft.fftfreq, np.fft.rfftfreq])
+@pytest.mark.parametrize("function", [np.fft.fftfreq, np.fft.rfftfreq])
 def test_fft_frequencies(function):
-    out = function(128, d=0.1*u.s)
+    out = function(128, d=0.1 * u.s)
     expected = function(128, d=0.1) / u.s
     assert_array_equal(out, expected)
 
@@ -1758,9 +1865,9 @@ def test_fft_frequencies(function):
 @needs_array_function
 class TestFFT(InvariantUnitTestSetup):
     # These are all trivial, just preserve the unit.
-    def setup(self):
+    def setup_method(self):
         # Use real input; gets turned into complex as needed.
-        self.q = np.arange(128.).reshape(8, -1) * u.s
+        self.q = np.arange(128.0).reshape(8, -1) * u.s
 
     def test_fft(self):
         self.check(np.fft.fft)
@@ -1812,11 +1919,14 @@ class TestFFT(InvariantUnitTestSetup):
 
 
 class TestLinAlg(metaclass=CoverageMeta):
-    def setup(self):
-        # Use a matrix safe for inversion, etc.
-        self.q = np.array([[1., -1., 2.],
-                           [0., 3., -1.],
-                           [-1., -1., 1.]]) << u.m
+    def setup_method(self):
+        self.q = (
+            np.array(
+                [[ 1.0, -1.0,  2.0],
+                 [ 0.0,  3.0, -1.0],
+                 [-1.0, -1.0,  1.0]]
+            ) << u.m
+        )  # fmt: skip
 
     def test_cond(self):
         c = np.linalg.cond(self.q)
@@ -1831,8 +1941,8 @@ class TestLinAlg(metaclass=CoverageMeta):
     @needs_array_function
     def test_matrix_rank_with_tol(self):
         # Use a matrix that is not so good, so tol=1 and tol=0.01 differ.
-        q = np.arange(9.).reshape(3, 3) / 4 * u.m
-        tol = 1. * u.cm
+        q = np.arange(9.0).reshape(3, 3) / 4 * u.m
+        tol = 1.0 * u.cm
         r2 = np.linalg.matrix_rank(q, tol)
         x2 = np.linalg.matrix_rank(q.value, tol.to_value(q.unit))
         assert r2 == x2
@@ -1864,7 +1974,7 @@ class TestLinAlg(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_svd(self):
-        m = np.arange(10.) * np.arange(5.)[:, np.newaxis] * u.m
+        m = np.arange(10.0) * np.arange(5.0)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
         svd_ux, svd_sx, svd_vtx = np.linalg.svd(m.value, full_matrices=False)
         svd_sx <<= m.unit
@@ -1890,8 +2000,9 @@ class TestLinAlg(metaclass=CoverageMeta):
         assert_array_equal(pinv, expected)
         rcond = 0.01 * u.cm
         pinv2 = np.linalg.pinv(self.q, rcond)
-        expected2 = np.linalg.pinv(self.q.value,
-                                   rcond.to_value(self.q.unit)) / self.q.unit
+        expected2 = (
+            np.linalg.pinv(self.q.value, rcond.to_value(self.q.unit)) / self.q.unit
+        )
         assert_array_equal(pinv2, expected2)
 
     @needs_array_function
@@ -1916,11 +2027,11 @@ class TestLinAlg(metaclass=CoverageMeta):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
             logdet = np.linalg.slogdet(self.q)
-            assert hasattr(logdet, 'unit')
+            assert hasattr(logdet, "unit")
 
     @needs_array_function
     def test_solve(self):
-        b = np.array([1., 2., 4.]) * u.m / u.s
+        b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
         xx = np.linalg.solve(self.q.value, b.value)
         xx <<= b.unit / self.q.unit
@@ -1929,7 +2040,7 @@ class TestLinAlg(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_tensorsolve(self):
-        b = np.array([1., 2., 4.]) * u.m / u.s
+        b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
         xx = np.linalg.tensorsolve(self.q.value, b.value)
         xx <<= b.unit / self.q.unit
@@ -1938,12 +2049,11 @@ class TestLinAlg(metaclass=CoverageMeta):
 
     @needs_array_function
     def test_lstsq(self):
-        b = np.array([1., 2., 4.]) * u.m / u.s
+        b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
-        xx, residualsx, rankx, sx = np.linalg.lstsq(self.q.value, b.value,
-                                                    rcond=None)
+        xx, residualsx, rankx, sx = np.linalg.lstsq(self.q.value, b.value, rcond=None)
         xx <<= b.unit / self.q.unit
-        residualsx <<= b.unit ** 2
+        residualsx <<= b.unit**2
         sx <<= self.q.unit
 
         assert_array_equal(x, xx)
@@ -1955,14 +2065,14 @@ class TestLinAlg(metaclass=CoverageMeta):
         # Also do one where we can check the answer...
         m = np.eye(3)
         b = np.arange(3) * u.m
-        x, residuals, rank, s = np.linalg.lstsq(m, b, rcond=1.*u.percent)
+        x, residuals, rank, s = np.linalg.lstsq(m, b, rcond=1.0 * u.percent)
         assert_array_equal(x, b)
         assert np.all(residuals == 0 * u.m**2)
         assert rank == 3
-        assert_array_equal(s, np.array([1., 1., 1.]) << u.one)
+        assert_array_equal(s, np.array([1.0, 1.0, 1.0]) << u.one)
 
         with pytest.raises(u.UnitsError):
-            np.linalg.lstsq(m, b, rcond=1.*u.s)
+            np.linalg.lstsq(m, b, rcond=1.0 * u.s)
 
     @needs_array_function
     def test_norm(self):
@@ -1979,7 +2089,7 @@ class TestLinAlg(metaclass=CoverageMeta):
         # Numbers from np.linalg.cholesky docstring.
         q = np.array([[1, -2j], [2j, 5]]) * u.m
         cd = np.linalg.cholesky(q)
-        cdx = np.linalg.cholesky(q.value) << q.unit ** 0.5
+        cdx = np.linalg.cholesky(q.value) << q.unit**0.5
         assert_array_equal(cd, cdx)
         assert u.allclose(cd @ cd.T.conj(), q)
 
@@ -2037,18 +2147,20 @@ class TestLinAlg(metaclass=CoverageMeta):
 
 
 class TestRecFunctions(metaclass=CoverageMeta):
-
     @classmethod
     def setup_class(self):
+        self.pv_dtype = np.dtype([("p", "f8"), ("v", "f8")])
+        self.pv_t_dtype = np.dtype(
+            [("pv", np.dtype([("pp", "f8"), ("vv", "f8")])), ("t", "f8")]
+        )
 
-        self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
-        self.pv_t_dtype = np.dtype([('pv', np.dtype([('pp', 'f8'), ('vv', 'f8')])), ('t', 'f8')])
+        self.pv = np.array([(1.0, 0.25), (2.0, 0.5), (3.0, 0.75)], self.pv_dtype)
+        self.pv_t = np.array(
+            [((4.0, 2.5), 0.0), ((5.0, 5.0), 1.0), ((6.0, 7.5), 2.0)], self.pv_t_dtype
+        )
 
-        self.pv = np.array([(1., 0.25), (2., 0.5), (3., 0.75)], self.pv_dtype)
-        self.pv_t = np.array([((4., 2.5), 0.), ((5., 5.0), 1.), ((6., 7.5), 2.)], self.pv_t_dtype)
-
-        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ('p', 'v'))
-        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ('pv', 't'))
+        self.pv_unit = u.StructuredUnit((u.km, u.km / u.s), ("p", "v"))
+        self.pv_t_unit = u.StructuredUnit((self.pv_unit, u.s), ("pv", "t"))
 
         self.q_pv = self.pv << self.pv_unit
         self.q_pv_t = self.pv_t << self.pv_t_unit
@@ -2074,7 +2186,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         u.allclose(unstruct, [0, 0, 1.0000214] * u.eV)
 
         # and if the dtype is nested
-        struct = [(5, (400.0, 3e6))] * u.Unit('m, (cm, um)')
+        struct = [(5, (400.0, 3e6))] * u.Unit("m, (cm, um)")
         unstruct = rfn.structured_to_unstructured(struct)
         assert_array_equal(unstruct, [[5, 4, 3]] * u.m)
 
@@ -2083,7 +2195,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
 
     def test_unstructured_to_structured(self):
         unstruct = [1, 2, 3] * u.m
-        dtype=np.dtype([("f1", float), ("f2", float), ("f3", float)])
+        dtype = np.dtype([("f1", float), ("f2", float), ("f3", float)])
 
         # It works.
         struct = rfn.unstructured_to_structured(unstruct, dtype=dtype)
@@ -2116,12 +2228,12 @@ class TestRecFunctions(metaclass=CoverageMeta):
         # Merge single structured array.
         arr = rfn.merge_arrays(self.q_pv, flatten=flatten)
         assert_array_equal(arr, self.q_pv)
-        assert arr.unit == (u.km, u.km/u.s)
+        assert arr.unit == (u.km, u.km / u.s)
 
         # Merge 1-element tuple.
         arr = rfn.merge_arrays((self.q_pv,), flatten=flatten)
         assert np.array_equal(arr, self.q_pv)
-        assert arr.unit == (u.km, u.km/u.s)
+        assert arr.unit == (u.km, u.km / u.s)
 
     @pytest.mark.xfail
     @pytest.mark.parametrize("flatten", [True, False])
@@ -2134,7 +2246,7 @@ class TestRecFunctions(metaclass=CoverageMeta):
         arr = rfn.merge_arrays((self.q_pv, self.q_pv_t))
         assert_array_equal(arr["f0"], self.q_pv)
         assert_array_equal(arr["f1"], self.q_pv_t)
-        assert arr.unit == ((u.km, u.km/u.s), ((u.km, u.km/u.s), u.s))
+        assert arr.unit == ((u.km, u.km / u.s), ((u.km, u.km / u.s), u.s))
 
     def test_merge_arrays_flatten_nested_structure(self):
         # Merge 2-element tuple, flattening it.
@@ -2144,32 +2256,30 @@ class TestRecFunctions(metaclass=CoverageMeta):
         assert_array_equal(arr["pp"], self.q_pv_t["pv"]["pp"])
         assert_array_equal(arr["vv"], self.q_pv_t["pv"]["vv"])
         assert_array_equal(arr["t"], self.q_pv_t["t"])
-        assert arr.unit == (u.km, u.km/u.s, u.km, u.km/u.s, u.s)
+        assert arr.unit == (u.km, u.km / u.s, u.km, u.km / u.s, u.s)
 
     def test_merge_arrays_asrecarray(self):
         with pytest.raises(ValueError, match="asrecarray=True is not supported."):
-            arr = rfn.merge_arrays(self.q_pv, asrecarray=True)
+            rfn.merge_arrays(self.q_pv, asrecarray=True)
 
     def test_merge_arrays_usemask(self):
         with pytest.raises(ValueError, match="usemask=True is not supported."):
-            arr = rfn.merge_arrays(self.q_pv, usemask=True)
+            rfn.merge_arrays(self.q_pv, usemask=True)
 
     @pytest.mark.parametrize("flatten", [True, False])
     def test_merge_arrays_str(self, flatten):
-        with pytest.raises(TypeError, match="the Quantity implementation cannot handle"):
-            arr = rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
+        with pytest.raises(
+            TypeError, match="the Quantity implementation cannot handle"
+        ):
+            rfn.merge_arrays((self.q_pv, np.array(["a", "b", "c"])), flatten=flatten)
 
 
 untested_functions = set()
-if NUMPY_LT_1_20:
-    financial_functions = {f for f in all_wrapped_functions.values()
-                           if f in np.lib.financial.__dict__.values()}
-    untested_functions |= financial_functions
-
 if NUMPY_LT_1_23:
     deprecated_functions = {
         # Deprecated, removed in numpy 1.23
-        np.asscalar, np.alen,
+        np.asscalar,
+        np.alen,
     }
 else:
     deprecated_functions = set()
@@ -2177,20 +2287,18 @@ else:
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
 untested_functions |= io_functions
-
 poly_functions = {
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
-    np.polymul, np.polysub, np.polyval, np.roots, np.vander
-    }
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+}  # fmt: skip
 untested_functions |= poly_functions
-
 rec_functions = {
     rfn.rec_append_fields, rfn.rec_drop_fields, rfn.rec_join,
     rfn.drop_fields, rfn.rename_fields, rfn.append_fields, rfn.join_by,
     rfn.repack_fields, rfn.apply_along_fields, rfn.assign_fields_by_name,
     rfn.stack_arrays, rfn.find_duplicates,
     rfn.recursive_fill_fields, rfn.require_fields,
-}
+}  # fmt: skip
 untested_functions |= rec_functions
 
 
@@ -2201,20 +2309,29 @@ def test_testing_completeness():
 
 
 class TestFunctionHelpersCompleteness:
-    @pytest.mark.parametrize('one, two', itertools.combinations(
-        (SUBCLASS_SAFE_FUNCTIONS,
-         UNSUPPORTED_FUNCTIONS,
-         set(FUNCTION_HELPERS.keys()),
-         set(DISPATCHED_FUNCTIONS.keys())), 2))
+    @pytest.mark.parametrize(
+        "one, two",
+        itertools.combinations(
+            (
+                SUBCLASS_SAFE_FUNCTIONS,
+                UNSUPPORTED_FUNCTIONS,
+                set(FUNCTION_HELPERS.keys()),
+                set(DISPATCHED_FUNCTIONS.keys()),
+            ),
+            2,
+        ),
+    )
     def test_no_duplicates(self, one, two):
         assert not one.intersection(two)
 
     @needs_array_function
     def test_all_included(self):
-        included_in_helpers = (SUBCLASS_SAFE_FUNCTIONS |
-                               UNSUPPORTED_FUNCTIONS |
-                               set(FUNCTION_HELPERS.keys()) |
-                               set(DISPATCHED_FUNCTIONS.keys()))
+        included_in_helpers = (
+            SUBCLASS_SAFE_FUNCTIONS
+            | UNSUPPORTED_FUNCTIONS
+            | set(FUNCTION_HELPERS.keys())
+            | set(DISPATCHED_FUNCTIONS.keys())
+        )
         assert all_wrapped == included_in_helpers
 
     # untested_function is created using all_wrapped_functions

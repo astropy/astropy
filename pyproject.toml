@@ -19,16 +19,24 @@ write_to = "astropy/_version.py"
         enabled = false
 
 [tool.cibuildwheel]
-manylinux-x86_64-image = "manylinux2010"
-manylinux-i686-image = "manylinux2010"
-# Numpy 1.22 doesn't have wheels for i386, so we pin Numpy to an older version
-# that does - this pin can be removed once we drop support for 32-bit wheels.
-test-requires = "numpy==1.21.*"
 # We disable testing for the following wheels:
 # - MacOS X ARM (no native hardware, tests are skipped anyway, this avoids a warning)
 # - Linux AArch64 (no native hardware, tests take too long)
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-macosx_arm64 *-manylinux_aarch64 *-musllinux_x86_64"
+
+[[tool.cibuildwheel.overrides]]
+# Python 3.11 and later is not available in manylinux2010 so we only
+# set this for Python<=3.10.
+select = "cp3{8,9,10}-*"
+manylinux-x86_64-image = "manylinux2010"
+manylinux-i686-image = "manylinux2010"
+
+[[tool.cibuildwheel.overrides]]
+# Numpy 1.22 doesn't have wheels for i386, so we pin Numpy to an older version
+# that does - this pin can be removed once we drop support for 32-bit wheels.
+select = "cp3{8,9}-*"
+test-requires = "numpy==1.21.*"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
@@ -36,29 +44,32 @@ archs = ["x86_64", "arm64"]
 [tool.cibuildwheel.linux]
 archs = ["auto", "aarch64"]
 
+[tool.black]
+line-length = 88
+force-exclude = '''
+^/(
+  (
+    # Directories to always exclude (.gitignore is always excluded)
+      examples
+    | docs/wcs/examples
+    | docs/nddata/examples
+    | cextern
+    | astropy/extern
+  )/
+  # Individual files to always exclude
+  | astropy/coordinates/.*tab.py
+  | astropy/units/format/.*tab.py
+)
+'''
+
 [tool.isort]
+    profile = "black"
     extend_skip_glob = [
-        "docs/*",
-        "examples/*",
-        "astropy/convolution/*",
         "astropy/extern/*",
-        "astropy/io/*",
-        "astropy/nddata/*",
-        "astropy/tests/*",
-        "astropy/time/*",
-        "astropy/timeseries/*",
-        "astropy/uncertainty/*",
-        "astropy/utils/*",
-        "astropy/visualization/*",
-        "astropy/wcs/*"
     ]
-    line_length = 100
     known_third_party = ["erfa", "PyYAML", "packaging", "pytest", "scipy", "matplotlib"]
     known_first_party = ["astropy", "extension_helpers"]
-    multi_line_output = 4
     group_by_package = true
-    indented_import_headings = false
-    use_parentheses = true
 
 [tool.coverage]
 

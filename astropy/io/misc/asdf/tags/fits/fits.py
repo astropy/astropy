@@ -3,21 +3,21 @@ from numpy.testing import assert_array_equal
 
 from astropy import table
 from astropy.io import fits
-from astropy.io.misc.asdf.types import AstropyType, AstropyAsdfType
+from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 
 
 class FitsType:
-    name = 'fits/fits'
-    types = ['astropy.io.fits.HDUList']
-    requires = ['astropy']
+    name = "fits/fits"
+    types = ["astropy.io.fits.HDUList"]
+    requires = ["astropy"]
 
     @classmethod
     def from_tree(cls, data, ctx):
         hdus = []
         first = True
         for hdu_entry in data:
-            header = fits.Header([fits.Card(*x) for x in hdu_entry['header']])
-            data = hdu_entry.get('data')
+            header = fits.Header([fits.Card(*x) for x in hdu_entry["header"]])
+            data = hdu_entry.get("data")
             if data is not None:
                 try:
                     data = data.__array__()
@@ -53,13 +53,13 @@ class FitsType:
                 header_list.append(new_card)
 
             hdu_dict = {}
-            hdu_dict['header'] = header_list
+            hdu_dict["header"] = header_list
             if hdu.data is not None:
                 if hdu.data.dtype.names is not None:
                     data = table.Table(hdu.data)
                 else:
                     data = hdu.data
-                hdu_dict['data'] = data
+                hdu_dict["data"] = data
 
             units.append(hdu_dict)
 

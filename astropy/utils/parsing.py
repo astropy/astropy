@@ -5,12 +5,11 @@ Wrappers for PLY to provide thread safety.
 
 import contextlib
 import functools
-import re
 import os
+import re
 import threading
 
-
-__all__ = ['lex', 'ThreadSafeParser', 'yacc']
+__all__ = ["lex", "ThreadSafeParser", "yacc"]
 
 
 _TAB_HEADER = """# -*- coding: utf-8 -*-
@@ -32,7 +31,7 @@ def _add_tab_header(filename, package):
     with open(filename) as f:
         contents = f.read()
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(_TAB_HEADER.format(package=package))
         f.write(contents)
 
@@ -85,14 +84,17 @@ def lex(lextab, package, reflags=int(re.VERBOSE)):
     """
     from astropy.extern.ply import lex
 
-    caller_file = lex.get_caller_module_dict(2)['__file__']
-    lextab_filename = os.path.join(os.path.dirname(caller_file), lextab + '.py')
+    caller_file = lex.get_caller_module_dict(2)["__file__"]
+    lextab_filename = os.path.join(os.path.dirname(caller_file), lextab + ".py")
     with _LOCK:
         lextab_exists = os.path.exists(lextab_filename)
         with _patch_get_caller_module_dict(lex):
-            lexer = lex.lex(optimize=True, lextab=lextab,
-                            outputdir=os.path.dirname(caller_file),
-                            reflags=reflags)
+            lexer = lex.lex(
+                optimize=True,
+                lextab=lextab,
+                outputdir=os.path.dirname(caller_file),
+                reflags=reflags,
+            )
         if not lextab_exists:
             _add_tab_header(lextab_filename, package)
         return lexer
@@ -138,14 +140,18 @@ def yacc(tabmodule, package):
     """
     from astropy.extern.ply import yacc
 
-    caller_file = yacc.get_caller_module_dict(2)['__file__']
-    tab_filename = os.path.join(os.path.dirname(caller_file), tabmodule + '.py')
+    caller_file = yacc.get_caller_module_dict(2)["__file__"]
+    tab_filename = os.path.join(os.path.dirname(caller_file), tabmodule + ".py")
     with _LOCK:
         tab_exists = os.path.exists(tab_filename)
         with _patch_get_caller_module_dict(yacc):
-            parser = yacc.yacc(tabmodule=tabmodule,
-                               outputdir=os.path.dirname(caller_file),
-                               debug=False, optimize=True, write_tables=True)
+            parser = yacc.yacc(
+                tabmodule=tabmodule,
+                outputdir=os.path.dirname(caller_file),
+                debug=False,
+                optimize=True,
+                write_tables=True,
+            )
         if not tab_exists:
             _add_tab_header(tab_filename, package)
 

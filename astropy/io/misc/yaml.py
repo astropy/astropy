@@ -61,27 +61,26 @@ import base64
 import numpy as np
 import yaml
 
-from astropy.time import Time, TimeDelta
-from astropy import units as u
 from astropy import coordinates as coords
+from astropy import units as u
 from astropy.table import SerializedColumn
+from astropy.time import Time, TimeDelta
 
-
-__all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
+__all__ = ["AstropyLoader", "AstropyDumper", "load", "load_all", "dump"]
 
 
 def _unit_representer(dumper, obj):
-    out = {'unit': str(obj.to_string())}
-    return dumper.represent_mapping('!astropy.units.Unit', out)
+    out = {"unit": str(obj.to_string())}
+    return dumper.represent_mapping("!astropy.units.Unit", out)
 
 
 def _unit_constructor(loader, node):
     map = loader.construct_mapping(node)
-    return u.Unit(map['unit'], parse_strict='warn')
+    return u.Unit(map["unit"], parse_strict="warn")
 
 
 def _serialized_column_representer(dumper, obj):
-    out = dumper.represent_mapping('!astropy.table.SerializedColumn', obj)
+    out = dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
     return out
 
 
@@ -92,7 +91,7 @@ def _serialized_column_constructor(loader, node):
 
 def _time_representer(dumper, obj):
     out = obj.info._represent_as_dict()
-    return dumper.represent_mapping('!astropy.time.Time', out)
+    return dumper.represent_mapping("!astropy.time.Time", out)
 
 
 def _time_constructor(loader, node):
@@ -103,7 +102,7 @@ def _time_constructor(loader, node):
 
 def _timedelta_representer(dumper, obj):
     out = obj.info._represent_as_dict()
-    return dumper.represent_mapping('!astropy.time.TimeDelta', out)
+    return dumper.represent_mapping("!astropy.time.TimeDelta", out)
 
 
 def _timedelta_constructor(loader, node):
@@ -113,23 +112,25 @@ def _timedelta_constructor(loader, node):
 
 
 def _ndarray_representer(dumper, obj):
-    if not (obj.flags['C_CONTIGUOUS'] or obj.flags['F_CONTIGUOUS']):
+    if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
         obj = np.ascontiguousarray(obj)
 
     if np.isfortran(obj):
         obj = obj.T
-        order = 'F'
+        order = "F"
     else:
-        order = 'C'
+        order = "C"
 
     data_b64 = base64.b64encode(obj.tobytes())
 
-    out = dict(buffer=data_b64,
-               dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-               shape=obj.shape,
-               order=order)
+    out = dict(
+        buffer=data_b64,
+        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+        shape=obj.shape,
+        order=order,
+    )
 
-    return dumper.represent_mapping('!numpy.ndarray', out)
+    return dumper.represent_mapping("!numpy.ndarray", out)
 
 
 def _ndarray_constructor(loader, node):
@@ -138,21 +139,23 @@ def _ndarray_constructor(loader, node):
     # include lists and tuples, which need recursion via
     # construct_sequence.
     map = loader.construct_mapping(node, deep=True)
-    map['buffer'] = base64.b64decode(map['buffer'])
+    map["buffer"] = base64.b64decode(map["buffer"])
     return np.ndarray(**map)
 
 
 def _void_representer(dumper, obj):
     data_b64 = base64.b64encode(obj.tobytes())
-    out = dict(buffer=data_b64,
-               dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr)
-    return dumper.represent_mapping('!numpy.void', out)
+    out = dict(
+        buffer=data_b64,
+        dtype=str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+    )
+    return dumper.represent_mapping("!numpy.void", out)
 
 
 def _void_constructor(loader, node):
     # Interpret as node as an array scalar and then index to change to void.
     map = loader.construct_mapping(node, deep=True)
-    map['buffer'] = base64.b64decode(map['buffer'])
+    map["buffer"] = base64.b64decode(map["buffer"])
     return np.ndarray(shape=(), **map)[()]
 
 
@@ -160,6 +163,7 @@ def _quantity_representer(tag):
     def representer(dumper, obj):
         out = obj.info._represent_as_dict()
         return dumper.represent_mapping(tag, out)
+
     return representer
 
 
@@ -167,13 +171,13 @@ def _quantity_constructor(cls):
     def constructor(loader, node):
         map = loader.construct_mapping(node)
         return cls.info._construct_from_dict(map)
+
     return constructor
 
 
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
-    out = dumper.represent_mapping('!astropy.coordinates.sky_coordinate.SkyCoord',
-                                   map)
+    out = dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
     return out
 
 
@@ -186,14 +190,14 @@ def _skycoord_constructor(loader, node):
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = f'{data.real!r}'
+        data = f"{data.real!r}"
     elif data.real == 0.0:
-        data = f'{data.imag!r}j'
+        data = f"{data.imag!r}j"
     elif data.imag > 0:
-        data = f'{data.real!r}+{data.imag!r}j'
+        data = f"{data.real!r}+{data.imag!r}j"
     else:
-        data = f'{data.real!r}{data.imag!r}j'
-    return self.represent_scalar('tag:yaml.org,2002:python/complex', data)
+        data = f"{data.real!r}{data.imag!r}j"
+    return self.represent_scalar("tag:yaml.org,2002:python/complex", data)
 
 
 def _complex_constructor(loader, node):
@@ -233,7 +237,7 @@ class AstropyDumper(yaml.SafeDumper):
     """
 
     def _represent_tuple(self, data):
-        return self.represent_sequence('tag:yaml.org,2002:python/tuple', data)
+        return self.represent_sequence("tag:yaml.org,2002:python/tuple", data)
 
 
 AstropyDumper.add_multi_representer(u.UnitBase, _unit_representer)
@@ -249,50 +253,68 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
-for np_type in [np.int_, np.intc, np.intp, np.int8, np.int16, np.int32,
-                np.int64, np.uint8, np.uint16, np.uint32, np.uint64]:
-    AstropyDumper.add_representer(np_type,
-                                    yaml.representer.SafeRepresenter.represent_int)
-for np_type in [np.float_, np.float16, np.float32, np.float64,
-                np.longdouble]:
-    AstropyDumper.add_representer(np_type,
-                                    yaml.representer.SafeRepresenter.represent_float)
+for np_type in [
+    np.int_,
+    np.intc,
+    np.intp,
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+]:
+    AstropyDumper.add_representer(
+        np_type, yaml.representer.SafeRepresenter.represent_int
+    )
+for np_type in [np.float_, np.float16, np.float32, np.float64, np.longdouble]:
+    AstropyDumper.add_representer(
+        np_type, yaml.representer.SafeRepresenter.represent_float
+    )
 for np_type in [np.complex_, complex, np.complex64, np.complex128]:
     AstropyDumper.add_representer(np_type, _complex_representer)
 
-AstropyLoader.add_constructor('tag:yaml.org,2002:python/complex',
-                                _complex_constructor)
-AstropyLoader.add_constructor('tag:yaml.org,2002:python/tuple',
-                                AstropyLoader._construct_python_tuple)
-AstropyLoader.add_constructor('tag:yaml.org,2002:python/unicode',
-                                AstropyLoader._construct_python_unicode)
-AstropyLoader.add_constructor('!astropy.units.Unit', _unit_constructor)
-AstropyLoader.add_constructor('!numpy.ndarray', _ndarray_constructor)
-AstropyLoader.add_constructor('!numpy.void', _void_constructor)
-AstropyLoader.add_constructor('!astropy.time.Time', _time_constructor)
-AstropyLoader.add_constructor('!astropy.time.TimeDelta', _timedelta_constructor)
-AstropyLoader.add_constructor('!astropy.coordinates.sky_coordinate.SkyCoord',
-                                _skycoord_constructor)
-AstropyLoader.add_constructor('!astropy.table.SerializedColumn',
-                                _serialized_column_constructor)
+AstropyLoader.add_constructor("tag:yaml.org,2002:python/complex", _complex_constructor)
+AstropyLoader.add_constructor(
+    "tag:yaml.org,2002:python/tuple", AstropyLoader._construct_python_tuple
+)
+AstropyLoader.add_constructor(
+    "tag:yaml.org,2002:python/unicode", AstropyLoader._construct_python_unicode
+)
+AstropyLoader.add_constructor("!astropy.units.Unit", _unit_constructor)
+AstropyLoader.add_constructor("!numpy.ndarray", _ndarray_constructor)
+AstropyLoader.add_constructor("!numpy.void", _void_constructor)
+AstropyLoader.add_constructor("!astropy.time.Time", _time_constructor)
+AstropyLoader.add_constructor("!astropy.time.TimeDelta", _timedelta_constructor)
+AstropyLoader.add_constructor(
+    "!astropy.coordinates.sky_coordinate.SkyCoord", _skycoord_constructor
+)
+AstropyLoader.add_constructor(
+    "!astropy.table.SerializedColumn", _serialized_column_constructor
+)
 
-for cls, tag in ((u.Quantity, '!astropy.units.Quantity'),
-                    (u.Magnitude, '!astropy.units.Magnitude'),
-                    (u.Dex, '!astropy.units.Dex'),
-                    (u.Decibel, '!astropy.units.Decibel'),
-                    (coords.Angle, '!astropy.coordinates.Angle'),
-                    (coords.Latitude, '!astropy.coordinates.Latitude'),
-                    (coords.Longitude, '!astropy.coordinates.Longitude'),
-                    (coords.EarthLocation, '!astropy.coordinates.earth.EarthLocation')):
+for cls, tag in (
+    (u.Quantity, "!astropy.units.Quantity"),
+    (u.Magnitude, "!astropy.units.Magnitude"),
+    (u.Dex, "!astropy.units.Dex"),
+    (u.Decibel, "!astropy.units.Decibel"),
+    (coords.Angle, "!astropy.coordinates.Angle"),
+    (coords.Latitude, "!astropy.coordinates.Latitude"),
+    (coords.Longitude, "!astropy.coordinates.Longitude"),
+    (coords.EarthLocation, "!astropy.coordinates.earth.EarthLocation"),
+):
     AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
     AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
-for cls in (list(coords.representation.REPRESENTATION_CLASSES.values())
-            + list(coords.representation.DIFFERENTIAL_CLASSES.values())):
+for cls in list(coords.representation.REPRESENTATION_CLASSES.values()) + list(
+    coords.representation.DIFFERENTIAL_CLASSES.values()
+):
     name = cls.__name__
     # Add representations/differentials defined in astropy.
     if name in coords.representation.__all__:
-        tag = '!astropy.coordinates.' + name
+        tag = "!astropy.coordinates." + name
         AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
         AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
@@ -351,6 +373,6 @@ def dump(data, stream=None, **kwargs):
         If no ``stream`` is supplied then YAML output is returned as str
 
     """
-    kwargs['Dumper'] = AstropyDumper
-    kwargs.setdefault('default_flow_style', None)
+    kwargs["Dumper"] = AstropyDumper
+    kwargs.setdefault("default_flow_style", None)
     return yaml.dump(data, stream=stream, **kwargs)

@@ -11,35 +11,37 @@ cds.py:
 
 import fnmatch
 import itertools
-import re
 import os
+import re
 from contextlib import suppress
-
-from . import core
-from . import fixedwidth
 
 from astropy.units import Unit
 
+from . import core, fixedwidth
 
-__doctest_skip__ = ['*']
+__doctest_skip__ = ["*"]
 
 
 class CdsHeader(core.BaseHeader):
-    _subfmt = 'CDS'
+    _subfmt = "CDS"
 
-    col_type_map = {'e': core.FloatType,
-                    'f': core.FloatType,
-                    'i': core.IntType,
-                    'a': core.StrType}
+    col_type_map = {
+        "e": core.FloatType,
+        "f": core.FloatType,
+        "i": core.IntType,
+        "a": core.StrType,
+    }
 
-    'The ReadMe file to construct header from.'
+    "The ReadMe file to construct header from."
     readme = None
 
     def get_type_map_key(self, col):
-        match = re.match(r'\d*(\S)', col.raw_type.lower())
+        match = re.match(r"\d*(\S)", col.raw_type.lower())
         if not match:
-            raise ValueError('Unrecognized {} format "{}" for column "{}"'.format(
-                self._subfmt, col.raw_type, col.name))
+            raise ValueError(
+                f'Unrecognized {self._subfmt} format "{col.raw_type}" for column'
+                f'"{col.name}"'
+            )
         return match.group(1)
 
     def get_cols(self, lines):
@@ -67,17 +69,19 @@ class CdsHeader(core.BaseHeader):
                 line = line.strip()
                 if in_header:
                     lines.append(line)
-                    if line.startswith(('------', '=======')):
+                    if line.startswith(("------", "=======")):
                         comment_lines += 1
                         if comment_lines == 3:
                             break
                 else:
-                    match = re.match(r'Byte-by-byte Description of file: (?P<name>.+)$',
-                                     line, re.IGNORECASE)
+                    match = re.match(
+                        r"Byte-by-byte Description of file: (?P<name>.+)$",
+                        line,
+                        re.IGNORECASE,
+                    )
                     if match:
                         # Split 'name' in case in contains multiple files
-                        names = [s for s in re.split('[, ]+', match.group('name'))
-                                 if s]
+                        names = [s for s in re.split("[, ]+", match.group("name")) if s]
                         # Iterate on names to find if one matches the tablename
                         # including wildcards.
                         for pattern in names:
@@ -87,13 +91,14 @@ class CdsHeader(core.BaseHeader):
                                 break
 
             else:
-                raise core.InconsistentTableError("Can't find table {} in {}".format(
-                    self.data.table_name, self.readme))
+                raise core.InconsistentTableError(
+                    f"Can't find table {self.data.table_name} in {self.readme}"
+                )
 
         found_line = False
 
         for i_col_def, line in enumerate(lines):
-            if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
+            if re.match(r"Byte-by-byte Description", line, re.IGNORECASE):
                 found_line = True
             elif found_line:  # First line after list of file descriptions
                 i_col_def -= 1  # Set i_col_def to last description line
@@ -101,63 +106,69 @@ class CdsHeader(core.BaseHeader):
         else:
             raise ValueError('no line with "Byte-by-byte Description" found')
 
-        re_col_def = re.compile(r"""\s*
-                                    (?P<start> \d+ \s* -)? \s*
-                                    (?P<end>   \d+)        \s+
-                                    (?P<format> [\w.]+)     \s+
-                                    (?P<units> \S+)        \s+
-                                    (?P<name>  \S+)
-                                    (\s+ (?P<descr> \S.*))?""",
-                                re.VERBOSE)
+        re_col_def = re.compile(
+            r"""\s*
+                (?P<start> \d+ \s* -)? \s*
+                (?P<end>   \d+)        \s+
+                (?P<format> [\w.]+)     \s+
+                (?P<units> \S+)        \s+
+                (?P<name>  \S+)
+                (\s+ (?P<descr> \S.*))?""",
+            re.VERBOSE,
+        )
 
         cols = []
         for line in itertools.islice(lines, i_col_def + 4, None):
-            if line.startswith(('------', '=======')):
+            if line.startswith(("------", "=======")):
                 break
             match = re_col_def.match(line)
             if match:
-                col = core.Column(name=match.group('name'))
-                col.start = int(re.sub(r'[-\s]', '',
-                                       match.group('start') or match.group('end'))) - 1
-                col.end = int(match.group('end'))
-                unit = match.group('units')
-                if unit == '---':
+                col = core.Column(name=match.group("name"))
+                col.start = int(
+                    re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1  # fmt: skip
+                col.end = int(match.group("end"))
+                unit = match.group("units")
+                if unit == "---":
                     col.unit = None  # "---" is the marker for no unit in CDS/MRT table
                 else:
-                    col.unit = Unit(unit, format='cds', parse_strict='warn')
-                col.description = (match.group('descr') or '').strip()
-                col.raw_type = match.group('format')
+                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+                col.description = (match.group("descr") or "").strip()
+                col.raw_type = match.group("format")
                 col.type = self.get_col_type(col)
 
                 match = re.match(
-                    r'(?P<limits>[\[\]] \S* [\[\]])?'  # Matches limits specifier (eg [])
-                                                       # that may or may not be present
-                    r'\?'  # Matches '?' directly
-                    r'((?P<equal>=)(?P<nullval> \S*))?'  # Matches to nullval if and only
-                                                         # if '=' is present
-                    r'(?P<order>[-+]?[=]?)'  # Matches to order specifier:
-                                             # ('+', '-', '+=', '-=')
-                    r'(\s* (?P<descriptiontext> \S.*))?',  # Matches description text even
-                                                           # even if no whitespace is
-                                                           # present after '?'
-                    col.description, re.VERBOSE)
+                    # Matches limits specifier (eg []) that may or may not be
+                    # present
+                    r"(?P<limits>[\[\]] \S* [\[\]])?"
+                    # Matches '?' directly
+                    r"\?"
+                    # Matches to nullval if and only if '=' is present
+                    r"((?P<equal>=)(?P<nullval> \S*))?"
+                    # Matches to order specifier: ('+', '-', '+=', '-=')
+                    r"(?P<order>[-+]?[=]?)"
+                    # Matches description text even even if no whitespace is
+                    # present after '?'
+                    r"(\s* (?P<descriptiontext> \S.*))?",
+                    col.description,
+                    re.VERBOSE,
+                )
                 if match:
-                    col.description = (match.group('descriptiontext') or '').strip()
+                    col.description = (match.group("descriptiontext") or "").strip()
                     if issubclass(col.type, core.FloatType):
-                        fillval = 'nan'
+                        fillval = "nan"
                     else:
-                        fillval = '0'
+                        fillval = "0"
 
-                    if match.group('nullval') == '-':
-                        col.null = '---'
+                    if match.group("nullval") == "-":
+                        col.null = "---"
                         # CDS/MRT tables can use -, --, ---, or ---- to mark missing values
                         # see https://github.com/astropy/astropy/issues/1335
                         for i in [1, 2, 3, 4]:
-                            self.data.fill_values.append(('-' * i, fillval, col.name))
+                            self.data.fill_values.append(("-" * i, fillval, col.name))
                     else:
-                        col.null = match.group('nullval')
-                        if (col.null is None):
-                            col.null = ''
+                        col.null = match.group("nullval")
+                        if col.null is None:
+                            col.null = ""
                         self.data.fill_values.append((col.null, fillval, col.name))
 
                 cols.append(col)
@@ -173,9 +184,9 @@ class CdsHeader(core.BaseHeader):
 
 
 class CdsData(core.BaseData):
-    """CDS table data reader
-    """
-    _subfmt = 'CDS'
+    """CDS table data reader"""
+
+    _subfmt = "CDS"
     splitter_class = fixedwidth.FixedWidthSplitter
 
     def process_lines(self, lines):
@@ -186,11 +197,14 @@ class CdsData(core.BaseData):
         # attribute.
         if self.header.readme and self.table_name:
             return lines
-        i_sections = [i for i, x in enumerate(lines)
-                      if x.startswith(('------', '======='))]
+        i_sections = [
+            i for i, x in enumerate(lines) if x.startswith(("------", "======="))
+        ]
         if not i_sections:
-            raise core.InconsistentTableError(f'No {self._subfmt} section delimiter found')
-        return lines[i_sections[-1]+1:]  # noqa
+            raise core.InconsistentTableError(
+                f"No {self._subfmt} section delimiter found"
+            )
+        return lines[i_sections[-1] + 1 :]
 
 
 class Cds(core.BaseReader):
@@ -298,10 +312,11 @@ class Cds(core.BaseReader):
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
     """
-    _format_name = 'cds'
-    _io_registry_format_aliases = ['cds']
+
+    _format_name = "cds"
+    _io_registry_format_aliases = ["cds"]
     _io_registry_can_write = False
-    _description = 'CDS format table'
+    _description = "CDS format table"
 
     data_class = CdsData
     header_class = CdsHeader
@@ -317,12 +332,12 @@ class Cds(core.BaseReader):
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
         # lines between the end of the header and the beginning of data.
-        if self.data.start_line == 'guess':
+        if self.data.start_line == "guess":
             # Replicate the first part of BaseReader.read up to the point where
             # the table lines are initially read in.
             with suppress(TypeError):
                 # For strings only
-                if os.linesep not in table + '':
+                if os.linesep not in table + "":
                     self.data.table_name = os.path.basename(table)
 
             self.data.header = self.header

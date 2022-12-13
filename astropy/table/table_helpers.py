@@ -30,32 +30,32 @@ class TimingTables:
 
         # Create column with mixed types
         np.random.seed(12345)
-        self.table['i'] = np.arange(size)
-        self.table['a'] = np.random.random(size)  # float
-        self.table['b'] = np.random.random(size) > 0.5  # bool
-        self.table['c'] = np.random.random((size, 10))  # 2d column
-        self.table['d'] = np.random.choice(np.array(list(string.ascii_letters)), size)
+        self.table["i"] = np.arange(size)
+        self.table["a"] = np.random.random(size)  # float
+        self.table["b"] = np.random.random(size) > 0.5  # bool
+        self.table["c"] = np.random.random((size, 10))  # 2d column
+        self.table["d"] = np.random.choice(np.array(list(string.ascii_letters)), size)
 
-        self.extra_row = {'a': 1.2, 'b': True, 'c': np.repeat(1, 10), 'd': 'Z'}
+        self.extra_row = {"a": 1.2, "b": True, "c": np.repeat(1, 10), "d": "Z"}
         self.extra_column = np.random.randint(0, 100, size)
-        self.row_indices = np.where(self.table['a'] > 0.9)[0]
-        self.table_grouped = self.table.group_by('d')
+        self.row_indices = np.where(self.table["a"] > 0.9)[0]
+        self.table_grouped = self.table.group_by("d")
 
         # Another table for testing joining
         self.other_table = Table(masked=self.masked)
-        self.other_table['i'] = np.arange(1, size, 3)
-        self.other_table['f'] = np.random.random()
-        self.other_table.sort('f')
+        self.other_table["i"] = np.arange(1, size, 3)
+        self.other_table["f"] = np.random.random()
+        self.other_table.sort("f")
 
         # Another table for testing hstack
         self.other_table_2 = Table(masked=self.masked)
-        self.other_table_2['g'] = np.random.random(size)
-        self.other_table_2['h'] = np.random.random((size, 10))
+        self.other_table_2["g"] = np.random.random(size)
+        self.other_table_2["h"] = np.random.random((size, 10))
 
-        self.bool_mask = self.table['a'] > 0.6
+        self.bool_mask = self.table["a"] > 0.6
 
 
-def simple_table(size=3, cols=None, kinds='ifS', masked=False):
+def simple_table(size=3, cols=None, kinds="ifS", masked=False):
     """
     Return a simple table for testing.
 
@@ -93,22 +93,22 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
         raise ValueError("Max 26 columns in SimpleTable")
 
     columns = []
-    names = [chr(ord('a') + ii) for ii in range(cols)]
+    names = [chr(ord("a") + ii) for ii in range(cols)]
     letters = np.array([c for c in string.ascii_letters])
     for jj, kind in zip(range(cols), cycle(kinds)):
-        if kind == 'i':
+        if kind == "i":
             data = np.arange(1, size + 1, dtype=np.int64) + jj
-        elif kind == 'f':
+        elif kind == "f":
             data = np.arange(size, dtype=np.float64) + jj
-        elif kind == 'S':
+        elif kind == "S":
             indices = (np.arange(size) + jj) % len(letters)
             data = letters[indices]
-        elif kind == 'O':
+        elif kind == "O":
             indices = (np.arange(size) + jj) % len(letters)
             vals = letters[indices]
             data = [{val: index} for val, index in zip(vals, indices)]
         else:
-            raise ValueError('Unknown data kind')
+            raise ValueError("Unknown data kind")
         columns.append(Column(data))
 
     table = Table(columns, names=names, masked=masked)
@@ -132,8 +132,10 @@ def complex_table():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        votable = parse(get_pkg_data_filename('../io/votable/tests/data/regression.xml'),
-                        pedantic=False)
+        votable = parse(
+            get_pkg_data_filename("../io/votable/tests/data/regression.xml"),
+            pedantic=False,
+        )
     first_table = votable.get_first_table()
     table = first_table.to_table()
 
@@ -141,17 +143,17 @@ def complex_table():
 
 
 class ArrayWrapperInfo(ParentDtypeInfo):
-    _represent_as_dict_primary_data = 'data'
+    _represent_as_dict_primary_data = "data"
 
     def _represent_as_dict(self):
         """Represent Column as a dict that can be serialized."""
         col = self._parent
-        out = {'data': col.data}
+        out = {"data": col.data}
         return out
 
     def _construct_from_dict(self, map):
         """Construct Column from ``map``."""
-        data = map.pop('data')
+        data = map.pop("data")
         out = self._parent_cls(data, **map)
         return out
 
@@ -166,19 +168,20 @@ class ArrayWrapper:
     getting tested in the mixin testing though it doesn't work for multidim
     data.
     """
+
     info = ArrayWrapperInfo()
 
-    def __init__(self, data):
-        self.data = np.array(data)
-        if 'info' in getattr(data, '__dict__', ()):
+    def __init__(self, data, copy=True):
+        self.data = np.array(data, copy=copy)
+        if "info" in getattr(data, "__dict__", ()):
             self.info = data.info
 
     def __getitem__(self, item):
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
-            out = self.__class__(self.data[item])
-            if 'info' in self.__dict__:
+            out = self.__class__(self.data[item], copy=False)
+            if "info" in self.__dict__:
                 out.info = self.info
         return out
 

@@ -1,15 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import functools
-import sys
 
 from .core import UnifiedIORegistry
 
-__all__ = ["register_reader", "register_writer", "register_identifier",  # noqa: F822
-           "unregister_reader", "unregister_writer", "unregister_identifier",
-           "get_reader", "get_writer", "get_formats",
-           "read", "write",
-           "identify_format", "delay_doc_updates"]
+__all__ = [
+    "register_reader",
+    "register_writer",
+    "register_identifier",
+    "unregister_reader",
+    "unregister_writer",
+    "unregister_identifier",
+    "get_reader",
+    "get_writer",
+    "get_formats",
+    "read",
+    "write",
+    "identify_format",
+    "delay_doc_updates",
+]
 
 # make a default global-state registry  (not publicly scoped, but often accessed)
 # this is for backward compatibility when ``io.registry`` was a file.

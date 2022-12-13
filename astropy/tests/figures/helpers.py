@@ -4,6 +4,8 @@ from functools import wraps
 
 import pytest
 
+from astropy.utils.compat.optional_deps import HAS_PYTEST_MPL
+
 
 def figure_test(*args, **kwargs):
     """
@@ -18,18 +20,19 @@ def figure_test(*args, **kwargs):
     # the matplotlib version embedded since this changes for every developer
     # version.
 
-    tolerance = kwargs.pop('tolerance', 0)
-    style = kwargs.pop('style', {})
-    savefig_kwargs = kwargs.pop('savefig_kwargs', {})
-    savefig_kwargs['metadata'] = {'Software': None}
+    tolerance = kwargs.pop("tolerance", 0)
+    style = kwargs.pop("style", {})
+    savefig_kwargs = kwargs.pop("savefig_kwargs", {})
+    savefig_kwargs["metadata"] = {"Software": None}
 
     def decorator(test_function):
-
         @pytest.mark.remote_data
-        @pytest.mark.mpl_image_compare(tolerance=tolerance,
-                                       style=style,
-                                       savefig_kwargs=savefig_kwargs,
-                                       **kwargs)
+        @pytest.mark.mpl_image_compare(
+            tolerance=tolerance, style=style, savefig_kwargs=savefig_kwargs, **kwargs
+        )
+        @pytest.mark.skipif(
+            not HAS_PYTEST_MPL, reason="pytest-mpl is required for the figure tests"
+        )
         @wraps(test_function)
         def test_wrapper(*args, **kwargs):
             return test_function(*args, **kwargs)

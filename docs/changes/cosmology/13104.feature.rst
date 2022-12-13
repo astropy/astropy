@@ -1,4 +1,0 @@
-A new comparison function has been added -- ``cosmology_equal()`` -- that
-mirrors its ``numpy`` counterpart but allows for the arguments to be converted
-to a ``Cosmology`` and to compare flat cosmologies with their non-flat
-equivalents.

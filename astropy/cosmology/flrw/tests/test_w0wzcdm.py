@@ -61,8 +61,7 @@ class ParameterwzTestMixin(ParameterTestMixin):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
-class Testw0wzCDM(FLRWSubclassTest,
-                  Parameterw0TestMixin, ParameterwzTestMixin):
+class Testw0wzCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwzTestMixin):
     """Test :class:`astropy.cosmology.w0wzCDM`."""
 
     def setup_class(self):
@@ -82,12 +81,14 @@ class Testw0wzCDM(FLRWSubclassTest,
         c = cosmo.clone(w0=0.1, wz=0.2)
         assert c.w0 == 0.1
         assert c.wz == 0.2
-        for n in (set(cosmo.__parameters__) - {"w0", "wz"}):
+        for n in set(cosmo.__parameters__) - {"w0", "wz"}:
             v = getattr(c, n)
             if v is None:
                 assert v is getattr(cosmo, n)
             else:
-                assert u.allclose(v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1))
+                assert u.allclose(
+                    v, getattr(cosmo, n), atol=1e-4 * getattr(v, "unit", 1)
+                )
 
     # @pytest.mark.parametrize("z", valid_zs)  # TODO! recompute comparisons below
     def test_w(self, cosmo):
@@ -95,14 +96,17 @@ class Testw0wzCDM(FLRWSubclassTest,
         # super().test_w(cosmo, z)
 
         assert u.allclose(cosmo.w(1.0), -0.5)
-        assert u.allclose(cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]),
-                          [-1.0, -0.75, -0.5, -0.25, 0.15])
+        assert u.allclose(
+            cosmo.w([0.0, 0.5, 1.0, 1.5, 2.3]), [-1.0, -0.75, -0.5, -0.25, 0.15]
+        )
 
     def test_repr(self, cosmo_cls, cosmo):
         """Test method ``.__repr__()``."""
         super().test_repr(cosmo_cls, cosmo)
 
-        expected = ("w0wzCDM(name=\"ABCMeta\", H0=70.0 km / (Mpc s), Om0=0.27,"
-                    " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
-                    " m_nu=[0. 0. 0.] eV, Ob0=0.03)")
+        expected = (
+            'w0wzCDM(name="ABCMeta", H0=70.0 km / (Mpc s), Om0=0.27,'
+            " Ode0=0.73, w0=-1.0, wz=0.5, Tcmb0=3.0 K, Neff=3.04,"
+            " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
+        )
         assert repr(cosmo) == expected

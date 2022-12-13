@@ -3,10 +3,14 @@
 
 
 from astropy import log
-from astropy.wcs.wcsapi import (BaseLowLevelWCS, BaseHighLevelWCS,
-                                SlicedLowLevelWCS, HighLevelWCSWrapper)
+from astropy.wcs.wcsapi import (
+    BaseHighLevelWCS,
+    BaseLowLevelWCS,
+    HighLevelWCSWrapper,
+    SlicedLowLevelWCS,
+)
 
-__all__ = ['NDSlicingMixin']
+__all__ = ["NDSlicingMixin"]
 
 
 class NDSlicingMixin:
@@ -53,10 +57,11 @@ class NDSlicingMixin:
     NDDataRef
     NDDataArray
     """
+
     def __getitem__(self, item):
         # Abort slicing if the data is a single scalar.
         if self.data.shape == ():
-            raise TypeError('scalars cannot be sliced.')
+            raise TypeError("scalars cannot be sliced.")
 
         # Let the other methods handle slicing.
         kwargs = self._slice(item)
@@ -85,14 +90,14 @@ class NDSlicingMixin:
             ``__getitem__``.
         """
         kwargs = {}
-        kwargs['data'] = self.data[item]
+        kwargs["data"] = self.data[item]
         # Try to slice some attributes
-        kwargs['uncertainty'] = self._slice_uncertainty(item)
-        kwargs['mask'] = self._slice_mask(item)
-        kwargs['wcs'] = self._slice_wcs(item)
+        kwargs["uncertainty"] = self._slice_uncertainty(item)
+        kwargs["mask"] = self._slice_mask(item)
+        kwargs["wcs"] = self._slice_wcs(item)
         # Attributes which are copied and not intended to be sliced
-        kwargs['unit'] = self.unit
-        kwargs['meta'] = self.meta
+        kwargs["unit"] = self.unit
+        kwargs["meta"] = self.meta
         return kwargs
 
     def _slice_uncertainty(self, item):
@@ -127,6 +132,8 @@ class NDSlicingMixin:
 
     # Implement this in a method to allow subclasses to customise the error.
     def _handle_wcs_slicing_error(self, err, item):
-        raise ValueError(f"Slicing the WCS object with the slice '{item}' "
-        "failed, if you want to slice the NDData object without the WCS, you "
-        "can remove by setting `NDData.wcs = None` and then retry.") from err
+        raise ValueError(
+            f"Slicing the WCS object with the slice '{item}' "
+            "failed, if you want to slice the NDData object without the WCS, you "
+            "can remove by setting `NDData.wcs = None` and then retry."
+        ) from err

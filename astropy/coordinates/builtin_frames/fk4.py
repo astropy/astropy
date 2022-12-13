@@ -6,15 +6,20 @@ from astropy import units as u
 from astropy.coordinates import earth_orientation as earth
 from astropy.coordinates.attributes import TimeAttribute
 from astropy.coordinates.baseframe import base_doc, frame_transform_graph
-from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
+from astropy.coordinates.representation import (
+    CartesianRepresentation,
+    UnitSphericalRepresentation,
+)
 from astropy.coordinates.transformations import (
-    DynamicMatrixTransform, FunctionTransformWithFiniteDifference)
+    DynamicMatrixTransform,
+    FunctionTransformWithFiniteDifference,
+)
 from astropy.utils.decorators import format_doc
 
 from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_B1950
 
-__all__ = ['FK4', 'FK4NoETerms']
+__all__ = ["FK4", "FK4NoETerms"]
 
 
 doc_footer_fk4 = """
@@ -40,7 +45,7 @@ class FK4(BaseRADecFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950)
-    obstime = TimeAttribute(default=None, secondary_attribute='equinox')
+    obstime = TimeAttribute(default=None, secondary_attribute="equinox")
 
 
 # the "self" transform
@@ -65,7 +70,7 @@ class FK4NoETerms(BaseRADecFrame):
     """
 
     equinox = TimeAttribute(default=EQUINOX_B1950)
-    obstime = TimeAttribute(default=None, secondary_attribute='equinox')
+    obstime = TimeAttribute(default=None, secondary_attribute="equinox")
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -126,12 +131,16 @@ def fk4_e_terms(equinox):
     o = earth.obliquity(equinox.jd, algorithm=1980)
     o = np.radians(o)
 
-    return (e * k * np.sin(g),
-            -e * k * np.cos(g) * np.cos(o),
-            -e * k * np.cos(g) * np.sin(o))
+    return (
+        e * k * np.sin(g),
+        -e * k * np.cos(g) * np.cos(o),
+        -e * k * np.cos(g) * np.sin(o),
+    )
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4, FK4NoETerms)
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference, FK4, FK4NoETerms
+)
 def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # Extract cartesian vector
     rep = fk4coord.cartesian
@@ -144,8 +153,9 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
     eterms_a = CartesianRepresentation(
-        u.Quantity(fk4_e_terms(fk4coord.equinox), u.dimensionless_unscaled,
-                   copy=False), copy=False)
+        u.Quantity(fk4_e_terms(fk4coord.equinox), u.dimensionless_unscaled, copy=False),
+        copy=False,
+    )
     rep = rep - eterms_a + eterms_a.dot(rep) * rep
 
     # Find new distance (for re-normalization)
@@ -159,7 +169,9 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
         rep = rep.represent_as(UnitSphericalRepresentation)
 
     # if no obstime was given in the new frame, use the old one for consistency
-    newobstime = fk4coord._obstime if fk4noeframe._obstime is None else fk4noeframe._obstime
+    newobstime = (
+        fk4coord._obstime if fk4noeframe._obstime is None else fk4noeframe._obstime
+    )
 
     fk4noe = FK4NoETerms(rep, equinox=fk4coord.equinox, obstime=newobstime)
     if fk4coord.equinox != fk4noeframe.equinox:
@@ -168,12 +180,15 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
     return fk4noe
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, FK4NoETerms, FK4)
+@frame_transform_graph.transform(
+    FunctionTransformWithFiniteDifference, FK4NoETerms, FK4
+)
 def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # first precess, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
-        fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox,
-                                          obstime=fk4noecoord.obstime)
+        fk4noe_w_fk4equinox = FK4NoETerms(
+            equinox=fk4frame.equinox, obstime=fk4noecoord.obstime
+        )
         fk4noecoord = fk4noecoord.transform_to(fk4noe_w_fk4equinox)
 
     # Extract cartesian vector
@@ -187,12 +202,15 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
     # the observing time/epoch) of the coordinates. See issue #1496 for a
     # discussion of this.
     eterms_a = CartesianRepresentation(
-        u.Quantity(fk4_e_terms(fk4noecoord.equinox), u.dimensionless_unscaled,
-                   copy=False), copy=False)
+        u.Quantity(
+            fk4_e_terms(fk4noecoord.equinox), u.dimensionless_unscaled, copy=False
+        ),
+        copy=False,
+    )
 
     rep0 = rep.copy()
     for _ in range(10):
-        rep = (eterms_a + rep0) / (1. + eterms_a.dot(rep))
+        rep = (eterms_a + rep0) / (1.0 + eterms_a.dot(rep))
 
     # Find new distance (for re-normalization)
     d_new = rep.norm()

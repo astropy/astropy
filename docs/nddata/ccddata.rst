@@ -138,13 +138,29 @@ The ``wcs`` attribute of a `~astropy.nddata.CCDData` object can be set two ways.
 Either way, the ``wcs`` attribute is kept up to date if the
 `~astropy.nddata.CCDData` image is trimmed.
 
+PSF
++++
+
+The ``psf`` attributes of a `~astropy.nddata.CCDData` object can be set two ways.
+
++ If the FITS file has an image HDU extension matching the appropriate name (defaulted to ``"PSFIMAGE"``), the ``psf`` attribute is loaded from that image HDU.
+
++ The PSF can also be provided when the `~astropy.nddata.CCDData` object is
+  constructed with the ``psf`` argument.
+
+The ``psf`` attribute should be a normalized image representing the PSF at the center of the `~astropy.nddata.CCDData`, sized appropriately for the data; users are responsible for managing and interpreting it in context.
+For more on normalizing a PSF image, see :ref:`astropy:kernel_normalization`.
+
+The ``psf`` attribute is set to `None` in the output of an arithmetic operation, no matter the inputs. A warning message is emitted if either of the input images contain a non-`None` PSF; users are responsible for determining the appropriate thing to do in that context.
+
 Uncertainty
 -----------
 
 You can set the uncertainty directly, either by creating a
 `~astropy.nddata.StdDevUncertainty` object first:
 
-    >>> data = np.random.normal(size=(10, 10), loc=1.0, scale=0.1)
+    >>> rng = np.random.default_rng()
+    >>> data = rng.normal(size=(10, 10), loc=1.0, scale=0.1)
     >>> ccd = CCDData(data, unit="electron")
     >>> from astropy.nddata.nduncertainty import StdDevUncertainty
     >>> uncertainty = 0.1 * ccd.data  # can be any array whose shape matches the data

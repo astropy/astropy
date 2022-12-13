@@ -14,24 +14,22 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 import inspect
 import itertools
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20, NUMPY_LT_1_23
-from astropy.units.tests.test_quantity_non_ufuncs import (
-    get_wrapped_functions)
-
+from astropy.units.tests.test_quantity_non_ufuncs import get_wrapped_functions
+from astropy.utils.compat import NUMPY_LT_1_23, NUMPY_LT_1_24, NUMPY_LT_1_25
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
-    MASKED_SAFE_FUNCTIONS,
     APPLY_TO_BOTH_FUNCTIONS,
     DISPATCHED_FUNCTIONS,
     IGNORED_FUNCTIONS,
-    UNSUPPORTED_FUNCTIONS)
+    MASKED_SAFE_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS,
+)
 
-from .test_masked import assert_masked_equal, MaskedArraySetup
-
+from .test_masked import MaskedArraySetup, assert_masked_equal
 
 all_wrapped_functions = get_wrapped_functions(np)
 all_wrapped = set(all_wrapped_functions.values())
@@ -40,14 +38,17 @@ all_wrapped = set(all_wrapped_functions.values())
 class BasicTestSetup(MaskedArraySetup):
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
-        expected = Masked(func(self.a, *args, **kwargs),
-                          mask=func(self.mask_a, *args, **kwargs))
+        expected = Masked(
+            func(self.a, *args, **kwargs), mask=func(self.mask_a, *args, **kwargs)
+        )
         assert_masked_equal(out, expected)
 
     def check2(self, func, *args, **kwargs):
         out = func(self.ma, self.mb, *args, **kwargs)
-        expected = Masked(func(self.a, self.b, *args, **kwargs),
-                          mask=func(self.mask_a, self.mask_b, *args, **kwargs))
+        expected = Masked(
+            func(self.a, self.b, *args, **kwargs),
+            mask=func(self.mask_a, self.mask_b, *args, **kwargs),
+        )
         if isinstance(out, (tuple, list)):
             for o, x in zip(out, expected):
                 assert_masked_equal(o, x)
@@ -167,9 +168,9 @@ class TestArgFunctions(MaskedArraySetup):
         self.check(np.lexsort, fill_value=np.nan)
 
     def test_nonzero(self):
-        self.check(np.nonzero, fill_value=0.)
+        self.check(np.nonzero, fill_value=0.0)
 
-    @pytest.mark.filterwarnings('ignore:Calling nonzero on 0d arrays is deprecated')
+    @pytest.mark.filterwarnings("ignore:Calling nonzero on 0d arrays is deprecated")
     def test_nonzero_0d(self):
         res1 = Masked(1, mask=False).nonzero()
         assert len(res1) == 1
@@ -179,13 +180,13 @@ class TestArgFunctions(MaskedArraySetup):
         assert_array_equal(res2[0], np.zeros(()).nonzero()[0])
 
     def test_argwhere(self):
-        self.check(np.argwhere, fill_value=0.)
+        self.check(np.argwhere, fill_value=0.0)
 
     def test_argpartition(self):
         self.check(np.argpartition, 2, fill_value=np.inf)
 
     def test_flatnonzero(self):
-        self.check(np.flatnonzero, fill_value=0.)
+        self.check(np.flatnonzero, fill_value=0.0)
 
 
 class TestAlongAxis(MaskedArraySetup):
@@ -211,21 +212,21 @@ class TestAlongAxis(MaskedArraySetup):
         np.put_along_axis(expected_mask, indices, axis=0, values=True)
         assert_array_equal(ma.mask, expected_mask)
 
-    @pytest.mark.parametrize('axis', (0, 1))
+    @pytest.mark.parametrize("axis", (0, 1))
     def test_apply_along_axis(self, axis):
         out = np.apply_along_axis(np.square, axis, self.ma)
         expected = np.apply_along_axis(np.square, axis, self.a)
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, self.mask_a)
 
-    @pytest.mark.parametrize('axes', [(1,), 0, (0, -1)])
+    @pytest.mark.parametrize("axes", [(1,), 0, (0, -1)])
     def test_apply_over_axes(self, axes):
         def function(x, axis):
             return np.mean(np.square(x), axis)
 
         out = np.apply_over_axes(function, self.ma, axes)
         expected = self.ma
-        for axis in (axes if isinstance(axes, tuple) else (axes,)):
+        for axis in axes if isinstance(axes, tuple) else (axes,):
             expected = (expected**2).mean(axis, keepdims=True)
         assert_array_equal(out.unmasked, expected.unmasked)
         assert_array_equal(out.mask, expected.mask)
@@ -236,7 +237,7 @@ class TestAlongAxis(MaskedArraySetup):
         assert_masked_equal(out, expected)
 
     def test_apply_over_axes_wrong_size(self):
-        with pytest.raises(ValueError, match='not.*correct shape'):
+        with pytest.raises(ValueError, match="not.*correct shape"):
             np.apply_over_axes(lambda x, axis: x[..., np.newaxis], self.ma, 0)
 
 
@@ -260,7 +261,7 @@ class TestIndicesFrom(NoMaskTestSetup):
 class TestRealImag(InvariantMaskTestSetup):
     @classmethod
     def setup_class(self):
-        self.a = np.array([1+2j, 3+4j])
+        self.a = np.array([1 + 2j, 3 + 4j])
         self.mask_a = np.array([True, False])
         self.ma = Masked(self.a, mask=self.mask_a)
 
@@ -313,7 +314,7 @@ class TestArrayCreation(MaskedArraySetup):
         assert_array_equal(o2.unmasked, np.ones_like(self.a))
         assert_array_equal(o2.mask, np.zeros_like(self.mask_a))
 
-    @pytest.mark.parametrize('value', [0.5, Masked(0.5, mask=True), np.ma.masked])
+    @pytest.mark.parametrize("value", [0.5, Masked(0.5, mask=True), np.ma.masked])
     def test_full_like(self, value):
         o = np.full_like(self.ma, value)
         if value is np.ma.masked:
@@ -391,8 +392,9 @@ class TestSettingParts(MaskedArraySetup):
     def test_putmask(self):
         ma = self.ma.flatten()
         mask = [True, False, False, False, True, False]
-        values = Masked(np.arange(100, 650, 100),
-                        mask=[False, True, True, True, False, False])
+        values = Masked(
+            np.arange(100, 650, 100), mask=[False, True, True, True, False, False]
+        )
         np.putmask(ma, mask, values)
         expected = self.a.flatten()
         np.putmask(expected, mask, values.unmasked)
@@ -422,8 +424,9 @@ class TestSettingParts(MaskedArraySetup):
     def test_copyto(self):
         ma = self.ma.flatten()
         mask = [True, False, False, False, True, False]
-        values = Masked(np.arange(100, 650, 100),
-                        mask=[False, True, True, True, False, False])
+        values = Masked(
+            np.arange(100, 650, 100), mask=[False, True, True, True, False, False]
+        )
         np.copyto(ma, values, where=mask)
         expected = self.a.flatten()
         np.copyto(expected, values.unmasked, where=mask)
@@ -435,7 +438,7 @@ class TestSettingParts(MaskedArraySetup):
         with pytest.raises(TypeError):
             np.copyto(self.a.flatten(), values, where=mask)
 
-    @pytest.mark.parametrize('value', [0.25, np.ma.masked])
+    @pytest.mark.parametrize("value", [0.25, np.ma.masked])
     def test_fill_diagonal(self, value):
         ma = self.ma[:2, :2].copy()
         np.fill_diagonal(ma, value)
@@ -459,7 +462,7 @@ class TestRepeat(BasicTestSetup):
 class TestConcatenate(MaskedArraySetup):
     # More tests at TestMaskedArrayConcatenation in test_functions.
     def check(self, func, *args, **kwargs):
-        ma_list = kwargs.pop('ma_list', [self.ma, self.ma])
+        ma_list = kwargs.pop("ma_list", [self.ma, self.ma])
         a_list = [Masked(ma).unmasked for ma in ma_list]
         m_list = [Masked(ma).mask for ma in ma_list]
         o = func(ma_list, *args, **kwargs)
@@ -472,9 +475,7 @@ class TestConcatenate(MaskedArraySetup):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
         self.check(np.concatenate, ma_list=[self.a, self.ma])
-        if not NUMPY_LT_1_20:
-            # Check that we can accept a dtype argument (introduced in numpy 1.20)
-            self.check(np.concatenate, dtype='f4')
+        self.check(np.concatenate, dtype="f4")
 
         out = Masked(np.empty((4, 3)))
         result = np.concatenate([self.ma, self.ma], out=out)
@@ -505,9 +506,8 @@ class TestConcatenate(MaskedArraySetup):
     def test_block(self):
         self.check(np.block)
 
-        out = np.block([[0., Masked(1., True)],
-                        [Masked(1, False), Masked(2, False)]])
-        expected = np.array([[0, 1.], [1, 2]])
+        out = np.block([[0.0, Masked(1.0, True)], [Masked(1, False), Masked(2, False)]])
+        expected = np.array([[0, 1.0], [1, 2]])
         expected_mask = np.array([[False, True], [False, False]])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
@@ -521,9 +521,9 @@ class TestConcatenate(MaskedArraySetup):
 
     def test_insert(self):
         obj = (1, 1)
-        values = Masked([50., 25.], mask=[True, False])
+        values = Masked([50.0, 25.0], mask=[True, False])
         out = np.insert(self.ma.flatten(), obj, values)
-        expected = np.insert(self.a.flatten(), obj, [50., 25.])
+        expected = np.insert(self.a.flatten(), obj, [50.0, 25.0])
         expected_mask = np.insert(self.mask_a.flatten(), obj, [True, False])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
@@ -538,7 +538,7 @@ class TestConcatenate(MaskedArraySetup):
 class TestSplit:
     @classmethod
     def setup_class(self):
-        self.a = np.arange(54.).reshape(3, 3, 6)
+        self.a = np.arange(54.0).reshape(3, 3, 6)
         self.mask_a = np.zeros(self.a.shape, dtype=bool)
         self.mask_a[1, 1, 1] = True
         self.mask_a[0, 1, 4] = True
@@ -580,10 +580,10 @@ class TestMethodLikes(MaskedArraySetup):
         assert_masked_equal(o, x)
 
     def test_amax(self):
-        self.check(np.amax, method='max')
+        self.check(np.amax, method="max")
 
     def test_amin(self):
-        self.check(np.amin, method='min')
+        self.check(np.amin, method="min")
 
     def test_sum(self):
         self.check(np.sum)
@@ -598,35 +598,35 @@ class TestMethodLikes(MaskedArraySetup):
         self.check(np.all)
 
     def test_sometrue(self):
-        self.check(np.sometrue, method='any')
+        self.check(np.sometrue, method="any")
 
     def test_alltrue(self):
-        self.check(np.alltrue, method='all')
+        self.check(np.alltrue, method="all")
 
     def test_prod(self):
         self.check(np.prod)
 
     def test_product(self):
-        self.check(np.product, method='prod')
+        self.check(np.product, method="prod")
 
     def test_cumprod(self):
         self.check(np.cumprod)
 
     def test_cumproduct(self):
-        self.check(np.cumproduct, method='cumprod')
+        self.check(np.cumproduct, method="cumprod")
 
     def test_ptp(self):
         self.check(np.ptp)
         self.check(np.ptp, axis=0)
 
     def test_round_(self):
-        self.check(np.round_, method='round')
+        self.check(np.round_, method="round")
 
     def test_around(self):
-        self.check(np.around, method='round')
+        self.check(np.around, method="round")
 
     def test_clip(self):
-        self.check(np.clip, 2., 4.)
+        self.check(np.clip, 2.0, 4.0)
         self.check(np.clip, self.mb, self.mc)
 
     def test_mean(self):
@@ -644,7 +644,7 @@ class TestUfuncLike(InvariantMaskTestSetup):
         self.check(np.fix)
 
     def test_angle(self):
-        a = np.array([1+0j, 0+1j, 1+1j, 0+0j])
+        a = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j])
         mask_a = np.array([True, False, True, False])
         ma = Masked(a, mask=mask_a)
         out = np.angle(ma)
@@ -660,15 +660,15 @@ class TestUfuncLike(InvariantMaskTestSetup):
 
     def test_where(self):
         mask = [True, False, True]
-        out = np.where(mask, self.ma, 1000.)
-        expected = np.where(mask, self.a, 1000.)
+        out = np.where(mask, self.ma, 1000.0)
+        expected = np.where(mask, self.a, 1000.0)
         expected_mask = np.where(mask, self.mask_a, False)
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
         mask2 = Masked(mask, [True, False, False])
-        out2 = np.where(mask2, self.ma, 1000.)
-        expected2 = np.where(mask, self.a, 1000.)
+        out2 = np.where(mask2, self.ma, 1000.0)
+        expected2 = np.where(mask, self.a, 1000.0)
         expected_mask2 = np.where(mask, self.mask_a, False) | mask2.mask
         assert_array_equal(out2.unmasked, expected2)
         assert_array_equal(out2.mask, expected_mask2)
@@ -681,7 +681,7 @@ class TestUfuncLike(InvariantMaskTestSetup):
         assert_array_equal(out[0], expected[0])
 
     def test_where_wrong_number_of_arg(self):
-        with pytest.raises(ValueError, match='either both or neither'):
+        with pytest.raises(ValueError, match="either both or neither"):
             np.where([True, False, False], self.a)
 
     def test_choose(self):
@@ -711,19 +711,25 @@ class TestUfuncLike(InvariantMaskTestSetup):
         with pytest.raises(ValueError):
             ma.unmasked.choose((self.ma, self.mb))
 
-    @pytest.mark.parametrize('default', [-1., np.ma.masked, Masked(-1, mask=True)])
+    @pytest.mark.parametrize("default", [-1.0, np.ma.masked, Masked(-1, mask=True)])
     def test_select(self, default):
         a, mask_a, ma = self.a, self.mask_a, self.ma
-        out = np.select([a < 1.5, a > 3.5], [ma, ma+1], default=default)
-        expected = np.select([a < 1.5, a > 3.5], [a, a+1],
-                             default=-1 if default is not np.ma.masked else 0)
-        expected_mask = np.select([a < 1.5, a > 3.5], [mask_a, mask_a],
-                                  default=getattr(default, 'mask', False))
+        out = np.select([a < 1.5, a > 3.5], [ma, ma + 1], default=default)
+        expected = np.select(
+            [a < 1.5, a > 3.5],
+            [a, a + 1],
+            default=-1 if default is not np.ma.masked else 0,
+        )
+        expected_mask = np.select(
+            [a < 1.5, a > 3.5],
+            [mask_a, mask_a],
+            default=getattr(default, "mask", False),
+        )
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
     def test_real_if_close(self):
-        a = np.array([1+0j, 0+1j, 1+1j, 0+0j])
+        a = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j])
         mask_a = np.array([True, False, True, False])
         ma = Masked(a, mask=mask_a)
         out = np.real_if_close(ma)
@@ -742,17 +748,17 @@ class TestUfuncLike(InvariantMaskTestSetup):
 
     def test_nan_to_num(self):
         self.check(np.nan_to_num)
-        ma = Masked([np.nan, 1.], mask=[True, False])
+        ma = Masked([np.nan, 1.0], mask=[True, False])
         o = np.nan_to_num(ma, copy=False)
-        assert_masked_equal(o, Masked([0., 1.], mask=[True, False]))
+        assert_masked_equal(o, Masked([0.0, 1.0], mask=[True, False]))
         assert ma is o
 
 
 class TestUfuncLikeTests:
     @classmethod
     def setup_class(self):
-        self.a = np.array([[-np.inf, +np.inf, np.nan, 3., 4.]]*2)
-        self.mask_a = np.array([[False]*5, [True]*4+[False]])
+        self.a = np.array([[-np.inf, +np.inf, np.nan, 3.0, 4.0]] * 2)
+        self.mask_a = np.array([[False] * 5, [True] * 4 + [False]])
         self.ma = Masked(self.a, mask=self.mask_a)
         self.b = np.array([[3.0001], [3.9999]])
         self.mask_b = np.array([[True], [False]])
@@ -762,7 +768,7 @@ class TestUfuncLikeTests:
         out = func(self.ma)
         expected = func(self.a)
         assert type(out) is MaskedNDArray
-        assert out.dtype.kind == 'b'
+        assert out.dtype.kind == "b"
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, self.mask_a)
         assert not np.may_share_memory(out.mask, self.mask_a)
@@ -775,16 +781,16 @@ class TestUfuncLikeTests:
 
     def test_isreal(self):
         self.check(np.isreal)
-        o = np.isreal(Masked([1. + 1j], mask=False))
+        o = np.isreal(Masked([1.0 + 1j], mask=False))
         assert not o.unmasked and not o.mask
-        o = np.isreal(Masked([1. + 1j], mask=True))
+        o = np.isreal(Masked([1.0 + 1j], mask=True))
         assert not o.unmasked and o.mask
 
     def test_iscomplex(self):
         self.check(np.iscomplex)
-        o = np.iscomplex(Masked([1. + 1j], mask=False))
+        o = np.iscomplex(Masked([1.0 + 1j], mask=False))
         assert o.unmasked and not o.mask
-        o = np.iscomplex(Masked([1. + 1j], mask=True))
+        o = np.iscomplex(Masked([1.0 + 1j], mask=True))
         assert o.unmasked and o.mask
 
     def test_isclose(self):
@@ -796,16 +802,16 @@ class TestUfuncLikeTests:
 
     def test_allclose(self):
         out = np.allclose(self.ma, self.mb, atol=0.01)
-        expected = np.isclose(self.ma, self.mb,
-                              atol=0.01)[self.mask_a | self.mask_b].all()
+        expected = np.isclose(self.ma, self.mb, atol=0.01)[
+            self.mask_a | self.mask_b
+        ].all()
         assert_array_equal(out, expected)
 
     def test_array_equal(self):
         assert not np.array_equal(self.ma, self.ma)
         assert not np.array_equal(self.ma, self.a)
-        if not NUMPY_LT_1_19:
-            assert np.array_equal(self.ma, self.ma, equal_nan=True)
-            assert np.array_equal(self.ma, self.a, equal_nan=True)
+        assert np.array_equal(self.ma, self.ma, equal_nan=True)
+        assert np.array_equal(self.ma, self.a, equal_nan=True)
         assert not np.array_equal(self.ma, self.mb)
         ma2 = self.ma.copy()
         ma2.mask |= np.isnan(self.a)
@@ -822,8 +828,7 @@ class TestOuterLikeFunctions(MaskedArraySetup):
     def test_outer(self):
         result = np.outer(self.ma, self.mb)
         expected_data = np.outer(self.a.ravel(), self.b.ravel())
-        expected_mask = np.logical_or.outer(self.mask_a.ravel(),
-                                            self.mask_b.ravel())
+        expected_mask = np.logical_or.outer(self.mask_a.ravel(), self.mask_b.ravel())
         assert_array_equal(result.unmasked, expected_data)
         assert_array_equal(result.mask, expected_mask)
 
@@ -840,8 +845,9 @@ class TestOuterLikeFunctions(MaskedArraySetup):
     def test_kron(self):
         result = np.kron(self.ma, self.mb)
         expected_data = np.kron(self.a, self.b)
-        expected_mask = np.logical_or.outer(self.mask_a,
-                                            self.mask_b).reshape(result.shape)
+        expected_mask = np.logical_or.outer(self.mask_a, self.mask_b).reshape(
+            result.shape
+        )
         assert_array_equal(result.unmasked, expected_data)
         assert_array_equal(result.mask, expected_mask)
 
@@ -864,55 +870,61 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         assert_array_equal(o.unmasked, expected)
         assert_array_equal(o.mask, expected_mask)
 
-    @pytest.mark.parametrize('axis', [0, 1, None])
+    @pytest.mark.parametrize("axis", [0, 1, None])
     def test_count_nonzero(self, axis):
         o = np.count_nonzero(self.ma, axis=axis)
         expected = np.count_nonzero(self.ma.filled(0), axis=axis)
         assert_array_equal(o, expected)
 
 
-@pytest.mark.filterwarnings('ignore:all-nan')
+@pytest.mark.filterwarnings("ignore:all-nan")
 class TestPartitionLikeFunctions:
     @classmethod
     def setup_class(self):
-        self.a = np.arange(36.).reshape(6, 6)
+        self.a = np.arange(36.0).reshape(6, 6)
         self.mask_a = np.zeros_like(self.a, bool)
         # On purpose fill diagonal, so we get all masked elements.
         self.mask_a[np.tril_indices_from(self.a)] = True
         self.ma = Masked(self.a, mask=self.mask_a)
 
     def check(self, function, *args, **kwargs):
+        # Check function by comparing to nan-equivalent, with masked
+        # values set to NaN.
         o = function(self.ma, *args, **kwargs)
-        nanfunc = getattr(np, 'nan'+function.__name__)
+        nanfunc = getattr(np, "nan" + function.__name__)
         nanfilled = self.ma.filled(np.nan)
         expected = nanfunc(nanfilled, *args, **kwargs)
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
-
-        if not kwargs.get('axis', 1):
-            # no need to test for all
+        # Also check that we can give an output MaskedArray.
+        if NUMPY_LT_1_25 and kwargs.get("keepdims", False):
+            # numpy bug gh-22714 prevents using out with keepdims=True.
+            # This is fixed in numpy 1.25.
             return
 
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
         assert o2 is out
         assert_masked_equal(o2, o)
+        # But that a regular array cannot be used since it has no mask.
         with pytest.raises(TypeError):
             function(self.ma, *args, out=np.zeros_like(expected), **kwargs)
 
-    @pytest.mark.parametrize('axis', [None, 0, 1])
-    def test_median(self, axis):
-        self.check(np.median, axis=axis)
+    @pytest.mark.parametrize("keepdims", [False, True])
+    @pytest.mark.parametrize("axis", [None, 0, 1])
+    def test_median(self, axis, keepdims):
+        self.check(np.median, axis=axis, keepdims=keepdims)
 
-    @pytest.mark.parametrize('axis', [None, 0, 1])
-    def test_quantile(self, axis):
-        self.check(np.quantile, q=[0.25, 0.5], axis=axis)
+    @pytest.mark.parametrize("keepdims", [False, True])
+    @pytest.mark.parametrize("axis", [None, 0, 1])
+    def test_quantile(self, axis, keepdims):
+        self.check(np.quantile, q=[0.25, 0.5], axis=axis, keepdims=keepdims)
 
     def test_quantile_out_of_range(self):
-        with pytest.raises(ValueError, match='must be in the range'):
+        with pytest.raises(ValueError, match="must be in the range"):
             np.quantile(self.ma, q=1.5)
 
-    @pytest.mark.parametrize('axis', [None, 0, 1])
+    @pytest.mark.parametrize("axis", [None, 0, 1])
     def test_percentile(self, axis):
         self.check(np.percentile, q=50, axis=axis)
 
@@ -927,10 +939,10 @@ class TestIntDiffFunctions(MaskedArraySetup):
 
     def test_diff_prepend_append(self):
         out = np.diff(self.ma, prepend=Masked(-1, mask=True), append=1)
-        expected = np.diff(self.a, prepend=-1, append=1.)
-        mask = np.concatenate([np.ones((2, 1), bool),
-                               self.mask_a,
-                               np.zeros((2, 1), bool)], axis=-1)
+        expected = np.diff(self.a, prepend=-1, append=1.0)
+        mask = np.concatenate(
+            [np.ones((2, 1), bool), self.mask_a, np.zeros((2, 1), bool)], axis=-1
+        )
         expected_mask = mask[:, 1:] | mask[:, :-1]
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
@@ -945,11 +957,17 @@ class TestIntDiffFunctions(MaskedArraySetup):
     def test_gradient(self):
         out = np.gradient(self.ma)
         expected = np.gradient(self.a)
-        expected_mask = [(self.mask_a[1:] | self.mask_a[:-1]).repeat(2, axis=0),
-                         np.stack([
-                             self.mask_a[:, 0] | self.mask_a[:, 1],
-                             self.mask_a[:, 0] | self.mask_a[:, 2],
-                             self.mask_a[:, 1] | self.mask_a[:, 2]], axis=-1)]
+        expected_mask = [
+            (self.mask_a[1:] | self.mask_a[:-1]).repeat(2, axis=0),
+            np.stack(
+                [
+                    self.mask_a[:, 0] | self.mask_a[:, 1],
+                    self.mask_a[:, 0] | self.mask_a[:, 2],
+                    self.mask_a[:, 1] | self.mask_a[:, 2],
+                ],
+                axis=-1,
+            ),
+        ]
 
         for o, x, m in zip(out, expected, expected_mask):
             assert_array_equal(o.unmasked, x)
@@ -959,23 +977,28 @@ class TestIntDiffFunctions(MaskedArraySetup):
 class TestSpaceFunctions:
     @classmethod
     def setup_class(self):
-        self.a = np.arange(1., 7.).reshape(2, 3)
-        self.mask_a = np.array([[True, False, False],
-                                [False, True, False]])
+        self.a = np.arange(1.0, 7.0).reshape(2, 3)
+        self.mask_a = np.array(
+            [
+                [True, False, False],
+                [False, True, False],
+            ]
+        )
         self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.array([2.5, 10., 3.])
+        self.b = np.array([2.5, 10.0, 3.0])
         self.mask_b = np.array([False, True, False])
         self.mb = Masked(self.b, mask=self.mask_b)
 
     def check(self, function, *args, **kwargs):
         out = function(self.ma, self.mb, 5)
         expected = function(self.a, self.b, 5)
-        expected_mask = np.broadcast_to(self.mask_a | self.mask_b,
-                                        expected.shape).copy()
+        expected_mask = np.broadcast_to(
+            self.mask_a | self.mask_b, expected.shape
+        ).copy()
         # TODO: make implementation that also ensures start point mask is
         # determined just by start point? (as for geomspace in numpy 1.20)?
         expected_mask[-1] = self.mask_b
-        if not NUMPY_LT_1_20 and function is np.geomspace:
+        if function is np.geomspace:
             expected_mask[0] = self.mask_a
 
         assert_array_equal(out.unmasked, expected)
@@ -993,11 +1016,11 @@ class TestSpaceFunctions:
 
 class TestInterpolationFunctions(MaskedArraySetup):
     def test_interp(self):
-        xp = np.arange(5.)
-        fp = np.array([1., 5., 6., 19., 20.])
+        xp = np.arange(5.0)
+        fp = np.array([1.0, 5.0, 6.0, 19.0, 20.0])
         mask_fp = np.array([False, False, False, True, False])
         mfp = Masked(fp, mask=mask_fp)
-        x = np.array([1.5, 17.])
+        x = np.array([1.5, 17.0])
         mask_x = np.array([False, True])
         mx = Masked(x, mask=mask_x)
         out = np.interp(mx, xp, mfp)
@@ -1007,22 +1030,25 @@ class TestInterpolationFunctions(MaskedArraySetup):
 
     def test_piecewise(self):
         condlist = [self.a < 1, self.a >= 1]
-        out = np.piecewise(self.ma, condlist, [Masked(-1, mask=True), 1.])
-        expected = np.piecewise(self.a, condlist, [-1, 1.])
+        out = np.piecewise(self.ma, condlist, [Masked(-1, mask=True), 1.0])
+        expected = np.piecewise(self.a, condlist, [-1, 1.0])
         expected_mask = np.piecewise(self.mask_a, condlist, [True, False])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
         condlist2 = [self.a < 1, self.a >= 3]
-        out2 = np.piecewise(self.ma, condlist2,
-                            [Masked(-1, True), 1, lambda x: Masked(np.full_like(x, 2.),
-                                                                   mask=~x.mask)])
+        out2 = np.piecewise(
+            self.ma,
+            condlist2,
+            [Masked(-1, True), 1, lambda x: Masked(np.full_like(x, 2.0), mask=~x.mask)],
+        )
         expected = np.piecewise(self.a, condlist2, [-1, 1, 2])
-        expected_mask = np.piecewise(self.mask_a, condlist2,
-                                     [True, False, lambda x: ~x])
+        expected_mask = np.piecewise(
+            self.mask_a, condlist2, [True, False, lambda x: ~x]
+        )
         assert_array_equal(out2.unmasked, expected)
         assert_array_equal(out2.mask, expected_mask)
 
-        with pytest.raises(ValueError, match='with 2 condition'):
+        with pytest.raises(ValueError, match="with 2 condition"):
             np.piecewise(self.ma, condlist2, [])
 
     def test_regression_12978(self):
@@ -1031,13 +1057,13 @@ class TestInterpolationFunctions(MaskedArraySetup):
         mask = [False, True, False]
         x = np.array([1, 2, 3])
         xp = Masked(np.array([1, 2, 3]), mask=mask)
-        fp =  Masked(np.array([1, 2, 3]), mask=mask)
+        fp = Masked(np.array([1, 2, 3]), mask=mask)
         result = np.interp(x, xp, fp)
         assert_array_equal(result, x)
 
         # This case raised a ValueError
         xp = np.array([1, 3])
-        fp =  Masked(np.array([1, 3]))
+        fp = Masked(np.array([1, 3]))
         result = np.interp(x, xp, fp)
         assert_array_equal(result, x)
 
@@ -1051,7 +1077,7 @@ class TestBincount(MaskedArraySetup):
         expected = np.bincount(i[~mask_i])
         assert_array_equal(out, expected)
         w = np.arange(len(i))
-        mask_w = np.array([True]+[False]*5)
+        mask_w = np.array([True] + [False] * 5)
         mw = Masked(w, mask=mask_w)
         out2 = np.bincount(i, mw)
         expected = np.bincount(i, w)
@@ -1074,13 +1100,16 @@ class TestSortFunctions(MaskedArraySetup):
         assert_masked_equal(o, expected)
 
     def test_sort_complex(self):
-        ma = Masked(np.array([1+2j, 0+4j, 3+0j, -1-1j]),
-                    mask=[True, False, False, False])
+        ma = Masked(
+            np.array([1 + 2j, 0 + 4j, 3 + 0j, -1 - 1j]),
+            mask=[True, False, False, False],
+        )
         o = np.sort_complex(ma)
         indx = np.lexsort((ma.unmasked.imag, ma.unmasked.real, ma.mask))
         expected = ma[indx]
         assert_masked_equal(o, expected)
 
+    @pytest.mark.skipif(not NUMPY_LT_1_24, reason="np.msort is deprecated")
     def test_msort(self):
         o = np.msort(self.ma)
         expected = np.sort(self.ma, axis=0)
@@ -1101,44 +1130,45 @@ class TestStringFunctions:
 
     def test_array2string(self):
         out0 = np.array2string(self.ma)
-        assert out0 == '[— 1 2]'
+        assert out0 == "[— 1 2]"
         # Arguments are interpreted as usual.
-        out1 = np.array2string(self.ma, separator=', ')
-        assert out1 == '[—, 1, 2]'
+        out1 = np.array2string(self.ma, separator=", ")
+        assert out1 == "[—, 1, 2]"
         # If we do pass in a formatter, though, it should be used.
-        out2 = np.array2string(self.ma, separator=', ', formatter={'all': hex})
-        assert out2 == '[———, 0x1, 0x2]'
+        out2 = np.array2string(self.ma, separator=", ", formatter={"all": hex})
+        assert out2 == "[———, 0x1, 0x2]"
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(self.ma, None, None, None, ', ', '',
-                               np._NoValue, {'int': hex})
+        out3 = np.array2string(
+            self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex}
+        )
         assert out3 == out2
         # But not if the formatter is not relevant for us.
-        out4 = np.array2string(self.ma, separator=', ', formatter={'float': hex})
+        out4 = np.array2string(self.ma, separator=", ", formatter={"float": hex})
         assert out4 == out1
 
     def test_array_repr(self):
         out = np.array_repr(self.ma)
-        assert out == 'MaskedNDArray([—, 1, 2])'
-        ma2 = self.ma.astype('f4')
+        assert out == "MaskedNDArray([—, 1, 2])"
+        ma2 = self.ma.astype("f4")
         out2 = np.array_repr(ma2)
-        assert out2 == 'MaskedNDArray([——, 1., 2.], dtype=float32)'
+        assert out2 == "MaskedNDArray([——, 1., 2.], dtype=float32)"
 
     def test_array_str(self):
         out = np.array_str(self.ma)
-        assert out == '[— 1 2]'
+        assert out == "[— 1 2]"
 
 
 class TestBitFunctions:
     @classmethod
     def setup_class(self):
-        self.a = np.array([15, 255, 0], dtype='u1')
+        self.a = np.array([15, 255, 0], dtype="u1")
         self.mask_a = np.array([False, True, False])
         self.ma = Masked(self.a, mask=self.mask_a)
         self.b = np.unpackbits(self.a).reshape(6, 4)
-        self.mask_b = np.array([False]*15 + [True, True] + [False]*7).reshape(6, 4)
+        self.mask_b = np.array([False] * 15 + [True, True] + [False] * 7).reshape(6, 4)
         self.mb = Masked(self.b, mask=self.mask_b)
 
-    @pytest.mark.parametrize('axis', [None, 1, 0])
+    @pytest.mark.parametrize("axis", [None, 1, 0])
     def test_packbits(self, axis):
         out = np.packbits(self.mb, axis=axis)
         if axis is None:
@@ -1159,6 +1189,7 @@ class TestBitFunctions:
 
 class TestIndexFunctions(MaskedArraySetup):
     """Does not seem much sense to support these..."""
+
     def test_unravel_index(self):
         with pytest.raises(TypeError):
             np.unravel_index(self.ma, 3)
@@ -1186,7 +1217,7 @@ class TestDtypeFunctions(MaskedArraySetup):
 
     def test_can_cast(self):
         self.check(np.can_cast, self.a.dtype)
-        self.check(np.can_cast, 'f4')
+        self.check(np.can_cast, "f4")
 
     def test_min_scalar_type(self):
         out = np.min_scalar_type(self.ma[0, 0])
@@ -1202,10 +1233,10 @@ class TestDtypeFunctions(MaskedArraySetup):
 
 class TestMeshGrid(MaskedArraySetup):
     def test_meshgrid(self):
-        a = np.arange(1., 4.)
+        a = np.arange(1.0, 4.0)
         mask_a = np.array([True, False, False])
         ma = Masked(a, mask=mask_a)
-        b = np.array([2.5, 10., 3., 4.])
+        b = np.array([2.5, 10.0, 3.0, 4.0])
         mask_b = np.array([False, True, False, True])
         mb = Masked(b, mask=mask_b)
         oa, ob = np.meshgrid(ma, mb)
@@ -1230,10 +1261,10 @@ class TestDatetimeFunctions:
     # Could in principle support np.is_busday, np.busday_count, np.busday_offset.
     @classmethod
     def setup_class(self):
-        self.a = np.array(['2020-12-31', '2021-01-01', '2021-01-02'], dtype='M')
+        self.a = np.array(["2020-12-31", "2021-01-01", "2021-01-02"], dtype="M")
         self.mask_a = np.array([False, True, False])
         self.ma = Masked(self.a, mask=self.mask_a)
-        self.b = np.array([['2021-01-07'], ['2021-01-31']], dtype='M')
+        self.b = np.array([["2021-01-07"], ["2021-01-31"]], dtype="M")
         self.mask_b = np.array([[False], [True]])
         self.mb = Masked(self.b, mask=self.mask_b)
 
@@ -1244,20 +1275,27 @@ class TestDatetimeFunctions:
         assert_array_equal(out.mask, self.mask_a)
 
 
-@pytest.mark.filterwarnings('ignore:all-nan')
+@pytest.mark.filterwarnings("ignore:all-nan")
 class TestNaNFunctions:
     def setup_class(self):
-        self.a = np.array([[np.nan, np.nan, 3.],
-                           [4., 5., 6.]])
-        self.mask_a = np.array([[True, False, False],
-                                [False, True, False]])
+        self.a = np.array(
+            [
+                [np.nan, np.nan, 3.0],
+                [4.0, 5.0, 6.0],
+            ]
+        )
+        self.mask_a = np.array(
+            [
+                [True, False, False],
+                [False, True, False],
+            ]
+        )
         self.b = np.arange(1, 7).reshape(2, 3)
         self.mask_b = self.mask_a
         self.ma = Masked(self.a, mask=self.mask_a)
         self.mb = Masked(self.b, mask=self.mask_b)
 
-    def check(self, function, exact_fill_value=None, masked_result=True,
-              **kwargs):
+    def check(self, function, exact_fill_value=None, masked_result=True, **kwargs):
         result = function(self.ma, **kwargs)
         expected_data = function(self.ma.filled(np.nan), **kwargs)
         expected_mask = np.isnan(expected_data)
@@ -1347,15 +1385,12 @@ class TestNaNFunctions:
 
 
 untested_functions = set()
-if NUMPY_LT_1_20:
-    financial_functions = {f for f in all_wrapped_functions.values()
-                           if f in np.lib.financial.__dict__.values()}
-    untested_functions |= financial_functions
 
 if NUMPY_LT_1_23:
     deprecated_functions = {
         # Deprecated, removed in numpy 1.23
-        np.asscalar, np.alen,
+        np.asscalar,
+        np.alen,
     }
 else:
     deprecated_functions = set()
@@ -1363,11 +1398,10 @@ else:
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
 untested_functions |= io_functions
-
 poly_functions = {
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
-    np.polymul, np.polysub, np.polyval, np.roots, np.vander
-    }
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+}  # fmt: skip
 untested_functions |= poly_functions
 
 
@@ -1375,40 +1409,47 @@ untested_functions |= poly_functions
 tested_functions = set()
 for cov_cls in list(filter(inspect.isclass, locals().values())):
     for k, v in cov_cls.__dict__.items():
-        if inspect.isfunction(v) and k.startswith('test'):
-            f = k.replace('test_', '')
+        if inspect.isfunction(v) and k.startswith("test"):
+            f = k.replace("test_", "")
             if f in all_wrapped_functions:
                 tested_functions.add(all_wrapped_functions[f])
 
 
 def test_basic_testing_completeness():
-    assert all_wrapped == (tested_functions
-                           | IGNORED_FUNCTIONS
-                           | UNSUPPORTED_FUNCTIONS)
+    assert all_wrapped == (tested_functions | IGNORED_FUNCTIONS | UNSUPPORTED_FUNCTIONS)
 
 
-@pytest.mark.xfail(reason='coverage not completely set up yet')
+@pytest.mark.xfail(reason="coverage not completely set up yet")
 def test_testing_completeness():
     assert not tested_functions.intersection(untested_functions)
     assert all_wrapped == (tested_functions | untested_functions)
 
 
 class TestFunctionHelpersCompleteness:
-    @pytest.mark.parametrize('one, two', itertools.combinations(
-        (MASKED_SAFE_FUNCTIONS,
-         UNSUPPORTED_FUNCTIONS,
-         set(APPLY_TO_BOTH_FUNCTIONS.keys()),
-         set(DISPATCHED_FUNCTIONS.keys())), 2))
+    @pytest.mark.parametrize(
+        "one, two",
+        itertools.combinations(
+            (
+                MASKED_SAFE_FUNCTIONS,
+                UNSUPPORTED_FUNCTIONS,
+                set(APPLY_TO_BOTH_FUNCTIONS.keys()),
+                set(DISPATCHED_FUNCTIONS.keys()),
+            ),
+            2,
+        ),
+    )
     def test_no_duplicates(self, one, two):
         assert not one.intersection(two)
 
     def test_all_included(self):
-        included_in_helpers = (MASKED_SAFE_FUNCTIONS |
-                               UNSUPPORTED_FUNCTIONS |
-                               set(APPLY_TO_BOTH_FUNCTIONS.keys()) |
-                               set(DISPATCHED_FUNCTIONS.keys()))
+        included_in_helpers = (
+            MASKED_SAFE_FUNCTIONS
+            | UNSUPPORTED_FUNCTIONS
+            | set(APPLY_TO_BOTH_FUNCTIONS.keys())
+            | set(DISPATCHED_FUNCTIONS.keys())
+        )
         assert all_wrapped == included_in_helpers
 
-    @pytest.mark.xfail(reason='coverage not completely set up yet')
+    @pytest.mark.xfail(reason="coverage not completely set up yet")
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS == untested_functions

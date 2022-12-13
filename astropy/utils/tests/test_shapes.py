@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
+import pytest
 
 from astropy.utils.shapes import check_broadcast, unbroadcast
 
@@ -17,7 +17,6 @@ def test_check_broadcast():
 
 
 def test_unbroadcast():
-
     x = np.array([1, 2, 3])
     y = np.broadcast_to(x, (2, 4, 3))
     z = unbroadcast(y)
