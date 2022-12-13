@@ -75,6 +75,9 @@ def data_shape(array_shapes_tile_dims):
 @pytest.fixture(scope="module")
 def base_original_data(data_shape, dtype, numpy_rng, compression_type):
     random = numpy_rng.uniform(high=255, size=data_shape)
+    # Set first value to be exactly zero as zero values require special treatment
+    # for SUBTRACTIVE_DITHER_2
+    random.ravel()[0] = 0.0
     # There seems to be a bug with the fitsio library where HCOMPRESS doesn't
     # work with int16 random data, so use a bit for structured test data.
     if compression_type.startswith("HCOMPRESS") and "i2" in dtype or "u1" in dtype:
@@ -149,10 +152,10 @@ def astropy_compressed_file_path(
 
 def test_decompress(
     fitsio_compressed_file_path,
-    base_original_data,
-    compression_type,
-    dtype,
+    comp_param_dtype,
 ):
+
+    compression_type, param, dtype = comp_param_dtype
 
     with fits.open(fitsio_compressed_file_path) as hdul:
         data = hdul[1].data
@@ -171,10 +174,13 @@ def test_decompress(
     data2 = fts[1].read()
     np.testing.assert_allclose(data, data2)
 
+    # The first value should be exactly equal to zero when using SUBTRACTIVE_DITHER_2
+    if param.get("qmethod", None) == 2:
+        assert data.ravel()[0] == 0.0
+
 
 def test_compress(
     astropy_compressed_file_path,
-    base_original_data,
     compression_type,
     dtype,
 ):
