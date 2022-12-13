@@ -17,6 +17,8 @@ ALGORITHMS = {
     "HCOMPRESS_1": HCompress1,
 }
 
+DEFAULT_ZBLANK = -2147483648
+
 
 def decompress_tile(buf, *, algorithm: str, **kwargs):
     """
@@ -306,6 +308,17 @@ def decompress_hdu(hdu):
                 tile_shape=actual_tile_shape,
                 lossless=not quantize,
             )
+
+            if "ZBLANK" in row.array.names:
+                zblank = row["ZBLANK"]
+            elif "ZBLANK" in hdu._header:
+                zblank = hdu._header["ZBLANK"]
+            else:
+                zblank = None
+
+            if zblank is not None:
+                blank_mask = tile_data == zblank
+
             if quantize:
                 dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
                 dither_seed = hdu._header.get("ZDITHER0", 0)
@@ -315,6 +328,11 @@ def decompress_hdu(hdu):
                 tile_data = np.asarray(
                     q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
                 ).reshape(actual_tile_shape)
+
+            if zblank is not None:
+                if not tile_data.flags.writeable:
+                    tile_data = tile_data.copy()
+                tile_data[blank_mask] = np.nan
 
         data[tile_slices] = tile_data
         istart[-1] += tile_shape[-1]
@@ -347,6 +365,7 @@ def compress_hdu(hdu):
     gzip_fallback = []
     scales = []
     zeros = []
+    zblank = None
 
     irow = 0
     istart = np.zeros(len(data_shape), dtype=int)
@@ -380,17 +399,51 @@ def compress_hdu(hdu):
                 irow + dither_seed, dither_method, noisebit, hdu._header["ZBITPIX"]
             )
             original_shape = data.shape
+
+            # If there are any NaN values in the data, we should reset them to
+            # a value that will not affect the quantization (an already existing
+            # data value in the array) and we can then reset this after quantization
+            # to ZBLANK and set the appropriate header keyword
+            nan_mask = np.isnan(data)
+            any_nan = np.any(nan_mask)
+            if any_nan:
+                # Note that we need to copy here to avoid modifying the input array.
+                data = data.copy()
+                if np.all(nan_mask):
+                    data[nan_mask] = 0
+                else:
+                    data[nan_mask] = np.nanmin(data)
+
             try:
                 data, scale, zero = q.encode_quantized(data)
             except QuantizationFailedException:
+
+                if any_nan:
+                    # reset NaN values since we will losslessly compress.
+                    data[nan_mask] = np.nan
+
                 scales.append(0)
                 zeros.append(0)
                 gzip_fallback.append(True)
+
             else:
                 data = np.asarray(data).reshape(original_shape)
+
+                if any_nan:
+                    if not data.flags.writeable:
+                        data = data.copy()
+                    # For now, we just use the default ZBLANK value and assume
+                    # this is the same for all tiles. We could generalize this
+                    # to allow different ZBLANK values (for example if the data
+                    # includes this value by chance) and to allow different values
+                    # per tile, which is allowed by the FITS standard.
+                    data[nan_mask] = DEFAULT_ZBLANK
+                    zblank = DEFAULT_ZBLANK
+
                 scales.append(scale)
                 zeros.append(zero)
                 gzip_fallback.append(False)
+
         else:
             scales.append(0)
             zeros.append(0)
@@ -423,6 +476,9 @@ def compress_hdu(hdu):
             break
 
         irow += 1
+
+    if zblank is not None:
+        hdu._header['ZBLANK'] = zblank
 
     table = np.zeros(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
 
