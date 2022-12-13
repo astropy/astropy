@@ -253,6 +253,9 @@ def decompress_hdu(hdu):
 
     quantize = "ZSCALE" in hdu.compressed_data.dtype.names
 
+    if len(hdu.compressed_data) == 0:
+        return None
+
     istart = np.zeros(data.ndim, dtype=int)
     for irow, row in enumerate(hdu.compressed_data):
 
@@ -352,6 +355,9 @@ def compress_hdu(hdu):
 
     while True:
 
+        if hdu.data is None:
+            break
+
         # In the following, we don't need to special case tiles near the edge
         # as Numpy will automatically ignore parts of the slices that are out
         # of bounds.
@@ -427,7 +433,7 @@ def compress_hdu(hdu):
     for irow, cbytes in enumerate(compressed_bytes):
         table["COMPRESSED_DATA"][irow, 0] = len(cbytes)
 
-    table["COMPRESSED_DATA"][0, 1] = 0
+    table["COMPRESSED_DATA"][:1, 1] = 0
     table["COMPRESSED_DATA"][1:, 1] = np.cumsum(table["COMPRESSED_DATA"][:-1, 0])
 
     for irow in range(len(compressed_bytes)):
