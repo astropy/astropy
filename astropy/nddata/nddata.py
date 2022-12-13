@@ -8,6 +8,7 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Quantity, Unit
+from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.metadata import MetaData
 from astropy.wcs.wcsapi import SlicedLowLevelWCS  # noqa: F401
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS, HighLevelWCSWrapper
@@ -108,7 +109,7 @@ class NDData(NDDataBase):
         >>> nd2 = NDData(q, unit=u.cm)
         INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
         >>> nd2.data  # doctest: +FLOAT_CMP
-        array([1., 2., 3., 4.])
+        array([100., 200., 300., 400.])
         >>> nd2.unit
         Unit("cm")
 
@@ -153,10 +154,10 @@ class NDData(NDDataBase):
             # unit just overwrite the unit parameter with the NDData.unit
             # and proceed as if that one was given as parameter. Same for the
             # other parameters.
-            if unit is not None and data.unit is not None and unit != data.unit:
-                log.info("overwriting NDData's current unit with specified unit.")
-            elif data.unit is not None:
+            if unit is None and data.unit is not None:
                 unit = data.unit
+            elif unit is not None and data.unit is not None:
+                log.info("overwriting NDData's current unit with specified unit.")
 
             if uncertainty is not None and data.uncertainty is not None:
                 log.info(
@@ -186,29 +187,69 @@ class NDData(NDDataBase):
             elif data.meta is not None:
                 meta = data.meta
 
+            # get the data attribute as it is, and continue to process it:
             data = data.data
 
-        else:
-            if hasattr(data, "mask") and hasattr(data, "data"):
-                # Separating data and mask
+        # if the data is wrapped by astropy.utils.masked.Masked:
+        if isinstance(data, Masked):
+            # first get the mask if one is available:
+            if hasattr(data, "mask"):
                 if mask is not None:
                     log.info(
-                        "overwriting Masked Objects's current mask with specified mask."
+                        "overwriting Masked Quantity's current mask with specified mask."
                     )
                 else:
                     mask = data.mask
 
-                # Just save the data for further processing, we could be given
-                # a masked Quantity or something else entirely. Better to check
-                # it first.
-                data = data.data
+            if isinstance(data, MaskedNDArray):
+                if unit is not None and hasattr(data, "unit") and data.unit != unit:
+                    log.info(
+                        "overwriting MaskedNDArray's current unit with specified unit."
+                    )
+                    data = data.to(unit).value
+                elif unit is None and hasattr(data, "unit"):
+                    unit = data.unit
+                    data = data.value
+
+                # now get the unmasked ndarray:
+                data = np.asarray(data)
 
             if isinstance(data, Quantity):
-                if unit is not None and unit != data.unit:
+                # this is a Quantity:
+                if unit is not None and data.unit != unit:
                     log.info("overwriting Quantity's current unit with specified unit.")
-                else:
+                    data = data.to(unit)
+                elif unit is None and data.unit is not None:
                     unit = data.unit
                 data = data.value
+
+        if isinstance(data, np.ma.masked_array):
+            if mask is not None:
+                log.info(
+                    "overwriting masked ndarray's current mask with specified mask."
+                )
+            else:
+                mask = data.mask
+            data = data.data
+
+        if isinstance(data, Quantity):
+            # this is a Quantity:
+            if unit is not None and data.unit != unit:
+                log.info("overwriting Quantity's current unit with specified unit.")
+                data = data.to(unit)
+            elif unit is None and data.unit is not None:
+                unit = data.unit
+            data = data.value
+
+        if isinstance(data, np.ndarray):
+            # check for mask from np.ma.masked_ndarray
+            if hasattr(data, "mask"):
+                if mask is not None:
+                    log.info(
+                        "overwriting masked ndarray's current mask with specified mask."
+                    )
+                else:
+                    mask = data.mask
 
         # Quick check on the parameters if they match the requirements.
         if (
@@ -219,7 +260,6 @@ class NDData(NDDataBase):
             # Data doesn't look like a numpy array, try converting it to
             # one.
             data = np.array(data, subok=True, copy=False)
-
         # Another quick check to see if what we got looks like an array
         # rather than an object (since numpy will convert a
         # non-numerical/non-string inputs to an array of objects).

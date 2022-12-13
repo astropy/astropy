@@ -128,7 +128,7 @@ explicit parameter will be used and an info message will be issued::
     >>> ndd6 = NDData(quantity, unit='m')
     INFO: overwriting Quantity's current unit with specified unit. [astropy.nddata.nddata]
     >>> ndd6.data  # doctest: +FLOAT_CMP
-    array([1., 1., 1.])
+    array([0.01, 0.01, 0.01])
     >>> ndd6.unit
     Unit("m")
 

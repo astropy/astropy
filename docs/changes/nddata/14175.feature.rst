@@ -1,0 +1,3 @@
+``astropy.nddata.NDDataArray`` now has collapsing methods like ``sum``,
+``mean``, ``min``, and ``max`` which operate along any axes, and better
+support for ``astropy.utils.Masked`` objects.
