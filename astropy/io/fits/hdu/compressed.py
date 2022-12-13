@@ -1484,6 +1484,11 @@ class CompImageHDU(BinTableHDU):
             new_dtype = self._dtype_for_bitpix()
             data = np.array(data, dtype=new_dtype)
 
+            # TODO: ZBLANK should not be dealt with here as it should apply
+            # to data before being unquantized, which has already happened in
+            # decompress_hdu, so we should remove references to ZBLANK here.
+            # However, it might be that we still need to handle BLANK.
+
             zblank = None
 
             if "ZBLANK" in self.compressed_data.columns.names:
