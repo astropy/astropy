@@ -505,11 +505,10 @@ class TestQuantityOperations:
 
     def test_non_number_type(self):
         q1 = u.Quantity(11.412, unit=u.meter)
-        with pytest.raises(TypeError) as exc:
+        with pytest.raises(
+            TypeError, match=r"Unsupported operand type\(s\) for ufunc .*"
+        ):
             q1 + {"a": 1}
-        assert exc.value.args[0].startswith(
-            "Unsupported operand type(s) for ufunc add:"
-        )
 
         with pytest.raises(TypeError):
             q1 + u.meter
