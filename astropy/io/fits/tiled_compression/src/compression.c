@@ -9,11 +9,6 @@
 #include <quantize.h>
 #include <ricecomp.h>
 
-// TODO: use better estimates for compressed buffer sizes, as done in
-//       imcomp_calc_max_elem in cfitsio. For now we assume the
-//       compressed data won't be more than four times the size of the
-//       uncompressed data, which is safe but too generous.
-
 // Some of the cfitsio compression files use ffpmsg
 // so we provide a dummy function to replace this.
 void ffpmsg(const char *err_message) {}
@@ -253,6 +248,12 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
 
   if (!PyArg_ParseTuple(args, "y#iiii", &str, &count, &nx, &ny, &scale, &bytepix)) {
     return NULL;
+  }
+
+  if (count != nx * ny * bytepix) {
+    PyErr_SetString(PyExc_ValueError,
+                    "The tile dimensions and dtype do not match the number of bytes provided.");
+    return (PyObject *)NULL;
   }
 
   // maxelem adapted from cfitsio's imcomp_calc_max_elem function
