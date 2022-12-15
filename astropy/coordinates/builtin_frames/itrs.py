@@ -77,7 +77,8 @@ class ITRS(BaseCoordinateFrame):
         """
         from astropy.coordinates.earth import EarthLocation
 
-        cart = self.represent_as(CartesianRepresentation)
+        cart = self.represent_as(CartesianRepresentation).without_differentials()
+        cart += self.location.get_itrs().cartesian
         return EarthLocation(x=cart.x, y=cart.y, z=cart.z)
 
 
