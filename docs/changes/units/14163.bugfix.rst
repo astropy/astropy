@@ -1,0 +1,3 @@
+Modified the behavior of ``numpy.array_equal()`` and ``numpy.array_equiv()`` to
+return ``False`` instead of raising an error if their arguments are
+``astropy.units.Quantity`` instances with incompatible units.
