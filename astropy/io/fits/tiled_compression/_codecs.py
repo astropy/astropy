@@ -276,7 +276,7 @@ class PLIO1(Codec):
         Compress the data in the buffer using the PLIO_1 algorithm.
         """
         dbytes = np.asarray(buf).astype("i4").tobytes()
-        return compress_plio_1_c(dbytes)
+        return compress_plio_1_c(dbytes, self.tilesize)
 
 
 class HCompress1(Codec):
