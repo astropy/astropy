@@ -96,29 +96,27 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args) {
   PyObject *result;
 
   int maxelem;
-  int npix;
+  int tilesize;
   short *compressed_values;
   int compressed_length;
   int *decompressed_values;
 
-  if (!PyArg_ParseTuple(args, "y#", &str, &count)) {
+  if (!PyArg_ParseTuple(args, "y#i", &str, &count, &tilesize)) {
     return NULL;
   }
 
-  // maxelem adapted from cfitsio's imcomp_calc_max_elem function
-  maxelem = count;
-
+  // For PLIO imcomp_calc_max_elem in cfitsio does this to calculate max memory:
+  maxelem = tilesize * sizeof(int);
   compressed_values = (short *)malloc(maxelem);
 
   decompressed_values = (int *)str;
-  npix = count / 4;
 
   // Zero the compressed values array
   for (int i = 0; i < maxelem / 2; i++) {
     compressed_values[i] = 0;
   }
 
-  compressed_length = pl_p2li(decompressed_values, 1, compressed_values, npix);
+  compressed_length = pl_p2li(decompressed_values, 1, compressed_values, tilesize);
 
   buf = (char *)compressed_values;
 
@@ -145,8 +143,6 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args) {
 
   compressed_values = (short *)str;
 
-  // NOTE: the second *4 shouldn't be needed but ran into segfaults with
-  // smaller buffers.
   decompressed_values = (int *)malloc(sizeof(int) * tilesize);
 
   pl_l2pi(compressed_values, 1, decompressed_values, tilesize);
