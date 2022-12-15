@@ -40,7 +40,12 @@ import operator
 import numpy as np
 from numpy.lib import recfunctions as rfn
 
-from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.core import (
+    UnitConversionError,
+    UnitsError,
+    UnitTypeError,
+    dimensionless_unscaled,
+)
 from astropy.utils import isiterable
 from astropy.utils.compat import NUMPY_LT_1_23
 
@@ -561,16 +566,22 @@ def close(a, b, rtol=1e-05, atol=1e-08, *args, **kwargs):
     return (a, b, rtol, atol) + args, kwargs, None, None
 
 
-@function_helper
+@dispatched_function
 def array_equal(a1, a2, equal_nan=False):
-    args, unit = _quantities2arrays(a1, a2)
-    return args, dict(equal_nan=equal_nan), None, None
+    try:
+        args, unit = _quantities2arrays(a1, a2)
+    except UnitConversionError:
+        return False, None, None
+    return np.array_equal(*args, equal_nan=equal_nan), None, None
 
 
-@function_helper
+@dispatched_function
 def array_equiv(a1, a2):
-    args, unit = _quantities2arrays(a1, a2)
-    return args, {}, None, None
+    try:
+        args, unit = _quantities2arrays(a1, a2)
+    except UnitConversionError:
+        return False, None, None
+    return np.array_equiv(*args), None, None
 
 
 @function_helper(helps={np.dot, np.outer})
