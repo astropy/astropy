@@ -48,6 +48,7 @@ ALL_FLOAT_DTYPES = ["".join(ele) for ele in _expand([("<", ">"), ("f",), ("4", "
             ({"qlevel": None},),
             ALL_FLOAT_DTYPES,
         ],
+        # All compression types can also take quantized floating point input
         [
             COMPRESSION_TYPES,
             (

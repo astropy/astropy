@@ -133,7 +133,6 @@ def _buffer_to_array(
             dtype = ">u1"
         tile_data = np.asarray(tile_buffer).view(dtype).reshape(tile_shape)
     else:
-
         # For RICE_1 compression the tiles that are on the edge can end up
         # being padded, so we truncate excess values
         if algorithm in ("RICE_1", "RICE_ONE", "PLIO_1"):

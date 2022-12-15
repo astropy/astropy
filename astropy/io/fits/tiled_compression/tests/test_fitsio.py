@@ -18,7 +18,7 @@ from astropy.io import fits
 from .conftest import _expand
 
 # This is so that tox can force this file to be run, and not be silently
-# skipped on CI, but in all other test runs it's skipped.
+# skipped on CI, but in all other test runs it's skipped if fitsio isn't present.
 if "ASTROPY_ALWAYS_TEST_FITSIO" in os.environ:
     import fitsio
 else:
@@ -41,14 +41,6 @@ def numpy_rng():
             ((5, 5, 1), (5, 7, 1), (1, 5, 4), (1, 1, 15), (15, 1, 5)),
         ],
         # >3D Data are not currently supported by cfitsio
-        # [
-        #     ((15, 15, 15, 15),),
-        #     (
-        #         (5, 5, 5, 5),
-        #         (1, 5, 1, 5),
-        #         (3, 1, 4, 5),
-        #     ),
-        # ],
     ),
     ids=lambda x: f"shape: {x[0]} tile_dims: {x[1]}",
 )
