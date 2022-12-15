@@ -51,8 +51,6 @@ class Gzip1(Codec):
         """
         Decompress buffer using the GZIP_1 algorithm.
 
-        {_GZIP_1_DESCRIPTION}
-
         Parameters
         ----------
         buf
