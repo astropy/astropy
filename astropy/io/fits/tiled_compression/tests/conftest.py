@@ -1,5 +1,6 @@
 import itertools
 
+import numpy as np
 import pytest
 
 COMPRESSION_TYPES = [
@@ -9,6 +10,18 @@ COMPRESSION_TYPES = [
     "HCOMPRESS_1",
     "PLIO_1",
 ]
+
+
+def fitsio_param_to_astropy_param(param):
+    # Convert fitsio kwargs to astropy kwargs
+    _map = {"qlevel": "quantize_level", "qmethod": "quantize_method"}
+    param = {_map[k]: v for k, v in param.items()}
+
+    # Map quantize_level
+    if param.get("quantize_level", "missing") is None:
+        param["quantize_level"] = 0.0
+
+    return param
 
 
 def _expand(*params):
@@ -77,3 +90,8 @@ def compression_param(comp_param_dtype):
 @pytest.fixture(scope="session")
 def dtype(comp_param_dtype):
     return comp_param_dtype[2]
+
+
+@pytest.fixture(scope="session")
+def numpy_rng():
+    return np.random.default_rng()
