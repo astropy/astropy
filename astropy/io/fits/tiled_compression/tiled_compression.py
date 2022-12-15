@@ -1,5 +1,7 @@
 """
-This module contains low level helper functions for compressing and decompressing buffer for the Tiled Table Compression algorithms as specified in the FITS 4 standard.
+This module contains low level helper functions for compressing and
+decompressing buffer for the Tiled Table Compression algorithms as specified in
+the FITS 4 standard.
 """
 import numpy as np
 
@@ -240,7 +242,18 @@ def _get_compression_setting(header, name, default):
 
 def decompress_hdu(hdu):
     """
-    Drop-in replacement for decompress_hdu from compressionmodule.c
+    Decompress the data in a `~astropy.io.fits.CompImageHDU`.
+
+    Parameters
+    ----------
+    hdu : `astropy.io.fits.CompImageHDU`
+        Input HDU to decompress the data for.
+
+    Returns
+    -------
+
+    data : `numpy.ndarray`
+        The decompressed data array.
     """
 
     _check_compressed_header(hdu._header)
@@ -345,7 +358,22 @@ def decompress_hdu(hdu):
 
 def compress_hdu(hdu):
     """
-    Drop-in replacement for compress_hdu from compressionmodule.c
+    Compress the data in a `~astropy.io.fits.CompImageHDU`.
+
+    The input HDU is expected to have a uncompressed numpy array as it's
+    ``.data`` attribute.
+
+    Parameters
+    ----------
+    hdu : `astropy.io.fits.CompImageHDU`
+        Input HDU to compress the data for.
+
+    Returns
+    -------
+    nbytes : `int`
+        The number of bytes for the data once compressed.
+    cbytes : `numpy.ndarray`
+        The compressed bytes as a unit8 numpy array.
     """
 
     if not isinstance(hdu.data, np.ndarray):
@@ -477,7 +505,7 @@ def compress_hdu(hdu):
         irow += 1
 
     if zblank is not None:
-        hdu._header['ZBLANK'] = zblank
+        hdu._header["ZBLANK"] = zblank
 
     table = np.zeros(len(compressed_bytes), dtype=hdu.columns.dtype.newbyteorder(">"))
 
