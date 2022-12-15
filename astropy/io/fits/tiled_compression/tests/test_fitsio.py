@@ -15,7 +15,7 @@ import pytest
 
 from astropy.io import fits
 
-from .conftest import _expand
+from .conftest import _expand, fitsio_param_to_astropy_param
 
 # This is so that tox can force this file to be run, and not be silently
 # skipped on CI, but in all other test runs it's skipped if fitsio isn't present.
@@ -25,20 +25,24 @@ else:
     fitsio = pytest.importorskip("fitsio")
 
 
-@pytest.fixture(scope="session")
-def numpy_rng():
-    return np.random.default_rng()
-
-
 @pytest.fixture(
     scope="module",
     params=_expand(
         [((10,),), ((5,), (1,), (3,))],
-        [((12, 12),), ((1, 12), (4, 5), (6, 6))],
+        [((12, 12),), ((1, 12), (4, 5), (6, 6), None)],
         [((15, 15),), ((1, 15), (5, 1), (5, 5))],
         [
             ((15, 15, 15),),
             ((5, 5, 1), (5, 7, 1), (1, 5, 4), (1, 1, 15), (15, 1, 5)),
+        ],
+        # Test the situation where the tile shape is passed larger than the
+        # array shape
+        [
+            ((4, 4, 5),),
+            (
+                (5, 5, 1),
+                None,
+            ),
         ],
         # >3D Data are not currently supported by cfitsio
     ),
@@ -50,7 +54,7 @@ def array_shapes_tile_dims(request, compression_type):
     if compression_type == "HCOMPRESS_1" and (
         len(shape) < 2 or np.count_nonzero(np.array(tile_dim) != 1) != 2
     ):
-        pytest.xfail("HCOMPRESS is 2D only apparently")
+        pytest.xfail("HCOMPRESS requires 2D tiles.")
     return shape, tile_dim
 
 
@@ -126,14 +130,8 @@ def astropy_compressed_file_path(
 
     tmp_path = tmp_path_factory.mktemp("astropy")
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
-    # Convert fitsio kwargs to astropy kwargs
-    _map = {"qlevel": "quantize_level", "qmethod": "quantize_method"}
-    param = {_map[k]: v for k, v in param.items()}
 
-    # Map quantize_level
-    if param.get("quantize_level", "missing") is None:
-        param["quantize_level"] = 0.0
-
+    param = fitsio_param_to_astropy_param(param)
     hdu = fits.CompImageHDU(
         data=original_data, compression_type=compression_type, **param
     )
