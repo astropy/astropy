@@ -420,7 +420,7 @@ class TestTimeDeltaScales:
                 dt + t2
 
     def test_scales_for_delta_minus_delta(self):
-        """dT(X) +/- dT2(Y) -- Add/substract JDs for dT(X) and dT(Y).X
+        """dT(X) +/- dT2(Y) -- Add/subtract JDs for dT(X) and dT(Y).X
 
         I.e. this will succeed if dT(Y) can be converted to scale X.
         Returns delta time in scale X

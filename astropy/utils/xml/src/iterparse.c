@@ -121,7 +121,7 @@ typedef struct {
     Py_ssize_t queue_write_idx;
 
     /* Store the last Python exception so it can be returned when
-       dequeing events */
+       dequeuing events */
     PyObject*  error_type;
     PyObject*  error_value;
     PyObject*  error_traceback;

@@ -500,7 +500,7 @@ class NDArithmeticMixin:
             The ``wcs`` of the first operand is returned.
         """
 
-        # ok, not really arithmetics but we need to check which wcs makes sense
+        # ok, not really arithmetic but we need to check which wcs makes sense
         # for the result and this is an ideal place to compare the two WCS,
         # too.
 
@@ -569,14 +569,14 @@ class NDArithmeticMixin:
     def _prepare_then_do_arithmetic(
         self_or_cls, operation, operand, operand2, **kwargs
     ):
-        """Intermediate method called by public arithmetics (i.e. ``add``)
+        """Intermediate method called by public arithmetic (i.e. ``add``)
         before the processing method (``_arithmetic``) is invoked.
 
         .. warning::
             Do not override this method in subclasses.
 
         This method checks if it was called as instance or as class method and
-        then wraps the operands and the result from ``_arithmetics`` in the
+        then wraps the operands and the result from ``_arithmetic`` in the
         appropriate subclass.
 
         Parameters
@@ -641,7 +641,7 @@ class NDArithmeticMixin:
         # of NDData.
         operand2 = cls(operand2)
 
-        # Now call the _arithmetics method to do the arithmetics.
+        # Now call the _arithmetics method to do the arithmetic.
         result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
 
         # Return a new class based on the result

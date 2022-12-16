@@ -54,7 +54,7 @@ def test_fnpickling_class(tmp_path):
 def test_fnpickling_protocol(tmp_path):
     """
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
-    and unpickle pickle files from all protcols.
+    and unpickle pickle files from all protocols.
     """
     import pickle
 

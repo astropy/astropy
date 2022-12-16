@@ -2367,7 +2367,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox({}, Gaussian2D(), ((1, True),))
         assert len(bounding_box.bounding_boxes) == 0
 
-        # Singlar
+        # Singular
         assert bounding_box._get_selector_key(5) == (5,)
         assert bounding_box._get_selector_key((5,)) == (5,)
         assert bounding_box._get_selector_key([5]) == (5,)

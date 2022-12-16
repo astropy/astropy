@@ -68,7 +68,7 @@ two *lazy data loading* features available in Astropy:
 1. The ``lazy_load_hdus`` parameter offered by `open` takes care of loading HDU
    header and data attributes on demand rather than reading all HDUs at once.
    This parameter is set to ``True`` by default.  You do not need to pass it
-   explicitely, unless you changed its default value in the
+   explicitly, unless you changed its default value in the
    :ref:`astropy:astropy_config`.
 2. The `ImageHDU.section` property enables a subset of a data array to be
    read into memory without downloading the entire image or cube. See the

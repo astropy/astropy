@@ -138,7 +138,7 @@ class Projection(Model):
 
         .. warning::
             This method assumes that the order in which PVi values (i>0)
-            are to be asigned is identical to the order of model parameters
+            are to be assigned is identical to the order of model parameters
             in ``param_names``. That is, pv[1] = model.parameters[0], ...
 
         """

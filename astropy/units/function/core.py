@@ -496,7 +496,7 @@ class FunctionQuantity(Quantity):
 
     ndmin : int, optional
         Specifies the minimum number of dimensions that the resulting array
-        should have.  Ones will be pre-pended to the shape as needed to meet
+        should have.  Ones will be prepended to the shape as needed to meet
         this requirement.  This parameter is ignored if the input is a
         `~astropy.units.Quantity` and ``copy=False``.
 

@@ -1848,7 +1848,7 @@ def test_cache_clear_sc():
 
 
 def test_set_attribute_exceptions():
-    """Ensure no attrbute for any frame can be set directly.
+    """Ensure no attribute for any frame can be set directly.
 
     Though it is fine if the current frame does not have it."""
     sc = SkyCoord(1.0 * u.deg, 2.0 * u.deg, frame="fk5")

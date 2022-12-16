@@ -156,7 +156,7 @@ class TestTimeDeltaQuantity:
             dt.to_value(u.s, subfmt="str")
 
     def test_valid_quantity_operations1(self):
-        """Check adding/substracting/comparing a time-valued quantity works
+        """Check adding/subtracting/comparing a time-valued quantity works
         with a TimeDelta.  Addition/subtraction should give TimeDelta"""
         t0 = TimeDelta(106400.0, format="sec")
         q1 = 10.0 * u.second

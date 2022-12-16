@@ -44,7 +44,7 @@ class _CosmologyWrapper:
     """
 
     __slots__ = ("wrapped",)
-    # Use less memory and speed up initilization.
+    # Use less memory and speed up initialization.
 
     _cantbroadcast: tuple[type, ...] = (table.Row, table.Table)
     """

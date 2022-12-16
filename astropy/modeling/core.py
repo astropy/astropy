@@ -2014,7 +2014,7 @@ class Model(metaclass=_ModelMeta):
     def _remove_axes_from_shape(shape, axis):
         """
         Given a shape tuple as the first input, construct a new one by  removing
-        that particular axis from the shape and all preceeding axes. Negative axis
+        that particular axis from the shape and all preceding axes. Negative axis
         numbers are permittted, where the axis is relative to the last axis.
         """
         if len(shape) == 0:

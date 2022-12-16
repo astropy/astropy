@@ -224,7 +224,7 @@ resulting ``meta`` will be. The options are the same as for the ``mask``:
   empty) and the callable evaluates the result's ``meta``. For example, a
   function that merges these two::
 
-      >>> # It's expected with arithmetics that the result is not a reference,
+      >>> # It's expected with arithmetic that the result is not a reference,
       >>> # so we need to copy
       >>> from copy import deepcopy
 
