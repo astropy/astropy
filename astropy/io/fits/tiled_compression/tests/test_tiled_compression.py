@@ -68,12 +68,13 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
 @pytest.mark.parametrize(
     ("shape", "tile_dim"),
     (
-        # ([5, 5, 5], [5, 5, 5]),
-        # ([5, 5, 5], [5, 5, 1]),  # something for HCOMPRESS
-        # ([10, 15, 20], [5, 5, 5]),
-        # ([10, 5, 12], [5, 5, 5]),
-        ([2, 3, 4, 5], [1, 1, 2, 3]),
-        # ([2, 3, 4, 5], [5, 5, 1, 1]),
+        ([5, 5, 5], [5, 5, 5]),
+        ([5, 5, 5], [5, 5, 1]),  # something for HCOMPRESS
+        ([10, 15, 20], [5, 5, 5]),
+        ([10, 5, 12], [5, 5, 5]),
+        # TODO: There's a stupid bit of code in CompImageHDU which stops this working.
+        # ([2, 3, 4, 5], [1, 1, 2, 3]),
+        ([2, 3, 4, 5], [5, 5, 1, 1]),
     ),
 )
 def test_roundtrip_high_D(
@@ -91,7 +92,6 @@ def test_roundtrip_high_D(
 
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
 
-    # breakpoint()
     param = fitsio_param_to_astropy_param(compression_param)
     hdu = fits.CompImageHDU(
         data=original_data,
