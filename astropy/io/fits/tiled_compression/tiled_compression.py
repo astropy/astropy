@@ -62,7 +62,7 @@ def _data_shape(header):
     return tuple(header[f"ZNAXIS{idx}"] for idx in range(header["ZNAXIS"], 0, -1))
 
 
-def _header_to_settings(header):
+def _header_to_settings(header, actual_tile_shape):
 
     tile_shape = _tile_shape(header)
 
@@ -71,23 +71,21 @@ def _header_to_settings(header):
     if header["ZCMPTYPE"] == "GZIP_2":
         settings["itemsize"] = abs(header["ZBITPIX"]) // 8
     elif header["ZCMPTYPE"] == "PLIO_1":
-        settings["tilesize"] = np.product(tile_shape)
+        # We have to calculate the tilesize from the shape of the tile not the
+        # header, so that it's correct for edge tiles etc.
+        settings["tilesize"] = np.product(actual_tile_shape)
     elif header["ZCMPTYPE"] in ("RICE_1", "RICE_ONE"):
         settings["blocksize"] = _get_compression_setting(header, "BLOCKSIZE", 32)
         settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 4)
-        settings["tilesize"] = np.product(tile_shape)
+        settings["tilesize"] = np.product(actual_tile_shape)
     elif header["ZCMPTYPE"] == "HCOMPRESS_1":
         settings["bytepix"] = 4
         settings["scale"] = int(_get_compression_setting(header, "SCALE", 0))
         settings["smooth"] = _get_compression_setting(header, "SMOOTH", 0)
         # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
         # need to ignore all length 1 tile dimensions
-        # Also cfitsio expects the tile shape in C order, so reverse it
-        shape_2d = tuple(
-            header[f"ZTILE{n}"]
-            for n in range(header["ZNAXIS"], 0, -1)
-            if header[f"ZTILE{n}"] != 1
-        )
+        # Also cfitsio expects the tile shape in C order
+        shape_2d = tuple(nd for nd in actual_tile_shape if nd != 1)
         if len(shape_2d) != 2:
             raise ValueError(f"HCOMPRESS expects two dimensional tiles, got {shape_2d}")
         settings["nx"] = shape_2d[0]
@@ -261,8 +259,6 @@ def decompress_hdu(hdu):
     tile_shape = _tile_shape(hdu._header)
     data_shape = _data_shape(hdu._header)
 
-    settings = _header_to_settings(hdu._header)
-
     data = np.zeros(data_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
 
     quantize = "ZSCALE" in hdu.compressed_data.dtype.names
@@ -286,16 +282,19 @@ def decompress_hdu(hdu):
         # For tiles near the edge, the tile shape from the header might not be
         # correct so we have to pass the shape manually.
         actual_tile_shape = data[tile_slices].shape
+        settings = _header_to_settings(hdu._header, actual_tile_shape)
 
         cdata = row["COMPRESSED_DATA"]
 
-        if irow == 0 and hdu._header["ZCMPTYPE"] == "GZIP_2":
-            # Decompress with GZIP_1 just to find the total number of
-            # elements in the uncompressed data
-            tile_data = np.asarray(
-                decompress_tile(row["COMPRESSED_DATA"], algorithm="GZIP_1")
-            )
-            settings["itemsize"] = tile_data.size // int(np.product(actual_tile_shape))
+        if hdu._header["ZCMPTYPE"] == "GZIP_2":
+            if irow == 0:
+                # Decompress with GZIP_1 just to find the total number of
+                # elements in the uncompressed data
+                tile_data = np.asarray(
+                    decompress_tile(row["COMPRESSED_DATA"], algorithm="GZIP_1")
+                )
+                override_itemsize = tile_data.size // int(np.product(actual_tile_shape))
+            settings["itemsize"] = override_itemsize
 
         gzip_fallback = len(cdata) == 0
 
@@ -384,9 +383,10 @@ def compress_hdu(hdu):
 
     _check_compressed_header(hdu._header)
 
-    # For now this is very inefficient, just a proof of concept!
-
-    settings = _header_to_settings(hdu._header)
+    # TODO: This implementation is memory inefficient as it generates all the
+    # compressed bytes before forming them into the heap, leading to 2x the
+    # potential memory usage.  Directly storing the compressed bytes into an
+    # expanding heap would fix this.
 
     tile_shape = _tile_shape(hdu._header)
     data_shape = _data_shape(hdu._header)
@@ -418,6 +418,8 @@ def compress_hdu(hdu):
         )
 
         data = hdu.data[slices]
+
+        settings = _header_to_settings(hdu._header, data.shape)
 
         quantize = "ZSCALE" in hdu.columns.dtype.names
 
