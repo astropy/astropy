@@ -1,0 +1,4 @@
+Add ability to read and write an RST (reStructuredText) ASCII table that
+includes additional header rows specifying any or all of the column dtype, unit,
+format, and description. This is available via the new ``header_rows`` keyword
+argument.
