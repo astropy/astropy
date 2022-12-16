@@ -3313,6 +3313,30 @@ class TestVLATables(FitsTestCase):
                 hdus[1].data["test"][1], np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])
             )
 
+    def test_eterogeneous_VLA_tables(self):
+        """
+        Check the behaviour of heterogeneous VLF object.
+        """
+
+        # The column format fix the type of the arrays in the VLF object.
+        a = np.array([45, 30])
+        b = np.array([11.0, 12.0, 13])
+        var = np.array([a, b], dtype=object)
+
+        c1 = fits.Column(name="var", format="PJ()", array=var)
+        hdu = fits.BinTableHDU.from_columns([c1])
+        assert hdu.data[0].array.dtype[0].subdtype[0] == "int32"
+
+        # Strings in the VLF object can't be added to the table
+        a = np.array([45, "thirty"])
+        b = np.array([11.0, 12.0, 13])
+        var = np.array([a, b], dtype=object)
+
+        c1 = fits.Column(name="var", format="PJ()", array=var)
+        with pytest.raises(ValueError) as err:
+            _ = fits.BinTableHDU.from_columns([c1])
+        assert "invalid literal for int() with base 10" in str(err.value)
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
