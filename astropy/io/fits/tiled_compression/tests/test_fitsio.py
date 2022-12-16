@@ -44,6 +44,11 @@ else:
                 None,
             ),
         ],
+        # Test shapes which caused errors
+        [
+            ((3, 4, 5),),
+            ((1, 2, 3),),
+        ],
         # >3D Data are not currently supported by cfitsio
     ),
     ids=lambda x: f"shape: {x[0]} tile_dims: {x[1]}",
@@ -124,6 +129,7 @@ def astropy_compressed_file_path(
     tmp_path_factory,
     base_original_data,
     data_shape,  # For debuging
+    tile_dims,
 ):
     compression_type, param, dtype = comp_param_dtype
     original_data = base_original_data.astype(dtype)
@@ -133,7 +139,10 @@ def astropy_compressed_file_path(
 
     param = fitsio_param_to_astropy_param(param)
     hdu = fits.CompImageHDU(
-        data=original_data, compression_type=compression_type, **param
+        data=original_data,
+        compression_type=compression_type,
+        tile_size=tile_dims,
+        **param,
     )
     hdu.writeto(filename)
 
