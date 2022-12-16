@@ -335,7 +335,10 @@ def decompress_hdu(hdu):
                 dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
                 dither_seed = hdu._header.get("ZDITHER0", 0)
                 q = Quantize(
-                    irow + dither_seed, dither_method, None, hdu._header["ZBITPIX"]
+                    (irow + dither_seed) if dither_method != -1 else 0,
+                    dither_method,
+                    None,
+                    hdu._header["ZBITPIX"],
                 )
                 tile_data = np.asarray(
                     q.decode_quantized(tile_data, row["ZSCALE"], row["ZZERO"])
@@ -423,7 +426,10 @@ def compress_hdu(hdu):
             dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
             dither_seed = hdu._header.get("ZDITHER0", 0)
             q = Quantize(
-                irow + dither_seed, dither_method, noisebit, hdu._header["ZBITPIX"]
+                (irow + dither_seed) if dither_method != -1 else 0,
+                dither_method,
+                noisebit,
+                hdu._header["ZBITPIX"],
             )
             original_shape = data.shape
 
