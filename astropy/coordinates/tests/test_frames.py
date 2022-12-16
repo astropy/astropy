@@ -818,6 +818,34 @@ def test_hadec_attributes():
     assert_allclose(sr.lon, -1 * u.hourangle)
 
 
+def test_itrs_earth_location():
+    loc = EarthLocation(lat=0 * u.deg, lon=0 * u.deg, height=0 * u.m)
+    sat = EarthLocation(
+        lat=-24.6609379 * u.deg, lon=160.34199789 * u.deg, height=420.17927591 * u.km
+    )
+
+    itrs_geo = sat.get_itrs()
+    eloc = itrs_geo.earth_location
+    assert_allclose(sat.lon, eloc.lon)
+    assert_allclose(sat.lat, eloc.lat)
+    assert_allclose(sat.height, eloc.height)
+
+    topo_itrs_repr = itrs_geo.cartesian - loc.get_itrs().cartesian
+    itrs_topo = ITRS(topo_itrs_repr, location=loc)
+    eloc = itrs_topo.earth_location
+    assert_allclose(sat.lon, eloc.lon)
+    assert_allclose(sat.lat, eloc.lat)
+    assert_allclose(sat.height, eloc.height)
+
+    obstime = Time("J2010")  # Anything different from default
+    topo_itrs_repr2 = sat.get_itrs(obstime).cartesian - loc.get_itrs(obstime).cartesian
+    itrs_topo2 = ITRS(topo_itrs_repr2, location=loc, obstime=obstime)
+    eloc2 = itrs_topo2.earth_location
+    assert_allclose(sat.lon, eloc2.lon)
+    assert_allclose(sat.lat, eloc2.lat)
+    assert_allclose(sat.height, eloc2.height)
+
+
 def test_representation():
     """
     Test the getter and setter properties for `representation`

@@ -1,0 +1,1 @@
+Fix to ITRS frame ``earth_location`` attribute to give the correct result for a topocentric frame.
