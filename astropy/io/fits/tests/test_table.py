@@ -3313,7 +3313,7 @@ class TestVLATables(FitsTestCase):
                 hdus[1].data["test"][1], np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]])
             )
 
-    def test_eterogeneous_VLA_tables(self):
+    def test_heterogeneous_VLA_tables(self):
         """
         Check the behaviour of heterogeneous VLF object.
         """
@@ -3336,6 +3336,35 @@ class TestVLATables(FitsTestCase):
         with pytest.raises(ValueError) as err:
             _ = fits.BinTableHDU.from_columns([c1])
         assert "invalid literal for int() with base 10" in str(err.value)
+
+    def test_write_VLA_tables_with_unified(self):
+        """
+        Write VLF objects with the unified I/O interface.
+        See https://github.com/astropy/astropy/issues/11323
+        """
+
+        # Make a FITS table with a variable-length array column
+        a = np.array([45, 30])
+        b = np.array([11, 12, 13])
+        c = np.array([45, 55, 65, 75])
+        var = np.array([a, b, c], dtype=object)
+
+        c1 = fits.Column(name="var", format="PI()", array=var)
+        hdu = fits.BinTableHDU.from_columns([c1])
+        hdu.writeto(self.temp("temp.fits"), overwrite=True)
+
+        tab = Table.read(self.temp("temp.fits"))
+        msg = (
+            "Format object cannot be mapped to the a specific "
+            "TFORMn keyword values. 32bit P descriptor with "
+            "float arrays VLA format is guessed."
+        )
+        with pytest.warns(AstropyUserWarning, match=msg):
+            tab.write(self.temp("temp2.fits"), overwrite=True)
+            tab = Table.read(self.temp("temp2.fits"))
+            assert np.array_equal(tab[0]["var"], np.array([45.0, 30.0]))
+            assert np.array_equal(tab[1]["var"], np.array([11.0, 12.0, 13.0]))
+            assert np.array_equal(tab[2]["var"], np.array([45.0, 55.0, 65.0, 75.0]))
 
 
 # These are tests that solely test the Column and ColDefs interfaces and

@@ -2445,42 +2445,52 @@ def _convert_record2fits(format):
     Convert record format spec to FITS format spec.
     """
     recformat, kind, dtype = _dtype_to_recformat(format)
-    shape = dtype.shape
-    itemsize = dtype.base.itemsize
-    if dtype.char == "U" or (
-        dtype.subdtype is not None and dtype.subdtype[0].char == "U"
-    ):
-        # Unicode dtype--itemsize is 4 times actual ASCII character length,
-        # which what matters for FITS column formats
-        # Use dtype.base and dtype.subdtype --dtype for multi-dimensional items
-        itemsize = itemsize // 4
-
-    option = str(itemsize)
-
-    ndims = len(shape)
     repeat = 1
-    if ndims > 0:
-        nel = np.array(shape, dtype="i8").prod()
-        if nel > 1:
-            repeat = nel
-
-    if kind == "a":
-        # This is a kludge that will place string arrays into a
-        # single field, so at least we won't lose data.  Need to
-        # use a TDIM keyword to fix this, declaring as (slength,
-        # dim1, dim2, ...)  as mwrfits does
-
-        ntot = int(repeat) * int(option)
-
-        output_format = str(ntot) + "A"
-    elif recformat in NUMPY2FITS:  # record format
-        if repeat != 1:
-            repeat = str(repeat)
-        else:
-            repeat = ""
-        output_format = repeat + NUMPY2FITS[recformat]
+    if dtype == "O":
+        # First guess 32bit P descriptor with float arrays
+        warnings.warn(
+            "Format {} cannot be mapped to the a specific "
+            "TFORMn keyword values. 32bit P descriptor with "
+            "float arrays VLA format is guessed.".format(dtype),
+            AstropyUserWarning,
+        )
+        output_format = "PD()"
     else:
-        raise ValueError(f"Illegal format `{format}`.")
+        shape = dtype.shape
+        itemsize = dtype.base.itemsize
+        if dtype.char == "U" or (
+            dtype.subdtype is not None and dtype.subdtype[0].char == "U"
+        ):
+            # Unicode dtype--itemsize is 4 times actual ASCII character length,
+            # which what matters for FITS column formats
+            # Use dtype.base and dtype.subdtype --dtype for multi-dimensional items
+            itemsize = itemsize // 4
+
+        option = str(itemsize)
+
+        ndims = len(shape)
+        if ndims > 0:
+            nel = np.array(shape, dtype="i8").prod()
+            if nel > 1:
+                repeat = nel
+
+        if kind == "a":
+            # This is a kludge that will place string arrays into a
+            # single field, so at least we won't lose data.  Need to
+            # use a TDIM keyword to fix this, declaring as (slength,
+            # dim1, dim2, ...)  as mwrfits does
+
+            ntot = int(repeat) * int(option)
+
+            output_format = str(ntot) + "A"
+        elif recformat in NUMPY2FITS:  # record format
+            if repeat != 1:
+                repeat = str(repeat)
+            else:
+                repeat = ""
+            output_format = repeat + NUMPY2FITS[recformat]
+        else:
+            raise ValueError(f"Illegal format `{format}`.")
 
     return output_format
 
