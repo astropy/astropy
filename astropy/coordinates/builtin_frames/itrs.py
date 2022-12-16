@@ -77,9 +77,12 @@ class ITRS(BaseCoordinateFrame):
         """
         from astropy.coordinates.earth import EarthLocation
 
-        cart = self.represent_as(CartesianRepresentation).without_differentials()
-        cart += self.location.get_itrs(self.obstime).cartesian
-        return EarthLocation(x=cart.x, y=cart.y, z=cart.z)
+        cart = self.represent_as(CartesianRepresentation)
+        return EarthLocation(
+            x=cart.x + self.location.x,
+            y=cart.y + self.location.y,
+            z=cart.z + self.location.z,
+        )
 
 
 # Self-transform is in intermediate_rotation_transforms.py with all the other
