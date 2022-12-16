@@ -1484,23 +1484,10 @@ class CompImageHDU(BinTableHDU):
             new_dtype = self._dtype_for_bitpix()
             data = np.array(data, dtype=new_dtype)
 
-            # TODO: ZBLANK should not be dealt with here as it should apply
-            # to data before being unquantized, which has already happened in
-            # decompress_hdu, so we should remove references to ZBLANK here.
-            # However, it might be that we still need to handle BLANK.
-
-            zblank = None
-
-            if "ZBLANK" in self.compressed_data.columns.names:
-                zblank = self.compressed_data["ZBLANK"]
+            if "BLANK" in self._header:
+                blanks = data == np.array(self._header["BLANK"], dtype="int32")
             else:
-                if "ZBLANK" in self._header:
-                    zblank = np.array(self._header["ZBLANK"], dtype="int32")
-                elif "BLANK" in self._header:
-                    zblank = np.array(self._header["BLANK"], dtype="int32")
-
-            if zblank is not None:
-                blanks = data == zblank
+                blanks = None
 
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
@@ -1511,7 +1498,7 @@ class CompImageHDU(BinTableHDU):
                 # avoid doubling memory usage.
                 np.add(data, self._bzero, out=data, casting="unsafe")
 
-            if zblank is not None:
+            if blanks is not None:
                 data = np.where(blanks, np.nan, data)
 
         # Right out of _ImageBaseHDU.data
