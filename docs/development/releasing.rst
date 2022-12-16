@@ -128,7 +128,7 @@ Restricting changes to the release branch
 
 This step is optional and could also be done at a later stage in the release process,
 but you may want to temporarily restrict who can push/merge pull requests to the
-release branch so that someone does not inadvertantly push changes to the release
+release branch so that someone does not inadvertently push changes to the release
 branch while you are in the middle of following release steps. If you wish to do this,
 you can go to the core package repository settings, and under 'Branches' and 'Branch
 protection rules' you can then add a rule which restricts who can push to the branch.

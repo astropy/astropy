@@ -442,7 +442,7 @@ CTYPE3A = 'TT' / alternative linear time (TT)
 CRVAL3A = 2440.525 / Relative time of first frame
 CUNIT3A = 's' / Time unit
 CRPIX3A = 1.0 / Pixel coordinate at ref point
-OBSGEO-B= -24.6157 / [deg] Tel geodetic latitute (=North)+
+OBSGEO-B= -24.6157 / [deg] Tel geodetic latitude (=North)+
 OBSGEO-L= -70.3976 / [deg] Tel geodetic longitude (=East)+
 OBSGEO-H= 2530.0000 / [m] Tel height above reference ellipsoid
 CRDER3  = 0.0819 / random error in timings from fit
@@ -1310,7 +1310,7 @@ def test_spectral_with_time_kw(header_spectral_with_time):
             rtol=1e-3,
         )
 
-    # Chek with MJD-AVG and TIMESYS
+    # Check with MJD-AVG and TIMESYS
     hdr = header_spectral_with_time.copy()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", (VerifyWarning, FITSFixedWarning))

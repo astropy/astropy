@@ -727,7 +727,7 @@ class TestArithmetic:
 
     def test_mean_leap_second(self, use_mask):
         # Check that leap second is dealt with correctly: for UTC, across a leap
-        # second bounday, one cannot just average jd, but has to go through TAI.
+        # second boundary, one cannot just average jd, but has to go through TAI.
         if use_mask == "not_masked":
             t = Time(["2012-06-30 23:59:60.000", "2012-07-01 00:00:01.000"])
             mean_expected = t[0] + (t[1] - t[0]) / 2

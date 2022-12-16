@@ -304,7 +304,7 @@ class Quantity(np.ndarray):
 
     ndmin : int, optional
         Specifies the minimum number of dimensions that the resulting array
-        should have.  Ones will be pre-pended to the shape as needed to meet
+        should have.  Ones will be prepended to the shape as needed to meet
         this requirement.  This parameter is ignored if the input is a
         `Quantity` and ``copy=False``.
 
@@ -1631,7 +1631,7 @@ class Quantity(np.ndarray):
         value : anything convertible to `~astropy.units.Quantity`
             The value to be converted to the requested unit.
         check_precision : bool
-            Whether to forbit conversion of float to integer if that changes
+            Whether to forbid conversion of float to integer if that changes
             the input number.  Default: `True`.
         unit : `~astropy.units.Unit` or None
             The unit to convert to.  By default, the unit of ``self``.

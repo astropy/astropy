@@ -296,7 +296,7 @@ def decode_ascii(s):
         if s.size == 0:
             # Numpy apparently also has a bug that if a string array is
             # empty calling np.char.decode on it returns an empty float64
-            # array wth
+            # array : https://github.com/numpy/numpy/issues/13156
             dt = s.dtype.str.replace("S", "U")
             ns = np.array([], dtype=dt).view(type(s))
         else:

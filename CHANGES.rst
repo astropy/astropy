@@ -319,7 +319,7 @@ astropy.io.fits
   heapoffset and heapsize are encountered. [#13621]
 
 - ``PCOUNT`` and ``GCOUNT`` keywords are now removed from an uncompressed Primary header,
-  for compliancy with ``fitsverify`` behavior. [#13753]
+  for compliance with ``fitsverify`` behavior. [#13753]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -954,7 +954,7 @@ astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
 - Fixed a bug where ``astropy.io.votable.validate`` was printing output to
-  ``sys.stdout`` when the ``output`` paramter was set to ``None``. ``validate``
+  ``sys.stdout`` when the ``output`` parameter was set to ``None``. ``validate``
   now returns a string when ``output`` is set to ``None``, as documented.
   [#12604]
 
@@ -1900,7 +1900,7 @@ astropy.coordinates
 
 - The new DE440 and DE440s ephemerides are now available via shortcuts 'de440'
   and 'de440s'.  The DE 440s ephemeris will probably become the default
-  ephemeris when chosing 'jpl' in 5.0. [#11601]
+  ephemeris when choosing 'jpl' in 5.0. [#11601]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
@@ -1956,8 +1956,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Added a state attribute to models to allow preventing the synching of
-  constraint values from the constituent models. This synching can
+- Added a state attribute to models to allow preventing the syncing of
+  constraint values from the constituent models. This syncing can
   greatly slow down fitting if there are large numbers of fit parameters.
   model.sync_constraints = True means check constituent model constraints
   for compound models every time the constraint is accessed, False, do not.
@@ -2058,7 +2058,7 @@ astropy.utils
 - Change the Time and IERS leap second handling so that the leap second table is
   updated only when a Time transform involving UTC is performed. Previously this
   update check was done the first time a ``Time`` object was created, which in
-  practice occured when importing common astropy subpackages like
+  practice occurred when importing common astropy subpackages like
   ``astropy.coordinates``. Now you can prevent querying internet resources (for
   instance on a cluster) by setting ``iers.conf.auto_download = False``. This
   can  be done after importing astropy but prior to performing any ``Time``
@@ -8171,7 +8171,7 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- The ``astropy.coordinates.Galactic`` frame had an incorrect ording for the
+- The ``astropy.coordinates.Galactic`` frame had an incorrect ordering for the
   'u', 'v', and 'w' cartesian coordinates. [#6330]
 
 - The ``astropy.coordinates.search_around_sky``,

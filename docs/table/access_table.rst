@@ -787,7 +787,7 @@ that uses `"new style" format strings
 parameter substitutions corresponding to the field names in the structured
 array. Consider the example below including a column of parameters values where
 the value, min and max are stored in the in the column as fields named ``val``,
-``min``, and ``max``. By defaul the field values are shown as a tuple::
+``min``, and ``max``. By default the field values are shown as a tuple::
 
     >>> pars = np.array(
     ...   [(1.2345678, -20, 3),

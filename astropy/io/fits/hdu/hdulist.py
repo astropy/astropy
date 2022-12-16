@@ -169,7 +169,7 @@ def fitsopen(
         ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
         Google Cloud Storage prefix ``gs://``.  Can also be used for paths
         with other prefixes (e.g., ``http://``) but in this case you must
-        explicitely pass ``use_fsspec=True``.
+        explicitly pass ``use_fsspec=True``.
         Use of this feature requires the optional ``fsspec`` package.
         A ``ModuleNotFoundError`` will be raised if the dependency is missing.
 

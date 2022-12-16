@@ -48,7 +48,7 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         self._registries_order = ("identify",)  # match keys in `_registries`
 
         # If multiple formats are added to one class the update of the docs is quite
-        # expensive. Classes for which the doc update is temporarly delayed are added
+        # expensive. Classes for which the doc update is temporarily delayed are added
         # to this set.
         self._delayed_docs_classes = set()
 
@@ -342,7 +342,7 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             for parent in class1.__mro__:
                 if parent is class2:  # class2 is closest registered ancestor
                     return True
-                if parent in classes:  # class2 was superceded
+                if parent in classes:  # class2 was superseded
                     return False
         return False
 

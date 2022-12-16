@@ -1458,7 +1458,7 @@ def test_compound_model_with_bounding_box_true_and_single_output():
 
 
 def test_bounding_box_pass_with_ignored():
-    """Test the possiblity of setting ignored variables in bounding box"""
+    """Test the possibility of setting ignored variables in bounding box"""
 
     model = models.Polynomial2D(2)
     bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=["y"])

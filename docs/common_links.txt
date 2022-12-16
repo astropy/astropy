@@ -3,7 +3,7 @@
 .. Some of the links are in curly braces for ``.format`` substitutions.
 
 .. ------------------------------------------------------------------
-.. RST SUBSITUTIONS
+.. RST SUBSTITUTIONS
 
 ..                                 NumPy
 .. |ndarray| replace:: :class:`numpy.ndarray`

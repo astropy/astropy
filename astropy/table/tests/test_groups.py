@@ -445,7 +445,7 @@ def test_table_aggregate(T1):
         "  2 22.0  6.0  6.0",
     ]
 
-    # Aggregrate with np.sum with masked elements, but where every
+    # Aggregate with np.sum with masked elements, but where every
     # group has at least one remaining (unmasked) element.  Then
     # the int column stays as an int.
     t1m = QTable(t1, masked=True)

@@ -399,7 +399,7 @@ The following example shows a similar situation, using the option to send the ou
   >>> table['error'] = [1e4, 450] * u.Jy  # Error in the Flux values.
   >>> outtab = table.copy()  # So that changes don't affect the original table.
   >>> outtab.rename_column('error', 'e_Flux')
-  >>> # re-order so that related columns are placed next to eachother.
+  >>> # re-order so that related columns are placed next to each other.
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
   ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
 

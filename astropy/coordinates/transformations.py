@@ -734,7 +734,7 @@ class TransformGraph:
         no performance benefit for using this created transform.
 
         For Astropy's built-in frames, loopback transformations typically use
-        `~astropy.coordinates.ICRS` to be safe.  Tranforming through an inertial
+        `~astropy.coordinates.ICRS` to be safe.  Transforming through an inertial
         frame ensures that changes in observation time and observer
         location/velocity are properly accounted for.
 

@@ -84,7 +84,7 @@ class StructuredUnit:
 
     Notes
     -----
-    It is recommended to initialze the class indirectly, using
+    It is recommended to initialize the class indirectly, using
     `~astropy.units.Unit`.  E.g., ``u.Unit('AU,AU/day')``.
 
     When combined with a structured array to produce a structured

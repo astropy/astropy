@@ -420,7 +420,7 @@ Byte-by-byte Description of file: table.dat
 
 def test_write_mixin_and_broken_cols():
     """
-    Tests convertion to string values for ``mix-in`` columns other than
+    Tests conversion to string values for ``mix-in`` columns other than
     ``SkyCoord`` and for columns with only partial ``SkyCoord`` values.
     """
     # fmt: off

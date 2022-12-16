@@ -37,13 +37,13 @@ class _Interval(_BaseInterval):
     Methods
     -------
     validate :
-        Contructs a valid interval
+        Constructs a valid interval
 
     outside :
         Determine which parts of an input array are outside the interval.
 
     domain :
-        Contructs a discretization of the points inside the interval.
+        Constructs a discretization of the points inside the interval.
     """
 
     def __repr__(self):
@@ -1170,7 +1170,7 @@ class _SelectorArguments(tuple):
             The Model these selector arguments are for.
 
         arguments :
-            The individual argument informations
+            The individual argument information
 
         kept_ignore :
             Arguments to persist as ignored
@@ -1479,7 +1479,7 @@ class CompoundBoundingBox(_BoundingDomain):
         model : `~astropy.modeling.Model`
             The model for which this will be a bounding_box
         bounding_box : dict
-            Dictionary of possible bounding_box respresentations
+            Dictionary of possible bounding_box representations
         selector_args : optional
             Description of the selector arguments
         create_selector : optional, callable
