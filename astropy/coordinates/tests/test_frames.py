@@ -837,6 +837,14 @@ def test_itrs_earth_location():
     assert_allclose(sat.lat, eloc.lat)
     assert_allclose(sat.height, eloc.height)
 
+    obstime = Time("J2010")  # Anything different from default
+    topo_itrs_repr2 = sat.get_itrs(obstime).cartesian - loc.get_itrs(obstime).cartesian
+    itrs_topo2 = ITRS(topo_itrs_repr2, location=loc, obstime=obstime)
+    eloc2 = itrs_topo2.earth_location
+    assert_allclose(sat.lon, eloc2.lon)
+    assert_allclose(sat.lat, eloc2.lat)
+    assert_allclose(sat.height, eloc2.height)
+
 
 def test_representation():
     """
