@@ -50,7 +50,6 @@ jobs:
     with:
       submodules: false
       coverage: codecov
-      toxdeps: "'tox<4'"
       libraries: |
         apt:
           - language-pack-fr
@@ -87,7 +86,6 @@ jobs:
     with:
       submodules: false
       coverage: codecov
-      toxdeps: "'tox<4'"
       libraries: |
         apt:
           - language-pack-de
@@ -118,7 +116,7 @@ jobs:
     # test the ability to run the test suite in parallel.
     # Numpy is pinned to avoid building it from source for numpy 1.21.5
     - name: Install dependencies for Python 3.8
-      run: /opt/python/cp38-cp38/bin/pip install "tox<4"
+      run: /opt/python/cp38-cp38/bin/pip install --upgrade tox
     - name: Run tests for Python 3.8
       run: /opt/python/cp38-cp38/bin/python -m tox -e py38-numpy120-test -- -n=4 --durations=50
     # We use the 3.8 build to check that running tests twice in a row in the
