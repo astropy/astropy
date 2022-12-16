@@ -2,8 +2,9 @@
 
 from io import StringIO
 
-import astropy.units as u
 import numpy as np
+
+import astropy.units as u
 from astropy.io import ascii
 from astropy.table import QTable
 
@@ -203,13 +204,12 @@ def test_rst_with_header_rows():
         "======= ======== ====",
     ]
     tbl = QTable.read(lines, format="ascii.rst", header_rows=["name", "unit", "dtype"])
-    assert tbl['wave'].unit == u.nm
-    assert tbl['response'].unit == u.ct
-    assert tbl['wave'].dtype == np.float64
-    assert tbl['response'].dtype == np.float32
-    assert tbl['ints'].dtype == np.int8
+    assert tbl["wave"].unit == u.nm
+    assert tbl["response"].unit == u.ct
+    assert tbl["wave"].dtype == np.float64
+    assert tbl["response"].dtype == np.float32
+    assert tbl["ints"].dtype == np.int8
 
     out = StringIO()
     tbl.write(out, format="ascii.rst", header_rows=["name", "unit", "dtype"])
     assert out.getvalue().splitlines() == lines
-
