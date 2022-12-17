@@ -2455,6 +2455,42 @@ class TestUpdate:
         assert np.all(t2["c"] == self.c)
         assert np.all(t2["d"] == self.d)
 
+    def test_merge_operator(self):
+        self._setup()
+        t1 = Table([self.a, self.b])
+        t2 = Table([self.b, self.c])
+        with pytest.raises(TypeError):
+            _ = 1 | t1
+        with pytest.raises(TypeError):
+            _ = t1 | 1
+
+        t1_copy = t1.copy(True)
+        t3 = t1 | t2
+        assert t1.colnames == ["a", "b"]  # t1 should remain unchanged
+        assert np.all(t1["a"] == self.a)
+        assert np.all(t1["b"] == self.b)
+
+        t1_copy.update(t2)
+        assert t3.colnames == ["a", "b", "c"]
+        assert np.all(t3["a"] == t1_copy["a"])
+        assert np.all(t3["b"] == t1_copy["b"])
+        assert np.all(t3["c"] == t1_copy["c"])
+
+    def test_update_operator(self):
+        self._setup()
+        t1 = Table([self.a, self.b])
+        t2 = Table([self.b, self.c])
+        with pytest.raises(ValueError):
+            t1 |= 1
+
+        t1_copy = t1.copy(True)
+        t1 |= t2
+        t1_copy.update(t2)
+        assert t1.colnames == ["a", "b", "c"]
+        assert np.all(t1["a"] == t1_copy["a"])
+        assert np.all(t1["b"] == t1_copy["b"])
+        assert np.all(t1["c"] == t1_copy["c"])
+
 
 def test_table_meta_copy():
     """
