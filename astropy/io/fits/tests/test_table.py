@@ -3265,10 +3265,12 @@ class TestVLATables(FitsTestCase):
         ]
         fits.BinTableHDU.from_columns(columns).writeto(self.temp("bug.fits"))
         with fits.open(self.temp("bug.fits")) as hdu:
-            np.array_equal(
-                hdu[1].data["empty"],
-                [np.array([], dtype=np.int32), np.array([], dtype=np.int32)],
-            )
+            # We can't compare the whole array since the _VLF is an array of
+            # objects, hence we compare elementwise
+            for i in range(len(hdu[1].data["empty"])):
+                assert np.array_equal(
+                    hdu[1].data["empty"][i], np.array([], dtype=np.int32)
+                )
 
     def test_multidim_VLA_tables(self):
         """
