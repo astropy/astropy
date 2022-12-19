@@ -815,7 +815,9 @@ class FITS_rec(np.recarray):
         """
 
         if column.dim:
-            vla_shape = tuple(map(int, column.dim.strip("()").split(",")))
+            vla_shape = tuple(
+                reversed(tuple(map(int, column.dim.strip("()").split(","))))
+            )
         dummy = _VLF([None] * len(self), dtype=recformat.dtype)
         raw_data = self._get_raw_data()
 
@@ -841,9 +843,13 @@ class FITS_rec(np.recarray):
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
                 if column.dim and len(vla_shape) > 1:
                     # The VLA is reshaped consistently with TDIM instructions
-                    vla_dim = vla_shape[:-1]
-                    vla_dimlast = int(len(dummy[idx]) / np.prod(vla_dim))
-                    dummy[idx] = dummy[idx].reshape(vla_dim + (vla_dimlast,))
+                    if vla_shape[0] == 1:
+                        dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
+                    else:
+                        vla_dim = vla_shape[1:]
+                        vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
+                        dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
+
                 dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
