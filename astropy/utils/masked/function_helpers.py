@@ -16,7 +16,7 @@ from astropy.utils.compat import (
     NUMPY_LT_1_19,
     NUMPY_LT_1_20,
     NUMPY_LT_1_23,
-    NUMPY_LT_1_25,
+    NUMPY_LT_1_24,
 )
 
 # This module should not really be imported, but we define __all__
@@ -715,7 +715,7 @@ def median(a, axis=None, out=None, **kwargs):
 
     a = Masked(a)
 
-    if NUMPY_LT_1_25:
+    if NUMPY_LT_1_24:
         keepdims = kwargs.pop("keepdims", False)
         r, k = np.lib.function_base._ureduce(
             a, func=_masked_median, axis=axis, out=out, **kwargs
@@ -771,7 +771,7 @@ def quantile(a, q, axis=None, out=None, **kwargs):
     if not np.lib.function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
-    if NUMPY_LT_1_25:
+    if NUMPY_LT_1_24:
         keepdims = kwargs.pop("keepdims", False)
         r, k = np.lib.function_base._ureduce(
             a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs
