@@ -818,6 +818,8 @@ class FITS_rec(np.recarray):
         to a VLA column with the array data returned from the heap.
         """
 
+        if column.dim:
+            vla_shape = tuple(map(int, column.dim.strip("()").split(",")))
         dummy = _VLF([None] * len(self), dtype=recformat.dtype)
         raw_data = self._get_raw_data()
 
@@ -841,6 +843,11 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
+                if column.dim and len(vla_shape) > 1:
+                    # The VLA is reshaped consistently with TDIM instructions
+                    vla_dim = vla_shape[:-1]
+                    vla_dimlast = int(len(dummy[idx]) / np.prod(vla_dim))
+                    dummy[idx] = dummy[idx].reshape(vla_dim + (vla_dimlast,))
                 dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
@@ -956,7 +963,7 @@ class FITS_rec(np.recarray):
                     actual_nitems = 1
                 else:
                     actual_nitems = field.shape[1]
-                if nitems > actual_nitems:
+                if nitems > actual_nitems and not isinstance(recformat, _FormatP):
                     warnings.warn(
                         "TDIM{} value {:d} does not fit with the size of "
                         "the array items ({:d}).  TDIM{:d} will be ignored.".format(
@@ -1025,7 +1032,7 @@ class FITS_rec(np.recarray):
                 with suppress(UnicodeDecodeError):
                     field = decode_ascii(field)
 
-        if dim:
+        if dim and not isinstance(recformat, _FormatP):
             # Apply the new field item dimensions
             nitems = reduce(operator.mul, dim)
             if field.ndim > 1:
@@ -1144,7 +1151,7 @@ class FITS_rec(np.recarray):
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [len(arr) for arr in self._converted[name]]
+                    npts = [np.prod(arr.shape) for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
