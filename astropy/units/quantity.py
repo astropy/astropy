@@ -1696,27 +1696,32 @@ class Quantity(np.ndarray):
         self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
+        """Not implemented, use ``.value.tostring()`` instead."""
         raise NotImplementedError(
             "cannot write Quantities to string.  Write array with"
             " q.value.tostring(...)."
         )
 
     def tobytes(self, order="C"):
+        """Not implemented, use ``.value.tobytes()`` instead."""
         raise NotImplementedError(
             "cannot write Quantities to bytes.  Write array with q.value.tobytes(...)."
         )
 
     def tofile(self, fid, sep="", format="%s"):
+        """Not implemented, use ``.value.tofile()`` instead."""
         raise NotImplementedError(
             "cannot write Quantities to file.  Write array with q.value.tofile(...)"
         )
 
     def dump(self, file):
+        """Not implemented, use ``.value.dump()`` instead."""
         raise NotImplementedError(
             "cannot dump Quantities to file.  Write array with q.value.dump()"
         )
 
     def dumps(self):
+        """Not implemented, use ``.value.dumps()`` instead."""
         raise NotImplementedError(
             "cannot dump Quantities to string.  Write array with q.value.dumps()"
         )
