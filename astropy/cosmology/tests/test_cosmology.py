@@ -181,28 +181,6 @@ def test_de_subclass():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_ocurv():
-    # Test Ok evolution
-    # Flat, boring case
-    tcos = flrw.FlatLambdaCDM(70.0, 0.3)
-    assert allclose(tcos.Ok0, 0.0)
-    assert allclose(tcos.Ok(0), 0.0)
-    z = np.array([0.0, 0.5, 1.0, 2.0])
-    assert allclose(tcos.Ok(z), [0.0, 0.0, 0.0, 0.0], rtol=1e-6)
-
-    # Not flat
-    tcos = flrw.LambdaCDM(70.0, 0.3, 0.5, Tcmb0=u.Quantity(0.0, u.K))
-    assert allclose(tcos.Ok0, 0.2)
-    assert allclose(tcos.Ok(0), 0.2)
-    assert allclose(tcos.Ok(z), [0.2, 0.22929936, 0.21621622, 0.17307692], rtol=1e-4)
-
-    # Test the sum; note that Ogamma/Onu are 0
-    assert allclose(
-        tcos.Ok(z) + tcos.Om(z) + tcos.Ode(z), [1.0, 1.0, 1.0, 1.0], rtol=1e-5
-    )
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_ode():
     # Test Ode evolution, turn off neutrinos, cmb
     tcos = flrw.FlatLambdaCDM(70.0, 0.3, Tcmb0=0)
