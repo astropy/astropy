@@ -197,10 +197,10 @@ def test_efunc_vs_invefunc_flrw():
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distances():
     # Test distance calculations for various special case
-    #  scenarios (no relativistic species, normal, massive neutrinos)
+    # scenarios (no relativistic species, normal, massive neutrinos)
     # These do not come from external codes -- they are just internal
-    #  checks to make sure nothing changes if we muck with the distance
-    #  calculators
+    # checks to make sure nothing changes if we muck with the distance
+    # calculators
 
     z = np.array([1.0, 2.0, 3.0, 4.0])
 
@@ -428,73 +428,3 @@ def test_distances():
         [2525.58017482, 3706.87633298, 4416.58398847, 4901.96669755] * u.Mpc,
         rtol=1e-4,
     )
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_massivenu_density():
-    # Testing neutrino density calculation
-
-    # Simple test cosmology, where we compare rho_nu and rho_gamma
-    # against the exact formula (eq 24/25 of Komatsu et al. 2011)
-    # computed using Mathematica.  The approximation we use for f(y)
-    # is only good to ~ 0.5% (with some redshift dependence), so that's
-    # what we test to.
-    ztest = np.array([0.0, 1.0, 2.0, 10.0, 1000.0])
-    nuprefac = 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0)
-    #  First try 3 massive neutrinos, all 100 eV -- note this is a universe
-    #  seriously dominated by neutrinos!
-    tcos = flrw.FlatLambdaCDM(
-        75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(100.0, u.eV)
-    )
-    assert tcos.has_massive_nu
-    assert tcos.Neff == 3
-    nurel_exp = (
-        nuprefac * tcos.Neff * np.array([171969, 85984.5, 57323, 15633.5, 171.801])
-    )
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
-    assert allclose(tcos.efunc([0.0, 1.0]), [1.0, 7.46144727668], rtol=5e-3)
-
-    # Next, slightly less massive
-    tcos = flrw.FlatLambdaCDM(
-        75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.25, u.eV)
-    )
-    nurel_exp = (
-        nuprefac * tcos.Neff * np.array([429.924, 214.964, 143.312, 39.1005, 1.11086])
-    )
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
-
-    # For this one also test Onu directly
-    onu_exp = np.array([0.01890217, 0.05244681, 0.0638236, 0.06999286, 0.1344951])
-    assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
-
-    # And fairly light
-    tcos = flrw.FlatLambdaCDM(
-        80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV)
-    )
-
-    nurel_exp = (
-        nuprefac * tcos.Neff * np.array([17.2347, 8.67345, 5.84348, 1.90671, 1.00021])
-    )
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
-    onu_exp = np.array([0.00066599, 0.00172677, 0.0020732, 0.00268404, 0.0978313])
-    assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
-    assert allclose(tcos.efunc([1.0, 2.0]), [1.76225893, 2.97022048], rtol=1e-4)
-    assert allclose(tcos.inv_efunc([1.0, 2.0]), [0.5674535, 0.33667534], rtol=1e-4)
-
-    # Now a mixture of neutrino masses, with non-integer Neff
-    tcos = flrw.FlatLambdaCDM(
-        80.0, 0.30, Tcmb0=3.0, Neff=3.04, m_nu=u.Quantity([0.0, 0.01, 0.25], u.eV)
-    )
-    nurel_exp = (
-        nuprefac
-        * tcos.Neff
-        * np.array([149.386233, 74.87915, 50.0518, 14.002403, 1.03702333])
-    )
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
-    onu_exp = np.array([0.00584959, 0.01493142, 0.01772291, 0.01963451, 0.10227728])
-    assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
-
-    # Integer redshifts
-    ztest = ztest.astype(int)
-    assert allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
-    assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
