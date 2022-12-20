@@ -5,7 +5,6 @@
 import numpy as np
 import pytest
 
-import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import flrw
 from astropy.units import allclose
@@ -276,30 +275,6 @@ def test_de_densityscale():
         cosmo.de_density_scale([1, 2, 3]),
         cosmo.de_density_scale([1.0, 2.0, 3.0]),
         rtol=1e-7,
-    )
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_critical_density():
-    from astropy.constants import codata2014
-
-    # WMAP7 but with Omega_relativistic = 0
-    # These tests will fail if astropy.const starts returning non-mks
-    #  units by default; see the comment at the top of core.py.
-    # critical_density0 is inversely proportional to G.
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    fac = (const.G / codata2014.G).to(u.dimensionless_unscaled).value
-    assert allclose(
-        tcos.critical_density0 * fac, 9.309668456020899e-30 * (u.g / u.cm**3)
-    )
-    assert allclose(tcos.critical_density0, tcos.critical_density(0))
-    assert allclose(
-        tcos.critical_density([1, 5]) * fac,
-        [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3),
-    )
-    assert allclose(
-        tcos.critical_density([1.0, 5.0]) * fac,
-        [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3),
     )
 
 
