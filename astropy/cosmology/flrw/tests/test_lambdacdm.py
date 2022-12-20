@@ -586,3 +586,23 @@ def test_critical_density():
         tcos.critical_density([1.0, 5.0]) * fac,
         [2.70352772e-29, 5.53739080e-28] * (u.g / u.cm**3),
     )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_integral():
+    # Test integer vs. floating point inputs
+    cosmo = LambdaCDM(H0=73.2, Om0=0.3, Ode0=0.50)
+
+    assert u.allclose(
+        cosmo.comoving_distance(3), cosmo.comoving_distance(3.0), rtol=1e-7
+    )
+    assert u.allclose(
+        cosmo.comoving_distance([1, 2, 3, 5]),
+        cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]),
+        rtol=1e-7,
+    )
+    assert u.allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
+    assert u.allclose(cosmo.efunc([1, 2, 6]), cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
+    assert u.allclose(
+        cosmo.inv_efunc([1, 2, 6]), cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7
+    )

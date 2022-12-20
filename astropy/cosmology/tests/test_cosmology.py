@@ -196,23 +196,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_integral():
-    # Test integer vs. floating point inputs
-    cosmo = flrw.LambdaCDM(H0=73.2, Om0=0.3, Ode0=0.50)
-    assert allclose(cosmo.comoving_distance(3), cosmo.comoving_distance(3.0), rtol=1e-7)
-    assert allclose(
-        cosmo.comoving_distance([1, 2, 3, 5]),
-        cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]),
-        rtol=1e-7,
-    )
-    assert allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
-    assert allclose(cosmo.efunc([1, 2, 6]), cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
-    assert allclose(
-        cosmo.inv_efunc([1, 2, 6]), cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7
-    )
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_de_densityscale():
     cosmo = flrw.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
