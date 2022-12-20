@@ -24,22 +24,21 @@ class CylindricalRepresentation(BaseRepresentation):
         The distance from the z axis to the point(s).
 
     phi : `~astropy.units.Quantity` or str
-        The azimuth of the point(s), in angular units, which will be wrapped to
-        an angle between 0 and 360 degrees. This can also be instances of
+        The azimuth of the point(s), in angular units, which will be wrapped to an angle
+        between 0 and 360 degrees. This can also be instances of
         `~astropy.coordinates.Angle`,
 
     z : `~astropy.units.Quantity`
         The z coordinate(s) of the point(s)
 
     differentials : dict, `~astropy.coordinates.CylindricalDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.CylindricalDifferential` instance, or a dictionary
-        of of differential instances with keys set to a string representation of
-        the SI unit with which the differential (derivative) is taken. For
-        example, for a velocity differential on a positional representation, the
-        key would be ``'s'`` for seconds, indicating that the derivative is a
-        time derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.CylindricalDifferential`
+        instance, or a dictionary of of differential instances with keys set to a string
+        representation of the SI unit with which the differential (derivative) is taken.
+        For example, for a velocity differential on a positional representation, the key
+        would be ``'s'`` for seconds, indicating that the derivative is a time
+        derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -92,8 +91,7 @@ class CylindricalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to cylindrical polar
-        coordinates.
+        Converts 3D rectangular cartesian coordinates to cylindrical polar coordinates.
         """
 
         rho = np.hypot(cart.x, cart.y)
@@ -104,8 +102,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts cylindrical polar coordinates to 3D rectangular cartesian
-        coordinates.
+        Converts cylindrical polar coordinates to 3D rectangular cartesian coordinates.
         """
         x = self.rho * np.cos(self.phi)
         y = self.rho * np.sin(self.phi)

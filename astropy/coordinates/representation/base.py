@@ -17,9 +17,9 @@ from astropy.utils.exceptions import DuplicateRepresentationWarning
 __all__: list[str] = []  # Not public. Import from ``astropy.coordinates``
 
 
-# Module-level dict mapping representation string alias names to classes. This
-# is populated by __init_subclass__ when called by Representation or
-# Differential classes so that they are all registered automatically.
+# Module-level dict mapping representation string alias names to classes. This is
+# populated by __init_subclass__ when called by Representation or Differential classes
+# so that they are all registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
@@ -36,9 +36,8 @@ def _fqn_class(cls: type) -> str:
 
 def get_reprdiff_cls_hash():
     """
-    Returns a hash value that should be invariable if the
-    `REPRESENTATION_CLASSES` and `DIFFERENTIAL_CLASSES` dictionaries have not
-    changed.
+    Returns a hash value that should be invariable if the `REPRESENTATION_CLASSES` and
+    `DIFFERENTIAL_CLASSES` dictionaries have not changed.
     """
     global _REPRDIFF_HASH
     if _REPRDIFF_HASH is None:
@@ -67,11 +66,11 @@ def _make_getter(component):
     Parameters
     ----------
     component : str
-        The name of the component that should be accessed.  This assumes the
-        actual value is stored in an attribute of that name prefixed by '_'.
+        The name of the component that should be accessed.  This assumes the actual
+        value is stored in an attribute of that name prefixed by '_'.
     """
-    # This has to be done in a function to ensure the reference to component is
-    # not lost/redirected.
+    # This has to be done in a function to ensure the reference to component is not
+    # lost/redirected.
     component = "_" + component
 
     def get_component(self):
@@ -85,9 +84,9 @@ def _make_getter(component):
 
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
     """
-    Container for meta information like name, description, format.  This is
-    required when the object is used as a mixin column within a table, but can
-    be used as a general way to store meta information.
+    Container for meta information like name, description, format.  This is required
+    when the object is used as a mixin column within a table, but can be used as a
+    general way to store meta information.
     """
 
     attrs_from_parent = {"unit"}  # Indicates unit is read-only
@@ -122,8 +121,8 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         """
         Return a new instance like ``reps`` with ``length`` rows.
 
-        This is intended for creating an empty column object whose elements can
-        be set in-place for table operations like join or vstack.
+        This is intended for creating an empty column object whose elements can be set
+        in-place for table operations like join or vstack.
 
         Parameters
         ----------
@@ -142,20 +141,18 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
             Empty instance of this class consistent with ``cols``.
         """
 
-        # Get merged info attributes like shape, dtype, format, description,
-        # etc.
+        # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(
             reps, metadata_conflicts, name, ("meta", "description")
         )
-        # Make a new representation or differential with the desired length
-        # using the _apply / __getitem__ machinery to effectively return
-        # rep0[[0, 0, ..., 0, 0]]. This will have the right shape, and include
-        # possible differentials.
+        # Make a new representation or differential with the desired length using the
+        # _apply / __getitem__ machinery to effectively return rep0[[0, 0, ..., 0, 0]].
+        # This will have the right shape, and include possible differentials.
         indexes = np.zeros(length, dtype=np.int64)
         out = reps[0][indexes]
 
-        # Use __setitem__ machinery to check whether all representations can
-        # represent themselves as this one without loss of information.
+        # Use __setitem__ machinery to check whether all representations can represent
+        # themselves as this one without loss of information.
         for rep in reps[1:]:
             try:
                 out[0] = rep[0]
@@ -176,15 +173,15 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     Parameters
     ----------
     comp1, comp2, comp3 : `~astropy.units.Quantity` or subclass
-        The components of the 3D point or differential.  The names are the keys
-        and the subclasses the values of the ``attr_classes`` attribute.
+        The components of the 3D point or differential.  The names are the keys and the
+        subclasses the values of the ``attr_classes`` attribute.
     copy : bool, optional
-        If `True` (default), arrays will be copied; if `False`, they will be
-        broadcast together but not use new memory.
+        If `True` (default), arrays will be copied; if `False`, they will be broadcast
+        together but not use new memory.
     """
 
-    # Ensure multiplication/division with ndarray or Quantity doesn't lead to
-    # object arrays.
+    # Ensure multiplication/division with ndarray or Quantity doesn't lead to object
+    # arrays.
     __array_priority__ = 50000
 
     info = BaseRepresentationOrDifferentialInfo()
@@ -258,20 +255,18 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ", ".join(components[:2]) + ", and " + components[2]
             raise ValueError(f"Input parameters {c_str} cannot be broadcast") from err
 
-        # The output of np.broadcast_arrays() has limitations on writeability,
-        # so we perform additional handling to enable writeability in most
-        # situations.  This is primarily relevant for allowing the changing of
-        # the wrap angle of longitude components.
+        # The output of np.broadcast_arrays() has limitations on writeability, so we
+        # perform additional handling to enable writeability in most situations.  This
+        # is primarily relevant for allowing the changing of the wrap angle of longitude
+        # components.
         #
-        # If the shape has changed for a given component, broadcasting is
-        #     needed: If copy=True, we make a copy of the broadcasted array to
-        #         ensure writeability. Note that array had already been copied
-        #         prior to the broadcasting. TODO: Find a way to avoid the
-        #     double copy. If copy=False, we use the broadcasted array, and
-        #         writeability may still be limited. If the shape has not
-        # changed for a given component, we can proceed with using the
-        #     non-broadcasted array, which avoids writeability issues from
-        #     np.broadcast_arrays().
+        # If the shape has changed for a given component, broadcasting is needed: If
+        # copy=True, we make a copy of the broadcasted array to ensure writeability.
+        # Note that array had already been copied prior to the broadcasting. TODO: Find
+        # a way to avoid the double copy. If copy=False, we use the broadcasted array,
+        # and writeability may still be limited. If the shape has not changed for a
+        # given component, we can proceed with using the non-broadcasted array, which
+        # avoids writeability issues from np.broadcast_arrays().
         attrs = [
             (bc_attr.copy() if copy else bc_attr)
             if bc_attr.shape != attr.shape
@@ -279,8 +274,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             for attr, bc_attr in zip(attrs, bc_attrs)
         ]
 
-        # Set private attributes for the attributes. (If not defined explicitly
-        # on the class, the metaclass will define properties to access these.)
+        # Set private attributes for the attributes. (If not defined explicitly on the
+        # class, the metaclass will define properties to access these.)
         for component, attr in zip(components, attrs):
             setattr(self, "_" + component, attr)
 
@@ -288,9 +283,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def get_name(cls):
         """Name of the representation or differential.
 
-        In lower case, with any trailing 'representation' or 'differential'
-        removed. (E.g., 'spherical' for
-        `~astropy.coordinates.SphericalRepresentation` or
+        In lower case, with any trailing 'representation' or 'differential' removed.
+        (E.g., 'spherical' for `~astropy.coordinates.SphericalRepresentation` or
         `~astropy.coordinates.SphericalDifferential`.)
         """
         name = cls.__name__.lower()
@@ -325,11 +319,10 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def to_cartesian(self):
         """Convert the representation to its Cartesian form.
 
-        Note that any differentials get dropped. Also note that orientation
-        information at the origin is *not* preserved by conversions through
-        Cartesian coordinates. For example, transforming an angular position
-        defined at distance=0 through cartesian coordinates and back will lose
-        the original angular coordinates::
+        Note that any differentials get dropped. Also note that orientation information
+        at the origin is *not* preserved by conversions through Cartesian coordinates.
+        For example, transforming an angular position defined at distance=0 through
+        cartesian coordinates and back will lose the original angular coordinates::
 
             >>> import astropy.units as u
             >>> import astropy.coordinates as coord
@@ -357,9 +350,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def __eq__(self, value):
         """Equality operator
 
-        This implements strict equality and requires that the representation
-        classes are identical and that the representation data are exactly
-        equal.
+        This implements strict equality and requires that the representation classes are
+        identical and that the representation data are exactly equal.
         """
         if self.__class__ is not value.__class__:
             raise TypeError(
@@ -386,15 +378,15 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         to the component data.
 
         In typical usage, the method is any of the shape-changing methods for
-        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those
-        picking particular elements (``__getitem__``, ``take``, etc.), which are
-        all defined in `~astropy.utils.shapes.ShapedLikeNDArray`. It will be
-        applied to the underlying arrays (e.g., ``x``, ``y``, and ``z`` for
-        `~astropy.coordinates.CartesianRepresentation`), with the results used
-        to create a new instance.
+        `~numpy.ndarray` (``reshape``, ``swapaxes``, etc.), as well as those picking
+        particular elements (``__getitem__``, ``take``, etc.), which are all defined in
+        `~astropy.utils.shapes.ShapedLikeNDArray`. It will be applied to the underlying
+        arrays (e.g., ``x``, ``y``, and ``z`` for
+        `~astropy.coordinates.CartesianRepresentation`), with the results used to create
+        a new instance.
 
-        Internally, it is also used to apply functions to the components (in
-        particular, `~numpy.broadcast_to`).
+        Internally, it is also used to apply functions to the components (in particular,
+        `~numpy.broadcast_to`).
 
         Parameters
         ----------
@@ -415,9 +407,8 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         for component in self.components:
             setattr(new, "_" + component, apply_method(getattr(self, component)))
 
-        # Copy other 'info' attr only if it has actually been defined. See PR
-        # #3898 for further explanation and justification, along with
-        # Quantity.__array_finalize__
+        # Copy other 'info' attr only if it has actually been defined. See PR #3898 for
+        # further explanation and justification, along with Quantity.__array_finalize__
         if "info" in self.__dict__:
             new.info = self.info
 
@@ -437,28 +428,27 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
     def shape(self):
         """The shape of the instance and underlying arrays.
 
-        Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a
-        tuple.  Note that if different instances share some but not all
-        underlying data, setting the shape of one instance can make the other
-        instance unusable.  Hence, it is strongly recommended to get new,
-        reshaped instances with the ``reshape`` method.
+        Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a tuple.
+        Note that if different instances share some but not all underlying data, setting
+        the shape of one instance can make the other instance unusable.  Hence, it is
+        strongly recommended to get new, reshaped instances with the ``reshape`` method.
 
         Raises
         ------
         ValueError
             If the new shape has the wrong total number of elements.
         AttributeError
-            If the shape of any of the components cannot be changed without the
-            arrays being copied.  For these cases, use the ``reshape`` method
-            (which copies any arrays that cannot be reshaped in-place).
+            If the shape of any of the components cannot be changed without the arrays
+            being copied.  For these cases, use the ``reshape`` method (which copies any
+            arrays that cannot be reshaped in-place).
         """
         return getattr(self, self.components[0]).shape
 
     @shape.setter
     def shape(self, shape):
-        # We keep track of arrays that were already reshaped since we may have
-        # to return those to their original shape if a later shape-setting
-        # fails. (This can happen since coordinates are broadcast together.)
+        # We keep track of arrays that were already reshaped since we may have to return
+        # those to their original shape if a later shape-setting fails. (This can happen
+        # since coordinates are broadcast together.)
         reshaped = []
         oldshape = self.shape
         for component in self.components:
@@ -596,32 +586,29 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     Parameters
     ----------
     comp1, comp2, comp3 : `~astropy.units.Quantity` or subclass
-        The components of the 3D points.  The names are the keys and the
-        subclasses the values of the ``attr_classes`` attribute.
+        The components of the 3D points.  The names are the keys and the subclasses the
+        values of the ``attr_classes`` attribute.
     differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.BaseDifferential` subclass instance, or a
-        dictionary with keys set to a string representation of the SI unit with
-        which the differential (derivative) is taken. For example, for a
-        velocity differential on a positional representation, the key would be
-        ``'s'`` for seconds, indicating that the derivative is a time
-        derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.BaseDifferential` subclass
+        instance, or a dictionary with keys set to a string representation of the SI
+        unit with which the differential (derivative) is taken. For example, for a
+        velocity differential on a positional representation, the key would be ``'s'``
+        for seconds, indicating that the derivative is a time derivative.
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
         references, though possibly broadcast to ensure matching shapes.
 
     Notes
     -----
-    All representation classes should subclass this base representation class,
-    and define an ``attr_classes`` attribute, a `dict` which maps component
-    names to the class that creates them. They must also define a
-    ``to_cartesian`` method and a ``from_cartesian`` class method. By default,
-    transformations are done via the cartesian system, but classes that want to
-    define a smarter transformation path can overload the ``represent_as``
-    method. If one wants to use an associated differential class, one should
-    also define ``unit_vectors`` and ``scale_factors`` methods (see those
-    methods for details).
+    All representation classes should subclass this base representation class, and
+    define an ``attr_classes`` attribute, a `dict` which maps component names to the
+    class that creates them. They must also define a ``to_cartesian`` method and a
+    ``from_cartesian`` class method. By default, transformations are done via the
+    cartesian system, but classes that want to define a smarter transformation path can
+    overload the ``represent_as`` method. If one wants to use an associated differential
+    class, one should also define ``unit_vectors`` and ``scale_factors`` methods (see
+    those methods for details).
     """
 
     info = RepresentationInfo()
@@ -637,8 +624,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             )
 
         repr_name = cls.get_name()
-        # first time a duplicate is added remove first entry and add both using
-        # their qualnames
+        # first time a duplicate is added remove first entry and add both using their
+        # qualnames
         if repr_name in REPRESENTATION_CLASSES:
             DUPLICATE_REPRESENTATIONS.add(repr_name)
 
@@ -696,11 +683,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     def _validate_differentials(self, differentials):
         """
-        Validate that the provided differentials are appropriate for this
-        representation and recast/reshape as necessary and then return.
+        Validate that the provided differentials are appropriate for this representation
+        and recast/reshape as necessary and then return.
 
-        Note that this does *not* set the differentials on
-        ``self._differentials``, but rather leaves that for the caller.
+        Note that this does *not* set the differentials on ``self._differentials``, but
+        rather leaves that for the caller.
         """
         from .spherical import RadialDifferential, UnitSphericalRepresentation
 
@@ -735,10 +722,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             if isinstance(diff, RadialDifferential) and isinstance(
                 self, UnitSphericalRepresentation
             ):
-                # We trust the passing of a key for a RadialDifferential
-                # attached to a UnitSphericalRepresentation because it will not
-                # have a paired component name (UnitSphericalRepresentation has
-                # no .distance) to automatically determine the expected key
+                # We trust the passing of a key for a RadialDifferential attached to a
+                # UnitSphericalRepresentation because it will not have a paired
+                # component name (UnitSphericalRepresentation has no .distance) to
+                # automatically determine the expected key
                 pass
 
             else:
@@ -751,13 +738,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                         )
                     )
 
-            # For now, we are very rigid: differentials must have the same shape
-            # as the representation. This makes it easier to handle __getitem__
-            # and any other shape-changing operations on representations that
-            # have associated differentials
+            # For now, we are very rigid: differentials must have the same shape as the
+            # representation. This makes it easier to handle __getitem__ and any other
+            # shape-changing operations on representations that have associated
+            # differentials
             if diff.shape != self.shape:
-                # TODO: message of IncompatibleShapeError is not customizable,
-                #       so use a valueerror instead?
+                # TODO: message of IncompatibleShapeError is not customizable, so use a
+                #       valueerror instead?
                 raise ValueError(
                     "Shape of differentials must be the same "
                     "as the shape of the representation ({} vs "
@@ -768,8 +755,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     def _raise_if_has_differentials(self, op_name):
         """
-        Used to raise a consistent exception for any operation that is not
-        supported when a representation has differentials attached.
+        Used to raise a consistent exception for any operation that is not supported
+        when a representation has differentials attached.
         """
         if self.differentials:
             raise TypeError(
@@ -787,23 +774,22 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def differentials(self):
         """A dictionary of differential class instances.
 
-        The keys of this dictionary must be a string representation of the SI
-        unit with which the differential (derivative) is taken. For example, for
-        a velocity differential on a positional representation, the key would be
-        ``'s'`` for seconds, indicating that the derivative is a time
-        derivative.
+        The keys of this dictionary must be a string representation of the SI unit with
+        which the differential (derivative) is taken. For example, for a velocity
+        differential on a positional representation, the key would be ``'s'`` for
+        seconds, indicating that the derivative is a time derivative.
         """
         return self._differentials
 
-    # We do not make unit_vectors and scale_factors abstract methods, since they
-    # are only necessary if one also defines an associated Differential. Also,
-    # doing so would break pre-differential representation subclasses.
+    # We do not make unit_vectors and scale_factors abstract methods, since they are
+    # only necessary if one also defines an associated Differential. Also, doing so
+    # would break pre-differential representation subclasses.
     def unit_vectors(self):
         r"""Cartesian unit vectors in the direction of each component.
 
-        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`, a
-        change in one component of :math:`\delta c` corresponds to a change in
-        representation of :math:`\delta c \times f_c \times \hat{e}_c`.
+        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`, a change in
+        one component of :math:`\delta c` corresponds to a change in representation of
+        :math:`\delta c \times f_c \times \hat{e}_c`.
 
         Returns
         -------
@@ -815,9 +801,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def scale_factors(self):
         r"""Scale factors for each component's direction.
 
-        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`, a
-        change in one component of :math:`\delta c` corresponds to a change in
-        representation of :math:`\delta c \times f_c \times \hat{e}_c`.
+        Given unit vectors :math:`\hat{e}_c` and scale factors :math:`f_c`, a change in
+        one component of :math:`\delta c` corresponds to a change in representation of
+        :math:`\delta c \times f_c \times \hat{e}_c`.
 
         Returns
         -------
@@ -883,19 +869,19 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         If the instance is of the requested class, it is returned unmodified. By
         default, conversion is done via Cartesian coordinates. Also note that
-        orientation information at the origin is *not* preserved by conversions
-        through Cartesian coordinates. See the docstring for
-        :meth:`~astropy.coordinates.BaseRepresentationOrDifferential.to_cartesian`
-        for an example.
+        orientation information at the origin is *not* preserved by conversions through
+        Cartesian coordinates. See the docstring for
+        :meth:`~astropy.coordinates.BaseRepresentationOrDifferential.to_cartesian` for
+        an example.
 
         Parameters
         ----------
         other_class : `~astropy.coordinates.BaseRepresentation` subclass
             The type of representation to turn the coordinates into.
         differential_class : dict of `~astropy.coordinates.BaseDifferential`, optional
-            Classes in which the differentials should be represented. Can be a
-            single class if only a single differential is attached, otherwise it
-            should be a `dict` keyed by the same keys as the differentials.
+            Classes in which the differentials should be represented. Can be a single
+            class if only a single differential is attached, otherwise it should be a
+            `dict` keyed by the same keys as the differentials.
         """
         if other_class is self.__class__ and not differential_class:
             return self.without_differentials()
@@ -923,9 +909,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def transform(self, matrix):
         """Transform coordinates using a 3x3 matrix in a Cartesian basis.
 
-        This returns a new representation and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
+        This returns a new representation and does not modify the original one. Any
+        differentials attached to this representation will also be transformed.
 
         Parameters
         ----------
@@ -948,11 +933,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     def with_differentials(self, differentials):
         """
-        Create a new representation with the same positions as this
-        representation, but with these new differentials.
+        Create a new representation with the same positions as this representation, but
+        with these new differentials.
 
-        Differential keys that already exist in this object's differential dict
-        are overwritten.
+        Differential keys that already exist in this object's differential dict are
+        overwritten.
 
         Parameters
         ----------
@@ -970,8 +955,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         args = [getattr(self, component) for component in self.components]
 
-        # We shallow copy the differentials dictionary so we don't update the
-        # current object's dictionary when adding new keys
+        # We shallow copy the differentials dictionary so we don't update the current
+        # object's dictionary when adding new keys
         new_rep = self.__class__(
             *args, differentials=self.differentials.copy(), copy=False
         )
@@ -985,8 +970,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Returns
         -------
         `~astropy.coordinates.BaseRepresentation` subclass instance
-            A shallow copy of this representation, without any differentials. If
-            no differentials were present, no copy is made.
+            A shallow copy of this representation, without any differentials. If no
+            differentials were present, no copy is made.
         """
 
         if not self._differentials:
@@ -1009,16 +994,15 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def __eq__(self, value):
         """Equality operator for BaseRepresentation
 
-        This implements strict equality and requires that the representation
-        classes are identical, the differentials are identical, and that the
-        representation data are exactly equal.
+        This implements strict equality and requires that the representation classes are
+        identical, the differentials are identical, and that the representation data are
+        exactly equal.
         """
-        # BaseRepresentationOrDifferental (checks classes and compares
-        # components)
+        # BaseRepresentationOrDifferental (checks classes and compares components)
         out = super().__eq__(value)
 
-        # super() checks that the class is identical so can this even happen?
-        # (same class, different differentials ?)
+        # super() checks that the class is identical so can this even happen? (same
+        # class, different differentials ?)
         if self._differentials.keys() != value._differentials.keys():
             raise ValueError("cannot compare: objects must have same differentials")
 
@@ -1036,9 +1020,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """Create a new representation with ``method`` applied to the component
         data.
 
-        This is not a simple inherit from ``BaseRepresentationOrDifferential``
-        because we need to call ``._apply()`` on any associated differential
-        classes.
+        This is not a simple inherit from ``BaseRepresentationOrDifferential`` because
+        we need to call ``._apply()`` on any associated differential classes.
 
         See docstring for `BaseRepresentationOrDifferential._apply`.
 
@@ -1109,8 +1092,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         op : `~operator` callable
             Operator to apply (e.g., `~operator.mul`, `~operator.neg`, etc.
         *args
-            Any arguments required for the operator (typically, what is to be
-            multiplied with, divided by).
+            Any arguments required for the operator (typically, what is to be multiplied
+            with, divided by).
         """
         results = []
         for component, cls in self.attr_classes.items():
@@ -1121,8 +1104,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 results.append(op(value, *args))
 
         # try/except catches anything that cannot initialize the class, such as
-        # operations that returned NotImplemented or a representation instead of
-        # a quantity (as would happen for, e.g., rep * rep).
+        # operations that returned NotImplemented or a representation instead of a
+        # quantity (as would happen for, e.g., rep * rep).
         try:
             result = self.__class__(*results)
         except Exception:
@@ -1179,11 +1162,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def norm(self):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units.
 
-        Note that any associated differentials will be dropped during this
-        operation.
+        Note that any associated differentials will be dropped during this operation.
 
         Returns
         -------
@@ -1204,13 +1186,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def mean(self, *args, **kwargs):
         """Vector mean.
 
-        Averaging is done by converting the representation to cartesian, and
-        taking the mean of the x, y, and z components. The result is converted
-        back to the same representation as the input.
+        Averaging is done by converting the representation to cartesian, and taking the
+        mean of the x, y, and z components. The result is converted back to the same
+        representation as the input.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.mean` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
 
         Returns
         -------
@@ -1223,13 +1205,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     def sum(self, *args, **kwargs):
         """Vector sum.
 
-        Adding is done by converting the representation to cartesian, and
-        summing the x, y, and z components. The result is converted back to the
-        same representation as the input.
+        Adding is done by converting the representation to cartesian, and summing the x,
+        y, and z components. The result is converted back to the same representation as
+        the input.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.sum` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
 
         Returns
         -------
@@ -1245,8 +1227,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         The calculation is done by converting both ``self`` and ``other`` to
         `~astropy.coordinates.CartesianRepresentation`.
 
-        Note that any associated differentials will be dropped during this
-        operation.
+        Note that any associated differentials will be dropped during this operation.
 
         Parameters
         ----------
@@ -1256,8 +1237,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Returns
         -------
         dot_product : `~astropy.units.Quantity`
-            The sum of the product of the x, y, and z components of the
-            cartesian representations of ``self`` and ``other``.
+            The sum of the product of the x, y, and z components of the cartesian
+            representations of ``self`` and ``other``.
         """
         return self.to_cartesian().dot(other)
 
@@ -1265,8 +1246,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """Vector cross product of two representations.
 
         The calculation is done by converting both ``self`` and ``other`` to
-        `~astropy.coordinates.CartesianRepresentation`, and converting the
-        result back to the type of representation of ``self``.
+        `~astropy.coordinates.CartesianRepresentation`, and converting the result back
+        to the type of representation of ``self``.
 
         Parameters
         ----------
@@ -1276,8 +1257,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Returns
         -------
         cross_product : `~astropy.coordinates.BaseRepresentation` subclass instance
-            With vectors perpendicular to both ``self`` and ``other``, in the
-            same type of representation as ``self``.
+            With vectors perpendicular to both ``self`` and ``other``, in the same type
+            of representation as ``self``.
         """
         self._raise_if_has_differentials("cross")
         return self.from_cartesian(self.to_cartesian().cross(other))
@@ -1289,9 +1270,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 class BaseDifferential(BaseRepresentationOrDifferential):
     r"""A base class representing differentials of representations.
 
-    These represent differences or derivatives along each component. E.g., for
-    physics spherical coordinates, these would be :math:`\delta r, \delta
-    \theta, \delta \phi`.
+    These represent differences or derivatives along each component. E.g., for physics
+    spherical coordinates, these would be :math:`\delta r, \delta \theta, \delta \phi`.
 
     Parameters
     ----------
@@ -1304,21 +1284,21 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     Notes
     -----
-    All differential representation classes should subclass this base class, and
-    define an ``base_representation`` attribute with the class of the regular
-    `~astropy.coordinates.BaseRepresentation` for which differential coordinates
-    are provided. This will set up a default ``attr_classes`` instance with
-    names equal to the base component names prefixed by ``d_``, and all classes
-    set to `~astropy.units.Quantity`, plus properties to access those, and a
-    default ``__init__`` for initialization.
+    All differential representation classes should subclass this base class, and define
+    an ``base_representation`` attribute with the class of the regular
+    `~astropy.coordinates.BaseRepresentation` for which differential coordinates are
+    provided. This will set up a default ``attr_classes`` instance with names equal to
+    the base component names prefixed by ``d_``, and all classes set to
+    `~astropy.units.Quantity`, plus properties to access those, and a default
+    ``__init__`` for initialization.
     """
 
     def __init_subclass__(cls, **kwargs):
         """Set default ``attr_classes`` and component getters on a Differential.
         class BaseDifferential(BaseRepresentationOrDifferential):
 
-        For these, the components are those of the base representation prefixed
-        by 'd_', and the class is `~astropy.units.Quantity`.
+        For these, the components are those of the base representation prefixed by 'd_',
+        and the class is `~astropy.units.Quantity`.
         """
 
         # Don't do anything for base helper classes.
@@ -1371,12 +1351,12 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     def _get_deriv_key(self, base):
         """Given a base (representation instance), determine the unit of the
-        derivative by removing the representation unit from the component units
-        of this differential.
+        derivative by removing the representation unit from the component units of this
+        differential.
         """
 
-        # This check is just a last resort so we don't return a strange unit key
-        # from accidentally passing in the wrong base.
+        # This check is just a last resort so we don't return a strange unit key from
+        # accidentally passing in the wrong base.
         self._check_base(base)
 
         for name in base.components:
@@ -1385,8 +1365,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             if d_comp is not None:
                 d_unit = comp.unit / d_comp.unit
 
-                # This is quite a bit faster than using to_system() or going
-                # through Quantity()
+                # This is quite a bit faster than using to_system() or going through
+                # Quantity()
                 d_unit_si = d_unit.decompose(u.si.bases)
                 d_unit_si._scale = 1  # remove the scale from the unit
 
@@ -1408,8 +1388,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         Parameters
         ----------
         base : instance of ``self.base_representation``
-            The points for which the unit vectors and scale factors should be
-            retrieved.
+            The points for which the unit vectors and scale factors should be retrieved.
 
         Returns
         -------
@@ -1431,8 +1410,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         Parameters
         ----------
         base : instance of ``self.base_representation``
-            The points for which the differentials are to be converted: each of
-            the components is multiplied by its unit vectors and scale factors.
+            The points for which the differentials are to be converted: each of the
+            components is multiplied by its unit vectors and scale factors.
 
         Returns
         -------
@@ -1459,9 +1438,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         other
             The object to convert into this differential.
         base : `~astropy.coordinates.BaseRepresentation`
-            The points for which the differentials are to be converted: each of
-            the components is multiplied by its unit vectors and scale factors.
-            Will be converted to ``cls.base_representation`` if needed.
+            The points for which the differentials are to be converted: each of the
+            components is multiplied by its unit vectors and scale factors. Will be
+            converted to ``cls.base_representation`` if needed.
 
         Returns
         -------
@@ -1486,9 +1465,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         other_class : `~astropy.coordinates.BaseRepresentation` subclass
             The type of representation to turn the coordinates into.
         base : instance of ``self.base_representation``
-            Base relative to which the differentials are defined.  If the other
-            class is a differential representation, the base will be converted
-            to its ``base_representation``.
+            Base relative to which the differentials are defined.  If the other class is
+            a differential representation, the base will be converted to its
+            ``base_representation``.
         """
         if other_class is self.__class__:
             return self
@@ -1508,10 +1487,10 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         ----------
         representation : `~astropy.coordinates.BaseRepresentation` instance
             The presentation that should be converted to this class.
-        base : instance of ``cls.base_representation``
+        base : ``cls.base_representation`` instance
             The base relative to which the differentials will be defined. If the
-            representation is a differential itself, the base will be converted
-            to its ``base_representation`` to help convert it.
+            representation is a differential itself, the base will be converted to its
+            ``base_representation`` to help convert it.
         """
         if isinstance(representation, BaseDifferential):
             cartesian = representation.to_cartesian(
@@ -1531,14 +1510,14 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         ----------
         matrix : (3,3) array-like
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
-        base : instance of ``cls.base_representation``
-            Base relative to which the differentials are defined.  If the other
-            class is a differential representation, the base will be converted
-            to its ``base_representation``.
-        transformed_base : instance of ``cls.base_representation``
-            Base relative to which the transformed differentials are defined. If
-            the other class is a differential representation, the base will be
-            converted to its ``base_representation``.
+        base : ``cls.base_representation`` instance
+            Base relative to which the differentials are defined.  If the other class is
+            a differential representation, the base will be converted to its
+            ``base_representation``.
+        transformed_base : ``cls.base_representation`` instance
+            Base relative to which the transformed differentials are defined. If the
+            other class is a differential representation, the base will be converted to
+            its ``base_representation``.
         """
         from astropy.coordinates.representation.cartesian import CartesianDifferential
 
@@ -1556,13 +1535,12 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         op : `~operator` callable
             Operator to apply (e.g., `~operator.mul`, `~operator.neg`, etc.
         *args
-            Any arguments required for the operator (typically, what is to be
-            multiplied with, divided by).
+            Any arguments required for the operator (typically, what is to be multiplied
+            with, divided by).
         scaled_base : bool, optional
-            Whether the base was scaled the same way. This affects whether
-            differential components should be scaled. For instance, a
-            differential in longitude should not be scaled if its spherical base
-            is scaled in radius.
+            Whether the base was scaled the same way. This affects whether differential
+            components should be scaled. For instance, a differential in longitude
+            should not be scaled if its spherical base is scaled in radius.
         """
         scaled_attrs = [op(getattr(self, c), *args) for c in self.components]
         return self.__class__(*scaled_attrs, copy=False)
@@ -1570,10 +1548,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
     def _combine_operation(self, op, other, reverse=False):
         """Combine two differentials, or a differential with a representation.
 
-        If ``other`` is of the same differential type as ``self``, the
-        components will simply be combined.  If ``other`` is a representation,
-        it will be used as a base for which to evaluate the differential, and
-        the result is a new representation.
+        If ``other`` is of the same differential type as ``self``, the components will
+        simply be combined.  If ``other`` is a representation, it will be used as a base
+        for which to evaluate the differential, and the result is a new representation.
 
         Parameters
         ----------
@@ -1607,15 +1584,15 @@ class BaseDifferential(BaseRepresentationOrDifferential):
     def norm(self, base=None):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units.
 
         Parameters
         ----------
-        base : instance of ``self.base_representation``
-            Base relative to which the differentials are defined. This is
-            required to calculate the physical size of the differential for all
-            but Cartesian differentials or radial differentials.
+        base : ``self.base_representation`` instance
+            Base relative to which the differentials are defined. This is required to
+            calculate the physical size of the differential for all but Cartesian
+            differentials or radial differentials.
 
         Returns
         -------

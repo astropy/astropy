@@ -66,12 +66,11 @@ class BaseSphericalDifferential(BaseDifferential):
     def _combine_operation(self, op, other, reverse=False):
         """Combine two differentials, or a differential with a representation.
 
-        If ``other`` is of the same differential type as ``self``, the
-        components will simply be combined.  If both are different parts of a
+        If ``other`` is of the same differential type as ``self``, the components will
+        simply be combined.  If both are different parts of a
         `~astropy.coordinates.SphericalDifferential` (e.g., a
         `~astropy.coordinates.UnitSphericalDifferential` and a
-        `~astropy.coordinates.RadialDifferential`), they will combined
-        appropriately.
+        `~astropy.coordinates.RadialDifferential`), they will combined appropriately.
 
         If ``other`` is a representation, it will be used as a base for which to
         evaluate the differential, and the result is a new representation.
@@ -115,16 +114,15 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
         Parameters
         ----------
         base : instance of ``self.base_representation``
-            The points for which the unit vectors and scale factors should be
-            retrieved.
+            The points for which the unit vectors and scale factors should be retrieved.
 
         Returns
         -------
         unit_vectors : dict of `~astropy.coordinates.CartesianRepresentation`
             In the directions of the coordinates of base.
         scale_factors : dict of `~astropy.units.Quantity`
-            Scale factors for each of the coordinates.  The scale factor for
-            longitude does not include the cos(lat) factor.
+            Scale factors for each of the coordinates.  The scale factor for longitude
+            does not include the cos(lat) factor.
 
         Raises
         ------
@@ -161,12 +159,11 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
     def _combine_operation(self, op, other, reverse=False):
         """Combine two differentials, or a differential with a representation.
 
-        If ``other`` is of the same differential type as ``self``, the
-        components will simply be combined.  If both are different parts of a
+        If ``other`` is of the same differential type as ``self``, the components will
+        simply be combined.  If both are different parts of a
         `~astropy.coordinates.SphericalDifferential` (e.g., a
         `~astropy.coordinates.UnitSphericalDifferential` and a
-        `~astropy.coordinates.RadialDifferential`), they will combined
-        appropriately.
+        `~astropy.coordinates.RadialDifferential`), they will combined appropriately.
 
         If ``other`` is a representation, it will be used as a base for which to
         evaluate the differential, and the result is a new representation.
@@ -204,8 +201,8 @@ class RadialRepresentation(BaseRepresentation):
     """
     Representation of the distance of points from the origin.
 
-    Note that this is mostly intended as an internal helper representation. It
-    can do little else but being used as a scale in multiplication.
+    Note that this is mostly intended as an internal helper representation. It can do
+    little else but being used as a scale in multiplication.
 
     Parameters
     ----------
@@ -213,15 +210,13 @@ class RadialRepresentation(BaseRepresentation):
         The distance of the point(s) from the origin.
 
     differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.BaseDifferential` instance (see
-        `._compatible_differentials` for valid types), or a dictionary of of
-        differential instances with keys set to a string representation of the
-        SI unit with which the differential (derivative) is taken. For example,
-        for a velocity differential on a positional representation, the key
-        would be ``'s'`` for seconds, indicating that the derivative is a time
-        derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.BaseDifferential` instance
+        (see `._compatible_differentials` for valid types), or a dictionary of of
+        differential instances with keys set to a string representation of the SI unit
+        with which the differential (derivative) is taken. For example, for a velocity
+        differential on a positional representation, the key would be ``'s'`` for
+        seconds, indicating that the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -290,11 +285,10 @@ class RadialRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : array-like
-            The transformation matrix in a Cartesian basis. Must be a
-            multiplication: a diagonal matrix with identical elements. Must have
-            shape (..., 3, 3), where the last 2 indices are for the matrix on
-            each other axis. Make sure that the matrix shape is compatible with
-            the shape of this representation.
+            The transformation matrix in a Cartesian basis. Must be a multiplication: a
+            diagonal matrix with identical elements. Must have shape (..., 3, 3), where
+            the last 2 indices are for the matrix on each other axis. Make sure that the
+            matrix shape is compatible with the shape of this representation.
 
         Raises
         ------
@@ -383,22 +377,20 @@ class UnitSphericalRepresentation(BaseRepresentation):
     Parameters
     ----------
     lon, lat : `~astropy.units.Quantity` ['angle'] or str
-        The longitude and latitude of the point(s), in angular units. The
-        latitude should be between -90 and 90 degrees, and the longitude will be
-        wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`,
-        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
+        The longitude and latitude of the point(s), in angular units. The latitude
+        should be between -90 and 90 degrees, and the longitude will be wrapped to an
+        angle between 0 and 360 degrees. These can also be instances of
+        `~astropy.coordinates.Angle`, `~astropy.coordinates.Longitude`, or
+        `~astropy.coordinates.Latitude`.
 
     differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.BaseDifferential` instance (see
-        `._compatible_differentials` for valid types), or a dictionary of of
-        differential instances with keys set to a string representation of the
-        SI unit with which the differential (derivative) is taken. For example,
-        for a velocity differential on a positional representation, the key
-        would be ``'s'`` for seconds, indicating that the derivative is a time
-        derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.BaseDifferential` instance
+        (see `._compatible_differentials` for valid types), or a dictionary of of
+        differential instances with keys set to a string representation of the SI unit
+        with which the differential (derivative) is taken. For example, for a velocity
+        differential on a positional representation, the key would be ``'s'`` for
+        seconds, indicating that the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -424,8 +416,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
             RadialDifferential,
         ]
 
-    # Could let the metaclass define these automatically, but good to have a bit
-    # clearer docstrings.
+    # Could let the metaclass define these automatically, but good to have a bit clearer
+    # docstrings.
     @property
     def lon(self):
         """
@@ -457,8 +449,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
-        coordinates.
+        Converts spherical polar coordinates to 3D rectangular cartesian coordinates.
         """
         # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
         p = erfa_ufunc.s2c(self.lon, self.lat)
@@ -467,20 +458,19 @@ class UnitSphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
-        coordinates.
+        Converts 3D rectangular cartesian coordinates to spherical polar coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa c2s: P-vector to [unit]spherical coordinates.
         return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
-        # Take a short cut if the other class is a spherical representation
-        # TODO! for differential_class. This cannot (currently) be implemented
-        # like in the other Representations since `_re_represent_differentials`
-        # keeps differentials' unit keys, but this can result in a mismatch
-        # between the UnitSpherical expected key (e.g. "s") and that expected in
-        # the other class (here "s / m"). For more info, see PR #11467
+        # Take a short cut if the other class is a spherical representation TODO! for
+        # differential_class. This cannot (currently) be implemented like in the other
+        # Representations since `_re_represent_differentials` keeps differentials' unit
+        # keys, but this can result in a mismatch between the UnitSpherical expected key
+        # (e.g. "s") and that expected in the other class (here "s / m"). For more info,
+        # see PR #11467
         if inspect.isclass(other_class) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
                 return other_class(
@@ -494,9 +484,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def transform(self, matrix):
         r"""Transform the unit-spherical coordinates using a 3x3 matrix.
 
-        This returns a new representation and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
+        This returns a new representation and does not modify the original one. Any
+        differentials attached to this representation will also be transformed.
 
         Parameters
         ----------
@@ -505,18 +494,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         Returns
         -------
-        `~astropy.coordinates.UnitSphericalRepresentation` or
-        `~astropy.coordinates.SphericalRepresentation`
-            If ``matrix`` is O(3) -- :math:`M \dot M^T = I` -- like a rotation,
-            then the result is a
-            `~astropy.coordinates.UnitSphericalRepresentation`. All other
-            matrices will change the distance, so the dimensional representation
-            is used instead.
+        `~astropy.coordinates.UnitSphericalRepresentation` or `~astropy.coordinates.SphericalRepresentation`
+            If ``matrix`` is O(3) -- :math:`M \dot M^T = I` -- like a rotation, then the
+            result is a `~astropy.coordinates.UnitSphericalRepresentation`. All other
+            matrices will change the distance, so the dimensional representation is used
+            instead.
 
         """
-        # the transformation matrix does not need to be a rotation matrix, so
-        # the unit-distance is not guaranteed. For speed, we check if the matrix
-        # is in O(3) and preserves lengths.
+        # the transformation matrix does not need to be a rotation matrix, so the
+        # unit-distance is not guaranteed. For speed, we check if the matrix is in O(3)
+        # and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
             xyz = erfa_ufunc.s2c(self.lon, self.lat)
             p = erfa_ufunc.rxp(matrix, xyz)
@@ -561,9 +548,9 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def norm(self):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units, which is
-        always unity for vectors on the unit sphere.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units, which is always unity for
+        vectors on the unit sphere.
 
         Returns
         -------
@@ -584,13 +571,13 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def mean(self, *args, **kwargs):
         """Vector mean.
 
-        The representation is converted to cartesian, the means of the x, y, and
-        z components are calculated, and the result is converted to a
+        The representation is converted to cartesian, the means of the x, y, and z
+        components are calculated, and the result is converted to a
         `~astropy.coordinates.SphericalRepresentation`.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.mean` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
         """
         self._raise_if_has_differentials("mean")
         return self._dimensional_representation.from_cartesian(
@@ -600,13 +587,13 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def sum(self, *args, **kwargs):
         """Vector sum.
 
-        The representation is converted to cartesian, the sums of the x, y, and
-        z components are calculated, and the result is converted to a
+        The representation is converted to cartesian, the sums of the x, y, and z
+        components are calculated, and the result is converted to a
         `~astropy.coordinates.SphericalRepresentation`.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.sum` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
         """
         self._raise_if_has_differentials("sum")
         return self._dimensional_representation.from_cartesian(
@@ -617,8 +604,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """Cross product of two representations.
 
         The calculation is done by converting both ``self`` and ``other`` to
-        `~astropy.coordinates.CartesianRepresentation`, and converting the
-        result back to `~astropy.coordinates.SphericalRepresentation`.
+        `~astropy.coordinates.CartesianRepresentation`, and converting the result back
+        to `~astropy.coordinates.SphericalRepresentation`.
 
         Parameters
         ----------
@@ -686,8 +673,8 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude.
+        # All spherical differentials can be done without going to Cartesian, though
+        # CosLat needs base for the latitude.
         if isinstance(representation, SphericalDifferential):
             return cls(representation.d_lon, representation.d_lat)
         elif isinstance(
@@ -711,20 +698,20 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         matrix : (3,3) array-like
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
         base : instance of ``cls.base_representation``
-            Base relative to which the differentials are defined.  If the other
-            class is a differential representation, the base will be converted
-            to its ``base_representation``.
+            Base relative to which the differentials are defined.  If the other class is
+            a differential representation, the base will be converted to its
+            ``base_representation``.
         transformed_base : instance of ``cls.base_representation``
-            Base relative to which the transformed differentials are defined. If
-            the other class is a differential representation, the base will be
-            converted to its ``base_representation``.
+            Base relative to which the transformed differentials are defined. If the
+            other class is a differential representation, the base will be converted to
+            its ``base_representation``.
         """
-        # the transformation matrix does not need to be a rotation matrix, so
-        # the unit-distance is not guaranteed. For speed, we check if the matrix
-        # is in O(3) and preserves lengths.
+        # the transformation matrix does not need to be a rotation matrix, so the
+        # unit-distance is not guaranteed. For speed, we check if the matrix is in O(3)
+        # and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
-            # TODO! implement without Cartesian intermediate step. some of this
-            # can be moved to the parent class.
+            # TODO! implement without Cartesian intermediate step. some of this can be
+            # moved to the parent class.
             diff = super().transform(matrix, base, transformed_base)
 
         else:  # switch to dimensional representation
@@ -793,8 +780,8 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though w/o CosLat needs base for the latitude.
+        # All spherical differentials can be done without going to Cartesian, though w/o
+        # CosLat needs base for the latitude.
         if isinstance(representation, SphericalCosLatDifferential):
             return cls(representation.d_lon_coslat, representation.d_lat)
         elif isinstance(
@@ -818,17 +805,17 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         matrix : (3,3) array-like
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
         base : instance of ``cls.base_representation``
-            Base relative to which the differentials are defined.  If the other
-            class is a differential representation, the base will be converted
-            to its ``base_representation``.
+            Base relative to which the differentials are defined.  If the other class is
+            a differential representation, the base will be converted to its
+            ``base_representation``.
         transformed_base : instance of ``cls.base_representation``
-            Base relative to which the transformed differentials are defined. If
-            the other class is a differential representation, the base will be
-            converted to its ``base_representation``.
+            Base relative to which the transformed differentials are defined. If the
+            other class is a differential representation, the base will be converted to
+            its ``base_representation``.
         """
-        # the transformation matrix does not need to be a rotation matrix, so
-        # the unit-distance is not guaranteed. For speed, we check if the matrix
-        # is in O(3) and preserves lengths.
+        # the transformation matrix does not need to be a rotation matrix, so the
+        # unit-distance is not guaranteed. For speed, we check if the matrix is in O(3)
+        # and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
             diff = super().transform(matrix, base, transformed_base)
@@ -858,27 +845,25 @@ class SphericalRepresentation(BaseRepresentation):
     Parameters
     ----------
     lon, lat : `~astropy.units.Quantity` ['angle']
-        The longitude and latitude of the point(s), in angular units. The
-        latitude should be between -90 and 90 degrees, and the longitude will be
-        wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`,
-        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
+        The longitude and latitude of the point(s), in angular units. The latitude
+        should be between -90 and 90 degrees, and the longitude will be wrapped to an
+        angle between 0 and 360 degrees. These can also be instances of
+        `~astropy.coordinates.Angle`, `~astropy.coordinates.Longitude`, or
+        `~astropy.coordinates.Latitude`.
 
     distance : `~astropy.units.Quantity` ['length']
-        The distance to the point(s). If the distance is a length, it is passed
-        to the :class:`~astropy.coordinates.Distance` class, otherwise it is
-        passed to the :class:`~astropy.units.Quantity` class.
+        The distance to the point(s). If the distance is a length, it is passed to the
+        :class:`~astropy.coordinates.Distance` class, otherwise it is passed to the
+        :class:`~astropy.units.Quantity` class.
 
     differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.BaseDifferential` instance (see
-        `._compatible_differentials` for valid types), or a dictionary of of
-        differential instances with keys set to a string representation of the
-        SI unit with which the differential (derivative) is taken. For example,
-        for a velocity differential on a positional representation, the key
-        would be ``'s'`` for seconds, indicating that the derivative is a time
-        derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.BaseDifferential` instance
+        (see `._compatible_differentials` for valid types), or a dictionary of of
+        differential instances with keys set to a string representation of the SI unit
+        with which the differential (derivative) is taken. For example, for a velocity
+        differential on a positional representation, the key would be ``'s'`` for
+        seconds, indicating that the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -984,8 +969,7 @@ class SphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
-        coordinates.
+        Converts spherical polar coordinates to 3D rectangular cartesian coordinates.
         """
 
         # We need to convert Distance to Quantity to allow negative values.
@@ -1002,8 +986,7 @@ class SphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
-        coordinates.
+        Converts 3D rectangular cartesian coordinates to spherical polar coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa p2s: P-vector to spherical polar coordinates.
@@ -1012,9 +995,8 @@ class SphericalRepresentation(BaseRepresentation):
     def transform(self, matrix):
         """Transform the spherical coordinates using a 3x3 matrix.
 
-        This returns a new representation and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
+        This returns a new representation and does not modify the original one. Any
+        differentials attached to this representation will also be transformed.
 
         Parameters
         ----------
@@ -1036,9 +1018,9 @@ class SphericalRepresentation(BaseRepresentation):
     def norm(self):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units.  For
-        spherical coordinates, this is just the absolute value of the distance.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units.  For spherical coordinates,
+        this is just the absolute value of the distance.
 
         Returns
         -------
@@ -1094,8 +1076,8 @@ class SphericalDifferential(BaseSphericalDifferential):
             raise u.UnitsError("d_lon and d_lat should have equivalent units.")
 
     def represent_as(self, other_class, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude.
+        # All spherical differentials can be done without going to Cartesian, though
+        # CosLat needs base for the latitude.
         if issubclass(other_class, UnitSphericalDifferential):
             return other_class(self.d_lon, self.d_lat)
         elif issubclass(other_class, RadialDifferential):
@@ -1111,8 +1093,8 @@ class SphericalDifferential(BaseSphericalDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        # Other spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude.
+        # Other spherical differentials can be done without going to Cartesian, though
+        # CosLat needs base for the latitude.
         if isinstance(representation, SphericalCosLatDifferential):
             d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
             return cls(d_lon, representation.d_lat, representation.d_distance)
@@ -1158,8 +1140,8 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             raise u.UnitsError("d_lon_coslat and d_lat should have equivalent units.")
 
     def represent_as(self, other_class, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though some need base for the latitude to remove cos(lat).
+        # All spherical differentials can be done without going to Cartesian, though
+        # some need base for the latitude to remove cos(lat).
         if issubclass(other_class, UnitSphericalCosLatDifferential):
             return other_class(self.d_lon_coslat, self.d_lat)
         elif issubclass(other_class, RadialDifferential):
@@ -1175,8 +1157,8 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        # Other spherical differentials can be done without going to Cartesian,
-        # though we need base for the latitude to remove coslat.
+        # Other spherical differentials can be done without going to Cartesian, though
+        # we need base for the latitude to remove coslat.
         if isinstance(representation, SphericalDifferential):
             d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
             return cls(d_lon_coslat, representation.d_lat, representation.d_distance)
@@ -1200,33 +1182,31 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
     """
-    Representation of points in 3D spherical coordinates (using the physics
-    convention of using ``phi`` and ``theta`` for azimuth and inclination from
-    the pole).
+    Representation of points in 3D spherical coordinates (using the physics convention
+    of using ``phi`` and ``theta`` for azimuth and inclination from the pole).
 
     Parameters
     ----------
     phi, theta : `~astropy.units.Quantity` or str
-        The azimuth and inclination of the point(s), in angular units. The
-        inclination should be between 0 and 180 degrees, and the azimuth will be
-        wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`.  If ``copy`` is False, `phi`
-        will be changed inplace if it is not between 0 and 360 degrees.
+        The azimuth and inclination of the point(s), in angular units. The inclination
+        should be between 0 and 180 degrees, and the azimuth will be wrapped to an angle
+        between 0 and 360 degrees. These can also be instances of
+        `~astropy.coordinates.Angle`.  If ``copy`` is False, `phi` will be changed
+        inplace if it is not between 0 and 360 degrees.
 
     r : `~astropy.units.Quantity`
-        The distance to the point(s). If the distance is a length, it is passed
-        to the :class:`~astropy.coordinates.Distance` class, otherwise it is
-        passed to the :class:`~astropy.units.Quantity` class.
+        The distance to the point(s). If the distance is a length, it is passed to the
+        :class:`~astropy.coordinates.Distance` class, otherwise it is passed to the
+        :class:`~astropy.units.Quantity` class.
 
     differentials : dict, `~astropy.coordinates.PhysicsSphericalDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.PhysicsSphericalDifferential` instance, or a
-        dictionary of of differential instances with keys set to a string
-        representation of the SI unit with which the differential (derivative)
-        is taken. For example, for a velocity differential on a positional
-        representation, the key would be ``'s'`` for seconds, indicating that
-        the derivative is a time derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single
+        `~astropy.coordinates.PhysicsSphericalDifferential` instance, or a dictionary of
+        of differential instances with keys set to a string representation of the SI
+        unit with which the differential (derivative) is taken. For example, for a
+        velocity differential on a positional representation, the key would be ``'s'``
+        for seconds, indicating that the derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -1321,8 +1301,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
-        coordinates.
+        Converts spherical polar coordinates to 3D rectangular cartesian coordinates.
         """
 
         # We need to convert Distance to Quantity to allow negative values.
@@ -1340,8 +1319,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
-        coordinates.
+        Converts 3D rectangular cartesian coordinates to spherical polar coordinates.
         """
 
         s = np.hypot(cart.x, cart.y)
@@ -1355,9 +1333,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def transform(self, matrix):
         """Transform the spherical coordinates using a 3x3 matrix.
 
-        This returns a new representation and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
+        This returns a new representation and does not modify the original one. Any
+        differentials attached to this representation will also be transformed.
 
         Parameters
         ----------
@@ -1369,8 +1346,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         xyz = erfa_ufunc.s2c(self.phi, 90 * u.deg - self.theta)
         p = erfa_ufunc.rxp(matrix, xyz)
         lon, lat, ur = erfa_ufunc.p2s(p)  # `ur` is transformed unit-`r`
-        # create transformed physics-spherical representation, reapplying the
-        # distance scaling
+        # create transformed physics-spherical representation, reapplying the distance
+        # scaling
         rep = self.__class__(phi=lon, theta=90 * u.deg - lat, r=self.r * ur)
 
         new_diffs = {
@@ -1381,9 +1358,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def norm(self):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units.  For
-        spherical coordinates, this is just the absolute value of the radius.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units.  For spherical coordinates,
+        this is just the absolute value of the radius.
 
         Returns
         -------
@@ -1400,8 +1377,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             return super()._scale_operation(op, *args)
 
         phi_op, adjust_theta_sign, r_op = _spherical_op_funcs(op, *args)
-        # Also run phi_op on theta to ensure theta remains between 0 and 180:
-        # any time the scale is negative, we do -theta + 180 degrees.
+        # Also run phi_op on theta to ensure theta remains between 0 and 180: any time
+        # the scale is negative, we do -theta + 180 degrees.
         result = self.__class__(
             phi_op(self.phi),
             phi_op(adjust_theta_sign(self.theta)),
@@ -1441,9 +1418,9 @@ class PhysicsSphericalDifferential(BaseDifferential):
             raise u.UnitsError("d_phi and d_theta should have equivalent units.")
 
     def represent_as(self, other_class, base=None):
-        # All spherical differentials can be done without going to Cartesian,
-        # though CosLat needs base for the latitude. For those, explicitly do
-        # the equivalent of self._d_lon_coslat in SphericalDifferential.
+        # All spherical differentials can be done without going to Cartesian, though
+        # CosLat needs base for the latitude. For those, explicitly do the equivalent of
+        # self._d_lon_coslat in SphericalDifferential.
         if issubclass(other_class, SphericalDifferential):
             return other_class(self.d_phi, -self.d_theta, self.d_r)
         elif issubclass(other_class, UnitSphericalDifferential):
@@ -1463,9 +1440,9 @@ class PhysicsSphericalDifferential(BaseDifferential):
 
     @classmethod
     def from_representation(cls, representation, base=None):
-        # Other spherical differentials can be done without going to Cartesian,
-        # though we need base for the latitude to remove coslat. For that case,
-        # do the equivalent of cls._d_lon in SphericalDifferential.
+        # Other spherical differentials can be done without going to Cartesian, though
+        # we need base for the latitude to remove coslat. For that case, do the
+        # equivalent of cls._d_lon in SphericalDifferential.
         if isinstance(representation, SphericalDifferential):
             return cls(
                 representation.d_lon, -representation.d_lat, representation.d_distance

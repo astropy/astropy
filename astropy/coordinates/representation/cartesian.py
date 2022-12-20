@@ -17,26 +17,25 @@ class CartesianRepresentation(BaseRepresentation):
     Parameters
     ----------
     x, y, z : `~astropy.units.Quantity` or array
-        The x, y, and z coordinates of the point(s). If ``x``, ``y``, and ``z``
-        have different shapes, they should be broadcastable. If not quantity,
-        ``unit`` should be set.  If only ``x`` is given, it is assumed that it
-        contains an array with the 3 coordinates stored along ``xyz_axis``.
+        The x, y, and z coordinates of the point(s). If ``x``, ``y``, and ``z`` have
+        different shapes, they should be broadcastable. If not quantity, ``unit`` should
+        be set.  If only ``x`` is given, it is assumed that it contains an array with
+        the 3 coordinates stored along ``xyz_axis``.
     unit : unit-like
-        If given, the coordinates will be converted to this unit (or taken to be
-        in this unit if not given.
+        If given, the coordinates will be converted to this unit (or taken to be in this
+        unit if not given.
     xyz_axis : int, optional
-        The axis along which the coordinates are stored when a single array is
-        provided rather than distinct ``x``, ``y``, and ``z`` (default: 0).
+        The axis along which the coordinates are stored when a single array is provided
+        rather than distinct ``x``, ``y``, and ``z`` (default: 0).
 
     differentials : dict, `~astropy.coordinates.CartesianDifferential`, optional
-        Any differential classes that should be associated with this
-        representation. The input must either be a single
-        `~astropy.coordinates.CartesianDifferential` instance, or a dictionary
-        of `~astropy.coordinates.CartesianDifferential` s with keys set to a
-        string representation of the SI unit with which the differential
-        (derivative) is taken. For example, for a velocity differential on a
-        positional representation, the key would be ``'s'`` for seconds,
-        indicating that the derivative is a time derivative.
+        Any differential classes that should be associated with this representation. The
+        input must either be a single `~astropy.coordinates.CartesianDifferential`
+        instance, or a dictionary of `~astropy.coordinates.CartesianDifferential` s with
+        keys set to a string representation of the SI unit with which the differential
+        (derivative) is taken. For example, for a velocity differential on a positional
+        representation, the key would be ``'s'`` for seconds, indicating that the
+        derivative is a time derivative.
 
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
@@ -54,8 +53,8 @@ class CartesianRepresentation(BaseRepresentation):
             if isinstance(x, np.ndarray) and x.dtype.kind not in "OV":
                 # Short-cut for 3-D array input.
                 x = u.Quantity(x, unit, copy=copy, subok=True)
-                # Keep a link to the array with all three coordinates so that we
-                # can return it quickly if needed in get_xyz.
+                # Keep a link to the array with all three coordinates so that we can
+                # return it quickly if needed in get_xyz.
                 self._xyz = x
                 if xyz_axis:
                     x = np.moveaxis(x, xyz_axis, 0)
@@ -123,14 +122,14 @@ class CartesianRepresentation(BaseRepresentation):
         Parameters
         ----------
         xyz_axis : int, optional
-            The axis in the final array along which the x, y, z components
-            should be stored (default: 0).
+            The axis in the final array along which the x, y, z components should be
+            stored (default: 0).
 
         Returns
         -------
         xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.  Note that, if possible, this
-            will be a view.
+            With dimension 3 along ``xyz_axis``.  Note that, if possible, this will be a
+            view.
         """
         if self._xyz is not None:
             if self._xyz_axis == xyz_axis:
@@ -138,9 +137,8 @@ class CartesianRepresentation(BaseRepresentation):
             else:
                 return np.moveaxis(self._xyz, self._xyz_axis, xyz_axis)
 
-        # Create combined array.  TO DO: keep it in _xyz for repeated use? But
-        # then in-place changes have to cancel it. Likely best to also update
-        # components.
+        # Create combined array.  TO DO: keep it in _xyz for repeated use? But then
+        # in-place changes have to cancel it. Likely best to also update components.
         return np.stack([self._x, self._y, self._z], axis=xyz_axis)
 
     xyz = property(get_xyz)
@@ -156,9 +154,8 @@ class CartesianRepresentation(BaseRepresentation):
         """
         Transform the cartesian coordinates using a 3x3 matrix.
 
-        This returns a new representation and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
+        This returns a new representation and does not modify the original one. Any
+        differentials attached to this representation will also be transformed.
 
         Parameters
         ----------
@@ -217,11 +214,10 @@ class CartesianRepresentation(BaseRepresentation):
     def norm(self):
         """Vector norm.
 
-        The norm is the standard Frobenius norm, i.e., the square root of the
-        sum of the squares of all components with non-angular units.
+        The norm is the standard Frobenius norm, i.e., the square root of the sum of the
+        squares of all components with non-angular units.
 
-        Note that any associated differentials will be dropped during this
-        operation.
+        Note that any associated differentials will be dropped during this operation.
 
         Returns
         -------
@@ -234,12 +230,12 @@ class CartesianRepresentation(BaseRepresentation):
     def mean(self, *args, **kwargs):
         """Vector mean.
 
-        Returns a new CartesianRepresentation instance with the means of the x,
-        y, and z components.
+        Returns a new CartesianRepresentation instance with the means of the x, y, and z
+        components.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.mean` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
         """
         self._raise_if_has_differentials("mean")
         return self._apply("mean", *args, **kwargs)
@@ -247,12 +243,12 @@ class CartesianRepresentation(BaseRepresentation):
     def sum(self, *args, **kwargs):
         """Vector sum.
 
-        Returns a new CartesianRepresentation instance with the sums of the x,
-        y, and z components.
+        Returns a new CartesianRepresentation instance with the sums of the x, y, and z
+        components.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Refer to `~numpy.sum` for full documentation of the arguments, noting that
+        ``axis`` is the entry in the ``shape`` of the representation, and that the
+        ``out`` argument cannot be used.
         """
         self._raise_if_has_differentials("sum")
         return self._apply("sum", *args, **kwargs)
@@ -260,8 +256,7 @@ class CartesianRepresentation(BaseRepresentation):
     def dot(self, other):
         """Dot product of two representations.
 
-        Note that any associated differentials will be dropped during this
-        operation.
+        Note that any associated differentials will be dropped during this operation.
 
         Parameters
         ----------
@@ -316,17 +311,16 @@ class CartesianDifferential(BaseDifferential):
     Parameters
     ----------
     d_x, d_y, d_z : `~astropy.units.Quantity` or array
-        The x, y, and z coordinates of the differentials. If ``d_x``, ``d_y``,
-        and ``d_z`` have different shapes, they should be broadcastable. If not
-        quantities, ``unit`` should be set.  If only ``d_x`` is given, it is
-        assumed that it contains an array with the 3 coordinates stored along
-        ``xyz_axis``.
+        The x, y, and z coordinates of the differentials. If ``d_x``, ``d_y``, and
+        ``d_z`` have different shapes, they should be broadcastable. If not quantities,
+        ``unit`` should be set.  If only ``d_x`` is given, it is assumed that it
+        contains an array with the 3 coordinates stored along ``xyz_axis``.
     unit : `~astropy.units.Unit` or str
-        If given, the differentials will be converted to this unit (or taken to
-        be in this unit if not given.
+        If given, the differentials will be converted to this unit (or taken to be in
+        this unit if not given.
     xyz_axis : int, optional
-        The axis along which the coordinates are stored when a single array is
-        provided instead of distinct ``d_x``, ``d_y``, and ``d_z`` (default: 0).
+        The axis along which the coordinates are stored when a single array is provided
+        instead of distinct ``d_x``, ``d_y``, and ``d_z`` (default: 0).
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will be
         references, though possibly broadcast to ensure matching shapes.
@@ -340,8 +334,8 @@ class CartesianDifferential(BaseDifferential):
             if isinstance(d_x, np.ndarray) and d_x.dtype.kind not in "OV":
                 # Short-cut for 3-D array input.
                 d_x = u.Quantity(d_x, unit, copy=copy, subok=True)
-                # Keep a link to the array with all three coordinates so that we
-                # can return it quickly if needed in get_xyz.
+                # Keep a link to the array with all three coordinates so that we can
+                # return it quickly if needed in get_xyz.
                 self._d_xyz = d_x
                 if xyz_axis:
                     d_x = np.moveaxis(d_x, xyz_axis, 0)
@@ -410,14 +404,14 @@ class CartesianDifferential(BaseDifferential):
         Parameters
         ----------
         xyz_axis : int, optional
-            The axis in the final array along which the x, y, z components
-            should be stored (default: 0).
+            The axis in the final array along which the x, y, z components should be
+            stored (default: 0).
 
         Returns
         -------
         d_xyz : `~astropy.units.Quantity`
-            With dimension 3 along ``xyz_axis``.  Note that, if possible, this
-            will be a view.
+            With dimension 3 along ``xyz_axis``.  Note that, if possible, this will be a
+            view.
         """
         if self._d_xyz is not None:
             if self._xyz_axis == xyz_axis:
@@ -425,9 +419,8 @@ class CartesianDifferential(BaseDifferential):
             else:
                 return np.moveaxis(self._d_xyz, self._xyz_axis, xyz_axis)
 
-        # Create combined array.  TO DO: keep it in _d_xyz for repeated use? But
-        # then in-place changes have to cancel it. Likely best to also update
-        # components.
+        # Create combined array.  TO DO: keep it in _d_xyz for repeated use? But then
+        # in-place changes have to cancel it. Likely best to also update components.
         return np.stack([self._d_x, self._d_y, self._d_z], axis=xyz_axis)
 
     d_xyz = property(get_d_xyz)
