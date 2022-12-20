@@ -281,3 +281,14 @@ def test_ocurv():
     assert u.allclose(
         tcos.Ok(z) + tcos.Om(z) + tcos.Ode(z), [1.0, 1.0, 1.0, 1.0], rtol=1e-5
     )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_ode():
+    # Test Ode evolution, turn off neutrinos, cmb
+    tcos = FlatLambdaCDM(70.0, 0.3, Tcmb0=0)
+
+    assert u.allclose(tcos.Ode0, 0.7)
+    assert u.allclose(tcos.Ode(0), 0.7)
+    z = np.array([0.0, 0.5, 1.0, 2.0])
+    assert u.allclose(tcos.Ode(z), [0.7, 0.408759, 0.2258065, 0.07954545], rtol=1e-5)
