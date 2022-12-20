@@ -518,3 +518,24 @@ def test_differential_comoving_volume():
         wright_closed,
         rtol=1e-2,
     )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_age():
+    # WMAP7 but with Omega_relativisitic = 0
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+
+    assert u.allclose(tcos.hubble_time, 13.889094057856937 * u.Gyr)
+    assert u.allclose(tcos.age(4), 1.5823603508870991 * u.Gyr)
+    assert u.allclose(tcos.age([1.0, 5.0]), [5.97113193, 1.20553129] * u.Gyr)
+    assert u.allclose(tcos.age([1, 5]), [5.97113193, 1.20553129] * u.Gyr)
+
+    # Add relativistic species
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
+    assert u.allclose(tcos.age(4), 1.5773003779230699 * u.Gyr)
+    assert u.allclose(tcos.age([1, 5]), [5.96344942, 1.20093077] * u.Gyr)
+
+    # And massive neutrinos
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
+    assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
+    assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
