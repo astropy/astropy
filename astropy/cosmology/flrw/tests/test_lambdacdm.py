@@ -379,3 +379,16 @@ def test_ode():
     assert u.allclose(tcos.Ode(0), 0.7)
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert u.allclose(tcos.Ode(z), [0.7, 0.408759, 0.2258065, 0.07954545], rtol=1e-5)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_tcmb():
+    cosmo = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.5)
+
+    assert u.allclose(cosmo.Tcmb0, 2.5 * u.K)
+    assert u.allclose(cosmo.Tcmb(2), 7.5 * u.K)
+    z = [0.0, 1.0, 2.0, 3.0, 9.0]
+    assert u.allclose(cosmo.Tcmb(z), [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
+    # Make sure it's the same for integers
+    z = [0, 1, 2, 3, 9]
+    assert u.allclose(cosmo.Tcmb(z), [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)

@@ -181,18 +181,6 @@ def test_de_subclass():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_tcmb():
-    cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=2.5)
-    assert allclose(cosmo.Tcmb0, 2.5 * u.K)
-    assert allclose(cosmo.Tcmb(2), 7.5 * u.K)
-    z = [0.0, 1.0, 2.0, 3.0, 9.0]
-    assert allclose(cosmo.Tcmb(z), [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
-    # Make sure it's the same for integers
-    z = [0, 1, 2, 3, 9]
-    assert allclose(cosmo.Tcmb(z), [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_tnu():
     cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
     assert allclose(cosmo.Tnu0, 2.1412975665108247 * u.K, rtol=1e-6)
