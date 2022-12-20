@@ -195,15 +195,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_absorption_distance():
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    assert allclose(tcos.absorption_distance([1, 3]), [1.72576635, 7.98685853])
-    assert allclose(tcos.absorption_distance([1.0, 3.0]), [1.72576635, 7.98685853])
-    assert allclose(tcos.absorption_distance(3), 7.98685853)
-    assert allclose(tcos.absorption_distance(3.0), 7.98685853)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distances():
     # Test distance calculations for various special case
     #  scenarios (no relativistic species, normal, massive neutrinos)
