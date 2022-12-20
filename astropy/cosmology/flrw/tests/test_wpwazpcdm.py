@@ -5,6 +5,8 @@
 ##############################################################################
 # IMPORTS
 
+import numpy as np
+
 # THIRD PARTY
 import pytest
 
@@ -14,6 +16,7 @@ import astropy.units as u
 from astropy.cosmology import wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FLRWTest
 from .test_w0wacdm import ParameterwaTestMixin
@@ -150,3 +153,28 @@ class TestwpwaCDM(
             " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+
+###############################################################################
+# Comparison to Other Codes
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy.")
+def test_varyde_lumdist_mathematica():
+    """Tests a few varying dark energy EOS models against a Mathematica computation."""
+    z = np.array([0.2, 0.4, 0.9, 1.2])
+
+    # wpwa models
+    cosmo = wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc,
+        rtol=1e-4,
+    )
+
+    cosmo = wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc,
+        rtol=1e-4,
+    )
