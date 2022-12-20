@@ -813,6 +813,18 @@ class FLRWTest(
         assert u.allclose(value_flat, value_2d.flatten())
         assert u.allclose(value_flat, value_3d.flatten())
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        z = np.array([1.0, 2.0, 3.0, 4.0])
+
+        cosmo = cosmo_cls(*args, **kwargs)
+        assert u.allclose(cosmo.comoving_distance(z), expected, rtol=1e-4)
+
 
 class TestFLRW(FLRWTest):
     """Test :class:`astropy.cosmology.FLRW`."""
@@ -880,10 +892,20 @@ class TestFLRW(FLRWTest):
     # ===============================================================
     # Usage Tests
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
     @pytest.mark.parametrize("method", ("Om", "Ode", "w", "de_density_scale"))
     def test_distance_broadcast(self, cosmo, method):
         with pytest.raises(NotImplementedError):
             super().test_distance_broadcast(cosmo, method)
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [((70, 0.27, 0.73), {"Tcmb0": 3.0, "Ob0": 0.03}, None)],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        with pytest.raises(NotImplementedError):
+            super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
 
 
 # -----------------------------------------------------------------------------

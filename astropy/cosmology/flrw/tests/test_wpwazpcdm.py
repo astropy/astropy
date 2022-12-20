@@ -154,6 +154,52 @@ class TestwpwaCDM(
         )
         assert repr(cosmo) == expected
 
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.3, 0.6),
+                {"wp": -0.9, "zp": 0.5, "wa": 0.1, "Tcmb0": 0.0},
+                [2954.68975298, 4599.83254834, 5643.04013201, 6373.36147627] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "wp": -0.9,
+                    "zp": 0.4,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(0.0, u.eV),
+                },
+                [2919.00656215, 4558.0218123, 5615.73412391, 6366.10224229] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "wp": -0.9,
+                    "zp": 1.0,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 4,
+                    "m_nu": u.Quantity(5.0, u.eV),
+                },
+                [2629.48489827, 3874.13392319, 4614.31562397, 5116.51184842] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
+
 
 ###############################################################################
 # Comparison to Other Codes

@@ -88,6 +88,34 @@ class TestLambdaCDM(FLRWTest):
         )
         assert repr(cosmo) == expected
 
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.25, 0.5),
+                {"Tcmb0": 0.0},
+                [2953.93001902, 4616.7134253, 5685.07765971, 6440.80611897] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25, 0.6),
+                {"Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(0.0, u.eV)},
+                [3037.12620424, 4776.86236327, 5889.55164479, 6671.85418235] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.3, 0.4),
+                {"Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(10.0, u.eV)},
+                [2471.80626824, 3567.1902565, 4207.15995626, 4638.20476018] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
+
 
 # -----------------------------------------------------------------------------
 
@@ -120,6 +148,57 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
             " Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.25),
+                {"Tcmb0": 0.0},
+                [3180.83488552, 5060.82054204, 6253.6721173, 7083.5374303] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(0.0, u.eV)},
+                [3180.42662867, 5059.60529655, 6251.62766102, 7080.71698117] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "Neff": 3, "m_nu": u.Quantity(10.0, u.eV)},
+                [2337.54183142, 3371.91131264, 3988.40711188, 4409.09346922] * u.Mpc,
+            ),
+            (  # work the scalar nu density functions
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "m_nu": u.Quantity([10.0, 0, 0], u.eV)},
+                [2777.71589173, 4186.91111666, 5046.0300719, 5636.10397302] * u.Mpc,
+            ),
+            (  # work the scalar nu density functions
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "m_nu": u.Quantity([10.0, 5, 0], u.eV)},
+                [2636.48149391, 3913.14102091, 4684.59108974, 5213.07557084] * u.Mpc,
+            ),
+            (  # work the scalar nu density functions
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "m_nu": u.Quantity([4.0, 5, 9], u.eV)},
+                [2563.5093049, 3776.63362071, 4506.83448243, 5006.50158829] * u.Mpc,
+            ),
+            (  # work the scalar nu density functions
+                (75.0, 0.25),
+                {"Tcmb0": 3.0, "Neff": 4.2, "m_nu": u.Quantity([1.0, 4.0, 5, 9], u.eV)},
+                [2525.58017482, 3706.87633298, 4416.58398847, 4901.96669755] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
 
 
 ##############################################################################
