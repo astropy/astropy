@@ -22,8 +22,8 @@ from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw.base import _a_B_c2, _critdens_const, _H0units_to_invs, quad
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.helper import get_redshift_methods
-from astropy.cosmology.tests.test_core import CosmologySubclassTest as CosmologyTest
 from astropy.cosmology.tests.test_core import (
+    CosmologyTest,
     FlatCosmologyMixinTest,
     ParameterTestMixin,
     invalid_zs,
@@ -762,7 +762,7 @@ class TestFLRW(
 
     def test_is_equivalent(self, cosmo):
         """Test :meth:`astropy.cosmology.FLRW.is_equivalent`."""
-        super().test_is_equivalent(cosmo)  # pass to CosmologySubclassTest
+        super().test_is_equivalent(cosmo)  # pass to CosmologyTest
 
         # test against a FlatFLRWMixin
         # case (3) in FLRW.is_equivalent
