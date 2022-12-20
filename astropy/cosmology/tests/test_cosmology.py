@@ -181,23 +181,6 @@ def test_de_subclass():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_matter():
-    # Test non-relativistic matter evolution
-    tcos = flrw.FlatLambdaCDM(70.0, 0.3, Ob0=0.045)
-    assert allclose(tcos.Om0, 0.3)
-    assert allclose(tcos.H0, 70.0 * u.km / u.s / u.Mpc)
-    assert allclose(tcos.Om(0), 0.3)
-    assert allclose(tcos.Ob(0), 0.045)
-    z = np.array([0.0, 0.5, 1.0, 2.0])
-    assert allclose(tcos.Om(z), [0.3, 0.59124088, 0.77419355, 0.92045455], rtol=1e-4)
-    assert allclose(tcos.Ob(z), [0.045, 0.08868613, 0.11612903, 0.13806818], rtol=1e-4)
-    assert allclose(tcos.Odm(z), [0.255, 0.50255474, 0.65806452, 0.78238636], rtol=1e-4)
-    # Consistency of dark and baryonic matter evolution with all
-    # non-relativistic matter
-    assert allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_ocurv():
     # Test Ok evolution
     # Flat, boring case

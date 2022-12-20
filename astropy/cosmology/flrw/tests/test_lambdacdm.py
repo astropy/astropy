@@ -237,3 +237,24 @@ def test_xtfuncs():
     assert u.allclose(
         cosmo.abs_distance_integrand(z), [2.7899584, 3.44104758], rtol=1e-4
     )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_matter():
+    # Test non-relativistic matter evolution
+    tcos = FlatLambdaCDM(70.0, 0.3, Ob0=0.045)
+
+    assert u.allclose(tcos.Om(0), 0.3)
+    assert u.allclose(tcos.Ob(0), 0.045)
+
+    z = np.array([0.0, 0.5, 1.0, 2.0])
+    assert u.allclose(tcos.Om(z), [0.3, 0.59124088, 0.77419355, 0.92045455], rtol=1e-4)
+    assert u.allclose(
+        tcos.Ob(z), [0.045, 0.08868613, 0.11612903, 0.13806818], rtol=1e-4
+    )
+    assert u.allclose(
+        tcos.Odm(z), [0.255, 0.50255474, 0.65806452, 0.78238636], rtol=1e-4
+    )
+    # Consistency of dark and baryonic matter evolution with all
+    # non-relativistic matter
+    assert u.allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
