@@ -813,3 +813,13 @@ def test_distance_in_special_cosmologies():
     c_EdS = LambdaCDM(100, 1, 0, Tcmb0=0)
     assert u.allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
     assert u.allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_absorption_distance():
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+
+    assert u.allclose(tcos.absorption_distance([1, 3]), [1.72576635, 7.98685853])
+    assert u.allclose(tcos.absorption_distance([1.0, 3.0]), [1.72576635, 7.98685853])
+    assert u.allclose(tcos.absorption_distance(3), 7.98685853)
+    assert u.allclose(tcos.absorption_distance(3.0), 7.98685853)
