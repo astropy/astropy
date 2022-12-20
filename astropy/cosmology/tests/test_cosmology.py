@@ -280,17 +280,6 @@ def test_de_densityscale():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_neg_distmod():
-    # Cosmology with negative luminosity distances (perfectly okay,
-    #  if obscure)
-    tcos = flrw.LambdaCDM(70, 0.2, 1.3, Tcmb0=0)
-    assert allclose(
-        tcos.luminosity_distance([50, 100]), [16612.44047622, -46890.79092244] * u.Mpc
-    )
-    assert allclose(tcos.distmod([50, 100]), [46.102167189, 48.355437790944] * u.mag)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_critical_density():
     from astropy.constants import codata2014
 
