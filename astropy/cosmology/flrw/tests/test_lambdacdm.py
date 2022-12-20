@@ -331,6 +331,80 @@ def test_flat_open_closed_icosmo(file_name):
     assert u.allclose(cosmo.luminosity_distance(tbl["redshift"]), tbl["dl"])
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_comoving_transverse_distance_z1z2():
+    tcos = FlatLambdaCDM(100, 0.3, Tcmb0=0.0)
+
+    with pytest.raises(ValueError):  # test diff size z1, z2 fail
+        tcos._comoving_transverse_distance_z1z2((1, 2), (3, 4, 5))
+
+    # Tests that should actually work, target values computed with
+    # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
+    # Kayser, Helbig, and Schramm (Astron.Astrophys. 318 (1997) 680-686)
+    assert u.allclose(
+        tcos._comoving_transverse_distance_z1z2(1, 2), 1313.2232194828466 * u.Mpc
+    )
+
+    # In a flat universe comoving distance and comoving transverse
+    # distance are identical
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+
+    assert u.allclose(
+        tcos._comoving_distance_z1z2(z1, z2),
+        tcos._comoving_transverse_distance_z1z2(z1, z2),
+    )
+
+    # Test Flat Universe with Omega_M > 1.  Rarely used, but perfectly valid.
+    tcos = FlatLambdaCDM(100, 1.5, Tcmb0=0.0)
+    results = (
+        2202.72682564,
+        1559.51679971,
+        -643.21002593,
+        1408.36365679,
+        85.09286258,
+    ) * u.Mpc
+
+    assert u.allclose(tcos._comoving_transverse_distance_z1z2(z1, z2), results)
+
+    # In a flat universe comoving distance and comoving transverse
+    # distance are identical
+    z1 = 0, 0, 2, 0.5, 1
+    z2 = 2, 1, 1, 2.5, 1.1
+
+    assert u.allclose(
+        tcos._comoving_distance_z1z2(z1, z2),
+        tcos._comoving_transverse_distance_z1z2(z1, z2),
+    )
+    # Test non-flat cases to avoid simply testing
+    # comoving_distance_z1z2. Test array, array case.
+    tcos = LambdaCDM(100, 0.3, 0.5, Tcmb0=0.0)
+    results = (
+        3535.931375645655,
+        2226.430046551708,
+        -1208.6817970036532,
+        2595.567367601969,
+        151.36592003406884,
+    ) * u.Mpc
+
+    assert u.allclose(tcos._comoving_transverse_distance_z1z2(z1, z2), results)
+
+    # Test positive curvature with scalar, array combination.
+    tcos = LambdaCDM(100, 1.0, 0.2, Tcmb0=0.0)
+    z1 = 0.1
+    z2 = 0, 0.1, 0.2, 0.5, 1.1, 2
+    results = (
+        -281.31602666724865,
+        0.0,
+        248.58093707820436,
+        843.9331377460543,
+        1618.6104987686672,
+        2287.5626543279927,
+    ) * u.Mpc
+
+    assert u.allclose(tcos._comoving_transverse_distance_z1z2(z1, z2), results)
+
+
 ##############################################################################
 # Miscellaneous
 # TODO: these should be better integrated into the new test framework
