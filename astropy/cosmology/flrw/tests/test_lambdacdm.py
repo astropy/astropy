@@ -392,3 +392,18 @@ def test_tcmb():
     # Make sure it's the same for integers
     z = [0, 1, 2, 3, 9]
     assert u.allclose(cosmo.Tcmb(z), [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_tnu():
+    cosmo = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
+
+    assert u.allclose(cosmo.Tnu0, 2.1412975665108247 * u.K, rtol=1e-6)
+    assert u.allclose(cosmo.Tnu(2), 6.423892699532474 * u.K, rtol=1e-6)
+    z = [0.0, 1.0, 2.0, 3.0]
+    expected = [2.14129757, 4.28259513, 6.4238927, 8.56519027] * u.K
+    assert u.allclose(cosmo.Tnu(z), expected, rtol=1e-6)
+
+    # Test for integers
+    z = [0, 1, 2, 3]
+    assert u.allclose(cosmo.Tnu(z), expected, rtol=1e-6)
