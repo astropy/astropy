@@ -9,11 +9,6 @@
 #include <quantize.h>
 #include <ricecomp.h>
 
-// Some of the cfitsio compression files use ffpmsg
-// so we provide a dummy function to replace this.
-void ffpmsg(const char *err_message) {
-    PyErr_SetString(PyExc_ValueError, err_message);
-}
 
 // Compatibility code because we pick up fitsio2.h from cextern. Can
 // remove once we remove cextern
@@ -48,6 +43,7 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args);
 static PyObject *quantize_double_c(PyObject *self, PyObject *args);
 static PyObject *unquantize_float_c(PyObject *self, PyObject *args);
 static PyObject *unquantize_double_c(PyObject *self, PyObject *args);
+static PyObject *CfitsioException = NULL;
 
 /* Define the methods that will be available on the module. */
 static PyMethodDef module_methods[] = {
@@ -65,22 +61,36 @@ static PyMethodDef module_methods[] = {
 };
 
 /* This is the function that is called on import. */
+static PyModuleDef compression = {
+    PyModuleDef_HEAD_INIT,
+    "_compression",
+    "Wrapper functions for compression and decompression functions in cfitsio.",
+    -1,
+    module_methods,
+};
 
-#define MOD_ERROR_VAL NULL
-#define MOD_SUCCESS_VAL(val) val
-#define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
-#define MOD_DEF(ob, name, doc, methods)                                                                                                                                                                \
-  static struct PyModuleDef moduledef = {                                                                                                                                                              \
-      PyModuleDef_HEAD_INIT, name, doc, -1, methods,                                                                                                                                                   \
-  };                                                                                                                                                                                                   \
-  ob = PyModule_Create(&moduledef);
+PyMODINIT_FUNC
+PyInit__compression(void)
+{
+    PyObject* m;
+    m = PyModule_Create(&compression);
 
-MOD_INIT(_compression) {
-  PyObject *m;
-  MOD_DEF(m, "_compression", module_docstring, module_methods);
-  if (m == NULL)
-    return MOD_ERROR_VAL;
-  return MOD_SUCCESS_VAL(m);
+    /* Initialize new exception object */
+    CfitsioException = PyErr_NewException("_compression.CfitsioException", NULL, NULL);
+
+    /* Add exception object to your module */
+    PyModule_AddObject(m, "CfitsioException", CfitsioException);
+
+    return m;
+};
+
+// Some of the cfitsio compression functions use this function to put an error
+// message on the stack.  We provide an implementation which sets the Python
+// error state with our custom exception type, and the message provided by the
+// cfitsio call.  In our wrapper functions we can then check if the Python error
+// state is set and then return NULL to raise the error.
+void ffpmsg(const char *err_message) {
+    PyErr_SetString(CfitsioException, err_message);
 }
 
 /* PLIO/IRAF compression */
