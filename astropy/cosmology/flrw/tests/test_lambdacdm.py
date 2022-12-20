@@ -539,3 +539,13 @@ def test_age():
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
     assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
     assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_distmod():
+    # WMAP7 but with Omega_relativisitic = 0
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+
+    assert u.allclose(tcos.hubble_distance, 4258.415596590909 * u.Mpc)
+    assert u.allclose(tcos.distmod([1, 5]), [44.124857, 48.40167258] * u.mag)
+    assert u.allclose(tcos.distmod([1.0, 5.0]), [44.124857, 48.40167258] * u.mag)
