@@ -637,8 +637,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 raise ValueError(f'Representation "{fqn_cls}" already defined')
 
             msg = (
-                f'Representation "{repr_name}" already defined, removing it to avoid confusion.'
-                f'Use qualnames "{fqn_cls}" and "{fqn_existing}" or class instances directly'
+                f'Representation "{repr_name}" already defined, removing it to avoid '
+                f'confusion. Use qualnames "{fqn_cls}" and "{fqn_existing}" or class '
+                "instances directly"
             )
             warnings.warn(msg, DuplicateRepresentationWarning)
 
@@ -701,9 +702,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 self, UnitSphericalRepresentation
             ):
                 raise ValueError(
-                    "To attach a RadialDifferential to a "
-                    "UnitSphericalRepresentation, you must supply "
-                    "a dictionary with an appropriate key."
+                    "To attach a RadialDifferential to a UnitSphericalRepresentation, "
+                    "you must supply a dictionary with an appropriate key."
                 )
 
             key = differentials._get_deriv_key(self)
@@ -714,7 +714,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 diff = differentials[key]
             except TypeError as err:
                 raise TypeError(
-                    "'differentials' argument must be a " "dictionary-like object"
+                    "'differentials' argument must be a dictionary-like object"
                 ) from err
 
             diff._check_base(self)
@@ -732,10 +732,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 expected_key = diff._get_deriv_key(self)
                 if key != expected_key:
                     raise ValueError(
-                        "For differential object '{}', expected "
-                        "unit key = '{}' but received key = '{}'".format(
-                            repr(diff), expected_key, key
-                        )
+                        f"For differential object '{repr(diff)}', expected "
+                        f"unit key = '{expected_key}' but received key = '{key}'"
                     )
 
             # For now, we are very rigid: differentials must have the same shape as the
@@ -746,9 +744,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 # TODO: message of IncompatibleShapeError is not customizable, so use a
                 #       valueerror instead?
                 raise ValueError(
-                    "Shape of differentials must be the same "
-                    "as the shape of the representation ({} vs "
-                    "{})".format(diff.shape, self.shape)
+                    "Shape of differentials must be the same as the shape of the "
+                    f"representation ({diff.shape} vs {self.shape})"
                 )
 
         return differentials
@@ -760,10 +757,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         """
         if self.differentials:
             raise TypeError(
-                "Operation '{}' is not supported when "
-                "differentials are attached to a {}.".format(
-                    op_name, self.__class__.__name__
-                )
+                f"Operation '{op_name}' is not supported when differentials are "
+                f"attached to a {self.__class__.__name__}."
             )
 
     @classproperty
@@ -838,11 +833,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         elif differential_class.keys() != self.differentials.keys():
             raise ValueError(
-                "Desired differential classes must be passed in "
-                "as a dictionary with keys equal to a string "
-                "representation of the unit of the derivative "
-                "for each differential stored with this "
-                f"representation object ({self.differentials})"
+                "Desired differential classes must be passed in as a dictionary with "
+                "keys equal to a string representation of the unit of the derivative "
+                "for each differential stored with this representation object "
+                f"({self.differentials})"
             )
 
         new_diffs = dict()
@@ -853,11 +847,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             except Exception as err:
                 if differential_class[k] not in new_rep._compatible_differentials:
                     raise TypeError(
-                        "Desired differential class {} is not "
-                        "compatible with the desired "
-                        "representation class {}".format(
-                            differential_class[k], new_rep.__class__
-                        )
+                        f"Desired differential class {differential_class[k]} is not "
+                        f"compatible with the desired representation class {type(new_rep)}"
                     ) from err
                 else:
                     raise
@@ -889,9 +880,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         else:
             if isinstance(other_class, str):
                 raise ValueError(
-                    "Input to a representation's represent_as "
-                    "must be a class, not a string. For "
-                    "strings, use frame objects"
+                    "Input to a representation's represent_as must be a class, "
+                    "not a string. For strings, use frame objects"
                 )
 
             if other_class is not self.__class__:
