@@ -916,3 +916,63 @@ def test_absorption_distance():
     assert u.allclose(tcos.absorption_distance([1.0, 3.0]), [1.72576635, 7.98685853])
     assert u.allclose(tcos.absorption_distance(3), 7.98685853)
     assert u.allclose(tcos.absorption_distance(3.0), 7.98685853)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_distance_broadcast():
+    """Test array shape broadcasting for functions with single
+    redshift inputs"""
+
+    cosmo = FlatLambdaCDM(H0=70, Om0=0.27, m_nu=u.Quantity([0.0, 0.1, 0.011], u.eV))
+    z = np.linspace(0.1, 1, 6)
+    z_reshape2d = z.reshape(2, 3)
+    z_reshape3d = z.reshape(3, 2, 1)
+    # Things with units
+    methods = [
+        "comoving_distance",
+        "luminosity_distance",
+        "comoving_transverse_distance",
+        "angular_diameter_distance",
+        "distmod",
+        "lookback_time",
+        "age",
+        "comoving_volume",
+        "differential_comoving_volume",
+        "kpc_comoving_per_arcmin",
+    ]
+    for method in methods:
+        g = getattr(cosmo, method)
+        value_flat = g(z)
+        assert value_flat.shape == z.shape
+        value_2d = g(z_reshape2d)
+        assert value_2d.shape == z_reshape2d.shape
+        value_3d = g(z_reshape3d)
+        assert value_3d.shape == z_reshape3d.shape
+        assert value_flat.unit == value_2d.unit
+        assert value_flat.unit == value_3d.unit
+        assert u.allclose(value_flat, value_2d.flatten())
+        assert u.allclose(value_flat, value_3d.flatten())
+
+    # Also test unitless ones
+    methods = [
+        "absorption_distance",
+        "Om",
+        "Ode",
+        "Ok",
+        "H",
+        "w",
+        "de_density_scale",
+        "Onu",
+        "Ogamma",
+        "nu_relative_density",
+    ]
+    for method in methods:
+        g = getattr(cosmo, method)
+        value_flat = g(z)
+        assert value_flat.shape == z.shape
+        value_2d = g(z_reshape2d)
+        assert value_2d.shape == z_reshape2d.shape
+        value_3d = g(z_reshape3d)
+        assert value_3d.shape == z_reshape3d.shape
+        assert u.allclose(value_flat, value_2d.flatten())
+        assert u.allclose(value_flat, value_3d.flatten())
