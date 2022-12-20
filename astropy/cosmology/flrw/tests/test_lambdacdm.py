@@ -441,3 +441,56 @@ def test_comoving_volume():
     assert u.allclose(c_flat.comoving_volume(redshifts), wright_flat, rtol=1e-2)
     assert u.allclose(c_open.comoving_volume(redshifts), wright_open, rtol=1e-2)
     assert u.allclose(c_closed.comoving_volume(redshifts), wright_closed, rtol=1e-2)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_differential_comoving_volume():
+    from scipy.integrate import quad
+
+    c_flat = LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
+    c_open = LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
+    c_closed = LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
+
+    # test that integration of differential_comoving_volume()
+    #  yields same as comoving_volume()
+    redshifts = np.array([0.5, 1, 2, 3, 5, 9])
+    wright_flat = (
+        np.array([29.123, 159.529, 630.427, 1178.531, 2181.485, 3654.802]) * u.Gpc**3
+    )
+    wright_open = (
+        np.array([20.501, 99.019, 380.278, 747.049, 1558.363, 3123.814]) * u.Gpc**3
+    )
+    wright_closed = (
+        np.array([12.619, 44.708, 114.904, 173.709, 258.82, 358.992]) * u.Gpc**3
+    )
+
+    # The wright calculator isn't very accurate, so we use a rather
+    # modest precision.
+    def ftemp(x):
+        return c_flat.differential_comoving_volume(x).value
+
+    def otemp(x):
+        return c_open.differential_comoving_volume(x).value
+
+    def ctemp(x):
+        return c_closed.differential_comoving_volume(x).value
+
+    # Multiply by solid_angle (4 * pi)
+    assert u.allclose(
+        np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0] for redshift in redshifts])
+        * u.Mpc**3,
+        wright_flat,
+        rtol=1e-2,
+    )
+    assert u.allclose(
+        np.array([4.0 * np.pi * quad(otemp, 0, redshift)[0] for redshift in redshifts])
+        * u.Mpc**3,
+        wright_open,
+        rtol=1e-2,
+    )
+    assert u.allclose(
+        np.array([4.0 * np.pi * quad(ctemp, 0, redshift)[0] for redshift in redshifts])
+        * u.Mpc**3,
+        wright_closed,
+        rtol=1e-2,
+    )
