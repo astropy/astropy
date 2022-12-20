@@ -790,6 +790,29 @@ class FLRWTest(
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
+    # ===============================================================
+    # Usage Tests
+
+    # TODO: this test should be subsumed by other tests
+    @pytest.mark.parametrize("method", ("Om", "Ode", "w", "de_density_scale"))
+    def test_distance_broadcast(self, cosmo, method):
+        """Test distance methods broadcast z correctly."""
+        g = getattr(cosmo, method)
+        z = np.linspace(0.1, 1, 6)
+        z2d = z.reshape(2, 3)
+        z3d = z.reshape(3, 2, 1)
+
+        value_flat = g(z)
+        assert value_flat.shape == z.shape
+
+        value_2d = g(z2d)
+        assert value_2d.shape == z2d.shape
+
+        value_3d = g(z3d)
+        assert value_3d.shape == z3d.shape
+        assert u.allclose(value_flat, value_2d.flatten())
+        assert u.allclose(value_flat, value_3d.flatten())
+
 
 class TestFLRW(FLRWTest):
     """Test :class:`astropy.cosmology.FLRW`."""
@@ -853,6 +876,14 @@ class TestFLRW(FLRWTest):
         """Test all the redshift methods for bad input."""
         with pytest.raises(exc):
             getattr(cosmo, method)(z)
+
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.parametrize("method", ("Om", "Ode", "w", "de_density_scale"))
+    def test_distance_broadcast(self, cosmo, method):
+        with pytest.raises(NotImplementedError):
+            super().test_distance_broadcast(cosmo, method)
 
 
 # -----------------------------------------------------------------------------
