@@ -5,6 +5,8 @@
 ##############################################################################
 # IMPORTS
 
+import numpy as np
+
 # THIRD PARTY
 import pytest
 
@@ -13,6 +15,7 @@ import astropy.units as u
 from astropy.cosmology import Flatw0waCDM, w0waCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
@@ -133,3 +136,40 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
             " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+
+##############################################################################
+# Comparison to Other Codes
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy.")
+def test_varyde_lumdist_mathematica():
+    """Tests a few varying dark energy EOS models against a Mathematica computation."""
+    z = np.array([0.2, 0.4, 0.9, 1.2])
+
+    # w0wa models
+    cosmo = w0waCDM(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [1004.0, 2268.62, 6265.76, 9061.84] * u.Mpc,
+        rtol=1e-4,
+    )
+    assert u.allclose(cosmo.de_density_scale(0.0), 1.0, rtol=1e-5)
+    assert u.allclose(
+        cosmo.de_density_scale([0.0, 0.5, 1.5]),
+        [1.0, 0.9246310669529021, 0.9184087000251957],
+    )
+
+    cosmo = w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [971.667, 2141.67, 5685.96, 8107.41] * u.Mpc,
+        rtol=1e-4,
+    )
+
+    cosmo = w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc,
+        rtol=1e-4,
+    )

@@ -15,55 +15,6 @@ from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy.")
-def test_varyde_lumdist_mathematica():
-    """Tests a few varying dark energy EOS models against a Mathematica computation."""
-    z = np.array([0.2, 0.4, 0.9, 1.2])
-
-    # w0wa models
-    cosmo = flrw.w0waCDM(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2, Tcmb0=0.0)
-    assert allclose(
-        cosmo.luminosity_distance(z),
-        [1004.0, 2268.62, 6265.76, 9061.84] * u.Mpc,
-        rtol=1e-4,
-    )
-    assert allclose(cosmo.de_density_scale(0.0), 1.0, rtol=1e-5)
-    assert allclose(
-        cosmo.de_density_scale([0.0, 0.5, 1.5]),
-        [1.0, 0.9246310669529021, 0.9184087000251957],
-    )
-
-    cosmo = flrw.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0, Tcmb0=0.0)
-    assert allclose(
-        cosmo.luminosity_distance(z),
-        [971.667, 2141.67, 5685.96, 8107.41] * u.Mpc,
-        rtol=1e-4,
-    )
-
-    cosmo = flrw.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5, Tcmb0=0.0)
-    assert allclose(
-        cosmo.luminosity_distance(z),
-        [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc,
-        rtol=1e-4,
-    )
-
-    # wpwa models
-    cosmo = flrw.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5, Tcmb0=0.0)
-    assert allclose(
-        cosmo.luminosity_distance(z),
-        [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc,
-        rtol=1e-4,
-    )
-
-    cosmo = flrw.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9, Tcmb0=0.0)
-    assert allclose(
-        cosmo.luminosity_distance(z),
-        [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc,
-        rtol=1e-4,
-    )
-
-
 ###############################################################################
 # TODO! sort and refactor following tests.
 # overall systems tests stay here, specific tests go to new test suite.
