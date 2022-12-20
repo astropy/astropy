@@ -5,8 +5,6 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
-
 # THIRD PARTY
 import pytest
 
@@ -16,7 +14,7 @@ from astropy.cosmology import Flatw0waCDM, w0waCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 
-from .test_base import FlatFLRWMixinTest, FLRWSubclassTest
+from .test_base import FlatFLRWMixinTest, FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
 
 ##############################################################################
@@ -61,7 +59,7 @@ class ParameterwaTestMixin(ParameterTestMixin):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
-class Testw0waCDM(FLRWSubclassTest, Parameterw0TestMixin, ParameterwaTestMixin):
+class Testw0waCDM(FLRWTest, Parameterw0TestMixin, ParameterwaTestMixin):
     """Test :class:`astropy.cosmology.w0waCDM`."""
 
     def setup_class(self):

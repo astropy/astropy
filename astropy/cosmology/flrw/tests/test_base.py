@@ -460,7 +460,7 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         assert cosmo_cls._init_signature.parameters["Ob0"].default is None
 
 
-class TestFLRW(
+class FLRWTest(
     CosmologyTest,
     ParameterH0TestMixin,
     ParameterOm0TestMixin,
@@ -470,19 +470,14 @@ class TestFLRW(
     Parameterm_nuTestMixin,
     ParameterOb0TestMixin,
 ):
-    """Test :class:`astropy.cosmology.FLRW`."""
+    abstract_w = False
 
-    abstract_w = True
-
+    @abc.abstractmethod
     def setup_class(self):
-        """
-        Setup for testing.
-        FLRW is abstract, so tests are done on a subclass.
-        """
-        # make sure SubCosmology is known
-        _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
+        """Setup for testing."""
+        super().setup_class(self)
 
-        self.cls = SubFLRW
+        # Default cosmology args and kwargs
         self._cls_args = dict(
             H0=70 * u.km / u.s / u.Mpc, Om0=0.27 * u.one, Ode0=0.73 * u.one
         )
@@ -492,10 +487,6 @@ class TestFLRW(
             name=self.__class__.__name__,
             meta={"a": "b"},
         )
-
-    def teardown_class(self):
-        super().teardown_class(self)
-        _COSMOLOGY_CLASSES.pop("SubFLRW", None)
 
     @pytest.fixture(scope="class")
     def nonflatcosmo(self):
@@ -515,7 +506,7 @@ class TestFLRW(
     def test_init_Tcmb0_zeroing(self, cosmo_cls, ba):
         """Test if setting Tcmb0 parameter to 0 influences other parameters.
 
-        TODO: consider moving this test to ``FLRWSubclassTest``
+        TODO: consider moving this test to ``FLRWTest``
         """
         ba.arguments["Tcmb0"] = 0.0
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
@@ -685,29 +676,55 @@ class TestFLRW(
     # ---------------------------------------------------------------
     # Methods
 
-    def test_w(self, cosmo):
-        """Test abstract :meth:`astropy.cosmology.FLRW.w`."""
-        with pytest.raises(NotImplementedError, match="not implemented"):
-            cosmo.w(1)
+    _FLRW_redshift_methods = get_redshift_methods(
+        FLRW, include_private=True, include_z2=False
+    )
 
-    def test_Otot(self, cosmo):
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
+    @pytest.mark.parametrize("z, exc", invalid_zs)
+    @pytest.mark.parametrize("method", _FLRW_redshift_methods)
+    def test_redshift_method_bad_input(self, cosmo, method, z, exc):
+        """Test all the redshift methods for bad input."""
+        with pytest.raises(exc):
+            getattr(cosmo, method)(z)
+
+    @pytest.mark.parametrize("z", valid_zs)
+    @abc.abstractmethod
+    def test_w(self, cosmo, z):
+        """Test :meth:`astropy.cosmology.FLRW.w`.
+
+        Since ``w`` is abstract, each test class needs to define further tests.
+        """
+        # super().test_w(cosmo, z)  # NOT b/c abstract `w(z)`
+        w = cosmo.w(z)
+        assert np.shape(w) == np.shape(z)  # test same shape
+        assert u.Quantity(w).unit == u.one  # test no units or dimensionless
+
+    # -------------------------------------------
+
+    @pytest.mark.parametrize("z", valid_zs)
+    def test_Otot(self, cosmo, z):
         """Test :meth:`astropy.cosmology.FLRW.Otot`."""
-        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
-        with pytest.raises(exception):
-            assert cosmo.Otot(1)
+        # super().test_Otot(cosmo)  # NOT b/c abstract `w(z)`
+        assert np.allclose(
+            cosmo.Otot(z),
+            cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z),
+        )
+
+    # ---------------------------------------------------------------
 
     def test_efunc_vs_invefunc(self, cosmo):
-        """
-        Test that efunc and inv_efunc give inverse values.
-        Here they just fail b/c no ``w(z)`` or no scipy.
-        """
-        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+        """Test that ``efunc`` and ``inv_efunc`` give inverse values.
 
-        with pytest.raises(exception):
-            cosmo.efunc(0.5)
+        Note that the test doesn't need scipy because it doesn't need to call
+        ``de_density_scale``.
+        """
+        # super().test_efunc_vs_invefunc(cosmo)  # NOT b/c abstract `w(z)`
+        z0 = 0.5
+        z = np.array([0.5, 1.0, 2.0, 5.0])
 
-        with pytest.raises(exception):
-            cosmo.inv_efunc(0.5)
+        assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+        assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
     # ---------------------------------------------------------------
     # from Cosmology
@@ -774,26 +791,60 @@ class TestFLRW(
             assert not Planck18.is_equivalent(cosmo)
 
 
-class FLRWSubclassTest(TestFLRW):
-    """
-    Test subclasses of :class:`astropy.cosmology.FLRW`.
-    This is broken away from ``TestFLRW``, because ``FLRW`` is an ABC and
-    subclasses must override some methods.
-    """
+class TestFLRW(FLRWTest):
+    """Test :class:`astropy.cosmology.FLRW`."""
 
-    abstract_w = False
+    abstract_w = True
 
-    @abc.abstractmethod
     def setup_class(self):
-        """Setup for testing."""
+        """
+        Setup for testing.
+        FLRW is abstract, so tests are done on a subclass.
+        """
         super().setup_class(self)
+
+        # make sure SubCosmology is known
+        _COSMOLOGY_CLASSES["SubFLRW"] = SubFLRW
+
+        self.cls = SubFLRW
+
+    def teardown_class(self):
+        super().teardown_class(self)
+        _COSMOLOGY_CLASSES.pop("SubFLRW", None)
 
     # ===============================================================
     # Method & Attribute Tests
 
+    # ---------------------------------------------------------------
+    # Methods
+
+    def test_w(self, cosmo):
+        """Test abstract :meth:`astropy.cosmology.FLRW.w`."""
+        with pytest.raises(NotImplementedError, match="not implemented"):
+            cosmo.w(1)
+
+    def test_Otot(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.Otot`."""
+        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+        with pytest.raises(exception):
+            assert cosmo.Otot(1)
+
+    def test_efunc_vs_invefunc(self, cosmo):
+        """
+        Test that efunc and inv_efunc give inverse values.
+        Here they just fail b/c no ``w(z)`` or no scipy.
+        """
+        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+
+        with pytest.raises(exception):
+            cosmo.efunc(0.5)
+
+        with pytest.raises(exception):
+            cosmo.inv_efunc(0.5)
+
     _FLRW_redshift_methods = get_redshift_methods(
         FLRW, include_private=True, include_z2=False
-    )
+    ) - {"w"}
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
@@ -802,44 +853,6 @@ class FLRWSubclassTest(TestFLRW):
         """Test all the redshift methods for bad input."""
         with pytest.raises(exc):
             getattr(cosmo, method)(z)
-
-    @pytest.mark.parametrize("z", valid_zs)
-    @abc.abstractmethod
-    def test_w(self, cosmo, z):
-        """Test :meth:`astropy.cosmology.FLRW.w`.
-
-        Since ``w`` is abstract, each test class needs to define further tests.
-        """
-        # super().test_w(cosmo, z)  # NOT b/c abstract `w(z)`
-        w = cosmo.w(z)
-        assert np.shape(w) == np.shape(z)  # test same shape
-        assert u.Quantity(w).unit == u.one  # test no units or dimensionless
-
-    # -------------------------------------------
-
-    @pytest.mark.parametrize("z", valid_zs)
-    def test_Otot(self, cosmo, z):
-        """Test :meth:`astropy.cosmology.FLRW.Otot`."""
-        # super().test_Otot(cosmo)  # NOT b/c abstract `w(z)`
-        assert np.allclose(
-            cosmo.Otot(z),
-            cosmo.Om(z) + cosmo.Ogamma(z) + cosmo.Onu(z) + cosmo.Ode(z) + cosmo.Ok(z),
-        )
-
-    # ---------------------------------------------------------------
-
-    def test_efunc_vs_invefunc(self, cosmo):
-        """Test that ``efunc`` and ``inv_efunc`` give inverse values.
-
-        Note that the test doesn't need scipy because it doesn't need to call
-        ``de_density_scale``.
-        """
-        # super().test_efunc_vs_invefunc(cosmo)  # NOT b/c abstract `w(z)`
-        z0 = 0.5
-        z = np.array([0.5, 1.0, 2.0, 5.0])
-
-        assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-        assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
 
 # -----------------------------------------------------------------------------
@@ -948,9 +961,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize("z, exc", invalid_zs)
-    @pytest.mark.parametrize(
-        "method", FLRWSubclassTest._FLRW_redshift_methods - {"Otot"}
-    )
+    @pytest.mark.parametrize("method", FLRWTest._FLRW_redshift_methods - {"Otot"})
     def test_redshift_method_bad_input(self, cosmo, method, z, exc):
         """Test all the redshift methods for bad input."""
         super().test_redshift_method_bad_input(cosmo, method, z, exc)
@@ -1009,7 +1020,7 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest, ParameterFlatOde0TestMixin):
         e.g. `TestFlatLambdaCDDM` -> `FlatFLRWMixinTest`
         vs   `TestFlatLambdaCDDM` -> `TestLambdaCDDM` -> `FlatFLRWMixinTest`
         """
-        FLRWSubclassTest.test_repr(self, cosmo_cls, cosmo)
+        FLRWTest.test_repr(self, cosmo_cls, cosmo)
 
         # test eliminated Ode0 from parameters
         assert "Ode0" not in repr(cosmo)

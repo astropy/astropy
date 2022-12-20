@@ -5,8 +5,6 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
-
 # THIRD PARTY
 import pytest
 
@@ -17,7 +15,7 @@ from astropy.cosmology import wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 
-from .test_base import FLRWSubclassTest
+from .test_base import FLRWTest
 from .test_w0wacdm import ParameterwaTestMixin
 
 ##############################################################################
@@ -100,7 +98,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
 
 
 class TestwpwaCDM(
-    FLRWSubclassTest, ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin
+    FLRWTest, ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin
 ):
     """Test :class:`astropy.cosmology.wpwaCDM`."""
 
