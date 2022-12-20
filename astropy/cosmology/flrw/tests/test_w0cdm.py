@@ -5,9 +5,8 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
-
 # THIRD PARTY
+import numpy as np
 import pytest
 
 # LOCAL
@@ -15,6 +14,7 @@ import astropy.units as u
 from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FlatFLRWMixinTest, FLRWTest
 
@@ -131,3 +131,27 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
             " Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(
+        cosmo.de_density_scale(z),
+        [1.15369, 1.31453, 1.83712, 3.95285, 6.5479],
+        rtol=1e-4,
+    )
+
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )
