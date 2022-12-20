@@ -199,15 +199,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_kpc_methods():
-    cosmo = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    assert allclose(cosmo.arcsec_per_kpc_comoving(3), 0.0317179167 * u.arcsec / u.kpc)
-    assert allclose(cosmo.arcsec_per_kpc_proper(3), 0.1268716668 * u.arcsec / u.kpc)
-    assert allclose(cosmo.kpc_comoving_per_arcmin(3), 1891.6753126 * u.kpc / u.arcmin)
-    assert allclose(cosmo.kpc_proper_per_arcmin(3), 472.918828 * u.kpc / u.arcmin)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_comoving_volume():
     c_flat = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
     c_open = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)

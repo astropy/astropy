@@ -407,3 +407,13 @@ def test_tnu():
     # Test for integers
     z = [0, 1, 2, 3]
     assert u.allclose(cosmo.Tnu(z), expected, rtol=1e-6)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_kpc_methods():
+    cosmo = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+
+    assert u.allclose(cosmo.arcsec_per_kpc_comoving(3), 0.0317179167 * u.arcsec / u.kpc)
+    assert u.allclose(cosmo.arcsec_per_kpc_proper(3), 0.1268716668 * u.arcsec / u.kpc)
+    assert u.allclose(cosmo.kpc_comoving_per_arcmin(3), 1891.6753126 * u.kpc / u.arcmin)
+    assert u.allclose(cosmo.kpc_proper_per_arcmin(3), 472.918828 * u.kpc / u.arcmin)
