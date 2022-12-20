@@ -218,3 +218,22 @@ def test_elliptic_comoving_distance_z1z2():
         cosmo._elliptic_comoving_distance_z1z2(0.0, z),
         cosmo._integral_comoving_distance_z1z2(0.0, z),
     )
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+def test_xtfuncs():
+    """Test of absorption and lookback integrand"""
+    cosmo = LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
+    z = np.array([2.0, 3.2])
+    assert u.allclose(cosmo.lookback_time_integrand(3), 0.052218976654969378, rtol=1e-4)
+    assert u.allclose(
+        cosmo.lookback_time_integrand(z), [0.10333179, 0.04644541], rtol=1e-4
+    )
+    assert u.allclose(cosmo.abs_distance_integrand(3), 3.3420145059180402, rtol=1e-4)
+    assert u.allclose(
+        cosmo.abs_distance_integrand(z), [2.7899584, 3.44104758], rtol=1e-4
+    )
