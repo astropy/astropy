@@ -790,3 +790,26 @@ def test_age_in_special_cosmologies():
     assert u.allclose(c_EdS.age(z=1), 2.3046783684542738 * u.Gyr)
     assert u.allclose(c_EdS.lookback_time(z=0), 0 * u.Gyr)
     assert u.allclose(c_EdS.lookback_time(z=1), 4.213936442699092 * u.Gyr)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_distance_in_special_cosmologies():
+    """Check that de Sitter and Einstein-de Sitter Universes both work.
+
+    Some analytic solutions fail at these critical points.
+    """
+    c_dS = FlatLambdaCDM(100, 0, Tcmb0=0)
+    assert u.allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+
+    c_EdS = FlatLambdaCDM(100, 1, Tcmb0=0)
+    assert u.allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
+
+    c_dS = LambdaCDM(100, 0, 1, Tcmb0=0)
+    assert u.allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
+    assert u.allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
+
+    c_EdS = LambdaCDM(100, 1, 0, Tcmb0=0)
+    assert u.allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
+    assert u.allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)

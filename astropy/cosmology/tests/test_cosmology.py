@@ -195,29 +195,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_distance_in_special_cosmologies():
-    """Check that de Sitter and Einstein-de Sitter Universes both work.
-
-    Some analytic solutions fail at these critical points.
-    """
-    c_dS = flrw.FlatLambdaCDM(100, 0, Tcmb0=0)
-    assert allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
-    assert allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
-
-    c_EdS = flrw.FlatLambdaCDM(100, 1, Tcmb0=0)
-    assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
-    assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
-
-    c_dS = flrw.LambdaCDM(100, 0, 1, Tcmb0=0)
-    assert allclose(c_dS.comoving_distance(z=0), 0 * u.Mpc)
-    assert allclose(c_dS.comoving_distance(z=1), 2997.92458 * u.Mpc)
-
-    c_EdS = flrw.LambdaCDM(100, 1, 0, Tcmb0=0)
-    assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
-    assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_absorption_distance():
     tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.absorption_distance([1, 3]), [1.72576635, 7.98685853])
