@@ -9,7 +9,6 @@ import astropy.units as u
 from astropy.cosmology import flrw
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyUserWarning
 
 ###############################################################################
 # TODO! sort and refactor following tests.
@@ -235,50 +234,6 @@ def test_distance_in_special_cosmologies():
     c_EdS = flrw.LambdaCDM(100, 1, 0, Tcmb0=0)
     assert allclose(c_EdS.comoving_distance(z=0), 0 * u.Mpc)
     assert allclose(c_EdS.comoving_distance(z=1), 1756.1435599923348 * u.Mpc)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_angular_diameter_distance_z1z2():
-    tcos = flrw.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    with pytest.raises(ValueError):  # test diff size z1, z2 fail
-        tcos.angular_diameter_distance_z1z2([1, 2], [3, 4, 5])
-    # Tests that should actually work
-    assert allclose(
-        tcos.angular_diameter_distance_z1z2(1, 2), 646.22968662822018 * u.Mpc
-    )
-
-    z1 = 2  # Separate test for z2<z1, returns negative value with warning
-    z2 = 1
-    results = -969.34452994 * u.Mpc
-    with pytest.warns(AstropyUserWarning, match="less than first redshift"):
-        assert allclose(tcos.angular_diameter_distance_z1z2(z1, z2), results)
-
-    z1 = 0, 0, 0.5, 1
-    z2 = 2, 1, 2.5, 1.1
-    results = (
-        1760.0628637762106,
-        1670.7497657219858,
-        1159.0970895962193,
-        115.72768186186921,
-    ) * u.Mpc
-
-    assert allclose(tcos.angular_diameter_distance_z1z2(z1, z2), results)
-
-    z1 = 0.1
-    z2 = 0.1, 0.2, 0.5, 1.1, 2
-    results = (0.0, 332.09893173, 986.35635069, 1508.37010062, 1621.07937976) * u.Mpc
-    assert allclose(tcos.angular_diameter_distance_z1z2(0.1, z2), results)
-
-    # Non-flat (positive Ok0) test
-    tcos = flrw.LambdaCDM(H0=70.4, Om0=0.2, Ode0=0.5, Tcmb0=0.0)
-    assert allclose(
-        tcos.angular_diameter_distance_z1z2(1, 2), 620.1175337852428 * u.Mpc
-    )
-    # Non-flat (negative Ok0) test
-    tcos = flrw.LambdaCDM(H0=100, Om0=2, Ode0=1, Tcmb0=0.0)
-    assert allclose(
-        tcos.angular_diameter_distance_z1z2(1, 2), 228.42914659246014 * u.Mpc
-    )
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
