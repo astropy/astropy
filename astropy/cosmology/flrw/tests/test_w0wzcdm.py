@@ -6,6 +6,7 @@
 # IMPORTS
 
 # THIRD PARTY
+import numpy as np
 import pytest
 
 # LOCAL
@@ -13,6 +14,7 @@ import astropy.units as u
 from astropy.cosmology import w0wzCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_base import FLRWTest
 from .test_w0cdm import Parameterw0TestMixin
@@ -108,3 +110,27 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
             " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = w0wzCDM(H0=70, Om0=0.3, Ode0=0.50, w0=-1, wz=0.5)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(
+        cosmo.de_density_scale(z),
+        [0.746048, 0.5635595, 0.25712378, 0.026664129, 0.0035916468],
+        rtol=1e-4,
+    )
+
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )

@@ -606,3 +606,19 @@ def test_integral():
     assert u.allclose(
         cosmo.inv_efunc([1, 2, 6]), cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7
     )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(cosmo.de_density_scale(z), [1.0, 1.0, 1.0, 1.0, 1.0])
+
+    # Integer check
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )

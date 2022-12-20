@@ -5,9 +5,8 @@
 ##############################################################################
 # IMPORTS
 
-import numpy as np
-
 # THIRD PARTY
+import numpy as np
 import pytest
 
 # LOCAL
@@ -186,3 +185,22 @@ def test_equality():
     newcosmo = w0waCDM(**Planck18._init_arguments, Ode0=0.6)
     assert newcosmo != Planck18
     assert Planck18 != newcosmo
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = w0waCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-1, wa=-0.5)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(
+        cosmo.de_density_scale(z),
+        [0.9934201, 0.9767912, 0.897450, 0.622236, 0.4458753],
+        rtol=1e-4,
+    )
+
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )

@@ -178,3 +178,27 @@ def test_varyde_lumdist_mathematica():
         [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc,
         rtol=1e-4,
     )
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9, wa=0.2, zp=0.5)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(
+        cosmo.de_density_scale(z),
+        [1.012246048, 1.0280102, 1.087439, 1.324988, 1.565746],
+        rtol=1e-4,
+    )
+
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )
