@@ -12,7 +12,7 @@ import pytest
 
 # LOCAL
 import astropy.units as u
-from astropy.cosmology import Flatw0waCDM, w0waCDM
+from astropy.cosmology import Flatw0waCDM, Planck18, w0waCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
 from astropy.utils.compat.optional_deps import HAS_SCIPY
@@ -173,3 +173,16 @@ def test_varyde_lumdist_mathematica():
         [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc,
         rtol=1e-4,
     )
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+def test_equality():
+    """Test equality and equivalence."""
+    # mismatched signatures, both directions.
+    newcosmo = w0waCDM(**Planck18._init_arguments, Ode0=0.6)
+    assert newcosmo != Planck18
+    assert Planck18 != newcosmo

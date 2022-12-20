@@ -10,7 +10,6 @@ import pytest
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import flrw
-from astropy.cosmology.realizations import Planck18
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -129,14 +128,6 @@ def test_distance_broadcast():
             assert value_3d.shape == z_reshape3d.shape
             assert allclose(value_flat, value_2d.flatten())
             assert allclose(value_flat, value_3d.flatten())
-
-
-def test_equality():
-    """Test equality and equivalence."""
-    # mismatched signatures, both directions.
-    newcosmo = flrw.w0waCDM(**Planck18._init_arguments, Ode0=0.6)
-    assert newcosmo != Planck18
-    assert Planck18 != newcosmo
 
 
 def test_xtfuncs():
