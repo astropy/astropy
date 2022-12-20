@@ -112,6 +112,49 @@ class Testw0waCDM(FLRWTest, Parameterw0TestMixin, ParameterwaTestMixin):
         )
         assert repr(cosmo) == expected
 
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.3, 0.6),
+                {"w0": -0.9, "wa": 0.1, "Tcmb0": 0.0},
+                [2937.7807638, 4572.59950903, 5611.52821924, 6339.8549956] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "w0": -0.9,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(0.0, u.eV),
+                },
+                [2907.34722624, 4539.01723198, 5593.51611281, 6342.3228444] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "w0": -0.9,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(10.0, u.eV),
+                },
+                [2507.18336722, 3633.33231695, 4292.44746919, 4736.35404638] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
+
 
 # -----------------------------------------------------------------------------
 
@@ -135,6 +178,49 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
             " m_nu=[0. 0. 0.] eV, Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.25),
+                {"w0": -0.95, "wa": 0.15, "Tcmb0": 0.0},
+                [3123.29892781, 4956.15204302, 6128.15563818, 6948.26480378] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25),
+                {
+                    "w0": -0.95,
+                    "wa": 0.15,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(0.0, u.eV),
+                },
+                [3122.92671907, 4955.03768936, 6126.25719576, 6945.61856513] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25),
+                {
+                    "w0": -0.95,
+                    "wa": 0.15,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(10.0, u.eV),
+                },
+                [2337.70072701, 3372.13719963, 3988.6571093, 4409.35399673] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
 
 
 ##############################################################################
