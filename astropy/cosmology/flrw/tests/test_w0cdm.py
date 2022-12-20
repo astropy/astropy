@@ -16,7 +16,7 @@ from astropy.cosmology import FlatwCDM, wCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin, valid_zs
 
-from .test_base import FlatFLRWMixinTest, FLRWSubclassTest
+from .test_base import FlatFLRWMixinTest, FLRWTest
 
 ##############################################################################
 # TESTS
@@ -60,7 +60,7 @@ class Parameterw0TestMixin(ParameterTestMixin):
             cosmo_cls(*ba.args, **ba.kwargs)
 
 
-class TestwCDM(FLRWSubclassTest, Parameterw0TestMixin):
+class TestwCDM(FLRWTest, Parameterw0TestMixin):
     """Test :class:`astropy.cosmology.wCDM`."""
 
     def setup_class(self):

@@ -5,7 +5,6 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
 
 # THIRD PARTY
 import pytest
@@ -18,7 +17,7 @@ from astropy.cosmology.tests.helper import get_redshift_methods
 from astropy.cosmology.tests.test_core import invalid_zs, valid_zs
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .test_base import FlatFLRWMixinTest, FLRWSubclassTest
+from .test_base import FlatFLRWMixinTest, FLRWTest
 
 ##############################################################################
 # TESTS
@@ -38,7 +37,7 @@ def test_optional_deps_functions():
 ##############################################################################
 
 
-class TestLambdaCDM(FLRWSubclassTest):
+class TestLambdaCDM(FLRWTest):
     """Test :class:`astropy.cosmology.LambdaCDM`."""
 
     def setup_class(self):
