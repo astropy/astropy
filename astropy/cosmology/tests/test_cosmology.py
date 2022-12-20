@@ -199,30 +199,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_comoving_volume():
-    c_flat = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
-    c_open = flrw.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
-    c_closed = flrw.LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
-
-    # test against ned wright's calculator (cubic Gpc)
-    redshifts = np.array([0.5, 1, 2, 3, 5, 9])
-    wright_flat = (
-        np.array([29.123, 159.529, 630.427, 1178.531, 2181.485, 3654.802]) * u.Gpc**3
-    )
-    wright_open = (
-        np.array([20.501, 99.019, 380.278, 747.049, 1558.363, 3123.814]) * u.Gpc**3
-    )
-    wright_closed = (
-        np.array([12.619, 44.708, 114.904, 173.709, 258.82, 358.992]) * u.Gpc**3
-    )
-    # The wright calculator isn't very accurate, so we use a rather
-    # modest precision
-    assert allclose(c_flat.comoving_volume(redshifts), wright_flat, rtol=1e-2)
-    assert allclose(c_open.comoving_volume(redshifts), wright_open, rtol=1e-2)
-    assert allclose(c_closed.comoving_volume(redshifts), wright_closed, rtol=1e-2)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_differential_comoving_volume():
     from scipy.integrate import quad
 
