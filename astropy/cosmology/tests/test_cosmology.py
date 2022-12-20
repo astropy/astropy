@@ -130,18 +130,6 @@ def test_distance_broadcast():
             assert allclose(value_flat, value_3d.flatten())
 
 
-def test_xtfuncs():
-    """Test of absorption and lookback integrand"""
-    cosmo = flrw.LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
-    z = np.array([2.0, 3.2])
-    assert allclose(cosmo.lookback_time_integrand(3), 0.052218976654969378, rtol=1e-4)
-    assert allclose(
-        cosmo.lookback_time_integrand(z), [0.10333179, 0.04644541], rtol=1e-4
-    )
-    assert allclose(cosmo.abs_distance_integrand(3), 3.3420145059180402, rtol=1e-4)
-    assert allclose(cosmo.abs_distance_integrand(z), [2.7899584, 3.44104758], rtol=1e-4)
-
-
 # This class is to test whether the routines work correctly
 # if one only overloads w(z)
 class test_cos_sub(flrw.FLRW):
