@@ -524,6 +524,35 @@ def test_massivenu_density():
 # TODO: these should be better integrated into the new test framework
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_units():
+    """Test if the right units are being returned"""
+    cosmo = FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
+
+    assert cosmo.comoving_distance(1.0).unit == u.Mpc
+    assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
+    assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo.angular_diameter_distance(1.0).unit == u.Mpc
+    assert cosmo.angular_diameter_distance_z1z2(1.0, 2.0).unit == u.Mpc
+    assert cosmo.luminosity_distance(1.0).unit == u.Mpc
+    assert cosmo.lookback_time(1.0).unit == u.Gyr
+    assert cosmo.lookback_distance(1.0).unit == u.Mpc
+    assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
+    assert cosmo.Tcmb(1.0).unit == u.K
+    assert cosmo.Tcmb([0.0, 1.0]).unit == u.K
+    assert cosmo.Tnu(1.0).unit == u.K
+    assert cosmo.Tnu([0.0, 1.0]).unit == u.K
+    assert cosmo.arcsec_per_kpc_comoving(1.0).unit == u.arcsec / u.kpc
+    assert cosmo.arcsec_per_kpc_proper(1.0).unit == u.arcsec / u.kpc
+    assert cosmo.kpc_comoving_per_arcmin(1.0).unit == u.kpc / u.arcmin
+    assert cosmo.kpc_proper_per_arcmin(1.0).unit == u.kpc / u.arcmin
+    assert cosmo.critical_density(1.0).unit == u.g / u.cm**3
+    assert cosmo.comoving_volume(1.0).unit == u.Mpc**3
+    assert cosmo.age(1.0).unit == u.Gyr
+    assert cosmo.distmod(1.0).unit == u.mag
+
+
 def test_xtfuncs():
     """Test of absorption and lookback integrand"""
     cosmo = LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
