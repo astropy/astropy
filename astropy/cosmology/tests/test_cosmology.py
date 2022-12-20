@@ -196,29 +196,6 @@ def test_efunc_vs_invefunc_flrw():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_comoving_distance_z1z2():
-    tcos = flrw.LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
-    with pytest.raises(ValueError):  # test diff size z1, z2 fail
-        tcos._comoving_distance_z1z2((1, 2), (3, 4, 5))
-    # Comoving distances are invertible
-    assert allclose(
-        tcos._comoving_distance_z1z2(1, 2), -tcos._comoving_distance_z1z2(2, 1)
-    )
-
-    z1 = 0, 0, 2, 0.5, 1
-    z2 = 2, 1, 1, 2.5, 1.1
-    results = (
-        3767.90579253,
-        2386.25591391,
-        -1381.64987862,
-        2893.11776663,
-        174.1524683,
-    ) * u.Mpc
-
-    assert allclose(tcos._comoving_distance_z1z2(z1, z2), results)
-
-
-@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age_in_special_cosmologies():
     """Check that age in de Sitter and Einstein-de Sitter Universes work.
 
