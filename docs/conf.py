@@ -129,6 +129,10 @@ templates_path.append("_templates")
 
 extensions += ["sphinx_changelog"]
 
+extensions.remove("sphinx_automodapi.automodapi")
+extensions.remove("sphinx_automodapi.smart_resolver")
+extensions.remove("sphinx_astropy.ext.changelog_links")
+
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()
 setup_cfg.read(os.path.join(os.path.pardir, "setup.cfg"))
