@@ -88,6 +88,7 @@ class TestLambdaCDM(FLRWTest):
         )
         assert repr(cosmo) == expected
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected"),
         [
@@ -152,6 +153,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
     # ===============================================================
     # Usage Tests
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected"),
         [

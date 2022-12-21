@@ -114,6 +114,7 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
     # ===============================================================
     # Usage Tests
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy is not installed")
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected"),
         [
