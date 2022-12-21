@@ -18,7 +18,7 @@ int Fitsio_Pthread_Status = 0;
 #endif
 
 /* Define docstrings */
-static char module_docstring[] = "Core compression/decompression functions";
+static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
 static char compress_plio_1_c_docstring[] = "Compress data using PLIO_1";
 static char decompress_plio_1_c_docstring[] = "Decompress data using PLIO_1";
 static char compress_rice_1_c_docstring[] = "Compress data using RICE_1";
@@ -64,7 +64,7 @@ static PyMethodDef module_methods[] = {
 static PyModuleDef compression = {
     PyModuleDef_HEAD_INIT,
     "_compression",
-    "Wrapper functions for compression and decompression functions in cfitsio.",
+    module_docstring,
     -1,
     module_methods,
 };
@@ -113,19 +113,15 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args) {
   }
 
   // For PLIO imcomp_calc_max_elem in cfitsio does this to calculate max memory:
-  maxelem = tilesize * sizeof(int);
+  maxelem = tilesize;
   // However, when compressing small numbers of random integers you can end up
   // using more memory for the compressed bytes.  In the worst case senario we
   // tested, compressing a single 4 byte integer will compress to 16 bytes.  We
-  // add 32 bytes here to give a small margin of error.
-  compressed_values = (short *)malloc(maxelem + 32);
+  // therefore allocate a buffer 4 ints larger than we need here to give that
+  // margin of error.
+  compressed_values = (short *)calloc(maxelem + 4, sizeof(int));
 
   decompressed_values = (int *)str;
-
-  // Zero the compressed values array
-  for (int i = 0; i < maxelem / 2; i++) {
-    compressed_values[i] = 0;
-  }
 
   compressed_length = pl_p2li(decompressed_values, 1, compressed_values, tilesize);
 
@@ -338,7 +334,7 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args) {
     return (PyObject *)NULL;
   }
 
-  result = Py_BuildValue("y#", compressed_values, maxelem);
+  result = Py_BuildValue("y#", compressed_values, buffer_size);
   free(compressed_values);
   return result;
 }
@@ -428,8 +424,10 @@ static PyObject *quantize_float_c(PyObject *self, PyObject *args) {
 
   quantized_bytes = (char *)quantized_data;
 
-  result = Py_BuildValue("y#iddii", quantized_bytes, nx * ny * sizeof(int), status,
-                                   bscale, bzero, iminval, imaxval);
+  Py_ssize_t output_length = nx * ny * sizeof(int);
+
+  result = Py_BuildValue("y#iddii", quantized_bytes, output_length, status,
+                         bscale, bzero, iminval, imaxval);
   free(quantized_bytes);
   return result;
 }
