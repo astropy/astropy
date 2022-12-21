@@ -238,6 +238,20 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
+del html_sidebars, html_theme_path
+
+# html_static_path = ["_static"]
+html_logo = "_static/astropy_banner_96.png"
+html_theme = "pydata_sphinx_theme"
+
+html_theme_options = {
+    "github_url": "https://github.com/astropy/astropy",
+    "navigation_depth": 2,
+    "show_nav_level": 2,
+    "use_edit_page_button": True,
+    "icon_links": [],
+}
+
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
@@ -246,12 +260,21 @@ html_title = f"{project} v{release}"
 htmlhelp_basename = project + "doc"
 
 # A dictionary of values to pass into the template engine’s context for all pages.
-html_context = {"to_be_indexed": ["stable", "latest"], "is_development": dev}
+html_context = {
+    "to_be_indexed": ["stable", "latest"],
+    "is_development": dev,
+    "github_user": "astropy",
+    "github_repo": "astropy",
+    "github_version": "main",
+    "doc_path": "docs",
+}
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 html_extra_path = ["robots.txt"]
+
+html_show_sourcelink = False
 
 # -- Options for LaTeX output --------------------------------------------------
 
