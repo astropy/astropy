@@ -230,7 +230,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.units.Unit`, `~astropy.units.function.FunctionUnitBase`, or str
+        other : `~astropy.units.Unit`, `~astropy.units.FunctionUnitBase`, or str
             The unit to convert to.
 
         value : int, float, or scalar array-like, optional
@@ -467,8 +467,8 @@ class FunctionQuantity(Quantity):
         converted to the function unit, after, if necessary, converting it to
         the physical unit inferred from ``unit``.
 
-    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.function.FunctionUnitBase`, optional
-        For an `~astropy.units.function.FunctionUnitBase` instance, the
+    unit : str, `~astropy.units.UnitBase`, or `~astropy.units.FunctionUnitBase`, optional
+        For an `~astropy.units.FunctionUnitBase` instance, the
         physical unit will be taken from it; for other input, it will be
         inferred from ``value``. By default, ``unit`` is set by the subclass.
 
@@ -505,12 +505,12 @@ class FunctionQuantity(Quantity):
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not a `~astropy.units.function.FunctionUnitBase`
+        If the unit provided is not a `~astropy.units.FunctionUnitBase`
         or `~astropy.units.Unit` object, or a parseable string unit.
     """
 
     _unit_class = None
-    """Default `~astropy.units.function.FunctionUnitBase` subclass.
+    """Default `~astropy.units.FunctionUnitBase` subclass.
 
     This should be overridden by subclasses.
     """
