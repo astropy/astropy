@@ -10,9 +10,9 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
+from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
+from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from .test_table import comparerecords
 
@@ -1170,7 +1170,6 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
-    @pytest.mark.skipif("not HAS_SCIPY")
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
@@ -1179,18 +1178,16 @@ class TestCompressedImage(FitsTestCase):
         Test that quantize_level is used.
 
         """
-        import scipy
-        from astropy.utils import minversion
+        import pickle
 
-        SCIPY_LT_1_10 = not minversion(scipy, "1.10dev0")
         np.random.seed(42)
 
-        if SCIPY_LT_1_10:
-            import scipy.misc  # No lazy loading for SCIPY_LT_1_9
-
-            scipy_data = scipy.misc.ascent()
-        else:
-            scipy_data = scipy.datasets.ascent()
+        # Basically what scipy.datasets.ascent() does.
+        fname = download_file(
+            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true"
+        )
+        with open(fname, "rb") as f:
+            scipy_data = np.array(pickle.load(f))
 
         data = scipy_data + np.random.randn(512, 512) * 10
 
