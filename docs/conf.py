@@ -204,6 +204,8 @@ numpydoc_xref_aliases.update(
 # Add from sphinx-astropy 1) glossary aliases 2) physical types.
 numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
+# Turn off table of contents entries for functions and classes
+toc_object_entries = False
 
 # -- Project information ------------------------------------------------------
 
@@ -335,7 +337,9 @@ try:
         "reference_url": {
             "astropy": None,
             "matplotlib": "https://matplotlib.org/stable/",
-            "numpy": "https://numpy.org/doc/stable/",
+            # The stable numpy search js isn't loadable at the moment (2022-12-07)
+            # It seems to be valid js but it's not valid json so sphinx wont load it.
+            "numpy": "https://numpy.org/devdocs/",
         },
         "abort_on_example_error": True,
     }
