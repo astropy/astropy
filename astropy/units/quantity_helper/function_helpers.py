@@ -663,6 +663,12 @@ def _check_bins(bins, unit):
         return bins
 
 
+def _check_range(range, unit):
+    range = _as_quantity(range)
+    range = range.to_value(unit)
+    return range
+
+
 @function_helper
 def histogram(a, bins=10, range=None, weights=None, density=None):
     if weights is not None:
@@ -675,6 +681,9 @@ def histogram(a, bins=10, range=None, weights=None, density=None):
     a = _as_quantity(a)
     if not isinstance(bins, str):
         bins = _check_bins(bins, a.unit)
+
+    if range is not None:
+        range = _check_range(range, a.unit)
 
     if density:
         unit = (unit or 1) / a.unit
@@ -693,6 +702,9 @@ def histogram_bin_edges(a, bins=10, range=None, weights=None):
     a = _as_quantity(a)
     if not isinstance(bins, str):
         bins = _check_bins(bins, a.unit)
+
+    if range is not None:
+        range = _check_range(range, a.unit)
 
     return (a.value, bins, range, weights), {}, a.unit, None
 
@@ -724,6 +736,11 @@ def histogram2d(x, y, bins=10, range=None, weights=None, density=None):
         else:
             bins = _check_bins(bins, x.unit)
             y = y.to(x.unit)
+
+    if range is not None:
+        range = tuple(
+            _check_range(r, unit) for (r, unit) in zip(range, (x.unit, y.unit))
+        )
 
     if density:
         unit = (unit or 1) / x.unit / y.unit
@@ -772,6 +789,9 @@ def histogramdd(sample, bins=10, range=None, weights=None, density=None):
                 "The dimension of bins must be equal to the dimension of the  sample x."
             )
         bins = [_check_bins(b, unit) for (b, unit) in zip(bins, sample_units)]
+
+    if range is not None:
+        range = tuple(_check_range(r, unit) for (r, unit) in zip(range, sample_units))
 
     if density:
         unit = functools.reduce(operator.truediv, sample_units, (unit or 1))
