@@ -11,7 +11,7 @@ from numpy.testing import assert_equal
 
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import DITHER_SEED_CHECKSUM, SUBTRACTIVE_DITHER_1
-from astropy.utils.data import get_pkg_data_filename, download_file
+from astropy.utils.data import download_file, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
@@ -1190,8 +1190,10 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(42)
 
         # Basically what scipy.datasets.ascent() does.
-        fname = download_file('https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true')
-        with open(fname, 'rb') as f:
+        fname = download_file(
+            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true"
+        )
+        with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
 
         data = scipy_data + np.random.randn(512, 512) * 10
