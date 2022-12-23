@@ -1,0 +1,16 @@
+name: Add comment
+
+on:
+- pull_request_target
+
+jobs:
+  comment:
+    name: Checklist
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v0.1.0
+    - uses: harupy/comment-on-pr@v0.1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        filename: checklist.md
