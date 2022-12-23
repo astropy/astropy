@@ -3315,7 +3315,7 @@ class TestVLATables(FitsTestCase):
 
     def test_heterogeneous_VLA_tables(self):
         """
-        Check the behaviour of heterogeneous VLF object.
+        Check the behaviour of heterogeneous VLA object.
         """
 
         # The column format fix the type of the arrays in the VLF object.
@@ -3333,13 +3333,12 @@ class TestVLATables(FitsTestCase):
         var = np.array([a, b], dtype=object)
 
         c1 = fits.Column(name="var", format="PJ()", array=var)
-        with pytest.raises(ValueError) as err:
-            _ = fits.BinTableHDU.from_columns([c1])
-        assert "invalid literal for int() with base 10" in str(err.value)
+        with pytest.raises(ValueError, match=r"invalid literal for int\(\) with base 10"):
+            fits.BinTableHDU.from_columns([c1])
 
     def test_write_VLA_tables_with_unified(self):
         """
-        Write VLF objects with the unified I/O interface.
+        Write VLA objects with the unified I/O interface.
         See https://github.com/astropy/astropy/issues/11323
         """
 
