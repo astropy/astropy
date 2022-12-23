@@ -62,15 +62,28 @@ ALL_FLOAT_DTYPES = ["".join(ele) for ele in _expand([("<", ">"), ("f",), ("4", "
             ALL_FLOAT_DTYPES,
         ],
         # All compression types can also take quantized floating point input
+        # Rather than running all quantization parameters for all algorithms
+        # split up the algorithms to reduce the total number of tests.
         [
-            COMPRESSION_TYPES,
+            ["GZIP_1", "GZIP_2"],
+            ({"qlevel": 5, "qmethod": -1},),
+            ALL_FLOAT_DTYPES,
+        ],
+        [
+            ["RICE_1"],
+            ({"qlevel": 10, "qmethod": 1},),
+            ALL_FLOAT_DTYPES,
+        ],
+        [
+            ["HCOMPRESS_1"],
             (
-                {"qlevel": 5, "qmethod": -1},
-                {"qlevel": 10, "qmethod": 1},
                 {"qlevel": 20, "qmethod": 2},
+                {"qlevel": 10, "qmethod": 1},
             ),
             ALL_FLOAT_DTYPES,
         ],
+        # Note no PLIO here as that's intended for masks, i.e. data which can't
+        # be generated with quantization.
     ),
 )
 def comp_param_dtype(request):

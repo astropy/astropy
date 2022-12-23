@@ -3,13 +3,13 @@ This file contains the code for Quantizing / Dequantizing floats.
 """
 import numpy as np
 
-from astropy.io.fits.hdu.base import BITPIX2DTYPE
-from astropy.io.fits.tiled_compression._compression import (
+from astropy.io.fits._tiled_compression._compression import (
     quantize_double_c,
     quantize_float_c,
     unquantize_double_c,
     unquantize_float_c,
 )
+from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
 __all__ = ["Quantize"]
 
@@ -26,7 +26,9 @@ class Quantize:
     Quantization of floating-point data following the FITS standard.
     """
 
-    def __init__(self, row: int, dither_method: int, quantize_level: int, bitpix: int):
+    def __init__(
+        self, *, row: int, dither_method: int, quantize_level: int, bitpix: int
+    ):
         super().__init__()
         self.row = row
         # TODO: pass dither method as a string instead of int?
@@ -131,4 +133,4 @@ class Quantize:
         if status == 0:
             raise QuantizationFailedException()
         else:
-            return np.frombuffer(qbytes, dtype=np.int32).data, scale, zero
+            return np.frombuffer(qbytes, dtype=np.int32), scale, zero

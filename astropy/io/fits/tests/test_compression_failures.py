@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
-from astropy.io.fits.tiled_compression import compress_hdu
+from astropy.io.fits._tiled_compression import compress_hdu
 
 from .conftest import FitsTestCase
 

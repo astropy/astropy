@@ -113,13 +113,17 @@ def fitsio_compressed_file_path(
     tmp_path_factory,
     comp_param_dtype,
     base_original_data,
-    data_shape,  # For debuging
+    data_shape,  # For debugging
     tile_dims,
 ):
     compression_type, param, dtype = comp_param_dtype
 
-    if base_original_data.ndim > 2 and "u1" in dtype:
-        pytest.xfail("These don't work")
+    if (
+        base_original_data.ndim > 2
+        and "u1" in dtype
+        and compression_type == "HCOMPRESS_1"
+    ):
+        pytest.xfail("fitsio won't write these")
 
     if compression_type == "PLIO_1" and "f" in dtype:
         # fitsio fails with a compression error
@@ -150,7 +154,7 @@ def astropy_compressed_file_path(
     comp_param_dtype,
     tmp_path_factory,
     base_original_data,
-    data_shape,  # For debuging
+    data_shape,  # For debugging
     tile_dims,
 ):
     compression_type, param, dtype = comp_param_dtype
@@ -185,7 +189,6 @@ def test_decompress(
         assert hdul[1]._header["ZCMPTYPE"].replace("ONE", "1") == compression_type
         assert hdul[1].data.dtype.kind == np.dtype(dtype).kind
         assert hdul[1].data.dtype.itemsize == np.dtype(dtype).itemsize
-        # assert hdul[1].data.dtype.byteorder == np.dtype(dtype).byteorder
 
     # The data might not always match the original data exactly in the case of
     # lossy compression so instead of comparing the array read by astropy to the
@@ -214,7 +217,6 @@ def test_compress(
     assert header["ZCMPTYPE"] == compression_type
     assert data.dtype.kind == np.dtype(dtype).kind
     assert data.dtype.itemsize == np.dtype(dtype).itemsize
-    # assert data.dtype.byteorder == np.dtype(dtype).byteorder
 
     # The data might not always match the original data exactly in the case of
     # lossy compression so instead of comparing the array read by fitsio to the
