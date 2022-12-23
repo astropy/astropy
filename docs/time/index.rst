@@ -1213,13 +1213,13 @@ datetime   :class:`~astropy.time.TimeDeltaDatetime`
 =========  ===================================================
 
 .. warning:: The ``datetime`` format does *not* support instants of time that
-             are leap seconds. This is a 
+             are leap seconds. This is a
              `limitation of the Python standard library datetime object <https://github.com/python/cpython/issues/67762>`_
              not a limitation of Astropy's |Time|. If the upstream datetime
              object is updated to support leap seconds Astropy can follow it,
-             but until then ``t.datetime`` will raise an exception if ``t`` is 
-             a leap second. See 
-             `astropy issue #14112 <https://github.com/astropy/astropy/issues/14112>`_ 
+             but until then ``t.datetime`` will raise an exception if ``t`` is
+             a leap second. See
+             `astropy issue #14112 <https://github.com/astropy/astropy/issues/14112>`_
              for more details.
 
 Examples
