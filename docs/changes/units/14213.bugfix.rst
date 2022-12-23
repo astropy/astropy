@@ -1,0 +1,5 @@
+Modified the behavior of ``numpy.histogram()``,
+``numpy.histogram_bin_edges()``, ``numpy.histogram2d()``, and
+``numpy.histogramdd()`` so that the ``range`` argument must a compatible
+instance of ``astropy.units.Quantity`` if the other arguments are instances of
+``astropy.units.Quantity``.
