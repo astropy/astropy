@@ -37,10 +37,10 @@ To create a logarithmic quantity::
 
 Above, we make use of the fact that the units ``mag``, ``dex``, and
 ``dB`` are special in that, when used as functions, they return a
-:class:`~astropy.units.function.logarithmic.LogUnit` instance
-(:class:`~astropy.units.function.logarithmic.MagUnit`,
-:class:`~astropy.units.function.logarithmic.DexUnit`, and
-:class:`~astropy.units.function.logarithmic.DecibelUnit`,
+:class:`~astropy.units.LogUnit` instance
+(:class:`~astropy.units.MagUnit`,
+:class:`~astropy.units.DexUnit`, and
+:class:`~astropy.units.DecibelUnit`,
 respectively). The same happens as required when strings are parsed
 by :class:`~astropy.units.Unit`.
 
@@ -49,7 +49,7 @@ by :class:`~astropy.units.Unit`.
 As for normal |Quantity| objects, you can access the value with the
 `~astropy.units.Quantity.value` attribute. In addition, you can convert to a
 |Quantity| with the physical unit using the
-`~astropy.units.function.FunctionQuantity.physical` attribute::
+`~astropy.units.FunctionQuantity.physical` attribute::
 
     >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
@@ -76,8 +76,8 @@ To convert a logarithmic quantity to a different unit::
     >>> logg.to('dex(m/s2)')  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-For convenience, the :attr:`~astropy.units.function.FunctionQuantity.si` and
-:attr:`~astropy.units.function.FunctionQuantity.cgs` attributes can be used to
+For convenience, the :attr:`~astropy.units.FunctionQuantity.si` and
+:attr:`~astropy.units.FunctionQuantity.cgs` attributes can be used to
 convert the |Quantity| to base `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
 <https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_
@@ -258,7 +258,7 @@ to work::
 
     This is implemented by having a list of supported ufuncs in
     ``units/function/core.py`` and by explicitly disabling some array methods in
-    :class:`~astropy.units.function.FunctionQuantity`.  If you believe a
+    :class:`~astropy.units.FunctionQuantity`.  If you believe a
     function or method is incorrectly treated, please `let us know
     <http://www.astropy.org/contribute.html>`_.
 
