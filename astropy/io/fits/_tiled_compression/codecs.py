@@ -1,15 +1,12 @@
 """
-This file contains the FITS compression algorithms in numcodecs style Codecs.
-
-This module is currently private as these classes have not been tested
-externally to Astropy and their behaviour may have to change.
+This module contains the FITS compression algorithms in numcodecs style Codecs.
 """
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 
 import numpy as np
 
-from astropy.io.fits.tiled_compression._compression import (
+from astropy.io.fits._tiled_compression._compression import (
     compress_hcompress_1_c,
     compress_plio_1_c,
     compress_rice_1_c,
@@ -63,7 +60,7 @@ class Gzip1(Codec):
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
         dbytes = gzip_decompress(cbytes)
-        return np.frombuffer(dbytes, dtype=np.uint8).data
+        return np.frombuffer(dbytes, dtype=np.uint8)
 
     def encode(self, buf):
         """
@@ -117,7 +114,7 @@ class Gzip2(Codec):
 
     codec_id = "FITS_GZIP2"
 
-    def __init__(self, itemsize: int):
+    def __init__(self, *, itemsize: int):
         super().__init__()
         self.itemsize = itemsize
 
@@ -139,7 +136,7 @@ class Gzip2(Codec):
         # Start off by unshuffling buffer
         unshuffled_buffer = gzip_decompress(cbytes)
         array = np.frombuffer(unshuffled_buffer, dtype=np.uint8)
-        return array.reshape((self.itemsize, -1)).T.ravel().data
+        return array.reshape((self.itemsize, -1)).T.ravel()
 
     def encode(self, buf):
         """
@@ -191,7 +188,7 @@ class Rice1(Codec):
 
     codec_id = "FITS_RICE1"
 
-    def __init__(self, blocksize: int, bytepix: int, tilesize: int):
+    def __init__(self, *, blocksize: int, bytepix: int, tilesize: int):
         self.blocksize = blocksize
         self.bytepix = bytepix
         self.tilesize = tilesize
@@ -214,7 +211,7 @@ class Rice1(Codec):
         dbytes = decompress_rice_1_c(
             cbytes, self.blocksize, self.bytepix, self.tilesize
         )
-        return np.frombuffer(dbytes, dtype=f"i{self.bytepix}").data
+        return np.frombuffer(dbytes, dtype=f"i{self.bytepix}")
 
     def encode(self, buf):
         """
@@ -248,7 +245,7 @@ class PLIO1(Codec):
 
     codec_id = "FITS_PLIO1"
 
-    def __init__(self, tilesize: int):
+    def __init__(self, *, tilesize: int):
         self.tilesize = tilesize
 
     def decode(self, buf):
@@ -267,7 +264,7 @@ class PLIO1(Codec):
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
         dbytes = decompress_plio_1_c(cbytes, self.tilesize)
-        return np.frombuffer(dbytes, dtype="i4").data
+        return np.frombuffer(dbytes, dtype="i4")
 
     def encode(self, buf):
         """
@@ -316,7 +313,7 @@ class HCompress1(Codec):
 
     codec_id = "FITS_HCOMPRESS1"
 
-    def __init__(self, scale: int, smooth: bool, bytepix: int, nx: int, ny: int):
+    def __init__(self, *, scale: int, smooth: bool, bytepix: int, nx: int, ny: int):
         self.scale = scale
         self.smooth = smooth
         self.bytepix = bytepix
@@ -342,7 +339,8 @@ class HCompress1(Codec):
         dbytes = decompress_hcompress_1_c(
             cbytes, self.nx, self.ny, self.scale, self.smooth, self.bytepix
         )
-        return np.frombuffer(dbytes, dtype=f"i{self.bytepix}").data
+        # fits_hdecompress* always returns 4 byte integers irrespective of bytepix
+        return np.frombuffer(dbytes, dtype="i4")
 
     def encode(self, buf):
         """
