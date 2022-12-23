@@ -3333,7 +3333,9 @@ class TestVLATables(FitsTestCase):
         var = np.array([a, b], dtype=object)
 
         c1 = fits.Column(name="var", format="PJ()", array=var)
-        with pytest.raises(ValueError, match=r"invalid literal for int\(\) with base 10"):
+        with pytest.raises(
+            ValueError, match=r"invalid literal for int\(\) with base 10"
+        ):
             fits.BinTableHDU.from_columns([c1])
 
     def test_write_VLA_tables_with_unified(self):
@@ -3360,10 +3362,11 @@ class TestVLATables(FitsTestCase):
         )
         with pytest.warns(AstropyUserWarning, match=msg):
             tab.write(self.temp("temp2.fits"), overwrite=True)
-            tab = Table.read(self.temp("temp2.fits"))
-            assert np.array_equal(tab[0]["var"], np.array([45.0, 30.0]))
-            assert np.array_equal(tab[1]["var"], np.array([11.0, 12.0, 13.0]))
-            assert np.array_equal(tab[2]["var"], np.array([45.0, 55.0, 65.0, 75.0]))
+
+        tab = Table.read(self.temp("temp2.fits"))
+        assert np.array_equal(tab[0]["var"], np.array([45.0, 30.0]))
+        assert np.array_equal(tab[1]["var"], np.array([11.0, 12.0, 13.0]))
+        assert np.array_equal(tab[2]["var"], np.array([45.0, 55.0, 65.0, 75.0]))
 
 
 # These are tests that solely test the Column and ColDefs interfaces and
