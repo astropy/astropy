@@ -5,7 +5,7 @@
 import numpy as np
 
 from astropy import log
-from astropy.units import Unit, UnitConversionError, UnitsError
+from astropy.units import Unit, UnitConversionError, UnitsError  # noqa: F401
 
 from .flag_collection import FlagCollection
 from .mixins.ndarithmetic import NDArithmeticMixin

@@ -1,4 +1,4 @@
-from astropy.nddata import NDData, NDDataRef, NDIOMixin
+from astropy.nddata import NDData, NDDataRef, NDIOMixin  # noqa: F401
 
 # Alias NDDataAllMixins in case this will be renamed ... :-)
 NDDataIO = NDDataRef

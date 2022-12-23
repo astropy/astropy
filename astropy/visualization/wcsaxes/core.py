@@ -128,7 +128,7 @@ class WCSAxes(Axes):
         else:
             self.frame_class = RectangularFrame
 
-        if not (transData is None):
+        if transData is not None:
             # User wants to override the transform for the final
             # data->pixel mapping
             self.transData = transData
