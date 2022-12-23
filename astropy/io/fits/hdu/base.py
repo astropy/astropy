@@ -184,22 +184,23 @@ class _BaseHDU:
             # Don't do anything if the class has already explicitly
             # set the deleter for its data property
             def data(self):
-                # The deleter. sys.getrefcount is CPython specific and not on PyPy.
-                if (
-                    self._file is not None
-                    and self._data_loaded
-                    and hasattr(sys, "getrefcount")
-                ):
-                    data_refcount = sys.getrefcount(self.data)
+                # The deleter
+                if self._file is not None and self._data_loaded:
+                    # sys.getrefcount is CPython specific and not on PyPy.
+                    has_getrefcount = hasattr(sys, "getrefcount")
+                    if has_getrefcount:
+                        data_refcount = sys.getrefcount(self.data)
+
                     # Manually delete *now* so that FITS_rec.__del__
                     # cleanup can happen if applicable
                     del self.__dict__["data"]
+
                     # Don't even do this unless the *only* reference to the
                     # .data array was the one we're deleting by deleting
                     # this attribute; if any other references to the array
                     # are hanging around (perhaps the user ran ``data =
                     # hdu.data``) don't even consider this:
-                    if data_refcount == 2:
+                    if has_getrefcount and data_refcount == 2:
                         self._file._maybe_close_mmap()
 
             setattr(cls, "data", data_prop.deleter(data))
