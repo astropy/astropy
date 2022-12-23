@@ -37,10 +37,10 @@ To create a logarithmic quantity::
 
 Above, we make use of the fact that the units ``mag``, ``dex``, and
 ``dB`` are special in that, when used as functions, they return a
-:class:`~astropy.units.logarithmic.LogUnit` instance
-(:class:`~astropy.units.logarithmic.MagUnit`,
-:class:`~astropy.units.logarithmic.DexUnit`, and
-:class:`~astropy.units.logarithmic.DecibelUnit`,
+:class:`~astropy.units.LogUnit` instance
+(:class:`~astropy.units.MagUnit`,
+:class:`~astropy.units.DexUnit`, and
+:class:`~astropy.units.DecibelUnit`,
 respectively). The same happens as required when strings are parsed
 by :class:`~astropy.units.Unit`.
 
