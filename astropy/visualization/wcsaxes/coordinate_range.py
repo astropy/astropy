@@ -71,7 +71,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
                 reset = np.abs(wjump) > 180.0
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.0
-                wjump = 360.0 * (wjump / 360.0).astype(int)
+                wjump = 360.0 * np.trunc(wjump / 360.0)
                 xw[0, 1:][reset] -= wjump[reset]
 
             # Now iron out coordinates along all columns, starting with first row.
@@ -80,7 +80,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
                 reset = np.abs(wjump) > 180.0
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.0
-                wjump = 360.0 * (wjump / 360.0).astype(int)
+                wjump = 360.0 * np.trunc(wjump / 360.0)
                 xw[1:][reset] -= wjump[reset]
 
         with warnings.catch_warnings():
