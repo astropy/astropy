@@ -560,3 +560,36 @@ def test_multiple_draws_grid_contours(tmp_path):
     ax.grid(color="black", grid_type="contours")
     fig.savefig(tmp_path / "plot.png")
     fig.savefig(tmp_path / "plot.png")
+
+
+def test_get_coord_range_nan_regression():
+    # Test to make sure there is no internal casting of NaN to integers
+    # NumPy 1.24 raises a RuntimeWarning if a NaN is cast to an integer
+
+    wcs = WCS(TARGET_HEADER)
+    wcs.wcs.crval[0] = 0  # Re-position the longitude wrap to the middle
+    ax = plt.subplot(1, 1, 1, projection=wcs)
+
+    # Set the Y limits within valid latitudes/declinations
+    ax.set_ylim(300, 500)
+
+    # Set the X limits within valid longitudes/RAs, so the world coordinates have no NaNs
+    ax.set_xlim(300, 700)
+    assert np.allclose(
+        ax.coords.get_coord_range(),
+        np.array(
+            [
+                (-123.5219272110385, 122.49684897692201),
+                (-44.02289164685554, 44.80732766607591),
+            ]
+        ),
+    )
+
+    # Extend the X limits to include invalid longitudes/RAs, so the world coordinates have NaNs
+    ax.set_xlim(0, 700)
+    assert np.allclose(
+        ax.coords.get_coord_range(),
+        np.array(
+            [(-131.3193386797236, 180.0), (-44.02289164685554, 44.80732766607591)]
+        ),
+    )
