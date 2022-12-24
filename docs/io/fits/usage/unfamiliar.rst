@@ -235,6 +235,13 @@ other a variable length array::
 ..
   EXAMPLE END
 
+.. note::
+    It is possible to use the unified I/O interface to write a VLA table. In that case
+    column type is not specified, therefore the conversion from dtype object is guessed
+    as a 32bit P descriptor with float arrays. For this reason the fits I/O interface
+    should always be preferred for writing VLA tables.
+
+
 .. _random-groups:
 
 Random Access Groups
