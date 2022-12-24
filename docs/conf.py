@@ -338,7 +338,7 @@ try:
             "astropy": None,
             "matplotlib": "https://matplotlib.org/stable/",
             # The stable numpy search js isn't loadable at the moment (2022-12-07)
-            # It seems to be valid js but it's not valid json so sphinx wont load it.
+            # It seems to be valid js but it's not valid json so sphinx won't load it.
             "numpy": "https://numpy.org/devdocs/",
         },
         "abort_on_example_error": True,

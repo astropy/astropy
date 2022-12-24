@@ -1413,7 +1413,7 @@ class SAMPHubServer:
     ):
         self._update_last_activity_time()
 
-        if not client_address[0] in ["localhost", "127.0.0.1"]:
+        if client_address[0] not in ["localhost", "127.0.0.1"]:
             raise SAMPProxyError(403, "Request of registration rejected by the Hub.")
 
         if not origin:

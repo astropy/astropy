@@ -59,10 +59,14 @@ repos:
         args: ["--py38-plus"]
         exclude: ".*(extern.*|_parsetab.py|_lextab.py)$"
 
-  - repo: https://github.com/asottile/yesqa
-    rev: v1.4.0
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
     hooks:
-      - id: yesqa
+      - id: codespell
+        args: ["--write-changes"]
+        additional_dependencies:
+          - tomli
 
   - repo: https://github.com/pycqa/isort
     rev: v5.11.3
@@ -84,13 +88,11 @@ repos:
     hooks:
       - id: black
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "v0.0.189"
     hooks:
-      - id: flake8
-        args:
-          - --count
-        exclude: ".*(data.*|extern.*|cextern)$"
+      - id: ruff
+        args: ["--fix", "--force-exclude"]
 
   - repo: local
     hooks:
