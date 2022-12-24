@@ -1,1 +1,1 @@
-Fixed WCSAxes sometimes triggering a NumPy RuntimeWarning when determining the coordinate range of an axes.
+Fixed WCSAxes sometimes triggering a NumPy RuntimeWarning when determining the coordinate range of the axes.
