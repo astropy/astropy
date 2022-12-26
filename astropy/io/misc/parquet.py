@@ -225,15 +225,23 @@ def read_table_parquet(
             f"U{strlen}" if schema.field(name).type == pa.string() else f"|S{strlen}"
         )
 
-    # Create the empty numpy record array to store the pyarrow data.
-    data = np.zeros(num_rows, dtype=list(zip(names_to_read, dtype)))
+    if schema_only:
+        # If we only need the schema, create an empty table with the correct dtype.
+        data = np.zeros(0, dtype=list(zip(names_to_read, dtype)))
+        table = Table(data=data, meta=meta_dict)
+    else:
+        # If we need the full table, convert all the columns into a numpy dict.
+        # This minimizes the data copying.
+        numpy_dict = {}
+        for name, dt in zip(names_to_read, dtype):
+            col = pa_table[name].to_numpy()
 
-    if not schema_only:
-        # Convert each column in the pyarrow table to a numpy array
-        for name in names_to_read:
-            data[name][:] = pa_table[name].to_numpy()
+            if col.dtype != dt:
+                col = col.astype(dt)
 
-    table = Table(data=data, meta=meta_dict)
+            numpy_dict[name] = col
+
+        table = Table(numpy_dict, meta=meta_dict)
 
     if meta_hdr is not None:
         # Set description, format, unit, meta from the column
