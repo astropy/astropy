@@ -284,6 +284,31 @@ def test_preserve_all_dtypes(tmp_path):
     assert schema2.dtype == t2.dtype
 
 
+def test_preserve_all_var_length_dtypes(tmp_path):
+    """Test that round-tripping preserves a table with all the var length datatypes."""
+
+    test_file = tmp_path / "test.parquet"
+
+    t1 = Table()
+
+    for dtype in ALL_DTYPES:
+        varr_values = _default_var_length_array_values(dtype)
+        data = np.array([np.array(val, dtype=dtype)
+                         for val in varr_values], dtype=np.object_)
+        t1.add_column(Column(name=str(dtype) + "_varr", data=data))
+
+    t1.write(test_file)
+
+    t2 = Table.read(test_file)
+
+    for dtype in ALL_DTYPES:
+        varr_values = _default_var_length_array_values(dtype)
+        colname = str(dtype) + "_varr"
+        for row1, row2 in zip(t1[colname], t2[colname]):
+            assert np.all(row1 == row2)
+            assert row1.dtype == row2.dtype
+
+
 def test_preserve_meta(tmp_path):
     """Test that writing/reading preserves metadata."""
 
