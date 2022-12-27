@@ -247,6 +247,11 @@ def test_preserve_all_dtypes(tmp_path):
         assert t2[str(dtype)].dtype == dtype
         assert np.all(t2[str(dtype) + "_arr"].shape == np.array(arr_values).shape)
 
+    # Test just reading the schema
+    schema2 = Table.read(test_file, schema_only=True)
+    assert len(schema2) == 0
+    assert schema2.dtype == t2.dtype
+
 
 def test_preserve_meta(tmp_path):
     """Test that writing/reading preserves metadata."""
