@@ -130,6 +130,10 @@ One can control the bot by making comments on the pull request:
 .. note::
   These comments must appear in the comment on a single line by themselves.
 
+.. note::
+  If you wish to run the pre-commit check first in CI without running Actions,
+  use ``[skip actions]`` or ``[actions skip]`` in your commit message.
+
 .. _milestones-and-labels:
 
 ===========================
