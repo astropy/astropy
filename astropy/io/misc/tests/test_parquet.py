@@ -57,7 +57,7 @@ def _default_values(dtype):
 
 def _default_array_values(dtype):
     values = _default_values(dtype)
-    return [values for i in range(4)]
+    return [values for i in range(3)]
 
 
 def test_read_write_simple(tmp_path):
@@ -230,6 +230,9 @@ def test_preserve_all_dtypes(tmp_path):
         values = _default_values(dtype)
         t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
+        arr_values = _default_array_values(dtype)
+        t1.add_column(Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype)))
+
     t1.write(test_file)
 
     t2 = Table.read(test_file)
@@ -238,6 +241,11 @@ def test_preserve_all_dtypes(tmp_path):
         values = _default_values(dtype)
         assert np.all(t2[str(dtype)] == values)
         assert t2[str(dtype)].dtype == dtype
+
+        arr_values = _default_array_values(dtype)
+        assert np.all(t2[str(dtype) + "_arr"] == values)
+        assert t2[str(dtype)].dtype == dtype
+        assert np.all(t2[str(dtype) + "_arr"].shape == np.array(arr_values).shape)
 
 
 def test_preserve_meta(tmp_path):
