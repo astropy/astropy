@@ -265,7 +265,7 @@ def read_table_parquet(
                         col = col.astype(dt[0])
                 else:
                     # This is an empty column, and needs to be coerced to type.
-                    col = col.astype(dt)
+                    col = np.zeros(0, dtype=dt)
             elif isinstance(t, pa.ListType):
                 # If we have a variable length string column, we need to convert
                 # each row to the proper type.
@@ -331,15 +331,19 @@ def write_table_parquet(table, output, overwrite=False):
     for name in encode_table.dtype.names:
         dt = encode_table.dtype[name]
         if dt.type == np.object_:
-            # FIXME what if empty table?
-            obj_dtype = encode_table[name][0].dtype
-            # We check that we have a homogeneous list of types here.
-            for row in encode_table[name]:
-                if row.dtype != obj_dtype:
-                    raise ValueError(f"Cannot serialize mixed-type column ({name}) with parquet.")
-            arrow_type = pa.list_(
-                pa.from_numpy_dtype(obj_dtype.type),
-            )
+            if len(encode_table) > 0:
+                obj_dtype = encode_table[name][0].dtype
+
+                # We check that we have a homogeneous list of types here.
+                for row in encode_table[name]:
+                    if row.dtype != obj_dtype:
+                        raise ValueError(f"Cannot serialize mixed-type column ({name}) with parquet.")
+                arrow_type = pa.list_(
+                    pa.from_numpy_dtype(obj_dtype.type),
+                )
+            else:
+                raise ValueError("Cannot serialize zero-length table "
+                                 f"with object column ({name}) with parquet.")
         elif len(dt.shape) > 0:
             arrow_type = pa.list_(
                 pa.from_numpy_dtype(dt.subdtype[0].type),

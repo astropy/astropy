@@ -309,6 +309,44 @@ def test_preserve_all_var_length_dtypes(tmp_path):
             assert row1.dtype == row2.dtype
 
 
+def test_write_empty_tables(tmp_path):
+    """Test that we can save an empty table with var length datatypes."""
+
+    test_file = tmp_path / "test.parquet"
+
+    t1 = Table()
+
+    for dtype in ALL_DTYPES:
+        values = _default_values(dtype)
+        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
+
+        arr_values = _default_array_values(dtype)
+        t1.add_column(Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype)))
+
+    data = np.zeros(0, dtype=t1.dtype)
+    t2 = Table(data=data)
+
+    t2.write(test_file)
+
+    t3 = Table.read(test_file)
+
+    assert t3.dtype == t2.dtype
+
+    test_file2 = tmp_path / "test2.parquet"
+
+    t4 = Table()
+    for dtype in ALL_DTYPES:
+        varr_values = _default_var_length_array_values(dtype)
+        data = np.array([np.array(val, dtype=dtype)
+                         for val in varr_values], dtype=np.object_)
+        t4.add_column(Column(name=str(dtype) + "_varr", data=data))
+
+    data = np.zeros(0, dtype=t4.dtype)
+    t5 = Table(data=data)
+    with pytest.raises(ValueError) as err:
+        t5.write(test_file2)
+
+
 def test_preserve_meta(tmp_path):
     """Test that writing/reading preserves metadata."""
 
