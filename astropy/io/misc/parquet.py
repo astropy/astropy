@@ -201,6 +201,8 @@ def read_table_parquet(
         if isinstance(t, pa.FixedSizeListType):
             value_type = t.value_type
             shape = (t.list_size, )
+        elif isinstance(t, pa.ListType):
+            value_type = t.value_type
         else:
             value_type = t
 
@@ -264,6 +266,11 @@ def read_table_parquet(
                 else:
                     # This is an empty column, and needs to be coerced to type.
                     col = col.astype(dt)
+            elif isinstance(t, pa.ListType):
+                # If we have a variable length string column, we need to convert
+                # each row to the proper type.
+                if t.value_type in (pa.string(), pa.binary()):
+                    col = np.array([row.astype(dt) for row in col], dtype=np.object_)
 
             numpy_dict[name] = col
 
@@ -318,15 +325,51 @@ def write_table_parquet(table, output, overwrite=False):
     meta_yaml = meta.get_yaml_from_table(encode_table)
     meta_yaml_str = "\n".join(meta_yaml)
 
+    # Build the pyarrow schema by converting from the numpy dtype of each
+    # column to an equivalent pyarrow type with from_numpy_dtype()
+    type_list = []
+    for name in encode_table.dtype.names:
+        dt = encode_table.dtype[name]
+        if dt.type == np.object_:
+            # FIXME what if empty table?
+            obj_dtype = encode_table[name][0].dtype
+            # We check that we have a homogeneous list of types here.
+            for row in encode_table[name]:
+                if row.dtype != obj_dtype:
+                    raise ValueError(f"Cannot serialize mixed-type column ({name}) with parquet.")
+            arrow_type = pa.list_(
+                pa.from_numpy_dtype(obj_dtype.type),
+            )
+        elif len(dt.shape) > 0:
+            arrow_type = pa.list_(
+                pa.from_numpy_dtype(dt.subdtype[0].type),
+                prod(dt.shape),
+            )
+        else:
+            arrow_type = pa.from_numpy_dtype(dt.type)
+
+        type_list.append((name, arrow_type))
+
     metadata = {}
     for name, col in encode_table.columns.items():
         # Parquet will retain the datatypes of columns, but string and
         # byte column length is lost.  Therefore, we special-case these
         # types to record the length for precise round-tripping.
-        if col.dtype.type is np.str_:
-            metadata[f"table::len::{name}"] = str(col.dtype.itemsize // 4)
-        elif col.dtype.type is np.bytes_:
-            metadata[f"table::len::{name}"] = str(col.dtype.itemsize)
+
+        t = col.dtype.type
+        itemsize = col.dtype.itemsize
+        if t is np.object_:
+            t = encode_table[name][0].dtype.type
+            if t == np.str_ or t == np.bytes_:
+                # We need to scan through all of them.
+                itemsize = -1
+                for row in encode_table[name]:
+                    itemsize = max(itemsize, row.dtype.itemsize)
+
+        if t is np.str_:
+            metadata[f"table::len::{name}"] = str(itemsize // 4)
+        elif t is np.bytes_:
+            metadata[f"table::len::{name}"] = str(itemsize)
 
         metadata["table_meta_yaml"] = meta_yaml_str
 
@@ -335,20 +378,6 @@ def write_table_parquet(table, output, overwrite=False):
     metadata_encode = {
         k.encode("UTF-8"): v.encode("UTF-8") for k, v in metadata.items()
     }
-
-    # Build the pyarrow schema by converting from the numpy dtype of each
-    # column to an equivalent pyarrow type with from_numpy_dtype()
-    type_list = []
-    for name in encode_table.dtype.names:
-        dt = encode_table.dtype[name]
-        if len(dt.shape) > 0:
-            arrow_type = pa.list_(
-                pa.from_numpy_dtype(dt.subdtype[0].type),
-                prod(dt.shape),
-            )
-        else:
-            arrow_type = pa.from_numpy_dtype(dt.type)
-        type_list.append((name, arrow_type))
 
     schema = pa.schema(type_list, metadata=metadata_encode)
 
@@ -365,7 +394,10 @@ def write_table_parquet(table, output, overwrite=False):
         arrays = []
         for name in encode_table.dtype.names:
             dt = encode_table.dtype[name]
-            if len(dt.shape) > 0:
+            if dt.type == np.object_:
+                # Turn the column into a list of numpy arrays.
+                val = [row for row in encode_table[name]]
+            elif len(dt.shape) > 0:
                 if len(encode_table) > 0:
                     val = np.split(encode_table[name].ravel(), len(encode_table))
                 else:

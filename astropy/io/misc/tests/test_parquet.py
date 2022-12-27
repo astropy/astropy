@@ -60,6 +60,13 @@ def _default_array_values(dtype):
     return [values for i in range(3)]
 
 
+def _default_var_length_array_values(dtype):
+    values = _default_values(dtype)
+    return [[values[0], ],
+            [values[0], values[1], ],
+            [values[0], values[1], values[2], ]]
+
+
 def test_read_write_simple(tmp_path):
     """Test writing/reading a simple parquet file."""
     test_file = tmp_path / "test.parquet"
@@ -217,6 +224,30 @@ def test_preserve_single_array_dtypes(tmp_path, dtype):
     assert np.all(t2["a"] == t1["a"])
     assert np.all(t2["a"].shape == np.array(values).shape)
     assert t2["a"].dtype == dtype
+
+
+@pytest.mark.parametrize("dtype", ALL_DTYPES)
+def test_preserve_single_var_length_array_dtypes(tmp_path, dtype):
+    """
+    Test that round-tripping a single variable length array column preserves
+    datatypes.
+    """
+
+    test_file = tmp_path / "test.parquet"
+
+    values = _default_var_length_array_values(dtype)
+
+    t1 = Table()
+    data = np.array([np.array(val, dtype=dtype)
+                     for val in values], dtype=np.object_)
+    t1.add_column(Column(name="a", data=data))
+    t1.write(test_file)
+
+    t2 = Table.read(test_file)
+
+    for row1, row2 in zip(t1["a"], t2["a"]):
+        assert np.all(row1 == row2)
+        assert row1.dtype == row2.dtype
 
 
 def test_preserve_all_dtypes(tmp_path):
