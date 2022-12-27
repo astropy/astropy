@@ -8,6 +8,7 @@ available as readers/writers in `astropy.table`.  See
 
 import os
 import warnings
+from math import prod
 
 import numpy as np
 
@@ -193,12 +194,23 @@ def read_table_parquet(
     # Now need to convert parquet table to Astropy
     dtype = []
     for name in names_to_read:
-        # Pyarrow string and byte columns do not have native length information
-        # so we must determine those here.
-        if schema.field(name).type not in (pa.string(), pa.binary()):
-            # Convert the pyarrow type into a numpy dtype (which is returned
+        t = schema.field(name).type
+
+        shape = None
+
+        if isinstance(t, pa.FixedSizeListType):
+            value_type = t.value_type
+            shape = (t.list_size, )
+        else:
+            value_type = t
+
+        if value_type not in (pa.string(), pa.binary()):
+            # Convert the pyarrow value type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
-            dtype.append(schema.field(name).type.to_pandas_dtype())
+            if shape is None:
+                dtype.append(value_type.to_pandas_dtype())
+            else:
+                dtype.append((value_type.to_pandas_dtype(), shape))
             continue
 
         # Special-case for string and binary columns
@@ -221,9 +233,11 @@ def read_table_parquet(
                 f" ({strlen} characters).",
                 AstropyUserWarning,
             )
-        dtype.append(
-            f"U{strlen}" if schema.field(name).type == pa.string() else f"|S{strlen}"
-        )
+        strname = f"U{strlen}" if value_type == pa.string() else f"|S{strlen}"
+        if shape is None:
+            dtype.append(strname)
+        else:
+            dtype.append((strname, shape))
 
     if schema_only:
         # If we only need the schema, create an empty table with the correct dtype.
@@ -236,8 +250,20 @@ def read_table_parquet(
         for name, dt in zip(names_to_read, dtype):
             col = pa_table[name].to_numpy()
 
-            if col.dtype != dt:
+            t = schema.field(name).type
+            if t in (pa.string(), pa.binary()):
                 col = col.astype(dt)
+            elif isinstance(t, pa.FixedSizeListType):
+                if len(col) > 0:
+                    col = np.stack(col)
+
+                    if t.value_type in (pa.string(), pa.binary()):
+                        # The conversion dtype is only the first element
+                        # in the dtype tuple.
+                        col = col.astype(dt[0])
+                else:
+                    # This is an empty column, and needs to be coerced to type.
+                    col = col.astype(dt)
 
             numpy_dict[name] = col
 
@@ -312,10 +338,18 @@ def write_table_parquet(table, output, overwrite=False):
 
     # Build the pyarrow schema by converting from the numpy dtype of each
     # column to an equivalent pyarrow type with from_numpy_dtype()
-    type_list = [
-        (name, pa.from_numpy_dtype(encode_table.dtype[name].type))
-        for name in encode_table.dtype.names
-    ]
+    type_list = []
+    for name in encode_table.dtype.names:
+        dt = encode_table.dtype[name]
+        if len(dt.shape) > 0:
+            arrow_type = pa.list_(
+                pa.from_numpy_dtype(dt.subdtype[0].type),
+                prod(dt.shape),
+            )
+        else:
+            arrow_type = pa.from_numpy_dtype(dt.type)
+        type_list.append((name, arrow_type))
+
     schema = pa.schema(type_list, metadata=metadata_encode)
 
     if os.path.exists(output):
@@ -328,7 +362,18 @@ def write_table_parquet(table, output, overwrite=False):
     # We use version='2.0' for full support of datatypes including uint32.
     with parquet.ParquetWriter(output, schema, version=writer_version) as writer:
         # Convert each Table column to a pyarrow array
-        arrays = [pa.array(col) for col in encode_table.itercols()]
+        arrays = []
+        for name in encode_table.dtype.names:
+            dt = encode_table.dtype[name]
+            if len(dt.shape) > 0:
+                if len(encode_table) > 0:
+                    val = np.split(encode_table[name].ravel(), len(encode_table))
+                else:
+                    val = []
+            else:
+                val = encode_table[name]
+            arrays.append(pa.array(val, type=schema.field(name).type))
+
         # Create a pyarrow table from the list of arrays and the schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         # Write the pyarrow table to a file
