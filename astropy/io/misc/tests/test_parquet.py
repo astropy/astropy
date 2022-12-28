@@ -347,6 +347,24 @@ def test_write_empty_tables(tmp_path):
         t5.write(test_file2)
 
 
+def test_heterogeneous_var_array_table(tmp_path):
+    """Test exception when trying to serialize a mixed-type variable-length column."""
+
+    test_file = tmp_path / "test.parquet"
+
+    t1 = Table()
+
+    data = np.array(
+        [np.array([0, 1, 2], dtype=np.int32),
+         np.array([0, 1, 2, 3, 4], dtype=np.float64)],
+        dtype=np.object_,
+    )
+    t1.add_column(Column(name="a", data=data))
+
+    with pytest.raises(ValueError) as err:
+        t1.write(test_file)
+
+
 def test_preserve_meta(tmp_path):
     """Test that writing/reading preserves metadata."""
 
