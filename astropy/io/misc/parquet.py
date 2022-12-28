@@ -200,7 +200,7 @@ def read_table_parquet(
 
         if isinstance(t, pa.FixedSizeListType):
             value_type = t.value_type
-            shape = (t.list_size, )
+            shape = (t.list_size,)
         elif isinstance(t, pa.ListType):
             value_type = t.value_type
         else:
@@ -337,13 +337,17 @@ def write_table_parquet(table, output, overwrite=False):
                 # We check that we have a homogeneous list of types here.
                 for row in encode_table[name]:
                     if row.dtype != obj_dtype:
-                        raise ValueError(f"Cannot serialize mixed-type column ({name}) with parquet.")
+                        raise ValueError(
+                            f"Cannot serialize mixed-type column ({name}) with parquet."
+                        )
                 arrow_type = pa.list_(
                     pa.from_numpy_dtype(obj_dtype.type),
                 )
             else:
-                raise ValueError("Cannot serialize zero-length table "
-                                 f"with object column ({name}) with parquet.")
+                raise ValueError(
+                    "Cannot serialize zero-length table "
+                    f"with object column ({name}) with parquet."
+                )
         elif len(dt.shape) > 0:
             arrow_type = pa.list_(
                 pa.from_numpy_dtype(dt.subdtype[0].type),
