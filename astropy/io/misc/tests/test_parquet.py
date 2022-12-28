@@ -62,9 +62,20 @@ def _default_array_values(dtype):
 
 def _default_var_length_array_values(dtype):
     values = _default_values(dtype)
-    return [[values[0], ],
-            [values[0], values[1], ],
-            [values[0], values[1], values[2], ]]
+    return [
+        [
+            values[0],
+        ],
+        [
+            values[0],
+            values[1],
+        ],
+        [
+            values[0],
+            values[1],
+            values[2],
+        ],
+    ]
 
 
 def test_read_write_simple(tmp_path):
@@ -238,8 +249,7 @@ def test_preserve_single_var_length_array_dtypes(tmp_path, dtype):
     values = _default_var_length_array_values(dtype)
 
     t1 = Table()
-    data = np.array([np.array(val, dtype=dtype)
-                     for val in values], dtype=np.object_)
+    data = np.array([np.array(val, dtype=dtype) for val in values], dtype=np.object_)
     t1.add_column(Column(name="a", data=data))
     t1.write(test_file)
 
@@ -262,7 +272,9 @@ def test_preserve_all_dtypes(tmp_path):
         t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
         arr_values = _default_array_values(dtype)
-        t1.add_column(Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype)))
+        t1.add_column(
+            Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype))
+        )
 
     t1.write(test_file)
 
@@ -293,8 +305,9 @@ def test_preserve_all_var_length_dtypes(tmp_path):
 
     for dtype in ALL_DTYPES:
         varr_values = _default_var_length_array_values(dtype)
-        data = np.array([np.array(val, dtype=dtype)
-                         for val in varr_values], dtype=np.object_)
+        data = np.array(
+            [np.array(val, dtype=dtype) for val in varr_values], dtype=np.object_
+        )
         t1.add_column(Column(name=str(dtype) + "_varr", data=data))
 
     t1.write(test_file)
@@ -321,7 +334,9 @@ def test_write_empty_tables(tmp_path):
         t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
         arr_values = _default_array_values(dtype)
-        t1.add_column(Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype)))
+        t1.add_column(
+            Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype))
+        )
 
     data = np.zeros(0, dtype=t1.dtype)
     t2 = Table(data=data)
@@ -337,8 +352,9 @@ def test_write_empty_tables(tmp_path):
     t4 = Table()
     for dtype in ALL_DTYPES:
         varr_values = _default_var_length_array_values(dtype)
-        data = np.array([np.array(val, dtype=dtype)
-                         for val in varr_values], dtype=np.object_)
+        data = np.array(
+            [np.array(val, dtype=dtype) for val in varr_values], dtype=np.object_
+        )
         t4.add_column(Column(name=str(dtype) + "_varr", data=data))
 
     data = np.zeros(0, dtype=t4.dtype)
@@ -355,8 +371,10 @@ def test_heterogeneous_var_array_table(tmp_path):
     t1 = Table()
 
     data = np.array(
-        [np.array([0, 1, 2], dtype=np.int32),
-         np.array([0, 1, 2, 3, 4], dtype=np.float64)],
+        [
+            np.array([0, 1, 2], dtype=np.int32),
+            np.array([0, 1, 2, 3, 4], dtype=np.float64),
+        ],
         dtype=np.object_,
     )
     t1.add_column(Column(name="a", data=data))
