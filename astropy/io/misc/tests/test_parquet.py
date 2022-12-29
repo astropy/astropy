@@ -338,6 +338,7 @@ def test_write_empty_tables(tmp_path):
             Column(name=str(dtype) + "_arr", data=np.array(arr_values, dtype=dtype))
         )
 
+    # Write an empty table with values and arrays, and confirm it works.
     data = np.zeros(0, dtype=t1.dtype)
     t2 = Table(data=data)
 
@@ -357,9 +358,12 @@ def test_write_empty_tables(tmp_path):
         )
         t4.add_column(Column(name=str(dtype) + "_varr", data=data))
 
+    # Write an empty table with variable-length arrays, and confirm this
+    # raises an exception. (The datatype of an np.object_ type column
+    # cannot be inferred from an empty table.)
     data = np.zeros(0, dtype=t4.dtype)
     t5 = Table(data=data)
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match="Cannot serialize zero-length table") as err:
         t5.write(test_file2)
 
 
@@ -379,7 +383,7 @@ def test_heterogeneous_var_array_table(tmp_path):
     )
     t1.add_column(Column(name="a", data=data))
 
-    with pytest.raises(ValueError) as err:
+    with pytest.raises(ValueError, match="Cannot serialize mixed-type column") as err:
         t1.write(test_file)
 
 
