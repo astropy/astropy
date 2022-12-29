@@ -18,7 +18,8 @@ _COSMOLOGY_DATA_DIR = pathlib.Path(
 available = tuple(sorted(p.stem for p in _COSMOLOGY_DATA_DIR.glob("*.ecsv")))
 
 
-__all__ = ["available", "default_cosmology"] + list(available)
+__all__ = ["available", "default_cosmology"]
+
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -51,7 +52,7 @@ def __getattr__(name):
 
 def __dir__():
     """Directory, including lazily-imported objects."""
-    return __all__
+    return sorted(__all__ + list(available))
 
 
 #########################################################################

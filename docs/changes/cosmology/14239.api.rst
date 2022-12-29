@@ -1,0 +1,4 @@
+``__all__`` is now the definitive source of what is (and isn't) public API. Currently
+the top-level namespace (``cosmology.``), ``cosmology.parameters``,
+``cosmology.realizations``, and ``cosmology.units`` contain the public API. Other
+modules are considered private API.

@@ -1,42 +1,30 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Astropy FLRW classes."""
 
-from . import base, lambdacdm, w0cdm, w0wacdm, w0wzcdm, wpwazpcdm
-from .base import *
-from .lambdacdm import *
-from .w0cdm import *
-from .w0wacdm import *
-from .w0wzcdm import *
-from .wpwazpcdm import *
-
-__all__ = (
-    base.__all__
-    + lambdacdm.__all__
-    + w0cdm.__all__
-    + w0wacdm.__all__
-    + wpwazpcdm.__all__
-    + w0wzcdm.__all__
-)
+__all__ = []  # No public API -- see cosmology/__init__.py
 
 
 def __getattr__(attr):
     """Lazy import deprecated private API."""
-    base_attrs = (
-        "H0units_to_invs",
-        "a_B_c2",
-        "critdens_const",
-        "kB_evK",
-        "radian_in_arcmin",
-        "radian_in_arcsec",
-        "sec_to_Gyr",
-    )
+    base_attrs = {
+        "H0units_to_invs": "_H0units_to_invs",
+        "a_B_c2": "_a_B_c2",
+        "critdens_const": "_critdens_const",
+        "kB_evK": "_kB_evK",
+        "radian_in_arcmin": "_radian_in_arcmin",
+        "radian_in_arcsec": "_radian_in_arcsec",
+        "sec_to_Gyr": "_sec_to_Gyr",
+        "quad": "quad",
+    }
+    lambdacdm_attrs = {
+        "ellipkinc": "ellipkinc",
+        "hyp2f1": "hyp2f1",
+    }
 
-    if attr in base_attrs + ("quad",) + ("ellipkinc", "hyp2f1"):
+    if attr in base_attrs or attr in lambdacdm_attrs:
         import warnings
 
         from astropy.utils.exceptions import AstropyDeprecationWarning
-
-        from . import base, lambdacdm
 
         msg = (
             f"`astropy.cosmology.flrw.{attr}` is a private variable (since "
@@ -45,10 +33,12 @@ def __getattr__(attr):
         warnings.warn(msg, AstropyDeprecationWarning)
 
         if attr in base_attrs:
-            return getattr(base, "_" + attr)
-        elif attr == "quad":
-            return getattr(base, attr)
-        elif attr in ("ellipkinc", "hyp2f1"):
-            return getattr(lambdacdm, attr)
+            from . import base
+
+            return getattr(base, base_attrs[attr])
+        elif attr in lambdacdm_attrs:
+            from . import lambdacdm
+
+            return getattr(lambdacdm, lambdacdm_attrs[attr])
 
     raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")

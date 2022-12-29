@@ -9,7 +9,7 @@ from astropy.cosmology.utils import aszarr
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
 
-__all__ = ["w0waCDM", "Flatw0waCDM"]
+__all__ = []  # No public API -- see cosmology/__init__.py
 
 __doctest_requires__ = {"*": ["scipy"]}
 

@@ -33,7 +33,7 @@ else:
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
 
 
-__all__ = ["FLRW", "FlatFLRWMixin"]
+__all__ = []  # No public API -- see cosmology/__init__.py
 
 __doctest_requires__ = {"*": ["scipy"]}
 

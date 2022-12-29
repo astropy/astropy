@@ -8,7 +8,17 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.cosmology import core, flrw
+from astropy.cosmology import (
+    FlatLambdaCDM,
+    Flatw0waCDM,
+    FlatwCDM,
+    LambdaCDM,
+    core,
+    w0waCDM,
+    w0wzCDM,
+    wCDM,
+    wpwaCDM,
+)
 from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import (
     WMAP1,
@@ -352,14 +362,14 @@ def test_z_at_value_unconverged(method):
         WMAP5,
         WMAP7,
         WMAP9,
-        flrw.LambdaCDM,
-        flrw.FlatLambdaCDM,
-        flrw.wpwaCDM,
-        flrw.w0wzCDM,
-        flrw.wCDM,
-        flrw.FlatwCDM,
-        flrw.w0waCDM,
-        flrw.Flatw0waCDM,
+        LambdaCDM,
+        FlatLambdaCDM,
+        wpwaCDM,
+        w0wzCDM,
+        wCDM,
+        FlatwCDM,
+        w0waCDM,
+        Flatw0waCDM,
     ],
 )
 def test_z_at_value_roundtrip(cosmo):

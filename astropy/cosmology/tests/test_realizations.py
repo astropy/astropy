@@ -25,9 +25,9 @@ def test_realizations_in_toplevel_dir():
 
 def test_realizations_in_realizations_dir():
     """Test the realizations are in ``dir`` of :mod:`astropy.cosmology.realizations`."""
-    d = dir(realizations)
+    d = dir(c)
 
-    assert set(d) == set(realizations.__all__)
+    assert set(d) == set(parameters.__all__ + list(parameters.available))
     for n in parameters.available:
         assert n in d
 

@@ -5,7 +5,7 @@ import copy
 import astropy.units as u
 from astropy.utils.decorators import deprecated_attribute, deprecated_renamed_argument
 
-__all__ = ["Parameter"]
+__all__ = []  # No public API -- see cosmology/__init__.py
 
 
 class Parameter:

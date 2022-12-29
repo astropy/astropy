@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
+__all__ = []  # No public API -- see cosmology/__init__.pys
 
 __doctest_requires__ = {}  # needed until __getattr__ removed
 

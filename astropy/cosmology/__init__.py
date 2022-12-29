@@ -8,27 +8,57 @@ detailed usage examples and references.
 
 """
 
-from . import core, flrw, funcs, parameter, units, utils
+from . import units
 
 from . import io  # needed before 'realizations'  # isort: split
 from . import realizations
-from .core import *
-from .flrw import *
-from .funcs import *
-from .parameter import *
+from .core import Cosmology, CosmologyError, FlatCosmologyMixin
+from .flrw.base import FLRW, FlatFLRWMixin
+from .flrw.lambdacdm import FlatLambdaCDM, LambdaCDM
+from .flrw.w0cdm import FlatwCDM, wCDM
+from .flrw.w0wacdm import Flatw0waCDM, w0waCDM
+from .flrw.w0wzcdm import Flatw0wzCDM, w0wzCDM
+from .flrw.wpwazpcdm import FlatwpwaCDM, wpwaCDM
+from .funcs import cosmology_equal, z_at_value
+from .parameter import Parameter
 from .realizations import available, default_cosmology
-from .utils import *
 
-__all__ = (
-    core.__all__
-    + flrw.__all__  # cosmology classes
-    + realizations.__all__  # instances thereof
-    + ["units"]
-    # utils
-    + funcs.__all__
-    + parameter.__all__
-    + utils.__all__
-)
+__all__ = [
+    "Cosmology",
+    "FlatCosmologyMixin",
+    "Parameter",
+    "CosmologyError",
+    # FLRW
+    "FLRW",
+    "FlatFLRWMixin",
+    "LambdaCDM",
+    "FlatLambdaCDM",
+    "wCDM",
+    "FlatwCDM",
+    "w0waCDM",
+    "Flatw0waCDM",
+    "w0wzCDM",
+    "Flatw0wzCDM",
+    "wpwaCDM",
+    "FlatwpwaCDM",
+    # realizations
+    "available",
+    "default_cosmology",
+    "WMAP1",  # In `__getattr__`
+    "WMAP3",  # In `__getattr__`
+    "WMAP5",  # In `__getattr__`
+    "WMAP7",  # In `__getattr__`
+    "WMAP9",  # In `__getattr__`
+    "Planck13",  # In `__getattr__`
+    "Planck15",  # In `__getattr__`
+    "Planck18",  # In `__getattr__`
+    # funcs
+    "z_at_value",
+    "cosmology_equal",
+    # public modules
+    "realizations",
+    "units",
+]
 
 
 def __getattr__(name):
@@ -48,4 +78,4 @@ def __getattr__(name):
 
 def __dir__():
     """Directory, including lazily-imported objects."""
-    return __all__
+    return sorted(__all__ + list(available))

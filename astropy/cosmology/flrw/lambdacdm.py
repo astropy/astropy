@@ -25,7 +25,7 @@ else:
         raise ModuleNotFoundError("No module named 'scipy.special'")
 
 
-__all__ = ["LambdaCDM", "FlatLambdaCDM"]
+__all__ = []  # No public API -- see cosmology/__init__.py
 
 __doctest_requires__ = {"*": ["scipy"]}
 
