@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from typing import Protocol, runtime_checkable
+
 from numpy import exp
 
 import astropy.units as u
@@ -8,11 +10,37 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.utils import aszarr
 
 from . import scalar_inv_efuncs
-from .base import FLRW
+from .base import FLRW, FLRWAPI
 
-__all__ = ["wpwaCDM"]
+__all__ = ["wpwaCDMAPI", "wpwaCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
+
+
+##############################################################################
+
+
+@runtime_checkable
+class wpwaCDMAPI(FLRWAPI, Protocol):
+    """API for wpwaCDM cosmologies."""
+
+    @property
+    def wp(self) -> float:
+        """Dark energy equation of state at the pivot redshift zp."""
+        ...
+
+    @property
+    def wa(self) -> float:
+        """Negative derivative of the dark energy equation of state w.r.t. z."""
+        ...
+
+    @property
+    def zp(self) -> float:
+        """Pivot redshift."""
+        ...
+
+
+##############################################################################
 
 
 class wpwaCDM(FLRW):

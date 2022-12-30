@@ -2,6 +2,7 @@
 
 from math import acos, cos, inf, sin, sqrt
 from numbers import Number
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 from numpy import log
@@ -11,7 +12,7 @@ from astropy.cosmology.utils import aszarr
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from . import scalar_inv_efuncs
-from .base import FLRW, FlatFLRWMixin
+from .base import FLRW, FLRWAPI, FlatFLRWMixin
 
 # isort: split
 if HAS_SCIPY:
@@ -25,9 +26,22 @@ else:
         raise ModuleNotFoundError("No module named 'scipy.special'")
 
 
-__all__ = ["LambdaCDM", "FlatLambdaCDM"]
+__all__ = ["LambdaCDMAPI", "LambdaCDM", "FlatLambdaCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
+
+
+##############################################################################
+
+
+@runtime_checkable
+class LambdaCDMAPI(FLRWAPI, Protocol):
+    """API for LambdaCDM cosmologies."""
+
+    ...
+
+
+##############################################################################
 
 
 class LambdaCDM(FLRW):

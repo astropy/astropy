@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from typing import Protocol, runtime_checkable
+
 from numpy import exp
 
 import astropy.units as u
@@ -7,11 +9,32 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.utils import aszarr
 
 from . import scalar_inv_efuncs
-from .base import FLRW, FlatFLRWMixin
+from .base import FLRW, FLRWAPI, FlatFLRWMixin
 
-__all__ = ["w0waCDM", "Flatw0waCDM"]
+__all__ = ["w0waCDM", "w0waCDM", "Flatw0waCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
+
+
+##############################################################################
+
+
+@runtime_checkable
+class w0waCDMAPI(FLRWAPI, Protocol):
+    """API for w0waCDM cosmologies."""
+
+    @property
+    def w0(self) -> float:
+        """Dark energy equation of state at z=0."""
+        ...
+
+    @property
+    def wa(self) -> float:
+        """Negative derivative of dark energy equation of state w.r.t. a."""
+        ...
+
+
+##############################################################################
 
 
 class w0waCDM(FLRW):

@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from typing import Protocol
+
 import numpy as np
 from numpy import sqrt
 
@@ -8,11 +10,26 @@ from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.utils import aszarr
 
 from . import scalar_inv_efuncs
-from .base import FLRW, FlatFLRWMixin
+from .base import FLRW, FLRWAPI, FlatFLRWMixin
 
-__all__ = ["wCDM", "FlatwCDM"]
+__all__ = ["wCDMAPI", "wCDM", "FlatwCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
+
+
+##############################################################################
+
+
+class wCDMAPI(FLRWAPI, Protocol):
+    """API for wCDM cosmologies."""
+
+    @property
+    def w0(self) -> float:
+        """Dark energy equation of state at z=0."""
+        ...
+
+
+##############################################################################
 
 
 class wCDM(FLRW):
