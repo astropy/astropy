@@ -19,7 +19,7 @@ import numpy as np
 from astropy import config as _config
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
 from .core import (
@@ -1320,15 +1320,13 @@ class Quantity(np.ndarray):
     # __contains__ is OK
 
     def __bool__(self):
-        """Quantities should always be treated as non-False; there is too much
-        potential for ambiguity otherwise.
+        """This method raises ValueError, since truthiness of quantities is ambiguous,
+        especially for logarithmic units and temperatures. Use explicit comparisons.
         """
-        warnings.warn(
-            "The truth value of a Quantity is ambiguous. "
-            "In the future this will raise a ValueError.",
-            AstropyDeprecationWarning,
+        raise ValueError(
+            f"{type(self).__name__} truthiness is ambiguous, especially for logarithmic units"
+            " and temperatures. Use explicit comparisons."
         )
-        return True
 
     def __len__(self):
         if self.isscalar:
