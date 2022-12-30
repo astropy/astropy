@@ -133,7 +133,7 @@ def read_table_parquet(
     else:
         md = {}
 
-    from astropy.table import Table, meta, serialize
+    from astropy.table import Column, Table, meta, serialize
 
     # parse metadata from table yaml
     meta_dict = {}
@@ -191,7 +191,7 @@ def read_table_parquet(
     else:
         num_rows = 0
 
-    # Now need to convert parquet table to Astropy
+    # Determine numpy/astropy types of columns from the arrow table.
     dtype = []
     for name in names_to_read:
         t = schema.field(name).type
@@ -199,16 +199,20 @@ def read_table_parquet(
         shape = None
 
         if isinstance(t, pa.FixedSizeListType):
+            # The FixedSizeListType has an arrow value_type and a size.
             value_type = t.value_type
             shape = (t.list_size,)
         elif isinstance(t, pa.ListType):
+            # The ListType (variable length arrays) has a value type.
             value_type = t.value_type
         else:
+            # All other arrow column types are the value_type.
             value_type = t
 
         if value_type not in (pa.string(), pa.binary()):
             # Convert the pyarrow value type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
+            # If this is an array column, the numpy dtype needs the shape as well.
             if shape is None:
                 dtype.append(value_type.to_pandas_dtype())
             else:
@@ -236,6 +240,8 @@ def read_table_parquet(
                 AstropyUserWarning,
             )
         strname = f"U{strlen}" if value_type == pa.string() else f"|S{strlen}"
+
+        # If this is an array column, the numpy dtype needs the shape as well.
         if shape is None:
             dtype.append(strname)
         else:
@@ -246,35 +252,42 @@ def read_table_parquet(
         data = np.zeros(0, dtype=list(zip(names_to_read, dtype)))
         table = Table(data=data, meta=meta_dict)
     else:
-        # If we need the full table, convert all the columns into a numpy dict.
-        # This minimizes the data copying.
-        numpy_dict = {}
+        # If we need the full table, create the table and add the columns
+        # one at a time. This minimizes data copying.
+
+        table = Table(meta=meta_dict)
         for name, dt in zip(names_to_read, dtype):
+            # First convert the arrow column to a numpy array.
             col = pa_table[name].to_numpy()
 
             t = schema.field(name).type
             if t in (pa.string(), pa.binary()):
+                # If it is a string/binary type, coerce it to the correct type.
                 col = col.astype(dt)
             elif isinstance(t, pa.FixedSizeListType):
+                # If it is a FixedSizeListType (array column) then it needs to
+                # be broken into a 2D array, but only if the table has a non-zero
+                # length.
                 if len(col) > 0:
                     col = np.stack(col)
 
                     if t.value_type in (pa.string(), pa.binary()):
+                        # If it is a string/binary type, coerce it to the
+                        # correct type.
                         # The conversion dtype is only the first element
                         # in the dtype tuple.
                         col = col.astype(dt[0])
                 else:
-                    # This is an empty column, and needs to be coerced to type.
+                    # This is an empty column, and needs to be created with the
+                    # correct type.
                     col = np.zeros(0, dtype=dt)
             elif isinstance(t, pa.ListType):
-                # If we have a variable length string column, we need to convert
-                # each row to the proper type.
+                # If we have a variable length string/binary column,
+                # we need to convert each row to the proper type.
                 if t.value_type in (pa.string(), pa.binary()):
                     col = np.array([row.astype(dt) for row in col], dtype=np.object_)
 
-            numpy_dict[name] = col
-
-        table = Table(numpy_dict, meta=meta_dict)
+            table.add_column(Column(name=name, data=col))
 
     if meta_hdr is not None:
         # Set description, format, unit, meta from the column
@@ -294,7 +307,11 @@ def read_table_parquet(
 
 def write_table_parquet(table, output, overwrite=False):
     """
-    Write a Table object to a Parquet file
+    Write a Table object to a Parquet file.
+
+    The parquet writer supports tables with regular columns, fixed-size array
+    columns, and variable-length array columns (provided all arrays have the
+    same type).
 
     This requires `pyarrow <https://arrow.apache.org/docs/python/>`_
     to be installed.
@@ -307,6 +324,18 @@ def write_table_parquet(table, output, overwrite=False):
         The filename to write the table to.
     overwrite : bool, optional
         Whether to overwrite any existing file without warning. Default `False`.
+
+    Notes
+    -----
+    Tables written with array columns (fixed-size or variable-length) are not
+    able to be read with pandas.
+
+    Raises
+    ------
+    ValueError
+        Ff one of the columns has a mixed-type variable-length array, or
+        if it is a zero-length table and any of the columns are variable-length
+        arrays.
     """
 
     from astropy.table import meta, serialize
@@ -331,17 +360,24 @@ def write_table_parquet(table, output, overwrite=False):
     for name in encode_table.dtype.names:
         dt = encode_table.dtype[name]
         if dt.type == np.object_:
+            # If the column type is np.object_, then it should be a column
+            # of variable-length arrays. This can be serialized with parquet
+            # provided all of the elements have the same data-type.
+            # Additionally, if the table has no elements, we cannot deduce
+            # the datatype, and hence cannot serialize the table.
             if len(encode_table) > 0:
                 obj_dtype = encode_table[name][0].dtype
 
-                # We check that we have a homogeneous list of types here.
+                # Check that the variable-length array all has the same type.
                 for row in encode_table[name]:
                     if row.dtype != obj_dtype:
                         raise ValueError(
                             f"Cannot serialize mixed-type column ({name}) with parquet."
                         )
+                # Calling pa.list_() creates a ListType which is an array of variable-
+                # length elements.
                 arrow_type = pa.list_(
-                    pa.from_numpy_dtype(obj_dtype.type),
+                    value_type=pa.from_numpy_dtype(obj_dtype.type),
                 )
             else:
                 raise ValueError(
@@ -349,11 +385,15 @@ def write_table_parquet(table, output, overwrite=False):
                     f"with object column ({name}) with parquet."
                 )
         elif len(dt.shape) > 0:
+            # This column has a shape, and is an array type column.  Calling
+            # pa.list_() with a list_size creates a FixedSizeListType, which
+            # is an array of fixed-length elements.
             arrow_type = pa.list_(
-                pa.from_numpy_dtype(dt.subdtype[0].type),
-                prod(dt.shape),
+                value_type=pa.from_numpy_dtype(dt.subdtype[0].type),
+                list_size=prod(dt.shape),
             )
         else:
+            # This is a standard column.
             arrow_type = pa.from_numpy_dtype(dt.type)
 
         type_list.append((name, arrow_type))
