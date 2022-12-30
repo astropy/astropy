@@ -1,0 +1,1 @@
+Add support for writing/reading fixed-size and variable-length array columns to the parquet formatter.
