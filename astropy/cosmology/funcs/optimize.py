@@ -34,16 +34,16 @@ def _z_at_scalar_value(
     """
     from scipy.optimize import minimize_scalar
 
-    opt = {"maxiter": maxfun}
+    opt = {"maxiter": maxfun, "xtol": ztol}
     # Assume custom methods support the same options as default; otherwise user
     # will see warnings.
-    if str(method).lower() == "bounded":
-        opt["xatol"] = ztol
+    if callable(method):  # can skip callables
+        pass
+    elif str(method).lower() == "bounded":
+        opt["xatol"] = opt.pop("xtol")
         if bracket is not None:
             warnings.warn(f"Option 'bracket' is ignored by method {method}.")
             bracket = None
-    else:
-        opt["xtol"] = ztol
 
     # fval falling inside the interval of bracketing function values does not
     # guarantee it has a unique solution, but for Standard Cosmological
@@ -75,7 +75,14 @@ def _z_at_scalar_value(
     else:
         val = fval
 
-    # 'Brent' and 'Golden' ignore `bounds`, force solution inside zlim
+    # Construct bounds (Brent and Golden fail if bounds are not None)
+    if callable(method) or str(method).lower() not in {"brent", "golden"}:
+        bounds = (zmin, zmax)
+    else:
+        bounds = None
+
+    # Objective function to minimize.
+    # 'Brent' and 'Golden' ignore `bounds` but this keeps the domain witihin the bounds.
     def f(z):
         if z > zmax:
             return 1.0e300 * (1.0 + z - zmax)
@@ -86,9 +93,8 @@ def _z_at_scalar_value(
         else:
             return abs(func(z) - val)
 
-    res = minimize_scalar(
-        f, method=method, bounds=(zmin, zmax), bracket=bracket, options=opt
-    )
+    # Perform the minimization
+    res = minimize_scalar(f, method=method, bounds=bounds, bracket=bracket, options=opt)
 
     # Scipy docs state that `OptimizeResult` always has 'status' and 'message'
     # attributes, but only `_minimize_scalar_bounded()` seems to have really
@@ -280,8 +286,8 @@ def z_at_value(
     a redshift of 1.6 in this cosmology, defining a bracket on either side
     of this maximum will often return a solution on the same side:
 
-    >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
+    >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc,
+    ...            method="Brent", bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
     <Quantity 0.68044452 redshift>
 
     But this is not ascertained especially if the bracket is chosen too wide
@@ -305,7 +311,7 @@ def z_at_value(
     It is therefore generally safer to use the 3-parameter variant to ensure
     the solution stays within the bracketing limits:
 
-    >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc,
+    >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc, method="Brent",
     ...            bracket=(0.1, 1.0, 1.5))               # doctest: +FLOAT_CMP
     <Quantity 0.68044452 redshift>
 
