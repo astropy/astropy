@@ -8,7 +8,6 @@ available as readers/writers in `astropy.table`.  See
 
 import os
 import warnings
-from math import prod
 
 import numpy as np
 
@@ -327,13 +326,13 @@ def write_table_parquet(table, output, overwrite=False):
 
     Notes
     -----
-    Tables written with array columns (fixed-size or variable-length) are not
-    able to be read with pandas.
+    Tables written with array columns (fixed-size or variable-length) cannot
+    be read with pandas.
 
     Raises
     ------
     ValueError
-        Ff one of the columns has a mixed-type variable-length array, or
+        If one of the columns has a mixed-type variable-length array, or
         if it is a zero-length table and any of the columns are variable-length
         arrays.
     """
@@ -390,7 +389,7 @@ def write_table_parquet(table, output, overwrite=False):
             # is an array of fixed-length elements.
             arrow_type = pa.list_(
                 value_type=pa.from_numpy_dtype(dt.subdtype[0].type),
-                list_size=prod(dt.shape),
+                list_size=np.prod(dt.shape),
             )
         else:
             # This is a standard column.
