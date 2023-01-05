@@ -397,6 +397,16 @@ class TestQuantityOperations:
         assert new_quantity.value == 171.3
         assert new_quantity.unit == u.meter
 
+        # Multiple with a unit.
+        new_quantity = self.q1 * u.s
+        assert new_quantity.value == 11.42
+        assert new_quantity.unit == u.Unit("m s")
+
+        # Reverse multiple with a unit.
+        new_quantity = u.s * self.q1
+        assert new_quantity.value == 11.42
+        assert new_quantity.unit == u.Unit("m s")
+
     def test_division(self):
         # Take units from left object, q1
         new_quantity = self.q1 / self.q2
@@ -423,6 +433,16 @@ class TestQuantityOperations:
         new_quantity = 11.42 / self.q1
         assert new_quantity.value == 1.0
         assert new_quantity.unit == u.Unit("1/m")
+
+        # Divide by a unit.
+        new_quantity = self.q1 / u.s
+        assert new_quantity.value == 11.42
+        assert new_quantity.unit == u.Unit("m/s")
+
+        # Divide into a unit.
+        new_quantity = u.s / self.q1
+        assert new_quantity.value == 1 / 11.42
+        assert new_quantity.unit == u.Unit("s/m")
 
     def test_commutativity(self):
         """Regression test for issue #587."""
