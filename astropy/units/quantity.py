@@ -731,7 +731,9 @@ class Quantity(np.ndarray):
 
         if out is None:
             # View the result array as a Quantity with the proper unit.
-            return result if unit is None else self._new_view(result, unit)
+            return (
+                result if unit is None else self._new_view(result, unit, finalize=False)
+            )
 
         elif isinstance(out, Quantity):
             # For given Quantity output, just set the unit. We know the unit
@@ -761,9 +763,8 @@ class Quantity(np.ndarray):
         """
         return Quantity, True
 
-    def _new_view(self, obj=None, unit=None):
-        """
-        Create a Quantity view of some array-like input, and set the unit
+    def _new_view(self, obj=None, unit=None, finalize=True):
+        """Create a Quantity view of some array-like input, and set the unit
 
         By default, return a view of ``obj`` of the same class as ``self`` and
         with the same unit.  Subclasses can override the type of class for a
@@ -785,9 +786,17 @@ class Quantity(np.ndarray):
             subclass, and explicitly assigned to the view if given.
             If not given, the subclass and unit will be that of ``self``.
 
+        finalize : bool, optional
+            Whether to call ``__array_finalize__`` to transfer properties from
+            ``self`` to the new view of ``obj`` (e.g., ``info`` for all
+            subclasses, or ``_wrap_angle`` for `~astropy.coordinates.Latitude`).
+            Default: `True`, as appropriate for, e.g., unit conversions or slicing,
+            where the nature of the object does not change.
+
         Returns
         -------
         view : `~astropy.units.Quantity` subclass
+
         """
         # Determine the unit and quantity subclass that we need for the view.
         if unit is None:
@@ -823,7 +832,8 @@ class Quantity(np.ndarray):
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
         view = obj.view(quantity_subclass)
         view._set_unit(unit)
-        view.__array_finalize__(self)
+        if finalize:
+            view.__array_finalize__(self)
         return view
 
     def _set_unit(self, unit):
@@ -1206,7 +1216,9 @@ class Quantity(np.ndarray):
 
         if isinstance(other, (UnitBase, str)):
             try:
-                return self._new_view(self.copy(), other * self.unit)
+                return self._new_view(
+                    self.value.copy(), other * self.unit, finalize=False
+                )
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
@@ -1233,7 +1245,9 @@ class Quantity(np.ndarray):
 
         if isinstance(other, (UnitBase, str)):
             try:
-                return self._new_view(self.copy(), self.unit / other)
+                return self._new_view(
+                    self.value.copy(), self.unit / other, finalize=False
+                )
             except UnitsError:  # let other try to deal with it
                 return NotImplemented
 
@@ -1252,14 +1266,16 @@ class Quantity(np.ndarray):
         """Right Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, str)):
-            return self._new_view(1.0 / self.value, other / self.unit)
+            return self._new_view(1.0 / self.value, other / self.unit, finalize=False)
 
         return super().__rtruediv__(other)
 
     def __pow__(self, other):
         if isinstance(other, Fraction):
             # Avoid getting object arrays by raising the value to a Fraction.
-            return self._new_view(self.value ** float(other), self.unit**other)
+            return self._new_view(
+                self.value ** float(other), self.unit**other, finalize=False
+            )
 
         return super().__pow__(other)
 
@@ -1283,7 +1299,9 @@ class Quantity(np.ndarray):
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
-            return self._new_view(self.view(np.ndarray)[key], self.unit[key])
+            return self._new_view(
+                self.view(np.ndarray)[key], self.unit[key], finalize=False
+            )
 
         try:
             out = super().__getitem__(key)
