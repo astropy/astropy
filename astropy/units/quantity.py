@@ -840,7 +840,7 @@ class Quantity(np.ndarray):
         """Set the unit.
 
         This is used anywhere the unit is set or modified, i.e., in the
-        initilizer, in ``__imul__`` and ``__itruediv__`` for in-place
+        initializer, in ``__imul__`` and ``__itruediv__`` for in-place
         multiplication and division by another unit, as well as in
         ``__array_finalize__`` for wrapping up views.  For Quantity, it just
         sets the unit, but subclasses can override it to check that, e.g.,
