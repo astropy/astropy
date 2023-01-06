@@ -136,7 +136,9 @@ Coding Style/Conventions
   using only 4 spaces for indentation, and never tabs.
 
   * ``astropy`` itself enforces this style guide using the
-    `black <https://black.readthedocs.io/en/stable/>`_ code formatter.
+    `black <https://black.readthedocs.io/en/stable/>`_ code formatter, see
+    `The Black Code Style <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
+    for details.
 
   * We recognize that sometimes ``black`` will autoformat things in undesirable
     ways, e.g., matrices.  In the cases that ``black`` produces undesirable code
@@ -150,6 +152,19 @@ Coding Style/Conventions
 
     This should be done sparingly, and only
     when ``black`` produces undesirable formatting.
+
+      .. note::
+        When a list or array should be formatted as one item per line then this is best
+        achieved by using the
+        `magic trailing comma <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#the-magic-trailing-comma>`_.
+        This is frequently sufficient for keeping matrices formatted as one row
+        per line while still allowing ``black`` to check the code::
+
+            arr = [
+                [0, 1],
+                [1, 0],  # notice the trailing comma.
+            ]
+
 
 * Our testing infrastructure currently enforces a subset of the PEP8 style
   guide. In addition, these checks also enforce
