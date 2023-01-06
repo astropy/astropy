@@ -1,3 +1,52 @@
+Version 5.2.1 (2023-01-06)
+==========================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fix to ITRS frame ``earth_location`` attribute to give the correct result for
+  a topocentric frame. [#14180]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Bounds are no longer passed to the scipy minimizer for methods Brent and
+  Golden. The scipy minimizer never used the bounds but silently accepted them.
+  In scipy v1.11.0.dev0+ an error is raised, so we now pass None as the bounds
+  to the minimizer. Users should not be affected by this change. [#14232]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Tables with multidimensional variable length array can now be properly read
+  and written. [#13417]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Modified the behavior of ``numpy.histogram()``,
+  ``numpy.histogram_bin_edges()``, ``numpy.histogram2d()``, and
+  ``numpy.histogramdd()`` so that the ``range`` argument must a compatible
+  instance of ``astropy.units.Quantity`` if the other arguments are instances of
+  ``astropy.units.Quantity``. [#14213]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Improved the performance of drawing WCSAxes grids by skipping some unnecessary
+  computations. [#14164]
+
+- Fixed WCSAxes sometimes triggering a NumPy RuntimeWarning when determining the
+  coordinate range of the axes. [#14211]
+
+Other Changes and Additions
+---------------------------
+
+- Fix compatibility with Numpy 1.24. [#14193]
+
 Version 5.2 (2022-12-12)
 ========================
 
