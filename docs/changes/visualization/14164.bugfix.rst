@@ -1,1 +1,0 @@
-Improved the performance of drawing WCSAxes grids by skipping some unnecessary computations.
