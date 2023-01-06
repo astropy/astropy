@@ -62,6 +62,9 @@ if missing_requirements:
 
 from sphinx_astropy.conf.v1 import *  # noqa: E402
 from sphinx_astropy.conf.v1 import (  # noqa: E402
+    exclude_patterns,
+    extensions,
+    intersphinx_mapping,
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
     numpydoc_xref_ignore,
@@ -69,13 +72,13 @@ from sphinx_astropy.conf.v1 import (  # noqa: E402
 )
 
 # -- Plot configuration -------------------------------------------------------
-plot_rcparams = {}
-plot_rcparams["figure.figsize"] = (6, 6)
-plot_rcparams["savefig.facecolor"] = "none"
-plot_rcparams["savefig.bbox"] = "tight"
-plot_rcparams["axes.labelsize"] = "large"
-plot_rcparams["figure.subplot.hspace"] = 0.5
-
+plot_rcparams = {
+    "axes.labelsize": "large",
+    "figure.figsize": (6, 6),
+    "figure.subplot.hspace": 0.5,
+    "savefig.bbox": "tight",
+    "savefig.facecolor": "none",
+}
 plot_apply_rcparams = True
 plot_html_show_source_link = False
 plot_formats = ["png", "svg", "pdf"]
@@ -85,54 +88,51 @@ plot_pre_code = ""
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "1.7"
-
-# To perform a Sphinx version check that needs to be more specific than
-# major.minor, call `check_sphinx_version("X.Y.Z")` here.
-check_sphinx_version("1.2.1")  # noqa: F405
+needs_sphinx = "3.0"
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
 # astropy core.  However, we don't want to cyclically reference astropy in its
 # own build so we remove it here.
-del intersphinx_mapping["astropy"]  # noqa: F405
+del intersphinx_mapping["astropy"]
 
 # add any custom intersphinx for astropy
-# fmt: off
-intersphinx_mapping["astropy-dev"] = ("https://docs.astropy.org/en/latest/", None)  # noqa: F405
-intersphinx_mapping["pyerfa"] = ("https://pyerfa.readthedocs.io/en/stable/", None)  # noqa: F405
-intersphinx_mapping["pytest"] = ("https://docs.pytest.org/en/stable/", None)  # noqa: F405
-intersphinx_mapping["ipython"] = ("https://ipython.readthedocs.io/en/stable/", None)  # noqa: F405
-intersphinx_mapping["pandas"] = ("https://pandas.pydata.org/pandas-docs/stable/", None)  # noqa: F405
-intersphinx_mapping["sphinx_automodapi"] = ("https://sphinx-automodapi.readthedocs.io/en/stable/", None)  # noqa: F405
-intersphinx_mapping["packagetemplate"] = ("https://docs.astropy.org/projects/package-template/en/latest/", None)  # noqa: F405
-intersphinx_mapping["h5py"] = ("https://docs.h5py.org/en/stable/", None)  # noqa: F405
-intersphinx_mapping["asdf-astropy"] = ("https://asdf-astropy.readthedocs.io/en/latest/", None)  # noqa: F405
-intersphinx_mapping["fsspec"] = ("https://filesystem-spec.readthedocs.io/en/latest/", None)  # noqa: F405
-# fmt: on
+intersphinx_mapping.update(
+    {
+        "astropy-dev": ("https://docs.astropy.org/en/latest/", None),
+        "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
+        "pytest": ("https://docs.pytest.org/en/stable/", None),
+        "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
+        "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+        "sphinx_automodapi": (
+            "https://sphinx-automodapi.readthedocs.io/en/stable/",
+            None,
+        ),
+        "packagetemplate": (
+            "https://docs.astropy.org/projects/package-template/en/latest/",
+            None,
+        ),
+        "asdf-astropy": ("https://asdf-astropy.readthedocs.io/en/latest/", None),
+        "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
+    }
+)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns.append("_templates")  # noqa: F405
-exclude_patterns.append("changes")  # noqa: F405
-exclude_patterns.append("_pkgtemplate.rst")  # noqa: F405
-exclude_patterns.append(  # noqa: F405
-    "**/*.inc.rst"
-)  # .inc.rst mean *include* files, don't have sphinx process them
+# .inc.rst mean *include* files, don't have sphinx process them
+exclude_patterns += ["_templates", "changes", "_pkgtemplate.rst", "**/*.inc.rst"]
 
 # Add any paths that contain templates here, relative to this directory.
 if "templates_path" not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append("_templates")
 
-
-extensions += ["sphinx_changelog"]  # noqa: F405
+extensions += ["sphinx_changelog"]
 
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()
 setup_cfg.read(os.path.join(os.path.pardir, "setup.cfg"))
 __minimum_python_version__ = setup_cfg["options"]["python_requires"].replace(">=", "")
-project = "Astropy"
 
 min_versions = {}
 for line in metadata.requires("astropy"):
@@ -209,6 +209,7 @@ toc_object_entries = False
 
 # -- Project information ------------------------------------------------------
 
+project = "Astropy"
 author = "The Astropy Developers"
 copyright = f"2011–{datetime.utcnow().year}, " + author
 
@@ -224,8 +225,7 @@ version = ".".join(release.split(".")[:2])
 # Only include dev docs in dev version.
 dev = "dev" in release
 if not dev:
-    exclude_patterns.append("development/*")  # noqa: F405
-    exclude_patterns.append("testhelpers.rst")  # noqa: F405
+    exclude_patterns += ["development/*", "testhelpers.rst"]
 
 # -- Options for the module index ---------------------------------------------
 
@@ -233,47 +233,6 @@ modindex_common_prefix = ["astropy."]
 
 
 # -- Options for HTML output ---------------------------------------------------
-
-# A NOTE ON HTML THEMES
-#
-# The global astropy configuration uses a custom theme,
-# 'bootstrap-astropy', which is installed along with astropy. The
-# theme has options for controlling the text of the logo in the upper
-# left corner. This is how you would specify the options in order to
-# override the theme defaults (The following options *are* the
-# defaults, so we do not actually need to set them here.)
-
-# html_theme_options = {
-#    'logotext1': 'astro',  # white,  semi-bold
-#    'logotext2': 'py',     # orange, light
-#    'logotext3': ':docs'   # white,  light
-#    }
-
-# A different theme can be used, or other parts of this theme can be
-# modified, by overriding some of the variables set in the global
-# configuration. The variables set in the global configuration are
-# listed below, commented out.
-
-# Add any paths that contain custom themes here, relative to this directory.
-# To use a different custom theme, add the directory containing the theme.
-# html_theme_path = []
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes. To override the custom theme, set this to the
-# name of a builtin theme or the name of a custom theme in html_theme_path.
-# html_theme = None
-
-# Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
-
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-# html_favicon = ''
-
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-# html_last_updated_fmt = ''
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -284,6 +243,11 @@ htmlhelp_basename = project + "doc"
 
 # A dictionary of values to pass into the template engine’s context for all pages.
 html_context = {"to_be_indexed": ["stable", "latest"], "is_development": dev}
+
+# Add any extra paths that contain custom files (such as robots.txt or
+# .htaccess) here, relative to this directory. These files are copied
+# directly to the root of the documentation.
+html_extra_path = ["robots.txt"]
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -310,15 +274,13 @@ edit_on_github_branch = "main"
 # resolve.
 
 nitpicky = True
-# This is not used. See docs/nitpick-exceptions file for the actual listing.
+# See docs/nitpick-exceptions file for the actual listing.
 nitpick_ignore = []
-
 for line in open("nitpick-exceptions"):
     if line.strip() == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)
-    target = target.strip()
-    nitpick_ignore.append((dtype, target))
+    nitpick_ignore.append((dtype, target.strip()))
 
 # -- Options for the Sphinx gallery -------------------------------------------
 
@@ -375,11 +337,6 @@ linkcheck_ignore = [
 ]
 linkcheck_timeout = 180
 linkcheck_anchors = False
-
-# Add any extra paths that contain custom files (such as robots.txt or
-# .htaccess) here, relative to this directory. These files are copied
-# directly to the root of the documentation.
-html_extra_path = ["robots.txt"]
 
 
 def rstjinja(app, docname, source):
