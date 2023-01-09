@@ -74,9 +74,202 @@ force-exclude = '''
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "RUF100", "T100", "W", "YTT"]
-extend-ignore = ["E501","E711","E721","E731","E741","F403","F821","F841"]
-unfixable = ["E711"]
+select = ["ALL"]
+extend-ignore = [
+    # flake8-builtins (A) : shadowing a Python built-in.
+    # New ones should be avoided and is up to maintainers to enforce.
+    "A00",
+
+    # flake8-annotations (ANN) : static typing
+    # TODO: revisit this when Astropy implements typing.
+    "ANN",
+
+    # flake8-unused-arguments (ARG)
+    # TODO: fix all of these.
+    "ARG001", "ARG002", "ARG003", "ARG004", "ARG005",
+
+    # flake8-bugbear (B)
+    "B004",  # UnreliableCallableCheck                 # TODO: fix
+    "B005",  # StripWithMultiCharacters                # NOTE: low priority fix
+    "B006",  # MutableArgumentDefault                  # NOTE: low priority fix
+    "B007",  # UnusedLoopControlVariable               # TODO: autofix
+    "B008",  # FunctionCallArgumentDefault
+    "B009",  # GetAttrWithConstant                     # TODO: autofix
+    "B010",  # SetAttrWithConstant                     # TODO: autofix
+    "B011",  # DoNotAssertFalse                        # TODO: autofix
+    "B015",  # UselessComparison                       # TODO: fix
+    "B020",  # LoopVariableOverridesIterator           # TODO: fix
+    "B023",  # FunctionUsesLoopVariable                # TODO: fix
+    "B024",  # AbstractBaseClassWithoutAbstractMethod  # TODO: fix
+    "B026",  # StarArgUnpackingAfterKeywordArg         # NOTE: low priority fix
+    "B904",  # RaiseWithoutFromInsideExcept            # TODO: fix
+    "B905",  # ZipWithoutExplicitStrict                # TODO: fix
+
+    # flake8-blind-except (BLE)
+    "BLE001",  # BlindExcept                           # TODO: fix
+
+    # flake8-comprehensions (C4)
+    # these detect if there are better and faster list/set/dict comprehensions.
+    "C400", "C406", "C408", "C413", "C416",            # TODO: autofix
+    "C414",  # UnnecessaryDoubleCastOrProcess          # TODO: fix
+    "C417",  # UnnecessaryMap (over a comprehension)   # NOTE: low priority fix
+
+    # mccabe (C90) : code complexity
+    # TODO: fix, but probably pretty challenging.
+    "C901",
+
+    # pydocstyle (D)
+    # Missing Docstrings
+    "D100",  # PublicModule                            # TODO: fix
+    "D101",  # PublicClass                             # TODO: fix
+    "D102",  # Missing docstring in public method. Don't check b/c docstring inheritance.
+    "D103",  # PublicFunction                          # TODO: fix
+    "D104",  # PublicPackage                           # TODO: fix
+    "D105",  # Missing docstring in magic method. Don't check b/c class docstring.
+    "D107",  # Missing docstring in __init__. Don't check b/c class docstring.
+    # Whitespace Issues
+    "D200",  # FitsOnOneLine
+    "D202",  # NoBlankLineAfterFunction                # TODO: autofix
+    "D203",  # OneBlankLineBeforeClass. Don't check.
+    "D204",  # OneBlankLineAfterClass                  # TODO: autofix
+    "D205",  # BlankLineAfterSummary                   # TODO: autofix
+    "D207",  # NoUnderIndentation                      # TODO: autofix
+    "D208",  # NoOverIndentation                       # TODO: autofix
+    "D209",  # NewLineAfterLastParagraph               # TODO: autofix
+    "D210",  # NoSurroundingWhitespace                 # TODO: autofix
+    "D211",  # NoBlankLineBeforeClass                  # TODO: autofix
+    "D212", "D213",  # MultiLineSummaryFirst/Second Line  # TODO: fix one of these
+    "D214",  # SectionNotOverIndented                  # TODO: autofix
+    "D215",  # SectionUnderlineNotOverIndented         # TODO: autofix
+    # Quotes Issues
+    "D300",  # UsesTripleQuotes                        # TODO: fix
+    "D301",  # UsesRPrefixForBackslashedContent        # TODO: fix
+    # Docstring Content Issues
+    "D400",  # EndsInPeriod                            # TODO: autofix
+    "D402",  # NoSignature                             # TODO: fix
+    "D403",  # FirstLineCapitalized
+    "D404",  # NoThisPrefix
+    "D405",  # CapitalizeSectionName                   # TODO: autofix
+    "D406",  # NewLineAfterSectionName                 # TODO: autofix
+    "D407",  # DashedUnderlineAfterSection             # TODO: autofix
+    "D408",  # SectionUnderlineAfterName               # TODO: autofix
+    "D409",  # SectionUnderlineMatchesSectionLength    # TODO: autofix
+    "D410", "D412",  # (No)BlankLineAfterSection       # TODO: choose one and autofix
+    "D411",  # BlankLineBeforeSection                  # TODO: autofix
+    "D413",  # BlankLineAfterLastSection. Don't check.
+    "D414",  # NonEmptySection                         # TODO: fix
+    "D415",  # EndsInPunctuation                       # TODO: autofix
+    "D416",  # SectionNameEndsInColon. Don't check.
+    "D417",  # DocumentAllArguments                    # TODO: fix
+    "D419",  # docstring is empty                      # TODO: fix
+
+    # flake8-datetimez (DTZ)
+    # TODO: fix by including the tzinfo.
+    "DTZ001", "DTZ003", "DTZ005", "DTZ007",
+
+    # pycodestyle (E, W)
+    "E501",  # LineTooLong                             # TODO! fix
+    "E711",  # NoneComparison  (see unfixable)
+    "E721",  # TypeComparison                          # TODO: fix
+    "E731",  # DoNotAssignLambda                       # TODO: autofix
+    "E741",  # AmbiguousVariableName
+    "E999",  # SyntaxError                             # TODO: fix
+
+    # flake8-errmsg (EM)  : nicer error tracebacks
+    # NOTE: low priority fix
+    "EM",
+
+    # eradicate (ERA)
+    # NOTE: autofix, but be careful that some developer notes are kept.
+    "ERA001",  # CommentedOutCode
+
+    # Pyflakes (F)
+    "F403",  # ImportStarUsed
+    "F821",  # UndefinedName                           # TODO: fix
+    "F841",  # UnusedVariable                          # TODO: autofix
+
+    # flake8-boolean-trap (FBT)  : boolean flags should be kwargs, not args
+    # NOTE: a good thing to fix, but changes API.
+    "FBT001", "FBT002", "FBT003",
+
+    # isort (I)
+    # TODO: replace isort with this.
+    "I001",
+
+    # flake8-import-conventions (ICN)  : use conventional import aliases
+    # TODO: fix.
+    "ICN001",
+
+    # flake8-implicit-str-concat (ISC)
+    "ISC001", "ISC003",
+
+    # pep8-naming (N)
+    # NOTE: some of these can/should be fixed, but this changes the API.
+    "N8",
+
+    # flake8-pie (PIE)
+    "PIE790",  # NoUnnecessaryPass                   # TODO: autofix
+    "PIE794",  # DupeClassFieldDefinitions           # TODO: autofix
+
+    # pandas-vet (PD)
+    "PD",
+
+    # pygrep-hooks (PGH)
+    "PGH001",  # TODO: fix in astropy.utils.introspection
+
+    # Pylint (PLC, PLE, PLR, PLW)
+    "PLC2201",  # MisplacedComparisonConstant        # TODO: autofix
+    "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
+    "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
+    "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
+    "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
+
+    # flake8-pytest-style (PT)
+    # TODO: fix many of these.
+    "PT",
+
+    # flake8-return (RET)
+    "RET",
+
+    # Ruff-specific rules (RUF)
+    "RUF001", "RUF002", "RUF003",  # AmbiguousUnicode, maybe fix?
+    "RUF004", # KeywordArgumentBeforeStarArgument    # TODO: fix
+
+    # flake8-bandit (S)
+    "S101",  # UseOfAssert                           # TODO: fix
+    "S105",  # HardcodedPasswordString               # TODO: fix by adding noqa
+    "S506",  # UnsafeYAMLLoad                        # TODO: fix
+    "S324",	 # HashlibInsecureHashFunction           # TODO: fix or noqa
+
+    # flake8-simplify (SIM)
+    "SIM101",  # DuplicateIsinstanceCall             # TODO: autofix
+    "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
+    "SIM103",  # ReturnBoolConditionDirectly         # TODO: autofix
+    "SIM105",  # UseContextlibSuppress
+    "SIM108",  # UseTernaryOperator                  # TODO: autofix
+    "SIM109",  # CompareWithTuple                    # TODO: autofix
+    "SIM111",  # ConvertLoopToAll                    # TODO: autofix
+    "SIM117",  # MultipleWithStatements              # TODO: fix
+    "SIM118",  # KeyInDict                           # TODO: autofix
+    "SIM201",  # NegateEqualOp                       # TODO: autofix
+    "SIM202",  # NegateNotEqualOp                    # TODO: autofix
+    "SIM210",  # IfExprWithTrueFalse                 # TODO: autofix
+    "SIM300",  # YodaConditions                      # TODO: autofix
+
+    # flake8-print (T20)
+    "T201",  # PrintUsed                             # TODO: change to logging
+
+    # pyupgrade (UP)
+    # TODO: replace pyupgrade with this
+    "UP",
+
+    # flake8-quotes (Q)
+    "Q000",  # use double quotes                     # TODO: fix
+    "Q002",  # double quote docstring (D300)         # TODO: fix
+]
+unfixable = [
+    "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.
+]
 exclude=[
     "astropy/extern/*",
     "*parsetab.py",
@@ -87,8 +280,8 @@ exclude=[
 "__init__.py" = ["E402", "F401", "F403"]
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
-"test_*.py" = ["E402"]
-"examples/*.py" = ["E402"]
+"test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
+"examples/*.py" = ["E402", "T203"]
 "*/examples/*.py" = ["E402"]
 
 
