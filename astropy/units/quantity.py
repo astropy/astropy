@@ -19,6 +19,7 @@ import numpy as np
 from astropy import config as _config
 from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.data_info import ParentDtypeInfo
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.misc import isiterable
 
@@ -2023,12 +2024,13 @@ class Quantity(np.ndarray):
 
     if NUMPY_LT_1_22:
 
+        @deprecated("5.3", alternative="np.nansum", obj_type="method")
         def nansum(self, axis=None, out=None, keepdims=False):
             return self._wrap_function(np.nansum, axis, out=out, keepdims=keepdims)
 
     else:
-        # TODO: deprecate this method? It is not on ndarray, and we do not
-        # support nanmean, etc., so why this one?
+
+        @deprecated("5.3", alternative="np.nansum", obj_type="method")
         def nansum(
             self, axis=None, out=None, keepdims=False, *, initial=None, where=True
         ):

@@ -1,0 +1,4 @@
+The ``Quantity.nansum`` method has been deprecated. It was always weird that it
+was present, since ``ndarray`` does not have a similar method, and the other
+``nan*`` functions such as ``nanmean`` did not have a corresponding method.
+Use ``np.nansum(quantity)`` instead.
