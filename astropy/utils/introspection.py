@@ -66,7 +66,6 @@ def resolve_name(name, *additional_parts):
     `ImportError`
         If the module or named object is not found.
     """
-
     additional_parts = ".".join(additional_parts)
 
     if additional_parts:
@@ -248,7 +247,6 @@ def find_current_module(depth=1, finddiff=False):
         pkg.mod1
 
     """
-
     frm = inspect.currentframe()
     for i in range(depth):
         frm = frm.f_back
@@ -290,7 +288,6 @@ def _get_module_from_frame(frm):
     reliable in general, but more reliable than inspect.getmodule() for this
     particular case.
     """
-
     mod = inspect.getmodule(frm)
     if mod is not None:
         return mod
@@ -357,7 +354,6 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-
     mod = resolve_name(modname)
 
     if hasattr(mod, "__all__"):
@@ -431,7 +427,6 @@ def isinstancemethod(cls, obj):
     >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
     True
     """
-
     return _isinstancemethod(cls, obj)
 
 

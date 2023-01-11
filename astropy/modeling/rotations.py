@@ -506,7 +506,6 @@ class Rotation2D(Model):
     @property
     def inverse(self):
         """Inverse rotation."""
-
         return self.__class__(angle=-self.angle)
 
     @classmethod
@@ -523,7 +522,6 @@ class Rotation2D(Model):
             If float, assumed in degrees.
 
         """
-
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 

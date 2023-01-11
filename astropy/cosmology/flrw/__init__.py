@@ -21,7 +21,6 @@ __all__ = (
 
 def __getattr__(attr):
     """Lazy import deprecated private API."""
-
     base_attrs = (
         "H0units_to_invs",
         "a_B_c2",

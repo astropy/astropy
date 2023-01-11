@@ -202,7 +202,6 @@ class FixedWidthHeader(basic.BasicHeader):
             List of ending indices.
 
         """
-
         # If column positions are already specified then just use those.
         # If neither column starts or ends are given, figure out positions
         # between delimiters. Otherwise, either the starts or the ends have

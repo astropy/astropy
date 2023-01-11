@@ -479,7 +479,6 @@ class CCDData(NDDataArray):
         This addresses that case by checking the length of the ``key`` and
         ``value`` and, if necessary, shortening the key.
         """
-
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
             self.meta[f"HIERARCH {key.upper()}"] = (
@@ -519,7 +518,6 @@ def _generate_wcs_and_update_header(hdr):
 
     new_header, wcs
     """
-
     # Try constructing a WCS object.
     try:
         wcs = WCS(hdr)

@@ -119,7 +119,6 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
         ...
     ValueError: Inconsistent number of columns
     """
-
     types = [_line_type(line, delimiter=delimiter) for line in lines]
     current_ncol = None
     for type_ in types:
@@ -191,7 +190,6 @@ def _interpret_err_lines(err_specs, ncols, names=None):
         ...
     ValueError: Inconsistent number of input colnames
     """
-
     colnames = ["" for i in range(ncols)]
     if err_specs is None:
         serr_cols = terr_cols = []
@@ -257,7 +255,6 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
     list of `~astropy.table.Table`
         List containing all the tables present inside the QDP file
     """
-
     lines = _get_lines_from_file(qdp_file)
     contents, ncol = _get_type_from_list_of_lines(lines, delimiter=delimiter)
 

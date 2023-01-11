@@ -397,7 +397,6 @@ class LombScargle(BasePeriodogram):
         current _tstart value. If the times provided are relative, they are
         returned without conversion (though we still do some checks).
         """
-
         if isinstance(times, TimeDelta):
             times = times.to("day")
 

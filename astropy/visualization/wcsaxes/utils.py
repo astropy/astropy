@@ -123,7 +123,6 @@ def transform_contour_set_inplace(cset, transform):
     contour line. It is more efficient to stack all the contour lines together
     temporarily and transform them in one go.
     """
-
     # The contours are represented as paths grouped into levels. Each can have
     # one or more paths. The approach we take here is to stack the vertices of
     # all paths and transform them in one go. The pos_level list helps us keep

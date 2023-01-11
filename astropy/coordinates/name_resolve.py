@@ -81,7 +81,6 @@ def _parse_response(resp_data):
     dec : str
         The string Declination parsed from the HTTP response.
     """
-
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
     matched = pattr.search(resp_data)
 
@@ -131,7 +130,6 @@ def get_icrs_coordinates(name, parse=False, cache=False):
         The object's coordinates in the ICRS frame.
 
     """
-
     # if requested, first try extract coordinates embedded in the object name.
     # Do this first since it may be much faster than doing the sesame query
     if parse:

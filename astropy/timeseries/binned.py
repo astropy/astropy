@@ -315,7 +315,6 @@ class BinnedTimeSeries(BaseTimeSeries):
             BinnedTimeSeries corresponding to the file.
 
         """
-
         try:
             # First we try the readers defined for the BinnedTimeSeries class
             return super().read(filename, format=format, *args, **kwargs)

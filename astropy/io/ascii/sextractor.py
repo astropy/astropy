@@ -30,7 +30,6 @@ class SExtractorHeader(core.BaseHeader):
             List of table lines
 
         """
-
         # This assumes that the columns are listed in order, one per line with a
         # header comment string of the format: "# 1 ID short description [unit]"
         # However, some may be missing and must be inferred from skipped column numbers

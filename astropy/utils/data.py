@@ -297,7 +297,6 @@ def get_readable_fileobj(
     -------
     file : readable file-like
     """
-
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
     # returned file handle, because it may simply be the file handle
@@ -607,7 +606,6 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-
     datafn = get_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
         raise OSError(
@@ -713,7 +711,6 @@ def get_pkg_data_filename(
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_fileobj : returns a file-like object with the data
     """
-
     if remote_timeout is None:
         # use configfile default
         remote_timeout = conf.remote_timeout
@@ -820,7 +817,6 @@ def get_pkg_data_contents(data_name, package=None, encoding=None, cache=True):
     get_pkg_data_fileobj : returns a file-like object with the data
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-
     with get_pkg_data_fileobj(
         data_name, package=package, encoding=encoding, cache=cache
     ) as fd:
@@ -871,7 +867,6 @@ def get_pkg_data_filenames(datadir, package=None, pattern="*"):
         ...         fcontents = f.read()
         ...
     """
-
     path = get_pkg_data_path(datadir, package=package)
     if os.path.isfile(path):
         raise OSError(
@@ -942,7 +937,6 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern="*", encoding=None):
         ...     fcontents = fd.read()
         ...
     """
-
     for fn in get_pkg_data_filenames(datadir, package=package, pattern=pattern):
         with get_readable_fileobj(fn, encoding=encoding) as fd:
             yield fd

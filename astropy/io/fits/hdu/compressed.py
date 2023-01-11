@@ -399,7 +399,6 @@ class CompImageHeader(Header):
         """
         Remove all cards from the header.
         """
-
         self._table_header.clear()
         super().clear()
 
@@ -640,7 +639,6 @@ class CompImageHDU(BinTableHDU):
         This is particularly useful for software testing as it ensures that the
         same image will always use the same seed.
         """
-
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         if data is DELAYED:
@@ -823,7 +821,6 @@ class CompImageHDU(BinTableHDU):
             range 1 to 1000 (inclusive), DITHER_SEED_CLOCK (0; default), or
             DITHER_SEED_CHECKSUM (-1)
         """
-
         # Clean up EXTNAME duplicates
         self._remove_unnecessary_default_extnames(self._header)
 
@@ -1561,7 +1558,6 @@ class CompImageHDU(BinTableHDU):
         """
         Shape of the image array--should be equivalent to ``self.data.shape``.
         """
-
         # Determine from the values read from the header
         return tuple(reversed(self._axes))
 
@@ -1755,7 +1751,6 @@ class CompImageHDU(BinTableHDU):
         """
         Compress the image data so that it may be written to a file.
         """
-
         # Check to see that the image_header matches the image data
         image_bitpix = DTYPE2BITPIX[self.data.dtype.name]
 
@@ -1834,7 +1829,6 @@ class CompImageHDU(BinTableHDU):
         bscale, bzero : int, optional
             user specified ``BSCALE`` and ``BZERO`` values.
         """
-
         if self.data is None:
             return
 
@@ -1960,7 +1954,6 @@ class CompImageHDU(BinTableHDU):
         metadata about the data that is meaningless here; another reason
         why this class maybe shouldn't inherit directly from BinTableHDU...
         """
-
         return ExtensionHDU._writeheader(self, fileobj)
 
     def _writedata(self, fileobj):
@@ -1968,7 +1961,6 @@ class CompImageHDU(BinTableHDU):
         Wrap the basic ``_writedata`` method to restore the ``.data``
         attribute to the uncompressed image data in the case of an exception.
         """
-
         try:
             return super()._writedata(fileobj)
         finally:
@@ -1999,7 +1991,6 @@ class CompImageHDU(BinTableHDU):
         the BITPIX value in the header, and possibly on the BSCALE value as
         well.  Returns None if there should not be any change.
         """
-
         bitpix = self._orig_bitpix
         # Handle possible conversion to uints if enabled
         if self._uint and self._orig_bscale == 1:

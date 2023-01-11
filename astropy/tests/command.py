@@ -172,7 +172,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         """
         Build a Python script to run the tests.
         """
-
         cmd_pre = ""  # Commands to run before the test function
         cmd_post = ""  # Commands to run after the test function
 
@@ -208,7 +207,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
     def run(self):
         """Run the tests!"""
-
         # Install the runtime dependencies.
         if self.distribution.install_requires:
             self.distribution.fetch_build_eggs(self.distribution.install_requires)
@@ -286,7 +284,6 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         entry points, and also avoids creating pyc and __pycache__ directories
         inside the build directory.
         """
-
         # On OSX the default path for temp files is under /var, but in most
         # cases on OSX /var is actually a symlink to /private/var; ensure we
         # dereference that link, because pytest is very sensitive to relative

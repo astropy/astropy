@@ -300,7 +300,6 @@ def get_yaml_from_table(table):
     lines : list
         List of text lines with YAML header content
     """
-
     header = {"cols": list(table.columns.values())}
     if table.meta:
         header["meta"] = table.meta

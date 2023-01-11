@@ -768,7 +768,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Format string for displaying values in this column.
         """
-
         return self._format
 
     @format.setter
@@ -1670,7 +1669,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work.
         """
-
         # another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward
         # any new fill_values are truncated to 3 characters.  Note that this does not

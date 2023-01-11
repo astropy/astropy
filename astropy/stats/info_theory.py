@@ -114,7 +114,6 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     .. [5] Liddle, A. R. How many cosmological parameters? 2008.
        <https://arxiv.org/pdf/astro-ph/0401198v3.pdf>
     """
-
     return n_params * np.log(n_samples) - 2.0 * log_likelihood
 
 
@@ -201,7 +200,6 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     .. [3] Astropy Models and Fitting
         <https://docs.astropy.org/en/stable/modeling>
     """
-
     return bayesian_info_criterion(
         -0.5 * n_samples * np.log(ssr / n_samples), n_params, n_samples
     )
@@ -404,7 +402,6 @@ def akaike_info_criterion_lsq(ssr, n_params, n_samples):
     .. [2] Origin Lab. Comparing Two Fitting Functions.
        <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     """
-
     return akaike_info_criterion(
         -0.5 * n_samples * np.log(ssr / n_samples), n_params, n_samples
     )

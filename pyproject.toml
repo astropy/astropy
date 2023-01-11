@@ -136,7 +136,6 @@ extend-ignore = [
     "D107",  # Missing docstring in __init__. Don't check b/c class docstring.
     # Whitespace Issues
     "D200",  # FitsOnOneLine
-    "D202",  # NoBlankLineAfterFunction                # TODO: autofix
     "D203",  # OneBlankLineBeforeClass. Don't check.
     "D205",  # BlankLineAfterSummary                   # TODO: fix
     "D212", "D213",  # MultiLineSummaryFirst/Second Line  # TODO: fix one of these

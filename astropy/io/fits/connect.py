@@ -182,7 +182,6 @@ def read_table_fits(
         when using ``memmap=True`` (see above).
 
     """
-
     if isinstance(input, HDUList):
         # Parse all table objects
         tables = dict()
@@ -431,7 +430,6 @@ def write_table_fits(input, output, overwrite=False, append=False):
     append : bool
         Whether to append the table to an existing file
     """
-
     # Encode any mixin columns into standard Columns.
     input = _encode_mixins(input)
 

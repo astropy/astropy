@@ -167,7 +167,6 @@ class OGIP(generic.Generic):
         based on the YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.
         """
-
         tokens = cls._tokens
 
         def p_main(p):
@@ -215,7 +214,6 @@ class OGIP(generic.Generic):
                             | UNIT OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
                             | OPEN_PAREN complete_expression CLOSE_PAREN power numeric_power
             """
-
             # If we run p[1] in cls._functions, it will try and parse each
             # item in the list into a unit, which is slow. Since we know that
             # all the items in the list are strings, we can simply convert

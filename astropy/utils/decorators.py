@@ -85,7 +85,6 @@ def deprecated(
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
-
     method_types = (classmethod, staticmethod, types.MethodType)
 
     def deprecate_doc(old_doc, message):
@@ -117,7 +116,6 @@ def deprecated(
         Returns a wrapped function that displays ``warning_type``
         when it is called.
         """
-
         if isinstance(func, method_types):
             func_wrapper = type(func)
         else:

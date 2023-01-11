@@ -97,7 +97,6 @@ def _verify_global_info(global_info):
     global_info : dict
         Global time reference frame information.
     """
-
     # Translate FITS deprecated scale into astropy scale, or else just convert
     # to lower case for further checks.
     global_info["scale"] = FITS_DEPRECATED_SCALES.get(
@@ -212,7 +211,6 @@ def _verify_column_info(column_info, global_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
-
     scale = column_info.get("TCTYP", None)
     unit = column_info.get("TCUNI", None)
     location = column_info.get("TRPOS", None)
@@ -320,7 +318,6 @@ def _get_info_if_time_column(col, global_info):
     This is only applicable to the special-case where a column has the
     name 'TIME' and a time unit.
     """
-
     # Column with TTYPEn = 'TIME' and lacking any TC*n or time
     # specific keywords will be controlled by the global keywords.
     if col.info.name.upper() == "TIME" and col.info.unit in FITS_TIME_UNIT:
@@ -410,7 +407,6 @@ def _convert_time_column(col, column_info):
     column_info : dict
         Column-specific time reference frame override information.
     """
-
     # The code might fail while attempting to read FITS files not written by astropy.
     try:
         # ISO-8601 is the only string representation of time in FITS
@@ -497,7 +493,6 @@ def fits_to_time(hdr, table):
     hdr : `~astropy.io.fits.header.Header`
         Modified FITS Header (time metadata removed)
     """
-
     # Set defaults for global time scale, reference, etc.
     global_info = {"TIMESYS": "UTC", "TREFPOS": "TOPOCENTER"}
 
