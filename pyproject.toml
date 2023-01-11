@@ -131,7 +131,6 @@ extend-ignore = [
     "D200",  # FitsOnOneLine
     "D202",  # NoBlankLineAfterFunction                # TODO: autofix
     "D203",  # OneBlankLineBeforeClass. Don't check.
-    "D204",  # OneBlankLineAfterClass                  # TODO: autofix
     "D205",  # BlankLineAfterSummary                   # TODO: autofix
     "D207",  # NoUnderIndentation                      # TODO: autofix
     "D208",  # NoOverIndentation                       # TODO: autofix

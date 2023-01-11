@@ -57,6 +57,7 @@ class Basic(core.BaseReader):
       1 2 3
       4 5 6
     """
+
     _format_name = "basic"
     _description = "Basic table with custom delimiters"
     _io_registry_format_aliases = ["ascii"]
