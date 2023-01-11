@@ -52,7 +52,6 @@ def get_database_string(fname):
 
 
 class Record:
-
     """
     A base class for all records - represents an IRAF database record
 
@@ -119,7 +118,6 @@ class Record:
 
 
 class IdentifyRecord(Record):
-
     """
     Represents a database record for the onedspec.identify task
 
@@ -182,7 +180,6 @@ class IdentifyRecord(Record):
 
 
 class FitcoordsRecord(Record):
-
     """
     Represents a database record for the longslit.fitccords task
 
@@ -218,7 +215,6 @@ class FitcoordsRecord(Record):
 
 
 class IDB:
-
     """
     Base class for an IRAF identify database
 
@@ -249,7 +245,6 @@ class IDB:
 
 
 class ReidentifyRecord(IDB):
-
     """
     Represents a database record for the onedspec.reidentify task
     """
