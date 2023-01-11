@@ -1017,7 +1017,7 @@ class TestLogQuantityMethods:
                 == mag.value.clip(2.0, 4.0)
             )
 
-    @pytest.mark.parametrize("method", ("sum", "cumsum", "nansum"))
+    @pytest.mark.parametrize("method", ("sum", "cumsum"))
     def test_only_ok_if_dimensionless(self, method):
         res = getattr(self.m1, method)()
         assert np.all(res.value == getattr(self.m1._function_view, method)().value)

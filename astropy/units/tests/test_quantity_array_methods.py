@@ -355,6 +355,7 @@ class TestQuantityStatsFuncs:
         q1.cumsum(out=q1)
         assert np.all(q2 == qi)
 
+    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
     def test_nansum(self):
         q1 = np.array([1.0, 2.0, np.nan]) * u.m
         assert np.all(q1.nansum() == 3.0 * u.m)
@@ -364,6 +365,7 @@ class TestQuantityStatsFuncs:
         assert np.all(q2.nansum(0) == np.array([1.0, 5.0, 10.0]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1.0, 5.0, 10.0]) * u.s)
 
+    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
     def test_nansum_inplace(self):
         q1 = np.array([1.0, 2.0, np.nan]) * u.m
         qi = 1.5 * u.s
@@ -379,6 +381,7 @@ class TestQuantityStatsFuncs:
     @pytest.mark.xfail(
         NUMPY_LT_1_22, reason="'where' keyword argument not supported for numpy < 1.22"
     )
+    @pytest.mark.filterwarnings("ignore:The nansum method is deprecated")
     def test_nansum_where(self):
         q1 = np.array([1.0, 2.0, np.nan, 4.0]) * u.m
         initial = 0 * u.m
