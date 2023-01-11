@@ -133,7 +133,6 @@ extend-ignore = [
     "D203",  # OneBlankLineBeforeClass. Don't check.
     "D205",  # BlankLineAfterSummary                   # TODO: fix
     "D212", "D213",  # MultiLineSummaryFirst/Second Line  # TODO: fix one of these
-    "D215",  # SectionUnderlineNotOverIndented         # TODO: autofix
     # Quotes Issues
     "D300",  # UsesTripleQuotes                        # TODO: fix
     "D301",  # UsesRPrefixForBackslashedContent        # TODO: fix
@@ -273,7 +272,7 @@ exclude=[
 "__init__.py" = ["E402", "F401", "F403"]
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
-"astropy/utils/decorators.py" = ["D214"]  # keep Examples section indented.
+"astropy/utils/decorators.py" = ["D214", "D215"]  # keep Examples section indented.
 "test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
 "examples/*.py" = ["E402", "T203"]
 "*/examples/*.py" = ["E402"]
