@@ -449,6 +449,7 @@ class Ipac(basic.Basic):
         `IPAC <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
+
     _format_name = "ipac"
     _io_registry_format_aliases = ["ipac"]
     _io_registry_can_write = True

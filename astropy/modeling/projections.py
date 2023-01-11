@@ -298,6 +298,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         Look angle γ in degrees.  Default is 0°.
 
     """
+
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -342,6 +343,7 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         Look angle γ in degrees. Default is 0°.
 
     """
+
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -381,6 +383,7 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
         is 90°.
 
     """
+
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -426,6 +429,7 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
         is 90°.
 
     """
+
     mu = _ParameterDS(
         default=0.0, description="Distance from point of projection to center of sphere"
     )
@@ -532,6 +536,7 @@ class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
         Obliqueness parameter, η.  Default is 0.0.
 
     """
+
     xi = _ParameterDS(default=0.0, description="Obliqueness parameter")
     eta = _ParameterDS(default=0.0, description="Obliqueness parameter")
 
@@ -557,6 +562,7 @@ class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
         y &= \frac{180^\circ}{\pi}[\cos \theta \cos \phi + \eta(1 - \sin \theta)]
 
     """
+
     xi = _ParameterDS(default=0.0)
     eta = _ParameterDS(default=0.0)
 
@@ -628,6 +634,7 @@ class Pix2Sky_Airy(Pix2SkyProjection, Zenithal):
         The latitude :math:`\theta_b` at which to minimize the error,
         in degrees.  Default is 90°.
     """
+
     theta_b = _ParameterDS(default=90.0)
 
 
@@ -656,6 +663,7 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
         in degrees.  Default is 90°.
 
     """
+
     theta_b = _ParameterDS(
         default=90.0,
         description="The latitude at which to minimize the error,in degrees",
@@ -668,6 +676,7 @@ class Cylindrical(Projection):
     Cylindrical projections are so-named because the surface of
     projection is a cylinder.
     """
+
     _separable = True
 
 
@@ -696,6 +705,7 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
         Radius of the cylinder in spherical radii, λ. Default is 1.
 
     """
+
     mu = _ParameterDS(default=1.0)
     lam = _ParameterDS(default=1.0)
 
@@ -730,6 +740,7 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         Radius of the cylinder in spherical radii, λ.  Default is 0.
 
     """
+
     mu = _ParameterDS(
         default=1.0, description="Distance from center of sphere in spherical radii"
     )
@@ -763,6 +774,7 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 1.
     """
+
     lam = _ParameterDS(default=1)
 
 
@@ -781,6 +793,7 @@ class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
     lam : float
         Radius of the cylinder in spherical radii, λ.  Default is 0.
     """
+
     lam = _ParameterDS(default=1)
 
 
@@ -854,6 +867,7 @@ class PseudoCylindrical(Projection):
     lengths toward the polar regions in order to reduce lateral
     distortion there.  Consequently, the meridians are curved.
     """
+
     _separable = True
 
 
@@ -992,6 +1006,7 @@ class Conic(Projection):
     .. math::
         C = \frac{180^\circ \cos \theta}{\pi R_\theta}
     """
+
     sigma = _ParameterDS(default=90.0, getter=_to_orig_unit, setter=_to_radian)
     delta = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
@@ -1294,6 +1309,7 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
+
     _separable = True
 
     theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
@@ -1321,6 +1337,7 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
+
     _separable = True
 
     theta1 = _ParameterDS(
@@ -1431,6 +1448,7 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
+
     _separable = True
 
     H = _ParameterDS(
@@ -1456,6 +1474,7 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
+
     _separable = True
 
     H = _ParameterDS(
