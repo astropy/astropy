@@ -145,9 +145,7 @@ SGR_MATRIX = (
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, coord.Galactic, Sagittarius)
 def galactic_to_sgr():
-    """ Compute the transformation matrix from Galactic spherical to
-        heliocentric Sgr coordinates.
-    """
+    """Compute the Galactic spherical to heliocentric Sgr transformation matrix."""
     return SGR_MATRIX
 
 
@@ -162,9 +160,7 @@ def galactic_to_sgr():
 
 @frame_transform_graph.transform(coord.StaticMatrixTransform, Sagittarius, coord.Galactic)
 def sgr_to_galactic():
-    """ Compute the transformation matrix from heliocentric Sgr coordinates to
-        spherical Galactic.
-    """
+    """Compute the heliocentric Sgr to spherical Galactic transformation matrix."""
     return matrix_transpose(SGR_MATRIX)
 
 
