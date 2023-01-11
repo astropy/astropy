@@ -681,7 +681,6 @@ def poisson_conf_interval(
     array([[ 3.47894005, 16.113329533]])
 
     """
-
     if not np.isscalar(n):
         n = np.asanyarray(n)
 
@@ -794,7 +793,6 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     --------
     mad_std
     """
-
     if func is None:
         # Check if the array has a mask and if so use np.ma.median
         # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
@@ -907,7 +905,6 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     --------
     biweight_midvariance, biweight_midcovariance, median_absolute_deviation
     """
-
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     MAD = median_absolute_deviation(data, axis=axis, func=func, ignore_nan=ignore_nan)
     return MAD * 1.482602218505602
@@ -1098,7 +1095,6 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     implementation that is slower, but can deal with arbitrarily high numbers
     since it is based on the `mpmath <http://mpmath.org/>`_ library.
     """
-
     from math import exp
 
     from scipy.integrate import quad
@@ -1438,7 +1434,6 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
 
     """
-
     data = np.sort(data)
     cdfv = cdf(data, *args)
     N = len(data)

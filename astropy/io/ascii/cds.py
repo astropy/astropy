@@ -55,7 +55,6 @@ class CdsHeader(core.BaseHeader):
             List of table lines
 
         """
-
         # Read header block for the table ``self.data.table_name`` from the read
         # me file ``self.readme``.
         if self.readme and self.data.table_name:

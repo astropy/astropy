@@ -17,7 +17,6 @@ def hub_script(timeout=0):
     """
     This main function is executed by the ``samp_hub`` command line tool.
     """
-
     parser = argparse.ArgumentParser(prog="samp_hub " + __version__)
 
     parser.add_argument(

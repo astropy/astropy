@@ -33,7 +33,6 @@ def get_col_name_map(
     will be present, while for the other non-key columns the value will be (col_name_0,
     None, ..) or (None, col_name_1, ..) etc.
     """
-
     col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
     col_name_list = []
 
@@ -87,7 +86,6 @@ def get_descrs(arrays, col_name_map):
 
     Return a list of descrs for the output.
     """
-
     out_descrs = []
 
     for out_name, in_names in col_name_map.items():

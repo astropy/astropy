@@ -100,7 +100,6 @@ def aggregate_downsample(
     binned_time_series : :class:`~astropy.timeseries.BinnedTimeSeries`
         The downsampled time series.
     """
-
     if not isinstance(time_series, TimeSeries):
         raise TypeError("time_series should be a TimeSeries")
 

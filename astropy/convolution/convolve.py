@@ -54,7 +54,6 @@ def _next_fast_lengths(shape):
     Calculated directly with `scipy.fft.next_fast_len`, if available; otherwise
     looked up from list and scaled by powers of 10, if necessary.
     """
-
     try:
         import scipy.fft
 
@@ -214,7 +213,6 @@ def convolve(
     For masked arrays, masked values are treated as NaNs.  The convolution
     is always done at ``numpy.float`` precision.
     """
-
     if boundary not in BOUNDARY_OPTIONS:
         raise ValueError(f"Invalid boundary option: must be one of {BOUNDARY_OPTIONS}")
 
@@ -979,7 +977,6 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         A copy of the original array with NaN pixels replaced with their
         interpolated counterparts
     """
-
     if not np.any(np.isnan(array)):
         return array.copy()
 
@@ -1023,7 +1020,6 @@ def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
     default : `~astropy.modeling.core.CompoundModel`
         Convolved model
     """
-
     if mode == "convolve_fft":
         operator = SPECIAL_OPERATORS.add(
             "convolve_fft", partial(convolve_fft, **kwargs)
@@ -1065,7 +1061,6 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
     default : `~astropy.modeling.core.CompoundModel`
         Convolved model
     """
-
     operator = SPECIAL_OPERATORS.add("convolve_fft", partial(convolve_fft, **kwargs))
 
     return Convolution(operator, model, kernel, bounding_box, resolution, cache)

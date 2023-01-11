@@ -404,7 +404,6 @@ def print_headers_as_comparison(args):
 
 def main(args=None):
     """This is the main function called by the `fitsheader` script."""
-
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )

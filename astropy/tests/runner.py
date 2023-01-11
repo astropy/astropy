@@ -258,7 +258,6 @@ class TestRunnerBase:
         was called from.  This is used to implement the ``astropy.test()``
         function (or the equivalent for affiliated packages).
         """
-
         runner = cls(path)
 
         @wraps(runner.run_tests, ("__doc__",))
@@ -470,7 +469,6 @@ class TestRunner(TestRunnerBase):
             data from http://data.astropy.org (``astropy``), or all tests that
             use remote data (``any``). The default is ``none``.
         """
-
         if remote_data is True:
             remote_data = "any"
         elif remote_data is False:
@@ -574,7 +572,6 @@ class TestRunner(TestRunnerBase):
         docs_path : str, optional
             The path to the documentation .rst files.
         """
-
         paths = []
         if docs_path is not None and not kwargs["skip_docs"]:
             if kwargs["package"] is not None:

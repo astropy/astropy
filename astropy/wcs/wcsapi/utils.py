@@ -11,7 +11,6 @@ def deserialize_class(tpl, construct=True):
     """
     Deserialize classes recursively.
     """
-
     if not isinstance(tpl, tuple) or len(tpl) != 3:
         raise ValueError("Expected a tuple of three values")
 

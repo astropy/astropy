@@ -276,7 +276,6 @@ class _BaseColumnFormat(str):
         """
         The Numpy dtype object created from the format's associated recformat.
         """
-
         return np.dtype(self.recformat)
 
     @classmethod
@@ -287,7 +286,6 @@ class _BaseColumnFormat(str):
         That is, this can convert a _ColumnFormat to an _AsciiColumnFormat
         or vice versa at least in cases where a direct translation is possible.
         """
-
         return cls.from_recformat(format.recformat)
 
 
@@ -320,13 +318,11 @@ class _ColumnFormat(_BaseColumnFormat):
     @classmethod
     def from_recformat(cls, recformat):
         """Creates a column format from a Numpy record dtype format."""
-
         return cls(_convert_format(recformat, reverse=True))
 
     @lazyproperty
     def recformat(self):
         """Returns the equivalent Numpy record format string."""
-
         return _convert_format(self)
 
     @lazyproperty
@@ -338,7 +334,6 @@ class _ColumnFormat(_BaseColumnFormat):
         type code, a is the optional part, and r is the repeat.  If repeat == 1
         (the default) it is left out of this representation.
         """
-
         if self.repeat == 1:
             repeat = ""
         else:
@@ -388,13 +383,11 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     @classmethod
     def from_recformat(cls, recformat):
         """Creates a column format from a Numpy record dtype format."""
-
         return cls(_convert_ascii_format(recformat, reverse=True))
 
     @lazyproperty
     def recformat(self):
         """Returns the equivalent Numpy record format string."""
-
         return _convert_ascii_format(self)
 
     @lazyproperty
@@ -407,7 +400,6 @@ class _AsciiColumnFormat(_BaseColumnFormat):
         number of digits after the decimal place (for format codes 'E', 'F',
         and 'D' only).
         """
-
         if self.format in ("E", "F", "D"):
             return f"{self.format}{self.width}.{self.precision}"
 
@@ -551,7 +543,6 @@ class ColumnAttribute:
         Returns ``self`` so that this can be used as a decorator, as described
         in the docs for this class.
         """
-
         self._validator = func
 
         return self
@@ -658,7 +649,6 @@ class Column(NotifierMixin):
             reference position for a time coordinate column corresponding to
             ``TRPOS`` keyword
         """
-
         if format is None:
             raise ValueError("Must specify format to construct Column.")
 
@@ -749,7 +739,6 @@ class Column(NotifierMixin):
         Two columns are equal if their name and format are the same.  Other
         attributes aren't taken into account at this time.
         """
-
         # According to the FITS standard column names must be case-insensitive
         a = (self.name.lower(), self.format)
         b = (other.name.lower(), other.format)
@@ -761,7 +750,6 @@ class Column(NotifierMixin):
         name and format, and be case-insensitive with respect to the column
         name.
         """
-
         return hash((self.name.lower(), self.format))
 
     @property
@@ -776,7 +764,6 @@ class Column(NotifierMixin):
         the associated field in the table, which may no longer be the same
         array.
         """
-
         # Ideally the .array attribute never would have existed in the first
         # place, or would have been internal-only.  This is a legacy of the
         # older design from Astropy that needs to have continued support, for
@@ -963,7 +950,6 @@ class Column(NotifierMixin):
     @lazyproperty
     def ascii(self):
         """Whether this `Column` represents a column in an ASCII table."""
-
         return isinstance(self.format, _AsciiColumnFormat)
 
     @lazyproperty
@@ -986,7 +972,6 @@ class Column(NotifierMixin):
 
         TODO: There should be an abc base class for column format classes
         """
-
         # Short circuit in case we're already a _BaseColumnFormat--there is at
         # least one case in which this can happen
         if isinstance(format, _BaseColumnFormat):
@@ -1036,7 +1021,6 @@ class Column(NotifierMixin):
         values.  The second maps invalid keywords to a 2-tuple of their value,
         and a message explaining why they were found invalid.
         """
-
         valid = {}
         invalid = {}
 
@@ -1315,7 +1299,6 @@ class Column(NotifierMixin):
         the former is only valid for ASCII tables and the latter only for
         BINARY tables.
         """
-
         # If the given format string is unambiguously a Numpy dtype or one of
         # the Numpy record format type specifiers supported by Astropy then that
         # should take priority--otherwise assume it is a FITS format
@@ -1534,7 +1517,6 @@ class ColDefs(NotifierMixin):
         """Initialize from an existing ColDefs object (just copy the
         columns and convert their formats if necessary).
         """
-
         self.columns = [self._copy_column(col) for col in coldefs]
 
     def _init_from_sequence(self, columns):
@@ -1645,7 +1627,6 @@ class ColDefs(NotifierMixin):
         to help convert columns from binary format to ASCII format or vice
         versa if necessary (otherwise performs a straight copy).
         """
-
         if isinstance(column.format, self._col_format_cls):
             # This column has a FITS format compatible with this column
             # definitions class (that is ascii or binary)
@@ -1754,7 +1735,6 @@ class ColDefs(NotifierMixin):
     @lazyproperty
     def _dims(self):
         """Returns the values of the TDIMn keywords parsed into tuples."""
-
         return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
@@ -1817,7 +1797,6 @@ class ColDefs(NotifierMixin):
         to update their headers, etc.  However, this also informs the table of
         the numerical index of the column that changed.
         """
-
         idx = 0
         for idx, col in enumerate(self.columns):
             if col is column:
@@ -1836,7 +1815,6 @@ class ColDefs(NotifierMixin):
         """
         Append one `Column` to the column definition.
         """
-
         if not isinstance(column, Column):
             raise AssertionError
 
@@ -1868,7 +1846,6 @@ class ColDefs(NotifierMixin):
         col_name : str or int
             The column's name or index
         """
-
         # Ask the HDU object to load the data before we modify our columns
         self._notify("load_data")
 
@@ -1909,7 +1886,6 @@ class ColDefs(NotifierMixin):
         new_value : object
             The new value for the attribute
         """
-
         setattr(self[col_name], attrib, new_value)
 
     def change_name(self, col_name, new_name):
@@ -1924,7 +1900,6 @@ class ColDefs(NotifierMixin):
         new_name : str
             The new name of the column
         """
-
         if new_name != col_name and new_name in self.names:
             raise ValueError(f"New name {new_name} already exists.")
         else:
@@ -1942,7 +1917,6 @@ class ColDefs(NotifierMixin):
         new_unit : str
             The new unit for the column
         """
-
         self.change_attrib(col_name, "unit", new_unit)
 
     def info(self, attrib="all", output=None):
@@ -1967,7 +1941,6 @@ class ColDefs(NotifierMixin):
         This function doesn't return anything by default; it just prints to
         stdout.
         """
-
         if output is None:
             output = sys.stdout
 
@@ -2032,7 +2005,6 @@ class _AsciiColDefs(ColDefs):
     @property
     def spans(self):
         """A list of the widths of each field in the table."""
-
         return self._spans
 
     @lazyproperty
@@ -2061,7 +2033,6 @@ class _AsciiColDefs(ColDefs):
         Updates the list of the start columns, the list of the widths of each
         field, and the total width of each record in the table.
         """
-
         spans = [0] * len(self.columns)
         end_col = 0  # Refers to the ASCII text column, not the table col
         for idx, col in enumerate(self.columns):
@@ -2092,7 +2063,6 @@ class _VLF(np.ndarray):
         input
             a sequence of variable-sized elements.
         """
-
         if dtype == "a":
             try:
                 # this handles ['abc'] and [['a','b','c']]
@@ -2118,7 +2088,6 @@ class _VLF(np.ndarray):
         To make sure the new item has consistent data type to avoid
         misalignment.
         """
-
         if isinstance(value, np.ndarray) and value.dtype == self.dtype:
             pass
         elif isinstance(value, chararray.chararray) and value.itemsize == 1:
@@ -2158,7 +2127,6 @@ def _get_index(names, key):
         name is a case variant of "XYZ", then field('xyz'),
         field('Xyz'), etc. will get this field.
     """
-
     if _is_int(key):
         indx = int(key)
     elif isinstance(key, str):
@@ -2197,7 +2165,6 @@ def _unwrapx(input, output, repeat):
     repeat
         number of bits
     """
-
     pow2 = np.array([128, 64, 32, 16, 8, 4, 2, 1], dtype="uint8")
     nbytes = ((repeat - 1) // 8) + 1
     for i in range(nbytes):
@@ -2222,7 +2189,6 @@ def _wrapx(input, output, repeat):
     repeat
         number of bits
     """
-
     output[...] = 0  # reset the output
     nbytes = ((repeat - 1) // 8) + 1
     unused = nbytes * 8 - repeat
@@ -2263,7 +2229,6 @@ def _makep(array, descr_output, format, nrows=None):
         number of rows to create in the column; defaults to the number of rows
         in the input array
     """
-
     # TODO: A great deal of this is redundant with FITS_rec._convert_p; see if
     # we can merge the two somehow.
 
@@ -2304,7 +2269,6 @@ def _parse_tformat(tform):
     """Parse ``TFORMn`` keyword for a binary table into a
     ``(repeat, format, option)`` tuple.
     """
-
     try:
         (repeat, format, option) = TFORMAT_RE.match(tform.strip()).groups()
     except Exception:
@@ -2327,7 +2291,6 @@ def _parse_ascii_tformat(tform, strict=False):
     precision)`` tuple (the latter is always zero unless format is one of 'E',
     'F', or 'D').
     """
-
     match = TFORMAT_ASCII_RE.match(tform.strip())
     if not match:
         raise VerifyError(f"Format {tform!r} is not recognized.")
@@ -2418,7 +2381,6 @@ def _scalar_to_format(value):
     that can represent that value.  'minimum' is defined by the order given in
     FORMATORDER.
     """
-
     # First, if value is a string, try to convert to the appropriate scalar
     # value
     for type_ in (int, float, complex):
@@ -2442,7 +2404,6 @@ def _cmp_recformats(f1, f2):
     """
     Compares two numpy recformats using the ordering given by FORMATORDER.
     """
-
     if f1[0] == "a" and f2[0] == "a":
         return cmp(int(f1[1:]), int(f2[1:]))
     else:
@@ -2454,7 +2415,6 @@ def _convert_fits2record(format):
     """
     Convert FITS format spec to record format spec.
     """
-
     repeat, dtype, option = _parse_tformat(format)
 
     if dtype in FITS2NUMPY:
@@ -2492,7 +2452,6 @@ def _convert_record2fits(format):
     """
     Convert record format spec to FITS format spec.
     """
-
     recformat, kind, dtype = _dtype_to_recformat(format)
     shape = dtype.shape
     itemsize = dtype.base.itemsize
@@ -2544,7 +2503,6 @@ def _dtype_to_recformat(dtype):
     deprecated in Numpy, but Astropy remains heavily invested in its use
     (something to try to get away from sooner rather than later).
     """
-
     if not isinstance(dtype, np.dtype):
         dtype = np.dtype(dtype)
 
@@ -2564,7 +2522,6 @@ def _convert_format(format, reverse=False):
     Convert FITS format spec to record format spec.  Do the opposite if
     reverse=True.
     """
-
     if reverse:
         return _convert_record2fits(format)
     else:
@@ -2573,7 +2530,6 @@ def _convert_format(format, reverse=False):
 
 def _convert_ascii_format(format, reverse=False):
     """Convert ASCII table format spec to record format spec."""
-
     if reverse:
         recformat, kind, dtype = _dtype_to_recformat(format)
         itemsize = dtype.itemsize
@@ -2651,7 +2607,6 @@ def _parse_tdisp_format(tdisp):
         The exponential int value from TDISPn
 
     """
-
     # Use appropriate regex for format type
     tdisp = tdisp.strip()
     fmt_key = (
@@ -2732,7 +2687,6 @@ def python_to_tdisp(format_string, logical_dtype=False):
     tdsip_string: str
         The TDISPn keyword string translated into a Python format string.
     """
-
     fmt_to_tdisp = {
         "a": "A",
         "s": "A",

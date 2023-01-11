@@ -259,7 +259,6 @@ def _cdot(left, right):
     result : ndarray
         Result from this operation.
     """
-
     left, right = right, left
 
     def _n_inputs_outputs(input, position):

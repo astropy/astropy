@@ -38,7 +38,6 @@ def make_skyoffset_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
-
     if framecls in _skyoffset_cache:
         return _skyoffset_cache[framecls]
 
@@ -62,7 +61,6 @@ def make_skyoffset_cls(framecls):
     )
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):
         """Transform between two skyoffset frames."""
-
         # This transform goes through the parent frames on each side.
         # from_frame -> from_frame.origin -> to_frame.origin -> to_frame
         tmp_from = from_skyoffset_coord.transform_to(from_skyoffset_coord.origin)
@@ -74,7 +72,6 @@ def make_skyoffset_cls(framecls):
     )
     def reference_to_skyoffset(reference_frame, skyoffset_frame):
         """Convert a reference coordinate to an sky offset frame."""
-
         # Define rotation matrices along the position angle vector, and
         # relative to the origin.
         origin = skyoffset_frame.origin.spherical
@@ -89,7 +86,6 @@ def make_skyoffset_cls(framecls):
     )
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
         """Convert an sky offset frame coordinate to the reference frame."""
-
         # use the forward transform, but just invert it
         R = reference_to_skyoffset(reference_frame, skyoffset_coord)
         # transpose is the inverse because R is a rotation matrix

@@ -755,7 +755,6 @@ class _IndexModeContext:
         case where a copy of the indices is not needed.  See the docstring for
         ``astropy.table._column_mixins`` for more information on that.
         """
-
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
@@ -837,7 +836,6 @@ class TableLoc:
         """
         Retrieve Table rows indexes by value slice.
         """
-
         if isinstance(item, tuple):
             key, item = item
         else:

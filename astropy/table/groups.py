@@ -366,7 +366,6 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-
         i0s = self.indices[:-1]
         out_cols = []
         parent_table = self.parent_table

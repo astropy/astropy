@@ -41,7 +41,6 @@ def _prepare(values, clip=True, out=None):
     Prepare the data by optionally clipping and copying, and return the
     array that should be subsequently used for in-place calculations.
     """
-
     if clip:
         return np.clip(values, 0.0, 1.0, out=out)
     else:
@@ -172,7 +171,6 @@ class SqrtStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
-
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
         with np.errstate(invalid="ignore"):
@@ -248,7 +246,6 @@ class PowerStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
-
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = (
             not clip
@@ -420,7 +417,6 @@ class LogStretch(BaseStretch):
         result : ndarray
             The transformed values.
         """
-
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
         with np.errstate(invalid="ignore"):

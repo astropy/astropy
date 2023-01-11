@@ -61,7 +61,6 @@ class Convolution(CompoundModel):
         """
         Clears the cached convolution.
         """
-
         self._kwargs = None
         self._convolution = None
 

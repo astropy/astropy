@@ -83,7 +83,6 @@ class ServerProxyPool:
 
     def shutdown(self):
         """Shut down the proxy pool by closing all active connections."""
-
         while True:
             try:
                 proxy = self._proxies.get_nowait()

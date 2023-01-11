@@ -99,7 +99,6 @@ def get_config_dir(rootname="astropy"):
         The absolute path to the configuration directory.
 
     """
-
     # symlink will be set to this if the directory is created
     linkto = None
 
@@ -147,7 +146,6 @@ def get_cache_dir(rootname="astropy"):
         The absolute path to the cache directory.
 
     """
-
     # symlink will be set to this if the directory is created
     linkto = None
 

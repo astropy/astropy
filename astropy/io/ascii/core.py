@@ -555,7 +555,6 @@ def _get_line_index(line_or_func, lines):
     """Return the appropriate line index, depending on ``line_or_func`` which
     can be either a function, a positive or negative int, or None.
     """
-
     if hasattr(line_or_func, "__call__"):
         return line_or_func(lines)
     elif line_or_func:
@@ -621,7 +620,6 @@ class BaseHeader:
             List of table lines
 
         """
-
         start_line = _get_line_index(self.start_line, self.process_lines(lines))
         if start_line is None:
             # No header line so auto-generate names from n_data_cols
@@ -1006,7 +1004,6 @@ def convert_numpy(numpy_type):
         Raised by ``converter`` if the list elements could not be converted to
         the required type.
     """
-
     # Infer converter type from an instance of numpy_type.
     type_name = numpy.array([], dtype=numpy_type).dtype.name
     if "int" in type_name:
@@ -1552,7 +1549,6 @@ class BaseReader(metaclass=MetaBaseReader):
             List of strings corresponding to ASCII table
 
         """
-
         # Check column names before altering
         self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
@@ -1673,7 +1669,6 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
     """
-
     from .fastbasic import FastBasic
 
     if issubclass(Reader, FastBasic):  # Fast readers handle args separately
@@ -1801,7 +1796,6 @@ def _get_writer(Writer, fast_writer, **kwargs):
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module.
     """
-
     from .fastbasic import FastBasic
 
     # A value of None for fill_values imply getting the default string

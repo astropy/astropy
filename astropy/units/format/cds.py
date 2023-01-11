@@ -141,7 +141,6 @@ class CDS(Base):
         YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.
         """
-
         tokens = cls._tokens
 
         def p_main(p):

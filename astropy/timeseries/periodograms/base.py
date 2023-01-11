@@ -35,7 +35,6 @@ class BasePeriodogram:
             Additional keyword arguments are passed to the initializer for this
             periodogram class.
         """
-
         if signal_column_name is None:
             raise ValueError("signal_column_name should be set to a valid column name")
 

@@ -154,7 +154,6 @@ def _compress_array_dims(arr):
     out : array-like
         Compressed array.
     """
-
     idxs = []
     edgeitems = np.get_printoptions()["edgeitems"]
 
@@ -562,7 +561,6 @@ class TimeBase(ShapedLikeNDArray):
         If format is `None` and the input is a string-type or object array then
         guess available formats and stop when one matches.
         """
-
         if format is None and (
             val.dtype.kind in ("S", "U", "O", "M") or val.dtype.names
         ):
@@ -728,7 +726,6 @@ class TimeBase(ShapedLikeNDArray):
         This is the key routine that actually does time scale conversions.
         This is not public and not connected to the read-only scale property.
         """
-
         if scale == self.scale:
             return
         if scale not in self.SCALES:
@@ -1870,7 +1867,6 @@ class Time(TimeBase):
 
     def _make_value_equivalent(self, item, value):
         """Coerce setitem value into an equivalent Time object."""
-
         # If there is a vector location then broadcast to the Time shape
         # and then select with ``item``
         if self.location is not None and self.location.shape:
@@ -2074,7 +2070,6 @@ class Time(TimeBase):
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
         """
-
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
                 "'kind' parameter must be one of 'heliocentric' or 'barycentric'"
@@ -2241,7 +2236,6 @@ class Time(TimeBase):
         corrected for polar motion (except when ``longitude='tio'`` or ``'greenwich'``).
 
         """  # (docstring is formatted below)
-
         if kind.lower() not in SIDEREAL_TIME_MODELS:
             raise ValueError(
                 "The kind of sidereal time has to be "
@@ -2820,7 +2814,6 @@ class TimeDelta(TimeBase):
         This is the key routine that actually does time scale conversions.
         This is not public and not connected to the read-only scale property.
         """
-
         if scale == self.scale:
             return
         if scale not in self.SCALES:

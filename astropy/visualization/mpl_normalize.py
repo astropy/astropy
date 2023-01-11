@@ -149,7 +149,6 @@ class ImageNormalize(Normalize):
             0).  If `None`, then the `ImageNormalize` instance value is
             used.  This keyword has no effect if ``clip=True``.
         """
-
         if clip is None:
             clip = self.clip
 
@@ -301,7 +300,6 @@ def simple_norm(
         An `ImageNormalize` instance that can be used for displaying
         images with Matplotlib.
     """
-
     if percent is not None:
         interval = PercentileInterval(percent)
     elif min_percent is not None or max_percent is not None:

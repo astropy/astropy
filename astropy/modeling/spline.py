@@ -67,7 +67,6 @@ class _Spline(FittableModel):
         Coefficient names generated based on the spline's degree and
         number of knots.
         """
-
         return tuple(list(self._knot_names) + list(self._coeff_names))
 
     @staticmethod
@@ -101,7 +100,6 @@ class _Spline(FittableModel):
 
     def evaluate(self, *args, **kwargs):
         """Extract the optional kwargs passed to call."""
-
         optional_inputs = kwargs
         for arg in self.optional_inputs:
             attribute = self._optional_arg(arg)
@@ -123,7 +121,6 @@ class _Spline(FittableModel):
         """
         Make model callable to model evaluation.
         """
-
         # Hack to allow an optional model argument
         kwargs = self._intercept_optional_inputs(**kwargs)
 
@@ -144,7 +141,6 @@ class _Spline(FittableModel):
         fixed : optional, bool
             If the parameter should be fixed or not
         """
-
         # Hack to allow parameters and attribute array to freely exchange values
         #   _getter forces reading value from attribute array
         #   _setter forces setting value to attribute array
@@ -324,7 +320,6 @@ class Spline1D(_Spline):
         """
         The knots vector.
         """
-
         if self._t is None:
             return np.concatenate(
                 (np.zeros(self._degree + 1), np.ones(self._degree + 1))
@@ -350,7 +345,6 @@ class Spline1D(_Spline):
         """
         The interior knots.
         """
-
         return self.t[self.degree + 1 : -(self.degree + 1)]
 
     @property
@@ -358,7 +352,6 @@ class Spline1D(_Spline):
         """
         The coefficients vector.
         """
-
         if self._c is None:
             return np.zeros(len(self.t))
         else:
@@ -382,7 +375,6 @@ class Spline1D(_Spline):
         """
         The degree of the spline polynomials.
         """
-
         return self._degree
 
     @property
@@ -394,7 +386,6 @@ class Spline1D(_Spline):
         """
         Scipy 'tck' tuple representation.
         """
-
         return (self.t, self.c, self.degree)
 
     @tck.setter
@@ -417,7 +408,6 @@ class Spline1D(_Spline):
         """
         Scipy bspline object representation.
         """
-
         from scipy.interpolate import BSpline
 
         return BSpline(*self.tck)
@@ -436,7 +426,6 @@ class Spline1D(_Spline):
         """
         Dictionary of knot parameters.
         """
-
         return [getattr(self, knot) for knot in self._knot_names]
 
     @property
@@ -453,7 +442,6 @@ class Spline1D(_Spline):
         """
         Dictionary of coefficient parameters.
         """
-
         return [getattr(self, coeff) for coeff in self._coeff_names]
 
     def _init_parameters(self):
