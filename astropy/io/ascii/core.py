@@ -369,7 +369,8 @@ class BaseInputter:
         Override this method if something more has to be done to convert raw
         input lines to the table rows.  For example the
         ContinuationLinesInputter derived class accounts for continuation
-        characters if a row is split into lines."""
+        characters if a row is split into lines.
+        """
         return lines
 
 
@@ -456,7 +457,8 @@ class DefaultSplitter(BaseSplitter):
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
         whitespace-delimited files to prevent spurious columns at the beginning or end.
-        If splitting on whitespace then replace unquoted tabs with space first"""
+        If splitting on whitespace then replace unquoted tabs with space first
+        """
         if self.delimiter == r"\s":
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip() + "\n"
@@ -842,7 +844,8 @@ class BaseData:
 
     def get_str_vals(self):
         """Return a generator that returns a list of column values (as strings)
-        for each data line."""
+        for each data line.
+        """
         return self.splitter(self.data_lines)
 
     def masks(self, cols):
@@ -1063,7 +1066,8 @@ class BaseOutputter:
     def _validate_and_copy(col, converters):
         """Validate the format for the type converters and then copy those
         which are valid converters for this column (i.e. converter type is
-        a subclass of col.type)"""
+        a subclass of col.type)
+        """
         # Allow specifying a single converter instead of a list of converters.
         # The input `converters` must be a ``type`` value that can init np.dtype.
         try:
@@ -1793,7 +1797,8 @@ extra_writer_pars = (
 def _get_writer(Writer, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
-    only on the "core" module."""
+    only on the "core" module.
+    """
 
     from .fastbasic import FastBasic
 

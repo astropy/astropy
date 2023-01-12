@@ -51,7 +51,8 @@ class EcsvHeader(basic.BasicHeader):
 
     def process_lines(self, lines):
         """Return only non-blank lines that start with the comment regexp.  For these
-        lines strip out the matching characters and leading/trailing whitespace."""
+        lines strip out the matching characters and leading/trailing whitespace.
+        """
         re_comment = re.compile(self.comment)
         for line in lines:
             line = line.strip()

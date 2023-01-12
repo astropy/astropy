@@ -544,7 +544,8 @@ class Latitude(Angle):
 
     def _validate_angles(self, angles=None):
         """Check that angles are between -90 and 90 degrees.
-        If not given, the check is done on the object itself"""
+        If not given, the check is done on the object itself
+        """
         # Convert the lower and upper bounds to the "native" unit of
         # this angle.  This limits multiplication to two values,
         # rather than the N values in `self.value`.  Also, the

@@ -1668,7 +1668,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     @fill_value.setter
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
-        if it exists.  Setting one or the other alone doesn't work."""
+        if it exists.  Setting one or the other alone doesn't work.
+        """
 
         # another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward

@@ -325,7 +325,8 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
         """One dimensional smoothly broken power law derivative with respect
-        to parameters"""
+        to parameters
+        """
 
         # Pre-calculate `x_b` and `x/x_b` and `logt` (see comments in
         # SmoothlyBrokenPowerLaw1D.evaluate)

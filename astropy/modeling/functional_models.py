@@ -1775,7 +1775,8 @@ class Voigt1D(Fittable1DModel):
 
     def _wrap_wofz(self, z):
         """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
-        cache results for consecutive calls from `evaluate`, `fit_deriv`."""
+        cache results for consecutive calls from `evaluate`, `fit_deriv`.
+        """
 
         if z.shape == self._last_z.shape and np.allclose(
             z, self._last_z, rtol=1.0e-14, atol=1.0e-15

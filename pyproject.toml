@@ -132,7 +132,6 @@ extend-ignore = [
     "D202",  # NoBlankLineAfterFunction                # TODO: autofix
     "D203",  # OneBlankLineBeforeClass. Don't check.
     "D205",  # BlankLineAfterSummary                   # TODO: fix
-    "D209",  # NewLineAfterLastParagraph               # TODO: autofix
     "D210",  # NoSurroundingWhitespace                 # TODO: autofix
     "D211",  # NoBlankLineBeforeClass                  # TODO: autofix
     "D212", "D213",  # MultiLineSummaryFirst/Second Line  # TODO: fix one of these
