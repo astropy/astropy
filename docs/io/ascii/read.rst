@@ -1014,3 +1014,23 @@ just two lines the problem is easy to spot, but for longer tables, the line numb
 very helpful. We can now fix that line by hand in the file by adding quotes
 around ``"alpha Cen"``. Then we can try to read the table again and see
 if it works or if there is a another badly formatted data line.
+
+Reading Gaia Data Tables
+========================
+
+Gaia data tables are available in `ECSV
+<https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_ format including detailed
+metadata for the tables and columns (e.g. column descriptions, units, and data types).
+For example the DR3 tables are at http://cdn.gea.esac.esa.int/Gaia/gdr3/gaia_source/.
+
+The DR3 data files are not strictly compliant with the ECSV standard because they use
+the marker ``null`` to indicate a missing value instead of the required ``""``. In order
+to read these files correctly with the full metadata, we need to tell the ECSV reader
+to treat ``null`` as the missing value::
+
+  >>> from astropy.table import QTable
+  >>> dat = QTable.read(
+  ...     "GaiaSource_000000-003111.csv.gz",
+  ...     format="ascii.ecsv",
+  ...     fill_values=("null", "0")
+  ... )  # doctest: +SKIP
