@@ -61,12 +61,14 @@ class LogUnit(FunctionUnitBase):
 
     def from_physical(self, x):
         """Transformation from value in physical to value in logarithmic units.
-        Used in equivalency."""
+        Used in equivalency.
+        """
         return dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
-        Used in equivalency."""
+        Used in equivalency.
+        """
         return 10 ** self._function_unit.to(dex, x)
 
     # ^^^^ the four essential overrides of FunctionUnitBase

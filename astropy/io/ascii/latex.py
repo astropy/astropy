@@ -107,7 +107,8 @@ class LatexSplitter(core.BaseSplitter):
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line"""
+        \\ at end of line
+        """
         line = RE_COMMENT.split(line)[0]
         line = line.strip()
         if line.endswith(r"\\"):

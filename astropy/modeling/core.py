@@ -4213,7 +4213,8 @@ class CompoundModel(Model):
 
 def _get_submodel_path(model, name):
     """Find the route down a CompoundModel's tree to the model with the
-    specified name (whether it's a leaf or not)"""
+    specified name (whether it's a leaf or not)
+    """
     if getattr(model, "name", None) == name:
         return []
     try:

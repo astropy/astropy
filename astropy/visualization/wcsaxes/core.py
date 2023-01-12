@@ -39,7 +39,8 @@ class _WCSAxesArtist(Artist):
     ersatz ticks, labels, and gridlines by explicitly calling the functions
     ``CoordinateHelper._draw_ticks``, ``CoordinateHelper._draw_grid``, etc.
     This hack would not be necessary if ``WCSAxes`` drew ticks, tick labels,
-    and gridlines in the standary way."""
+    and gridlines in the standary way.
+    """
 
     def draw(self, renderer, *args, **kwargs):
         self.axes.draw_wcsaxes(renderer)

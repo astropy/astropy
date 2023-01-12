@@ -381,8 +381,8 @@ class EllipticalFrame(BaseFrame):
 
     def _update_patch_path(self):
         """Override path patch to include only the outer ellipse,
-        not the major and minor axes in the middle."""
-
+        not the major and minor axes in the middle.
+        """
         self.update_spines()
         vertices = self["c"].data
 
@@ -396,7 +396,8 @@ class EllipticalFrame(BaseFrame):
         not the major and minor axes in the middle.
 
         FIXME: we may want to add a general method to give the user control
-        over which spines are drawn."""
+        over which spines are drawn.
+        """
         axis = "c"
         x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
         line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)

@@ -788,7 +788,8 @@ def _read_in_chunks_generator(table, chunk_size, **kwargs):
     @contextlib.contextmanager
     def passthrough_fileobj(fileobj, encoding=None):
         """Stub for get_readable_fileobj, which does not seem to work in Py3
-        for input file-like object, see #6460"""
+        for input file-like object, see #6460
+        """
         yield fileobj
 
     # Set up to coerce `table` input into a readable file object by selecting

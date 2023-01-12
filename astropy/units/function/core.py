@@ -669,7 +669,8 @@ class FunctionQuantity(Quantity):
     def _comparison(self, other, comparison_func):
         """Do a comparison between self and other, raising UnitsError when
         other cannot be converted to self because it has different physical
-        unit, and returning NotImplemented when there are other errors."""
+        unit, and returning NotImplemented when there are other errors.
+        """
         try:
             # will raise a UnitsError if physical units not equivalent
             other_in_own_unit = self._to_own_unit(other, check_precision=False)

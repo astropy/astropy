@@ -86,7 +86,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
-        delimiter character (with trailing whitespace stripped)"""
+        delimiter character (with trailing whitespace stripped)
+        """
         delim = self.splitter.delimiter
         for line in lines:
             line = line.rstrip()
@@ -315,7 +316,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
         This function is called from there, once the width information is
-        available."""
+        available.
+        """
 
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
