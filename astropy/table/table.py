@@ -967,7 +967,8 @@ class Table:
     def _mask(self):
         """This is needed so that comparison of a masked Table and a
         MaskedArray works.  The requirement comes from numpy.ma.core
-        so don't remove this property."""
+        so don't remove this property.
+        """
         return self.as_array().mask
 
     def filled(self, fill_value=None):

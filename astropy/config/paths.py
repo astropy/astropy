@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-""" This module contains functions to determine where configuration and
+"""This module contains functions to determine where configuration and
 data/cache files used by Astropy should be placed.
 """
 

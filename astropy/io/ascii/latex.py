@@ -107,7 +107,8 @@ class LatexSplitter(core.BaseSplitter):
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line"""
+        \\ at end of line
+        """
         line = RE_COMMENT.split(line)[0]
         line = line.strip()
         if line.endswith(r"\\"):
@@ -319,6 +320,7 @@ class Latex(core.BaseReader):
             latexdict['col_align'] = col_align
 
     """
+
     _format_name = "latex"
     _io_registry_format_aliases = ["latex"]
     _io_registry_suffix = ".tex"
@@ -409,6 +411,7 @@ class AASTexHeader(LatexHeader):
 
     This header is modified to take that into account.
     """
+
     header_start = r"\tablehead"
     splitter_class = AASTexHeaderSplitter
 
@@ -446,6 +449,7 @@ class AASTexHeader(LatexHeader):
 
 class AASTexData(LatexData):
     r"""In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`"""
+
     data_start = r"\startdata"
     data_end = r"\enddata"
 

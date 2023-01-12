@@ -497,6 +497,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
     third Chebyshev polynomial (T2) is 2x^2-1, but if x was specified with
     units, 2x^2 and -1 would have incompatible units.
     """
+
     n_inputs = 1
     n_outputs = 1
 
@@ -620,6 +621,7 @@ class Hermite1D(_PolyDomainWindow1D):
     third Hermite polynomial (H2) is 4x^2-2, but if x was specified with units,
     4x^2 and -2 would have incompatible units.
     """
+
     n_inputs = 1
     n_outputs = 1
 
@@ -752,6 +754,7 @@ class Hermite2D(OrthoPolynomialBase):
     example, the third Hermite polynomial (H2) is 4x^2-2, but if x was
     specified with units, 4x^2 and -2 would have incompatible units.
     """
+
     _separable = False
 
     def __init__(
@@ -1415,6 +1418,7 @@ class Chebyshev2D(OrthoPolynomialBase):
     example, the third Chebyshev polynomial (T2) is 2x^2-1, but if x was
     specified with units, 2x^2 and -1 would have incompatible units.
     """
+
     _separable = False
 
     def __init__(
@@ -1573,6 +1577,7 @@ class Legendre2D(OrthoPolynomialBase):
     third Legendre polynomial (P2) is 1.5x^2-0.5, but if x was specified with
     units, 1.5x^2 and -0.5 would have incompatible units.
     """
+
     _separable = False
 
     def __init__(
