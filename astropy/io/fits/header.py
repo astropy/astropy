@@ -2155,7 +2155,8 @@ class _BasicHeader(collections.abc.Mapping):
     @classmethod
     def fromfile(cls, fileobj):
         """The main method to parse a FITS header from a file. The parsing is
-        done with the parse_header function implemented in Cython."""
+        done with the parse_header function implemented in Cython.
+        """
 
         close_file = False
         if isinstance(fileobj, str):
