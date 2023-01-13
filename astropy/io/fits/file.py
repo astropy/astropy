@@ -476,8 +476,12 @@ class _File:
 
         This will close the mmap if there are no arrays referencing it.
         """
-
-        if self._mmap is not None and sys.getrefcount(self._mmap) == 2 + refcount_delta:
+        # sys.getrefcount is CPython specific and not on PyPy.
+        if (
+            self._mmap is not None
+            and hasattr(sys, "getrefcount")
+            and sys.getrefcount(self._mmap) == 2 + refcount_delta
+        ):
             self._mmap.close()
             self._mmap = None
 
