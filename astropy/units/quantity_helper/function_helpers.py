@@ -1143,7 +1143,7 @@ def structured_to_unstructured(arr, *args, **kwargs):
 
 
 def _build_structured_unit(dtype, unit):
-    """Build structured unit from dtype
+    """Build structured unit from dtype.
 
     Parameters
     ----------

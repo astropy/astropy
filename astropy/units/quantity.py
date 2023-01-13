@@ -62,7 +62,7 @@ _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration parameters for Quantity
+    Configuration parameters for Quantity.
     """
 
     latex_array_threshold = _config.ConfigItem(
@@ -80,7 +80,7 @@ conf = Conf()
 
 class QuantityIterator:
     """
-    Flat iterator object to iterate over Quantities
+    Flat iterator object to iterate over Quantities.
 
     A `QuantityIterator` iterator is returned by ``q.flat`` for any Quantity
     ``q``.  It allows iterating over the array as if it were a 1-D array,
@@ -765,7 +765,7 @@ class Quantity(np.ndarray):
         return Quantity, True
 
     def _new_view(self, obj=None, unit=None, finalize=True):
-        """Create a Quantity view of some array-like input, and set the unit
+        """Create a Quantity view of some array-like input, and set the unit.
 
         By default, return a view of ``obj`` of the same class as ``self`` and
         with the same unit.  Subclasses can override the type of class for a

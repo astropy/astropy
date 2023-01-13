@@ -107,7 +107,7 @@ class UnifiedReadWrite:
             out.write(reader_doc)
 
     def list_formats(self, out=None):
-        """Print a list of available formats to console (or ``out`` filehandle)
+        """Print a list of available formats to console (or ``out`` filehandle).
 
         out : None or file handle object
             Output destination (default is stdout via a pager)

@@ -120,7 +120,7 @@ class NDArrayShapeMethods:
         return self._apply("diagonal", *args, **kwargs)
 
     def squeeze(self, *args, **kwargs):
-        """Return an instance with single-dimensional shape entries removed
+        """Return an instance with single-dimensional shape entries removed.
 
         Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
         data are views of the data of the original.

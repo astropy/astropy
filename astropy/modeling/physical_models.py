@@ -298,7 +298,7 @@ class Drude1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """
-        One dimensional Drude model function
+        One dimensional Drude model function.
         """
         return (
             amplitude
@@ -533,7 +533,7 @@ class NFW(Fittable1DModel):
 
     def evaluate(self, r, mass, concentration, redshift):
         """
-        One dimensional NFW profile function
+        One dimensional NFW profile function.
 
         Parameters
         ----------
@@ -682,7 +682,7 @@ class NFW(Fittable1DModel):
     @property
     def rho_scale(self):
         r"""
-        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`
+        Scale density of the NFW profile. Often written in the literature as :math:`\rho_s`.
         """
         return self.density_s
 

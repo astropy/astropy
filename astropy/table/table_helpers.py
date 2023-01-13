@@ -160,7 +160,7 @@ class ArrayWrapperInfo(ParentDtypeInfo):
 
 class ArrayWrapper:
     """
-    Minimal mixin using a simple wrapper around a numpy array
+    Minimal mixin using a simple wrapper around a numpy array.
 
     TODO: think about the future of this class as it is mostly for demonstration
     purposes (of the mixin protocol). Consider taking it out of core and putting
@@ -192,7 +192,7 @@ class ArrayWrapper:
         return len(self.data)
 
     def __eq__(self, other):
-        """Minimal equality testing, mostly for mixin unit tests"""
+        """Minimal equality testing, mostly for mixin unit tests."""
         if isinstance(other, ArrayWrapper):
             return self.data == other.data
         else:

@@ -180,7 +180,7 @@ _coE = (1.0, -0.002516, -0.0000074)
 )
 def calc_moon(t):
     """
-    Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)
+    Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50).
 
     This is the simplified version of Jean Meeus, Astronomical Algorithms,
     second edition, 1998, Willmann-Bell. Meeus claims approximate accuracy of 10"

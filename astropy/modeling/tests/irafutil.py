@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module provides functions to help with testing against iraf tasks
+This module provides functions to help with testing against iraf tasks.
 """
 
 
@@ -13,7 +13,7 @@ iraf_models_map = {1.0: "Chebyshev", 2.0: "Legendre", 3.0: "Spline3", 4.0: "Spli
 
 def get_records(fname):
     """
-    Read the records of an IRAF database file into a python list
+    Read the records of an IRAF database file into a python list.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def get_records(fname):
 
 def get_database_string(fname):
     """
-    Read an IRAF database file
+    Read an IRAF database file.
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ def get_database_string(fname):
 
 class Record:
     """
-    A base class for all records - represents an IRAF database record
+    A base class for all records - represents an IRAF database record.
 
     Attributes
     ----------
@@ -119,7 +119,7 @@ class Record:
 
 class IdentifyRecord(Record):
     """
-    Represents a database record for the onedspec.identify task
+    Represents a database record for the onedspec.identify task.
 
     Attributes
     ----------
@@ -181,7 +181,7 @@ class IdentifyRecord(Record):
 
 class FitcoordsRecord(Record):
     """
-    Represents a database record for the longslit.fitccords task
+    Represents a database record for the longslit.fitccords task.
 
     Attributes
     ----------
@@ -216,7 +216,7 @@ class FitcoordsRecord(Record):
 
 class IDB:
     """
-    Base class for an IRAF identify database
+    Base class for an IRAF identify database.
 
     Attributes
     ----------
@@ -246,7 +246,7 @@ class IDB:
 
 class ReidentifyRecord(IDB):
     """
-    Represents a database record for the onedspec.reidentify task
+    Represents a database record for the onedspec.reidentify task.
     """
 
     def __init__(self, databasestr):

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Core units classes and functions
+Core units classes and functions.
 """
 
 
@@ -81,10 +81,11 @@ def _flatten_units_collection(items):
 
 
 def _normalize_equivalencies(equivalencies):
-    """
-    Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+    """Normalizes equivalencies ensuring each is a 4-tuple.
 
-    (from_unit, to_unit, forward_func, backward_func)
+    The resulting tuple is of the form::
+
+        (from_unit, to_unit, forward_func, backward_func)
 
     Parameters
     ----------
@@ -673,11 +674,11 @@ class UnitBase:
         return unit_format.Latex.to_string(self)
 
     def __bytes__(self):
-        """Return string representation for unit"""
+        """Return string representation for unit."""
         return unit_format.Generic.to_string(self).encode("unicode_escape")
 
     def __str__(self):
-        """Return string representation for unit"""
+        """Return string representation for unit."""
         return unit_format.Generic.to_string(self)
 
     def __repr__(self):
@@ -769,10 +770,11 @@ class UnitBase:
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
-        """
-        Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+        """Normalizes equivalencies, ensuring each is a 4-tuple.
 
-        (from_unit, to_unit, forward_func, backward_func)
+        The resulting tuple is of the form::
+
+            (from_unit, to_unit, forward_func, backward_func)
 
         Parameters
         ----------

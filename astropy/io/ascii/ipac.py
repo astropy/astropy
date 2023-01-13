@@ -65,7 +65,7 @@ class IpacHeaderSplitter(core.BaseSplitter):
 
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
-    """IPAC table header"""
+    """IPAC table header."""
 
     splitter_class = IpacHeaderSplitter
 
@@ -86,7 +86,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
-        delimiter character (with trailing whitespace stripped)
+        delimiter character (with trailing whitespace stripped).
         """
         delim = self.splitter.delimiter
         for line in lines:
@@ -97,7 +97,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def update_meta(self, lines, meta):
         """
         Extract table-level comments and keywords for IPAC table.  See:
-        https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
+        https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw.
         """
 
         def process_keyword_value(val):
@@ -331,7 +331,7 @@ class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
 
 
 class IpacData(fixedwidth.FixedWidthData):
-    """IPAC table data reader"""
+    """IPAC table data reader."""
 
     comment = r"[|\\]"
     start_line = 0
@@ -339,7 +339,7 @@ class IpacData(fixedwidth.FixedWidthData):
     fill_values = [(core.masked, "null")]
 
     def write(self, lines, widths, vals_list):
-        """IPAC writer, modified from FixedWidth writer"""
+        """IPAC writer, modified from FixedWidth writer."""
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
         return lines

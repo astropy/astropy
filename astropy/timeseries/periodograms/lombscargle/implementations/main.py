@@ -1,5 +1,5 @@
 """
-Main Lomb-Scargle Implementation
+Main Lomb-Scargle Implementation.
 
 The ``lombscargle`` function here is essentially a sophisticated switch
 statement for the various implementations available in this submodule
@@ -52,7 +52,7 @@ def _is_regular(frequency):
 
 
 def _get_frequency_grid(frequency, assume_regular_frequency=False):
-    """Utility to get grid parameters from a frequency array
+    """Utility to get grid parameters from a frequency array.
 
     Parameters
     ----------
@@ -80,7 +80,7 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
 def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
     """
     Validate the method argument, and if method='auto'
-    choose the appropriate method
+    choose the appropriate method.
     """
     methods = available_methods()
     prefer_fast = len(frequency) > 200 and (

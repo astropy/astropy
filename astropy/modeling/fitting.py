@@ -74,7 +74,7 @@ OPTIMIZERS = [Simplex, SLSQP]
 
 class NonFiniteValueError(RuntimeError):
     """
-    Error raised when attempting to a non-finite value
+    Error raised when attempting to a non-finite value.
     """
 
 
@@ -164,7 +164,7 @@ class StandardDeviations:
 
 
 class ModelsError(Exception):
-    """Base class for model exceptions"""
+    """Base class for model exceptions."""
 
 
 class ModelLinearityError(ModelsError):
@@ -1094,7 +1094,7 @@ class FittingWithOutlierRemoval:
 
 class _NonLinearLSQFitter(metaclass=_FitterMeta):
     """
-    Base class for Non-Linear least-squares fitters
+    Base class for Non-Linear least-squares fitters.
 
     Parameters
     ----------

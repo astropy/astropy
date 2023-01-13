@@ -84,7 +84,7 @@ def dimensionless_angles():
 
 
 def logarithmic():
-    """Allow logarithmic units to be converted to dimensionless fractions"""
+    """Allow logarithmic units to be converted to dimensionless fractions."""
     return Equivalency(
         [(dimensionless_unscaled, function_units.dex, np.log10, lambda x: 10.0**x)],
         "logarithmic",
@@ -726,7 +726,7 @@ def beam_angular_area(beam_area):
 def thermodynamic_temperature(frequency, T_cmb=None):
     r"""Defines the conversion between Jy/sr and "thermodynamic temperature",
     :math:`T_{CMB}`, in Kelvins.  The thermodynamic temperature is a unit very
-    commonly used in cosmology. See eqn 8 in [1]
+    commonly used in cosmology. See eqn 8 in [1].
 
     :math:`K_{CMB} \equiv I_\nu / \left(2 k \nu^2 / c^2  f(\nu) \right)`
 

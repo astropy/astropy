@@ -3365,7 +3365,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def axis_type_names(self):
         """
-        World names for each coordinate axis
+        World names for each coordinate axis.
 
         Returns
         -------
@@ -3383,7 +3383,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def celestial(self):
         """
-        A copy of the current WCS with only the celestial axes included
+        A copy of the current WCS with only the celestial axes included.
         """
         return self.sub([WCSSUB_CELESTIAL])  # Defined by C-ext
 
@@ -3401,7 +3401,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def spectral(self):
         """
-        A copy of the current WCS with only the spectral axes included
+        A copy of the current WCS with only the spectral axes included.
         """
         return self.sub([WCSSUB_SPECTRAL])  # Defined by C-ext
 
@@ -3419,7 +3419,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def temporal(self):
         """
-        A copy of the current WCS with only the time axes included
+        A copy of the current WCS with only the time axes included.
         """
         if not _WCSSUB_TIME_SUPPORT:
             raise NotImplementedError(

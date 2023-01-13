@@ -36,7 +36,7 @@ _FK4_CORR = (
 def _fk4_B_matrix(obstime):
     """
     This is a correction term in the FK4 transformations because FK4 is a
-    rotating system - see Murray 89 eqn 29
+    rotating system - see Murray 89 eqn 29.
     """
     # Note this is *julian century*, not besselian
     T = (obstime.jyear - 1950.0) / 100.0

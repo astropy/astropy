@@ -441,7 +441,7 @@ class SAMPHubServer:
     @property
     def params(self):
         """
-        The hub parameters (which are written to the logfile)
+        The hub parameters (which are written to the logfile).
         """
 
         params = {}

@@ -282,7 +282,7 @@ def wcsapi_to_celestial_frame(wcs):
 
 class WCSWorld2PixelTransform(CurvedTransform):
     """
-    WCS transformation from world to pixel coordinates
+    WCS transformation from world to pixel coordinates.
     """
 
     has_inverse = True
@@ -335,14 +335,14 @@ class WCSWorld2PixelTransform(CurvedTransform):
 
     def inverted(self):
         """
-        Return the inverse of the transform
+        Return the inverse of the transform.
         """
         return WCSPixel2WorldTransform(self.wcs, invert_xy=self.invert_xy)
 
 
 class WCSPixel2WorldTransform(CurvedTransform):
     """
-    WCS transformation from pixel to world coordinates
+    WCS transformation from pixel to world coordinates.
     """
 
     has_inverse = True
@@ -397,6 +397,6 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
     def inverted(self):
         """
-        Return the inverse of the transform
+        Return the inverse of the transform.
         """
         return WCSWorld2PixelTransform(self.wcs, invert_xy=self.invert_xy)

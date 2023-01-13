@@ -61,7 +61,7 @@ class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
 
 class DuplicateRepresentationWarning(AstropyWarning):
     """
-    A warning class indicating a representation name was already registered
+    A warning class indicating a representation name was already registered.
     """
 
 

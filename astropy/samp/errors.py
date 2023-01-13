@@ -13,7 +13,7 @@ __all__ = ["SAMPWarning", "SAMPHubError", "SAMPClientError", "SAMPProxyError"]
 
 class SAMPWarning(AstropyUserWarning):
     """
-    SAMP-specific Astropy warning class
+    SAMP-specific Astropy warning class.
     """
 
 
@@ -31,5 +31,5 @@ class SAMPClientError(Exception):
 
 class SAMPProxyError(xmlrpc.Fault):
     """
-    SAMP Proxy Hub exception
+    SAMP Proxy Hub exception.
     """

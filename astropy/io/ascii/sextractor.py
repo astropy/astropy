@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """sextractor.py:
-  Classes to read SExtractor table format
+  Classes to read SExtractor table format.
 
 Built on daophot.py:
 :Copyright: Smithsonian Astrophysical Observatory (2011)

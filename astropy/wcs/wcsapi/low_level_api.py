@@ -325,9 +325,9 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return False
 
     def _as_mpl_axes(self):
-        """
-        Compatibility hook for Matplotlib and WCSAxes. With this method, one can
-        do::
+        """Compatibility hook for Matplotlib and WCSAxes.
+
+        With this method, one can do::
 
             from astropy.wcs import WCS
             import matplotlib.pyplot as plt
@@ -351,7 +351,7 @@ with open(UCDS_FILE) as f:
 
 def validate_physical_types(physical_types):
     """
-    Validate a list of physical types against the UCD1+ standard
+    Validate a list of physical types against the UCD1+ standard.
     """
     for physical_type in physical_types:
         if (

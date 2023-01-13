@@ -232,7 +232,7 @@ class TimeFormat:
 
     @property
     def scale(self):
-        """Time scale"""
+        """Time scale."""
         self._scale = self._check_scale(self._scale)
         return self._scale
 
@@ -282,7 +282,7 @@ class TimeFormat:
         return defaultdict(dict)
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes"""
+        """Input value validation, typically overridden by derived classes."""
         # val1 cannot contain nan, but val2 can contain nan
         isfinite1 = np.isfinite(val1)
         if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
@@ -465,7 +465,7 @@ class TimeNumeric(TimeFormat):
     )
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes"""
+        """Input value validation, typically overridden by derived classes."""
         # Save original state of val2 because the super()._check_val_type below
         # may change val2 from None to np.array(0). The value is saved in order
         # to prevent a useless and slow call to np.result_type() below in the
@@ -660,7 +660,7 @@ class TimeFromEpoch(TimeNumeric):
 
     @property
     def epoch(self):
-        """Reference epoch time from which the time interval is measured"""
+        """Reference epoch time from which the time interval is measured."""
         return self._epoch
 
     def set_jds(self, val1, val2):
@@ -864,7 +864,7 @@ class TimeGPS(TimeFromEpoch):
 class TimePlotDate(TimeFromEpoch):
     """
     Matplotlib `~matplotlib.pyplot.plot_date` input:
-    1 + number of days from 0001-01-01 00:00:00 UTC
+    1 + number of days from 0001-01-01 00:00:00 UTC.
 
     This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date`
     function::
@@ -890,7 +890,7 @@ class TimePlotDate(TimeFromEpoch):
 
     @lazyproperty
     def epoch(self):
-        """Reference epoch time from which the time interval is measured"""
+        """Reference epoch time from which the time interval is measured."""
         try:
             # Matplotlib >= 3.3 has a get_epoch() function
             from matplotlib.dates import get_epoch
@@ -915,7 +915,7 @@ class TimeStardate(TimeFromEpoch):
     """
     Stardate: date units from 2318-07-05 12:00:00 UTC.
     For example, stardate 41153.7 is 00:52 on April 30, 2363.
-    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points
+    See http://trekguide.com/Stardates.htm#TNG for calculations and reference points.
     """
 
     name = "stardate"
@@ -1006,7 +1006,7 @@ class TimeAstropyTime(TimeUnique):
 
 class TimeDatetime(TimeUnique):
     """
-    Represent date as Python standard library `~datetime.datetime` object
+    Represent date as Python standard library `~datetime.datetime` object.
 
     Example::
 
@@ -1033,7 +1033,7 @@ class TimeDatetime(TimeUnique):
         return val1, None
 
     def set_jds(self, val1, val2):
-        """Convert datetime object contained in val1 to jd1, jd2"""
+        """Convert datetime object contained in val1 to jd1, jd2."""
         # Iterate through the datetime objects, getting year, month, etc.
         iterator = np.nditer(
             [val1, None, None, None, None, None, None],
@@ -1447,7 +1447,7 @@ class TimeString(TimeUnique):
             raise ValueError(f"Time {timestr} does not match {self.name} format")
 
     def set_jds(self, val1, val2):
-        """Parse the time strings contained in val1 and set jd1, jd2"""
+        """Parse the time strings contained in val1 and set jd1, jd2."""
         # If specific input subformat is required then use the Python parser.
         # Also do this if Time format class does not define `use_fast_parser` or
         # if the fast parser is entirely disabled. Note that `use_fast_parser`
@@ -1472,7 +1472,7 @@ class TimeString(TimeUnique):
         self.jd2 = jd2
 
     def get_jds_python(self, val1, val2):
-        """Parse the time strings contained in val1 and get jd1, jd2"""
+        """Parse the time strings contained in val1 and get jd1, jd2."""
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
@@ -1505,7 +1505,7 @@ class TimeString(TimeUnique):
         return jd1, jd2
 
     def get_jds_fast(self, val1, val2):
-        """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
+        """Use fast C parser to parse time strings in val1 and get jd1, jd2."""
         # Handle bytes or str input and convert to uint8.  We need to the
         # dtype _parse_times.dt_u1 instead of uint8, since otherwise it is
         # not possible to create a gufunc with structured dtype output.
@@ -1854,7 +1854,7 @@ class TimeFITS(TimeString):
     )
 
     def parse_string(self, timestr, subfmts):
-        """Read time and deprecated scale if present"""
+        """Read time and deprecated scale if present."""
         # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
@@ -1913,7 +1913,7 @@ class TimeFITS(TimeString):
 
 class TimeEpochDate(TimeNumeric):
     """
-    Base class for support floating point Besselian and Julian epoch dates
+    Base class for support floating point Besselian and Julian epoch dates.
     """
 
     _default_scale = "tt"  # As of astropy 3.2, this is no longer 'utc'.
@@ -1933,14 +1933,14 @@ class TimeEpochDate(TimeNumeric):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year as floating point value(s) like 1950.0"""
+    """Besselian Epoch year as floating point value(s) like 1950.0."""
 
     name = "byear"
     epoch_to_jd = "epb2jd"
     jd_to_epoch = "epb"
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes"""
+        """Input value validation, typically overridden by derived classes."""
         if hasattr(val1, "to") and hasattr(val1, "unit") and val1.unit is not None:
             raise ValueError(
                 "Cannot use Quantities for 'byear' format, as the interpretation "
@@ -1951,7 +1951,7 @@ class TimeBesselianEpoch(TimeEpochDate):
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year as floating point value(s) like 2000.0"""
+    """Julian Epoch year as floating point value(s) like 2000.0."""
 
     name = "jyear"
     unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
@@ -2004,7 +2004,7 @@ class TimeEpochDateString(TimeString):
 
 
 class TimeBesselianEpochString(TimeEpochDateString):
-    """Besselian Epoch year as string value(s) like 'B1950.0'"""
+    """Besselian Epoch year as string value(s) like 'B1950.0'."""
 
     name = "byear_str"
     epoch_to_jd = "epb2jd"
@@ -2013,7 +2013,7 @@ class TimeBesselianEpochString(TimeEpochDateString):
 
 
 class TimeJulianEpochString(TimeEpochDateString):
-    """Julian Epoch year as string value(s) like 'J2000.0'"""
+    """Julian Epoch year as string value(s) like 'J2000.0'."""
 
     name = "jyear_str"
     epoch_to_jd = "epj2jd"
@@ -2022,13 +2022,13 @@ class TimeJulianEpochString(TimeEpochDateString):
 
 
 class TimeDeltaFormat(TimeFormat):
-    """Base class for time delta representations"""
+    """Base class for time delta representations."""
 
     _registry = TIME_DELTA_FORMATS
 
     def _check_scale(self, scale):
         """
-        Check that the scale is in the allowed list of scales, or is `None`
+        Check that the scale is in the allowed list of scales, or is `None`.
         """
         if scale is not None and scale not in TIME_DELTA_SCALES:
             raise ScaleValueError(
@@ -2055,21 +2055,21 @@ class TimeDeltaNumeric(TimeDeltaFormat, TimeNumeric):
 
 
 class TimeDeltaSec(TimeDeltaNumeric):
-    """Time delta in SI seconds"""
+    """Time delta in SI seconds."""
 
     name = "sec"
     unit = 1.0 / erfa.DAYSEC  # for quantity input
 
 
 class TimeDeltaJD(TimeDeltaNumeric):
-    """Time delta in Julian days (86400 SI seconds)"""
+    """Time delta in Julian days (86400 SI seconds)."""
 
     name = "jd"
     unit = 1.0
 
 
 class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
-    """Time delta in datetime.timedelta"""
+    """Time delta in datetime.timedelta."""
 
     name = "datetime"
 

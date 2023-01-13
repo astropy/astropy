@@ -284,7 +284,7 @@ class TestRunnerBase:
 
 class TestRunner(TestRunnerBase):
     """
-    A test runner for astropy tests
+    A test runner for astropy tests.
     """
 
     def packages_path(self, packages, base_path, error=None, warning=None):

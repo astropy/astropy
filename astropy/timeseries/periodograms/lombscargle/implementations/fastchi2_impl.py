@@ -17,7 +17,7 @@ def lombscargle_fastchi2(
     use_fft=True,
     trig_sum_kwds=None,
 ):
-    """Lomb-Scargle Periodogram
+    """Lomb-Scargle Periodogram.
 
     This implements a fast chi-squared periodogram using the algorithm
     outlined in [4]_. The result is identical to the standard Lomb-Scargle

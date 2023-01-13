@@ -272,7 +272,7 @@ class SortedArray:
     def items(self):
         """
         Retrieve all array items as a list of pairs of the form
-        [(key, [row 1, row 2, ...]), ...]
+        [(key, [row 1, row 2, ...]), ...].
         """
         array = []
         last_key = None

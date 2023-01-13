@@ -401,7 +401,7 @@ class CoordinateHelper:
 
     def set_ticks_position(self, position):
         """
-        Set where ticks should appear
+        Set where ticks should appear.
 
         Parameters
         ----------
@@ -456,7 +456,7 @@ class CoordinateHelper:
 
     def set_ticklabel_position(self, position):
         """
-        Set where tick labels should appear
+        Set where tick labels should appear.
 
         Parameters
         ----------
@@ -512,7 +512,7 @@ class CoordinateHelper:
 
     def get_axislabel(self):
         """
-        Get the text for the axis label
+        Get the text for the axis label.
 
         Returns
         -------
@@ -553,7 +553,7 @@ class CoordinateHelper:
 
     def set_axislabel_position(self, position):
         """
-        Set where axis labels should appear
+        Set where axis labels should appear.
 
         Parameters
         ----------

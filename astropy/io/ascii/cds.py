@@ -184,13 +184,13 @@ class CdsHeader(core.BaseHeader):
 
 
 class CdsData(core.BaseData):
-    """CDS table data reader"""
+    """CDS table data reader."""
 
     _subfmt = "CDS"
     splitter_class = fixedwidth.FixedWidthSplitter
 
     def process_lines(self, lines):
-        """Skip over CDS/MRT header by finding the last section delimiter"""
+        """Skip over CDS/MRT header by finding the last section delimiter."""
         # If the header has a ReadMe and data has a filename
         # then no need to skip, as the data lines do not have header
         # info. The ``read`` method adds the table_name to the ``data``
@@ -326,7 +326,7 @@ class Cds(core.BaseReader):
         self.header.readme = readme
 
     def write(self, table=None):
-        """Not available for the CDS class (raises NotImplementedError)"""
+        """Not available for the CDS class (raises NotImplementedError)."""
         raise NotImplementedError
 
     def read(self, table):
