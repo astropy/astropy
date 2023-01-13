@@ -121,7 +121,7 @@ UNSUPPORTED_UFUNCS = UFUNC_HELPERS.UNSUPPORTED
 
 
 def can_have_arbitrary_unit(value):
-    """Test whether the items in value can have arbitrary units
+    """Test whether the items in value can have arbitrary units.
 
     Numbers whose value does not change upon a unit change, i.e.,
     zero, infinity, or not-a-number

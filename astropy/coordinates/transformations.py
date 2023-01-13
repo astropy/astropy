@@ -767,7 +767,7 @@ class TransformGraph:
     @contextmanager
     def impose_finite_difference_dt(self, dt):
         """
-        Context manager to impose a finite-difference time step on all applicable transformations
+        Context manager to impose a finite-difference time step on all applicable transformations.
 
         For each transformation in this transformation graph that has the attribute
         ``finite_difference_dt``, that attribute is set to the provided value.  The only standard

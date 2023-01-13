@@ -106,7 +106,7 @@ class PolynomialModel(PolynomialBase):
 
     def get_num_coeff(self, ndim):
         """
-        Return the number of coefficients in one parameter set
+        Return the number of coefficients in one parameter set.
         """
 
         if self.degree < 0:
@@ -349,7 +349,7 @@ class OrthoPolynomialBase(PolynomialBase):
 
     def get_num_coeff(self):
         """
-        Determine how many coefficients are needed
+        Determine how many coefficients are needed.
 
         Returns
         -------
@@ -847,7 +847,7 @@ class Hermite2D(OrthoPolynomialBase):
 
     def _hermderiv1d(self, x, deg):
         """
-        Derivative of 1D Hermite series
+        Derivative of 1D Hermite series.
         """
 
         x = np.array(x, dtype=float, copy=False, ndmin=1)
@@ -1292,7 +1292,7 @@ class Polynomial2D(PolynomialModel):
 
     def multivariate_horner(self, x, y, coeffs):
         """
-        Multivariate Horner's scheme
+        Multivariate Horner's scheme.
 
         Parameters
         ----------
@@ -1511,7 +1511,7 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     def _chebderiv1d(self, x, deg):
         """
-        Derivative of 1D Chebyshev series
+        Derivative of 1D Chebyshev series.
         """
 
         x = np.array(x, dtype=float, copy=False, ndmin=1)
@@ -1633,8 +1633,8 @@ class Legendre2D(OrthoPolynomialBase):
         return kfunc
 
     def fit_deriv(self, x, y, *params):
-        """
-        Derivatives with respect to the coefficients.
+        """Derivatives with respect to the coefficients.
+
         This is an array with Legendre polynomials:
 
         Lx0Ly0  Lx1Ly0...LxnLy0...LxnLym
@@ -1669,7 +1669,7 @@ class Legendre2D(OrthoPolynomialBase):
         return v.T
 
     def _legendderiv1d(self, x, deg):
-        """Derivative of 1D Legendre polynomial"""
+        """Derivative of 1D Legendre polynomial."""
 
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
@@ -1742,7 +1742,7 @@ class _SIP1D(PolynomialBase):
 
     def get_num_coeff(self, ndim):
         """
-        Return the number of coefficients in one param set
+        Return the number of coefficients in one param set.
         """
 
         if self.order < 2 or self.order > 9:
@@ -1914,7 +1914,7 @@ class SIP(Model):
 
 class InverseSIP(Model):
     """
-    Inverse Simple Imaging Polynomial
+    Inverse Simple Imaging Polynomial.
 
     Parameters
     ----------

@@ -1,6 +1,6 @@
 """
 Module for parsing astronomical object names to extract embedded coordinates
-eg: '2MASS J06495091-0737408'
+eg: '2MASS J06495091-0737408'.
 """
 
 import re
@@ -25,7 +25,7 @@ def _sexagesimal(g):
 
 
 def search(name, raise_=False):
-    """Regex match for coordinates in name"""
+    """Regex match for coordinates in name."""
     # extract the coordinate data from name
     match = JPARSER.search(name)
     if match is None and raise_:
@@ -34,7 +34,7 @@ def search(name, raise_=False):
 
 
 def to_ra_dec_angles(name):
-    """get RA in hourangle and DEC in degrees by parsing name"""
+    """get RA in hourangle and DEC in degrees by parsing name."""
     groups = search(name, True).groups()
     prefix, hms, dms = np.split(groups, [1, 6])
     ra = (_sexagesimal(hms) / (1, 60, 60 * 60) * u.hourangle).sum()
@@ -43,19 +43,22 @@ def to_ra_dec_angles(name):
 
 
 def to_skycoord(name, frame="icrs"):
-    """Convert to `name` to `SkyCoords` object"""
+    """Convert to `name` to `SkyCoords` object."""
     return SkyCoord(*to_ra_dec_angles(name), frame=frame)
 
 
 def shorten(name):
-    """
-    Produce a shortened version of the full object name using: the prefix
-    (usually the survey name) and RA (hour, minute), DEC (deg, arcmin) parts.
-        e.g.: '2MASS J06495091-0737408' --> '2MASS J0649-0737'
+    """Produce a shortened version of the full object name.
+
+    The shortened name is built from the prefix (usually the survey name) and RA (hour,
+    minute), DEC (deg, arcmin) parts.
+    e.g.: '2MASS J06495091-0737408' --> '2MASS J0649-0737'
+
     Parameters
     ----------
     name : str
         Full object name with J-coords embedded.
+
     Returns
     -------
     shortName: str

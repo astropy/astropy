@@ -2,7 +2,7 @@
 
 """
 Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
-another set of [0:1] values with a transformation
+another set of [0:1] values with a transformation.
 """
 
 import numpy as np

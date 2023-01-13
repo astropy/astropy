@@ -24,7 +24,7 @@ else:
     def packages_distributions():
         """
         Return a mapping of top-level packages to their distributions.
-        Note: copied from https://github.com/python/importlib_metadata/pull/287
+        Note: copied from https://github.com/python/importlib_metadata/pull/287.
         """
         pkg_to_dist = collections.defaultdict(list)
         for dist in metadata.distributions():

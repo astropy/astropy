@@ -37,7 +37,7 @@ class ErfaAstrom:
     @staticmethod
     def apco(frame_or_coord):
         """
-        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS.
 
         Parameters
         ----------
@@ -91,7 +91,7 @@ class ErfaAstrom:
     @staticmethod
     def apcs(frame_or_coord):
         """
-        Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
+        Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS.
 
         Parameters
         ----------
@@ -315,7 +315,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
     @staticmethod
     def _get_polar_motion(support, obstime):
         """
-        Find the two polar motion components in radians
+        Find the two polar motion components in radians.
 
         Uses the coarser grid ``support`` to do the calculation, and interpolates
         onto the finer grid ``obstime``.
@@ -328,7 +328,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     def apco(self, frame_or_coord):
         """
-        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS.
 
         Parameters
         ----------
@@ -387,7 +387,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     def apcs(self, frame_or_coord):
         """
-        Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
+        Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS.
 
         Parameters
         ----------

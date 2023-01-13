@@ -1,5 +1,4 @@
-"""
-High-level table operations:
+"""High-level table operations.
 
 - join()
 - setdiff()
@@ -534,7 +533,7 @@ def setdiff(table1, table2, keys=None):
 
 def dstack(tables, join_type="outer", metadata_conflicts="warn"):
     """
-    Stack columns within tables depth-wise
+    Stack columns within tables depth-wise.
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -627,7 +626,7 @@ def dstack(tables, join_type="outer", metadata_conflicts="warn"):
 
 def vstack(tables, join_type="outer", metadata_conflicts="warn"):
     """
-    Stack tables vertically (along rows)
+    Stack tables vertically (along rows).
 
     A ``join_type`` of 'exact' means that the tables must all have exactly
     the same column names (though the order can vary).  If ``join_type``
@@ -701,7 +700,7 @@ def hstack(
     metadata_conflicts="warn",
 ):
     """
-    Stack tables along columns (horizontally)
+    Stack tables along columns (horizontally).
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -1088,7 +1087,7 @@ def _get_join_sort_idxs(keys, left, right):
 
 
 def _apply_join_funcs(left, right, keys, join_funcs):
-    """Apply join_funcs"""
+    """Apply join_funcs."""
     # Make light copies of left and right, then add new index columns.
     left = left.copy(copy_data=False)
     right = right.copy(copy_data=False)
@@ -1418,7 +1417,7 @@ def _check_join_type(join_type, func_name):
 
 def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="warn"):
     """
-    Stack Tables vertically (by rows)
+    Stack Tables vertically (by rows).
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same column names (though the order can vary).  If
@@ -1543,7 +1542,7 @@ def _hstack(
     col_name_map=None,
 ):
     """
-    Stack tables horizontally (by columns)
+    Stack tables horizontally (by columns).
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then

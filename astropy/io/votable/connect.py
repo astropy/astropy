@@ -51,7 +51,7 @@ def read_table_votable(
     input, table_id=None, use_names_over_ids=False, verify=None, **kwargs
 ):
     """
-    Read a Table object from an VO table file
+    Read a Table object from an VO table file.
 
     Parameters
     ----------
@@ -134,7 +134,7 @@ def write_table_votable(
     input, output, table_id=None, overwrite=False, tabledata_format=None
 ):
     """
-    Write a Table object to an VO table file
+    Write a Table object to an VO table file.
 
     Parameters
     ----------

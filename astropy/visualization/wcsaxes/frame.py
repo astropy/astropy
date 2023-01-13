@@ -102,7 +102,7 @@ class Spine:
 
     def _halfway_x_y_angle(self):
         """
-        Return the x, y, normal_angle values halfway along the spine
+        Return the x, y, normal_angle values halfway along the spine.
         """
         x_disp, y_disp = self.pixel[:, 0], self.pixel[:, 1]
         # Get distance along the path

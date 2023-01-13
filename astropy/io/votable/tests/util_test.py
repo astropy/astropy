@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-A set of tests for the util.py module
+A set of tests for the util.py module.
 """
 import pytest
 

@@ -4,7 +4,7 @@ import numpy as np
 def lombscargle_slow(
     t, y, dy, frequency, normalization="standard", fit_mean=True, center_data=True
 ):
-    """Lomb-Scargle Periodogram
+    """Lomb-Scargle Periodogram.
 
     This is a pure-python implementation of the original Lomb-Scargle formalism
     (e.g. [1]_, [2]_), with the addition of the floating mean (e.g. [3]_)

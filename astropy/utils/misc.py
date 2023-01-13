@@ -95,7 +95,8 @@ def silence():
 
 
 def format_exception(msg, *args, **kwargs):
-    """
+    """Fill in information about the exception that occurred.
+
     Given an exception message string, uses new-style formatting arguments
     ``{filename}``, ``{lineno}``, ``{func}`` and/or ``{text}`` to fill in
     information about the exception that occurred.  For example:
@@ -324,7 +325,7 @@ if sys.platform == "win32":
         """
         Returns True if the given filepath has the hidden attribute on
         MS-Windows.  Based on a post here:
-        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
+        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection.
         """
         if isinstance(filepath, bytes):
             filepath = filepath.decode(sys.getfilesystemencoding())
@@ -897,12 +898,12 @@ def _hungry_for(option):  # pragma: no cover
 
 
 def pizza():  # pragma: no cover
-    """``/pizza``"""
+    """``/pizza``."""
     _hungry_for("pizza")
 
 
 def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
-    """``/coffee``"""
+    """``/coffee``."""
     if is_adam and is_brigitta:
         raise ValueError("There can be only one!")
     if is_adam:

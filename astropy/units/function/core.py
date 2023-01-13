@@ -304,7 +304,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return not self.__eq__(other)
 
     def __rlshift__(self, other):
-        """Unit conversion operator ``<<``"""
+        """Unit conversion operator ``<<``."""
         try:
             return self._quantity_class(other, self, copy=False, subok=True)
         except Exception:
@@ -715,7 +715,7 @@ class FunctionQuantity(Quantity):
         return self._comparison(other, self.value.__le__)
 
     def __lshift__(self, other):
-        """Unit conversion operator `<<`"""
+        """Unit conversion operator `<<`."""
         try:
             other = Unit(other, parse_strict="silent")
         except UnitTypeError:

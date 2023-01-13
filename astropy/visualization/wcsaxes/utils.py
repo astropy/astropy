@@ -115,7 +115,7 @@ def get_coord_meta(frame):
 def transform_contour_set_inplace(cset, transform):
     """
     Transform a contour set in-place using a specified
-    :class:`matplotlib.transform.Transform`
+    :class:`matplotlib.transform.Transform`.
 
     Using transforms with the native Matplotlib contour/contourf can be slow if
     the transforms have a non-negligible overhead (which is the case for

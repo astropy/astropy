@@ -73,8 +73,8 @@ def _save_coverage(cov, result, rootdir, testing_path):
 
 @deprecated("5.1", alternative="pytest.raises")
 class raises:
-    """
-    A decorator to mark that a test should raise a given exception.
+    """A decorator to mark that a test should raise a given exception.
+
     Use as follows::
 
         @raises(ZeroDivisionError)
@@ -416,7 +416,7 @@ def assert_follows_unicode_guidelines(x, roundtrip=None):
 def pickle_protocol(request):
     """
     Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
-    (Originally from astropy.table.tests.test_pickle)
+    (Originally from astropy.table.tests.test_pickle).
     """
     return request.param
 

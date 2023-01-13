@@ -24,7 +24,7 @@ def validate_unit_consistency(reference_object, input_object):
 
 
 class BoxLeastSquares(BasePeriodogram):
-    """Compute the box least squares periodogram
+    """Compute the box least squares periodogram.
 
     This method is a commonly used tool for discovering transiting exoplanets
     or eclipsing binaries in photometric time series datasets. This
@@ -117,7 +117,7 @@ class BoxLeastSquares(BasePeriodogram):
         minimum_n_transit=3,
         frequency_factor=1.0,
     ):
-        """Determine a suitable grid of periods
+        """Determine a suitable grid of periods.
 
         This method uses a set of heuristics to select a conservative period
         grid that is uniform in frequency. This grid might be too fine for
@@ -228,7 +228,7 @@ class BoxLeastSquares(BasePeriodogram):
         maximum_period=None,
         frequency_factor=1.0,
     ):
-        """Compute the periodogram at set of heuristically determined periods
+        """Compute the periodogram at set of heuristically determined periods.
 
         This method calls :func:`BoxLeastSquares.autoperiod` to determine
         the period grid and then :func:`BoxLeastSquares.power` to compute
@@ -247,7 +247,7 @@ class BoxLeastSquares(BasePeriodogram):
         )
 
     def power(self, period, duration, objective=None, method=None, oversample=10):
-        """Compute the periodogram for a set of periods
+        """Compute the periodogram for a set of periods.
 
         Parameters
         ----------
@@ -398,7 +398,7 @@ class BoxLeastSquares(BasePeriodogram):
         return times
 
     def model(self, t_model, period, duration, transit_time):
-        """Compute the transit model at the given period, duration, and phase
+        """Compute the transit model at the given period, duration, and phase.
 
         Parameters
         ----------
@@ -451,7 +451,7 @@ class BoxLeastSquares(BasePeriodogram):
         return y_model * self._y_unit()
 
     def compute_stats(self, period, duration, transit_time):
-        """Compute descriptive statistics for a given transit model
+        """Compute descriptive statistics for a given transit model.
 
         These statistics are commonly used for vetting of transit candidates.
 
@@ -602,7 +602,7 @@ class BoxLeastSquares(BasePeriodogram):
         )
 
     def transit_mask(self, t, period, duration, transit_time):
-        """Compute which data points are in transit for a given parameter set
+        """Compute which data points are in transit for a given parameter set.
 
         Parameters
         ----------
@@ -635,7 +635,7 @@ class BoxLeastSquares(BasePeriodogram):
         return np.abs((t - transit_time + hp) % period - hp) < 0.5 * duration
 
     def _validate_inputs(self, t, y, dy):
-        """Private method used to check the consistency of the inputs
+        """Private method used to check the consistency of the inputs.
 
         Parameters
         ----------
@@ -674,7 +674,7 @@ class BoxLeastSquares(BasePeriodogram):
         return t, y, dy
 
     def _validate_duration(self, duration):
-        """Private method used to check a set of test durations
+        """Private method used to check a set of test durations.
 
         Parameters
         ----------
@@ -698,7 +698,7 @@ class BoxLeastSquares(BasePeriodogram):
         return validate_unit_consistency(self._trel, duration)
 
     def _validate_period_and_duration(self, period, duration):
-        """Private method used to check a set of periods and durations
+        """Private method used to check a set of periods and durations.
 
         Parameters
         ----------
@@ -733,7 +733,7 @@ class BoxLeastSquares(BasePeriodogram):
         return period, duration
 
     def _format_results(self, t_ref, objective, period, results):
-        """A private method used to wrap and add units to the periodogram
+        """A private method used to wrap and add units to the periodogram.
 
         Parameters
         ----------
@@ -807,7 +807,7 @@ class BoxLeastSquares(BasePeriodogram):
 
 
 class BoxLeastSquaresResults(dict):
-    """The results of a BoxLeastSquares search
+    """The results of a BoxLeastSquares search.
 
     Attributes
     ----------

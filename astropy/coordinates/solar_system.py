@@ -556,7 +556,7 @@ should be used instead.
 def _apparent_position_in_true_coordinates(skycoord):
     """
     Convert Skycoord in GCRS frame into one in which RA and Dec
-    are defined w.r.t to the true equinox and poles of the Earth
+    are defined w.r.t to the true equinox and poles of the Earth.
     """
     location = getattr(skycoord, "location", None)
     if location is None:

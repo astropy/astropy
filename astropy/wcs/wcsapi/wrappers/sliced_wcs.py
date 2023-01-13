@@ -13,7 +13,7 @@ __all__ = ["sanitize_slices", "SlicedLowLevelWCS"]
 
 def sanitize_slices(slices, ndim):
     """
-    Given a slice as input sanitise it to an easier to parse format.format
+    Given a slice as input sanitise it to an easier to parse format.format.
 
     This function returns a list ``ndim`` long containing slice objects (or ints).
     """

@@ -60,7 +60,7 @@ def test_unit_format():
 def test_namespace_warning():
     """
     A version 1.4 VOTable must use the same namespace as 1.3.
-    (see https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html#ToC16)
+    (see https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html#ToC16).
     """
     bad_namespace = b"""<?xml version="1.0" encoding="utf-8"?>
         <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.4"

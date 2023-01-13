@@ -36,7 +36,7 @@ class ParameterDefinitionError(ParameterError):
 
 
 def _tofloat(value):
-    """Convert a parameter to float or float array"""
+    """Convert a parameter to float or float array."""
 
     if isiterable(value):
         try:
@@ -323,13 +323,13 @@ class Parameter:
 
     @property
     def name(self):
-        """Parameter name"""
+        """Parameter name."""
 
         return self._name
 
     @property
     def default(self):
-        """Parameter default value"""
+        """Parameter default value."""
         return self._default
 
     @property
@@ -407,7 +407,7 @@ class Parameter:
     @property
     def internal_unit(self):
         """
-        Return the internal unit the parameter uses for the internal value stored
+        Return the internal unit the parameter uses for the internal value stored.
         """
         return self._internal_unit
 
@@ -510,7 +510,7 @@ class Parameter:
 
     @tied.setter
     def tied(self, value):
-        """Tie a parameter"""
+        """Tie a parameter."""
 
         if not callable(value) and value not in (False, None):
             raise TypeError("Tied must be a callable or set to False or None")
@@ -518,13 +518,13 @@ class Parameter:
 
     @property
     def bounds(self):
-        """The minimum and maximum values of a parameter as a tuple"""
+        """The minimum and maximum values of a parameter as a tuple."""
 
         return self._bounds
 
     @bounds.setter
     def bounds(self, value):
-        """Set the minimum and maximum values of a parameter from a tuple"""
+        """Set the minimum and maximum values of a parameter from a tuple."""
 
         _min, _max = value
         if _min is not None:
@@ -547,19 +547,19 @@ class Parameter:
 
     @property
     def min(self):
-        """A value used as a lower bound when fitting a parameter"""
+        """A value used as a lower bound when fitting a parameter."""
 
         return self.bounds[0]
 
     @min.setter
     def min(self, value):
-        """Set a minimum value of a parameter"""
+        """Set a minimum value of a parameter."""
 
         self.bounds = (value, self.max)
 
     @property
     def max(self):
-        """A value used as an upper bound when fitting a parameter"""
+        """A value used as an upper bound when fitting a parameter."""
 
         return self.bounds[1]
 
@@ -597,7 +597,7 @@ class Parameter:
         return validator
 
     def validate(self, value):
-        """Run the validator on this parameter"""
+        """Run the validator on this parameter."""
         if self._validator is not None and self._model is not None:
             self._validator(self._model, value)
 

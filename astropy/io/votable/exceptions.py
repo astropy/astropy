@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
+"""VOTable exceptions and warnings.
+
 .. _warnings:
 
 Warnings
@@ -274,7 +275,8 @@ class VOTableSpecError(VOWarning, ValueError):
 
 
 class W01(VOTableSpecWarning):
-    """
+    """Array uses commas rather than whitespace.
+
     The VOTable spec states:
 
         If a cell contains an array or complex number, it should be
@@ -297,7 +299,8 @@ class W01(VOTableSpecWarning):
 
 
 class W02(VOTableSpecWarning):
-    r"""
+    r"""Nonstandard XML id.
+
     XML ids must match the following regular expression::
 
         ^[A-Za-z_][A-Za-z0-9_\.\-]*$
@@ -326,7 +329,8 @@ class W02(VOTableSpecWarning):
 
 
 class W03(VOTableChangeWarning):
-    """
+    """Implicitly generating an ID from a name.
+
     The VOTable 1.1 spec says the following about ``name`` vs. ``ID``
     on ``FIELD`` and ``VALUE`` elements:
 
@@ -426,7 +430,8 @@ class W06(VOTableSpecWarning):
 
 
 class W07(VOTableSpecWarning):
-    """
+    """Invalid astroYear.
+
     As astro year field is a Besselian or Julian year matching the
     regular expression::
 
@@ -535,7 +540,8 @@ class W12(VOTableChangeWarning):
 
 
 class W13(VOTableSpecWarning):
-    """
+    """Invalid VOTable datatype.
+
     Some VOTable files in the wild use non-standard datatype names.  These
     are mapped to standard ones using the following mapping::
 
@@ -950,8 +956,7 @@ class W41(VOTableSpecWarning):
 
 
 class W42(VOTableSpecWarning):
-    """
-    The root element should specify a namespace.
+    """The root element should specify a namespace.
 
     The ``VOTABLE`` namespace is::
 
@@ -964,9 +969,9 @@ class W42(VOTableSpecWarning):
 
 
 class W43(VOTableSpecWarning):
-    """
-    Referenced elements should be defined before referees.  From the
-    VOTable 1.2 spec:
+    """Referenced elements should be defined before referees.
+
+    From the VOTable 1.2 spec:
 
        In VOTable1.2, it is further recommended to place the ID
        attribute prior to referencing it whenever possible.
@@ -996,7 +1001,8 @@ class W44(VOTableSpecWarning):
 
 
 class W45(VOWarning, ValueError):
-    """
+    """Invalid content-role attribute.
+
     The ``content-role`` attribute on the ``LINK`` element must be one of
     the following::
 
@@ -1131,7 +1137,8 @@ class W55(VOTableSpecWarning):
 
 
 class E01(VOWarning, ValueError):
-    """
+    """Invalid size specifier for a field.
+
     The size specifier for a ``char`` or ``unicode`` field must be
     only a number followed, optionally, by an asterisk.
     Multi-dimensional size specifiers are not supported for these
@@ -1154,7 +1161,8 @@ class E01(VOWarning, ValueError):
 
 
 class E02(VOWarning, ValueError):
-    """
+    """Incorrect number of elements in array.
+
     The number of array elements in the data does not match that specified
     in the FIELD specifier.
     """
@@ -1166,8 +1174,7 @@ class E02(VOWarning, ValueError):
 
 
 class E03(VOWarning, ValueError):
-    """
-    Complex numbers should be two values separated by whitespace.
+    """Complex numbers should be two values separated by whitespace.
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1180,8 +1187,7 @@ class E03(VOWarning, ValueError):
 
 
 class E04(VOWarning, ValueError):
-    """
-    A ``bit`` array should be a string of '0's and '1's.
+    """A ``bit`` array should be a string of '0's and '1's.
 
     **References**: `1.1
     <http://www.ivoa.net/documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
@@ -1194,7 +1200,8 @@ class E04(VOWarning, ValueError):
 
 
 class E05(VOWarning, ValueError):
-    r"""
+    r"""Invalid boolean value.
+
     A ``boolean`` value should be one of the following strings (case
     insensitive) in the ``TABLEDATA`` format::
 
@@ -1215,7 +1222,8 @@ class E05(VOWarning, ValueError):
 
 
 class E06(VOWarning, ValueError):
-    """
+    """Unknown datatype on a field.
+
     The supported datatypes are::
 
         double, float, bit, boolean, unsignedByte, short, int, long,
@@ -1334,7 +1342,8 @@ class E12(VOWarning, ValueError):
 
 
 class E13(VOWarning, ValueError):
-    r"""
+    r"""Invalid arraysize attribute.
+
     From the VOTable 1.2 spec:
 
         A table cell can contain an array of a given primitive type,
@@ -1389,8 +1398,7 @@ class E14(VOWarning, ValueError):
 
 
 class E15(VOWarning, ValueError):
-    """
-    All ``COOSYS`` elements must have an ``ID`` attribute.
+    """All ``COOSYS`` elements must have an ``ID`` attribute.
 
     Note that the VOTable 1.1 specification says this attribute is
     optional, but its corresponding schema indicates it is required.
@@ -1402,9 +1410,9 @@ class E15(VOWarning, ValueError):
 
 
 class E16(VOTableSpecWarning):
-    """
-    The ``system`` attribute on the ``COOSYS`` element must be one of the
-    following::
+    """Incorrect ``system`` attribute on COOSYS element.
+
+    The ``system`` attribute must be one of the following::
 
       'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
       'supergalactic', 'xy', 'barycentric', 'geo_app'

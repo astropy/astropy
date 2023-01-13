@@ -10,7 +10,7 @@ from ._impl import bls_impl
 
 
 def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
-    """Compute the periodogram using a brute force reference method
+    """Compute the periodogram using a brute force reference method.
 
     t : array-like
         Sequence of observation times.
@@ -52,7 +52,7 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
 
 
 def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
-    """Compute the periodogram using an optimized Cython implementation
+    """Compute the periodogram using an optimized Cython implementation.
 
     t : array-like
         Sequence of observation times.
@@ -93,7 +93,7 @@ def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
 
 
 def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
-    """A private function to compute the brute force periodogram result"""
+    """A private function to compute the brute force periodogram result."""
     best = (-np.inf, None)
     hp = 0.5 * period
     min_t = np.min(t)

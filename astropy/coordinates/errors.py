@@ -188,7 +188,7 @@ class UnitsError(ValueError):
 
 class ConvertError(Exception):
     """
-    Raised if a coordinate system cannot be converted to another
+    Raised if a coordinate system cannot be converted to another.
     """
 
 

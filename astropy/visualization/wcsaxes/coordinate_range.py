@@ -21,7 +21,7 @@ def wrap_180(values):
 
 def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wraps):
     """
-    Find the range of coordinates to use for ticks/grids
+    Find the range of coordinates to use for ticks/grids.
 
     Parameters
     ----------

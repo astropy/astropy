@@ -384,7 +384,7 @@ class SkyCoord(ShapedLikeNDArray):
         return self.frame.shape
 
     def __eq__(self, value):
-        """Equality operator for SkyCoord
+        """Equality operator for SkyCoord.
 
         This implements strict equality and requires that the frames are
         equivalent, extra frame attributes are equivalent, and that the
@@ -474,7 +474,7 @@ class SkyCoord(ShapedLikeNDArray):
         return new
 
     def __setitem__(self, item, value):
-        """Implement self[item] = value for SkyCoord
+        """Implement self[item] = value for SkyCoord.
 
         The right hand ``value`` must be strictly consistent with self:
         - Identical class
@@ -716,11 +716,12 @@ class SkyCoord(ShapedLikeNDArray):
         return self.__class__(new_coord, **frame_kwargs)
 
     def apply_space_motion(self, new_obstime=None, dt=None):
-        """
+        """Compute the position to a new time using the velocities.
+
         Compute the position of the source represented by this coordinate object
         to a new time using the velocities stored in this object and assuming
         linear space motion (including relativistic corrections). This is
-        sometimes referred to as an "epoch transformation."
+        sometimes referred to as an "epoch transformation".
 
         The initial time before the evolution is taken from the ``obstime``
         attribute of this coordinate.  Note that this method currently does not
@@ -948,10 +949,12 @@ class SkyCoord(ShapedLikeNDArray):
             super().__delattr__(attr)
 
     def __dir__(self):
-        """
-        Override the builtin `dir` behavior to include:
-        - Transforms available by aliases
-        - Attribute / methods of the underlying self.frame object
+        """Original dir() behavior, plus frame attributes and transforms.
+
+        This dir includes:
+        - All attributes of the SkyCoord class
+        - Coordinate transforms available by aliases
+        - Attribute / methods of the underlying self.frame objects
         """
         dir_values = set(super().__dir__())
 

@@ -2392,7 +2392,7 @@ def _check_padding(header_str, block_size, is_eof, check_block_size=True):
 
 
 def _hdr_data_size(header):
-    """Calculate the data size (in bytes) following the given `Header`"""
+    """Calculate the data size (in bytes) following the given `Header`."""
     size = 0
     naxis = header.get("NAXIS", 0)
     if naxis > 0:

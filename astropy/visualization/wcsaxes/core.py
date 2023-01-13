@@ -292,7 +292,7 @@ class WCSAxes(Axes):
     def _transform_plot_args(self, *args, **kwargs):
         """
         Apply transformations to arguments to ``plot_coord`` and
-        ``scatter_coord``
+        ``scatter_coord``.
         """
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
             # Extract the frame from the first argument.
@@ -558,7 +558,7 @@ class WCSAxes(Axes):
                 break
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
-        """Set y-label"""
+        """Set y-label."""
         if ylabel is None:
             ylabel = kwargs.pop("label", None)
             if ylabel is None:
@@ -680,7 +680,7 @@ class WCSAxes(Axes):
 
     def _get_transform_no_transdata(self, frame):
         """
-        Return a transform from data to the specified frame
+        Return a transform from data to the specified frame.
         """
 
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
@@ -873,7 +873,7 @@ class WCSAxes(Axes):
 
 class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
     """
-    A subclass class for WCSAxes
+    A subclass class for WCSAxes.
     """
 
     pass

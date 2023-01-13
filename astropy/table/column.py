@@ -1036,7 +1036,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def group_by(self, keys):
         """
-        Group this column by the specified ``keys``
+        Group this column by the specified ``keys``.
 
         This effectively splits the column into groups which correspond to
         unique values of the ``keys`` grouping object.  The output is a new
@@ -1060,7 +1060,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_groups(self, out):
         """
-        Copy current groups into a copy of self ``out``
+        Copy current groups into a copy of self ``out``.
         """
         if self.parent_table:
             if hasattr(self.parent_table, "_groups"):
@@ -1113,7 +1113,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def _copy_attrs(self, obj):
         """
-        Copy key column attributes from ``obj`` to self
+        Copy key column attributes from ``obj`` to self.
         """
         for attr in ("name", "unit", "_format", "description"):
             val = getattr(obj, attr, None)
