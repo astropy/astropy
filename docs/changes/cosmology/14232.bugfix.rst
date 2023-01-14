@@ -1,3 +1,0 @@
-Bounds are no longer passed to the scipy minimizer for methods Brent and Golden. The scipy minimizer never used the
-bounds but silently accepted them. In scipy v1.11.0.dev0+ an error is raised, so we now pass None as the bounds to the
-minimizer. Users should not be affected by this change.
