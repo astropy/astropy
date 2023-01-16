@@ -1,0 +1,3 @@
+Removed a large fraction of the bundled cfitsio code and internally refactored
+comopression-related code, which has resulted in a speedup when compiling
+astropy from source.
