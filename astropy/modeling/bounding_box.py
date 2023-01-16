@@ -1244,11 +1244,7 @@ class _SelectorArguments(tuple):
             A representation of which evaluation input is being used
         """
 
-        for selector_arg in self:
-            if selector_arg.is_argument(model, argument):
-                return True
-        else:
-            return False
+        return any(selector_arg.is_argument(model, argument) for selector_arg in self)
 
     def selector_index(self, model, argument):
         """
