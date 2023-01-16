@@ -422,9 +422,6 @@ def compress_hdu(hdu):
 
     while True:
 
-        if hdu.data is None:
-            break
-
         # In the following, we don't need to special case tiles near the edge
         # as Numpy will automatically ignore parts of the slices that are out
         # of bounds.
