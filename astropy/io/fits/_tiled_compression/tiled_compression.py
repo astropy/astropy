@@ -67,8 +67,6 @@ def _data_shape(header):
 
 def _header_to_settings(header, actual_tile_shape):
 
-    tile_shape = _tile_shape(header)
-
     settings = {}
 
     if header["ZCMPTYPE"] == "GZIP_2":
@@ -98,21 +96,15 @@ def _header_to_settings(header, actual_tile_shape):
 
 
 def _finalize_array(
-    tile_buffer, header, tile_shape=None, algorithm=None, lossless=False
+    tile_buffer, *, bitpix, tile_shape, algorithm, lossless
 ):
     """
-    Convert a buffer to an array using the header.
+    Convert a buffer to an array.
 
     This is a helper function which takes a raw buffer (as output by .decode)
-    and using the FITS header translates it into a numpy array with the correct
-    dtype, endianness and shape.
+    and translates it into a numpy array with the correct dtype, endianness and
+    shape.
     """
-
-    if tile_shape is None:
-        tile_shape = _tile_shape(header)
-
-    if algorithm is None:
-        algorithm = header["ZCMPTYPE"]
 
     if algorithm.startswith("GZIP"):
         # This algorithm is taken from fitsio
@@ -122,12 +114,12 @@ def _finalize_array(
         if tilebytesize == tilelen * 2:
             dtype = ">i2"
         elif tilebytesize == tilelen * 4:
-            if header["ZBITPIX"] < 0 and lossless:
+            if bitpix < 0 and lossless:
                 dtype = ">f4"
             else:
                 dtype = ">i4"
         elif tilebytesize == tilelen * 8:
-            if header["ZBITPIX"] < 0 and lossless:
+            if bitpix < 0 and lossless:
                 dtype = ">f8"
             else:
                 dtype = ">i8"
@@ -151,35 +143,39 @@ def _finalize_array(
 
 
 def _check_compressed_header(header):
+
+    # NOTE: this could potentially be moved up into CompImageHDU, e.g. in a
+    # _verify method.
+
     # Check for overflows which might cause issues when calling C code
 
     for kw in ["ZNAXIS", "ZVAL1", "ZVAL2", "ZBLANK", "BLANK"]:
         if kw in header:
             if header[kw] > 0 and header[kw] > np.iinfo(np.intc).max:
-                raise OverflowError()
+                raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     for i in range(1, header["ZNAXIS"] + 1):
         for kw_name in ["ZNAXIS", "ZTILE"]:
             kw = f"{kw_name}{i}"
             if kw in header:
                 if header[kw] > 0 and header[kw] > np.iinfo(np.int32).max:
-                    raise OverflowError()
+                    raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     for i in range(1, header["NAXIS"] + 1):
         kw = f"NAXIS{i}"
         if kw in header:
             if header[kw] > 0 and header[kw] > np.iinfo(np.int64).max:
-                raise OverflowError()
+                raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     for kw in ["TNULL1", "PCOUNT", "THEAP"]:
         if kw in header:
             if header[kw] > 0 and header[kw] > np.iinfo(np.int64).max:
-                raise OverflowError()
+                raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     for kw in ["ZVAL3"]:
         if kw in header:
             if header[kw] > np.finfo(np.float32).max:
-                raise OverflowError()
+                raise OverflowError(f"{kw} value {header[kw]} is too large")
 
     # Validate data types
 
@@ -232,11 +228,18 @@ def _check_compressed_header(header):
 
 
 def _get_compression_setting(header, name, default):
+
+    # Settings for the various compression algorithms are stored in pairs of
+    # keywords called ZNAME? and ZVAL? - a given compression setting could be
+    # in any ZNAME? so we need to check through all the possible ZNAMEs which
+    # one matches the required setting.
+
     for i in range(1, 1000):
         if f"ZNAME{i}" not in header:
             break
         if header[f"ZNAME{i}"].lower() == name.lower():
             return header[f"ZVAL{i}"]
+
     return default
 
 
@@ -263,10 +266,12 @@ def decompress_hdu(hdu):
 
     data = np.zeros(data_shape, dtype=BITPIX2DTYPE[hdu._header["ZBITPIX"]])
 
-    quantize = "ZSCALE" in hdu.compressed_data.dtype.names
+    quantized = "ZSCALE" in hdu.compressed_data.dtype.names
 
     if len(hdu.compressed_data) == 0:
         return None
+
+    override_itemsize = None
 
     istart = np.zeros(data.ndim, dtype=int)
     for irow, row in enumerate(hdu.compressed_data):
@@ -288,42 +293,49 @@ def decompress_hdu(hdu):
 
         cdata = row["COMPRESSED_DATA"]
 
-        if hdu._header["ZCMPTYPE"] == "GZIP_2":
-            if irow == 0:
-                # Decompress with GZIP_1 just to find the total number of
-                # elements in the uncompressed data
-                tile_data = np.asarray(
-                    _decompress_tile(row["COMPRESSED_DATA"], algorithm="GZIP_1")
-                )
-                override_itemsize = tile_data.size // int(np.product(actual_tile_shape))
-            settings["itemsize"] = override_itemsize
-
         # When quantizing floating point data, sometimes the data will not
-        # quantize efficiently.  In these cases the raw floating point data can
+        # quantize efficiently. In these cases the raw floating point data can
         # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
         # column.
         gzip_fallback = len(cdata) == 0
 
         if gzip_fallback:
+
             tile_buffer = _decompress_tile(
                 row["GZIP_COMPRESSED_DATA"], algorithm="GZIP_1"
             )
+
             tile_data = _finalize_array(
                 tile_buffer,
-                hdu._header,
+                bitpix=hdu._header["ZBITPIX"],
                 tile_shape=actual_tile_shape,
                 algorithm="GZIP_1",
                 lossless=True,
             )
+
         else:
+
+            if hdu._header["ZCMPTYPE"] == "GZIP_2":
+                # Decompress with GZIP_1 just to find the total number of
+                # elements in the uncompressed data. We just need to do this once
+                # as this will be the same for all tiles.
+                if override_itemsize is None:
+                    tile_data = np.asarray(
+                        _decompress_tile(cdata, algorithm="GZIP_1")
+                    )
+                    override_itemsize = tile_data.size // int(np.product(actual_tile_shape))
+                settings["itemsize"] = override_itemsize
+
             tile_buffer = _decompress_tile(
                 cdata, algorithm=hdu._header["ZCMPTYPE"], **settings
             )
+
             tile_data = _finalize_array(
                 tile_buffer,
-                hdu._header,
+                bitpix=hdu._header["ZBITPIX"],
                 tile_shape=actual_tile_shape,
-                lossless=not quantize,
+                algorithm=hdu._header["ZCMPTYPE"],
+                lossless=not quantized,
             )
 
             if "ZBLANK" in row.array.names:
@@ -336,7 +348,7 @@ def decompress_hdu(hdu):
             if zblank is not None:
                 blank_mask = tile_data == zblank
 
-            if quantize:
+            if quantized:
                 dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
                 dither_seed = hdu._header.get("ZDITHER0", 0)
                 q = Quantize(
@@ -391,7 +403,7 @@ def compress_hdu(hdu):
 
     # TODO: This implementation is memory inefficient as it generates all the
     # compressed bytes before forming them into the heap, leading to 2x the
-    # potential memory usage.  Directly storing the compressed bytes into an
+    # potential memory usage. Directly storing the compressed bytes into an
     # expanding heap would fix this.
 
     tile_shape = _tile_shape(hdu._header)
