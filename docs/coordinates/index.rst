@@ -445,7 +445,7 @@ For more details on velocity support (and limitations), see the
 Overview of `astropy.coordinates` Concepts
 ==========================================
 
-.. note ::
+.. note::
     More detailed information and justification of the design is available in
     `APE (Astropy Proposal for Enhancement) 5
     <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_.
