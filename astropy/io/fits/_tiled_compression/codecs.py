@@ -15,6 +15,11 @@ from astropy.io.fits._tiled_compression._compression import (
     decompress_rice_1_c,
 )
 
+# If numcodecs is installed, we use Codec as a base class for the codecs below
+# so that they can optionally be used as codecs in any package relying on
+# numcodecs - however this is optional and if numcodecs is not installed we use
+# our own base class. This does not affect any compressed data functionality
+# in astropy.io.fits.
 try:
     from numcodecs.abc import Codec
 except ImportError:
@@ -58,7 +63,7 @@ class Gzip1(Codec):
         buf
             The decompressed buffer.
         """
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(buf, dtype=np.uint8)
         dbytes = gzip_decompress(cbytes)
         return np.frombuffer(dbytes, dtype=np.uint8)
 
@@ -76,7 +81,7 @@ class Gzip1(Codec):
         buf
             A buffer with compressed data.
         """
-        dbytes = np.asarray(buf).tobytes()
+        dbytes = np.asarray(buf)
         return gzip_compress(dbytes)
 
 
