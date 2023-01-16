@@ -1766,11 +1766,7 @@ class Model(metaclass=_ModelMeta):
     @property
     def _has_units(self):
         # Returns True if any of the parameters have units
-        for param in self.param_names:
-            if getattr(self, param).unit is not None:
-                return True
-        else:
-            return False
+        return any(getattr(self, param).unit is not None for param in self.param_names)
 
     @property
     def _supports_unit_fitting(self):

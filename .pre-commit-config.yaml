@@ -38,7 +38,7 @@ repos:
         exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
 
   - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.9.0
+    rev: v1.10.0
     hooks:
       - id: python-check-mock-methods
         # Prevent common mistakes of assert mck.not_called(), assert
@@ -89,7 +89,7 @@ repos:
       - id: black
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.215"
+    rev: "v0.0.223"
     hooks:
       - id: ruff
         args: ["--fix", "--force-exclude"]
