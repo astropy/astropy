@@ -83,7 +83,7 @@ jobs:
       if: ${{ matrix.toxenv == 'linkcheck' }}
       run: sudo apt-get install graphviz
     - name: Install Python dependencies
-      run: python -m pip install --upgrade "tox<4"
+      run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
 
