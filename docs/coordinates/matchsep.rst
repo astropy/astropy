@@ -170,7 +170,7 @@ offset frame from an existing |SkyCoord|::
         (10., 45.)>): (lon, lat) in deg
         (-0.71943945, -0.99556216)>
 
-.. note ::
+.. note::
 
     While sky offset frames *appear* to be all the same class, this not the
     case: the sky offset frame for each different type of frame for ``origin`` is

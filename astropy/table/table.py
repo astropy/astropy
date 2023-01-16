@@ -1670,11 +1670,7 @@ class Table:
         This may be relatively slow for large tables as it requires checking the mask
         values of each column.
         """
-        for col in self.itercols():
-            if hasattr(col, "mask") and np.any(col.mask):
-                return True
-        else:
-            return False
+        return any(hasattr(col, "mask") and np.any(col.mask) for col in self.itercols())
 
     def _is_mixin_for_table(self, col):
         """

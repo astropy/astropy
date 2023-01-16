@@ -118,6 +118,11 @@ extend-ignore = [
     # TODO: fix, but probably pretty challenging.
     "C901",
 
+    # flake8-commas (COM)
+    "COM812",  # TrailingCommaMissing
+    "COM818",  # TrailingCommaOnBareTupleProhibited
+    "COM819",  # TrailingCommaProhibited
+
     # pydocstyle (D)
     # Missing Docstrings
     "D100",  # PublicModule                            # TODO: fix
@@ -213,6 +218,7 @@ extend-ignore = [
     "PLC2201",  # MisplacedComparisonConstant        # TODO: autofix
     "PLR0402",  # ConsiderUsingFromImport            # TODO: fix
     "PLR1701",  # ConsiderMergingIsinstance          # TODO: fix
+    "PLR2004",  # MagicValueComparison               # Note: low priority fix
     "PLW0120",  # UselessElseOnLoop                  # Note: low priority fix
     "PLW0602",  # GlobalVariableNotAssigned          # TODO: fix
 
@@ -241,6 +247,7 @@ extend-ignore = [
     "SIM108",  # UseTernaryOperator                  # TODO: autofix
     "SIM109",  # CompareWithTuple                    # TODO: autofix
     "SIM111",  # ConvertLoopToAll                    # TODO: autofix
+    "SIM115",  # OpenFileWithContextHandler          # TODO: fix to prevent resource leak
     "SIM117",  # MultipleWithStatements              # TODO: fix
     "SIM118",  # KeyInDict                           # TODO: autofix
     "SIM201",  # NegateEqualOp                       # TODO: autofix
