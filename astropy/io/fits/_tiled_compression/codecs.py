@@ -63,7 +63,7 @@ class Gzip1(Codec):
         buf
             The decompressed buffer.
         """
-        cbytes = np.frombuffer(buf, dtype=np.uint8)
+        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
         dbytes = gzip_decompress(cbytes)
         return np.frombuffer(dbytes, dtype=np.uint8)
 
@@ -81,7 +81,7 @@ class Gzip1(Codec):
         buf
             A buffer with compressed data.
         """
-        dbytes = np.asarray(buf)
+        dbytes = np.asarray(buf).tobytes()
         return gzip_compress(dbytes)
 
 
