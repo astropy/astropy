@@ -98,9 +98,7 @@ def _get_out_class(objs):
         for obj in objs
     ):
         raise ValueError(
-            "unmergeable object classes {}".format(
-                [obj.__class__.__name__ for obj in objs]
-            )
+            f"unmergeable object classes {[obj.__class__.__name__ for obj in objs]}"
         )
 
     return out_class
@@ -1269,9 +1267,7 @@ def _join(
             col_cls = _get_out_class(cols)
             if not hasattr(col_cls.info, "new_like"):
                 raise NotImplementedError(
-                    "join unavailable for mixin column type(s): {}".format(
-                        col_cls.__name__
-                    )
+                    f"join unavailable for mixin column type(s): {col_cls.__name__}"
                 )
 
             out[out_name] = col_cls.info.new_like(
@@ -1485,9 +1481,7 @@ def _vstack(arrays, join_type="outer", col_name_map=None, metadata_conflicts="wa
         col_cls = _get_out_class(cols)
         if not hasattr(col_cls.info, "new_like"):
             raise NotImplementedError(
-                "vstack unavailable for mixin column type(s): {}".format(
-                    col_cls.__name__
-                )
+                f"vstack unavailable for mixin column type(s): {col_cls.__name__}"
             )
         try:
             col = col_cls.info.new_like(cols, n_rows, metadata_conflicts, out_name)

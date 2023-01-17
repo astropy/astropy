@@ -1986,9 +1986,7 @@ class ColDefs(NotifierMixin):
             if output:
                 if attr not in KEYWORD_ATTRIBUTES:
                     output.write(
-                        "'{}' is not an attribute of the column definitions.\n".format(
-                            attr
-                        )
+                        f"'{attr}' is not an attribute of the column definitions.\n"
                     )
                     continue
                 output.write(f"{attr}:\n")
@@ -2384,9 +2382,7 @@ def _parse_ascii_tformat(tform, strict=False):
 
     if width <= 0:
         raise VerifyError(
-            "Format {!r} not valid--field width must be a positive integeter.".format(
-                tform
-            )
+            f"Format {tform!r} not valid--field width must be a positive integeter."
         )
 
     if precision >= width:

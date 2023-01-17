@@ -1074,8 +1074,8 @@ class TestTableFunctions(FitsTestCase):
         dx = fits.getdata(self.temp("test.fits"))
         assert data["x"].dtype == dx["x"].dtype
         assert data["y"].dtype == dx["y"].dtype
-        assert np.all(data["x"] == dx["x"]), "x: {} != {}".format(data["x"], dx["x"])
-        assert np.all(data["y"] == dx["y"]), "y: {} != {}".format(data["y"], dx["y"])
+        assert np.all(data["x"] == dx["x"]), f"x: {data['x']} != {dx['x']}"
+        assert np.all(data["y"] == dx["y"]), f"y: {data['y']} != {dx['y']}"
 
         # Test fits.BinTableHDU(data) and avoid convenience functions
         hdu0 = fits.PrimaryHDU()
@@ -1087,16 +1087,16 @@ class TestTableFunctions(FitsTestCase):
         fx.close()
         assert data["x"].dtype == dx["x"].dtype
         assert data["y"].dtype == dx["y"].dtype
-        assert np.all(data["x"] == dx["x"]), "x: {} != {}".format(data["x"], dx["x"])
-        assert np.all(data["y"] == dx["y"]), "y: {} != {}".format(data["y"], dx["y"])
+        assert np.all(data["x"] == dx["x"]), f"x: {data['x']} != {dx['x']}"
+        assert np.all(data["y"] == dx["y"]), f"y: {data['y']} != {dx['y']}"
 
         # Test Table write and read
         table.write(self.temp("test3.fits"))
         tx = Table.read(self.temp("test3.fits"), character_as_bytes=False)
         assert table["x"].dtype == tx["x"].dtype
         assert table["y"].dtype == tx["y"].dtype
-        assert np.all(table["x"] == tx["x"]), "x: {} != {}".format(table["x"], tx["x"])
-        assert np.all(table["y"] == tx["y"]), "y: {} != {}".format(table["y"], tx["y"])
+        assert np.all(table["x"] == tx["x"]), f"x: {table['x']} != {tx['x']}"
+        assert np.all(table["y"] == tx["y"]), f"y: {table['y']} != {tx['y']}"
 
     def test_mask_array(self):
         t = fits.open(self.data("table.fits"))

@@ -274,9 +274,7 @@ class TableColumns(OrderedDict):
             return self.__class__([self[x] for x in list(self)[item]])
         else:
             raise IndexError(
-                "Illegal key or index value for {} object".format(
-                    self.__class__.__name__
-                )
+                f"Illegal key or index value for {self.__class__.__name__} object"
             )
 
     def __setitem__(self, item, value, validated=False):
@@ -292,9 +290,7 @@ class TableColumns(OrderedDict):
         """
         if item in self and not validated:
             raise ValueError(
-                "Cannot replace column '{}'.  Use Table.replace_column() instead.".format(
-                    item
-                )
+                f"Cannot replace column '{item}'.  Use Table.replace_column() instead."
             )
         super().__setitem__(item, value)
 
@@ -760,9 +756,7 @@ class Table:
             copy = False
         elif kwargs:
             raise TypeError(
-                "__init__() got unexpected keyword argument {!r}".format(
-                    list(kwargs.keys())[0]
-                )
+                f"__init__() got unexpected keyword argument {list(kwargs.keys())[0]!r}"
             )
 
         if isinstance(data, np.ndarray) and data.shape == (0,) and not data.dtype.names:
