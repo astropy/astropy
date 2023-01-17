@@ -558,9 +558,10 @@ def compress_hdu(hdu):
         for irow in range(len(compressed_bytes)):
             if not gzip_fallback[irow]:
                 array = np.frombuffer(compressed_bytes[irow], dtype="i2")
-                if array.dtype.byteorder == '<' or (array.dtype.byteorder == '=' and sys.byteorder == 'little'):
+                if array.dtype.byteorder == "<" or (
+                    array.dtype.byteorder == "=" and sys.byteorder == "little"
+                ):
                     compressed_bytes[irow] = array.astype(">i2").tobytes()
-
 
     compressed_bytes = b"".join(compressed_bytes)
 
