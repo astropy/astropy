@@ -241,7 +241,6 @@ extend-ignore = [
 
     # flake8-simplify (SIM)
     "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
-    "SIM103",  # ReturnBoolConditionDirectly         # TODO: autofix
     "SIM105",  # UseContextlibSuppress
     "SIM108",  # UseTernaryOperator                  # TODO: autofix
     "SIM109",  # CompareWithTuple                    # TODO: autofix
