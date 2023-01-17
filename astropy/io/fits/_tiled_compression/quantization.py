@@ -43,7 +43,7 @@ class Quantize:
 
     def decode_quantized(self, buf, scale, zero):
         """
-        Unquantize data
+        Unquantize data.
 
         Parameters
         ----------
