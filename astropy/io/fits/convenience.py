@@ -628,7 +628,7 @@ def table_to_hdu(table, character_as_bytes=False):
             setattr(col, attr, col_info.get(attr, None))
         trpos = col_info.get("time_ref_pos", None)
         if trpos is not None:
-            setattr(col, "time_ref_pos", trpos)
+            col.time_ref_pos = trpos
 
     for key, value in table.meta.items():
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
