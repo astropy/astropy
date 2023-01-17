@@ -620,7 +620,7 @@ def time_to_fits(table):
         coord_meta[col.info.name]["coord_unit"] = "d"
 
         # Time column reference position
-        if getattr(col, "location") is None:
+        if col.location is None:
             coord_meta[col.info.name]["time_ref_pos"] = None
             if location is not None:
                 warnings.warn(
