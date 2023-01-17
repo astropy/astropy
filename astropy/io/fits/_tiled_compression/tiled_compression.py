@@ -95,9 +95,7 @@ def _header_to_settings(header, actual_tile_shape):
     return settings
 
 
-def _finalize_array(
-    tile_buffer, *, bitpix, tile_shape, algorithm, lossless
-):
+def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     """
     Convert a buffer to an array.
 
@@ -320,10 +318,10 @@ def decompress_hdu(hdu):
                 # elements in the uncompressed data. We just need to do this once
                 # as this will be the same for all tiles.
                 if override_itemsize is None:
-                    tile_data = np.asarray(
-                        _decompress_tile(cdata, algorithm="GZIP_1")
+                    tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
+                    override_itemsize = tile_data.size // int(
+                        np.product(actual_tile_shape)
                     )
-                    override_itemsize = tile_data.size // int(np.product(actual_tile_shape))
                 settings["itemsize"] = override_itemsize
 
             tile_buffer = _decompress_tile(
