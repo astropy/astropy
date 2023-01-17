@@ -5,7 +5,7 @@
 ##############################################################################
 # IMPORTS
 
-# STDLIB
+import numpy as np
 
 # THIRD PARTY
 import pytest
@@ -16,8 +16,9 @@ import astropy.units as u
 from astropy.cosmology import wpwaCDM
 from astropy.cosmology.parameter import Parameter
 from astropy.cosmology.tests.test_core import ParameterTestMixin
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .test_base import FLRWSubclassTest
+from .test_base import FLRWTest
 from .test_w0wacdm import ParameterwaTestMixin
 
 ##############################################################################
@@ -100,7 +101,7 @@ class ParameterzpTestMixin(ParameterTestMixin):
 
 
 class TestwpwaCDM(
-    FLRWSubclassTest, ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin
+    FLRWTest, ParameterwpTestMixin, ParameterwaTestMixin, ParameterzpTestMixin
 ):
     """Test :class:`astropy.cosmology.wpwaCDM`."""
 
@@ -152,3 +153,98 @@ class TestwpwaCDM(
             " Neff=3.04, m_nu=[0. 0. 0.] eV, Ob0=0.03)"
         )
         assert repr(cosmo) == expected
+
+    # ===============================================================
+    # Usage Tests
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    @pytest.mark.parametrize(
+        ("args", "kwargs", "expected"),
+        [
+            (  # no relativistic species
+                (75.0, 0.3, 0.6),
+                {"wp": -0.9, "zp": 0.5, "wa": 0.1, "Tcmb0": 0.0},
+                [2954.68975298, 4599.83254834, 5643.04013201, 6373.36147627] * u.Mpc,
+            ),
+            (  # massless neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "wp": -0.9,
+                    "zp": 0.4,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 3,
+                    "m_nu": u.Quantity(0.0, u.eV),
+                },
+                [2919.00656215, 4558.0218123, 5615.73412391, 6366.10224229] * u.Mpc,
+            ),
+            (  # massive neutrinos
+                (75.0, 0.25, 0.5),
+                {
+                    "wp": -0.9,
+                    "zp": 1.0,
+                    "wa": 0.1,
+                    "Tcmb0": 3.0,
+                    "Neff": 4,
+                    "m_nu": u.Quantity(5.0, u.eV),
+                },
+                [2629.48489827, 3874.13392319, 4614.31562397, 5116.51184842] * u.Mpc,
+            ),
+        ],
+    )
+    def test_comoving_distance_example(self, cosmo_cls, args, kwargs, expected):
+        """Test :meth:`astropy.cosmology.LambdaCDM.comoving_distance`.
+
+        These do not come from external codes -- they are just internal checks to make
+        sure nothing changes if we muck with the distance calculators.
+        """
+        super().test_comoving_distance_example(cosmo_cls, args, kwargs, expected)
+
+
+###############################################################################
+# Comparison to Other Codes
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy.")
+def test_varyde_lumdist_mathematica():
+    """Tests a few varying dark energy EOS models against a Mathematica computation."""
+    z = np.array([0.2, 0.4, 0.9, 1.2])
+
+    # wpwa models
+    cosmo = wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc,
+        rtol=1e-4,
+    )
+
+    cosmo = wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9, Tcmb0=0.0)
+    assert u.allclose(
+        cosmo.luminosity_distance(z),
+        [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc,
+        rtol=1e-4,
+    )
+
+
+##############################################################################
+# Miscellaneous
+# TODO: these should be better integrated into the new test framework
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_de_densityscale():
+    cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9, wa=0.2, zp=0.5)
+
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert u.allclose(
+        cosmo.de_density_scale(z),
+        [1.012246048, 1.0280102, 1.087439, 1.324988, 1.565746],
+        rtol=1e-4,
+    )
+
+    assert u.allclose(cosmo.de_density_scale(3), cosmo.de_density_scale(3.0), rtol=1e-7)
+    assert u.allclose(
+        cosmo.de_density_scale([1, 2, 3]),
+        cosmo.de_density_scale([1.0, 2.0, 3.0]),
+        rtol=1e-7,
+    )
