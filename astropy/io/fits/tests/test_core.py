@@ -1241,8 +1241,9 @@ class TestFileFunctions(FitsTestCase):
                 hdulist.writeto(fileobj)
 
         assert (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file." == exc.value.args[0]
+            exc.value.args[0]
+            == "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file."
         )
 
     def test_flush_full_disk(self, monkeypatch):
@@ -1272,8 +1273,9 @@ class TestFileFunctions(FitsTestCase):
                 hdul.flush()
 
         assert (
-            "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file." == exc.value.args[0]
+            exc.value.args[0]
+            == "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file."
         )
 
     def _test_write_string_bytes_io(self, fileobj):
