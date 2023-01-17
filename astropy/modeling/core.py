@@ -4574,7 +4574,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members.update(params)
 
     cls = type(model_name, (FittableModel,), members)
-    cls._separable = True if (len(inputs) == 1) else False
+    cls._separable = bool(len(inputs) == 1)
     return cls
 
 
