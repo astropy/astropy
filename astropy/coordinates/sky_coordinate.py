@@ -370,15 +370,6 @@ class SkyCoord(ShapedLikeNDArray):
     def representation_type(self, value):
         self.frame.representation_type = value
 
-    # TODO: remove these in future
-    @property
-    def representation(self):
-        return self.frame.representation
-
-    @representation.setter
-    def representation(self, value):
-        self.frame.representation = value
-
     @property
     def shape(self):
         return self.frame.shape
