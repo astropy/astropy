@@ -220,7 +220,7 @@ def test_extract_array_wrong_mode():
     """Call extract_array with non-existing mode."""
     with pytest.raises(ValueError) as e:
         extract_array(np.arange(4), (2,), (0,), mode="full")
-    assert "Valid modes are 'partial', 'trim', and 'strict'." == str(e.value)
+    assert str(e.value) == "Valid modes are 'partial', 'trim', and 'strict'."
 
 
 def test_extract_array_1d_even():

@@ -93,7 +93,7 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with default argument values."""
 
         c = fits.Card()
-        assert "" == c.keyword
+        assert c.keyword == ""
 
     def test_card_from_bytes(self):
         """
