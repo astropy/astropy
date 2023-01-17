@@ -2,7 +2,7 @@ import numpy as np
 
 
 def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
-    """Lomb-Scargle Periodogram
+    """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
     Lomb-Scargle periodogram. This is a relatively fast version of the naive

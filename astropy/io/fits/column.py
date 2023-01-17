@@ -2632,7 +2632,7 @@ def _parse_tdisp_format(tdisp):
     Parse the ``TDISPn`` keywords for ASCII and binary tables into a
     ``(format, width, precision, exponential)`` tuple (the TDISP values
     for ASCII and binary are identical except for 'Lw',
-    which is only present in BINTABLE extensions
+    which is only present in BINTABLE extensions.
 
     Parameters
     ----------

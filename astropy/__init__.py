@@ -68,7 +68,7 @@ from .utils.state import ScienceState
 
 class base_constants_version(ScienceState):
     """
-    Base class for the real version-setters below
+    Base class for the real version-setters below.
     """
 
     _value = "test"
@@ -98,7 +98,7 @@ class base_constants_version(ScienceState):
 
 class physical_constants(base_constants_version):
     """
-    The version of physical constants to use
+    The version of physical constants to use.
     """
 
     # Maintainers: update when new constants are added
@@ -116,7 +116,7 @@ class physical_constants(base_constants_version):
 
 class astronomical_constants(base_constants_version):
     """
-    The version of astronomical constants to use
+    The version of astronomical constants to use.
     """
 
     # Maintainers: update when new constants are added

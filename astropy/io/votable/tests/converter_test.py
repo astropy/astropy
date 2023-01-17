@@ -316,7 +316,7 @@ def test_vararray():
 
 def test_gemini_v1_2():
     """
-    see Pull Request 4782 or Issue 4781 for details
+    see Pull Request 4782 or Issue 4781 for details.
     """
     table = parse_single_table(get_pkg_data_filename("data/gemini.xml"))
     assert table is not None

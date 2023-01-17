@@ -1,4 +1,4 @@
-"""Main Lomb-Scargle Implementation"""
+"""Main Lomb-Scargle Implementation."""
 
 import numpy as np
 
@@ -458,7 +458,7 @@ class LombScargle(BasePeriodogram):
         return y_fit * get_unit(self.y)
 
     def offset(self):
-        """Return the offset of the model
+        """Return the offset of the model.
 
         The offset of the model is the (weighted) mean of the y values.
         Note that if self.center_data is False, the offset is 0 by definition.
@@ -527,7 +527,7 @@ class LombScargle(BasePeriodogram):
         return parameters
 
     def design_matrix(self, frequency, t=None):
-        """Compute the design matrix for a given frequency
+        """Compute the design matrix for a given frequency.
 
         Parameters
         ----------

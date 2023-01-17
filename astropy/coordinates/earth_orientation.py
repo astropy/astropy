@@ -177,7 +177,7 @@ def _precession_matrix_besselian(epoch1, epoch2):
 
 def nutation_components2000B(jd):
     """
-    Computes nutation components following the IAU 2000B specification
+    Computes nutation components following the IAU 2000B specification.
 
     Parameters
     ----------

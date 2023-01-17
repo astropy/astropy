@@ -18,7 +18,7 @@ from . import basic, core
 
 
 def _line_type(line, delimiter=None):
-    """Interpret a QDP file line
+    """Interpret a QDP file line.
 
     Parameters
     ----------
@@ -86,7 +86,7 @@ def _line_type(line, delimiter=None):
 
 
 def _get_type_from_list_of_lines(lines, delimiter=None):
-    """Read through the list of QDP file lines and label each line by type
+    """Read through the list of QDP file lines and label each line by type.
 
     Parameters
     ----------
@@ -148,7 +148,7 @@ def _get_lines_from_file(qdp_file):
 
 
 def _interpret_err_lines(err_specs, ncols, names=None):
-    """Give list of column names from the READ SERR and TERR commands
+    """Give list of column names from the READ SERR and TERR commands.
 
     Parameters
     ----------
@@ -237,7 +237,7 @@ def _interpret_err_lines(err_specs, ncols, names=None):
 
 
 def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
-    """Get all tables from a QDP file
+    """Get all tables from a QDP file.
 
     Parameters
     ----------
@@ -346,7 +346,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
 
 
 def _understand_err_col(colnames):
-    """Get which column names are error columns
+    """Get which column names are error columns.
 
     Examples
     --------
@@ -386,7 +386,7 @@ def _understand_err_col(colnames):
 
 
 def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
-    """Read a table from a QDP file
+    """Read a table from a QDP file.
 
     Parameters
     ----------
@@ -426,7 +426,7 @@ def _read_table_qdp(qdp_file, names=None, table_id=None, delimiter=None):
 
 
 def _write_table_qdp(table, filename=None, err_specs=None):
-    """Write a table to a QDP file
+    """Write a table to a QDP file.
 
     Parameters
     ----------
@@ -496,7 +496,7 @@ def _write_table_qdp(table, filename=None, err_specs=None):
 
 class QDPSplitter(core.DefaultSplitter):
     """
-    Split on space for QDP tables
+    Split on space for QDP tables.
     """
 
     delimiter = " "
@@ -504,7 +504,7 @@ class QDPSplitter(core.DefaultSplitter):
 
 class QDPHeader(basic.CommentedHeaderHeader):
     """
-    Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`
+    Header that uses the :class:`astropy.io.ascii.basic.QDPSplitter`.
     """
 
     splitter_class = QDPSplitter
@@ -514,7 +514,7 @@ class QDPHeader(basic.CommentedHeaderHeader):
 
 class QDPData(basic.BasicData):
     """
-    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`
+    Data that uses the :class:`astropy.io.ascii.basic.CsvSplitter`.
     """
 
     splitter_class = QDPSplitter

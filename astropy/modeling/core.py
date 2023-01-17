@@ -971,7 +971,7 @@ class Model(metaclass=_ModelMeta):
 
     def _pre_evaluate(self, *args, **kwargs):
         """
-        Model specific input setup that needs to occur prior to model evaluation
+        Model specific input setup that needs to occur prior to model evaluation.
         """
 
         # Broadcast inputs into common size
@@ -1014,15 +1014,15 @@ class Model(metaclass=_ModelMeta):
 
     @property
     def _argnames(self):
-        """The inputs used to determine input_shape for bounding_box evaluation"""
+        """The inputs used to determine input_shape for bounding_box evaluation."""
         return self.inputs
 
     def _validate_input_shape(
         self, _input, idx, argnames, model_set_axis, check_model_set_axis
     ):
-        """
-        Perform basic validation of a single model input's shape
-            -- it has the minimum dimensions for the given model_set_axis
+        """Perform basic validation of a single model input's shape.
+
+        The shape has the minimum dimensions for the given model_set_axis.
 
         Returns the shape of the input if validation succeeds.
         """
@@ -1080,13 +1080,13 @@ class Model(metaclass=_ModelMeta):
         return input_shape
 
     def input_shape(self, inputs):
-        """Get input shape for bounding_box evaluation"""
+        """Get input shape for bounding_box evaluation."""
         return self._validate_input_shapes(inputs, self._argnames, self.model_set_axis)
 
     def _generic_evaluate(self, evaluate, _inputs, fill_value, with_bbox):
-        """
-        Generic model evaluation routine
-            Selects and evaluates model with or without bounding_box enforcement
+        """Generic model evaluation routine.
+
+        Selects and evaluates model with or without bounding_box enforcement.
         """
 
         # Evaluate the model using the prepared evaluation method either
@@ -1100,7 +1100,7 @@ class Model(metaclass=_ModelMeta):
 
     def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
-        Model specific post evaluation processing of outputs
+        Model specific post evaluation processing of outputs.
         """
         if self.get_bounding_box(with_bbox) is None and self.n_outputs == 1:
             outputs = (outputs,)
@@ -1675,7 +1675,7 @@ class Model(metaclass=_ModelMeta):
     def output_units(self, **kwargs):
         """
         Return a dictionary of output units for this model given a dictionary
-        of fitting inputs and outputs
+        of fitting inputs and outputs.
 
         The input and output Quantity objects should be given as keyword
         arguments.
@@ -3302,7 +3302,7 @@ class CompoundModel(Model):
 
     def both_inverses_exist(self):
         """
-        if both members of this compound model have inverses return True
+        if both members of this compound model have inverses return True.
         """
 
         import warnings
@@ -3352,13 +3352,13 @@ class CompoundModel(Model):
     @property
     def _argnames(self):
         """
-        No inputs should be used to determine input_shape when handling compound models
+        No inputs should be used to determine input_shape when handling compound models.
         """
         return ()
 
     def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
-        CompoundModel specific post evaluation processing of outputs
+        CompoundModel specific post evaluation processing of outputs.
 
         Note
         ----
@@ -3450,7 +3450,7 @@ class CompoundModel(Model):
         """
         If someone accesses an attribute not already defined, map the
         parameters, and then see if the requested attribute is one of
-        the parameters
+        the parameters.
         """
         # The following test is needed to avoid infinite recursion
         # caused by deepcopy. There may be other such cases discovered.
@@ -4209,7 +4209,7 @@ class CompoundModel(Model):
 
 def _get_submodel_path(model, name):
     """Find the route down a CompoundModel's tree to the model with the
-    specified name (whether it's a leaf or not)
+    specified name (whether it's a leaf or not).
     """
     if getattr(model, "name", None) == name:
         return []
@@ -4245,10 +4245,10 @@ def get_ops(tree, opset):
 
 
 def make_subtree_dict(tree, nodepath, tdict, leaflist):
-    """
-    Traverse a tree noting each node by a key that indicates all the
-    left/right choices necessary to reach that node. Each key will
-    reference a tuple that contains:
+    """Traverse a tree noting each node by a key.
+
+    The key indicates all the left/right choices necessary to reach that node.
+    Each key will reference a tuple that contains:
 
     - reference to the compound model for that node.
     - left most index contained within that subtree

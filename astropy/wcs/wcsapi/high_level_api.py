@@ -23,13 +23,14 @@ def default_order(components):
 
 
 def _toindex(value):
-    """
-    Convert value to an int or an int array.
+    """Convert value to an int or an int array.
+
     Input coordinates converted to integers
     corresponding to the center of the pixel.
     The convention is that the center of the pixel is
     (0, 0), while the lower left corner is (-0.5, -0.5).
     The outputs are used to index the mask.
+
     Examples
     --------
     >>> _toindex(np.array([-0.5, 0.49999]))

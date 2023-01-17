@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
+"""Bayesian Blocks for Time Series Analysis.
+
 Bayesian Blocks for Time Series Analysis
 ========================================
 
@@ -56,7 +57,7 @@ __all__ = ["FitnessFunc", "Events", "RegularEvents", "PointMeasures", "bayesian_
 
 
 def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
-    r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks
+    r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks.
 
     This is a flexible implementation of the Bayesian Blocks algorithm
     described in Scargle 2013 [1]_.
@@ -173,7 +174,7 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
 
 
 class FitnessFunc:
-    """Base class for bayesian blocks fitness functions
+    """Base class for bayesian blocks fitness functions.
 
     Derived classes should overload the following method:
 
@@ -284,9 +285,9 @@ class FitnessFunc:
         raise NotImplementedError()
 
     def p0_prior(self, N):
-        """
-        Empirical prior, parametrized by the false alarm probability ``p0``
-        See  eq. 21 in Scargle (2013)
+        """Empirical prior, parametrized by the false alarm probability ``p0``.
+
+        See eq. 21 in Scargle (2013).
 
         Note that there was an error in this equation in the original Scargle
         paper (the "log" was missing). The following corrected form is taken
@@ -415,7 +416,7 @@ class FitnessFunc:
 
 
 class Events(FitnessFunc):
-    r"""Bayesian blocks fitness for binned or unbinned events
+    r"""Bayesian blocks fitness for binned or unbinned events.
 
     Parameters
     ----------
@@ -451,7 +452,7 @@ class Events(FitnessFunc):
 
 
 class RegularEvents(FitnessFunc):
-    r"""Bayesian blocks fitness for regular events
+    r"""Bayesian blocks fitness for regular events.
 
     This is for data which has a fundamental "tick" length, so that all
     measured values are multiples of this tick length.  In each tick, there
@@ -502,7 +503,7 @@ class RegularEvents(FitnessFunc):
 
 
 class PointMeasures(FitnessFunc):
-    r"""Bayesian blocks fitness for point measures
+    r"""Bayesian blocks fitness for point measures.
 
     Parameters
     ----------

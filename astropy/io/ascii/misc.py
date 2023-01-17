@@ -13,7 +13,7 @@ import operator
 
 
 def first_true_index(iterable, pred=None, default=None):
-    """find the first index position for the which the callable pred returns True"""
+    """find the first index position for the which the callable pred returns True."""
     if pred is None:
         func = operator.itemgetter(1)
     else:
@@ -24,7 +24,7 @@ def first_true_index(iterable, pred=None, default=None):
 
 
 def first_false_index(iterable, pred=None, default=None):
-    """find the first index position for the which the callable pred returns False"""
+    """find the first index position for the which the callable pred returns False."""
     if pred is None:
         func = operator.not_
     else:

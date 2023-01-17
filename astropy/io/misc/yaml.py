@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-This module contains functions for serializing core astropy objects via the
-YAML protocol.
+"""Functions for serializing astropy objects to YAML.
+
 It provides functions `~astropy.io.misc.yaml.dump`,
 `~astropy.io.misc.yaml.load`, and `~astropy.io.misc.yaml.load_all` which
 call the corresponding functions in `PyYaml <https://pyyaml.org>`_ but use the

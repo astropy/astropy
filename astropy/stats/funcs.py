@@ -480,7 +480,7 @@ def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
 def poisson_conf_interval(
     n, interval="root-n", sigma=1, background=0, confidence_level=None
 ):
-    r"""Poisson parameter confidence interval given observed counts
+    r"""Poisson parameter confidence interval given observed counts.
 
     Parameters
     ----------
@@ -1070,7 +1070,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
 
 def _scipy_kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate.
 
     The implementation is based on Kraft, Burrows and Nousek
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1149,7 +1149,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
 
 def _mpmath_kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate.
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
@@ -1244,7 +1244,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
 
 
 def _kraft_burrows_nousek(N, B, CL):
-    """Upper limit on a poisson count rate
+    """Upper limit on a poisson count rate.
 
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.

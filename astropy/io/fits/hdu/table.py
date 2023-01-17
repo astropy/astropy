@@ -942,7 +942,7 @@ class BinTableHDU(_TableBaseHDU):
 
     def _calculate_datasum_with_heap(self):
         """
-        Calculate the value for the ``DATASUM`` card given the input data
+        Calculate the value for the ``DATASUM`` card given the input data.
         """
 
         with _binary_table_byte_swap(self.data) as data:

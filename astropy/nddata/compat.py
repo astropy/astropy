@@ -201,7 +201,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     @property
     def ndim(self):
         """
-        integer dimensions of this object's data
+        integer dimensions of this object's data.
         """
         return self.data.ndim
 

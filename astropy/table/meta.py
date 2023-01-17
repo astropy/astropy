@@ -190,7 +190,7 @@ def _get_variable_length_array_shape(col):
     """
 
     class ConvertError(ValueError):
-        """Local conversion error used below"""
+        """Local conversion error used below."""
 
     # Numpy types supported as variable-length arrays
     np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
@@ -217,7 +217,7 @@ def _get_variable_length_array_shape(col):
 
 
 def _get_datatype_from_dtype(dtype):
-    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``."""
     datatype = dtype.name
     if datatype.startswith(("bytes", "str")):
         datatype = "string"

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
+"""Indexing for Table columns.
+
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 

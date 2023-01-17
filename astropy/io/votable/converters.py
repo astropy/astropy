@@ -303,7 +303,7 @@ class Converter:
 
 class Char(Converter):
     """
-    Handles the char datatype. (7-bit unsigned characters)
+    Handles the char datatype. (7-bit unsigned characters).
 
     Missing values are not handled for string or unicode types.
     """

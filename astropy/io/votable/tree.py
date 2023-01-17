@@ -673,8 +673,9 @@ class Link(SimpleElement, _IDProperty):
 
     @property
     def content_role(self):
-        """
-        Defines the MIME role of the referenced object.  Must be one of:
+        """Defines the MIME role of the referenced object.
+
+        Must be one of:
 
           None, 'query', 'hints', 'doc', 'location' or 'type'
         """
@@ -992,10 +993,9 @@ class Values(Element, _IDProperty):
 
     @property
     def type(self):
-        """
-        [*required*] Defines the applicability of the domain defined
-        by this VALUES_ element.  Must be one of the following
-        strings:
+        """Defines the applicability of the domain defined by this VALUES_ element [*required*].
+
+        Must be one of the following strings:
 
           - 'legal': The domain of this column applies in general to
             this datatype. (default)
@@ -1167,7 +1167,7 @@ class Values(Element, _IDProperty):
     def is_defaults(self):
         """
         Are the settings on this ``VALUE`` element all the same as the
-        XML defaults?
+        XML defaults?.
         """
         # If there's nothing meaningful or non-default to write,
         # don't write anything.
@@ -1429,9 +1429,9 @@ class Field(
 
     @property
     def datatype(self):
-        """
-        [*required*] The datatype of the column.  Valid values (as
-        defined by the spec) are:
+        """The datatype of the column [*required*].
+
+        Valid values (as defined by the spec) are:
 
           'boolean', 'bit', 'unsignedByte', 'short', 'int', 'long',
           'char', 'unicodeChar', 'float', 'double', 'floatComplex', or
@@ -1862,8 +1862,9 @@ class CooSys(SimpleElement):
 
     @property
     def system(self):
-        """
-        Specifies the type of coordinate system.  Valid choices are:
+        """Specifies the type of coordinate system.
+
+        Valid choices are:
 
           'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
           'supergalactic', 'xy', 'barycentric', or 'geo_app'
@@ -2466,9 +2467,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty, _DescriptionPrope
 
     @property
     def format(self):
-        """
-        [*required*] The serialization format of the table.  Must be
-        one of:
+        """The serialization format of the table [*required*].
+
+        Must be one of:
 
           'tabledata' (TABLEDATA_), 'binary' (BINARY_), 'binary2' (BINARY2_)
           'fits' (FITS_).
@@ -3424,8 +3425,9 @@ class Resource(
 
     @property
     def type(self):
-        """
-        [*required*] The type of the resource.  Must be either:
+        """The type of the resource [*required*].
+
+        Must be either:
 
           - 'results': This resource contains actual result values
             (default)
@@ -3443,11 +3445,12 @@ class Resource(
 
     @property
     def extra_attributes(self):
-        """
-        A dictionary of string keys to string values containing any
+        """Dictionary of extra attributes of the RESOURCE_ element.
+
+        This is dictionary of string keys to string values containing any
         extra attributes of the RESOURCE_ element that are not defined
-        in the specification.  (The specification explicitly allows
-        for extra attributes here, but nowhere else.)
+        in the specification. The specification explicitly allows
+        for extra attributes here, but nowhere else.
         """
         return self._extra_attributes
 
@@ -3478,7 +3481,7 @@ class Resource(
     @property
     def groups(self):
         """
-        A list of groups
+        A list of groups.
         """
         return self._groups
 

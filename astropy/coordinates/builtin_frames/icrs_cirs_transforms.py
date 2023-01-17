@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains the transformation functions for getting from ICRS/HCRS to CIRS and
-anything in between (currently that means GCRS)
+anything in between (currently that means GCRS).
 """
 
 import numpy as np

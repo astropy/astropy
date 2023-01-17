@@ -10,7 +10,7 @@ __all__ = ["SpectralCoordType"]
 
 class SpectralCoordType(AstropyType):
     """
-    ASDF tag implementation used to serialize/derialize SpectralCoord objects
+    ASDF tag implementation used to serialize/derialize SpectralCoord objects.
     """
 
     name = "coordinates/spectralcoord"

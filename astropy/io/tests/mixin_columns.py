@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Mixin columns for use in ascii/tests/test_ecsv.py, fits/tests/test_connect.py,
-and misc/tests/test_hdf5.py
+and misc/tests/test_hdf5.py.
 """
 
 import numpy as np

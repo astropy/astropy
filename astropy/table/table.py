@@ -251,6 +251,7 @@ class TableColumns(OrderedDict):
 
     def __getitem__(self, item):
         """Get items from a TableColumns object.
+
         ::
 
           tc = TableColumns(cols=[Column(name='a'), Column(name='b'), Column(name='c')])
@@ -507,7 +508,7 @@ class PprintIncludeExclude(TableAttribute):
         self._remove(names, raise_exc=True)
 
     def _remove(self, names, raise_exc=False):
-        """Remove ``names`` with optional checking if they exist"""
+        """Remove ``names`` with optional checking if they exist."""
         instance, names, value = self._add_remove_setup(names)
 
         # Return now if there are no attributes and thus no action to be taken.
@@ -526,7 +527,7 @@ class PprintIncludeExclude(TableAttribute):
         self.__set__(instance, value)
 
     def _rename(self, name, new_name):
-        """Rename ``name`` to ``new_name`` if ``name`` is in the list"""
+        """Rename ``name`` to ``new_name`` if ``name`` is in the list."""
         names = self() or ()
         if name in names:
             new_names = list(names)
@@ -1400,7 +1401,7 @@ class Table:
         return col
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
-        """Initialize table from an ndarray structured array"""
+        """Initialize table from an ndarray structured array."""
 
         data_names = data.dtype.names or _auto_names(n_cols)
         struct = data.dtype.names is not None
@@ -1415,7 +1416,7 @@ class Table:
         self._init_from_list(cols, names, dtype, n_cols, copy)
 
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
-        """Initialize table from a dictionary of columns"""
+        """Initialize table from a dictionary of columns."""
 
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
@@ -1460,7 +1461,7 @@ class Table:
         return col
 
     def _init_from_cols(self, cols):
-        """Initialize table from a list of Column or mixin objects"""
+        """Initialize table from a list of Column or mixin objects."""
 
         lengths = {len(col) for col in cols}
         if len(lengths) > 1:
@@ -2228,7 +2229,7 @@ class Table:
 
     @staticmethod
     def _is_list_or_tuple_of_str(names):
-        """Check that ``names`` is a tuple or list of strings"""
+        """Check that ``names`` is a tuple or list of strings."""
         return (
             isinstance(names, (tuple, list))
             and names
@@ -3829,7 +3830,7 @@ class Table:
 
     def group_by(self, keys):
         """
-        Group this table by the specified ``keys``
+        Group this table by the specified ``keys``.
 
         This effectively splits the table into groups which correspond to unique
         values of the ``keys`` grouping object.  The output is a new
@@ -3856,7 +3857,7 @@ class Table:
 
     def to_pandas(self, index=None, use_nullable_int=True):
         """
-        Return a :class:`pandas.DataFrame` instance
+        Return a :class:`pandas.DataFrame` instance.
 
         The index of the created DataFrame is controlled by the ``index``
         argument.  For ``index=True`` or the default ``None``, an index will be
@@ -4043,7 +4044,7 @@ class Table:
     @classmethod
     def from_pandas(cls, dataframe, index=False, units=None):
         """
-        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance
+        Create a `~astropy.table.Table` from a :class:`pandas.DataFrame` instance.
 
         In addition to converting generic numeric or string columns, this supports
         conversion of pandas Date and Time delta columns to `~astropy.time.Time`

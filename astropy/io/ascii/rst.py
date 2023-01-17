@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license
 """
-:Author: Simon Gibbons (simongibbons@gmail.com)
+:Author: Simon Gibbons (simongibbons@gmail.com).
 """
 
 

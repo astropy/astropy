@@ -171,26 +171,20 @@ class Angle(u.SpecificTypeQuantity):
 
     @property
     def hms(self):
-        """
-        The angle's value in hours, as a named tuple with ``(h, m, s)``
-        members.  (This is a read-only property.)
-        """
+        """The angle's value in hours, as a named tuple with ``(h, m, s)`` members."""
         return hms_tuple(*form.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
-        """
-        The angle's value in degrees, as a named tuple with ``(d, m, s)``
-        members.  (This is a read-only property.)
-        """
+        """The angle's value in degrees, as a ``(d, m, s)`` named tuple."""
         return dms_tuple(*form.degrees_to_dms(self.degree))
 
     @property
     def signed_dms(self):
-        """
-        The angle's value in degrees, as a named tuple with ``(sign, d, m, s)``
-        members.  The ``d``, ``m``, ``s`` are thus always positive, and the sign of
-        the angle is given by ``sign``. (This is a read-only property.)
+        """The angle's value in degrees, as a ``(sign, d, m, s)`` named tuple.
+
+        The ``d``, ``m``, ``s`` are thus always positive, and the sign of
+        the angle is given by ``sign``.
 
         This is primarily intended for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
@@ -421,7 +415,7 @@ class Angle(u.SpecificTypeQuantity):
 
     def is_within_bounds(self, lower=None, upper=None):
         """
-        Check if all angle(s) satisfy ``lower <= angle < upper``
+        Check if all angle(s) satisfy ``lower <= angle < upper``.
 
         If ``lower`` is not specified (or `None`) then no lower bounds check is
         performed.  Likewise ``upper`` can be left unspecified.  For example::
@@ -544,7 +538,7 @@ class Latitude(Angle):
 
     def _validate_angles(self, angles=None):
         """Check that angles are between -90 and 90 degrees.
-        If not given, the check is done on the object itself
+        If not given, the check is done on the object itself.
         """
         # Convert the lower and upper bounds to the "native" unit of
         # this angle.  This limits multiplication to two values,

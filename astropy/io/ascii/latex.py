@@ -47,7 +47,7 @@ RE_COMMENT = re.compile(r"(?<!\\)%")  # % character but not \%
 
 def add_dictval_to_list(adict, key, alist):
     """
-    Add a value from a dictionary to a list
+    Add a value from a dictionary to a list.
 
     Parameters
     ----------
@@ -65,7 +65,7 @@ def add_dictval_to_list(adict, key, alist):
 
 def find_latex_line(lines, latex):
     """
-    Find the first line which matches a pattern
+    Find the first line which matches a pattern.
 
     Parameters
     ----------
@@ -107,7 +107,7 @@ class LatexSplitter(core.BaseSplitter):
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line. Also remove
-        \\ at end of line
+        \\ at end of line.
         """
         line = RE_COMMENT.split(line)[0]
         line = line.strip()
@@ -127,13 +127,13 @@ class LatexSplitter(core.BaseSplitter):
         return val
 
     def join(self, vals):
-        """Join values together and add a few extra spaces for readability"""
+        """Join values together and add a few extra spaces for readability."""
         delimiter = " " + self.delimiter + " "
         return delimiter.join(x.strip() for x in vals) + r" \\"
 
 
 class LatexHeader(core.BaseHeader):
-    """Class to read the header of Latex Tables"""
+    """Class to read the header of Latex Tables."""
 
     header_start = r"\begin{tabular}"
     splitter_class = LatexSplitter
@@ -182,7 +182,7 @@ class LatexHeader(core.BaseHeader):
 
 
 class LatexData(core.BaseData):
-    """Class to read the data in LaTeX tables"""
+    """Class to read the data in LaTeX tables."""
 
     data_start = None
     data_end = r"\end{tabular}"
@@ -390,7 +390,7 @@ class AASTexHeaderSplitter(LatexSplitter):
         return super(LatexSplitter, self).__call__(lines)
 
     def process_line(self, line):
-        """extract column names from tablehead"""
+        """extract column names from tablehead."""
         line = line.split("%")[0]
         line = line.replace(r"\tablehead", "")
         line = line.strip()
@@ -448,7 +448,7 @@ class AASTexHeader(LatexHeader):
 
 
 class AASTexData(LatexData):
-    r"""In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`"""
+    r"""In a `deluxetable`_ the data is enclosed in `\startdata` and `\enddata`."""
 
     data_start = r"\startdata"
     data_end = r"\enddata"

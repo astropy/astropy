@@ -40,7 +40,7 @@ FAST_CLASSES = {}
 
 
 def _check_multidim_table(table, max_ndim):
-    """Check that ``table`` has only columns with ndim <= ``max_ndim``
+    """Check that ``table`` has only columns with ndim <= ``max_ndim``.
 
     Currently ECSV is the only built-in format that supports output of arbitrary
     N-d columns, but HTML supports 2-d.
@@ -160,7 +160,7 @@ class CsvWriter:
 
 
 class MaskedConstant(numpy.ma.core.MaskedConstant):
-    """A trivial extension of numpy.ma.masked
+    """A trivial extension of numpy.ma.masked.
 
     We want to be able to put the generic term ``masked`` into a dictionary.
     The constant ``numpy.ma.masked`` is not hashable (see
@@ -306,8 +306,9 @@ class BaseInputter:
     """Encoding used to read the file"""
 
     def get_lines(self, table, newline=None):
-        """
-        Get the lines from the ``table`` input. The input table can be one of:
+        """Get the lines from the ``table`` input.
+
+        The input table can be one of:
 
         * File name
         * String (newline separated) with all header and data lines (must have at least 2 lines)
@@ -457,7 +458,7 @@ class DefaultSplitter(BaseSplitter):
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
         whitespace-delimited files to prevent spurious columns at the beginning or end.
-        If splitting on whitespace then replace unquoted tabs with space first
+        If splitting on whitespace then replace unquoted tabs with space first.
         """
         if self.delimiter == r"\s":
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
@@ -521,7 +522,7 @@ class DefaultSplitter(BaseSplitter):
 
 
 def _replace_tab_with_space(line, escapechar, quotechar):
-    """Replace tabs with spaces in given string, preserving quoted substrings
+    """Replace tabs with spaces in given string, preserving quoted substrings.
 
     Parameters
     ----------
@@ -569,7 +570,7 @@ def _get_line_index(line_or_func, lines):
 
 class BaseHeader:
     """
-    Base table header reader
+    Base table header reader.
     """
 
     auto_format = "col{}"
@@ -646,7 +647,7 @@ class BaseHeader:
         self._set_cols_from_names()
 
     def process_lines(self, lines):
-        """Generator to yield non-blank and non-comment lines"""
+        """Generator to yield non-blank and non-comment lines."""
         re_comment = re.compile(self.comment) if self.comment else None
         # Yield non-comment lines
         for line in lines:
@@ -668,7 +669,7 @@ class BaseHeader:
 
     @property
     def colnames(self):
-        """Return the column names of the table"""
+        """Return the column names of the table."""
         return tuple(
             col.name if isinstance(col, Column) else col.info.name for col in self.cols
         )
@@ -809,7 +810,7 @@ class BaseData:
 
     def process_lines(self, lines):
         """
-        READ: Strip out comment lines and blank lines from list of ``lines``
+        READ: Strip out comment lines and blank lines from list of ``lines``.
 
         Parameters
         ----------
@@ -849,7 +850,7 @@ class BaseData:
         return self.splitter(self.data_lines)
 
     def masks(self, cols):
-        """READ: Set fill value for each column and then apply that fill value
+        """READ: Set fill value for each column and then apply that fill value.
 
         In the first step it is evaluated with value from ``fill_values`` applies to
         which column using ``fill_include_names`` and ``fill_exclude_names``.
@@ -860,7 +861,7 @@ class BaseData:
             self._set_masks(cols)
 
     def _set_fill_values(self, cols):
-        """READ, WRITE: Set fill values of individual cols based on fill_values of BaseData
+        """READ, WRITE: Set fill values of individual cols based on fill_values of BaseData.
 
         fill values has the following form:
         <fill_spec> = (<bad_value>, <fill_value>, <optional col_name>...)
@@ -909,7 +910,7 @@ class BaseData:
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
-        """READ: Replace string values in col.str_vals and set masks"""
+        """READ: Replace string values in col.str_vals and set masks."""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
@@ -920,7 +921,7 @@ class BaseData:
                     col.mask[i] = True
 
     def _replace_vals(self, cols):
-        """WRITE: replace string values in col.str_vals"""
+        """WRITE: replace string values in col.str_vals."""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 for i, str_val in (
@@ -933,7 +934,7 @@ class BaseData:
                         col.str_vals[i] = mask_val
 
     def str_vals(self):
-        """WRITE: convert all values in table to a list of lists of strings
+        """WRITE: convert all values in table to a list of lists of strings.
 
         This sets the fill values and possibly column formats from the input
         formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
@@ -1066,7 +1067,7 @@ class BaseOutputter:
     def _validate_and_copy(col, converters):
         """Validate the format for the type converters and then copy those
         which are valid converters for this column (i.e. converter type is
-        a subclass of col.type)
+        a subclass of col.type).
         """
         # Allow specifying a single converter instead of a list of converters.
         # The input `converters` must be a ``type`` value that can init np.dtype.
@@ -1154,7 +1155,7 @@ class BaseOutputter:
 
 
 def _deduplicate_names(names):
-    """Ensure there are no duplicates in ``names``
+    """Ensure there are no duplicates in ``names``.
 
     This is done by iteratively adding ``_<N>`` to the name for increasing N
     until the name is unique.
@@ -1500,7 +1501,7 @@ class BaseReader(metaclass=MetaBaseReader):
 
     @property
     def comment_lines(self):
-        """Return lines in the table that match header.comment regexp"""
+        """Return lines in the table that match header.comment regexp."""
         if not hasattr(self, "lines"):
             raise ValueError(
                 "Table must be read prior to accessing the header comment lines"
@@ -1588,8 +1589,9 @@ class BaseReader(metaclass=MetaBaseReader):
 
 
 class ContinuationLinesInputter(BaseInputter):
-    """Inputter where lines ending in ``continuation_char`` are joined
-    with the subsequent line.  Example::
+    """Inputter where lines ending in ``continuation_char`` are joined with the subsequent line.
+
+    Example::
 
       col1 col2 col3
       1 \
@@ -1625,7 +1627,7 @@ class ContinuationLinesInputter(BaseInputter):
 
 class WhitespaceSplitter(DefaultSplitter):
     def process_line(self, line):
-        """Replace tab with space within ``line`` while respecting quoted substrings"""
+        """Replace tab with space within ``line`` while respecting quoted substrings."""
         newline = []
         in_quote = False
         lastchar = None

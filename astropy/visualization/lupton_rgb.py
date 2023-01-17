@@ -148,7 +148,7 @@ class Mapping:
 
     def _convert_images_to_uint8(self, image_r, image_g, image_b):
         """
-        Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images
+        Use the mapping to convert images image_r, image_g, and image_b to a triplet of uint8 images.
         """
         image_r = image_r - self.minimum[0]  # n.b. makes copy
         image_g = image_g - self.minimum[1]
@@ -240,7 +240,7 @@ class LinearMapping(Mapping):
 
 class AsinhMapping(Mapping):
     """
-    A mapping for an asinh stretch (preserving colours independent of brightness)
+    A mapping for an asinh stretch (preserving colours independent of brightness).
 
     x = asinh(Q (I - minimum)/stretch)/Q
 

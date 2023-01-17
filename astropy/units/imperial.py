@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-This package defines colloquially used Imperial units.  They are
-available in the `astropy.units.imperial` namespace, but not in the
+"""Colloquially used Imperial units.
+
+These units are available in the `astropy.units.imperial` namespace, but not in the
 top-level `astropy.units` namespace, e.g.::
 
     >>> import astropy.units as u
