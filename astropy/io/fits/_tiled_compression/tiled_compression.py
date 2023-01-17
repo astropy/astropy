@@ -3,6 +3,9 @@ This module contains low level helper functions for compressing and
 decompressing buffer for the Tiled Table Compression algorithms as specified in
 the FITS 4 standard.
 """
+
+import sys
+
 import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
@@ -550,15 +553,14 @@ def compress_hdu(hdu):
     if hdu._header["ZCMPTYPE"] == "PLIO_1":
         table["COMPRESSED_DATA"][:, 0] //= 2
 
-    # For PLIO_1, it looks like the compressed data is byteswapped
+    # For PLIO_1, it looks like the compressed data is always stored big endian
     if hdu._header["ZCMPTYPE"] == "PLIO_1":
         for irow in range(len(compressed_bytes)):
             if not gzip_fallback[irow]:
-                compressed_bytes[irow] = (
-                    np.frombuffer(compressed_bytes[irow], dtype="<i2")
-                    .astype(">i2")
-                    .tobytes()
-                )
+                array = np.frombuffer(compressed_bytes[irow], dtype="i2")
+                if array.dtype.byteorder == '<' or (array.dtype.byteorder == '=' and sys.byteorder == 'little'):
+                    compressed_bytes[irow] = array.astype(">i2").tobytes()
+
 
     compressed_bytes = b"".join(compressed_bytes)
 
