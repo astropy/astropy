@@ -55,12 +55,12 @@ class Gzip1(Codec):
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to decompress.
 
         Returns
         -------
-        buf
+        buf : np.ndarray
             The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
@@ -73,13 +73,13 @@ class Gzip1(Codec):
 
         Parameters
         ----------
-        buf
+        buf _like
             The buffer to compress.
 
         Returns
         -------
-        buf
-            A buffer with compressed data.
+        bytes
+            The compressed bytes.
         """
         dbytes = np.asarray(buf).tobytes()
         return gzip_compress(dbytes)
@@ -129,12 +129,12 @@ class Gzip2(Codec):
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to decompress.
 
         Returns
         -------
-        buf
+        buf : np.ndarray
             The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
@@ -149,13 +149,13 @@ class Gzip2(Codec):
 
         Parameters
         ----------
-        buf
-            The buffer to decompress.
+        buf : bytes or array_like
+            The buffer to compress.
 
         Returns
         -------
-        buf
-            The decompressed buffer.
+        bytes
+            The compressed bytes.
         """
         # Start off by shuffling buffer
         array = np.asarray(buf).ravel()
@@ -204,12 +204,12 @@ class Rice1(Codec):
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to decompress.
 
         Returns
         -------
-        buf
+        buf : np.ndarray
             The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
@@ -224,13 +224,13 @@ class Rice1(Codec):
 
         Parameters
         ----------
-        buf
-            The buffer to decompress.
+        buf : bytes or array_like
+            The buffer to compress.
 
         Returns
         -------
-        buf
-            A buffer with decompressed data.
+        bytes
+            The compressed bytes.
         """
         dbytes = np.asarray(buf).astype(f"i{self.bytepix}").tobytes()
         return compress_rice_1_c(dbytes, self.blocksize, self.bytepix)
@@ -259,12 +259,12 @@ class PLIO1(Codec):
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to decompress.
 
         Returns
         -------
-        buf
+        buf : np.ndarray
             The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
@@ -274,6 +274,16 @@ class PLIO1(Codec):
     def encode(self, buf):
         """
         Compress the data in the buffer using the PLIO_1 algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to compress.
+
+        Returns
+        -------
+        bytes
+            The compressed bytes.
         """
         dbytes = np.asarray(buf).astype("i4").tobytes()
         return compress_plio_1_c(dbytes, self.tilesize)
@@ -281,7 +291,7 @@ class PLIO1(Codec):
 
 class HCompress1(Codec):
     """
-    The FTIS PLIO1 compression and decompression algorithm.
+    The FTIS HCompress compression and decompression algorithm.
 
     Hcompress is an the image compression package written by Richard L. White
     for use at the Space Telescope Science Institute. Hcompress was used to
@@ -332,13 +342,13 @@ class HCompress1(Codec):
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to decompress.
 
         Returns
         -------
-        buf
-            A buffer with decompressed data.
+        buf : np.ndarray
+            The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
         dbytes = decompress_hcompress_1_c(
@@ -353,13 +363,13 @@ class HCompress1(Codec):
 
         Parameters
         ----------
-        buf
-            The buffer to decompress.
+        buf : bytes or array_like
+            The buffer to compress.
 
         Returns
         -------
-        buf
-            A buffer with decompressed data.
+        bytes
+            The compressed bytes.
         """
         dbytes = np.asarray(buf).astype(f"i{self.bytepix}").tobytes()
         return compress_hcompress_1_c(
