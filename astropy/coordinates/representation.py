@@ -57,7 +57,7 @@ _REPRDIFF_HASH = None
 
 
 def _fqn_class(cls):
-    """Get the fully qualified name of a class"""
+    """Get the fully qualified name of a class."""
     return cls.__module__ + "." + cls.__qualname__
 
 
@@ -358,7 +358,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return tuple(self.attr_classes)
 
     def __eq__(self, value):
-        """Equality operator
+        """Equality operator.
 
         This implements strict equality and requires that the representation
         classes are identical and that the representation data are exactly equal.
@@ -1011,7 +1011,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         return representation.represent_as(cls)
 
     def __eq__(self, value):
-        """Equality operator for BaseRepresentation
+        """Equality operator for BaseRepresentation.
 
         This implements strict equality and requires that the representation
         classes are identical, the differentials are identical, and that the
@@ -2563,7 +2563,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
     def __init_subclass__(cls, **kwargs):
         """Set default ``attr_classes`` and component getters on a Differential.
-        class BaseDifferential(BaseRepresentationOrDifferential):
 
         For these, the components are those of the base representation prefixed
         by 'd_', and the class is `~astropy.units.Quantity`.

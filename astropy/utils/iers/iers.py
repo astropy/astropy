@@ -211,7 +211,7 @@ conf = Conf()
 
 class IERSRangeError(IndexError):
     """
-    Any error for when dates are outside of the valid range for IERS
+    Any error for when dates are outside of the valid range for IERS.
     """
 
 
@@ -640,7 +640,7 @@ class IERS_A(IERS):
         return table
 
     def ut1_utc_source(self, i):
-        """Set UT1-UTC source flag for entries in IERS table"""
+        """Set UT1-UTC source flag for entries in IERS table."""
         ut1flag = self["UT1Flag"][i]
         source = np.ones_like(i) * FROM_IERS_B
         source[ut1flag == "I"] = FROM_IERS_A
@@ -648,7 +648,7 @@ class IERS_A(IERS):
         return source
 
     def dcip_source(self, i):
-        """Set CIP correction source flag for entries in IERS table"""
+        """Set CIP correction source flag for entries in IERS table."""
         nutflag = self["NutFlag"][i]
         source = np.ones_like(i) * FROM_IERS_B
         source[nutflag == "I"] = FROM_IERS_A
@@ -656,7 +656,7 @@ class IERS_A(IERS):
         return source
 
     def pm_source(self, i):
-        """Set polar motion source flag for entries in IERS table"""
+        """Set polar motion source flag for entries in IERS table."""
         pmflag = self["PolPMFlag"][i]
         source = np.ones_like(i) * FROM_IERS_B
         source[pmflag == "I"] = FROM_IERS_A
@@ -708,15 +708,15 @@ class IERS_B(IERS):
         return table
 
     def ut1_utc_source(self, i):
-        """Set UT1-UTC source flag for entries in IERS table"""
+        """Set UT1-UTC source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
     def dcip_source(self, i):
-        """Set CIP correction source flag for entries in IERS table"""
+        """Set CIP correction source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
     def pm_source(self, i):
-        """Set PM source flag for entries in IERS table"""
+        """Set PM source flag for entries in IERS table."""
         return np.ones_like(i) * FROM_IERS_B
 
 
@@ -1150,7 +1150,7 @@ class LeapSeconds(QTable):
 
     @classmethod
     def _read_leap_seconds(cls, file, **kwargs):
-        """Read a file, identifying expiration by matching 'File expires'"""
+        """Read a file, identifying expiration by matching 'File expires'."""
         expires = None
         # Find expiration date.
         with get_readable_fileobj(file) as fh:

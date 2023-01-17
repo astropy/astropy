@@ -672,9 +672,9 @@ def _get_representation_attrs(frame, units, kwargs):
 
 
 def _parse_ra_dec(coord_str):
-    """
-    Parse RA and Dec values from a coordinate string. Currently the
-    following formats are supported:
+    """Parse RA and Dec values from a coordinate string.
+
+    Currently the following formats are supported:
 
      * space separated 6-value format
      * space separated <6-value format, this requires a plus or minus sign

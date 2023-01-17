@@ -262,7 +262,7 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
 
     def unregister_identifier(self, data_format, data_class):
         """
-        Unregister an identifier function
+        Unregister an identifier function.
 
         Parameters
         ----------
@@ -328,9 +328,9 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         return format_table_str
 
     def _is_best_match(self, class1, class2, format_classes):
-        """
-        Determine if class2 is the "best" match for class1 in the list
-        of classes.  It is assumed that (class2 in classes) is True.
+        """Determine if class2 is the "best" match for class1 in the list of classes.
+
+        It is assumed that (class2 in classes) is True.
         class2 is the the best match if:
 
         - ``class1`` is a subclass of ``class2`` AND

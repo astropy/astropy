@@ -2013,7 +2013,7 @@ def check_download_cache(pkgname="astropy"):
 
 @contextlib.contextmanager
 def _SafeTemporaryDirectory(suffix=None, prefix=None, dir=None):
-    """Temporary directory context manager
+    """Temporary directory context manager.
 
     This will not raise an exception if the temporary directory goes away
     before it's supposed to be deleted. Specifically, what is deleted will

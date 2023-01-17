@@ -7,7 +7,7 @@ def bitceil(N):
     """
     Find the bit (i.e. power of 2) immediately greater than or equal to N
     Note: this works for numbers up to 2 ** 64.
-    Roughly equivalent to int(2 ** np.ceil(np.log2(N)))
+    Roughly equivalent to int(2 ** np.ceil(np.log2(N))).
     """
     return 1 << int(N - 1).bit_length()
 
@@ -80,7 +80,8 @@ def extirpolate(x, y, N=None, M=4):
 
 
 def trig_sum(t, h, df, N, f0=0, freq_factor=1, oversampling=5, use_fft=True, Mfft=4):
-    """Compute (approximate) trigonometric sums for a number of frequencies
+    """Compute (approximate) trigonometric sums for a number of frequencies.
+
     This routine computes weighted sine and cosine sums::
 
         S_j = sum_i { h_i * sin(2 pi * f_j * t_i) }

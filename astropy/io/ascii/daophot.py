@@ -37,10 +37,12 @@ class DaophotHeader(core.BaseHeader):
         core.BaseHeader.__init__(self)
 
     def parse_col_defs(self, grouped_lines_dict):
-        """
-        Parse a series of column definition lines like below.  There may be several
-        such blocks in a single file (where continuation characters have already been
-        stripped).
+        """Parse a series of column definition lines.
+
+        Examples
+        --------
+        When parsing, there may be several such blocks in a single file
+        (where continuation characters have already been stripped).
         #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER
         #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##
         #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
@@ -135,7 +137,7 @@ class DaophotHeader(core.BaseHeader):
 
     def extract_keyword_line(self, line):
         """
-        Extract info from a header keyword line (#K)
+        Extract info from a header keyword line (#K).
         """
         m = self.re_header_keyword.match(line)
         if m:

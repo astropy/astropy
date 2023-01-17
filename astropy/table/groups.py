@@ -120,7 +120,7 @@ def _table_group_by(table, keys):
 
 def column_group_by(column, keys):
     """
-    Get groups for ``column`` on specified ``keys``
+    Get groups for ``column`` on specified ``keys``.
 
     Parameters
     ----------

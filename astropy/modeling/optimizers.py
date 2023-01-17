@@ -53,32 +53,32 @@ class Optimization(metaclass=abc.ABCMeta):
 
     @property
     def maxiter(self):
-        """Maximum number of iterations"""
+        """Maximum number of iterations."""
         return self._maxiter
 
     @maxiter.setter
     def maxiter(self, val):
-        """Set maxiter"""
+        """Set maxiter."""
         self._maxiter = val
 
     @property
     def eps(self):
-        """Step for the forward difference approximation of the Jacobian"""
+        """Step for the forward difference approximation of the Jacobian."""
         return self._eps
 
     @eps.setter
     def eps(self, val):
-        """Set eps value"""
+        """Set eps value."""
         self._eps = val
 
     @property
     def acc(self):
-        """Requested accuracy"""
+        """Requested accuracy."""
         return self._acc
 
     @acc.setter
     def acc(self, val):
-        """Set accuracy"""
+        """Set accuracy."""
         self._acc = val
 
     def __repr__(self):

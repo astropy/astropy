@@ -305,7 +305,7 @@ class NDArithmeticMixin:
 
     def _arithmetic_data(self, operation, operand, **kwds):
         """
-        Calculate the resulting data
+        Calculate the resulting data.
 
         Parameters
         ----------
@@ -423,7 +423,7 @@ class NDArithmeticMixin:
 
     def _arithmetic_mask(self, operation, operand, handle_mask, **kwds):
         """
-        Calculate the resulting mask
+        Calculate the resulting mask.
 
         This is implemented as the piecewise ``or`` operation if both have a
         mask.

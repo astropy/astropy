@@ -132,7 +132,7 @@ def read_table_fits(
     mask_invalid=True,
 ):
     """
-    Read a Table object from an FITS file
+    Read a Table object from an FITS file.
 
     If the ``astropy_native`` argument is ``True``, then input FITS columns
     which are representations of an astropy core object will be converted to
@@ -421,7 +421,7 @@ def _encode_mixins(tbl):
 
 def write_table_fits(input, output, overwrite=False, append=False):
     """
-    Write a Table object to a FITS file
+    Write a Table object to a FITS file.
 
     Parameters
     ----------

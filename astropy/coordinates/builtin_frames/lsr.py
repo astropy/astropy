@@ -234,7 +234,7 @@ def lsrk_to_icrs(lsr_coord, icrs_frame):
 
 
 class LSRD(BaseRADecFrame):
-    r"""A coordinate or frame in the Dynamical Local Standard of Rest (LSRD)
+    r"""A coordinate or frame in the Dynamical Local Standard of Rest (LSRD).
 
     This frame is defined as a velocity of U=9 km/s, V=12 km/s,
     and W=7 km/s in Galactic coordinates or 16.552945 km/s

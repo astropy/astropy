@@ -645,7 +645,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @format.setter
     def format(self, format):
-        """Set time format"""
+        """Set time format."""
         if format not in self.FORMATS:
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
         format_cls = self.FORMATS[format]
@@ -720,7 +720,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @property
     def scale(self):
-        """Time scale"""
+        """Time scale."""
         return self._time.scale
 
     def _set_scale(self, scale):
@@ -1009,7 +1009,7 @@ class TimeBase(ShapedLikeNDArray):
 
     @property
     def value(self):
-        """Time value(s) in current format"""
+        """Time value(s) in current format."""
         return self.to_value(self.format, None)
 
     @property
@@ -1682,7 +1682,7 @@ class TimeBase(ShapedLikeNDArray):
 
     def _time_comparison(self, other, op):
         """If other is of same class as self, compare difference in self.scale.
-        Otherwise, return NotImplemented
+        Otherwise, return NotImplemented.
         """
         if other.__class__ is not self.__class__:
             try:
@@ -1869,7 +1869,7 @@ class Time(TimeBase):
                 ) from err
 
     def _make_value_equivalent(self, item, value):
-        """Coerce setitem value into an equivalent Time object"""
+        """Coerce setitem value into an equivalent Time object."""
 
         # If there is a vector location then broadcast to the Time shape
         # and then select with ``item``
@@ -2695,7 +2695,7 @@ class Time(TimeBase):
 
 
 class TimeDeltaMissingUnitWarning(AstropyDeprecationWarning):
-    """Warning for missing unit or format in TimeDelta"""
+    """Warning for missing unit or format in TimeDelta."""
 
     pass
 
@@ -2847,7 +2847,7 @@ class TimeDelta(TimeBase):
             )
 
     def _add_sub(self, other, op):
-        """Perform common elements of addition / subtraction for two delta times"""
+        """Perform common elements of addition / subtraction for two delta times."""
         # If not a TimeDelta then see if it can be turned into a TimeDelta.
         if not isinstance(other, TimeDelta):
             try:
@@ -3112,7 +3112,7 @@ class TimeDelta(TimeBase):
         )
 
     def _make_value_equivalent(self, item, value):
-        """Coerce setitem value into an equivalent TimeDelta object"""
+        """Coerce setitem value into an equivalent TimeDelta object."""
         if not isinstance(value, TimeDelta):
             try:
                 value = self.__class__(value, scale=self.scale, format=self.format)

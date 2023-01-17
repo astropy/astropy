@@ -415,7 +415,7 @@ class ConfigItem:
         )
 
     def __call__(self):
-        """Returns the value of this ``ConfigItem``
+        """Returns the value of this ``ConfigItem``.
 
         Returns
         -------
@@ -487,7 +487,7 @@ class ConfigItem:
 
     def _validate_val(self, val):
         """Validates the provided value based on cfgtype and returns the
-        type-cast value
+        type-cast value.
 
         throws the underlying configobj exception if it fails
         """

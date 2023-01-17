@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Methods for selecting the bin width of histograms
+Methods for selecting the bin width of histograms.
 
 Ported from the astroML project: https://www.astroml.org/
 """
@@ -91,7 +91,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
 
 
 def histogram(a, bins=10, range=None, weights=None, **kwargs):
-    """Enhanced histogram function, providing adaptive binnings
+    """Enhanced histogram function, providing adaptive binnings.
 
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing
@@ -145,7 +145,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
 
 def scott_bin_width(data, return_bins=False):
-    r"""Return the optimal histogram bin width using Scott's rule
+    r"""Return the optimal histogram bin width using Scott's rule.
 
     Scott's rule is a normal reference rule: it minimizes the integrated
     mean squared error in the bin approximation under the assumption that the
@@ -206,7 +206,7 @@ def scott_bin_width(data, return_bins=False):
 
 
 def freedman_bin_width(data, return_bins=False):
-    r"""Return the optimal histogram bin width using the Freedman-Diaconis rule
+    r"""Return the optimal histogram bin width using the Freedman-Diaconis rule.
 
     The Freedman-Diaconis rule is a normal reference rule like Scott's
     rule, but uses rank-based statistics for results which are more robust
@@ -344,7 +344,7 @@ def knuth_bin_width(data, return_bins=False, quiet=True):
 
 
 class _KnuthF:
-    r"""Class which implements the function minimized by knuth_bin_width
+    r"""Class which implements the function minimized by knuth_bin_width.
 
     Parameters
     ----------
@@ -385,14 +385,14 @@ class _KnuthF:
         self.gammaln = special.gammaln
 
     def bins(self, M):
-        """Return the bin edges given M number of bins"""
+        """Return the bin edges given M number of bins."""
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
 
     def __call__(self, M):
         return self.eval(M)
 
     def eval(self, M):
-        """Evaluate the Knuth function
+        """Evaluate the Knuth function.
 
         Parameters
         ----------

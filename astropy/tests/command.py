@@ -207,9 +207,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         return cmd.format(set_flag, self, cmd_pre=cmd_pre, cmd_post=cmd_post)
 
     def run(self):
-        """
-        Run the tests!
-        """
+        """Run the tests!"""
 
         # Install the runtime dependencies.
         if self.distribution.install_requires:
@@ -286,7 +284,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
         Install the package and to a temporary directory for the purposes of
         testing. This allows us to test the install command, include the
         entry points, and also avoids creating pyc and __pycache__ directories
-        inside the build directory
+        inside the build directory.
         """
 
         # On OSX the default path for temp files is under /var, but in most
@@ -344,7 +342,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
     def _generate_coverage_commands(self):
         """
         This method creates the post and pre commands if coverage is to be
-        generated
+        generated.
         """
         if self.parallel != 0:
             raise ValueError("--coverage can not be used with --parallel")

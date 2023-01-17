@@ -88,7 +88,7 @@ def make_skyoffset_cls(framecls):
         DynamicMatrixTransform, _SkyOffsetFramecls, framecls
     )
     def skyoffset_to_reference(skyoffset_coord, reference_frame):
-        """Convert an sky offset frame coordinate to the reference frame"""
+        """Convert an sky offset frame coordinate to the reference frame."""
 
         # use the forward transform, but just invert it
         R = reference_to_skyoffset(reference_frame, skyoffset_coord)

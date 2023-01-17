@@ -686,11 +686,11 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @lazyproperty
     def cache(self):
-        """
-        Cache for this frame, a dict.  It stores anything that should be
-        computed from the coordinate data (*not* from the frame attributes).
-        This can be used in functions to store anything that might be
-        expensive to compute but might be re-used by some other function.
+        """Cache for this frame, a dict.
+
+        It stores anything that should be computed from the coordinate data (*not* from
+        the frame attributes). This can be used in functions to store anything that
+        might be expensive to compute but might be re-used by some other function.
         E.g.::
 
             if 'user_data' in myframe.cache:
@@ -748,7 +748,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     @classmethod
     def get_frame_attr_defaults(cls):
-        """Return a dict with the defaults for each frame attribute"""
+        """Return a dict with the defaults for each frame attribute."""
         return {name: getattr(cls, name) for name in cls.frame_attributes}
 
     @deprecated(
@@ -763,7 +763,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     )
     @classmethod
     def get_frame_attr_names(cls):
-        """Return a dict with the defaults for each frame attribute"""
+        """Return a dict with the defaults for each frame attribute."""
         return cls.get_frame_attr_defaults()
 
     def get_representation_cls(self, which="base"):

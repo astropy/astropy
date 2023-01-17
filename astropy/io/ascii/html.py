@@ -483,7 +483,7 @@ class HTML(core.BaseReader):
 
     def fill_values(self, col, col_str_iters):
         """
-        Return an iterator of the values with replacements based on fill_values
+        Return an iterator of the values with replacements based on fill_values.
         """
         # check if the col is a masked column and has fill values
         is_masked_column = hasattr(col, "mask")

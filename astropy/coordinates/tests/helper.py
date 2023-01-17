@@ -3,7 +3,7 @@ import numpy as np
 
 
 def skycoord_equal(sc1, sc2):
-    """SkyCoord equality useful for testing"""
+    """SkyCoord equality useful for testing."""
     if not sc1.is_equivalent_frame(sc2):
         return False
     if sc1.representation_type is not sc2.representation_type:

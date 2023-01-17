@@ -603,7 +603,7 @@ def median(a, axis=None, out=None, **kwargs):
 def _masked_quantile_1d(a, q, **kwargs):
     """
     Private function for rank 1 arrays. Compute quantile ignoring NaNs.
-    See nanpercentile for parameter usage
+    See nanpercentile for parameter usage.
     """
     unmasked = a.unmasked[~a.mask]
     if unmasked.size:

@@ -204,9 +204,9 @@ def terminal_size(file=None):
 
 
 def _color_text(text, color):
-    """
-    Returns a string wrapped in ANSI color codes for coloring the
-    text in a terminal::
+    """Returns a string wrapped in ANSI color codes for coloring the text in a terminal.
+
+    ::
 
         colored_text = color_text('Here is a message', 'blue')
 

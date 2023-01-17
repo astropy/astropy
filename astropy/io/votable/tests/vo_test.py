@@ -837,9 +837,7 @@ def test_validate_xmllint_true(mock_subproc_popen):
 
 
 def test_validate_path_object():
-    """
-    Validating when source is passed as path object. (#4412)
-    """
+    """Validating when source is passed as path object (#4412)."""
     test_validate(test_path_object=True)
 
 

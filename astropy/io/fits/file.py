@@ -507,7 +507,7 @@ class _File:
                 raise OSError(NOT_OVERWRITING_MSG.format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=""):
-        """Attempt to determine if the given file is compressed"""
+        """Attempt to determine if the given file is compressed."""
         is_ostream = mode == "ostream"
         if (is_ostream and ext == ".gz") or magic.startswith(GZIP_MAGIC):
             if mode == "append":

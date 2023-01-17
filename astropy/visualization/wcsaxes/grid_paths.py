@@ -93,7 +93,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
 
 def get_gridline_path(world, pixel):
     """
-    Draw a grid line
+    Draw a grid line.
 
     Parameters
     ----------

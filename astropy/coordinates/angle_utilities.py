@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains utility functions for working with angles. These are both
-used internally in astropy.coordinates.angles, and of possible
+used internally in astropy.coordinates.angles, and of possible.
 """
 
 __all__ = [

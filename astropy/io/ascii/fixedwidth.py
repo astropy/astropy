@@ -358,13 +358,13 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
-    """Header reader for fixed with tables with no header line"""
+    """Header reader for fixed with tables with no header line."""
 
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-    """Data reader for fixed width tables with no header line"""
+    """Data reader for fixed width tables with no header line."""
 
     start_line = 0
 

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-"""
+"""Convenience functions for working with FITS files.
+
 Convenience functions
 =====================
 

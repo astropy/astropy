@@ -1034,7 +1034,7 @@ class CustomKernel(Kernel):
     @array.setter
     def array(self, array):
         """
-        Filter kernel array setter
+        Filter kernel array setter.
         """
         if isinstance(array, np.ndarray):
             self._array = array.astype(np.float64)
