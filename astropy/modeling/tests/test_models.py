@@ -489,7 +489,7 @@ class Fittable1DModelTester:
         model = create_model(model_class, test_parameters)
         bbox = model.bounding_box
 
-        if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
+        if isinstance(model, (models.Lorentz1D, models.Drude1D)):
             rtol = 0.01  # 1% agreement is enough due to very extended wings
             ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
         else:

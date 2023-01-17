@@ -1522,9 +1522,7 @@ class Model(metaclass=_ModelMeta):
             # We use this to explicitly set an unimplemented bounding box (as
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
-        elif isinstance(bounding_box, CompoundBoundingBox) or isinstance(
-            bounding_box, dict
-        ):
+        elif isinstance(bounding_box, (CompoundBoundingBox, dict)):
             cls = CompoundBoundingBox
         elif isinstance(self._bounding_box, type) and issubclass(
             self._bounding_box, ModelBoundingBox
