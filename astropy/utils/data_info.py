@@ -100,9 +100,7 @@ def dtype_info_name(dtype):
     """
     dtype = np.dtype(dtype)
     if dtype.names is not None:
-        return "({})".format(
-            ", ".join(dtype_info_name(dt[0]) for dt in dtype.fields.values())
-        )
+        return f"({', '.join(dtype_info_name(dt[0]) for dt in dtype.fields.values())})"
     if dtype.subdtype is not None:
         dtype, shape = dtype.subdtype
     else:

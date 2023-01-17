@@ -109,9 +109,7 @@ def write_votlint_warning(w, line, xml_lines):
     )
     if match:
         w.write(
-            "Line {:d}: {}\n".format(
-                int(match.group("line")), xml_escape(match.group("rest"))
-            )
+            f"Line {int(match.group('line')):d}: {xml_escape(match.group('rest'))}\n"
         )
         write_source_line(
             w, xml_lines[int(match.group("line")) - 1], int(match.group("column")) - 1

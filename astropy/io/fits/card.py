@@ -347,9 +347,7 @@ class Card(_Verify):
             # value is checked for both float and np.float32 instances
             # since np.float32 is not considered a Python float.
             raise ValueError(
-                "Floating point {!r} values are not allowed in FITS headers.".format(
-                    value
-                )
+                f"Floating point {value!r} values are not allowed in FITS headers."
             )
 
         elif isinstance(value, str):
@@ -780,9 +778,7 @@ class Card(_Verify):
 
         if m is None:
             raise VerifyError(
-                "Unparsable card ({}), fix it first with .verify('fix').".format(
-                    self.keyword
-                )
+                f"Unparsable card ({self.keyword}), fix it first with .verify('fix')."
             )
 
         if m.group("bool") is not None:
@@ -1047,9 +1043,7 @@ class Card(_Verify):
                 # I guess the HIERARCH card spec is incompatible with CONTINUE
                 # cards
                 raise ValueError(
-                    "The header keyword {!r} with its value is too long".format(
-                        self.keyword
-                    )
+                    f"The header keyword {self.keyword!r} with its value is too long"
                 )
 
         if len(output) <= self.length:
