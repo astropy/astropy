@@ -558,10 +558,7 @@ def test_table_filter():
 
     def all_positive(table, key_colnames):
         colnames = [name for name in table.colnames if name not in key_colnames]
-        for colname in colnames:
-            if np.any(table[colname] < 0):
-                return False
-        return True
+        return all(not np.any(table[colname] < 0) for colname in colnames)
 
     # Negative value in 'a' column should not filter because it is a key col
     t = Table.read(
