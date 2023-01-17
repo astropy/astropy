@@ -47,12 +47,12 @@ class Quantize:
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to unquantize.
 
         Returns
         -------
-        buf
+        np.ndarray
             The unquantized buffer.
         """
         qbytes = np.asarray(buf)
@@ -97,12 +97,12 @@ class Quantize:
 
         Parameters
         ----------
-        buf
+        buf : bytes or array_like
             The buffer to quantize.
 
         Returns
         -------
-        buf
+        np.ndarray
             A buffer with quantized data.
         """
         uarray = np.asarray(buf)
