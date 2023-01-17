@@ -164,7 +164,7 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
         assert not isinstance(obj, Cosmology)
 
         is_equiv = cosmo.is_equivalent(obj, format=format)
-        assert is_equiv is (True if format is not False else False)
+        assert is_equiv is (bool(format is not False))
 
 
 class TestToFromModel(ToFromDirectTestBase, ToFromModelTestMixin):
