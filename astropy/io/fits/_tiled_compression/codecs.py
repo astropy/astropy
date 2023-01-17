@@ -87,7 +87,7 @@ class Gzip1(Codec):
 
 class Gzip2(Codec):
     """
-    The FTIS GZIP2 compression and decompression algorithm.
+    The FITS GZIP2 compression and decompression algorithm.
 
     The gzip2 algorithm is a variation on 'GZIP 1'. In this case the buffer in
     the array of data values are shuffled so that they are arranged in order of
@@ -167,7 +167,7 @@ class Gzip2(Codec):
 
 class Rice1(Codec):
     """
-    The FTIS RICE1 compression and decompression algorithm.
+    The FITS RICE1 compression and decompression algorithm.
 
     The Rice algorithm [1]_ is simple and very fast It requires only enough
     memory to hold a single block of 16 or 32 pixels at a time. It codes the
@@ -187,8 +187,8 @@ class Rice1(Codec):
     References
     ----------
     .. [1] Rice, R. F., Yeh, P.-S., and Miller, W. H. 1993, in Proc. of the 9th
-    AIAA Computing in Aerospace Conf., AIAA-93-4541-CP, American Institute of
-    Aeronautics and Astronautics [https://doi.org/10.2514/6.1993-4541]
+           AIAA Computing in Aerospace Conf., AIAA-93-4541-CP, American Institute of
+           Aeronautics and Astronautics [https://doi.org/10.2514/6.1993-4541]
     """
 
     codec_id = "FITS_RICE1"
@@ -238,7 +238,7 @@ class Rice1(Codec):
 
 class PLIO1(Codec):
     """
-    The FTIS PLIO1 compression and decompression algorithm.
+    The FITS PLIO1 compression and decompression algorithm.
 
     The IRAF PLIO (pixel list) algorithm was developed to store integer-valued
     image masks in a compressed form. Such masks often have large regions of
@@ -291,7 +291,7 @@ class PLIO1(Codec):
 
 class HCompress1(Codec):
     """
-    The FTIS HCompress compression and decompression algorithm.
+    The FITS HCompress compression and decompression algorithm.
 
     Hcompress is an the image compression package written by Richard L. White
     for use at the Space Telescope Science Institute. Hcompress was used to
@@ -322,8 +322,8 @@ class HCompress1(Codec):
     References
     ----------
     .. [1] White, R. L. 1992, in Proceedings of the NASA Space and Earth Science
-    Data Compression Workshop, ed. J. C. Tilton, Snowbird, UT;
-    https://archive.org/details/nasa_techdoc_19930016742
+           Data Compression Workshop, ed. J. C. Tilton, Snowbird, UT;
+           https://archive.org/details/nasa_techdoc_19930016742
     """
 
     codec_id = "FITS_HCOMPRESS1"
