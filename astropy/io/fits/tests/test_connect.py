@@ -50,10 +50,7 @@ mixin_cols = {
 
 
 def equal_data(a, b):
-    for name in a.dtype.names:
-        if not np.all(a[name] == b[name]):
-            return False
-    return True
+    return all(np.all(a[name] == b[name]) for name in a.dtype.names)
 
 
 class TestSingleTable:
