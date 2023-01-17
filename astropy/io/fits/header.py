@@ -2205,7 +2205,7 @@ class _CardAccessor:
             else:
                 return False
 
-        return all(not a != b for a, b in itertools.zip_longest(self, other))
+        return all(a == b for a, b in itertools.zip_longest(self, other))
 
     def __ne__(self, other):
         return not (self == other)

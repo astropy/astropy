@@ -1228,7 +1228,11 @@ class TestFileFunctions(FitsTestCase):
         def get_free_space_in_dir(path):
             return 0
 
-        with pytest.raises(OSError) as exc:
+        msg = (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file."
+        )
+        with pytest.raises(OSError, match=msg) as exc:
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
             monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
@@ -1239,12 +1243,6 @@ class TestFileFunctions(FitsTestCase):
 
             with open(filename, mode="wb") as fileobj:
                 hdulist.writeto(fileobj)
-
-        assert (
-            exc.value.args[0]
-            == "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
 
     def test_flush_full_disk(self, monkeypatch):
         """
@@ -1266,17 +1264,15 @@ class TestFileFunctions(FitsTestCase):
         monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writedata", _writedata)
         monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-        with pytest.raises(OSError) as exc:
+        msg = (
+            "Not enough space on disk: requested 8000, available 0. "
+            "Fake error raised when writing file."
+        )
+        with pytest.raises(OSError, match=msg) as exc:
             with fits.open(filename, mode="update") as hdul:
                 hdul[0].data = np.arange(0, 1000, dtype="int64")
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
-
-        assert (
-            exc.value.args[0]
-            == "Not enough space on disk: requested 8000, available 0. "
-            "Fake error raised when writing file."
-        )
 
     def _test_write_string_bytes_io(self, fileobj):
         """
