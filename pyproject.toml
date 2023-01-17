@@ -99,7 +99,6 @@ extend-ignore = [
     "B006",  # MutableArgumentDefault                  # NOTE: low priority fix
     "B007",  # UnusedLoopControlVariable               # TODO: autofix
     "B008",  # FunctionCallArgumentDefault
-    "B010",  # SetAttrWithConstant                     # TODO: autofix
     "B011",  # DoNotAssertFalse                        # TODO: autofix
     "B015",  # UselessComparison                       # TODO: fix
     "B020",  # LoopVariableOverridesIterator           # TODO: fix
