@@ -240,7 +240,6 @@ extend-ignore = [
     "S324",	 # HashlibInsecureHashFunction           # TODO: fix or noqa
 
     # flake8-simplify (SIM)
-    "SIM101",  # DuplicateIsinstanceCall             # TODO: autofix
     "SIM102",  # NestedIfStatements                  # TODO: fixable with `pass`.
     "SIM103",  # ReturnBoolConditionDirectly         # TODO: autofix
     "SIM105",  # UseContextlibSuppress
