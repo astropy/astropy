@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 import inspect
-from typing import TYPE_CHECKING, Any, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 
@@ -21,6 +21,8 @@ from .connect import (
 from .parameter import Parameter
 
 if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Mapping
+
     from astropy.cosmology.funcs.comparison import _FormatType
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
