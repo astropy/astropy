@@ -843,7 +843,7 @@ class TimeGPS(TimeFromEpoch):
     For example, 630720013.0 is midnight on January 1, 2000.
 
     Notes
-    =====
+    -----
     This implementation is strictly a representation of the number of seconds
     (including leap seconds) since midnight UTC on 1980-01-06.  GPS can also be
     considered as a time scale which is ahead of TAI by a fixed offset

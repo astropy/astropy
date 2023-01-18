@@ -177,12 +177,12 @@ def _get_variable_length_array_shape(col):
     be ``np.dtype(object)``.
 
     Parameters
-    ==========
+    ----------
     col : column-like
         Input table column, assumed to be object-type
 
     Returns
-    =======
+    -------
     shape : tuple
         Inferred variable length shape or None
     dtype : np.dtype

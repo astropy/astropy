@@ -18,41 +18,41 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.EarthLocation`
 - `astropy.table.SerializedColumn`
 
-Example
-=======
-::
-  >>> from astropy.io.misc import yaml
-  >>> import astropy.units as u
-  >>> from astropy.time import Time
-  >>> from astropy.coordinates import EarthLocation
-  >>> t = Time(2457389.0, format='mjd',
-  ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
-  >>> td = yaml.dump(t)
-  >>> print(td)
-  !astropy.time.Time
-  format: mjd
-  in_subfmt: '*'
-  jd1: 4857390.0
-  jd2: -0.5
-  location: !astropy.coordinates.earth.EarthLocation
+Examples
+--------
+
+    >>> from astropy.io.misc import yaml
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import EarthLocation
+    >>> t = Time(2457389.0, format='mjd',
+    ...          location=EarthLocation(1000, 2000, 3000, unit=u.km))
+    >>> td = yaml.dump(t)
+    >>> print(td)
+    !astropy.time.Time
+    format: mjd
+    in_subfmt: '*'
+    jd1: 4857390.0
+    jd2: -0.5
+    location: !astropy.coordinates.earth.EarthLocation
     ellipsoid: WGS84
     x: !astropy.units.Quantity
-      unit: &id001 !astropy.units.Unit {unit: km}
-      value: 1000.0
+        unit: &id001 !astropy.units.Unit {unit: km}
+        value: 1000.0
     y: !astropy.units.Quantity
-      unit: *id001
-      value: 2000.0
+        unit: *id001
+        value: 2000.0
     z: !astropy.units.Quantity
-      unit: *id001
-      value: 3000.0
-  out_subfmt: '*'
-  precision: 3
-  scale: utc
-  >>> ty = yaml.load(td)
-  >>> ty
-  <Time object: scale='utc' format='mjd' value=2457389.0>
-  >>> ty.location  # doctest: +FLOAT_CMP
-  <EarthLocation (1000., 2000., 3000.) km>
+        unit: *id001
+        value: 3000.0
+    out_subfmt: '*'
+    precision: 3
+    scale: utc
+    >>> ty = yaml.load(td)
+    >>> ty
+    <Time object: scale='utc' format='mjd' value=2457389.0>
+    >>> ty.location  # doctest: +FLOAT_CMP
+    <EarthLocation (1000., 2000., 3000.) km>
 """
 
 import base64
