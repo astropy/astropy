@@ -64,7 +64,6 @@ class TestRunnerBase:
 
     Examples
     --------
-
     A simple keyword method::
 
         class MyRunner(TestRunnerBase):

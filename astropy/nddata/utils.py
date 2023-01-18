@@ -345,7 +345,6 @@ def subpixel_indices(position, subsampling):
 
     Examples
     --------
-
     If no subsampling is used, then the subpixel indices returned are always 0:
 
     >>> from astropy.nddata.utils import subpixel_indices

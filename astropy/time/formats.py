@@ -801,7 +801,6 @@ class TimeUnixTai(TimeUnix):
 
     Examples
     --------
-
       >>> # get the current offset between TAI and UTC
       >>> from astropy.time import Time
       >>> t = Time('2020-01-01', scale='utc')

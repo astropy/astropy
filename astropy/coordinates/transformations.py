@@ -405,7 +405,6 @@ class TransformGraph:
 
         Notes
         -----
-
         A `~astropy.coordinates.CompositeTransform` is always returned, because
         `~astropy.coordinates.CompositeTransform` is slightly more adaptable in
         the way it can be called than other transform classes. Specifically, it

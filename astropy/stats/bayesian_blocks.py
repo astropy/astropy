@@ -107,7 +107,6 @@ def bayesian_blocks(t, x=None, sigma=None, fitness="events", **kwargs):
 
     Examples
     --------
-
     .. testsetup::
 
         >>> np.random.seed(12345)

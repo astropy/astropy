@@ -508,7 +508,6 @@ def poisson_conf_interval(
 
     Notes
     -----
-
     The "right" confidence interval to use for Poisson data is a
     matter of debate. The CDF working group `recommends
     <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
@@ -1308,7 +1307,6 @@ def kuiper_false_positive_probability(D, N):
 
     References
     ----------
-
     .. [1] Paltani, S., "Searching for periods in X-ray observations using
            Kuiper's test. Application to the ROSAT PSPC archive",
            Astronomy and Astrophysics, v.240, p.789-790, 2004.
@@ -1426,7 +1424,6 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
     References
     ----------
-
     .. [1] Stephens, M. A., "Use of the Kolmogorov-Smirnov, Cramer-Von Mises
            and Related Statistics Without Extensive Tables", Journal of the
            Royal Statistical Society. Series B (Methodological), Vol. 32,

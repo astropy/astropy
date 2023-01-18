@@ -508,12 +508,10 @@ def _generate_wcs_and_update_header(hdr):
 
     Parameters
     ----------
-
     hdr : astropy.io.fits.header or other dict-like
 
     Returns
     -------
-
     new_header, wcs
     """
     # Try constructing a WCS object.

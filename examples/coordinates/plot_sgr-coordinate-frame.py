@@ -21,7 +21,6 @@ by the `~astropy.coordinates.Galactic` class.
 
 See Also
 --------
-
 * The `gala package <http://gala.adrian.pw/>`_, which defines a number of
   Astropy coordinate frames for stellar stream coordinate systems.
 * Majewski et al. 2003, "A Two Micron All Sky Survey View of the Sagittarius

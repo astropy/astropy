@@ -72,7 +72,6 @@ class CsvWriter:
 
     Examples
     --------
-
     >>> from astropy.io.ascii.core import CsvWriter
     >>> writer = CsvWriter(delimiter=' ')
     >>> print(writer.writerow(['hello', '', 'world']))

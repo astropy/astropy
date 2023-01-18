@@ -643,7 +643,6 @@ class OrderedDescriptorContainer(type):
 
     Examples
     --------
-
     >>> from astropy.utils import OrderedDescriptor, OrderedDescriptorContainer
     >>> class TypedAttribute(OrderedDescriptor):
     ...     \"\"\"
