@@ -543,7 +543,7 @@ class FunctionQuantity(Quantity):
                 # if iterable, see if first item has a unit
                 # (mixed lists fail in super call below).
                 try:
-                    value_unit = getattr(value[0], "unit")
+                    value_unit = value[0].unit
                 except Exception:
                     pass
             physical_unit = getattr(value_unit, "physical_unit", value_unit)
