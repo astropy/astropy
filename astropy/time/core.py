@@ -2718,7 +2718,7 @@ class TimeDelta(TimeBase):
     a similar reason, 'utc' is not a valid scale for a time difference: a UTC
     day is not always 86400 seconds.
 
-    See Also:
+    For more information see:
 
     - https://docs.astropy.org/en/stable/time/
     - https://docs.astropy.org/en/stable/time/index.html#time-deltas
