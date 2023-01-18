@@ -830,7 +830,7 @@ def _set_locale(name):
     This code taken from https://stackoverflow.com/questions/18593661/how-do-i-strftime-a-date-object-in-a-different-locale.
 
     Parameters
-    ==========
+    ----------
     name : str
         Locale name, e.g. "C" or "fr_FR".
     """

@@ -4646,7 +4646,8 @@ def hide_inverse(model):
     model's inverse. This is to handle cases where user provided inverse
     functions are not compatible within an expression.
 
-    Example:
+    For example::
+
         compound_model.inverse = hide_inverse(m1) + m2 + m3
 
     This will insure that the defined inverse itself won't attempt to
