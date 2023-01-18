@@ -146,7 +146,6 @@ extend-ignore = [
     "D402",  # NoSignature                             # TODO: fix
     "D403",  # FirstLineCapitalized
     "D404",  # NoThisPrefix
-    "D409",  # SectionUnderlineMatchesSectionLength    # TODO: autofix
     "D410", "D412",  # (No)BlankLineAfterSection       # TODO: choose one and autofix
     "D400",  # EndsInPeriod. Using D415 instead.
     "D411",  # BlankLineBeforeSection                  # TODO: autofix
