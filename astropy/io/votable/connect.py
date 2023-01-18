@@ -39,10 +39,8 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
             return result
         elif filepath is not None:
             return is_votable(filepath)
-        elif isinstance(args[0], (VOTableFile, VOTable)):
-            return True
-        else:
-            return False
+        return isinstance(args[0], (VOTableFile, VOTable))
+
     else:
         return False
 

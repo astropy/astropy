@@ -696,8 +696,8 @@ def test__prepare_output_single_model():
     ).all()
 
     # Broadcast to scalar
-    assert 1 == model._prepare_output_single_model(np.array([1]), ())
-    assert 2 == model._prepare_output_single_model(np.asanyarray(2), ())
+    assert model._prepare_output_single_model(np.array([1]), ()) == 1
+    assert model._prepare_output_single_model(np.asanyarray(2), ()) == 2
 
     # Broadcast reshape
     output = np.array([[1, 2, 3], [4, 5, 6]])
@@ -706,8 +706,8 @@ def test__prepare_output_single_model():
     assert (reshape == model._prepare_output_single_model(output, (3, 2))).all()
 
     # Broadcast reshape scalar
-    assert 1 == model._prepare_output_single_model(np.array([1]), (1, 2))
-    assert 2 == model._prepare_output_single_model(np.asanyarray(2), (3, 4))
+    assert model._prepare_output_single_model(np.array([1]), (1, 2)) == 1
+    assert model._prepare_output_single_model(np.asanyarray(2), (3, 4)) == 2
 
     # Fail to broadcast
     assert (output == model._prepare_output_single_model(output, (1, 2))).all()

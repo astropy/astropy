@@ -1198,10 +1198,7 @@ class UnitBase:
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
-            for base in unit.bases:
-                if base not in namespace:
-                    return False
-            return True
+            return all(base in namespace for base in unit.bases)
 
         unit = self.decompose()
         key = hash(unit)

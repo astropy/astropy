@@ -199,9 +199,7 @@ class TestBounds:
             theta=0.5,
             bounds=bounds,
         )
-        if isinstance(fitter, fitting.LevMarLSQFitter) or isinstance(
-            fitter, fitting.DogBoxLSQFitter
-        ):
+        if isinstance(fitter, (fitting.LevMarLSQFitter, fitting.DogBoxLSQFitter)):
             with pytest.warns(AstropyUserWarning, match="The fit may be unsuccessful"):
                 model = fitter(gauss, X, Y, self.data)
         else:
@@ -545,9 +543,7 @@ def test_gaussian2d_positive_stddev(fitter):
     # fmt: on
 
     g_init = models.Gaussian2D(x_mean=8, y_mean=8)
-    if isinstance(fitter, fitting.TRFLSQFitter) or isinstance(
-        fitter, fitting.DogBoxLSQFitter
-    ):
+    if isinstance(fitter, (fitting.TRFLSQFitter, fitting.DogBoxLSQFitter)):
         pytest.xfail("TRFLSQFitter seems to be broken for this test.")
 
     y, x = np.mgrid[:17, :17]

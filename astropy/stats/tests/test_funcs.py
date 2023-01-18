@@ -255,10 +255,10 @@ def test_binned_binom_proportion_exception():
 
 def test_signal_to_noise_oir_ccd():
     result = funcs.signal_to_noise_oir_ccd(1, 25, 0, 0, 0, 1)
-    assert 5.0 == result
+    assert result == 5.0
     # check to make sure gain works
     result = funcs.signal_to_noise_oir_ccd(1, 5, 0, 0, 0, 1, 5)
-    assert 5.0 == result
+    assert result == 5.0
 
     # now add in sky, dark current, and read noise
     # make sure the snr goes down
