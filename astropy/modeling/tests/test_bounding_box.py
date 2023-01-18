@@ -686,10 +686,10 @@ class Test_BoundingDomain:
         bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # set no unit
-        assert 27 == bounding_box._set_outputs_unit(27, None)
+        assert bounding_box._set_outputs_unit(27, None) == 27
 
         # set unit
-        assert 27 * u.m == bounding_box._set_outputs_unit(27, u.m)
+        assert bounding_box._set_outputs_unit(27, u.m) == 27 * u.m
 
     def test_evaluate(self):
         bounding_box = self.BoundingDomain(Gaussian2D())

@@ -551,7 +551,7 @@ class TestNonLinearFitters:
         assert_allclose(tf1.parameters, c, rtol=10 ** (-2), atol=10 ** (-2))
 
         model = models.Gaussian1D()
-        if isinstance(fitter, TRFLSQFitter) or isinstance(fitter, LMLSQFitter):
+        if isinstance(fitter, (TRFLSQFitter, LMLSQFitter)):
             with pytest.warns(
                 AstropyUserWarning, match=r"The fit may be unsuccessful; *."
             ):
@@ -1106,7 +1106,7 @@ def test_fitters_interface(fitter):
     else:
         kwargs = {"maxiter": 77, "verblevel": 1, "epsilon": 1e-2, "acc": 1e-6}
 
-    if isinstance(fitter, LevMarLSQFitter) or isinstance(fitter, _NLLSQFitter):
+    if isinstance(fitter, (LevMarLSQFitter, _NLLSQFitter)):
         kwargs.pop("verblevel")
 
     _ = fitter(model, x, y, **kwargs)

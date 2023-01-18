@@ -2087,9 +2087,7 @@ class Table:
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
         elif (
-            isinstance(item, slice)
-            or isinstance(item, np.ndarray)
-            or isinstance(item, list)
+            isinstance(item, (slice, np.ndarray, list))
             or isinstance(item, tuple)
             and all(isinstance(x, np.ndarray) for x in item)
         ):
@@ -2128,13 +2126,9 @@ class Table:
                 self._set_row(idx=item, colnames=self.colnames, vals=value)
 
             elif (
-                isinstance(item, slice)
-                or isinstance(item, np.ndarray)
-                or isinstance(item, list)
-                or (
-                    isinstance(item, tuple)  # output from np.where
-                    and all(isinstance(x, np.ndarray) for x in item)
-                )
+                isinstance(item, (slice, np.ndarray, list))
+                or isinstance(item, tuple)
+                and all(isinstance(x, np.ndarray) for x in item)
             ):
                 if isinstance(value, Table):
                     vals = (col for col in value.columns.values())
