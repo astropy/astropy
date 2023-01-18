@@ -203,7 +203,7 @@ class _BaseHDU:
                     if has_getrefcount and data_refcount == 2:
                         self._file._maybe_close_mmap()
 
-            setattr(cls, "data", data_prop.deleter(data))
+            cls.data = data_prop.deleter(data)
 
         return super().__init_subclass__(**kwargs)
 
