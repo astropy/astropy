@@ -1793,7 +1793,6 @@ class CompImageHDU(BinTableHDU):
 
         Parameters
         ----------
-
         type : str, optional
             destination data type, use a string representing a numpy dtype
             name, (e.g. ``'uint8'``, ``'int16'``, ``'float32'`` etc.).  If is

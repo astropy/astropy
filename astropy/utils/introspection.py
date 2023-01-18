@@ -42,7 +42,6 @@ def resolve_name(name, *additional_parts):
 
     Parameters
     ----------
-
     name : `str`
         A dotted path to a Python object--that is, the name of a function,
         class, or other object in a module with the full path to that module,
@@ -55,7 +54,6 @@ def resolve_name(name, *additional_parts):
 
     Examples
     --------
-
     >>> resolve_name('astropy.utils.introspection.resolve_name')
     <function resolve_name at 0x...>
     >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
@@ -131,7 +129,6 @@ def minversion(module, version, inclusive=True, version_path="__version__"):
 
     Examples
     --------
-
     >>> import astropy
     >>> minversion(astropy, '0.4.4')
     True

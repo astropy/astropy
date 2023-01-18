@@ -448,7 +448,6 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
         Examples
         --------
-
         >>> from astropy.table import Column
         >>> c = Column([1, 2], unit='m', dtype='int32')
         >>> c.info()

@@ -174,7 +174,6 @@ class custom_ctype_to_ucd_mapping:
 
     Examples
     --------
-
     Consider a WCS with the following CTYPE::
 
         >>> from astropy.wcs import WCS

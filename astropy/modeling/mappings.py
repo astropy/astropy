@@ -38,7 +38,6 @@ class Mapping(FittableModel):
 
     Examples
     --------
-
     >>> from astropy.modeling.models import Polynomial2D, Shift, Mapping
     >>> poly1 = Polynomial2D(1, c0_0=1, c1_0=2, c0_1=3)
     >>> poly2 = Polynomial2D(1, c0_0=1, c1_0=2.4, c0_1=2.1)
@@ -145,7 +144,6 @@ class Identity(Mapping):
 
     Examples
     --------
-
     Transform ``(x, y)`` by a shift in x, followed by scaling the two inputs::
 
         >>> from astropy.modeling.models import (Polynomial1D, Shift, Scale,
@@ -213,7 +211,6 @@ class UnitsMapping(Model):
 
     Examples
     --------
-
     Wrapping a unitless model to require and convert units:
 
     >>> from astropy.modeling.models import Polynomial1D, UnitsMapping

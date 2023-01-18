@@ -459,7 +459,6 @@ class Ecsv(basic.Basic):
 
     Examples
     --------
-
     >>> from astropy.table import Table
     >>> ecsv_content = '''# %ECSV 0.9
     ... # ---

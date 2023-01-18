@@ -157,7 +157,6 @@ class QuantityInput:
 
         Notes
         -----
-
         The checking of arguments inside variable arguments to a function is not
         supported (i.e. \*arg or \**kwargs).
 
@@ -166,7 +165,6 @@ class QuantityInput:
 
         Examples
         --------
-
         .. code-block:: python
 
             import astropy.units as u

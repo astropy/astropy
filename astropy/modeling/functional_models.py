@@ -617,7 +617,6 @@ class Scale(Fittable1DModel):
 
     Notes
     -----
-
     If ``factor`` is a `~astropy.units.Quantity` then the units will be
     stripped before the scaling operation.
 
@@ -3282,7 +3281,6 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
     Notes
     -----
-
     This model approximates a King model with an analytic function. The derivation of this
     equation can be found in King '62 (equation 14). This is just an approximation of the
     full model and the parameters derived from this model should be taken with caution.

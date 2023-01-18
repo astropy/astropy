@@ -1554,7 +1554,6 @@ class Table:
 
         Examples
         --------
-
         To iterate over the columns of a table::
 
             >>> t = Table([[1], [2]])

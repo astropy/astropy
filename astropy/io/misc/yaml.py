@@ -20,7 +20,6 @@ classes to define custom YAML tags for the following astropy classes:
 
 Examples
 --------
-
     >>> from astropy.io.misc import yaml
     >>> import astropy.units as u
     >>> from astropy.time import Time

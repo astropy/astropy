@@ -223,7 +223,6 @@ def wcs_to_celestial_frame(wcs):
 
     Notes
     -----
-
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a :class:`~astropy.wcs.WCS`
     instance and should return either an instance of a frame, or `None` if no
@@ -266,7 +265,6 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Examples
     --------
-
     ::
 
         >>> from astropy.wcs.utils import celestial_frame_to_wcs
@@ -293,7 +291,6 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
 
     Notes
     -----
-
     To extend this function to frames not defined in astropy.coordinates, you
     can write your own function which should take a
     :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
@@ -405,7 +402,6 @@ def proj_plane_pixel_area(wcs):
 
     Notes
     -----
-
     Depending on the application, square root of the pixel area can be used to
     represent a single pixel scale of an equivalent square pixel
     whose area is equal to the area of a generally non-square pixel.
@@ -1235,7 +1231,6 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     Notes
     -----
-
     The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
     where the first three elements are the coordinate in a cartesian
     representation and the second 3 are the coordinate in a spherical

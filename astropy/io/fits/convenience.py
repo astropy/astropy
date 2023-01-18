@@ -381,7 +381,6 @@ def delval(filename, keyword, *args, **kwargs):
 
     Parameters
     ----------
-
     filename : path-like or file-like
         Name of the FITS file, or file object If opened, mode must be update
         (rb+).  An opened file object or `~gzip.GzipFile` object will be closed

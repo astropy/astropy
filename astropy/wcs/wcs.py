@@ -212,7 +212,6 @@ class NoConvergence(Exception):
 
     Attributes
     ----------
-
     best_solution : `numpy.ndarray`
         Best solution achieved by the numerical method.
 
@@ -377,7 +376,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     Notes
     -----
-
     1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
        (the transformations handled by WCSLIB).  However, the
        `distortion paper`_ lookup table and `SIP`_ distortions must be
@@ -2759,7 +2757,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Notes
         -----
-
         Depending on the application, square root of the pixel area can be used to
         represent a single pixel scale of an equivalent square pixel
         whose area is equal to the area of a generally non-square pixel.
@@ -2785,7 +2782,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-
         relax : bool or int, optional
             Degree of permissiveness:
 

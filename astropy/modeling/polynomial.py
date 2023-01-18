@@ -216,7 +216,6 @@ class OrthoPolynomialBase(PolynomialBase):
 
     Parameters
     ----------
-
     x_degree : int
         degree in x
     y_degree : int
@@ -483,7 +482,6 @@ class Chebyshev1D(_PolyDomainWindow1D):
 
     Notes
     -----
-
     This model does not support the use of units/quantities, because each term
     in the sum of Chebyshev polynomials is a polynomial in x - since the
     coefficients within each Chebyshev polynomial are fixed, we can't use
@@ -605,7 +603,6 @@ class Hermite1D(_PolyDomainWindow1D):
 
     Notes
     -----
-
     This model does not support the use of units/quantities, because each term
     in the sum of Hermite polynomials is a polynomial in x - since the
     coefficients within each Hermite polynomial are fixed, we can't use
@@ -715,7 +712,6 @@ class Hermite2D(OrthoPolynomialBase):
 
     Parameters
     ----------
-
     x_degree : int
         degree in x
     y_degree : int
@@ -737,7 +733,6 @@ class Hermite2D(OrthoPolynomialBase):
 
     Notes
     -----
-
     This model does not support the use of units/quantities, because each term
     in the sum of Hermite polynomials is a polynomial in x and/or y - since the
     coefficients within each Hermite polynomial are fixed, we can't use
@@ -878,7 +873,6 @@ class Legendre1D(_PolyDomainWindow1D):
 
     Notes
     -----
-
     This model does not support the use of units/quantities, because each term
     in the sum of Legendre polynomials is a polynomial in x - since the
     coefficients within each Legendre polynomial are fixed, we can't use
@@ -1371,7 +1365,6 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     Parameters
     ----------
-
     x_degree : int
         degree in x
     y_degree : int
@@ -1394,7 +1387,6 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     Notes
     -----
-
     This model does not support the use of units/quantities, because each term
     in the sum of Chebyshev polynomials is a polynomial in x and/or y - since
     the coefficients within each Chebyshev polynomial are fixed, we can't use
@@ -1521,7 +1513,6 @@ class Legendre2D(OrthoPolynomialBase):
 
     Parameters
     ----------
-
     x_degree : int
         degree in x
     y_degree : int

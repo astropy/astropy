@@ -215,7 +215,6 @@ class XMLWriter:
 
         Examples
         --------
-
         >>> with writer.tag('foo'):  # doctest: +SKIP
         ...     writer.element('bar')
         ... # </foo> is implicitly closed here
