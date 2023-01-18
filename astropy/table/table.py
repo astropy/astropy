@@ -4164,7 +4164,7 @@ class QTable(Table):
     except that columns with an associated ``unit`` attribute are converted to
     `~astropy.units.Quantity` objects.
 
-    See also:
+    See Also:
 
     - https://docs.astropy.org/en/stable/table/
     - https://docs.astropy.org/en/stable/table/mixin_columns.html

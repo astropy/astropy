@@ -2718,7 +2718,7 @@ class TimeDelta(TimeBase):
     a similar reason, 'utc' is not a valid scale for a time difference: a UTC
     day is not always 86400 seconds.
 
-    See also:
+    See Also:
 
     - https://docs.astropy.org/en/stable/time/
     - https://docs.astropy.org/en/stable/time/index.html#time-deltas
@@ -3003,7 +3003,7 @@ class TimeDelta(TimeBase):
         quantity : `~astropy.units.Quantity`
             The quantity in the units specified.
 
-        See also
+        See Also
         --------
         to_value : get the numerical value in a given unit.
         """
@@ -3070,7 +3070,7 @@ class TimeDelta(TimeBase):
         value : ndarray or scalar
             The value in the format or units specified.
 
-        See also
+        See Also
         --------
         to : Convert to a `~astropy.units.Quantity` instance in a given unit.
         value : The time value in the current format.

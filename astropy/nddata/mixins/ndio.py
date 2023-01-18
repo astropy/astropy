@@ -25,7 +25,7 @@ class NDDataRead(registry.UnifiedReadWrite):
       >>> CCDData.read.help('fits')  # Get detailed help on CCDData FITS reader
       >>> CCDData.read.list_formats()  # Print list of available formats
 
-    See also:
+    See Also:
 
     - https://docs.astropy.org/en/stable/nddata
     - https://docs.astropy.org/en/stable/io/unified.html
@@ -76,7 +76,7 @@ class NDDataWrite(registry.UnifiedReadWrite):
       >>> CCDData.write.help('fits')  # Get detailed help on CCDData FITS writer
       >>> CCDData.write.list_formats()  # Print list of available formats
 
-    See also:
+    See Also:
 
     - https://docs.astropy.org/en/stable/nddata
     - https://docs.astropy.org/en/stable/io/unified.html

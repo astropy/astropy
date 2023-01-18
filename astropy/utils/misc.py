@@ -368,7 +368,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 
-    See also
+    See Also
     --------
     os.walk : For a description of the parameters
     """
