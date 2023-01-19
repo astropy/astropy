@@ -412,7 +412,6 @@ def compress_hdu(hdu):
         quantize = "ZSCALE" in hdu.columns.dtype.names
 
         if data.dtype.kind == "f" and quantize:
-            noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
             dither_method = DITHER_METHODS[hdu._header.get("ZQUANTIZ", "NO_DITHER")]
             dither_seed = hdu._header.get("ZDITHER0", 0)
             q = Quantize(
