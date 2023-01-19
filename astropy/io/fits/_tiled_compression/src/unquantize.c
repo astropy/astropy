@@ -4,9 +4,12 @@
 // it even if we link against the system CFITSIO library.
 
 # include <stdlib.h>
-# include "fitsio2.h"
+# include <stdio.h>
 
 #define ZERO_VALUE -2147483646 /* value used to represent zero-valued pixels */
+#define N_RANDOM 10000  /* DO NOT CHANGE THIS;  used when quantizing real numbers */
+#define MEMORY_ALLOCATION 113  /* Could not allocate memory */
+#define SUBTRACTIVE_DITHER_2 2
 
 float *fits_rand_value = 0;
 
@@ -19,10 +22,7 @@ int fits_init_randoms(void) {
     double m = 2147483647.0;
     double temp, seed;
 
-    FFLOCK;
-
     if (fits_rand_value) {
-       FFUNLOCK;
        return(0);  /* array is already initialized */
     }
 
@@ -31,7 +31,6 @@ int fits_init_randoms(void) {
     fits_rand_value = calloc(N_RANDOM, sizeof(float));
 
     if (!fits_rand_value) {
-        FFUNLOCK;
 	return(MEMORY_ALLOCATION);
     }
 
@@ -51,14 +50,12 @@ int fits_init_randoms(void) {
 	fits_rand_value[ii] = (float) (seed / m);
     }
 
-    FFUNLOCK;
-
     /*
     IMPORTANT NOTE: the 10000th seed value must have the value 1043618065 if the
        algorithm has been implemented correctly */
 
     if ( (int) seed != 1043618065) {
-        ffpmsg("fits_init_randoms generated incorrect random number sequence");
+        printf("fits_init_randoms generated incorrect random number sequence");
 	return(1);
     } else {
         return(0);
