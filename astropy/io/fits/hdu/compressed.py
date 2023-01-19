@@ -755,11 +755,7 @@ class CompImageHDU(BinTableHDU):
         if "ZIMAGE" not in header or not header["ZIMAGE"]:
             return False
 
-        if COMPRESSION_ENABLED:
-            return True
-        else:
-            # Compression is supported but disabled; just pass silently (#92)
-            return False
+        return COMPRESSION_ENABLED
 
     def _update_header_data(
         self,
