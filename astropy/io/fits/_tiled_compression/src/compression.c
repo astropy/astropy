@@ -4,9 +4,9 @@
 #include <Python.h>
 #include <fits_hcompress.h>
 #include <fits_hdecompress.h>
-#include <imcompress.h>
 #include <pliocomp.h>
 #include <quantize.h>
+#include <unquantize.h>
 #include <ricecomp.h>
 
 

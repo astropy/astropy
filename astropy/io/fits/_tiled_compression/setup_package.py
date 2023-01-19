@@ -13,7 +13,12 @@ SRC_DIR = os.path.join(os.path.dirname(__file__), "src")
 def get_extensions():
 
     cfg = defaultdict(list)
-    cfg["sources"].append(os.path.join(SRC_DIR, "compression.c"))
+    cfg["sources"].extend(
+        [
+            os.path.join(SRC_DIR, "compression.c"),
+            os.path.join(SRC_DIR, "unquantize.c"),
+        ]
+    )
 
     if int(os.environ.get("ASTROPY_USE_SYSTEM_CFITSIO", 0)) or int(
         os.environ.get("ASTROPY_USE_SYSTEM_ALL", 0)
@@ -28,7 +33,6 @@ def get_extensions():
                 os.path.join("cextern", "cfitsio", "lib", "fits_hcompress.c"),
                 os.path.join("cextern", "cfitsio", "lib", "fits_hdecompress.c"),
                 os.path.join("cextern", "cfitsio", "lib", "quantize.c"),
-                os.path.join("cextern", "cfitsio", "lib", "imcompress.c"),
             ]
         )
 
