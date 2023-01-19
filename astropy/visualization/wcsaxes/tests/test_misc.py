@@ -412,11 +412,11 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
 EXPECTED_REPR_1 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   unit wrap format_unit visible
-  ----- ------------------------------ --------- ---- ---- ----------- -------
-      0                   distmod dist    scalar      None                  no
-      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
+  index            aliases                type   ...    wrap   format_unit visible
+  ----- ------------------------------ --------- ... --------- ----------- -------
+      0                   distmod dist    scalar ...      None                  no
+      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
 
 >
  """.strip()
@@ -424,11 +424,11 @@ EXPECTED_REPR_1 = """
 EXPECTED_REPR_2 = """
 <CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   unit wrap format_unit visible
-  ----- ------------------------------ --------- ---- ---- ----------- -------
-      0                   distmod dist    scalar      None                 yes
-      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
+  index            aliases                type   ...    wrap   format_unit visible
+  ----- ------------------------------ --------- ... --------- ----------- -------
+      0                   distmod dist    scalar ...      None                 yes
+      1 pos.galactic.lon glon-car glon longitude ... 360.0 deg         deg     yes
+      2 pos.galactic.lat glat-car glat  latitude ...      None         deg     yes
 
 >
  """.strip()
