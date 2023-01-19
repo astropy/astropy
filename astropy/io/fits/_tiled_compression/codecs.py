@@ -63,6 +63,8 @@ class Gzip1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
+        # In principle we should be able to not have .tobytes() here and avoid
+        # the copy but this does not work correctly in Python 3.11.
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
         dbytes = gzip_decompress(cbytes)
         return np.frombuffer(dbytes, dtype=np.uint8)
@@ -81,6 +83,8 @@ class Gzip1(Codec):
         bytes
             The compressed bytes.
         """
+        # In principle we should be able to not have .tobytes() here and avoid
+        # the copy but this does not work correctly in Python 3.11.
         dbytes = np.asarray(buf).tobytes()
         return gzip_compress(dbytes)
 
