@@ -12,6 +12,7 @@ from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
 from .codecs import PLIO1, Gzip1, Gzip2, HCompress1, Rice1
 from .quantization import DITHER_METHODS, QuantizationFailedException, Quantize
+from .utils import _iter_array_tiles
 
 ALGORITHMS = {
     "GZIP_1": Gzip1,
@@ -274,18 +275,9 @@ def decompress_hdu(hdu):
 
     override_itemsize = None
 
-    istart = np.zeros(data.ndim, dtype=int)
-    for irow, row in enumerate(hdu.compressed_data):
+    for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
 
-        # In the following, we don't need to special case tiles near the edge
-        # as Numpy will automatically ignore parts of the slices that are out
-        # of bounds.
-        tile_slices = tuple(
-            [
-                slice(istart[idx], istart[idx] + tile_shape[idx])
-                for idx in range(len(istart))
-            ]
-        )
+        row = hdu.compressed_data[irow]
 
         # For tiles near the edge, the tile shape from the header might not be
         # correct so we have to pass the shape manually.
@@ -366,11 +358,6 @@ def decompress_hdu(hdu):
                 tile_data[blank_mask] = np.nan
 
         data[tile_slices] = tile_data
-        istart[-1] += tile_shape[-1]
-        for idx in range(data.ndim - 1, 0, -1):
-            if istart[idx] >= data_shape[idx]:
-                istart[idx] = 0
-                istart[idx - 1] += tile_shape[idx - 1]
 
     return data
 
@@ -414,24 +401,11 @@ def compress_hdu(hdu):
     zeros = []
     zblank = None
 
-    irow = 0
-    istart = np.zeros(len(data_shape), dtype=int)
-
     noisebit = _get_compression_setting(hdu._header, "noisebit", 0)
 
-    while True:
+    for irow, tile_slices in enumerate(_iter_array_tiles(data_shape, tile_shape)):
 
-        # In the following, we don't need to special case tiles near the edge
-        # as Numpy will automatically ignore parts of the slices that are out
-        # of bounds.
-        slices = tuple(
-            [
-                slice(istart[idx], istart[idx] + tile_shape[idx])
-                for idx in range(len(istart))
-            ]
-        )
-
-        data = hdu.data[slices]
+        data = hdu.data[tile_slices]
 
         settings = _header_to_settings(hdu._header, data.shape)
 
@@ -513,18 +487,6 @@ def compress_hdu(hdu):
         else:
             cbytes = _compress_tile(data, algorithm=hdu._header["ZCMPTYPE"], **settings)
         compressed_bytes.append(cbytes)
-
-        istart[-1] += tile_shape[-1]
-
-        for idx in range(data.ndim - 1, 0, -1):
-            if istart[idx] >= data_shape[idx]:
-                istart[idx] = 0
-                istart[idx - 1] += tile_shape[idx - 1]
-
-        if istart[0] >= data_shape[0]:
-            break
-
-        irow += 1
 
     if zblank is not None:
         hdu._header["ZBLANK"] = zblank
