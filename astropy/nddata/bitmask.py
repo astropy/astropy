@@ -186,16 +186,16 @@ class BitFlagNameMeta(type):
 
     def __delattr__(cls, name):
         raise AttributeError(
-            f"{cls.__name__:s}: cannot delete {cls.mro()[-2].__name__:s} member."
+            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
         )
 
     def __delitem__(cls, name):
         raise AttributeError(
-            f"{cls.__name__:s}: cannot delete {cls.mro()[-2].__name__:s} member."
+            f"{cls.__name__}: cannot delete {cls.mro()[-2].__name__} member."
         )
 
     def __repr__(cls):
-        return f"<{cls.mro()[-2].__name__:s} '{cls.__name__:s}'>"
+        return f"<{cls.mro()[-2].__name__} '{cls.__name__}'>"
 
 
 class BitFlagNameMap(metaclass=BitFlagNameMeta):
@@ -465,7 +465,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     for v in bitset:
         if not _is_bit_flag(v) and not allow_non_flags:
             raise ValueError(
-                f"Input list contains invalid (not powers of two) bit flag: {v:d}"
+                f"Input list contains invalid (not powers of two) bit flag: {v}"
             )
         bitmask += v
 

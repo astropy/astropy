@@ -1305,14 +1305,14 @@ class FITS_rec(np.recarray):
 
         if lead < 0:
             warnings.warn(
-                f"Column {col_idx + 1!r} starting point overlaps the previous column."
+                f"Column {col_idx + 1} starting point overlaps the previous column."
             )
 
         trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
 
         if trail < 0:
             warnings.warn(
-                f"Column {col_idx + 1!r} ending point overlaps the next column."
+                f"Column {col_idx + 1} ending point overlaps the next column."
             )
 
         # TODO: It would be nice if these string column formatting

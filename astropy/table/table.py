@@ -274,7 +274,7 @@ class TableColumns(OrderedDict):
             return self.__class__([self[x] for x in list(self)[item]])
         else:
             raise IndexError(
-                f"Illegal key or index value for {self.__class__.__name__} object"
+                f"Illegal key or index value for {type(self).__name__} object"
             )
 
     def __setitem__(self, item, value, validated=False):

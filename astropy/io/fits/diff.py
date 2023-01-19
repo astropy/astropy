@@ -412,32 +412,31 @@ class FITSDiff(_BaseDiff):
 
         if self.ignore_hdus:
             ignore_hdus = " ".join(sorted(self.ignore_hdus))
-            self._writeln(f" HDU(s) not to be compared:\n{wrapper.fill(ignore_hdus)}")
+            self._writeln(" HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdus))
 
         if self.ignore_hdu_patterns:
             ignore_hdu_patterns = " ".join(sorted(self.ignore_hdu_patterns))
             self._writeln(
-                f" HDU(s) not to be compared:\n{wrapper.fill(ignore_hdu_patterns)}"
+                " HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdu_patterns)
             )
 
         if self.ignore_keywords:
             ignore_keywords = " ".join(sorted(self.ignore_keywords))
             self._writeln(
-                f" Keyword(s) not to be compared:\n{wrapper.fill(ignore_keywords)}"
+                " Keyword(s) not to be compared:\n" + wrapper.fill(ignore_keywords)
             )
 
         if self.ignore_comments:
             ignore_comments = " ".join(sorted(self.ignore_comments))
             self._writeln(
-                " Keyword(s) whose comments are not to be compared:\n{}".format(
-                    wrapper.fill(ignore_comments)
-                )
+                " Keyword(s) whose comments are not to be compared:\n"
+                + wrapper.fill(ignore_comments)
             )
 
         if self.ignore_fields:
             ignore_fields = " ".join(sorted(self.ignore_fields))
             self._writeln(
-                f" Table column(s) not to be compared:\n{wrapper.fill(ignore_fields)}"
+                " Table column(s) not to be compared:\n" + wrapper.fill(ignore_fields)
             )
 
         self._writeln(
