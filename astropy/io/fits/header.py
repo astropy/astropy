@@ -2045,7 +2045,7 @@ class _DelayedHeader:
                 obj._header_str = None
             else:
                 raise AttributeError(
-                    f"'{obj.__class__.__name__}' object has no attribute '_header'"
+                    f"'{type(obj).__name__}' object has no attribute '_header'"
                 )
 
             obj.__dict__["_header"] = hdr

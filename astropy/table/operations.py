@@ -98,7 +98,7 @@ def _get_out_class(objs):
         for obj in objs
     ):
         raise ValueError(
-            f"unmergeable object classes {[obj.__class__.__name__ for obj in objs]}"
+            f"unmergeable object classes {[type(obj).__name__ for obj in objs]}"
         )
 
     return out_class

@@ -122,7 +122,7 @@ class FalseArray(np.ndarray):
         val = np.asarray(val)
         if np.any(val):
             raise ValueError(
-                f"Cannot set any element of {self.__class__.__name__} class to True"
+                f"Cannot set any element of {type(self).__name__} class to True"
             )
 
 

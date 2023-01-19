@@ -658,7 +658,7 @@ class _File:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except OSError as exc:
                 warnings.warn(
-                    f"Failed to create mmap: {str(exc)}; mmap use will be disabled",
+                    f"Failed to create mmap: {exc}; mmap use will be disabled",
                     AstropyUserWarning,
                 )
                 del exc
