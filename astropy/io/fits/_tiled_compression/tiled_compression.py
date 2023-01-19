@@ -341,10 +341,8 @@ def decompress_hdu(hdu):
 
             if "ZBLANK" in row.array.names:
                 zblank = row["ZBLANK"]
-            elif "ZBLANK" in hdu._header:
-                zblank = hdu._header["ZBLANK"]
             else:
-                zblank = None
+                zblank = hdu._header.get("ZBLANK", None)
 
             if zblank is not None:
                 blank_mask = tile_data == zblank
