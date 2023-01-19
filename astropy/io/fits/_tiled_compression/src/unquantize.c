@@ -1,23 +1,12 @@
-# include <stdio.h>
+// This file is copied/adapted from the imcompress.c file in CFITSIO, and
+// includes the unquantize_* functions. These are included here because
+// they are not exposed in the CFITSIO library so we need to compile against
+// it even if we link against the system CFITSIO library.
+
 # include <stdlib.h>
-# include <string.h>
-# include <math.h>
-# include <ctype.h>
-# include <time.h>
 # include "fitsio2.h"
 
-#define NULL_VALUE -2147483647 /* value used to represent undefined pixels */
 #define ZERO_VALUE -2147483646 /* value used to represent zero-valued pixels */
-
-/* nearest integer function */
-# define NINT(x)  ((x >= 0.) ? (int) (x + 0.5) : (int) (x - 0.5))
-
-/* special quantize level value indicates that floating point image pixels */
-/* should not be quantized and instead losslessly compressed (with GZIP) */
-#define NO_QUANTIZE 9999
-
-/* string array for storing the individual column compression stats */
-char results[999][30];
 
 float *fits_rand_value = 0;
 
