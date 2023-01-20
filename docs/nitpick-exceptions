@@ -17,6 +17,8 @@ py:class astropy.modeling.projections.Projection
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 py:class astropy.io.fits.util.NotifierMixin
+py:class astropy.io.fits._tiled_compression.codecs.Codec
+py:class numcodecs.abc.Codec
 
 # astropy.io.misc.yaml
 py:class yaml.dumper.SafeDumper

@@ -1,0 +1,1 @@
+Added support for >3D data in CompImageHDU

@@ -1,0 +1,5 @@
+Compressing/decompressing a floating point dataset containing NaN values will
+no longer read in the whole tile as NaNs.
+
+Fixed segmentation faults that occurred when compressing/decompressing data
+with the PLIO_1 algorithm.

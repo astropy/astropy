@@ -12,6 +12,7 @@ from contextlib import suppress
 import numpy as np
 
 from astropy.io.fits import conf
+from astropy.io.fits._tiled_compression import compress_hdu, decompress_hdu
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.column import TDEF_RE, ColDefs, Column
@@ -30,13 +31,11 @@ from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU
 from .image import ImageHDU
 from .table import BinTableHDU
 
-try:
-    from astropy.io.fits import compression
-
-    COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = True
-except ImportError:
-    COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = False
-
+# This global variable is used e.g., when calling fits.open with
+# disable_image_compression which temporarily changes the global variable to
+# False. This should ideally be refactored to avoid relying on global module
+# variables.
+COMPRESSION_ENABLED = True
 
 # Quantization dithering method constants; these are right out of fitsio.h
 NO_DITHER = -1
@@ -642,14 +641,6 @@ class CompImageHDU(BinTableHDU):
         same image will always use the same seed.
         """
 
-        if not COMPRESSION_SUPPORTED:
-            # TODO: Raise a more specific Exception type
-            raise Exception(
-                "The astropy.io.fits.compression module is not "
-                "available.  Creation of compressed image HDUs is "
-                "disabled."
-            )
-
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         if data is DELAYED:
@@ -764,19 +755,7 @@ class CompImageHDU(BinTableHDU):
         if "ZIMAGE" not in header or not header["ZIMAGE"]:
             return False
 
-        if COMPRESSION_SUPPORTED and COMPRESSION_ENABLED:
-            return True
-        elif not COMPRESSION_SUPPORTED:
-            warnings.warn(
-                "Failure matching header to a compressed image "
-                "HDU: The compression module is not available.\n"
-                "The HDU will be treated as a Binary Table HDU.",
-                AstropyUserWarning,
-            )
-            return False
-        else:
-            # Compression is supported but disabled; just pass silently (#92)
-            return False
+        return COMPRESSION_ENABLED
 
     def _update_header_data(
         self,
@@ -1495,7 +1474,7 @@ class CompImageHDU(BinTableHDU):
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
-        data = compression.decompress_hdu(self)
+        data = decompress_hdu(self)
 
         if data is None:
             return data
@@ -1505,18 +1484,10 @@ class CompImageHDU(BinTableHDU):
             new_dtype = self._dtype_for_bitpix()
             data = np.array(data, dtype=new_dtype)
 
-            zblank = None
-
-            if "ZBLANK" in self.compressed_data.columns.names:
-                zblank = self.compressed_data["ZBLANK"]
+            if "BLANK" in self._header:
+                blanks = data == np.array(self._header["BLANK"], dtype="int32")
             else:
-                if "ZBLANK" in self._header:
-                    zblank = np.array(self._header["ZBLANK"], dtype="int32")
-                elif "BLANK" in self._header:
-                    zblank = np.array(self._header["BLANK"], dtype="int32")
-
-            if zblank is not None:
-                blanks = data == zblank
+                blanks = None
 
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
@@ -1527,7 +1498,7 @@ class CompImageHDU(BinTableHDU):
                 # avoid doubling memory usage.
                 np.add(data, self._bzero, out=data, casting="unsafe")
 
-            if zblank is not None:
+            if blanks is not None:
                 data = np.where(blanks, np.nan, data)
 
         # Right out of _ImageBaseHDU.data
@@ -1802,17 +1773,6 @@ class CompImageHDU(BinTableHDU):
                 self.data - _pseudo_zero(self.data.dtype),
                 dtype=f"=i{self.data.dtype.itemsize}",
             )
-            should_swap = False
-        else:
-            should_swap = not self.data.dtype.isnative
-
-        if should_swap:
-            if self.data.flags.writeable:
-                self.data.byteswap(True)
-            else:
-                # For read-only arrays, there is no way around making
-                # a byteswapped copy of the data.
-                self.data = self.data.byteswap(False)
 
         try:
             nrows = self._header["NAXIS2"]
@@ -1831,16 +1791,10 @@ class CompImageHDU(BinTableHDU):
             self.data = np.ascontiguousarray(self.data)
 
             # Compress the data.
-            # The current implementation of compress_hdu assumes the empty
-            # compressed data table has already been initialized in
-            # self.compressed_data, and writes directly to it
             # compress_hdu returns the size of the heap for the written
             # compressed image table
-            heapsize, self.compressed_data = compression.compress_hdu(self)
+            heapsize, self.compressed_data = compress_hdu(self)
         finally:
-            # if data was byteswapped return it to its original order
-            if should_swap:
-                self.data.byteswap(True)
             self.data = old_data
 
         # CFITSIO will write the compressed data in big-endian order
