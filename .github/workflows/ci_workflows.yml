@@ -64,7 +64,12 @@ jobs:
         # leave open any files. This has a performance impact on running the
         # tests, hence why it is not enabled by default.
         - name: Python 3.9 with all optional dependencies
-          linux: py39-test-alldeps
+          linux: py39-test-alldeps-fitsio
+          libraries:
+            apt:
+              - language-pack-fr
+              - tzdata
+              - libcfitsio-dev
           toxargs: -v --develop
           posargs: --open-files --run-slow
 
