@@ -255,7 +255,6 @@ def decompress_hdu(hdu):
 
     Returns
     -------
-
     data : `numpy.ndarray`
         The decompressed data array.
     """

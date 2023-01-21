@@ -148,7 +148,6 @@ extend-ignore = [
     "D404",  # NoThisPrefix
     "D410",  # BlankLineAfterSection. Using D412 instead.
     "D400",  # EndsInPeriod. Using D415 instead.
-    "D411",  # BlankLineBeforeSection                  # TODO: autofix
     "D413",  # BlankLineAfterLastSection. Don't check.
     "D414",  # NonEmptySection                         # TODO: fix
     "D416",  # SectionNameEndsInColon. Don't check.
@@ -278,7 +277,10 @@ exclude= [
 "astropy/io/registry/compat.py" = ["F822"]
 "astropy/modeling/models.py" = ["F401", "F403", "F405"]
 "astropy/units/format/*.py" = ["D415"]  # The docstrings are regexes.
-"astropy/utils/decorators.py" = ["D214", "D215"]  # keep Examples section indented.
+"astropy/utils/decorators.py" = [
+    "D214", "D215",  # keep Examples section indented.
+    "D411",  # sphinx treats spaced example sections as real sections
+]
 "test_*.py" = ["B011", "D", "E402", "PGH001", "S101"]
 "examples/*.py" = [
     "D415",  # EndsInPeriod. The examples use RST syntax, not a one-line title.
