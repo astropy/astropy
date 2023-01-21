@@ -100,7 +100,7 @@ def kepler_fits_reader(filename, unit_parse_strict="warn"):
         scale=hdu.header["TIMESYS"].lower(),
         format="jd",
     )
-    time = reference_date + TimeDelta(tab["time"].data)
+    time = reference_date + TimeDelta(tab["time"].data, format="jd")
     time.format = "isot"
 
     # Remove original time column
