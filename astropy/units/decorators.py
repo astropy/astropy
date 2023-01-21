@@ -50,7 +50,6 @@ def _validate_arg_value(
     Validates the object passed in to the wrapped function, ``arg``, with target
     unit or physical type, ``target``.
     """
-
     if len(targets) == 0:
         return
 

@@ -327,7 +327,6 @@ def _quantities2arrays(*args, unit_from_first=False):
     If unit_from_first, take the unit of the first argument regardless
     whether it actually defined a unit (e.g., dimensionless for arrays).
     """
-
     # Turn first argument into a quantity.
     q = _as_quantity(args[0])
     if len(args) == 1:

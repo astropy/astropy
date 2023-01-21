@@ -413,7 +413,6 @@ class SAMPClient:
             with the MType subscribed to (see also
             :meth:`~astropy.samp.client.SAMPClient.declare_subscriptions`).
         """
-
         self.bind_receive_call(mtype, function, declare=declare, metadata=metadata)
 
         self.bind_receive_notification(

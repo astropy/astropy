@@ -77,7 +77,6 @@ class _BaseDiff:
         appropriate subclass of ``_BaseDiff`` for the objects being compared
         (for example, use `HeaderDiff` to compare two `Header` objects.
         """
-
         self.a = a
         self.b = b
 
@@ -92,7 +91,6 @@ class _BaseDiff:
         A ``_BaseDiff`` object acts as `True` in a boolean context if the two
         objects compared are different.  Otherwise it acts as `False`.
         """
-
         return not self.identical
 
     @classmethod
@@ -112,7 +110,6 @@ class _BaseDiff:
             >>> list(hd.ignore_keywords)
             ['*']
         """
-
         sig = signature(cls.__init__)
         # The first 3 arguments of any Diff initializer are self, a, and b.
         kwargs = {}
@@ -132,7 +129,6 @@ class _BaseDiff:
         attribute, which contains a non-empty value if and only if some
         difference was found between the two objects being compared.
         """
-
         return not any(
             getattr(self, attr) for attr in self.__dict__ if attr.startswith("diff_")
         )
@@ -163,7 +159,6 @@ class _BaseDiff:
         -------
         report : str or None
         """
-
         return_string = False
         filepath = None
 
@@ -291,7 +286,6 @@ class FITSDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         if isinstance(a, (str, os.PathLike)):
             try:
                 a = fitsopen(a)
@@ -584,7 +578,6 @@ class HDUDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
         self.ignore_fields = {k.upper() for k in ignore_fields}
@@ -795,7 +788,6 @@ class HeaderDiff(_BaseDiff):
             Ignore all cards that are blank, i.e. they only contain
             whitespace (default: True).
         """
-
         self.ignore_keywords = {k.upper() for k in ignore_keywords}
         self.ignore_comments = {k.upper() for k in ignore_comments}
 
@@ -1081,7 +1073,6 @@ class ImageDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
-
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
@@ -1213,7 +1204,6 @@ class RawDataDiff(ImageDataDiff):
             are kept in memory or output.  If a negative value is given, then
             numdiffs is treated as unlimited (default: 10).
         """
-
         self.diff_dimensions = ()
         self.diff_bytes = []
 
@@ -1351,7 +1341,6 @@ class TableDataDiff(_BaseDiff):
 
             .. versionadded:: 2.0
         """
-
         self.ignore_fields = set(ignore_fields)
         self.numdiffs = numdiffs
         self.rtol = rtol
@@ -1601,7 +1590,6 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
     Write a diff between two header keyword values or comments to the specified
     file-like object.
     """
-
     if keyword in diffs:
         vals = diffs[keyword]
         for idx, val in enumerate(vals):

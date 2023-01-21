@@ -194,7 +194,6 @@ class Gaussian1D(Fittable1DModel):
             order='C'
         )
         """
-
         x0 = self.mean
         dx = factor * self.stddev
 
@@ -217,7 +216,6 @@ class Gaussian1D(Fittable1DModel):
         """
         Gaussian1D model function derivatives.
         """
-
         d_amplitude = np.exp(-0.5 / stddev**2 * (x - mean) ** 2)
         d_mean = amplitude * d_amplitude * (x - mean) / stddev**2
         d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev**3
@@ -450,7 +448,6 @@ class Gaussian2D(Fittable2DModel):
             order='C'
         )
         """
-
         a = factor * self.x_stddev
         b = factor * self.y_stddev
         dx, dy = ellipse_extent(a, b, self.theta)
@@ -463,7 +460,6 @@ class Gaussian2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function."""
-
         cost2 = np.cos(theta) ** 2
         sint2 = np.sin(theta) ** 2
         sin2t = np.sin(2.0 * theta)
@@ -481,7 +477,6 @@ class Gaussian2D(Fittable2DModel):
     @staticmethod
     def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function derivative with respect to parameters."""
-
         cost = np.cos(theta)
         sint = np.sin(theta)
         cost2 = np.cos(theta) ** 2
@@ -577,7 +572,6 @@ class Shift(Fittable1DModel):
     @property
     def inverse(self):
         """One dimensional inverse Shift model function."""
-
         inv = self.copy()
         inv.offset *= -1
 
@@ -605,7 +599,6 @@ class Shift(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Shift model derivative with respect to parameter."""
-
         d_offset = np.ones_like(x)
         return [d_offset]
 
@@ -673,7 +666,6 @@ class Scale(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Scale model derivative with respect to parameter."""
-
         d_factor = x
         return [d_factor]
 
@@ -722,7 +714,6 @@ class Multiply(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional multiply model derivative with respect to parameter."""
-
         d_factor = x
         return [d_factor]
 
@@ -753,20 +744,17 @@ class RedshiftScaleFactor(Fittable1DModel):
     @staticmethod
     def evaluate(x, z):
         """One dimensional RedshiftScaleFactor model function."""
-
         return (1 + z) * x
 
     @staticmethod
     def fit_deriv(x, z):
         """One dimensional RedshiftScaleFactor model derivative."""
-
         d_z = x
         return [d_z]
 
     @property
     def inverse(self):
         """Inverse RedshiftScaleFactor model."""
-
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
 
@@ -854,7 +842,6 @@ class Sersic1D(Fittable1DModel):
     @classmethod
     def evaluate(cls, r, amplitude, r_eff, n):
         """One dimensional Sersic profile function."""
-
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
 
@@ -970,7 +957,6 @@ class Sine1D(_Trigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Sine model derivative."""
-
         d_amplitude = np.sin(TWOPI * frequency * x + TWOPI * phase)
         d_frequency = (
             TWOPI * x * amplitude * np.cos(TWOPI * frequency * x + TWOPI * phase)
@@ -981,7 +967,6 @@ class Sine1D(_Trigonometric1D):
     @property
     def inverse(self):
         """One dimensional inverse of Sine."""
-
         return ArcSine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1049,7 +1034,6 @@ class Cosine1D(_Trigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Cosine model derivative."""
-
         d_amplitude = np.cos(TWOPI * frequency * x + TWOPI * phase)
         d_frequency = -(
             TWOPI * x * amplitude * np.sin(TWOPI * frequency * x + TWOPI * phase)
@@ -1060,7 +1044,6 @@ class Cosine1D(_Trigonometric1D):
     @property
     def inverse(self):
         """One dimensional inverse of Cosine."""
-
         return ArcCosine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1137,7 +1120,6 @@ class Tangent1D(_Trigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Tangent model derivative."""
-
         sec = 1 / (np.cos(TWOPI * frequency * x + TWOPI * phase)) ** 2
 
         d_amplitude = np.tan(TWOPI * frequency * x + TWOPI * phase)
@@ -1148,7 +1130,6 @@ class Tangent1D(_Trigonometric1D):
     @property
     def inverse(self):
         """One dimensional inverse of Tangent."""
-
         return ArcTangent1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1158,7 +1139,6 @@ class Tangent1D(_Trigonometric1D):
         Tuple defining the default ``bounding_box`` limits,
         ``(x_low, x_high)``.
         """
-
         bbox = [
             (-1 / 4 - self.phase) / self.frequency,
             (1 / 4 - self.phase) / self.frequency,
@@ -1260,7 +1240,6 @@ class ArcSine1D(_InverseTrigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcSine model derivative."""
-
         d_amplitude = -x / (
             TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
         )
@@ -1273,13 +1252,11 @@ class ArcSine1D(_InverseTrigonometric1D):
         Tuple defining the default ``bounding_box`` limits,
         ``(x_low, x_high)``.
         """
-
         return -1 * self.amplitude, 1 * self.amplitude
 
     @property
     def inverse(self):
         """One dimensional inverse of ArcSine."""
-
         return Sine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1357,7 +1334,6 @@ class ArcCosine1D(_InverseTrigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcCosine model derivative."""
-
         d_amplitude = x / (
             TWOPI * frequency * amplitude**2 * np.sqrt(1 - (x / amplitude) ** 2)
         )
@@ -1370,13 +1346,11 @@ class ArcCosine1D(_InverseTrigonometric1D):
         Tuple defining the default ``bounding_box`` limits,
         ``(x_low, x_high)``.
         """
-
         return -1 * self.amplitude, 1 * self.amplitude
 
     @property
     def inverse(self):
         """One dimensional inverse of ArcCosine."""
-
         return Cosine1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1448,7 +1422,6 @@ class ArcTangent1D(_InverseTrigonometric1D):
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional ArcTangent model derivative."""
-
         d_amplitude = -x / (
             TWOPI * frequency * amplitude**2 * (1 + (x / amplitude) ** 2)
         )
@@ -1459,7 +1432,6 @@ class ArcTangent1D(_InverseTrigonometric1D):
     @property
     def inverse(self):
         """One dimensional inverse of ArcTangent."""
-
         return Tangent1D(
             amplitude=self.amplitude, frequency=self.frequency, phase=self.phase
         )
@@ -1495,13 +1467,11 @@ class Linear1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, slope, intercept):
         """One dimensional Line model function."""
-
         return slope * x + intercept
 
     @staticmethod
     def fit_deriv(x, *params):
         """One dimensional Line model derivative with respect to parameters."""
-
         d_slope = x
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]
@@ -1555,13 +1525,11 @@ class Planar2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, slope_x, slope_y, intercept):
         """Two dimensional Plane model function."""
-
         return slope_x * x + slope_y * y + intercept
 
     @staticmethod
     def fit_deriv(x, y, *params):
         """Two dimensional Plane model derivative with respect to parameters."""
-
         d_slope_x = x
         d_slope_y = y
         d_intercept = np.ones_like(x)
@@ -1635,13 +1603,11 @@ class Lorentz1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function."""
-
         return amplitude * ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.0) ** 2)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters."""
-
         d_amplitude = fwhm**2 / (fwhm**2 + (x - x_0) ** 2)
         d_x_0 = (
             amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm**2 + (x - x_0) ** 2)
@@ -1777,7 +1743,6 @@ class Voigt1D(Fittable1DModel):
         """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
         cache results for consecutive calls from `evaluate`, `fit_deriv`.
         """
-
         if z.shape == self._last_z.shape and np.allclose(
             z, self._last_z, rtol=1.0e-14, atol=1.0e-15
         ):
@@ -1789,7 +1754,6 @@ class Voigt1D(Fittable1DModel):
 
     def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
-
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
         # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
@@ -1799,7 +1763,6 @@ class Voigt1D(Fittable1DModel):
         """
         Derivative of the one dimensional Voigt function with respect to parameters.
         """
-
         s = self.sqrt_ln2 / fwhm_G
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
         # V * constant from McLean implementation (== their Voigt function)
@@ -1841,7 +1804,6 @@ class Voigt1D(Fittable1DModel):
         Originally licensed under a 3-clause BSD style license - see
         https://atmos.eoc.dlr.de/tools/lbl4IR/cpfX.py
         """
-
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
         # fmt: off
@@ -1957,7 +1919,6 @@ class Const1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude):
         """One dimensional Constant model function."""
-
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
@@ -1974,7 +1935,6 @@ class Const1D(Fittable1DModel):
     @staticmethod
     def fit_deriv(x, amplitude):
         """One dimensional Constant model derivative with respect to parameters."""
-
         d_amplitude = np.ones_like(x)
         return [d_amplitude]
 
@@ -2014,7 +1974,6 @@ class Const2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude):
         """Two dimensional Constant model function."""
-
         if amplitude.size == 1:
             # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(amplitude, shape=x.shape, dtype=x.dtype)
@@ -2122,7 +2081,6 @@ class Ellipse2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
         """Two dimensional Ellipse model function."""
-
         xx = x - x_0
         yy = y - y_0
         cost = np.cos(theta)
@@ -2143,7 +2101,6 @@ class Ellipse2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
-
         a = self.a
         b = self.b
         theta = self.theta
@@ -2214,7 +2171,6 @@ class Disk2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
         """Two dimensional Disk model function."""
-
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         result = np.select([rr <= R_0**2], [amplitude])
 
@@ -2229,7 +2185,6 @@ class Disk2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
-
         return (
             (self.y_0 - self.R_0, self.y_0 + self.R_0),
             (self.x_0 - self.R_0, self.x_0 + self.R_0),
@@ -2338,7 +2293,6 @@ class Ring2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
-
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in**2, rr <= (r_in + width) ** 2)
         result = np.select([r_range], [amplitude])
@@ -2354,7 +2308,6 @@ class Ring2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
-
         dr = self.r_in + self.width
 
         return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
@@ -2440,7 +2393,6 @@ class Box1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function."""
-
         inside = np.logical_and(x >= x_0 - width / 2.0, x <= x_0 + width / 2.0)
         return np.select([inside], [amplitude], 0)
 
@@ -2451,7 +2403,6 @@ class Box1D(Fittable1DModel):
 
         ``(x_low, x_high))``
         """
-
         dx = self.width / 2
 
         return (self.x_0 - dx, self.x_0 + dx)
@@ -2526,7 +2477,6 @@ class Box2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function."""
-
         x_range = np.logical_and(x >= x_0 - x_width / 2.0, x <= x_0 + x_width / 2.0)
         y_range = np.logical_and(y >= y_0 - y_width / 2.0, y <= y_0 + y_width / 2.0)
 
@@ -2543,7 +2493,6 @@ class Box2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
-
         dx = self.x_width / 2
         dy = self.y_width / 2
 
@@ -2615,7 +2564,6 @@ class Trapezoid1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, width, slope):
         """One dimensional Trapezoid model function."""
-
         # Compute the four points where the trapezoid changes slope
         # x1 <= x2 <= x3 <= x4
         x2 = x_0 - width / 2.0
@@ -2643,7 +2591,6 @@ class Trapezoid1D(Fittable1DModel):
 
         ``(x_low, x_high))``
         """
-
         dx = self.width / 2 + self.amplitude / self.slope
 
         return (self.x_0 - dx, self.x_0 + dx)
@@ -2696,7 +2643,6 @@ class TrapezoidDisk2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function."""
-
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
         range_2 = np.logical_and(r > R_0, r <= R_0 + amplitude / slope)
@@ -2715,7 +2661,6 @@ class TrapezoidDisk2D(Fittable2DModel):
 
         ``((y_low, y_high), (x_low, x_high))``
         """
-
         dr = self.R_0 + self.amplitude / self.slope
 
         return ((self.y_0 - dr, self.y_0 + dr), (self.x_0 - dr, self.x_0 + dr))
@@ -2803,7 +2748,6 @@ class RickerWavelet1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
         """One dimensional Ricker Wavelet model function."""
-
         xx_ww = (x - x_0) ** 2 / (2 * sigma**2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
@@ -2881,7 +2825,6 @@ class RickerWavelet2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
         """Two dimensional Ricker Wavelet model function."""
-
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma**2)
         return amplitude * (1 - rr_ww) * np.exp(-rr_ww)
 
@@ -2965,7 +2908,6 @@ class AiryDisk2D(Fittable2DModel):
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function."""
-
         if cls._rz is None:
             from scipy.special import j1, jn_zeros
 
@@ -3079,13 +3021,11 @@ class Moffat1D(Fittable1DModel):
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
         """One dimensional Moffat model function."""
-
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, gamma, alpha):
         """One dimensional Moffat model derivative with respect to parameters."""
-
         fac = 1 + (x - x_0) ** 2 / gamma**2
         d_A = fac ** (-alpha)
         d_x_0 = 2 * amplitude * alpha * (x - x_0) * d_A / (fac * gamma**2)
@@ -3161,14 +3101,12 @@ class Moffat2D(Fittable2DModel):
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
         """Two dimensional Moffat model function."""
-
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
         """Two dimensional Moffat model derivative with respect to parameters."""
-
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         d_A = (1 + rr_gg) ** (-alpha)
         d_x_0 = 2 * amplitude * alpha * d_A * (x - x_0) / (gamma**2 * (1 + rr_gg))
@@ -3292,7 +3230,6 @@ class Sersic2D(Fittable2DModel):
     @classmethod
     def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
         """Two dimensional Sersic profile function."""
-
         if cls._gammaincinv is None:
             from scipy.special import gammaincinv
 
@@ -3410,7 +3347,6 @@ class KingProjectedAnalytic1D(Fittable1DModel):
         """
         Analytic King model function.
         """
-
         result = (
             amplitude
             * r_core**2
@@ -3491,7 +3427,6 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
         ``(r_low, r_high)``
         """
-
         return (0 * self.r_tide, 1 * self.r_tide)
 
     @property

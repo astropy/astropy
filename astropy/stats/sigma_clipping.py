@@ -47,7 +47,6 @@ def _move_tuple_axes_first(array, axis):
 
 def _nanmean(array, axis=None):
     """Bottleneck nanmean function that handle tuple axis."""
-
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0
@@ -60,7 +59,6 @@ def _nanmean(array, axis=None):
 
 def _nanmedian(array, axis=None):
     """Bottleneck nanmedian function that handle tuple axis."""
-
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0
@@ -73,7 +71,6 @@ def _nanmedian(array, axis=None):
 
 def _nanstd(array, axis=None, ddof=0):
     """Bottleneck nanstd function that handle tuple axis."""
-
     if isinstance(axis, tuple):
         array = _move_tuple_axes_first(array, axis=axis)
         axis = 0

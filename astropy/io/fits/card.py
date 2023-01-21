@@ -284,7 +284,6 @@ class Card(_Verify):
     @property
     def value(self):
         """The value associated with the keyword stored in this card."""
-
         if self.field_specifier:
             return float(self._value)
 
@@ -406,7 +405,6 @@ class Card(_Verify):
         character FITS keyword that this RVKC is stored in.  Otherwise it is
         the card's normal keyword.
         """
-
         if self._rawkeyword is not None:
             return self._rawkeyword
         elif self.field_specifier is not None:
@@ -421,7 +419,6 @@ class Card(_Verify):
         the ``<field-specifier>: <value>`` format stored in the card in order
         to represent a RVKC.  Otherwise it is the card's normal value.
         """
-
         if self._rawvalue is not None:
             return self._rawvalue
         elif self.field_specifier is not None:
@@ -433,7 +430,6 @@ class Card(_Verify):
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
-
         if self._comment is not None:
             return self._comment
         elif self._image:
@@ -494,7 +490,6 @@ class Card(_Verify):
         The field-specifier of record-valued keyword cards; always `None` on
         normal cards.
         """
-
         # Ensure that the keyword exists and has been parsed--the will set the
         # internal _field_specifier attribute if this is a RVKC.
         if self.keyword:
@@ -534,7 +529,6 @@ class Card(_Verify):
         The card "image", that is, the 80 byte character string that represents
         this card in an actual FITS header.
         """
-
         if self._image and not self._verified:
             self.verify("fix+warn")
         if self._image is None or self._modified:
@@ -549,7 +543,6 @@ class Card(_Verify):
 
         Returns `False` otherwise.
         """
-
         if not self._verified:
             # The card image has not been parsed yet; compare directly with the
             # string representation of a blank card
@@ -572,7 +565,6 @@ class Card(_Verify):
         image is longer than 80 columns, assume it contains ``CONTINUE``
         card(s).
         """
-
         card = cls()
         if isinstance(image, bytes):
             # FITS supports only ASCII, but decode as latin1 and just take all
@@ -597,7 +589,6 @@ class Card(_Verify):
         keyword : or str
             A keyword value or a ``keyword.field-specifier`` value
         """
-
         # Test first for the most common case: a standard FITS keyword provided
         # in standard all-caps
         if len(keyword) <= KEYWORD_LENGTH and cls._keywd_FSC_RE.match(keyword):
@@ -641,7 +632,6 @@ class Card(_Verify):
             self._check_if_rvkc('DP1.AXIS.1', 2)
             self._check_if_rvkc('DP1     = AXIS.1: 2')
         """
-
         if not conf.enable_record_valued_keyword_cards:
             return False
 
@@ -677,7 +667,6 @@ class Card(_Verify):
         two arguments the card has already been split between keyword and
         value+comment at the standard value indicator '= '.
         """
-
         if len(args) == 1:
             image = args[0]
             eq_idx = image.find(VALUE_INDICATOR)
@@ -712,7 +701,6 @@ class Card(_Verify):
         Sort of addendum to Card.__init__ to set the appropriate internal
         attributes if the card was determined to be a RVKC.
         """
-
         keyword_upper = keyword.upper()
         self._keyword = ".".join((keyword_upper, field_specifier))
         self._rawkeyword = keyword_upper
@@ -767,7 +755,6 @@ class Card(_Verify):
 
     def _parse_value(self):
         """Extract the keyword value from the card image."""
-
         # for commentary cards, no need to parse further
         # Likewise for invalid cards
         if self.keyword.upper() in self._commentary_keywords or self._invalid:
@@ -824,7 +811,6 @@ class Card(_Verify):
 
     def _parse_comment(self):
         """Extract the keyword value from the card image."""
-
         # for commentary cards, no need to parse further
         # likewise for invalid/unparsable cards
         if self.keyword in Card._commentary_keywords or self._invalid:
@@ -851,7 +837,6 @@ class Card(_Verify):
         """
         Split the card image between the keyword and the rest of the card.
         """
-
         if self._image is not None:
             # If we already have a card image, don't try to rebuild a new card
             # image, which self.image would do
@@ -926,7 +911,6 @@ class Card(_Verify):
 
     def _fix_value(self):
         """Fix the card image for fixable non-standard compliance."""
-
         value = None
         keyword, valuecomment = self._split()
         m = self._value_NFSC_RE.match(valuecomment)
@@ -1075,7 +1059,6 @@ class Card(_Verify):
         it does not break at the blank space between words.  So it may
         not look pretty.
         """
-
         if self.keyword in Card._commentary_keywords:
             return self._format_long_commentary_image()
 
@@ -1125,7 +1108,6 @@ class Card(_Verify):
         will render the card as multiple consecutive commentary card of the
         same type.
         """
-
         maxlen = Card.length - KEYWORD_LENGTH
         value = self._format_value()
         output = []
@@ -1257,7 +1239,6 @@ class Card(_Verify):
         long value that is stored internally as multiple concatenated card
         images.
         """
-
         ncards = len(self._image) // Card.length
 
         for idx in range(0, Card.length * ncards, Card.length):
@@ -1281,7 +1262,6 @@ def _int_or_float(s):
 
     If the string is neither a string or a float a value error is raised.
     """
-
     if isinstance(s, float):
         # Already a float so just pass through
         return s
@@ -1300,7 +1280,6 @@ def _format_value(value):
     Converts a card value to its appropriate string representation as
     defined by the FITS format.
     """
-
     # string value should occupies at least 8 columns, unless it is
     # a null string
     if isinstance(value, str):
@@ -1333,7 +1312,6 @@ def _format_value(value):
 
 def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
-
     value_str = f"{value:.16G}"
     if "." not in value_str and "E" not in value_str:
         value_str += ".0"
@@ -1365,7 +1343,6 @@ def _format_float(value):
 
 def _pad(input):
     """Pad blank space to the input string to be multiple of 80."""
-
     _len = len(input)
     if _len == Card.length:
         return input

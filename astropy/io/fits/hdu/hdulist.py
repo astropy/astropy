@@ -190,7 +190,6 @@ def fitsopen(
         `HDUList` containing all of the header data units in the file.
 
     """
-
     from astropy.io.fits import conf
 
     if memmap is None:
@@ -246,7 +245,6 @@ class HDUList(list, _Verify):
             or a bytes object containing the contents of the FITS
             file.
         """
-
         if isinstance(file, bytes):
             self._data = file
             self._file = None
@@ -333,7 +331,6 @@ class HDUList(list, _Verify):
         """
         Get an HDU from the `HDUList`, indexed by number or name.
         """
-
         # If the key is a slice we need to make sure the necessary HDUs
         # have been loaded before passing the slice on to super.
         if isinstance(key, slice):
@@ -412,7 +409,6 @@ class HDUList(list, _Verify):
         """
         Set an HDU to the `HDUList`, indexed by number or name.
         """
-
         _key = self._positive_index_of(key)
         if isinstance(hdu, (slice, list)):
             if _is_int(_key):
@@ -436,7 +432,6 @@ class HDUList(list, _Verify):
         """
         Delete an HDU from the `HDUList`, indexed by number or name.
         """
-
         if isinstance(key, slice):
             end_index = len(self)
         else:
@@ -478,7 +473,6 @@ class HDUList(list, _Verify):
         be used directly.  Use :func:`open` instead (and see its
         documentation for details of the parameters accepted by this method).
         """
-
         return cls._readfrom(
             fileobj=fileobj,
             mode=mode,
@@ -519,7 +513,6 @@ class HDUList(list, _Verify):
         hdul : HDUList
             An :class:`HDUList` object representing the in-memory FITS file.
         """
-
         try:
             # Test that the given object supports the buffer interface by
             # ensuring an ndarray can be created from it
@@ -574,7 +567,6 @@ class HDUList(list, _Verify):
             ========== ========================================================
 
         """
-
         if self._file is not None:
             output = self[index].fileinfo()
 
@@ -618,7 +610,6 @@ class HDUList(list, _Verify):
             A shallow copy of this `HDUList` object.
 
         """
-
         return self[:]
 
     # Syntactic sugar for `__copy__()` magic method
@@ -653,7 +644,6 @@ class HDUList(list, _Verify):
             The HDU object at position indicated by ``index`` or having name
             and version specified by ``index``.
         """
-
         # Make sure that HDUs are loaded before attempting to pop
         self.readall()
         list_index = self.index_of(index)
@@ -671,7 +661,6 @@ class HDUList(list, _Verify):
         hdu : BaseHDU
             The HDU object to insert
         """
-
         if not isinstance(hdu, _BaseHDU):
             raise ValueError(f"{hdu} is not an HDU.")
 
@@ -733,7 +722,6 @@ class HDUList(list, _Verify):
         hdu : BaseHDU
             HDU to add to the `HDUList`.
         """
-
         if not isinstance(hdu, _BaseHDU):
             raise ValueError("HDUList can only append an HDU.")
 
@@ -807,7 +795,6 @@ class HDUList(list, _Verify):
             found in the ``HDUList``.
 
         """
-
         if _is_int(key):
             return key
         elif isinstance(key, tuple):
@@ -858,7 +845,6 @@ class HDUList(list, _Verify):
         all HDUs.  Therefore using negative indices on HDULists is inherently
         inefficient.
         """
-
         index = self.index_of(key)
 
         if index >= 0:
@@ -894,7 +880,6 @@ class HDUList(list, _Verify):
         verbose : bool
             When `True`, print verbose messages
         """
-
         if self._file.mode not in ("append", "update", "ostream"):
             warnings.warn(
                 f"Flush for '{self._file.mode}' mode is not supported.",
@@ -954,7 +939,6 @@ class HDUList(list, _Verify):
         Make sure that if the primary header needs the keyword ``EXTEND`` that
         it has it and it is correct.
         """
-
         if not len(self):
             return
 
@@ -1009,7 +993,6 @@ class HDUList(list, _Verify):
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the headers of all HDU's written to the file.
         """
-
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
             return
@@ -1063,7 +1046,6 @@ class HDUList(list, _Verify):
         closed : bool
             When `True`, close the underlying file object.
         """
-
         try:
             if (
                 self._file
@@ -1093,7 +1075,6 @@ class HDUList(list, _Verify):
             output to a file and instead returns a list of tuples representing
             the HDU info.  Writes to ``sys.stdout`` by default.
         """
-
         if output is None:
             output = sys.stdout
 
@@ -1163,7 +1144,6 @@ class HDUList(list, _Verify):
         HDUList.fromstring, both of which wrap this method, as their
         implementations are largely the same.
         """
-
         if fileobj is not None:
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
@@ -1265,7 +1245,6 @@ class HDUList(list, _Verify):
         reading HDUs until the operation succeeds or there are no
         more HDUs to read.
         """
-
         while True:
             try:
                 return func(*args, **kwargs)
@@ -1282,7 +1261,6 @@ class HDUList(list, _Verify):
 
         Returns True if a new HDU was loaded, or False otherwise.
         """
-
         if self._read_all:
             return False
 
@@ -1419,7 +1397,6 @@ class HDUList(list, _Verify):
 
     def _flush_update(self):
         """Implements flushing changes to a file in update mode."""
-
         for hdu in self:
             # Need to all _prewriteto() for each HDU first to determine if
             # resizing will be necessary
@@ -1449,7 +1426,6 @@ class HDUList(list, _Verify):
         Implements flushing changes in update mode when parts of one or more HDU
         need to be resized.
         """
-
         old_name = self._file.name
         old_memmap = self._file.memmap
         name = _tmp_name(old_name)
@@ -1569,7 +1545,6 @@ class HDUList(list, _Verify):
 
         Side effect of setting the objects _resize attribute.
         """
-
         if not self._resize:
             # determine if any of the HDU is resized
             for hdu in self:

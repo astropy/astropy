@@ -94,7 +94,6 @@ def test_version():
     The '1.0' is curious since other checks in parse() and the version setter do not allow '1.0'.
     This test confirms that behavior for now.  A future change may remove the '1.0'.
     """
-
     # Exercise the checks in __init__
     with pytest.warns(AstropyDeprecationWarning):
         VOTableFile(version="1.0")

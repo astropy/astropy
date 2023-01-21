@@ -56,7 +56,6 @@ _NOT_OVERWRITING_MSG_MATCH = (
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
-
     try:
         iter(obj)
         return True
@@ -66,7 +65,6 @@ def isiterable(obj):
 
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
-
     indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())
     if s[-1] == "\n":
         indented += "\n"
@@ -84,7 +82,6 @@ class _DummyFile:
 @contextlib.contextmanager
 def silence():
     """A context manager that silences sys.stdout and sys.stderr."""
-
     old_stdout = sys.stdout
     old_stderr = sys.stderr
     sys.stdout = _DummyFile()
@@ -118,7 +115,6 @@ def format_exception(msg, *args, **kwargs):
         outside of an ``except`` clause - if it is, this will substitute
         '<unknown>' for the 4 formatting arguments.
     """
-
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
     if len(tb) > 0:
         filename, lineno, func, text = tb[0]
@@ -603,7 +599,6 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
         Defined for convenient sorting of `OrderedDescriptor` instances, which
         are defined to sort in their creation order.
         """
-
         if isinstance(self, OrderedDescriptor) and isinstance(other, OrderedDescriptor):
             try:
                 return self.__order < other.__order

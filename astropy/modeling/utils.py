@@ -135,7 +135,6 @@ class AliasDict(MutableMapping):
         First iterates over keys from the parent dict (if the aliased keys are
         present in the parent), followed by any keys in the local store.
         """
-
         for key, alias in self._aliases.items():
             if alias in self._parent:
                 yield key
@@ -179,7 +178,6 @@ def make_binary_operator_eval(oper, f, g):
     >>> sum_of_prod(3, 5)
     (30,)
     """
-
     return lambda inputs, params: tuple(
         oper(x, y) for x, y in zip(f(inputs, params), g(inputs, params))
     )
@@ -253,7 +251,6 @@ def combine_labels(left, right):
     However if *any* of the labels conflict, this appends '0' to the left-hand
     labels and '1' to the right-hand labels so there is no ambiguity).
     """
-
     if set(left).intersection(right):
         left = tuple(label + "0" for label in left)
         right = tuple(label + "1" for label in right)

@@ -376,7 +376,6 @@ class Fitter(metaclass=_FitterMeta):
         of a model.
         Fitter subclasses should implement this method.
         """
-
         raise NotImplementedError("Subclasses should implement this method.")
 
 
@@ -508,7 +507,6 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         Maps domain into window for a polynomial model which has these
         attributes.
         """
-
         if y is None:
             if hasattr(model, "domain") and model.domain is None:
                 model.domain = [x.min(), x.max()]
@@ -568,7 +566,6 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             a copy of the input model with parameters set by the fitter
 
         """
-
         if not model.fittable:
             raise ValueError("Model must be a subclass of FittableModel")
 
@@ -937,7 +934,6 @@ class FittingWithOutlierRemoval:
             fitting iteration (False) and which were found to be outliers or
             were masked in the input (True).
         """
-
         # For single models, the data get filtered here at each iteration and
         # then passed to the fitter, which is the historical behavior and
         # works even for fitters that don't understand masked arrays. For model
@@ -1130,7 +1126,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             [model, [weights], [input coordinates]]
 
         """
-
         model = args[0]
         weights = args[1]
         fitter_to_model_params(model, fps, self._use_min_max_bounds)
@@ -1157,7 +1152,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         Set ``cov_matrix`` and ``stds`` attributes on model with parameter
         covariance matrix returned by ``optimize.leastsq``.
         """
-
         free_param_names = [
             x
             for x in model.fixed
@@ -1177,7 +1171,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
-
         if weights is None:
             weights = 1.0
 
@@ -1270,7 +1263,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
         x, y, z : ndarrays
             x, y, and z with non-finite values filtered out.
         """
-
         MESSAGE = "Non-Finite input data has been removed by the fitter."
 
         if z is None:
@@ -1341,7 +1333,6 @@ class _NonLinearLSQFitter(metaclass=_FitterMeta):
             a copy of the input model with parameters set by the fitter
 
         """
-
         model_copy = _validate_model(model, self.supported_constraints)
         model_copy.sync_constraints = False
 
@@ -1676,7 +1667,6 @@ class SLSQPLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
@@ -1746,7 +1736,6 @@ class SimplexLSQFitter(Fitter):
             a copy of the input model with parameters set by the fitter
 
         """
-
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
@@ -1821,7 +1810,6 @@ class JointFitter(metaclass=_FitterMeta):
             args is always passed as a tuple from optimize.leastsq
 
         """
-
         lstsqargs = list(args)
         fitted = []
         fitparams = list(fps)
@@ -1877,7 +1865,6 @@ class JointFitter(metaclass=_FitterMeta):
         Fit data to these models keeping some of the parameters common to the
         two models.
         """
-
         from scipy import optimize
 
         if len(args) != reduce(lambda x, y: x + 1 + y + 1, self.modeldims):
@@ -1922,7 +1909,6 @@ class JointFitter(metaclass=_FitterMeta):
 
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     """Convert inputs to float arrays."""
-
     x = np.asanyarray(x, dtype=float)
     y = np.asanyarray(y, dtype=float)
 
@@ -1992,7 +1978,6 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
         parameter with bounds.
         Default: True
     """
-
     _, fit_param_indices, _ = model_to_fit_params(model)
 
     has_tied = any(model.tied.values())
@@ -2064,7 +2049,6 @@ def model_to_fit_params(model):
     These may be a subset of the model parameters, if some of them are held
     constant or tied.
     """
-
     fitparam_indices = list(range(len(model.param_names)))
     model_params = model.parameters
     model_bounds = list(model.bounds.values())
@@ -2102,7 +2086,6 @@ def _model_to_fit_params(model):
 
 def _validate_constraints(supported_constraints, model):
     """Make sure model constraints are supported by the current fitter."""
-
     message = "Optimizer cannot handle {0} constraints."
 
     if any(model.fixed.values()) and "fixed" not in supported_constraints:
@@ -2128,7 +2111,6 @@ def _validate_model(model, supported_constraints):
     """
     Check that model and fitter are compatible and return a copy of the model.
     """
-
     if not model.fittable:
         raise ValueError("Model does not appear to be fittable.")
     if model.linear:
@@ -2162,7 +2144,6 @@ def populate_entry_points(entry_points):
     An explanation of entry points can be found `here
     <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_
     """
-
     for entry_point in entry_points:
         name = entry_point.name
         try:

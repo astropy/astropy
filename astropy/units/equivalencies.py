@@ -351,7 +351,6 @@ def doppler_radio(rest):
     >>> radio_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.209092088877583 km / s>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -421,7 +420,6 @@ def doppler_optical(rest):
     >>> optical_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.20584348799674 km / s>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -499,7 +497,6 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
     """
-
     assert_is_spectral_unit(rest)
 
     ckms = _si.c.to_value("km/s")
@@ -847,7 +844,6 @@ def pixel_scale(pixscale):
     pixscale : `~astropy.units.Quantity`
         The pixel scale either in units of <unit>/pixel or pixel/<unit>.
     """
-
     decomposed = pixscale.unit.decompose()
     dimensions = dict(zip(decomposed.bases, decomposed.powers))
     pix_power = dimensions.get(misc.pix, 0)

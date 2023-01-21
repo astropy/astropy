@@ -344,7 +344,6 @@ def check_broadcast(*shapes):
         If all shapes are mutually broadcastable, returns a tuple of the full
         broadcast shape.
     """
-
     if len(shapes) == 0:
         return ()
     elif len(shapes) == 1:
@@ -383,7 +382,6 @@ def unbroadcast(array):
     See https://stackoverflow.com/questions/40845769/un-broadcasting-numpy-arrays
     for more details.
     """
-
     if array.ndim == 0:
         return array
 

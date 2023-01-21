@@ -1530,7 +1530,6 @@ class AffineTransformation2D(Model):
     @matrix.validator
     def matrix(self, value):
         """Validates that the input matrix is a 2x2 2D array."""
-
         if np.shape(value) != (2, 2):
             raise InputParameterError(
                 "Expected transformation matrix to be a 2x2 array"
@@ -1543,7 +1542,6 @@ class AffineTransformation2D(Model):
         either a "row" vector or a "column" vector where in the latter case the
         resultant Numpy array has ``ndim=2`` but the shape is ``(1, 2)``.
         """
-
         if not (
             (np.ndim(value) == 1 and np.shape(value) == (2,))
             or (np.ndim(value) == 2 and np.shape(value) == (1, 2))
@@ -1565,7 +1563,6 @@ class AffineTransformation2D(Model):
 
         Raises `~astropy.modeling.InputParameterError` if the transformation cannot be inverted.
         """
-
         det = np.linalg.det(self.matrix.value)
 
         if det == 0:

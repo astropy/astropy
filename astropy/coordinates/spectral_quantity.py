@@ -176,7 +176,6 @@ class SpectralQuantity(SpecificTypeQuantity):
         .. [1] Astropy documentation: https://docs.astropy.org/en/stable/units/equivalencies.html#spectral-doppler-equivalencies
 
         """
-
         if self._doppler_convention is not None:
             raise AttributeError(
                 "doppler_convention has already been set, and cannot be changed. Use"
@@ -227,7 +226,6 @@ class SpectralQuantity(SpecificTypeQuantity):
         `SpectralQuantity`
             New spectral coordinate object with data converted to the new unit.
         """
-
         # Make sure units can be passed as strings
         unit = Unit(unit)
 

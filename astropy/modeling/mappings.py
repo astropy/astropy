@@ -109,7 +109,6 @@ class Mapping(FittableModel):
             An inverse does no exist on mappings that drop some of its inputs
             (there is then no way to reconstruct the inputs that were dropped).
         """
-
         try:
             mapping = tuple(self.mapping.index(idx) for idx in range(self.n_inputs))
         except ValueError:
@@ -176,7 +175,6 @@ class Identity(Mapping):
 
         In this case of `Identity`, ``self.inverse is self``.
         """
-
         return self
 
 

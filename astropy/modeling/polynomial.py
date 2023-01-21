@@ -60,7 +60,6 @@ class PolynomialBase(FittableModel):
         can have different parameters depending on the degree of the polynomial
         and the number of dimensions, for example.
         """
-
         return self._param_names
 
 
@@ -101,14 +100,12 @@ class PolynomialModel(PolynomialBase):
     @property
     def degree(self):
         """Degree of polynomial."""
-
         return self._degree
 
     def get_num_coeff(self, ndim):
         """
         Return the number of coefficients in one parameter set.
         """
-
         if self.degree < 0:
             raise ValueError("Degree of polynomial must be positive or null")
         # deg+1 is used to account for the difference between iraf using
@@ -189,7 +186,6 @@ class _PolyDomainWindow1D(PolynomialModel):
         This method sets the ``domain`` and ``window`` attributes on 1D subclasses.
 
         """
-
         self._default_domain_window = {"domain": None, "window": (-1, 1)}
         self.window = window or (-1, 1)
         self.domain = domain
@@ -356,7 +352,6 @@ class OrthoPolynomialBase(PolynomialBase):
         numc : int
             number of coefficients
         """
-
         if self.x_degree < 0 or self.y_degree < 0:
             raise ValueError("Degree of polynomial must be positive or null")
 
@@ -439,7 +434,6 @@ class OrthoPolynomialBase(PolynomialBase):
 
         To be implemented by subclasses"
         """
-
         raise NotImplementedError("Subclasses should implement this")
 
     def evaluate(self, x, y, *coeffs):
@@ -541,7 +535,6 @@ class Chebyshev1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
@@ -567,7 +560,6 @@ class Chebyshev1D(_PolyDomainWindow1D):
     @staticmethod
     def clenshaw(x, coeffs):
         """Evaluates the polynomial using Clenshaw's algorithm."""
-
         if len(coeffs) == 1:
             c0 = coeffs[0]
             c1 = 0
@@ -665,7 +657,6 @@ class Hermite1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
@@ -790,7 +781,6 @@ class Hermite2D(OrthoPolynomialBase):
         Calculate the individual Hermite functions once and store them in a
         dictionary to be reused.
         """
-
         x_terms = self.x_degree + 1
         y_terms = self.y_degree + 1
         kfunc = {}
@@ -828,7 +818,6 @@ class Hermite2D(OrthoPolynomialBase):
         result : ndarray
             The Vandermonde matrix
         """
-
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
@@ -849,7 +838,6 @@ class Hermite2D(OrthoPolynomialBase):
         """
         Derivative of 1D Hermite series.
         """
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
@@ -954,7 +942,6 @@ class Legendre1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = 1
@@ -1074,7 +1061,6 @@ class Polynomial1D(_PolyDomainWindow1D):
         result : ndarray
             The Vandermonde matrix
         """
-
         v = np.empty((self.degree + 1,) + x.shape, dtype=float)
         v[0] = 1
         if self.degree > 0:
@@ -1256,7 +1242,6 @@ class Polynomial2D(PolynomialModel):
         result : ndarray
             The Vandermonde matrix
         """
-
         if x.ndim == 2:
             x = x.flatten()
         if y.ndim == 2:
@@ -1300,7 +1285,6 @@ class Polynomial2D(PolynomialModel):
         coeffs : array
             Coefficients in inverse lexical order.
         """
-
         alpha = self._invlex()
         r0 = coeffs[0]
         r1 = r0 * 0.0
@@ -1454,7 +1438,6 @@ class Chebyshev2D(OrthoPolynomialBase):
         Calculate the individual Chebyshev functions once and store them in a
         dictionary to be reused.
         """
-
         x_terms = self.x_degree + 1
         y_terms = self.y_degree + 1
         kfunc = {}
@@ -1492,7 +1475,6 @@ class Chebyshev2D(OrthoPolynomialBase):
         result : ndarray
             The Vandermonde matrix
         """
-
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
 
@@ -1513,7 +1495,6 @@ class Chebyshev2D(OrthoPolynomialBase):
         """
         Derivative of 1D Chebyshev series.
         """
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
@@ -1613,7 +1594,6 @@ class Legendre2D(OrthoPolynomialBase):
         Calculate the individual Legendre functions once and store them in a
         dictionary to be reused.
         """
-
         x_terms = self.x_degree + 1
         y_terms = self.y_degree + 1
         kfunc = {}
@@ -1670,7 +1650,6 @@ class Legendre2D(OrthoPolynomialBase):
 
     def _legendderiv1d(self, x, deg):
         """Derivative of 1D Legendre polynomial."""
-
         x = np.array(x, dtype=float, copy=False, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
@@ -1744,7 +1723,6 @@ class _SIP1D(PolynomialBase):
         """
         Return the number of coefficients in one param set.
         """
-
         if self.order < 2 or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
 

@@ -437,7 +437,6 @@ class EarthLocation(u.Quantity):
         .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
 
         """
-
         use_google = google_api_key is not None
 
         # Fail fast if invalid options are passed:

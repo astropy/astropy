@@ -107,7 +107,6 @@ def _finalize_array(tile_buffer, *, bitpix, tile_shape, algorithm, lossless):
     and translates it into a numpy array with the correct dtype, endianness and
     shape.
     """
-
     if algorithm.startswith("GZIP"):
         # This algorithm is taken from fitsio
         # https://github.com/astropy/astropy/blob/a8cb1668d4835562b89c0d0b3448ac72ca44db63/cextern/cfitsio/lib/imcompress.c#L6345-L6388
@@ -260,7 +259,6 @@ def decompress_hdu(hdu):
     data : `numpy.ndarray`
         The decompressed data array.
     """
-
     _check_compressed_header(hdu._header)
 
     tile_shape = _tile_shape(hdu._header)
@@ -381,7 +379,6 @@ def compress_hdu(hdu):
     heap : `bytes`
         The bytes of the FITS table heap.
     """
-
     if not isinstance(hdu.data, np.ndarray):
         raise TypeError("CompImageHDU.data must be a numpy.ndarray")
 

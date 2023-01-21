@@ -1280,7 +1280,6 @@ class Table:
         col : Column, MaskedColumn, mixin-column type
             Object that can be used as a column in self
         """
-
         data_is_mixin = self._is_mixin_for_table(data)
         masked_col_cls = (
             self.ColumnClass
@@ -1402,7 +1401,6 @@ class Table:
 
     def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array."""
-
         data_names = data.dtype.names or _auto_names(n_cols)
         struct = data.dtype.names is not None
         names = [name or data_names[i] for i, name in enumerate(names)]
@@ -1417,7 +1415,6 @@ class Table:
 
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns."""
-
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtype, n_cols, copy)
 
@@ -1431,7 +1428,6 @@ class Table:
         of the table MaskedColumn.  If not a MaskedColumn, then ensure that any
         Column-like object is a subclass of the table Column.
         """
-
         col_cls = col.__class__
 
         if self.masked:
@@ -1462,7 +1458,6 @@ class Table:
 
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column or mixin objects."""
-
         lengths = {len(col) for col in cols}
         if len(lengths) > 1:
             raise ValueError(f"Inconsistent data column lengths: {lengths}")
@@ -1488,7 +1483,6 @@ class Table:
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
-
         table = self.__class__(masked=self.masked)
         if self.meta:
             table.meta = self.meta.copy()  # Shallow copy for slice
@@ -1803,7 +1797,6 @@ class Table:
         call this method while offline (and don't have a cached version of
         jquery and jquery.dataTables), you will not get the jsviewer features.
         """
-
         from IPython.display import HTML
 
         from .jsviewer import JSViewer
@@ -1885,7 +1878,6 @@ class Table:
             that if a column with this name already exists, this option will be
             ignored. Defaults to "idx".
         """
-
         import os
         import tempfile
         import webbrowser
@@ -1954,7 +1946,6 @@ class Table:
         ``astropy.conf.max_width``.
 
         """
-
         lines, outs = self.formatter._pformat_table(
             self,
             max_lines,
@@ -2000,7 +1991,6 @@ class Table:
         ``astropy.conf.max_width``.
 
         """
-
         return self.pformat(
             max_lines,
             max_width,
@@ -2861,7 +2851,6 @@ class Table:
 
         To remove several columns at the same time use remove_columns.
         """
-
         self.remove_columns([name])
 
     def remove_columns(self, names):
@@ -2924,7 +2913,6 @@ class Table:
         out_kind : str
             Output dtype.kind
         """
-
         for col in self.itercols():
             if col.dtype.kind == in_kind:
                 try:
@@ -3054,7 +3042,6 @@ class Table:
               1   3   5
               2   4   6
         """
-
         if name not in self.keys():
             raise KeyError(f"Column {name} does not exist")
 
@@ -3093,7 +3080,6 @@ class Table:
               1   3   5
               2   4   6
         """
-
         if not self._is_list_or_tuple_of_str(names):
             raise TypeError("input 'names' must be a tuple or a list of column names")
 
@@ -3711,7 +3697,6 @@ class Table:
             array([ True,  True])
 
         """
-
         if isinstance(other, Table):
             other = other.as_array()
 
@@ -4093,7 +4078,6 @@ class Table:
           2002-01-01T00:00:00.000     300.0     4.0
 
         """
-
         out = OrderedDict()
 
         names = list(dataframe.columns)

@@ -170,7 +170,6 @@ class TransformGraph:
             not callable.
 
         """
-
         if not inspect.isclass(fromsys):
             raise TypeError("fromsys must be a class")
         if not inspect.isclass(tosys):
@@ -290,7 +289,6 @@ class TransformGraph:
             priorities are not set this is the number of transforms
             needed. Is ``inf`` if there is no possible path.
         """
-
         inf = float("inf")
 
         # special-case the 0 or 1-path
@@ -454,7 +452,6 @@ class TransformGraph:
             The coordinate class corresponding to the ``name`` or `None` if
             no such class exists.
         """
-
         return self._cached_names.get(name, None)
 
     def get_names(self):
@@ -514,7 +511,6 @@ class TransformGraph:
         dotgraph : str
             A string with the DOT format graph.
         """
-
         nodes = []
         # find the node names
         for a in self._graph:

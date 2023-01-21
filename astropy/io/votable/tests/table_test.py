@@ -356,7 +356,6 @@ def test_validate_output_invalid():
     Issue #12603. Test that we get the correct output from votable.validate with an invalid
     votable.
     """
-
     # A votable with errors
     invalid_votable_filepath = get_pkg_data_filename("data/regression.xml")
 
@@ -378,7 +377,6 @@ def test_validate_output_valid():
     Issue #12603. Test that we get the correct output from votable.validate with a valid
     votable.
     """
-
     # A valid votable. (Example from the votable standard:
     # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
     valid_votable_filepath = get_pkg_data_filename("data/valid_votable.xml")

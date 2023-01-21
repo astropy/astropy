@@ -109,7 +109,6 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     >>> print(biloc)    # doctest: +FLOAT_CMP
     0.01535330525461019
     """
-
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
 
     if isinstance(data, np.ma.MaskedArray) and ignore_nan:
@@ -268,7 +267,6 @@ def biweight_scale(
     >>> print(biscl)    # doctest: +FLOAT_CMP
     1.0239311812635818
     """
-
     return np.sqrt(
         biweight_midvariance(
             data,
@@ -616,7 +614,6 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     >>> print(np.sqrt(bicov.diagonal()))  # doctest: +FLOAT_CMP
     [0.91343072 2.67519302]
     """
-
     data = np.asanyarray(data).astype(np.float64)
 
     # ensure data is 2D
@@ -742,7 +739,6 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
     >>> print(bicorr)  # doctest: +FLOAT_CMP
     -0.09203238319481295
     """
-
     x = np.asanyarray(x)
     y = np.asanyarray(y)
     if x.ndim != 1:

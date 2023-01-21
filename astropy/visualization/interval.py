@@ -46,7 +46,6 @@ class BaseInterval(BaseTransform):
         vmin, vmax : float
             The mininium and maximum image value in the interval.
         """
-
         raise NotImplementedError("Needs to be implemented in a subclass.")
 
     def __call__(self, values, clip=True, out=None):
@@ -69,7 +68,6 @@ class BaseInterval(BaseTransform):
         result : ndarray
             The transformed values.
         """
-
         vmin, vmax = self.get_limits(values)
 
         if out is None:

@@ -217,7 +217,6 @@ class QuantityInfo(QuantityInfoBase):
             Empty instance of this class consistent with ``cols``
 
         """
-
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(
             cols, metadata_conflicts, name, ("meta", "format", "description")
@@ -1016,7 +1015,6 @@ class Quantity(np.ndarray):
         A `~astropy.units.UnitBase` object representing the unit of this
         quantity.
         """
-
         return self._unit
 
     @property
@@ -1025,7 +1023,6 @@ class Quantity(np.ndarray):
         A list of equivalencies that will be applied by default during
         unit conversions.
         """
-
         return self._equivalencies
 
     def _recursively_apply(self, func):
@@ -1214,7 +1211,6 @@ class Quantity(np.ndarray):
     # Arithmetic operations
     def __mul__(self, other):
         """Multiplication between `Quantity` objects and other objects."""
-
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1227,7 +1223,6 @@ class Quantity(np.ndarray):
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
-
         if isinstance(other, (UnitBase, str)):
             self._set_unit(other * self.unit)
             return self
@@ -1238,12 +1233,10 @@ class Quantity(np.ndarray):
         """
         Right Multiplication between `Quantity` objects and other objects.
         """
-
         return self.__mul__(other)
 
     def __truediv__(self, other):
         """Division between `Quantity` objects and other objects."""
-
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
@@ -1256,7 +1249,6 @@ class Quantity(np.ndarray):
 
     def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
-
         if isinstance(other, (UnitBase, str)):
             self._set_unit(self.unit / other)
             return self
@@ -1265,7 +1257,6 @@ class Quantity(np.ndarray):
 
     def __rtruediv__(self, other):
         """Right Division between `Quantity` objects and other objects."""
-
         if isinstance(other, (UnitBase, str)):
             return self._new_view(1.0 / self.value, other / self.unit, finalize=False)
 
@@ -1606,7 +1597,6 @@ class Quantity(np.ndarray):
             A new object equal to this quantity with units decomposed.
 
         """
-
         new_unit = self.unit.decompose(bases=bases)
 
         # Be careful here because self.value usually is a view of self;

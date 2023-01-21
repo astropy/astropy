@@ -165,7 +165,6 @@ class DaophotHeader(core.BaseHeader):
         col : list
             List of table Columns
         """
-
         if not self.names:
             raise core.InconsistentTableError("No column names found in DAOphot header")
 
@@ -234,7 +233,6 @@ class DaophotInputter(core.ContinuationLinesInputter):
         continued rows in a datablock.  For efficiency, depth gives the upper
         limit of lines to search.
         """
-
         # The list of apertures given in the #K APERTURES keyword may not be
         # complete!!  This happens if the string description of the aperture
         # list is longer than the field width of the #K APERTURES field.  In

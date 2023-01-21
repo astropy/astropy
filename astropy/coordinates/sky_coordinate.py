@@ -381,7 +381,6 @@ class SkyCoord(ShapedLikeNDArray):
         equivalent, extra frame attributes are equivalent, and that the
         representation data are exactly equal.
         """
-
         if isinstance(value, BaseCoordinateFrame):
             if value._data is None:
                 raise ValueError("Can only compare SkyCoord to Frame with data")
@@ -1005,7 +1004,6 @@ class SkyCoord(ShapedLikeNDArray):
         **kwargs
             Keyword args passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
-
         sph_coord = self.frame.represent_as(SphericalRepresentation)
 
         styles = {
@@ -1833,7 +1831,6 @@ class SkyCoord(ShapedLikeNDArray):
         response : bool
             True means the WCS footprint contains the coordinate, False means it does not.
         """
-
         if image is not None:
             ymax, xmax = image.shape
         else:
@@ -2204,7 +2201,6 @@ class SkyCoord(ShapedLikeNDArray):
         coord : SkyCoord
             Instance of the SkyCoord class.
         """
-
         from .name_resolve import get_icrs_coordinates
 
         icrs_coord = get_icrs_coordinates(name, parse, cache=cache)

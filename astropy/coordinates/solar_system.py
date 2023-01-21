@@ -531,7 +531,6 @@ def get_moon(time, location=None, ephemeris=None):
 
     {_EPHEMERIS_NOTE}
     """
-
     return get_body("moon", time, location=location, ephemeris=ephemeris)
 
 

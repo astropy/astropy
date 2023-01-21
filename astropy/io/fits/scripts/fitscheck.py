@@ -199,7 +199,6 @@ def verify_checksums(filename):
 
 def verify_compliance(filename):
     """Check for FITS standard compliance."""
-
     with fits.open(filename) as hdulist:
         try:
             hdulist.verify("exception")
@@ -215,7 +214,6 @@ def update(filename):
 
     Also updates fixes standards violations if possible and requested.
     """
-
     output_verify = "silentfix" if OPTIONS.compliance else "ignore"
 
     # For unit tests we reset temporarily the warning filters. Indeed, before
@@ -239,7 +237,6 @@ def process_file(filename):
     Handle a single .fits file,  returning the count of checksum and compliance
     errors.
     """
-
     try:
         checksum_errors = verify_checksums(filename)
         if OPTIONS.compliance:
@@ -259,7 +256,6 @@ def main(args=None):
     Processes command line parameters into options and files,  then checks
     or update FITS DATASUM and CHECKSUM keywords for the specified files.
     """
-
     errors = 0
     fits_files = handle_options(args or sys.argv[1:])
     setup_logging()

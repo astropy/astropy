@@ -81,7 +81,6 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """
-
     try:
         import h5py
     except ImportError:
@@ -253,7 +252,6 @@ def write_table_hdf5(
         Additional keyword arguments are passed to
         ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.
     """
-
     from astropy.table import meta
 
     try:

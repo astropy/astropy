@@ -40,7 +40,6 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     lat0). Therefore, to end up with a polygon centered on (lon0, lat0), the
     polygon should initially be drawn around the North pole.
     """
-
     # Create a representation object
     polygon = UnitSphericalRepresentation(lon=lon, lat=lat)
 

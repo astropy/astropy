@@ -28,7 +28,6 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
         The world coordinates derived from converting from ``pixel``, which is
         used to ensure round-tripping.
     """
-
     # In some spherical projections, some parts of the curve are 'behind' or
     # 'in front of' the plane of the image, so we find those by reversing the
     # transformation and finding points where the result is not consistent.
@@ -103,7 +102,6 @@ def get_gridline_path(world, pixel):
     pixel : ndarray
         The pixel coordinates corresponding to ``lon_lat``
     """
-
     # Mask values with invalid pixel positions
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
 

@@ -101,7 +101,6 @@ class FitsTestCase:
         """Copies a backup of a test data file to the temp dir and sets its
         mode to writeable.
         """
-
         shutil.copy(
             os.path.expanduser(self.data(filename)),
             os.path.expanduser(self.temp(filename)),
