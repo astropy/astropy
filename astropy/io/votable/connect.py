@@ -154,7 +154,6 @@ def write_table_votable(
         (text representation), ``binary`` or ``binary2``.  Default is
         ``tabledata``.  See :ref:`astropy:votable-serialization`.
     """
-
     # Only those columns which are instances of BaseColumn or Quantity can be written
     unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
     if unsupported_cols:

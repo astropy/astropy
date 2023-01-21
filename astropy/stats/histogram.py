@@ -138,7 +138,6 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     --------
     numpy.histogram
     """
-
     bins = calculate_bin_edges(a, bins=bins, range=range, weights=weights)
     # Now we call numpy's histogram with the resulting bin edges
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)

@@ -30,7 +30,6 @@ def validate_schema(filename, schema_file):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-
     base, ext = os.path.splitext(schema_file)
     if ext == ".xsd":
         schema_part = "--schema"

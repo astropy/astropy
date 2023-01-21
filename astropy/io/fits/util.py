@@ -84,7 +84,6 @@ class NotifierMixin:
         removed from the listeners list when the listener has no other
         references to it.
         """
-
         if self._listeners is None:
             self._listeners = weakref.WeakValueDictionary()
 
@@ -95,7 +94,6 @@ class NotifierMixin:
         Removes the specified listener from the listeners list.  This relies
         on object identity (i.e. the ``is`` operator).
         """
-
         if self._listeners is None:
             return
 
@@ -111,7 +109,6 @@ class NotifierMixin:
         The notification does not by default include the object that actually
         changed (``self``), but it certainly may if required.
         """
-
         if self._listeners is None:
             return
 
@@ -133,7 +130,6 @@ class NotifierMixin:
         Exclude listeners when saving the listener's state, since they may be
         ephemeral.
         """
-
         # TODO: This hasn't come up often, but if anyone needs to pickle HDU
         # objects it will be necessary when HDU objects' states are restored to
         # re-register themselves as listeners on their new column instances.
@@ -157,7 +153,6 @@ def first(iterable):
     >>> first(a)
     1
     """
-
     return next(iter(iterable))
 
 
@@ -183,7 +178,6 @@ def itersubclasses(cls, _seen=None):
 
     From http://code.activestate.com/recipes/576949/
     """
-
     if _seen is None:
         _seen = set()
     try:
@@ -253,7 +247,6 @@ def pairwise(iterable):
 
     Ex: s -> (s0,s1), (s1,s2), (s2,s3), ....
     """
-
     a, b = itertools.tee(iterable)
     for _ in b:
         # Just a little trick to advance b without having to catch
@@ -317,7 +310,6 @@ def isreadable(f):
     Returns True if the file-like object can be read from.  This is a common-
     sense approximation of io.IOBase.readable.
     """
-
     if hasattr(f, "readable"):
         return f.readable()
 
@@ -341,7 +333,6 @@ def iswritable(f):
     Returns True if the file-like object can be written to.  This is a common-
     sense approximation of io.IOBase.writable.
     """
-
     if hasattr(f, "writable"):
         return f.writable()
 
@@ -368,7 +359,6 @@ def isfile(f):
     On Python 3 this also returns True if the given object is higher level
     wrapper on top of a FileIO object, such as a TextIOWrapper.
     """
-
     if isinstance(f, io.FileIO):
         return True
     elif hasattr(f, "buffer"):
@@ -384,7 +374,6 @@ def fileobj_name(f):
     called its name.  Otherwise f's class or type is returned.  If f is a
     string f itself is returned.
     """
-
     if isinstance(f, (str, bytes)):
         return f
     elif isinstance(f, gzip.GzipFile):
@@ -414,7 +403,6 @@ def fileobj_closed(f):
     Returns False for all other types of objects, under the assumption that
     they are file-like objects with no sense of a 'closed' state.
     """
-
     if isinstance(f, path_like):
         return True
 
@@ -433,7 +421,6 @@ def fileobj_mode(f):
     Returns the 'mode' string of a file-like object if such a thing exists.
     Otherwise returns None.
     """
-
     # Go from most to least specific--for example gzip objects have a 'mode'
     # attribute, but it's not analogous to the file.mode attribute
 
@@ -491,7 +478,6 @@ def fileobj_is_binary(f):
     Returns True if the give file or file-like object has a file open in binary
     mode.  When in doubt, returns True by default.
     """
-
     # This is kind of a hack for this to work correctly with _File objects,
     # which, for the time being, are *always* binary
     if hasattr(f, "binary"):
@@ -521,7 +507,6 @@ def fill(text, width, **kwargs):
     :func:`textwrap.wrap` does not otherwise handle well.  Also handles section
     headers.
     """
-
     paragraphs = text.split("\n\n")
 
     def maybe_fill(t):
@@ -543,7 +528,6 @@ CHUNKED_FROMFILE = None
 
 def _array_from_file(infile, dtype, count):
     """Create a numpy array from a file or a file-like object."""
-
     if isfile(infile):
         global CHUNKED_FROMFILE
         if CHUNKED_FROMFILE is None:
@@ -599,7 +583,6 @@ def _array_to_file(arr, outfile):
     If writing directly to an on-disk file this delegates directly to
     `ndarray.tofile`.  Otherwise a slower Python implementation is used.
     """
-
     try:
         seekable = outfile.seekable()
     except AttributeError:
@@ -647,7 +630,6 @@ def _array_to_file_like(arr, fileobj):
     Write a `~numpy.ndarray` to a file-like object (which is not supported by
     `numpy.ndarray.tofile`).
     """
-
     # If the array is empty, we can simply take a shortcut and return since
     # there is nothing to write.
     if len(arr) == 0:
@@ -690,7 +672,6 @@ def _write_string(f, s):
     Write a string to a file, encoding to ASCII if the file is open in binary
     mode, or decoding if the file is open in text mode.
     """
-
     # Assume if the file object doesn't have a specific mode, that the mode is
     # binary
     binmode = fileobj_is_binary(f)
@@ -709,7 +690,6 @@ def _convert_array(array, dtype):
     the same as the old dtype and both types are not numeric, a view is
     returned.  Otherwise a new array must be created.
     """
-
     if array.dtype == dtype:
         return array
     elif array.dtype.itemsize == dtype.itemsize and not (
@@ -727,7 +707,6 @@ def _pseudo_zero(dtype):
     Given a numpy dtype, finds its "zero" point, which is exactly in the
     middle of its range.
     """
-
     # special case for int8
     if dtype.kind == "i" and dtype.itemsize == 1:
         return -128
@@ -748,7 +727,6 @@ def _is_int(val):
 
 def _str_to_num(val):
     """Converts a given string to either an int or a float if necessary."""
-
     try:
         num = int(val)
     except ValueError:
@@ -764,7 +742,6 @@ def _words_group(s, width):
     which are longer than ``strlen``, then they will be split in the middle of
     the word.
     """
-
     words = []
     slen = len(s)
 
@@ -806,7 +783,6 @@ def _tmp_name(input):
     Create a temporary file name which should not already exist.  Use the
     directory of the input file as the base name of the mkstemp() output.
     """
-
     if input is not None:
         input = os.path.dirname(input)
     f, fn = tempfile.mkstemp(dir=input)
@@ -819,7 +795,6 @@ def _get_array_mmap(array):
     If the array has an mmap.mmap at base of its base chain, return the mmap
     object; otherwise return None.
     """
-
     if isinstance(array, mmap.mmap):
         return array
 
@@ -863,7 +838,6 @@ def _extract_number(value, default):
     Attempts to extract an integer number from the given value. If the
     extraction fails, the value of the 'default' argument is returned.
     """
-
     try:
         # The _str_to_num method converts the value to string/float
         # so we need to perform one additional conversion to int on top
@@ -898,7 +872,6 @@ def _rstrip_inplace(array):
     since the built-in `np.char.rstrip` in Numpy does not perform an in-place
     calculation.
     """
-
     # The following implementation convert the string to unsigned integers of
     # the right length. Trailing spaces (which are represented as 32) are then
     # converted to null characters (represented as zeros). To avoid creating

@@ -49,7 +49,6 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
     Positive velocities are assumed to redshift the spectral quantity,
     while negative velocities blueshift the spectral quantity.
     """
-
     # NOTE: we deliberately don't keep sub-classes of SpectralQuantity intact
     # since we can't guarantee that their metadata would be correct/consistent.
     squantity = scoord.view(SpectralQuantity)
@@ -86,7 +85,6 @@ def update_differentials_to_match(
     the frame of the original coordinate, otherwise it will be in the frame of
     the velocity reference.
     """
-
     if not velocity_reference.data.differentials:
         raise ValueError("Reference frame has no velocities")
 
@@ -265,7 +263,6 @@ class SpectralCoord(SpectralQuantity):
             The name of the object being validated (e.g. 'target' or 'observer'),
             which is then used in error messages.
         """
-
         if coord is None:
             return
 
@@ -357,7 +354,6 @@ class SpectralCoord(SpectralQuantity):
         sc : `SpectralCoord` object
             Replica of this object
         """
-
         if isinstance(value, u.Quantity):
             if unit is not None:
                 raise ValueError(
@@ -525,7 +521,6 @@ class SpectralCoord(SpectralQuantity):
         `~astropy.units.Quantity` ['speed']
             The radial velocity of the target with respect to the observer.
         """
-
         # Convert observer and target to ICRS to avoid finite differencing
         # calculations that lack numerical precision.
         observer_icrs = observer.transform_to(ICRS())
@@ -609,7 +604,6 @@ class SpectralCoord(SpectralQuantity):
             The new coordinate object representing the spectral data
             transformed based on the observer's new velocity frame.
         """
-
         if self.observer is None or self.target is None:
             raise ValueError(
                 "This method can only be used if both observer "
@@ -699,7 +693,6 @@ class SpectralCoord(SpectralQuantity):
             to incorporate the shift. This is always a new object even if
             ``target_shift`` and ``observer_shift`` are both `None`.
         """
-
         if observer_shift is not None and (
             self.target is None or self.observer is None
         ):
@@ -773,7 +766,6 @@ class SpectralCoord(SpectralQuantity):
         """
         Transforms the spectral axis to the rest frame.
         """
-
         if self.observer is not None and self.target is not None:
             return self.with_observer_stationary_relative_to(self.target)
 

@@ -46,7 +46,6 @@ class SAMPWebHubProxy(SAMPHubProxy):
             The number of socket connections opened to communicate with the
             Hub.
         """
-
         self._connected = False
 
         try:

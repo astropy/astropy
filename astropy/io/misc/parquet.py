@@ -336,7 +336,6 @@ def write_table_parquet(table, output, overwrite=False):
         if it is a zero-length table and any of the columns are variable-length
         arrays.
     """
-
     from astropy.table import meta, serialize
     from astropy.utils.data_info import serialize_context_as
 

@@ -991,7 +991,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         Writes a `distortion paper`_ type lookup table to the given
         `~astropy.io.fits.HDUList`.
         """
-
         if self.det2im1 is None and self.det2im2 is None:
             return
         dist = "D2IMDIS"
@@ -2728,7 +2727,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         -------
         hdulist : `~astropy.io.fits.HDUList`
         """
-
         header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
@@ -2921,7 +2919,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             If the user requested SIP distortion to be written out add "-SIP" to
             CTYPE if it is missing.
         """
-
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
         SIP coefficients were detected, but CTYPE is missing "-SIP" suffix,
@@ -3171,7 +3168,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         Support pickling of WCS objects.  This is done by serializing
         to an in-memory FITS file and dumping that as a string.
         """
-
         hdulist = self.to_fits(relax=True)
 
         buffer = io.BytesIO()
@@ -3493,7 +3489,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         response : bool
            True means the WCS footprint contains the coordinate, False means it does not.
         """
-
         return coord.contained_by(self, **kwargs)
 
 
@@ -3501,7 +3496,6 @@ def __WCS_unpickle__(cls, dct, fits_data):
     """
     Unpickles a WCS object from a serialized FITS string.
     """
-
     self = cls.__new__(cls)
 
     buffer = io.BytesIO(fits_data)
@@ -3582,7 +3576,6 @@ def find_all_wcs(
     -------
     wcses : list of `WCS`
     """
-
     if isinstance(header, (str, bytes)):
         header_string = header
     elif isinstance(header, fits.Header):

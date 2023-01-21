@@ -1066,7 +1066,6 @@ class FLRW(Cosmology):
         rho : `~astropy.units.Quantity`
             Critical density in g/cm^3 at each input redshift.
         """
-
         return self._critical_density0 * (self.efunc(z)) ** 2
 
     def comoving_distance(self, z):

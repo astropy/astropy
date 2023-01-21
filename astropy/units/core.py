@@ -757,7 +757,6 @@ class UnitBase:
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-
         f = unit_format.get_format(format)
         return f.to_string(self)
 
@@ -1062,7 +1061,6 @@ class UnitBase:
         (which is used as a check in quantity helpers).
 
         """
-
         # First see if it is just a scaling.
         try:
             scale = self._to(other)
@@ -1499,7 +1497,6 @@ class UnitBase:
         """
         Returns a copy of the current `Unit` instance in SI units.
         """
-
         from . import si
 
         return self.to_system(si)[0]
@@ -2587,7 +2584,6 @@ def def_unit(
         The newly-defined unit, or a matching unit that was already
         defined.
     """
-
     if represents is not None:
         result = Unit(s, represents, namespace=namespace, doc=doc, format=format)
     else:

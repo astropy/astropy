@@ -104,7 +104,6 @@ def _init_log():
     """Initializes the Astropy log--in most circumstances this is called
     automatically when importing astropy.
     """
-
     global log
 
     orig_logger_cls = logging.getLoggerClass()
@@ -125,7 +124,6 @@ def _teardown_log():
     This involves poking some logging module internals, so much if it is 'at
     your own risk' and is allowed to pass silently if any exceptions occur.
     """
-
     global log
 
     if log.exception_logging_enabled():
@@ -498,7 +496,6 @@ class AstropyLogger(Logger):
         """
         Reset logger to its initial state.
         """
-
         # Reset any previously installed hooks
         if self.warnings_logging_enabled():
             self.disable_warnings_logging()

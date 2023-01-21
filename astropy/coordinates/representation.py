@@ -147,7 +147,6 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
             Empty instance of this class consistent with ``cols``
 
         """
-
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(
             reps, metadata_conflicts, name, ("meta", "description")
@@ -720,7 +719,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Note that this does *not* set the differentials on
         ``self._differentials``, but rather leaves that for the caller.
         """
-
         # Now handle the actual validation of any specified differential classes
         if differentials is None:
             differentials = dict()
@@ -992,7 +990,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             A shallow copy of this representation, without any differentials.
             If no differentials were present, no copy is made.
         """
-
         if not self._differentials:
             return self
 
@@ -2106,7 +2103,6 @@ class SphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
         # We need to convert Distance to Quantity to allow negative values.
         if isinstance(self.distance, Distance):
             d = self.distance.view(u.Quantity)
@@ -2316,7 +2312,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-
         # We need to convert Distance to Quantity to allow negative values.
         if isinstance(self.r, Distance):
             d = self.r.view(u.Quantity)
@@ -2335,7 +2330,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
-
         s = np.hypot(cart.x, cart.y)
         r = np.hypot(s, cart.z)
 
@@ -2492,7 +2486,6 @@ class CylindricalRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates to cylindrical polar
         coordinates.
         """
-
         rho = np.hypot(cart.x, cart.y)
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
@@ -2567,7 +2560,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         For these, the components are those of the base representation prefixed
         by 'd_', and the class is `~astropy.units.Quantity`.
         """
-
         # Don't do anything for base helper classes.
         if cls.__name__ in (
             "BaseDifferential",
@@ -2621,7 +2613,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         derivative by removing the representation unit from the component units
         of this differential.
         """
-
         # This check is just a last resort so we don't return a strange unit key
         # from accidentally passing in the wrong base.
         self._check_base(base)

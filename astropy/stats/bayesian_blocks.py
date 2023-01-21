@@ -306,7 +306,6 @@ class FitnessFunc:
         If ``ncp_prior`` is not explicitly defined, compute it from ``gamma``
         or ``p0``.
         """
-
         if self.gamma is not None:
             return -np.log(self.gamma)
         elif self.p0 is not None:

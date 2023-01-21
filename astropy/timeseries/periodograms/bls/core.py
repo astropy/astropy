@@ -173,7 +173,6 @@ class BoxLeastSquares(BasePeriodogram):
         coarser by increasing ``frequency_factor``.
 
         """
-
         duration = self._validate_duration(duration)
         baseline = strip_units(self._trel.max() - self._trel.min())
         min_duration = strip_units(np.min(duration))
@@ -356,7 +355,6 @@ class BoxLeastSquares(BasePeriodogram):
         current _tstart value. If the times provided are relative, they are
         returned without conversion (though we still do some checks).
         """
-
         if isinstance(times, TimeDelta):
             times = times.to("day")
 
@@ -417,7 +415,6 @@ class BoxLeastSquares(BasePeriodogram):
             The model evaluated at the times ``t_model`` with units of ``y``.
 
         """
-
         period, duration = self._validate_period_and_duration(period, duration)
 
         transit_time = self._as_relative_time("transit_time", transit_time)
@@ -495,7 +492,6 @@ class BoxLeastSquares(BasePeriodogram):
                 baseline.
 
         """
-
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time("transit_time", transit_time)
 
@@ -622,7 +618,6 @@ class BoxLeastSquares(BasePeriodogram):
             ``False`` indicates and out-of-transit point.
 
         """
-
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time("transit_time", transit_time)
         t = strip_units(self._as_relative_time("t", t))
@@ -658,7 +653,6 @@ class BoxLeastSquares(BasePeriodogram):
             converted to the units of y.
 
         """
-
         # Validate shapes of inputs
         if dy is None:
             t, y = np.broadcast_arrays(t, y, subok=True)

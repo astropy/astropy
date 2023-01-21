@@ -234,7 +234,6 @@ class _BoundingDomain(abc.ABC):
                 the string name of the input or
                 the input index itself.
         """
-
         return get_index(self._model, key)
 
     def _get_name(self, index: int):
@@ -269,7 +268,6 @@ class _BoundingDomain(abc.ABC):
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
         """
-
         raise NotImplementedError("This should be implemented by a child class.")
 
     @abc.abstractmethod
@@ -332,7 +330,6 @@ class _BoundingDomain(abc.ABC):
         -------
         A full set of outputs for case that all inputs are outside domain.
         """
-
         return [
             self._base_output(input_shape, fill_value)
             for _ in range(self._model.n_outputs)
@@ -441,7 +438,6 @@ class _BoundingDomain(abc.ABC):
         with_units : bool
             whether or not a unit is required
         """
-
         if with_units:
             return getattr(valid_outputs, "unit", None)
 
@@ -544,7 +540,6 @@ class _BoundingDomain(abc.ABC):
         -------
         List containing filled in output values and units
         """
-
         if valid_outputs_unit is not None:
             return Quantity(outputs, valid_outputs_unit, copy=False, subok=True)
 
@@ -822,7 +817,6 @@ class ModelBoundingBox(_BoundingDomain):
         keep_ignored : bool
             Keep the ignored inputs of the bounding box (internal argument only)
         """
-
         new = self.copy()
 
         for _input in fixed_inputs.keys():
@@ -1076,7 +1070,6 @@ class _SelectorArgument(_BaseSelectorArgument):
         argument : int or str
             A representation of which evaluation input is being used
         """
-
         return self.index == get_index(model, argument)
 
     def named_tuple(self, model):
@@ -1241,7 +1234,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which evaluation input is being used
         """
-
         return any(selector_arg.is_argument(model, argument) for selector_arg in self)
 
     def selector_index(self, model, argument):
@@ -1256,7 +1248,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         for index, selector_arg in enumerate(self):
             if selector_arg.is_argument(model, argument):
                 return index
@@ -1277,7 +1268,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         arguments = list(self)
         kept_ignore = [arguments.pop(self.selector_index(model, argument)).index]
         kept_ignore.extend(self._kept_ignore)
@@ -1296,7 +1286,6 @@ class _SelectorArguments(tuple):
         argument : int or str
             A representation of which argument is being used
         """
-
         if self.is_argument(model, argument):
             raise ValueError(
                 f"{argument}: is a selector argument and cannot be ignored."
@@ -1614,7 +1603,6 @@ class CompoundBoundingBox(_BoundingDomain):
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
         """
-
         fixed_input_keys = list(fixed_inputs.keys())
         argument = fixed_input_keys.pop()
         value = fixed_inputs[argument]

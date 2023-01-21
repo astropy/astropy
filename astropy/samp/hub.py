@@ -408,7 +408,6 @@ class SAMPHubServer:
             process runs in a separated thread. `False` is usually used in a
             Python shell.
         """
-
         if self._is_running:
             raise SAMPHubError("Hub is already running")
 
@@ -443,7 +442,6 @@ class SAMPHubServer:
         """
         The hub parameters (which are written to the logfile).
         """
-
         params = {}
 
         # Keys required by standard profile
@@ -497,7 +495,6 @@ class SAMPHubServer:
         """
         Stop the current SAMP Hub instance and delete the lock file.
         """
-
         if not self._is_running:
             return
 
@@ -993,7 +990,6 @@ class SAMPHubServer:
         >>> SAMPHubServer.get_mtype_subtypes("samp.app.ping")
         ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
         """
-
         subtypes = []
 
         msubs = mtype.split(".")
@@ -1308,7 +1304,6 @@ class SAMPHubServer:
         arg_params : tuple
             Any additional arguments to be passed to the SAMP method
         """
-
         if recipient_private_key is None:
             raise SAMPHubError("Invalid client ID")
 

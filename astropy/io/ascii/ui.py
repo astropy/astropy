@@ -470,7 +470,6 @@ def _guess(table, read_kwargs, format, fast_reader):
     dat : `~astropy.table.Table` or None
         Output table or None if only one guess format was available
     """
-
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
 
@@ -1014,5 +1013,4 @@ def get_read_trace():
     trace : list of dict
         Ordered list of format guesses and status
     """
-
     return copy.deepcopy(_read_trace)

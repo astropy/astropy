@@ -25,7 +25,6 @@ def _get_first_sentence(s):
     Get the first sentence from a string and remove any carriage
     returns.
     """
-
     x = re.match(r".*?\S\.\s", s)
     if x is not None:
         s = x.group(0)
@@ -37,7 +36,6 @@ def _iter_unit_summary(namespace):
     Generates the ``(unit, doc, represents, aliases, prefixes)``
     tuple used to format the unit summary docs in `generate_unit_summary`.
     """
-
     from . import core
 
     # Get all of the units, and keep track of which ones have SI
@@ -95,7 +93,6 @@ def generate_unit_summary(namespace):
     docstring : str
         A docstring containing a summary table of the units.
     """
-
     docstring = io.StringIO()
 
     docstring.write(

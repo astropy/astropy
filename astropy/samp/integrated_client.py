@@ -299,7 +299,6 @@ class SAMPIntegratedClient:
         ...                   txt = "initialization", percent = "10",
         ...                   extra_kws = {"my.extra.info": "just an example"})
         """
-
         return self.call(recipient_id, msg_tag, self._format_easy_msg(mtype, params))
 
     def call_all(self, msg_tag, message):

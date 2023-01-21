@@ -51,7 +51,6 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
-
     # Make sure we have a list of things
     if not isinstance(tables, Sequence):
         tables = [tables]
@@ -407,7 +406,6 @@ def join(
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-
     # Try converting inputs to Table as needed
     if not isinstance(left, Table):
         left = Table(left)
@@ -863,7 +861,6 @@ def unique(input_table, keys=None, silent=False, keep="first"):
         1     2     3
 
     """
-
     if keep not in ("first", "last", "none"):
         raise ValueError("'keep' should be one of 'first', 'last', 'none'")
 
@@ -920,7 +917,6 @@ def get_col_name_map(
     will be present, while for the other non-key columns the value will be (col_name_0,
     None, ..) or (None, col_name_1, ..) etc.
     """
-
     col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
     col_name_list = []
 
@@ -974,7 +970,6 @@ def get_descrs(arrays, col_name_map):
 
     Return a list of descrs for the output.
     """
-
     out_descrs = []
 
     for out_name, in_names in col_name_map.items():
@@ -1568,7 +1563,6 @@ def _hstack(
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 

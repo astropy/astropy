@@ -552,7 +552,6 @@ def get_config(packageormod=None, reload=False, rootname=None):
         If ``packageormod`` is `None`, but the package this item is created
         from cannot be determined.
     """
-
     if packageormod is None:
         packageormod = find_current_module(2)
         if packageormod is None:
@@ -773,7 +772,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname="as
         If the version number of the package could not determined.
 
     """
-
     if path.isdir(default_cfg_dir_or_fn):
         default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + ".cfg")
     else:
@@ -862,7 +860,6 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
         If the profile was updated, `True`, otherwise `False`.
 
     """
-
     # local import to prevent using the logger before it is configured
     from astropy.logger import log
 

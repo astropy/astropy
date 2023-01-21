@@ -167,7 +167,6 @@ class CoordinateHelper:
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
         """
-
         if grid_type == "lines" and not self.transform.has_inverse:
             raise ValueError(
                 "The specified transform has no inverse, so the "
@@ -204,7 +203,6 @@ class CoordinateHelper:
         coord_wrap : `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates.
         """
-
         self.coord_type = coord_type
 
         if coord_wrap is not None and not isinstance(coord_wrap, u.Quantity):
@@ -270,7 +268,6 @@ class CoordinateHelper:
             depending on whether Matplotlib is using LaTeX or MathTex. To
             get plain ASCII strings, use format='ascii'.
         """
-
         if not hasattr(self, "_fl_spacing"):
             return ""  # _update_ticks has not been called yet
 
@@ -367,7 +364,6 @@ class CoordinateHelper:
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
         """
-
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(
                 "At most one of values, spacing, or number should be specified"
@@ -632,7 +628,6 @@ class CoordinateHelper:
         """
         Draw all ticks and ticklabels.
         """
-
         renderer.open_group("ticks")
         self.ticks.draw(renderer)
         self.ticklabels.draw(
@@ -1235,7 +1230,6 @@ class CoordinateHelper:
             The style of the grid lines (accepts any valid Matplotlib line
             style).
         """
-
         # First do some sanity checking on the keyword arguments
 
         # colors= is a fallback default for color and labelcolor

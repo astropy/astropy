@@ -15,7 +15,6 @@ def figure_test(*args, **kwargs):
     options used by all figure tests in astropy, and also adds the decorator
     to allow remote data to be accessed.
     """
-
     # NOTE: the savefig_kwargs option below is to avoid using PNG files with
     # the matplotlib version embedded since this changes for every developer
     # version.

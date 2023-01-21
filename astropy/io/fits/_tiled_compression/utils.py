@@ -6,7 +6,6 @@ def _iter_array_tiles(data_shape, tile_shape):
     Given an array shape and a tile shape, iterate over the tiles in the array
     returning at each iteration the slices for the array.
     """
-
     ndim = len(data_shape)
     istart = np.zeros(ndim, dtype=int)
 

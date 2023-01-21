@@ -46,7 +46,6 @@ def identify_table(soup, htmldict, numtable):
     Checks whether the given BeautifulSoup tag is the table
     the user intends to process.
     """
-
     if soup is None or soup.name != "table":
         return False  # Tag is not a <table>
 
@@ -76,7 +75,6 @@ class HTMLInputter(core.BaseInputter):
         Convert the given input into a list of SoupString rows
         for further processing.
         """
-
         try:
             from bs4 import BeautifulSoup
         except ImportError:
@@ -189,7 +187,6 @@ class HTMLHeader(core.BaseHeader):
         """
         Return the line number at which header data begins.
         """
-
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError("HTML lines should be of type SoupString")
@@ -230,7 +227,6 @@ class HTMLData(core.BaseData):
         """
         Return the line number at which table data begins.
         """
-
         for i, line in enumerate(lines):
             if not isinstance(line, SoupString):
                 raise TypeError("HTML lines should be of type SoupString")
@@ -347,7 +343,6 @@ class HTML(core.BaseReader):
         """
         Read the ``table`` in HTML format and return a resulting ``Table``.
         """
-
         self.outputter = HTMLOutputter()
         return super().read(table)
 

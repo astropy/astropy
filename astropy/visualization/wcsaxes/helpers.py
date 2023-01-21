@@ -79,7 +79,6 @@ def add_beam(
       (e.g., rectangular pixels)
 
     """
-
     if header and major:
         raise ValueError(
             "Either header or major/minor/angle must be specified, not both."
@@ -173,7 +172,6 @@ def add_scalebar(
       (e.g., rectangular pixels)
 
     """
-
     if isinstance(length, u.Quantity):
         length = length.to(u.degree).value
 

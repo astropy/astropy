@@ -318,7 +318,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         This function is called from there, once the width information is
         available.
         """
-
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
         return lines
