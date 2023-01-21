@@ -403,9 +403,7 @@ class CCDData(NDDataArray):
             uncertainty_cls = self.uncertainty.__class__
             if uncertainty_cls not in _known_uncertainties:
                 raise ValueError(
-                    "only uncertainties of type {} can be saved.".format(
-                        _known_uncertainties
-                    )
+                    f"only uncertainties of type {_known_uncertainties} can be saved."
                 )
             uncertainty_name = _unc_cls_to_name[uncertainty_cls]
 

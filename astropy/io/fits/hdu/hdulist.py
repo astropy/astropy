@@ -906,10 +906,8 @@ class HDUList(list, _Verify):
                     shutil.copy(filename, backup)
                 except OSError as exc:
                     raise OSError(
-                        "Failed to save backup to destination {}: {}".format(
-                            filename, exc
-                        )
-                    )
+                        f"Failed to save backup to destination {filename}"
+                    ) from exc
 
         self.verify(option=output_verify)
 

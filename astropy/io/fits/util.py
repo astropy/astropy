@@ -213,9 +213,7 @@ def ignore_sigint(func):
 
             def __call__(self, signum, frame):
                 warnings.warn(
-                    "KeyboardInterrupt ignored until {} is complete!".format(
-                        func.__name__
-                    ),
+                    f"KeyboardInterrupt ignored until {func.__name__} is complete!",
                     AstropyUserWarning,
                 )
                 self.sigint_received = True

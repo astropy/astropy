@@ -722,9 +722,7 @@ class BaseHeader:
             return self.col_type_map[type_map_key.lower()]
         except KeyError:
             raise ValueError(
-                'Unknown data type ""{}"" for column "{}"'.format(
-                    col.raw_type, col.name
-                )
+                f'Unknown data type ""{col.raw_type}"" for column "{col.name}"'
             )
 
     def check_column_names(self, names, strict_names, guessing):

@@ -51,9 +51,7 @@ def validate_schema(filename, schema_file):
         from astropy.utils.misc import signal_number_to_name
 
         raise OSError(
-            "xmllint was terminated by signal '{}'".format(
-                signal_number_to_name(-p.returncode)
-            )
+            f"xmllint was terminated by signal '{signal_number_to_name(-p.returncode)}'"
         )
 
     return p.returncode, stdout, stderr

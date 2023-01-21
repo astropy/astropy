@@ -1786,9 +1786,7 @@ class Header:
             return indices[n]
         except IndexError:
             raise IndexError(
-                "There are only {} {!r} cards in the header.".format(
-                    len(indices), keyword
-                )
+                f"There are only {len(indices)} {keyword!r} cards in the header."
             )
 
     def _keyword_from_index(self, idx):
@@ -2003,9 +2001,7 @@ class _DelayedHeader:
                 obj._header_str = None
             else:
                 raise AttributeError(
-                    "'{}' object has no attribute '_header'".format(
-                        obj.__class__.__name__
-                    )
+                    f"'{type(obj).__name__}' object has no attribute '_header'"
                 )
 
             obj.__dict__["_header"] = hdr

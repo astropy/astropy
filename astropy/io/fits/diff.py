@@ -406,49 +406,38 @@ class FITSDiff(_BaseDiff):
 
         if self.ignore_hdus:
             ignore_hdus = " ".join(sorted(self.ignore_hdus))
-            self._writeln(f" HDU(s) not to be compared:\n{wrapper.fill(ignore_hdus)}")
+            self._writeln(" HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdus))
 
         if self.ignore_hdu_patterns:
             ignore_hdu_patterns = " ".join(sorted(self.ignore_hdu_patterns))
             self._writeln(
-                " HDU(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_hdu_patterns)
-                )
+                " HDU(s) not to be compared:\n" + wrapper.fill(ignore_hdu_patterns)
             )
 
         if self.ignore_keywords:
             ignore_keywords = " ".join(sorted(self.ignore_keywords))
             self._writeln(
-                " Keyword(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_keywords)
-                )
+                " Keyword(s) not to be compared:\n" + wrapper.fill(ignore_keywords)
             )
 
         if self.ignore_comments:
             ignore_comments = " ".join(sorted(self.ignore_comments))
             self._writeln(
-                " Keyword(s) whose comments are not to be compared:\n{}".format(
-                    wrapper.fill(ignore_comments)
-                )
+                " Keyword(s) whose comments are not to be compared:\n"
+                + wrapper.fill(ignore_comments)
             )
 
         if self.ignore_fields:
             ignore_fields = " ".join(sorted(self.ignore_fields))
             self._writeln(
-                " Table column(s) not to be compared:\n{}".format(
-                    wrapper.fill(ignore_fields)
-                )
+                " Table column(s) not to be compared:\n" + wrapper.fill(ignore_fields)
             )
 
         self._writeln(
-            " Maximum number of different data values to be reported: {}".format(
-                self.numdiffs
-            )
+            f" Maximum number of different data values to be reported: {self.numdiffs}"
         )
         self._writeln(
-            " Relative tolerance: {}, Absolute tolerance: {}".format(
-                self.rtol, self.atol
-            )
+            f" Relative tolerance: {self.rtol}, Absolute tolerance: {self.atol}"
         )
 
         if self.diff_hdu_count:
@@ -1570,9 +1559,7 @@ class TableDataDiff(_BaseDiff):
 
         if self.diff_values and self.numdiffs < self.diff_total:
             self._writeln(
-                " ...{} additional difference(s) found.".format(
-                    self.diff_total - self.numdiffs
-                )
+                f" ...{self.diff_total - self.numdiffs} additional difference(s) found."
             )
 
         if self.diff_total > self.numdiffs:
