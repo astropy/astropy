@@ -111,8 +111,7 @@ def _normalize_fits_mode(mode):
     if mode is not None and mode not in IO_FITS_MODES:
         if TEXT_RE.match(mode):
             raise ValueError(
-                "Text mode '{}' not supported: "
-                "files must be opened in binary mode".format(mode)
+                f"Text mode '{mode}' not supported: files must be opened in binary mode"
             )
         new_mode = FILE_MODES.get(mode)
         if new_mode not in IO_FITS_MODES:
@@ -320,15 +319,11 @@ class _File:
 
             if actualsize > size:
                 raise ValueError(
-                    "size {} is too few bytes for a {} array of {}".format(
-                        size, shape, dtype
-                    )
+                    f"size {size} is too few bytes for a {shape} array of {dtype}"
                 )
             elif actualsize < size:
                 raise ValueError(
-                    "size {} is too many bytes for a {} array of {}".format(
-                        size, shape, dtype
-                    )
+                    f"size {size} is too many bytes for a {shape} array of {dtype}"
                 )
 
         filepos = self._file.tell()
@@ -581,9 +576,7 @@ class _File:
 
         if fileobj_closed(fileobj):
             raise OSError(
-                "Cannot read from/write to a closed file-like object ({!r}).".format(
-                    fileobj
-                )
+                f"Cannot read from/write to a closed file-like object ({fileobj!r})."
             )
 
         if isinstance(fileobj, zipfile.ZipFile):
@@ -657,9 +650,7 @@ class _File:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except OSError as exc:
                 warnings.warn(
-                    "Failed to create mmap: {}; mmap use will be disabled".format(
-                        str(exc)
-                    ),
+                    f"Failed to create mmap: {exc}; mmap use will be disabled",
                     AstropyUserWarning,
                 )
                 del exc

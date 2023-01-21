@@ -627,9 +627,7 @@ class TableFormatter:
                 )
         else:
             raise TypeError(
-                "align keyword must be str or list or tuple (got {})".format(
-                    type(align)
-                )
+                f"align keyword must be str or list or tuple (got {type(align)})"
             )
 
         # Process column visibility from table pprint_include_names and

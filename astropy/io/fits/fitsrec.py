@@ -570,9 +570,7 @@ class FITS_rec(np.recarray):
                     self.field(idx)[key] = value[idx]
             else:
                 raise ValueError(
-                    "Input tuple or list required to have {} elements.".format(
-                        self._nfields
-                    )
+                    f"Input tuple or list required to have {self._nfields} elements."
                 )
         else:
             raise TypeError(
@@ -1281,16 +1279,14 @@ class FITS_rec(np.recarray):
 
         if lead < 0:
             warnings.warn(
-                "Column {!r} starting point overlaps the previous column.".format(
-                    col_idx + 1
-                )
+                f"Column {col_idx + 1} starting point overlaps the previous column."
             )
 
         trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
 
         if trail < 0:
             warnings.warn(
-                f"Column {col_idx + 1!r} ending point overlaps the next column."
+                f"Column {col_idx + 1} ending point overlaps the next column."
             )
 
         # TODO: It would be nice if these string column formatting

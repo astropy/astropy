@@ -1388,9 +1388,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._checksum_valid = self.verify_checksum()
             if not self._checksum_valid:
                 warnings.warn(
-                    "Checksum verification failed for HDU {}.\n".format(
-                        (self.name, self.ver)
-                    ),
+                    f"Checksum verification failed for HDU {self.name, self.ver}.\n",
                     AstropyUserWarning,
                 )
 
@@ -1399,9 +1397,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._datasum_valid = self.verify_datasum()
             if not self._datasum_valid:
                 warnings.warn(
-                    "Datasum verification failed for HDU {}.\n".format(
-                        (self.name, self.ver)
-                    ),
+                    f"Datasum verification failed for HDU {self.name, self.ver}.\n",
                     AstropyUserWarning,
                 )
 

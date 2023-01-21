@@ -173,16 +173,12 @@ def verify_checksums(filename):
                 if not OPTIONS.ignore_missing:
                     if not hdu._checksum:
                         log.warning(
-                            "MISSING {!r} .. Checksum not found in HDU #{}".format(
-                                filename, i
-                            )
+                            f"MISSING {filename!r} .. Checksum not found in HDU #{i}"
                         )
                         return 1
                     if not hdu._datasum:
                         log.warning(
-                            "MISSING {!r} .. Datasum not found in HDU #{}".format(
-                                filename, i
-                            )
+                            f"MISSING {filename!r} .. Datasum not found in HDU #{i}"
                         )
                         return 1
 

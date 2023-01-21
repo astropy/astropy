@@ -228,9 +228,7 @@ class HeaderFormatter:
                 except KeyError:  # Keyword does not exist
                     if self.verbose:
                         log.warning(
-                            "{filename} (HDU {hdukey}): Keyword {kw} not found.".format(
-                                filename=self.filename, hdukey=hdukey, kw=kw
-                            )
+                            f"{self.filename} (HDU {hdukey}): Keyword {kw} not found."
                         )
         return cards
 

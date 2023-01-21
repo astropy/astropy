@@ -83,7 +83,5 @@ def _set_c(
 
         if doclines is not None:
             doclines.append(
-                "{:^10} {:^14.9g} {:^16} {}".format(
-                    _c.abbrev, _c.value, _c._unit_string, _c.name
-                )
+                f"{_c.abbrev:^10} {_c.value:^14.9g} {_c._unit_string:^16} {_c.name}"
             )
