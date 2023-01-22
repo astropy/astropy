@@ -36,23 +36,23 @@ OBSGEO_XYZ = ("OBSGEO-X", "OBSGEO-Y", "OBSGEO-Z")
 OBSGEO_LBH = ("OBSGEO-L", "OBSGEO-B", "OBSGEO-H")
 TIME_KEYWORDS = (
     (
-        "TIMESYS",
-        "MJDREF",
-        "JDREF",
-        "DATEREF",
-        "TREFPOS",
-        "TREFDIR",
-        "TIMEUNIT",
-        "TIMEOFFS",
         "DATE",
-        "DATE-OBS",
         "DATE-AVG",
         "DATE-BEG",
         "DATE-END",
-        "MJD-OBS",
+        "DATE-OBS",
+        "DATEREF",
+        "JDREF",
         "MJD-AVG",
         "MJD-BEG",
         "MJD-END",
+        "MJD-OBS",
+        "MJDREF",
+        "TIMEOFFS",
+        "TIMESYS",
+        "TIMEUNIT",
+        "TREFDIR",
+        "TREFPOS",
     )
     + OBSGEO_LBH
     + OBSGEO_XYZ
