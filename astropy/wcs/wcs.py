@@ -725,7 +725,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             return
 
         # Delete SIP if CTYPE explicitly has '-TPV' code:
-        if sum(ct.strip().endswith('-TPV') for ct in self.wcs.ctype) == 2:
+        ctype = [ct.strip().upper() for ct in self.wcs.ctype]
+        if sum(ct.endswith('-TPV') for ct in ctype) == 2:
             if self.sip is not None:
                 self.sip = None
                 warnings.warn(
@@ -757,7 +758,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 has_scamp = True
                 break
 
-        if all(ct.strip().upper().endswith('-SIP') for ct in self.wcs.ctype) and has_scamp:
+        if (has_scamp and
+                all(ct.endswith('-SIP') for ct in ctype)):
             # Prefer SIP - see recommendations in Section 7 in
             # http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf
             self.wcs.set_pv([])
@@ -1218,10 +1220,14 @@ reduce these to 2 dimensions using the naxis kwarg.
             # check if PVi_j with j >= 5 is present and if so, do not load SIP
             tan_to_tpv = False
             for nax in tan_axes:
-                js = [
-                    int(p.removeprefix(f'PV{nax}_').rstrip(wcskey))
-                    for p in header[f'PV{nax}_*{wcskey}'].keys()
-                ]
+                js = []
+                for p in header[f'PV{nax}_*{wcskey}'].keys():
+                    prefix = f'PV{nax}_'
+                    if p.startswith(prefix):
+                        p = p[len(prefix):]
+                    p = p.rstrip(wcskey)
+                    js.append(int(p))
+
                 if js and max(js) >= 5:
                     tan_to_tpv = True
                     break
